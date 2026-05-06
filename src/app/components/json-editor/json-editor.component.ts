@@ -8,9 +8,12 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  effect,
   forwardRef,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { ThemeService } from "../../services/theme.service";
 import {
   ControlValueAccessor,
   NG_VALIDATORS,
@@ -30,6 +33,8 @@ declare const self: typeof globalThis & {
 
 let monacoLoader: Promise<MonacoEditorModule> | null = null;
 let environmentConfigured = false;
+let loadedMonaco: MonacoEditorModule | null = null;
+let sandboxThemesDefined = false;
 
 type WorkerFactory = new () => Worker;
 
@@ -114,6 +119,38 @@ function loadMonaco(): Promise<MonacoEditorModule> {
   return monacoLoader;
 }
 
+function defineSandboxThemes(monaco: MonacoEditorModule): void {
+  if (sandboxThemesDefined) return;
+  sandboxThemesDefined = true;
+  monaco.editor.defineTheme("sandbox-dark", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      { token: "string.key.json", foreground: "a5b4fc" },
+      { token: "string.value.json", foreground: "22c55e" },
+      { token: "number.json", foreground: "f59e0b" },
+      { token: "keyword.json", foreground: "ef4444" },
+    ],
+    colors: {
+      "editor.background": "#141720",
+      "editor.foreground": "#e6e8f0",
+      "editorLineNumber.foreground": "#4c5070",
+      "editorLineNumber.activeForeground": "#8a8fa8",
+      "editor.selectionBackground": "#6366f130",
+      "editor.lineHighlightBackground": "#1a1d2880",
+      "editorCursor.foreground": "#6366f1",
+      "editor.inactiveSelectionBackground": "#6366f118",
+      "scrollbarSlider.background": "#ffffff20",
+      "scrollbarSlider.hoverBackground": "#ffffff38",
+      "scrollbarSlider.activeBackground": "#ffffff50",
+    },
+  });
+}
+
+function monacoThemeName(theme: "dark" | "light"): string {
+  return theme === "dark" ? "sandbox-dark" : "vs";
+}
+
 const noop = () => {};
 
 @Component({
@@ -131,13 +168,13 @@ const noop = () => {};
       @defer (on viewport) {
         <div
           #editorHost
-          class="h-full w-full overflow-hidden rounded-lg bg-black/60"
+          class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"
         ></div>
       } @placeholder {
         <div
-          class="flex h-full w-full items-center justify-center rounded-md bg-black/40 text-sm text-slate-300"
+          class="flex h-full w-full items-center justify-center rounded-md bg-canvas-elevated type-callout text-label-tertiary"
         >
-          Loading JSON editor…
+          Loading editor…
         </div>
       }
     </div>
@@ -158,6 +195,8 @@ const noop = () => {};
 export class JsonEditorComponent
   implements ControlValueAccessor, Validator, OnChanges, OnDestroy
 {
+  private readonly themeService = inject(ThemeService);
+
   @Input() readOnly = false;
   @Input() height?: number;
   @Input() schemaUri?: string;
@@ -177,6 +216,15 @@ export class JsonEditorComponent
   private editorHostRef?: ElementRef<HTMLDivElement>;
 
   private monacoModule: MonacoEditorModule | null = null;
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.theme();
+      if (loadedMonaco) {
+        loadedMonaco.editor.setTheme(monacoThemeName(theme));
+      }
+    });
+  }
   private editorInstance: MonacoTypes.editor.IStandaloneCodeEditor | null = null;
   private model: MonacoTypes.editor.ITextModel | null = null;
   private disabled = false;
@@ -251,8 +299,10 @@ export class JsonEditorComponent
     }
 
     this.monacoModule = await loadMonaco();
+    loadedMonaco = this.monacoModule;
     const monaco = this.monacoModule;
 
+    defineSandboxThemes(monaco);
     this.applySchemaDiagnostics();
 
     this.model =
@@ -263,7 +313,7 @@ export class JsonEditorComponent
       model: this.model,
       automaticLayout: true,
       minimap: { enabled: false },
-      theme: "vs-dark",
+      theme: monacoThemeName(this.themeService.theme()),
       wordWrap: "on",
       readOnly: this.readOnly || this.disabled,
     });

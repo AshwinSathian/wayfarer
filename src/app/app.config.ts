@@ -4,9 +4,11 @@ import {
 } from "@angular/common/http";
 import { ApplicationConfig } from "@angular/core";
 import { provideAnimations } from "@angular/platform-browser/animations";
+import { provideServiceWorker } from "@angular/service-worker";
 import { definePreset } from "@primeng/themes";
 import Aura from "@primeng/themes/aura";
 import { providePrimeNG } from "primeng/config";
+import { isDevMode } from "@angular/core";
 
 const SandboxTheme = definePreset(Aura, {
   semantic: {
@@ -69,8 +71,9 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    // Reserved for future PWA integration:
-    // import { provideServiceWorker } from '@angular/service-worker';
-    // provideServiceWorker('ngsw-worker.js', { enabled: true }),
+    provideServiceWorker("ngsw-worker.js", {
+      enabled: !isDevMode(),
+      registrationStrategy: "registerWhenStable:30000",
+    }),
   ],
 };

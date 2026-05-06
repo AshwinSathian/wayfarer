@@ -11,10 +11,13 @@ export interface Meta {
 
 export const META_VERSION: Meta["version"] = 1;
 
+export type AuthType = "none" | "bearer" | "basic" | "api-key";
+
 export interface HttpAuthPlaceholder {
-  type: "none" | "basic" | "bearer" | "custom";
-  label?: string;
-  config?: Record<string, unknown>;
+  type: AuthType;
+  bearer?: { token: string };
+  basic?: { username: string; password: string };
+  apiKey?: { key: string; value: string; addTo: "header" | "query" };
 }
 
 interface BaseDocument {

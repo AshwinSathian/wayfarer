@@ -19,7 +19,9 @@ import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
 import {
+  CurlExportContext,
   InspectorExportEntry,
+  buildCurlCommand,
   toHar,
 } from "../../shared/inspect/export.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
@@ -82,6 +84,11 @@ export class ResponseViewerComponent implements OnChanges {
   @Input() exportContext: ResponseExportContext | null = null;
 
   exportItems: MenuItem[] = [
+    {
+      label: "Copy as cURL",
+      icon: "pi pi-terminal",
+      command: () => this.copyAsCurl(),
+    },
     {
       label: "Copy as HAR",
       icon: "pi pi-copy",
@@ -230,26 +237,42 @@ export class ResponseViewerComponent implements OnChanges {
     );
   }
 
+  async copyAsCurl(): Promise<void> {
+    const context = this.exportContext;
+    if (!context) {
+      return;
+    }
+    const curlContext: CurlExportContext = {
+      method: context.method,
+      url: context.url,
+      headers: context.headers,
+      body: context.body,
+    };
+    const curlText = buildCurlCommand(curlContext);
+    await this.writeToClipboard(curlText);
+  }
+
   async copyAsHar(): Promise<void> {
     const entry = this.buildExportEntry();
     if (!entry) {
       return;
     }
+    await this.writeToClipboard(JSON.stringify(toHar(entry), null, 2));
+  }
 
-    const harText = JSON.stringify(toHar(entry), null, 2);
-
+  private async writeToClipboard(text: string): Promise<void> {
     try {
       if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(harText);
+        await navigator.clipboard.writeText(text);
         return;
       }
     } catch {
-      // Fallback to manual copy below.
+      // Fallback below.
     }
 
     try {
       const textarea = document.createElement("textarea");
-      textarea.value = harText;
+      textarea.value = text;
       textarea.setAttribute("readonly", "");
       textarea.style.position = "fixed";
       textarea.style.top = "-9999px";
@@ -258,7 +281,7 @@ export class ResponseViewerComponent implements OnChanges {
       document.execCommand("copy");
       document.body.removeChild(textarea);
     } catch {
-      console.warn("Failed to copy HAR to clipboard.");
+      console.warn("Failed to copy to clipboard.");
     }
   }
 

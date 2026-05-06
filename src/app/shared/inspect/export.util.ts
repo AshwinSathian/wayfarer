@@ -3,6 +3,52 @@ const HAR_CREATOR = { name: "API Sandbox", version: "0" };
 const MAX_INLINE_BODY = 256 * 1024; // 256 KB
 const OMITTED_COMMENT = "omitted (size or type)";
 
+export interface CurlExportContext {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: unknown;
+}
+
+export function buildCurlCommand(context: CurlExportContext): string {
+  const parts: string[] = ["curl"];
+
+  if (context.method !== "GET") {
+    parts.push(`-X ${context.method}`);
+  }
+
+  parts.push(`'${escapeSingleQuotes(context.url)}'`);
+
+  for (const [key, value] of Object.entries(context.headers ?? {})) {
+    if (!key) {
+      continue;
+    }
+    parts.push(`-H '${escapeSingleQuotes(key)}: ${escapeSingleQuotes(value ?? "")}'`);
+  }
+
+  if (context.body !== undefined && context.body !== null) {
+    let bodyStr: string;
+    if (typeof context.body === "string") {
+      bodyStr = context.body;
+    } else {
+      try {
+        bodyStr = JSON.stringify(context.body);
+      } catch {
+        bodyStr = String(context.body);
+      }
+    }
+    if (bodyStr) {
+      parts.push(`-d '${escapeSingleQuotes(bodyStr)}'`);
+    }
+  }
+
+  return parts.join(" \\\n  ");
+}
+
+function escapeSingleQuotes(value: string): string {
+  return value.replace(/'/g, "'\\''");
+}
+
 export interface InspectorExportEntry {
   id: string;
   startedDateTime: string;

@@ -17,7 +17,8 @@
         pInputText
         type="url"
         class="w-full font-mono"
-        [(ngModel)]="endpoint"
+        [ngModel]="endpoint"
+        (ngModelChange)="onEndpointChange($event)"
         placeholder="https://api.example.com/v1/endpoint"
       />
       @if (endpointError !== '') {
@@ -26,6 +27,17 @@
       </small>
       }
     </div>
+    <button
+      pButton
+      type="button"
+      icon="pi pi-terminal"
+      [disabled]="!endpoint"
+      title="Copy as cURL"
+      severity="secondary"
+      outlined
+      (click)="copyAsCurl()"
+      class="sm:flex-shrink-0"
+    ></button>
     <button
       pButton
       type="button"
@@ -61,18 +73,21 @@
   }
   }
 
-  <!-- Headers / Body tabs -->
+  <!-- Params / Headers / Body / Auth tabs -->
   <section class="rounded-lg bg-canvas-elevated p-5">
     <div class="hidden md:block">
       <p-tabs [value]="activeTab" (valueChange)="onActiveTabChange($event)">
         <div class="flex items-center justify-between w-full">
           <p-tablist>
+            <p-tab value="params">Params</p-tab>
             <p-tab value="headers">Headers</p-tab>
             @if (isBodyMethod(selectedRequestMethod)) {
             <p-tab value="body">Body</p-tab>
             }
+            <p-tab value="auth">Auth</p-tab>
           </p-tablist>
 
+          @if (activeTab === 'headers' || activeTab === 'body') {
           <p-selectButton
             [options]="editorModeOptions"
             [(ngModel)]="editorMode"
@@ -80,9 +95,13 @@
             [ngModelOptions]="{ standalone: true }"
             size="small"
           ></p-selectButton>
+          }
         </div>
 
         <p-tabpanels>
+          <p-tabpanel value="params">
+            <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+          </p-tabpanel>
           <p-tabpanel value="headers">
             <ng-container *ngTemplateOutlet="headersContent"></ng-container>
           </p-tabpanel>
@@ -91,6 +110,9 @@
             <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
           </p-tabpanel>
           }
+          <p-tabpanel value="auth">
+            <ng-container *ngTemplateOutlet="authContent"></ng-container>
+          </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
     </div>
@@ -101,6 +123,10 @@
         [value]="mobileActivePanels"
         (valueChange)="onMobileIndexChange($event)"
       >
+        <p-accordionpanel value="params">
+          <ng-template pTemplate="header">Params</ng-template>
+          <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+        </p-accordionpanel>
         <p-accordionpanel value="headers">
           <ng-template pTemplate="header">Headers</ng-template>
           <ng-container *ngTemplateOutlet="headersContent"></ng-container>
@@ -111,9 +137,140 @@
           <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
         </p-accordionpanel>
         }
+        <p-accordionpanel value="auth">
+          <ng-template pTemplate="header">Auth</ng-template>
+          <ng-container *ngTemplateOutlet="authContent"></ng-container>
+        </p-accordionpanel>
       </p-accordion>
     </div>
   </section>
+
+  <!-- Params template -->
+  <ng-template #paramsContent>
+    <div class="flex flex-col gap-2">
+      <div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-4 px-2 md:grid">
+        <div class="ds-section-label"></div>
+        <div class="ds-section-label">Key</div>
+        <div class="ds-section-label">Value</div>
+        <div></div>
+      </div>
+      @for (param of requestParams; track param; let i = $index) {
+      <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-4">
+        <input type="checkbox" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
+        <input pInputText class="w-full font-mono" [(ngModel)]="param.key" (ngModelChange)="onParamChange()" placeholder="key" />
+        <input pInputText class="w-full font-mono" [(ngModel)]="param.value" (ngModelChange)="onParamChange()" placeholder="value" />
+        <div class="flex justify-end md:block md:text-center">
+          <button pButton type="button" text icon="pi pi-times" severity="danger" (click)="removeParam(i)"></button>
+        </div>
+      </div>
+      }
+      <div class="pt-2">
+        <button pButton type="button" icon="pi pi-plus" label="Add Param" severity="secondary" [disabled]="isAddParamDisabled()" (click)="addParam()"></button>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Auth template -->
+  <ng-template #authContent>
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <label class="ds-form-label min-w-[80px]">Type</label>
+        <p-select
+          [options]="authTypes"
+          [(ngModel)]="requestAuth.type"
+          (ngModelChange)="onAuthTypeChange($event)"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+          styleClass="w-48"
+        ></p-select>
+      </div>
+
+      @if (requestAuth.type === 'bearer') {
+      <div class="flex items-center gap-3">
+        <label class="ds-form-label min-w-[80px]">Token</label>
+        <input
+          pInputText
+          class="flex-1 font-mono"
+          placeholder="Enter bearer token"
+          [ngModel]="requestAuth.bearer?.token ?? ''"
+          (ngModelChange)="requestAuth.bearer = { token: $event }"
+        />
+      </div>
+      }
+
+      @if (requestAuth.type === 'basic') {
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <label class="ds-form-label min-w-[80px]">Username</label>
+          <input
+            pInputText
+            class="flex-1 font-mono"
+            placeholder="Username"
+            [ngModel]="requestAuth.basic?.username ?? ''"
+            (ngModelChange)="requestAuth.basic = { username: $event, password: requestAuth.basic?.password ?? '' }"
+          />
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="ds-form-label min-w-[80px]">Password</label>
+          <div class="flex flex-1 items-center gap-2">
+            <input
+              pInputText
+              class="flex-1 font-mono"
+              [type]="showAuthPassword ? 'text' : 'password'"
+              placeholder="Password"
+              [ngModel]="requestAuth.basic?.password ?? ''"
+              (ngModelChange)="requestAuth.basic = { username: requestAuth.basic?.username ?? '', password: $event }"
+            />
+            <button pButton type="button" text [icon]="showAuthPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+              (click)="showAuthPassword = !showAuthPassword"></button>
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (requestAuth.type === 'api-key') {
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <label class="ds-form-label min-w-[80px]">Key</label>
+          <input
+            pInputText
+            class="flex-1 font-mono"
+            placeholder="Header or param name"
+            [ngModel]="requestAuth.apiKey?.key ?? ''"
+            (ngModelChange)="requestAuth.apiKey = { key: $event, value: requestAuth.apiKey?.value ?? '', addTo: requestAuth.apiKey?.addTo ?? 'header' }"
+          />
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="ds-form-label min-w-[80px]">Value</label>
+          <input
+            pInputText
+            class="flex-1 font-mono"
+            placeholder="Key value"
+            [ngModel]="requestAuth.apiKey?.value ?? ''"
+            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: $event, addTo: requestAuth.apiKey?.addTo ?? 'header' }"
+          />
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="ds-form-label min-w-[80px]">Add to</label>
+          <p-select
+            [options]="[{ label: 'Header', value: 'header' }, { label: 'Query param', value: 'query' }]"
+            [ngModel]="requestAuth.apiKey?.addTo ?? 'header'"
+            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: requestAuth.apiKey?.value ?? '', addTo: $event }"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            styleClass="w-40"
+          ></p-select>
+        </div>
+      </div>
+      }
+
+      @if (requestAuth.type === 'none') {
+      <p class="type-callout text-label-tertiary">No auth will be applied to this request.</p>
+      }
+    </div>
+  </ng-template>
 
   <!-- Headers template -->
   <ng-template #headersContent>

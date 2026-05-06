@@ -114,7 +114,6 @@ describe('ApiParamsComponent', () => {
     component.onRequestMethodChange('POST');
     component.endpoint = 'https://example.com/create';
     component.requestBody = [{ key: 'isActive', value: 'true' }];
-    component.requestBodyDataTypes = ['Boolean'];
     component.requestHeaders = [{ key: 'Content-Type', value: 'application/json' }];
 
     component.sendRequest();
@@ -125,7 +124,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://example.com/create');
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ isActive: true });
+    expect(req.request.body).toEqual({ isActive: 'true' });
     req.flush({ message: 'failed' }, { status: 500, statusText: 'Server Error' });
 
     flushMicrotasks();
@@ -141,7 +140,7 @@ describe('ApiParamsComponent', () => {
     expect(idbService.add).toHaveBeenCalledWith(jasmine.objectContaining({
       method: 'POST',
       url: 'https://example.com/create',
-      body: { isActive: true },
+      body: { isActive: 'true' },
       status: 500,
       error: jasmine.any(String)
     }));
@@ -157,7 +156,6 @@ describe('ApiParamsComponent', () => {
     component.onRequestMethodChange('PUT');
     component.endpoint = 'https://example.com/items/42';
     component.requestBody = [{ key: 'name', value: 'Widget' }];
-    component.requestBodyDataTypes = ['String'];
     component.requestHeaders = [{ key: 'X-Trace', value: 'abc123' }];
 
     component.sendRequest();
@@ -217,7 +215,10 @@ describe('ApiParamsComponent', () => {
     expect(component.selectedRequestMethod).toBe('POST');
     expect(component.endpoint).toBe('https://example.com/update');
     expect(component.requestHeaders[0].key).toBe('Authorization');
-    expect(component.requestBodyDataTypes).toEqual(['Number', 'Boolean']);
+    expect(component.requestBody).toEqual([
+      { key: 'count', value: '3' },
+      { key: 'enabled', value: 'true' },
+    ]);
     expect(component.activeTab).toBe('body');
   });
 
@@ -253,14 +254,7 @@ describe('ApiParamsComponent', () => {
       { key: 'enabled', value: 'false' },
       { key: '', value: 'skip' }
     ];
-    component.requestBodyDataTypes = ['Number', 'Boolean', 'String'];
     const body = (component as any).buildBody();
-    expect(body).toEqual({ count: 42, enabled: false });
-
-    const invalidNumberResult = (component as any).buildBody.call({
-      requestBody: [{ key: 'value', value: 'abc' }],
-      requestBodyDataTypes: ['Number']
-    });
-    expect(invalidNumberResult).toEqual({ value: 'abc' });
+    expect(body).toEqual({ count: '42', enabled: 'false' });
   });
 });

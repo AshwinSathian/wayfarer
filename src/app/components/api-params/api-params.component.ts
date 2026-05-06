@@ -27,6 +27,8 @@ import { MainService } from "src/app/services/main.service";
 import { EnvironmentsService } from "src/app/services/environments.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
+import { AuthType, HttpAuthPlaceholder } from "../../models/collections.models";
+import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
 import {
@@ -120,6 +122,10 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   variableTokens: VariableToken[];
   missingVariableKeys: string[];
   highlightedVariableSource: VariableToken["source"] | null = null;
+  requestParams: Array<{ key: string; value: string; enabled: boolean }>;
+  requestAuth: HttpAuthPlaceholder;
+  showAuthPassword = false;
+  readonly authTypes: Array<{ label: string; value: AuthType }>;
   private previewFingerprint = "";
 
   constructor(
@@ -171,6 +177,14 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.requestVariables = {};
     this.variableTokens = [];
     this.missingVariableKeys = [];
+    this.requestParams = [{ key: "", value: "", enabled: true }];
+    this.requestAuth = { type: "none" };
+    this.authTypes = [
+      { label: "None", value: "none" },
+      { label: "Bearer Token", value: "bearer" },
+      { label: "Basic Auth", value: "basic" },
+      { label: "API Key", value: "api-key" },
+    ];
     this.addItemFn = (ctx: ContextType) => this.addItem(ctx);
     this.removeItemFn = (index: number, ctx: ContextType) =>
       this.removeItem(index, ctx);
@@ -239,6 +253,9 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       this.requestBody = [{ key: "", value: "" }];
       this.activeTab = "headers";
     }
+    this.syncParamsFromUrl(request.url);
+    this.requestAuth = { type: "none" };
+    this.showAuthPassword = false;
     this.syncMobilePanelsFromActiveTab();
     if (this.editorMode === "json") {
       this.syncJsonEditorsFromState();
@@ -258,12 +275,24 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       return;
     }
 
-    const requestHeaders = this.buildHeaders();
+    const baseHeaders = this.buildHeaders();
+    const authHeaders = this.buildAuthHeaders();
+    const requestHeaders = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod;
     const usesBody = this.isBodyMethod(method);
     const requestBody = usesBody ? this.buildBody() : undefined;
     const transportBody = usesBody ? requestBody ?? {} : undefined;
-    const endpoint = this.endpoint.trim();
+    let endpoint = this.buildFinalUrl(this.endpoint.trim());
+    const authParam = this.buildAuthQueryParam();
+    if (authParam) {
+      try {
+        const parsed = new URL(endpoint.startsWith("http") ? endpoint : `https://${endpoint}`);
+        parsed.searchParams.append(authParam.key, authParam.value);
+        endpoint = parsed.toString();
+      } catch {
+        // ignore
+      }
+    }
     const requestId = this.createRequestId();
     const startedAt = performance.now();
     const createdAt = Date.now();
@@ -565,9 +594,192 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.requestHeaders = [
       { key: this.defaultHeaderKey, value: this.defaultHeaderValue },
     ];
+    this.requestParams = [{ key: "", value: "", enabled: true }];
+    this.requestAuth = { type: "none" };
+    this.showAuthPassword = false;
     this.endpointError = "";
     this.syncMobilePanelsFromActiveTab();
     this.resetJsonEditors();
+  }
+
+  addParam(): void {
+    this.requestParams.push({ key: "", value: "", enabled: true });
+  }
+
+  removeParam(index: number): void {
+    this.requestParams.splice(index, 1);
+    if (!this.requestParams.length) {
+      this.requestParams.push({ key: "", value: "", enabled: true });
+    }
+    this.syncUrlFromParams();
+  }
+
+  isAddParamDisabled(): boolean {
+    const last = this.requestParams[this.requestParams.length - 1];
+    return !!last && (last.key === "" || last.value === "");
+  }
+
+  onParamChange(): void {
+    this.syncUrlFromParams();
+  }
+
+  onEndpointChange(value: string): void {
+    this.endpoint = value;
+    this.syncParamsFromUrl(value);
+  }
+
+  private syncParamsFromUrl(url: string): void {
+    if (!url) {
+      this.requestParams = [{ key: "", value: "", enabled: true }];
+      return;
+    }
+    try {
+      const base =
+        typeof window !== "undefined" && window.location?.origin
+          ? window.location.origin
+          : "http://localhost";
+      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`, base);
+      const entries: Array<{ key: string; value: string; enabled: boolean }> = [];
+      parsed.searchParams.forEach((value, key) => {
+        entries.push({ key, value, enabled: true });
+      });
+      this.requestParams = entries.length
+        ? entries
+        : [{ key: "", value: "", enabled: true }];
+    } catch {
+      // Non-parseable URL — leave params as-is.
+    }
+  }
+
+  private syncUrlFromParams(): void {
+    if (!this.endpoint) {
+      return;
+    }
+    try {
+      const base =
+        typeof window !== "undefined" && window.location?.origin
+          ? window.location.origin
+          : "http://localhost";
+      const url = new URL(
+        this.endpoint.startsWith("http") ? this.endpoint : `https://${this.endpoint}`,
+        base
+      );
+      url.search = "";
+      for (const param of this.requestParams) {
+        if (param.enabled && param.key) {
+          url.searchParams.append(param.key, param.value);
+        }
+      }
+      const reconstructed = url.toString();
+      const isAbsolute = this.endpoint.startsWith("http://") || this.endpoint.startsWith("https://");
+      this.endpoint = isAbsolute ? reconstructed : reconstructed.replace(base + "/", "");
+    } catch {
+      // Can't parse; ignore.
+    }
+  }
+
+  private buildFinalUrl(baseUrl: string): string {
+    if (!baseUrl) {
+      return baseUrl;
+    }
+    const enabledParams = this.requestParams.filter((p) => p.enabled && p.key);
+    if (!enabledParams.length) {
+      return baseUrl;
+    }
+    try {
+      const url = new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`);
+      for (const param of enabledParams) {
+        url.searchParams.append(param.key, param.value);
+      }
+      return url.toString();
+    } catch {
+      return baseUrl;
+    }
+  }
+
+  private buildAuthHeaders(): Record<string, string> {
+    const auth = this.requestAuth;
+    if (!auth || auth.type === "none") {
+      return {};
+    }
+    if (auth.type === "bearer" && auth.bearer?.token) {
+      return { Authorization: `Bearer ${auth.bearer.token}` };
+    }
+    if (auth.type === "basic" && auth.basic?.username) {
+      const encoded = btoa(
+        `${auth.basic.username}:${auth.basic.password ?? ""}`
+      );
+      return { Authorization: `Basic ${encoded}` };
+    }
+    if (auth.type === "api-key" && auth.apiKey?.key && auth.apiKey?.addTo === "header") {
+      return { [auth.apiKey.key]: auth.apiKey.value ?? "" };
+    }
+    return {};
+  }
+
+  private buildAuthQueryParam(): { key: string; value: string } | null {
+    const auth = this.requestAuth;
+    if (
+      auth?.type === "api-key" &&
+      auth.apiKey?.key &&
+      auth.apiKey?.addTo === "query"
+    ) {
+      return { key: auth.apiKey.key, value: auth.apiKey.value ?? "" };
+    }
+    return null;
+  }
+
+  onAuthTypeChange(type: AuthType): void {
+    this.requestAuth = { type };
+    this.showAuthPassword = false;
+  }
+
+  async copyAsCurl(): Promise<void> {
+    if (!this.endpoint) {
+      return;
+    }
+    const baseHeaders = this.buildHeaders();
+    const authHeaders = this.buildAuthHeaders();
+    const headers = { ...baseHeaders, ...authHeaders };
+    const method = this.selectedRequestMethod;
+    let url = this.buildFinalUrl(this.endpoint.trim());
+    const authParam = this.buildAuthQueryParam();
+    if (authParam) {
+      try {
+        const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+        parsed.searchParams.append(authParam.key, authParam.value);
+        url = parsed.toString();
+      } catch {
+        // ignore
+      }
+    }
+    const body = this.isBodyMethod(method) ? this.buildBody() : undefined;
+    const curlText = buildCurlCommand({ method, url, headers, body });
+    await this.writeToClipboard(curlText);
+  }
+
+  private async writeToClipboard(text: string): Promise<void> {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+    } catch {
+      // Fallback below.
+    }
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    } catch {
+      console.warn("Failed to copy to clipboard.");
+    }
   }
 
   private deconstructObject(object: Record<string, unknown>, type: string) {

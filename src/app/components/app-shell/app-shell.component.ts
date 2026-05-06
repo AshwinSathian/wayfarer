@@ -24,6 +24,7 @@ import { EnvironmentsService } from "../../services/environments.service";
 import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service";
 import { SecretsService } from "../../services/secrets.service";
 import { IdbService } from "../../data/idb.service";
+import { ThemeService } from "../../services/theme.service";
 import { ApiParamsComponent } from "../api-params/api-params.component";
 import { PastRequestsComponent } from "../past-requests/past-requests.component";
 import { CollectionsSidebarComponent } from "../collections/collections-sidebar.component";
@@ -73,6 +74,7 @@ export class AppShellComponent implements OnInit {
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly secretsService = inject(SecretsService);
   private readonly idb = inject(IdbService);
+  readonly themeService = inject(ThemeService);
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();

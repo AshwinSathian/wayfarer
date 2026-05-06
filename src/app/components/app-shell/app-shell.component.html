@@ -106,6 +106,16 @@
             {{ secretsUnlocked ? 'lock_open' : 'lock' }}
           </span>
         </button>
+
+        <button
+          class="ds-icon-btn"
+          (click)="themeService.toggle()"
+          [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          <span class="material-symbols-outlined icon-md">
+            {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
+          </span>
+        </button>
       </div>
     </div>
 

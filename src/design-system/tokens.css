@@ -121,7 +121,101 @@
   --selection-bg:   var(--accent);
   --selection-text: #ffffff;
 
+  /* ── Shadow ───────────────────────────────────────────────*/
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-dialog:  0 16px 48px rgba(0, 0, 0, 0.60);
+  --shadow-card:    0 4px 12px rgba(0, 0, 0, 0.35);
+
   /* ── Typography ───────────────────────────────────────────*/
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+}
+
+/* ============================================================
+   Light Mode Overrides
+   Only tokens that differ from the dark defaults need to be
+   declared here — everything else inherits from :root.
+   ============================================================ */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* ── Canvas ──────────────────────────────────────────────*/
+  --canvas-app:      #f5f5f7;
+  --canvas-sidebar:  #ffffff;
+  --canvas-panel:    #ffffff;
+  --canvas-elevated: #f0f0f5;
+  --canvas-overlay:  #ffffff;
+
+  /* ── Fill ────────────────────────────────────────────────*/
+  --fill-primary:   rgba(0, 0, 0, 0.06);
+  --fill-secondary: rgba(0, 0, 0, 0.04);
+  --fill-tertiary:  rgba(0, 0, 0, 0.02);
+  --fill-hover:     rgba(0, 0, 0, 0.04);
+  --fill-active:    rgba(0, 0, 0, 0.06);
+
+  /* ── Label ───────────────────────────────────────────────*/
+  --label-primary:     #1d1d1f;
+  --label-secondary:   #6e6e73;
+  --label-tertiary:    #aeaeb2;
+  --label-placeholder: #c7c7cc;
+
+  /* ── Separator ───────────────────────────────────────────*/
+  --separator:        rgba(0, 0, 0, 0.08);
+  --separator-opaque: #e5e5ea;
+
+  /* ── Accent ──────────────────────────────────────────────*/
+  --accent:        #4f46e5;
+  --accent-hover:  #4338ca;
+  --accent-muted:  #6366f1;
+  --accent-fill:   rgba(79, 70, 229, 0.10);
+  --accent-border: rgba(79, 70, 229, 0.30);
+  --accent-text:   #4f46e5;
+
+  /* ── Status ──────────────────────────────────────────────*/
+  --status-success:        #16a34a;
+  --status-success-fill:   rgba(22, 163, 74, 0.10);
+  --status-success-border: rgba(22, 163, 74, 0.25);
+
+  --status-warning:        #d97706;
+  --status-warning-fill:   rgba(217, 119, 6, 0.10);
+  --status-warning-border: rgba(217, 119, 6, 0.25);
+
+  --status-error:          #dc2626;
+  --status-error-fill:     rgba(220, 38, 38, 0.10);
+  --status-error-border:   rgba(220, 38, 38, 0.25);
+
+  --status-info:           #2563eb;
+  --status-info-fill:      rgba(37, 99, 235, 0.10);
+  --status-info-border:    rgba(37, 99, 235, 0.25);
+
+  /* ── HTTP Methods ────────────────────────────────────────*/
+  --method-get:          #2563eb;
+  --method-get-fill:     rgba(37, 99, 235, 0.10);
+
+  --method-post:         #16a34a;
+  --method-post-fill:    rgba(22, 163, 74, 0.10);
+
+  --method-put:          #d97706;
+  --method-put-fill:     rgba(217, 119, 6, 0.10);
+
+  --method-patch:        #9333ea;
+  --method-patch-fill:   rgba(147, 51, 234, 0.10);
+
+  --method-delete:       #dc2626;
+  --method-delete-fill:  rgba(220, 38, 38, 0.10);
+
+  --method-head:         #475569;
+  --method-head-fill:    rgba(71, 85, 105, 0.10);
+
+  --method-options:      #0d9488;
+  --method-options-fill: rgba(13, 148, 136, 0.10);
+
+  /* ── Shadow ──────────────────────────────────────────────*/
+  --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-dialog:  0 8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-card:    0 2px 8px rgba(0, 0, 0, 0.08);
+
+  /* ── Scrollbar ───────────────────────────────────────────*/
+  --scrollbar-thumb:       rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
 }

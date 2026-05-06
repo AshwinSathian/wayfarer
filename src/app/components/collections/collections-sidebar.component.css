@@ -3,21 +3,17 @@
   height: 100%;
 }
 
-.collections-sidebar :deep(.p-tree) {
-  background: transparent;
-  border: none;
-  color: #cbd5f5;
-}
-
+/* Tree node overrides already handled by primeng-overrides.css.
+   These fine-tune collection-specific node layout. */
 .collections-sidebar :deep(.p-tree-node-content) {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
 }
 
 .collections-sidebar :deep(.p-tree-node-content:hover) {
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: var(--fill-hover);
 }
 
-.collections-sidebar :deep(.p-tree-node-selected) {
-  background-color: rgba(59, 130, 246, 0.2);
+.collections-sidebar :deep(.p-tree-node-selected > .p-tree-node-content) {
+  background-color: var(--accent-fill);
 }

@@ -1,38 +1,18 @@
-<div class="collections-sidebar flex h-full flex-col gap-4">
-  <div class="flex items-center justify-between gap-3">
-    <div>
-      <p class="text-xs uppercase tracking-widest text-slate-400">
-        Collections
-      </p>
-      <p class="text-base font-semibold text-white">Organize requests</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <button
-        pButton
-        icon="pi pi-bolt"
-        size="small"
-        text
-        severity="secondary"
-        (click)="openCommandPalette()"
-        title="Command palette (⌘K)"
-      ></button>
-      <button
-        pButton
-        icon="pi pi-upload"
-        size="small"
-        text
-        severity="secondary"
-        (click)="fileInput.click()"
-      ></button>
-      <button
-        pButton
-        icon="pi pi-plus"
-        size="small"
-        severity="secondary"
-        (click)="handleCreateCollection()"
-      ></button>
+<div class="collections-sidebar flex h-full flex-col gap-3">
+  <!-- Header -->
+  <div class="flex items-center justify-between gap-2">
+    <span class="type-subhead text-label-secondary">Collections</span>
+    <div class="flex items-center gap-1">
+      <button class="ds-icon-btn" (click)="openCommandPalette()" title="Command palette (⌘K)">
+        <span class="material-symbols-outlined icon-sm">bolt</span>
+      </button>
+      <button class="ds-icon-btn" (click)="fileInput.click()" title="Import collection">
+        <span class="material-symbols-outlined icon-sm">upload</span>
+      </button>
+      <button pButton icon="pi pi-plus" size="small" severity="secondary" (click)="handleCreateCollection()"></button>
     </div>
   </div>
+
   <input
     #fileInput
     type="file"
@@ -42,10 +22,10 @@
   />
 
   @if (loading()) {
-  <p-skeleton width="100%" height="200px"></p-skeleton>
+  <p-skeleton width="100%" height="160px" borderRadius="10px"></p-skeleton>
   } @else if (!nodes().length) {
-  <div class="rounded-lg border border-dashed border-slate-700 p-4 text-sm text-slate-400">
-    No collections yet. Create one to start grouping your requests.
+  <div class="rounded-lg border border-dashed border-separator p-4 type-callout text-label-tertiary">
+    No collections yet. Create one to start organising your requests.
   </div>
   } @else {
   <p-tree
@@ -60,11 +40,11 @@
     [contextMenu]="contextMenu"
   >
     <ng-template let-node pTemplate="default">
-      <div class="flex w-full items-center gap-2">
+      <div class="flex w-full items-center gap-2 min-w-0">
         @if (editingKey() === node.key) {
         <input
           pInputText
-          class="w-full bg-transparent text-sm"
+          class="w-full bg-transparent type-body"
           [(ngModel)]="editingValue"
           (keydown.enter)="commitRename(node)"
           (keydown.escape)="cancelEdit()"
@@ -72,7 +52,12 @@
           autofocus
         />
         } @else {
-        <span class="text-sm text-white">{{ node.label }}</span>
+          @if (node.data?.type === 'request' && node.data?.method) {
+          <span class="method-badge method-{{ node.data.method.toLowerCase() }} flex-shrink-0">
+            {{ node.data.method }}
+          </span>
+          }
+          <span class="type-body text-label-primary truncate">{{ node.label }}</span>
         }
       </div>
     </ng-template>
@@ -82,42 +67,37 @@
   <p-contextMenu #contextMenu [model]="contextItems()"></p-contextMenu>
 </div>
 
+<!-- Import collection dialog -->
 <p-dialog
-  header="Import Collection"
+  header="Import collection"
   [(visible)]="importDialogVisible"
   [modal]="true"
-  [style]="{ width: '420px' }"
+  [style]="{ width: '440px' }"
   (onHide)="closeImportDialog()"
 >
   @if (importErrors.length) {
-  <div class="space-y-2 text-sm text-red-300">
-    <p class="font-semibold">Unable to import file "{{ importFileName }}":</p>
-    <ul class="list-disc pl-5">
+  <div class="space-y-2 type-callout text-status-error">
+    <p class="font-semibold">Unable to import "{{ importFileName }}":</p>
+    <ul class="list-disc pl-5 space-y-1">
       @for (error of importErrors; track error.path + error.message) {
       <li>{{ error.path }} — {{ error.message }}</li>
       }
     </ul>
   </div>
   } @else if (importAnalysis?.payload) {
-  <div class="space-y-3 text-sm text-slate-300">
+  <div class="space-y-4 type-callout text-label-secondary">
     <div>
-      <p class="text-xs uppercase tracking-widest text-slate-500">Collection</p>
-      <p class="text-lg font-semibold text-white">
-        {{ importAnalysis.payload.collection.name }}
-      </p>
-      <p class="text-xs text-slate-400">
+      <p class="ds-section-label mb-1">Collection</p>
+      <p class="type-title-3 text-label-primary">{{ importAnalysis.payload.collection.name }}</p>
+      <p class="type-footnote text-label-tertiary mt-0.5">
         {{ importAnalysis.summary?.folders || 0 }} folders ·
         {{ importAnalysis.summary?.requests || 0 }} requests
       </p>
     </div>
-    <label
-      class="flex items-center justify-between rounded-lg border border-slate-800/70 bg-slate-900/40 px-3 py-2 text-sm text-slate-200 cursor-pointer"
-    >
+    <label class="flex items-center justify-between rounded-lg border border-separator bg-canvas-elevated px-3 py-3 cursor-pointer">
       <div>
-        <p class="text-xs uppercase tracking-widest text-slate-500">Duplicate as new</p>
-        <p class="text-[11px] text-slate-400">
-          Keeps the original intact and remaps every ID.
-        </p>
+        <p class="type-subhead text-label-secondary">Import as duplicate</p>
+        <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
       <p-checkbox
         binary="true"
@@ -127,47 +107,37 @@
       ></p-checkbox>
     </label>
     @if (importAnalysis.plan?.length) {
-    <div class="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-slate-800/60 p-3">
+    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-lg border border-separator p-2">
       @for (entry of importAnalysis.plan; track entry.id) {
-      <div class="flex items-center justify-between rounded-md bg-slate-900/60 px-3 py-2 text-xs text-slate-200">
+      <div class="flex items-center justify-between rounded-md bg-canvas-elevated px-3 py-2">
         <div>
-          <p class="font-semibold capitalize">{{ entry.type }} · {{ entry.name }}</p>
-          <p class="text-[11px] text-slate-400">
-            {{ entry.action === 'create' ? 'create new' : 'overwrite existing' }}
-          </p>
+          <p class="type-subhead text-label-primary capitalize">{{ entry.type }} · {{ entry.name }}</p>
+          <p class="type-caption text-label-tertiary">{{ entry.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
         </div>
         <span
-          class="rounded-full px-2 py-1 text-[10px] uppercase"
+          class="rounded-full px-2 py-0.5 type-caption uppercase"
           [ngClass]="{
-            'bg-emerald-600/20 text-emerald-200 border border-emerald-500/40': entry.action === 'create',
-            'bg-amber-600/20 text-amber-200 border border-amber-500/40': entry.action === 'overwrite'
+            'bg-status-success border border-separator text-status-success': entry.action === 'create',
+            'bg-status-warning border border-separator text-status-warning': entry.action === 'overwrite'
           }"
-        >
-          {{ entry.action }}
-        </span>
+        >{{ entry.action }}</span>
       </div>
       }
     </div>
     }
   </div>
   } @else {
-  <p class="text-sm text-slate-300">
-    Select a valid collection export file to proceed.
-  </p>
+  <p class="type-callout text-label-secondary">Select a valid collection export file to proceed.</p>
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" (click)="closeImportDialog()"></button>
-      <button
-        pButton
-        label="Import"
-        [disabled]="!importAnalysis?.payload || importErrors.length > 0"
-        (click)="confirmImport()"
-      ></button>
+      <button pButton label="Cancel" severity="secondary" outlined (click)="closeImportDialog()"></button>
+      <button pButton label="Import" [disabled]="!importAnalysis?.payload || importErrors.length > 0" (click)="confirmImport()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
+<!-- Create collection/folder/request dialog -->
 <p-dialog
   [header]="creationTitle"
   [(visible)]="creationDialogVisible"
@@ -176,15 +146,15 @@
   (onHide)="closeCreationDialog()"
 >
   <div class="flex flex-col gap-3">
-    <span class="text-xs uppercase tracking-widest text-slate-400">
+    <label class="ds-form-label">
       {{
         creationContext?.type === 'collection'
-          ? 'Collection Name'
+          ? 'Collection name'
           : creationContext?.type === 'folder'
-            ? 'Folder Name'
-            : 'Request Name'
+            ? 'Folder name'
+            : 'Request name'
       }}
-    </span>
+    </label>
     <input
       pInputText
       [(ngModel)]="creationModel.name"
@@ -192,10 +162,8 @@
       class="w-full"
     />
     @if (creationContext?.type === 'request') {
-    <div class="flex flex-col gap-2">
-      <span class="text-xs uppercase tracking-widest text-slate-400">
-        Request Method
-      </span>
+    <div class="flex flex-col gap-1.5">
+      <label class="ds-form-label">Method</label>
       <p-select
         [options]="methodOptions"
         [(ngModel)]="creationModel.method"
@@ -208,52 +176,41 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button
-        pButton
-        label="Cancel"
-        severity="secondary"
-        (click)="closeCreationDialog()"
-      ></button>
-      <button
-        pButton
-        label="Create"
-        [disabled]="creationDisabled"
-        (click)="submitCreation()"
-      ></button>
+      <button pButton label="Cancel" severity="secondary" outlined (click)="closeCreationDialog()"></button>
+      <button pButton label="Create" [disabled]="creationDisabled" (click)="submitCreation()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
+<!-- Command palette -->
 <p-dialog
-  header="Command Palette"
+  header="Command palette"
   [(visible)]="commandPaletteVisible"
   [modal]="true"
-  [style]="{ width: '420px' }"
+  [style]="{ width: '440px' }"
   (onHide)="closeCommandPalette()"
 >
   <div class="flex flex-col gap-3">
     <input
       pInputText
-      placeholder="Type a command"
+      placeholder="Type a command…"
       class="w-full"
       [(ngModel)]="commandPaletteQuery"
       [ngModelOptions]="{ standalone: true }"
       (keydown.enter)="executeFirstPaletteAction()"
       autofocus
     />
-    <div class="max-h-72 space-y-2 overflow-y-auto">
+    <div class="max-h-64 space-y-1 overflow-y-auto">
       @if (filteredPaletteActions.length) {
       @for (action of filteredPaletteActions; track action.id) {
       <button
         type="button"
-        class="w-full rounded-lg border border-slate-800/70 bg-slate-900/30 px-3 py-2 text-left text-sm text-slate-200 hover:bg-slate-800/40"
+        class="w-full rounded-lg bg-canvas-elevated border border-separator px-3 py-2.5 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
         (click)="executePaletteAction(action)"
-      >
-        {{ action.label }}
-      </button>
+      >{{ action.label }}</button>
       }
       } @else {
-      <div class="rounded-lg border border-dashed border-slate-700 px-3 py-4 text-center text-xs text-slate-500">
+      <div class="rounded-lg border border-dashed border-separator px-3 py-5 text-center type-callout text-label-tertiary">
         No matching commands.
       </div>
       }

@@ -1,32 +1,17 @@
-<div class="env-manager grid gap-4 lg:grid-cols-[280px_1fr]">
-  <div class="rounded-xl border border-slate-800/70 bg-slate-900/50 p-4">
-    <div class="mb-4 flex items-center justify-between gap-2">
-      <p class="text-xs uppercase tracking-widest text-slate-400">Environments</p>
-      <div class="flex items-center gap-2">
-        <button
-          pButton
-          icon="pi pi-upload"
-          size="small"
-          text
-          severity="secondary"
-          (click)="envImportInput.click()"
-        ></button>
-        <button
-          pButton
-          icon="pi pi-download"
-          size="small"
-          text
-          severity="secondary"
-          (click)="exportEnvironments()"
-        ></button>
-        <button
-          pButton
-          size="small"
-          icon="pi pi-plus"
-          severity="secondary"
-        (click)="openNewEnvironmentDialog()"
-      ></button>
-    </div>
+<div class="env-manager grid gap-4 lg:grid-cols-[260px_1fr]">
+  <!-- Environment list -->
+  <div class="ds-panel p-4">
+    <div class="mb-3 flex items-center justify-between gap-2">
+      <span class="type-subhead text-label-secondary">Environments</span>
+      <div class="flex items-center gap-1">
+        <button class="ds-icon-btn" (click)="envImportInput.click()" title="Import">
+          <span class="material-symbols-outlined icon-sm">upload</span>
+        </button>
+        <button class="ds-icon-btn" (click)="exportEnvironments()" title="Export">
+          <span class="material-symbols-outlined icon-sm">download</span>
+        </button>
+        <button pButton size="small" icon="pi pi-plus" severity="secondary" (click)="openNewEnvironmentDialog()"></button>
+      </div>
     </div>
     <input
       #envImportInput
@@ -35,7 +20,7 @@
       class="hidden"
       (change)="handleEnvironmentImport($event)"
     />
-    <div class="space-y-2">
+    <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <button
         type="button"
@@ -46,149 +31,89 @@
         }"
         (click)="selectEnvironment(env.meta.id)"
       >
-        <div class="flex flex-col items-start">
-          <span class="text-sm font-semibold text-white">{{ env.name }}</span>
+        <div class="flex flex-col items-start min-w-0">
+          <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
           @if (activeEnvironment()?.meta.id === env.meta.id) {
-          <span class="text-xs text-emerald-400">Active</span>
+          <span class="type-caption text-status-success">In use</span>
           }
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 flex-shrink-0">
           <button
             pButton
             icon="pi pi-check"
             severity="success"
             size="small"
+            text
             [disabled]="activeEnvironment()?.meta.id === env.meta.id"
             (click)="setActive(env); $event.stopPropagation()"
-            pTooltip="Set Active"
+            pTooltip="Use for requests"
             tooltipPosition="top"
           ></button>
-          <button
-            pButton
-            icon="pi pi-copy"
-            size="small"
-            text
-            (click)="duplicate(env); $event.stopPropagation()"
-          ></button>
-          <button
-            pButton
-            icon="pi pi-trash"
-            size="small"
-            text
-            severity="danger"
-            (click)="remove(env); $event.stopPropagation()"
-          ></button>
+          <button pButton icon="pi pi-copy" size="small" text (click)="duplicate(env); $event.stopPropagation()"></button>
+          <button pButton icon="pi pi-trash" size="small" text severity="danger" (click)="remove(env); $event.stopPropagation()"></button>
         </div>
       </button>
       }
     </div>
   </div>
 
-  <div
-    class="rounded-xl border border-slate-800/70 bg-slate-900/50 p-6"
-    *ngIf="draft() as form; else emptyState"
-  >
+  <!-- Environment editor -->
+  <div class="ds-panel p-5" *ngIf="draft() as form; else emptyState">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
-        <label class="form-label">Name</label>
-        <input
-          pInputText
-          class="w-full"
-          [(ngModel)]="form.name"
-          (ngModelChange)="syncDraft(form)"
-        />
+        <label class="ds-form-label">Name</label>
+        <input pInputText class="w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
       </div>
       <div>
-        <label class="form-label">Description</label>
-        <input
-          pInputText
-          class="w-full"
-          [(ngModel)]="form.description"
-          (ngModelChange)="syncDraft(form)"
-        />
+        <label class="ds-form-label">Description</label>
+        <input pInputText class="w-full" [(ngModel)]="form.description" (ngModelChange)="syncDraft(form)" placeholder="Optional" />
       </div>
     </div>
 
-    <div class="mt-6">
+    <div class="mt-5">
       <p-tabs [value]="editorTab()" (valueChange)="editorTab.set($event)">
         <p-tablist>
-          <p-tab value="pairs">Key/Value</p-tab>
+          <p-tab value="pairs">Key / Value</p-tab>
           <p-tab value="json">JSON</p-tab>
         </p-tablist>
         <p-tabpanels>
           <p-tabpanel value="pairs">
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-2">
               @for (item of form.vars; track $index) {
               <div
                 class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-lg p-1 transition-all duration-150"
                 [ngClass]="{
-                  'ring-2 ring-emerald-500/60': focusedVariableKey === item.key
+                  'ring-2 ring-accent-border': focusedVariableKey === item.key
                 }"
               >
-                <input
-                  pInputText
-                  placeholder="KEY"
-                  [(ngModel)]="form.vars[$index].key"
-                  (ngModelChange)="onPairsChange()"
-                />
+                <input pInputText placeholder="KEY" [(ngModel)]="form.vars[$index].key" (ngModelChange)="onPairsChange()" />
                 @if (!isSecretValue(form.vars[$index].value)) {
-                <input
-                  pInputText
-                  placeholder="Value"
-                  [(ngModel)]="form.vars[$index].value"
-                  (ngModelChange)="onPairsChange()"
-                />
+                <input pInputText placeholder="Value" [(ngModel)]="form.vars[$index].value" (ngModelChange)="onPairsChange()" />
                 } @else {
-                <div class="rounded-lg border border-amber-500/40 bg-amber-900/20 px-3 py-2 text-xs text-amber-200">
-                  <div>Secret stored</div>
-                  <div class="mt-1 text-[10px] text-amber-100/80">
+                <div class="rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2">
+                  <div class="type-caption text-status-warning">Secret stored</div>
+                  <div class="type-caption text-label-tertiary mt-0.5">
                     @if (!secretsUnlocked) {
                     Unlock to reveal
                     } @else if (getSecretPreview(form.vars[$index].value)) {
                     {{ getSecretPreview(form.vars[$index].value) }}
                     } @else {
-                    <button
-                      type="button"
-                      class="underline"
-                      (click)="revealSecret($index)"
-                    >
-                      Reveal
-                    </button>
+                    <button type="button" class="underline text-accent" (click)="revealSecret($index)">Reveal</button>
                     }
                   </div>
                 </div>
                 }
-                <button
-                  pButton
-                  icon="pi pi-lock"
-                  text
-                  severity="secondary"
-                  [disabled]="isSecretValue(form.vars[$index].value)"
-                  (click)="protectVariable($index)"
-                ></button>
-                <button
-                  pButton
-                  icon="pi pi-times"
-                  text
-                  severity="secondary"
-                  (click)="removeVariable($index)"
-                ></button>
+                <button pButton icon="pi pi-lock" text severity="secondary" [disabled]="isSecretValue(form.vars[$index].value)" (click)="protectVariable($index)"></button>
+                <button pButton icon="pi pi-times" text severity="secondary" (click)="removeVariable($index)"></button>
               </div>
               }
-              <button
-                pButton
-                icon="pi pi-plus"
-                size="small"
-                label="Add Variable"
-                severity="secondary"
-                (click)="addVariable()"
-              ></button>
+              <button pButton icon="pi pi-plus" size="small" label="Add Variable" severity="secondary" (click)="addVariable()"></button>
             </div>
           </p-tabpanel>
           <p-tabpanel value="json">
             <div class="space-y-2">
               @if (!form.jsonValid) {
-              <p class="text-sm text-red-400">Invalid JSON</p>
+              <p class="type-footnote text-status-error">Invalid JSON</p>
               }
               <app-json-editor
                 name="env-json"
@@ -203,26 +128,21 @@
       </p-tabs>
     </div>
 
-    <div class="mt-6 flex justify-end gap-3">
-      <button
-        pButton
-        label="Save Changes"
-        class="uppercase"
-        [disabled]="!form.name || !form.jsonValid"
-        (click)="save()"
-      ></button>
+    <div class="mt-5 flex justify-end">
+      <button pButton label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"></button>
     </div>
   </div>
 </div>
 
 <ng-template #emptyState>
-  <div class="rounded-xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
+  <div class="rounded-xl border border-dashed border-separator p-6 text-center type-callout text-label-tertiary">
     Select or create an environment to begin editing.
   </div>
 </ng-template>
 
+<!-- New environment dialog -->
 <p-dialog
-  header="New Environment"
+  header="New environment"
   [(visible)]="newEnvDialogVisible"
   [modal]="true"
   [style]="{ width: '420px' }"
@@ -230,112 +150,83 @@
 >
   <div class="flex flex-col gap-3">
     <div>
-      <label class="form-label">Name</label>
-      <input
-        pInputText
-        class="w-full"
-        [(ngModel)]="newEnvForm.name"
-        placeholder="Environment name"
-      />
+      <label class="ds-form-label">Name</label>
+      <input pInputText class="w-full" [(ngModel)]="newEnvForm.name" placeholder="Environment name" />
     </div>
     <div>
-      <label class="form-label">Description</label>
-      <input
-        pInputText
-        class="w-full"
-        [(ngModel)]="newEnvForm.description"
-        placeholder="Optional description"
-      />
+      <label class="ds-form-label">Description</label>
+      <input pInputText class="w-full" [(ngModel)]="newEnvForm.description" placeholder="Optional" />
     </div>
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" (click)="closeNewEnvironmentDialog()"></button>
-      <button
-        pButton
-        label="Create"
-        [disabled]="!newEnvForm.name?.trim()"
-        (click)="submitNewEnvironment()"
-      ></button>
+      <button pButton label="Cancel" severity="secondary" outlined (click)="closeNewEnvironmentDialog()"></button>
+      <button pButton label="Create" [disabled]="!newEnvForm.name?.trim()" (click)="submitNewEnvironment()"></button>
     </div>
   </ng-template>
 </p-dialog>
 
+<!-- Import environments dialog -->
 <p-dialog
-  header="Import Environments"
+  header="Import environments"
   [(visible)]="envImportDialogVisible"
   [modal]="true"
-  [style]="{ width: '420px' }"
+  [style]="{ width: '440px' }"
   (onHide)="closeEnvImportDialog()"
 >
   @if (envImportErrors.length) {
-  <div class="space-y-1 text-sm text-red-300">
+  <div class="space-y-1 type-callout text-status-error">
     <p class="font-semibold">Unable to import "{{ envImportFileName }}":</p>
     @for (error of envImportErrors; track error) {
-    <p>- {{ error }}</p>
+    <p>— {{ error }}</p>
     }
   </div>
   } @else if (pendingEnvImport?.length) {
   <div class="space-y-3">
-    <p class="text-sm text-slate-300">
-      {{ pendingEnvImport.length }} environment(s) detected.
-    </p>
+    <p class="type-callout text-label-secondary">{{ pendingEnvImport.length }} environment(s) detected.</p>
     @for (entry of pendingEnvImport; track entry.doc.meta.id; let idx = $index) {
-    <div class="rounded-lg border border-slate-800/70 bg-slate-900/40 p-3 text-sm text-slate-300">
+    <div class="rounded-lg border border-separator bg-canvas-elevated p-3">
       <div class="flex items-center justify-between gap-2">
         <div>
-          <p class="text-base font-semibold text-white">{{ entry.doc.name }}</p>
-          <p class="text-xs text-slate-400">
-            {{ Object.keys(entry.doc.vars ?? {}).length }} variable(s)
-          </p>
+          <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
+          <p class="type-caption text-label-tertiary">{{ Object.keys(entry.doc.vars ?? {}).length }} variable(s)</p>
         </div>
         @if (entry.targetId) {
-        <span class="rounded-full bg-amber-500/20 px-2 py-1 text-[11px] uppercase text-amber-200">
-          Existing
-        </span>
+        <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2 py-0.5 type-caption text-status-warning">Existing</span>
         }
       </div>
       <div class="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded-md border px-3 py-1 text-xs uppercase tracking-wide"
+          class="rounded-md border px-3 py-1.5 type-caption"
           [ngClass]="{
-            'border-emerald-500/60 bg-emerald-500/20 text-emerald-100': entry.action === 'merge',
-            'border-slate-700 bg-transparent text-slate-300': entry.action !== 'merge'
+            'border-accent bg-accent-fill text-accent': entry.action === 'merge',
+            'border-separator bg-transparent text-label-secondary': entry.action !== 'merge'
           }"
           (click)="setEnvImportAction(idx, 'merge')"
-        >
-          Merge as new
-        </button>
+        >Merge as new</button>
         <button
           type="button"
-          class="rounded-md border px-3 py-1 text-xs uppercase tracking-wide"
+          class="rounded-md border px-3 py-1.5 type-caption"
           [disabled]="!entry.targetId"
           [ngClass]="{
-            'border-amber-500/60 bg-amber-500/20 text-amber-100': entry.action === 'replace',
-            'border-slate-700 bg-transparent text-slate-300': entry.action !== 'replace' || !entry.targetId,
-            'opacity-50 cursor-not-allowed': !entry.targetId
+            'border-status-warning-border bg-status-warning-fill text-status-warning': entry.action === 'replace',
+            'border-separator bg-transparent text-label-secondary': entry.action !== 'replace' || !entry.targetId,
+            'opacity-40 cursor-not-allowed': !entry.targetId
           }"
           (click)="setEnvImportAction(idx, 'replace')"
-        >
-          Replace existing
-        </button>
+        >Replace existing</button>
       </div>
     </div>
     }
   </div>
   } @else {
-  <p class="text-sm text-slate-300">Select a valid export file to continue.</p>
+  <p class="type-callout text-label-secondary">Select a valid export file to continue.</p>
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" (click)="closeEnvImportDialog()"></button>
-      <button
-        pButton
-        label="Import"
-        [disabled]="!pendingEnvImport || envImportErrors.length > 0"
-        (click)="confirmEnvironmentImport()"
-      ></button>
+      <button pButton label="Cancel" severity="secondary" outlined (click)="closeEnvImportDialog()"></button>
+      <button pButton label="Import" [disabled]="!pendingEnvImport || envImportErrors.length > 0" (click)="confirmEnvironmentImport()"></button>
     </div>
   </ng-template>
 </p-dialog>

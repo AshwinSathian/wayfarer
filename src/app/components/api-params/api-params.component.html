@@ -1,203 +1,199 @@
-<p-card class="w-full">
-  <div class="space-y-6">
-    <div class="flex flex-col gap-4 md:flex-row">
-      <div class="w-full md:w-1/4">
-        <p-floatlabel variant="in">
-          <p-select
-            class="w-full"
-            [options]="requestMethods"
-            appendTo="body"
-            [(ngModel)]="selectedRequestMethod"
-            (ngModelChange)="onRequestMethodChange($event)"
-          ></p-select>
-          <label class="uppercase"> Request Method </label>
-        </p-floatlabel>
-      </div>
-      <div class="w-full md:w-3/4">
-        <p-floatlabel variant="in">
-          <input pInputText type="url" class="w-full" [(ngModel)]="endpoint" />
-          <label class="uppercase"> API Endpoint </label>
-        </p-floatlabel>
-        @if (endpointError !== '') {
-        <small class="mt-1 block text-sm text-red-400">
-          {{ endpointError }}
-        </small>
-        }
-      </div>
+<div class="ds-panel p-6 w-full space-y-5">
+
+  <!-- URL bar row -->
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+    <div class="sm:w-40">
+      <p-select
+        class="w-full"
+        [options]="requestMethods"
+        appendTo="body"
+        [(ngModel)]="selectedRequestMethod"
+        (ngModelChange)="onRequestMethodChange($event)"
+        styleClass="method-select"
+      ></p-select>
     </div>
-    @if (variableTokens.length) {
-    <div class="flex flex-wrap gap-2 rounded-lg bg-slate-900/40 px-4 py-3 text-xs uppercase tracking-wide text-slate-300">
-      @for (token of variableTokens; track token.field + token.key) {
-      <p-chip
-        [styleClass]="getVariableChipClass(token) + ' px-2 py-1 text-[11px] cursor-pointer'"
-        (click)="handleVariableChipClick(token)"
-      >
-        <ng-template pTemplate="content">
-          <div class="flex flex-col text-left">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold">{{ token.key }}</span>
-              <span class="text-[10px] capitalize">{{ token.source }}</span>
-            </div>
-            <div class="text-[10px] normal-case text-slate-200">
-              {{ token.value ?? "Not resolved" }}
-            </div>
-          </div>
-        </ng-template>
-      </p-chip>
+    <div class="flex-1">
+      <input
+        pInputText
+        type="url"
+        class="w-full font-mono"
+        [(ngModel)]="endpoint"
+        placeholder="https://api.example.com/v1/endpoint"
+      />
+      @if (endpointError !== '') {
+      <small class="mt-1 block type-footnote text-status-error">
+        {{ endpointError }}
+      </small>
       }
     </div>
-    @if (missingVariableKeys.length) {
-    <p class="mt-2 text-xs uppercase tracking-wide text-amber-300">
-      Missing variables: {{ missingVariableKeys.join(", ") }}
-    </p>
-    }
-    }
-
-    <section class="rounded-lg bg-slate-900/40 p-6">
-      <div class="hidden md:block">
-        <p-tabs [value]="activeTab" (valueChange)="onActiveTabChange($event)">
-          <div class="flex items-center justify-between w-full">
-            <p-tablist>
-              <p-tab value="headers">
-                <span class="uppercase">Headers</span>
-              </p-tab>
-              @if (isBodyMethod(selectedRequestMethod)) {
-              <p-tab value="body">
-                <span class="uppercase">Body</span>
-              </p-tab>
-              }
-            </p-tablist>
-
-            <p-selectButton
-              [options]="editorModeOptions"
-              [(ngModel)]="editorMode"
-              (ngModelChange)="onEditorModeChange($event)"
-              [ngModelOptions]="{ standalone: true }"
-              size="small"
-            ></p-selectButton>
-          </div>
-
-          <p-tabpanels>
-            <p-tabpanel value="headers">
-              <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-            </p-tabpanel>
-            @if (isBodyMethod(selectedRequestMethod)) {
-            <p-tabpanel value="body">
-              <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-            </p-tabpanel>
-            }
-          </p-tabpanels>
-        </p-tabs>
-      </div>
-      <div class="md:hidden">
-        <p-accordion
-          [multiple]="true"
-          [value]="mobileActivePanels"
-          (valueChange)="onMobileIndexChange($event)"
-        >
-          <p-accordionpanel value="headers">
-            <ng-template pTemplate="header">
-              <span class="uppercase">Headers</span>
-            </ng-template>
-            <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-          </p-accordionpanel>
-          @if (isBodyMethod(selectedRequestMethod)) {
-          <p-accordionpanel value="body">
-            <ng-template pTemplate="header">
-              <span class="uppercase">Body</span>
-            </ng-template>
-            <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-          </p-accordionpanel>
-          }
-        </p-accordion>
-      </div>
-    </section>
-
-    <ng-template #headersContent>
-      @if (editorMode === 'basic') {
-      <app-api-params-basic
-        context="Headers"
-        [items]="requestHeaders"
-        [showDataTypes]="false"
-        [addLabel]="'Add Header'"
-        [isAddDisabled]="isAddDisabledFn"
-        [addItem]="addItemFn"
-        [removeItem]="removeItemFn"
-        [disableItem]="disableHeaderItemFn"
-      ></app-api-params-basic>
-      } @else {
-      <div class="space-y-2">
-        @if (!headersJsonValid) {
-        <small class="text-xs uppercase text-red-400">Invalid JSON</small>
-        }
-        <app-json-editor
-          name="headersJson"
-          [(ngModel)]="headersJsonText"
-          [ngModelOptions]="{ standalone: true }"
-          (jsonValidChange)="headersJsonValid = $event"
-          (parsedChange)="onHeadersJsonParsed($event)"
-          [height]="280"
-        ></app-json-editor>
-      </div>
-      }
-    </ng-template>
-
-    <ng-template #bodyContent>
-      @if (editorMode === 'basic') {
-      <app-api-params-basic
-        context="Body"
-        [items]="requestBody"
-        [dataTypes]="requestBodyDataTypes"
-        [availableDataTypes]="availableDataTypes"
-        [booleanOptions]="booleanOptions"
-        [showDataTypes]="true"
-        [addLabel]="'Add Item'"
-        [isAddDisabled]="isAddDisabledFn"
-        [addItem]="addItemFn"
-        [removeItem]="removeItemFn"
-        [disableItem]="disableBodyItemFn"
-      ></app-api-params-basic>
-      } @else {
-      <div class="space-y-2">
-        @if (!bodyJsonValid) {
-        <small class="text-xs uppercase text-red-400">Invalid JSON</small>
-        }
-        <app-json-editor
-          name="bodyJson"
-          [(ngModel)]="bodyJsonText"
-          [ngModelOptions]="{ standalone: true }"
-          (jsonValidChange)="bodyJsonValid = $event"
-          (parsedChange)="onBodyJsonParsed($event)"
-          [height]="360"
-        ></app-json-editor>
-      </div>
-      }
-    </ng-template>
-
     <button
       pButton
       type="button"
       [disabled]="!endpoint"
-      label="Send Request"
-      class="uppercase"
+      label="Send"
       (click)="sendRequest()"
+      class="sm:flex-shrink-0"
     ></button>
+  </div>
 
-    @if (shouldShowResponsePanel) {
-    <app-response-viewer
-      [loading]="loadingState"
-      [responseData]="responseData"
-      [responseError]="responseError"
-      [responseBodyIsJson]="responseBodyIsJson"
-      [responseHeaders]="responseHeadersView"
-      [responseStatusCode]="responseStatusCode"
-      [responseStatusText]="responseStatusText"
-      [isError]="responseIsError"
-      [inspection]="responseInspection"
-      [responseContentLength]="responseContentLength"
-      [exportContext]="responseExportContext"
-      [(activeTab)]="responseTab"
-    ></app-response-viewer>
+  <!-- Variable tokens preview -->
+  @if (variableTokens.length) {
+  <div class="flex flex-wrap gap-2 rounded-lg bg-canvas-elevated px-4 py-3">
+    @for (token of variableTokens; track token.field + token.key) {
+    <div
+      class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
+      (click)="handleVariableChipClick(token)"
+    >
+      <div class="flex items-center gap-1.5">
+        <span class="type-footnote font-semibold">{{ token.key }}</span>
+        <span class="type-caption text-label-tertiary capitalize">{{ token.source }}</span>
+      </div>
+      <div class="type-caption text-label-secondary mt-0.5">
+        {{ token.value ?? 'Not resolved' }}
+      </div>
+    </div>
     }
   </div>
-</p-card>
+  @if (missingVariableKeys.length) {
+  <p class="type-footnote text-status-warning">
+    Missing: {{ missingVariableKeys.join(', ') }}
+  </p>
+  }
+  }
+
+  <!-- Headers / Body tabs -->
+  <section class="rounded-lg bg-canvas-elevated p-5">
+    <div class="hidden md:block">
+      <p-tabs [value]="activeTab" (valueChange)="onActiveTabChange($event)">
+        <div class="flex items-center justify-between w-full">
+          <p-tablist>
+            <p-tab value="headers">Headers</p-tab>
+            @if (isBodyMethod(selectedRequestMethod)) {
+            <p-tab value="body">Body</p-tab>
+            }
+          </p-tablist>
+
+          <p-selectButton
+            [options]="editorModeOptions"
+            [(ngModel)]="editorMode"
+            (ngModelChange)="onEditorModeChange($event)"
+            [ngModelOptions]="{ standalone: true }"
+            size="small"
+          ></p-selectButton>
+        </div>
+
+        <p-tabpanels>
+          <p-tabpanel value="headers">
+            <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+          </p-tabpanel>
+          @if (isBodyMethod(selectedRequestMethod)) {
+          <p-tabpanel value="body">
+            <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+          </p-tabpanel>
+          }
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+
+    <div class="md:hidden">
+      <p-accordion
+        [multiple]="true"
+        [value]="mobileActivePanels"
+        (valueChange)="onMobileIndexChange($event)"
+      >
+        <p-accordionpanel value="headers">
+          <ng-template pTemplate="header">Headers</ng-template>
+          <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+        </p-accordionpanel>
+        @if (isBodyMethod(selectedRequestMethod)) {
+        <p-accordionpanel value="body">
+          <ng-template pTemplate="header">Body</ng-template>
+          <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+        </p-accordionpanel>
+        }
+      </p-accordion>
+    </div>
+  </section>
+
+  <!-- Headers template -->
+  <ng-template #headersContent>
+    @if (editorMode === 'basic') {
+    <app-api-params-basic
+      context="Headers"
+      [items]="requestHeaders"
+      [showDataTypes]="false"
+      [addLabel]="'Add Header'"
+      [isAddDisabled]="isAddDisabledFn"
+      [addItem]="addItemFn"
+      [removeItem]="removeItemFn"
+      [disableItem]="disableHeaderItemFn"
+    ></app-api-params-basic>
+    } @else {
+    <div class="space-y-2">
+      @if (!headersJsonValid) {
+      <small class="type-footnote text-status-error">Invalid JSON</small>
+      }
+      <app-json-editor
+        name="headersJson"
+        [(ngModel)]="headersJsonText"
+        [ngModelOptions]="{ standalone: true }"
+        (jsonValidChange)="headersJsonValid = $event"
+        (parsedChange)="onHeadersJsonParsed($event)"
+        [height]="280"
+      ></app-json-editor>
+    </div>
+    }
+  </ng-template>
+
+  <!-- Body template -->
+  <ng-template #bodyContent>
+    @if (editorMode === 'basic') {
+    <app-api-params-basic
+      context="Body"
+      [items]="requestBody"
+      [dataTypes]="requestBodyDataTypes"
+      [availableDataTypes]="availableDataTypes"
+      [booleanOptions]="booleanOptions"
+      [showDataTypes]="true"
+      [addLabel]="'Add Item'"
+      [isAddDisabled]="isAddDisabledFn"
+      [addItem]="addItemFn"
+      [removeItem]="removeItemFn"
+      [disableItem]="disableBodyItemFn"
+    ></app-api-params-basic>
+    } @else {
+    <div class="space-y-2">
+      @if (!bodyJsonValid) {
+      <small class="type-footnote text-status-error">Invalid JSON</small>
+      }
+      <app-json-editor
+        name="bodyJson"
+        [(ngModel)]="bodyJsonText"
+        [ngModelOptions]="{ standalone: true }"
+        (jsonValidChange)="bodyJsonValid = $event"
+        (parsedChange)="onBodyJsonParsed($event)"
+        [height]="360"
+      ></app-json-editor>
+    </div>
+    }
+  </ng-template>
+
+  <!-- Response panel -->
+  @if (shouldShowResponsePanel) {
+  <app-response-viewer
+    [loading]="loadingState"
+    [responseData]="responseData"
+    [responseError]="responseError"
+    [responseBodyIsJson]="responseBodyIsJson"
+    [responseHeaders]="responseHeadersView"
+    [responseStatusCode]="responseStatusCode"
+    [responseStatusText]="responseStatusText"
+    [isError]="responseIsError"
+    [inspection]="responseInspection"
+    [responseContentLength]="responseContentLength"
+    [exportContext]="responseExportContext"
+    [(activeTab)]="responseTab"
+  ></app-response-viewer>
+  }
+
+</div>

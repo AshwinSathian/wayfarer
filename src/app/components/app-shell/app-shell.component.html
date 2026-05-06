@@ -1,4 +1,4 @@
-<div class="flex min-h-screen bg-[#0b0f19] text-slate-100">
+<div class="flex min-h-screen bg-canvas-app text-label-primary">
   <p-drawer
     position="left"
     [visible]="drawerVisible"
@@ -8,58 +8,43 @@
     [blockScroll]="isMobile"
     [showCloseIcon]="false"
     [style]="{ width: drawerWidth }"
-    styleClass="app-drawer"
     (onHide)="closeDrawer.emit()"
   >
     <div class="flex h-full flex-col">
-      <div
-        class="flex items-center justify-between border-b border-slate-800/70 py-4"
-      >
-        <div class="flex items-center gap-3">
-          <h2 class="text-2xl font-semibold text-slate-200 uppercase">
-            API Sandbox
-          </h2>
-        </div>
-
+      <!-- Sidebar header -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
+        <span class="type-title-3 text-label-primary font-semibold tracking-tight">
+          API Sandbox
+        </span>
         @if (isMobile) {
-        <button
-          pButton
-          type="button"
-          text
-          severity="secondary"
-          class="text-slate-300"
-          size="small"
-          (click)="toggleDrawer.emit()"
-        >
-          <span class="material-icons text-2xl">side_navigation</span>
+        <button class="ds-icon-btn" (click)="toggleDrawer.emit()">
+          <span class="material-symbols-outlined icon-md">side_navigation</span>
         </button>
         }
       </div>
 
       @if (isMobile) {
-      <div class="py-5">
+      <div class="px-4 py-3">
         <button
           pButton
           type="button"
           icon="pi pi-plus-circle"
           label="New request"
           outlined
-          class="w-full gap-3 bg-transparent text-slate-200 hover:bg-slate-800/60 uppercase tracking-wide"
+          class="w-full"
           (click)="isMobile ? closeDrawer.emit() : null"
         ></button>
       </div>
       }
 
-      <div class="flex-1 overflow-y-auto px-3 py-2">
+      <div class="flex-1 overflow-y-auto px-3 py-3">
         <app-collections-sidebar class="h-full w-full"></app-collections-sidebar>
       </div>
 
-      <div class="border-t border-slate-800/70 px-4 py-3">
-        <div class="mb-2 flex items-center gap-2 text-xs uppercase tracking-widest text-slate-400">
-          <span class="material-icons text-base">history</span>
-          <span>Recent History</span>
-        </div>
-        <div class="max-h-60 overflow-y-auto rounded-lg border border-slate-800/70 p-1">
+      <!-- History section -->
+      <div class="border-t border-separator px-4 py-3">
+        <p class="ds-section-label mb-2">Recent History</p>
+        <div class="max-h-56 overflow-y-auto rounded-lg">
           <app-past-requests
             [pastRequests]="pastRequests"
             [loading]="historyLoading"
@@ -70,13 +55,14 @@
         </div>
       </div>
 
-      <div class="border-t border-slate-800/70 p-4">
+      <div class="border-t border-separator px-4 py-3">
         <button
           pButton
           type="button"
           severity="danger"
           label="Clear history"
-          class="w-full uppercase"
+          outlined
+          class="w-full"
           [disabled]="historyLoading || !pastRequests.length"
           (click)="confirmClear()"
         ></button>
@@ -85,65 +71,47 @@
   </p-drawer>
 
   <div
-    class="flex flex-1 flex-col transition-all duration-300"
+    class="flex flex-1 flex-col transition-all duration-300 ease-standard"
     [ngClass]="{ 'md:ml-[22rem]': !isMobile && drawerVisible }"
   >
-    <div class="flex flex-wrap items-center justify-between gap-3 p-4">
-      <button
-        pButton
-        type="button"
-        text
-        severity="secondary"
-        class="text-slate-300"
-        size="small"
-        (click)="toggleDrawer.emit()"
-      >
-        <span class="material-icons text-2xl">side_navigation</span>
-      </button>
-      <div class="flex flex-wrap items-center gap-3">
+    <!-- Top toolbar -->
+    <div class="ds-toolbar">
+      <div class="flex items-center gap-3">
+        <button class="ds-icon-btn" (click)="toggleDrawer.emit()">
+          <span class="material-symbols-outlined icon-md">side_navigation</span>
+        </button>
+        <span class="hidden md:block type-title-3 text-label-secondary font-medium">
+          API Sandbox
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
         <p-select
           [options]="dropdownOptions"
           [(ngModel)]="selectedEnvironmentId"
-          placeholder="Select environment"
+          placeholder="No environment"
           optionLabel="label"
           optionValue="value"
           (onChange)="handleEnvironmentChange($event.value)"
           styleClass="env-switcher"
         ></p-select>
+
         <button
-          pButton
-          type="button"
-          [icon]="secretsUnlocked ? 'pi pi-unlock' : 'pi pi-lock'"
-          [severity]="secretsUnlocked ? 'success' : 'secondary'"
+          class="ds-icon-btn"
+          [class.text-status-success]="secretsUnlocked"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          pTooltip="{{ secretsUnlocked ? 'Lock secrets' : 'Unlock secrets' }}"
-          tooltipPosition="bottom"
-        ></button>
-        <button
-          pButton
-          type="button"
-          label="Reset All"
-          text
-          severity="danger"
-          class="uppercase"
-          [disabled]="resettingAll"
-          (click)="confirmResetAllData()"
-        ></button>
+          [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+        >
+          <span class="material-symbols-outlined icon-md">
+            {{ secretsUnlocked ? 'lock_open' : 'lock' }}
+          </span>
+        </button>
       </div>
     </div>
 
     <main class="flex-1 overflow-y-auto">
-      <div class="flex w-full flex-col gap-6 px-4 pb-12 pt-4 md:px-8">
-        <div class="flex flex-col gap-6 px-6 py-8 md:px-10 md:py-10">
-          <div class="flex flex-col gap-1 text-center md:text-left uppercase">
-            <span class="text-2xl font-medium text-white md:text-3xl">
-              Compose your request
-            </span>
-            <span class="text-sm text-slate-400 my-0 py-0 tracking-wide">
-              Set up the endpoint, headers, and payload — then send it in one
-              click.
-            </span>
-          </div>
+      <div class="flex w-full flex-col gap-6 px-4 pb-16 pt-6 md:px-8">
+        <div class="flex flex-col gap-6">
           <app-api-params (newRequest)="newRequest.emit()"></app-api-params>
           <app-environments-manager></app-environments-manager>
         </div>
@@ -152,15 +120,16 @@
   </div>
 </div>
 
+<!-- Unlock secrets dialog -->
 <p-dialog
-  header="Unlock Secrets"
+  header="Unlock secrets"
   [(visible)]="lockDialogVisible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '360px' }"
+  [style]="{ width: '380px' }"
 >
   <div class="flex flex-col gap-4">
-    <p class="text-sm text-slate-300">
+    <p class="type-callout text-label-secondary">
       Enter your passphrase to unlock encrypted secrets for this session.
     </p>
     <input
@@ -171,12 +140,10 @@
       placeholder="Passphrase"
     />
     @if (unlockError) {
-    <p class="text-xs text-red-400">
-      {{ unlockError }}
-    </p>
+    <p class="type-footnote text-status-error">{{ unlockError }}</p>
     }
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" (click)="closeLockDialog()"></button>
+      <button pButton label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
       <button
         pButton
         label="Unlock"
@@ -187,6 +154,7 @@
   </div>
 </p-dialog>
 
+<!-- Confirm dialog (global) -->
 <p-confirmdialog #cd>
   <ng-template
     #headless
@@ -194,19 +162,15 @@
     let-onAccept="onAccept"
     let-onReject="onReject"
   >
-    <div
-      class="flex flex-col items-center p-8 bg-surface-0 dark:bg-surface-900 rounded"
-    >
-      <span class="font-bold text-2xl block mb-2 mt-6">{{
-        message.header
-      }}</span>
-      <p class="mb-0">{{ message.message }}</p>
-      <div class="flex items-center gap-2 mt-6">
+    <div class="flex flex-col items-center p-8 bg-canvas-overlay rounded-2xl">
+      <span class="type-title-2 text-label-primary mb-2 mt-4">{{ message.header }}</span>
+      <p class="type-body text-label-secondary text-center">{{ message.message }}</p>
+      <div class="flex items-center gap-3 mt-6">
         <p-button
           severity="danger"
           label="Proceed"
           (onClick)="onAccept()"
-          styleClass="w-32"
+          styleClass="w-28"
         ></p-button>
         <p-button
           label="Cancel"
@@ -214,7 +178,7 @@
           severity="secondary"
           [outlined]="true"
           (onClick)="onReject()"
-          styleClass="w-32"
+          styleClass="w-28"
         ></p-button>
       </div>
     </div>

@@ -1,114 +1,68 @@
-<section
-  class="h-full w-full"
-  [ngClass]="{ 'border-none bg-transparent shadow-none': !displayHeader }"
->
-  @if (displayHeader) {
-  <ng-template pTemplate="header"> Request History </ng-template>
-  }
-  <div class="flex flex-col gap-1 w-full">
+<section class="h-full w-full">
+  <div class="flex flex-col gap-0.5 w-full">
     @if (loading) {
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1.5 p-1">
       @for (skeleton of skeletonPlaceholders; track skeleton) {
-      <div class="rounded-lg border border-slate-800/60 bg-slate-900/50">
-        <p-skeleton
-          height="1.1rem"
-          width="60%"
-          borderRadius="0.75rem"
-        ></p-skeleton>
-        <div class="mt-2 flex gap-2">
-          <p-skeleton
-            height="0.9rem"
-            width="5rem"
-            borderRadius="9999px"
-          ></p-skeleton>
-          <p-skeleton
-            height="0.9rem"
-            width="4rem"
-            borderRadius="9999px"
-          ></p-skeleton>
-          <p-skeleton
-            height="0.9rem"
-            width="7rem"
-            borderRadius="9999px"
-          ></p-skeleton>
+      <div class="rounded-lg bg-canvas-elevated border border-separator p-2.5">
+        <p-skeleton height="1rem" width="60%" borderRadius="6px"></p-skeleton>
+        <div class="mt-1.5 flex gap-1.5">
+          <p-skeleton height="0.75rem" width="4rem" borderRadius="9999px"></p-skeleton>
+          <p-skeleton height="0.75rem" width="3rem" borderRadius="9999px"></p-skeleton>
         </div>
       </div>
       }
     </div>
     } @else if (!pastRequests.length) {
-    <div
-      class="text-center text-sm text-slate-400 uppercase tracking-wide w-full p-2"
-    >
-      No requests recorded yet. Run a request to see it listed here.
+    <div class="text-center type-footnote text-label-tertiary w-full p-3">
+      No history yet.
     </div>
-    } @else { @for (request of pastRequests; track trackById($index, request)) {
-    <div
-      class="overflow-hidden rounded-lg bg-slate-900/60 transition hover:bg-slate-900/75"
-    >
-      <div class="hidden md:flex items-center gap-1">
+    } @else {
+    @for (request of pastRequests; track trackById($index, request)) {
+    <div class="overflow-hidden rounded-md transition-colors hover:bg-fill-hover">
+
+      <!-- Desktop row -->
+      <div class="hidden md:flex items-center gap-2 px-2 py-1.5">
+        <span class="method-badge method-{{ request.method.toLowerCase() }} flex-shrink-0">
+          {{ request.method }}
+        </span>
         <span
-          class="cursor-pointer truncate font-mono text-sm text-slate-300"
-          [ngClass]="{
-            'text-[#61affe]': request.method === 'GET',
-            'text-[#49cc90]': request.method === 'POST',
-            'text-[#fca130]': request.method === 'PUT',
-            'text-[#f93e3e]': request.method === 'DELETE',
-            'text-[#50e3c2]': request.method === 'PATCH',
-            'text-[#0d5aa7]': request.method === 'OPTIONS',
-            'text-[#9012fe]': request.method === 'HEAD'
-          }"
+          class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
           (click)="load(request)"
           (mouseenter)="detailsPopover.show($event)"
           (mouseleave)="detailsPopover.hide()"
-        >
-          {{ request.url }}
-        </span>
+        >{{ request.url }}</span>
+        @if (request.status !== undefined) {
+        <span
+          class="type-caption font-mono flex-shrink-0"
+          [ngClass]="{
+            'text-status-success': request.status >= 200 && request.status < 300,
+            'text-status-warning': request.status >= 300 && request.status < 500,
+            'text-status-error':   request.status >= 500 || request.status === 0
+          }"
+        >{{ request.status }}</span>
+        }
         <button
-          pButton
-          type="button"
-          text
-          severity="danger"
-          class="uppercase"
-          pTooltip="Delete request"
+          class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
+          pTooltip="Delete"
           tooltipPosition="top"
           (click)="confirmDelete(request, $event)"
         >
-          <span class="material-icons text-base">delete</span>
+          <span class="material-symbols-outlined icon-sm text-status-error">delete</span>
         </button>
 
         <p-confirmpopup #cp>
           <ng-template #headless let-message>
-            <div class="rounded p-4 text-sm">
-              <span class="tracking-wide text-slate-300">
-                {{ message.message }}
-              </span>
-              <div class="flex items-center gap-2 mt-4">
-                <p-button
-                  (onClick)="cp.onAccept()"
-                  label="Delete"
-                  severity="danger"
-                  size="small"
-                  text
-                />
-                <p-button
-                  (onClick)="cp.onReject()"
-                  label="Cancel"
-                  text
-                  size="small"
-                  severity="secondary"
-                  class="uppercase"
-                />
+            <div class="rounded-lg p-4 type-callout bg-canvas-overlay border border-separator">
+              <span class="text-label-secondary">{{ message.message }}</span>
+              <div class="flex items-center gap-2 mt-3">
+                <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
+                <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
               </div>
             </div>
           </ng-template>
         </p-confirmpopup>
 
-        <p-popover
-          #detailsPopover
-          appendTo="body"
-          [dismissable]="true"
-          [styleClass]="'hidden md:block'"
-        >
+        <p-popover #detailsPopover appendTo="body" [dismissable]="true">
           <ng-container
             [ngTemplateOutlet]="requestDetails"
             [ngTemplateOutletContext]="{ request: request }"
@@ -116,24 +70,15 @@
         </p-popover>
       </div>
 
-      <div class="border-t border-slate-800/60 md:hidden my-2">
+      <!-- Mobile accordion -->
+      <div class="md:hidden">
         <p-accordion>
           <p-accordion-panel [value]="request.id ?? $index">
             <p-accordion-header>
-              <span
-                class="text-xs font-semibold text-slate-300 truncate line-clamp-1"
-                [ngClass]="{
-                  'text-[#61affe]': request.method === 'GET',
-                  'text-[#49cc90]': request.method === 'POST',
-                  'text-[#fca130]': request.method === 'PUT',
-                  'text-[#f93e3e]': request.method === 'DELETE',
-                  'text-[#50e3c2]': request.method === 'PATCH',
-                  'text-[#0d5aa7]': request.method === 'OPTIONS',
-                  'text-[#9012fe]': request.method === 'HEAD'
-                }"
-              >
-                {{ request.url }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
+                <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
+              </div>
             </p-accordion-header>
             <p-accordion-content>
               <ng-container
@@ -144,75 +89,36 @@
           </p-accordion-panel>
         </p-accordion>
       </div>
+
     </div>
-    } }
+    }
+    }
   </div>
 </section>
 
 <ng-template #requestDetails let-request="request">
-  <div class="space-y-2 text-xs text-slate-100 min-w-fit">
-    <div class="flex flex-col items-start">
-      <span
-        class="font-semibold font-mono text-sm text-slate-300 uppercase tracking-wider"
-        [ngClass]="{
-          'text-[#61affe]': request.method === 'GET',
-          'text-[#49cc90]': request.method === 'POST',
-          'text-[#fca130]': request.method === 'PUT',
-          'text-[#f93e3e]': request.method === 'DELETE',
-          'text-[#50e3c2]': request.method === 'PATCH',
-          'text-[#0d5aa7]': request.method === 'OPTIONS',
-          'text-[#9012fe]': request.method === 'HEAD'
-        }"
-      >
-        {{ request.method }}
-      </span>
-    </div>
-
-    <div class="flex flex-wrap items-center justify-start">
+  <div class="space-y-2 min-w-[180px]">
+    <div class="flex flex-wrap items-center gap-1.5">
       @if (request.status !== undefined) {
-      <div class="flex items-center gap-1 p-2">
-        <span class="material-symbols-outlined text-base text-sky-300">
-          check_circle
-        </span>
-        <span>{{ request.status }}</span>
-      </div>
-      } @if (request.durationMs !== undefined) {
-      <div class="flex items-center gap-1 p-2">
-        <span class="material-symbols-outlined text-base text-emerald-400">
-          schedule
-        </span>
-        <span>{{ request.durationMs }} ms</span>
+      <div class="flex items-center gap-1">
+        <span class="material-symbols-outlined icon-sm text-status-success">check_circle</span>
+        <span class="type-footnote text-label-secondary">{{ request.status }}</span>
       </div>
       }
-      <div class="flex items-center gap-1 p-2">
-        <span class="material-symbols-outlined text-base text-amber-300">
-          calendar_month
-        </span>
-        <span>{{ request.createdAt | date : "short" }}</span>
+      @if (request.durationMs !== undefined) {
+      <div class="flex items-center gap-1">
+        <span class="material-symbols-outlined icon-sm text-label-tertiary">schedule</span>
+        <span class="type-footnote text-label-secondary">{{ request.durationMs }} ms</span>
+      </div>
+      }
+      <div class="flex items-center gap-1">
+        <span class="material-symbols-outlined icon-sm text-label-tertiary">calendar_month</span>
+        <span class="type-footnote text-label-secondary">{{ request.createdAt | date : 'short' }}</span>
       </div>
     </div>
-
-    <div class="flex items-center justify-start gap-2 md:hidden">
-      <button
-        pButton
-        type="button"
-        text
-        label="Load"
-        severity="secondary"
-        class="uppercase"
-        size="small"
-        (click)="load(request)"
-      ></button>
-      <button
-        pButton
-        type="button"
-        text
-        label="Delete"
-        severity="danger"
-        class="uppercase"
-        size="small"
-        (click)="confirmDelete(request, $event)"
-      ></button>
+    <div class="flex items-center gap-2 md:hidden">
+      <button pButton type="button" text label="Load" severity="secondary" size="small" (click)="load(request)"></button>
+      <button pButton type="button" text label="Delete" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
     </div>
   </div>
 </ng-template>

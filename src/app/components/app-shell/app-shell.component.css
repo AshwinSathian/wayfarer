@@ -1,28 +1,4 @@
-:host ::ng-deep .app-drawer.p-drawer {
-  background: #0f1524;
-  box-shadow: none;
-}
-
-:host ::ng-deep .app-drawer .p-drawer-content {
-  padding: 0;
-  background: transparent;
-}
-
-:host ::ng-deep .app-drawer .p-drawer-header {
-  display: none;
-}
-
-:host ::ng-deep .app-drawer .p-drawer-close {
-  display: none;
-}
-
+/* Env switcher */
 :host ::ng-deep .env-switcher.p-select {
-  width: 220px;
-  background-color: rgba(15, 23, 42, 0.8);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-}
-
-:host ::ng-deep .env-switcher .p-select-label {
-  color: #e2e8f0;
+  width: 200px;
 }

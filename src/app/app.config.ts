@@ -41,7 +41,7 @@ const SandboxTheme = definePreset(Aura, {
         },
         primary: {
           color:       "{indigo.400}",
-          inverseColor: "#ffffff",
+          contrastColor: "#ffffff",
           hoverColor:  "{indigo.300}",
           activeColor: "{indigo.200}",
         },

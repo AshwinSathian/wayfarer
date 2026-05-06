@@ -53,6 +53,10 @@ export class SecretsService {
     return this.crypto.decryptWithSession(envelope);
   }
 
+  async hasAnySecrets(): Promise<boolean> {
+    return (await this.idb.peekSecretEnvelope()) !== null;
+  }
+
   async verifyAndUnlock(passphrase: string): Promise<boolean> {
     const sample = await this.idb.peekSecretEnvelope();
     if (!sample) {

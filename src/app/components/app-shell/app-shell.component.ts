@@ -90,6 +90,8 @@ export class AppShellComponent implements OnInit {
   selectedEnvironmentId: string | null = null;
   lockDialogVisible = false;
   historyDrawerVisible = false;
+  isFirstVaultSetup = false;
+  confirmPassphrase = "";
   unlockPassphrase = "";
   resettingAll = false;
   unlockError = "";
@@ -152,15 +154,18 @@ export class AppShellComponent implements OnInit {
     await this.environmentsService.setActiveEnvironment(id);
   }
 
-  openLockDialog(): void {
+  async openLockDialog(): Promise<void> {
+    this.isFirstVaultSetup = !(await this.secretsService.hasAnySecrets());
     this.lockDialogVisible = true;
     this.unlockPassphrase = "";
-     this.unlockError = "";
+    this.confirmPassphrase = "";
+    this.unlockError = "";
   }
 
   closeLockDialog(): void {
     this.lockDialogVisible = false;
     this.unlockPassphrase = "";
+    this.confirmPassphrase = "";
     this.unlockError = "";
   }
 
@@ -168,6 +173,16 @@ export class AppShellComponent implements OnInit {
     const passphrase = this.unlockPassphrase.trim();
     if (!passphrase) {
       return;
+    }
+    if (this.isFirstVaultSetup) {
+      if (passphrase !== this.confirmPassphrase.trim()) {
+        this.unlockError = "Passphrases do not match.";
+        return;
+      }
+      if (passphrase.length < 8) {
+        this.unlockError = "Passphrase must be at least 8 characters.";
+        return;
+      }
     }
     try {
       const ok = await this.secretsService.verifyAndUnlock(passphrase);

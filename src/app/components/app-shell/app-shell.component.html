@@ -106,7 +106,7 @@
       <div class="flex w-full flex-col gap-6 px-4 pb-16 pt-6 md:px-8">
         <div class="flex flex-col gap-6">
           <app-api-params (newRequest)="newRequest.emit()"></app-api-params>
-          <app-environments-manager></app-environments-manager>
+          <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
         </div>
       </div>
     </main>
@@ -157,25 +157,44 @@
   </div>
 </p-drawer>
 
-<!-- Unlock secrets dialog -->
+<!-- Unlock / setup secrets dialog -->
 <p-dialog
-  header="Unlock secrets"
+  [header]="isFirstVaultSetup ? 'Create vault passphrase' : 'Unlock secrets'"
   [(visible)]="lockDialogVisible"
   [modal]="true"
   [dismissableMask]="true"
-  [style]="{ width: '380px' }"
+  [style]="{ width: '400px' }"
 >
   <div class="flex flex-col gap-4">
+    @if (isFirstVaultSetup) {
+    <p class="type-callout text-label-secondary">
+      Create a passphrase to encrypt your secrets. You'll need this passphrase to access them in future sessions.
+    </p>
+    } @else {
     <p class="type-callout text-label-secondary">
       Enter your passphrase to unlock encrypted secrets for this session.
     </p>
-    <input
-      pInputText
-      type="password"
-      class="w-full"
-      [(ngModel)]="unlockPassphrase"
-      placeholder="Passphrase"
-    />
+    }
+    <div class="flex flex-col gap-3">
+      <input
+        pInputText
+        type="password"
+        class="w-full"
+        [(ngModel)]="unlockPassphrase"
+        [placeholder]="isFirstVaultSetup ? 'Choose a passphrase' : 'Passphrase'"
+        (keydown.enter)="unlockSecrets()"
+      />
+      @if (isFirstVaultSetup) {
+      <input
+        pInputText
+        type="password"
+        class="w-full"
+        [(ngModel)]="confirmPassphrase"
+        placeholder="Confirm passphrase"
+        (keydown.enter)="unlockSecrets()"
+      />
+      }
+    </div>
     @if (unlockError) {
     <p class="type-footnote text-status-error">{{ unlockError }}</p>
     }
@@ -183,7 +202,7 @@
       <button pButton label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
       <button
         pButton
-        label="Unlock"
+        [label]="isFirstVaultSetup ? 'Create vault' : 'Unlock'"
         [disabled]="!unlockPassphrase"
         (click)="unlockSecrets()"
       ></button>

@@ -1,7 +1,9 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
+  EventEmitter,
   OnInit,
+  Output,
   computed,
   effect,
   signal,
@@ -63,6 +65,8 @@ interface EnvironmentImportEntry {
   styleUrls: ["./environments-manager.component.css"],
 })
 export class EnvironmentsManagerComponent implements OnInit {
+  @Output() requestUnlock = new EventEmitter<void>();
+
   protected readonly Object = Object;
   readonly environments = this.envService.environments;
   readonly activeEnvironment = this.envService.activeEnvironment;
@@ -257,11 +261,10 @@ export class EnvironmentsManagerComponent implements OnInit {
     }
     const pair = draft.vars[index];
     if (!pair?.key?.trim() || !String(pair.value ?? "").trim()) {
-      alert("Provide a key and value before protecting it as a secret.");
       return;
     }
     if (!this.secretCrypto.isUnlocked) {
-      alert("Unlock secrets before encrypting values.");
+      this.requestUnlock.emit();
       return;
     }
     const secretId = await this.secretsService.saveSecret({

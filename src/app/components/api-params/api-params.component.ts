@@ -7,10 +7,12 @@ import {
 import {
   Component,
   DoCheck,
+  ElementRef,
   EventEmitter,
   OnInit,
   Output,
   Signal,
+  ViewChild,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
@@ -73,6 +75,8 @@ type ContextType = "Body" | "Headers";
 })
 export class ApiParamsComponent implements OnInit, DoCheck {
   @Output() newRequest = new EventEmitter();
+
+  @ViewChild("urlInput") urlInputRef?: ElementRef<HTMLInputElement>;
 
   endpoint: string;
   selectedRequestMethod: PastRequest["method"];
@@ -237,6 +241,15 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     }
 
     context.splice(index, 1);
+  }
+
+  focusUrl(): void {
+    const el = this.urlInputRef?.nativeElement;
+    if (!el) {
+      return;
+    }
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    el.focus();
   }
 
   loadPastRequest(request: PastRequest) {

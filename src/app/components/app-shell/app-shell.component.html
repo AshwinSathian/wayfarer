@@ -38,7 +38,7 @@
       }
 
       <div class="flex-1 overflow-y-auto px-3 py-3">
-        <app-collections-sidebar class="h-full w-full"></app-collections-sidebar>
+        <app-collections-sidebar class="h-full w-full" (loadRequest)="handleLoadCollectionRequest($event)"></app-collections-sidebar>
       </div>
 
       <!-- History section -->

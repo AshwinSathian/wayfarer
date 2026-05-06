@@ -112,6 +112,16 @@ export class AppShellComponent implements OnInit {
     }
   }
 
+  handleLoadCollectionRequest(request: PastRequest): void {
+    if (this.apiParams) {
+      this.apiParams.loadPastRequest(request);
+      this.apiParams.focusUrl();
+    }
+    if (this.isMobile) {
+      this.closeDrawer.emit();
+    }
+  }
+
   confirmClear() {
     this.confirmationService.confirm({
       header: "Are you sure?",

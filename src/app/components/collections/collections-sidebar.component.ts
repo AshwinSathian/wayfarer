@@ -1,8 +1,10 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
+  EventEmitter,
   HostListener,
   OnInit,
+  Output,
   computed,
   signal,
   WritableSignal,
@@ -80,6 +82,8 @@ interface PaletteAction {
   providers: [ConfirmationService, TreeDragDropService],
 })
 export class CollectionsSidebarComponent implements OnInit {
+  @Output() loadRequest = new EventEmitter<PastRequest>();
+
   readonly nodes = computed<TreeNode<NodeData>[]>(() =>
     this.collectionsToNodes(this.collectionsService.tree())
   );
@@ -320,6 +324,11 @@ export class CollectionsSidebarComponent implements OnInit {
       const request = data.ref;
       actions.push(
         {
+          id: "load-request",
+          label: `Load "${request.name || request.url}" into composer`,
+          run: () => this.emitLoadRequest(request),
+        },
+        {
           id: "duplicate-request",
           label: `Duplicate ${request.name || request.url}`,
           run: () => this.duplicateNode(data),
@@ -350,6 +359,24 @@ export class CollectionsSidebarComponent implements OnInit {
   handleNodeSelect(node: TreeNode<NodeData>): void {
     this.selectedNode.set(node);
     this.contextItems.set(this.buildContextItems(node));
+  }
+
+  handleNodeDoubleClick(node: TreeNode<NodeData>): void {
+    const data = node.data as NodeData | undefined;
+    if (data?.type === "request") {
+      this.emitLoadRequest(data.ref);
+    }
+  }
+
+  private emitLoadRequest(doc: RequestDoc): void {
+    const request: PastRequest = {
+      method: doc.method,
+      url: doc.url,
+      headers: doc.headers ?? {},
+      body: doc.body as Record<string, unknown> | undefined,
+      createdAt: Date.now(),
+    };
+    this.loadRequest.emit(request);
   }
 
   async handleDrop(event: TreeDragDropEvent): Promise<void> {

@@ -57,7 +57,11 @@
             {{ node.data.method }}
           </span>
           }
-          <span class="type-body text-label-primary truncate">{{ node.label }}</span>
+          <span
+            class="type-body text-label-primary truncate"
+            [title]="node.data?.type === 'request' ? 'Double-click to load into composer' : ''"
+            (dblclick)="handleNodeDoubleClick(node)"
+          >{{ node.label }}</span>
         }
       </div>
     </ng-template>

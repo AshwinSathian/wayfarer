@@ -15,7 +15,6 @@ import {
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
-import { CardModule } from "primeng/card";
 import { ChipModule } from "primeng/chip";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
@@ -55,7 +54,6 @@ type ContextType = "Body" | "Headers";
     FormsModule,
     ReactiveFormsModule,
     ButtonModule,
-    CardModule,
     AccordionModule,
     SelectModule,
     SelectButtonModule,

@@ -63,6 +63,7 @@ interface EnvironmentImportEntry {
   styleUrls: ["./environments-manager.component.css"],
 })
 export class EnvironmentsManagerComponent implements OnInit {
+  protected readonly Object = Object;
   readonly environments = this.envService.environments;
   readonly activeEnvironment = this.envService.activeEnvironment;
   readonly loading = this.envService.loading;

@@ -351,20 +351,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       });
   }
 
-  getVariableChipClass(token: VariableToken): string {
-    const palette: Record<VariableToken["source"], string> = {
-      request: "bg-sky-900/40 text-sky-100 border border-sky-700/40",
-      environment: "bg-emerald-900/30 text-emerald-100 border border-emerald-700/40",
-      global: "bg-indigo-900/30 text-indigo-100 border border-indigo-700/40",
-      missing: "bg-amber-900/30 text-amber-100 border border-amber-600/40",
-    };
-    const highlight =
-      this.highlightedVariableSource && this.highlightedVariableSource === token.source
-        ? " ring-2 ring-offset-2 ring-white/60"
-        : "";
-    return palette[token.source] + highlight;
-  }
-
   handleVariableChipClick(token: VariableToken): void {
     this.highlightedVariableSource =
       this.highlightedVariableSource === token.source ? null : token.source;

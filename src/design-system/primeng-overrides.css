@@ -8,6 +8,8 @@
 .p-drawer {
   background: var(--canvas-sidebar) !important;
   box-shadow: none !important;
+  transition-duration: var(--dur-enter) !important;
+  transition-timing-function: var(--ease-enter) !important;
 }
 .p-drawer-content {
   padding: 0 !important;
@@ -18,6 +20,11 @@
 }
 .p-drawer-close-button {
   display: none !important;
+}
+
+/* ── Env switcher ────────────────────────────────────────── */
+.env-switcher.p-select {
+  width: 200px;
 }
 
 /* ── Dialog / Modal ──────────────────────────────────────── */

@@ -1,18 +1,18 @@
 <div class="flex flex-col gap-2">
   <div
-    class="hidden grid-cols-12 gap-4 px-2 text-xs font-semibold uppercase tracking-wide text-slate-300 md:grid"
+    class="hidden grid-cols-12 gap-4 px-2 md:grid"
   >
     <div
-      class="md:col-span-5"
+      class="ds-section-label md:col-span-5"
       [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-5'"
     >
       Key
     </div>
     @if (showDataTypes) {
-    <div class="md:col-span-3">Data Type</div>
+    <div class="ds-section-label md:col-span-3">Data Type</div>
     }
     <div
-      class="md:col-span-6"
+      class="ds-section-label md:col-span-6"
       [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-6'"
     >
       Value
@@ -30,7 +30,7 @@
     >
       <input
         pInputText
-        class="w-full font-mono text-slate-200"
+        class="w-full font-mono"
         [disabled]="disableItem(item, index)"
         [(ngModel)]="item.key"
       />
@@ -57,7 +57,7 @@
       @if (!showDataTypes || dataTypes[index] !== 'Boolean') {
       <input
         pInputText
-        class="w-full font-mono text-slate-200"
+        class="w-full font-mono"
         [type]="
           showDataTypes && dataTypes[index]
             ? dataTypes[index].toLowerCase()
@@ -99,7 +99,6 @@
       pButton
       type="button"
       icon="pi pi-plus"
-      class="uppercase"
       [label]="addLabel"
       [disabled]="isAddDisabled(context)"
       severity="secondary"

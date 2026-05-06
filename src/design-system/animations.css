@@ -38,7 +38,37 @@
   to   { transform: translateY(0); }
 }
 
+/* Overlay panels entering */
+@keyframes overlay-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Apply dialog animation */
 .p-dialog {
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
+}
+
+/* Overlays (menus, popovers, tooltips) */
+.p-menu,
+.p-contextmenu,
+.p-popover,
+.p-select-overlay {
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+/* Utility class for inline fade-in on dynamic elements */
+.animate-fade-in {
+  animation: fade-in var(--dur-standard) var(--ease-enter) both;
+}
+
+/* Utility class for slide-up (mobile accordions, bottom sheets) */
+.animate-slide-up {
+  animation: slide-up var(--dur-enter) var(--ease-enter) both;
 }

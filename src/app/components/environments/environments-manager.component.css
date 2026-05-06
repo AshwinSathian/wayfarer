@@ -9,27 +9,26 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.75rem;
-  background-color: rgba(15, 23, 42, 0.4);
+  border-radius: var(--radius-md);
+  background-color: var(--fill-tertiary);
   border: 1px solid transparent;
-  color: #cbd5f5;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  color: var(--label-primary);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    background-color var(--dur-quick) var(--ease-standard);
 }
 
 .env-item:hover {
-  border-color: rgba(59, 130, 246, 0.4);
+  background-color: var(--fill-hover);
+  border-color: var(--separator);
 }
 
 .env-item.active {
-  border-color: rgba(59, 130, 246, 0.8);
-  background-color: rgba(59, 130, 246, 0.08);
+  border-color: var(--accent-border);
+  background-color: var(--accent-fill);
 }
 
-.form-label {
-  display: block;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94a3b8;
-  margin-bottom: 0.25rem;
+.env-item.current {
+  border-color: var(--status-success-border);
 }

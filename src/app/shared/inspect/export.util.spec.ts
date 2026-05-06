@@ -1,4 +1,4 @@
-import { toHar, toNdjsonLine, InspectorExportEntry } from "./export.util";
+import { toHar, InspectorExportEntry } from "./export.util";
 
 describe("export.util", () => {
   function createEntry(partial?: Partial<InspectorExportEntry>): InspectorExportEntry {
@@ -103,38 +103,4 @@ describe("export.util", () => {
     expect(harEntry.response.content.comment).toBe("omitted (size or type)");
   });
 
-  it("produces NDJSON lines with compact phase and size info", () => {
-    const entry = createEntry({
-      req: {
-        method: "GET",
-        url: "https://example.com/items?limit=5",
-        headers: {},
-      },
-      res: {
-        status: 200,
-        statusText: "OK",
-        headers: {},
-        sizes: { transferSize: 300, encodedBodySize: 280, decodedBodySize: 500 },
-      },
-      phases: { ttfb: 45, content: 55 },
-    });
-
-    const line = toNdjsonLine(entry);
-    expect(line.endsWith("\n")).toBeTrue();
-
-    const parsed = JSON.parse(line);
-    expect(parsed.url).toBe("https://example.com/items?limit=5");
-    expect(parsed.method).toBe("GET");
-    expect(parsed.status).toBe(200);
-    expect(parsed.dur_ms).toBe(120);
-    expect(parsed.sizes).toEqual({
-      transfer: 300,
-      encBody: 280,
-      decBody: 500,
-    });
-    expect(parsed.phases_ms).toEqual({
-      ttfb: 45,
-      recv: 55,
-    });
-  });
 });

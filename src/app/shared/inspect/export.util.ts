@@ -184,25 +184,6 @@ export function toHar(entry: InspectorExportEntry): HarLog {
   };
 }
 
-export function toNdjsonLine(entry: InspectorExportEntry): string {
-  const phases = mapPhases(entry.phases);
-  const payload = {
-    ts: entry.startedDateTime,
-    url: entry.req.url,
-    method: entry.req.method,
-    status: entry.res.status,
-    dur_ms: entry.time,
-    sizes: {
-      transfer: entry.res.sizes?.transferSize ?? null,
-      encBody: entry.res.sizes?.encodedBodySize ?? null,
-      decBody: entry.res.sizes?.decodedBodySize ?? null,
-    },
-    phases_ms: phases,
-  };
-
-  return `${JSON.stringify(payload)}\n`;
-}
-
 function mapHeaders(headers: Record<string, string>): HarHeader[] {
   return Object.entries(headers ?? {}).map(([name, value]) => ({
     name,
@@ -296,33 +277,3 @@ function asTiming(value: number | undefined): number {
   return -1;
 }
 
-function mapPhases(
-  phases: InspectorExportEntry["phases"]
-): Record<string, number> {
-  if (!phases) {
-    return {};
-  }
-
-  const mapped: Record<string, number> = {};
-
-  if (typeof phases.dns === "number") {
-    mapped.dns = phases.dns;
-  }
-  if (typeof phases.tcp === "number") {
-    mapped.tcp = phases.tcp;
-  }
-  if (typeof phases.tls === "number") {
-    mapped.tls = phases.tls;
-  }
-  if (typeof phases.request === "number") {
-    mapped.send = phases.request;
-  }
-  if (typeof phases.ttfb === "number") {
-    mapped.ttfb = phases.ttfb;
-  }
-  if (typeof phases.content === "number") {
-    mapped.recv = phases.content;
-  }
-
-  return mapped;
-}

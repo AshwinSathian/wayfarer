@@ -111,9 +111,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   readonly responseInspection: Signal<ResponseInspection | null>;
   responseExportContext: ResponseExportContext | null;
   requestBody: Array<{ key: string; value: unknown }>;
-  requestBodyDataTypes: string[];
-  readonly availableDataTypes: Array<{ label: string; value: string }>;
-  readonly booleanOptions: Array<{ label: string; value: string }>;
   requestHeaders: Array<{ key: string; value: string }>;
   endpointError: string;
   loadingState: boolean;
@@ -143,17 +140,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       { label: "HEAD", value: "HEAD" },
       { label: "OPTIONS", value: "OPTIONS" },
     ];
-    this.availableDataTypes = [
-      { label: "String", value: "String" },
-      { label: "Number", value: "Number" },
-      { label: "Boolean", value: "Boolean" },
-    ];
-    this.booleanOptions = [
-      { label: "True", value: "true" },
-      { label: "False", value: "false" },
-    ];
     this.requestBody = [{ key: "", value: "" }];
-    this.requestBodyDataTypes = [""];
     this.requestHeaders = [
       { key: this.defaultHeaderKey, value: this.defaultHeaderValue },
     ];
@@ -203,17 +190,8 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   }
 
   addItem(ctx: ContextType) {
-    let context;
-    if (ctx === "Body") {
-      context = this.requestBody;
-    } else if (ctx === "Headers") {
-      context = this.requestHeaders;
-    }
-
+    const context = ctx === "Body" ? this.requestBody : this.requestHeaders;
     context.push({ key: "", value: "" });
-    if (ctx === "Body") {
-      this.requestBodyDataTypes.push("");
-    }
   }
 
   isAddDisabled(ctx: ContextType) {
@@ -252,7 +230,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.endpoint = request.url;
     this.requestHeaders = this.deconstructObject(request.headers, "Headers");
     if (request.body && typeof request.body === "object") {
-      this.requestBodyDataTypes = [];
       this.requestBody = this.deconstructObject(
         request.body as Record<string, unknown>,
         "Body"
@@ -260,7 +237,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       this.activeTab = this.isBodyMethod(request.method) ? "body" : "headers";
     } else {
       this.requestBody = [{ key: "", value: "" }];
-      this.requestBodyDataTypes = [""];
       this.activeTab = "headers";
     }
     this.syncMobilePanelsFromActiveTab();
@@ -473,7 +449,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     if (!this.isBodyMethod(method)) {
       this.activeTab = "headers";
       this.requestBody = [{ key: "", value: "" }];
-      this.requestBodyDataTypes = [""];
     }
     this.syncMobilePanelsFromActiveTab();
     if (this.editorMode === "json") {
@@ -493,22 +468,12 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   }
 
   private buildBody(): Record<string, unknown> | undefined {
-    const body = this.requestBody.reduce((acc, item, index) => {
+    const body = this.requestBody.reduce((acc, item) => {
       const key = (item?.key ?? "").trim();
       if (!key) {
         return acc;
       }
-      const type = this.requestBodyDataTypes[index];
-      let value: unknown = item.value;
-
-      if (type === "Number") {
-        const numeric = Number(item.value);
-        value = Number.isNaN(numeric) ? item.value : numeric;
-      } else if (type === "Boolean") {
-        value = item.value === "true";
-      }
-
-      acc[key] = value;
+      acc[key] = item.value;
       return acc;
     }, {} as Record<string, unknown>);
 
@@ -544,9 +509,13 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   }
 
   private validateUrl(text: string): boolean {
-    const urlRegExp =
-      /^(https?:\/\/)?[a-z0-9]+([\-\.][a-z0-9]+)*\.[a-z]{2,5}(:\d{1,5})?(\/.*)?$/i;
-    return urlRegExp.test(text);
+    if (!text) return false;
+    try {
+      const parsed = new URL(text.startsWith("http") ? text : `https://${text}`);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
   }
 
   private maybeUpdateVariablePreview(): void {
@@ -593,7 +562,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.onRequestMethodChange("GET");
     this.endpoint = "";
     this.requestBody = [{ key: "", value: "" }];
-    this.requestBodyDataTypes = [""];
     this.requestHeaders = [
       { key: this.defaultHeaderKey, value: this.defaultHeaderValue },
     ];
@@ -603,37 +571,10 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   }
 
   private deconstructObject(object: Record<string, unknown>, type: string) {
-    const objectArray = [];
-
-    switch (type) {
-      case "Body": {
-        Object.entries(object).forEach(([objKey, objValue], index) => {
-          let dataType = "String";
-          if (typeof objValue === "number") {
-            dataType = "Number";
-          } else if (typeof objValue === "boolean") {
-            dataType = "Boolean";
-          }
-          this.requestBodyDataTypes[index] = dataType;
-          const obj = {
-            key: objKey,
-            value:
-              dataType === "Boolean" ? String(objValue) : (objValue as string),
-          };
-          objectArray.push(obj);
-        });
-        break;
-      }
-      case "Headers": {
-        Object.entries(object).forEach(([objKey, objValue]) => {
-          const obj = { key: objKey, value: String(objValue ?? "") };
-          objectArray.push(obj);
-        });
-        break;
-      }
-    }
-
-    return objectArray;
+    return Object.entries(object).map(([key, value]) => ({
+      key,
+      value: type === "Body" ? String(value ?? "") : String(value ?? ""),
+    }));
   }
 
   onEditorModeChange(mode: EditorMode): void {
@@ -670,7 +611,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     }
     if (value === undefined) {
       this.requestBody = [{ key: "", value: "" }];
-      this.requestBodyDataTypes = [""];
       return;
     }
     if (!this.isPlainObject(value)) {
@@ -774,14 +714,8 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   }
 
   private applyBodyFromParsed(parsed: Record<string, unknown>): void {
-    this.requestBodyDataTypes = [];
     const bodyArray = this.deconstructObject(parsed, "Body");
-    if (!bodyArray.length) {
-      this.requestBody = [{ key: "", value: "" }];
-      this.requestBodyDataTypes = [""];
-      return;
-    }
-    this.requestBody = bodyArray;
+    this.requestBody = bodyArray.length ? bodyArray : [{ key: "", value: "" }];
   }
 
   private isPlainObject(value: unknown): value is Record<string, unknown> {

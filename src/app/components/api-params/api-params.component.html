@@ -121,7 +121,6 @@
     <app-api-params-basic
       context="Headers"
       [items]="requestHeaders"
-      [showDataTypes]="false"
       [addLabel]="'Add Header'"
       [isAddDisabled]="isAddDisabledFn"
       [addItem]="addItemFn"
@@ -151,10 +150,6 @@
     <app-api-params-basic
       context="Body"
       [items]="requestBody"
-      [dataTypes]="requestBodyDataTypes"
-      [availableDataTypes]="availableDataTypes"
-      [booleanOptions]="booleanOptions"
-      [showDataTypes]="true"
       [addLabel]="'Add Item'"
       [isAddDisabled]="isAddDisabledFn"
       [addItem]="addItemFn"

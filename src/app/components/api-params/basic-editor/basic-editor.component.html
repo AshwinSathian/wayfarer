@@ -1,86 +1,25 @@
 <div class="flex flex-col gap-2">
-  <div
-    class="hidden grid-cols-12 gap-4 px-2 md:grid"
-  >
-    <div
-      class="ds-section-label md:col-span-5"
-      [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-5'"
-    >
-      Key
-    </div>
-    @if (showDataTypes) {
-    <div class="ds-section-label md:col-span-3">Data Type</div>
-    }
-    <div
-      class="ds-section-label md:col-span-6"
-      [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-6'"
-    >
-      Value
-    </div>
+  <div class="hidden grid-cols-[1fr_1fr_auto] gap-4 px-2 md:grid">
+    <div class="ds-section-label">Key</div>
+    <div class="ds-section-label">Value</div>
     <div class="md:col-span-1 text-center"></div>
   </div>
 
   @for (item of items; track item; let index = $index) {
-  <div
-    class="flex flex-col gap-3 md:grid md:grid-cols-12 md:items-center md:gap-4"
-  >
-    <div
-      class="w-full md:col-span-5"
-      [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-5'"
-    >
-      <input
-        pInputText
-        class="w-full font-mono"
-        [disabled]="disableItem(item, index)"
-        [(ngModel)]="item.key"
-      />
-    </div>
-
-    @if (showDataTypes) {
-    <div class="w-full md:col-span-3">
-      <p-select
-        class="w-full"
-        [options]="availableDataTypes"
-        optionLabel="label"
-        optionValue="value"
-        appendTo="body"
-        placeholder="Data Type"
-        [(ngModel)]="dataTypes[index]"
-      ></p-select>
-    </div>
-    }
-
-    <div
-      class="w-full md:col-span-6"
-      [ngClass]="showDataTypes ? 'md:col-span-4' : 'md:col-span-6'"
-    >
-      @if (!showDataTypes || dataTypes[index] !== 'Boolean') {
-      <input
-        pInputText
-        class="w-full font-mono"
-        [type]="
-          showDataTypes && dataTypes[index]
-            ? dataTypes[index].toLowerCase()
-            : 'text'
-        "
-        [disabled]="showDataTypes && dataTypes[index] === ''"
-        [(ngModel)]="item.value"
-      />
-      } @else {
-      <p-select
-        class="w-full"
-        [disabled]="dataTypes[index] === ''"
-        [options]="booleanOptions"
-        optionLabel="label"
-        optionValue="value"
-        appendTo="body"
-        placeholder="Select"
-        [(ngModel)]="item.value"
-      ></p-select>
-      }
-    </div>
-
-    <div class="flex justify-end md:block md:col-span-1 md:text-center">
+  <div class="flex flex-col gap-3 md:grid md:grid-cols-[1fr_1fr_auto] md:items-center md:gap-4">
+    <input
+      pInputText
+      class="w-full font-mono"
+      [disabled]="disableItem(item, index)"
+      [(ngModel)]="item.key"
+    />
+    <input
+      pInputText
+      class="w-full font-mono"
+      [disabled]="disableItem(item, index)"
+      [(ngModel)]="item.value"
+    />
+    <div class="flex justify-end md:block md:text-center">
       <button
         pButton
         type="button"

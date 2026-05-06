@@ -1,9 +1,7 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
-  ElementRef,
   EventEmitter,
-  HostListener,
   Input,
   OnChanges,
   Output,
@@ -23,7 +21,6 @@ import { TooltipModule } from "primeng/tooltip";
 import {
   InspectorExportEntry,
   toHar,
-  toNdjsonLine,
 } from "../../shared/inspect/export.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
 import {
@@ -89,13 +86,6 @@ export class ResponseViewerComponent implements OnChanges {
       label: "Copy as HAR",
       icon: "pi pi-copy",
       command: () => this.copyAsHar(),
-      styleClass: "uppercase tracking-wider",
-    },
-    {
-      label: "Save NDJSON",
-      icon: "pi pi-download",
-      command: () => this.saveNdjson(),
-      styleClass: "uppercase tracking-wider",
     },
   ];
 
@@ -188,27 +178,17 @@ export class ResponseViewerComponent implements OnChanges {
   private lastBodyResult: string | null = null;
   private lastErrorSource: string | null = null;
   private lastErrorResult: string | null = null;
-  exportMenuOpen = false;
   searchQuery = "";
   searchResult: WorkerSearchResult | null = null;
   searchActiveIndex = 0;
   searchPending = false;
   private searchToken = 0;
 
-  @ViewChild("exportMenuRoot") exportMenuRef?: ElementRef<HTMLDivElement>;
-
   constructor(private readonly jsonWorker: JsonWorkerService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if ("responseData" in changes || "responseError" in changes) {
       this.resetSearchState();
-    }
-    if (
-      ("loading" in changes && changes["loading"]?.currentValue) ||
-      ("exportContext" in changes && !this.exportContext) ||
-      ("responseStatusCode" in changes && this.responseStatusCode === undefined)
-    ) {
-      this.exportMenuOpen = false;
     }
 
     if (
@@ -250,42 +230,8 @@ export class ResponseViewerComponent implements OnChanges {
     );
   }
 
-  @HostListener("document:click", ["$event"])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.exportMenuOpen) {
-      return;
-    }
-    const host = this.exportMenuRef?.nativeElement;
-    if (!host) {
-      this.exportMenuOpen = false;
-      return;
-    }
-    if (!host.contains(event.target as Node)) {
-      this.exportMenuOpen = false;
-    }
-  }
-
-  @HostListener("document:keydown", ["$event"])
-  onDocumentKeydown(event: KeyboardEvent): void {
-    if (!this.exportMenuOpen) {
-      return;
-    }
-    if (event.key === "Escape") {
-      this.exportMenuOpen = false;
-    }
-  }
-
-  toggleExportMenu(event: MouseEvent): void {
-    if (!this.canExport) {
-      return;
-    }
-    event.stopPropagation();
-    this.exportMenuOpen = !this.exportMenuOpen;
-  }
-
   async copyAsHar(): Promise<void> {
     const entry = this.buildExportEntry();
-    this.exportMenuOpen = false;
     if (!entry) {
       return;
     }
@@ -314,27 +260,6 @@ export class ResponseViewerComponent implements OnChanges {
     } catch {
       console.warn("Failed to copy HAR to clipboard.");
     }
-  }
-
-  saveNdjson(): void {
-    const entry = this.buildExportEntry();
-    this.exportMenuOpen = false;
-    if (!entry) {
-      return;
-    }
-
-    const ndjsonLine = toNdjsonLine(entry);
-    const blob = new Blob([ndjsonLine], { type: "text/plain" });
-    const started = entry.startedDateTime ?? new Date().toISOString();
-    const stamp = started.substring(0, 19).replace(/[-:]/g, "");
-    const link = document.createElement("a");
-    const href = URL.createObjectURL(blob);
-    link.href = href;
-    link.download = `api-sandbox-${stamp}.ndjson`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(href);
   }
 
   private prepareFormatting(): void {
@@ -458,48 +383,6 @@ export class ResponseViewerComponent implements OnChanges {
     }
   }
 
-  async beautifyResponse(): Promise<void> {
-    const source = this.getActiveJsonSource();
-    if (!source) {
-      return;
-    }
-    try {
-      const formatted = await this.jsonWorker.parsePretty(source, 2);
-      if (this.isError) {
-        this.formattedError = formatted;
-        this.lastErrorResult = formatted;
-        this.lastErrorSource = source;
-      } else {
-        this.formattedBody = formatted;
-        this.lastBodyResult = formatted;
-        this.lastBodySource = source;
-      }
-    } catch {
-      // ignore formatting failures
-    }
-  }
-
-  async minifyResponse(): Promise<void> {
-    const source = this.getActiveJsonSource();
-    if (!source) {
-      return;
-    }
-    try {
-      const minified = await this.jsonWorker.minify(source);
-      if (this.isError) {
-        this.formattedError = minified;
-        this.lastErrorResult = minified;
-        this.lastErrorSource = source;
-      } else {
-        this.formattedBody = minified;
-        this.lastBodyResult = minified;
-        this.lastBodySource = source;
-      }
-    } catch {
-      // ignore formatting failures
-    }
-  }
-
   async onSearchQueryChange(value: string): Promise<void> {
     this.searchQuery = value;
     this.searchActiveIndex = 0;
@@ -554,14 +437,6 @@ export class ResponseViewerComponent implements OnChanges {
     this.searchActiveIndex = 0;
     this.searchPending = false;
     this.searchToken++;
-  }
-
-  private getActiveJsonSource(): string | null {
-    if (!this.responseBodyIsJson) {
-      return null;
-    }
-    const raw = this.isError ? this.responseError : this.responseData;
-    return raw || null;
   }
 
   onReadOnlyBodyChange(value: string): void {

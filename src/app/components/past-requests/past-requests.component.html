@@ -1,124 +1,127 @@
 <section class="h-full w-full">
-  <div class="flex flex-col gap-0.5 w-full">
-    @if (loading) {
-    <div class="flex flex-col gap-1.5 p-1">
-      @for (skeleton of skeletonPlaceholders; track skeleton) {
-      <div class="rounded-lg bg-canvas-elevated border border-separator p-2.5">
-        <p-skeleton height="1rem" width="60%" borderRadius="6px"></p-skeleton>
-        <div class="mt-1.5 flex gap-1.5">
-          <p-skeleton height="0.75rem" width="4rem" borderRadius="9999px"></p-skeleton>
-          <p-skeleton height="0.75rem" width="3rem" borderRadius="9999px"></p-skeleton>
+  @if (loading) {
+  <div class="flex flex-col gap-1.5 p-1">
+    @for (skeleton of skeletonPlaceholders; track skeleton) {
+    <div class="rounded-lg bg-canvas-elevated border border-separator p-2.5">
+      <p-skeleton height="1rem" width="60%" borderRadius="6px"></p-skeleton>
+      <div class="mt-1.5 flex gap-1.5">
+        <p-skeleton height="0.75rem" width="4rem" borderRadius="9999px"></p-skeleton>
+        <p-skeleton height="0.75rem" width="3rem" borderRadius="9999px"></p-skeleton>
+      </div>
+    </div>
+    }
+  </div>
+  } @else if (!pastRequests.length) {
+  <div class="text-center type-footnote text-label-tertiary w-full p-3">
+    No history yet.
+  </div>
+  } @else {
+  <div class="flex flex-col gap-4">
+    @for (group of groups; track group.label) {
+    <div>
+      <div class="px-2 pb-1">
+        <span class="ds-section-label">{{ group.label }}</span>
+      </div>
+      <div class="flex flex-col gap-0.5">
+        @for (request of group.requests; track trackById($index, request)) {
+        <div class="overflow-hidden rounded-md transition-colors hover:bg-fill-hover">
+
+          <!-- Desktop row -->
+          <div class="hidden md:flex items-center gap-2 px-2 py-1.5">
+            <span class="method-badge method-{{ request.method.toLowerCase() }} flex-shrink-0">
+              {{ request.method }}
+            </span>
+            <span
+              class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
+              (click)="load(request)"
+              (mouseenter)="detailsPopover.show($event)"
+              (mouseleave)="detailsPopover.hide()"
+            >{{ request.url }}</span>
+            @if (request.status !== undefined) {
+            <span
+              class="type-caption font-mono flex-shrink-0"
+              [ngClass]="{
+                'text-status-success': request.status >= 200 && request.status < 300,
+                'text-status-warning': request.status >= 300 && request.status < 500,
+                'text-status-error':   request.status >= 500 || request.status === 0
+              }"
+            >{{ request.status }}</span>
+            }
+            @if (request.durationMs) {
+            <span class="type-caption text-label-tertiary flex-shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
+            }
+            <span class="type-caption text-label-tertiary flex-shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
+              {{ relativeTime(request.createdAt) }}
+            </span>
+            <button
+              class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
+              pTooltip="Delete"
+              tooltipPosition="top"
+              (click)="confirmDelete(request, $event)"
+            >
+              <span class="material-symbols-outlined icon-sm text-status-error">delete</span>
+            </button>
+
+            <p-confirmpopup #cp>
+              <ng-template #headless let-message>
+                <div class="rounded-lg p-4 type-callout bg-canvas-overlay border border-separator">
+                  <span class="text-label-secondary">{{ message.message }}</span>
+                  <div class="flex items-center gap-2 mt-3">
+                    <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
+                    <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
+                  </div>
+                </div>
+              </ng-template>
+            </p-confirmpopup>
+
+            <p-popover #detailsPopover appendTo="body" [dismissable]="true">
+              <div class="space-y-1 min-w-[160px] type-callout">
+                <p class="text-label-primary truncate max-w-xs">{{ request.url }}</p>
+                @if (request.status !== undefined) {
+                <p class="text-label-secondary">Status: {{ request.status }}</p>
+                }
+                @if (request.durationMs) {
+                <p class="text-label-secondary">Duration: {{ formatDuration(request.durationMs) }}</p>
+                }
+                <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+              </div>
+            </p-popover>
+          </div>
+
+          <!-- Mobile accordion -->
+          <div class="md:hidden">
+            <p-accordion>
+              <p-accordion-panel [value]="request.id ?? $index">
+                <p-accordion-header>
+                  <div class="flex items-center gap-2">
+                    <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
+                    <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
+                  </div>
+                </p-accordion-header>
+                <p-accordion-content>
+                  <div class="space-y-2 type-callout text-label-secondary">
+                    @if (request.status !== undefined) {
+                    <p>Status: {{ request.status }}</p>
+                    }
+                    @if (request.durationMs) {
+                    <p>Duration: {{ formatDuration(request.durationMs) }}</p>
+                    }
+                    <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+                    <div class="flex items-center gap-2">
+                      <button pButton type="button" text label="Load" severity="secondary" size="small" (click)="load(request)"></button>
+                      <button pButton type="button" text label="Delete" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
+                    </div>
+                  </div>
+                </p-accordion-content>
+              </p-accordion-panel>
+            </p-accordion>
+          </div>
+
         </div>
-      </div>
-      }
-    </div>
-    } @else if (!pastRequests.length) {
-    <div class="text-center type-footnote text-label-tertiary w-full p-3">
-      No history yet.
-    </div>
-    } @else {
-    @for (request of pastRequests; track trackById($index, request)) {
-    <div class="overflow-hidden rounded-md transition-colors hover:bg-fill-hover">
-
-      <!-- Desktop row -->
-      <div class="hidden md:flex items-center gap-2 px-2 py-1.5">
-        <span class="method-badge method-{{ request.method.toLowerCase() }} flex-shrink-0">
-          {{ request.method }}
-        </span>
-        <span
-          class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
-          (click)="load(request)"
-          (mouseenter)="detailsPopover.show($event)"
-          (mouseleave)="detailsPopover.hide()"
-        >{{ request.url }}</span>
-        @if (request.status !== undefined) {
-        <span
-          class="type-caption font-mono flex-shrink-0"
-          [ngClass]="{
-            'text-status-success': request.status >= 200 && request.status < 300,
-            'text-status-warning': request.status >= 300 && request.status < 500,
-            'text-status-error':   request.status >= 500 || request.status === 0
-          }"
-        >{{ request.status }}</span>
         }
-        <button
-          class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
-          pTooltip="Delete"
-          tooltipPosition="top"
-          (click)="confirmDelete(request, $event)"
-        >
-          <span class="material-symbols-outlined icon-sm text-status-error">delete</span>
-        </button>
-
-        <p-confirmpopup #cp>
-          <ng-template #headless let-message>
-            <div class="rounded-lg p-4 type-callout bg-canvas-overlay border border-separator">
-              <span class="text-label-secondary">{{ message.message }}</span>
-              <div class="flex items-center gap-2 mt-3">
-                <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
-                <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
-              </div>
-            </div>
-          </ng-template>
-        </p-confirmpopup>
-
-        <p-popover #detailsPopover appendTo="body" [dismissable]="true">
-          <ng-container
-            [ngTemplateOutlet]="requestDetails"
-            [ngTemplateOutletContext]="{ request: request }"
-          ></ng-container>
-        </p-popover>
       </div>
-
-      <!-- Mobile accordion -->
-      <div class="md:hidden">
-        <p-accordion>
-          <p-accordion-panel [value]="request.id ?? $index">
-            <p-accordion-header>
-              <div class="flex items-center gap-2">
-                <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
-                <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
-              </div>
-            </p-accordion-header>
-            <p-accordion-content>
-              <ng-container
-                [ngTemplateOutlet]="requestDetails"
-                [ngTemplateOutletContext]="{ request: request }"
-              ></ng-container>
-            </p-accordion-content>
-          </p-accordion-panel>
-        </p-accordion>
-      </div>
-
     </div>
     }
-    }
   </div>
+  }
 </section>
-
-<ng-template #requestDetails let-request="request">
-  <div class="space-y-2 min-w-[180px]">
-    <div class="flex flex-wrap items-center gap-1.5">
-      @if (request.status !== undefined) {
-      <div class="flex items-center gap-1">
-        <span class="material-symbols-outlined icon-sm text-status-success">check_circle</span>
-        <span class="type-footnote text-label-secondary">{{ request.status }}</span>
-      </div>
-      }
-      @if (request.durationMs !== undefined) {
-      <div class="flex items-center gap-1">
-        <span class="material-symbols-outlined icon-sm text-label-tertiary">schedule</span>
-        <span class="type-footnote text-label-secondary">{{ request.durationMs }} ms</span>
-      </div>
-      }
-      <div class="flex items-center gap-1">
-        <span class="material-symbols-outlined icon-sm text-label-tertiary">calendar_month</span>
-        <span class="type-footnote text-label-secondary">{{ request.createdAt | date : 'short' }}</span>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 md:hidden">
-      <button pButton type="button" text label="Load" severity="secondary" size="small" (click)="load(request)"></button>
-      <button pButton type="button" text label="Delete" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
-    </div>
-  </div>
-</ng-template>

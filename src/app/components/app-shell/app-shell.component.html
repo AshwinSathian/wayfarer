@@ -41,32 +41,6 @@
         <app-collections-sidebar class="h-full w-full" (loadRequest)="handleLoadCollectionRequest($event)"></app-collections-sidebar>
       </div>
 
-      <!-- History section -->
-      <div class="border-t border-separator px-4 py-3">
-        <p class="ds-section-label mb-2">Recent History</p>
-        <div class="max-h-56 overflow-y-auto rounded-lg">
-          <app-past-requests
-            [pastRequests]="pastRequests"
-            [loading]="historyLoading"
-            [displayHeader]="false"
-            (loadRequest)="handleLoadRequest($event)"
-            (deleteRequest)="deleteRequest.emit($event)"
-          ></app-past-requests>
-        </div>
-      </div>
-
-      <div class="border-t border-separator px-4 py-3">
-        <button
-          pButton
-          type="button"
-          severity="danger"
-          label="Clear history"
-          outlined
-          class="w-full"
-          [disabled]="historyLoading || !pastRequests.length"
-          (click)="confirmClear()"
-        ></button>
-      </div>
     </div>
   </p-drawer>
 
@@ -116,6 +90,15 @@
             {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
           </span>
         </button>
+
+        <button
+          class="ds-icon-btn"
+          [class.text-accent-primary]="historyDrawerVisible"
+          (click)="historyDrawerVisible = true"
+          title="Request history"
+        >
+          <span class="material-symbols-outlined icon-md">history</span>
+        </button>
       </div>
     </div>
 
@@ -129,6 +112,50 @@
     </main>
   </div>
 </div>
+
+<!-- History drawer -->
+<p-drawer
+  position="right"
+  [(visible)]="historyDrawerVisible"
+  [modal]="true"
+  [dismissible]="true"
+  [closeOnEscape]="true"
+  [blockScroll]="false"
+  [showCloseIcon]="false"
+  [style]="{ width: '26rem' }"
+>
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between border-b border-separator px-4 py-3">
+      <span class="type-title-3 text-label-primary font-semibold">History</span>
+      <div class="flex items-center gap-1">
+        <button
+          pButton
+          type="button"
+          icon="pi pi-trash"
+          severity="danger"
+          text
+          size="small"
+          [disabled]="historyLoading || !pastRequests.length"
+          pTooltip="Clear all history"
+          tooltipPosition="bottom"
+          (click)="confirmClear()"
+        ></button>
+        <button class="ds-icon-btn" (click)="historyDrawerVisible = false" title="Close">
+          <span class="material-symbols-outlined icon-md">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto px-2 py-3">
+      <app-past-requests
+        [pastRequests]="pastRequests"
+        [loading]="historyLoading"
+        [displayHeader]="false"
+        (loadRequest)="handleLoadRequest($event)"
+        (deleteRequest)="deleteRequest.emit($event)"
+      ></app-past-requests>
+    </div>
+  </div>
+</p-drawer>
 
 <!-- Unlock secrets dialog -->
 <p-dialog

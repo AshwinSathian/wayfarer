@@ -89,6 +89,7 @@ export class AppShellComponent implements OnInit {
   dropdownOptions: Array<{ label: string; value: string }> = [];
   selectedEnvironmentId: string | null = null;
   lockDialogVisible = false;
+  historyDrawerVisible = false;
   unlockPassphrase = "";
   resettingAll = false;
   unlockError = "";

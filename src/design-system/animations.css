@@ -1,0 +1,44 @@
+/* ============================================================
+   Animations — API Sandbox
+   ============================================================ */
+
+/* Skeleton shimmer */
+@keyframes skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Missing variable chip pulse */
+@keyframes chip-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* Dialog appear */
+@keyframes dialog-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Slide up (for mobile sheets) */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Apply dialog animation */
+.p-dialog {
+  animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
+}

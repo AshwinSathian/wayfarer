@@ -1,0 +1,346 @@
+/* ============================================================
+   PrimeNG Global Overrides — API Sandbox
+   Override PrimeNG CSS properties via standard cascade
+   (no ::ng-deep required for global overrides).
+   ============================================================ */
+
+/* ── Drawer ──────────────────────────────────────────────── */
+.p-drawer {
+  background: var(--canvas-sidebar) !important;
+  box-shadow: none !important;
+}
+.p-drawer-content {
+  padding: 0 !important;
+  background: transparent !important;
+}
+.p-drawer-header {
+  display: none !important;
+}
+.p-drawer-close-button {
+  display: none !important;
+}
+
+/* ── Dialog / Modal ──────────────────────────────────────── */
+.p-dialog {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-2xl) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+}
+.p-dialog-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--separator) !important;
+  padding: 18px 24px 16px !important;
+}
+.p-dialog-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--label-primary) !important;
+}
+.p-dialog-content {
+  background: transparent !important;
+  padding: 20px 24px !important;
+}
+.p-dialog-footer {
+  background: transparent !important;
+  border-top: 1px solid var(--separator) !important;
+  padding: 14px 24px !important;
+}
+.p-dialog-mask {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ── Card ────────────────────────────────────────────────── */
+.p-card {
+  background: var(--canvas-panel) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: none !important;
+}
+.p-card-body {
+  padding: 24px !important;
+}
+
+/* ── Inputs ──────────────────────────────────────────────── */
+.p-inputtext {
+  background: var(--canvas-elevated) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--label-primary) !important;
+  font-size: 14px !important;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard) !important;
+}
+.p-inputtext:focus {
+  border-color: var(--accent-border) !important;
+  box-shadow: 0 0 0 3px var(--accent-fill) !important;
+  outline: none !important;
+}
+.p-inputtext::placeholder {
+  color: var(--label-placeholder) !important;
+}
+
+/* ── Select ──────────────────────────────────────────────── */
+.p-select {
+  background: var(--canvas-elevated) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-md) !important;
+}
+.p-select:not(.p-disabled):hover {
+  border-color: var(--fill-primary) !important;
+}
+.p-select:not(.p-disabled).p-focus {
+  border-color: var(--accent-border) !important;
+  box-shadow: 0 0 0 3px var(--accent-fill) !important;
+}
+.p-select-label {
+  color: var(--label-primary) !important;
+  font-size: 14px !important;
+}
+.p-select-overlay {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+.p-select-option {
+  font-size: 14px !important;
+  color: var(--label-primary) !important;
+}
+.p-select-option:hover,
+.p-select-option.p-focus {
+  background: var(--fill-hover) !important;
+}
+.p-select-option.p-selected {
+  background: var(--accent-fill) !important;
+  color: var(--accent-text) !important;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.p-tabs .p-tablist {
+  background: transparent !important;
+  border-bottom: 1px solid var(--separator) !important;
+}
+.p-tab {
+  color: var(--label-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 8px 14px !important;
+  border-bottom: 2px solid transparent !important;
+  transition:
+    color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard) !important;
+}
+.p-tab:hover {
+  color: var(--label-primary) !important;
+}
+.p-tab.p-tab-active {
+  color: var(--accent-text) !important;
+  border-bottom-color: var(--accent) !important;
+}
+.p-tabpanels {
+  background: transparent !important;
+  padding: 16px 0 0 !important;
+}
+
+/* ── SelectButton ────────────────────────────────────────── */
+.p-selectbutton {
+  background: var(--fill-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 3px !important;
+  gap: 2px !important;
+  border: none !important;
+}
+.p-selectbutton .p-togglebutton {
+  background: transparent !important;
+  border: none !important;
+  color: var(--label-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 5px 12px !important;
+  border-radius: calc(var(--radius-sm) - 2px) !important;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard) !important;
+}
+.p-selectbutton .p-togglebutton.p-togglebutton-checked {
+  background: var(--canvas-overlay) !important;
+  color: var(--label-primary) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+}
+.p-selectbutton .p-togglebutton:hover:not(.p-togglebutton-checked) {
+  color: var(--label-primary) !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.p-button {
+  border-radius: var(--radius-md) !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard) !important;
+}
+.p-button:active {
+  transform: scale(0.97) !important;
+}
+.p-button-primary:not(.p-button-outlined):not(.p-button-text) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.p-button-primary:not(.p-button-outlined):not(.p-button-text):hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+/* ── Tree ────────────────────────────────────────────────── */
+.p-tree {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+.p-tree-node-content {
+  padding: 5px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  transition: background var(--dur-micro) var(--ease-standard) !important;
+}
+.p-tree-node-content:hover {
+  background: var(--fill-hover) !important;
+}
+.p-tree-node-selected > .p-tree-node-content {
+  background: var(--accent-fill) !important;
+}
+.p-tree-node-label {
+  color: var(--label-primary) !important;
+  font-size: 14px !important;
+}
+
+/* ── Accordion ───────────────────────────────────────────── */
+.p-accordion-header-link {
+  background: transparent !important;
+  border-color: var(--separator) !important;
+  color: var(--label-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+.p-accordion-header-link:hover {
+  background: var(--fill-hover) !important;
+  color: var(--label-primary) !important;
+}
+.p-accordion-content {
+  background: transparent !important;
+  border-color: var(--separator) !important;
+}
+
+/* ── Skeleton ────────────────────────────────────────────── */
+.p-skeleton {
+  background: var(--fill-secondary) !important;
+}
+.p-skeleton::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--fill-primary),
+    transparent
+  ) !important;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+.p-tooltip .p-tooltip-text {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 12px !important;
+  color: var(--label-secondary) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Popover ─────────────────────────────────────────────── */
+.p-popover {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+.p-popover::before,
+.p-popover::after {
+  display: none !important;
+}
+
+/* ── Menu ────────────────────────────────────────────────── */
+.p-menu {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  padding: 4px !important;
+  min-width: 160px !important;
+}
+.p-menu-item-link {
+  border-radius: var(--radius-sm) !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  color: var(--label-primary) !important;
+  transition: background var(--dur-micro) var(--ease-standard) !important;
+}
+.p-menu-item:hover .p-menu-item-link {
+  background: var(--fill-hover) !important;
+}
+
+/* ── ContextMenu ─────────────────────────────────────────── */
+.p-contextmenu {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  padding: 4px !important;
+}
+.p-contextmenu .p-menu-item-link {
+  border-radius: var(--radius-sm) !important;
+  padding: 7px 12px !important;
+  font-size: 13px !important;
+  color: var(--label-primary) !important;
+}
+.p-contextmenu .p-menu-item:hover .p-menu-item-link {
+  background: var(--fill-hover) !important;
+}
+
+/* ── FloatLabel ──────────────────────────────────────────── */
+.p-floatlabel label {
+  color: var(--label-tertiary) !important;
+  font-size: 13px !important;
+}
+.p-floatlabel:focus-within label,
+.p-floatlabel.p-floatlabel-active label {
+  color: var(--accent-text) !important;
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+.p-checkbox .p-checkbox-box {
+  background: var(--canvas-elevated) !important;
+  border-color: var(--separator) !important;
+  border-radius: var(--radius-xs) !important;
+}
+.p-checkbox.p-checkbox-checked .p-checkbox-box {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ── Confirm dialog ──────────────────────────────────────── */
+.p-confirmdialog {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-2xl) !important;
+}
+
+/* ── Confirm popup ───────────────────────────────────────── */
+.p-confirmpopup {
+  background: var(--canvas-overlay) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}

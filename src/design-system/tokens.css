@@ -1,0 +1,127 @@
+/* ============================================================
+   Design Tokens — API Sandbox
+   Apple-inspired dark-first design system
+   ============================================================ */
+
+[data-theme="dark"],
+:root {
+  color-scheme: dark;
+
+  /* ── Canvas ──────────────────────────────────────────────
+     Five elevation levels, each slightly lighter.
+     Never use raw hex values in components — always reference
+     these tokens so a future light-mode switch is frictionless.
+  */
+  --canvas-app:      #0b0c10;
+  --canvas-sidebar:  #0f1118;
+  --canvas-panel:    #141720;
+  --canvas-elevated: #1a1d28;
+  --canvas-overlay:  #1f2333;
+
+  /* ── Fill ─────────────────────────────────────────────────
+     Semi-transparent overlays for interactive state.
+  */
+  --fill-primary:   rgba(255, 255, 255, 0.10);
+  --fill-secondary: rgba(255, 255, 255, 0.06);
+  --fill-tertiary:  rgba(255, 255, 255, 0.03);
+  --fill-hover:     rgba(255, 255, 255, 0.05);
+  --fill-active:    rgba(255, 255, 255, 0.09);
+
+  /* ── Label ────────────────────────────────────────────────
+     Four tiers of text hierarchy.
+  */
+  --label-primary:     #e6e8f0;
+  --label-secondary:   #8a8fa8;
+  --label-tertiary:    #4c5070;
+  --label-placeholder: #383b54;
+
+  /* ── Separator ────────────────────────────────────────────*/
+  --separator:         rgba(255, 255, 255, 0.07);
+  --separator-opaque:  #191c29;
+
+  /* ── Accent ───────────────────────────────────────────────
+     Indigo-500 — more refined than the previous stock purple.
+  */
+  --accent:        #6366f1;
+  --accent-hover:  #7375f3;
+  --accent-muted:  #4f52c9;
+  --accent-fill:   rgba(99, 102, 241, 0.15);
+  --accent-border: rgba(99, 102, 241, 0.35);
+  --accent-text:   #a5b4fc;
+
+  /* ── Status ───────────────────────────────────────────────*/
+  --status-success:        #22c55e;
+  --status-success-fill:   rgba(34, 197, 94, 0.12);
+  --status-success-border: rgba(34, 197, 94, 0.30);
+
+  --status-warning:        #f59e0b;
+  --status-warning-fill:   rgba(245, 158, 11, 0.12);
+  --status-warning-border: rgba(245, 158, 11, 0.30);
+
+  --status-error:          #ef4444;
+  --status-error-fill:     rgba(239, 68, 68, 0.12);
+  --status-error-border:   rgba(239, 68, 68, 0.30);
+
+  --status-info:           #3b82f6;
+  --status-info-fill:      rgba(59, 130, 246, 0.12);
+  --status-info-border:    rgba(59, 130, 246, 0.30);
+
+  /* ── HTTP Methods ─────────────────────────────────────────
+     Semantic, consistent colours across all surfaces.
+     Replaces the hardcoded Tailwind arbitrary values
+     (text-[#61affe], text-[#49cc90] etc.) scattered everywhere.
+  */
+  --method-get:          #3b82f6;
+  --method-get-fill:     rgba(59, 130, 246, 0.12);
+
+  --method-post:         #22c55e;
+  --method-post-fill:    rgba(34, 197, 94, 0.12);
+
+  --method-put:          #f59e0b;
+  --method-put-fill:     rgba(245, 158, 11, 0.12);
+
+  --method-patch:        #a855f7;
+  --method-patch-fill:   rgba(168, 85, 247, 0.12);
+
+  --method-delete:       #ef4444;
+  --method-delete-fill:  rgba(239, 68, 68, 0.12);
+
+  --method-head:         #64748b;
+  --method-head-fill:    rgba(100, 116, 139, 0.12);
+
+  --method-options:      #14b8a6;
+  --method-options-fill: rgba(20, 184, 166, 0.12);
+
+  /* ── Radius ───────────────────────────────────────────────*/
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ── Motion ───────────────────────────────────────────────
+     Spring-like easing inspired by Apple's animation curves.
+  */
+  --ease-standard: cubic-bezier(0.3, 0, 0, 1);
+  --ease-enter:    cubic-bezier(0, 0, 0, 1);
+  --ease-exit:     cubic-bezier(0.3, 0, 1, 1);
+  --dur-micro:     80ms;
+  --dur-quick:     150ms;
+  --dur-standard:  250ms;
+  --dur-enter:     320ms;
+  --dur-exit:      200ms;
+
+  /* ── Scrollbar ────────────────────────────────────────────*/
+  --scrollbar-thumb:       rgba(255, 255, 255, 0.14);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+
+  /* ── Selection ────────────────────────────────────────────*/
+  --selection-bg:   var(--accent);
+  --selection-text: #ffffff;
+
+  /* ── Typography ───────────────────────────────────────────*/
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+}

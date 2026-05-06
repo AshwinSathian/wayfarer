@@ -1,0 +1,223 @@
+/* ============================================================
+   Component Design System — API Sandbox
+   Utility classes + canonical component styles
+   ============================================================ */
+
+/* ── Background utilities ────────────────────────────────── */
+.bg-canvas-app      { background-color: var(--canvas-app); }
+.bg-canvas-sidebar  { background-color: var(--canvas-sidebar); }
+.bg-canvas-panel    { background-color: var(--canvas-panel); }
+.bg-canvas-elevated { background-color: var(--canvas-elevated); }
+.bg-canvas-overlay  { background-color: var(--canvas-overlay); }
+.bg-fill-primary    { background-color: var(--fill-primary); }
+.bg-fill-secondary  { background-color: var(--fill-secondary); }
+.bg-fill-hover      { background-color: var(--fill-hover); }
+.bg-accent-fill     { background-color: var(--accent-fill); }
+
+/* ── Text utilities ──────────────────────────────────────── */
+.text-label-primary   { color: var(--label-primary); }
+.text-label-secondary { color: var(--label-secondary); }
+.text-label-tertiary  { color: var(--label-tertiary); }
+.text-accent          { color: var(--accent-text); }
+.text-status-success  { color: var(--status-success); }
+.text-status-error    { color: var(--status-error); }
+.text-status-warning  { color: var(--status-warning); }
+.text-status-info     { color: var(--status-info); }
+
+/* ── Border utilities ────────────────────────────────────── */
+.border-separator        { border-color: var(--separator) !important; }
+.border-separator-opaque { border-color: var(--separator-opaque) !important; }
+.border-accent           { border-color: var(--accent-border) !important; }
+
+/* ── Method text colours ─────────────────────────────────── */
+.text-method-get     { color: var(--method-get); }
+.text-method-post    { color: var(--method-post); }
+.text-method-put     { color: var(--method-put); }
+.text-method-patch   { color: var(--method-patch); }
+.text-method-delete  { color: var(--method-delete); }
+.text-method-head    { color: var(--method-head); }
+.text-method-options { color: var(--method-options); }
+
+/* ── Method badges ───────────────────────────────────────── */
+.method-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get); }
+.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post); }
+.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put); }
+.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch); }
+.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete); }
+.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head); }
+.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options); }
+
+/* Status code badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+}
+.status-badge.status-2xx { background: var(--status-success-fill); color: var(--status-success); }
+.status-badge.status-3xx { background: var(--status-info-fill);    color: var(--status-info); }
+.status-badge.status-4xx { background: var(--status-warning-fill); color: var(--status-warning); }
+.status-badge.status-5xx { background: var(--status-error-fill);   color: var(--status-error); }
+.status-badge.status-err { background: var(--status-error-fill);   color: var(--status-error); }
+
+/* ── Card / Panel ────────────────────────────────────────── */
+.ds-panel {
+  background: var(--canvas-panel);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-lg);
+}
+
+.ds-panel-elevated {
+  background: var(--canvas-elevated);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Section label ───────────────────────────────────────── */
+.ds-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--label-tertiary);
+}
+
+/* ── Form label ──────────────────────────────────────────── */
+.ds-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  margin-bottom: 6px;
+}
+
+/* ── Segmented control (Apple-style tab switcher) ────────── */
+.seg-control {
+  display: inline-flex;
+  background: var(--fill-secondary);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-option {
+  border-radius: calc(var(--radius-sm) - 2px);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.seg-option.active {
+  background: var(--canvas-overlay);
+  color: var(--label-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+.ds-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 52px;
+  padding: 0 16px;
+  background: var(--canvas-sidebar);
+  border-bottom: 1px solid var(--separator);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* ── Icon button ─────────────────────────────────────────── */
+.ds-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--label-secondary);
+  cursor: pointer;
+  transition:
+    background var(--dur-micro) var(--ease-standard),
+    color var(--dur-micro) var(--ease-standard);
+  flex-shrink: 0;
+}
+.ds-icon-btn:hover {
+  background: var(--fill-primary);
+  color: var(--label-primary);
+}
+
+/* ── Response status bar ─────────────────────────────────── */
+.response-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--canvas-elevated);
+  border: 1px solid var(--separator);
+}
+
+/* ── Variable chips ──────────────────────────────────────── */
+.var-chip {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity var(--dur-quick) var(--ease-standard);
+  font-size: 11px;
+}
+
+.var-chip.var-environment {
+  background: var(--status-info-fill);
+  border: 1px solid var(--status-info-border);
+  color: var(--label-primary);
+}
+
+.var-chip.var-request {
+  background: var(--accent-fill);
+  border: 1px solid var(--accent-border);
+  color: var(--label-primary);
+}
+
+.var-chip.var-missing {
+  background: var(--status-error-fill);
+  border: 1px solid var(--status-error-border);
+  color: var(--status-error);
+  animation: chip-pulse 2s ease-in-out infinite;
+}
+
+/* ── Timing waterfall bar ────────────────────────────────── */
+.timing-bar-fill {
+  background: var(--accent);
+}

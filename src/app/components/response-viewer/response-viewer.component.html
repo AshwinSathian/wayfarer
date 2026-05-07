@@ -52,6 +52,19 @@
           <p-tab value="body">Body</p-tab>
           <p-tab value="headers">Headers</p-tab>
           <p-tab value="timings">Timings</p-tab>
+          <p-tab value="tests">
+            Tests
+            @if (testResults.length) {
+            <span class="ml-1.5 inline-flex items-center gap-1">
+              @if (testPassCount) {
+              <span class="rounded-full bg-status-success/20 px-1.5 py-0.5 type-caption text-status-success tabular-nums">{{ testPassCount }}</span>
+              }
+              @if (testFailCount) {
+              <span class="rounded-full bg-status-error/20 px-1.5 py-0.5 type-caption text-status-error tabular-nums">{{ testFailCount }}</span>
+              }
+            </span>
+            }
+          </p-tab>
         </p-tablist>
 
         <p-tabpanels>
@@ -247,6 +260,45 @@
             </div>
             }
           </p-tabpanel>
+          <!-- Tests tab -->
+          <p-tabpanel value="tests">
+            <div class="space-y-2">
+              @if (!testResults.length) {
+              <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
+              } @else {
+              <div class="space-y-1.5">
+                @for (result of testResults; track result.label + result.source) {
+                <div
+                  class="flex items-start gap-3 rounded-lg px-3 py-2.5"
+                  [ngClass]="result.passed ? 'bg-[color-mix(in_srgb,var(--p-green-500)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--p-red-500)_10%,transparent)]'"
+                >
+                  <span
+                    class="mt-0.5 flex-shrink-0"
+                    [ngClass]="result.passed ? 'pi pi-check-circle text-green-500' : 'pi pi-times-circle text-red-500'"
+                  ></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="type-callout" [ngClass]="result.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                      {{ result.label }}
+                    </div>
+                    @if (!result.passed && result.error) {
+                    <div class="type-caption text-label-tertiary mt-0.5">{{ result.error }}</div>
+                    }
+                    @if (!result.passed && result.actual !== undefined) {
+                    <div class="type-caption text-label-tertiary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
+                    }
+                  </div>
+                  <span class="type-caption text-label-tertiary flex-shrink-0 capitalize">{{ result.source }}</span>
+                </div>
+                }
+              </div>
+              <div class="flex items-center gap-3 pt-2 border-t border-separator">
+                <span class="type-subhead text-green-600 dark:text-green-400">{{ testPassCount }} passed</span>
+                <span class="type-subhead text-red-600 dark:text-red-400">{{ testFailCount }} failed</span>
+              </div>
+              }
+            </div>
+          </p-tabpanel>
+
         </p-tabpanels>
       </p-tabs>
     </div>

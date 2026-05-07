@@ -25,13 +25,14 @@ import {
   toHar,
 } from "../../shared/inspect/export.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
+import { TestResult } from "../../models/test-assertion.models";
 import {
   JsonWorkerService,
   WorkerSearchResult,
 } from "../../shared/json-worker/json-worker.service";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 
-type ResponseTab = "body" | "headers" | "timings";
+type ResponseTab = "body" | "headers" | "timings" | "tests";
 
 interface ResponseHeader {
   name: string;
@@ -82,6 +83,7 @@ export class ResponseViewerComponent implements OnChanges {
   @Input() inspection?: Signal<ResponseInspection | null> | null;
   @Input() responseContentLength?: number;
   @Input() exportContext: ResponseExportContext | null = null;
+  @Input() testResults: TestResult[] = [];
 
   exportItems: MenuItem[] = [
     {
@@ -227,6 +229,14 @@ export class ResponseViewerComponent implements OnChanges {
 
   get formattedResponseError(): string {
     return this.formattedError;
+  }
+
+  get testPassCount(): number {
+    return this.testResults.filter((r) => r.passed).length;
+  }
+
+  get testFailCount(): number {
+    return this.testResults.filter((r) => !r.passed).length;
   }
 
   get canExport(): boolean {

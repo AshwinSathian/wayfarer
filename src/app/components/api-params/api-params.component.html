@@ -86,6 +86,7 @@
             <p-tab value="body">Body</p-tab>
             }
             <p-tab value="auth">Auth</p-tab>
+            <p-tab value="scripts">Scripts</p-tab>
           </p-tablist>
 
           @if (activeTab === 'headers' || activeTab === 'body') {
@@ -114,6 +115,9 @@
           <p-tabpanel value="auth">
             <ng-container *ngTemplateOutlet="authContent"></ng-container>
           </p-tabpanel>
+          <p-tabpanel value="scripts">
+            <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+          </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
     </div>
@@ -141,6 +145,10 @@
         <p-accordionpanel value="auth">
           <ng-template pTemplate="header">Auth</ng-template>
           <ng-container *ngTemplateOutlet="authContent"></ng-container>
+        </p-accordionpanel>
+        <p-accordionpanel value="scripts">
+          <ng-template pTemplate="header">Scripts</ng-template>
+          <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
         </p-accordionpanel>
       </p-accordion>
     </div>
@@ -331,6 +339,86 @@
     }
   </ng-template>
 
+  <!-- Scripts template -->
+  <ng-template #scriptsContent>
+    <div class="space-y-6">
+
+      <!-- Pre-request script -->
+      <div class="space-y-2">
+        <div class="ds-section-label">Pre-request Script</div>
+        <p class="type-caption text-label-tertiary">
+          Runs before the request is sent. Use <code class="font-mono">pm.environment.set(key, value)</code> to set variables.
+        </p>
+        <app-script-editor
+          name="preScript"
+          [(ngModel)]="preRequestScript"
+          [ngModelOptions]="{ standalone: true }"
+          [height]="200"
+        ></app-script-editor>
+      </div>
+
+      <!-- Post-response script -->
+      <div class="space-y-2">
+        <div class="ds-section-label">Post-response Script</div>
+        <p class="type-caption text-label-tertiary">
+          Runs after the response arrives. Use <code class="font-mono">pm.test(name, fn)</code> and <code class="font-mono">pm.expect(value)</code> to define assertions.
+        </p>
+        <app-script-editor
+          name="postScript"
+          [(ngModel)]="postRequestScript"
+          [ngModelOptions]="{ standalone: true }"
+          [height]="200"
+        ></app-script-editor>
+      </div>
+
+      <!-- Visual test assertions -->
+      <div class="space-y-3">
+        <div class="ds-section-label">Tests</div>
+        @for (test of requestTests; track test.id; let i = $index) {
+        <div class="flex flex-wrap items-center gap-2 rounded-lg bg-canvas-panel p-3">
+          <p-select
+            [options]="assertionTargetOptions"
+            [(ngModel)]="test.target"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            styleClass="w-36"
+          ></p-select>
+          @if (needsKey(test.target)) {
+          <input
+            pInputText
+            class="w-44 font-mono"
+            [(ngModel)]="test.key"
+            [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
+          />
+          }
+          <p-select
+            [options]="operatorsFor(test.target)"
+            [(ngModel)]="test.operator"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+            styleClass="w-44"
+          ></p-select>
+          @if (needsExpected(test.operator)) {
+          <input
+            pInputText
+            class="flex-1 min-w-[120px] font-mono"
+            [(ngModel)]="test.expected"
+            placeholder="expected value"
+          />
+          }
+          <button pButton type="button" text icon="pi pi-times" severity="danger" (click)="removeTest(i)"></button>
+        </div>
+        }
+        <div>
+          <button pButton type="button" icon="pi pi-plus" label="Add Test" severity="secondary" (click)="addTest()"></button>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+
   <!-- Response panel -->
   @if (shouldShowResponsePanel) {
   <app-response-viewer
@@ -345,6 +433,7 @@
     [inspection]="responseInspection"
     [responseContentLength]="responseContentLength"
     [exportContext]="responseExportContext"
+    [testResults]="lastTestResults"
     [(activeTab)]="responseTab"
   ></app-response-viewer>
   }

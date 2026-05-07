@@ -1,4 +1,5 @@
 import { PastRequest } from "./history.models";
+import { TestAssertion } from "./test-assertion.models";
 
 export type UUID = string;
 
@@ -50,6 +51,9 @@ export interface RequestDoc extends BaseDocument {
   body?: unknown;
   vars?: Record<string, string>;
   auth?: HttpAuthPlaceholder;
+  preRequestScript?: string;
+  postRequestScript?: string;
+  tests?: TestAssertion[];
 }
 
 export type CollectionId = UUID;

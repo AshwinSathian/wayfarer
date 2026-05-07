@@ -26,10 +26,21 @@ const authSchema = {
   properties: {
     type: {
       type: "string",
-      enum: ["none", "basic", "bearer", "custom"],
+      enum: ["none", "basic", "bearer", "api-key"],
     },
-    label: { type: "string" },
-    config: { type: "object", additionalProperties: true },
+  },
+};
+
+const testAssertionSchema = {
+  type: "object",
+  required: ["id", "target", "operator"],
+  additionalProperties: true,
+  properties: {
+    id: { type: "string" },
+    target: { type: "string" },
+    key: { type: "string" },
+    operator: { type: "string" },
+    expected: { type: "string" },
   },
 };
 
@@ -95,6 +106,12 @@ const requestSchema = {
       additionalProperties: { type: "string" },
     },
     auth: authSchema,
+    preRequestScript: { type: "string" },
+    postRequestScript: { type: "string" },
+    tests: {
+      type: "array",
+      items: testAssertionSchema,
+    },
   },
 };
 

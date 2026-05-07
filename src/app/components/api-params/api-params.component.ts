@@ -32,6 +32,7 @@ import { PastRequest } from "../../models/history.models";
 import { AuthType, HttpAuthPlaceholder } from "../../models/collections.models";
 import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
+import { ScriptEditorComponent } from "../script-editor/script-editor.component";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
 import {
   ResponseExportContext,
@@ -46,6 +47,21 @@ import {
   collectVariableTokens,
 } from "../../shared/environments/env-resolution.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
+import {
+  ScriptSandboxService,
+  ScriptEnvContext,
+  ScriptResponseContext,
+} from "../../shared/scripts/script-sandbox.service";
+import {
+  AssertionRunnerService,
+  AssertionResponseContext,
+} from "../../shared/scripts/assertion-runner.service";
+import {
+  TestAssertion,
+  TestResult,
+  AssertionTarget,
+  AssertionOperator,
+} from "../../models/test-assertion.models";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";
@@ -68,6 +84,7 @@ type ContextType = "Body" | "Headers";
     SkeletonModule,
     ChipModule,
     JsonEditorComponent,
+    ScriptEditorComponent,
     ApiParamsBasicComponent,
     ResponseViewerComponent,
   ],
@@ -112,7 +129,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   responseStatusCode?: number;
   responseStatusText?: string;
   responseIsError: boolean;
-  responseTab: "body" | "headers" | "timings";
+  responseTab: "body" | "headers" | "timings" | "tests";
   responseContentLength?: number;
   readonly responseInspection: Signal<ResponseInspection | null>;
   responseExportContext: ResponseExportContext | null;
@@ -130,6 +147,28 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   requestAuth: HttpAuthPlaceholder;
   showAuthPassword = false;
   readonly authTypes: Array<{ label: string; value: AuthType }>;
+  preRequestScript = "";
+  postRequestScript = "";
+  requestTests: TestAssertion[] = [];
+  lastTestResults: TestResult[] = [];
+  readonly assertionTargetOptions: Array<{ label: string; value: AssertionTarget }> = [
+    { label: "Status Code", value: "status" },
+    { label: "Body", value: "body" },
+    { label: "Header", value: "header" },
+    { label: "Duration (ms)", value: "duration" },
+  ];
+  private readonly allOperatorOptions: Array<{ label: string; value: AssertionOperator }> = [
+    { label: "equals", value: "equals" },
+    { label: "does not equal", value: "not-equals" },
+    { label: "contains", value: "contains" },
+    { label: "does not contain", value: "not-contains" },
+    { label: "exists", value: "exists" },
+    { label: "does not exist", value: "not-exists" },
+    { label: "is array", value: "is-array" },
+    { label: "is object", value: "is-object" },
+    { label: "less than", value: "less-than" },
+    { label: "greater than", value: "greater-than" },
+  ];
   private previewFingerprint = "";
 
   constructor(
@@ -137,7 +176,9 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     private _idbService: IdbService,
     private _responseInspector: ResponseInspectorService,
     private readonly environmentsService: EnvironmentsService,
-    private readonly variableFocus: VariableFocusService
+    private readonly variableFocus: VariableFocusService,
+    private readonly scriptSandbox: ScriptSandboxService,
+    private readonly assertionRunner: AssertionRunnerService
   ) {
     this.endpoint = "";
     this.selectedRequestMethod = "GET";
@@ -278,6 +319,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   sendRequest() {
     this.endpointError = "";
     this.resetResponseState();
+    this.lastTestResults = [];
 
     if (!this.endpoint) {
       this.endpointError = "Endpoint is a Required value";
@@ -286,6 +328,15 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     if (!this.validateUrl(this.endpoint)) {
       this.endpointError = "Please enter a valid URL";
       return;
+    }
+
+    // Run pre-request script
+    if (this.preRequestScript?.trim()) {
+      const envCtx: ScriptEnvContext = { get: (key) => this.getEnvVar(key) };
+      const preResult = this.scriptSandbox.execute(this.preRequestScript, envCtx);
+      if (preResult.testResults.length) {
+        this.lastTestResults = [...preResult.testResults];
+      }
     }
 
     const baseHeaders = this.buildHeaders();
@@ -330,13 +381,21 @@ export class ApiParamsComponent implements OnInit, DoCheck {
           this.responseData = this.responseBodyIsJson
             ? this.serializeJsonPayload(response.body)
             : this.stringifyPayload(response.body);
+          const durationMs = Math.round(performance.now() - startedAt);
+          this.runPostScriptAndAssertions(
+            response.status,
+            response.statusText ?? "",
+            response.body,
+            this.extractHeadersMap(response.headers),
+            durationMs
+          );
           const history: PastRequest = {
             method,
             url: endpoint,
             headers: requestHeaders,
             createdAt,
             status: response.status,
-            durationMs: Math.round(performance.now() - startedAt),
+            durationMs,
           };
           if (usesBody) {
             history.body = requestBody;
@@ -351,13 +410,21 @@ export class ApiParamsComponent implements OnInit, DoCheck {
           this.responseError = this.responseBodyIsJson
             ? this.serializeJsonPayload(error.error ?? error.message)
             : this.stringifyPayload(error.error ?? error.message);
+          const durationMs = Math.round(performance.now() - startedAt);
+          this.runPostScriptAndAssertions(
+            error.status,
+            error.statusText ?? "",
+            error.error,
+            this.extractHeadersMap(error.headers),
+            durationMs
+          );
           const history: PastRequest = {
             method,
             url: endpoint,
             headers: requestHeaders,
             createdAt,
             status: error.status,
-            durationMs: Math.round(performance.now() - startedAt),
+            durationMs,
             error: this.extractError(error),
           };
           if (usesBody) {
@@ -586,6 +653,97 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.missingVariableKeys = this.variableTokens
       .filter((token) => token.source === "missing")
       .map((token) => token.key);
+  }
+
+  private runPostScriptAndAssertions(
+    statusCode: number,
+    statusText: string,
+    body: unknown,
+    headers: Record<string, string>,
+    durationMs: number
+  ): void {
+    if (this.postRequestScript?.trim()) {
+      const envCtx: ScriptEnvContext = { get: (key) => this.getEnvVar(key) };
+      const responseCtx: ScriptResponseContext = {
+        statusCode,
+        statusText,
+        body,
+        headers,
+        durationMs,
+      };
+      const postResult = this.scriptSandbox.execute(
+        this.postRequestScript,
+        envCtx,
+        responseCtx
+      );
+      this.lastTestResults = [...this.lastTestResults, ...postResult.testResults];
+    }
+
+    if (this.requestTests.length) {
+      const assertionCtx: AssertionResponseContext = {
+        statusCode,
+        body,
+        headers,
+        durationMs,
+      };
+      const assertionResults = this.assertionRunner.run(
+        this.requestTests,
+        assertionCtx
+      );
+      this.lastTestResults = [...this.lastTestResults, ...assertionResults];
+    }
+  }
+
+  private extractHeadersMap(headers: HttpHeaders | null | undefined): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+    return headers.keys().reduce((acc, key) => {
+      acc[key] = headers.get(key) ?? "";
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
+  private getEnvVar(key: string): string | undefined {
+    return this.environmentsService.activeEnvironment()?.vars?.[key];
+  }
+
+  addTest(): void {
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    this.requestTests = [
+      ...this.requestTests,
+      { id, target: "status", operator: "equals", expected: "" },
+    ];
+  }
+
+  removeTest(index: number): void {
+    this.requestTests = this.requestTests.filter((_, i) => i !== index);
+  }
+
+  isAddTestDisabled(): boolean {
+    return false;
+  }
+
+  operatorsFor(target: AssertionTarget): Array<{ label: string; value: AssertionOperator }> {
+    const numericOnly: AssertionOperator[] = ["less-than", "greater-than"];
+    const noExpected: AssertionOperator[] = ["exists", "not-exists", "is-array", "is-object"];
+    if (target === "status" || target === "duration") {
+      return this.allOperatorOptions.filter(
+        (o) => !["is-array", "is-object"].includes(o.value)
+      );
+    }
+    return this.allOperatorOptions.filter((o) => !numericOnly.includes(o.value));
+  }
+
+  needsKey(target: AssertionTarget): boolean {
+    return target === "body" || target === "header";
+  }
+
+  needsExpected(operator: AssertionOperator): boolean {
+    return !["exists", "not-exists", "is-array", "is-object"].includes(operator);
   }
 
   private extractError(error: HttpErrorResponse): string {

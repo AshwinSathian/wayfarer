@@ -2,6 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api-sandbox",
   "compatibility_date": "2026-07-20",
+  "routes": [
+    {
+      "pattern": "api-sandbox.ashwinsathian.com",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": "dist/api-sandbox/browser",
     "not_found_handling": "single-page-application"

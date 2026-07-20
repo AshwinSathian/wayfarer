@@ -8,7 +8,7 @@
       <p-select
         [options]="requestMethods"
         appendTo="body"
-        [(ngModel)]="selectedRequestMethod"
+        [ngModel]="selectedRequestMethod()"
         (ngModelChange)="onRequestMethodChange($event)"
         styleClass="method-select"
         class="address-method"
@@ -20,7 +20,7 @@
         pInputText
         type="url"
         class="address-url font-mono"
-        [ngModel]="endpoint"
+        [ngModel]="endpoint()"
         (ngModelChange)="onEndpointChange($event)"
         placeholder="https://api.example.com/v1/endpoint"
         style="height: 40px; border: none !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 14px;"
@@ -33,7 +33,7 @@
         pButton
         type="button"
         icon="pi pi-terminal"
-        [disabled]="!endpoint"
+        [disabled]="!endpoint()"
         title="Copy as cURL"
         severity="secondary"
         outlined
@@ -42,7 +42,7 @@
       <button
         pButton
         type="button"
-        [disabled]="!endpoint"
+        [disabled]="!endpoint()"
         label="Send"
         aria-label="Send request"
         (click)="sendRequest()"
@@ -51,17 +51,17 @@
     </div>
   </div>
 
-  @if (endpointError !== '') {
+  @if (endpointError() !== '') {
   <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
     <span class="material-symbols-outlined icon-xs">error</span>
-    {{ endpointError }}
+    {{ endpointError() }}
   </p>
   }
 
   <!-- ── Variable tokens preview ──────────────────────────── -->
-  @if (variableTokens.length) {
+  @if (variableTokens().length) {
   <div class="flex flex-wrap gap-2 rounded-xl bg-canvas-elevated px-4 py-3 border border-separator">
-    @for (token of variableTokens; track token.field + token.key) {
+    @for (token of variableTokens(); track token.field + token.key) {
     <div
       class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
       role="button"
@@ -81,10 +81,10 @@
     </div>
     }
   </div>
-  @if (missingVariableKeys.length) {
+  @if (missingVariableKeys().length) {
   <p class="type-footnote text-status-warning flex items-center gap-1.5">
     <span class="material-symbols-outlined icon-xs">warning</span>
-    Missing: {{ missingVariableKeys.join(', ') }}
+    Missing: {{ missingVariableKeys().join(', ') }}
   </p>
   }
   }
@@ -93,22 +93,22 @@
   <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
     <!-- Desktop tabs -->
     <div class="hidden md:block px-2 pt-1">
-      <p-tabs [value]="activeTab" (valueChange)="onActiveTabChange($event)">
+      <p-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
         <div class="flex items-center justify-between w-full pr-2">
           <p-tablist>
             <p-tab value="params">Params</p-tab>
             <p-tab value="headers">Headers</p-tab>
-            @if (isBodyMethod(selectedRequestMethod)) {
+            @if (isBodyMethod(selectedRequestMethod())) {
             <p-tab value="body">Body</p-tab>
             }
             <p-tab value="auth">Auth</p-tab>
             <p-tab value="scripts">Scripts</p-tab>
           </p-tablist>
 
-          @if (activeTab === 'headers' || activeTab === 'body') {
+          @if (activeTab() === 'headers' || activeTab() === 'body') {
           <p-selectButton
             [options]="editorModeOptions"
-            [(ngModel)]="editorMode"
+            [ngModel]="editorMode()"
             (ngModelChange)="onEditorModeChange($event)"
             [ngModelOptions]="{ standalone: true }"
             size="small"
@@ -127,7 +127,7 @@
               <ng-container *ngTemplateOutlet="headersContent"></ng-container>
             </div>
           </p-tabpanel>
-          @if (isBodyMethod(selectedRequestMethod)) {
+          @if (isBodyMethod(selectedRequestMethod())) {
           <p-tabpanel value="body">
             <div class="px-4 pb-5">
               <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
@@ -158,7 +158,7 @@
     <div class="md:hidden">
       <p-accordion
         [multiple]="true"
-        [value]="mobileActivePanels"
+        [value]="mobileActivePanels()"
         (valueChange)="onMobileIndexChange($event)"
       >
         <p-accordion-panel value="params">
@@ -173,7 +173,7 @@
             <ng-container *ngTemplateOutlet="headersContent"></ng-container>
           </p-accordion-content>
         </p-accordion-panel>
-        @if (isBodyMethod(selectedRequestMethod)) {
+        @if (isBodyMethod(selectedRequestMethod())) {
         <p-accordion-panel value="body">
           <p-accordion-header>Body</p-accordion-header>
           <p-accordion-content>
@@ -206,7 +206,7 @@
         <div class="ds-section-label">Value</div>
         <div></div>
       </div>
-      @for (param of requestParams; track param; let i = $index) {
+      @for (param of requestParams(); track param; let i = $index) {
       <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
         <input type="checkbox" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
         <input pInputText class="w-full font-mono" [(ngModel)]="param.key" (ngModelChange)="onParamChange()" placeholder="key" />
@@ -224,13 +224,14 @@
 
   <!-- ── Auth template ────────────────────────────────────── -->
   <ng-template #authContent>
+    @let auth = requestAuth();
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <label class="ds-form-label min-w-[72px]" for="auth-type-select">Type</label>
         <p-select
           inputId="auth-type-select"
           [options]="authTypes"
-          [(ngModel)]="requestAuth.type"
+          [ngModel]="auth.type"
           (ngModelChange)="onAuthTypeChange($event)"
           optionLabel="label"
           optionValue="value"
@@ -239,7 +240,7 @@
         ></p-select>
       </div>
 
-      @if (requestAuth.type === 'bearer') {
+      @if (auth.type === 'bearer') {
       <div class="flex items-center gap-3">
         <label class="ds-form-label min-w-[72px]" for="auth-bearer-token">Token</label>
         <input
@@ -247,13 +248,13 @@
           pInputText
           class="flex-1 font-mono"
           placeholder="Enter bearer token"
-          [ngModel]="requestAuth.bearer?.token ?? ''"
-          (ngModelChange)="requestAuth.bearer = { token: $event }"
+          [ngModel]="auth.bearer?.token ?? ''"
+          (ngModelChange)="setBearerToken($event)"
         />
       </div>
       }
 
-      @if (requestAuth.type === 'basic') {
+      @if (auth.type === 'basic') {
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
           <label class="ds-form-label min-w-[72px]" for="auth-basic-username">Username</label>
@@ -262,8 +263,8 @@
             pInputText
             class="flex-1 font-mono"
             placeholder="Username"
-            [ngModel]="requestAuth.basic?.username ?? ''"
-            (ngModelChange)="requestAuth.basic = { username: $event, password: requestAuth.basic?.password ?? '' }"
+            [ngModel]="auth.basic?.username ?? ''"
+            (ngModelChange)="setBasicUsername($event)"
           />
         </div>
         <div class="flex items-center gap-3">
@@ -273,40 +274,40 @@
               id="auth-basic-password"
               pInputText
               class="flex-1 font-mono"
-              [type]="showAuthPassword ? 'text' : 'password'"
+              [type]="showAuthPassword() ? 'text' : 'password'"
               placeholder="Password"
-              [ngModel]="requestAuth.basic?.password ?? ''"
-              (ngModelChange)="requestAuth.basic = { username: requestAuth.basic?.username ?? '', password: $event }"
+              [ngModel]="auth.basic?.password ?? ''"
+              (ngModelChange)="setBasicPassword($event)"
             />
-            <button pButton type="button" text [icon]="showAuthPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
-              [attr.aria-label]="showAuthPassword ? 'Hide password' : 'Show password'"
-              (click)="showAuthPassword = !showAuthPassword"></button>
+            <button pButton type="button" text [icon]="showAuthPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+              [attr.aria-label]="showAuthPassword() ? 'Hide password' : 'Show password'"
+              (click)="toggleAuthPasswordVisibility()"></button>
           </div>
         </div>
       </div>
       }
 
-      @if (requestAuth.type === 'api-key') {
+      @if (auth.type === 'api-key') {
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
           <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
           <input id="auth-apikey-key" pInputText class="flex-1 font-mono" placeholder="Header or param name"
-            [ngModel]="requestAuth.apiKey?.key ?? ''"
-            (ngModelChange)="requestAuth.apiKey = { key: $event, value: requestAuth.apiKey?.value ?? '', addTo: requestAuth.apiKey?.addTo ?? 'header' }" />
+            [ngModel]="auth.apiKey?.key ?? ''"
+            (ngModelChange)="setApiKeyField({ key: $event })" />
         </div>
         <div class="flex items-center gap-3">
           <label class="ds-form-label min-w-[72px]" for="auth-apikey-value">Value</label>
           <input id="auth-apikey-value" pInputText class="flex-1 font-mono" placeholder="Key value"
-            [ngModel]="requestAuth.apiKey?.value ?? ''"
-            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: $event, addTo: requestAuth.apiKey?.addTo ?? 'header' }" />
+            [ngModel]="auth.apiKey?.value ?? ''"
+            (ngModelChange)="setApiKeyField({ value: $event })" />
         </div>
         <div class="flex items-center gap-3">
           <label class="ds-form-label min-w-[72px]" for="auth-apikey-addto">Add to</label>
           <p-select
             inputId="auth-apikey-addto"
             [options]="[{ label: 'Header', value: 'header' }, { label: 'Query param', value: 'query' }]"
-            [ngModel]="requestAuth.apiKey?.addTo ?? 'header'"
-            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: requestAuth.apiKey?.value ?? '', addTo: $event }"
+            [ngModel]="auth.apiKey?.addTo ?? 'header'"
+            (ngModelChange)="setApiKeyField({ addTo: $event })"
             optionLabel="label"
             optionValue="value"
             appendTo="body"
@@ -316,7 +317,7 @@
       </div>
       }
 
-      @if (requestAuth.type === 'none') {
+      @if (auth.type === 'none') {
       <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
         <span class="material-symbols-outlined icon-sm text-label-tertiary">info</span>
         <p class="type-callout text-label-tertiary">No authentication will be applied to this request.</p>
@@ -327,10 +328,10 @@
 
   <!-- ── Headers template ─────────────────────────────────── -->
   <ng-template #headersContent>
-    @if (editorMode === 'basic') {
+    @if (editorMode() === 'basic') {
     <app-api-params-basic
       context="Headers"
-      [items]="requestHeaders"
+      [items]="requestHeaders()"
       [addLabel]="'Add Header'"
       [isAddDisabled]="isAddDisabledFn"
       [addItem]="addItemFn"
@@ -340,7 +341,7 @@
     ></app-api-params-basic>
     } @else {
     <div class="space-y-2">
-      @if (!headersJsonValid) {
+      @if (!headersJsonValid()) {
       <small class="type-footnote text-status-error flex items-center gap-1">
         <span class="material-symbols-outlined icon-xs">error</span>
         Invalid JSON
@@ -348,9 +349,10 @@
       }
       <app-json-editor
         name="headersJson"
-        [(ngModel)]="headersJsonText"
+        [ngModel]="headersJsonText()"
+        (ngModelChange)="headersJsonText.set($event)"
         [ngModelOptions]="{ standalone: true }"
-        (jsonValidChange)="headersJsonValid = $event"
+        (jsonValidChange)="headersJsonValid.set($event)"
         (parsedChange)="onHeadersJsonParsed($event)"
         [height]="280"
       ></app-json-editor>
@@ -360,10 +362,10 @@
 
   <!-- ── Body template ────────────────────────────────────── -->
   <ng-template #bodyContent>
-    @if (editorMode === 'basic') {
+    @if (editorMode() === 'basic') {
     <app-api-params-basic
       context="Body"
-      [items]="requestBody"
+      [items]="requestBody()"
       [addLabel]="'Add Item'"
       [isAddDisabled]="isAddDisabledFn"
       [addItem]="addItemFn"
@@ -373,7 +375,7 @@
     ></app-api-params-basic>
     } @else {
     <div class="space-y-2">
-      @if (!bodyJsonValid) {
+      @if (!bodyJsonValid()) {
       <small class="type-footnote text-status-error flex items-center gap-1">
         <span class="material-symbols-outlined icon-xs">error</span>
         Invalid JSON
@@ -381,9 +383,10 @@
       }
       <app-json-editor
         name="bodyJson"
-        [(ngModel)]="bodyJsonText"
+        [ngModel]="bodyJsonText()"
+        (ngModelChange)="bodyJsonText.set($event)"
         [ngModelOptions]="{ standalone: true }"
-        (jsonValidChange)="bodyJsonValid = $event"
+        (jsonValidChange)="bodyJsonValid.set($event)"
         (parsedChange)="onBodyJsonParsed($event)"
         [height]="360"
       ></app-json-editor>
@@ -405,7 +408,8 @@
         </p>
         <app-script-editor
           name="preScript"
-          [(ngModel)]="preRequestScript"
+          [ngModel]="preRequestScript()"
+          (ngModelChange)="preRequestScript.set($event)"
           [ngModelOptions]="{ standalone: true }"
           [height]="200"
         ></app-script-editor>
@@ -422,7 +426,8 @@
         </p>
         <app-script-editor
           name="postScript"
-          [(ngModel)]="postRequestScript"
+          [ngModel]="postRequestScript()"
+          (ngModelChange)="postRequestScript.set($event)"
           [ngModelOptions]="{ standalone: true }"
           [height]="200"
         ></app-script-editor>
@@ -434,7 +439,7 @@
           <span class="material-symbols-outlined icon-sm text-label-tertiary">rule</span>
           <div class="ds-section-label">Tests</div>
         </div>
-        @for (test of requestTests; track test.id; let i = $index) {
+        @for (test of requestTests(); track test.id; let i = $index) {
         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
           <p-select
             [options]="assertionTargetOptions"
@@ -482,18 +487,18 @@
   @if (shouldShowResponsePanel) {
   <app-response-viewer
     class="animate-fade-up"
-    [loading]="loadingState"
-    [responseData]="responseData"
-    [responseError]="responseError"
-    [responseBodyIsJson]="responseBodyIsJson"
-    [responseHeaders]="responseHeadersView"
-    [responseStatusCode]="responseStatusCode"
-    [responseStatusText]="responseStatusText"
-    [isError]="responseIsError"
+    [loading]="loadingState()"
+    [responseData]="responseData()"
+    [responseError]="responseError()"
+    [responseBodyIsJson]="responseBodyIsJson()"
+    [responseHeaders]="responseHeadersView()"
+    [responseStatusCode]="responseStatusCode()"
+    [responseStatusText]="responseStatusText()"
+    [isError]="responseIsError()"
     [inspection]="responseInspection"
-    [responseContentLength]="responseContentLength"
-    [exportContext]="responseExportContext"
-    [testResults]="lastTestResults"
+    [responseContentLength]="responseContentLength()"
+    [exportContext]="responseExportContext()"
+    [testResults]="lastTestResults()"
     [(activeTab)]="responseTab"
   ></app-response-viewer>
   }

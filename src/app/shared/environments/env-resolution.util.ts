@@ -43,6 +43,23 @@ export function resolveVariable(
   return { source: "missing" };
 }
 
+/**
+ * Substitutes every resolvable `{{key}}` occurrence in `text` with its
+ * resolved value. Unresolved keys (source "missing") are left as the
+ * original literal placeholder rather than being blanked out, so a
+ * still-typed request never silently sends an empty string in place of a
+ * variable that simply hasn't been set yet.
+ */
+export function resolveTemplate(
+  text: string,
+  context: VariableContext
+): string {
+  return text.replace(PLACEHOLDER_PATTERN, (match, key: string) => {
+    const resolved = resolveVariable(key, context);
+    return resolved.value ?? match;
+  });
+}
+
 export function extractVariables(
   text: string | undefined,
   location: VariableLocation,

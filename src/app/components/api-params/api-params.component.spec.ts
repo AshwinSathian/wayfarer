@@ -7,6 +7,8 @@ import { ApiParamsComponent } from './api-params.component';
 import { IdbService } from '../../data/idb.service';
 import { PastRequest } from '../../models/history.models';
 import { ResponseInspectorService } from '../../shared/inspect/response-inspector.service';
+import { EnvironmentsService } from '../../services/environments.service';
+import { EnvironmentDoc } from '../../models/environments.models';
 
 class IdbServiceMock {
   init = jasmine.createSpy('init').and.returnValue(Promise.resolve());
@@ -19,16 +21,48 @@ class ResponseInspectorServiceStub {
   markResponse = jasmine.createSpy('markResponse');
 }
 
+class EnvironmentsServiceStub {
+  private readonly activeEnvSignal = signal<EnvironmentDoc | null>(null);
+  readonly activeEnvironment = this.activeEnvSignal.asReadonly();
+  readonly environments = signal<EnvironmentDoc[]>([]).asReadonly();
+  readonly loading = signal(false).asReadonly();
+  ensureLoaded = jasmine.createSpy('ensureLoaded').and.returnValue(Promise.resolve());
+  updateEnvironment = jasmine
+    .createSpy('updateEnvironment')
+    .and.callFake(async (id: string, patch: Partial<EnvironmentDoc>) => {
+      const current = this.activeEnvSignal();
+      if (current && current.meta.id === id) {
+        this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
+      }
+    });
+
+  setActiveEnvironment(env: EnvironmentDoc | null): void {
+    this.activeEnvSignal.set(env);
+  }
+}
+
+function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
+  return {
+    id: 'env-1',
+    meta: { id: 'env-1', createdAt: 1, updatedAt: 1, version: 1 },
+    name: 'Test env',
+    order: 1,
+    vars,
+  } as EnvironmentDoc;
+}
+
 describe('ApiParamsComponent', () => {
   let component: ApiParamsComponent;
   let fixture: ComponentFixture<ApiParamsComponent>;
   let httpMock: HttpTestingController;
   let idbService: IdbServiceMock;
   let responseInspector: ResponseInspectorServiceStub;
+  let environmentsService: EnvironmentsServiceStub;
 
   beforeEach(async () => {
     idbService = new IdbServiceMock();
     responseInspector = new ResponseInspectorServiceStub();
+    environmentsService = new EnvironmentsServiceStub();
     await TestBed.configureTestingModule({
       imports: [ApiParamsComponent],
       providers: [
@@ -36,6 +70,7 @@ describe('ApiParamsComponent', () => {
         provideHttpClientTesting(),
         { provide: IdbService, useValue: idbService },
         { provide: ResponseInspectorService, useValue: responseInspector },
+        { provide: EnvironmentsService, useValue: environmentsService },
         provideNoopAnimations(),
       ],
     }).compileComponents();
@@ -57,9 +92,9 @@ describe('ApiParamsComponent', () => {
   });
 
   it('should validate URLs and block invalid submissions', () => {
-    component.endpoint = 'not-a-url';
+    component.endpoint.set('not-a-url');
     component.sendRequest();
-    expect(component.endpointError).toContain('valid URL');
+    expect(component.endpointError()).toContain('valid URL');
     expect(idbService.add).not.toHaveBeenCalled();
   });
 
@@ -71,8 +106,8 @@ describe('ApiParamsComponent', () => {
     let emitted = false;
     component.newRequest.subscribe(() => emitted = true);
 
-    component.endpoint = 'https://example.com/data';
-    component.selectedRequestMethod = 'GET';
+    component.endpoint.set('https://example.com/data');
+    component.selectedRequestMethod.set('GET');
 
     component.sendRequest();
     expect(responseInspector.markRequest).toHaveBeenCalledWith(
@@ -90,9 +125,9 @@ describe('ApiParamsComponent', () => {
       jasmine.any(String),
       'https://example.com/data'
     );
-    expect(component.responseData).toContain('ok');
-    expect(component.responseBodyIsJson).toBeTrue();
-    expect(component.responseStatusCode).toBe(200);
+    expect(component.responseData()).toContain('ok');
+    expect(component.responseBodyIsJson()).toBeTrue();
+    expect(component.responseStatusCode()).toBe(200);
     expect(component.shouldShowResponsePanel).toBeTrue();
     expect(idbService.add).toHaveBeenCalledWith(jasmine.objectContaining({
       method: 'GET',
@@ -102,7 +137,7 @@ describe('ApiParamsComponent', () => {
       createdAt: mockCreatedAt
     }));
     expect(emitted).toBeTrue();
-    expect(component.endpoint).toBe('');
+    expect(component.endpoint()).toBe('');
 
   }));
 
@@ -112,9 +147,9 @@ describe('ApiParamsComponent', () => {
     spyOn(performance, 'now').and.returnValues(2000, 2150);
 
     component.onRequestMethodChange('POST');
-    component.endpoint = 'https://example.com/create';
-    component.requestBody = [{ key: 'isActive', value: 'true' }];
-    component.requestHeaders = [{ key: 'Content-Type', value: 'application/json' }];
+    component.endpoint.set('https://example.com/create');
+    component.requestBody.set([{ key: 'isActive', value: 'true' }]);
+    component.requestHeaders.set([{ key: 'Content-Type', value: 'application/json' }]);
 
     component.sendRequest();
     expect(responseInspector.markRequest).toHaveBeenCalledWith(
@@ -133,9 +168,9 @@ describe('ApiParamsComponent', () => {
       jasmine.any(String),
       'https://example.com/create'
     );
-    expect(component.responseError).toContain('failed');
-    expect(component.responseBodyIsJson).toBeTrue();
-    expect(component.responseStatusCode).toBe(500);
+    expect(component.responseError()).toContain('failed');
+    expect(component.responseBodyIsJson()).toBeTrue();
+    expect(component.responseStatusCode()).toBe(500);
     expect(component.shouldShowResponsePanel).toBeTrue();
     expect(idbService.add).toHaveBeenCalledWith(jasmine.objectContaining({
       method: 'POST',
@@ -144,7 +179,7 @@ describe('ApiParamsComponent', () => {
       status: 500,
       error: jasmine.any(String)
     }));
-    expect(component.activeTab).toBe('headers');
+    expect(component.activeTab()).toBe('headers');
 
   }));
 
@@ -154,9 +189,9 @@ describe('ApiParamsComponent', () => {
     spyOn(performance, 'now').and.returnValues(3000, 3185);
 
     component.onRequestMethodChange('PUT');
-    component.endpoint = 'https://example.com/items/42';
-    component.requestBody = [{ key: 'name', value: 'Widget' }];
-    component.requestHeaders = [{ key: 'X-Trace', value: 'abc123' }];
+    component.endpoint.set('https://example.com/items/42');
+    component.requestBody.set([{ key: 'name', value: 'Widget' }]);
+    component.requestHeaders.set([{ key: 'X-Trace', value: 'abc123' }]);
 
     component.sendRequest();
 
@@ -168,11 +203,11 @@ describe('ApiParamsComponent', () => {
 
     flushMicrotasks();
 
-    expect(component.responseData).toContain('updated');
+    expect(component.responseData()).toContain('updated');
     const history = idbService.add.calls.mostRecent().args[0] as PastRequest;
     expect(history.method).toBe('PUT');
     expect(history.body).toEqual({ name: 'Widget' });
-    expect(component.activeTab).toBe('headers');
+    expect(component.activeTab()).toBe('headers');
   }));
 
   it('should handle DELETE requests without body', fakeAsync(() => {
@@ -181,8 +216,8 @@ describe('ApiParamsComponent', () => {
     spyOn(performance, 'now').and.returnValues(4000, 4150);
 
     component.onRequestMethodChange('DELETE');
-    component.endpoint = 'https://example.com/items/99';
-    component.requestHeaders = [{ key: 'Authorization', value: 'Bearer xyz' }];
+    component.endpoint.set('https://example.com/items/99');
+    component.requestHeaders.set([{ key: 'Authorization', value: 'Bearer xyz' }]);
 
     component.sendRequest();
 
@@ -197,7 +232,7 @@ describe('ApiParamsComponent', () => {
     const stored = idbService.add.calls.mostRecent().args[0] as PastRequest;
     expect(stored.method).toBe('DELETE');
     expect(stored.body).toBeUndefined();
-    expect(component.activeTab).toBe('headers');
+    expect(component.activeTab()).toBe('headers');
   }));
 
   it('should populate form when loading past requests', () => {
@@ -212,49 +247,96 @@ describe('ApiParamsComponent', () => {
 
     component.loadPastRequest(stored);
 
-    expect(component.selectedRequestMethod).toBe('POST');
-    expect(component.endpoint).toBe('https://example.com/update');
-    expect(component.requestHeaders[0].key).toBe('Authorization');
-    expect(component.requestBody).toEqual([
+    expect(component.selectedRequestMethod()).toBe('POST');
+    expect(component.endpoint()).toBe('https://example.com/update');
+    expect(component.requestHeaders()[0].key).toBe('Authorization');
+    expect(component.requestBody()).toEqual([
       { key: 'count', value: '3' },
       { key: 'enabled', value: 'true' },
     ]);
-    expect(component.activeTab).toBe('body');
+    expect(component.activeTab()).toBe('body');
   });
 
   it('manages dynamic header and body rows', () => {
-    component.requestHeaders = [{ key: '', value: '' }];
+    component.requestHeaders.set([{ key: '', value: '' }]);
     expect(component.isAddDisabled('Headers')).toBeTrue();
 
-    component.requestHeaders[0] = { key: 'Accept', value: 'application/json' };
+    component.requestHeaders.update((items) => {
+      items[0] = { key: 'Accept', value: 'application/json' };
+      return items;
+    });
     expect(component.isAddDisabled('Headers')).toBeFalse();
 
     component.addItem('Headers');
-    expect(component.requestHeaders.length).toBe(2);
+    expect(component.requestHeaders().length).toBe(2);
     component.removeItem(1, 'Headers');
-    expect(component.requestHeaders.length).toBe(1);
+    expect(component.requestHeaders().length).toBe(1);
 
     component.onRequestMethodChange('POST');
     component.addItem('Body');
-    expect(component.requestBody.length).toBe(2);
+    expect(component.requestBody().length).toBe(2);
     component.removeItem(1, 'Body');
-    expect(component.requestBody.length).toBe(1);
+    expect(component.requestBody().length).toBe(1);
   });
 
   it('builds headers and body payloads with appropriate conversions', () => {
-    component.requestHeaders = [
+    component.requestHeaders.set([
       { key: 'Authorization', value: 'Bearer token' },
       { key: '', value: 'ignore-me' }
-    ];
+    ]);
     const headers = (component as any).buildHeaders();
     expect(headers).toEqual({ Authorization: 'Bearer token' });
 
-    component.requestBody = [
+    component.requestBody.set([
       { key: 'count', value: '42' },
       { key: 'enabled', value: 'false' },
       { key: '', value: 'skip' }
-    ];
+    ]);
     const body = (component as any).buildBody();
     expect(body).toEqual({ count: '42', enabled: 'false' });
+  });
+
+  it('resolves {{var}} placeholders from the active environment into the actual outgoing request', fakeAsync(() => {
+    environmentsService.setActiveEnvironment(
+      buildEnvironment({ baseHost: 'jsonplaceholder.typicode.com', authToken: 'secret-token' })
+    );
+
+    component.endpoint.set('https://{{baseHost}}/todos/1');
+    component.requestHeaders.set([
+      { key: 'Authorization', value: 'Bearer {{authToken}}' },
+    ]);
+
+    component.sendRequest();
+
+    const req = httpMock.expectOne('https://jsonplaceholder.typicode.com/todos/1');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer secret-token');
+    req.flush({ id: 1 }, { status: 200, statusText: 'OK' });
+    flushMicrotasks();
+  }));
+
+  it('leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it', fakeAsync(() => {
+    environmentsService.setActiveEnvironment(buildEnvironment({}));
+
+    component.endpoint.set('https://example.com/data');
+    component.requestHeaders.set([
+      { key: 'X-Missing', value: '{{doesNotExist}}' },
+    ]);
+
+    component.sendRequest();
+
+    const req = httpMock.expectOne('https://example.com/data');
+    expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
+    req.flush({}, { status: 200, statusText: 'OK' });
+    flushMicrotasks();
+  }));
+
+  it('keeps the JSON editor text showing the literal {{var}} template, not a resolved snapshot', () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ baseHost: 'example.com' }));
+    component.requestHeaders.set([{ key: 'X-Host', value: '{{baseHost}}' }]);
+
+    component.onEditorModeChange('json');
+
+    expect(component.headersJsonText()).toContain('{{baseHost}}');
+    expect(component.headersJsonText()).not.toContain('example.com');
   });
 });

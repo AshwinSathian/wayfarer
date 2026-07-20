@@ -35,7 +35,6 @@
     [draggableNodes]="true"
     [droppableNodes]="true"
     (onNodeSelect)="handleNodeSelect($event.node)"
-    (onNodeDragEnd)="handleNodeSelect($event.node)"
     (onNodeDrop)="handleDrop($event)"
     (onNodeContextMenuSelect)="handleNodeSelect($event.node)"
     [contextMenu]="contextMenu"
@@ -90,14 +89,14 @@
       }
     </ul>
   </div>
-  } @else if (importAnalysis?.payload) {
+  } @else if (importAnalysis; as analysis) { @if (analysis.payload) {
   <div class="space-y-4 type-callout text-label-secondary">
     <div>
       <p class="ds-section-label mb-1.5">Collection</p>
-      <p class="type-title-3 text-label-primary">{{ importAnalysis.payload.collection.name }}</p>
+      <p class="type-title-3 text-label-primary">{{ analysis.payload.collection.name }}</p>
       <p class="type-footnote text-label-tertiary mt-0.5">
-        {{ importAnalysis.summary?.folders || 0 }} folders ·
-        {{ importAnalysis.summary?.requests || 0 }} requests
+        {{ analysis.summary?.folders || 0 }} folders ·
+        {{ analysis.summary?.requests || 0 }} requests
       </p>
     </div>
     <label for="import-duplicate-checkbox" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
@@ -113,9 +112,9 @@
         (ngModelChange)="toggleDuplicateImport($event)"
       ></p-checkbox>
     </label>
-    @if (importAnalysis.plan?.length) {
+    @if (analysis.plan?.length) {
     <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-xl border border-separator p-2">
-      @for (entry of importAnalysis.plan; track entry.id) {
+      @for (entry of analysis.plan; track entry.id) {
       <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
         <div>
           <p class="type-subhead text-label-primary capitalize">{{ entry.type }} · {{ entry.name }}</p>
@@ -133,7 +132,8 @@
     </div>
     }
   </div>
-  } @else {
+  } }
+  @else {
   <div class="ds-empty-state">
     <span class="material-symbols-outlined icon-lg text-label-tertiary">upload_file</span>
     <p class="type-callout text-label-tertiary">Select a valid collection export file to proceed.</p>

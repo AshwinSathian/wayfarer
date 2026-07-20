@@ -28,7 +28,7 @@
       @let inspData = inspectionValue;
 
       <!-- Duration -->
-      @if (inspData?.duration) {
+      @if (inspData && inspData.duration) {
       <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
         <span class="material-symbols-outlined icon-xs">timer</span>
         {{ formatMs(inspData.duration) }}

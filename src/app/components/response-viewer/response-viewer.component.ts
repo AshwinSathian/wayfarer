@@ -470,10 +470,14 @@ export class ResponseViewerComponent implements OnChanges {
     this.formattedError = value;
   }
 
-  onTabChange(value: ResponseTab): void {
-    this._activeTab = value;
-    this.activeTabChange.emit(value);
-    if (value === "body") {
+  onTabChange(value: ResponseTab | string | number | undefined): void {
+    if (value === undefined) {
+      return;
+    }
+    const tab = value as ResponseTab;
+    this._activeTab = tab;
+    this.activeTabChange.emit(tab);
+    if (tab === "body") {
       this.prepareFormatting();
     }
   }

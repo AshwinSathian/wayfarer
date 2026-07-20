@@ -40,7 +40,7 @@ type NodeData =
   | { type: "request"; ref: RequestDoc };
 
 interface TreeDragDropEvent {
-  dragNode?: TreeNode<NodeData>;
+  dragNode?: TreeNode<NodeData> | null;
   tree?: { value?: TreeNode<NodeData>[] };
 }
 

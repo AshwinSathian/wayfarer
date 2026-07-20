@@ -70,6 +70,12 @@ export class EnvironmentsManagerComponent implements OnInit {
   readonly selectedId: WritableSignal<EnvironmentId | null> = signal(null);
   readonly draft: WritableSignal<EnvironmentDraft | null> = signal(null);
   readonly editorTab = signal<"pairs" | "json">("pairs");
+
+  onEditorTabChange(value: string | number | undefined): void {
+    if (value === "pairs" || value === "json") {
+      this.editorTab.set(value);
+    }
+  }
   private readonly secretPreview: Record<string, string> = {};
   envImportDialogVisible = false;
   envImportErrors: string[] = [];

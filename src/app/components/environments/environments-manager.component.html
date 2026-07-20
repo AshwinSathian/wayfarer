@@ -28,6 +28,8 @@
       <p class="type-caption text-label-tertiary text-center">No environments yet.</p>
     </div>
     } @else {
+    @let activeEnv = activeEnvironment();
+    @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <button
@@ -35,13 +37,13 @@
         class="env-item"
         [ngClass]="{
           active: selectedId() === env.meta.id,
-          current: activeEnvironment()?.meta.id === env.meta.id
+          current: activeEnvId === env.meta.id
         }"
         (click)="selectEnvironment(env.meta.id)"
       >
         <div class="flex flex-col items-start min-w-0">
           <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
-          @if (activeEnvironment()?.meta.id === env.meta.id) {
+          @if (activeEnvId === env.meta.id) {
           <span class="env-active-tag mt-1">
             <span class="material-symbols-outlined icon-xs">radio_button_checked</span>
             In use
@@ -55,7 +57,7 @@
             severity="success"
             size="small"
             text
-            [disabled]="activeEnvironment()?.meta.id === env.meta.id"
+            [disabled]="activeEnvId === env.meta.id"
             (click)="setActive(env); $event.stopPropagation()"
             pTooltip="Use for requests"
             tooltipPosition="top"
@@ -85,7 +87,7 @@
     </div>
 
     <div class="mt-5">
-      <p-tabs [value]="editorTab()" (valueChange)="editorTab.set($event)">
+      <p-tabs [value]="editorTab()" (valueChange)="onEditorTabChange($event)">
         <p-tablist>
           <p-tab value="pairs">Key / Value</p-tab>
           <p-tab value="json">JSON</p-tab>
@@ -178,7 +180,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
       <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeNewEnvironmentDialog()"></button>
-      <button pButton label="Create" aria-label="Create environment" [disabled]="!newEnvForm.name?.trim()" (click)="submitNewEnvironment()"></button>
+      <button pButton label="Create" aria-label="Create environment" [disabled]="!newEnvForm.name.trim()" (click)="submitNewEnvironment()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -198,7 +200,7 @@
     <p>— {{ error }}</p>
     }
   </div>
-  } @else if (pendingEnvImport?.length) {
+  } @else if (pendingEnvImport.length) {
   <div class="space-y-3">
     <p class="type-callout text-label-secondary">{{ pendingEnvImport.length }} environment(s) detected.</p>
     @for (entry of pendingEnvImport; track entry.doc.meta.id; let idx = $index) {
@@ -206,7 +208,7 @@
       <div class="flex items-center justify-between gap-2">
         <div>
           <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
-          <p class="type-caption text-label-tertiary">{{ Object.keys(entry.doc.vars ?? {}).length }} variable(s)</p>
+          <p class="type-caption text-label-tertiary">{{ Object.keys(entry.doc.vars).length }} variable(s)</p>
         </div>
         @if (entry.targetId) {
         <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-caption font-semibold text-status-warning">Existing</span>

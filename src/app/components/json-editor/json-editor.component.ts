@@ -30,6 +30,7 @@ import {
   monacoThemeName,
 } from "../../shared/monaco/monaco-loader";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
 const noop = () => {};
 
 @Component({

@@ -1,4 +1,20 @@
 {
+  "name": "api-sandbox",
+  "version": "0.3.0",
+  "description": "A local-first, no-account API testing client — collections, environments, secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "lint": "ng lint"
+  },
   "dependencies": {
     "@angular/animations": "^20.3.4",
     "@angular/cdk": "^20.0.3",
@@ -25,7 +41,9 @@
     "@angular/language-service": "^20.3.4",
     "@types/jasmine": "3.10.3",
     "@types/node": "^20.12.7",
+    "angular-eslint": "21.0.1",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.39.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "jasmine-core": "3.10.1",
@@ -37,6 +55,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
     "tslib": "^2.8.1",
-    "typescript": "~5.9"
+    "typescript": "~5.9",
+    "typescript-eslint": "8.46.4"
   }
 }

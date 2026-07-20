@@ -4,16 +4,7 @@ import {
   HttpHeaders,
   HttpResponse,
 } from "@angular/common/http";
-import {
-  Component,
-  DoCheck,
-  ElementRef,
-  EventEmitter,
-  OnInit,
-  Output,
-  Signal,
-  ViewChild,
-} from "@angular/core";
+import { Component, DoCheck, ElementRef, EventEmitter, Output, Signal, ViewChild, inject } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
@@ -89,14 +80,22 @@ type ContextType = "Body" | "Headers";
   ],
   templateUrl: "./api-params.component.html",
 })
-export class ApiParamsComponent implements OnInit, DoCheck {
+export class ApiParamsComponent implements DoCheck {
+  private _mainService = inject(MainService);
+  private _idbService = inject(IdbService);
+  private _responseInspector = inject(ResponseInspectorService);
+  private readonly environmentsService = inject(EnvironmentsService);
+  private readonly variableFocus = inject(VariableFocusService);
+  private readonly scriptSandbox = inject(ScriptSandboxService);
+  private readonly assertionRunner = inject(AssertionRunnerService);
+
   @Output() newRequest = new EventEmitter();
 
   @ViewChild("urlInput") urlInputRef?: ElementRef<HTMLInputElement>;
 
   endpoint: string;
   selectedRequestMethod: PastRequest["method"];
-  readonly requestMethods: Array<{ label: string; value: PastRequest["method"] }>;
+  readonly requestMethods: { label: string; value: PastRequest["method"] }[];
   private readonly bodyCapableMethods = new Set<PastRequest["method"]>([
     "POST",
     "PUT",
@@ -104,7 +103,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   ]);
   private readonly defaultHeaderKey = "Content-Type";
   private readonly defaultHeaderValue = "application/json";
-  readonly editorModeOptions: Array<{ label: string; value: EditorMode }>;
+  readonly editorModeOptions: { label: string; value: EditorMode }[];
   editorMode: EditorMode;
   headersJsonText: string;
   bodyJsonText: string;
@@ -124,7 +123,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   responseData: string;
   responseError: string;
   responseBodyIsJson: boolean;
-  responseHeadersView: Array<{ name: string; value: string }>;
+  responseHeadersView: { name: string; value: string }[];
   responseStatusCode?: number;
   responseStatusText?: string;
   responseIsError: boolean;
@@ -132,8 +131,8 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   responseContentLength?: number;
   readonly responseInspection: Signal<ResponseInspection | null>;
   responseExportContext: ResponseExportContext | null;
-  requestBody: Array<{ key: string; value: unknown }>;
-  requestHeaders: Array<{ key: string; value: string }>;
+  requestBody: { key: string; value: unknown }[];
+  requestHeaders: { key: string; value: string }[];
   endpointError: string;
   loadingState: boolean;
   activeTab: string;
@@ -142,21 +141,21 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   variableTokens: VariableToken[];
   missingVariableKeys: string[];
   highlightedVariableSource: VariableToken["source"] | null = null;
-  requestParams: Array<{ key: string; value: string; enabled: boolean }>;
+  requestParams: { key: string; value: string; enabled: boolean }[];
   requestAuth: HttpAuthPlaceholder;
   showAuthPassword = false;
-  readonly authTypes: Array<{ label: string; value: AuthType }>;
+  readonly authTypes: { label: string; value: AuthType }[];
   preRequestScript = "";
   postRequestScript = "";
   requestTests: TestAssertion[] = [];
   lastTestResults: TestResult[] = [];
-  readonly assertionTargetOptions: Array<{ label: string; value: AssertionTarget }> = [
+  readonly assertionTargetOptions: { label: string; value: AssertionTarget }[] = [
     { label: "Status Code", value: "status" },
     { label: "Body", value: "body" },
     { label: "Header", value: "header" },
     { label: "Duration (ms)", value: "duration" },
   ];
-  private readonly allOperatorOptions: Array<{ label: string; value: AssertionOperator }> = [
+  private readonly allOperatorOptions: { label: string; value: AssertionOperator }[] = [
     { label: "equals", value: "equals" },
     { label: "does not equal", value: "not-equals" },
     { label: "contains", value: "contains" },
@@ -170,15 +169,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
   ];
   private previewFingerprint = "";
 
-  constructor(
-    private _mainService: MainService,
-    private _idbService: IdbService,
-    private _responseInspector: ResponseInspectorService,
-    private readonly environmentsService: EnvironmentsService,
-    private readonly variableFocus: VariableFocusService,
-    private readonly scriptSandbox: ScriptSandboxService,
-    private readonly assertionRunner: AssertionRunnerService
-  ) {
+  constructor() {
     this.endpoint = "";
     this.selectedRequestMethod = "GET";
     this.requestMethods = [
@@ -240,8 +231,6 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     this.disableBodyItemFn = () => false;
     this.syncMobilePanelsFromActiveTab();
   }
-
-  ngOnInit() {}
 
   ngDoCheck(): void {
     this.maybeUpdateVariablePreview();
@@ -481,7 +470,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
 
   private extractHeadersList(
     headers: HttpHeaders | null | undefined
-  ): Array<{ name: string; value: string }> {
+  ): { name: string; value: string }[] {
     if (!headers) {
       return [];
     }
@@ -787,9 +776,8 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     return false;
   }
 
-  operatorsFor(target: AssertionTarget): Array<{ label: string; value: AssertionOperator }> {
+  operatorsFor(target: AssertionTarget): { label: string; value: AssertionOperator }[] {
     const numericOnly: AssertionOperator[] = ["less-than", "greater-than"];
-    const noExpected: AssertionOperator[] = ["exists", "not-exists", "is-array", "is-object"];
     if (target === "status" || target === "duration") {
       return this.allOperatorOptions.filter(
         (o) => !["is-array", "is-object"].includes(o.value)
@@ -870,7 +858,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
           ? window.location.origin
           : "http://localhost";
       const parsed = new URL(url.startsWith("http") ? url : `https://${url}`, base);
-      const entries: Array<{ key: string; value: string; enabled: boolean }> = [];
+      const entries: { key: string; value: string; enabled: boolean }[] = [];
       parsed.searchParams.forEach((value, key) => {
         entries.push({ key, value, enabled: true });
       });
@@ -1135,7 +1123,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       headersMap.set(this.defaultHeaderKey, existingContentType);
     }
 
-    const orderedEntries: Array<{ key: string; value: string }> = [];
+    const orderedEntries: { key: string; value: string }[] = [];
     if (headersMap.has(this.defaultHeaderKey)) {
       const value = headersMap.get(this.defaultHeaderKey) ?? existingContentType;
       orderedEntries.push({

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PastRequest } from '../models/history.models';
@@ -7,8 +7,8 @@ import { PastRequest } from '../models/history.models';
   providedIn: 'root'
 })
 export class MainService {
+  private _httpClient = inject(HttpClient);
 
-  constructor(private _httpClient: HttpClient) {}
 
   sendRequest(
     method: PastRequest['method'],

@@ -18,7 +18,7 @@ export interface VariableToken {
   environmentId?: EnvironmentId;
 }
 
-const PLACEHOLDER_PATTERN = /{{\s*([\w.\-]+)\s*}}/g;
+const PLACEHOLDER_PATTERN = /{{\s*([\w.-]+)\s*}}/g;
 
 export function resolveVariable(
   variable: string,
@@ -77,8 +77,8 @@ export function extractVariables(
 export function collectVariableTokens(
   payload: {
     url?: string;
-    headers?: Array<{ key: string; value: string }>;
-    body?: Array<{ key: string; value: unknown }>;
+    headers?: { key: string; value: string }[];
+    body?: { key: string; value: unknown }[];
   },
   context: VariableContext
 ): VariableToken[] {

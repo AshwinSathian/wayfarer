@@ -139,7 +139,9 @@ export function sortByOrder<T extends { order?: number; meta?: { id?: string }; 
 
 export function deepSort<T>(value: T): T {
   if (Array.isArray(value)) {
-    const items = sortByOrder(value as Array<any>);
+    const items = sortByOrder(
+      value as unknown as { order?: number; meta?: { id?: string }; id?: string }[]
+    );
     return items.map((item) => deepSort(item)) as T;
   }
 
@@ -310,19 +312,20 @@ function validateRequestDoc(
   }
 }
 
-function validateMeta(meta: any, path: string, errors: ValidationResult[]): void {
+function validateMeta(meta: unknown, path: string, errors: ValidationResult[]): void {
   if (!meta || typeof meta !== "object") {
     errors.push({ path, message: "Meta must be an object." });
     return;
   }
-  validateRequiredString(meta.id, `${path}.id`, errors);
-  if (typeof meta.createdAt !== "number") {
+  const m = meta as Record<string, unknown>;
+  validateRequiredString(m.id, `${path}.id`, errors);
+  if (typeof m.createdAt !== "number") {
     errors.push({ path: `${path}.createdAt`, message: "createdAt must be a number." });
   }
-  if (typeof meta.updatedAt !== "number") {
+  if (typeof m.updatedAt !== "number") {
     errors.push({ path: `${path}.updatedAt`, message: "updatedAt must be a number." });
   }
-  if (meta.version !== 1) {
+  if (m.version !== 1) {
     errors.push({ path: `${path}.version`, message: "version must equal 1." });
   }
 }

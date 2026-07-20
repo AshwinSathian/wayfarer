@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, signal } from "@angular/core";
+import { Injectable, Signal, computed, signal, inject } from "@angular/core";
 import {
   Collection,
   CollectionExport,
@@ -21,13 +21,13 @@ export interface CollectionTree {
   providedIn: "root",
 })
 export class CollectionsService {
+  private readonly idb = inject(IdbService);
+
   private readonly treeState = signal<CollectionTree[]>([]);
   private readonly loadingState = signal(false);
 
   readonly tree: Signal<CollectionTree[]> = computed(() => this.treeState());
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
-
-  constructor(private readonly idb: IdbService) {}
 
   async refresh(): Promise<void> {
     this.loadingState.set(true);
@@ -82,7 +82,7 @@ export class CollectionsService {
     await this.refresh();
   }
 
-  async reorderCollections(order: Array<{ id: CollectionId; order: number }>): Promise<void> {
+  async reorderCollections(order: { id: CollectionId; order: number }[]): Promise<void> {
     await this.idb.reorderCollections(order);
     await this.refresh();
   }
@@ -114,7 +114,7 @@ export class CollectionsService {
     await this.refresh();
   }
 
-  async reorderFolders(order: Array<{ id: FolderId; order: number }>): Promise<void> {
+  async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
     await this.idb.reorderFolders(order);
     await this.refresh();
   }
@@ -150,7 +150,7 @@ export class CollectionsService {
     await this.refresh();
   }
 
-  async reorderRequests(order: Array<{ id: RequestDocId; order: number }>): Promise<void> {
+  async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
     await this.idb.reorderRequests(order);
     await this.refresh();
   }

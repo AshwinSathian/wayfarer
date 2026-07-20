@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
-import { ConfirmationService } from 'primeng/api';
 import { IdbService } from './data/idb.service';
 import { PastRequest, PastRequestKey } from './models/history.models';
 
@@ -13,6 +12,8 @@ import { PastRequest, PastRequestKey } from './models/history.models';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+  private readonly idbService = inject(IdbService);
+
 
   pastRequests: PastRequest[];
   historyLoading: boolean;
@@ -20,7 +21,7 @@ export class AppComponent implements OnInit {
   isMobile: boolean;
   private viewportInitialized: boolean;
 
-  constructor(private readonly idbService: IdbService) {
+  constructor() {
     this.pastRequests = [];
     this.historyLoading = false;
     this.drawerVisible = false;

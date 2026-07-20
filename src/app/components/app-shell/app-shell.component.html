@@ -217,7 +217,7 @@
         [(ngModel)]="unlockPassphrase"
         [placeholder]="isFirstVaultSetup ? 'Choose a passphrase' : 'Passphrase'"
         (keydown.enter)="unlockSecrets()"
-        autofocus
+       
       />
       @if (isFirstVaultSetup) {
       <input

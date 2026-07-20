@@ -1,15 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  Signal,
-  SimpleChanges,
-  ViewChild,
-  signal,
-} from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output, Signal, SimpleChanges, signal, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MenuItem } from "primeng/api";
 import { ButtonModule } from "primeng/button";
@@ -72,6 +62,8 @@ export interface ResponseExportContext {
   templateUrl: "./response-viewer.component.html",
 })
 export class ResponseViewerComponent implements OnChanges {
+  private readonly jsonWorker = inject(JsonWorkerService);
+
   @Input() loading = false;
   @Input() responseData = "";
   @Input() responseError = "";
@@ -128,11 +120,11 @@ export class ResponseViewerComponent implements OnChanges {
   readonly waterfallTooltip =
     "Each bar shows how much time was spent in a network phase relative to the total response duration.";
 
-  readonly timingPhaseOrder: Array<{
+  readonly timingPhaseOrder: {
     key: keyof NonNullable<ResponseInspection["phases"]>;
     label: string;
     description: string;
-  }> = [
+  }[] = [
     {
       key: "redirect",
       label: "Redirect",
@@ -192,8 +184,6 @@ export class ResponseViewerComponent implements OnChanges {
   searchActiveIndex = 0;
   searchPending = false;
   private searchToken = 0;
-
-  constructor(private readonly jsonWorker: JsonWorkerService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if ("responseData" in changes || "responseError" in changes) {

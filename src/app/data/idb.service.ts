@@ -446,7 +446,7 @@ export class IdbService {
     });
   }
 
-  async reorderCollections(order: Array<{ id: CollectionId; order: number }>): Promise<void> {
+  async reorderCollections(order: { id: CollectionId; order: number }[]): Promise<void> {
     await this.ensurePersistentSupport();
     const tx = await this.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -652,7 +652,7 @@ export class IdbService {
     });
   }
 
-  async reorderFolders(order: Array<{ id: FolderId; order: number }>): Promise<void> {
+  async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
     await this.ensurePersistentSupport();
     const tx = await this.txReadWrite(["folders"]);
     const store = tx.objectStore("folders");
@@ -761,7 +761,7 @@ export class IdbService {
     });
   }
 
-  async reorderRequests(order: Array<{ id: RequestDocId; order: number }>): Promise<void> {
+  async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
     await this.ensurePersistentSupport();
     const tx = await this.txReadWrite(["requests"]);
     const store = tx.objectStore("requests");
@@ -875,7 +875,7 @@ export class IdbService {
     }
   }
 
-  async reorderEnvironments(order: Array<{ id: EnvironmentId; order: number }>): Promise<void> {
+  async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
     await this.ensurePersistentSupport();
     const tx = await this.txReadWrite(["environments"]);
     const store = tx.objectStore("environments");

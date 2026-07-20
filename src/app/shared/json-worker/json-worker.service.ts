@@ -9,15 +9,15 @@ type WorkerMessage =
   | { id: number; ok: true; result: string | WorkerSearchResult }
   | { id: number; ok: false; error: string };
 
-type PendingJob = {
+interface PendingJob {
   resolve: (value: string | WorkerSearchResult) => void;
   reject: (reason: unknown) => void;
   timeout: ReturnType<typeof setTimeout>;
-};
+}
 
 export interface WorkerSearchResult {
   count: number;
-  excerpts: Array<{ index: number; context: string }>;
+  excerpts: { index: number; context: string }[];
 }
 
 const WORKER_TIMEOUT_MS = 10_000;

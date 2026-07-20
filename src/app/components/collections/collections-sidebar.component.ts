@@ -1,14 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  Component,
-  EventEmitter,
-  HostListener,
-  OnInit,
-  Output,
-  computed,
-  signal,
-  WritableSignal,
-} from "@angular/core";
+import { Component, EventEmitter, HostListener, OnInit, Output, computed, signal, WritableSignal, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ConfirmationService,
@@ -42,8 +33,6 @@ import {
   ValidationResult,
 } from "../../shared/collections/collection-io.util";
 import { PastRequest } from "../../models/history.models";
-
-type NodeType = "collection" | "folder" | "request";
 
 type NodeData =
   | { type: "collection"; ref: Collection }
@@ -82,6 +71,9 @@ interface PaletteAction {
   providers: [ConfirmationService, TreeDragDropService],
 })
 export class CollectionsSidebarComponent implements OnInit {
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly confirmationService = inject(ConfirmationService);
+
   @Output() loadRequest = new EventEmitter<PastRequest>();
 
   readonly nodes = computed<TreeNode<NodeData>[]>(() =>
@@ -121,11 +113,6 @@ export class CollectionsSidebarComponent implements OnInit {
     "HEAD",
     "OPTIONS",
   ].map((method) => ({ label: method, value: method as PastRequest["method"] }));
-
-  constructor(
-    private readonly collectionsService: CollectionsService,
-    private readonly confirmationService: ConfirmationService
-  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.collectionsService.ensureLoaded();

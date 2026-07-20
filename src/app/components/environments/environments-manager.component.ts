@@ -1,14 +1,5 @@
 import { CommonModule } from "@angular/common";
-import {
-  Component,
-  EventEmitter,
-  OnInit,
-  Output,
-  computed,
-  effect,
-  signal,
-  WritableSignal,
-} from "@angular/core";
+import { Component, EventEmitter, OnInit, Output, effect, signal, WritableSignal, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { ChipModule } from "primeng/chip";
@@ -34,7 +25,7 @@ interface EnvironmentDraft {
   id: EnvironmentId;
   name: string;
   description?: string;
-  vars: Array<{ key: string; value: string }>;
+  vars: { key: string; value: string }[];
   jsonText: string;
   jsonValid: boolean;
 }
@@ -65,6 +56,11 @@ interface EnvironmentImportEntry {
   styleUrls: ["./environments-manager.component.css"],
 })
 export class EnvironmentsManagerComponent implements OnInit {
+  private readonly envService = inject(EnvironmentsService);
+  private readonly secretsService = inject(SecretsService);
+  private readonly secretCrypto = inject(SecretCryptoService);
+  private readonly variableFocus = inject(VariableFocusService);
+
   @Output() requestUnlock = new EventEmitter<void>();
 
   protected readonly Object = Object;
@@ -87,12 +83,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   focusedVariableKey: string | null = null;
   private focusTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(
-    private readonly envService: EnvironmentsService,
-    private readonly secretsService: SecretsService,
-    private readonly secretCrypto: SecretCryptoService,
-    private readonly variableFocus: VariableFocusService
-  ) {
+  constructor() {
     effect(() => {
       const env = this.activeEnvironment();
       if (env && !this.selectedId()) {

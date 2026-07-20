@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { IdbService } from "../data/idb.service";
 import { SecretEnvelope, SecretId } from "../models/secrets.models";
 import { SecretCryptoService } from "../shared/secrets/secret-crypto.service";
@@ -13,10 +13,9 @@ export interface SaveSecretRequest {
   providedIn: "root",
 })
 export class SecretsService {
-  constructor(
-    private readonly idb: IdbService,
-    private readonly crypto: SecretCryptoService
-  ) {}
+  private readonly idb = inject(IdbService);
+  private readonly crypto = inject(SecretCryptoService);
+
 
   async saveSecret(request: SaveSecretRequest): Promise<SecretId> {
     if (!this.crypto.isUnlocked) {

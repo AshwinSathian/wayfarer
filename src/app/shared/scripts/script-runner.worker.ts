@@ -271,7 +271,7 @@ function runScript(message: RunMessage): ResultMessage {
       );
     `;
 
-    // eslint-disable-next-line no-new-func
+     
     const fn = new Function("pm", "console", wrappedCode);
     fn(pmApi, consoleApi);
   } catch (err) {

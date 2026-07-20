@@ -86,7 +86,7 @@ export class AppShellComponent implements OnInit {
       this.environmentsService.activeEnvironment()?.meta.id ?? null;
   });
 
-  dropdownOptions: Array<{ label: string; value: string }> = [];
+  dropdownOptions: { label: string; value: string }[] = [];
   selectedEnvironmentId: string | null = null;
   lockDialogVisible = false;
   historyDrawerVisible = false;

@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, signal } from "@angular/core";
+import { Injectable, Signal, computed, signal, inject } from "@angular/core";
 import {
   EnvironmentDoc,
   EnvironmentId,
@@ -9,6 +9,8 @@ import { IdbService } from "../data/idb.service";
   providedIn: "root",
 })
 export class EnvironmentsService {
+  private readonly idb = inject(IdbService);
+
   private readonly environmentsState = signal<EnvironmentDoc[]>([]);
   private readonly activeIdState = signal<EnvironmentId | null>(null);
   private readonly loadingState = signal(false);
@@ -23,8 +25,6 @@ export class EnvironmentsService {
       : null;
   });
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
-
-  constructor(private readonly idb: IdbService) {}
 
   async ensureLoaded(): Promise<void> {
     if (!this.environmentsState().length && !this.loadingState()) {
@@ -82,7 +82,7 @@ export class EnvironmentsService {
     await this.refresh();
   }
 
-  async reorderEnvironments(order: Array<{ id: EnvironmentId; order: number }>): Promise<void> {
+  async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
     await this.idb.reorderEnvironments(order);
     await this.refresh();
   }

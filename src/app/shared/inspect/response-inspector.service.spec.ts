@@ -4,12 +4,12 @@ import {
   ResponseInspection,
 } from "./response-inspector.service";
 
-type MutablePerformance = {
+interface MutablePerformance {
   now: () => number;
   timeOrigin: number;
   getEntriesByName: (name: string) => PerformanceResourceTiming[];
   getEntriesByType: (type: string) => PerformanceResourceTiming[];
-};
+}
 
 describe("ResponseInspectorService", () => {
   let service: ResponseInspectorService;

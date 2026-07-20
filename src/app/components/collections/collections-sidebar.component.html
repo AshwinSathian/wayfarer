@@ -50,7 +50,7 @@
           (keydown.enter)="commitRename(node)"
           (keydown.escape)="cancelEdit()"
           (blur)="commitRename(node)"
-          autofocus
+         
           style="height: 28px !important;"
         />
         } @else {
@@ -169,7 +169,7 @@
       [(ngModel)]="creationModel.name"
       placeholder="Enter name"
       class="w-full"
-      autofocus
+     
     />
     @if (creationContext?.type === 'request') {
     <div class="flex flex-col gap-1.5">
@@ -208,7 +208,7 @@
       [(ngModel)]="commandPaletteQuery"
       [ngModelOptions]="{ standalone: true }"
       (keydown.enter)="executeFirstPaletteAction()"
-      autofocus
+     
     />
     <div class="max-h-64 space-y-1 overflow-y-auto">
       @if (filteredPaletteActions.length) {

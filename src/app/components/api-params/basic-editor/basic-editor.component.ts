@@ -19,12 +19,14 @@ type ContextType = "Body" | "Headers";
 })
 export class ApiParamsBasicComponent {
   @Input() context: ContextType = "Headers";
-  @Input() items: Array<{ key: string; value: any }> = [];
+  @Input() items: { key: string; value: unknown }[] = [];
   @Input() addLabel = "Add Item";
   @Input() isAddDisabled: (ctx: ContextType) => boolean = () => false;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- default before the parent binds a real handler
   @Input() addItem: (ctx: ContextType) => void = () => {};
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- default before the parent binds a real handler
   @Input() removeItem: (index: number, ctx: ContextType) => void = () => {};
   @Input()
-  disableItem: (item: { key: string; value: any }, index: number) => boolean =
+  disableItem: (item: { key: string; value: unknown }, index: number) => boolean =
     () => false;
 }

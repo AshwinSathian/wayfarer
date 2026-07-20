@@ -1,19 +1,19 @@
-type ParsePrettyJob = {
+interface ParsePrettyJob {
   kind: "parse-pretty";
   input: string;
   indent?: number;
-};
+}
 
-type MinifyJob = {
+interface MinifyJob {
   kind: "minify";
   input: string;
-};
+}
 
-type SearchJob = {
+interface SearchJob {
   kind: "search";
   input: string;
   query: string;
-};
+}
 
 type Job = ParsePrettyJob | MinifyJob | SearchJob;
 
@@ -32,32 +32,33 @@ interface SearchResult {
   excerpts: SearchExcerpt[];
 }
 
-type WorkerSuccess = {
+interface WorkerSuccess {
   id: number;
   ok: true;
   result: string | SearchResult;
-};
+}
 
-type WorkerFailure = {
+interface WorkerFailure {
   id: number;
   ok: false;
   error: string;
-};
+}
 
 type WorkerResponse = WorkerSuccess | WorkerFailure;
 
 const CONTEXT_RADIUS = 48;
 const MAX_EXCERPTS = 50;
 
-const selfRef: any = self;
+const selfRef = self as unknown as DedicatedWorkerGlobalScope;
+
+const respond = (response: WorkerResponse): void => selfRef.postMessage(response);
 
 selfRef.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const { id, job } = event.data;
 
   Promise.resolve(handleJob(job))
     .then((result) => {
-      const response: WorkerSuccess = { id, ok: true, result };
-      selfRef.postMessage(response);
+      respond({ id, ok: true, result });
     })
     .catch((error: unknown) => {
       const message =
@@ -66,8 +67,7 @@ selfRef.onmessage = (event: MessageEvent<WorkerRequest>) => {
           : typeof error === "string"
           ? error
           : "Unknown error";
-      const response: WorkerFailure = { id, ok: false, error: message };
-      selfRef.postMessage(response);
+      respond({ id, ok: false, error: message });
     });
 };
 

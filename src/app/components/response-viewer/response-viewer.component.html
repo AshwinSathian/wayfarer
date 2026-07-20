@@ -67,7 +67,7 @@
 
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="px-4 pt-1">
-      <p-tabs [value]="activeTab" (valueChange)="onTabChange($event)">
+      <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
         <p-tablist>
           <p-tab value="body">Body</p-tab>
           <p-tab value="headers">Headers</p-tab>
@@ -96,18 +96,18 @@
                 <input
                   pInputText
                   class="w-48"
-                  [value]="searchQuery"
+                  [value]="searchQuery()"
                   (input)="onSearchQueryChange($any($event.target).value)"
                   placeholder="Search response…"
                 />
                 <span class="type-footnote text-label-tertiary tabular-nums">
-                  {{ searchResult?.count ? searchActiveIndex + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult?.count || 0 }}
+                  {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count || 0 }}
                 </span>
                 <div class="flex items-center gap-0.5">
                   <button pButton type="button" icon="pi pi-angle-up" size="small" text aria-label="Previous search match"
-                    [disabled]="!searchResult?.count" (click)="stepSearch(-1)"></button>
+                    [disabled]="!searchResult()?.count" (click)="stepSearch(-1)"></button>
                   <button pButton type="button" icon="pi pi-angle-down" size="small" text aria-label="Next search match"
-                    [disabled]="!searchResult?.count" (click)="stepSearch(1)"></button>
+                    [disabled]="!searchResult()?.count" (click)="stepSearch(1)"></button>
                 </div>
               </div>
               }

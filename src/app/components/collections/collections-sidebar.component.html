@@ -45,7 +45,8 @@
         <input
           pInputText
           class="w-full bg-transparent type-body"
-          [(ngModel)]="editingValue"
+          [ngModel]="editingValue()"
+          (ngModelChange)="editingValue.set($event)"
           (keydown.enter)="commitRename(node)"
           (keydown.escape)="cancelEdit()"
           (blur)="commitRename(node)"
@@ -76,21 +77,22 @@
 <p-dialog
   closeAriaLabel="Close"
   header="Import collection"
-  [(visible)]="importDialogVisible"
+  [visible]="importDialogVisible()"
+  (visibleChange)="importDialogVisible.set($event)"
   [modal]="true"
   [style]="{ width: '440px' }"
   (onHide)="closeImportDialog()"
 >
-  @if (importErrors.length) {
+  @if (importErrors().length) {
   <div class="space-y-2 type-callout text-status-error">
-    <p class="font-semibold">Unable to import "{{ importFileName }}":</p>
+    <p class="font-semibold">Unable to import "{{ importFileName() }}":</p>
     <ul class="list-disc pl-5 space-y-1">
-      @for (error of importErrors; track error.path + error.message) {
+      @for (error of importErrors(); track error.path + error.message) {
       <li>{{ error.path }} — {{ error.message }}</li>
       }
     </ul>
   </div>
-  } @else if (importAnalysis; as analysis) { @if (analysis.payload) {
+  } @else if (importAnalysis(); as analysis) { @if (analysis.payload) {
   <div class="space-y-4 type-callout text-label-secondary">
     <div>
       <p class="ds-section-label mb-1.5">Collection</p>
@@ -108,7 +110,7 @@
       <p-checkbox
         inputId="import-duplicate-checkbox"
         binary="true"
-        [(ngModel)]="importDuplicateAsNew"
+        [ngModel]="importDuplicateAsNew()"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="toggleDuplicateImport($event)"
       ></p-checkbox>
@@ -143,7 +145,7 @@
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
       <button pButton label="Cancel" aria-label="Cancel import" severity="secondary" outlined (click)="closeImportDialog()"></button>
-      <button pButton label="Import" aria-label="Confirm import" [disabled]="!importAnalysis?.payload || importErrors.length > 0" (click)="confirmImport()"></button>
+      <button pButton label="Import" aria-label="Confirm import" [disabled]="!importAnalysis()?.payload || importErrors().length > 0" (click)="confirmImport()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -152,7 +154,8 @@
 <p-dialog
   closeAriaLabel="Close"
   [header]="creationTitle"
-  [(visible)]="creationDialogVisible"
+  [visible]="creationDialogVisible()"
+  (visibleChange)="creationDialogVisible.set($event)"
   [modal]="true"
   [style]="{ width: '420px' }"
   (onHide)="closeCreationDialog()"
@@ -160,9 +163,9 @@
   <div class="flex flex-col gap-3">
     <label for="creation-name-input" class="ds-form-label">
       {{
-        creationContext?.type === 'collection'
+        creationContext()?.type === 'collection'
           ? 'Collection name'
-          : creationContext?.type === 'folder'
+          : creationContext()?.type === 'folder'
             ? 'Folder name'
             : 'Request name'
       }}
@@ -170,18 +173,20 @@
     <input
       id="creation-name-input"
       pInputText
-      [(ngModel)]="creationModel.name"
+      [ngModel]="creationModel().name"
+      (ngModelChange)="onCreationNameChange($event)"
       placeholder="Enter name"
       class="w-full"
 
     />
-    @if (creationContext?.type === 'request') {
+    @if (creationContext()?.type === 'request') {
     <div class="flex flex-col gap-1.5">
       <label for="creation-method-select" class="ds-form-label">Method</label>
       <p-select
         inputId="creation-method-select"
         [options]="methodOptions"
-        [(ngModel)]="creationModel.method"
+        [ngModel]="creationModel().method"
+        (ngModelChange)="onCreationMethodChange($event)"
         optionLabel="label"
         optionValue="value"
         class="w-full"
@@ -201,7 +206,8 @@
 <p-dialog
   closeAriaLabel="Close"
   header="Command palette"
-  [(visible)]="commandPaletteVisible"
+  [visible]="commandPaletteVisible()"
+  (visibleChange)="commandPaletteVisible.set($event)"
   [modal]="true"
   [style]="{ width: '440px' }"
   (onHide)="closeCommandPalette()"
@@ -211,10 +217,11 @@
       pInputText
       placeholder="Type a command…"
       class="w-full"
-      [(ngModel)]="commandPaletteQuery"
+      [ngModel]="commandPaletteQuery()"
+      (ngModelChange)="commandPaletteQuery.set($event)"
       [ngModelOptions]="{ standalone: true }"
       (keydown.enter)="executeFirstPaletteAction()"
-     
+
     />
     <div class="max-h-64 space-y-1 overflow-y-auto">
       @if (filteredPaletteActions.length) {

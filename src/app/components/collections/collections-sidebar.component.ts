@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, HostListener, OnInit, computed, signal, WritableSignal, inject, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ConfirmationService,
@@ -69,6 +69,7 @@ interface PaletteAction {
   templateUrl: "./collections-sidebar.component.html",
   styleUrls: ["./collections-sidebar.component.css"],
   providers: [ConfirmationService, TreeDragDropService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CollectionsSidebarComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
@@ -83,27 +84,25 @@ export class CollectionsSidebarComponent implements OnInit {
   readonly selectedNode = signal<TreeNode<NodeData> | null>(null);
   readonly contextItems = signal<MenuItem[]>([]);
   readonly editingKey: WritableSignal<string | null> = signal(null);
-  editingValue = "";
-  importDialogVisible = false;
-  importErrors: ValidationResult[] = [];
-  importAnalysis: CollectionImportResult | null = null;
-  importSourcePayload: CollectionExport | null = null;
-  importDuplicateAsNew = false;
-  importFileName = "";
-  commandPaletteVisible = false;
-  commandPaletteQuery = "";
-  creationDialogVisible = false;
-  creationContext:
-    | {
-        type: "collection" | "folder" | "request";
-        collectionId?: string;
-        folderId?: string;
-      }
-    | null = null;
-  creationModel = {
+  readonly editingValue = signal("");
+  readonly importDialogVisible = signal(false);
+  readonly importErrors = signal<ValidationResult[]>([]);
+  readonly importAnalysis = signal<CollectionImportResult | null>(null);
+  readonly importSourcePayload = signal<CollectionExport | null>(null);
+  readonly importDuplicateAsNew = signal(false);
+  readonly importFileName = signal("");
+  readonly commandPaletteVisible = signal(false);
+  readonly commandPaletteQuery = signal("");
+  readonly creationDialogVisible = signal(false);
+  readonly creationContext = signal<{
+    type: "collection" | "folder" | "request";
+    collectionId?: string;
+    folderId?: string;
+  } | null>(null);
+  readonly creationModel = signal({
     name: "",
     method: "GET" as PastRequest["method"],
-  };
+  });
   readonly methodOptions = [
     "GET",
     "POST",
@@ -131,61 +130,63 @@ export class CollectionsSidebarComponent implements OnInit {
     const text = await file.text();
     const validation = validateCollection(text);
     if (!validation.ok || !validation.payload) {
-      this.importErrors = validation.errors ?? [
-        { path: "root", message: "Invalid collection export." },
-      ];
-      this.importSourcePayload = null;
-      this.importAnalysis = null;
+      this.importErrors.set(
+        validation.errors ?? [{ path: "root", message: "Invalid collection export." }]
+      );
+      this.importSourcePayload.set(null);
+      this.importAnalysis.set(null);
     } else {
-      this.importErrors = [];
-      this.importSourcePayload = validation.payload;
+      this.importErrors.set([]);
+      this.importSourcePayload.set(validation.payload);
       this.updateImportAnalysis();
     }
-    this.importFileName = file.name;
-    this.importDialogVisible = true;
+    this.importFileName.set(file.name);
+    this.importDialogVisible.set(true);
     input.value = "";
   }
 
   async confirmImport(): Promise<void> {
-    if (!this.importAnalysis?.payload || this.importErrors.length) {
-      this.importDialogVisible = false;
+    const analysis = this.importAnalysis();
+    if (!analysis?.payload || this.importErrors().length) {
+      this.importDialogVisible.set(false);
       return;
     }
-    await this.collectionsService.importCollection(this.importAnalysis.payload, {
-      duplicateAsNew: this.importDuplicateAsNew,
+    await this.collectionsService.importCollection(analysis.payload, {
+      duplicateAsNew: this.importDuplicateAsNew(),
     });
     this.closeImportDialog();
   }
 
   toggleDuplicateImport(value: boolean): void {
-    this.importDuplicateAsNew = value;
+    this.importDuplicateAsNew.set(value);
     this.updateImportAnalysis();
   }
 
   closeImportDialog(): void {
-    this.importDialogVisible = false;
-    this.importErrors = [];
-    this.importSourcePayload = null;
-    this.importAnalysis = null;
-    this.importDuplicateAsNew = false;
-    this.importFileName = "";
+    this.importDialogVisible.set(false);
+    this.importErrors.set([]);
+    this.importSourcePayload.set(null);
+    this.importAnalysis.set(null);
+    this.importDuplicateAsNew.set(false);
+    this.importFileName.set("");
   }
 
   private updateImportAnalysis(): void {
-    if (!this.importSourcePayload) {
-      this.importAnalysis = null;
+    const payload = this.importSourcePayload();
+    if (!payload) {
+      this.importAnalysis.set(null);
       return;
     }
-    const analysis = planCollectionImport(this.importSourcePayload, {
-      duplicateAsNew: this.importDuplicateAsNew,
+    const analysis = planCollectionImport(payload, {
+      duplicateAsNew: this.importDuplicateAsNew(),
     });
-    this.importAnalysis = analysis;
-    this.importErrors = analysis.errors ?? [];
+    this.importAnalysis.set(analysis);
+    this.importErrors.set(analysis.errors ?? []);
   }
 
   @HostListener("window:keydown", ["$event"])
   handleGlobalKeydown(event: KeyboardEvent): void {
-    if (this.importDialogVisible || this.commandPaletteVisible) {
+    if (this.importDialogVisible() || this.commandPaletteVisible()) {
       return;
     }
     const target = event.target as HTMLElement | null;
@@ -219,18 +220,18 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   openCommandPalette(): void {
-    this.commandPaletteQuery = "";
-    this.commandPaletteVisible = true;
+    this.commandPaletteQuery.set("");
+    this.commandPaletteVisible.set(true);
   }
 
   closeCommandPalette(): void {
-    this.commandPaletteVisible = false;
-    this.commandPaletteQuery = "";
+    this.commandPaletteVisible.set(false);
+    this.commandPaletteQuery.set("");
   }
 
   get filteredPaletteActions(): PaletteAction[] {
     const actions = this.buildPaletteActions();
-    const needle = this.commandPaletteQuery.trim().toLowerCase();
+    const needle = this.commandPaletteQuery().trim().toLowerCase();
     if (!needle) {
       return actions;
     }
@@ -402,7 +403,7 @@ export class CollectionsSidebarComponent implements OnInit {
 
   beginRename(node: TreeNode<NodeData>): void {
     this.editingKey.set(node.key ?? null);
-    this.editingValue = node.label ?? "";
+    this.editingValue.set(node.label ?? "");
   }
 
   async commitRename(node: TreeNode<NodeData>): Promise<void> {
@@ -410,7 +411,7 @@ export class CollectionsSidebarComponent implements OnInit {
     if (!key) {
       return;
     }
-    const value = this.editingValue.trim();
+    const value = this.editingValue().trim();
     if (!value) {
       return;
     }
@@ -429,7 +430,7 @@ export class CollectionsSidebarComponent implements OnInit {
 
   cancelEdit(): void {
     this.editingKey.set(null);
-    this.editingValue = "";
+    this.editingValue.set("");
   }
 
   async handleAction(action: string, node: TreeNode<NodeData>): Promise<void> {
@@ -652,7 +653,7 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   get creationTitle(): string {
-    switch (this.creationContext?.type) {
+    switch (this.creationContext()?.type) {
       case "collection":
         return "New Collection";
       case "folder":
@@ -665,16 +666,26 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   get creationDisabled(): boolean {
-    if (!this.creationContext) {
+    const context = this.creationContext();
+    if (!context) {
       return true;
     }
-    if (!this.creationModel.name.trim()) {
+    const model = this.creationModel();
+    if (!model.name.trim()) {
       return true;
     }
-    if (this.creationContext.type === "request" && !this.creationModel.method) {
+    if (context.type === "request" && !model.method) {
       return true;
     }
     return false;
+  }
+
+  onCreationNameChange(value: string): void {
+    this.creationModel.update((model) => ({ ...model, name: value }));
+  }
+
+  onCreationMethodChange(value: PastRequest["method"]): void {
+    this.creationModel.update((model) => ({ ...model, method: value }));
   }
 
   private openCreationDialog(context: {
@@ -682,33 +693,34 @@ export class CollectionsSidebarComponent implements OnInit {
     collectionId?: string;
     folderId?: string;
   }): void {
-    this.creationContext = context;
-    this.creationModel = { name: "", method: "GET" };
-    this.creationDialogVisible = true;
+    this.creationContext.set(context);
+    this.creationModel.set({ name: "", method: "GET" });
+    this.creationDialogVisible.set(true);
   }
 
   async submitCreation(): Promise<void> {
-    if (!this.creationContext) {
+    const context = this.creationContext();
+    if (!context) {
       return;
     }
-    const name = this.creationModel.name.trim();
+    const name = this.creationModel().name.trim();
     if (!name) {
       return;
     }
 
-    if (this.creationContext.type === "collection") {
+    if (context.type === "collection") {
       await this.collectionsService.createCollection({ name });
-    } else if (this.creationContext.type === "folder" && this.creationContext.collectionId) {
+    } else if (context.type === "folder" && context.collectionId) {
       await this.collectionsService.createFolder({
-        collectionId: this.creationContext.collectionId,
+        collectionId: context.collectionId,
         name,
       });
-    } else if (this.creationContext.type === "request" && this.creationContext.collectionId) {
+    } else if (context.type === "request" && context.collectionId) {
       await this.collectionsService.createRequest({
-        collectionId: this.creationContext.collectionId,
-        folderId: this.creationContext.folderId,
+        collectionId: context.collectionId,
+        folderId: context.folderId,
         name,
-        method: this.creationModel.method,
+        method: this.creationModel().method,
         url: "",
       });
     }
@@ -717,8 +729,8 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   closeCreationDialog(): void {
-    this.creationDialogVisible = false;
-    this.creationContext = null;
-    this.creationModel = { name: "", method: "GET" };
+    this.creationDialogVisible.set(false);
+    this.creationContext.set(null);
+    this.creationModel.set({ name: "", method: "GET" });
   }
 }

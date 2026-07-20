@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, Input, OnChanges, Signal, SimpleChanges, signal, inject, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MenuItem } from "primeng/api";
 import { ButtonModule } from "primeng/button";
@@ -60,8 +60,9 @@ export interface ResponseExportContext {
     InputTextModule,
   ],
   templateUrl: "./response-viewer.component.html",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ResponseViewerComponent implements OnChanges {
+export class ResponseViewerComponent {
   private readonly jsonWorker = inject(JsonWorkerService);
 
   readonly loading = input(false);
@@ -92,19 +93,7 @@ export class ResponseViewerComponent implements OnChanges {
 
   private readonly fallbackInspection = signal<ResponseInspection | null>(null);
 
-  private _activeTab: ResponseTab = "body";
-  @Input()
-  get activeTab(): ResponseTab {
-    return this._activeTab;
-  }
-  set activeTab(value: ResponseTab) {
-    this._activeTab = value;
-    if (value === "body") {
-      this.prepareFormatting();
-    }
-  }
-
-  readonly activeTabChange = output<ResponseTab>();
+  readonly activeTab = model<ResponseTab>("body");
 
   readonly timingSummaryTooltips = {
     duration:
@@ -171,54 +160,65 @@ export class ResponseViewerComponent implements OnChanges {
   );
 
   private readonly largePayloadThreshold = 1_000_000;
-  private formattedBody = "";
-  private formattedError = "";
+  private readonly formattedBody = signal("");
+  private readonly formattedError = signal("");
   private bodyFormatToken = 0;
   private errorFormatToken = 0;
   private lastBodySource: string | null = null;
   private lastBodyResult: string | null = null;
   private lastErrorSource: string | null = null;
   private lastErrorResult: string | null = null;
-  searchQuery = "";
-  searchResult: WorkerSearchResult | null = null;
-  searchActiveIndex = 0;
-  searchPending = false;
+  readonly searchQuery = signal("");
+  readonly searchResult = signal<WorkerSearchResult | null>(null);
+  readonly searchActiveIndex = signal(0);
+  readonly searchPending = signal(false);
   private searchToken = 0;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if ("responseData" in changes || "responseError" in changes) {
-      this.resetSearchState();
-    }
+  private previousResponseData: string | null = null;
+  private previousResponseError: string | null = null;
 
-    if (
-      "responseData" in changes ||
-      "responseError" in changes ||
-      "responseBodyIsJson" in changes ||
-      "isError" in changes ||
-      "responseContentLength" in changes
-    ) {
+  constructor() {
+    // Signal-driven replacement for ngOnChanges: this component's response
+    // data/formatting/search state can change either because a new @Input
+    // signal value arrived (a real response landed) or because the user
+    // switched tabs — both need to re-run the same formatting pipeline, and
+    // effect() naturally re-fires for either without needing SimpleChanges'
+    // per-input granularity. prepareFormatting()/formatAndAssign() already
+    // no-op on an unchanged source (see lastBodySource/lastErrorSource), so
+    // calling it unconditionally on every dependency change is cheap.
+    effect(() => {
+      const data = this.responseData();
+      const error = this.responseError();
+      const isJson = this.responseBodyIsJson();
+      // Read to establish these as effect dependencies too.
+      this.isError();
+      this.responseContentLength();
+      this.activeTab();
+
+      if (data !== this.previousResponseData || error !== this.previousResponseError) {
+        this.previousResponseData = data;
+        this.previousResponseError = error;
+        this.resetSearchState();
+      }
+
+      if (!isJson) {
+        this.resetFormattedValues();
+        this.resetSearchState();
+      }
+
       this.prepareFormatting();
-    }
-
-    if ("activeTab" in changes && this._activeTab === "body") {
-      this.prepareFormatting();
-    }
-
-    if ("responseBodyIsJson" in changes && !this.responseBodyIsJson()) {
-      this.resetFormattedValues();
-      this.resetSearchState();
-    }
+    });
   }
 
   get formattedResponseBody(): string {
     if (this.isError()) {
       return this.formattedResponseError;
     }
-    return this.formattedBody;
+    return this.formattedBody();
   }
 
   get formattedResponseError(): string {
-    return this.formattedError;
+    return this.formattedError();
   }
 
   get testPassCount(): number {
@@ -287,16 +287,18 @@ export class ResponseViewerComponent implements OnChanges {
 
   private prepareFormatting(): void {
     if (!this.responseBodyIsJson()) {
-      this.formattedBody = this.responseData() ?? "";
-      this.formattedError = this.responseError() ?? "";
-      this.lastBodySource = this.formattedBody;
-      this.lastBodyResult = this.formattedBody;
-      this.lastErrorSource = this.formattedError;
-      this.lastErrorResult = this.formattedError;
+      const body = this.responseData() ?? "";
+      const error = this.responseError() ?? "";
+      this.formattedBody.set(body);
+      this.formattedError.set(error);
+      this.lastBodySource = body;
+      this.lastBodyResult = body;
+      this.lastErrorSource = error;
+      this.lastErrorResult = error;
       return;
     }
 
-    if (this._activeTab !== "body") {
+    if (this.activeTab() !== "body") {
       return;
     }
 
@@ -305,11 +307,11 @@ export class ResponseViewerComponent implements OnChanges {
 
     if (!normalized.trim()) {
       if (this.isError()) {
-        this.formattedError = "";
+        this.formattedError.set("");
         this.lastErrorSource = "";
         this.lastErrorResult = "";
       } else {
-        this.formattedBody = "";
+        this.formattedBody.set("");
         this.lastBodySource = "";
         this.lastBodyResult = "";
       }
@@ -324,12 +326,14 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   private resetFormattedValues(): void {
-    this.formattedBody = this.responseData() ?? "";
-    this.formattedError = this.responseError() ?? "";
-    this.lastBodySource = this.formattedBody;
-    this.lastBodyResult = this.formattedBody;
-    this.lastErrorSource = this.formattedError;
-    this.lastErrorResult = this.formattedError;
+    const body = this.responseData() ?? "";
+    const error = this.responseError() ?? "";
+    this.formattedBody.set(body);
+    this.formattedError.set(error);
+    this.lastBodySource = body;
+    this.lastBodyResult = body;
+    this.lastErrorSource = error;
+    this.lastErrorResult = error;
   }
 
   private async formatAndAssign(
@@ -337,11 +341,11 @@ export class ResponseViewerComponent implements OnChanges {
     kind: "body" | "error"
   ): Promise<void> {
     if (kind === "body" && this.lastBodySource === source) {
-      this.formattedBody = this.lastBodyResult ?? source;
+      this.formattedBody.set(this.lastBodyResult ?? source);
       return;
     }
     if (kind === "error" && this.lastErrorSource === source) {
-      this.formattedError = this.lastErrorResult ?? source;
+      this.formattedError.set(this.lastErrorResult ?? source);
       return;
     }
 
@@ -377,11 +381,11 @@ export class ResponseViewerComponent implements OnChanges {
     value: string
   ): void {
     if (kind === "body") {
-      this.formattedBody = value;
+      this.formattedBody.set(value);
       this.lastBodySource = source;
       this.lastBodyResult = value;
     } else {
-      this.formattedError = value;
+      this.formattedError.set(value);
       this.lastErrorSource = source;
       this.lastErrorResult = value;
     }
@@ -407,79 +411,74 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   async onSearchQueryChange(value: string): Promise<void> {
-    this.searchQuery = value;
-    this.searchActiveIndex = 0;
+    this.searchQuery.set(value);
+    this.searchActiveIndex.set(0);
     const trimmed = value.trim();
     const corpus = this.formattedResponseBody;
     if (!trimmed || !corpus) {
-      this.searchResult = null;
-      this.searchPending = false;
+      this.searchResult.set(null);
+      this.searchPending.set(false);
       this.searchToken++;
       return;
     }
     const token = ++this.searchToken;
-    this.searchPending = true;
+    this.searchPending.set(true);
     try {
       const result = await this.jsonWorker.search(corpus, trimmed);
       if (token === this.searchToken) {
-        this.searchResult = result;
-        this.searchActiveIndex = result.count ? 0 : 0;
+        this.searchResult.set(result);
+        this.searchActiveIndex.set(0);
       }
     } catch {
       if (token === this.searchToken) {
-        this.searchResult = null;
+        this.searchResult.set(null);
       }
     } finally {
       if (token === this.searchToken) {
-        this.searchPending = false;
+        this.searchPending.set(false);
       }
     }
   }
 
   stepSearch(direction: number): void {
-    const result = this.searchResult;
+    const result = this.searchResult();
     if (!result || !result.count) {
       return;
     }
     const next =
-      (this.searchActiveIndex + direction + result.count) % result.count;
-    this.searchActiveIndex = next;
+      (this.searchActiveIndex() + direction + result.count) % result.count;
+    this.searchActiveIndex.set(next);
   }
 
   get currentSearchExcerpt(): string | null {
-    const excerpts = this.searchResult?.excerpts;
+    const excerpts = this.searchResult()?.excerpts;
     if (!excerpts?.length) {
       return null;
     }
-    return excerpts[this.searchActiveIndex]?.context ?? excerpts[0]?.context ?? null;
+    return excerpts[this.searchActiveIndex()]?.context ?? excerpts[0]?.context ?? null;
   }
 
   private resetSearchState(): void {
-    this.searchQuery = "";
-    this.searchResult = null;
-    this.searchActiveIndex = 0;
-    this.searchPending = false;
+    this.searchQuery.set("");
+    this.searchResult.set(null);
+    this.searchActiveIndex.set(0);
+    this.searchPending.set(false);
     this.searchToken++;
   }
 
   onReadOnlyBodyChange(value: string): void {
-    this.formattedBody = value;
+    this.formattedBody.set(value);
   }
 
   onReadOnlyErrorChange(value: string): void {
-    this.formattedError = value;
+    this.formattedError.set(value);
   }
 
   onTabChange(value: ResponseTab | string | number | undefined): void {
     if (value === undefined) {
       return;
     }
-    const tab = value as ResponseTab;
-    this._activeTab = tab;
-    this.activeTabChange.emit(tab);
-    if (tab === "body") {
-      this.prepareFormatting();
-    }
+    this.activeTab.set(value as ResponseTab);
   }
 
   get inspectionValue(): ResponseInspection | null {

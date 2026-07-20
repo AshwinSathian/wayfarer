@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { ChipModule } from "primeng/chip";
@@ -54,6 +54,7 @@ interface EnvironmentImportEntry {
   ],
   templateUrl: "./environments-manager.component.html",
   styleUrls: ["./environments-manager.component.css"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnvironmentsManagerComponent implements OnInit {
   private readonly envService = inject(EnvironmentsService);
@@ -77,15 +78,15 @@ export class EnvironmentsManagerComponent implements OnInit {
     }
   }
   private readonly secretPreview: Record<string, string> = {};
-  envImportDialogVisible = false;
-  envImportErrors: string[] = [];
-  pendingEnvImport: EnvironmentImportEntry[] = [];
-  envImportFileName = "";
-  newEnvDialogVisible = false;
-  newEnvForm = {
+  readonly envImportDialogVisible = signal(false);
+  readonly envImportErrors = signal<string[]>([]);
+  readonly pendingEnvImport = signal<EnvironmentImportEntry[]>([]);
+  readonly envImportFileName = signal("");
+  readonly newEnvDialogVisible = signal(false);
+  readonly newEnvForm = signal({
     name: "",
     description: "",
-  };
+  });
   readonly focusedVariableKey = signal<string | null>(null);
   private focusTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
@@ -124,25 +125,33 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   openNewEnvironmentDialog(): void {
-    this.newEnvForm = { name: "", description: "" };
-    this.newEnvDialogVisible = true;
+    this.newEnvForm.set({ name: "", description: "" });
+    this.newEnvDialogVisible.set(true);
+  }
+
+  onNewEnvNameChange(value: string): void {
+    this.newEnvForm.update((form) => ({ ...form, name: value }));
+  }
+
+  onNewEnvDescriptionChange(value: string): void {
+    this.newEnvForm.update((form) => ({ ...form, description: value }));
   }
 
   async submitNewEnvironment(): Promise<void> {
-    const name = this.newEnvForm.name.trim();
+    const name = this.newEnvForm().name.trim();
     if (!name) {
       return;
     }
     const doc = await this.envService.createEnvironment({
       name,
-      description: this.newEnvForm.description?.trim(),
+      description: this.newEnvForm().description?.trim(),
     });
-    this.newEnvDialogVisible = false;
+    this.newEnvDialogVisible.set(false);
     this.selectEnvironment(doc.meta.id);
   }
 
   closeNewEnvironmentDialog(): void {
-    this.newEnvDialogVisible = false;
+    this.newEnvDialogVisible.set(false);
   }
 
   exportEnvironments(): void {
@@ -164,22 +173,22 @@ export class EnvironmentsManagerComponent implements OnInit {
     }
     const text = await file.text();
     const parsed = validateEnvironmentExport(text);
-    this.envImportErrors = parsed.errors ?? [];
-    this.pendingEnvImport = parsed.payload
-      ? this.buildEnvImportEntries(parsed.payload)
-      : [];
-    this.envImportFileName = file.name;
-    this.envImportDialogVisible = true;
+    this.envImportErrors.set(parsed.errors ?? []);
+    this.pendingEnvImport.set(
+      parsed.payload ? this.buildEnvImportEntries(parsed.payload) : []
+    );
+    this.envImportFileName.set(file.name);
+    this.envImportDialogVisible.set(true);
     input.value = "";
   }
 
   async confirmEnvironmentImport(): Promise<void> {
-    if (!this.pendingEnvImport.length || this.envImportErrors.length) {
+    if (!this.pendingEnvImport().length || this.envImportErrors().length) {
       this.closeEnvImportDialog();
       return;
     }
     const usedNames = new Set(this.environments().map((env) => env.name));
-    for (const entry of this.pendingEnvImport) {
+    for (const entry of this.pendingEnvImport()) {
       if (entry.action === "replace" && entry.targetId) {
         await this.envService.updateEnvironment(entry.targetId, {
           name: entry.doc.name,
@@ -200,10 +209,10 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   closeEnvImportDialog(): void {
-    this.envImportDialogVisible = false;
-    this.envImportErrors = [];
-    this.pendingEnvImport = [];
-    this.envImportFileName = "";
+    this.envImportDialogVisible.set(false);
+    this.envImportErrors.set([]);
+    this.pendingEnvImport.set([]);
+    this.envImportFileName.set("");
   }
 
   async duplicate(env: EnvironmentDoc): Promise<void> {
@@ -308,15 +317,16 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   setEnvImportAction(index: number, action: "merge" | "replace"): void {
-    const current = this.pendingEnvImport[index];
+    const current = this.pendingEnvImport()[index];
     if (!current) {
       return;
     }
     if (action === "replace" && !current.targetId) {
       return;
     }
-    this.pendingEnvImport[index] = { ...current, action };
-    this.pendingEnvImport = [...this.pendingEnvImport];
+    this.pendingEnvImport.update((entries) =>
+      entries.map((entry, i) => (i === index ? { ...current, action } : entry))
+    );
   }
 
   private extractSecretId(value: string): string | null {

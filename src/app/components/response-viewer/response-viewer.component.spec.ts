@@ -41,13 +41,10 @@ describe("ResponseViewerComponent", () => {
     component = fixture.componentInstance;
   });
 
-  it("emits active tab changes", () => {
-    spyOn(component.activeTabChange, "emit");
-
+  it("updates the active tab model signal", () => {
     component.onTabChange("headers");
 
-    expect(component.activeTab).toBe("headers");
-    expect(component.activeTabChange.emit).toHaveBeenCalledWith("headers");
+    expect(component.activeTab()).toBe("headers");
   });
 
   it("returns empty timing bars when inspection is missing", () => {

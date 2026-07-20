@@ -66,8 +66,8 @@ describe('AppComponent', () => {
     flushMicrotasks();
 
     expect(idbService.init).toHaveBeenCalled();
-    expect(component.pastRequests).toEqual(history);
-    expect(component.historyLoading).toBeFalse();
+    expect(component.pastRequests()).toEqual(history);
+    expect(component.historyLoading()).toBeFalse();
   }));
 
   it('clears history via the service', fakeAsync(() => {
@@ -86,7 +86,7 @@ describe('AppComponent', () => {
     flushMicrotasks();
 
     expect(idbService.clear).toHaveBeenCalled();
-    expect(component.pastRequests).toEqual([]);
+    expect(component.pastRequests()).toEqual([]);
   }));
 
   it('deletes history entries', fakeAsync(() => {
@@ -105,7 +105,7 @@ describe('AppComponent', () => {
     flushMicrotasks();
 
     expect(idbService.delete).toHaveBeenCalledWith(5);
-    expect(component.pastRequests).toEqual([]);
+    expect(component.pastRequests()).toEqual([]);
   }));
 
   it('controls drawer visibility state', fakeAsync(() => {
@@ -117,12 +117,12 @@ describe('AppComponent', () => {
     fixture.detectChanges();
     flushMicrotasks();
 
-    expect(component.drawerVisible).toBeTrue();
+    expect(component.drawerVisible()).toBeTrue();
     component.toggleHistoryDrawer();
-    expect(component.drawerVisible).toBeFalse();
+    expect(component.drawerVisible()).toBeFalse();
     component.openHistoryDrawer();
-    expect(component.drawerVisible).toBeTrue();
+    expect(component.drawerVisible()).toBeTrue();
     component.closeHistoryDrawer();
-    expect(component.drawerVisible).toBeFalse();
+    expect(component.drawerVisible()).toBeFalse();
   }));
 });

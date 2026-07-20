@@ -1,8 +1,8 @@
 <app-shell
-  [pastRequests]="pastRequests"
-  [historyLoading]="historyLoading"
-  [drawerVisible]="drawerVisible"
-  [isMobile]="isMobile"
+  [pastRequests]="pastRequests()"
+  [historyLoading]="historyLoading()"
+  [drawerVisible]="drawerVisible()"
+  [isMobile]="isMobile()"
   (newRequest)="refreshPastRequests()"
   (clearHistory)="clearPastRequests()"
   (deleteRequest)="deletePastRequest($event)"

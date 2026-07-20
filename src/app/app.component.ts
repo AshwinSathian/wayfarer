@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
 import { IdbService } from './data/idb.service';
 import { PastRequest, PastRequestKey } from './models/history.models';
@@ -9,25 +9,17 @@ import { PastRequest, PastRequestKey } from './models/history.models';
     standalone: true,
     imports: [CommonModule, AppShellComponent],
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    styleUrls: ['./app.component.css'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   private readonly idbService = inject(IdbService);
 
-
-  pastRequests: PastRequest[];
-  historyLoading: boolean;
-  drawerVisible: boolean;
-  isMobile: boolean;
-  private viewportInitialized: boolean;
-
-  constructor() {
-    this.pastRequests = [];
-    this.historyLoading = false;
-    this.drawerVisible = false;
-    this.isMobile = false;
-    this.viewportInitialized = false;
-  }
+  readonly pastRequests = signal<PastRequest[]>([]);
+  readonly historyLoading = signal(false);
+  readonly drawerVisible = signal(false);
+  readonly isMobile = signal(false);
+  private viewportInitialized = false;
 
   ngOnInit(): void {
     this.initializeHistory();
@@ -35,15 +27,15 @@ export class AppComponent implements OnInit {
   }
 
   async refreshPastRequests(): Promise<void> {
-    if (this.historyLoading) {
+    if (this.historyLoading()) {
       return;
     }
 
-    this.historyLoading = true;
+    this.historyLoading.set(true);
     try {
-      this.pastRequests = await this.idbService.getLatest();
+      this.pastRequests.set(await this.idbService.getLatest());
     } finally {
-      this.historyLoading = false;
+      this.historyLoading.set(false);
     }
   }
 
@@ -58,15 +50,15 @@ export class AppComponent implements OnInit {
   }
 
   openHistoryDrawer(): void {
-    this.drawerVisible = true;
+    this.drawerVisible.set(true);
   }
 
   closeHistoryDrawer(): void {
-    this.drawerVisible = false;
+    this.drawerVisible.set(false);
   }
 
   toggleHistoryDrawer(): void {
-    this.drawerVisible = !this.drawerVisible;
+    this.drawerVisible.update((visible) => !visible);
   }
 
   @HostListener('window:resize')
@@ -80,22 +72,23 @@ export class AppComponent implements OnInit {
   }
 
   private updateViewportFlags(): void {
-    const previous = this.isMobile;
+    const previous = this.isMobile();
     const width = typeof window !== 'undefined' ? window.innerWidth : 1200;
-    this.isMobile = width < 768;
+    const isMobile = width < 768;
+    this.isMobile.set(isMobile);
 
     if (!this.viewportInitialized) {
-      this.drawerVisible = !this.isMobile;
+      this.drawerVisible.set(!isMobile);
       this.viewportInitialized = true;
       return;
     }
 
-    if (previous && !this.isMobile) {
-      this.drawerVisible = true;
+    if (previous && !isMobile) {
+      this.drawerVisible.set(true);
     }
 
-    if (!previous && this.isMobile) {
-      this.drawerVisible = false;
+    if (!previous && isMobile) {
+      this.drawerVisible.set(false);
     }
   }
 }

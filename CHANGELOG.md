@@ -16,6 +16,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   `docs/plans/plan-rebrand-enterprise-strategy.md` Part F / Phase R3.
 - `/.well-known/security.txt` (RFC 9116) for automated vulnerability-scanner
   discovery, linked from `SECURITY.md`.
+- **Local Bridge** (`local-bridge/`): an optional, zero-dependency companion
+  process that relays requests to CORS-restrictive or intranet-only APIs a
+  browser tab structurally cannot reach — per
+  `docs/plans/plan-rebrand-enterprise-strategy.md` Part E2 / Phase R6. Binds
+  to `127.0.0.1` only, gates every relay call on both an Origin allowlist
+  and a persisted, constant-time-compared token. Run it with `npm run
+  bridge`; enable it from the new router icon in the app toolbar. See
+  `local-bridge/README.md` for the full security model and known
+  limitations.
+- `BridgeService` and a Local Bridge settings dialog in the app shell for
+  configuring and testing the connection to a running bridge instance.
+  `MainService.sendRequest()` now routes through the bridge when enabled,
+  re-deriving the same success/error response shape a direct fetch would
+  produce so the rest of the request pipeline (scripts, assertions,
+  history) is unaffected either way.
+- A `local-bridge` CI job running the companion's own `node --test` suite.
 
 ## [1.0.0] - 2026-07-21
 

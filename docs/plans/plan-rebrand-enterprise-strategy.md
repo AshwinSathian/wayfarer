@@ -324,9 +324,20 @@ Phases are ordered by dependency, not by calendar necessity — R0 blocks everyt
 - [ ] Self-hosted control-plane image + docs
 
 ### Phase R6 — Local Bridge companion (can run parallel to R4/R5, target: 1 sprint once designed)
-- [ ] Design decision: native binary vs. browser extension (E2)
-- [ ] Ship as its own small, separately-versioned, open-source component
-- [ ] Document explicitly as the answer to CORS/intranet API testing in enterprise sales material (F)
+- [x] Design decision: native binary vs. browser extension (E2) — shipped as a
+      zero-runtime-dependency Node CLI (`local-bridge/`) instead of either;
+      avoids both a native-toolchain build matrix and a browser-extension-store
+      publishing/review dependency, while staying trivially auditable (no
+      third-party packages in the dependency tree at all).
+- [x] Ship as its own small, separately-versioned, open-source component —
+      [`local-bridge/`](../../local-bridge) (own `package.json`, MIT via the
+      root [`LICENSE`](../../LICENSE), own `node --test` suite, own CI job).
+- [x] Document explicitly as the answer to CORS/intranet API testing in
+      enterprise sales material (F) — referenced from
+      [`docs/trust-center.md`](../trust-center.md) and
+      [`local-bridge/README.md`](../../local-bridge/README.md); app-side
+      settings UI ships in this same change so it's usable, not just
+      documented.
 
 ### Phase R7 — Go-to-market launch
 - [ ] Re-verify `plan-specimen-modernization.md` Phase 0 items are still green (security fix, CI, license) — don't launch attention on top of a regression

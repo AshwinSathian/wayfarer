@@ -130,6 +130,17 @@
           </span>
         </button>
 
+        <!-- Local Bridge -->
+        <button
+          class="ds-icon-btn"
+          [class.text-status-success]="bridgeService.config().enabled"
+          (click)="openBridgeSettings()"
+          title="Local Bridge settings"
+          aria-label="Local Bridge settings"
+        >
+          <span class="material-symbols-outlined icon-md">router</span>
+        </button>
+
         <!-- Theme toggle -->
         <button
           class="ds-icon-btn"
@@ -275,6 +286,103 @@
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
       ></button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Local Bridge settings dialog -->
+<p-dialog
+  closeAriaLabel="Close"
+  header="Local Bridge"
+  [visible]="bridgeDialogVisible()"
+  (visibleChange)="bridgeDialogVisible.set($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '440px' }"
+>
+  <div class="flex flex-col gap-4">
+    <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
+      <span class="material-symbols-outlined icon-md text-label-tertiary mt-0.5 flex-shrink-0">router</span>
+      <p class="type-callout text-label-secondary leading-relaxed">
+        Optional relay for CORS-restrictive or intranet-only APIs. Runs on your own machine — nothing is sent anywhere unless you enable it here.
+        <a
+          href="https://github.com/AshwinSathian/wayfarer/blob/master/local-bridge/README.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent-text underline"
+        >Setup &amp; security model</a>.
+      </p>
+    </div>
+
+    <label for="bridge-enabled-checkbox" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+      <div>
+        <p class="type-subhead text-label-primary">Route requests through the bridge</p>
+        <p class="type-caption text-label-tertiary mt-0.5">Applies to every request until you turn this off again.</p>
+      </div>
+      <p-checkbox
+        inputId="bridge-enabled-checkbox"
+        binary="true"
+        [ngModel]="bridgeEnabledDraft()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="bridgeEnabledDraft.set($event)"
+      ></p-checkbox>
+    </label>
+
+    <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-1.5">
+        <label for="bridge-url-input" class="type-footnote text-label-secondary">Bridge URL</label>
+        <input
+          id="bridge-url-input"
+          pInputText
+          type="text"
+          class="w-full"
+          [ngModel]="bridgeUrlDraft()"
+          (ngModelChange)="bridgeUrlDraft.set($event); bridgeTestStatus.set('idle')"
+          placeholder="http://127.0.0.1:7717"
+        />
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <label for="bridge-token-input" class="type-footnote text-label-secondary">Bridge token</label>
+        <input
+          id="bridge-token-input"
+          pInputText
+          type="password"
+          class="w-full"
+          [ngModel]="bridgeTokenDraft()"
+          (ngModelChange)="bridgeTokenDraft.set($event); bridgeTestStatus.set('idle')"
+          placeholder="Printed when you start wayfarer-local-bridge"
+        />
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <button
+        pButton
+        type="button"
+        label="Test connection"
+        aria-label="Test connection"
+        severity="secondary"
+        outlined
+        size="small"
+        [disabled]="!bridgeUrlDraft() || bridgeTestStatus() === 'testing'"
+        (click)="testBridgeConnection()"
+      ></button>
+      @if (bridgeTestStatus() === 'testing') {
+      <span class="type-footnote text-label-tertiary">Checking…</span>
+      } @else if (bridgeTestStatus() === 'ok') {
+      <span class="type-footnote text-status-success flex items-center gap-1">
+        <span class="material-symbols-outlined icon-xs">check_circle</span> Reachable
+      </span>
+      } @else if (bridgeTestStatus() === 'fail') {
+      <span class="type-footnote text-status-error flex items-center gap-1">
+        <span class="material-symbols-outlined icon-xs">error</span> Not reachable
+      </span>
+      }
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeBridgeSettings()"></button>
+      <button pButton label="Save" aria-label="Save" (click)="saveBridgeSettings()"></button>
     </div>
   </div>
 </p-dialog>

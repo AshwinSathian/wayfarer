@@ -102,7 +102,7 @@ npm run test:ci
 
 **Notes**
 
-- Calling third‑party APIs may require CORS to be enabled by that API. For private APIs, consider a proxy if needed.
+- Calling third‑party APIs may require CORS to be enabled by that API. For CORS-restrictive or intranet-only APIs, run the optional [Local Bridge](local-bridge/README.md) (`npm run bridge`) instead of a hand-rolled proxy.
 - History, collections, environments, and secrets are stored locally in **IndexedDB** and are **specific to the browser and device** you're using.
 
 ---

@@ -51,6 +51,16 @@ jobs:
       # extra bundle-size tooling is needed here.
       - run: npm run build -- --configuration=production
 
+  local-bridge:
+    name: Local Bridge (zero-dependency Node test suite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm run bridge:test
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest

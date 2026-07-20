@@ -1,0 +1,18 @@
+{
+  "name": "wayfarer-local-bridge",
+  "version": "1.0.0",
+  "description": "Optional local relay that lets Wayfarer reach CORS-restrictive or intranet-only APIs. Runs entirely on your own machine — no cloud component, zero runtime dependencies.",
+  "license": "MIT",
+  "private": true,
+  "type": "commonjs",
+  "bin": {
+    "wayfarer-local-bridge": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

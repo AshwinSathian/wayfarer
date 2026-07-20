@@ -18,6 +18,7 @@ import { DialogModule } from "primeng/dialog";
 import { DrawerModule } from "primeng/drawer";
 import { SelectModule } from "primeng/select";
 import { InputTextModule } from "primeng/inputtext";
+import { CheckboxModule } from "primeng/checkbox";
 import { SkeletonModule } from "primeng/skeleton";
 import { ToolbarModule } from "primeng/toolbar";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
@@ -26,6 +27,7 @@ import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service"
 import { SecretsService } from "../../services/secrets.service";
 import { IdbService } from "../../data/idb.service";
 import { ThemeService } from "../../services/theme.service";
+import { BridgeService } from "../../services/bridge.service";
 import { ApiParamsComponent } from "../api-params/api-params.component";
 import { PastRequestsComponent } from "../past-requests/past-requests.component";
 import { CollectionsSidebarComponent } from "../collections/collections-sidebar.component";
@@ -43,6 +45,7 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
     SelectModule,
     DialogModule,
     InputTextModule,
+    CheckboxModule,
     FormsModule,
     ApiParamsComponent,
     PastRequestsComponent,
@@ -76,6 +79,7 @@ export class AppShellComponent implements OnInit {
   private readonly secretsService = inject(SecretsService);
   private readonly idb = inject(IdbService);
   readonly themeService = inject(ThemeService);
+  readonly bridgeService = inject(BridgeService);
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();
@@ -96,6 +100,12 @@ export class AppShellComponent implements OnInit {
   readonly unlockPassphrase = signal("");
   resettingAll = false;
   readonly unlockError = signal("");
+
+  readonly bridgeDialogVisible = signal(false);
+  readonly bridgeUrlDraft = signal("");
+  readonly bridgeTokenDraft = signal("");
+  readonly bridgeEnabledDraft = signal(false);
+  readonly bridgeTestStatus = signal<"idle" | "testing" | "ok" | "fail">("idle");
 
   get historyBadge(): string | undefined {
     const pastRequests = this.pastRequests();
@@ -225,6 +235,40 @@ export class AppShellComponent implements OnInit {
 
   get secretsUnlocked(): boolean {
     return this.secretCrypto.isUnlocked;
+  }
+
+  openBridgeSettings(): void {
+    const current = this.bridgeService.config();
+    this.bridgeUrlDraft.set(current.url);
+    this.bridgeTokenDraft.set(current.token);
+    this.bridgeEnabledDraft.set(current.enabled);
+    this.bridgeTestStatus.set("idle");
+    this.bridgeDialogVisible.set(true);
+  }
+
+  closeBridgeSettings(): void {
+    this.bridgeDialogVisible.set(false);
+  }
+
+  async testBridgeConnection(): Promise<void> {
+    this.bridgeTestStatus.set("testing");
+    const originalConfig = this.bridgeService.config();
+    // checkHealth() reads the service's current config, so stage the draft
+    // values there for the duration of the probe rather than duplicating
+    // the fetch logic here.
+    this.bridgeService.update({ url: this.bridgeUrlDraft().trim() });
+    const ok = await this.bridgeService.checkHealth();
+    this.bridgeService.update({ url: originalConfig.url });
+    this.bridgeTestStatus.set(ok ? "ok" : "fail");
+  }
+
+  saveBridgeSettings(): void {
+    this.bridgeService.update({
+      enabled: this.bridgeEnabledDraft(),
+      url: this.bridgeUrlDraft().trim(),
+      token: this.bridgeTokenDraft().trim(),
+    });
+    this.closeBridgeSettings();
   }
 
   private async performResetAllData(): Promise<void> {

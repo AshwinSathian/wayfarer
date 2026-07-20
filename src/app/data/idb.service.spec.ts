@@ -13,12 +13,26 @@ const createRequest = (overrides: Partial<PastRequest> = {}): PastRequest => ({
 
 describe('IdbService (facade)', () => {
   let service: IdbService;
+  let core: IdbCoreService;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(IdbService);
+    core = TestBed.inject(IdbCoreService);
     await service.init();
     await service.clear();
+  });
+
+  // Each test gets a fresh TestBed-injected IdbCoreService, which opens its
+  // own real IndexedDB connection to the same physical database. Left open,
+  // these accumulate across this describe block's tests and — since nothing
+  // else in the suite closes them — can block idb-core.service.spec.ts's
+  // later openDB()/deleteDatabase() calls behind IndexedDB's "blocked" state
+  // indefinitely, surfacing as unrelated 5000ms timeouts there. Closing here
+  // is what keeps this spec file from leaking state into others via the
+  // real, shared, per-browser-session IndexedDB.
+  afterEach(async () => {
+    await core.resetDatabase();
   });
 
   it('adds and retrieves requests by id', async () => {

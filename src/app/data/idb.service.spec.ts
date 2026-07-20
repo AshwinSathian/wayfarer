@@ -1,4 +1,6 @@
+import { TestBed } from '@angular/core/testing';
 import { IdbService } from './idb.service';
+import { IdbCoreService } from './idb-core.service';
 import { PastRequest } from '../models/history.models';
 
 const createRequest = (overrides: Partial<PastRequest> = {}): PastRequest => ({
@@ -9,11 +11,12 @@ const createRequest = (overrides: Partial<PastRequest> = {}): PastRequest => ({
   ...overrides,
 });
 
-describe('IdbService', () => {
+describe('IdbService (facade)', () => {
   let service: IdbService;
 
   beforeEach(async () => {
-    service = new IdbService();
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(IdbService);
     await service.init();
     await service.clear();
   });
@@ -55,84 +58,38 @@ describe('IdbService', () => {
     expect(await service.getLatest()).toEqual([]);
   });
 
-  it('falls back to memory branches when database handles return null', async () => {
-    const svc = new IdbService();
-    spyOn(svc, 'init').and.returnValue(Promise.resolve());
-    (svc as any).useMemoryFallback = false;
-    spyOn(svc as any, 'getDatabase').and.resolveTo(null);
-
-    const key = await svc.add(createRequest({ url: 'https://fallback-again' }));
-    expect(key).toBe(1);
-    expect((await svc.getLatest()).length).toBe(1);
-
-    await svc.delete(key!);
-    expect(await svc.getLatest()).toEqual([]);
-
-    await svc.add(createRequest({ url: 'https://refill' }));
-    await svc.clear();
-    expect(await svc.getLatest()).toEqual([]);
-  });
-
-  it('logs errors when IDB operations throw', async () => {
-    const svc = new IdbService();
-    spyOn(svc, 'init').and.returnValue(Promise.resolve());
-    (svc as any).useMemoryFallback = false;
-    const error = new Error('boom');
-    const originalError = console.error;
-    const errorSpy = spyOn(console, 'error');
-    spyOn(svc as any, 'getDatabase').and.rejectWith(error);
-
-    expect(await svc.get(1)).toBeNull();
-    expect(console.error).toHaveBeenCalledWith('[IDB] get operation failed.', error);
-    errorSpy.calls.reset();
-
-    await svc.getLatest();
-    expect(console.error).toHaveBeenCalledWith('[IDB] getLatest operation failed.', error);
-    errorSpy.calls.reset();
-
-    await svc.findByUrl('https://example.com');
-    expect(console.error).toHaveBeenCalledWith('[IDB] findByUrl operation failed.', error);
-    errorSpy.calls.reset();
-
-    await svc.delete(1);
-    expect(console.error).toHaveBeenCalledWith('[IDB] delete operation failed.', error);
-    errorSpy.calls.reset();
-
-    await svc.clear();
-    expect(console.error).toHaveBeenCalledWith('[IDB] clear operation failed.', error);
-    errorSpy.and.callThrough();
-    console.error = originalError;
-  });
-
-  it('handles rejected database promises by switching to memory', async () => {
-    const svc = new IdbService();
-    spyOn(svc, 'init').and.returnValue(Promise.resolve());
-    (svc as any).useMemoryFallback = false;
-    const error = new Error('resolve failed');
-    const originalError = console.error;
-    const errorSpy = spyOn(console, 'error');
-    (svc as any).dbPromise = Promise.reject(error);
-
-    const result = await (svc as any).getDatabase();
-    expect(result).toBeNull();
-    expect(errorSpy.calls.mostRecent().args[0]).toBe('[IDB] Failed to resolve database instance. Switching to in-memory store.');
-    errorSpy.and.callThrough();
-    console.error = originalError;
+  it('delegates collections/environments/secrets calls to the respective repositories', async () => {
+    // Full CRUD round-trips against a real IndexedDB per aggregate are
+    // covered directly on each repository (collections.repository.spec.ts
+    // etc.) where each spec owns and cleans up only its own store — sharing
+    // one real, persistent IndexedDB across many facade-level tests for
+    // every aggregate at once turned out to be exactly the kind of
+    // cross-test contamination that made the pre-split IdbService risky to
+    // extend. This just proves the facade methods actually reach the doc
+    // the repository produces, once, narrowly.
+    const collection = await service.createCollection({ name: 'Smoke test collection' });
+    expect(collection.name).toBe('Smoke test collection');
+    await service.deleteCollection(collection.meta.id);
   });
 });
 
-describe('IdbService memory fallback', () => {
+describe('IdbService (memory fallback, indexedDB unavailable)', () => {
   const originalIndexedDB = globalThis.indexedDB;
 
   afterEach(() => {
     (globalThis as any).indexedDB = originalIndexedDB;
   });
 
-  it('uses in-memory storage when indexedDB is unavailable', async () => {
+  it('uses in-memory storage end-to-end when indexedDB is unavailable', async () => {
     delete (globalThis as unknown as Record<string, unknown>).indexedDB;
-    const service = new IdbService();
+
+    TestBed.configureTestingModule({});
+    const service = TestBed.inject(IdbService);
+    const core = TestBed.inject(IdbCoreService);
 
     await service.init();
+    expect(core.useMemoryFallback).toBeTrue();
+
     const key = await service.add(createRequest({ url: 'https://memory-only', createdAt: 42 }));
     expect(key).toBe(1);
 

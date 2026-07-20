@@ -1,6 +1,6 @@
 # Pre/Post-Request Scripts & Assertions
 
-API Sandbox lets you attach a pre-request script, a post-response script, and
+Wayfarer lets you attach a pre-request script, a post-response script, and
 a set of visual test assertions to any request. This document describes the
 `pm.*` API surface those scripts see and, separately and honestly, the
 current isolation model — verified against `src/app/shared/scripts/` at the

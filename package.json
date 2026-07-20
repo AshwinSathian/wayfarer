@@ -1,17 +1,17 @@
 {
-  "name": "api-sandbox",
-  "version": "0.1.0",
-  "description": "A local-first, no-account API testing client — collections, environments, secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
+  "name": "wayfarer",
+  "version": "1.0.0",
+  "description": "The API client that can't rug-pull you — a local-first, no-account API testing client with collections, environments, an encrypted secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
   "license": "MIT",
   "private": true,
   "author": "Ashwin Sathian",
   "homepage": "https://api-sandbox.ashwinsathian.com/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AshwinSathian/api-sandbox.git"
+    "url": "git+https://github.com/AshwinSathian/wayfarer.git"
   },
   "bugs": {
-    "url": "https://github.com/AshwinSathian/api-sandbox/issues"
+    "url": "https://github.com/AshwinSathian/wayfarer/issues"
   },
   "keywords": [
     "angular",

@@ -10,7 +10,7 @@ body:
         much of this as you can — it makes triage much faster.
 
         **Security issue?** Please don't file it here — see
-        [SECURITY.md](https://github.com/AshwinSathian/api-sandbox/blob/master/SECURITY.md)
+        [SECURITY.md](https://github.com/AshwinSathian/wayfarer/blob/master/SECURITY.md)
         for the private disclosure process instead.
 
   - type: textarea
@@ -60,7 +60,7 @@ body:
     attributes:
       label: App version / commit
       description: The deployed URL you used, or a commit SHA if running locally.
-      placeholder: e.g. api-sandbox.ashwinsathian.com, or commit abc1234
+      placeholder: e.g. api-sandbox.ashwinsathian.com (Wayfarer's live demo), or commit abc1234
     validations:
       required: false
 

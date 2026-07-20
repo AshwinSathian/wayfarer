@@ -16,7 +16,7 @@ module.exports = function (config) {
       clearContext: false, // leave Jasmine Spec Runner output visible in browser
     },
     coverageReporter: {
-      dir: require("path").join(__dirname, "./coverage/api-sandbox"),
+      dir: require("path").join(__dirname, "./coverage/wayfarer"),
       reporters: [
         { type: "html" },
         { type: "lcovonly" },

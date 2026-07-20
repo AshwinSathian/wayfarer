@@ -1,6 +1,8 @@
 # Storage Layout
 
-API Sandbox persists everything in a single IndexedDB database named **`api-sandbox`**. Version upgrades live inside `src/app/data/idb.service.ts`; the current schema version is **4** and includes the following stores:
+Wayfarer persists everything in a single IndexedDB database. Version upgrades live inside `src/app/data/idb-core.service.ts`; the current schema version is **4** and includes the following stores:
+
+> The database's internal name (`api-sandbox`) is a preserved historical identifier from before the project's rename to Wayfarer. It's never shown to users and renaming it would require a lossy copy-and-migrate of every existing user's local data for zero functional benefit, so it's left as-is by design.
 
 | Store        | Key path   | Indexes                                | Purpose                                           |
 |--------------|------------|----------------------------------------|---------------------------------------------------|
@@ -26,4 +28,4 @@ Forward migrations hook into the upgrade callback and are staged through helpers
 
 ## Resetting
 
-`IdbService.resetDatabase()` closes any open connection, deletes the `api-sandbox` database, and resets the internal state. The UI exposes this via **Reset All Data**, which also clears app-specific `localStorage`/`sessionStorage` keys and reloads the page, ensuring the next launch starts from a clean slate.
+`IdbCoreService.resetDatabase()` closes any open connection, deletes the local database, and resets the internal state. The UI exposes this via **Reset All Data**, which also clears app-specific `localStorage`/`sessionStorage` keys and reloads the page, ensuring the next launch starts from a clean slate.

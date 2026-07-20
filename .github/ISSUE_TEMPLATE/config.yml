@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security Vulnerability
-    url: https://github.com/AshwinSathian/api-sandbox/security/advisories/new
+    url: https://github.com/AshwinSathian/wayfarer/security/advisories/new
     about: Please report security vulnerabilities privately — see SECURITY.md. Do not open a public issue.
   - name: Questions & Discussion
-    url: https://github.com/AshwinSathian/api-sandbox/discussions
+    url: https://github.com/AshwinSathian/wayfarer/discussions
     about: Ask questions or discuss ideas that aren't quite a bug report or feature request.

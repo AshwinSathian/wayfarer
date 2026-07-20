@@ -1,12 +1,12 @@
 name: Feature Request
-description: Suggest an idea or improvement for API Sandbox
+description: Suggest an idea or improvement for Wayfarer
 title: "[Feature]: "
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the suggestion! API Sandbox aims to stay fast, simple, and
+        Thanks for the suggestion! Wayfarer aims to stay fast, simple, and
         local-first — please keep that in mind when proposing new surface
         area.
 

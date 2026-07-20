@@ -1,5 +1,5 @@
 const HAR_VERSION = "1.2";
-const HAR_CREATOR = { name: "API Sandbox", version: "0" };
+const HAR_CREATOR = { name: "Wayfarer", version: "1" };
 const MAX_INLINE_BODY = 256 * 1024; // 256 KB
 const OMITTED_COMMENT = "omitted (size or type)";
 

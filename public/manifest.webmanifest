@@ -1,6 +1,6 @@
 {
-  "name": "api-sandbox",
-  "short_name": "api-sandbox",
+  "name": "Wayfarer",
+  "short_name": "Wayfarer",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

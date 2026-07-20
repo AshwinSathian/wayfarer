@@ -1,5 +1,5 @@
 /* ============================================================
-   Animations — API Sandbox · "Obsidian" Design Language
+   Animations — Wayfarer · "Obsidian" Design Language
    Spring-based motion system, Apple-quality timing
    ============================================================ */
 
@@ -73,8 +73,8 @@
 
 /* Accent glow pulse (used on active/focused premium elements) */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25); }
-  50%       { box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.10); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.25); }
+  50%       { box-shadow: 0 0 0 6px rgba(76, 110, 245, 0.10); }
 }
 
 /* Success flash (used after send) */

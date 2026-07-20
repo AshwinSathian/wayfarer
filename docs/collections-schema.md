@@ -1,6 +1,6 @@
 # Collections Schema
 
-API Sandbox stores collection data entirely in IndexedDB. Each document carries a deterministic shape to keep exports diff‑friendly and to make imports idempotent.
+Wayfarer stores collection data entirely in IndexedDB. Each document carries a deterministic shape to keep exports diff‑friendly and to make imports idempotent.
 
 ## Canonical Models
 

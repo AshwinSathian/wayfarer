@@ -3,20 +3,50 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project intends to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-once a first tagged release ships.
+and this project intends to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2026-07-21
+
+**This project has been renamed from "API Sandbox" to "Wayfarer."** Same app,
+same local-first storage model, same MIT license — only the name and visual
+identity changed. We're saying this out loud rather than treating it as a
+cosmetic footnote: the whole point of this project is that nothing about how
+your data is stored or who can gate access to it should ever change without
+you being told plainly. See `docs/plans/plan-rebrand-enterprise-strategy.md`
+for the full reasoning behind the rename.
+
+### Changed
+
+- Renamed the project "API Sandbox" → "Wayfarer" across the app UI, docs,
+  package metadata, build/CI configuration, and the GitHub repository. The
+  physical IndexedDB database name, and the collection/environment export
+  schema `$id`s, are intentionally left unchanged (renaming them would force
+  a lossy data migration or break already-exported files against a domain
+  that isn't live yet) — see `docs/storage.md` and the rebrand plan's
+  migration checklist for the full reasoning.
+- Replaced the iOS System Blue accent (`#0A84FF`/`#007AFF`) with an ownable
+  "Wayfarer Indigo" hue across both the dark and light themes, including the
+  brand gradient, focus rings, and the GET method color that previously
+  matched the old accent 1:1.
+- Replaced the app's mark with a route/waypoint glyph (a bending route line
+  ending in a filled waypoint dot), regenerated across the favicon and the
+  full PWA icon set, and added an `apple-touch-icon` link that was previously
+  missing.
+- HAR exports now report `Wayfarer` as the creator tool (only affects newly
+  generated exports; previously exported files are unaffected).
 
 ### Added
 
+- A Playwright `e2e` job in CI (`.github/workflows/ci.yml`), closing the gap
+  the CI config's own `TODO` had tracked since Playwright specs landed in the
+  `e2e/` directory but were never wired into the pipeline.
 - OSS repository hygiene: `LICENSE` (MIT), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`
   (Contributor Covenant v2.1), `SECURITY.md`, GitHub issue forms
   (`.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`, `config.yml`),
   `.github/PULL_REQUEST_TEMPLATE.md`, `.github/CODEOWNERS`, a CI workflow
   (`.github/workflows/ci.yml` — lint, unit test, production build with
-  budget enforcement), and `.github/dependabot.yml` (weekly npm + GitHub
-  Actions updates).
+  budget enforcement, plus the e2e job above), and `.github/dependabot.yml`
+  (weekly npm + GitHub Actions updates).
 - `docs/scripts.md` documenting the real, verified `pm.*` scripting API
   surface and the current script-sandbox isolation model (including its
   known limitation — see the Security section below).
@@ -28,10 +58,10 @@ once a first tagged release ships.
   this file" instruction, marked the shipped scripts/assertions rows as
   done in its competitive gap table, and pointed remaining backlog items at
   the Phase 4 section of `docs/plans/plan-specimen-modernization.md`.
-- Rewrote `README.md`: removed stale NDJSON export claims (the feature was
-  never shipped), brought the feature list current (scripts, assertions,
-  history drawer, secrets vault, command palette), and linked the new
-  CONTRIBUTING/CODE_OF_CONDUCT/SECURITY docs.
+- Rewrote `README.md` for the Wayfarer identity: removed stale NDJSON export
+  claims (the feature was never shipped), brought the feature list current
+  (scripts, assertions, history drawer, secrets vault, command palette), and
+  linked the new CONTRIBUTING/CODE_OF_CONDUCT/SECURITY docs.
 
 ### Security
 

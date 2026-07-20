@@ -1,6 +1,6 @@
 # Secrets At Rest
 
-Secrets in API Sandbox never leave the browser. Sensitive values are wrapped in an authenticated envelope before they are persisted to IndexedDB.
+Secrets in Wayfarer never leave the browser. Sensitive values are wrapped in an authenticated envelope before they are persisted to IndexedDB.
 
 ## Envelope Format
 

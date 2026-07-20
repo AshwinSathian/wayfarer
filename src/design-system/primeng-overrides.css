@@ -1,5 +1,5 @@
 /* ============================================================
-   PrimeNG Overrides — API Sandbox · "Obsidian" Design Language
+   PrimeNG Overrides — Wayfarer · "Obsidian" Design Language
    ============================================================ */
 
 /* ── Drawer ──────────────────────────────────────────────── */
@@ -326,15 +326,15 @@
 /* Primary */
 .p-button-primary:not(.p-button-outlined):not(.p-button-text) {
   background: var(--gradient-primary) !important;
-  border: 1px solid rgba(10, 132, 255, 0.40) !important;
+  border: 1px solid rgba(76, 110, 245, 0.40) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.30) !important;
+  box-shadow: 0 2px 8px rgba(76, 110, 245, 0.30) !important;
 }
 
 .p-button-primary:not(.p-button-outlined):not(.p-button-text):hover {
   background: var(--accent-hover) !important;
   border-color: var(--accent-hover) !important;
-  box-shadow: 0 4px 14px rgba(10, 132, 255, 0.40) !important;
+  box-shadow: 0 4px 14px rgba(76, 110, 245, 0.40) !important;
 }
 
 /* Secondary outlined */
@@ -373,17 +373,17 @@
   height: 40px !important;
   font-weight: 560 !important;
   letter-spacing: -0.006em !important;
-  box-shadow: 0 2px 12px rgba(10, 132, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20) !important;
+  box-shadow: 0 2px 12px rgba(76, 110, 245, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20) !important;
 }
 
 .send-btn.p-button:hover {
-  box-shadow: 0 4px 18px rgba(10, 132, 255, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 4px 18px rgba(76, 110, 245, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25) !important;
   transform: translateY(-1px) scale(1.01) !important;
 }
 
 .send-btn.p-button:active {
   transform: translateY(0) scale(0.97) !important;
-  box-shadow: 0 1px 6px rgba(10, 132, 255, 0.30) !important;
+  box-shadow: 0 1px 6px rgba(76, 110, 245, 0.30) !important;
 }
 
 .send-btn.p-button:disabled {

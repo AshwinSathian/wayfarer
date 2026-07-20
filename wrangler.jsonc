@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "api-sandbox",
+  "name": "wayfarer",
   "compatibility_date": "2026-07-20",
   "routes": [
     {
@@ -9,7 +9,7 @@
     }
   ],
   "assets": {
-    "directory": "dist/api-sandbox/browser",
+    "directory": "dist/wayfarer/browser",
     "not_found_handling": "single-page-application"
   }
 }

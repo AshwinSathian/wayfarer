@@ -2,7 +2,7 @@
 
 ## Scope
 
-API Sandbox is a **client-side-only** application: there is no backend, no
+Wayfarer is a **client-side-only** application: there is no backend, no
 account system, and no server-side data store. Everything (collections,
 environments, history, secrets) lives in the browser via IndexedDB. Because
 of that shape, the risk surface that matters here is different from a typical
@@ -30,7 +30,7 @@ Instead, report privately using one of:
 
 1. **GitHub Private Security Advisory** — use the "Report a vulnerability"
    button under this repository's Security tab
-   (`https://github.com/AshwinSathian/api-sandbox/security/advisories/new`).
+   (`https://github.com/AshwinSathian/wayfarer/security/advisories/new`).
 2. **Email** — send details to **ashwinsathyan19@gmail.com**.
 
 Please include, where possible:

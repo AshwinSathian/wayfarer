@@ -1,19 +1,20 @@
-# API Sandbox
+# Wayfarer
 
-[![CI](https://github.com/AshwinSathian/api-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/api-sandbox/actions/workflows/ci.yml)
+[![CI](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/wayfarer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Coverage](https://img.shields.io/badge/coverage-not%20yet%20measured-lightgrey.svg)](CONTRIBUTING.md)
 
-A focused, fast, and friendly web app for trying APIs without the overhead of a full‑blown client. Paste an endpoint, pick a method, set headers/body/auth, hit **Send**—get a clean response with useful insights and shareable exports.
+**The API client that can't rug-pull you.**
 
-> Built to keep you in flow while exploring APIs, debugging issues, and documenting endpoints.
+Wayfarer is a local-first API client. No account. No cloud. No telemetry. Everything — requests, collections, secrets — lives in your browser, encrypted at rest, exportable any time. When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
 **Live demo:** https://api-sandbox.ashwinsathian.com/
 
 ---
 
-## Why use API Sandbox?
+## Why Wayfarer?
 
+- **You can't be locked out of your own work.** Everything you build lives on your device by construction, not by policy — there's no update, acquisition, or pricing page that can gate access to data you already own.
 - **Zero clutter, just the essentials.** Compose a request and see a clean, structured response.
 - **Great defaults.** Sensible method/body pairing, helpful validation, and safe fallbacks.
 - **Shareable results.** Export a request/response as **HAR 1.2** for teammates and tooling.
@@ -79,8 +80,8 @@ A focused, fast, and friendly web app for trying APIs without the overhead of a 
 
 ```bash
 # 1) Clone the repo
-git clone https://github.com/AshwinSathian/api-sandbox.git
-cd api-sandbox
+git clone https://github.com/AshwinSathian/wayfarer.git
+cd wayfarer
 
 # 2) Install dependencies
 npm ci
@@ -125,14 +126,14 @@ npm run test:ci
 - Everything — requests, history, collections, environments, and secrets — is stored **locally** in your browser via **IndexedDB (IDB)**.
 - **Nothing is uploaded** to our servers; there is no backend and no account system.
 - You're in control: clear individual entries or wipe the entire history anytime.
-- Need a clean slate? Hit **Reset All** in the toolbar — it closes the IDB connection, deletes the `api-sandbox` database, clears app-specific storage, and reloads the app.
+- Need a clean slate? Hit **Reset All** in the toolbar — it closes the IDB connection, deletes the local database, clears app-specific storage, and reloads the app.
 
 ---
 
 ## FAQ
 
 **Does this replace Postman/Insomnia?**  
-No. API Sandbox is intentionally smaller and faster for everyday calls, docs checks, and quick debugging.
+No. Wayfarer is intentionally smaller and faster for everyday calls, docs checks, and quick debugging.
 
 **Why HAR?**  
 It's widely accepted by browsers, proxies, and observability tools, and is great for attaching to bug reports.
@@ -145,6 +146,9 @@ Yes — dark and light themes both ship today, each intentionally designed.
 
 **Are my secrets/API keys safe?**  
 Secrets are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only ever exists in memory. See [`docs/secrets.md`](docs/secrets.md) for the full model, and [`docs/scripts.md`](docs/scripts.md) for what scripts can and can't reach.
+
+**Wait, wasn't this called API Sandbox?**  
+Yes — this project was renamed from API Sandbox to Wayfarer. Same app, same storage model, same MIT license: only the name and identity changed, never the promise that your data stays on your device. See the [CHANGELOG](CHANGELOG.md) for details.
 
 ---
 
@@ -175,7 +179,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 - CSV/XLSX preview & import flows
 - WebSocket / SSE / GraphQL support
 
-See [`docs/plans/plan-product-roadmap.md`](docs/plans/plan-product-roadmap.md) and the Phase 4 backlog in [`docs/plans/plan-specimen-modernization.md`](docs/plans/plan-specimen-modernization.md) for the full, ranked list.
+See [`docs/plans/plan-product-roadmap.md`](docs/plans/plan-product-roadmap.md), the Phase 4 backlog in [`docs/plans/plan-specimen-modernization.md`](docs/plans/plan-specimen-modernization.md), and the rebrand/enterprise roadmap in [`docs/plans/plan-rebrand-enterprise-strategy.md`](docs/plans/plan-rebrand-enterprise-strategy.md) for the full, ranked list.
 
 ---
 

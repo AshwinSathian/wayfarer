@@ -245,7 +245,7 @@ export class AppShellComponent implements OnInit {
   }
 
   private clearLocalCaches(): void {
-    const keys = ["api-sandbox:active-environment", "api-sandbox:feature-flags"];
+    const keys = ["wayfarer:active-environment", "wayfarer:feature-flags"];
     for (const key of keys) {
       try {
         localStorage.removeItem(key);

@@ -1,6 +1,7 @@
 import { Injectable, signal } from "@angular/core";
 
-const STORAGE_KEY = "api-sandbox:theme";
+const STORAGE_KEY = "wayfarer:theme";
+const LEGACY_STORAGE_KEY = "api-sandbox:theme";
 
 @Injectable({ providedIn: "root" })
 export class ThemeService {
@@ -9,7 +10,7 @@ export class ThemeService {
   constructor() {
     let initial: "dark" | "light" = "dark";
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored === "light" || stored === "dark") {
         initial = stored;
       }

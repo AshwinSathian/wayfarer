@@ -1,5 +1,5 @@
 /* ============================================================
-   Component Design System — API Sandbox · "Obsidian"
+   Component Design System — Wayfarer · "Obsidian"
    Utility classes and canonical component patterns
    ============================================================ */
 
@@ -54,7 +54,7 @@
   line-height: 1.5;
 }
 
-.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get);     border: 1px solid rgba(10,132,255,0.20); }
+.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get);     border: 1px solid rgba(76,110,245,0.20); }
 .method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post);    border: 1px solid rgba(48,209,88,0.20); }
 .method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put);     border: 1px solid rgba(255,159,10,0.20); }
 .method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch);   border: 1px solid rgba(191,90,242,0.20); }
@@ -312,7 +312,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(76, 110, 245, 0.35);
 }
 
 /* ── Env tag ─────────────────────────────────────────────── */

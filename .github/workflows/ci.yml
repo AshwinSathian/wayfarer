@@ -51,7 +51,21 @@ jobs:
       # extra bundle-size tooling is needed here.
       - run: npm run build -- --configuration=production
 
-  # TODO: e2e job once Playwright lands (Phase 1 of
-  # docs/plans/plan-specimen-modernization.md replaces the deprecated
-  # Protractor suite under e2e/ with Playwright). Add a job here once a
-  # playwright.config.ts exists in the repo.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "api-sandbox": {
+    "wayfarer": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -14,7 +14,7 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": {
-              "base": "dist/api-sandbox"
+              "base": "dist/wayfarer"
             },
             "index": "src/index.html",
             "polyfills": [
@@ -85,14 +85,14 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "api-sandbox:build:development"
+            "buildTarget": "wayfarer:build:development"
           },
           "configurations": {
             "production": {
-              "buildTarget": "api-sandbox:build:production"
+              "buildTarget": "wayfarer:build:production"
             },
             "development": {
-              "buildTarget": "api-sandbox:build:development"
+              "buildTarget": "wayfarer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -100,7 +100,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "api-sandbox:build"
+            "buildTarget": "wayfarer:build"
           }
         },
         "test": {

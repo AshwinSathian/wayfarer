@@ -1,5 +1,5 @@
 /* ============================================================
-   Design Tokens — API Sandbox · "Obsidian" Design Language
+   Design Tokens — Wayfarer · "Obsidian" Design Language
    Apple-inspired, OLED-first dark design system
    ============================================================ */
 
@@ -46,21 +46,22 @@
   --separator-opaque: #1C1C1E;
 
   /* ── Accent ───────────────────────────────────────────────
-     Apple Blue — iOS dark mode system blue. More premium
-     than indigo; immediately reads as native Apple quality.
+     "Wayfarer Indigo" — an ownable route/waypoint-inspired hue,
+     deliberately distinct from iOS system blue rather than
+     borrowing Apple's exact accent.
   */
-  --accent:        #0A84FF;
-  --accent-hover:  #409CFF;
-  --accent-muted:  #0062CC;
-  --accent-fill:   rgba(10, 132, 255, 0.15);
-  --accent-border: rgba(10, 132, 255, 0.40);
-  --accent-text:   #5AC8FA;
+  --accent:        #4C6EF5;
+  --accent-hover:  #7B92FF;
+  --accent-muted:  #3348C2;
+  --accent-fill:   rgba(76, 110, 245, 0.15);
+  --accent-border: rgba(76, 110, 245, 0.40);
+  --accent-text:   #8DA2FF;
 
   /* ── Gradient ─────────────────────────────────────────────
      Signature gradient for primary CTAs and brand moments.
   */
-  --gradient-accent:   linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%);
-  --gradient-primary:  linear-gradient(135deg, #0A84FF 0%, #409CFF 100%);
+  --gradient-accent:   linear-gradient(135deg, #4C6EF5 0%, #7B4CF5 100%);
+  --gradient-primary:  linear-gradient(135deg, #4C6EF5 0%, #7B92FF 100%);
   --gradient-success:  linear-gradient(135deg, #30D158 0%, #34C759 100%);
 
   /* ── Glass / Material ─────────────────────────────────────
@@ -92,15 +93,15 @@
   --status-error-fill:     rgba(255, 69, 58, 0.14);
   --status-error-border:   rgba(255, 69, 58, 0.32);
 
-  --status-info:           #0A84FF;
-  --status-info-fill:      rgba(10, 132, 255, 0.14);
-  --status-info-border:    rgba(10, 132, 255, 0.32);
+  --status-info:           #4C6EF5;
+  --status-info-fill:      rgba(76, 110, 245, 0.14);
+  --status-info-border:    rgba(76, 110, 245, 0.32);
 
   /* ── HTTP Methods ─────────────────────────────────────────
      Aligned with Apple system semantic colours.
   */
-  --method-get:          #0A84FF;
-  --method-get-fill:     rgba(10, 132, 255, 0.12);
+  --method-get:          #4C6EF5;
+  --method-get-fill:     rgba(76, 110, 245, 0.12);
 
   --method-post:         #30D158;
   --method-post-fill:    rgba(48, 209, 88, 0.12);
@@ -148,7 +149,7 @@
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
 
   /* ── Selection ────────────────────────────────────────────*/
-  --selection-bg:   rgba(10, 132, 255, 0.35);
+  --selection-bg:   rgba(76, 110, 245, 0.35);
   --selection-text: #FFFFFF;
 
   /* ── Shadow ───────────────────────────────────────────────
@@ -161,7 +162,7 @@
   --shadow-float:   0 16px 48px rgba(0, 0, 0, 0.65);
 
   /* ── Glow / Focus rings ───────────────────────────────────*/
-  --glow-accent:   0 0 0 3px rgba(10, 132, 255, 0.30);
+  --glow-accent:   0 0 0 3px rgba(76, 110, 245, 0.30);
   --glow-success:  0 0 0 3px rgba(48, 209, 88, 0.25);
   --glow-error:    0 0 0 3px rgba(255, 69, 58, 0.25);
   --glow-warning:  0 0 0 3px rgba(255, 159, 10, 0.25);
@@ -207,15 +208,15 @@
   --separator:        rgba(0, 0, 0, 0.08);
   --separator-opaque: #E5E5EA;
 
-  --accent:        #007AFF;
-  --accent-hover:  #0062CC;
-  --accent-muted:  #5AC8FA;
-  --accent-fill:   rgba(0, 122, 255, 0.10);
-  --accent-border: rgba(0, 122, 255, 0.32);
-  --accent-text:   #007AFF;
+  --accent:        #3D5AFE;
+  --accent-hover:  #2A3FCC;
+  --accent-muted:  #93A6FF;
+  --accent-fill:   rgba(61, 90, 254, 0.10);
+  --accent-border: rgba(61, 90, 254, 0.32);
+  --accent-text:   #3D5AFE;
 
-  --gradient-accent:  linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
-  --gradient-primary: linear-gradient(135deg, #007AFF 0%, #34AADC 100%);
+  --gradient-accent:  linear-gradient(135deg, #3D5AFE 0%, #7B4CF5 100%);
+  --gradient-primary: linear-gradient(135deg, #3D5AFE 0%, #6B85FF 100%);
   --gradient-success: linear-gradient(135deg, #34C759 0%, #30D158 100%);
 
   --glass-toolbar:  rgba(255, 255, 255, 0.80);
@@ -237,12 +238,12 @@
   --status-error-fill:     rgba(255, 59, 48, 0.10);
   --status-error-border:   rgba(255, 59, 48, 0.28);
 
-  --status-info:           #007AFF;
-  --status-info-fill:      rgba(0, 122, 255, 0.10);
-  --status-info-border:    rgba(0, 122, 255, 0.28);
+  --status-info:           #3D5AFE;
+  --status-info-fill:      rgba(61, 90, 254, 0.10);
+  --status-info-border:    rgba(61, 90, 254, 0.28);
 
-  --method-get:          #007AFF;
-  --method-get-fill:     rgba(0, 122, 255, 0.10);
+  --method-get:          #3D5AFE;
+  --method-get-fill:     rgba(61, 90, 254, 0.10);
 
   --method-post:         #34C759;
   --method-post-fill:    rgba(52, 199, 89, 0.10);
@@ -268,7 +269,7 @@
   --shadow-dialog:  0 32px 80px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.10);
   --shadow-float:   0 16px 48px rgba(0, 0, 0, 0.12);
 
-  --glow-accent:   0 0 0 3px rgba(0, 122, 255, 0.25);
+  --glow-accent:   0 0 0 3px rgba(61, 90, 254, 0.25);
   --glow-success:  0 0 0 3px rgba(52, 199, 89, 0.22);
   --glow-error:    0 0 0 3px rgba(255, 59, 48, 0.22);
   --glow-warning:  0 0 0 3px rgba(255, 149, 0, 0.22);

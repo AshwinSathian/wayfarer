@@ -96,6 +96,10 @@ export interface ApiSandboxDB extends DBSchema {
   };
 }
 
+// Preserved historical identifier from the project's "API Sandbox" name — never
+// shown to users, and renaming it would require a lossy copy-and-migrate of
+// every existing user's local data for zero functional benefit. Left as-is
+// intentionally; see docs/storage.md.
 const DB_NAME = "api-sandbox";
 const DB_VERSION = 4;
 export const META_STATE_KEY = "state";

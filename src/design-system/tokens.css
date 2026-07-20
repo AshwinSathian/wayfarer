@@ -1,6 +1,6 @@
 /* ============================================================
-   Design Tokens — API Sandbox
-   Apple-inspired dark-first design system
+   Design Tokens — API Sandbox · "Obsidian" Design Language
+   Apple-inspired, OLED-first dark design system
    ============================================================ */
 
 [data-theme="dark"],
@@ -8,93 +8,111 @@
   color-scheme: dark;
 
   /* ── Canvas ──────────────────────────────────────────────
-     Five elevation levels, each slightly lighter.
-     Never use raw hex values in components — always reference
-     these tokens so a future light-mode switch is frictionless.
+     True-black OLED elevation stack, identical to iOS dark mode.
   */
-  --canvas-app:      #0b0c10;
-  --canvas-sidebar:  #0f1118;
-  --canvas-panel:    #141720;
-  --canvas-elevated: #1a1d28;
-  --canvas-overlay:  #1f2333;
+  --canvas-app:      #000000;
+  --canvas-sidebar:  #0C0C0E;
+  --canvas-panel:    #111113;
+  --canvas-elevated: #1C1C1E;
+  --canvas-overlay:  #2C2C2E;
 
-  /* ── Fill ─────────────────────────────────────────────────
-     Semi-transparent overlays for interactive state.
-  */
-  --fill-primary:   rgba(255, 255, 255, 0.10);
-  --fill-secondary: rgba(255, 255, 255, 0.06);
+  /* ── Fill ─────────────────────────────────────────────────*/
+  --fill-primary:   rgba(255, 255, 255, 0.12);
+  --fill-secondary: rgba(255, 255, 255, 0.07);
   --fill-tertiary:  rgba(255, 255, 255, 0.03);
-  --fill-hover:     rgba(255, 255, 255, 0.05);
-  --fill-active:    rgba(255, 255, 255, 0.09);
+  --fill-hover:     rgba(255, 255, 255, 0.07);
+  --fill-active:    rgba(255, 255, 255, 0.11);
 
   /* ── Label ────────────────────────────────────────────────
-     Four tiers of text hierarchy.
+     Apple iOS dark mode exact label values.
   */
-  --label-primary:     #e6e8f0;
-  --label-secondary:   #8a8fa8;
-  --label-tertiary:    #4c5070;
-  --label-placeholder: #383b54;
+  --label-primary:     #FFFFFF;
+  --label-secondary:   #8E8E93;
+  --label-tertiary:    #48484A;
+  --label-placeholder: #3A3A3C;
 
   /* ── Separator ────────────────────────────────────────────*/
-  --separator:         rgba(255, 255, 255, 0.07);
-  --separator-opaque:  #191c29;
+  --separator:        rgba(255, 255, 255, 0.06);
+  --separator-opaque: #1C1C1E;
 
   /* ── Accent ───────────────────────────────────────────────
-     Indigo-500 — more refined than the previous stock purple.
+     Apple Blue — iOS dark mode system blue. More premium
+     than indigo; immediately reads as native Apple quality.
   */
-  --accent:        #6366f1;
-  --accent-hover:  #7375f3;
-  --accent-muted:  #4f52c9;
-  --accent-fill:   rgba(99, 102, 241, 0.15);
-  --accent-border: rgba(99, 102, 241, 0.35);
-  --accent-text:   #a5b4fc;
+  --accent:        #0A84FF;
+  --accent-hover:  #409CFF;
+  --accent-muted:  #0062CC;
+  --accent-fill:   rgba(10, 132, 255, 0.15);
+  --accent-border: rgba(10, 132, 255, 0.40);
+  --accent-text:   #5AC8FA;
 
-  /* ── Status ───────────────────────────────────────────────*/
-  --status-success:        #22c55e;
-  --status-success-fill:   rgba(34, 197, 94, 0.12);
-  --status-success-border: rgba(34, 197, 94, 0.30);
+  /* ── Gradient ─────────────────────────────────────────────
+     Signature gradient for primary CTAs and brand moments.
+  */
+  --gradient-accent:   linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%);
+  --gradient-primary:  linear-gradient(135deg, #0A84FF 0%, #409CFF 100%);
+  --gradient-success:  linear-gradient(135deg, #30D158 0%, #34C759 100%);
 
-  --status-warning:        #f59e0b;
-  --status-warning-fill:   rgba(245, 158, 11, 0.12);
-  --status-warning-border: rgba(245, 158, 11, 0.30);
+  /* ── Glass / Material ─────────────────────────────────────
+     Vibrancy-effect backgrounds for frosted surfaces.
+  */
+  --glass-toolbar:  rgba(12, 12, 14, 0.82);
+  --glass-panel:    rgba(17, 17, 19, 0.92);
+  --glass-overlay:  rgba(28, 28, 30, 0.90);
+  --glass-dialog:   rgba(28, 28, 30, 0.95);
+  --glass-blur:     blur(24px) saturate(1.8);
+  --glass-blur-sm:  blur(12px) saturate(1.6);
 
-  --status-error:          #ef4444;
-  --status-error-fill:     rgba(239, 68, 68, 0.12);
-  --status-error-border:   rgba(239, 68, 68, 0.30);
+  /* Specular highlight — top-edge glow on elevated surfaces */
+  --glass-border:   rgba(255, 255, 255, 0.08);
+  --glass-border-strong: rgba(255, 255, 255, 0.14);
 
-  --status-info:           #3b82f6;
-  --status-info-fill:      rgba(59, 130, 246, 0.12);
-  --status-info-border:    rgba(59, 130, 246, 0.30);
+  /* ── Status ───────────────────────────────────────────────
+     Apple system semantic colours — dark mode exact.
+  */
+  --status-success:        #30D158;
+  --status-success-fill:   rgba(48, 209, 88, 0.14);
+  --status-success-border: rgba(48, 209, 88, 0.32);
+
+  --status-warning:        #FF9F0A;
+  --status-warning-fill:   rgba(255, 159, 10, 0.14);
+  --status-warning-border: rgba(255, 159, 10, 0.32);
+
+  --status-error:          #FF453A;
+  --status-error-fill:     rgba(255, 69, 58, 0.14);
+  --status-error-border:   rgba(255, 69, 58, 0.32);
+
+  --status-info:           #0A84FF;
+  --status-info-fill:      rgba(10, 132, 255, 0.14);
+  --status-info-border:    rgba(10, 132, 255, 0.32);
 
   /* ── HTTP Methods ─────────────────────────────────────────
-     Semantic, consistent colours across all surfaces.
-     Replaces the hardcoded Tailwind arbitrary values
-     (text-[#61affe], text-[#49cc90] etc.) scattered everywhere.
+     Aligned with Apple system semantic colours.
   */
-  --method-get:          #3b82f6;
-  --method-get-fill:     rgba(59, 130, 246, 0.12);
+  --method-get:          #0A84FF;
+  --method-get-fill:     rgba(10, 132, 255, 0.12);
 
-  --method-post:         #22c55e;
-  --method-post-fill:    rgba(34, 197, 94, 0.12);
+  --method-post:         #30D158;
+  --method-post-fill:    rgba(48, 209, 88, 0.12);
 
-  --method-put:          #f59e0b;
-  --method-put-fill:     rgba(245, 158, 11, 0.12);
+  --method-put:          #FF9F0A;
+  --method-put-fill:     rgba(255, 159, 10, 0.12);
 
-  --method-patch:        #a855f7;
-  --method-patch-fill:   rgba(168, 85, 247, 0.12);
+  --method-patch:        #BF5AF2;
+  --method-patch-fill:   rgba(191, 90, 242, 0.12);
 
-  --method-delete:       #ef4444;
-  --method-delete-fill:  rgba(239, 68, 68, 0.12);
+  --method-delete:       #FF453A;
+  --method-delete-fill:  rgba(255, 69, 58, 0.12);
 
-  --method-head:         #64748b;
-  --method-head-fill:    rgba(100, 116, 139, 0.12);
+  --method-head:         #636366;
+  --method-head-fill:    rgba(99, 99, 102, 0.12);
 
-  --method-options:      #14b8a6;
-  --method-options-fill: rgba(20, 184, 166, 0.12);
+  --method-options:      #5AC8FA;
+  --method-options-fill: rgba(90, 200, 250, 0.12);
 
   /* ── Radius ───────────────────────────────────────────────*/
-  --radius-xs:   4px;
-  --radius-sm:   6px;
+  --radius-xs:   3px;
+  --radius-sm:   7px;
   --radius-md:   10px;
   --radius-lg:   14px;
   --radius-xl:   18px;
@@ -102,120 +120,140 @@
   --radius-full: 9999px;
 
   /* ── Motion ───────────────────────────────────────────────
-     Spring-like easing inspired by Apple's animation curves.
+     Apple-quality spring easing. Fast micro, fluid standard.
   */
-  --ease-standard: cubic-bezier(0.3, 0, 0, 1);
+  --ease-standard: cubic-bezier(0.25, 0, 0, 1);
   --ease-enter:    cubic-bezier(0, 0, 0, 1);
-  --ease-exit:     cubic-bezier(0.3, 0, 1, 1);
-  --dur-micro:     80ms;
-  --dur-quick:     150ms;
-  --dur-standard:  250ms;
-  --dur-enter:     320ms;
-  --dur-exit:      200ms;
+  --ease-exit:     cubic-bezier(0.32, 0, 0.67, 0);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-micro:     60ms;
+  --dur-quick:     120ms;
+  --dur-standard:  240ms;
+  --dur-enter:     300ms;
+  --dur-exit:      180ms;
+  --dur-spring:    400ms;
 
   /* ── Scrollbar ────────────────────────────────────────────*/
-  --scrollbar-thumb:       rgba(255, 255, 255, 0.14);
+  --scrollbar-thumb:       rgba(255, 255, 255, 0.12);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
 
   /* ── Selection ────────────────────────────────────────────*/
-  --selection-bg:   var(--accent);
-  --selection-text: #ffffff;
+  --selection-bg:   rgba(10, 132, 255, 0.35);
+  --selection-text: #FFFFFF;
 
-  /* ── Shadow ───────────────────────────────────────────────*/
-  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.50);
-  --shadow-dialog:  0 16px 48px rgba(0, 0, 0, 0.60);
-  --shadow-card:    0 4px 12px rgba(0, 0, 0, 0.35);
+  /* ── Shadow ───────────────────────────────────────────────
+     Multi-layer shadows for realistic depth.
+  */
+  --shadow-sm:      0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-card:    0 2px 10px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.40);
+  --shadow-dialog:  0 32px 80px rgba(0, 0, 0, 0.85), 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-float:   0 16px 48px rgba(0, 0, 0, 0.65);
+
+  /* ── Glow / Focus rings ───────────────────────────────────*/
+  --glow-accent:   0 0 0 3px rgba(10, 132, 255, 0.30);
+  --glow-success:  0 0 0 3px rgba(48, 209, 88, 0.25);
+  --glow-error:    0 0 0 3px rgba(255, 69, 58, 0.25);
+  --glow-warning:  0 0 0 3px rgba(255, 159, 10, 0.25);
 
   /* ── Typography ───────────────────────────────────────────*/
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  --font-mono: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
 }
 
 /* ============================================================
-   Light Mode Overrides
-   Only tokens that differ from the dark defaults need to be
-   declared here — everything else inherits from :root.
+   Light Mode
+   Apple macOS light mode — pure whites with warm dark labels.
    ============================================================ */
 [data-theme="light"] {
   color-scheme: light;
 
-  /* ── Canvas ──────────────────────────────────────────────*/
-  --canvas-app:      #f5f5f7;
-  --canvas-sidebar:  #ffffff;
-  --canvas-panel:    #ffffff;
-  --canvas-elevated: #f0f0f5;
-  --canvas-overlay:  #ffffff;
+  --canvas-app:      #F5F5F7;
+  --canvas-sidebar:  #FFFFFF;
+  --canvas-panel:    #FFFFFF;
+  --canvas-elevated: #F2F2F7;
+  --canvas-overlay:  #FFFFFF;
 
-  /* ── Fill ────────────────────────────────────────────────*/
-  --fill-primary:   rgba(0, 0, 0, 0.06);
+  --fill-primary:   rgba(0, 0, 0, 0.07);
   --fill-secondary: rgba(0, 0, 0, 0.04);
   --fill-tertiary:  rgba(0, 0, 0, 0.02);
   --fill-hover:     rgba(0, 0, 0, 0.04);
-  --fill-active:    rgba(0, 0, 0, 0.06);
+  --fill-active:    rgba(0, 0, 0, 0.07);
 
-  /* ── Label ───────────────────────────────────────────────*/
-  --label-primary:     #1d1d1f;
-  --label-secondary:   #6e6e73;
-  --label-tertiary:    #aeaeb2;
-  --label-placeholder: #c7c7cc;
+  --label-primary:     #1D1D1F;
+  --label-secondary:   #6E6E73;
+  --label-tertiary:    #AEAEB2;
+  --label-placeholder: #C7C7CC;
 
-  /* ── Separator ───────────────────────────────────────────*/
   --separator:        rgba(0, 0, 0, 0.08);
-  --separator-opaque: #e5e5ea;
+  --separator-opaque: #E5E5EA;
 
-  /* ── Accent ──────────────────────────────────────────────*/
-  --accent:        #4f46e5;
-  --accent-hover:  #4338ca;
-  --accent-muted:  #6366f1;
-  --accent-fill:   rgba(79, 70, 229, 0.10);
-  --accent-border: rgba(79, 70, 229, 0.30);
-  --accent-text:   #4f46e5;
+  --accent:        #007AFF;
+  --accent-hover:  #0062CC;
+  --accent-muted:  #5AC8FA;
+  --accent-fill:   rgba(0, 122, 255, 0.10);
+  --accent-border: rgba(0, 122, 255, 0.32);
+  --accent-text:   #007AFF;
 
-  /* ── Status ──────────────────────────────────────────────*/
-  --status-success:        #16a34a;
-  --status-success-fill:   rgba(22, 163, 74, 0.10);
-  --status-success-border: rgba(22, 163, 74, 0.25);
+  --gradient-accent:  linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+  --gradient-primary: linear-gradient(135deg, #007AFF 0%, #34AADC 100%);
+  --gradient-success: linear-gradient(135deg, #34C759 0%, #30D158 100%);
 
-  --status-warning:        #d97706;
-  --status-warning-fill:   rgba(217, 119, 6, 0.10);
-  --status-warning-border: rgba(217, 119, 6, 0.25);
+  --glass-toolbar:  rgba(255, 255, 255, 0.80);
+  --glass-panel:    rgba(255, 255, 255, 0.92);
+  --glass-overlay:  rgba(242, 242, 247, 0.90);
+  --glass-dialog:   rgba(255, 255, 255, 0.96);
+  --glass-border:   rgba(0, 0, 0, 0.06);
+  --glass-border-strong: rgba(0, 0, 0, 0.10);
 
-  --status-error:          #dc2626;
-  --status-error-fill:     rgba(220, 38, 38, 0.10);
-  --status-error-border:   rgba(220, 38, 38, 0.25);
+  --status-success:        #34C759;
+  --status-success-fill:   rgba(52, 199, 89, 0.10);
+  --status-success-border: rgba(52, 199, 89, 0.28);
 
-  --status-info:           #2563eb;
-  --status-info-fill:      rgba(37, 99, 235, 0.10);
-  --status-info-border:    rgba(37, 99, 235, 0.25);
+  --status-warning:        #FF9500;
+  --status-warning-fill:   rgba(255, 149, 0, 0.10);
+  --status-warning-border: rgba(255, 149, 0, 0.28);
 
-  /* ── HTTP Methods ────────────────────────────────────────*/
-  --method-get:          #2563eb;
-  --method-get-fill:     rgba(37, 99, 235, 0.10);
+  --status-error:          #FF3B30;
+  --status-error-fill:     rgba(255, 59, 48, 0.10);
+  --status-error-border:   rgba(255, 59, 48, 0.28);
 
-  --method-post:         #16a34a;
-  --method-post-fill:    rgba(22, 163, 74, 0.10);
+  --status-info:           #007AFF;
+  --status-info-fill:      rgba(0, 122, 255, 0.10);
+  --status-info-border:    rgba(0, 122, 255, 0.28);
 
-  --method-put:          #d97706;
-  --method-put-fill:     rgba(217, 119, 6, 0.10);
+  --method-get:          #007AFF;
+  --method-get-fill:     rgba(0, 122, 255, 0.10);
 
-  --method-patch:        #9333ea;
-  --method-patch-fill:   rgba(147, 51, 234, 0.10);
+  --method-post:         #34C759;
+  --method-post-fill:    rgba(52, 199, 89, 0.10);
 
-  --method-delete:       #dc2626;
-  --method-delete-fill:  rgba(220, 38, 38, 0.10);
+  --method-put:          #FF9500;
+  --method-put-fill:     rgba(255, 149, 0, 0.10);
 
-  --method-head:         #475569;
-  --method-head-fill:    rgba(71, 85, 105, 0.10);
+  --method-patch:        #AF52DE;
+  --method-patch-fill:   rgba(175, 82, 222, 0.10);
 
-  --method-options:      #0d9488;
-  --method-options-fill: rgba(13, 148, 136, 0.10);
+  --method-delete:       #FF3B30;
+  --method-delete-fill:  rgba(255, 59, 48, 0.10);
 
-  /* ── Shadow ──────────────────────────────────────────────*/
-  --shadow-overlay: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --shadow-dialog:  0 8px 32px rgba(0, 0, 0, 0.16);
-  --shadow-card:    0 2px 8px rgba(0, 0, 0, 0.08);
+  --method-head:         #8E8E93;
+  --method-head-fill:    rgba(142, 142, 147, 0.10);
 
-  /* ── Scrollbar ───────────────────────────────────────────*/
-  --scrollbar-thumb:       rgba(0, 0, 0, 0.15);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+  --method-options:      #32ADE6;
+  --method-options-fill: rgba(50, 173, 230, 0.10);
+
+  --shadow-sm:      0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card:    0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.07);
+  --shadow-dialog:  0 32px 80px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-float:   0 16px 48px rgba(0, 0, 0, 0.12);
+
+  --glow-accent:   0 0 0 3px rgba(0, 122, 255, 0.25);
+  --glow-success:  0 0 0 3px rgba(52, 199, 89, 0.22);
+  --glow-error:    0 0 0 3px rgba(255, 59, 48, 0.22);
+  --glow-warning:  0 0 0 3px rgba(255, 149, 0, 0.22);
+
+  --scrollbar-thumb:       rgba(0, 0, 0, 0.14);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.24);
 }

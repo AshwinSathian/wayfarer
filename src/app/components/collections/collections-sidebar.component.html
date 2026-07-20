@@ -1,8 +1,8 @@
 <div class="collections-sidebar flex h-full flex-col gap-3">
   <!-- Header -->
   <div class="flex items-center justify-between gap-2">
-    <span class="type-subhead text-label-secondary">Collections</span>
-    <div class="flex items-center gap-1">
+    <span class="type-overline text-label-tertiary">Collections</span>
+    <div class="flex items-center gap-0.5">
       <button class="ds-icon-btn" (click)="openCommandPalette()" title="Command palette (⌘K)">
         <span class="material-symbols-outlined icon-sm">bolt</span>
       </button>
@@ -22,10 +22,11 @@
   />
 
   @if (loading()) {
-  <p-skeleton width="100%" height="160px" borderRadius="10px"></p-skeleton>
+  <p-skeleton width="100%" height="160px" borderRadius="14px"></p-skeleton>
   } @else if (!nodes().length) {
-  <div class="rounded-lg border border-dashed border-separator p-4 type-callout text-label-tertiary">
-    No collections yet. Create one to start organising your requests.
+  <div class="ds-empty-state">
+    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">folder_open</span>
+    <p class="type-callout text-label-tertiary max-w-[180px] text-center">No collections yet. Create one to organise your requests.</p>
   </div>
   } @else {
   <p-tree
@@ -50,6 +51,7 @@
           (keydown.escape)="cancelEdit()"
           (blur)="commitRename(node)"
           autofocus
+          style="height: 28px !important;"
         />
         } @else {
           @if (node.data?.type === 'request' && node.data?.method) {
@@ -91,16 +93,16 @@
   } @else if (importAnalysis?.payload) {
   <div class="space-y-4 type-callout text-label-secondary">
     <div>
-      <p class="ds-section-label mb-1">Collection</p>
+      <p class="ds-section-label mb-1.5">Collection</p>
       <p class="type-title-3 text-label-primary">{{ importAnalysis.payload.collection.name }}</p>
       <p class="type-footnote text-label-tertiary mt-0.5">
         {{ importAnalysis.summary?.folders || 0 }} folders ·
         {{ importAnalysis.summary?.requests || 0 }} requests
       </p>
     </div>
-    <label class="flex items-center justify-between rounded-lg border border-separator bg-canvas-elevated px-3 py-3 cursor-pointer">
+    <label class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
-        <p class="type-subhead text-label-secondary">Import as duplicate</p>
+        <p class="type-subhead text-label-primary">Import as duplicate</p>
         <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
       <p-checkbox
@@ -111,18 +113,18 @@
       ></p-checkbox>
     </label>
     @if (importAnalysis.plan?.length) {
-    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-lg border border-separator p-2">
+    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-xl border border-separator p-2">
       @for (entry of importAnalysis.plan; track entry.id) {
-      <div class="flex items-center justify-between rounded-md bg-canvas-elevated px-3 py-2">
+      <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
         <div>
           <p class="type-subhead text-label-primary capitalize">{{ entry.type }} · {{ entry.name }}</p>
           <p class="type-caption text-label-tertiary">{{ entry.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
         </div>
         <span
-          class="rounded-full px-2 py-0.5 type-caption uppercase"
+          class="rounded-full px-2.5 py-0.5 type-caption uppercase font-semibold"
           [ngClass]="{
-            'bg-status-success border border-separator text-status-success': entry.action === 'create',
-            'bg-status-warning border border-separator text-status-warning': entry.action === 'overwrite'
+            'bg-status-success-fill border border-status-success-border text-status-success': entry.action === 'create',
+            'bg-status-warning-fill border border-status-warning-border text-status-warning': entry.action === 'overwrite'
           }"
         >{{ entry.action }}</span>
       </div>
@@ -131,7 +133,10 @@
     }
   </div>
   } @else {
-  <p class="type-callout text-label-secondary">Select a valid collection export file to proceed.</p>
+  <div class="ds-empty-state">
+    <span class="material-symbols-outlined icon-lg text-label-tertiary">upload_file</span>
+    <p class="type-callout text-label-tertiary">Select a valid collection export file to proceed.</p>
+  </div>
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
@@ -164,6 +169,7 @@
       [(ngModel)]="creationModel.name"
       placeholder="Enter name"
       class="w-full"
+      autofocus
     />
     @if (creationContext?.type === 'request') {
     <div class="flex flex-col gap-1.5">
@@ -209,13 +215,14 @@
       @for (action of filteredPaletteActions; track action.id) {
       <button
         type="button"
-        class="w-full rounded-lg bg-canvas-elevated border border-separator px-3 py-2.5 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
+        class="w-full rounded-xl bg-canvas-elevated border border-separator px-4 py-3 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
         (click)="executePaletteAction(action)"
       >{{ action.label }}</button>
       }
       } @else {
-      <div class="rounded-lg border border-dashed border-separator px-3 py-5 text-center type-callout text-label-tertiary">
-        No matching commands.
+      <div class="ds-empty-state py-6">
+        <span class="material-symbols-outlined icon-md text-label-tertiary">search_off</span>
+        <p class="type-callout text-label-tertiary">No matching commands.</p>
       </div>
       }
     </div>

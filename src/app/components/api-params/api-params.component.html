@@ -1,57 +1,65 @@
 <div class="ds-panel p-6 w-full space-y-5">
 
-  <!-- URL bar row -->
+  <!-- ── Address bar row ───────────────────────────────────── -->
   <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
-    <div class="sm:w-40">
+    <!-- Unified method + URL bar -->
+    <div class="address-bar flex-1">
+      <!-- Method selector -->
       <p-select
-        class="w-full"
         [options]="requestMethods"
         appendTo="body"
         [(ngModel)]="selectedRequestMethod"
         (ngModelChange)="onRequestMethodChange($event)"
         styleClass="method-select"
+        class="address-method"
       ></p-select>
-    </div>
-    <div class="flex-1">
+
+      <!-- URL input -->
       <input
         #urlInput
         pInputText
         type="url"
-        class="w-full font-mono"
+        class="address-url font-mono"
         [ngModel]="endpoint"
         (ngModelChange)="onEndpointChange($event)"
         placeholder="https://api.example.com/v1/endpoint"
+        style="height: 40px; border: none !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 14px;"
       />
-      @if (endpointError !== '') {
-      <small class="mt-1 block type-footnote text-status-error">
-        {{ endpointError }}
-      </small>
-      }
     </div>
-    <button
-      pButton
-      type="button"
-      icon="pi pi-terminal"
-      [disabled]="!endpoint"
-      title="Copy as cURL"
-      severity="secondary"
-      outlined
-      (click)="copyAsCurl()"
-      class="sm:flex-shrink-0"
-    ></button>
-    <button
-      pButton
-      type="button"
-      [disabled]="!endpoint"
-      label="Send"
-      (click)="sendRequest()"
-      class="sm:flex-shrink-0"
-    ></button>
+
+    <!-- Action buttons -->
+    <div class="flex items-center gap-2 sm:flex-shrink-0">
+      <button
+        pButton
+        type="button"
+        icon="pi pi-terminal"
+        [disabled]="!endpoint"
+        title="Copy as cURL"
+        severity="secondary"
+        outlined
+        (click)="copyAsCurl()"
+      ></button>
+      <button
+        pButton
+        type="button"
+        [disabled]="!endpoint"
+        label="Send"
+        (click)="sendRequest()"
+        styleClass="send-btn"
+      ></button>
+    </div>
   </div>
 
-  <!-- Variable tokens preview -->
+  @if (endpointError !== '') {
+  <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
+    <span class="material-symbols-outlined icon-xs">error</span>
+    {{ endpointError }}
+  </p>
+  }
+
+  <!-- ── Variable tokens preview ──────────────────────────── -->
   @if (variableTokens.length) {
-  <div class="flex flex-wrap gap-2 rounded-lg bg-canvas-elevated px-4 py-3">
+  <div class="flex flex-wrap gap-2 rounded-xl bg-canvas-elevated px-4 py-3 border border-separator">
     @for (token of variableTokens; track token.field + token.key) {
     <div
       class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
@@ -68,17 +76,19 @@
     }
   </div>
   @if (missingVariableKeys.length) {
-  <p class="type-footnote text-status-warning">
+  <p class="type-footnote text-status-warning flex items-center gap-1.5">
+    <span class="material-symbols-outlined icon-xs">warning</span>
     Missing: {{ missingVariableKeys.join(', ') }}
   </p>
   }
   }
 
-  <!-- Params / Headers / Body / Auth tabs -->
-  <section class="rounded-lg bg-canvas-elevated p-5">
-    <div class="hidden md:block">
+  <!-- ── Request config tabs ──────────────────────────────── -->
+  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
+    <!-- Desktop tabs -->
+    <div class="hidden md:block px-2 pt-1">
       <p-tabs [value]="activeTab" (valueChange)="onActiveTabChange($event)">
-        <div class="flex items-center justify-between w-full">
+        <div class="flex items-center justify-between w-full pr-2">
           <p-tablist>
             <p-tab value="params">Params</p-tab>
             <p-tab value="headers">Headers</p-tab>
@@ -102,26 +112,37 @@
 
         <p-tabpanels>
           <p-tabpanel value="params">
-            <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+            <div class="px-4 pb-5">
+              <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+            </div>
           </p-tabpanel>
           <p-tabpanel value="headers">
-            <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+            <div class="px-4 pb-5">
+              <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+            </div>
           </p-tabpanel>
           @if (isBodyMethod(selectedRequestMethod)) {
           <p-tabpanel value="body">
-            <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+            <div class="px-4 pb-5">
+              <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+            </div>
           </p-tabpanel>
           }
           <p-tabpanel value="auth">
-            <ng-container *ngTemplateOutlet="authContent"></ng-container>
+            <div class="px-4 pb-5">
+              <ng-container *ngTemplateOutlet="authContent"></ng-container>
+            </div>
           </p-tabpanel>
           <p-tabpanel value="scripts">
-            <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+            <div class="px-4 pb-5">
+              <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+            </div>
           </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
     </div>
 
+    <!-- Mobile accordion -->
     <div class="md:hidden">
       <p-accordion
         [multiple]="true"
@@ -154,36 +175,36 @@
     </div>
   </section>
 
-  <!-- Params template -->
+  <!-- ── Params template ──────────────────────────────────── -->
   <ng-template #paramsContent>
     <div class="flex flex-col gap-2">
-      <div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-4 px-2 md:grid">
+      <div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-4 px-1 md:grid">
         <div class="ds-section-label"></div>
         <div class="ds-section-label">Key</div>
         <div class="ds-section-label">Value</div>
         <div></div>
       </div>
       @for (param of requestParams; track param; let i = $index) {
-      <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-4">
+      <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
         <input type="checkbox" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
         <input pInputText class="w-full font-mono" [(ngModel)]="param.key" (ngModelChange)="onParamChange()" placeholder="key" />
         <input pInputText class="w-full font-mono" [(ngModel)]="param.value" (ngModelChange)="onParamChange()" placeholder="value" />
-        <div class="flex justify-end md:block md:text-center">
+        <div class="flex justify-end md:block">
           <button pButton type="button" text icon="pi pi-times" severity="danger" (click)="removeParam(i)"></button>
         </div>
       </div>
       }
-      <div class="pt-2">
+      <div class="pt-1">
         <button pButton type="button" icon="pi pi-plus" label="Add Param" severity="secondary" [disabled]="isAddParamDisabled()" (click)="addParam()"></button>
       </div>
     </div>
   </ng-template>
 
-  <!-- Auth template -->
+  <!-- ── Auth template ────────────────────────────────────── -->
   <ng-template #authContent>
     <div class="space-y-4">
       <div class="flex items-center gap-3">
-        <label class="ds-form-label min-w-[80px]">Type</label>
+        <label class="ds-form-label min-w-[72px]">Type</label>
         <p-select
           [options]="authTypes"
           [(ngModel)]="requestAuth.type"
@@ -197,7 +218,7 @@
 
       @if (requestAuth.type === 'bearer') {
       <div class="flex items-center gap-3">
-        <label class="ds-form-label min-w-[80px]">Token</label>
+        <label class="ds-form-label min-w-[72px]">Token</label>
         <input
           pInputText
           class="flex-1 font-mono"
@@ -211,7 +232,7 @@
       @if (requestAuth.type === 'basic') {
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
-          <label class="ds-form-label min-w-[80px]">Username</label>
+          <label class="ds-form-label min-w-[72px]">Username</label>
           <input
             pInputText
             class="flex-1 font-mono"
@@ -221,7 +242,7 @@
           />
         </div>
         <div class="flex items-center gap-3">
-          <label class="ds-form-label min-w-[80px]">Password</label>
+          <label class="ds-form-label min-w-[72px]">Password</label>
           <div class="flex flex-1 items-center gap-2">
             <input
               pInputText
@@ -241,27 +262,19 @@
       @if (requestAuth.type === 'api-key') {
       <div class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
-          <label class="ds-form-label min-w-[80px]">Key</label>
-          <input
-            pInputText
-            class="flex-1 font-mono"
-            placeholder="Header or param name"
+          <label class="ds-form-label min-w-[72px]">Key</label>
+          <input pInputText class="flex-1 font-mono" placeholder="Header or param name"
             [ngModel]="requestAuth.apiKey?.key ?? ''"
-            (ngModelChange)="requestAuth.apiKey = { key: $event, value: requestAuth.apiKey?.value ?? '', addTo: requestAuth.apiKey?.addTo ?? 'header' }"
-          />
+            (ngModelChange)="requestAuth.apiKey = { key: $event, value: requestAuth.apiKey?.value ?? '', addTo: requestAuth.apiKey?.addTo ?? 'header' }" />
         </div>
         <div class="flex items-center gap-3">
-          <label class="ds-form-label min-w-[80px]">Value</label>
-          <input
-            pInputText
-            class="flex-1 font-mono"
-            placeholder="Key value"
+          <label class="ds-form-label min-w-[72px]">Value</label>
+          <input pInputText class="flex-1 font-mono" placeholder="Key value"
             [ngModel]="requestAuth.apiKey?.value ?? ''"
-            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: $event, addTo: requestAuth.apiKey?.addTo ?? 'header' }"
-          />
+            (ngModelChange)="requestAuth.apiKey = { key: requestAuth.apiKey?.key ?? '', value: $event, addTo: requestAuth.apiKey?.addTo ?? 'header' }" />
         </div>
         <div class="flex items-center gap-3">
-          <label class="ds-form-label min-w-[80px]">Add to</label>
+          <label class="ds-form-label min-w-[72px]">Add to</label>
           <p-select
             [options]="[{ label: 'Header', value: 'header' }, { label: 'Query param', value: 'query' }]"
             [ngModel]="requestAuth.apiKey?.addTo ?? 'header'"
@@ -276,12 +289,15 @@
       }
 
       @if (requestAuth.type === 'none') {
-      <p class="type-callout text-label-tertiary">No auth will be applied to this request.</p>
+      <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
+        <span class="material-symbols-outlined icon-sm text-label-tertiary">info</span>
+        <p class="type-callout text-label-tertiary">No authentication will be applied to this request.</p>
+      </div>
       }
     </div>
   </ng-template>
 
-  <!-- Headers template -->
+  <!-- ── Headers template ─────────────────────────────────── -->
   <ng-template #headersContent>
     @if (editorMode === 'basic') {
     <app-api-params-basic
@@ -296,7 +312,10 @@
     } @else {
     <div class="space-y-2">
       @if (!headersJsonValid) {
-      <small class="type-footnote text-status-error">Invalid JSON</small>
+      <small class="type-footnote text-status-error flex items-center gap-1">
+        <span class="material-symbols-outlined icon-xs">error</span>
+        Invalid JSON
+      </small>
       }
       <app-json-editor
         name="headersJson"
@@ -310,7 +329,7 @@
     }
   </ng-template>
 
-  <!-- Body template -->
+  <!-- ── Body template ────────────────────────────────────── -->
   <ng-template #bodyContent>
     @if (editorMode === 'basic') {
     <app-api-params-basic
@@ -325,7 +344,10 @@
     } @else {
     <div class="space-y-2">
       @if (!bodyJsonValid) {
-      <small class="type-footnote text-status-error">Invalid JSON</small>
+      <small class="type-footnote text-status-error flex items-center gap-1">
+        <span class="material-symbols-outlined icon-xs">error</span>
+        Invalid JSON
+      </small>
       }
       <app-json-editor
         name="bodyJson"
@@ -339,15 +361,17 @@
     }
   </ng-template>
 
-  <!-- Scripts template -->
+  <!-- ── Scripts template ─────────────────────────────────── -->
   <ng-template #scriptsContent>
     <div class="space-y-6">
-
       <!-- Pre-request script -->
       <div class="space-y-2">
-        <div class="ds-section-label">Pre-request Script</div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined icon-sm text-label-tertiary">play_arrow</span>
+          <div class="ds-section-label">Pre-request Script</div>
+        </div>
         <p class="type-caption text-label-tertiary">
-          Runs before the request is sent. Use <code class="font-mono">pm.environment.set(key, value)</code> to set variables.
+          Runs before the request. Use <code class="font-mono text-accent-text">pm.environment.set(key, value)</code> to set variables.
         </p>
         <app-script-editor
           name="preScript"
@@ -359,9 +383,12 @@
 
       <!-- Post-response script -->
       <div class="space-y-2">
-        <div class="ds-section-label">Post-response Script</div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined icon-sm text-label-tertiary">replay</span>
+          <div class="ds-section-label">Post-response Script</div>
+        </div>
         <p class="type-caption text-label-tertiary">
-          Runs after the response arrives. Use <code class="font-mono">pm.test(name, fn)</code> and <code class="font-mono">pm.expect(value)</code> to define assertions.
+          Runs after the response. Use <code class="font-mono text-accent-text">pm.test(name, fn)</code> and <code class="font-mono text-accent-text">pm.expect(value)</code> for assertions.
         </p>
         <app-script-editor
           name="postScript"
@@ -373,9 +400,12 @@
 
       <!-- Visual test assertions -->
       <div class="space-y-3">
-        <div class="ds-section-label">Tests</div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined icon-sm text-label-tertiary">rule</span>
+          <div class="ds-section-label">Tests</div>
+        </div>
         @for (test of requestTests; track test.id; let i = $index) {
-        <div class="flex flex-wrap items-center gap-2 rounded-lg bg-canvas-panel p-3">
+        <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
           <p-select
             [options]="assertionTargetOptions"
             [(ngModel)]="test.target"
@@ -415,13 +445,13 @@
           <button pButton type="button" icon="pi pi-plus" label="Add Test" severity="secondary" (click)="addTest()"></button>
         </div>
       </div>
-
     </div>
   </ng-template>
 
-  <!-- Response panel -->
+  <!-- ── Response panel ───────────────────────────────────── -->
   @if (shouldShowResponsePanel) {
   <app-response-viewer
+    class="animate-fade-up"
     [loading]="loadingState"
     [responseData]="responseData"
     [responseError]="responseError"

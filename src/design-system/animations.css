@@ -1,6 +1,9 @@
 /* ============================================================
-   Animations — API Sandbox
+   Animations — API Sandbox · "Obsidian" Design Language
+   Spring-based motion system, Apple-quality timing
    ============================================================ */
+
+/* ── Keyframes ───────────────────────────────────────────── */
 
 /* Skeleton shimmer */
 @keyframes skeleton-shimmer {
@@ -11,14 +14,14 @@
 /* Missing variable chip pulse */
 @keyframes chip-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.6; }
+  50%       { opacity: 0.55; }
 }
 
-/* Dialog appear */
+/* Dialog appear — spring up from slight scale */
 @keyframes dialog-appear {
   from {
     opacity: 0;
-    transform: scale(0.97) translateY(4px);
+    transform: scale(0.96) translateY(8px);
   }
   to {
     opacity: 1;
@@ -32,30 +35,74 @@
   to   { opacity: 1; }
 }
 
-/* Slide up (for mobile sheets) */
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-
-/* Overlay panels entering */
-@keyframes overlay-appear {
+/* Fade in + lift (for cards, response panel) */
+@keyframes fade-up {
   from {
     opacity: 0;
-    transform: scale(0.98);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-/* Apply dialog animation */
+/* Slide in from right (right drawer) */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Slide up (mobile sheets) */
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Overlay enter — scale from 0.97 */
+@keyframes overlay-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Accent glow pulse (used on active/focused premium elements) */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25); }
+  50%       { box-shadow: 0 0 0 6px rgba(10, 132, 255, 0.10); }
+}
+
+/* Success flash (used after send) */
+@keyframes success-flash {
+  0%   { background: var(--status-success-fill); }
+  60%  { background: var(--status-success-fill); }
+  100% { background: transparent; }
+}
+
+/* Spin (loading indicator) */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Status badge entrance — pop in */
+@keyframes badge-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Applied animations ──────────────────────────────────── */
+
 .p-dialog {
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
 }
 
-/* Overlays (menus, popovers, tooltips) */
 .p-menu,
 .p-contextmenu,
 .p-popover,
@@ -63,12 +110,48 @@
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
 
-/* Utility class for inline fade-in on dynamic elements */
+/* ── Utility classes ─────────────────────────────────────── */
+
 .animate-fade-in {
   animation: fade-in var(--dur-standard) var(--ease-enter) both;
 }
 
-/* Utility class for slide-up (mobile accordions, bottom sheets) */
-.animate-slide-up {
-  animation: slide-up var(--dur-enter) var(--ease-enter) both;
+.animate-fade-up {
+  animation: fade-up var(--dur-enter) var(--ease-spring) both;
 }
+
+.animate-slide-up {
+  animation: slide-up var(--dur-enter) var(--ease-spring) both;
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-badge-pop {
+  animation: badge-pop var(--dur-spring) var(--ease-spring) both;
+}
+
+/* ── Transition utilities ────────────────────────────────── */
+
+.transition-colors {
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard) !important;
+}
+
+.transition-transform {
+  transition: transform var(--dur-quick) var(--ease-spring) !important;
+}
+
+.transition-opacity {
+  transition: opacity var(--dur-quick) var(--ease-standard) !important;
+}
+
+.ease-standard { transition-timing-function: var(--ease-standard); }
+.ease-spring   { transition-timing-function: var(--ease-spring); }

@@ -2,32 +2,35 @@
   @if (loading) {
   <div class="flex flex-col gap-1.5 p-1">
     @for (skeleton of skeletonPlaceholders; track skeleton) {
-    <div class="rounded-lg bg-canvas-elevated border border-separator p-2.5">
-      <p-skeleton height="1rem" width="60%" borderRadius="6px"></p-skeleton>
-      <div class="mt-1.5 flex gap-1.5">
-        <p-skeleton height="0.75rem" width="4rem" borderRadius="9999px"></p-skeleton>
-        <p-skeleton height="0.75rem" width="3rem" borderRadius="9999px"></p-skeleton>
+    <div class="rounded-xl bg-canvas-elevated border border-separator p-3">
+      <p-skeleton height="0.875rem" width="60%" borderRadius="6px"></p-skeleton>
+      <div class="mt-2 flex gap-1.5">
+        <p-skeleton height="0.625rem" width="3.5rem" borderRadius="9999px"></p-skeleton>
+        <p-skeleton height="0.625rem" width="2.5rem" borderRadius="9999px"></p-skeleton>
       </div>
     </div>
     }
   </div>
   } @else if (!pastRequests.length) {
-  <div class="text-center type-footnote text-label-tertiary w-full p-3">
-    No history yet.
+  <div class="flex flex-col items-center gap-2.5 p-6 text-center">
+    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">history</span>
+    <p class="type-footnote text-label-tertiary">No history yet.</p>
   </div>
   } @else {
   <div class="flex flex-col gap-4">
     @for (group of groups; track group.label) {
     <div>
-      <div class="px-2 pb-1">
+      <!-- Group date label -->
+      <div class="px-2 pb-1.5">
         <span class="ds-section-label">{{ group.label }}</span>
       </div>
+
       <div class="flex flex-col gap-0.5">
         @for (request of group.requests; track trackById($index, request)) {
-        <div class="overflow-hidden rounded-md transition-colors hover:bg-fill-hover">
+        <div class="group overflow-hidden rounded-lg transition-colors hover:bg-fill-hover">
 
           <!-- Desktop row -->
-          <div class="hidden md:flex items-center gap-2 px-2 py-1.5">
+          <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
             <span class="method-badge method-{{ request.method.toLowerCase() }} flex-shrink-0">
               {{ request.method }}
             </span>
@@ -37,9 +40,10 @@
               (mouseenter)="detailsPopover.show($event)"
               (mouseleave)="detailsPopover.hide()"
             >{{ request.url }}</span>
+
             @if (request.status !== undefined) {
             <span
-              class="type-caption font-mono flex-shrink-0"
+              class="type-caption font-mono flex-shrink-0 tabular-nums"
               [ngClass]="{
                 'text-status-success': request.status >= 200 && request.status < 300,
                 'text-status-warning': request.status >= 300 && request.status < 500,
@@ -47,12 +51,15 @@
               }"
             >{{ request.status }}</span>
             }
+
             @if (request.durationMs) {
             <span class="type-caption text-label-tertiary flex-shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
             }
+
             <span class="type-caption text-label-tertiary flex-shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
               {{ relativeTime(request.createdAt) }}
             </span>
+
             <button
               class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
               pTooltip="Delete"
@@ -64,7 +71,7 @@
 
             <p-confirmpopup #cp>
               <ng-template #headless let-message>
-                <div class="rounded-lg p-4 type-callout bg-canvas-overlay border border-separator">
+                <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
                   <span class="text-label-secondary">{{ message.message }}</span>
                   <div class="flex items-center gap-2 mt-3">
                     <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
@@ -75,15 +82,15 @@
             </p-confirmpopup>
 
             <p-popover #detailsPopover appendTo="body" [dismissable]="true">
-              <div class="space-y-1 min-w-[160px] type-callout">
-                <p class="text-label-primary truncate max-w-xs">{{ request.url }}</p>
+              <div class="space-y-1.5 min-w-[180px] max-w-xs type-callout p-1">
+                <p class="text-label-primary truncate font-mono text-xs">{{ request.url }}</p>
                 @if (request.status !== undefined) {
-                <p class="text-label-secondary">Status: {{ request.status }}</p>
+                <p class="text-label-secondary">Status: <span class="font-semibold">{{ request.status }}</span></p>
                 }
                 @if (request.durationMs) {
-                <p class="text-label-secondary">Duration: {{ formatDuration(request.durationMs) }}</p>
+                <p class="text-label-secondary">Duration: <span class="font-semibold">{{ formatDuration(request.durationMs) }}</span></p>
                 }
-                <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+                <p class="text-label-tertiary text-xs">{{ request.createdAt | date:'medium' }}</p>
               </div>
             </p-popover>
           </div>
@@ -101,7 +108,7 @@
                 <p-accordion-content>
                   <div class="space-y-2 type-callout text-label-secondary">
                     @if (request.status !== undefined) {
-                    <p>Status: {{ request.status }}</p>
+                    <p>Status: <span class="font-semibold">{{ request.status }}</span></p>
                     }
                     @if (request.durationMs) {
                     <p>Duration: {{ formatDuration(request.durationMs) }}</p>

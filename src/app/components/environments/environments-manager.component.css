@@ -8,12 +8,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.75rem;
   border-radius: var(--radius-md);
-  background-color: var(--fill-tertiary);
+  background-color: transparent;
   border: 1px solid transparent;
   color: var(--label-primary);
   cursor: pointer;
+  text-align: left;
   transition:
     border-color var(--dur-quick) var(--ease-standard),
     background-color var(--dur-quick) var(--ease-standard);
@@ -26,6 +27,10 @@
 
 .env-item.active {
   border-color: var(--accent-border);
+  background-color: var(--accent-fill);
+}
+
+.env-item.active:hover {
   background-color: var(--accent-fill);
 }
 

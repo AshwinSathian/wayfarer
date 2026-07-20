@@ -1,9 +1,9 @@
 <div class="env-manager grid gap-4 lg:grid-cols-[260px_1fr]">
-  <!-- Environment list -->
+  <!-- ── Environment list ──────────────────────────────────── -->
   <div class="ds-panel p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
-      <span class="type-subhead text-label-secondary">Environments</span>
-      <div class="flex items-center gap-1">
+      <span class="type-overline text-label-tertiary">Environments</span>
+      <div class="flex items-center gap-0.5">
         <button class="ds-icon-btn" (click)="envImportInput.click()" title="Import">
           <span class="material-symbols-outlined icon-sm">upload</span>
         </button>
@@ -13,6 +13,7 @@
         <button pButton size="small" icon="pi pi-plus" severity="secondary" (click)="openNewEnvironmentDialog()"></button>
       </div>
     </div>
+
     <input
       #envImportInput
       type="file"
@@ -20,6 +21,13 @@
       class="hidden"
       (change)="handleEnvironmentImport($event)"
     />
+
+    @if (!environments().length) {
+    <div class="ds-empty-state py-6">
+      <span class="material-symbols-outlined icon-lg text-label-tertiary">dns</span>
+      <p class="type-caption text-label-tertiary text-center">No environments yet.</p>
+    </div>
+    } @else {
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <button
@@ -34,10 +42,13 @@
         <div class="flex flex-col items-start min-w-0">
           <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
           @if (activeEnvironment()?.meta.id === env.meta.id) {
-          <span class="type-caption text-status-success">In use</span>
+          <span class="env-active-tag mt-1">
+            <span class="material-symbols-outlined icon-xs">radio_button_checked</span>
+            In use
+          </span>
           }
         </div>
-        <div class="flex items-center gap-1 flex-shrink-0">
+        <div class="flex items-center gap-0.5 flex-shrink-0">
           <button
             pButton
             icon="pi pi-check"
@@ -55,9 +66,10 @@
       </button>
       }
     </div>
+    }
   </div>
 
-  <!-- Environment editor -->
+  <!-- ── Environment editor ────────────────────────────────── -->
   <div class="ds-panel p-5" *ngIf="draft() as form; else emptyState">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
@@ -81,24 +93,24 @@
             <div class="flex flex-col gap-2">
               @for (item of form.vars; track $index) {
               <div
-                class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-lg p-1 transition-all duration-150"
+                class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all duration-150"
                 [ngClass]="{
-                  'ring-2 ring-accent-border': focusedVariableKey === item.key
+                  'ring-2 ring-accent-border bg-accent-fill/40': focusedVariableKey === item.key
                 }"
               >
                 <input pInputText placeholder="KEY" [(ngModel)]="form.vars[$index].key" (ngModelChange)="onPairsChange()" />
                 @if (!isSecretValue(form.vars[$index].value)) {
                 <input pInputText placeholder="Value" [(ngModel)]="form.vars[$index].value" (ngModelChange)="onPairsChange()" />
                 } @else {
-                <div class="rounded-lg border border-status-warning-border bg-status-warning-fill px-3 py-2">
-                  <div class="type-caption text-status-warning">Secret stored</div>
+                <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
+                  <div class="type-caption text-status-warning font-semibold">Secret stored</div>
                   <div class="type-caption text-label-tertiary mt-0.5">
                     @if (!secretsUnlocked) {
                     Unlock to reveal
                     } @else if (getSecretPreview(form.vars[$index].value)) {
                     {{ getSecretPreview(form.vars[$index].value) }}
                     } @else {
-                    <button type="button" class="underline text-accent" (click)="revealSecret($index)">Reveal</button>
+                    <button type="button" class="underline text-accent-text" (click)="revealSecret($index)">Reveal</button>
                     }
                   </div>
                 </div>
@@ -113,7 +125,10 @@
           <p-tabpanel value="json">
             <div class="space-y-2">
               @if (!form.jsonValid) {
-              <p class="type-footnote text-status-error">Invalid JSON</p>
+              <p class="type-footnote text-status-error flex items-center gap-1">
+                <span class="material-symbols-outlined icon-xs">error</span>
+                Invalid JSON
+              </p>
               }
               <app-json-editor
                 name="env-json"
@@ -135,8 +150,9 @@
 </div>
 
 <ng-template #emptyState>
-  <div class="rounded-xl border border-dashed border-separator p-6 text-center type-callout text-label-tertiary">
-    Select or create an environment to begin editing.
+  <div class="ds-empty-state">
+    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">dns</span>
+    <p class="type-callout text-label-tertiary max-w-[220px] text-center">Select or create an environment to begin editing.</p>
   </div>
 </ng-template>
 
@@ -151,7 +167,7 @@
   <div class="flex flex-col gap-3">
     <div>
       <label class="ds-form-label">Name</label>
-      <input pInputText class="w-full" [(ngModel)]="newEnvForm.name" placeholder="Environment name" />
+      <input pInputText class="w-full" [(ngModel)]="newEnvForm.name" placeholder="Environment name" autofocus />
     </div>
     <div>
       <label class="ds-form-label">Description</label>
@@ -185,33 +201,33 @@
   <div class="space-y-3">
     <p class="type-callout text-label-secondary">{{ pendingEnvImport.length }} environment(s) detected.</p>
     @for (entry of pendingEnvImport; track entry.doc.meta.id; let idx = $index) {
-    <div class="rounded-lg border border-separator bg-canvas-elevated p-3">
+    <div class="rounded-xl border border-separator bg-canvas-elevated p-4">
       <div class="flex items-center justify-between gap-2">
         <div>
           <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
           <p class="type-caption text-label-tertiary">{{ Object.keys(entry.doc.vars ?? {}).length }} variable(s)</p>
         </div>
         @if (entry.targetId) {
-        <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2 py-0.5 type-caption text-status-warning">Existing</span>
+        <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-caption font-semibold text-status-warning">Existing</span>
         }
       </div>
       <div class="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded-md border px-3 py-1.5 type-caption"
+          class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
           [ngClass]="{
-            'border-accent bg-accent-fill text-accent': entry.action === 'merge',
-            'border-separator bg-transparent text-label-secondary': entry.action !== 'merge'
+            'border-accent-border bg-accent-fill text-accent-text': entry.action === 'merge',
+            'border-separator bg-transparent text-label-secondary hover:bg-fill-hover': entry.action !== 'merge'
           }"
           (click)="setEnvImportAction(idx, 'merge')"
         >Merge as new</button>
         <button
           type="button"
-          class="rounded-md border px-3 py-1.5 type-caption"
+          class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
           [disabled]="!entry.targetId"
           [ngClass]="{
             'border-status-warning-border bg-status-warning-fill text-status-warning': entry.action === 'replace',
-            'border-separator bg-transparent text-label-secondary': entry.action !== 'replace' || !entry.targetId,
+            'border-separator bg-transparent text-label-secondary hover:bg-fill-hover': entry.action !== 'replace' || !entry.targetId,
             'opacity-40 cursor-not-allowed': !entry.targetId
           }"
           (click)="setEnvImportAction(idx, 'replace')"
@@ -221,7 +237,10 @@
     }
   </div>
   } @else {
-  <p class="type-callout text-label-secondary">Select a valid export file to continue.</p>
+  <div class="ds-empty-state py-6">
+    <span class="material-symbols-outlined icon-lg text-label-tertiary">upload_file</span>
+    <p class="type-callout text-label-tertiary">Select a valid export file to continue.</p>
+  </div>
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">

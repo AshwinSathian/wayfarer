@@ -1,0 +1,14 @@
+/* Toolbar glass effect is applied via .ds-toolbar in components.css.
+   Component-specific overrides only below. */
+
+:host {
+  display: contents;
+}
+
+/* Separator between toolbar action groups */
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--separator);
+  flex-shrink: 0;
+}

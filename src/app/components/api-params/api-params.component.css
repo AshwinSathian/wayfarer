@@ -1,4 +1,20 @@
-.requestBodyItem {
-    font-family: monospace;
-    color: lightgray;
+/* Address bar — unified focus state on the wrapper */
+.address-bar .p-inputtext:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Method select inside address bar — no outer border/radius conflict */
+.address-bar .method-select.p-select {
+  border: none !important;
+  border-right: 1px solid var(--separator) !important;
+  background: transparent !important;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg) !important;
+  height: 40px !important;
+}
+
+.address-bar .method-select.p-select:hover,
+.address-bar .method-select.p-select.p-focus {
+  border-right-color: var(--separator) !important;
+  box-shadow: none !important;
 }

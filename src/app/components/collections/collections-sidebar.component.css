@@ -3,10 +3,9 @@
   height: 100%;
 }
 
-/* Tree node overrides already handled by primeng-overrides.css.
-   These fine-tune collection-specific node layout. */
+/* Fine-tune tree node layout for collections */
 .collections-sidebar :deep(.p-tree-node-content) {
-  padding: 4px 6px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
 }
 
@@ -16,4 +15,12 @@
 
 .collections-sidebar :deep(.p-tree-node-selected > .p-tree-node-content) {
   background-color: var(--accent-fill);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+/* Tighter toggle icon */
+.collections-sidebar :deep(.p-tree-node-toggle-button) {
+  width: 20px;
+  height: 20px;
+  color: var(--label-tertiary);
 }

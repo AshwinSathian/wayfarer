@@ -1,7 +1,8 @@
 /* ── External fonts ─────────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0");
+/* Inter Variable — full optical-size + weight range */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,250,0,-25");
 
 /* ── Design system ──────────────────────────────────────── */
 @import "./design-system/tokens.css";
@@ -23,27 +24,64 @@ html,
 body {
   background-color: var(--canvas-app);
   color: var(--label-primary);
-  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb);
   border-radius: var(--radius-full);
+  transition: background-color var(--dur-quick) var(--ease-standard);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover);
 }
 
-/* Selection */
+/* ── Selection ──────────────────────────────────────────── */
 ::selection {
   background-color: var(--selection-bg);
   color: var(--selection-text);
+}
+
+/* ── Focus visible ──────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ── Remove focus outline for mouse interactions ─────────── */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Smooth color transitions on theme change ─────────────── */
+*,
+::before,
+::after {
+  transition:
+    background-color 0.2s var(--ease-standard),
+    border-color 0.2s var(--ease-standard),
+    color 0.2s var(--ease-standard);
+}
+
+/* Exceptions: don't animate transform, opacity etc. globally */
+button, a, input, select, textarea {
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard),
+    opacity var(--dur-quick) var(--ease-standard);
 }

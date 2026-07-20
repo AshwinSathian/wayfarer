@@ -1,4 +1,5 @@
 <div class="flex min-h-screen bg-canvas-app text-label-primary">
+  <!-- Collections drawer -->
   <p-drawer
     position="left"
     [visible]="drawerVisible"
@@ -13,9 +14,20 @@
     <div class="flex h-full flex-col">
       <!-- Sidebar header -->
       <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
-        <span class="type-title-3 text-label-primary font-semibold tracking-tight">
-          API Sandbox
-        </span>
+        <!-- Brand logomark + name -->
+        <div class="flex items-center gap-2.5">
+          <div class="brand-logo-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 2.5L2 7L5 11.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 2.5L12 7L9 11.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="type-title-3 text-label-primary" style="letter-spacing: -0.012em; line-height: 1.1;">
+              API Sandbox
+            </span>
+          </div>
+        </div>
         @if (isMobile) {
         <button class="ds-icon-btn" (click)="toggleDrawer.emit()">
           <span class="material-symbols-outlined icon-md">side_navigation</span>
@@ -40,26 +52,36 @@
       <div class="flex-1 overflow-y-auto px-3 py-3">
         <app-collections-sidebar class="h-full w-full" (loadRequest)="handleLoadCollectionRequest($event)"></app-collections-sidebar>
       </div>
-
     </div>
   </p-drawer>
 
+  <!-- Main content area -->
   <div
-    class="flex flex-1 flex-col transition-all duration-300 ease-standard"
+    class="flex flex-1 flex-col"
+    style="transition: margin-left var(--dur-enter) var(--ease-standard);"
     [ngClass]="{ 'md:ml-[22rem]': !isMobile && drawerVisible }"
   >
     <!-- Top toolbar -->
-    <div class="ds-toolbar">
-      <div class="flex items-center gap-3">
-        <button class="ds-icon-btn" (click)="toggleDrawer.emit()">
+    <header class="ds-toolbar">
+      <!-- Left: nav toggle + brand -->
+      <div class="flex items-center gap-2">
+        <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar">
           <span class="material-symbols-outlined icon-md">side_navigation</span>
         </button>
-        <span class="hidden md:block type-title-3 text-label-secondary font-medium">
-          API Sandbox
-        </span>
+        <div class="hidden md:flex items-center gap-2">
+          <div class="brand-logo-icon" style="width:22px; height:22px; border-radius: 5px;">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 2.5L2 7L5 11.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 2.5L12 7L9 11.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="type-title-3 text-label-secondary" style="font-weight: 480; letter-spacing: -0.010em;">API Sandbox</span>
+        </div>
       </div>
 
+      <!-- Right: actions cluster -->
       <div class="flex items-center gap-2">
+        <!-- Environment selector -->
         <p-select
           [options]="dropdownOptions"
           [(ngModel)]="selectedEnvironmentId"
@@ -70,6 +92,10 @@
           styleClass="env-switcher"
         ></p-select>
 
+        <!-- Divider -->
+        <div class="w-px h-5 bg-separator hidden sm:block"></div>
+
+        <!-- Secrets lock -->
         <button
           class="ds-icon-btn"
           [class.text-status-success]="secretsUnlocked"
@@ -81,6 +107,7 @@
           </span>
         </button>
 
+        <!-- Theme toggle -->
         <button
           class="ds-icon-btn"
           (click)="themeService.toggle()"
@@ -91,23 +118,23 @@
           </span>
         </button>
 
+        <!-- History -->
         <button
           class="ds-icon-btn"
-          [class.text-accent-primary]="historyDrawerVisible"
+          [class.bg-accent-fill]="historyDrawerVisible"
           (click)="historyDrawerVisible = true"
           title="Request history"
         >
           <span class="material-symbols-outlined icon-md">history</span>
         </button>
       </div>
-    </div>
+    </header>
 
+    <!-- Page content -->
     <main class="flex-1 overflow-y-auto">
-      <div class="flex w-full flex-col gap-6 px-4 pb-16 pt-6 md:px-8">
-        <div class="flex flex-col gap-6">
-          <app-api-params (newRequest)="newRequest.emit()"></app-api-params>
-          <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
-        </div>
+      <div class="flex w-full flex-col gap-5 px-4 pb-16 pt-5 md:px-8">
+        <app-api-params (newRequest)="newRequest.emit()"></app-api-params>
+        <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
       </div>
     </main>
   </div>
@@ -122,11 +149,14 @@
   [closeOnEscape]="true"
   [blockScroll]="false"
   [showCloseIcon]="false"
-  [style]="{ width: '26rem' }"
+  [style]="{ width: '27rem' }"
 >
   <div class="flex h-full flex-col">
-    <div class="flex items-center justify-between border-b border-separator px-4 py-3">
-      <span class="type-title-3 text-label-primary font-semibold">History</span>
+    <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined icon-sm text-label-tertiary">history</span>
+        <span class="type-title-3 text-label-primary">History</span>
+      </div>
       <div class="flex items-center gap-1">
         <button
           pButton
@@ -145,7 +175,7 @@
         </button>
       </div>
     </div>
-    <div class="flex-1 overflow-y-auto px-2 py-3">
+    <div class="flex-1 overflow-y-auto px-2 py-2">
       <app-past-requests
         [pastRequests]="pastRequests"
         [loading]="historyLoading"
@@ -166,15 +196,19 @@
   [style]="{ width: '400px' }"
 >
   <div class="flex flex-col gap-4">
-    @if (isFirstVaultSetup) {
-    <p class="type-callout text-label-secondary">
-      Create a passphrase to encrypt your secrets. You'll need this passphrase to access them in future sessions.
-    </p>
-    } @else {
-    <p class="type-callout text-label-secondary">
-      Enter your passphrase to unlock encrypted secrets for this session.
-    </p>
-    }
+    <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
+      <span class="material-symbols-outlined icon-md text-label-tertiary mt-0.5 flex-shrink-0">
+        {{ isFirstVaultSetup ? 'shield_lock' : 'lock' }}
+      </span>
+      <p class="type-callout text-label-secondary leading-relaxed">
+        @if (isFirstVaultSetup) {
+        Create a passphrase to encrypt your secrets. You'll need it to access them in future sessions.
+        } @else {
+        Enter your passphrase to unlock encrypted secrets for this session.
+        }
+      </p>
+    </div>
+
     <div class="flex flex-col gap-3">
       <input
         pInputText
@@ -183,6 +217,7 @@
         [(ngModel)]="unlockPassphrase"
         [placeholder]="isFirstVaultSetup ? 'Choose a passphrase' : 'Passphrase'"
         (keydown.enter)="unlockSecrets()"
+        autofocus
       />
       @if (isFirstVaultSetup) {
       <input
@@ -195,9 +230,14 @@
       />
       }
     </div>
+
     @if (unlockError) {
-    <p class="type-footnote text-status-error">{{ unlockError }}</p>
+    <p class="type-footnote text-status-error flex items-center gap-1.5">
+      <span class="material-symbols-outlined icon-xs">error</span>
+      {{ unlockError }}
+    </p>
     }
+
     <div class="flex justify-end gap-2">
       <button pButton label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
       <button
@@ -219,8 +259,11 @@
     let-onReject="onReject"
   >
     <div class="flex flex-col items-center p-8 bg-canvas-overlay rounded-2xl">
-      <span class="type-title-2 text-label-primary mb-2 mt-4">{{ message.header }}</span>
-      <p class="type-body text-label-secondary text-center">{{ message.message }}</p>
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4">
+        <span class="material-symbols-outlined icon-lg text-status-error">warning</span>
+      </div>
+      <span class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
+      <p class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>
       <div class="flex items-center gap-3 mt-6">
         <p-button
           severity="danger"

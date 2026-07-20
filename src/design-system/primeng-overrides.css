@@ -1,207 +1,385 @@
 /* ============================================================
-   PrimeNG Global Overrides — API Sandbox
-   Override PrimeNG CSS properties via standard cascade
-   (no ::ng-deep required for global overrides).
+   PrimeNG Overrides — API Sandbox · "Obsidian" Design Language
    ============================================================ */
 
 /* ── Drawer ──────────────────────────────────────────────── */
 .p-drawer {
-  background: var(--canvas-sidebar) !important;
-  box-shadow: none !important;
+  background: var(--glass-toolbar) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.50) !important;
+  border-right: 1px solid var(--separator) !important;
   transition-duration: var(--dur-enter) !important;
   transition-timing-function: var(--ease-enter) !important;
 }
+
+[data-theme="light"] .p-drawer {
+  background: var(--glass-toolbar) !important;
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12) !important;
+}
+
 .p-drawer-content {
   padding: 0 !important;
   background: transparent !important;
 }
+
 .p-drawer-header {
   display: none !important;
 }
+
 .p-drawer-close-button {
   display: none !important;
 }
 
-/* ── Env switcher ────────────────────────────────────────── */
-.env-switcher.p-select {
-  width: 200px;
+/* Right drawer */
+.p-drawer[class*="right"] {
+  box-shadow: -4px 0 32px rgba(0, 0, 0, 0.50) !important;
+  border-right: none !important;
+  border-left: 1px solid var(--separator) !important;
 }
 
 /* ── Dialog / Modal ──────────────────────────────────────── */
 .p-dialog {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-dialog) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-2xl) !important;
   box-shadow: var(--shadow-dialog) !important;
+  overflow: hidden !important;
 }
+
 .p-dialog-header {
   background: transparent !important;
   border-bottom: 1px solid var(--separator) !important;
-  padding: 18px 24px 16px !important;
+  padding: 20px 24px 18px !important;
 }
+
 .p-dialog-title {
   font-size: 16px !important;
   font-weight: 600 !important;
+  letter-spacing: -0.010em !important;
   color: var(--label-primary) !important;
 }
+
 .p-dialog-content {
   background: transparent !important;
   padding: 20px 24px !important;
 }
+
 .p-dialog-footer {
   background: transparent !important;
   border-top: 1px solid var(--separator) !important;
   padding: 14px 24px !important;
 }
+
 .p-dialog-mask {
-  background: rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(4px) !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(6px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(6px) saturate(1.4) !important;
 }
 
 /* ── Card ────────────────────────────────────────────────── */
 .p-card {
   background: var(--canvas-panel) !important;
   border: 1px solid var(--separator) !important;
-  border-radius: var(--radius-lg) !important;
+  border-radius: var(--radius-xl) !important;
   box-shadow: none !important;
 }
+
 .p-card-body {
   padding: 24px !important;
 }
 
 /* ── Inputs ──────────────────────────────────────────────── */
 .p-inputtext {
+  height: 40px !important;
   background: var(--canvas-elevated) !important;
   border: 1px solid var(--separator) !important;
   border-radius: var(--radius-md) !important;
   color: var(--label-primary) !important;
   font-size: 14px !important;
+  letter-spacing: -0.003em !important;
+  padding: 0 13px !important;
   transition:
     border-color var(--dur-quick) var(--ease-standard),
     box-shadow var(--dur-quick) var(--ease-standard) !important;
 }
+
+.p-inputtext:hover:not(:focus) {
+  border-color: var(--fill-primary) !important;
+}
+
 .p-inputtext:focus {
   border-color: var(--accent-border) !important;
-  box-shadow: 0 0 0 3px var(--accent-fill) !important;
+  box-shadow: var(--glow-accent) !important;
   outline: none !important;
 }
+
 .p-inputtext::placeholder {
   color: var(--label-placeholder) !important;
+  font-weight: 400 !important;
 }
 
 /* ── Select ──────────────────────────────────────────────── */
 .p-select {
+  height: 40px !important;
   background: var(--canvas-elevated) !important;
   border: 1px solid var(--separator) !important;
   border-radius: var(--radius-md) !important;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard) !important;
 }
+
 .p-select:not(.p-disabled):hover {
   border-color: var(--fill-primary) !important;
 }
+
 .p-select:not(.p-disabled).p-focus {
   border-color: var(--accent-border) !important;
-  box-shadow: 0 0 0 3px var(--accent-fill) !important;
+  box-shadow: var(--glow-accent) !important;
 }
+
 .p-select-label {
   color: var(--label-primary) !important;
   font-size: 14px !important;
+  letter-spacing: -0.003em !important;
+  padding: 0 !important;
+  line-height: 38px !important;
 }
+
 .p-select-overlay {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-overlay) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-overlay) !important;
+  overflow: hidden !important;
 }
+
 .p-select-option {
   font-size: 14px !important;
+  letter-spacing: -0.003em !important;
   color: var(--label-primary) !important;
+  padding: 9px 14px !important;
+  border-radius: 0 !important;
 }
+
 .p-select-option:hover,
 .p-select-option.p-focus {
   background: var(--fill-hover) !important;
 }
+
 .p-select-option.p-selected {
   background: var(--accent-fill) !important;
   color: var(--accent-text) !important;
+}
+
+/* Method select — shows colour of selected method */
+.method-select.p-select {
+  height: 40px !important;
+  border-radius: var(--radius-md) 0 0 var(--radius-md) !important;
+  border-right: none !important;
+  min-width: 110px !important;
+  background: var(--canvas-elevated) !important;
+  border-color: var(--separator) !important;
+}
+
+.method-select.p-select .p-select-label {
+  font-family: var(--font-mono) !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 0 12px !important;
+}
+
+/* Env switcher */
+.env-switcher.p-select {
+  height: 32px !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--fill-secondary) !important;
+  border: 1px solid var(--separator) !important;
+  min-width: 160px !important;
+  max-width: 200px !important;
+}
+
+.env-switcher .p-select-label {
+  font-size: 13px !important;
+  line-height: 30px !important;
+  padding: 0 10px !important;
+}
+
+.env-switcher .p-select-dropdown {
+  width: 28px !important;
 }
 
 /* ── Tabs ────────────────────────────────────────────────── */
 .p-tabs .p-tablist {
   background: transparent !important;
   border-bottom: 1px solid var(--separator) !important;
+  gap: 0 !important;
 }
+
+.p-tabs .p-tablist-tab-list {
+  background: transparent !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
 .p-tab {
   color: var(--label-secondary) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  padding: 8px 14px !important;
+  letter-spacing: -0.002em !important;
+  padding: 10px 16px !important;
+  border: none !important;
+  background: transparent !important;
   border-bottom: 2px solid transparent !important;
   transition:
     color var(--dur-quick) var(--ease-standard),
     border-color var(--dur-quick) var(--ease-standard) !important;
+  position: relative !important;
 }
+
 .p-tab:hover {
   color: var(--label-primary) !important;
+  background: transparent !important;
 }
+
 .p-tab.p-tab-active {
-  color: var(--accent-text) !important;
+  color: var(--label-primary) !important;
   border-bottom-color: var(--accent) !important;
+  font-weight: 580 !important;
 }
+
 .p-tabpanels {
   background: transparent !important;
-  padding: 16px 0 0 !important;
+  padding: 18px 0 0 !important;
+}
+
+.p-tabpanel {
+  background: transparent !important;
+  padding: 0 !important;
 }
 
 /* ── SelectButton ────────────────────────────────────────── */
 .p-selectbutton {
   background: var(--fill-secondary) !important;
+  border: 1px solid var(--separator) !important;
   border-radius: var(--radius-sm) !important;
   padding: 3px !important;
-  gap: 2px !important;
-  border: none !important;
+  gap: 1px !important;
 }
+
 .p-selectbutton .p-togglebutton {
   background: transparent !important;
   border: none !important;
   color: var(--label-secondary) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
-  padding: 5px 12px !important;
+  letter-spacing: -0.002em !important;
+  padding: 5px 14px !important;
   border-radius: calc(var(--radius-sm) - 2px) !important;
   transition:
     background var(--dur-quick) var(--ease-standard),
     color var(--dur-quick) var(--ease-standard),
     box-shadow var(--dur-quick) var(--ease-standard) !important;
 }
+
 .p-selectbutton .p-togglebutton.p-togglebutton-checked {
   background: var(--canvas-overlay) !important;
   color: var(--label-primary) !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
 }
+
 .p-selectbutton .p-togglebutton:hover:not(.p-togglebutton-checked) {
   color: var(--label-primary) !important;
+  background: var(--fill-hover) !important;
 }
 
 /* ── Buttons ─────────────────────────────────────────────── */
 .p-button {
   border-radius: var(--radius-md) !important;
-  font-weight: 500 !important;
+  font-weight: 510 !important;
   font-size: 14px !important;
+  letter-spacing: -0.004em !important;
   transition:
     background var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
     transform var(--dur-micro) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard) !important;
+    box-shadow var(--dur-quick) var(--ease-standard),
+    opacity var(--dur-quick) var(--ease-standard) !important;
 }
+
 .p-button:active {
-  transform: scale(0.97) !important;
+  transform: scale(0.96) !important;
 }
+
+/* Primary */
 .p-button-primary:not(.p-button-outlined):not(.p-button-text) {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
+  background: var(--gradient-primary) !important;
+  border: 1px solid rgba(10, 132, 255, 0.40) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.30) !important;
 }
+
 .p-button-primary:not(.p-button-outlined):not(.p-button-text):hover {
   background: var(--accent-hover) !important;
   border-color: var(--accent-hover) !important;
+  box-shadow: 0 4px 14px rgba(10, 132, 255, 0.40) !important;
+}
+
+/* Secondary outlined */
+.p-button.p-button-secondary.p-button-outlined {
+  background: transparent !important;
+  border-color: var(--separator) !important;
+  color: var(--label-primary) !important;
+}
+
+.p-button.p-button-secondary.p-button-outlined:hover {
+  background: var(--fill-hover) !important;
+  border-color: var(--fill-primary) !important;
+}
+
+/* Send button — special gradient CTA */
+.send-btn.p-button {
+  background: var(--gradient-accent) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 0 22px !important;
+  height: 40px !important;
+  font-weight: 560 !important;
+  letter-spacing: -0.006em !important;
+  box-shadow: 0 2px 12px rgba(10, 132, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20) !important;
+}
+
+.send-btn.p-button:hover {
+  box-shadow: 0 4px 18px rgba(10, 132, 255, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+  transform: translateY(-1px) scale(1.01) !important;
+}
+
+.send-btn.p-button:active {
+  transform: translateY(0) scale(0.97) !important;
+  box-shadow: 0 1px 6px rgba(10, 132, 255, 0.30) !important;
+}
+
+.send-btn.p-button:disabled {
+  opacity: 0.4 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Danger */
+.p-button.p-button-danger:not(.p-button-text):not(.p-button-outlined) {
+  background: var(--status-error-fill) !important;
+  border: 1px solid var(--status-error-border) !important;
+  color: var(--status-error) !important;
+  box-shadow: none !important;
 }
 
 /* ── Tree ────────────────────────────────────────────────── */
@@ -210,20 +388,26 @@
   border: none !important;
   padding: 0 !important;
 }
+
 .p-tree-node-content {
   padding: 5px 8px !important;
   border-radius: var(--radius-sm) !important;
   transition: background var(--dur-micro) var(--ease-standard) !important;
 }
+
 .p-tree-node-content:hover {
   background: var(--fill-hover) !important;
 }
+
 .p-tree-node-selected > .p-tree-node-content {
   background: var(--accent-fill) !important;
+  box-shadow: inset 0 0 0 1px var(--accent-border) !important;
 }
+
 .p-tree-node-label {
   color: var(--label-primary) !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
+  letter-spacing: -0.002em !important;
 }
 
 /* ── Accordion ───────────────────────────────────────────── */
@@ -233,11 +417,15 @@
   color: var(--label-secondary) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
+  letter-spacing: -0.002em !important;
+  transition: background var(--dur-micro) var(--ease-standard) !important;
 }
+
 .p-accordion-header-link:hover {
   background: var(--fill-hover) !important;
   color: var(--label-primary) !important;
 }
+
 .p-accordion-content {
   background: transparent !important;
   border-color: var(--separator) !important;
@@ -246,7 +434,9 @@
 /* ── Skeleton ────────────────────────────────────────────── */
 .p-skeleton {
   background: var(--fill-secondary) !important;
+  border-radius: var(--radius-md) !important;
 }
+
 .p-skeleton::after {
   background: linear-gradient(
     90deg,
@@ -262,17 +452,22 @@
   border: 1px solid var(--separator) !important;
   border-radius: var(--radius-sm) !important;
   font-size: 12px !important;
+  letter-spacing: -0.002em !important;
   color: var(--label-secondary) !important;
-  box-shadow: var(--shadow-card) !important;
+  box-shadow: var(--shadow-overlay) !important;
+  padding: 6px 10px !important;
 }
 
 /* ── Popover ─────────────────────────────────────────────── */
 .p-popover {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-overlay) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-overlay) !important;
 }
+
 .p-popover::before,
 .p-popover::after {
   display: none !important;
@@ -280,38 +475,47 @@
 
 /* ── Menu ────────────────────────────────────────────────── */
 .p-menu {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-overlay) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-overlay) !important;
-  padding: 4px !important;
+  padding: 5px !important;
   min-width: 160px !important;
 }
+
 .p-menu-item-link {
   border-radius: var(--radius-sm) !important;
   padding: 8px 12px !important;
   font-size: 13px !important;
+  letter-spacing: -0.002em !important;
   color: var(--label-primary) !important;
   transition: background var(--dur-micro) var(--ease-standard) !important;
 }
+
 .p-menu-item:hover .p-menu-item-link {
   background: var(--fill-hover) !important;
 }
 
 /* ── ContextMenu ─────────────────────────────────────────── */
 .p-contextmenu {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-overlay) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-overlay) !important;
-  padding: 4px !important;
+  padding: 5px !important;
 }
+
 .p-contextmenu .p-menu-item-link {
   border-radius: var(--radius-sm) !important;
-  padding: 7px 12px !important;
+  padding: 8px 12px !important;
   font-size: 13px !important;
   color: var(--label-primary) !important;
 }
+
 .p-contextmenu .p-menu-item:hover .p-menu-item-link {
   background: var(--fill-hover) !important;
 }
@@ -321,6 +525,7 @@
   color: var(--label-tertiary) !important;
   font-size: 13px !important;
 }
+
 .p-floatlabel:focus-within label,
 .p-floatlabel.p-floatlabel-active label {
   color: var(--accent-text) !important;
@@ -331,23 +536,40 @@
   background: var(--canvas-elevated) !important;
   border-color: var(--separator) !important;
   border-radius: var(--radius-xs) !important;
+  width: 16px !important;
+  height: 16px !important;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard) !important;
 }
+
+.p-checkbox:hover .p-checkbox-box {
+  border-color: var(--accent-border) !important;
+}
+
 .p-checkbox.p-checkbox-checked .p-checkbox-box {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-fill) !important;
 }
 
 /* ── Confirm dialog ──────────────────────────────────────── */
 .p-confirmdialog {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-dialog) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-2xl) !important;
+  box-shadow: var(--shadow-dialog) !important;
 }
 
 /* ── Confirm popup ───────────────────────────────────────── */
 .p-confirmpopup {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
+  background: var(--glass-overlay) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border-strong) !important;
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-overlay) !important;
 }

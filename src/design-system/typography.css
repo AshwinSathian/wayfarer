@@ -1,49 +1,159 @@
 /* ============================================================
-   Typography — API Sandbox
-   Inter for UI, JetBrains Mono for code/URLs
+   Typography — API Sandbox · "Obsidian" Design Language
+   Inter Variable with SF Pro-calibre refinements
    ============================================================ */
 
-/* Font stack */
+/* ── Font rendering ──────────────────────────────────────── */
+html {
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Font stack ──────────────────────────────────────────── */
 * {
   font-family: var(--font-sans);
+  /* cv02 = single-story a, cv03 = single-story g, cv04 = simple i/l,
+     cv11 = single-story g (some builds). Together these give Inter
+     the clean geometric feel of SF Pro. */
+  font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1, 'kern' 1;
 }
 
 code,
 pre,
-.font-mono {
+.font-mono,
+[class*="type-mono"] {
   font-family: var(--font-mono);
+  font-feature-settings: normal;
 }
 
-/* Material Symbols — lighter weight, smaller optical size */
-.material-icons,
+/* ── Icon system ─────────────────────────────────────────── */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined', sans-serif;
-  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  /* FILL 0 = outline, wght 250 = ultra-light (SF Symbols feel),
+     opsz 20 = small optical size for UI icons */
+  font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   user-select: none;
+  flex-shrink: 0;
 }
 
-/* Icon size variants */
-.icon-sm  { font-size: 16px; }
-.icon-md  { font-size: 20px; }
-.icon-lg  { font-size: 24px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-.icon-xl  { font-size: 32px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48; }
+.icon-xs  { font-size: 14px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 16; }
+.icon-sm  { font-size: 16px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20; }
+.icon-md  { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20; }
+.icon-lg  { font-size: 24px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 24; }
+.icon-xl  { font-size: 32px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 48; }
 .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 20; }
 
-/* Type scale — use these classes in templates instead of
-   arbitrary Tailwind size combos. */
-.type-display  { font-size: 26px; line-height: 32px; font-weight: 600; }
-.type-title-1  { font-size: 20px; line-height: 26px; font-weight: 600; }
-.type-title-2  { font-size: 17px; line-height: 22px; font-weight: 600; }
-.type-title-3  { font-size: 15px; line-height: 20px; font-weight: 600; }
-.type-headline { font-size: 14px; line-height: 20px; font-weight: 500; }
-.type-body     { font-size: 14px; line-height: 20px; font-weight: 400; }
-.type-callout  { font-size: 13px; line-height: 18px; font-weight: 400; }
-.type-subhead  { font-size: 12px; line-height: 16px; font-weight: 500; }
-.type-footnote { font-size: 11px; line-height: 15px; font-weight: 400; }
-.type-caption  { font-size: 10px; line-height: 14px; font-weight: 400; }
-.type-mono-body  { font-family: var(--font-mono); font-size: 13px; line-height: 20px; font-weight: 400; }
-.type-mono-label { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 500; }
+/* ── Type scale ──────────────────────────────────────────── */
+/* Apple-inspired scale: tighter tracking on larger sizes,
+   optical weight adjustments at each step. */
+
+.type-display {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.type-title-1 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 650;
+  letter-spacing: -0.018em;
+}
+
+.type-title-2 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 620;
+  letter-spacing: -0.014em;
+}
+
+.type-title-3 {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 590;
+  letter-spacing: -0.010em;
+}
+
+.type-headline {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 520;
+  letter-spacing: -0.006em;
+}
+
+.type-body {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: -0.003em;
+}
+
+.type-callout {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  letter-spacing: -0.002em;
+}
+
+.type-subhead {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.type-footnote {
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 400;
+  letter-spacing: 0.002em;
+}
+
+.type-caption {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 400;
+  letter-spacing: 0.006em;
+}
+
+/* ── Mono type scale ─────────────────────────────────────── */
+.type-mono-body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.type-mono-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.type-mono-caption {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ── Uppercase labels ────────────────────────────────────── */
+/* Used for section headers, column labels, category tags */
+.type-overline {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

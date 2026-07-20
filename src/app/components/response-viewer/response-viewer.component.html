@@ -1,17 +1,18 @@
-<div class="mt-4 w-full rounded-lg bg-canvas-elevated border border-separator">
+<div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
   @if (loading) {
-  <div class="space-y-3 p-5">
-    <p-skeleton height="2rem" borderRadius="10px"></p-skeleton>
-    <p-skeleton height="1.5rem" borderRadius="10px"></p-skeleton>
-    <p-skeleton height="8rem" borderRadius="10px"></p-skeleton>
+  <div class="space-y-3 p-6">
+    <p-skeleton height="2.25rem" borderRadius="12px"></p-skeleton>
+    <p-skeleton height="1.5rem" width="60%" borderRadius="10px"></p-skeleton>
+    <p-skeleton height="9rem" borderRadius="12px"></p-skeleton>
   </div>
   } @else {
   <div>
-    <!-- Persistent status bar -->
+    <!-- ── Status bar ─────────────────────────────────────── -->
     @if (responseStatusCode !== undefined) {
-    <div class="flex flex-wrap items-center gap-3 border-b border-separator px-4 py-3">
+    <div class="flex flex-wrap items-center gap-3 border-b border-separator px-5 py-3.5 animate-fade-in">
+      <!-- Status code badge -->
       <span
-        class="status-badge"
+        class="status-badge animate-badge-pop"
         [ngClass]="{
           'status-2xx': responseStatusCode >= 200 && responseStatusCode < 300,
           'status-3xx': responseStatusCode >= 300 && responseStatusCode < 400,
@@ -20,33 +21,50 @@
           'status-err': isError && responseStatusCode === 0
         }"
       >{{ responseStatusCode }}</span>
+
+      <!-- Status text -->
       <span class="type-callout text-label-secondary">{{ responseStatusText }}</span>
+
       @let inspData = inspectionValue;
+
+      <!-- Duration -->
       @if (inspData?.duration) {
-      <span class="type-footnote text-label-tertiary">{{ formatMs(inspData.duration) }}</span>
+      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
+        <span class="material-symbols-outlined icon-xs">timer</span>
+        {{ formatMs(inspData.duration) }}
+      </span>
       }
+
+      <!-- Size -->
       @if (responseContentLength) {
-      <span class="type-footnote text-label-tertiary">{{ formatBytes(responseContentLength) }}</span>
+      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
+        <span class="material-symbols-outlined icon-xs">data_object</span>
+        {{ formatBytes(responseContentLength) }}
+      </span>
       }
+
+      <!-- Export -->
       @if (canExport) {
       <div class="ml-auto">
         <p-menu #exportMenu [model]="exportItems" [popup]="true"></p-menu>
-        <p-button
+        <button
+          pButton
+          type="button"
           label="Export"
           icon="pi pi-download"
           iconPos="left"
           size="small"
-          (click)="exportMenu.toggle($event)"
           severity="secondary"
           outlined
-        ></p-button>
+          (click)="exportMenu.toggle($event)"
+        ></button>
       </div>
       }
     </div>
     }
 
-    <!-- Tabs -->
-    <div class="px-4 py-3">
+    <!-- ── Response tabs ──────────────────────────────────── -->
+    <div class="px-4 pt-1">
       <p-tabs [value]="activeTab" (valueChange)="onTabChange($event)">
         <p-tablist>
           <p-tab value="body">Body</p-tab>
@@ -55,12 +73,12 @@
           <p-tab value="tests">
             Tests
             @if (testResults.length) {
-            <span class="ml-1.5 inline-flex items-center gap-1">
+            <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
-              <span class="rounded-full bg-status-success/20 px-1.5 py-0.5 type-caption text-status-success tabular-nums">{{ testPassCount }}</span>
+              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-caption text-status-success tabular-nums" style="background: var(--status-success-fill); border: 1px solid var(--status-success-border);">{{ testPassCount }}</span>
               }
               @if (testFailCount) {
-              <span class="rounded-full bg-status-error/20 px-1.5 py-0.5 type-caption text-status-error tabular-nums">{{ testFailCount }}</span>
+              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-caption text-status-error tabular-nums" style="background: var(--status-error-fill); border: 1px solid var(--status-error-border);">{{ testFailCount }}</span>
               }
             </span>
             }
@@ -68,20 +86,20 @@
         </p-tablist>
 
         <p-tabpanels>
-          <!-- Body tab -->
+          <!-- ── Body tab ───────────────────────────────────── -->
           <p-tabpanel value="body">
-            <div class="space-y-3 type-body text-label-primary">
+            <div class="space-y-3 pb-4">
               @if (responseBodyIsJson) {
               <div class="flex flex-wrap items-center gap-2">
                 <input
                   pInputText
-                  class="w-44"
+                  class="w-48"
                   [value]="searchQuery"
                   (input)="onSearchQueryChange($any($event.target).value)"
                   placeholder="Search response…"
                 />
-                <span class="type-footnote text-label-tertiary">
-                  {{ searchResult?.count ? searchActiveIndex + 1 : 0 }}/{{ searchResult?.count || 0 }}
+                <span class="type-footnote text-label-tertiary tabular-nums">
+                  {{ searchResult?.count ? searchActiveIndex + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult?.count || 0 }}
                 </span>
                 <div class="flex items-center gap-0.5">
                   <button pButton type="button" icon="pi pi-angle-up" size="small" text
@@ -91,11 +109,13 @@
                 </div>
               </div>
               }
+
               @if (currentSearchExcerpt) {
-              <div class="rounded-md bg-canvas-panel border border-separator px-3 py-2 type-caption text-label-secondary">
+              <div class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-caption text-label-secondary font-mono">
                 …{{ currentSearchExcerpt }}…
               </div>
               }
+
               @if (!isError) {
                 @if (responseBodyIsJson) {
                 <app-json-editor
@@ -103,11 +123,11 @@
                   [readOnly]="true"
                   [ngModel]="formattedResponseBody"
                   [ngModelOptions]="{ standalone: true }"
-                  [height]="280"
+                  [height]="300"
                   (ngModelChange)="onReadOnlyBodyChange($event)"
                 ></app-json-editor>
                 } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-status-success">{{ responseData || 'No body returned.' }}</pre>
+                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-success">{{ responseData || 'No body returned.' }}</pre>
                 }
               } @else {
                 @if (responseBodyIsJson) {
@@ -116,37 +136,33 @@
                   [readOnly]="true"
                   [ngModel]="formattedResponseError"
                   [ngModelOptions]="{ standalone: true }"
-                  [height]="280"
+                  [height]="300"
                   (ngModelChange)="onReadOnlyErrorChange($event)"
                 ></app-json-editor>
                 } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-lg bg-canvas-panel border border-separator p-4 type-mono-body text-status-error">{{ responseError || 'No body returned.' }}</pre>
+                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-error">{{ responseError || 'No body returned.' }}</pre>
                 }
               }
             </div>
           </p-tabpanel>
 
-          <!-- Headers tab -->
+          <!-- ── Headers tab ────────────────────────────────── -->
           <p-tabpanel value="headers">
-            <div class="space-y-3 type-body text-label-primary">
-              <div class="max-h-72 overflow-y-auto rounded-lg border border-separator">
+            <div class="pb-4">
+              <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden">
                 @if (responseHeaders.length) {
-                <table class="w-full text-left">
+                <table class="ds-table">
                   <tbody>
                     @for (header of responseHeaders; track header.name) {
-                    <tr class="border-b border-separator last:border-b-0 hover:bg-fill-hover transition-colors">
-                      <th class="w-40 px-3 py-2 type-subhead text-label-secondary font-mono">
-                        {{ header.name }}
-                      </th>
-                      <td class="px-3 py-2 type-callout text-label-primary break-all">
-                        {{ header.value || '—' }}
-                      </td>
+                    <tr>
+                      <th>{{ header.name }}</th>
+                      <td class="break-all">{{ header.value || '—' }}</td>
                     </tr>
                     }
                   </tbody>
                 </table>
                 } @else {
-                <div class="p-4 type-callout text-label-tertiary">
+                <div class="p-5 type-callout text-label-tertiary text-center">
                   No response headers available.
                 </div>
                 }
@@ -154,63 +170,68 @@
             </div>
           </p-tabpanel>
 
-          <!-- Timings tab -->
+          <!-- ── Timings tab ────────────────────────────────── -->
           <p-tabpanel value="timings">
             @let inspectionData = inspectionValue;
             @if (!inspectionData) {
-            <p class="type-callout text-label-tertiary">
-              Timing data will appear after you send a request.
-            </p>
+            <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
+              <span class="material-symbols-outlined icon-md text-label-tertiary">timer</span>
+              <p class="type-callout text-label-tertiary">Timing data will appear after you send a request.</p>
+            </div>
             } @else {
-            <div class="space-y-5">
+            <div class="space-y-5 pb-4">
               <!-- Summary cards -->
               <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg bg-canvas-panel border border-separator p-3">
-                  <div class="flex items-center gap-1.5 mb-1">
+                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Duration</span>
-                    <span class="pi pi-info-circle text-label-tertiary text-[10px] cursor-help"
-                      [pTooltip]="timingSummaryTooltips.duration" tooltipPosition="top"></span>
+                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                      [pTooltip]="timingSummaryTooltips.duration" tooltipPosition="top">info</span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
                 </div>
-                <div class="rounded-lg bg-canvas-panel border border-separator p-3">
-                  <div class="flex items-center gap-1.5 mb-1">
+                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Transfer</span>
-                    <span class="pi pi-info-circle text-label-tertiary text-[10px] cursor-help"
-                      [pTooltip]="timingSummaryTooltips.transferSize" tooltipPosition="top"></span>
+                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                      [pTooltip]="timingSummaryTooltips.transferSize" tooltipPosition="top">info</span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
                 </div>
-                <div class="rounded-lg bg-canvas-panel border border-separator p-3">
-                  <div class="flex items-center gap-1.5 mb-1">
+                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Encoded</span>
-                    <span class="pi pi-info-circle text-label-tertiary text-[10px] cursor-help"
-                      [pTooltip]="timingSummaryTooltips.encodedBodySize" tooltipPosition="top"></span>
+                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                      [pTooltip]="timingSummaryTooltips.encodedBodySize" tooltipPosition="top">info</span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
                 </div>
-                <div class="rounded-lg bg-canvas-panel border border-separator p-3">
-                  <div class="flex items-center gap-1.5 mb-1">
+                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                  <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Decoded</span>
-                    <span class="pi pi-info-circle text-label-tertiary text-[10px] cursor-help"
-                      [pTooltip]="timingSummaryTooltips.decodedBodySize" tooltipPosition="top"></span>
+                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                      [pTooltip]="timingSummaryTooltips.decodedBodySize" tooltipPosition="top">info</span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
                 </div>
               </div>
 
               <!-- Waterfall -->
-              <div class="space-y-2">
+              <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="ds-section-label">Waterfall</span>
-                    <span class="pi pi-info-circle text-label-tertiary text-[10px] cursor-help"
-                      [pTooltip]="waterfallTooltip" tooltipPosition="top"></span>
+                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                      [pTooltip]="waterfallTooltip" tooltipPosition="top">info</span>
                   </div>
                   @if (inspectionData.limitedByCors) {
-                  <span class="type-footnote text-status-warning">CORS-limited timings</span>
+                  <span class="type-footnote text-status-warning flex items-center gap-1">
+                    <span class="material-symbols-outlined icon-xs">warning</span>
+                    CORS-limited timings
+                  </span>
                   }
                 </div>
+
                 @if (hasGranularTimings()) {
                 <div class="flex flex-col gap-2.5">
                   @for (phase of getTimingBars(); track phase.key) {
@@ -218,13 +239,13 @@
                     <div class="flex w-24 items-center gap-1.5">
                       <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
                       @if (phase.tooltip) {
-                      <span class="pi pi-info-circle text-label-tertiary text-[9px] cursor-help"
-                        [pTooltip]="phase.tooltip" tooltipPosition="top"></span>
+                      <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
+                        [pTooltip]="phase.tooltip" tooltipPosition="top">info</span>
                       }
                     </div>
-                    <div class="relative h-3 flex-1 rounded-full bg-fill-secondary">
+                    <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
                       <div
-                        class="absolute left-0 top-0 h-3 rounded-full timing-bar-fill"
+                        class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
                         [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
                         [attr.title]="formatMs(phase.duration)"
                       ></div>
@@ -242,8 +263,8 @@
                     <div class="flex w-24 items-center gap-1.5">
                       <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
                     </div>
-                    <div class="relative h-3 flex-1 rounded-full bg-fill-secondary">
-                      <div class="absolute left-0 top-0 h-3 rounded-full timing-bar-fill" style="width: 100%"
+                    <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
+                      <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"
                         [attr.title]="formatMs(bar.duration)"></div>
                     </div>
                     <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
@@ -252,34 +273,40 @@
                   </div>
                   }
                 </div>
-                <p class="type-caption text-label-tertiary mt-1">
-                  Detailed phases unavailable for this response.
+                <p class="type-caption text-label-tertiary">
+                  Detailed phase breakdown unavailable for this response.
                 </p>
                 }
               </div>
             </div>
             }
           </p-tabpanel>
-          <!-- Tests tab -->
+
+          <!-- ── Tests tab ──────────────────────────────────── -->
           <p-tabpanel value="tests">
-            <div class="space-y-2">
+            <div class="space-y-2 pb-4">
               @if (!testResults.length) {
-              <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
+              <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
+                <span class="material-symbols-outlined icon-md text-label-tertiary">rule</span>
+                <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
+              </div>
               } @else {
               <div class="space-y-1.5">
                 @for (result of testResults; track result.label + result.source) {
                 <div
-                  class="flex items-start gap-3 rounded-lg px-3 py-2.5"
-                  [ngClass]="result.passed ? 'bg-[color-mix(in_srgb,var(--p-green-500)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--p-red-500)_10%,transparent)]'"
+                  class="flex items-start gap-3 rounded-xl px-4 py-3"
+                  [class.test-result-pass]="result.passed"
+                  [class.test-result-fail]="!result.passed"
                 >
-                  <span
-                    class="mt-0.5 flex-shrink-0"
-                    [ngClass]="result.passed ? 'pi pi-check-circle text-green-500' : 'pi pi-times-circle text-red-500'"
-                  ></span>
+                  <span class="mt-0.5 flex-shrink-0 material-symbols-outlined icon-sm"
+                    [class.text-status-success]="result.passed"
+                    [class.text-status-error]="!result.passed"
+                  >{{ result.passed ? 'check_circle' : 'cancel' }}</span>
                   <div class="flex-1 min-w-0">
-                    <div class="type-callout" [ngClass]="result.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
-                      {{ result.label }}
-                    </div>
+                    <div class="type-callout"
+                      [class.text-status-success]="result.passed"
+                      [class.text-status-error]="!result.passed"
+                    >{{ result.label }}</div>
                     @if (!result.passed && result.error) {
                     <div class="type-caption text-label-tertiary mt-0.5">{{ result.error }}</div>
                     }
@@ -291,14 +318,20 @@
                 </div>
                 }
               </div>
-              <div class="flex items-center gap-3 pt-2 border-t border-separator">
-                <span class="type-subhead text-green-600 dark:text-green-400">{{ testPassCount }} passed</span>
-                <span class="type-subhead text-red-600 dark:text-red-400">{{ testFailCount }} failed</span>
+
+              <div class="flex items-center gap-4 pt-3 border-t border-separator">
+                <span class="type-subhead text-status-success flex items-center gap-1.5">
+                  <span class="material-symbols-outlined icon-xs">check_circle</span>
+                  {{ testPassCount }} passed
+                </span>
+                <span class="type-subhead text-status-error flex items-center gap-1.5">
+                  <span class="material-symbols-outlined icon-xs">cancel</span>
+                  {{ testFailCount }} failed
+                </span>
               </div>
               }
             </div>
           </p-tabpanel>
-
         </p-tabpanels>
       </p-tabs>
     </div>

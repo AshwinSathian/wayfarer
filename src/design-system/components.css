@@ -1,6 +1,6 @@
 /* ============================================================
-   Component Design System — API Sandbox
-   Utility classes + canonical component styles
+   Component Design System — API Sandbox · "Obsidian"
+   Utility classes and canonical component patterns
    ============================================================ */
 
 /* ── Background utilities ────────────────────────────────── */
@@ -45,57 +45,69 @@
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-weight: 650;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get); }
-.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post); }
-.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put); }
-.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch); }
-.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete); }
-.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head); }
-.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options); }
+.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get);     border: 1px solid rgba(10,132,255,0.20); }
+.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post);    border: 1px solid rgba(48,209,88,0.20); }
+.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put);     border: 1px solid rgba(255,159,10,0.20); }
+.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch);   border: 1px solid rgba(191,90,242,0.20); }
+.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete);  border: 1px solid rgba(255,69,58,0.20); }
+.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head);    border: 1px solid rgba(99,99,102,0.20); }
+.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options); border: 1px solid rgba(90,200,250,0.20); }
 
-/* Status code badges */
+/* ── Status code badges ──────────────────────────────────── */
 .status-badge {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
+  font-weight: 650;
+  padding: 3px 11px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.01em;
 }
-.status-badge.status-2xx { background: var(--status-success-fill); color: var(--status-success); }
-.status-badge.status-3xx { background: var(--status-info-fill);    color: var(--status-info); }
-.status-badge.status-4xx { background: var(--status-warning-fill); color: var(--status-warning); }
-.status-badge.status-5xx { background: var(--status-error-fill);   color: var(--status-error); }
-.status-badge.status-err { background: var(--status-error-fill);   color: var(--status-error); }
 
-/* ── Card / Panel ────────────────────────────────────────── */
+.status-badge.status-2xx { background: var(--status-success-fill); color: var(--status-success); border: 1px solid var(--status-success-border); }
+.status-badge.status-3xx { background: var(--status-info-fill);    color: var(--status-info);    border: 1px solid var(--status-info-border); }
+.status-badge.status-4xx { background: var(--status-warning-fill); color: var(--status-warning); border: 1px solid var(--status-warning-border); }
+.status-badge.status-5xx { background: var(--status-error-fill);   color: var(--status-error);   border: 1px solid var(--status-error-border); }
+.status-badge.status-err { background: var(--status-error-fill);   color: var(--status-error);   border: 1px solid var(--status-error-border); }
+
+/* ── Panel / Card ────────────────────────────────────────── */
 .ds-panel {
   background: var(--canvas-panel);
   border: 1px solid var(--separator);
-  border-radius: var(--radius-lg);
+  border-top-color: var(--glass-border);
+  border-radius: var(--radius-xl);
 }
 
 .ds-panel-elevated {
   background: var(--canvas-elevated);
   border: 1px solid var(--separator);
-  border-radius: var(--radius-lg);
+  border-top-color: var(--glass-border);
+  border-radius: var(--radius-xl);
+}
+
+.ds-panel-glass {
+  background: var(--glass-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-xl);
 }
 
 /* ── Section label ───────────────────────────────────────── */
 .ds-section-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--label-tertiary);
 }
@@ -104,25 +116,28 @@
 .ds-form-label {
   display: block;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 520;
   color: var(--label-secondary);
+  letter-spacing: -0.002em;
   margin-bottom: 6px;
 }
 
-/* ── Segmented control (Apple-style tab switcher) ────────── */
+/* ── Segmented control ───────────────────────────────────── */
 .seg-control {
   display: inline-flex;
   background: var(--fill-secondary);
   border-radius: var(--radius-sm);
   padding: 3px;
-  gap: 2px;
+  gap: 1px;
+  border: 1px solid var(--separator);
 }
 
 .seg-option {
   border-radius: calc(var(--radius-sm) - 2px);
-  padding: 5px 12px;
+  padding: 5px 14px;
   font-size: 12px;
   font-weight: 500;
+  letter-spacing: -0.002em;
   color: var(--label-secondary);
   cursor: pointer;
   border: none;
@@ -136,7 +151,7 @@
 .seg-option.active {
   background: var(--canvas-overlay);
   color: var(--label-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 /* ── Toolbar ─────────────────────────────────────────────── */
@@ -145,9 +160,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  height: 52px;
-  padding: 0 16px;
-  background: var(--canvas-sidebar);
+  height: 56px;
+  padding: 0 20px;
+  background: var(--glass-toolbar);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--separator);
   position: sticky;
   top: 0;
@@ -159,8 +176,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);
@@ -168,34 +185,64 @@
   cursor: pointer;
   transition:
     background var(--dur-micro) var(--ease-standard),
-    color var(--dur-micro) var(--ease-standard);
+    color var(--dur-micro) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-standard);
   flex-shrink: 0;
+  position: relative;
 }
+
 .ds-icon-btn:hover {
   background: var(--fill-primary);
   color: var(--label-primary);
 }
 
-/* ── Response status bar ─────────────────────────────────── */
-.response-status-bar {
+.ds-icon-btn:active {
+  transform: scale(0.91);
+  background: var(--fill-active);
+}
+
+/* ── Address bar (unified method + URL) ──────────────────── */
+.address-bar {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: var(--canvas-elevated);
+  align-items: stretch;
   border: 1px solid var(--separator);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--canvas-elevated);
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.address-bar:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: var(--glow-accent);
+}
+
+.address-bar .address-method {
+  flex-shrink: 0;
+  border-right: 1px solid var(--separator);
+}
+
+.address-bar .address-url {
+  flex: 1;
 }
 
 /* ── Variable chips ──────────────────────────────────────── */
 .var-chip {
   display: inline-flex;
   flex-direction: column;
-  padding: 4px 8px;
+  padding: 4px 9px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: opacity var(--dur-quick) var(--ease-standard);
+  transition:
+    opacity var(--dur-quick) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-spring);
   font-size: 11px;
+}
+
+.var-chip:hover {
+  transform: translateY(-1px);
 }
 
 .var-chip.var-environment {
@@ -217,7 +264,119 @@
   animation: chip-pulse 2s ease-in-out infinite;
 }
 
-/* ── Timing waterfall bar ────────────────────────────────── */
+/* ── Timing waterfall ────────────────────────────────────── */
 .timing-bar-fill {
-  background: var(--accent);
+  background: var(--gradient-accent);
+  border-radius: var(--radius-full);
+}
+
+/* ── Response status bar ─────────────────────────────────── */
+.response-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--canvas-elevated);
+  border: 1px solid var(--separator);
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.ds-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 24px;
+  border: 1px dashed var(--separator);
+  border-radius: var(--radius-xl);
+  text-align: center;
+  color: var(--label-tertiary);
+}
+
+/* ── Brand logomark ──────────────────────────────────────── */
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brand-logo-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
+}
+
+/* ── Env tag ─────────────────────────────────────────────── */
+.env-active-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: var(--status-success-fill);
+  border: 1px solid var(--status-success-border);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--status-success);
+  letter-spacing: 0.04em;
+}
+
+/* ── Table (response headers etc.) ──────────────────────── */
+.ds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ds-table tr {
+  border-bottom: 1px solid var(--separator);
+  transition: background var(--dur-micro) var(--ease-standard);
+}
+
+.ds-table tr:last-child {
+  border-bottom: none;
+}
+
+.ds-table tr:hover {
+  background: var(--fill-hover);
+}
+
+.ds-table th {
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  text-align: left;
+  letter-spacing: 0.01em;
+}
+
+.ds-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--label-primary);
+  letter-spacing: -0.002em;
+}
+
+/* ── Test result rows ────────────────────────────────────── */
+.test-result-pass {
+  background: var(--status-success-fill);
+  border: 1px solid var(--status-success-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.test-result-fail {
+  background: var(--status-error-fill);
+  border: 1px solid var(--status-error-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
 }

@@ -35,7 +35,7 @@ describe('PastRequestsComponent', () => {
       headers: {},
       createdAt: 1
     };
-    component.pastRequests = [request];
+    fixture.componentRef.setInput('pastRequests', [request]);
 
     const loadSpy = jasmine.createSpy('load');
     const deleteSpy = jasmine.createSpy('delete');

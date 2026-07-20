@@ -1,13 +1,12 @@
 import { CommonModule } from "@angular/common";
 import {
   Component,
-  EventEmitter,
   OnInit,
   effect,
   inject,
-  Input,
-  Output,
-  ViewChild,
+  input,
+  viewChild,
+  output
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConfirmationService } from "primeng/api";
@@ -54,20 +53,19 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
   providers: [ConfirmationService],
 })
 export class AppShellComponent implements OnInit {
-  @Input() pastRequests: PastRequest[] = [];
-  @Input() historyLoading = false;
-  @Input() drawerVisible = true;
-  @Input() isMobile = false;
+  readonly pastRequests = input<PastRequest[]>([]);
+  readonly historyLoading = input(false);
+  readonly drawerVisible = input(true);
+  readonly isMobile = input(false);
 
-  @Output() newRequest = new EventEmitter<void>();
-  @Output() clearHistory = new EventEmitter<void>();
-  @Output() deleteRequest = new EventEmitter<PastRequestKey>();
-  @Output() openDrawer = new EventEmitter<void>();
-  @Output() closeDrawer = new EventEmitter<void>();
-  @Output() toggleDrawer = new EventEmitter<void>();
+  readonly newRequest = output<void>();
+  readonly clearHistory = output<void>();
+  readonly deleteRequest = output<PastRequestKey>();
+  readonly openDrawer = output<void>();
+  readonly closeDrawer = output<void>();
+  readonly toggleDrawer = output<void>();
 
-  @ViewChild(ApiParamsComponent, { static: true })
-  apiParams!: ApiParamsComponent;
+  readonly apiParams = viewChild.required(ApiParamsComponent);
 
   private readonly confirmationService = inject(ConfirmationService);
   private readonly environmentsService = inject(EnvironmentsService);
@@ -97,30 +95,33 @@ export class AppShellComponent implements OnInit {
   unlockError = "";
 
   get historyBadge(): string | undefined {
-    return this.pastRequests?.length
-      ? String(this.pastRequests.length)
+    const pastRequests = this.pastRequests();
+    return pastRequests?.length
+      ? String(pastRequests.length)
       : undefined;
   }
 
   get drawerWidth(): string {
-    return this.isMobile ? "18rem" : "22rem";
+    return this.isMobile() ? "18rem" : "22rem";
   }
 
   handleLoadRequest(request: PastRequest): void {
-    if (this.apiParams) {
-      this.apiParams.loadPastRequest(request);
+    const apiParams = this.apiParams();
+    if (apiParams) {
+      apiParams.loadPastRequest(request);
     }
-    if (this.isMobile) {
+    if (this.isMobile()) {
       this.closeDrawer.emit();
     }
   }
 
   handleLoadCollectionRequest(request: PastRequest): void {
-    if (this.apiParams) {
-      this.apiParams.loadPastRequest(request);
-      this.apiParams.focusUrl();
+    const apiParams = this.apiParams();
+    if (apiParams) {
+      apiParams.loadPastRequest(request);
+      apiParams.focusUrl();
     }
-    if (this.isMobile) {
+    if (this.isMobile()) {
       this.closeDrawer.emit();
     }
   }

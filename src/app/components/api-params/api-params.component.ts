@@ -4,7 +4,7 @@ import {
   HttpHeaders,
   HttpResponse,
 } from "@angular/common/http";
-import { Component, DoCheck, ElementRef, EventEmitter, Output, Signal, ViewChild, inject } from "@angular/core";
+import { Component, DoCheck, ElementRef, Signal, inject, viewChild, output } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
@@ -89,9 +89,9 @@ export class ApiParamsComponent implements DoCheck {
   private readonly scriptSandbox = inject(ScriptSandboxService);
   private readonly assertionRunner = inject(AssertionRunnerService);
 
-  @Output() newRequest = new EventEmitter();
+  readonly newRequest = output();
 
-  @ViewChild("urlInput") urlInputRef?: ElementRef<HTMLInputElement>;
+  readonly urlInputRef = viewChild<ElementRef<HTMLInputElement>>("urlInput");
 
   endpoint: string;
   selectedRequestMethod: PastRequest["method"];
@@ -262,7 +262,7 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   focusUrl(): void {
-    const el = this.urlInputRef?.nativeElement;
+    const el = this.urlInputRef()?.nativeElement;
     if (!el) {
       return;
     }

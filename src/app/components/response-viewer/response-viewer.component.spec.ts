@@ -51,7 +51,7 @@ describe("ResponseViewerComponent", () => {
   });
 
   it("returns empty timing bars when inspection is missing", () => {
-    component.inspection = signal<ResponseInspection | null>(null);
+    fixture.componentRef.setInput('inspection', signal<ResponseInspection | null>(null));
 
     expect(component.hasGranularTimings()).toBeFalse();
     expect(component.getFallbackBars()).toEqual([]);
@@ -72,7 +72,7 @@ describe("ResponseViewerComponent", () => {
       },
     };
 
-    component.inspection = signal(inspection);
+    fixture.componentRef.setInput('inspection', signal(inspection));
 
     const bars = component.getTimingBars();
     expect(bars.length).toBe(3);

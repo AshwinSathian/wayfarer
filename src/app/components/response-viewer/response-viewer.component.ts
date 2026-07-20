@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, Input, OnChanges, Output, Signal, SimpleChanges, signal, inject } from "@angular/core";
+import { Component, Input, OnChanges, Signal, SimpleChanges, signal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MenuItem } from "primeng/api";
 import { ButtonModule } from "primeng/button";
@@ -64,18 +64,18 @@ export interface ResponseExportContext {
 export class ResponseViewerComponent implements OnChanges {
   private readonly jsonWorker = inject(JsonWorkerService);
 
-  @Input() loading = false;
-  @Input() responseData = "";
-  @Input() responseError = "";
-  @Input() responseBodyIsJson = false;
-  @Input() responseHeaders: ResponseHeader[] = [];
-  @Input() responseStatusCode?: number;
-  @Input() responseStatusText?: string;
-  @Input() isError = false;
-  @Input() inspection?: Signal<ResponseInspection | null> | null;
-  @Input() responseContentLength?: number;
-  @Input() exportContext: ResponseExportContext | null = null;
-  @Input() testResults: TestResult[] = [];
+  readonly loading = input(false);
+  readonly responseData = input("");
+  readonly responseError = input("");
+  readonly responseBodyIsJson = input(false);
+  readonly responseHeaders = input<ResponseHeader[]>([]);
+  readonly responseStatusCode = input<number>();
+  readonly responseStatusText = input<string>();
+  readonly isError = input(false);
+  readonly inspection = input<Signal<ResponseInspection | null> | null>();
+  readonly responseContentLength = input<number>();
+  readonly exportContext = input<ResponseExportContext | null>(null);
+  readonly testResults = input<TestResult[]>([]);
 
   exportItems: MenuItem[] = [
     {
@@ -104,7 +104,7 @@ export class ResponseViewerComponent implements OnChanges {
     }
   }
 
-  @Output() activeTabChange = new EventEmitter<ResponseTab>();
+  readonly activeTabChange = output<ResponseTab>();
 
   readonly timingSummaryTooltips = {
     duration:
@@ -204,14 +204,14 @@ export class ResponseViewerComponent implements OnChanges {
       this.prepareFormatting();
     }
 
-    if ("responseBodyIsJson" in changes && !this.responseBodyIsJson) {
+    if ("responseBodyIsJson" in changes && !this.responseBodyIsJson()) {
       this.resetFormattedValues();
       this.resetSearchState();
     }
   }
 
   get formattedResponseBody(): string {
-    if (this.isError) {
+    if (this.isError()) {
       return this.formattedResponseError;
     }
     return this.formattedBody;
@@ -222,23 +222,23 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   get testPassCount(): number {
-    return this.testResults.filter((r) => r.passed).length;
+    return this.testResults().filter((r) => r.passed).length;
   }
 
   get testFailCount(): number {
-    return this.testResults.filter((r) => !r.passed).length;
+    return this.testResults().filter((r) => !r.passed).length;
   }
 
   get canExport(): boolean {
     return (
-      !this.loading &&
-      !!this.exportContext &&
-      this.responseStatusCode !== undefined
+      !this.loading() &&
+      !!this.exportContext() &&
+      this.responseStatusCode() !== undefined
     );
   }
 
   async copyAsCurl(): Promise<void> {
-    const context = this.exportContext;
+    const context = this.exportContext();
     if (!context) {
       return;
     }
@@ -286,9 +286,9 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   private prepareFormatting(): void {
-    if (!this.responseBodyIsJson) {
-      this.formattedBody = this.responseData ?? "";
-      this.formattedError = this.responseError ?? "";
+    if (!this.responseBodyIsJson()) {
+      this.formattedBody = this.responseData() ?? "";
+      this.formattedError = this.responseError() ?? "";
       this.lastBodySource = this.formattedBody;
       this.lastBodyResult = this.formattedBody;
       this.lastErrorSource = this.formattedError;
@@ -300,11 +300,11 @@ export class ResponseViewerComponent implements OnChanges {
       return;
     }
 
-    const source = this.isError ? this.responseError : this.responseData;
+    const source = this.isError() ? this.responseError() : this.responseData();
     const normalized = source ?? "";
 
     if (!normalized.trim()) {
-      if (this.isError) {
+      if (this.isError()) {
         this.formattedError = "";
         this.lastErrorSource = "";
         this.lastErrorResult = "";
@@ -316,7 +316,7 @@ export class ResponseViewerComponent implements OnChanges {
       return;
     }
 
-    if (this.isError) {
+    if (this.isError()) {
       void this.formatAndAssign(normalized, "error");
     } else {
       void this.formatAndAssign(normalized, "body");
@@ -324,8 +324,8 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   private resetFormattedValues(): void {
-    this.formattedBody = this.responseData ?? "";
-    this.formattedError = this.responseError ?? "";
+    this.formattedBody = this.responseData() ?? "";
+    this.formattedError = this.responseError() ?? "";
     this.lastBodySource = this.formattedBody;
     this.lastBodyResult = this.formattedBody;
     this.lastErrorSource = this.formattedError;
@@ -388,7 +388,7 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   private shouldUseWorker(source: string): boolean {
-    const hint = this.responseContentLength ?? 0;
+    const hint = this.responseContentLength() ?? 0;
     return Math.max(source.length, hint) >= this.largePayloadThreshold;
   }
 
@@ -483,20 +483,21 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   get inspectionValue(): ResponseInspection | null {
-    const source = this.inspection ?? this.fallbackInspection;
+    const source = this.inspection() ?? this.fallbackInspection;
     return source();
   }
 
   private buildExportEntry(): InspectorExportEntry | null {
-    const context = this.exportContext;
+    const context = this.exportContext();
     if (!context) {
       return null;
     }
 
     const inspection = this.inspectionValue;
     const url = context.url || inspection?.url || "";
+    const responseStatusCode = this.responseStatusCode();
     const statusCode =
-      this.responseStatusCode !== undefined ? this.responseStatusCode : null;
+      responseStatusCode !== undefined ? responseStatusCode : null;
 
     if (!url || statusCode === null) {
       return null;
@@ -527,9 +528,9 @@ export class ResponseViewerComponent implements OnChanges {
       },
       res: {
         status: statusCode,
-        statusText: this.responseStatusText ?? "",
+        statusText: this.responseStatusText() ?? "",
         headers: this.buildResponseHeadersRecord(),
-        body: this.isError ? this.responseError : this.responseData,
+        body: this.isError() ? this.responseError() : this.responseData(),
         sizes: inspection?.sizes,
       },
       phases: inspection?.phases,
@@ -539,7 +540,7 @@ export class ResponseViewerComponent implements OnChanges {
   }
 
   private buildResponseHeadersRecord(): Record<string, string> {
-    return this.responseHeaders.reduce<Record<string, string>>(
+    return this.responseHeaders().reduce<Record<string, string>>(
       (acc, header) => {
         if (!header?.name) {
           return acc;

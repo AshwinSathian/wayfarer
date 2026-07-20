@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, inject, Input, OnChanges, Output } from "@angular/core";
+import { Component, inject, OnChanges, input, output } from "@angular/core";
 import { AccordionModule } from "primeng/accordion";
 import { ConfirmationService } from "primeng/api";
 import { ButtonModule } from "primeng/button";
@@ -30,11 +30,11 @@ export interface HistoryGroup {
   styleUrls: ["./past-requests.component.css"],
 })
 export class PastRequestsComponent implements OnChanges {
-  @Input() pastRequests: PastRequest[] = [];
-  @Input() loading = false;
-  @Input() displayHeader = true;
-  @Output() loadRequest = new EventEmitter<PastRequest>();
-  @Output() deleteRequest = new EventEmitter<PastRequestKey>();
+  readonly pastRequests = input<PastRequest[]>([]);
+  readonly loading = input(false);
+  readonly displayHeader = input(true);
+  readonly loadRequest = output<PastRequest>();
+  readonly deleteRequest = output<PastRequestKey>();
 
   private readonly confirmationService = inject(ConfirmationService);
 
@@ -43,7 +43,7 @@ export class PastRequestsComponent implements OnChanges {
   groups: HistoryGroup[] = [];
 
   ngOnChanges(): void {
-    this.groups = this.buildGroups(this.pastRequests);
+    this.groups = this.buildGroups(this.pastRequests());
   }
 
   private buildGroups(requests: PastRequest[]): HistoryGroup[] {
@@ -115,7 +115,8 @@ export class PastRequestsComponent implements OnChanges {
   }
 
   confirmDelete(req: PastRequest, event: Event) {
-    if (typeof req.id !== "undefined") {
+    const id = req.id;
+    if (typeof id !== "undefined") {
       this.confirmationService.confirm({
         target: event.currentTarget as EventTarget,
         message: "Remove this request from history?",
@@ -128,7 +129,7 @@ export class PastRequestsComponent implements OnChanges {
           label: "Delete",
           severity: "danger",
         },
-        accept: () => this.deleteRequest.emit(req.id),
+        accept: () => this.deleteRequest.emit(id),
       });
     }
   }

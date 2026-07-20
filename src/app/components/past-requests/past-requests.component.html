@@ -1,5 +1,5 @@
 <section class="h-full w-full">
-  @if (loading) {
+  @if (loading()) {
   <div class="flex flex-col gap-1.5 p-1">
     @for (skeleton of skeletonPlaceholders; track skeleton) {
     <div class="rounded-xl bg-canvas-elevated border border-separator p-3">
@@ -11,7 +11,7 @@
     </div>
     }
   </div>
-  } @else if (!pastRequests.length) {
+  } @else if (!pastRequests().length) {
   <div class="flex flex-col items-center gap-2.5 p-6 text-center">
     <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">history</span>
     <p class="type-footnote text-label-tertiary">No history yet.</p>

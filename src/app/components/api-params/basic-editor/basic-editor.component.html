@@ -5,18 +5,18 @@
     <div class="md:col-span-1 text-center"></div>
   </div>
 
-  @for (item of items; track item; let index = $index) {
+  @for (item of items(); track item; let index = $index) {
   <div class="flex flex-col gap-3 md:grid md:grid-cols-[1fr_1fr_auto] md:items-center md:gap-4">
     <input
       pInputText
       class="w-full font-mono"
-      [disabled]="disableItem(item, index)"
+      [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.key"
     />
     <input
       pInputText
       class="w-full font-mono"
-      [disabled]="disableItem(item, index)"
+      [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.value"
     />
     <div class="flex justify-end md:block md:text-center">
@@ -25,10 +25,10 @@
         type="button"
         text
         icon="pi pi-times"
-        [disabled]="disableItem(item, index)"
+        [disabled]="disableItem()(item, index)"
         severity="danger"
-        [attr.aria-label]="'Remove ' + context.toLowerCase() + ' item'"
-        (click)="removeItem(index, context)"
+        [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
+        (click)="removeItem()(index, context())"
       ></button>
     </div>
   </div>
@@ -39,11 +39,11 @@
       pButton
       type="button"
       icon="pi pi-plus"
-      [label]="addLabel"
-      [attr.aria-label]="addLabel"
-      [disabled]="isAddDisabled(context)"
+      [label]="addLabel()"
+      [attr.aria-label]="addLabel()"
+      [disabled]="isAddDisabled()(context())"
       severity="secondary"
-      (click)="addItem(context)"
+      (click)="addItem()(context())"
     ></button>
   </div>
 </div>

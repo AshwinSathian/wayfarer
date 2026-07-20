@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, OnInit, Output, effect, signal, WritableSignal, inject } from "@angular/core";
+import { Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { ChipModule } from "primeng/chip";
@@ -61,7 +61,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly variableFocus = inject(VariableFocusService);
 
-  @Output() requestUnlock = new EventEmitter<void>();
+  readonly requestUnlock = output<void>();
 
   protected readonly Object = Object;
   readonly environments = this.envService.environments;
@@ -261,6 +261,7 @@ export class EnvironmentsManagerComponent implements OnInit {
       return;
     }
     if (!this.secretCrypto.isUnlocked) {
+      // TODO: The 'emit' function requires a mandatory void argument
       this.requestUnlock.emit();
       return;
     }

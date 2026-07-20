@@ -1,16 +1,15 @@
 import {
   Component,
   ElementRef,
-  EventEmitter,
-  Input,
   OnChanges,
   OnDestroy,
-  Output,
   SimpleChanges,
   ViewChild,
   effect,
   forwardRef,
   inject,
+  input,
+  output
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ThemeService } from "../../services/theme.service";
@@ -43,7 +42,7 @@ const noop = () => {};
   template: `
     <div
       class="h-full w-full"
-      [style.height.px]="height ?? defaultHeight"
+      [style.height.px]="height() ?? defaultHeight"
     >
       @defer (on viewport) {
         <div
@@ -77,13 +76,13 @@ export class JsonEditorComponent
 {
   private readonly themeService = inject(ThemeService);
 
-  @Input() readOnly = false;
-  @Input() height?: number;
-  @Input() schemaUri?: string;
-  @Input() schema?: unknown;
+  readonly readOnly = input(false);
+  readonly height = input<number>();
+  readonly schemaUri = input<string>();
+  readonly schema = input<unknown>();
 
-  @Output() jsonValidChange = new EventEmitter<boolean>();
-  @Output() parsedChange = new EventEmitter<unknown>();
+  readonly jsonValidChange = output<boolean>();
+  readonly parsedChange = output<unknown>();
 
   @ViewChild("editorHost")
   set editorHost(host: ElementRef<HTMLDivElement> | undefined) {
@@ -116,7 +115,7 @@ export class JsonEditorComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if ("readOnly" in changes && this.editorInstance) {
-      this.editorInstance.updateOptions({ readOnly: this.readOnly || this.disabled });
+      this.editorInstance.updateOptions({ readOnly: this.readOnly() || this.disabled });
     }
 
     if (
@@ -153,7 +152,7 @@ export class JsonEditorComponent
     this.disabled = isDisabled;
     if (this.editorInstance) {
       this.editorInstance.updateOptions({
-        readOnly: this.readOnly || this.disabled,
+        readOnly: this.readOnly() || this.disabled,
       });
     }
   }
@@ -194,7 +193,7 @@ export class JsonEditorComponent
       minimap: { enabled: false },
       theme: monacoThemeName(this.themeService.theme()),
       wordWrap: "on",
-      readOnly: this.readOnly || this.disabled,
+      readOnly: this.readOnly() || this.disabled,
     });
 
     this.editorInstance.onDidChangeModelContent(() => {
@@ -216,7 +215,7 @@ export class JsonEditorComponent
   }
 
   private validateCurrentValue(): void {
-    if (this.readOnly) {
+    if (this.readOnly()) {
       if (!this.isJsonValid) {
         this.isJsonValid = true;
         this.jsonValidChange.emit(true);
@@ -246,17 +245,19 @@ export class JsonEditorComponent
     }
     const monaco = this.monacoModule;
 
+    const schemaUri = this.schemaUri();
+    const schema = this.schema();
     monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
       allowComments: true,
       validate: true,
-      enableSchemaRequest: !!this.schemaUri,
+      enableSchemaRequest: !!this.schemaUri(),
       schemas:
-        this.schema && this.schemaUri
+        schema && schemaUri
           ? [
               {
-                uri: this.schemaUri,
+                uri: schemaUri,
                 fileMatch: ["*"],
-                schema: this.schema,
+                schema: schema,
               },
             ]
           : [],

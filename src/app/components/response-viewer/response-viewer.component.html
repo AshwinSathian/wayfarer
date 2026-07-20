@@ -1,5 +1,5 @@
 <div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
-  @if (loading) {
+  @if (loading()) {
   <div class="space-y-3 p-6">
     <p-skeleton height="2.25rem" borderRadius="12px"></p-skeleton>
     <p-skeleton height="1.5rem" width="60%" borderRadius="10px"></p-skeleton>
@@ -8,22 +8,23 @@
   } @else {
   <div>
     <!-- ── Status bar ─────────────────────────────────────── -->
-    @if (responseStatusCode !== undefined) {
+    @let statusCode = responseStatusCode();
+    @if (statusCode !== undefined) {
     <div class="flex flex-wrap items-center gap-3 border-b border-separator px-5 py-3.5 animate-fade-in">
       <!-- Status code badge -->
       <span
         class="status-badge animate-badge-pop"
         [ngClass]="{
-          'status-2xx': responseStatusCode >= 200 && responseStatusCode < 300,
-          'status-3xx': responseStatusCode >= 300 && responseStatusCode < 400,
-          'status-4xx': responseStatusCode >= 400 && responseStatusCode < 500,
-          'status-5xx': responseStatusCode >= 500,
-          'status-err': isError && responseStatusCode === 0
+          'status-2xx': statusCode >= 200 && statusCode < 300,
+          'status-3xx': statusCode >= 300 && statusCode < 400,
+          'status-4xx': statusCode >= 400 && statusCode < 500,
+          'status-5xx': statusCode >= 500,
+          'status-err': isError() && statusCode === 0
         }"
-      >{{ responseStatusCode }}</span>
+      >{{ statusCode }}</span>
 
       <!-- Status text -->
-      <span class="type-callout text-label-secondary">{{ responseStatusText }}</span>
+      <span class="type-callout text-label-secondary">{{ responseStatusText() }}</span>
 
       @let inspData = inspectionValue;
 
@@ -36,10 +37,10 @@
       }
 
       <!-- Size -->
-      @if (responseContentLength) {
+      @if (responseContentLength()) {
       <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
         <span class="material-symbols-outlined icon-xs">data_object</span>
-        {{ formatBytes(responseContentLength) }}
+        {{ formatBytes(responseContentLength()) }}
       </span>
       }
 
@@ -73,7 +74,7 @@
           <p-tab value="timings">Timings</p-tab>
           <p-tab value="tests">
             Tests
-            @if (testResults.length) {
+            @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
               <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-caption text-status-success tabular-nums" style="background: var(--status-success-fill); border: 1px solid var(--status-success-border);">{{ testPassCount }}</span>
@@ -90,7 +91,7 @@
           <!-- ── Body tab ───────────────────────────────────── -->
           <p-tabpanel value="body">
             <div class="space-y-3 pb-4">
-              @if (responseBodyIsJson) {
+              @if (responseBodyIsJson()) {
               <div class="flex flex-wrap items-center gap-2">
                 <input
                   pInputText
@@ -117,8 +118,8 @@
               </div>
               }
 
-              @if (!isError) {
-                @if (responseBodyIsJson) {
+              @if (!isError()) {
+                @if (responseBodyIsJson()) {
                 <app-json-editor
                   name="responseJson"
                   [readOnly]="true"
@@ -128,10 +129,10 @@
                   (ngModelChange)="onReadOnlyBodyChange($event)"
                 ></app-json-editor>
                 } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-success">{{ responseData || 'No body returned.' }}</pre>
+                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-success">{{ responseData() || 'No body returned.' }}</pre>
                 }
               } @else {
-                @if (responseBodyIsJson) {
+                @if (responseBodyIsJson()) {
                 <app-json-editor
                   name="responseErrorJson"
                   [readOnly]="true"
@@ -141,7 +142,7 @@
                   (ngModelChange)="onReadOnlyErrorChange($event)"
                 ></app-json-editor>
                 } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-error">{{ responseError || 'No body returned.' }}</pre>
+                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-error">{{ responseError() || 'No body returned.' }}</pre>
                 }
               }
             </div>
@@ -151,10 +152,10 @@
           <p-tabpanel value="headers">
             <div class="pb-4">
               <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden">
-                @if (responseHeaders.length) {
+                @if (responseHeaders().length) {
                 <table class="ds-table">
                   <tbody>
-                    @for (header of responseHeaders; track header.name) {
+                    @for (header of responseHeaders(); track header.name) {
                     <tr>
                       <th>{{ header.name }}</th>
                       <td class="break-all">{{ header.value || '—' }}</td>
@@ -286,14 +287,14 @@
           <!-- ── Tests tab ──────────────────────────────────── -->
           <p-tabpanel value="tests">
             <div class="space-y-2 pb-4">
-              @if (!testResults.length) {
+              @if (!testResults().length) {
               <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
                 <span class="material-symbols-outlined icon-md text-label-tertiary">rule</span>
                 <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
               </div>
               } @else {
               <div class="space-y-1.5">
-                @for (result of testResults; track result.label + result.source) {
+                @for (result of testResults(); track result.label + result.source) {
                 <div
                   class="flex items-start gap-3 rounded-xl px-4 py-3"
                   [class.test-result-pass]="result.passed"

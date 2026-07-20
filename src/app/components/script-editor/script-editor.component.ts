@@ -1,16 +1,15 @@
 import {
   Component,
   ElementRef,
-  Input,
   OnChanges,
   OnDestroy,
-  Output,
-  EventEmitter,
   SimpleChanges,
   ViewChild,
   effect,
   forwardRef,
   inject,
+  input,
+  output
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
@@ -35,7 +34,7 @@ const noop = () => {};
     class: "block w-full",
   },
   template: `
-    <div [style.height.px]="height ?? 200">
+    <div [style.height.px]="height() ?? 200">
       @defer (on viewport) {
         <div
           #editorHost
@@ -59,9 +58,9 @@ const noop = () => {};
 export class ScriptEditorComponent
   implements ControlValueAccessor, OnChanges, OnDestroy
 {
-  @Input() height: number | null = null;
-  @Input() readOnly = false;
-  @Output() valueChange = new EventEmitter<string>();
+  readonly height = input<number | null>(null);
+  readonly readOnly = input(false);
+  readonly valueChange = output<string>();
 
   @ViewChild("editorHost", { static: false })
   set editorHost(host: ElementRef<HTMLDivElement> | undefined) {
@@ -94,7 +93,7 @@ export class ScriptEditorComponent
 
   ngOnChanges(changes: SimpleChanges): void {
     if ("readOnly" in changes && this.editorInstance) {
-      this.editorInstance.updateOptions({ readOnly: this.readOnly });
+      this.editorInstance.updateOptions({ readOnly: this.readOnly() });
     }
   }
 
@@ -152,7 +151,7 @@ export class ScriptEditorComponent
       lineNumbers: "on",
       scrollBeyondLastLine: false,
       wordWrap: "on",
-      readOnly: this.readOnly,
+      readOnly: this.readOnly(),
       tabSize: 2,
       insertSpaces: true,
     });

@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, HostListener, OnInit, Output, computed, signal, WritableSignal, inject } from "@angular/core";
+import { Component, HostListener, OnInit, computed, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ConfirmationService,
@@ -74,7 +74,7 @@ export class CollectionsSidebarComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly confirmationService = inject(ConfirmationService);
 
-  @Output() loadRequest = new EventEmitter<PastRequest>();
+  readonly loadRequest = output<PastRequest>();
 
   readonly nodes = computed<TreeNode<NodeData>[]>(() =>
     this.collectionsToNodes(this.collectionsService.tree())

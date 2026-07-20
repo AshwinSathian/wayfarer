@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project intends to adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A Trust Center (`docs/trust-center.md`) and a pre-answered procurement
+  security questionnaire (`docs/security-questionnaire.md`), so a security
+  reviewer can find the data-residency, encryption, subprocessor, and
+  compliance-status facts in one place instead of filing a ticket — per
+  `docs/plans/plan-rebrand-enterprise-strategy.md` Part F / Phase R3.
+- `/.well-known/security.txt` (RFC 9116) for automated vulnerability-scanner
+  discovery, linked from `SECURITY.md`.
+
 ## [1.0.0] - 2026-07-21
 
 **This project has been renamed from "API Sandbox" to "Wayfarer."** Same app,

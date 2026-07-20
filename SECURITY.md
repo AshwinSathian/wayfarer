@@ -22,6 +22,12 @@ server-backed product. The things we care most about are:
 "Server compromise," account takeover, and similar are **not** applicable
 threat models here — there is no server and no account.
 
+For the full data-residency, encryption, and compliance picture (including
+what's *not* true yet, stated plainly), see the [Trust Center](docs/trust-center.md)
+and the [pre-answered security questionnaire](docs/security-questionnaire.md).
+Automated scanners can discover this policy via
+[`/.well-known/security.txt`](public/.well-known/security.txt).
+
 ## Reporting a Vulnerability
 
 **Please do not open a public GitHub issue for security reports.**

@@ -307,10 +307,10 @@ Phases are ordered by dependency, not by calendar necessity — R0 blocks everyt
 - [ ] Domain cutover: new domain live, old `api-sandbox.ashwinsathian.com` 301-redirected, GitHub repo renamed (auto-forward confirmed, but all doc links updated regardless)
 
 ### Phase R3 — Trust & compliance foundation (parallel with R1/R2, target: ongoing, starts now)
-- [ ] Publish trust/security center page (F)
-- [ ] Add `/.well-known/security.txt`
-- [ ] Draft the pre-answered procurement security questionnaire
-- [ ] Start the SOC 2 Type II observation clock (F) — this is the longest-lead item in the entire document; starting late is the single most common reason enterprise deals stall a year later
+- [x] Publish trust/security center page (F) — [`docs/trust-center.md`](../trust-center.md)
+- [x] Add `/.well-known/security.txt` — [`public/.well-known/security.txt`](../../public/.well-known/security.txt)
+- [x] Draft the pre-answered procurement security questionnaire — [`docs/security-questionnaire.md`](../security-questionnaire.md)
+- [ ] Start the SOC 2 Type II observation clock (F) — this is the longest-lead item in the entire document; starting late is the single most common reason enterprise deals stall a year later. Not an engineering task — requires selecting an auditor and is intentionally left for the maintainer's follow-up, same as R0's trademark clearance.
 
 ### Phase R4 — Sync Relay + individual/Team tiers (depends on R0–R2, target: 1–2 quarters)
 - [ ] Build the E2E-encrypted sync relay (self-hostable Docker image + hosted option)

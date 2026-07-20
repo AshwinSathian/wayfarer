@@ -1,0 +1,61 @@
+name: Feature Request
+description: Suggest an idea or improvement for API Sandbox
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! API Sandbox aims to stay fast, simple, and
+        local-first — please keep that in mind when proposing new surface
+        area.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that the app doesn't support today?
+      placeholder: I'm trying to... but I can't because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you like to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you've considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Request composer
+        - Response viewer
+        - Collections
+        - Environments
+        - Secrets vault
+        - Scripts / assertions
+        - History
+        - Command palette
+        - Other / not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, links to similar features in other tools, anything else useful.
+    validations:
+      required: false

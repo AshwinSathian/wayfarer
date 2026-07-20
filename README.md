@@ -1,6 +1,10 @@
 # API Sandbox
 
-A focused, fast, and friendly web app for trying APIs without the overhead of a full‑blown client. Paste an endpoint, pick a method, set headers/body, hit **Send**—get a clean response with useful insights and shareable exports.
+[![CI](https://github.com/AshwinSathian/apiSandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/apiSandbox/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Coverage](https://img.shields.io/badge/coverage-not%20yet%20measured-lightgrey.svg)](CONTRIBUTING.md)
+
+A focused, fast, and friendly web app for trying APIs without the overhead of a full‑blown client. Paste an endpoint, pick a method, set headers/body/auth, hit **Send**—get a clean response with useful insights and shareable exports.
 
 > Built to keep you in flow while exploring APIs, debugging issues, and documenting endpoints.
 
@@ -12,9 +16,9 @@ A focused, fast, and friendly web app for trying APIs without the overhead of a 
 
 - **Zero clutter, just the essentials.** Compose a request and see a clean, structured response.
 - **Great defaults.** Sensible method/body pairing, helpful validation, and safe fallbacks.
-- **Shareable results.** Export a request/response as **HAR 1.2** or **NDJSON** lines for teammates and tooling.
-- **History that actually helps.** Saved **per‑browser, per‑device** using **IndexedDB (IDB)**—no servers, no tracking.
-- **Dark‑first UI.** Minimal, accessible, and keyboard‑friendly.
+- **Shareable results.** Export a request/response as **HAR 1.2** for teammates and tooling.
+- **No cloud, no account, no telemetry.** Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)** — nothing is ever uploaded.
+- **Dark‑first UI**, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly.
 
 ---
 
@@ -24,89 +28,103 @@ A focused, fast, and friendly web app for trying APIs without the overhead of a 
 
   - Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`
   - URL field with live validation
-  - Headers editor
-  - Body editor (enabled only when it makes sense)
-  - Optional **Monaco JSON editor** mode for power users
+  - Query Params, Headers, Auth (Bearer / Basic / API Key), and Scripts tabs
+  - Body editor (enabled only when it makes sense), with an optional **Monaco JSON editor** mode for power users
+  - **Copy as cURL** for any request
+
+- **Pre/Post-Request Scripts & Test Assertions**
+
+  - Monaco-backed script editor with a `pm.environment` / `pm.response` / `pm.test` / `pm.expect` API for dynamic auth, request chaining, and response validation
+  - Scripts run sandboxed in an isolated Web Worker with no access to the page, DOM, cookies, or network — see [`docs/scripts.md`](docs/scripts.md) for the full, verified isolation model
+  - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
+  - Results surface in a dedicated **Tests** tab in the response viewer
 
 - **Response Viewer**
 
-  - Pretty JSON with collapsible sections
-  - Headers & meta tabs
+  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs
   - Timing (DNS → Connect → TTFB → Total) and size breakdowns
   - Copy helpers and raw view
+
+- **Collections & Environments**
+
+  - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer**
+  - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type
+  - Deterministic collection import/export
+
+- **Secrets Vault**
+
+  - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only
+  - Guided first-use passphrase setup flow — see [`docs/secrets.md`](docs/secrets.md)
+
+- **History & Navigation**
+
+  - History drawer with date‑grouped, relative timestamps
+  - Re‑run and delete entries
+  - Command palette (⌘K) for fast keyboard-driven navigation
 
 - **Exports**
 
   - **HAR 1.2** – Standard archive for HTTP requests/responses (great for bug reports)
-  - **NDJSON** – Line‑by‑line JSON records for logs and automation
   - Large bodies are safely truncated/omitted in exports to keep files lightweight
 
-- **History**
-  - Stored **locally in your browser via IndexedDB**
-  - Re‑run, rename, and delete entries
-  - Quick filters by method and URL
+- **PWA**
 
----
-
-## Phase Progress
-
-- **Phase 0 (Foundations)**
-  - Monaco JSON editor with lazy workers to keep the initial bundle tiny.
-  - Response inspector (HAR/NDJSON exports, waterfall timings, size metrics) wired into the fetch pipeline.
-  - Workerised JSON formatting/search so large payloads never block the UI thread.
-- **Phase 1 (Local collections & secrets)**
-  - Collections/folders/requests CRUD with drag/drop reorder, inline rename, and deterministic import/export.
-  - Environment manager + dropdown switcher, variable resolution chips, and per‑variable focus from the request editor.
-  - Encrypted secrets at rest via PBKDF2 + AES‑GCM, lock/unlock UI, and ciphertext‑only IndexedDB rows.
-  - “Reset All Data” action to nuke IndexedDB + local settings in one guarded click.
+  - Installable from the browser; dark and light themes are both intentionally designed, not one inverted from the other
 
 ---
 
 ## Quick Start (Local)
 
-> Requires **Node 18+** and a modern browser. Angular CLI is optional; the scripts below will run the dev server.
+> Requires **Node 20+** and a modern browser.
 
 ```bash
 # 1) Clone the repo
 git clone https://github.com/AshwinSathian/apiSandbox.git
-cd api-sandbox
+cd apiSandbox
 
 # 2) Install dependencies
-npm install
-# (or: npm ci)
+npm ci
+# (or: npm install)
 
 # 3) Run the app (Angular dev server)
-ng serve --open
+npm run start
+# falls back to: ng serve --open
 # then open http://localhost:4200
 
-# 4) Production build (optional)
+# 4) Production build (optimized, hashed — the same build CI runs)
 npm run build
+
+# 5) Lint / test
+npm run lint
+npm run test:ci
 ```
 
 **Notes**
 
 - Calling third‑party APIs may require CORS to be enabled by that API. For private APIs, consider a proxy if needed.
-- The **History** is stored locally in **IndexedDB** and is **specific to the browser and device** you’re using.
+- History, collections, environments, and secrets are stored locally in **IndexedDB** and are **specific to the browser and device** you're using.
 
 ---
 
 ## How it works (in 60 seconds)
 
-- The **Request Composer** accepts a URL, method, headers, and (if applicable) a JSON body.
+- The **Request Composer** accepts a URL, method, query params, headers, auth, and (if applicable) a JSON body.
+- Optional pre-request and post-response scripts (or visual assertions) run before/after the call.
 - The app sends the request and shows:
   - **Body** (pretty‑printed for JSON)
   - **Headers**
-  - **Meta** (status, duration, sizes)
-- Each call can be **saved to History** for later replay or export.
-- You can **export** any call as HAR or NDJSON to share with teammates or attach to tickets.
+  - **Timings** (DNS → Connect → TTFB → Total, plus size breakdowns)
+  - **Tests** (assertion + script results)
+- Each request can be **saved to a Collection** for later reuse, or replayed from **History**.
+- You can **export** any call as HAR to share with teammates or attach to tickets.
 
 ---
 
 ## Privacy & Data
 
-- Your request history is stored **locally** in your browser via **IndexedDB (IDB)**.
-- **Nothing is uploaded** to our servers.
-- You’re in control: clear individual entries or wipe the entire history anytime.
+- Everything — requests, history, collections, environments, and secrets — is stored **locally** in your browser via **IndexedDB (IDB)**.
+- **Nothing is uploaded** to our servers; there is no backend and no account system.
+- You're in control: clear individual entries or wipe the entire history anytime.
 - Need a clean slate? Hit **Reset All** in the toolbar — it closes the IDB connection, deletes the `api-sandbox` database, clears app-specific storage, and reloads the app.
 
 ---
@@ -116,39 +134,51 @@ npm run build
 **Does this replace Postman/Insomnia?**  
 No. API Sandbox is intentionally smaller and faster for everyday calls, docs checks, and quick debugging.
 
-**Why HAR and NDJSON?**  
-They’re widely accepted by browsers, proxies, and observability tools. HAR is great for attaching to bug reports. NDJSON is ideal for pipelines and log ingestion.
+**Why HAR?**  
+It's widely accepted by browsers, proxies, and observability tools, and is great for attaching to bug reports.
 
 **Can I use form data or files?**  
 Current focus is JSON APIs. Form/file helpers may land later.
 
 **Will there be a light theme?**  
-Possibly. The app is dark‑first today.
+Yes — dark and light themes both ship today, each intentionally designed.
+
+**Are my secrets/API keys safe?**  
+Secrets are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only ever exists in memory. See [`docs/secrets.md`](docs/secrets.md) for the full model, and [`docs/scripts.md`](docs/scripts.md) for what scripts can and can't reach.
 
 ---
 
 ## Contributing
 
-Contributions are welcome—bug reports, small UX wins, docs tweaks, or focused features that keep the app fast and simple. Please open an issue to propose changes before a PR, and keep scope tight.
+Contributions are welcome — bug reports, small UX wins, docs tweaks, or focused features that keep the app fast and simple.
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, branch/PR flow, and code style expectations.
+- This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
+- Found a security issue? Please follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
+
+Please open an issue to propose non-trivial changes before a PR, and keep scope tight.
 
 ## Docs
 
 - [Collections schema](docs/collections-schema.md)
 - [Secrets model](docs/secrets.md)
 - [Storage layout](docs/storage.md)
+- [Scripts & sandbox model](docs/scripts.md)
 
 ---
 
 ## Roadmap (public intent, not a contract)
 
 - JSONPath search/filter in responses
-- Advanced auth helpers
-- Request collections and sharing
+- Full OAuth2 grant-type support with token refresh
+- OpenAPI/Swagger import
 - CSV/XLSX preview & import flows
-- PWA mode for offline use
+- WebSocket / SSE / GraphQL support
+
+See [`docs/plans/plan-product-roadmap.md`](docs/plans/plan-product-roadmap.md) and the Phase 4 backlog in [`docs/plans/plan-specimen-modernization.md`](docs/plans/plan-specimen-modernization.md) for the full, ranked list.
 
 ---
 
 ## License
 
-MIT © Ashwin Sathian
+MIT © Ashwin Sathian — see [LICENSE](LICENSE).

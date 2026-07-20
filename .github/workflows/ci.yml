@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      - run: npm run test:ci
+
+  build:
+    name: Build (production, budgets enforced)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+      - run: npm ci
+      # angular.json defines bundle-size budgets under the production
+      # configuration (initial: 2mb warning / 5mb error). Angular's own
+      # build enforces these and fails the step if they're exceeded, so no
+      # extra bundle-size tooling is needed here.
+      - run: npm run build -- --configuration=production
+
+  # TODO: e2e job once Playwright lands (Phase 1 of
+  # docs/plans/plan-specimen-modernization.md replaces the deprecated
+  # Protractor suite under e2e/ with Playwright). Add a job here once a
+  # playwright.config.ts exists in the repo.

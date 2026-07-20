@@ -1,6 +1,15 @@
 # Plan: Product Roadmap — Where to Take This
-> **Destroy this file after implementation is complete.**
-> This document covers Phase 3 and beyond. Phase 2 (parity + polish) is tracked in `plan-feature-audit.md`.
+> This document covers Phase 3 and beyond. Phase 2 (parity + polish) shipped and its tracking doc, `plan-feature-audit.md`, was retired once every high-priority item on it landed.
+>
+> **Status note:** §3.1 (Pre/Post Request Scripts) and §3.2 (Test Assertions)
+> below have shipped (see the "Phase 3A" commit and `docs/scripts.md`) — the
+> gap table in §1 has been updated to reflect that. Everything else in this
+> document that's still unimplemented (OpenAPI import, WebSocket/SSE/GraphQL,
+> collection runner, response diff, git-friendly export, CLI test runner,
+> etc.) is tracked as the Phase 4 standing backlog in
+> `docs/plans/plan-specimen-modernization.md`, which ranks it by demand
+> signal × feasibility (see that doc's Part C). Keep this file as the
+> detailed design reference for those items rather than deleting it.
 
 ---
 
@@ -25,8 +34,8 @@
 | Auth presets (Bearer/Basic/API Key/OAuth) | Everyone | Missing — tracked in feature-audit plan |
 | Query params editor | Everyone | Missing — tracked in feature-audit plan |
 | Copy as cURL | Everyone | Missing — tracked in feature-audit plan |
-| Pre/post request scripts | Postman, Insomnia, Bruno | Missing |
-| Test assertions / response validation | Postman, Hoppscotch, Bruno | Missing |
+| Pre/post request scripts | Postman, Insomnia, Bruno | **Done** — shipped, see `docs/scripts.md` (isolation hardening tracked separately in `plan-specimen-modernization.md` Part B3) |
+| Test assertions / response validation | Postman, Hoppscotch, Bruno | **Done** — visual assertion builder + `pm.test()`, Tests tab in response viewer |
 | OpenAPI / Swagger import | Postman, Insomnia, Yaak | Missing |
 | Import from Postman / Insomnia | Bruno, Yaak, Hoppscotch | Missing |
 | WebSocket support | Postman, Insomnia, Hoppscotch, Yaak | Missing |

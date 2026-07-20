@@ -1,6 +1,6 @@
 {
   "name": "api-sandbox",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "description": "A local-first, no-account API testing client — collections, environments, secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
   "license": "MIT",
   "private": true,

@@ -49,7 +49,6 @@ import {
 import { VariableFocusService } from "../../services/variable-focus.service";
 import {
   ScriptSandboxService,
-  ScriptEnvContext,
   ScriptResponseContext,
 } from "../../shared/scripts/script-sandbox.service";
 import {
@@ -316,7 +315,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     }
   }
 
-  sendRequest() {
+  async sendRequest() {
     this.endpointError = "";
     this.resetResponseState();
     this.lastTestResults = [];
@@ -332,11 +331,14 @@ export class ApiParamsComponent implements OnInit, DoCheck {
 
     // Run pre-request script
     if (this.preRequestScript?.trim()) {
-      const envCtx: ScriptEnvContext = { get: (key) => this.getEnvVar(key) };
-      const preResult = this.scriptSandbox.execute(this.preRequestScript, envCtx);
+      const preResult = await this.scriptSandbox.execute(
+        this.preRequestScript,
+        this.getEnvSnapshot()
+      );
       if (preResult.testResults.length) {
         this.lastTestResults = [...preResult.testResults];
       }
+      await this.applyEnvMutations(preResult.envMutations);
     }
 
     const baseHeaders = this.buildHeaders();
@@ -346,7 +348,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     const usesBody = this.isBodyMethod(method);
     const requestBody = usesBody ? this.buildBody() : undefined;
     const transportBody = usesBody ? requestBody ?? {} : undefined;
-    let endpoint = this.buildFinalUrl(this.endpoint.trim());
+    let endpoint = this.buildFinalUrl(this.normalizeUrl(this.endpoint.trim()));
     const authParam = this.buildAuthQueryParam();
     if (authParam) {
       try {
@@ -382,7 +384,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
             ? this.serializeJsonPayload(response.body)
             : this.stringifyPayload(response.body);
           const durationMs = Math.round(performance.now() - startedAt);
-          this.runPostScriptAndAssertions(
+          await this.runPostScriptAndAssertions(
             response.status,
             response.statusText ?? "",
             response.body,
@@ -411,7 +413,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
             ? this.serializeJsonPayload(error.error ?? error.message)
             : this.stringifyPayload(error.error ?? error.message);
           const durationMs = Math.round(performance.now() - startedAt);
-          this.runPostScriptAndAssertions(
+          await this.runPostScriptAndAssertions(
             error.status,
             error.statusText ?? "",
             error.error,
@@ -617,14 +619,52 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     }
   }
 
+  private hasExplicitScheme(text: string): boolean {
+    return /^https?:\/\//i.test(text);
+  }
+
+  /**
+   * Prefixes a scheme-less endpoint with `https://` so it's always sent to
+   * HttpClient as an absolute URL. Without this, a scheme-less string like
+   * "not-a-url" is a *relative* URL as far as the browser is concerned, and
+   * HttpClient silently resolves it against the app's own origin — fetching
+   * the app's own index.html and reporting it back as a misleading "200 OK".
+   */
+  private normalizeUrl(text: string): string {
+    return this.hasExplicitScheme(text) ? text : `https://${text}`;
+  }
+
   private validateUrl(text: string): boolean {
     if (!text) return false;
+    const hasScheme = this.hasExplicitScheme(text);
+    let parsed: URL;
     try {
-      const parsed = new URL(text.startsWith("http") ? text : `https://${text}`);
-      return parsed.protocol === "http:" || parsed.protocol === "https:";
+      parsed = new URL(this.normalizeUrl(text));
     } catch {
       return false;
     }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    if (!parsed.hostname) {
+      return false;
+    }
+    if (hasScheme) {
+      // The user typed a scheme explicitly — that's deliberate intent, so trust
+      // whatever host shape they gave us (including bare internal hostnames).
+      return true;
+    }
+    // No scheme was typed, so we're the ones guessing "https://". Reject bare,
+    // single-label input (e.g. "not a valid url at all") that technically parses
+    // as *some* hostname but was never actually a URL — that's exactly the input
+    // that used to slip through and resolve against the app's own origin.
+    const hostname = parsed.hostname;
+    const looksLikeRealHost =
+      hostname === "localhost" ||
+      hostname.includes(".") ||
+      hostname.includes(":") ||
+      !!parsed.port;
+    return looksLikeRealHost;
   }
 
   private maybeUpdateVariablePreview(): void {
@@ -655,15 +695,14 @@ export class ApiParamsComponent implements OnInit, DoCheck {
       .map((token) => token.key);
   }
 
-  private runPostScriptAndAssertions(
+  private async runPostScriptAndAssertions(
     statusCode: number,
     statusText: string,
     body: unknown,
     headers: Record<string, string>,
     durationMs: number
-  ): void {
+  ): Promise<void> {
     if (this.postRequestScript?.trim()) {
-      const envCtx: ScriptEnvContext = { get: (key) => this.getEnvVar(key) };
       const responseCtx: ScriptResponseContext = {
         statusCode,
         statusText,
@@ -671,12 +710,13 @@ export class ApiParamsComponent implements OnInit, DoCheck {
         headers,
         durationMs,
       };
-      const postResult = this.scriptSandbox.execute(
+      const postResult = await this.scriptSandbox.execute(
         this.postRequestScript,
-        envCtx,
+        this.getEnvSnapshot(),
         responseCtx
       );
       this.lastTestResults = [...this.lastTestResults, ...postResult.testResults];
+      await this.applyEnvMutations(postResult.envMutations);
     }
 
     if (this.requestTests.length) {
@@ -704,8 +744,28 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     }, {} as Record<string, string>);
   }
 
-  private getEnvVar(key: string): string | undefined {
-    return this.environmentsService.activeEnvironment()?.vars?.[key];
+  private getEnvSnapshot(): Record<string, string> {
+    return { ...(this.environmentsService.activeEnvironment()?.vars ?? {}) };
+  }
+
+  private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {
+    const keys = Object.keys(mutations);
+    if (!keys.length) {
+      return;
+    }
+    const active = this.environmentsService.activeEnvironment();
+    if (!active) {
+      return;
+    }
+    const vars = { ...active.vars };
+    for (const key of keys) {
+      if (mutations[key] === "") {
+        delete vars[key];
+      } else {
+        vars[key] = mutations[key];
+      }
+    }
+    await this.environmentsService.updateEnvironment(active.meta.id, { vars });
   }
 
   addTest(): void {
@@ -913,7 +973,7 @@ export class ApiParamsComponent implements OnInit, DoCheck {
     const authHeaders = this.buildAuthHeaders();
     const headers = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod;
-    let url = this.buildFinalUrl(this.endpoint.trim());
+    let url = this.buildFinalUrl(this.normalizeUrl(this.endpoint.trim()));
     const authParam = this.buildAuthQueryParam();
     if (authParam) {
       try {

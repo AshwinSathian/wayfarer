@@ -11,6 +11,13 @@ class IdbServiceMock {
   getLatest = jasmine.createSpy('getLatest').and.returnValue(Promise.resolve([] as PastRequest[]));
   clear = jasmine.createSpy('clear').and.returnValue(Promise.resolve());
   delete = jasmine.createSpy('delete').and.returnValue(Promise.resolve());
+  // AppShellComponent.ngOnInit() calls EnvironmentsService.ensureLoaded() and
+  // SecretsService.hasAnySecrets(), both of which round-trip through IdbService.
+  listEnvironments = jasmine.createSpy('listEnvironments').and.returnValue(Promise.resolve([]));
+  getActiveEnvironmentId = jasmine.createSpy('getActiveEnvironmentId').and.returnValue(Promise.resolve(null));
+  setActiveEnvironment = jasmine.createSpy('setActiveEnvironment').and.returnValue(Promise.resolve());
+  peekSecretEnvelope = jasmine.createSpy('peekSecretEnvelope').and.returnValue(Promise.resolve(null));
+  listCollections = jasmine.createSpy('listCollections').and.returnValue(Promise.resolve([]));
 }
 
 describe('AppComponent', () => {

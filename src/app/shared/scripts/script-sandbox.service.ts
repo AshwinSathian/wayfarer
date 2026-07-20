@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { ScriptExecutionResult, TestResult } from "../../models/test-assertion.models";
+import { ScriptExecutionResult } from "../../models/test-assertion.models";
 
 export interface ScriptResponseContext {
   statusCode: number;
@@ -9,206 +9,105 @@ export interface ScriptResponseContext {
   durationMs?: number;
 }
 
-export interface ScriptEnvContext {
-  get: (key: string) => string | undefined;
-}
+const DEFAULT_TIMEOUT_MS = 5000;
 
+/**
+ * Runs user-authored pre/post-request scripts in an isolated Web Worker
+ * (`script-runner.worker.ts`) rather than on the main thread.
+ *
+ * Why a worker and not main-thread `Function()` shadowing: a dedicated worker is a
+ * separate realm that never has `window`/`document`/cookies/`localStorage`, and has no
+ * reference back to this thread's memory (the secrets vault key, other requests'
+ * headers, etc.) — postMessage only carries structured-clone data, never live
+ * references or functions. See docs/scripts.md for the full threat model and
+ * `script-sandbox.service.spec.ts` for the regression suite proving escape attempts
+ * (Function-based global re-acquisition, DOM/window access, network access) fail.
+ *
+ * A fresh worker is spawned per execution and terminated immediately after, so scripts
+ * never share state across runs and a hung script (e.g. an infinite loop) is bounded by
+ * `timeoutMs` rather than freezing anything.
+ */
 @Injectable({ providedIn: "root" })
 export class ScriptSandboxService {
-  /**
-   * Executes a user script in a sandboxed context.
-   * Dangerous globals are shadowed. The `pm` API surface is intentionally minimal.
-   */
   execute(
     script: string,
-    env: ScriptEnvContext,
-    response?: ScriptResponseContext
-  ): ScriptExecutionResult {
-    const logs: string[] = [];
-    const envMutations: Record<string, string> = {};
-    const testResults: TestResult[] = [];
-
+    env: Record<string, string>,
+    response?: ScriptResponseContext,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS
+  ): Promise<ScriptExecutionResult> {
     if (!script?.trim()) {
-      return { logs, envMutations, testResults };
+      return Promise.resolve({ logs: [], envMutations: {}, testResults: [] });
     }
 
-    const pmApi = this.buildPmApi(env, envMutations, testResults, response);
-    const consoleApi = this.buildConsoleApi(logs);
-
-    try {
-      // Shadow every dangerous global by injecting them as undefined parameters.
-      // The Function constructor itself can't be blocked this way (it's a language primitive)
-      // but we prevent network access and DOM manipulation.
-      const wrappedCode = `
-        "use strict";
-        (function(
-          window, self, globalThis,
-          document, location, history, navigator, screen,
-          fetch, XMLHttpRequest, WebSocket, EventSource,
-          Worker, SharedWorker, ServiceWorker,
-          importScripts, require, module, exports,
-          eval, setTimeout, setInterval, clearTimeout, clearInterval,
-          __proto__
-        ) {
-          ${script}
-        })(
-          undefined, undefined, undefined,
-          undefined, undefined, undefined, undefined, undefined,
-          undefined, undefined, undefined, undefined,
-          undefined, undefined, undefined, undefined,
-          undefined, undefined, undefined, undefined,
-          undefined, undefined, undefined, undefined,
-          undefined
-        );
-      `;
-
-      // eslint-disable-next-line no-new-func
-      const fn = new Function("pm", "console", wrappedCode);
-      fn(pmApi, consoleApi);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { logs, envMutations, testResults, error: message };
+    if (typeof Worker === "undefined") {
+      return Promise.resolve({
+        logs: [],
+        envMutations: {},
+        testResults: [],
+        error: "Scripts are unavailable: Web Workers are not supported in this browser.",
+      });
     }
 
-    return { logs, envMutations, testResults };
-  }
+    return new Promise<ScriptExecutionResult>((resolve) => {
+      const runId = this.createRunId();
+      const worker = new Worker(new URL("./script-runner.worker", import.meta.url), {
+        type: "module",
+      });
 
-  private buildPmApi(
-    env: ScriptEnvContext,
-    envMutations: Record<string, string>,
-    testResults: TestResult[],
-    response?: ScriptResponseContext
-  ): unknown {
-    const responseApi = response
-      ? {
-          code: response.statusCode,
-          status: response.statusText,
-          json: () => {
-            if (typeof response.body === "string") {
-              try {
-                return JSON.parse(response.body);
-              } catch {
-                return null;
-              }
-            }
-            return response.body ?? null;
-          },
-          text: () => {
-            if (typeof response.body === "string") {
-              return response.body;
-            }
-            try {
-              return JSON.stringify(response.body);
-            } catch {
-              return "";
-            }
-          },
-          headers: {
-            get: (name: string) => response.headers[name] ?? response.headers[name.toLowerCase()] ?? null,
-          },
-          responseTime: response.durationMs ?? 0,
+      let settled = false;
+      const finish = (result: ScriptExecutionResult) => {
+        if (settled) {
+          return;
         }
-      : null;
+        settled = true;
+        clearTimeout(timer);
+        worker.removeEventListener("message", onMessage);
+        worker.removeEventListener("error", onError);
+        worker.terminate();
+        resolve(result);
+      };
 
-    return {
-      environment: {
-        get: (key: string) => env.get(key) ?? null,
-        set: (key: string, value: unknown) => {
-          envMutations[String(key)] = String(value ?? "");
-        },
-        unset: (key: string) => {
-          envMutations[String(key)] = "";
-        },
-      },
-      response: responseApi,
-      test: (label: string, fn: () => void) => {
-        try {
-          fn();
-          testResults.push({ label: String(label ?? ""), passed: true, source: "script" });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          testResults.push({ label: String(label ?? ""), passed: false, error: message, source: "script" });
+      const onMessage = (event: MessageEvent) => {
+        const data = event.data;
+        if (!data || data.type !== "result" || data.runId !== runId) {
+          return;
         }
-      },
-      expect: (actual: unknown) => this.buildExpect(actual),
-    };
+        finish({
+          logs: data.logs ?? [],
+          envMutations: data.envMutations ?? {},
+          testResults: data.testResults ?? [],
+          error: data.error,
+        });
+      };
+
+      const onError = (event: ErrorEvent) => {
+        finish({
+          logs: [],
+          envMutations: {},
+          testResults: [],
+          error: event.message || "Script execution failed.",
+        });
+      };
+
+      const timer = setTimeout(() => {
+        finish({
+          logs: [],
+          envMutations: {},
+          testResults: [],
+          error: `Script timed out after ${timeoutMs}ms.`,
+        });
+      }, timeoutMs);
+
+      worker.addEventListener("message", onMessage);
+      worker.addEventListener("error", onError);
+      worker.postMessage({ type: "run", runId, script, env, response });
+    });
   }
 
-  private buildExpect(actual: unknown) {
-    const assert = (condition: boolean, message: string) => {
-      if (!condition) {
-        throw new Error(message);
-      }
-    };
-    return {
-      to: {
-        equal: (expected: unknown) =>
-          assert(actual === expected, `Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`),
-        eql: (expected: unknown) =>
-          assert(
-            JSON.stringify(actual) === JSON.stringify(expected),
-            `Expected ${JSON.stringify(actual)} to deep-equal ${JSON.stringify(expected)}`
-          ),
-        include: (expected: unknown) => {
-          if (typeof actual === "string") {
-            assert(actual.includes(String(expected)), `Expected "${actual}" to include "${expected}"`);
-          } else if (Array.isArray(actual)) {
-            assert(actual.includes(expected), `Expected array to include ${JSON.stringify(expected)}`);
-          } else {
-            assert(false, `Expected value to include ${JSON.stringify(expected)}`);
-          }
-        },
-        be: {
-          ok: () => assert(!!actual, `Expected ${JSON.stringify(actual)} to be truthy`),
-          null: () => assert(actual === null, `Expected ${JSON.stringify(actual)} to be null`),
-          undefined: () => assert(actual === undefined, `Expected value to be undefined`),
-          a: (type: string) => assert(typeof actual === type, `Expected ${JSON.stringify(actual)} to be a ${type}`),
-          an: (type: string) => assert(typeof actual === type, `Expected ${JSON.stringify(actual)} to be an ${type}`),
-          below: (n: number) => assert((actual as number) < n, `Expected ${actual} to be below ${n}`),
-          above: (n: number) => assert((actual as number) > n, `Expected ${actual} to be above ${n}`),
-        },
-        have: {
-          status: (code: number) => {
-            const resp = actual as { code?: number };
-            assert(resp?.code === code, `Expected status ${resp?.code} to equal ${code}`);
-          },
-          property: (key: string) => {
-            const obj = actual as Record<string, unknown>;
-            assert(key in obj, `Expected object to have property "${key}"`);
-          },
-        },
-        not: {
-          equal: (expected: unknown) =>
-            assert(actual !== expected, `Expected ${JSON.stringify(actual)} to not equal ${JSON.stringify(expected)}`),
-          include: (expected: unknown) => {
-            if (typeof actual === "string") {
-              assert(!actual.includes(String(expected)), `Expected "${actual}" to not include "${expected}"`);
-            }
-          },
-        },
-      },
-    };
-  }
-
-  private buildConsoleApi(logs: string[]) {
-    const format = (...args: unknown[]) =>
-      args
-        .map((a) => {
-          if (typeof a === "string") {
-            return a;
-          }
-          try {
-            return JSON.stringify(a);
-          } catch {
-            return String(a);
-          }
-        })
-        .join(" ");
-    return {
-      log: (...args: unknown[]) => logs.push(format(...args)),
-      warn: (...args: unknown[]) => logs.push(`[warn] ${format(...args)}`),
-      error: (...args: unknown[]) => logs.push(`[error] ${format(...args)}`),
-      info: (...args: unknown[]) => logs.push(format(...args)),
-    };
+  private createRunId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 }

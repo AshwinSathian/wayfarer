@@ -278,7 +278,11 @@
 .p-selectbutton .p-togglebutton {
   background: transparent !important;
   border: none !important;
-  color: var(--label-secondary) !important;
+  /* var(--label-secondary) here measures ~4.27:1 against this control's
+     actual composited background (--fill-secondary over the panel behind
+     it), just under WCAG AA's 4.5:1 for normal text — see
+     --label-secondary-on-fill in tokens.css. */
+  color: var(--label-secondary-on-fill) !important;
   font-size: 12px !important;
   font-weight: 500 !important;
   letter-spacing: -0.002em !important;
@@ -343,6 +347,20 @@
 .p-button.p-button-secondary.p-button-outlined:hover {
   background: var(--fill-hover) !important;
   border-color: var(--fill-primary) !important;
+}
+
+/* Secondary solid — Aura's default derives this from the custom surface
+   scale (surface.800 background / surface.300 text), which measures ~3.2:1,
+   under WCAG AA's 4.5:1 for normal text. Pin it to the same already-audited
+   tokens the outlined variant above uses instead. */
+.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text) {
+  background: var(--fill-secondary) !important;
+  border-color: var(--separator) !important;
+  color: var(--label-primary) !important;
+}
+
+.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):hover {
+  background: var(--fill-hover) !important;
 }
 
 /* Send button — special gradient CTA */

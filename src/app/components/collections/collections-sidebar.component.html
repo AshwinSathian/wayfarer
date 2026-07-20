@@ -74,6 +74,7 @@
 
 <!-- Import collection dialog -->
 <p-dialog
+  closeAriaLabel="Close"
   header="Import collection"
   [(visible)]="importDialogVisible"
   [modal]="true"
@@ -149,6 +150,7 @@
 
 <!-- Create collection/folder/request dialog -->
 <p-dialog
+  closeAriaLabel="Close"
   [header]="creationTitle"
   [(visible)]="creationDialogVisible"
   [modal]="true"
@@ -197,6 +199,7 @@
 
 <!-- Command palette -->
 <p-dialog
+  closeAriaLabel="Close"
   header="Command palette"
   [(visible)]="commandPaletteVisible"
   [modal]="true"
@@ -232,4 +235,4 @@
   </div>
 </p-dialog>
 
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog header="Confirmation"></p-confirmDialog>

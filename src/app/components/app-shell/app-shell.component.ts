@@ -132,6 +132,7 @@ export class AppShellComponent implements OnInit {
       message: "Your entire history will be cleared",
       accept: () => this.clearHistory.emit(),
     });
+    this.fixConfirmDialogAriaLabelledBy();
   }
 
   confirmResetAllData(): void {
@@ -144,6 +145,23 @@ export class AppShellComponent implements OnInit {
       rejectLabel: "Cancel",
       acceptButtonStyleClass: "p-button-danger",
       accept: () => this.performResetAllData(),
+    });
+    this.fixConfirmDialogAriaLabelledBy();
+  }
+
+  /**
+   * PrimeNG's ConfirmDialog always auto-generates aria-labelledby pointing at
+   * an internal header <span> — but that span only renders in its default
+   * (non-headless) template. We use a #headless template (for design-system
+   * styling), so the generated id is permanently dangling, leaving the open
+   * dialog with no accessible name. Re-point it at the real header element
+   * we render ourselves, once Angular has painted the just-opened dialog.
+   */
+  private fixConfirmDialogAriaLabelledBy(): void {
+    setTimeout(() => {
+      document
+        .querySelector('[data-pc-name="dialog"][role="alertdialog"]')
+        ?.setAttribute("aria-labelledby", "global-confirm-dialog-header");
     });
   }
 

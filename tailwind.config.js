@@ -18,6 +18,7 @@ module.exports = {
         label: {
           primary:     'var(--label-primary)',
           secondary:   'var(--label-secondary)',
+          'secondary-on-fill': 'var(--label-secondary-on-fill)',
           tertiary:    'var(--label-tertiary)',
           placeholder: 'var(--label-placeholder)',
         },

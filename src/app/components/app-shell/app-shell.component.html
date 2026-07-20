@@ -86,7 +86,7 @@
     <header class="ds-toolbar">
       <!-- Left: nav toggle + brand -->
       <div class="flex items-center gap-2">
-        <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar">
+        <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
           <span class="material-symbols-outlined icon-md">side_navigation</span>
         </button>
         <div class="hidden md:flex items-center gap-2">
@@ -122,6 +122,7 @@
           [class.text-status-success]="secretsUnlocked"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
           [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
         >
           <span class="material-symbols-outlined icon-md">
             {{ secretsUnlocked ? 'lock_open' : 'lock' }}
@@ -145,6 +146,7 @@
           [class.bg-accent-fill]="historyDrawerVisible"
           (click)="historyDrawerVisible = true"
           title="Request history"
+          aria-label="Request history"
         >
           <span class="material-symbols-outlined icon-md">history</span>
         </button>
@@ -211,6 +213,7 @@
 
 <!-- Unlock / setup secrets dialog -->
 <p-dialog
+  closeAriaLabel="Close"
   [header]="isFirstVaultSetup ? 'Create vault passphrase' : 'Unlock secrets'"
   [(visible)]="lockDialogVisible"
   [modal]="true"
@@ -273,7 +276,7 @@
 </p-dialog>
 
 <!-- Confirm dialog (global) -->
-<p-confirmdialog #cd>
+<p-confirmdialog #cd header="Confirmation">
   <ng-template
     #headless
     let-message
@@ -284,8 +287,8 @@
       <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4">
         <span class="material-symbols-outlined icon-lg text-status-error">warning</span>
       </div>
-      <span class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
-      <p class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>
+      <span id="global-confirm-dialog-header" class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
+      <p id="global-confirm-dialog-message" class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>
       <div class="flex items-center gap-3 mt-6">
         <p-button
           severity="danger"

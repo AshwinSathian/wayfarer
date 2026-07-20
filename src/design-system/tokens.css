@@ -28,7 +28,17 @@
   */
   --label-primary:     #FFFFFF;
   --label-secondary:   #8E8E93;
-  --label-tertiary:    #48484A;
+  /* A step brighter than --label-secondary, for de-emphasized text sitting
+     on a *lighter* composited surface (e.g. inside --fill-secondary
+     controls) where --label-secondary itself drops under 4.5:1. */
+  --label-secondary-on-fill: #9C9CA1;
+  /* Apple's real tertiaryLabel is a translucent white (rgba(235,235,245,.3))
+     blended over whatever sits beneath it — as a flat opaque color that
+     translates to ~#48484A, which measures ~1.9:1 against this palette's
+     dark canvas colors, well under WCAG AA's 4.5:1 for normal text. Bumped
+     to a value that clears AA on canvas-app/panel/elevated while staying
+     visibly one step down from --label-secondary. */
+  --label-tertiary:    #8A8A8E;
   --label-placeholder: #3A3A3C;
 
   /* ── Separator ────────────────────────────────────────────*/
@@ -182,7 +192,16 @@
 
   --label-primary:     #1D1D1F;
   --label-secondary:   #6E6E73;
-  --label-tertiary:    #AEAEB2;
+  /* Same idea as the dark-theme token above: a darker step for de-emphasized
+     text on a composited --fill-secondary surface, where plain
+     --label-secondary's already-tight margin can drop under 4.5:1. */
+  --label-secondary-on-fill: #5C5C61;
+  /* Same fix as the dark-theme token above: #AEAEB2 measures ~2:1 against
+     this palette's light canvas colors. --label-secondary itself only just
+     clears 4.5:1 here, which leaves little room for a *lighter* tertiary
+     tier to also stay compliant — so this is a hair darker than secondary
+     instead, prioritizing the WCAG floor over strict tier ordering. */
+  --label-tertiary:    #68686D;
   --label-placeholder: #C7C7CC;
 
   --separator:        rgba(0, 0, 0, 0.08);

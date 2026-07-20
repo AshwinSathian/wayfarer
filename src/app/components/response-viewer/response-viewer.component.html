@@ -30,7 +30,7 @@
 
       <!-- Duration -->
       @if (inspData && inspData.duration) {
-      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
+      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
         <span class="material-symbols-outlined icon-xs">timer</span>
         {{ formatMs(inspData.duration) }}
       </span>
@@ -38,7 +38,7 @@
 
       <!-- Size -->
       @if (responseContentLength()) {
-      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-tertiary border border-separator">
+      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
         <span class="material-symbols-outlined icon-xs">data_object</span>
         {{ formatBytes(responseContentLength()) }}
       </span>

@@ -690,11 +690,19 @@ export class ApiParamsComponent {
   }
 
   maybeUpdateVariablePreview(): void {
+    const activeEnv = this.environmentsService.activeEnvironment();
     const fingerprint = JSON.stringify({
       endpoint: this.endpoint,
       headers: this.requestHeaders,
       body: this.requestBody,
-      env: this.environmentsService.activeEnvironment()?.meta.id ?? null,
+      // The fingerprint has to change when the active environment's *vars*
+      // change value, not just when a different environment is selected —
+      // fingerprinting only meta.id here meant editing a variable's value
+      // (same env, same id) never invalidated a preview computed before
+      // that edit landed, so a script/save that raced ahead of a still-in-
+      // flight endpoint edit could get permanently stuck showing "missing"
+      // for a variable that does exist.
+      env: activeEnv ? { id: activeEnv.meta.id, vars: activeEnv.vars } : null,
     });
     if (fingerprint === this.previewFingerprint) {
       return;

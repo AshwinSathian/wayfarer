@@ -67,7 +67,7 @@ interface ApiSandboxDB extends DBSchema {
     value: Folder;
     indexes: {
       "by-collectionId": CollectionId;
-      "by-parentFolderId": FolderId | undefined;
+      "by-parentFolderId": FolderId;
       "by-order": number;
     };
   };
@@ -76,7 +76,7 @@ interface ApiSandboxDB extends DBSchema {
     value: RequestDoc;
     indexes: {
       "by-collectionId": CollectionId;
-      "by-folderId": FolderId | undefined;
+      "by-folderId": FolderId;
       "by-order": number;
     };
   };
@@ -92,7 +92,7 @@ interface ApiSandboxDB extends DBSchema {
     key: SecretId;
     value: SecretDoc;
     indexes: {
-      "by-environmentId": EnvironmentId | null | undefined;
+      "by-environmentId": EnvironmentId;
       "by-name": string;
     };
   };
@@ -1004,10 +1004,11 @@ export class IdbService {
 
   /* istanbul ignore next -- helper invoked only during IndexedDB migrations */
   private async ensureFields(
-    store: IDBPObjectStore<any, any, any, any>,
+    store: IDBPObjectStore<any, any, any, "versionchange">,
     defaults: Record<string, unknown>
   ): Promise<void> {
-    let cursor: IDBPCursorWithValue<any, any, any, any, any> | null = await store.openCursor();
+    let cursor: IDBPCursorWithValue<any, any, any, any, "versionchange"> | null =
+      await store.openCursor();
     while (cursor) {
       const value = { ...cursor.value } as HistoryRecord;
       let updated = false;
@@ -1051,7 +1052,7 @@ export class IdbService {
   private async handleUpgrade(
     db: IDBPDatabase<ApiSandboxDB>,
     oldVersion: number,
-    _newVersion: number,
+    _newVersion: number | null,
     transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
   ): Promise<void> {
     await this.ensureHistoryStore(db, transaction, oldVersion);
@@ -1072,7 +1073,7 @@ export class IdbService {
     transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">,
     oldVersion: number
   ): Promise<void> {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "history", IDBTransactionMode>;
+    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "history", "versionchange">;
     if (!db.objectStoreNames.contains("history")) {
       store = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
       this.ensureIndex(store, "by-createdAt", "createdAt");
@@ -1211,7 +1212,7 @@ export class IdbService {
   }
 
   private ensureIndex(
-    store: IDBPObjectStore<any, any, any, any>,
+    store: IDBPObjectStore<any, any, any, "versionchange">,
     name: string,
     keyPath: string | string[],
     options?: IDBIndexParameters

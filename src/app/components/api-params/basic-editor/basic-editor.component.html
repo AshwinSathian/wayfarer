@@ -27,6 +27,7 @@
         icon="pi pi-times"
         [disabled]="disableItem(item, index)"
         severity="danger"
+        [attr.aria-label]="'Remove ' + context.toLowerCase() + ' item'"
         (click)="removeItem(index, context)"
       ></button>
     </div>
@@ -39,6 +40,7 @@
       type="button"
       icon="pi pi-plus"
       [label]="addLabel"
+      [attr.aria-label]="addLabel"
       [disabled]="isAddDisabled(context)"
       severity="secondary"
       (click)="addItem(context)"

@@ -49,7 +49,8 @@ describe('PastRequestsComponent', () => {
     component.confirmDelete(request, new Event('click'));
     expect(confirmationService.confirm).toHaveBeenCalled();
     const latestCall = confirmationService.confirm.calls.mostRecent().args[0];
-    latestCall.accept();
+    expect(latestCall.accept).toBeDefined();
+    latestCall.accept!();
     expect(deleteSpy).toHaveBeenCalledWith(1);
   });
 });

@@ -36,9 +36,16 @@
             </span>
             <span
               class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="'Load request ' + request.url + ' into composer'"
               (click)="load(request)"
+              (keydown.enter)="load(request)"
+              (keydown.space)="$event.preventDefault(); load(request)"
               (mouseenter)="detailsPopover.show($event)"
               (mouseleave)="detailsPopover.hide()"
+              (focus)="detailsPopover.show($event)"
+              (blur)="detailsPopover.hide()"
             >{{ request.url }}</span>
 
             @if (request.status !== undefined) {
@@ -115,8 +122,8 @@
                     }
                     <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
                     <div class="flex items-center gap-2">
-                      <button pButton type="button" text label="Load" severity="secondary" size="small" (click)="load(request)"></button>
-                      <button pButton type="button" text label="Delete" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
+                      <button pButton type="button" text label="Load" aria-label="Load request" severity="secondary" size="small" (click)="load(request)"></button>
+                      <button pButton type="button" text label="Delete" aria-label="Delete request" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
                     </div>
                   </div>
                 </p-accordion-content>

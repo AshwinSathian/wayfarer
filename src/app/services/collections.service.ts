@@ -53,6 +53,53 @@ export class CollectionsService {
     }
   }
 
+  /**
+   * Re-fetches just one collection's folders/requests and patches it into the
+   * existing tree, instead of `refresh()`'s 1 + 2×N re-read of every
+   * collection. Folder/request CRUD is by far the most frequent mutation in
+   * this service — every rename, delete, or reorder inside a collection used
+   * to trigger a full-tree reload regardless of how many *other* collections
+   * existed. Collection-level mutations (create/rename/delete/reorder the
+   * collections themselves) still use `refresh()`, since those change the
+   * top-level list shape and are comparatively rare.
+   */
+  private async refreshCollectionEntry(collectionId: CollectionId): Promise<void> {
+    const index = this.treeState().findIndex(
+      (entry) => entry.collection.meta.id === collectionId
+    );
+    if (index === -1) {
+      // Not in the current snapshot — fall back to a full reload rather than
+      // silently doing nothing.
+      await this.refresh();
+      return;
+    }
+    const [folders, requests] = await Promise.all([
+      this.idb.listFolders(collectionId),
+      this.idb.listRequests(collectionId),
+    ]);
+    const next = [...this.treeState()];
+    next[index] = { ...next[index], folders, requests };
+    this.treeState.set(next);
+  }
+
+  private findFolderCollectionId(id: FolderId): CollectionId | undefined {
+    for (const entry of this.treeState()) {
+      if (entry.folders.some((folder) => folder.meta.id === id)) {
+        return entry.collection.meta.id;
+      }
+    }
+    return undefined;
+  }
+
+  private findRequestCollectionId(id: RequestDocId): CollectionId | undefined {
+    for (const entry of this.treeState()) {
+      if (entry.requests.some((request) => request.meta.id === id)) {
+        return entry.collection.meta.id;
+      }
+    }
+    return undefined;
+  }
+
   async createCollection(payload: {
     name: string;
     description?: string;
@@ -93,30 +140,44 @@ export class CollectionsService {
     parentFolderId?: FolderId;
   }): Promise<Folder> {
     const folder = await this.idb.createFolder(payload);
-    await this.refresh();
+    await this.refreshCollectionEntry(payload.collectionId);
     return folder;
   }
 
   async renameFolder(id: FolderId, name: string): Promise<Folder | null> {
     const folder = await this.idb.renameFolder(id, name);
-    await this.refresh();
+    if (folder) {
+      await this.refreshCollectionEntry(folder.collectionId);
+    }
     return folder;
   }
 
   async duplicateFolder(id: FolderId): Promise<Folder | null> {
     const folder = await this.idb.duplicateFolder(id);
-    await this.refresh();
+    if (folder) {
+      await this.refreshCollectionEntry(folder.collectionId);
+    }
     return folder;
   }
 
   async deleteFolder(id: FolderId): Promise<void> {
+    const collectionId = this.findFolderCollectionId(id);
     await this.idb.deleteFolder(id);
-    await this.refresh();
+    if (collectionId) {
+      await this.refreshCollectionEntry(collectionId);
+    } else {
+      await this.refresh();
+    }
   }
 
   async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
+    const collectionId = order[0] ? this.findFolderCollectionId(order[0].id) : undefined;
     await this.idb.reorderFolders(order);
-    await this.refresh();
+    if (collectionId) {
+      await this.refreshCollectionEntry(collectionId);
+    } else {
+      await this.refresh();
+    }
   }
 
   async createRequest(payload: {
@@ -129,30 +190,44 @@ export class CollectionsService {
     body?: unknown;
   }): Promise<RequestDoc> {
     const doc = await this.idb.createRequest(payload);
-    await this.refresh();
+    await this.refreshCollectionEntry(payload.collectionId);
     return doc;
   }
 
   async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
     const doc = await this.idb.renameRequest(id, name);
-    await this.refresh();
+    if (doc) {
+      await this.refreshCollectionEntry(doc.collectionId);
+    }
     return doc;
   }
 
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
     const doc = await this.idb.duplicateRequest(id);
-    await this.refresh();
+    if (doc) {
+      await this.refreshCollectionEntry(doc.collectionId);
+    }
     return doc;
   }
 
   async deleteRequest(id: RequestDocId): Promise<void> {
+    const collectionId = this.findRequestCollectionId(id);
     await this.idb.deleteRequest(id);
-    await this.refresh();
+    if (collectionId) {
+      await this.refreshCollectionEntry(collectionId);
+    } else {
+      await this.refresh();
+    }
   }
 
   async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
+    const collectionId = order[0] ? this.findRequestCollectionId(order[0].id) : undefined;
     await this.idb.reorderRequests(order);
-    await this.refresh();
+    if (collectionId) {
+      await this.refreshCollectionEntry(collectionId);
+    } else {
+      await this.refresh();
+    }
   }
 
   getCollection(id: CollectionId): Collection | undefined {

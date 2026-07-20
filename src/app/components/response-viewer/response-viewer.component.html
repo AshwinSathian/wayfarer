@@ -51,6 +51,7 @@
           pButton
           type="button"
           label="Export"
+          aria-label="Export response"
           icon="pi pi-download"
           iconPos="left"
           size="small"
@@ -102,9 +103,9 @@
                   {{ searchResult?.count ? searchActiveIndex + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult?.count || 0 }}
                 </span>
                 <div class="flex items-center gap-0.5">
-                  <button pButton type="button" icon="pi pi-angle-up" size="small" text
+                  <button pButton type="button" icon="pi pi-angle-up" size="small" text aria-label="Previous search match"
                     [disabled]="!searchResult?.count" (click)="stepSearch(-1)"></button>
-                  <button pButton type="button" icon="pi pi-angle-down" size="small" text
+                  <button pButton type="button" icon="pi pi-angle-down" size="small" text aria-label="Next search match"
                     [disabled]="!searchResult?.count" (click)="stepSearch(1)"></button>
                 </div>
               </div>

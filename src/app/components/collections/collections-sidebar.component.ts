@@ -381,7 +381,7 @@ export class CollectionsSidebarComponent implements OnInit {
     }
 
     if (dragData.type === "folder") {
-      const siblings = event.dragNode.parent?.children ?? [];
+      const siblings = event.dragNode?.parent?.children ?? [];
       const order = siblings.map((n, index) => ({
         id: (n.data as NodeData).ref.meta.id,
         order: index + 1,
@@ -391,7 +391,7 @@ export class CollectionsSidebarComponent implements OnInit {
     }
 
     if (dragData.type === "request") {
-      const siblings = event.dragNode.parent?.children ?? [];
+      const siblings = event.dragNode?.parent?.children ?? [];
       const order = siblings.map((n, index) => ({
         id: (n.data as NodeData).ref.meta.id,
         order: index + 1,

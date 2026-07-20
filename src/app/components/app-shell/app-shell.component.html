@@ -1,16 +1,7 @@
 <div class="flex min-h-screen bg-canvas-app text-label-primary">
-  <!-- Collections drawer -->
-  <p-drawer
-    position="left"
-    [visible]="drawerVisible"
-    [modal]="isMobile"
-    [dismissible]="isMobile"
-    [closeOnEscape]="isMobile"
-    [blockScroll]="isMobile"
-    [showCloseIcon]="false"
-    [style]="{ width: drawerWidth }"
-    (onHide)="closeDrawer.emit()"
-  >
+  <!-- Collections sidebar content, shared between the mobile overlay drawer and the
+       desktop pinned panel below. -->
+  <ng-template #sidebarBody>
     <div class="flex h-full flex-col">
       <!-- Sidebar header -->
       <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
@@ -29,7 +20,7 @@
           </div>
         </div>
         @if (isMobile) {
-        <button class="ds-icon-btn" (click)="toggleDrawer.emit()">
+        <button class="ds-icon-btn" aria-label="Close navigation" (click)="toggleDrawer.emit()">
           <span class="material-symbols-outlined icon-md">side_navigation</span>
         </button>
         }
@@ -42,6 +33,7 @@
           type="button"
           icon="pi pi-plus-circle"
           label="New request"
+          aria-label="New request"
           outlined
           class="w-full"
           (click)="isMobile ? closeDrawer.emit() : null"
@@ -53,7 +45,36 @@
         <app-collections-sidebar class="h-full w-full" (loadRequest)="handleLoadCollectionRequest($event)"></app-collections-sidebar>
       </div>
     </div>
+  </ng-template>
+
+  @if (isMobile) {
+  <!-- Mobile: a true modal overlay — trapping keyboard focus inside it while open
+       is correct here, since it covers the whole screen and there's nothing else
+       to reach until it closes. -->
+  <p-drawer
+    position="left"
+    [visible]="drawerVisible"
+    [modal]="true"
+    [dismissible]="true"
+    [closeOnEscape]="true"
+    [blockScroll]="true"
+    [showCloseIcon]="false"
+    [style]="{ width: drawerWidth }"
+    (onHide)="closeDrawer.emit()"
+  >
+    <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
   </p-drawer>
+  } @else if (drawerVisible) {
+  <!-- Desktop: persistent pinned chrome, not an overlay. It must NOT trap keyboard
+       focus — PrimeNG's p-drawer always applies pFocusTrap internally regardless of
+       the `modal` input, which previously made Tab loop forever inside the sidebar's
+       3 header icons and left the Send button/response viewer unreachable by
+       keyboard (Part D bug #2). Rendering it as a plain, non-trapping <aside>
+       instead of p-drawer removes the trap structurally. -->
+  <aside class="app-sidebar-pinned" [style.width]="drawerWidth" aria-label="Collections sidebar">
+    <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+  </aside>
+  }
 
   <!-- Main content area -->
   <div
@@ -168,6 +189,7 @@
           [disabled]="historyLoading || !pastRequests.length"
           pTooltip="Clear all history"
           tooltipPosition="bottom"
+          aria-label="Clear all history"
           (click)="confirmClear()"
         ></button>
         <button class="ds-icon-btn" (click)="historyDrawerVisible = false" title="Close">
@@ -217,7 +239,6 @@
         [(ngModel)]="unlockPassphrase"
         [placeholder]="isFirstVaultSetup ? 'Choose a passphrase' : 'Passphrase'"
         (keydown.enter)="unlockSecrets()"
-       
       />
       @if (isFirstVaultSetup) {
       <input
@@ -239,10 +260,11 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
+      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
       <button
         pButton
         [label]="isFirstVaultSetup ? 'Create vault' : 'Unlock'"
+        [attr.aria-label]="isFirstVaultSetup ? 'Create vault' : 'Unlock secrets'"
         [disabled]="!unlockPassphrase"
         (click)="unlockSecrets()"
       ></button>

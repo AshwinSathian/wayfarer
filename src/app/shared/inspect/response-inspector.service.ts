@@ -1,5 +1,9 @@
 import { Injectable, Signal, signal } from "@angular/core";
 
+/** How far a Resource Timing entry's responseEnd may drift from this
+ * request's own measured response time and still be trusted as a match. */
+const MAX_TIMING_MATCH_SKEW_MS = 1500;
+
 export interface ResponseTimingPhases {
   redirect?: number;
   dns?: number;
@@ -72,13 +76,18 @@ export class ResponseInspectorService {
 
     const entry = this.findTimingEntry(url, endTime);
     if (entry) {
+      // `inspection.duration` (set above from performance.now() taken directly
+      // around this specific request) is the one number every other part of
+      // the UI — the status bar included — agrees on. The Resource Timing
+      // entry found here is a best-effort *name match* against the page's
+      // whole resource-timing buffer, which can accumulate multiple entries
+      // for the same URL (repeat requests) or ambiguous prefix matches. It's
+      // used below only for the phase/size *breakdown*, never to overwrite
+      // the headline duration — that was the cause of the Timings tab
+      // reporting a different total than the status bar for the same
+      // response.
       const phases = this.buildPhases(entry);
       const sizes = this.buildSizes(entry);
-      const duration = entry.responseEnd - entry.startTime;
-
-      if (Number.isFinite(duration) && duration >= 0) {
-        inspection.duration = duration;
-      }
 
       if (phases) {
         inspection.phases = phases;
@@ -138,7 +147,12 @@ export class ResponseInspectorService {
       }
     }
 
-    return closest;
+    // The name/prefix filters above can still admit an unrelated entry (a
+    // stale entry for a repeated request to the same URL, or a coincidental
+    // prefix match against a completely different resource). If the closest
+    // match isn't actually close in time, it's not a match — report no phase
+    // breakdown rather than a wrong one.
+    return smallestDelta <= MAX_TIMING_MATCH_SKEW_MS ? closest : undefined;
   }
 
   private isResourceTimingEntry(

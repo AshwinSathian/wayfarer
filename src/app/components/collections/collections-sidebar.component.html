@@ -9,7 +9,7 @@
       <button class="ds-icon-btn" (click)="fileInput.click()" title="Import collection">
         <span class="material-symbols-outlined icon-sm">upload</span>
       </button>
-      <button pButton icon="pi pi-plus" size="small" severity="secondary" (click)="handleCreateCollection()"></button>
+      <button pButton icon="pi pi-plus" size="small" severity="secondary" aria-label="New collection" (click)="handleCreateCollection()"></button>
     </div>
   </div>
 
@@ -100,12 +100,13 @@
         {{ importAnalysis.summary?.requests || 0 }} requests
       </p>
     </div>
-    <label class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label for="import-duplicate-checkbox" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
         <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
       <p-checkbox
+        inputId="import-duplicate-checkbox"
         binary="true"
         [(ngModel)]="importDuplicateAsNew"
         [ngModelOptions]="{ standalone: true }"
@@ -140,8 +141,8 @@
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" outlined (click)="closeImportDialog()"></button>
-      <button pButton label="Import" [disabled]="!importAnalysis?.payload || importErrors.length > 0" (click)="confirmImport()"></button>
+      <button pButton label="Cancel" aria-label="Cancel import" severity="secondary" outlined (click)="closeImportDialog()"></button>
+      <button pButton label="Import" aria-label="Confirm import" [disabled]="!importAnalysis?.payload || importErrors.length > 0" (click)="confirmImport()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -155,7 +156,7 @@
   (onHide)="closeCreationDialog()"
 >
   <div class="flex flex-col gap-3">
-    <label class="ds-form-label">
+    <label for="creation-name-input" class="ds-form-label">
       {{
         creationContext?.type === 'collection'
           ? 'Collection name'
@@ -165,16 +166,18 @@
       }}
     </label>
     <input
+      id="creation-name-input"
       pInputText
       [(ngModel)]="creationModel.name"
       placeholder="Enter name"
       class="w-full"
-     
+
     />
     @if (creationContext?.type === 'request') {
     <div class="flex flex-col gap-1.5">
-      <label class="ds-form-label">Method</label>
+      <label for="creation-method-select" class="ds-form-label">Method</label>
       <p-select
+        inputId="creation-method-select"
         [options]="methodOptions"
         [(ngModel)]="creationModel.method"
         optionLabel="label"
@@ -186,8 +189,8 @@
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" outlined (click)="closeCreationDialog()"></button>
-      <button pButton label="Create" [disabled]="creationDisabled" (click)="submitCreation()"></button>
+      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeCreationDialog()"></button>
+      <button pButton label="Create" aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()"></button>
     </div>
   </ng-template>
 </p-dialog>

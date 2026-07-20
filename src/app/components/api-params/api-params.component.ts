@@ -242,12 +242,7 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   isAddDisabled(ctx: ContextType) {
-    let context;
-    if (ctx === "Body") {
-      context = this.requestBody;
-    } else if (ctx === "Headers") {
-      context = this.requestHeaders;
-    }
+    const context = ctx === "Body" ? this.requestBody : this.requestHeaders;
 
     if (context.length > 0) {
       if (
@@ -262,13 +257,7 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   removeItem(index: number, ctx: ContextType) {
-    let context;
-    if (ctx === "Body") {
-      context = this.requestBody;
-    } else if (ctx === "Headers") {
-      context = this.requestHeaders;
-    }
-
+    const context = ctx === "Body" ? this.requestBody : this.requestHeaders;
     context.splice(index, 1);
   }
 
@@ -398,9 +387,10 @@ export class ApiParamsComponent implements DoCheck {
           this.loadingState = false;
           this._responseInspector.markResponse(requestId, endpoint);
           this.captureErrorResponse(error);
+          const errorBody = this.resolveErrorBody(error);
           this.responseError = this.responseBodyIsJson
-            ? this.serializeJsonPayload(error.error ?? error.message)
-            : this.stringifyPayload(error.error ?? error.message);
+            ? this.serializeJsonPayload(errorBody)
+            : this.stringifyPayload(errorBody);
           const durationMs = Math.round(performance.now() - startedAt);
           await this.runPostScriptAndAssertions(
             error.status,
@@ -462,10 +452,38 @@ export class ApiParamsComponent implements DoCheck {
     this.responseIsError = true;
     this.responseStatusCode = error.status;
     this.responseStatusText = error.statusText ?? "";
-    this.responseBodyIsJson = this.isJsonPayload(error.error);
+    this.responseBodyIsJson = !this.isNetworkError(error) && this.isJsonPayload(error.error);
     this.responseHeadersView = this.extractHeadersList(error.headers);
     this.responseContentLength = this.extractContentLength(error.headers);
     this.responseTab = "body";
+  }
+
+  /**
+   * True when the browser never got a response to parse — a CORS rejection,
+   * DNS failure, refused connection, etc. In that case `HttpErrorResponse.error`
+   * is the raw `ProgressEvent`/`ErrorEvent` the browser fired, not a response
+   * body. Stringifying that object directly used to leak `{"isTrusted":true}`
+   * (an Event's only own-enumerable property) into the response viewer instead
+   * of a readable message.
+   */
+  private isNetworkError(error: HttpErrorResponse): boolean {
+    if (error.status === 0) {
+      return true;
+    }
+    return (
+      (typeof ProgressEvent !== "undefined" && error.error instanceof ProgressEvent) ||
+      (typeof ErrorEvent !== "undefined" && error.error instanceof ErrorEvent)
+    );
+  }
+
+  private resolveErrorBody(error: HttpErrorResponse): unknown {
+    if (this.isNetworkError(error)) {
+      return (
+        error.message ||
+        "Network error — no response was received. Check the URL, your connection, or whether the API allows cross-origin requests (CORS)."
+      );
+    }
+    return error.error ?? error.message;
   }
 
   private extractHeadersList(
@@ -1015,8 +1033,11 @@ export class ApiParamsComponent implements DoCheck {
     }
   }
 
-  onActiveTabChange(tab: string): void {
-    this.activeTab = tab;
+  onActiveTabChange(tab: string | number | undefined): void {
+    if (tab === undefined) {
+      return;
+    }
+    this.activeTab = String(tab);
     this.syncMobilePanelsFromActiveTab();
   }
 
@@ -1050,7 +1071,9 @@ export class ApiParamsComponent implements DoCheck {
     this.applyBodyFromParsed(value);
   }
 
-  onMobileIndexChange(value: string | number | (string | number)[] | null): void {
+  onMobileIndexChange(
+    value: string | number | string[] | number[] | null | undefined
+  ): void {
     const panels = Array.isArray(value)
       ? value.map(String)
       : value != null

@@ -102,10 +102,13 @@ describe("ResponseInspectorService", () => {
 
     const inspection = readInspection();
     expect(inspection).toBeTruthy();
-    expect(inspection?.duration).toBeCloseTo(
-      resourceTiming.responseEnd - resourceTiming.startTime,
-      5
-    );
+    // The headline duration always comes from this request's own
+    // performance.now() measurement (nowValue 5 -> 80 below), never from the
+    // matched Resource Timing entry — those two numbers can legitimately
+    // differ (this fixture's entry resolves to 60), and letting the entry
+    // silently override the total was the Part D "Timings tab disagrees with
+    // the status bar" bug.
+    expect(inspection?.duration).toBeCloseTo(75, 5);
     expect(inspection?.phases).toEqual(
       jasmine.objectContaining({
         redirect: 4,
@@ -123,6 +126,51 @@ describe("ResponseInspectorService", () => {
       decodedBodySize: 8192,
     });
     expect(inspection?.limitedByCors).toBeFalse();
+  });
+
+  it("ignores a stale/mismatched resource timing entry instead of reporting a wrong breakdown", () => {
+    const url = "https://example.com/repeat";
+    // A much older entry for the same URL — e.g. a prior request to the same
+    // endpoint earlier in the session — sitting in the performance buffer.
+    const staleEntry = {
+      name: url,
+      entryType: "resource",
+      startTime: 10,
+      redirectStart: 0,
+      redirectEnd: 0,
+      domainLookupStart: 10,
+      domainLookupEnd: 12,
+      connectStart: 12,
+      secureConnectionStart: 0,
+      connectEnd: 14,
+      requestStart: 14,
+      responseStart: 20,
+      responseEnd: 22,
+      duration: 12,
+      initiatorType: "xmlhttprequest",
+      transferSize: 100,
+      encodedBodySize: 80,
+      decodedBodySize: 80,
+      toJSON: () => ({}),
+    } as PerformanceResourceTiming;
+    entries.push(staleEntry);
+
+    nowValue = 5000;
+    service.markRequest("req-3", url);
+
+    nowValue = 5075;
+    service.markResponse("req-3", url);
+
+    const inspection = readInspection();
+    expect(inspection).toBeTruthy();
+    // Directly-measured duration is always trusted regardless of matching.
+    expect(inspection?.duration).toBeCloseTo(75, 5);
+    // The stale entry (responseEnd 22) is thousands of ms away from this
+    // response's actual time (5075) — too far to trust, so no phase
+    // breakdown is reported rather than a misleading one borrowed from an
+    // unrelated request.
+    expect(inspection?.phases).toBeUndefined();
+    expect(inspection?.limitedByCors).toBeTrue();
   });
 
   it("falls back gracefully when markResponse is invoked before markRequest", () => {

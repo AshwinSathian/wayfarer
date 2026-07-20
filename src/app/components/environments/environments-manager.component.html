@@ -10,7 +10,7 @@
         <button class="ds-icon-btn" (click)="exportEnvironments()" title="Export">
           <span class="material-symbols-outlined icon-sm">download</span>
         </button>
-        <button pButton size="small" icon="pi pi-plus" severity="secondary" (click)="openNewEnvironmentDialog()"></button>
+        <button pButton size="small" icon="pi pi-plus" severity="secondary" aria-label="New environment" (click)="openNewEnvironmentDialog()"></button>
       </div>
     </div>
 
@@ -59,9 +59,10 @@
             (click)="setActive(env); $event.stopPropagation()"
             pTooltip="Use for requests"
             tooltipPosition="top"
+            aria-label="Use for requests"
           ></button>
-          <button pButton icon="pi pi-copy" size="small" text (click)="duplicate(env); $event.stopPropagation()"></button>
-          <button pButton icon="pi pi-trash" size="small" text severity="danger" (click)="remove(env); $event.stopPropagation()"></button>
+          <button pButton icon="pi pi-copy" size="small" text [attr.aria-label]="'Duplicate ' + env.name" (click)="duplicate(env); $event.stopPropagation()"></button>
+          <button pButton icon="pi pi-trash" size="small" text severity="danger" [attr.aria-label]="'Delete ' + env.name" (click)="remove(env); $event.stopPropagation()"></button>
         </div>
       </button>
       }
@@ -70,15 +71,16 @@
   </div>
 
   <!-- ── Environment editor ────────────────────────────────── -->
-  <div class="ds-panel p-5" *ngIf="draft() as form; else emptyState">
+  @if (draft(); as form) {
+  <div class="ds-panel p-5">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
-        <label class="ds-form-label">Name</label>
-        <input pInputText class="w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+        <label for="env-name-input" class="ds-form-label">Name</label>
+        <input id="env-name-input" pInputText class="w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
       </div>
       <div>
-        <label class="ds-form-label">Description</label>
-        <input pInputText class="w-full" [(ngModel)]="form.description" (ngModelChange)="syncDraft(form)" placeholder="Optional" />
+        <label for="env-description-input" class="ds-form-label">Description</label>
+        <input id="env-description-input" pInputText class="w-full" [(ngModel)]="form.description" (ngModelChange)="syncDraft(form)" placeholder="Optional" />
       </div>
     </div>
 
@@ -115,11 +117,11 @@
                   </div>
                 </div>
                 }
-                <button pButton icon="pi pi-lock" text severity="secondary" [disabled]="isSecretValue(form.vars[$index].value)" (click)="protectVariable($index)"></button>
-                <button pButton icon="pi pi-times" text severity="secondary" (click)="removeVariable($index)"></button>
+                <button pButton icon="pi pi-lock" text severity="secondary" [disabled]="isSecretValue(form.vars[$index].value)" aria-label="Mark variable as secret" (click)="protectVariable($index)"></button>
+                <button pButton icon="pi pi-times" text severity="secondary" aria-label="Remove variable" (click)="removeVariable($index)"></button>
               </div>
               }
-              <button pButton icon="pi pi-plus" size="small" label="Add Variable" severity="secondary" (click)="addVariable()"></button>
+              <button pButton icon="pi pi-plus" size="small" label="Add Variable" aria-label="Add variable" severity="secondary" (click)="addVariable()"></button>
             </div>
           </p-tabpanel>
           <p-tabpanel value="json">
@@ -144,17 +146,16 @@
     </div>
 
     <div class="mt-5 flex justify-end">
-      <button pButton label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"></button>
+      <button pButton label="Save changes" aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"></button>
     </div>
   </div>
-</div>
-
-<ng-template #emptyState>
+  } @else {
   <div class="ds-empty-state">
     <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">dns</span>
     <p class="type-callout text-label-tertiary max-w-[220px] text-center">Select or create an environment to begin editing.</p>
   </div>
-</ng-template>
+  }
+</div>
 
 <!-- New environment dialog -->
 <p-dialog
@@ -166,18 +167,18 @@
 >
   <div class="flex flex-col gap-3">
     <div>
-      <label class="ds-form-label">Name</label>
-      <input pInputText class="w-full" [(ngModel)]="newEnvForm.name" placeholder="Environment name" />
+      <label for="new-env-name-input" class="ds-form-label">Name</label>
+      <input id="new-env-name-input" pInputText class="w-full" [(ngModel)]="newEnvForm.name" placeholder="Environment name" />
     </div>
     <div>
-      <label class="ds-form-label">Description</label>
-      <input pInputText class="w-full" [(ngModel)]="newEnvForm.description" placeholder="Optional" />
+      <label for="new-env-description-input" class="ds-form-label">Description</label>
+      <input id="new-env-description-input" pInputText class="w-full" [(ngModel)]="newEnvForm.description" placeholder="Optional" />
     </div>
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" outlined (click)="closeNewEnvironmentDialog()"></button>
-      <button pButton label="Create" [disabled]="!newEnvForm.name?.trim()" (click)="submitNewEnvironment()"></button>
+      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeNewEnvironmentDialog()"></button>
+      <button pButton label="Create" aria-label="Create environment" [disabled]="!newEnvForm.name?.trim()" (click)="submitNewEnvironment()"></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -244,8 +245,8 @@
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" severity="secondary" outlined (click)="closeEnvImportDialog()"></button>
-      <button pButton label="Import" [disabled]="!pendingEnvImport || envImportErrors.length > 0" (click)="confirmEnvironmentImport()"></button>
+      <button pButton label="Cancel" aria-label="Cancel import" severity="secondary" outlined (click)="closeEnvImportDialog()"></button>
+      <button pButton label="Import" aria-label="Confirm import" [disabled]="!pendingEnvImport || envImportErrors.length > 0" (click)="confirmEnvironmentImport()"></button>
     </div>
   </ng-template>
 </p-dialog>

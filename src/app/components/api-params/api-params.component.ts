@@ -4,7 +4,7 @@ import {
   HttpHeaders,
   HttpResponse,
 } from "@angular/common/http";
-import { Component, DoCheck, ElementRef, Signal, inject, viewChild, output } from "@angular/core";
+import { Component, ElementRef, Signal, effect, inject, viewChild, output } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
@@ -80,7 +80,7 @@ type ContextType = "Body" | "Headers";
   ],
   templateUrl: "./api-params.component.html",
 })
-export class ApiParamsComponent implements DoCheck {
+export class ApiParamsComponent {
   private _mainService = inject(MainService);
   private _idbService = inject(IdbService);
   private _responseInspector = inject(ResponseInspectorService);
@@ -230,10 +230,16 @@ export class ApiParamsComponent implements DoCheck {
     ) => item.key === this.defaultHeaderKey;
     this.disableBodyItemFn = () => false;
     this.syncMobilePanelsFromActiveTab();
-  }
 
-  ngDoCheck(): void {
-    this.maybeUpdateVariablePreview();
+    // Switching the active environment doesn't go through any local
+    // mutation method (it's driven entirely by EnvironmentsService's
+    // signal), so it needs its own reactive trigger for the {{var}} preview
+    // rather than one of the explicit maybeUpdateVariablePreview() calls
+    // below.
+    effect(() => {
+      this.environmentsService.activeEnvironment();
+      this.maybeUpdateVariablePreview();
+    });
   }
 
   addItem(ctx: ContextType) {
@@ -242,6 +248,7 @@ export class ApiParamsComponent implements DoCheck {
     } else {
       this.requestHeaders = [...this.requestHeaders, { key: "", value: "" }];
     }
+    this.maybeUpdateVariablePreview();
   }
 
   isAddDisabled(ctx: ContextType) {
@@ -265,6 +272,7 @@ export class ApiParamsComponent implements DoCheck {
     } else {
       this.requestHeaders = this.requestHeaders.filter((_, i) => i !== index);
     }
+    this.maybeUpdateVariablePreview();
   }
 
   focusUrl(): void {
@@ -297,6 +305,7 @@ export class ApiParamsComponent implements DoCheck {
     if (this.editorMode === "json") {
       this.syncJsonEditorsFromState();
     }
+    this.maybeUpdateVariablePreview();
   }
 
   async sendRequest() {
@@ -680,7 +689,7 @@ export class ApiParamsComponent implements DoCheck {
     return looksLikeRealHost;
   }
 
-  private maybeUpdateVariablePreview(): void {
+  maybeUpdateVariablePreview(): void {
     const fingerprint = JSON.stringify({
       endpoint: this.endpoint,
       headers: this.requestHeaders,
@@ -843,10 +852,12 @@ export class ApiParamsComponent implements DoCheck {
     this.endpointError = "";
     this.syncMobilePanelsFromActiveTab();
     this.resetJsonEditors();
+    this.maybeUpdateVariablePreview();
   }
 
   addParam(): void {
     this.requestParams = [...this.requestParams, { key: "", value: "", enabled: true }];
+    this.maybeUpdateVariablePreview();
   }
 
   removeParam(index: number): void {
@@ -869,6 +880,7 @@ export class ApiParamsComponent implements DoCheck {
   onEndpointChange(value: string): void {
     this.endpoint = value;
     this.syncParamsFromUrl(value);
+    this.maybeUpdateVariablePreview();
   }
 
   private syncParamsFromUrl(url: string): void {
@@ -916,6 +928,7 @@ export class ApiParamsComponent implements DoCheck {
       const reconstructed = url.toString();
       const isAbsolute = this.endpoint.startsWith("http://") || this.endpoint.startsWith("https://");
       this.endpoint = isAbsolute ? reconstructed : reconstructed.replace(base + "/", "");
+      this.maybeUpdateVariablePreview();
     } catch {
       // Can't parse; ignore.
     }
@@ -1055,12 +1068,14 @@ export class ApiParamsComponent implements DoCheck {
       this.requestHeaders = [
         { key: this.defaultHeaderKey, value: this.defaultHeaderValue },
       ];
+      this.maybeUpdateVariablePreview();
       return;
     }
     if (!this.isPlainObject(value)) {
       return;
     }
     this.applyHeadersFromParsed(value);
+    this.maybeUpdateVariablePreview();
   }
 
   onBodyJsonParsed(value: unknown): void {
@@ -1069,12 +1084,14 @@ export class ApiParamsComponent implements DoCheck {
     }
     if (value === undefined) {
       this.requestBody = [{ key: "", value: "" }];
+      this.maybeUpdateVariablePreview();
       return;
     }
     if (!this.isPlainObject(value)) {
       return;
     }
     this.applyBodyFromParsed(value);
+    this.maybeUpdateVariablePreview();
   }
 
   onMobileIndexChange(

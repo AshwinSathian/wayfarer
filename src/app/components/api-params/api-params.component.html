@@ -336,6 +336,7 @@
       [addItem]="addItemFn"
       [removeItem]="removeItemFn"
       [disableItem]="disableHeaderItemFn"
+      (itemChange)="maybeUpdateVariablePreview()"
     ></app-api-params-basic>
     } @else {
     <div class="space-y-2">
@@ -368,6 +369,7 @@
       [addItem]="addItemFn"
       [removeItem]="removeItemFn"
       [disableItem]="disableBodyItemFn"
+      (itemChange)="maybeUpdateVariablePreview()"
     ></app-api-params-basic>
     } @else {
     <div class="space-y-2">

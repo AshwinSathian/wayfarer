@@ -12,12 +12,14 @@
       class="w-full font-mono"
       [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.key"
+      (ngModelChange)="itemChange.emit()"
     />
     <input
       pInputText
       class="w-full font-mono"
       [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.value"
+      (ngModelChange)="itemChange.emit()"
     />
     <div class="flex justify-end md:block md:text-center">
       <button

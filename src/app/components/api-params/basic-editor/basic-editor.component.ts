@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
@@ -34,4 +34,12 @@ export class ApiParamsBasicComponent {
     key: string;
     value: unknown;
 }, index: number) => boolean>(() => false);
+
+  /**
+   * Fires on every keystroke in a key/value field. `[(ngModel)]="item.key"`
+   * mutates the bound object in place (it's a reference into the parent's
+   * array), which never touches the `items` input's own reference — so the
+   * parent has no other way to know the content changed.
+   */
+  readonly itemChange = output<void>();
 }

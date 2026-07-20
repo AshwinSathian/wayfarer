@@ -4,6 +4,27 @@
   "description": "A local-first, no-account API testing client — collections, environments, secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
   "license": "MIT",
   "private": true,
+  "author": "Ashwin Sathian",
+  "homepage": "https://api-sandbox.ashwinsathian.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AshwinSathian/api-sandbox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AshwinSathian/api-sandbox/issues"
+  },
+  "keywords": [
+    "angular",
+    "typescript",
+    "api-client",
+    "api-testing",
+    "rest-client",
+    "indexeddb",
+    "primeng",
+    "local-first",
+    "developer-tools",
+    "http-client"
+  ],
   "engines": {
     "node": ">=20.19.0"
   },

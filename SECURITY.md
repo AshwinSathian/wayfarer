@@ -30,7 +30,7 @@ Instead, report privately using one of:
 
 1. **GitHub Private Security Advisory** — use the "Report a vulnerability"
    button under this repository's Security tab
-   (`https://github.com/AshwinSathian/apiSandbox/security/advisories/new`).
+   (`https://github.com/AshwinSathian/api-sandbox/security/advisories/new`).
 2. **Email** — send details to **ashwinsathyan19@gmail.com**.
 
 Please include, where possible:

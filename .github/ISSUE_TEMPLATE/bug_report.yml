@@ -10,7 +10,7 @@ body:
         much of this as you can — it makes triage much faster.
 
         **Security issue?** Please don't file it here — see
-        [SECURITY.md](https://github.com/AshwinSathian/apiSandbox/blob/master/SECURITY.md)
+        [SECURITY.md](https://github.com/AshwinSathian/api-sandbox/blob/master/SECURITY.md)
         for the private disclosure process instead.
 
   - type: textarea

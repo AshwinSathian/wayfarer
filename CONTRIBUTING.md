@@ -14,8 +14,8 @@ from `git clone` to an open pull request.
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/AshwinSathian/apiSandbox.git
-cd apiSandbox
+git clone https://github.com/AshwinSathian/api-sandbox.git
+cd api-sandbox
 
 # 2. Install dependencies (use npm ci for a clean, reproducible install)
 npm ci

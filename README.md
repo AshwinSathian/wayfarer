@@ -1,6 +1,6 @@
 # API Sandbox
 
-[![CI](https://github.com/AshwinSathian/apiSandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/apiSandbox/actions/workflows/ci.yml)
+[![CI](https://github.com/AshwinSathian/api-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/AshwinSathian/api-sandbox/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Coverage](https://img.shields.io/badge/coverage-not%20yet%20measured-lightgrey.svg)](CONTRIBUTING.md)
 
@@ -79,8 +79,8 @@ A focused, fast, and friendly web app for trying APIs without the overhead of a 
 
 ```bash
 # 1) Clone the repo
-git clone https://github.com/AshwinSathian/apiSandbox.git
-cd apiSandbox
+git clone https://github.com/AshwinSathian/api-sandbox.git
+cd api-sandbox
 
 # 2) Install dependencies
 npm ci

@@ -48,6 +48,9 @@ package-lock.json
 
 .angular
 
+# Cloudflare
+.wrangler
+
 # Playwright
 /test-results
 /playwright-report

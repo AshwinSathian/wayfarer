@@ -148,35 +148,51 @@
       </p-tabs>
     </div>
 
-    <!-- Mobile accordion -->
+    <!-- Mobile accordion. PrimeNG 20's Accordion projects its header/content
+         through dedicated <p-accordion-header>/<p-accordion-content> child
+         components, not the older pTemplate="header" ng-template pattern —
+         using the old pattern silently dropped every header (no label, no
+         collapse toggle) and left all panel content stacked and simultaneously
+         mounted, which is also why two Monaco script editors mounting at once
+         left one stuck on "Loading editor...". -->
     <div class="md:hidden">
       <p-accordion
         [multiple]="true"
         [value]="mobileActivePanels"
         (valueChange)="onMobileIndexChange($event)"
       >
-        <p-accordionpanel value="params">
-          <ng-template pTemplate="header">Params</ng-template>
-          <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
-        </p-accordionpanel>
-        <p-accordionpanel value="headers">
-          <ng-template pTemplate="header">Headers</ng-template>
-          <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-        </p-accordionpanel>
+        <p-accordion-panel value="params">
+          <p-accordion-header>Params</p-accordion-header>
+          <p-accordion-content>
+            <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+          </p-accordion-content>
+        </p-accordion-panel>
+        <p-accordion-panel value="headers">
+          <p-accordion-header>Headers</p-accordion-header>
+          <p-accordion-content>
+            <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+          </p-accordion-content>
+        </p-accordion-panel>
         @if (isBodyMethod(selectedRequestMethod)) {
-        <p-accordionpanel value="body">
-          <ng-template pTemplate="header">Body</ng-template>
-          <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-        </p-accordionpanel>
+        <p-accordion-panel value="body">
+          <p-accordion-header>Body</p-accordion-header>
+          <p-accordion-content>
+            <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+          </p-accordion-content>
+        </p-accordion-panel>
         }
-        <p-accordionpanel value="auth">
-          <ng-template pTemplate="header">Auth</ng-template>
-          <ng-container *ngTemplateOutlet="authContent"></ng-container>
-        </p-accordionpanel>
-        <p-accordionpanel value="scripts">
-          <ng-template pTemplate="header">Scripts</ng-template>
-          <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
-        </p-accordionpanel>
+        <p-accordion-panel value="auth">
+          <p-accordion-header>Auth</p-accordion-header>
+          <p-accordion-content>
+            <ng-container *ngTemplateOutlet="authContent"></ng-container>
+          </p-accordion-content>
+        </p-accordion-panel>
+        <p-accordion-panel value="scripts">
+          <p-accordion-header>Scripts</p-accordion-header>
+          <p-accordion-content>
+            <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+          </p-accordion-content>
+        </p-accordion-panel>
       </p-accordion>
     </div>
   </section>

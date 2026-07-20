@@ -20,12 +20,15 @@
       workers and the script sandbox worker, both same-origin bundled assets.
       style-src allows 'unsafe-inline' for PrimeNG's inline positioning styles
       (overlays/dialogs) — a much smaller blast radius than inline script.
+      style-src/font-src also allow Google Fonts (fonts.googleapis.com serves
+      the @font-face CSS for Inter/JetBrains Mono/Material Symbols; the actual
+      font files are served from fonts.gstatic.com).
       frame-ancestors isn't enforceable via <meta>; see public/_headers for the
       real HTTP-header delivery of this same policy on hosts that serve it.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; manifest-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; worker-src 'self' blob:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; manifest-src 'self'"
     />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="manifest" href="manifest.webmanifest" />

@@ -1,10 +1,12 @@
 import { CommonModule } from "@angular/common";
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   effect,
   inject,
   input,
+  signal,
   viewChild,
   output
 } from "@angular/core";
@@ -51,6 +53,7 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
   templateUrl: "./app-shell.component.html",
   styleUrls: ["./app-shell.component.css"],
   providers: [ConfirmationService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {
   readonly pastRequests = input<PastRequest[]>([]);
@@ -76,23 +79,23 @@ export class AppShellComponent implements OnInit {
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();
-    this.dropdownOptions = envs.map((env) => ({
-      label: env.name,
-      value: env.meta.id,
-    }));
-    this.selectedEnvironmentId =
-      this.environmentsService.activeEnvironment()?.meta.id ?? null;
+    this.dropdownOptions.set(
+      envs.map((env) => ({ label: env.name, value: env.meta.id }))
+    );
+    this.selectedEnvironmentId.set(
+      this.environmentsService.activeEnvironment()?.meta.id ?? null
+    );
   });
 
-  dropdownOptions: { label: string; value: string }[] = [];
-  selectedEnvironmentId: string | null = null;
-  lockDialogVisible = false;
+  readonly dropdownOptions = signal<{ label: string; value: string }[]>([]);
+  readonly selectedEnvironmentId = signal<string | null>(null);
+  readonly lockDialogVisible = signal(false);
   historyDrawerVisible = false;
-  isFirstVaultSetup = false;
-  confirmPassphrase = "";
-  unlockPassphrase = "";
+  readonly isFirstVaultSetup = signal(false);
+  readonly confirmPassphrase = signal("");
+  readonly unlockPassphrase = signal("");
   resettingAll = false;
-  unlockError = "";
+  readonly unlockError = signal("");
 
   get historyBadge(): string | undefined {
     const pastRequests = this.pastRequests();
@@ -174,32 +177,32 @@ export class AppShellComponent implements OnInit {
   }
 
   async openLockDialog(): Promise<void> {
-    this.isFirstVaultSetup = !(await this.secretsService.hasAnySecrets());
-    this.lockDialogVisible = true;
-    this.unlockPassphrase = "";
-    this.confirmPassphrase = "";
-    this.unlockError = "";
+    this.isFirstVaultSetup.set(!(await this.secretsService.hasAnySecrets()));
+    this.lockDialogVisible.set(true);
+    this.unlockPassphrase.set("");
+    this.confirmPassphrase.set("");
+    this.unlockError.set("");
   }
 
   closeLockDialog(): void {
-    this.lockDialogVisible = false;
-    this.unlockPassphrase = "";
-    this.confirmPassphrase = "";
-    this.unlockError = "";
+    this.lockDialogVisible.set(false);
+    this.unlockPassphrase.set("");
+    this.confirmPassphrase.set("");
+    this.unlockError.set("");
   }
 
   async unlockSecrets(): Promise<void> {
-    const passphrase = this.unlockPassphrase.trim();
+    const passphrase = this.unlockPassphrase().trim();
     if (!passphrase) {
       return;
     }
-    if (this.isFirstVaultSetup) {
-      if (passphrase !== this.confirmPassphrase.trim()) {
-        this.unlockError = "Passphrases do not match.";
+    if (this.isFirstVaultSetup()) {
+      if (passphrase !== this.confirmPassphrase().trim()) {
+        this.unlockError.set("Passphrases do not match.");
         return;
       }
       if (passphrase.length < 8) {
-        this.unlockError = "Passphrase must be at least 8 characters.";
+        this.unlockError.set("Passphrase must be at least 8 characters.");
         return;
       }
     }
@@ -208,11 +211,11 @@ export class AppShellComponent implements OnInit {
       if (ok) {
         this.closeLockDialog();
       } else {
-        this.unlockError = "Incorrect passphrase. Please try again.";
+        this.unlockError.set("Incorrect passphrase. Please try again.");
       }
     } catch (error) {
       console.error("Failed to unlock secrets", error);
-      this.unlockError = "Unable to unlock secrets in this environment.";
+      this.unlockError.set("Unable to unlock secrets in this environment.");
     }
   }
 

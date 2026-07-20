@@ -104,8 +104,9 @@
       <div class="flex items-center gap-2">
         <!-- Environment selector -->
         <p-select
-          [options]="dropdownOptions"
-          [(ngModel)]="selectedEnvironmentId"
+          [options]="dropdownOptions()"
+          [ngModel]="selectedEnvironmentId()"
+          (ngModelChange)="selectedEnvironmentId.set($event)"
           placeholder="No environment"
           optionLabel="label"
           optionValue="value"
@@ -214,8 +215,9 @@
 <!-- Unlock / setup secrets dialog -->
 <p-dialog
   closeAriaLabel="Close"
-  [header]="isFirstVaultSetup ? 'Create vault passphrase' : 'Unlock secrets'"
-  [(visible)]="lockDialogVisible"
+  [header]="isFirstVaultSetup() ? 'Create vault passphrase' : 'Unlock secrets'"
+  [visible]="lockDialogVisible()"
+  (visibleChange)="lockDialogVisible.set($event)"
   [modal]="true"
   [dismissableMask]="true"
   [style]="{ width: '400px' }"
@@ -223,10 +225,10 @@
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
       <span class="material-symbols-outlined icon-md text-label-tertiary mt-0.5 flex-shrink-0">
-        {{ isFirstVaultSetup ? 'shield_lock' : 'lock' }}
+        {{ isFirstVaultSetup() ? 'shield_lock' : 'lock' }}
       </span>
       <p class="type-callout text-label-secondary leading-relaxed">
-        @if (isFirstVaultSetup) {
+        @if (isFirstVaultSetup()) {
         Create a passphrase to encrypt your secrets. You'll need it to access them in future sessions.
         } @else {
         Enter your passphrase to unlock encrypted secrets for this session.
@@ -239,26 +241,28 @@
         pInputText
         type="password"
         class="w-full"
-        [(ngModel)]="unlockPassphrase"
-        [placeholder]="isFirstVaultSetup ? 'Choose a passphrase' : 'Passphrase'"
+        [ngModel]="unlockPassphrase()"
+        (ngModelChange)="unlockPassphrase.set($event)"
+        [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
         (keydown.enter)="unlockSecrets()"
       />
-      @if (isFirstVaultSetup) {
+      @if (isFirstVaultSetup()) {
       <input
         pInputText
         type="password"
         class="w-full"
-        [(ngModel)]="confirmPassphrase"
+        [ngModel]="confirmPassphrase()"
+        (ngModelChange)="confirmPassphrase.set($event)"
         placeholder="Confirm passphrase"
         (keydown.enter)="unlockSecrets()"
       />
       }
     </div>
 
-    @if (unlockError) {
+    @if (unlockError()) {
     <p class="type-footnote text-status-error flex items-center gap-1.5">
       <span class="material-symbols-outlined icon-xs">error</span>
-      {{ unlockError }}
+      {{ unlockError() }}
     </p>
     }
 
@@ -266,9 +270,9 @@
       <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
       <button
         pButton
-        [label]="isFirstVaultSetup ? 'Create vault' : 'Unlock'"
-        [attr.aria-label]="isFirstVaultSetup ? 'Create vault' : 'Unlock secrets'"
-        [disabled]="!unlockPassphrase"
+        [label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock'"
+        [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock secrets'"
+        [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
       ></button>
     </div>

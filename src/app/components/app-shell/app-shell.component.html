@@ -36,13 +36,17 @@
           aria-label="New request"
           outlined
           class="w-full"
-          (click)="isMobile() ? closeDrawer.emit() : null"
+          (click)="handleNewRequest()"
         ></button>
       </div>
       }
 
       <div class="flex-1 overflow-y-auto px-3 py-3">
-        <app-collections-sidebar class="h-full w-full" (loadRequest)="handleLoadCollectionRequest($event)"></app-collections-sidebar>
+        <app-collections-sidebar
+          class="h-full w-full"
+          [externalActions]="sidebarPaletteActions"
+          (loadRequest)="handleLoadCollectionRequest($event)"
+        ></app-collections-sidebar>
       </div>
     </div>
   </ng-template>
@@ -155,8 +159,8 @@
         <!-- History -->
         <button
           class="ds-icon-btn"
-          [class.bg-accent-fill]="historyDrawerVisible"
-          (click)="historyDrawerVisible = true"
+          [class.bg-accent-fill]="historyDrawerVisible()"
+          (click)="historyDrawerVisible.set(true)"
           title="Request history"
           aria-label="Request history"
         >
@@ -178,7 +182,8 @@
 <!-- History drawer -->
 <p-drawer
   position="right"
-  [(visible)]="historyDrawerVisible"
+  [visible]="historyDrawerVisible()"
+  (visibleChange)="historyDrawerVisible.set($event)"
   [modal]="true"
   [dismissible]="true"
   [closeOnEscape]="true"
@@ -206,7 +211,7 @@
           aria-label="Clear all history"
           (click)="confirmClear()"
         ></button>
-        <button class="ds-icon-btn" (click)="historyDrawerVisible = false" title="Close">
+        <button class="ds-icon-btn" (click)="historyDrawerVisible.set(false)" title="Close">
           <span class="material-symbols-outlined icon-md">close</span>
         </button>
       </div>

@@ -202,6 +202,33 @@ export class CollectionsService {
     return doc;
   }
 
+  async updateRequest(
+    id: RequestDocId,
+    patch: Partial<
+      Pick<
+        RequestDoc,
+        | "name"
+        | "folderId"
+        | "method"
+        | "url"
+        | "params"
+        | "headers"
+        | "body"
+        | "vars"
+        | "auth"
+        | "preRequestScript"
+        | "postRequestScript"
+        | "tests"
+      >
+    >
+  ): Promise<RequestDoc | null> {
+    const doc = await this.idb.updateRequest(id, patch);
+    if (doc) {
+      await this.refreshCollectionEntry(doc.collectionId);
+    }
+    return doc;
+  }
+
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
     const doc = await this.idb.duplicateRequest(id);
     if (doc) {

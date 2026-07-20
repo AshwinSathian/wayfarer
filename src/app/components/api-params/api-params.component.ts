@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   Signal,
+  computed,
   effect,
   inject,
   signal,
@@ -14,6 +15,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
 import { ChipModule } from "primeng/chip";
+import { DialogModule } from "primeng/dialog";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
 import { ProgressSpinnerModule } from "primeng/progressspinner";
@@ -22,9 +24,10 @@ import { SelectButtonModule } from "primeng/selectbutton";
 import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { EnvironmentsService } from "src/app/services/environments.service";
+import { CollectionsService } from "src/app/services/collections.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
-import { AuthType, HttpAuthPlaceholder } from "../../models/collections.models";
+import { AuthType, HttpAuthPlaceholder, RequestDoc } from "../../models/collections.models";
 import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ScriptEditorComponent } from "../script-editor/script-editor.component";
@@ -76,6 +79,7 @@ type ContextType = "Body" | "Headers";
     FloatLabelModule,
     SkeletonModule,
     ChipModule,
+    DialogModule,
     JsonEditorComponent,
     ScriptEditorComponent,
     ApiParamsBasicComponent,
@@ -90,6 +94,7 @@ export class ApiParamsComponent {
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly variableFocus = inject(VariableFocusService);
   private readonly requestExecution = inject(RequestExecutionService);
+  private readonly collectionsService = inject(CollectionsService);
 
   readonly newRequest = output<void>();
 
@@ -198,6 +203,35 @@ export class ApiParamsComponent {
   ];
   private previewFingerprint = "";
 
+  /**
+   * The collection request the composer's current contents were loaded
+   * from/last saved to, if any — null for a scratch request (typed from
+   * blank, or reloaded from History). Drives whether "Save" writes back to
+   * that request in place or opens "Save to Collection" to create a new one.
+   */
+  readonly loadedCollectionRequest = signal<RequestDoc | null>(null);
+  readonly savingRequest = signal(false);
+  readonly saveAsDialogVisible = signal(false);
+  readonly saveAsName = signal("");
+  readonly saveAsCollectionId = signal<string | null>(null);
+  readonly saveAsFolderId = signal<string | null>(null);
+
+  readonly saveAsCollectionOptions = computed(() =>
+    this.collectionsService.tree().map((entry) => ({
+      label: entry.collection.name,
+      value: entry.collection.meta.id,
+    }))
+  );
+
+  readonly saveAsFolderOptions = computed(() => {
+    const collectionId = this.saveAsCollectionId();
+    const entry = this.collectionsService.tree().find((e) => e.collection.meta.id === collectionId);
+    return (entry?.folders ?? []).map((folder) => ({
+      label: folder.name,
+      value: folder.meta.id,
+    }));
+  });
+
   constructor() {
     this.responseInspection = this.responseInspector.latest;
     this.syncMobilePanelsFromActiveTab();
@@ -254,6 +288,11 @@ export class ApiParamsComponent {
   }
 
   loadPastRequest(request: PastRequest) {
+    // A History replay is never bound back to a collection request — even
+    // if the composer was previously bound, replaying an older history
+    // entry shouldn't silently overwrite whatever's saved in the
+    // collection with different (possibly stale) content.
+    this.loadedCollectionRequest.set(null);
     this.onRequestMethodChange(request.method);
     this.endpoint.set(request.url);
     this.requestHeaders.set(this.deconstructObject(request.headers, "Headers"));
@@ -274,6 +313,125 @@ export class ApiParamsComponent {
       this.syncJsonEditorsFromState();
     }
     this.maybeUpdateVariablePreview();
+  }
+
+  /**
+   * Loads a saved collection request into the composer *and* binds this
+   * session to it, so a subsequent Save writes back in place instead of
+   * prompting to create a new request. Unlike loadPastRequest (History,
+   * which only ever carries method/url/headers/body), this preserves auth,
+   * scripts, and tests — those previously got silently dropped on load
+   * because the collection tree only ever emitted a lossy PastRequest.
+   */
+  loadCollectionRequest(doc: RequestDoc): void {
+    this.loadedCollectionRequest.set(doc);
+    this.onRequestMethodChange(doc.method);
+    this.endpoint.set(doc.url);
+    this.requestHeaders.set(this.deconstructObject(doc.headers ?? {}, "Headers"));
+    if (doc.body && typeof doc.body === "object") {
+      this.requestBody.set(
+        this.deconstructObject(doc.body as Record<string, unknown>, "Body")
+      );
+      this.activeTab.set(this.isBodyMethod(doc.method) ? "body" : "headers");
+    } else {
+      this.requestBody.set([{ key: "", value: "" }]);
+      this.activeTab.set("headers");
+    }
+    this.syncParamsFromUrl(doc.url);
+    this.requestAuth.set(doc.auth ?? { type: "none" });
+    this.showAuthPassword.set(false);
+    this.preRequestScript.set(doc.preRequestScript ?? "");
+    this.postRequestScript.set(doc.postRequestScript ?? "");
+    this.requestTests.set(doc.tests ?? []);
+    this.syncMobilePanelsFromActiveTab();
+    if (this.editorMode() === "json") {
+      this.syncJsonEditorsFromState();
+    }
+    this.maybeUpdateVariablePreview();
+  }
+
+  /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
+  clearComposer(): void {
+    this.loadedCollectionRequest.set(null);
+    this.resetForm();
+  }
+
+  async saveCurrentRequest(): Promise<void> {
+    const bound = this.loadedCollectionRequest();
+    if (!bound) {
+      this.openSaveAsDialog();
+      return;
+    }
+    this.savingRequest.set(true);
+    try {
+      const updated = await this.collectionsService.updateRequest(bound.meta.id, {
+        method: this.selectedRequestMethod(),
+        url: this.endpoint(),
+        headers: this.buildHeaders(),
+        body: this.buildBody(),
+        auth: this.requestAuth(),
+        preRequestScript: this.preRequestScript(),
+        postRequestScript: this.postRequestScript(),
+        tests: this.requestTests(),
+      });
+      if (updated) {
+        this.loadedCollectionRequest.set(updated);
+      }
+    } finally {
+      this.savingRequest.set(false);
+    }
+  }
+
+  openSaveAsDialog(): void {
+    const bound = this.loadedCollectionRequest();
+    const options = this.saveAsCollectionOptions();
+    this.saveAsName.set(bound?.name ?? "");
+    this.saveAsCollectionId.set(bound?.collectionId ?? options[0]?.value ?? null);
+    this.saveAsFolderId.set(bound?.folderId ?? null);
+    this.saveAsDialogVisible.set(true);
+  }
+
+  closeSaveAsDialog(): void {
+    this.saveAsDialogVisible.set(false);
+  }
+
+  onSaveAsCollectionChange(collectionId: string | null): void {
+    this.saveAsCollectionId.set(collectionId);
+    this.saveAsFolderId.set(null);
+  }
+
+  get isSaveAsDisabled(): boolean {
+    return !this.saveAsName().trim() || !this.saveAsCollectionId();
+  }
+
+  async confirmSaveAs(): Promise<void> {
+    const collectionId = this.saveAsCollectionId();
+    const name = this.saveAsName().trim();
+    if (!collectionId || !name) {
+      return;
+    }
+    this.savingRequest.set(true);
+    try {
+      const doc = await this.collectionsService.createRequest({
+        collectionId,
+        folderId: this.saveAsFolderId() ?? undefined,
+        name,
+        method: this.selectedRequestMethod(),
+        url: this.endpoint(),
+        headers: this.buildHeaders(),
+        body: this.buildBody(),
+      });
+      const updated = await this.collectionsService.updateRequest(doc.meta.id, {
+        auth: this.requestAuth(),
+        preRequestScript: this.preRequestScript(),
+        postRequestScript: this.postRequestScript(),
+        tests: this.requestTests(),
+      });
+      this.loadedCollectionRequest.set(updated ?? doc);
+      this.closeSaveAsDialog();
+    } finally {
+      this.savingRequest.set(false);
+    }
   }
 
   async sendRequest() {
@@ -309,7 +467,6 @@ export class ApiParamsComponent {
     this.lastTestResults.set(result.testResults);
     this.applyExecutionResponse(result.response);
     await this.persistHistory(result.history);
-    this.resetForm();
   }
 
   /**

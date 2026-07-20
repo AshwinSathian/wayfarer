@@ -146,13 +146,19 @@ The Response Viewer (status pill, Body/Headers/Timings/Tests tabs, working searc
 
 ### Discoverability and structural gaps — fix in Phase 3
 
-- No visible "Save request to Collection" action was found anywhere in the composer's toolbar/tooltips — if it exists, it isn't surfaced.
-- Collection folders render as plain text with no icon or expand chevron — indistinguishable from a label.
-- No dedicated secrets-management view; secrets appear to be managed only as flagged rows inside the Environments editor, which under-signposts the "vault" concept the first-use flow sets up.
-- No Settings surface anywhere (theme toggle exists, but no reset-all-data, keyboard shortcuts reference, or preferences screen).
-- Command palette (⌘K) currently has exactly one registered command ("New Collection") — the UI for it is done, the content isn't.
-- Fixed-width centered layout leaves large amounts of dead canvas at 1024px–1440px+ where every competitor uses a resizable multi-pane split.
-- Disabled "Copy as cURL" button renders as an empty box, easily mistaken for broken rather than disabled.
+- [x] ~~No visible "Save request to Collection" action was found anywhere in the composer's toolbar/tooltips — if it exists, it isn't surfaced.~~ **Fixed** — it didn't just need surfacing, the capability didn't exist at all: a request created via the sidebar's "New Request" prompt could never be edited again (no `updateRequest` anywhere in `CollectionsService`/`CollectionsRepository`/`IdbService`). Added `updateRequest()` at all three layers plus a composer **Save**/**Save to Collection** action (icon button next to Send) that persists the full state — method/URL/headers/body/auth/scripts/tests — and a Save-As dialog for unbound requests.
+- [x] ~~Collection folders render as plain text with no icon or expand chevron — indistinguishable from a label.~~ **Fixed** — collection/folder icons added to the tree template (the expand/collapse chevron was already there via PrimeNG's own tree toggler; only the icon was actually missing).
+- [ ] No dedicated secrets-management view; secrets appear to be managed only as flagged rows inside the Environments editor, which under-signposts the "vault" concept the first-use flow sets up.
+- [ ] No Settings surface anywhere (theme toggle exists, but no reset-all-data, keyboard shortcuts reference, or preferences screen) — partially addressed: Reset All Data and Local Bridge settings are now both reachable from the command palette, but there's still no dedicated Settings screen.
+- [x] ~~Command palette (⌘K) currently has exactly one registered command ("New Collection") — the UI for it is done, the content isn't.~~ **Fixed** — registered New Request, Send Request, Focus Address Bar, theme toggle, open History, lock/unlock secrets, Local Bridge settings, and Reset All Data, sourced from `AppShellComponent` (the sidebar palette had no access to those) via a new `[externalActions]` input on `CollectionsSidebarComponent`.
+- [ ] Fixed-width centered layout leaves large amounts of dead canvas at 1024px–1440px+ where every competitor uses a resizable multi-pane split.
+- [ ] Disabled "Copy as cURL" button renders as an empty box, easily mistaken for broken rather than disabled.
+
+**Also found and fixed this pass, not in the original audit:**
+
+- **A successful Send unconditionally cleared the entire composer** (`sendRequest()` called `resetForm()` on every send, wiping method/url/headers/body/auth the instant a response arrived) — arguably a worse bug than anything in the Phase 0 table above, since it broke the basic compose→send→tweak→resend loop for every request, every time. Fixed: Send no longer resets the form; an explicit "New Request" action (previously only a non-functional mobile-only button) is the one thing that does.
+- Loading a saved collection request into the composer silently dropped auth/scripts/tests (the tree only ever emitted a lossy history-shaped object). Fixed alongside the Save work above.
+- The Send button's intended gradient styling was a silent no-op (`styleClass` isn't a real input on PrimeNG's `pButton` *directive*, only on the `<p-button>` *component*), leaving it on the theme's default primary color — which turned out to fail WCAG AA contrast (1.99:1 against white text, needs 4.5:1). This was masked in the existing accessibility e2e test by the send-then-clear bug above (the cleared/disabled button was exempt from the contrast check). Both are now fixed.
 
 ---
 
@@ -221,18 +227,18 @@ Four phases. **Phase 0 is a hard prerequisite** for the others — nothing else 
 
 **Goal:** close the discoverability and structural gaps from Part D, and make the app feel deliberately designed at every breakpoint and input method, not just on a 1440px mouse-driven desktop.
 
-| Task | Detail |
-|---|---|
-| Resizable multi-pane layout | Composer/response split like Postman/Insomnia/Bruno; stop capping content to a fixed-width centered card |
-| Rebuild the mobile composer | Accordion or segmented-control pattern at narrow widths instead of collapsing all four tabs into one unlabeled stacked column; fix Monaco initializing inside zero-width containers |
-| Surface "Save to Collection" explicitly | Visible, labeled, discoverable from the composer toolbar |
-| Give folders real affordances | Icon + expand chevron, not plain text |
-| Build a dedicated Secrets management view | Beyond the per-variable lock icon buried in the Environments editor |
-| Build a Settings surface | Theme, data export/import, reset-all-data, keyboard shortcuts reference |
-| Fix the small polish bugs from Part D | Disabled-button visibility, intermittent render glitch on tab/viewport transitions |
-| Complete the command palette | Register the toolbar actions that already exist as functions (theme toggle, history, sidebar toggle, new environment, send) — mostly a registration exercise, not new UI |
-| Accessibility pass | ARIA roles/labels across all interactive components; focus trap + restore for every dialog/drawer; add `axe-core` (or Pa11y) as a CI gate targeting 0 critical/serious violations on primary flows |
-| Motion pass | Use the existing Obsidian design system's spring-easing tokens for tab switches, response arrival, dialog open/close — deliberate, not decorative |
+| Task | Detail | Status |
+|---|---|---|
+| Resizable multi-pane layout | Composer/response split like Postman/Insomnia/Bruno; stop capping content to a fixed-width centered card | Open |
+| Rebuild the mobile composer | Accordion or segmented-control pattern at narrow widths instead of collapsing all four tabs into one unlabeled stacked column; fix Monaco initializing inside zero-width containers | Open |
+| Surface "Save to Collection" explicitly | Turned out to require building the capability itself, not just surfacing it — see Part D | **Done** |
+| Give folders real affordances | Icon + expand chevron, not plain text | **Done** |
+| Build a dedicated Secrets management view | Beyond the per-variable lock icon buried in the Environments editor | Open |
+| Build a Settings surface | Theme, data export/import, reset-all-data, keyboard shortcuts reference | Partial — Reset All Data and Local Bridge settings are now in the command palette; no dedicated screen yet |
+| Fix the small polish bugs from Part D | Disabled-button visibility, intermittent render glitch on tab/viewport transitions | Open |
+| Complete the command palette | Register the toolbar actions that already exist as functions (theme toggle, history, sidebar toggle, new environment, send) — mostly a registration exercise, not new UI | **Done** |
+| Accessibility pass | ARIA roles/labels across all interactive components; focus trap + restore for every dialog/drawer; add `axe-core` (or Pa11y) as a CI gate targeting 0 critical/serious violations on primary flows | Mostly done (prior session) — this pass added coverage for the Save-to-Collection dialog and command palette, and fixed a real Send-button contrast failure the existing gate had been inadvertently masking |
+| Motion pass | Use the existing Obsidian design system's spring-easing tokens for tab switches, response arrival, dialog open/close — deliberate, not decorative | Open |
 
 **Acceptance criteria:** `axe-core` CI gate green on primary flows; the send-request-and-view-response flow is completable keyboard-only and at a 390px viewport; Lighthouse accessibility score ≥ 95 on the main screen.
 

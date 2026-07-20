@@ -92,6 +92,17 @@ class IdbServiceMock {
     return null;
   }
 
+  async updateRequest(id: string, patch: Partial<RequestDoc>): Promise<RequestDoc | null> {
+    for (const collectionId of Object.keys(this.requests)) {
+      const doc = this.requests[collectionId].find((r) => r.id === id);
+      if (doc) {
+        Object.assign(doc, patch);
+        return doc;
+      }
+    }
+    return null;
+  }
+
   async deleteRequest(id: string): Promise<void> {
     for (const collectionId of Object.keys(this.requests)) {
       this.requests[collectionId] = this.requests[collectionId].filter((r) => r.id !== id);
@@ -150,6 +161,51 @@ describe("CollectionsService", () => {
     expect(idb.listFoldersCalls).toEqual(["c2"]);
     expect(idb.listRequestsCalls).toEqual(["c2"]);
     expect(service.getCollectionTree("c2")?.requests[0].name).toBe("Renamed");
+  });
+
+  it("updateRequest re-fetches only the request's own collection and persists the full patch", async () => {
+    await service.refresh();
+    const created = await service.createRequest({
+      collectionId: "c2",
+      name: "First",
+      method: "GET",
+      url: "https://x",
+    });
+    idb.listFoldersCalls = [];
+    idb.listRequestsCalls = [];
+
+    await service.updateRequest(created.id, {
+      method: "POST",
+      url: "https://updated.example.com",
+      headers: { Authorization: "Bearer abc" },
+      body: { hello: "world" },
+      auth: { type: "bearer", bearer: { token: "abc" } },
+      preRequestScript: "pm.environment.set('x', '1')",
+      postRequestScript: "pm.test('ok', () => {})",
+      tests: [],
+    });
+
+    expect(idb.listFoldersCalls).toEqual(["c2"]);
+    expect(idb.listRequestsCalls).toEqual(["c2"]);
+    const updated = service.getCollectionTree("c2")?.requests[0];
+    expect(updated?.method).toBe("POST");
+    expect(updated?.url).toBe("https://updated.example.com");
+    expect(updated?.headers).toEqual({ Authorization: "Bearer abc" });
+    expect(updated?.body).toEqual({ hello: "world" });
+    expect(updated?.auth).toEqual({ type: "bearer", bearer: { token: "abc" } });
+    expect(updated?.preRequestScript).toBe("pm.environment.set('x', '1')");
+  });
+
+  it("updateRequest returns null and does not refresh when the request no longer exists", async () => {
+    await service.refresh();
+    idb.listFoldersCalls = [];
+    idb.listRequestsCalls = [];
+
+    const result = await service.updateRequest("missing-id", { url: "https://x" });
+
+    expect(result).toBeNull();
+    expect(idb.listFoldersCalls).toEqual([]);
+    expect(idb.listRequestsCalls).toEqual([]);
   });
 
   it("deleteRequest resolves the owning collection before deleting, then re-fetches only that collection", async () => {

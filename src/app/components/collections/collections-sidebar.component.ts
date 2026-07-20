@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, signal, WritableSignal, inject, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ConfirmationService,
@@ -44,7 +44,7 @@ interface TreeDragDropEvent {
   tree?: { value?: TreeNode<NodeData>[] };
 }
 
-interface PaletteAction {
+export interface PaletteAction {
   id: string;
   label: string;
   run: () => void | Promise<void>;
@@ -75,7 +75,9 @@ export class CollectionsSidebarComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly confirmationService = inject(ConfirmationService);
 
-  readonly loadRequest = output<PastRequest>();
+  readonly loadRequest = output<RequestDoc>();
+  /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
+  readonly externalActions = input<PaletteAction[]>([]);
 
   readonly nodes = computed<TreeNode<NodeData>[]>(() =>
     this.collectionsToNodes(this.collectionsService.tree())
@@ -253,6 +255,7 @@ export class CollectionsSidebarComponent implements OnInit {
   private buildPaletteActions(): PaletteAction[] {
     const actions: PaletteAction[] = [
       { id: "new-collection", label: "New Collection", run: () => this.handleCreateCollection() },
+      ...this.externalActions(),
     ];
     const node = this.selectedNode();
     if (!node) {
@@ -357,14 +360,7 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   private emitLoadRequest(doc: RequestDoc): void {
-    const request: PastRequest = {
-      method: doc.method,
-      url: doc.url,
-      headers: doc.headers ?? {},
-      body: doc.body as Record<string, unknown> | undefined,
-      createdAt: Date.now(),
-    };
-    this.loadRequest.emit(request);
+    this.loadRequest.emit(doc);
   }
 
   async handleDrop(event: TreeDragDropEvent): Promise<void> {

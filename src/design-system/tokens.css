@@ -60,7 +60,11 @@
   /* ── Gradient ─────────────────────────────────────────────
      Signature gradient for primary CTAs and brand moments.
   */
-  --gradient-accent:   linear-gradient(135deg, #4C6EF5 0%, #7B4CF5 100%);
+  /* Start stop deliberately darker than --accent itself (#4C6EF5, which is
+     only 4.32:1 against white — just under WCAG AA's 4.5:1) so white text
+     laid directly over the gradient's lightest point still clears the
+     threshold; the accent token elsewhere is unaffected. */
+  --gradient-accent:   linear-gradient(135deg, #405DD0 0%, #7B4CF5 100%);
   --gradient-primary:  linear-gradient(135deg, #4C6EF5 0%, #7B92FF 100%);
   --gradient-success:  linear-gradient(135deg, #30D158 0%, #34C759 100%);
 

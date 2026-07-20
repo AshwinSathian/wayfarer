@@ -441,6 +441,53 @@ export class CollectionsRepository {
     });
   }
 
+  /**
+   * Persists the composer's full working state (method/url/params/headers/
+   * body/auth/scripts/tests) back onto an existing collection request —
+   * the "Save" half of Save/Save As. `folderId` is included so a request
+   * can be re-filed into a different folder in the same call; `undefined`
+   * values are left untouched rather than clearing the field, since callers
+   * only pass the subset of fields the composer actually knows about.
+   */
+  async updateRequest(
+    id: RequestDocId,
+    patch: Partial<
+      Pick<
+        RequestDoc,
+        | "name"
+        | "folderId"
+        | "method"
+        | "url"
+        | "params"
+        | "headers"
+        | "body"
+        | "vars"
+        | "auth"
+        | "preRequestScript"
+        | "postRequestScript"
+        | "tests"
+      >
+    >
+  ): Promise<RequestDoc | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["requests"]);
+    const store = tx.objectStore("requests");
+    return this.core.commitOrRollback(tx, async () => {
+      const doc = await store.get(id);
+      if (!doc) {
+        return null;
+      }
+      Object.assign(doc, patch);
+      if (patch.name !== undefined) {
+        doc.name = doc.name.trim();
+      }
+      doc.meta = this.core.touchMeta(doc.meta);
+      this.core.ensureId(doc);
+      await store.put(doc);
+      return doc;
+    });
+  }
+
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests"]);

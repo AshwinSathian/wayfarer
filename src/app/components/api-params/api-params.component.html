@@ -32,6 +32,16 @@
       <button
         pButton
         type="button"
+        icon="pi pi-plus"
+        title="New request"
+        aria-label="New request"
+        severity="secondary"
+        outlined
+        (click)="clearComposer()"
+      ></button>
+      <button
+        pButton
+        type="button"
         icon="pi pi-terminal"
         [disabled]="!endpoint()"
         title="Copy as cURL"
@@ -42,14 +52,33 @@
       <button
         pButton
         type="button"
+        [icon]="savingRequest() ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
+        [disabled]="!endpoint() || savingRequest()"
+        [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+        [aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+        severity="secondary"
+        outlined
+        (click)="saveCurrentRequest()"
+      ></button>
+      <button
+        pButton
+        type="button"
         [disabled]="!endpoint()"
         label="Send"
         aria-label="Send request"
         (click)="sendRequest()"
-        styleClass="send-btn"
+        class="send-btn"
       ></button>
     </div>
   </div>
+
+  @if (loadedCollectionRequest(); as bound) {
+  <p class="type-footnote text-label-tertiary flex items-center gap-1.5 -mt-2">
+    <span class="material-symbols-outlined icon-xs">folder</span>
+    Editing <span class="text-label-secondary">{{ bound.name }}</span> — Save writes back to this request.
+    <button type="button" class="underline" (click)="clearComposer()">Start a new request instead</button>
+  </p>
+  }
 
   @if (endpointError() !== '') {
   <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
@@ -504,3 +533,75 @@
   }
 
 </div>
+
+<!-- Save to Collection dialog -->
+<p-dialog
+  closeAriaLabel="Close"
+  header="Save to Collection"
+  [visible]="saveAsDialogVisible()"
+  (visibleChange)="saveAsDialogVisible.set($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '420px' }"
+>
+  <div class="flex flex-col gap-4">
+    @if (!saveAsCollectionOptions().length) {
+    <p class="type-callout text-label-secondary">
+      No collections yet — create one from the sidebar first, then save this request into it.
+    </p>
+    } @else {
+    <div class="flex flex-col gap-1.5">
+      <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
+      <input
+        id="save-as-name"
+        pInputText
+        type="text"
+        class="w-full"
+        [ngModel]="saveAsName()"
+        (ngModelChange)="saveAsName.set($event)"
+        placeholder="Request name"
+      />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <label for="save-as-collection" class="type-footnote text-label-secondary">Collection</label>
+      <p-select
+        inputId="save-as-collection"
+        [options]="saveAsCollectionOptions()"
+        [ngModel]="saveAsCollectionId()"
+        (ngModelChange)="onSaveAsCollectionChange($event)"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Choose a collection"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+    @if (saveAsFolderOptions().length) {
+    <div class="flex flex-col gap-1.5">
+      <label for="save-as-folder" class="type-footnote text-label-secondary">Folder (optional)</label>
+      <p-select
+        inputId="save-as-folder"
+        [options]="saveAsFolderOptions()"
+        [ngModel]="saveAsFolderId()"
+        (ngModelChange)="saveAsFolderId.set($event)"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="No folder"
+        [showClear]="true"
+        styleClass="w-full"
+      ></p-select>
+    </div>
+    }
+    }
+
+    <div class="flex justify-end gap-2">
+      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeSaveAsDialog()"></button>
+      <button
+        pButton
+        [label]="savingRequest() ? 'Saving…' : 'Save'"
+        aria-label="Save"
+        [disabled]="isSaveAsDisabled || savingRequest()"
+        (click)="confirmSaveAs()"
+      ></button>
+    </div>
+  </div>
+</p-dialog>

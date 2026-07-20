@@ -70,6 +70,48 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
+  test("the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "New collection" }).click();
+    await page.locator("#creation-name-input").fill("A11y Save Collection");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    await expect(page.getByText("A11y Save Collection", { exact: true })).toBeVisible();
+    // Let the creation dialog's own close transition finish — otherwise axe
+    // can sample its Create/Cancel buttons mid-fade, where the transitional
+    // opacity produces a spurious near-identical fg/bg color reading that
+    // has nothing to do with the dialog's actual (already-verified-passing)
+    // steady-state contrast.
+    await expect(page.locator("#creation-name-input")).toBeHidden();
+
+    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.getByRole("button", { name: "Save to Collection" }).click();
+    await expect(page.locator("#save-as-name")).toBeVisible();
+
+    const saveAsResults = await buildAxe(page).analyze();
+    const saveAsViolations = saveAsResults.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical"
+    );
+    expect(
+      saveAsViolations,
+      saveAsViolations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
+    ).toEqual([]);
+
+    await page.keyboard.press("Escape");
+    await page.locator("span.type-overline", { hasText: "Collections" }).click();
+    await page.keyboard.press("Meta+K");
+    await expect(page.getByPlaceholder("Type a command")).toBeVisible();
+
+    const paletteResults = await buildAxe(page).analyze();
+    const paletteViolations = paletteResults.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical"
+    );
+    expect(
+      paletteViolations,
+      paletteViolations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
+    ).toEqual([]);
+  });
+
   test("an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
     page,
   }) => {

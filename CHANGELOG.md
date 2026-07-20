@@ -32,6 +32,57 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   produce so the rest of the request pipeline (scripts, assertions,
   history) is unaffected either way.
 - A `local-bridge` CI job running the companion's own `node --test` suite.
+- **Save to Collection**: the request composer can now actually save its
+  contents into a collection. Previously the only way to add a request to a
+  collection was the sidebar's "New Request" prompt (name + method only,
+  empty URL), and there was no way to ever edit it again — `CollectionsService`/
+  `CollectionsRepository`/`IdbService` gain a real `updateRequest()`, and the
+  composer gets a **Save** action (icon button next to Send) that writes the
+  full current state — method, URL, headers, body, auth, pre/post-request
+  scripts, and tests — back to the bound request, plus a **Save to
+  Collection** dialog (name + collection + optional folder picker) for a
+  request that isn't bound to one yet. Closes the gap between this and the
+  README's existing "saved to a Collection for later reuse" claim, which
+  wasn't actually possible before this change.
+- An explicit **New Request** action (icon button in the composer, and the
+  previously-inert mobile sidebar button, which only closed the drawer and
+  didn't touch the composer at all) that clears the form and drops any
+  collection-request binding.
+- Folder/collection icons in the collections tree — previously a folder and
+  a collection both rendered as plain, indistinguishable label text.
+- Six more command palette (⌘K) actions — New Request, Send Request, Focus
+  Address Bar, toggle theme, open History, lock/unlock secrets, open Local
+  Bridge settings, Reset All Data — registered alongside the existing
+  collection/folder commands. The palette previously had exactly one
+  command ("New Collection").
+
+### Fixed
+
+- **A successful Send no longer wipes the entire composer.** `sendRequest()`
+  called `resetForm()` unconditionally after every send — method, URL,
+  headers, body, and auth all vanished the instant a response arrived, with
+  no way to tweak a header and resend, the single most basic workflow every
+  API client supports. The composer now stays exactly as composed; the new
+  explicit "New Request" action is the only thing that clears it.
+- Loading a saved collection request into the composer (double-click in the
+  sidebar) silently dropped its auth config, pre/post-request scripts, and
+  tests — the tree only ever emitted a lossy history-shaped object carrying
+  method/url/headers/body. It now emits the full `RequestDoc` and the
+  composer's new `loadCollectionRequest()` restores everything.
+- The Send button's `styleClass="send-btn"` was silently a no-op — PrimeNG's
+  `pButton` *attribute* directive (as opposed to the `<p-button>`
+  *component*) never exposed a `styleClass` input, so the button had been
+  falling back to the theme's default primary-button color the whole time
+  instead of the intended gradient. Switched to a plain `class` binding,
+  which Angular merges onto the host element regardless of directive
+  support. This surfaced a real, previously-masked WCAG AA violation: the
+  default primary color (`#a5b4fc`) only has a 1.99:1 contrast ratio against
+  white button text (needs 4.5:1) — masked in the existing accessibility
+  e2e test because the send-then-clear bug above used to disable the button
+  (and thus exempt it from the contrast check) immediately after every send.
+  `--gradient-accent`'s start stop is now a darker `#405DD0` (was `#4C6EF5`,
+  itself only 4.32:1) so the button clears AA at every point along the
+  gradient.
 
 ## [1.0.0] - 2026-07-21
 

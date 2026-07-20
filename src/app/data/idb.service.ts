@@ -157,6 +157,29 @@ export class IdbService {
     return this.collections.renameRequest(id, name);
   }
 
+  async updateRequest(
+    id: RequestDocId,
+    patch: Partial<
+      Pick<
+        RequestDoc,
+        | "name"
+        | "folderId"
+        | "method"
+        | "url"
+        | "params"
+        | "headers"
+        | "body"
+        | "vars"
+        | "auth"
+        | "preRequestScript"
+        | "postRequestScript"
+        | "tests"
+      >
+    >
+  ): Promise<RequestDoc | null> {
+    return this.collections.updateRequest(id, patch);
+  }
+
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
     return this.collections.duplicateRequest(id);
   }

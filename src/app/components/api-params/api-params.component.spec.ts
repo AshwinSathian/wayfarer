@@ -9,6 +9,8 @@ import { PastRequest } from '../../models/history.models';
 import { ResponseInspectorService } from '../../shared/inspect/response-inspector.service';
 import { EnvironmentsService } from '../../services/environments.service';
 import { EnvironmentDoc } from '../../models/environments.models';
+import { CollectionsService, CollectionTree } from '../../services/collections.service';
+import { Meta, RequestDoc } from '../../models/collections.models';
 
 class IdbServiceMock {
   init = jasmine.createSpy('init').and.returnValue(Promise.resolve());
@@ -41,6 +43,62 @@ class EnvironmentsServiceStub {
   }
 }
 
+function meta(id: string): Meta {
+  return { id, createdAt: 1, updatedAt: 1, version: 1 };
+}
+
+function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc {
+  const id = overrides.id ?? 'r1';
+  return {
+    id,
+    meta: meta(id),
+    collectionId: 'c1',
+    name: 'Saved request',
+    order: 0,
+    method: 'GET',
+    url: 'https://saved.example.com',
+    headers: { Accept: 'application/json' },
+    ...overrides,
+  };
+}
+
+class CollectionsServiceStub {
+  private readonly treeSignal = signal<CollectionTree[]>([]);
+  readonly tree = this.treeSignal.asReadonly();
+  readonly loading = signal(false).asReadonly();
+
+  createRequest = jasmine.createSpy('createRequest').and.callFake(
+    async (payload: {
+      collectionId: string;
+      folderId?: string;
+      name: string;
+      method: RequestDoc['method'];
+      url: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    }): Promise<RequestDoc> =>
+      makeRequestDoc({
+        id: 'new-id',
+        collectionId: payload.collectionId,
+        folderId: payload.folderId,
+        name: payload.name,
+        method: payload.method,
+        url: payload.url,
+        headers: payload.headers ?? {},
+        body: payload.body,
+      })
+  );
+
+  updateRequest = jasmine.createSpy('updateRequest').and.callFake(
+    async (id: string, patch: Partial<RequestDoc>): Promise<RequestDoc> =>
+      makeRequestDoc({ id, ...patch })
+  );
+
+  setTree(trees: CollectionTree[]): void {
+    this.treeSignal.set(trees);
+  }
+}
+
 function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
   return {
     id: 'env-1',
@@ -58,11 +116,13 @@ describe('ApiParamsComponent', () => {
   let idbService: IdbServiceMock;
   let responseInspector: ResponseInspectorServiceStub;
   let environmentsService: EnvironmentsServiceStub;
+  let collectionsService: CollectionsServiceStub;
 
   beforeEach(async () => {
     idbService = new IdbServiceMock();
     responseInspector = new ResponseInspectorServiceStub();
     environmentsService = new EnvironmentsServiceStub();
+    collectionsService = new CollectionsServiceStub();
     await TestBed.configureTestingModule({
       imports: [ApiParamsComponent],
       providers: [
@@ -71,6 +131,7 @@ describe('ApiParamsComponent', () => {
         { provide: IdbService, useValue: idbService },
         { provide: ResponseInspectorService, useValue: responseInspector },
         { provide: EnvironmentsService, useValue: environmentsService },
+        { provide: CollectionsService, useValue: collectionsService },
         provideNoopAnimations(),
       ],
     }).compileComponents();
@@ -137,8 +198,13 @@ describe('ApiParamsComponent', () => {
       createdAt: mockCreatedAt
     }));
     expect(emitted).toBeTrue();
-    expect(component.endpoint()).toBe('');
-
+    // A successful send must NOT wipe the composer — the request stays
+    // visible/editable so the user can tweak a header and resend, the same
+    // way every competing API client behaves. This used to unconditionally
+    // call resetForm() after every send, which cleared the entire form
+    // (method/url/headers/body/auth/params) the instant a response arrived.
+    expect(component.endpoint()).toBe('https://example.com/data');
+    expect(component.selectedRequestMethod()).toBe('GET');
   }));
 
   it('should send POST requests and record errors', fakeAsync(() => {
@@ -255,6 +321,123 @@ describe('ApiParamsComponent', () => {
       { key: 'enabled', value: 'true' },
     ]);
     expect(component.activeTab()).toBe('body');
+  });
+
+  it('loadPastRequest clears any existing collection-request binding', () => {
+    component.loadCollectionRequest(makeRequestDoc());
+    expect(component.loadedCollectionRequest()).not.toBeNull();
+
+    component.loadPastRequest({
+      method: 'GET',
+      url: 'https://history.example.com',
+      headers: {},
+      createdAt: 1,
+    });
+
+    expect(component.loadedCollectionRequest()).toBeNull();
+  });
+
+  it('loadCollectionRequest populates auth, scripts, and tests — not just method/url/headers/body', () => {
+    const doc = makeRequestDoc({
+      method: 'POST',
+      url: 'https://saved.example.com/create',
+      headers: { 'X-Test': '1' },
+      body: { count: 2 },
+      auth: { type: 'bearer', bearer: { token: 'secret-token' } },
+      preRequestScript: 'pm.environment.set("a", "1")',
+      postRequestScript: 'pm.test("ok", () => {})',
+      tests: [],
+    });
+
+    component.loadCollectionRequest(doc);
+
+    expect(component.loadedCollectionRequest()).toBe(doc);
+    expect(component.selectedRequestMethod()).toBe('POST');
+    expect(component.endpoint()).toBe('https://saved.example.com/create');
+    expect(component.requestAuth()).toEqual({ type: 'bearer', bearer: { token: 'secret-token' } });
+    expect(component.preRequestScript()).toBe('pm.environment.set("a", "1")');
+    expect(component.postRequestScript()).toBe('pm.test("ok", () => {})');
+  });
+
+  it('clearComposer resets the form and drops any collection-request binding', () => {
+    component.loadCollectionRequest(makeRequestDoc());
+    component.endpoint.set('https://something-edited.example.com');
+
+    component.clearComposer();
+
+    expect(component.loadedCollectionRequest()).toBeNull();
+    expect(component.endpoint()).toBe('');
+    expect(component.selectedRequestMethod()).toBe('GET');
+  });
+
+  it('saveCurrentRequest updates the bound collection request in place, without opening Save As', fakeAsync(() => {
+    const doc = makeRequestDoc({ id: 'bound-1' });
+    component.loadCollectionRequest(doc);
+    component.endpoint.set('https://saved.example.com/edited');
+    component.selectedRequestMethod.set('POST');
+
+    component.saveCurrentRequest();
+    flushMicrotasks();
+
+    expect(collectionsService.updateRequest).toHaveBeenCalledWith(
+      'bound-1',
+      jasmine.objectContaining({ method: 'POST', url: 'https://saved.example.com/edited' })
+    );
+    expect(collectionsService.createRequest).not.toHaveBeenCalled();
+    expect(component.saveAsDialogVisible()).toBeFalse();
+  }));
+
+  it('saveCurrentRequest opens Save As when the composer is not bound to a collection request', () => {
+    expect(component.loadedCollectionRequest()).toBeNull();
+
+    component.saveCurrentRequest();
+
+    expect(component.saveAsDialogVisible()).toBeTrue();
+    expect(collectionsService.updateRequest).not.toHaveBeenCalled();
+  });
+
+  it('confirmSaveAs creates a new request with the full composer state and binds the composer to it', fakeAsync(() => {
+    collectionsService.setTree([
+      {
+        collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0 },
+        folders: [],
+        requests: [],
+      },
+    ]);
+    component.endpoint.set('https://new.example.com');
+    component.selectedRequestMethod.set('GET');
+
+    component.openSaveAsDialog();
+    expect(component.saveAsCollectionId()).toBe('c1');
+
+    component.saveAsName.set('My new request');
+    component.confirmSaveAs();
+    flushMicrotasks();
+
+    expect(collectionsService.createRequest).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        collectionId: 'c1',
+        name: 'My new request',
+        method: 'GET',
+        url: 'https://new.example.com',
+      })
+    );
+    expect(collectionsService.updateRequest).toHaveBeenCalled();
+    expect(component.loadedCollectionRequest()).not.toBeNull();
+    expect(component.saveAsDialogVisible()).toBeFalse();
+  }));
+
+  it('isSaveAsDisabled is true without a name or a chosen collection', () => {
+    component.saveAsName.set('');
+    component.saveAsCollectionId.set('c1');
+    expect(component.isSaveAsDisabled).toBeTrue();
+
+    component.saveAsName.set('Named');
+    component.saveAsCollectionId.set(null);
+    expect(component.isSaveAsDisabled).toBeTrue();
+
+    component.saveAsCollectionId.set('c1');
+    expect(component.isSaveAsDisabled).toBeFalse();
   });
 
   it('manages dynamic header and body rows', () => {

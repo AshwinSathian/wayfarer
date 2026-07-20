@@ -22,6 +22,7 @@ import { CheckboxModule } from "primeng/checkbox";
 import { SkeletonModule } from "primeng/skeleton";
 import { ToolbarModule } from "primeng/toolbar";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
+import { RequestDoc } from "../../models/collections.models";
 import { EnvironmentsService } from "../../services/environments.service";
 import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service";
 import { SecretsService } from "../../services/secrets.service";
@@ -30,7 +31,7 @@ import { ThemeService } from "../../services/theme.service";
 import { BridgeService } from "../../services/bridge.service";
 import { ApiParamsComponent } from "../api-params/api-params.component";
 import { PastRequestsComponent } from "../past-requests/past-requests.component";
-import { CollectionsSidebarComponent } from "../collections/collections-sidebar.component";
+import { CollectionsSidebarComponent, PaletteAction } from "../collections/collections-sidebar.component";
 import { EnvironmentsManagerComponent } from "../environments/environments-manager.component";
 
 @Component({
@@ -94,7 +95,7 @@ export class AppShellComponent implements OnInit {
   readonly dropdownOptions = signal<{ label: string; value: string }[]>([]);
   readonly selectedEnvironmentId = signal<string | null>(null);
   readonly lockDialogVisible = signal(false);
-  historyDrawerVisible = false;
+  readonly historyDrawerVisible = signal(false);
   readonly isFirstVaultSetup = signal(false);
   readonly confirmPassphrase = signal("");
   readonly unlockPassphrase = signal("");
@@ -106,6 +107,62 @@ export class AppShellComponent implements OnInit {
   readonly bridgeTokenDraft = signal("");
   readonly bridgeEnabledDraft = signal(false);
   readonly bridgeTestStatus = signal<"idle" | "testing" | "ok" | "fail">("idle");
+
+  /**
+   * Cross-cutting app commands the command palette (hosted inside
+   * app-collections-sidebar, where ⌘K is wired) can't build itself since it
+   * has no access to the composer, theme, history drawer, or bridge state —
+   * those all live here. Passed down as data via [externalActions].
+   */
+  get sidebarPaletteActions(): PaletteAction[] {
+    return [
+      {
+        id: "new-request",
+        label: "New Request",
+        run: () => this.handleNewRequest(),
+      },
+      {
+        id: "send-request",
+        label: "Send Request",
+        run: () => this.apiParams().sendRequest(),
+      },
+      {
+        id: "focus-address-bar",
+        label: "Focus Address Bar",
+        run: () => this.apiParams().focusUrl(),
+      },
+      {
+        id: "toggle-theme",
+        label: this.themeService.theme() === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode",
+        run: () => this.themeService.toggle(),
+      },
+      {
+        id: "toggle-sidebar",
+        label: "Toggle Collections Sidebar",
+        run: () => this.toggleDrawer.emit(),
+      },
+      {
+        id: "open-history",
+        label: "Open Request History",
+        run: () => this.historyDrawerVisible.set(true),
+      },
+      {
+        id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
+        label: this.secretsUnlocked ? "Lock Secrets" : "Unlock Secrets",
+        run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
+      },
+      {
+        id: "open-local-bridge-settings",
+        label: "Local Bridge Settings",
+        run: () => this.openBridgeSettings(),
+      },
+      {
+        id: "reset-all-data",
+        label: "Reset All Data…",
+        run: () => this.confirmResetAllData(),
+      },
+    ];
+  }
 
   get historyBadge(): string | undefined {
     const pastRequests = this.pastRequests();
@@ -128,12 +185,20 @@ export class AppShellComponent implements OnInit {
     }
   }
 
-  handleLoadCollectionRequest(request: PastRequest): void {
+  handleLoadCollectionRequest(request: RequestDoc): void {
     const apiParams = this.apiParams();
     if (apiParams) {
-      apiParams.loadPastRequest(request);
+      apiParams.loadCollectionRequest(request);
       apiParams.focusUrl();
     }
+    if (this.isMobile()) {
+      this.closeDrawer.emit();
+    }
+  }
+
+  handleNewRequest(): void {
+    this.apiParams().clearComposer();
+    this.apiParams().focusUrl();
     if (this.isMobile()) {
       this.closeDrawer.emit();
     }

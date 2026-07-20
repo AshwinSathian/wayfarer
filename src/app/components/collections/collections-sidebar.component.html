@@ -54,7 +54,11 @@
           style="height: 28px !important;"
         />
         } @else {
-          @if (node.data?.type === 'request' && node.data?.method) {
+          @if (node.data?.type === 'collection') {
+          <span class="material-symbols-outlined icon-sm text-label-tertiary flex-shrink-0">folder_open</span>
+          } @else if (node.data?.type === 'folder') {
+          <span class="material-symbols-outlined icon-sm text-label-tertiary flex-shrink-0">folder</span>
+          } @else if (node.data?.type === 'request' && node.data?.method) {
           <span class="method-badge method-{{ node.data.method.toLowerCase() }} flex-shrink-0">
             {{ node.data.method }}
           </span>

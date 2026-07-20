@@ -32,6 +32,26 @@ test.describe("Send request → view response", () => {
     expect(statusBarDurationText).toBeTruthy();
   });
 
+  test("keeps the composed request visible after Send, instead of wiping the form", async ({ page }) => {
+    await page.goto("/");
+
+    const urlInput = page.locator("input.address-url");
+    await urlInput.fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+
+    // Regression coverage: a successful send used to unconditionally clear
+    // the entire composer (method/url/headers/body/auth) the instant the
+    // response arrived, breaking the basic "tweak and resend" loop every
+    // API client relies on.
+    await expect(urlInput).toHaveValue("https://jsonplaceholder.typicode.com/todos/1");
+
+    // The explicit "New request" action is now the only thing that clears
+    // the composer.
+    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await expect(urlInput).toHaveValue("");
+  });
+
   test("rejects an unparseable URL instead of silently succeeding", async ({ page }) => {
     await page.goto("/");
 

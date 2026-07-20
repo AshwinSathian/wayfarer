@@ -99,7 +99,7 @@
               <div
                 class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all duration-150"
                 [ngClass]="{
-                  'ring-2 ring-accent-border bg-accent-fill/40': focusedVariableKey === item.key
+                  'ring-2 ring-accent-border bg-accent-fill/40': focusedVariableKey() === item.key
                 }"
               >
                 <input pInputText placeholder="KEY" [(ngModel)]="form.vars[$index].key" (ngModelChange)="onPairsChange()" />

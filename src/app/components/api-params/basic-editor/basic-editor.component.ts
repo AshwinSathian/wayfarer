@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
@@ -16,6 +16,7 @@ type ContextType = "Body" | "Headers";
     InputTextModule,
   ],
   templateUrl: "./basic-editor.component.html",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiParamsBasicComponent {
   readonly context = input<ContextType>("Headers");

@@ -86,7 +86,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     name: "",
     description: "",
   };
-  focusedVariableKey: string | null = null;
+  readonly focusedVariableKey = signal<string | null>(null);
   private focusTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
@@ -120,7 +120,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     if (env) {
       this.draft.set(this.toDraft(env));
     }
-    this.focusedVariableKey = null;
+    this.focusedVariableKey.set(null);
   }
 
   openNewEnvironmentDialog(): void {
@@ -429,12 +429,12 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   private highlightVariable(key: string): void {
-    this.focusedVariableKey = key;
+    this.focusedVariableKey.set(key);
     if (this.focusTimeoutHandle) {
       clearTimeout(this.focusTimeoutHandle);
     }
     this.focusTimeoutHandle = setTimeout(() => {
-      this.focusedVariableKey = null;
+      this.focusedVariableKey.set(null);
       this.focusTimeoutHandle = null;
     }, 2500);
   }

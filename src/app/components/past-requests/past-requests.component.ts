@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, inject, OnChanges, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
 import { AccordionModule } from "primeng/accordion";
 import { ConfirmationService } from "primeng/api";
 import { ButtonModule } from "primeng/button";
@@ -28,6 +28,7 @@ export interface HistoryGroup {
   ],
   templateUrl: "./past-requests.component.html",
   styleUrls: ["./past-requests.component.css"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PastRequestsComponent implements OnChanges {
   readonly pastRequests = input<PastRequest[]>([]);

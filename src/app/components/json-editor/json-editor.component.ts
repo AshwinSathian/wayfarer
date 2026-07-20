@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnChanges,
@@ -70,6 +71,7 @@ const noop = () => {};
       useExisting: forwardRef(() => JsonEditorComponent),
     },
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class JsonEditorComponent
   implements ControlValueAccessor, Validator, OnChanges, OnDestroy

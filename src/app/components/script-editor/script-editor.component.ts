@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnChanges,
@@ -54,6 +55,7 @@ const noop = () => {};
       useExisting: forwardRef(() => ScriptEditorComponent),
     },
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScriptEditorComponent
   implements ControlValueAccessor, OnChanges, OnDestroy

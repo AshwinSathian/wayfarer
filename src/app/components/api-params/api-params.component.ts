@@ -237,8 +237,11 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   addItem(ctx: ContextType) {
-    const context = ctx === "Body" ? this.requestBody : this.requestHeaders;
-    context.push({ key: "", value: "" });
+    if (ctx === "Body") {
+      this.requestBody = [...this.requestBody, { key: "", value: "" }];
+    } else {
+      this.requestHeaders = [...this.requestHeaders, { key: "", value: "" }];
+    }
   }
 
   isAddDisabled(ctx: ContextType) {
@@ -257,8 +260,11 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   removeItem(index: number, ctx: ContextType) {
-    const context = ctx === "Body" ? this.requestBody : this.requestHeaders;
-    context.splice(index, 1);
+    if (ctx === "Body") {
+      this.requestBody = this.requestBody.filter((_, i) => i !== index);
+    } else {
+      this.requestHeaders = this.requestHeaders.filter((_, i) => i !== index);
+    }
   }
 
   focusUrl(): void {
@@ -840,14 +846,14 @@ export class ApiParamsComponent implements DoCheck {
   }
 
   addParam(): void {
-    this.requestParams.push({ key: "", value: "", enabled: true });
+    this.requestParams = [...this.requestParams, { key: "", value: "", enabled: true }];
   }
 
   removeParam(index: number): void {
-    this.requestParams.splice(index, 1);
-    if (!this.requestParams.length) {
-      this.requestParams.push({ key: "", value: "", enabled: true });
-    }
+    const remaining = this.requestParams.filter((_, i) => i !== index);
+    this.requestParams = remaining.length
+      ? remaining
+      : [{ key: "", value: "", enabled: true }];
     this.syncUrlFromParams();
   }
 

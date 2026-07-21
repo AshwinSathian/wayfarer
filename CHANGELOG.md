@@ -55,6 +55,69 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Bridge settings, Reset All Data — registered alongside the existing
   collection/folder commands. The palette previously had exactly one
   command ("New Collection").
+- **A dedicated Secrets management view** (`SecretsManagerComponent`), a
+  dialog matching the Local Bridge settings dialog's visual/interaction
+  pattern, listing every secret across every environment in one place with
+  lock-aware reveal, rename, delete, and a "locate" chip that jumps to
+  wherever a secret is referenced. Previously secrets were only manageable
+  as flagged rows buried inside the Environments editor, under-signposting
+  the "vault" concept the first-use flow sets up. Reuses `SecretsService`/
+  `SecretCryptoService`/`SecretsRepository` for all crypto and persistence;
+  added the missing `listAll()`/`renameSecret()`/`deleteSecret()` aggregate
+  methods to `SecretsRepository`. Registered in the command palette and a
+  toolbar icon button.
+- **A dedicated Settings surface** (`SettingsComponent`) consolidating the
+  theme toggle, environments export/import, Reset All Data, Local Bridge
+  settings, and a keyboard-shortcuts reference (a live list of every
+  registered command-palette action) — previously scattered across the
+  toolbar and command palette with no single home. Registered in the
+  command palette and a toolbar icon button.
+- **A resizable split between the request composer and the response
+  viewer** on desktop widths (PrimeNG `p-splitter`), replacing a
+  fixed-width centered layout that left large amounts of dead canvas at
+  1024–1440px+. The chosen split ratio persists across reloads.
+- A `prefers-reduced-motion` convention (a CSS override plus a
+  `prefersReducedMotion()` helper for the one Angular-animations-driven
+  surface a media query can't reach) — the app's first. Tab switches
+  (composer, response viewer, environments editor, mobile accordion),
+  response arrival, and dialog open/close now animate deliberately using
+  the existing spring-easing design tokens, respecting that setting.
+
+### Changed
+
+- **Test runner migrated from Karma/Jasmine to Vitest**, running in real
+  headless Chromium via Vitest's Playwright browser provider rather than
+  jsdom — jsdom doesn't faithfully implement the Web Workers/IndexedDB/
+  WebCrypto APIs that `script-sandbox.service.spec.ts` (the sandbox-escape
+  regression suite) and several other specs genuinely exercise. All 21 spec
+  files ported; `karma.conf.js` and the Karma/Jasmine dependencies removed.
+- **Zoneless change detection adopted** (`provideZonelessChangeDetection()`)
+  — `zone.js` is now fully removed from the repo, dev and prod (confirmed
+  by a 0-byte `polyfills` chunk in the production build). Zoneless CD
+  flushes signal writes to the DOM asynchronously rather than
+  synchronously-post-event, which surfaced one real race in an existing e2e
+  test; fixed by asserting on an auto-retrying condition instead of
+  chaining actions blindly, the correct pattern for zoneless UIs generally.
+- Completed the signal-based Angular migration: `inject()` everywhere (0
+  remaining constructor-parameter DI), and the two remaining
+  `@ViewChild("editorHost")` setter-pattern queries (`json-editor`,
+  `script-editor`) migrated to `viewChild()` + `effect()`.
+- Split the six most oversized files in the codebase into cohesive
+  services/components/utils behind their existing public APIs — no
+  consumer outside each split file needed to change. `api-params.component.ts`
+  (1,174 → 868 lines: extracted `RequestSaveService`, `AuthEditorComponent`,
+  and several `shared/http/*.util.ts` helpers), `collections-sidebar.component.ts`
+  (732 → 572: extracted `CollectionImportService` and tree/context-menu
+  utils), `response-viewer.component.ts` (649 → 432: extracted timing/export
+  utils), `idb-core.service.ts` (555 → 280 + two new schema/migration
+  files), `collections.repository.ts` (538 → 260 + two new per-aggregate
+  repositories), `environments-manager.component.ts` (451 → 383: extracted
+  `EnvironmentImportService`).
+- Rebuilt the mobile composer as a strictly single-panel-at-a-time
+  accordion (previously all tabs rendered simultaneously, stacked and
+  unlabeled, at narrow widths) and fixed Monaco initializing inside
+  zero-width containers by waiting for a resolved non-zero width before
+  creating the editor instance.
 
 ### Fixed
 
@@ -83,6 +146,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   `--gradient-accent`'s start stop is now a darker `#405DD0` (was `#4C6EF5`,
   itself only 4.32:1) so the button clears AA at every point along the
   gradient.
+- The disabled "Copy as cURL" button rendered as an indistinguishable empty
+  box. Wrapped in a non-disabled span carrying a tooltip explaining why it's
+  disabled and a real `not-allowed` cursor (disabled native `<button>`s
+  ignore author `cursor` in most browsers). Surfaced a real pre-existing
+  bug while wiring this up: `ApiParamsComponent` had no `styleUrls` at all,
+  so `api-params.component.css` was dead code.
+- A real `@defer (on viewport)` reliability gap: its `IntersectionObserver`
+  trigger could be missed entirely under rapid viewport/tab churn,
+  permanently stranding a Monaco JSON editor on "Loading editor…" even with
+  a genuinely non-zero-width container. Reproduced concretely with an
+  instrumented Playwright script, not guessed at; fixed with an
+  `on timer(400ms)` fallback trigger (OR semantics) on both Monaco-hosting
+  `@defer` blocks.
+- A pre-existing accessibility-test timing flake: the a11y suite scanned
+  for violations immediately after the response status badge's text
+  appeared, which could catch the duration/size pills mid-`animate-fade-in`
+  transition, where interpolated opacity temporarily dropped their
+  effective text contrast below 4.5:1 even though the token itself is
+  5.31:1 at rest. Fixed by waiting for the animation to settle before
+  scanning, instead of a transitional frame.
+- A tooltip color-contrast bug the new cURL-button tooltip surfaced
+  (`--label-secondary` on `--canvas-overlay` measured 4.27:1); switched to
+  `--label-secondary-on-fill`.
 
 ## [1.0.0] - 2026-07-21
 

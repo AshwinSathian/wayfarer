@@ -12,9 +12,9 @@ declare const self: typeof globalThis & {
   };
 };
 
-type WorkerFactory = new () => Worker;
+type WorkerFactory = () => Worker;
 
-interface MonacoWorkerModules {
+interface MonacoWorkerFactories {
   editor: WorkerFactory;
   json: WorkerFactory;
   css: WorkerFactory;
@@ -22,9 +22,46 @@ interface MonacoWorkerModules {
   typescript: WorkerFactory;
 }
 
+/**
+ * Worker factories, built via Angular's own `new Worker(new URL(...))`
+ * syntax (statically detected and bundled by the esbuild-based builder —
+ * see `webWorkerTsConfig` in angular.json, the same mechanism
+ * `script-sandbox.service.ts` already uses for its own worker) rather than
+ * Vite's `?worker`-suffixed dynamic-import convention this file used to use.
+ *
+ * That `?worker` suffix is Vite-specific: it happened to work under
+ * `ng serve` only because Angular's dev server is Vite-based, but Angular's
+ * production builder (`ng build`, also esbuild but not Vite) does not
+ * implement it at all — it silently imports the worker file as an ordinary
+ * module with no exports, so `.default` was always `undefined` in a
+ * production build. Verified directly: a production build's every worker
+ * resolved `.default === undefined`, while the exact same code under
+ * `ng serve` resolved real constructors — meaning Monaco's background
+ * workers (JSON/CSS/HTML/TS validation and completion) had never actually
+ * worked in the deployed app at all, not just under the rapid-transition
+ * stress case that first surfaced it as an uncaught
+ * `"... is not a constructor"` page error.
+ *
+ * Each `./workers/*.worker.ts` file is a thin wrapper (`import
+ * "monaco-editor/esm/vs/.../*.worker.js"`) purely so Angular's builder has
+ * a literal, statically-analyzable relative path to treat as a worker entry
+ * point — the actual worker code is still monaco-editor's own.
+ */
+const workerFactories: MonacoWorkerFactories = {
+  editor: () =>
+    new Worker(new URL("./workers/editor.worker", import.meta.url), { type: "module" }),
+  json: () =>
+    new Worker(new URL("./workers/json.worker", import.meta.url), { type: "module" }),
+  css: () =>
+    new Worker(new URL("./workers/css.worker", import.meta.url), { type: "module" }),
+  html: () =>
+    new Worker(new URL("./workers/html.worker", import.meta.url), { type: "module" }),
+  typescript: () =>
+    new Worker(new URL("./workers/typescript.worker", import.meta.url), { type: "module" }),
+};
+
 let monacoLoader: Promise<MonacoEditorModule> | null = null;
 let environmentConfigured = false;
-let workerModules: MonacoWorkerModules | null = null;
 
 export let loadedMonaco: MonacoEditorModule | null = null;
 export let sandboxThemesDefined = false;
@@ -42,51 +79,27 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
         import("monaco-editor/esm/vs/language/typescript/monaco.contribution"),
       ]);
 
-      const [
-        editorWorkerModule,
-        jsonWorkerModule,
-        cssWorkerModule,
-        htmlWorkerModule,
-        tsWorkerModule,
-      ] = await Promise.all([
-        import("monaco-editor/esm/vs/editor/editor.worker?worker"),
-        import("monaco-editor/esm/vs/language/json/json.worker?worker"),
-        import("monaco-editor/esm/vs/language/css/css.worker?worker"),
-        import("monaco-editor/esm/vs/language/html/html.worker?worker"),
-        import("monaco-editor/esm/vs/language/typescript/ts.worker?worker"),
-      ]);
-
       const monaco = await monacoImport;
 
-      if (!workerModules) {
-        workerModules = {
-          editor: editorWorkerModule.default as WorkerFactory,
-          json: jsonWorkerModule.default as WorkerFactory,
-          css: cssWorkerModule.default as WorkerFactory,
-          html: htmlWorkerModule.default as WorkerFactory,
-          typescript: tsWorkerModule.default as WorkerFactory,
-        };
-      }
-
-      if (!environmentConfigured && workerModules) {
+      if (!environmentConfigured) {
         self.MonacoEnvironment = {
           getWorker: (_: string, label: string): Worker => {
             switch (label) {
               case "json":
-                return new workerModules!.json();
+                return workerFactories.json();
               case "css":
               case "scss":
               case "less":
-                return new workerModules!.css();
+                return workerFactories.css();
               case "html":
               case "handlebars":
               case "razor":
-                return new workerModules!.html();
+                return workerFactories.html();
               case "typescript":
               case "javascript":
-                return new workerModules!.typescript();
+                return workerFactories.typescript();
               default:
-                return new workerModules!.editor();
+                return workerFactories.editor();
             }
           },
         };

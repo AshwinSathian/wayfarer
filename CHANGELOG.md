@@ -121,6 +121,55 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Monaco's background language workers (JSON/CSS/HTML/TypeScript validation
+  and completion) had never actually run in the deployed production build.**
+  They were loaded via `import("monaco-editor/.../*.worker?worker")` — a
+  Vite-specific dynamic-import convention that happened to work under
+  `ng serve` only because Angular's dev server is Vite-based. Angular's
+  production builder (`ng build`, esbuild but not Vite) doesn't implement
+  that convention at all: it silently imported each worker file as an
+  ordinary module with no exports, so every worker constructor resolved to
+  `undefined`. Verified directly — a production build's worker imports were
+  `undefined` 5/5 times, the identical dev-mode code was a real constructor
+  5/5 times — and confirmed structurally by the production bundle finally
+  emitting genuine, separately-named `*-worker.js` chunks (`json-worker`,
+  `css-worker`, `html-worker`, `typescript-worker`, `editor-worker`) after
+  the fix, which it never had before. Found while chasing an unrelated CI
+  e2e flake (below) that only reproduced against a cold/production
+  environment, never a warm local dev server. Fixed by switching to
+  Angular's own `new Worker(new URL(...))` syntax — the same
+  builder-native mechanism `script-sandbox.service.ts`'s worker already
+  uses — via five thin wrapper files under
+  `src/app/shared/monaco/workers/` (one per worker; each just re-exports
+  monaco-editor's own worker script so the builder has a literal,
+  statically-analyzable entry point to bundle).
+- A PrimeNG `ConfirmDialog` accessibility bug, live in production the whole
+  time: its "headless" custom-content mode (used here for the design
+  system's warning-icon styling) always auto-generates an `aria-labelledby`
+  pointing at an internal header `<span>` that headless mode never actually
+  renders, leaving every open confirm dialog (clear history, reset all
+  data, delete secret, etc.) with a permanently dangling accessible-name
+  reference for screen reader users. An existing attempted fix
+  (`fixConfirmDialogAriaLabelledBy()`) was a silent no-op — its selector
+  (`[data-pc-name="dialog"]`) didn't match what this PrimeNG version
+  actually renders (`data-pc-name="t"`). Corrected the selector to
+  `.p-confirmdialog[role="alertdialog"]` (the class axe itself reports as
+  the violating node) and replaced a bare `setTimeout(fn)` — a Zone-era
+  "run after this render" idiom — with `afterNextRender()`, the correct
+  zoneless-safe equivalent.
+- CI's e2e job now builds once and serves the static production output
+  (via Python's stdlib `http.server` — no new dependency) instead of
+  running `ng serve`, and three accessibility-spec timing assumptions that
+  only held by coincidence under the slower dev server were hardened:
+  waiting for a genuinely-open `pTooltip` to close (Playwright's `click()`
+  leaves the cursor exactly where it clicked, and the toolbar's cURL button
+  sits right next to Send) rather than scanning with one incidentally left
+  open, and broadening a dormant-dialog-shell detector from one specific
+  placeholder-comment string to the general shape (any element whose sole
+  content is an HTML comment), since Secrets Manager's and Settings' own
+  confirm dialogs share the same closed-shell pattern already documented
+  for the pre-existing one. None of this was reproducible before switching
+  off the dev server, which is exactly why it had never been caught.
 - **A successful Send no longer wipes the entire composer.** `sendRequest()`
   called `resetForm()` unconditionally after every send — method, URL,
   headers, body, and auth all vanished the instant a response arrived, with

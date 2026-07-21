@@ -2,7 +2,9 @@ import { CommonModule } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  Injector,
   OnInit,
+  afterNextRender,
   effect,
   inject,
   input,
@@ -79,6 +81,7 @@ export class AppShellComponent implements OnInit {
   readonly apiParams = viewChild.required(ApiParamsComponent);
 
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly injector = inject(Injector);
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly secretsService = inject(SecretsService);
@@ -251,13 +254,31 @@ export class AppShellComponent implements OnInit {
    * styling), so the generated id is permanently dangling, leaving the open
    * dialog with no accessible name. Re-point it at the real header element
    * we render ourselves, once Angular has painted the just-opened dialog.
+   *
+   * Two bugs fixed here, found via a failing e2e run against a production
+   * build (never caught before — CI had only ever exercised this against
+   * `ng serve`'s dev server): the selector was `[data-pc-name="dialog"]`,
+   * but the actually-rendered attribute on this PrimeNG version's dialog
+   * panel is `data-pc-name="t"` — an internal, unstable-looking name not
+   * worth matching on at all — so the selector never matched anything and
+   * this "fix" was a silent no-op. Selecting on `.p-confirmdialog[role]`
+   * instead (the class axe itself reports as the violating node's target)
+   * is what the panel actually carries. Separately, replaced the bare
+   * `setTimeout(fn)` — a Zone-era "run after this render" idiom — with
+   * `afterNextRender()`, which is the correct, zoneless-safe primitive for
+   * the same intent (this app adopted zoneless change detection, under
+   * which a bare macrotask isn't guaranteed to run after the dialog's DOM
+   * is actually committed).
    */
   private fixConfirmDialogAriaLabelledBy(): void {
-    setTimeout(() => {
-      document
-        .querySelector('[data-pc-name="dialog"][role="alertdialog"]')
-        ?.setAttribute("aria-labelledby", "global-confirm-dialog-header");
-    });
+    afterNextRender(
+      () => {
+        document
+          .querySelector('.p-confirmdialog[role="alertdialog"]')
+          ?.setAttribute("aria-labelledby", "global-confirm-dialog-header");
+      },
+      { injector: this.injector }
+    );
   }
 
   async ngOnInit(): Promise<void> {

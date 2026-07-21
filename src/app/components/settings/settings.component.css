@@ -1,0 +1,32 @@
+.shortcut-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--fill-secondary);
+  border: 1px solid var(--separator);
+  color: var(--label-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--label-tertiary);
+  transition: transform var(--dur-quick) var(--ease-standard);
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}

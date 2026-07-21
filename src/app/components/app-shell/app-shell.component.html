@@ -178,6 +178,16 @@
         >
           <span class="material-symbols-outlined icon-md">history</span>
         </button>
+
+        <!-- Settings -->
+        <button
+          class="ds-icon-btn"
+          (click)="settingsDialogVisible.set(true)"
+          title="Settings"
+          aria-label="Settings"
+        >
+          <span class="material-symbols-outlined icon-md">settings</span>
+        </button>
       </div>
     </header>
 
@@ -409,6 +419,15 @@
   [(visible)]="secretsDialogVisible"
   (requestUnlock)="openLockDialog()"
 ></app-secrets-manager>
+
+<!-- Settings dialog -->
+<app-settings
+  [(visible)]="settingsDialogVisible"
+  [paletteActions]="sidebarPaletteActions"
+  (openSecrets)="secretsDialogVisible.set(true)"
+  (openBridgeSettings)="openBridgeSettings()"
+  (resetAllData)="confirmResetAllData()"
+></app-settings>
 
 <!-- Confirm dialog (global) -->
 <p-confirmdialog #cd header="Confirmation">

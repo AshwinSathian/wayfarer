@@ -19,6 +19,26 @@
   box-shadow: none !important;
 }
 
+/* ── Disabled "Copy as cURL" ──────────────────────────────────
+   Previously an icon-only outlined button with no disabled-state
+   styling at all — visually indistinguishable from broken (Part D).
+   Matches the .send-btn disabled convention (reduced opacity, no
+   transform/shadow); the "why" is surfaced via the pTooltip bound on the
+   wrapping .curl-btn-wrap span in the template (a real not-allowed cursor
+   needs that wrapper too — see the template comment). */
+.curl-btn.p-button:disabled {
+  opacity: 0.4 !important;
+  box-shadow: none !important;
+}
+
+.curl-btn-wrap {
+  display: inline-flex;
+}
+
+.curl-btn-wrap.is-disabled {
+  cursor: not-allowed;
+}
+
 /* ── Resizable composer/response split (desktop) ─────────────
    p-splitter needs a resolved height to distribute between its two panes —
    without one it collapses to its content's natural (zero-ish) flex height.

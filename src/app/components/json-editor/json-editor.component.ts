@@ -42,11 +42,28 @@ const noop = () => {};
     class: "block w-full min-h-[200px]",
   },
   template: `
+    <!--
+      "on viewport" alone was reproducibly losing its trigger under rapid
+      structural churn (e.g. resizing across the mobile/desktop breakpoint
+      or switching composer tabs many times in quick succession, which
+      destroys/recreates this component repeatedly): Angular's viewport
+      trigger is IntersectionObserver-based, and a placeholder that's
+      created and then torn down again before the observer gets a chance
+      to report an intersection can leave the *next* (surviving) instance's
+      observer registration racing the browser's own callback scheduling —
+      confirmed via instrumented reproduction (see
+      docs/plans/plan-specimen-modernization.md Part D's "intermittent
+      render glitch" finding), not a hypothetical. "on timer(400ms)" is an
+      OR'd fallback trigger: whichever condition fires first wins, so the
+      editor still loads immediately in the common case (element genuinely
+      scrolls into view) but is structurally guaranteed to load shortly
+      after mount even if the viewport trigger is missed.
+    -->
     <div
       class="h-full w-full"
       [style.height.px]="height() ?? defaultHeight"
     >
-      @defer (on viewport) {
+      @defer (on viewport; on timer(400ms)) {
         <div
           #editorHost
           class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"

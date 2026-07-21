@@ -36,8 +36,12 @@ const noop = () => {};
     class: "block w-full",
   },
   template: `
+    <!-- "on timer(400ms)" fallback: see json-editor.component.ts's template
+         comment — "on viewport" alone reproducibly missed its trigger under
+         rapid structural churn (viewport/tab transitions), leaving the
+         editor permanently stuck on the placeholder below. -->
     <div [style.height.px]="height() ?? 200">
-      @defer (on viewport) {
+      @defer (on viewport; on timer(400ms)) {
         <div
           #editorHost
           class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"

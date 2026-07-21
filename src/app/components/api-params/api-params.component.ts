@@ -93,6 +93,7 @@ type ContextType = "Body" | "Headers";
     ResponseViewerComponent,
   ],
   templateUrl: "./api-params.component.html",
+  styleUrls: ["./api-params.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiParamsComponent {

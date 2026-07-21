@@ -39,16 +39,33 @@
         outlined
         (click)="clearComposer()"
       ></button>
-      <button
-        pButton
-        type="button"
-        icon="pi pi-terminal"
-        [disabled]="!endpoint()"
-        title="Copy as cURL"
-        severity="secondary"
-        outlined
-        (click)="copyAsCurl()"
-      ></button>
+      <!--
+        Disabled native buttons ignore an author-specified `cursor` in most
+        browsers (the UA always paints the default arrow over a genuinely
+        disabled control, regardless of CSS) — wrapping in a plain,
+        non-disabled span is the standard way around that, and it also
+        makes the tooltip's hover target unambiguous rather than relying on
+        whether a given browser still dispatches hover events to a disabled
+        element at all.
+      -->
+      <span
+        class="curl-btn-wrap"
+        [class.is-disabled]="!endpoint()"
+        [pTooltip]="endpoint() ? 'Copy as cURL' : 'Enter a URL first to copy as cURL'"
+        tooltipPosition="bottom"
+      >
+        <button
+          pButton
+          type="button"
+          icon="pi pi-terminal"
+          [disabled]="!endpoint()"
+          class="curl-btn"
+          aria-label="Copy as cURL"
+          severity="secondary"
+          outlined
+          (click)="copyAsCurl()"
+        ></button>
+      </span>
       <button
         pButton
         type="button"

@@ -56,12 +56,20 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. Everyt
 
   - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only
   - Guided first-use passphrase setup flow — see [`docs/secrets.md`](docs/secrets.md)
+  - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced
 
 - **History & Navigation**
 
   - History drawer with date‑grouped, relative timestamps
   - Re‑run and delete entries
   - Command palette (⌘K) for fast keyboard-driven navigation
+
+- **Layout & Settings**
+
+  - Resizable split between the composer and response viewer on desktop, with the chosen ratio remembered across reloads
+  - A rebuilt mobile composer: one section open at a time, instead of every tab stacked and unlabeled
+  - A dedicated **Settings** view for theme, environments export/import, Reset All Data, Local Bridge configuration, and a keyboard-shortcuts reference
+  - Deliberate, reduced-motion-aware animation on tab switches, response arrival, and dialogs
 
 - **Exports**
 

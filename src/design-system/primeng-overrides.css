@@ -266,6 +266,18 @@
   padding: 0 !important;
 }
 
+/* ── Tab switch motion ────────────────────────────────────────
+   Every p-tabpanel (composer, response viewer, environments editor) keeps
+   its content mounted and toggles the `hidden` attribute rather than
+   destroying/recreating it — going from [hidden] to not-[hidden] is a
+   genuine re-entry into the render tree, so a plain CSS animation here
+   reliably replays on every switch without any imperative JS. Deliberately
+   the same fade-up + a few px of lift used elsewhere (animations.css),
+   not a bespoke motion per surface. */
+.p-tabpanel:not([hidden]) {
+  animation: fade-up var(--dur-standard) var(--ease-standard) both;
+}
+
 /* ── SelectButton ────────────────────────────────────────── */
 .p-selectbutton {
   background: var(--fill-secondary) !important;
@@ -471,7 +483,14 @@
   border-radius: var(--radius-sm) !important;
   font-size: 12px !important;
   letter-spacing: -0.002em !important;
-  color: var(--label-secondary) !important;
+  /* --label-secondary is tuned for --canvas-app/panel/elevated (see its
+     definition in tokens.css) — on this control's actual composited
+     background (--canvas-overlay, a step lighter), it measured 4.27:1,
+     under WCAG AA's 4.5:1 for normal text (confirmed via an axe-core CI
+     failure on the "Copy as cURL" tooltip). --label-secondary-on-fill is
+     the token tokens.css already defines for exactly this "lighter
+     composited surface" case. */
+  color: var(--label-secondary-on-fill) !important;
   box-shadow: var(--shadow-overlay) !important;
   padding: 6px 10px !important;
 }

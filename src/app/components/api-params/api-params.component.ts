@@ -51,6 +51,7 @@ import {
   resolveTemplate,
 } from "../../shared/environments/env-resolution.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
+import { prefersReducedMotion } from "../../shared/motion/prefers-reduced-motion";
 import {
   RequestExecutionService,
   RequestExecutionResponse,
@@ -572,6 +573,19 @@ export class ApiParamsComponent {
       return crypto.randomUUID();
     }
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  /**
+   * Mobile accordion's expand/collapse timing — PrimeNG's Accordion drives
+   * this via @angular/animations (Web Animations API), which the CSS-only
+   * `prefers-reduced-motion` override in design-system/animations.css
+   * cannot reach, hence the explicit check here. Uses this app's own
+   * --dur-standard/--ease-standard feel instead of PrimeNG's default
+   * easing when motion is allowed, for the same "deliberate, not
+   * decorative" tab-switch motion as the rest of the composer.
+   */
+  get accordionTransitionOptions(): string {
+    return prefersReducedMotion() ? "1ms linear" : "240ms cubic-bezier(0.25, 0, 0, 1)";
   }
 
   get shouldShowResponsePanel(): boolean {

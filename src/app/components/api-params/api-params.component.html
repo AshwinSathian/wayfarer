@@ -146,6 +146,7 @@
     <p-accordion
       [value]="mobileActivePanels()"
       (valueChange)="onMobileIndexChange($event)"
+      [transitionOptions]="accordionTransitionOptions"
     >
       <p-accordion-panel value="params">
         <p-accordion-header>Params</p-accordion-header>

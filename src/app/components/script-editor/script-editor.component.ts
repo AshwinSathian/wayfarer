@@ -22,6 +22,7 @@ import {
   loadMonaco,
   loadedMonaco,
   monacoThemeName,
+  waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
@@ -81,6 +82,7 @@ export class ScriptEditorComponent
   private onChange: (val: string) => void = noop;
   private onTouched: () => void = noop;
   private isUpdatingFromEditor = false;
+  private destroyed = false;
 
   private readonly themeService = inject(ThemeService);
 
@@ -100,6 +102,7 @@ export class ScriptEditorComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.editorInstance?.dispose();
     this.model?.dispose();
     this.editorInstance = null;
@@ -134,8 +137,17 @@ export class ScriptEditorComponent
     if (this.editorInstance || !this.editorHostRef) {
       return;
     }
+    const hostEl = this.editorHostRef.nativeElement;
 
-    this.monacoModule = await loadMonaco();
+    const [monacoModule] = await Promise.all([
+      loadMonaco(),
+      waitForNonZeroWidth(hostEl),
+    ]);
+    if (this.destroyed || this.editorInstance || !this.editorHostRef) {
+      // Disposed, or a concurrent call already initialized, while awaiting.
+      return;
+    }
+    this.monacoModule = monacoModule;
     const monaco = this.monacoModule;
 
     defineSandboxThemes(monaco);

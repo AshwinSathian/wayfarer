@@ -134,5 +134,60 @@ export function monacoThemeName(theme: "dark" | "light"): string {
   return theme === "dark" ? "sandbox-dark" : "vs";
 }
 
+/**
+ * Resolves once `host` has a non-zero rendered width, resolving immediately
+ * if it already does.
+ *
+ * Guards against a real failure mode (Part D of
+ * docs/plans/plan-specimen-modernization.md): `@defer (on viewport)`
+ * triggers Monaco's mount as soon as its placeholder intersects the
+ * viewport, which can happen while the host is still laid out at (or
+ * transitioning through) zero width — e.g. a container mid-flex-basis
+ * animation, or a tab/accordion panel whose CSS visibility just flipped but
+ * hasn't been laid out yet. Monaco computes its internal layout once at
+ * construction time from the host's `getBoundingClientRect()`; if that's
+ * zero, `automaticLayout: true`'s own ResizeObserver doesn't reliably
+ * recover from a *0 -> non-zero* transition on every browser, leaving the
+ * editor stuck rendering nothing. Waiting here, before `monaco.editor.create`
+ * is ever called, sidesteps the failure structurally instead of trying to
+ * patch it up after the fact.
+ */
+export function waitForNonZeroWidth(
+  host: HTMLElement,
+  timeoutMs = 4000
+): Promise<void> {
+  if (host.getBoundingClientRect().width > 0) {
+    return Promise.resolve();
+  }
+  if (typeof ResizeObserver === "undefined") {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      observer.disconnect();
+      clearTimeout(timer);
+      resolve();
+    };
+    const observer = new ResizeObserver((entries) => {
+      const width =
+        entries[0]?.contentRect.width ?? host.getBoundingClientRect().width;
+      if (width > 0) {
+        finish();
+      }
+    });
+    observer.observe(host);
+    // Timeout safety net: never leave the editor permanently stuck on the
+    // "Loading editor…" placeholder if the host genuinely never resolves a
+    // width (e.g. it's inside a permanently-hidden ancestor) — Monaco will
+    // still get created, just without the zero-width guard.
+    const timer = setTimeout(finish, timeoutMs);
+  });
+}
+
 // Re-exported so callers can refer to MonacoTypes without importing monaco-editor directly.
 export type { MonacoTypes };

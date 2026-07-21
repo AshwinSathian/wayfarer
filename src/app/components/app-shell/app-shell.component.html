@@ -172,7 +172,7 @@
     <!-- Page content -->
     <main class="flex-1 overflow-y-auto">
       <div class="flex w-full flex-col gap-5 px-4 pb-16 pt-5 md:px-8">
-        <app-api-params (newRequest)="newRequest.emit()"></app-api-params>
+        <app-api-params [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-api-params>
         <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
       </div>
     </main>

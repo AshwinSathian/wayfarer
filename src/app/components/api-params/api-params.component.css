@@ -18,3 +18,42 @@
   border-right-color: var(--separator) !important;
   box-shadow: none !important;
 }
+
+/* ── Resizable composer/response split (desktop) ─────────────
+   p-splitter needs a resolved height to distribute between its two panes —
+   without one it collapses to its content's natural (zero-ish) flex height.
+   The subtracted amount approximates the toolbar + address bar + variable
+   chips chrome above it; each pane scrolls internally past that. */
+.composer-response-splitter.p-splitter {
+  height: calc(100vh - 260px);
+  min-height: 460px;
+  background: transparent;
+  border: none;
+}
+
+.composer-pane,
+.response-pane {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.composer-response-splitter .p-splitter-gutter {
+  background: transparent;
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+
+.composer-response-splitter .p-splitter-gutter:hover,
+.composer-response-splitter .p-splitter-gutter[data-p-gutter-resizing="true"] {
+  background: var(--accent-fill);
+}
+
+.composer-response-splitter .p-splitter-gutter-handle {
+  background: var(--separator-opaque);
+  transition: background-color var(--dur-quick) var(--ease-standard);
+}
+
+.composer-response-splitter .p-splitter-gutter:hover .p-splitter-gutter-handle,
+.composer-response-splitter .p-splitter-gutter[data-p-gutter-resizing="true"] .p-splitter-gutter-handle {
+  background: var(--accent);
+}

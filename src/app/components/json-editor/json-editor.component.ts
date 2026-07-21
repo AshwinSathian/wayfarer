@@ -28,6 +28,7 @@ import {
   loadMonaco,
   loadedMonaco,
   monacoThemeName,
+  waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
@@ -113,6 +114,7 @@ export class JsonEditorComponent
   private isJsonValid = true;
   private propagateChange: (value: string) => void = noop;
   private propagateTouched: () => void = noop;
+  private destroyed = false;
   readonly defaultHeight = 320;
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -164,6 +166,7 @@ export class JsonEditorComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     if (this.editorInstance) {
       this.editorInstance.dispose();
       this.editorInstance = null;
@@ -178,8 +181,17 @@ export class JsonEditorComponent
     if (this.editorInstance || !this.editorHostRef) {
       return;
     }
+    const hostEl = this.editorHostRef.nativeElement;
 
-    this.monacoModule = await loadMonaco();
+    const [monacoModule] = await Promise.all([
+      loadMonaco(),
+      waitForNonZeroWidth(hostEl),
+    ]);
+    if (this.destroyed || this.editorInstance || !this.editorHostRef) {
+      // Disposed, or a concurrent call already initialized, while awaiting.
+      return;
+    }
+    this.monacoModule = monacoModule;
     const monaco = this.monacoModule;
 
     defineSandboxThemes(monaco);

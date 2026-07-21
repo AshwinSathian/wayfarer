@@ -287,24 +287,34 @@ Positioned to undercut Postman ($19 Team / $49 Enterprise) and land at or below 
 
 Phases are ordered by dependency, not by calendar necessity — R0 blocks everything; R1–R3 can run in parallel; R4–R6 depend on R0–R3 being live. This sequencing assumes the engineering stabilization work already tracked in `plan-specimen-modernization.md` Phase 0 (script sandbox fix, CI, license) is complete before **R7 (public launch)** — confirmed done per `CHANGELOG.md`'s `[Unreleased]` entry as of this writing, so R7 is not currently blocked on it, but re-verify at launch time rather than assuming it stays true.
 
+> **Status note (2026-07-21):** `CHANGELOG.md` records a `[1.0.0]` release dated 2026-07-21 titled
+> "renamed from API Sandbox to Wayfarer," and the checkmarks below were re-verified directly against
+> source rather than carried forward. **R0's own checkboxes are still unchecked as of this writing** —
+> there is no in-repo evidence the formal USPTO/domain/org/npm clearance steps were actually run before
+> the rename shipped. That may be true and simply undocumented, or the rename may have shipped ahead of
+> full clearance; either way, **do not assume R0 is satisfied — confirm directly with whoever ran it**
+> before treating the name as locked for anything beyond internal use (this is exactly the kind of gap
+> a future trademark dispute would turn on).
+
 ### Phase R0 — Name & legal clearance (blocking, target: 1–2 weeks)
-- [ ] Run formal USPTO TESS search on "Wayfarer" + phonetic neighbors, Classes 9 & 42
-- [ ] Confirm simultaneous domain (.dev + .com or equivalent pairing), GitHub org, npm scope, and social-handle availability
+- [ ] Run formal USPTO TESS search on "Wayfarer" + phonetic neighbors, Classes 9 & 42 — **unverified, likely still open** (see status note above)
+- [ ] Confirm simultaneous domain (.dev + .com or equivalent pairing), GitHub org, npm scope, and social-handle availability — **open**: no new domain is live yet (see R2 below), the app still serves from `api-sandbox.ashwinsathian.com`
 - [ ] Have the coined-word backup path (D1) ready in case of clearance failure
-- [ ] Final go/no-go on the name before any asset production begins
+- [ ] Final go/no-go on the name before any asset production begins — asset production (R1) has already happened, so this is retroactive if not yet done
 
 ### Phase R1 — Brand identity production (parallel with R2/R3, target: 2–3 weeks)
-- [ ] Logo/glyph system built around the one unifying motif (D4.3)
-- [ ] Updated design tokens: new accent hue, formalized monospace pairing (D4.1–2)
-- [ ] Full icon set, favicon, OG/social preview images regenerated
-- [ ] Voice & tone guide (D3) written up as a living doc, not just this section
-- [ ] Marketing/docs site skeleton reflecting the new name and positioning (C1)
+- [x] Logo/glyph system built around the one unifying motif (D4.3) — route/waypoint glyph shipped, replacing the old mark (`CHANGELOG.md` [1.0.0])
+- [x] Updated design tokens: new accent hue (D4.1) — "Wayfarer Indigo" replaced iOS System Blue in both themes, per `CHANGELOG.md` [1.0.0]
+- [ ] Formalized monospace pairing (D4.2) — not confirmed as a deliberate, documented second type voice; re-verify against `src/design-system/tokens.css`
+- [x] Full icon set, favicon, OG/social preview images regenerated — confirmed, `CHANGELOG.md` [1.0.0] plus `apple-touch-icon`
+- [ ] Voice & tone guide (D3) written up as a living doc, not just this section — still only exists as D3 in this file
+- [ ] Marketing/docs site skeleton reflecting the new name and positioning (C1) — no separate marketing site exists; the repo/README is the only public surface today
 
 ### Phase R2 — Codebase & infra rename migration (parallel with R1, target: 1 week)
-- [ ] Low-risk copy changes (D5) across README/docs/CONTRIBUTING/SECURITY/CODE_OF_CONDUCT/issue templates
-- [ ] Build/infra identifier rename PR (`package.json`, `angular.json`, `wrangler.jsonc`, `karma.conf.js`) — verified via full CI + preview deploy before merge
-- [ ] Data-contract handling per D5: physical IDB `DB_NAME` left unchanged (documented why); JSON Schema `$id` versioned forward with the old `$id` kept resolvable; `HAR_CREATOR` updated
-- [ ] Domain cutover: new domain live, old `api-sandbox.ashwinsathian.com` 301-redirected, GitHub repo renamed (auto-forward confirmed, but all doc links updated regardless)
+- [x] Low-risk copy changes (D5) across README/docs/CONTRIBUTING/SECURITY/CODE_OF_CONDUCT/issue templates — confirmed
+- [x] Build/infra identifier rename PR (`package.json`, `angular.json`, `wrangler.jsonc`, `karma.conf.js`) — confirmed, all read `"wayfarer"` now; CI is green against this config
+- [x] Data-contract handling per D5 — confirmed exactly as specified: `DB_NAME = "api-sandbox"` left unchanged in `idb-core.service.ts` (documented in `docs/storage.md`); `theme.service.ts` reads the new `wayfarer:theme` key with a fallback read from the legacy `api-sandbox:theme` key; `HAR_CREATOR` updated to `"Wayfarer"`. **One item not yet done:** `collection.schema.ts`'s two JSON Schema `$id`s still point at `https://api-sandbox.dev/schemas/...` — this is arguably correct as-is until a real `wayfarer.dev`-class domain exists to version forward to (see R0), but it means this sub-item is blocked on R0/domain acquisition, not forgotten.
+- [ ] Domain cutover: new domain live, old `api-sandbox.ashwinsathian.com` 301-redirected — **not done**, `wrangler.jsonc`'s only route is still `api-sandbox.ashwinsathian.com`; GitHub repo rename to match — unverified from within the repo (cannot check GitHub org state from source alone, confirm directly)
 
 ### Phase R3 — Trust & compliance foundation (parallel with R1/R2, target: ongoing, starts now)
 - [x] Publish trust/security center page (F) — [`docs/trust-center.md`](../trust-center.md)

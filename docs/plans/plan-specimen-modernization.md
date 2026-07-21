@@ -3,6 +3,23 @@
 > **Audience:** engineering manager / tech lead making sequencing and staffing calls.
 > **Status:** proposal, grounded in a full-repo audit + live UI/UX pass + external research, July 2026.
 > **Retire this file** once Phases 0–3 ship; move the Phase 4 backlog into the issue tracker at that point.
+>
+> **Status note (2026-07-21, re-verified against source, not assumed from prior checkmarks):**
+> **Phase 0 is done** — script sandbox moved to a Worker (`docs/scripts.md`), CSP-equivalent
+> global-stripping verified by regression test, `package.json` has real `scripts`/`name`/`version`,
+> ESLint replaced TSLint, `tsconfig.json` has `"strict": true`, and all 7 Part D UX bugs are fixed
+> (Save-to-Collection landed as part of this work, see `CHANGELOG.md`).
+> **Phase 2 is done** — LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, issue/PR
+> templates, CODEOWNERS, Dependabot, and a full CI workflow (lint + unit test + production build
+> with budgets + Playwright e2e + the `local-bridge` suite) all exist and run on every PR.
+> **Phase 1 is partial** — `OnPush` is on all 10/10 components and `IdbService` has been split into
+> `HistoryRepository`/`CollectionsRepository`/`EnvironmentsRepository`/`SecretsRepository`, but the
+> signal-`input()` migration only covers 6 files (2 still use legacy `@Output()`/`@ViewChild()`),
+> `inject()` adoption is still mixed (8 files use constructor DI), Karma/Jasmine has **not** been
+> replaced with Vitest, and `ApiParamsComponent` is still a 1,174-line god component (grew, not
+> shrank). See the updated Part G checklist for the itemized remainder.
+> **Phase 3 is partial** — see the updated status column in Part D and Part E's task table.
+> **This file should stay open; do not retire it yet.**
 
 ---
 
@@ -263,27 +280,29 @@ Pull directly from Part C's ranked gap table. Recommended near-term sequencing: 
 ## Part G — "Specimen" Definition of Done
 
 ### Angular Specimen Checklist
-- [ ] 100% standalone components (already true — maintain it)
-- [ ] 100% `@if`/`@for`/`@switch` (1 remaining `*ngIf` to migrate)
-- [ ] 100% `inject()`, 0% constructor-parameter DI
-- [ ] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators
-- [ ] 100% `ChangeDetectionStrategy.OnPush`
-- [ ] `tsconfig.json` `"strict": true`
-- [ ] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional
-- [ ] Vitest replacing Karma/Jasmine
-- [ ] Playwright replacing Protractor
-- [ ] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason
-- [ ] No file over ~400 lines without a documented justification
-- [ ] CI runs lint + unit test + build + e2e on every PR
+*(re-verified against source 2026-07-21 — grep counts, not carried forward from when this list was written)*
+- [x] 100% standalone components — confirmed, 10/10
+- [x] 100% `@if`/`@for`/`@switch` — confirmed, 0 remaining `*ngIf`
+- [ ] 100% `inject()`, 0% constructor-parameter DI — **not done**, 8 files still use constructor DI
+- [ ] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators — **partial**: `input()` adopted in 6 files; `@Output()`/`@ViewChild()` still used in 2 files; no file uses the new `output()`/`viewChild()` functions yet
+- [x] 100% `ChangeDetectionStrategy.OnPush` — confirmed, 10/10
+- [x] `tsconfig.json` `"strict": true` — confirmed
+- [x] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional — confirmed, wired into CI
+- [ ] Vitest replacing Karma/Jasmine — **not done**, `angular.json`/`package.json` still run `@angular-devkit/build-angular:karma`
+- [x] Playwright replacing Protractor — confirmed, `e2e/` is pure Playwright (5 specs + accessibility), zero Protractor remnants in the repo
+- [ ] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason — **not done**, no `provideZonelessChangeDetection()` anywhere and no written deferral decision exists
+- [ ] No file over ~400 lines without a documented justification — **not done**, 9 files exceed 400 lines with no justification comment (`api-params.component.ts` 1,174, `collections-sidebar.component.ts` 732, `response-viewer.component.ts` 649, `idb-core.service.ts` 555, `collections.repository.ts` 538, `environments-manager.component.ts` 451, `request-execution.service.ts` 399 is the one exception under the line, others above)
+- [x] CI runs lint + unit test + build + e2e on every PR — confirmed, `.github/workflows/ci.yml` (5 jobs: lint, test, build, local-bridge, e2e)
 
 ### OSS Repo Checklist
-- [ ] LICENSE present and matching README's claim
-- [ ] CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md present
-- [ ] `.github/` issue/PR templates, CODEOWNERS, CI workflow present
-- [ ] Automated dependency updates configured
-- [ ] README accurate against current shipped features (verified, not assumed)
-- [ ] Every doc in `docs/` reflects current code (spot-checked, like `docs/secrets.md`/`docs/storage.md` already do)
-- [ ] CHANGELOG or equivalent release-history mechanism
+*(re-verified against source 2026-07-21)*
+- [x] LICENSE present and matching README's claim — confirmed, MIT
+- [x] CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md present — confirmed
+- [x] `.github/` issue/PR templates, CODEOWNERS, CI workflow present — confirmed
+- [x] Automated dependency updates configured — confirmed, `.github/dependabot.yml`
+- [x] README accurate against current shipped features (verified, not assumed) — rewritten for the Wayfarer identity per `CHANGELOG.md` [1.0.0]
+- [x] Every doc in `docs/` reflects current code (spot-checked, like `docs/secrets.md`/`docs/storage.md` already do) — `docs/scripts.md` now added and spot-checked the same way; `docs/phase-1.md` (an orphaned, unreferenced early scratch note whose entire content was already superseded by `docs/storage.md`/`docs/collections-schema.md`/`docs/secrets.md`) removed as part of this pass
+- [x] CHANGELOG or equivalent release-history mechanism — confirmed, `CHANGELOG.md` (Keep a Changelog format)
 
 ---
 

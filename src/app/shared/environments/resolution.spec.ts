@@ -1,4 +1,5 @@
 import { collectVariableTokens, resolveTemplate } from "./env-resolution.util";
+import { describe, it, expect } from "vitest";
 
 describe("variable resolution", () => {
   it("prefers request variables over environment and globals", () => {

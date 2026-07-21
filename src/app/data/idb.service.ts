@@ -14,6 +14,8 @@ import { SecretEnvelope, SecretId } from "../models/secrets.models";
 import { IdbCoreService } from "./idb-core.service";
 import { HistoryRepository } from "./history.repository";
 import { CollectionsRepository } from "./collections.repository";
+import { FoldersRepository } from "./folders.repository";
+import { CollectionRequestsRepository } from "./collection-requests.repository";
 import { EnvironmentsRepository } from "./environments.repository";
 import { SecretsRepository } from "./secrets.repository";
 
@@ -23,9 +25,11 @@ import { SecretsRepository } from "./secrets.repository";
  * SecretsService, ApiParamsComponent, AppShellComponent) keeps injecting
  * this exact class with this exact API — the actual storage/schema/
  * migration logic and each aggregate's CRUD now live in IdbCoreService and
- * the four *.repository.ts files, independently testable without going
- * through this facade. See docs/plans/plan-specimen-modernization.md Part
- * B2 for why this used to be a single 1,300+ line god object.
+ * the *.repository.ts files (collections/folders/requests were originally
+ * one CollectionsRepository; split into three once that file crossed ~540
+ * lines), independently testable without going through this facade. See
+ * docs/plans/plan-specimen-modernization.md Part B2 for why this used to be
+ * a single 1,300+ line god object.
  */
 @Injectable({
   providedIn: "root",
@@ -34,6 +38,8 @@ export class IdbService {
   private readonly core = inject(IdbCoreService);
   private readonly history = inject(HistoryRepository);
   private readonly collections = inject(CollectionsRepository);
+  private readonly folders = inject(FoldersRepository);
+  private readonly collectionRequests = inject(CollectionRequestsRepository);
   private readonly environments = inject(EnvironmentsRepository);
   private readonly secrets = inject(SecretsRepository);
 
@@ -108,7 +114,7 @@ export class IdbService {
   }
 
   async listFolders(collectionId: CollectionId): Promise<Folder[]> {
-    return this.collections.listFolders(collectionId);
+    return this.folders.listFolders(collectionId);
   }
 
   async createFolder(payload: {
@@ -117,27 +123,27 @@ export class IdbService {
     parentFolderId?: FolderId;
     order?: number;
   }): Promise<Folder> {
-    return this.collections.createFolder(payload);
+    return this.folders.createFolder(payload);
   }
 
   async renameFolder(id: FolderId, name: string): Promise<Folder | null> {
-    return this.collections.renameFolder(id, name);
+    return this.folders.renameFolder(id, name);
   }
 
   async duplicateFolder(id: FolderId): Promise<Folder | null> {
-    return this.collections.duplicateFolder(id);
+    return this.folders.duplicateFolder(id);
   }
 
   async deleteFolder(id: FolderId): Promise<void> {
-    return this.collections.deleteFolder(id);
+    return this.folders.deleteFolder(id);
   }
 
   async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
-    return this.collections.reorderFolders(order);
+    return this.folders.reorderFolders(order);
   }
 
   async listRequests(collectionId: CollectionId): Promise<RequestDoc[]> {
-    return this.collections.listRequests(collectionId);
+    return this.collectionRequests.listRequests(collectionId);
   }
 
   async createRequest(payload: {
@@ -150,11 +156,11 @@ export class IdbService {
     body?: unknown;
     order?: number;
   }): Promise<RequestDoc> {
-    return this.collections.createRequest(payload);
+    return this.collectionRequests.createRequest(payload);
   }
 
   async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
-    return this.collections.renameRequest(id, name);
+    return this.collectionRequests.renameRequest(id, name);
   }
 
   async updateRequest(
@@ -177,19 +183,19 @@ export class IdbService {
       >
     >
   ): Promise<RequestDoc | null> {
-    return this.collections.updateRequest(id, patch);
+    return this.collectionRequests.updateRequest(id, patch);
   }
 
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
-    return this.collections.duplicateRequest(id);
+    return this.collectionRequests.duplicateRequest(id);
   }
 
   async deleteRequest(id: RequestDocId): Promise<void> {
-    return this.collections.deleteRequest(id);
+    return this.collectionRequests.deleteRequest(id);
   }
 
   async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
-    return this.collections.reorderRequests(order);
+    return this.collectionRequests.reorderRequests(order);
   }
 
   // ── Environments ─────────────────────────────────────────────────────

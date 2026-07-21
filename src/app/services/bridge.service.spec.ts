@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { BridgeService } from "./bridge.service";
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 describe("BridgeService", () => {
   let service: BridgeService;
@@ -16,7 +17,7 @@ describe("BridgeService", () => {
 
   it("defaults to disabled with a localhost URL and no token", () => {
     const config = service.config();
-    expect(config.enabled).toBeFalse();
+    expect(config.enabled).toBe(false);
     expect(config.url).toBe("http://127.0.0.1:7717");
     expect(config.token).toBe("");
   });
@@ -47,7 +48,7 @@ describe("BridgeService", () => {
 
     const fresh = TestBed.runInInjectionContext(() => new BridgeService());
 
-    expect(fresh.config().enabled).toBeFalse();
+    expect(fresh.config().enabled).toBe(false);
     expect(fresh.config().url).toBe("http://127.0.0.1:7717");
   });
 
@@ -58,20 +59,20 @@ describe("BridgeService", () => {
 
   it("checkHealth returns true when the bridge responds ok", async () => {
     service.update({ url: "http://localhost:7717" });
-    spyOn(window, "fetch").and.resolveTo(new Response(null, { status: 200 }));
+    vi.spyOn(window, "fetch").mockResolvedValue(new Response(null, { status: 200 }));
 
-    await expectAsync(service.checkHealth()).toBeResolvedTo(true);
+    await expect(service.checkHealth()).resolves.toBe(true);
   });
 
   it("checkHealth returns false when the bridge is unreachable", async () => {
     service.update({ url: "http://localhost:7717" });
-    spyOn(window, "fetch").and.rejectWith(new Error("network error"));
+    vi.spyOn(window, "fetch").mockRejectedValue(new Error("network error"));
 
-    await expectAsync(service.checkHealth()).toBeResolvedTo(false);
+    await expect(service.checkHealth()).resolves.toBe(false);
   });
 
   it("checkHealth returns false when there is no configured URL", async () => {
     service.update({ url: "" });
-    await expectAsync(service.checkHealth()).toBeResolvedTo(false);
+    await expect(service.checkHealth()).resolves.toBe(false);
   });
 });

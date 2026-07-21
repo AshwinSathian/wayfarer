@@ -16,28 +16,22 @@ import { TreeModule } from "primeng/tree";
 import { DialogModule } from "primeng/dialog";
 import { SelectModule } from "primeng/select";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
-import {
-  Collection,
-  CollectionExport,
-  Folder,
-  RequestDoc,
-} from "../../models/collections.models";
-import {
-  CollectionTree,
-  CollectionsService,
-} from "../../services/collections.service";
-import {
-  CollectionImportResult,
-  importCollection as planCollectionImport,
-  validateCollection,
-  ValidationResult,
-} from "../../shared/collections/collection-io.util";
+import { RequestDoc } from "../../models/collections.models";
+import { CollectionsService } from "../../services/collections.service";
+import { CollectionImportService } from "../../services/collection-import.service";
 import { PastRequest } from "../../models/history.models";
+import {
+  CollectionNodeData,
+  collectionsToNodes,
+  isCollectionRef,
+  isFolderRef,
+} from "../../shared/collections/collection-tree-nodes.util";
+import {
+  CollectionNodeAction,
+  buildContextItems,
+} from "../../shared/collections/collection-context-menu.util";
 
-type NodeData =
-  | { type: "collection"; ref: Collection }
-  | { type: "folder"; ref: Folder }
-  | { type: "request"; ref: RequestDoc };
+type NodeData = CollectionNodeData;
 
 interface TreeDragDropEvent {
   dragNode?: TreeNode<NodeData> | null;
@@ -71,28 +65,44 @@ export interface PaletteAction {
   providers: [ConfirmationService, TreeDragDropService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// ~570 lines: tree-node building/type guards moved to
+// shared/collections/collection-tree-nodes.util.ts, context-menu building to
+// shared/collections/collection-context-menu.util.ts, and the import-dialog
+// pipeline to CollectionImportService (mirrors RequestSaveService). What's
+// left is the sidebar's actual job: tree selection/drag-drop/rename/CRUD
+// dispatch, the command palette (registers its own + externally-supplied
+// actions and filters them), and the creation dialog - all genuinely
+// sidebar-owned interaction state, not extractable without just relocating
+// the same coupling elsewhere. See
+// docs/plans/plan-specimen-modernization.md Part G for the rest of the
+// file-size audit.
 export class CollectionsSidebarComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly collectionImport = inject(CollectionImportService);
 
   readonly loadRequest = output<RequestDoc>();
   /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
   readonly externalActions = input<PaletteAction[]>([]);
 
   readonly nodes = computed<TreeNode<NodeData>[]>(() =>
-    this.collectionsToNodes(this.collectionsService.tree())
+    collectionsToNodes(this.collectionsService.tree())
   );
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<TreeNode<NodeData> | null>(null);
   readonly contextItems = signal<MenuItem[]>([]);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
-  readonly importDialogVisible = signal(false);
-  readonly importErrors = signal<ValidationResult[]>([]);
-  readonly importAnalysis = signal<CollectionImportResult | null>(null);
-  readonly importSourcePayload = signal<CollectionExport | null>(null);
-  readonly importDuplicateAsNew = signal(false);
-  readonly importFileName = signal("");
+
+  // Import-dialog state/pipeline lives in CollectionImportService now (see
+  // its own file) — these are direct pass-throughs so the template doesn't
+  // need to change.
+  readonly importDialogVisible = this.collectionImport.dialogVisible;
+  readonly importErrors = this.collectionImport.errors;
+  readonly importAnalysis = this.collectionImport.analysis;
+  readonly importDuplicateAsNew = this.collectionImport.duplicateAsNew;
+  readonly importFileName = this.collectionImport.fileName;
+
   readonly commandPaletteVisible = signal(false);
   readonly commandPaletteQuery = signal("");
   readonly creationDialogVisible = signal(false);
@@ -130,60 +140,20 @@ export class CollectionsSidebarComponent implements OnInit {
       return;
     }
     const text = await file.text();
-    const validation = validateCollection(text);
-    if (!validation.ok || !validation.payload) {
-      this.importErrors.set(
-        validation.errors ?? [{ path: "root", message: "Invalid collection export." }]
-      );
-      this.importSourcePayload.set(null);
-      this.importAnalysis.set(null);
-    } else {
-      this.importErrors.set([]);
-      this.importSourcePayload.set(validation.payload);
-      this.updateImportAnalysis();
-    }
-    this.importFileName.set(file.name);
-    this.importDialogVisible.set(true);
+    this.collectionImport.stageFile(file.name, text);
     input.value = "";
   }
 
   async confirmImport(): Promise<void> {
-    const analysis = this.importAnalysis();
-    if (!analysis?.payload || this.importErrors().length) {
-      this.importDialogVisible.set(false);
-      return;
-    }
-    await this.collectionsService.importCollection(analysis.payload, {
-      duplicateAsNew: this.importDuplicateAsNew(),
-    });
-    this.closeImportDialog();
+    await this.collectionImport.confirm();
   }
 
   toggleDuplicateImport(value: boolean): void {
-    this.importDuplicateAsNew.set(value);
-    this.updateImportAnalysis();
+    this.collectionImport.toggleDuplicateAsNew(value);
   }
 
   closeImportDialog(): void {
-    this.importDialogVisible.set(false);
-    this.importErrors.set([]);
-    this.importSourcePayload.set(null);
-    this.importAnalysis.set(null);
-    this.importDuplicateAsNew.set(false);
-    this.importFileName.set("");
-  }
-
-  private updateImportAnalysis(): void {
-    const payload = this.importSourcePayload();
-    if (!payload) {
-      this.importAnalysis.set(null);
-      return;
-    }
-    const analysis = planCollectionImport(payload, {
-      duplicateAsNew: this.importDuplicateAsNew(),
-    });
-    this.importAnalysis.set(analysis);
-    this.importErrors.set(analysis.errors ?? []);
+    this.collectionImport.close();
   }
 
   @HostListener("window:keydown", ["$event"])
@@ -349,7 +319,17 @@ export class CollectionsSidebarComponent implements OnInit {
 
   handleNodeSelect(node: TreeNode<NodeData>): void {
     this.selectedNode.set(node);
-    this.contextItems.set(this.buildContextItems(node));
+    this.contextItems.set(
+      buildContextItems(node, (action, target) => this.dispatchContextAction(action, target))
+    );
+  }
+
+  private dispatchContextAction(action: CollectionNodeAction, node: TreeNode<NodeData>): void {
+    if (action === "export") {
+      void this.exportCollection(node);
+      return;
+    }
+    void this.handleAction(action, node);
   }
 
   handleNodeDoubleClick(node: TreeNode<NodeData>): void {
@@ -429,18 +409,21 @@ export class CollectionsSidebarComponent implements OnInit {
     this.editingValue.set("");
   }
 
-  async handleAction(action: string, node: TreeNode<NodeData>): Promise<void> {
+  async handleAction(
+    action: Exclude<CollectionNodeAction, "export">,
+    node: TreeNode<NodeData>
+  ): Promise<void> {
     const data = node.data as NodeData;
     switch (action) {
       case "new-folder":
-        if (data.type === "collection" && this.isCollection(data.ref)) {
+        if (data.type === "collection" && isCollectionRef(data.ref)) {
           await this.createFolderPrompt(data.ref.meta.id);
         }
         break;
       case "new-request":
-        if (data.type === "collection" && this.isCollection(data.ref)) {
+        if (data.type === "collection" && isCollectionRef(data.ref)) {
           await this.createRequestPrompt(data.ref.meta.id);
-        } else if (data.type === "folder" && this.isFolder(data.ref)) {
+        } else if (data.type === "folder" && isFolderRef(data.ref)) {
           await this.createRequestPrompt(data.ref.collectionId, data.ref.meta.id);
         }
         break;
@@ -497,126 +480,6 @@ export class CollectionsSidebarComponent implements OnInit {
     });
   }
 
-  private buildContextItems(node: TreeNode<NodeData>): MenuItem[] {
-    const data = node.data as NodeData;
-    if (data.type === "collection") {
-      return [
-        {
-          label: "New Folder",
-          icon: "pi pi-folder",
-          command: () => this.handleAction("new-folder", node),
-        },
-        {
-          label: "New Request",
-          icon: "pi pi-plus",
-          command: () => this.handleAction("new-request", node),
-        },
-        { separator: true },
-        {
-          label: "Rename",
-          icon: "pi pi-pencil",
-          command: () => this.handleAction("rename", node),
-        },
-        {
-          label: "Duplicate",
-          icon: "pi pi-copy",
-          command: () => this.handleAction("duplicate", node),
-        },
-        {
-          label: "Export",
-          icon: "pi pi-download",
-          command: () => this.exportCollection(node),
-        },
-        {
-          label: "Delete",
-          icon: "pi pi-trash",
-          command: () => this.handleAction("delete", node),
-        },
-      ];
-    }
-    if (data.type === "folder") {
-      return [
-        {
-          label: "New Request",
-          icon: "pi pi-plus",
-          command: () => this.handleAction("new-request", node),
-        },
-        {
-          label: "Rename",
-          icon: "pi pi-pencil",
-          command: () => this.handleAction("rename", node),
-        },
-        {
-          label: "Duplicate",
-          icon: "pi pi-copy",
-          command: () => this.handleAction("duplicate", node),
-        },
-        {
-          label: "Delete",
-          icon: "pi pi-trash",
-          command: () => this.handleAction("delete", node),
-        },
-      ];
-    }
-    return [
-      {
-        label: "Rename",
-        icon: "pi pi-pencil",
-        command: () => this.handleAction("rename", node),
-      },
-      {
-        label: "Duplicate",
-        icon: "pi pi-copy",
-        command: () => this.handleAction("duplicate", node),
-      },
-      {
-        label: "Delete",
-        icon: "pi pi-trash",
-        command: () => this.handleAction("delete", node),
-      },
-    ];
-  }
-
-  private collectionsToNodes(trees: CollectionTree[]): TreeNode<NodeData>[] {
-    return trees.map((entry) => this.toCollectionNode(entry));
-  }
-
-  private toCollectionNode(entry: CollectionTree): TreeNode<NodeData> {
-    return {
-      key: `collection:${entry.collection.meta.id}`,
-      label: entry.collection.name,
-      data: { type: "collection", ref: entry.collection },
-      expanded: true,
-      children: [
-        ...entry.folders.map((folder) => this.toFolderNode(folder, entry)),
-        ...entry.requests
-          .filter((req) => !req.folderId)
-          .map((req) => this.toRequestNode(req)),
-      ],
-    };
-  }
-
-  private toFolderNode(folder: Folder, entry: CollectionTree): TreeNode<NodeData> {
-    const children = entry.requests
-      .filter((req) => req.folderId === folder.meta.id)
-      .map((req) => this.toRequestNode(req));
-    return {
-      key: `folder:${folder.meta.id}`,
-      label: folder.name,
-      data: { type: "folder", ref: folder },
-      children,
-    };
-  }
-
-  private toRequestNode(req: RequestDoc): TreeNode<NodeData> {
-    return {
-      key: `request:${req.meta.id}`,
-      label: req.name || req.url || req.method,
-      data: { type: "request", ref: req },
-      leaf: true,
-    };
-  }
-
   private async exportCollection(node: TreeNode<NodeData>): Promise<void> {
     const data = node.data as NodeData;
     if (data.type !== "collection") {
@@ -634,18 +497,6 @@ export class CollectionsSidebarComponent implements OnInit {
     anchor.download = `${safeName}-collection.json`;
     anchor.click();
     URL.revokeObjectURL(url);
-  }
-
-  private isCollection(ref: Collection | Folder | RequestDoc): ref is Collection {
-    return !("collectionId" in ref) && !("method" in ref);
-  }
-
-  private isFolder(ref: Collection | Folder | RequestDoc): ref is Folder {
-    return "collectionId" in ref && !("method" in ref);
-  }
-
-  private isRequest(ref: Collection | Folder | RequestDoc): ref is RequestDoc {
-    return "method" in ref;
   }
 
   get creationTitle(): string {

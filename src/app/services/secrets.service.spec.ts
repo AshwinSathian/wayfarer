@@ -3,11 +3,12 @@ import { SecretsService } from "./secrets.service";
 import { IdbService } from "../data/idb.service";
 import { SecretCryptoService } from "../shared/secrets/secret-crypto.service";
 import { SecretEnvelope } from "../models/secrets.models";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
-  writeCipher = jasmine.createSpy("writeCipher").and.resolveTo();
-  readCipher = jasmine.createSpy("readCipher").and.resolveTo(null);
-  peekSecretEnvelope = jasmine.createSpy("peekSecretEnvelope").and.resolveTo(null);
+  writeCipher = vi.fn().mockResolvedValue(undefined);
+  readCipher = vi.fn().mockResolvedValue(null);
+  peekSecretEnvelope = vi.fn().mockResolvedValue(null);
 }
 
 class SecretCryptoServiceMock {
@@ -19,12 +20,11 @@ class SecretCryptoServiceMock {
     this._isUnlocked = value;
   }
 
-  encryptWithSession = jasmine
-    .createSpy("encryptWithSession")
-    .and.resolveTo({ v: 1, alg: "AES-GCM", salt: "salt", iv: "iv", ct: "enc" } as SecretEnvelope);
-  decryptWithSession = jasmine.createSpy("decryptWithSession").and.resolveTo("plaintext");
-  decrypt = jasmine.createSpy("decrypt").and.resolveTo("plaintext");
-  unlock = jasmine.createSpy("unlock").and.resolveTo();
+  encryptWithSession = vi.fn()
+    .mockResolvedValue({ v: 1, alg: "AES-GCM", salt: "salt", iv: "iv", ct: "enc" } as SecretEnvelope);
+  decryptWithSession = vi.fn().mockResolvedValue("plaintext");
+  decrypt = vi.fn().mockResolvedValue("plaintext");
+  unlock = vi.fn().mockResolvedValue(undefined);
 }
 
 describe("SecretsService", () => {
@@ -48,9 +48,9 @@ describe("SecretsService", () => {
     it("throws instead of persisting anything when the vault is locked", async () => {
       crypto.setUnlocked(false);
 
-      await expectAsync(
+      await expect(
         service.saveSecret({ name: "API key", plaintext: "shh" })
-      ).toBeRejectedWithError("Secrets are locked. Unlock before saving new secrets.");
+      ).rejects.toThrow("Secrets are locked. Unlock before saving new secrets.");
 
       expect(idb.writeCipher).not.toHaveBeenCalled();
     });
@@ -66,11 +66,11 @@ describe("SecretsService", () => {
 
       expect(crypto.encryptWithSession).toHaveBeenCalledWith("shh");
       expect(idb.writeCipher).toHaveBeenCalledWith(
-        jasmine.objectContaining({
+        expect.objectContaining({
           id,
           name: "API key",
           environmentId: "env-1",
-          envelope: jasmine.objectContaining({ ct: "enc" }),
+          envelope: expect.objectContaining({ ct: "enc" }),
         })
       );
       expect(typeof id).toBe("string");
@@ -82,7 +82,7 @@ describe("SecretsService", () => {
 
       await service.saveSecret({ name: "API key", plaintext: "super-secret-value" });
 
-      const written = idb.writeCipher.calls.mostRecent().args[0];
+      const written = idb.writeCipher.mock.lastCall![0];
       expect(JSON.stringify(written)).not.toContain("super-secret-value");
     });
   });
@@ -99,7 +99,7 @@ describe("SecretsService", () => {
 
     it("returns null when no envelope exists for that id", async () => {
       crypto.setUnlocked(true);
-      idb.readCipher.and.resolveTo(null);
+      idb.readCipher.mockResolvedValue(null);
 
       const result = await service.readSecret("missing");
 
@@ -110,7 +110,7 @@ describe("SecretsService", () => {
     it("decrypts and returns the plaintext when unlocked and the envelope exists", async () => {
       crypto.setUnlocked(true);
       const envelope = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.readCipher.and.resolveTo(envelope);
+      idb.readCipher.mockResolvedValue(envelope);
 
       const result = await service.readSecret("secret-1");
 
@@ -139,47 +139,47 @@ describe("SecretsService", () => {
 
   describe("hasAnySecrets()", () => {
     it("is false when the vault has never had anything written to it", async () => {
-      idb.peekSecretEnvelope.and.resolveTo(null);
-      expect(await service.hasAnySecrets()).toBeFalse();
+      idb.peekSecretEnvelope.mockResolvedValue(null);
+      expect(await service.hasAnySecrets()).toBe(false);
     });
 
     it("is true once at least one secret envelope exists, independent of lock state", async () => {
-      idb.peekSecretEnvelope.and.resolveTo({} as SecretEnvelope);
-      expect(await service.hasAnySecrets()).toBeTrue();
+      idb.peekSecretEnvelope.mockResolvedValue({} as SecretEnvelope);
+      expect(await service.hasAnySecrets()).toBe(true);
     });
   });
 
   describe("verifyAndUnlock()", () => {
     it("treats an empty vault as first-use: unlocks with whatever passphrase is given", async () => {
-      idb.peekSecretEnvelope.and.resolveTo(null);
+      idb.peekSecretEnvelope.mockResolvedValue(null);
 
       const ok = await service.verifyAndUnlock("new-passphrase");
 
-      expect(ok).toBeTrue();
+      expect(ok).toBe(true);
       expect(crypto.unlock).toHaveBeenCalledWith("new-passphrase");
       expect(crypto.decrypt).not.toHaveBeenCalled();
     });
 
     it("verifies the passphrase against an existing secret before unlocking", async () => {
       const sample = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.peekSecretEnvelope.and.resolveTo(sample);
-      crypto.decrypt.and.resolveTo("plaintext");
+      idb.peekSecretEnvelope.mockResolvedValue(sample);
+      crypto.decrypt.mockResolvedValue("plaintext");
 
       const ok = await service.verifyAndUnlock("correct-passphrase");
 
       expect(crypto.decrypt).toHaveBeenCalledWith(sample, "correct-passphrase");
       expect(crypto.unlock).toHaveBeenCalledWith("correct-passphrase");
-      expect(ok).toBeTrue();
+      expect(ok).toBe(true);
     });
 
     it("returns false and never unlocks when the passphrase fails to decrypt the sample", async () => {
       const sample = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.peekSecretEnvelope.and.resolveTo(sample);
-      crypto.decrypt.and.rejectWith(new Error("bad passphrase"));
+      idb.peekSecretEnvelope.mockResolvedValue(sample);
+      crypto.decrypt.mockRejectedValue(new Error("bad passphrase"));
 
       const ok = await service.verifyAndUnlock("wrong-passphrase");
 
-      expect(ok).toBeFalse();
+      expect(ok).toBe(false);
       expect(crypto.unlock).not.toHaveBeenCalled();
     });
   });

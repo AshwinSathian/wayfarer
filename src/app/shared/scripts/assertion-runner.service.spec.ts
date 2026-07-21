@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { AssertionRunnerService, AssertionResponseContext } from "./assertion-runner.service";
 import { TestAssertion } from "../../models/test-assertion.models";
+import { describe, it, beforeEach, expect } from "vitest";
 
 describe("AssertionRunnerService", () => {
   let service: AssertionRunnerService;
@@ -27,7 +28,7 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "status", operator: "equals", expected: "404" })],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
       expect(result.actual).toBe(404);
     });
 
@@ -38,7 +39,7 @@ describe("AssertionRunnerService", () => {
         response
       );
       expect(result.actual).toBe(0);
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
     });
 
     it("reads a header case-insensitively", () => {
@@ -58,7 +59,7 @@ describe("AssertionRunnerService", () => {
         ],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
       expect(result.actual).toBe("application/json");
     });
 
@@ -68,7 +69,7 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "header", key: "X-Missing", operator: "not-exists" })],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
       expect(result.actual).toBeUndefined();
     });
 
@@ -89,7 +90,7 @@ describe("AssertionRunnerService", () => {
         ],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
       expect(result.actual).toBe(42);
     });
 
@@ -103,7 +104,7 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "body", key: "name", operator: "equals", expected: "widget" })],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
     });
 
     it("returns the whole parsed body when no key is given", () => {
@@ -116,7 +117,7 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "body", operator: "is-object" })],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
       expect(result.actual).toEqual({ ok: true });
     });
 
@@ -130,7 +131,7 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "body", operator: "equals", expected: "not json" })],
         response
       );
-      expect(result.passed).toBeTrue();
+      expect(result.passed).toBe(true);
     });
   });
 
@@ -142,13 +143,13 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "status", operator: "equals", expected: "200" })],
         response
       );
-      expect(eq.passed).toBeTrue();
+      expect(eq.passed).toBe(true);
 
       const [neq] = service.run(
         [assertion({ target: "status", operator: "not-equals", expected: "201" })],
         response
       );
-      expect(neq.passed).toBeTrue();
+      expect(neq.passed).toBe(true);
     });
 
     it("contains / not-contains do substring matching on stringified values", () => {
@@ -156,13 +157,13 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "status", operator: "contains", expected: "0" })],
         response
       );
-      expect(contains.passed).toBeTrue();
+      expect(contains.passed).toBe(true);
 
       const [notContains] = service.run(
         [assertion({ target: "status", operator: "not-contains", expected: "9" })],
         response
       );
-      expect(notContains.passed).toBeTrue();
+      expect(notContains.passed).toBe(true);
     });
 
     it("exists / not-exists treat both null and undefined as absent", () => {
@@ -175,13 +176,13 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "header", key: "X-Present", operator: "exists" })],
         withHeader
       );
-      expect(exists.passed).toBeTrue();
+      expect(exists.passed).toBe(true);
 
       const [notExists] = service.run(
         [assertion({ target: "header", key: "X-Absent", operator: "not-exists" })],
         withHeader
       );
-      expect(notExists.passed).toBeTrue();
+      expect(notExists.passed).toBe(true);
     });
 
     it("is-array / is-object distinguish arrays from plain objects", () => {
@@ -194,13 +195,13 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "body", operator: "is-array" })],
         arrayResponse
       );
-      expect(isArray.passed).toBeTrue();
+      expect(isArray.passed).toBe(true);
 
       const [notObject] = service.run(
         [assertion({ target: "body", operator: "is-object" })],
         arrayResponse
       );
-      expect(notObject.passed).toBeFalse();
+      expect(notObject.passed).toBe(false);
     });
 
     it("less-than / greater-than only pass for actual numeric values", () => {
@@ -214,19 +215,19 @@ describe("AssertionRunnerService", () => {
         [assertion({ target: "duration", operator: "less-than", expected: "200" })],
         durationResponse
       );
-      expect(lt.passed).toBeTrue();
+      expect(lt.passed).toBe(true);
 
       const [gt] = service.run(
         [assertion({ target: "duration", operator: "greater-than", expected: "100" })],
         durationResponse
       );
-      expect(gt.passed).toBeTrue();
+      expect(gt.passed).toBe(true);
 
       const [ltOnString] = service.run(
         [assertion({ target: "header", key: "x", operator: "less-than", expected: "5" })],
         durationResponse
       );
-      expect(ltOnString.passed).toBeFalse();
+      expect(ltOnString.passed).toBe(false);
     });
   });
 
@@ -244,7 +245,7 @@ describe("AssertionRunnerService", () => {
       // Resolving a path into a primitive string yields undefined rather than
       // throwing, so this specifically exercises the "no match" branch, not
       // the catch block — resolvePath is defensive by construction.
-      expect(result.passed).toBeFalse();
+      expect(result.passed).toBe(false);
       expect(result.actual).toBeUndefined();
     });
 
@@ -283,8 +284,8 @@ describe("AssertionRunnerService", () => {
         response
       );
       expect(results.length).toBe(2);
-      expect(results[0].passed).toBeTrue();
-      expect(results[1].passed).toBeFalse();
+      expect(results[0].passed).toBe(true);
+      expect(results[1].passed).toBe(false);
     });
   });
 });

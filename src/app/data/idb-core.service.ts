@@ -1,119 +1,34 @@
 import { Injectable } from "@angular/core";
+import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
+import { Meta, META_VERSION } from "../models/collections.models";
 import {
-  DBSchema,
-  IDBPCursorWithValue,
-  IDBPDatabase,
-  IDBPObjectStore,
-  IDBPTransaction,
-  openDB,
-} from "idb";
-import {
-  Collection,
-  CollectionId,
-  Folder,
-  FolderId,
-  Meta,
-  META_VERSION,
-  RequestDoc,
-  RequestDocId,
-} from "../models/collections.models";
-import { EnvironmentDoc, EnvironmentId } from "../models/environments.models";
-import { PastRequest, PastRequestKey } from "../models/history.models";
-import { SecretDoc, SecretId } from "../models/secrets.models";
+  ApiSandboxDB,
+  DB_NAME,
+  DB_VERSION,
+  DEFAULT_SCHEMA_VERSION,
+  MetaState,
+  META_STATE_KEY,
+  StoreCollection,
+  StoreName,
+} from "./idb-schema";
+import { runUpgrade } from "./idb-migrations";
 
-export type HistoryRecord = PastRequest & { id: PastRequestKey };
-export type StoreName =
-  | "history"
-  | "collections"
-  | "folders"
-  | "requests"
-  | "environments"
-  | "secrets"
-  | "meta";
-export type StoreCollection = ArrayLike<StoreName>;
-
-export interface MetaState {
-  key: typeof META_STATE_KEY;
-  schemaVersion: number;
-  activeEnvironmentId?: EnvironmentId | null;
-}
-
-export interface ApiSandboxDB extends DBSchema {
-  history: {
-    key: PastRequestKey;
-    value: HistoryRecord;
-    indexes: {
-      "by-createdAt": number;
-      "by-url": string;
-      "by-method": PastRequest["method"];
-    };
-  };
-  collections: {
-    key: CollectionId;
-    value: Collection;
-    indexes: {
-      "by-order": number;
-      "by-name": string;
-    };
-  };
-  folders: {
-    key: FolderId;
-    value: Folder;
-    indexes: {
-      "by-collectionId": CollectionId;
-      "by-parentFolderId": FolderId;
-      "by-order": number;
-    };
-  };
-  requests: {
-    key: RequestDocId;
-    value: RequestDoc;
-    indexes: {
-      "by-collectionId": CollectionId;
-      "by-folderId": FolderId;
-      "by-order": number;
-    };
-  };
-  environments: {
-    key: EnvironmentId;
-    value: EnvironmentDoc;
-    indexes: {
-      "by-name": string;
-      "by-order": number;
-    };
-  };
-  secrets: {
-    key: SecretId;
-    value: SecretDoc;
-    indexes: {
-      "by-environmentId": EnvironmentId;
-      "by-name": string;
-    };
-  };
-  meta: {
-    key: typeof META_STATE_KEY;
-    value: MetaState;
-  };
-}
-
-// Preserved historical identifier from the project's "API Sandbox" name — never
-// shown to users, and renaming it would require a lossy copy-and-migrate of
-// every existing user's local data for zero functional benefit. Left as-is
-// intentionally; see docs/storage.md.
-const DB_NAME = "api-sandbox";
-const DB_VERSION = 4;
-export const META_STATE_KEY = "state";
-const DEFAULT_SCHEMA_VERSION = 1;
+export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
+export { META_STATE_KEY } from "./idb-schema";
 
 /**
  * Owns everything that's shared across the per-aggregate repositories
  * (HistoryRepository, CollectionsRepository, EnvironmentsRepository,
  * SecretsRepository): the single IndexedDB connection and its
- * open/upgrade/fallback lifecycle, schema migrations, transaction helpers,
- * and the id/meta bookkeeping every store needs. None of this is
- * aggregate-specific, which is exactly why it used to make IdbService a
- * 1,300+ line god object — every repository injects this instead of
- * duplicating connection/migration logic.
+ * open/upgrade/fallback lifecycle, transaction helpers, and the id/meta
+ * bookkeeping every store needs. None of this is aggregate-specific, which
+ * is exactly why it used to make IdbService a 1,300+ line god object —
+ * every repository injects this instead of duplicating connection logic.
+ *
+ * The actual object-store/index/migration definitions live in
+ * idb-migrations.ts (this service just wires that in as its `upgrade`
+ * callback), and the schema types live in idb-schema.ts — both extracted
+ * so this file is left holding only the connection lifecycle itself.
  */
 @Injectable({ providedIn: "root" })
 export class IdbCoreService {
@@ -141,7 +56,7 @@ export class IdbCoreService {
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
         upgrade: async (db, oldVersion, newVersion, transaction) =>
-          this.handleUpgrade(db, oldVersion, newVersion, transaction),
+          runUpgrade(db, oldVersion, newVersion, transaction),
       });
 
       await this.dbPromise;
@@ -345,180 +260,6 @@ export class IdbCoreService {
     this.dbPromise = undefined;
   }
 
-  // ── Schema / migrations ──────────────────────────────────────────────
-
-  /* istanbul ignore next -- helper invoked only during IndexedDB migrations */
-  private async ensureFields(
-    store: IDBPObjectStore<any, any, any, "versionchange">,
-    defaults: Record<string, unknown>
-  ): Promise<void> {
-    let cursor: IDBPCursorWithValue<any, any, any, any, "versionchange"> | null =
-      await store.openCursor();
-    while (cursor) {
-      const value = { ...cursor.value } as HistoryRecord;
-      let updated = false;
-
-      const mutableValue = value as unknown as Record<string, unknown>;
-
-      Object.entries(defaults).forEach(([field, defaultValue]) => {
-        if (!(field in mutableValue)) {
-          mutableValue[field] = defaultValue;
-          updated = true;
-        }
-      });
-
-      if (updated) {
-        await cursor.update(value);
-      }
-
-      cursor = await cursor.continue();
-    }
-  }
-
-  private async handleUpgrade(
-    db: IDBPDatabase<ApiSandboxDB>,
-    oldVersion: number,
-    _newVersion: number | null,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): Promise<void> {
-    await this.ensureHistoryStore(db, transaction, oldVersion);
-    this.ensureCollectionsStore(db, transaction);
-    this.ensureFoldersStore(db, transaction);
-    this.ensureRequestsStore(db, transaction);
-    this.ensureEnvironmentsStore(db, transaction);
-    this.ensureSecretsStore(db, transaction);
-    this.ensureMetaStore(db);
-
-    if (oldVersion < DB_VERSION) {
-      await this.migrateV1toV2();
-    }
-  }
-
-  private async ensureHistoryStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">,
-    oldVersion: number
-  ): Promise<void> {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "history", "versionchange">;
-    if (!db.objectStoreNames.contains("history")) {
-      store = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
-      this.ensureIndex(store, "by-createdAt", "createdAt");
-      this.ensureIndex(store, "by-url", "url");
-      this.ensureIndex(store, "by-method", "method");
-    } else {
-      store = transaction.objectStore("history");
-      this.ensureIndex(store, "by-createdAt", "createdAt");
-      this.ensureIndex(store, "by-url", "url");
-      this.ensureIndex(store, "by-method", "method");
-    }
-
-    const legacyStoreName = "pastRequests";
-    const storeNames = Array.from(db.objectStoreNames as DOMStringList);
-    if (storeNames.includes(legacyStoreName)) {
-      const legacy = (transaction as IDBPTransaction<any, any, any>).objectStore(legacyStoreName);
-      let cursor = await legacy.openCursor();
-      while (cursor) {
-        await store.put(cursor.value as HistoryRecord);
-        cursor = await cursor.continue();
-      }
-      (db as IDBPDatabase<any>).deleteObjectStore(legacyStoreName);
-    }
-
-    if (oldVersion < 3) {
-      await this.ensureFields(store, { error: undefined, method: "GET" });
-    }
-  }
-
-  private ensureCollectionsStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): void {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "collections", IDBTransactionMode>;
-    if (!db.objectStoreNames.contains("collections")) {
-      store = db.createObjectStore("collections", { keyPath: "meta.id" });
-      this.ensureIndex(store, "by-order", "order");
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-    } else {
-      store = transaction.objectStore("collections");
-      this.ensureIndex(store, "by-order", "order");
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-    }
-  }
-
-  private ensureFoldersStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): void {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "folders", IDBTransactionMode>;
-    if (!db.objectStoreNames.contains("folders")) {
-      store = db.createObjectStore("folders", { keyPath: "meta.id" });
-      this.ensureIndex(store, "by-collectionId", "collectionId");
-      this.ensureIndex(store, "by-parentFolderId", "parentFolderId", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    } else {
-      store = transaction.objectStore("folders");
-      this.ensureIndex(store, "by-collectionId", "collectionId");
-      this.ensureIndex(store, "by-parentFolderId", "parentFolderId", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    }
-  }
-
-  private ensureRequestsStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): void {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "requests", IDBTransactionMode>;
-    if (!db.objectStoreNames.contains("requests")) {
-      store = db.createObjectStore("requests", { keyPath: "meta.id" });
-      this.ensureIndex(store, "by-collectionId", "collectionId");
-      this.ensureIndex(store, "by-folderId", "folderId", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    } else {
-      store = transaction.objectStore("requests");
-      this.ensureIndex(store, "by-collectionId", "collectionId");
-      this.ensureIndex(store, "by-folderId", "folderId", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    }
-  }
-
-  private ensureEnvironmentsStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): void {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "environments", IDBTransactionMode>;
-    if (!db.objectStoreNames.contains("environments")) {
-      store = db.createObjectStore("environments", { keyPath: "meta.id" });
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    } else {
-      store = transaction.objectStore("environments");
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-      this.ensureIndex(store, "by-order", "order");
-    }
-  }
-
-  private ensureSecretsStore(
-    db: IDBPDatabase<ApiSandboxDB>,
-    transaction: IDBPTransaction<ApiSandboxDB, StoreCollection, "versionchange">
-  ): void {
-    let store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "secrets", IDBTransactionMode>;
-    if (!db.objectStoreNames.contains("secrets")) {
-      store = db.createObjectStore("secrets", { keyPath: "meta.id" });
-      this.ensureIndex(store, "by-environmentId", "environmentId", { unique: false });
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-    } else {
-      store = transaction.objectStore("secrets");
-      this.ensureIndex(store, "by-environmentId", "environmentId", { unique: false });
-      this.ensureIndex(store, "by-name", "name", { unique: false });
-    }
-  }
-
-  private ensureMetaStore(db: IDBPDatabase<ApiSandboxDB>): void {
-    if (!db.objectStoreNames.contains("meta")) {
-      db.createObjectStore("meta", { keyPath: "key" });
-    }
-  }
-
   private async ensureMetaDocument(): Promise<void> {
     if (this._useMemoryFallback || !this.dbPromise) {
       return;
@@ -535,21 +276,5 @@ export class IdbCoreService {
       } satisfies MetaState);
     }
     await tx.done;
-  }
-
-  private ensureIndex(
-    store: IDBPObjectStore<any, any, any, "versionchange">,
-    name: string,
-    keyPath: string | string[],
-    options?: IDBIndexParameters
-  ): void {
-    const indexNames = store.indexNames as DOMStringList;
-    if (!indexNames.contains(name)) {
-      store.createIndex(name, keyPath, options);
-    }
-  }
-
-  private async migrateV1toV2(): Promise<void> {
-    // Scaffold for forward migrations. No-op for now.
   }
 }

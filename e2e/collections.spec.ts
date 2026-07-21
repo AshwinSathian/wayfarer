@@ -81,6 +81,14 @@ test.describe("Collections", () => {
     await page.waitForTimeout(300);
 
     await page.getByRole("button", { name: "New request", exact: true }).click();
+    // Under zoneless change detection the composer's "bound to X" footer
+    // clears asynchronously (a signal write scheduled onto a microtask,
+    // not flushed synchronously post-click the way zone.js used to), so
+    // wait for it to actually leave the DOM via an auto-retrying assertion
+    // rather than racing straight into the next locator — otherwise the
+    // stale footer and the sidebar tree node can momentarily both match
+    // the same text and trip Playwright's strict-mode check.
+    await expect(page.getByRole("main").getByText("My Saved Request", { exact: true })).toBeHidden();
     await page.getByText("My Saved Request", { exact: true }).dblclick();
     await expect(urlInput).toHaveValue("https://jsonplaceholder.typicode.com/todos/8");
   });

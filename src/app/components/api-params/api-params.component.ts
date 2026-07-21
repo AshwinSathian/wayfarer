@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   Signal,
-  computed,
   effect,
   inject,
   signal,
@@ -24,7 +23,6 @@ import { SelectButtonModule } from "primeng/selectbutton";
 import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { EnvironmentsService } from "src/app/services/environments.service";
-import { CollectionsService } from "src/app/services/collections.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
 import { AuthType, HttpAuthPlaceholder, RequestDoc } from "../../models/collections.models";
@@ -32,6 +30,7 @@ import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ScriptEditorComponent } from "../script-editor/script-editor.component";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
+import { AuthEditorComponent } from "./auth-editor/auth-editor.component";
 import {
   ResponseExportContext,
   ResponseViewerComponent,
@@ -52,12 +51,36 @@ import {
   RequestExecutionResponse,
   BuiltRequest,
 } from "../../services/request-execution.service";
+import { RequestSaveService, RequestContentSnapshot } from "../../services/request-save.service";
 import {
   TestAssertion,
   TestResult,
   AssertionTarget,
   AssertionOperator,
 } from "../../models/test-assertion.models";
+import {
+  appendEnabledParams,
+  appendQueryParam,
+  buildUrlFromParams,
+  normalizeUrl,
+  parseParamsFromUrl,
+  validateUrl,
+} from "../../shared/http/request-url.util";
+import { buildAuthHeaders, buildAuthQueryParam } from "../../shared/http/request-auth.util";
+import { writeToClipboard } from "../../shared/http/clipboard.util";
+import {
+  bodyObjectFromRows,
+  isPlainObject,
+  mergeHeaderRowsFromParsed,
+  rowsFromObject,
+  stringRecordFromRows,
+} from "../../shared/http/key-value.util";
+import {
+  ASSERTION_TARGET_OPTIONS,
+  needsExpected,
+  needsKey,
+  operatorsFor,
+} from "../../shared/http/test-assertion-ui.util";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";
@@ -83,18 +106,33 @@ type ContextType = "Body" | "Headers";
     JsonEditorComponent,
     ScriptEditorComponent,
     ApiParamsBasicComponent,
+    AuthEditorComponent,
     ResponseViewerComponent,
   ],
   templateUrl: "./api-params.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// ~870 lines: this is the request composer's root — it already delegates
+// everything with a real boundary: HTTP send/pre-post-script/assertion
+// sequencing lives in RequestExecutionService, "bound to a collection
+// request + Save/Save-As" lives in RequestSaveService, URL/param/auth/
+// key-value transforms are pure functions in shared/http/*.util.ts, and the
+// Params/Headers/Body and Auth tabs are their own child components
+// (ApiParamsBasicComponent, AuthEditorComponent). What's left is the actual
+// composer state machine (method/url/headers/body/params/auth/scripts/tests
+// signals) plus the glue wiring template events to those services/utils —
+// splitting it further (e.g. moving the signals themselves into a service)
+// would mean the "current source of truth for what's in the composer"
+// stops living on the composer component, which costs more in indirection
+// than it saves in line count. See docs/plans/plan-specimen-modernization.md
+// Part G for the rest of the file-size audit.
 export class ApiParamsComponent {
   private readonly idbService = inject(IdbService);
   private readonly responseInspector = inject(ResponseInspectorService);
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly variableFocus = inject(VariableFocusService);
   private readonly requestExecution = inject(RequestExecutionService);
-  private readonly collectionsService = inject(CollectionsService);
+  private readonly requestSave = inject(RequestSaveService);
 
   readonly newRequest = output<void>();
 
@@ -173,64 +211,24 @@ export class ApiParamsComponent {
   ]);
   readonly requestAuth = signal<HttpAuthPlaceholder>({ type: "none" });
   readonly showAuthPassword = signal(false);
-  readonly authTypes: { label: string; value: AuthType }[] = [
-    { label: "None", value: "none" },
-    { label: "Bearer Token", value: "bearer" },
-    { label: "Basic Auth", value: "basic" },
-    { label: "API Key", value: "api-key" },
-  ];
   readonly preRequestScript = signal("");
   readonly postRequestScript = signal("");
   readonly requestTests = signal<TestAssertion[]>([]);
   readonly lastTestResults = signal<TestResult[]>([]);
-  readonly assertionTargetOptions: { label: string; value: AssertionTarget }[] = [
-    { label: "Status Code", value: "status" },
-    { label: "Body", value: "body" },
-    { label: "Header", value: "header" },
-    { label: "Duration (ms)", value: "duration" },
-  ];
-  private readonly allOperatorOptions: { label: string; value: AssertionOperator }[] = [
-    { label: "equals", value: "equals" },
-    { label: "does not equal", value: "not-equals" },
-    { label: "contains", value: "contains" },
-    { label: "does not contain", value: "not-contains" },
-    { label: "exists", value: "exists" },
-    { label: "does not exist", value: "not-exists" },
-    { label: "is array", value: "is-array" },
-    { label: "is object", value: "is-object" },
-    { label: "less than", value: "less-than" },
-    { label: "greater than", value: "greater-than" },
-  ];
+  readonly assertionTargetOptions = ASSERTION_TARGET_OPTIONS;
   private previewFingerprint = "";
 
-  /**
-   * The collection request the composer's current contents were loaded
-   * from/last saved to, if any — null for a scratch request (typed from
-   * blank, or reloaded from History). Drives whether "Save" writes back to
-   * that request in place or opens "Save to Collection" to create a new one.
-   */
-  readonly loadedCollectionRequest = signal<RequestDoc | null>(null);
-  readonly savingRequest = signal(false);
-  readonly saveAsDialogVisible = signal(false);
-  readonly saveAsName = signal("");
-  readonly saveAsCollectionId = signal<string | null>(null);
-  readonly saveAsFolderId = signal<string | null>(null);
-
-  readonly saveAsCollectionOptions = computed(() =>
-    this.collectionsService.tree().map((entry) => ({
-      label: entry.collection.name,
-      value: entry.collection.meta.id,
-    }))
-  );
-
-  readonly saveAsFolderOptions = computed(() => {
-    const collectionId = this.saveAsCollectionId();
-    const entry = this.collectionsService.tree().find((e) => e.collection.meta.id === collectionId);
-    return (entry?.folders ?? []).map((folder) => ({
-      label: folder.name,
-      value: folder.meta.id,
-    }));
-  });
+  // "Bound to a saved collection request" + Save/Save-As state and
+  // persistence all live in RequestSaveService now (see its own file) —
+  // these are direct pass-throughs so the template doesn't need to change.
+  readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
+  readonly savingRequest = this.requestSave.savingRequest;
+  readonly saveAsDialogVisible = this.requestSave.saveAsDialogVisible;
+  readonly saveAsName = this.requestSave.saveAsName;
+  readonly saveAsCollectionId = this.requestSave.saveAsCollectionId;
+  readonly saveAsFolderId = this.requestSave.saveAsFolderId;
+  readonly saveAsCollectionOptions = this.requestSave.saveAsCollectionOptions;
+  readonly saveAsFolderOptions = this.requestSave.saveAsFolderOptions;
 
   constructor() {
     this.responseInspection = this.responseInspector.latest;
@@ -292,14 +290,12 @@ export class ApiParamsComponent {
     // if the composer was previously bound, replaying an older history
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
-    this.loadedCollectionRequest.set(null);
+    this.requestSave.bind(null);
     this.onRequestMethodChange(request.method);
     this.endpoint.set(request.url);
-    this.requestHeaders.set(this.deconstructObject(request.headers, "Headers"));
+    this.requestHeaders.set(rowsFromObject(request.headers));
     if (request.body && typeof request.body === "object") {
-      this.requestBody.set(
-        this.deconstructObject(request.body as Record<string, unknown>, "Body")
-      );
+      this.requestBody.set(rowsFromObject(request.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(request.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -324,14 +320,12 @@ export class ApiParamsComponent {
    * because the collection tree only ever emitted a lossy PastRequest.
    */
   loadCollectionRequest(doc: RequestDoc): void {
-    this.loadedCollectionRequest.set(doc);
+    this.requestSave.bind(doc);
     this.onRequestMethodChange(doc.method);
     this.endpoint.set(doc.url);
-    this.requestHeaders.set(this.deconstructObject(doc.headers ?? {}, "Headers"));
+    this.requestHeaders.set(rowsFromObject(doc.headers ?? {}));
     if (doc.body && typeof doc.body === "object") {
-      this.requestBody.set(
-        this.deconstructObject(doc.body as Record<string, unknown>, "Body")
-      );
+      this.requestBody.set(rowsFromObject(doc.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(doc.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -352,86 +346,45 @@ export class ApiParamsComponent {
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
   clearComposer(): void {
-    this.loadedCollectionRequest.set(null);
+    this.requestSave.bind(null);
     this.resetForm();
   }
 
   async saveCurrentRequest(): Promise<void> {
-    const bound = this.loadedCollectionRequest();
-    if (!bound) {
-      this.openSaveAsDialog();
-      return;
-    }
-    this.savingRequest.set(true);
-    try {
-      const updated = await this.collectionsService.updateRequest(bound.meta.id, {
-        method: this.selectedRequestMethod(),
-        url: this.endpoint(),
-        headers: this.buildHeaders(),
-        body: this.buildBody(),
-        auth: this.requestAuth(),
-        preRequestScript: this.preRequestScript(),
-        postRequestScript: this.postRequestScript(),
-        tests: this.requestTests(),
-      });
-      if (updated) {
-        this.loadedCollectionRequest.set(updated);
-      }
-    } finally {
-      this.savingRequest.set(false);
-    }
+    await this.requestSave.save(this.buildContentSnapshot());
   }
 
   openSaveAsDialog(): void {
-    const bound = this.loadedCollectionRequest();
-    const options = this.saveAsCollectionOptions();
-    this.saveAsName.set(bound?.name ?? "");
-    this.saveAsCollectionId.set(bound?.collectionId ?? options[0]?.value ?? null);
-    this.saveAsFolderId.set(bound?.folderId ?? null);
-    this.saveAsDialogVisible.set(true);
+    this.requestSave.openSaveAsDialog();
   }
 
   closeSaveAsDialog(): void {
-    this.saveAsDialogVisible.set(false);
+    this.requestSave.closeSaveAsDialog();
   }
 
   onSaveAsCollectionChange(collectionId: string | null): void {
-    this.saveAsCollectionId.set(collectionId);
-    this.saveAsFolderId.set(null);
+    this.requestSave.onSaveAsCollectionChange(collectionId);
   }
 
   get isSaveAsDisabled(): boolean {
-    return !this.saveAsName().trim() || !this.saveAsCollectionId();
+    return this.requestSave.isSaveAsDisabled;
   }
 
   async confirmSaveAs(): Promise<void> {
-    const collectionId = this.saveAsCollectionId();
-    const name = this.saveAsName().trim();
-    if (!collectionId || !name) {
-      return;
-    }
-    this.savingRequest.set(true);
-    try {
-      const doc = await this.collectionsService.createRequest({
-        collectionId,
-        folderId: this.saveAsFolderId() ?? undefined,
-        name,
-        method: this.selectedRequestMethod(),
-        url: this.endpoint(),
-        headers: this.buildHeaders(),
-        body: this.buildBody(),
-      });
-      const updated = await this.collectionsService.updateRequest(doc.meta.id, {
-        auth: this.requestAuth(),
-        preRequestScript: this.preRequestScript(),
-        postRequestScript: this.postRequestScript(),
-        tests: this.requestTests(),
-      });
-      this.loadedCollectionRequest.set(updated ?? doc);
-      this.closeSaveAsDialog();
-    } finally {
-      this.savingRequest.set(false);
-    }
+    await this.requestSave.confirmSaveAs(this.buildContentSnapshot());
+  }
+
+  private buildContentSnapshot(): RequestContentSnapshot {
+    return {
+      method: this.selectedRequestMethod(),
+      url: this.endpoint(),
+      headers: this.buildHeaders(),
+      body: this.buildBody(),
+      auth: this.requestAuth(),
+      preRequestScript: this.preRequestScript(),
+      postRequestScript: this.postRequestScript(),
+      tests: this.requestTests(),
+    };
   }
 
   async sendRequest() {
@@ -449,7 +402,7 @@ export class ApiParamsComponent {
       endpointText.trim(),
       this.buildVariableContext()
     );
-    if (!this.validateUrl(resolvedForValidation)) {
+    if (!validateUrl(resolvedForValidation)) {
       this.endpointError.set("Please enter a valid URL");
       return;
     }
@@ -482,21 +435,16 @@ export class ApiParamsComponent {
     const method = this.selectedRequestMethod();
     const usesBody = this.isBodyMethod(method);
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = this.buildAuthHeaders();
+    const authHeaders = buildAuthHeaders(this.requestAuth());
     const headers = { ...baseHeaders, ...authHeaders };
     const body = usesBody ? this.resolveBody(this.buildBody(), context) : undefined;
-    let url = this.buildFinalUrl(
-      this.normalizeUrl(resolveTemplate(endpointText.trim(), context))
+    let url = appendEnabledParams(
+      normalizeUrl(resolveTemplate(endpointText.trim(), context)),
+      this.requestParams()
     );
-    const authParam = this.buildAuthQueryParam();
+    const authParam = buildAuthQueryParam(this.requestAuth());
     if (authParam) {
-      try {
-        const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
-        parsed.searchParams.append(authParam.key, authParam.value);
-        url = parsed.toString();
-      } catch {
-        // ignore
-      }
+      url = appendQueryParam(url, authParam.key, authParam.value);
     }
 
     this.responseExportContext.set({
@@ -583,28 +531,12 @@ export class ApiParamsComponent {
 
   /** Raw (unresolved) headers straight from form state — literal `{{var}}` text intact. */
   private buildHeaders(): Record<string, string> {
-    return this.requestHeaders().reduce((acc, item) => {
-      const key = (item?.key ?? "").trim();
-      if (!key) {
-        return acc;
-      }
-      acc[key] = item.value ?? "";
-      return acc;
-    }, {} as Record<string, string>);
+    return stringRecordFromRows(this.requestHeaders());
   }
 
   /** Raw (unresolved) body straight from form state — literal `{{var}}` text intact. */
   private buildBody(): Record<string, unknown> | undefined {
-    const body = this.requestBody().reduce((acc, item) => {
-      const key = (item?.key ?? "").trim();
-      if (!key) {
-        return acc;
-      }
-      acc[key] = item.value;
-      return acc;
-    }, {} as Record<string, unknown>);
-
-    return Object.keys(body).length ? body : undefined;
+    return bodyObjectFromRows(this.requestBody());
   }
 
   /**
@@ -639,54 +571,6 @@ export class ApiParamsComponent {
       resolved[key] = typeof value === "string" ? resolveTemplate(value, context) : value;
     }
     return resolved;
-  }
-
-  private hasExplicitScheme(text: string): boolean {
-    return /^https?:\/\//i.test(text);
-  }
-
-  /**
-   * Prefixes a scheme-less endpoint with `https://` so it's always sent to
-   * HttpClient as an absolute URL. Without this, a scheme-less string like
-   * "not-a-url" is a *relative* URL as far as the browser is concerned, and
-   * HttpClient silently resolves it against the app's own origin — fetching
-   * the app's own index.html and reporting it back as a misleading "200 OK".
-   */
-  private normalizeUrl(text: string): string {
-    return this.hasExplicitScheme(text) ? text : `https://${text}`;
-  }
-
-  private validateUrl(text: string): boolean {
-    if (!text) return false;
-    const hasScheme = this.hasExplicitScheme(text);
-    let parsed: URL;
-    try {
-      parsed = new URL(this.normalizeUrl(text));
-    } catch {
-      return false;
-    }
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return false;
-    }
-    if (!parsed.hostname) {
-      return false;
-    }
-    if (hasScheme) {
-      // The user typed a scheme explicitly — that's deliberate intent, so trust
-      // whatever host shape they gave us (including bare internal hostnames).
-      return true;
-    }
-    // No scheme was typed, so we're the ones guessing "https://". Reject bare,
-    // single-label input (e.g. "not a valid url at all") that technically parses
-    // as *some* hostname but was never actually a URL — that's exactly the input
-    // that used to slip through and resolve against the app's own origin.
-    const hostname = parsed.hostname;
-    const looksLikeRealHost =
-      hostname === "localhost" ||
-      hostname.includes(".") ||
-      hostname.includes(":") ||
-      !!parsed.port;
-    return looksLikeRealHost;
   }
 
   maybeUpdateVariablePreview(): void {
@@ -779,143 +663,28 @@ export class ApiParamsComponent {
   }
 
   private syncParamsFromUrl(url: string): void {
-    if (!url) {
-      this.requestParams.set([{ key: "", value: "", enabled: true }]);
-      return;
-    }
-    try {
-      const base =
-        typeof window !== "undefined" && window.location?.origin
-          ? window.location.origin
-          : "http://localhost";
-      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`, base);
-      const entries: { key: string; value: string; enabled: boolean }[] = [];
-      parsed.searchParams.forEach((value, key) => {
-        entries.push({ key, value, enabled: true });
-      });
-      this.requestParams.set(entries.length ? entries : [{ key: "", value: "", enabled: true }]);
-    } catch {
-      // Non-parseable URL — leave params as-is.
+    const parsed = parseParamsFromUrl(url);
+    if (parsed) {
+      this.requestParams.set(parsed);
     }
   }
 
   private syncUrlFromParams(): void {
-    const endpoint = this.endpoint();
-    if (!endpoint) {
-      return;
-    }
-    try {
-      const base =
-        typeof window !== "undefined" && window.location?.origin
-          ? window.location.origin
-          : "http://localhost";
-      const url = new URL(
-        endpoint.startsWith("http") ? endpoint : `https://${endpoint}`,
-        base
-      );
-      url.search = "";
-      for (const param of this.requestParams()) {
-        if (param.enabled && param.key) {
-          url.searchParams.append(param.key, param.value);
-        }
-      }
-      const reconstructed = url.toString();
-      const isAbsolute = endpoint.startsWith("http://") || endpoint.startsWith("https://");
-      this.endpoint.set(isAbsolute ? reconstructed : reconstructed.replace(base + "/", ""));
+    const next = buildUrlFromParams(this.endpoint(), this.requestParams());
+    if (next !== null) {
+      this.endpoint.set(next);
       this.maybeUpdateVariablePreview();
-    } catch {
-      // Can't parse; ignore.
     }
   }
 
-  private buildFinalUrl(baseUrl: string): string {
-    if (!baseUrl) {
-      return baseUrl;
-    }
-    const enabledParams = this.requestParams().filter((p) => p.enabled && p.key);
-    if (!enabledParams.length) {
-      return baseUrl;
-    }
-    try {
-      const url = new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`);
-      for (const param of enabledParams) {
-        url.searchParams.append(param.key, param.value);
-      }
-      return url.toString();
-    } catch {
-      return baseUrl;
-    }
-  }
-
-  private buildAuthHeaders(): Record<string, string> {
-    const auth = this.requestAuth();
-    if (!auth || auth.type === "none") {
-      return {};
-    }
-    if (auth.type === "bearer" && auth.bearer?.token) {
-      return { Authorization: `Bearer ${auth.bearer.token}` };
-    }
-    if (auth.type === "basic" && auth.basic?.username) {
-      const encoded = btoa(
-        `${auth.basic.username}:${auth.basic.password ?? ""}`
-      );
-      return { Authorization: `Basic ${encoded}` };
-    }
-    if (auth.type === "api-key" && auth.apiKey?.key && auth.apiKey?.addTo === "header") {
-      return { [auth.apiKey.key]: auth.apiKey.value ?? "" };
-    }
-    return {};
-  }
-
-  private buildAuthQueryParam(): { key: string; value: string } | null {
-    const auth = this.requestAuth();
-    if (
-      auth?.type === "api-key" &&
-      auth.apiKey?.key &&
-      auth.apiKey?.addTo === "query"
-    ) {
-      return { key: auth.apiKey.key, value: auth.apiKey.value ?? "" };
-    }
-    return null;
-  }
-
+  /** Auth type changes (unlike bearer/basic/apiKey field edits) also reset password visibility — kept distinct from the AuthEditorComponent's generic authChange for that reason. */
   onAuthTypeChange(type: AuthType): void {
     this.requestAuth.set({ type });
     this.showAuthPassword.set(false);
   }
 
-  setBearerToken(token: string): void {
-    this.requestAuth.update((auth) => ({ ...auth, bearer: { token } }));
-  }
-
-  setBasicUsername(username: string): void {
-    this.requestAuth.update((auth) => ({
-      ...auth,
-      basic: { username, password: auth.basic?.password ?? "" },
-    }));
-  }
-
-  setBasicPassword(password: string): void {
-    this.requestAuth.update((auth) => ({
-      ...auth,
-      basic: { username: auth.basic?.username ?? "", password },
-    }));
-  }
-
   toggleAuthPasswordVisibility(): void {
     this.showAuthPassword.update((visible) => !visible);
-  }
-
-  setApiKeyField(patch: Partial<{ key: string; value: string; addTo: "header" | "query" }>): void {
-    this.requestAuth.update((auth) => ({
-      ...auth,
-      apiKey: {
-        key: auth.apiKey?.key ?? "",
-        value: auth.apiKey?.value ?? "",
-        addTo: auth.apiKey?.addTo ?? "header",
-        ...patch,
-      },
-    }));
   }
 
   async copyAsCurl(): Promise<void> {
@@ -925,56 +694,22 @@ export class ApiParamsComponent {
     }
     const context = this.buildVariableContext();
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = this.buildAuthHeaders();
+    const authHeaders = buildAuthHeaders(this.requestAuth());
     const headers = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod();
-    let url = this.buildFinalUrl(this.normalizeUrl(resolveTemplate(endpoint.trim(), context)));
-    const authParam = this.buildAuthQueryParam();
+    let url = appendEnabledParams(
+      normalizeUrl(resolveTemplate(endpoint.trim(), context)),
+      this.requestParams()
+    );
+    const authParam = buildAuthQueryParam(this.requestAuth());
     if (authParam) {
-      try {
-        const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
-        parsed.searchParams.append(authParam.key, authParam.value);
-        url = parsed.toString();
-      } catch {
-        // ignore
-      }
+      url = appendQueryParam(url, authParam.key, authParam.value);
     }
     const body = this.isBodyMethod(method)
       ? this.resolveBody(this.buildBody(), context)
       : undefined;
     const curlText = buildCurlCommand({ method, url, headers, body });
-    await this.writeToClipboard(curlText);
-  }
-
-  private async writeToClipboard(text: string): Promise<void> {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-      }
-    } catch {
-      // Fallback below.
-    }
-    try {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.top = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    } catch {
-      console.warn("Failed to copy to clipboard.");
-    }
-  }
-
-  private deconstructObject(object: Record<string, unknown>, type: string) {
-    return Object.entries(object).map(([key, value]) => ({
-      key,
-      value: type === "Body" ? String(value ?? "") : String(value ?? ""),
-    }));
+    await writeToClipboard(curlText);
   }
 
   onEditorModeChange(mode: EditorMode): void {
@@ -1003,10 +738,17 @@ export class ApiParamsComponent {
       this.maybeUpdateVariablePreview();
       return;
     }
-    if (!this.isPlainObject(value)) {
+    if (!isPlainObject(value)) {
       return;
     }
-    this.applyHeadersFromParsed(value);
+    this.requestHeaders.set(
+      mergeHeaderRowsFromParsed(
+        value,
+        this.requestHeaders(),
+        this.defaultHeaderKey,
+        this.defaultHeaderValue
+      )
+    );
     this.maybeUpdateVariablePreview();
   }
 
@@ -1019,10 +761,11 @@ export class ApiParamsComponent {
       this.maybeUpdateVariablePreview();
       return;
     }
-    if (!this.isPlainObject(value)) {
+    if (!isPlainObject(value)) {
       return;
     }
-    this.applyBodyFromParsed(value);
+    const bodyRows = rowsFromObject(value);
+    this.requestBody.set(bodyRows.length ? bodyRows : [{ key: "", value: "" }]);
     this.maybeUpdateVariablePreview();
   }
 
@@ -1086,60 +829,8 @@ export class ApiParamsComponent {
     }
   }
 
-  private applyHeadersFromParsed(parsed: Record<string, unknown>): void {
-    const headersMap = new Map<string, string>();
-    for (const [key, rawValue] of Object.entries(parsed)) {
-      const trimmedKey = key.trim();
-      if (!trimmedKey) {
-        continue;
-      }
-      headersMap.set(trimmedKey, String(rawValue ?? ""));
-    }
-
-    const existingContentType =
-      this.requestHeaders().find(
-        (header: { key: string }) => header.key === this.defaultHeaderKey
-      )?.value ?? this.defaultHeaderValue;
-
-    if (!headersMap.size || !headersMap.has(this.defaultHeaderKey)) {
-      headersMap.set(this.defaultHeaderKey, existingContentType);
-    }
-
-    const orderedEntries: { key: string; value: string }[] = [];
-    if (headersMap.has(this.defaultHeaderKey)) {
-      const value = headersMap.get(this.defaultHeaderKey) ?? existingContentType;
-      orderedEntries.push({
-        key: this.defaultHeaderKey,
-        value,
-      });
-      headersMap.delete(this.defaultHeaderKey);
-    }
-
-    headersMap.forEach((value, key) => {
-      orderedEntries.push({ key, value });
-    });
-
-    this.requestHeaders.set(
-      orderedEntries.length
-        ? orderedEntries
-        : [{ key: this.defaultHeaderKey, value: existingContentType }]
-    );
-  }
-
-  private applyBodyFromParsed(parsed: Record<string, unknown>): void {
-    const bodyArray = this.deconstructObject(parsed, "Body");
-    this.requestBody.set(bodyArray.length ? bodyArray : [{ key: "", value: "" }]);
-  }
-
-  private isPlainObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-  }
-
   addTest(): void {
-    const id =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const id = this.createRequestId();
     this.requestTests.update((tests) => [
       ...tests,
       { id, target: "status", operator: "equals", expected: "" },
@@ -1155,20 +846,14 @@ export class ApiParamsComponent {
   }
 
   operatorsFor(target: AssertionTarget): { label: string; value: AssertionOperator }[] {
-    const numericOnly: AssertionOperator[] = ["less-than", "greater-than"];
-    if (target === "status" || target === "duration") {
-      return this.allOperatorOptions.filter(
-        (o) => !["is-array", "is-object"].includes(o.value)
-      );
-    }
-    return this.allOperatorOptions.filter((o) => !numericOnly.includes(o.value));
+    return operatorsFor(target);
   }
 
   needsKey(target: AssertionTarget): boolean {
-    return target === "body" || target === "header";
+    return needsKey(target);
   }
 
   needsExpected(operator: AssertionOperator): boolean {
-    return !["exists", "not-exists", "is-array", "is-object"].includes(operator);
+    return needsExpected(operator);
   }
 }

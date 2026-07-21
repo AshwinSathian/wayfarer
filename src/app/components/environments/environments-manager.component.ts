@@ -16,10 +16,14 @@ import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service"
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { VariableFocusService } from "../../services/variable-focus.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { serializeEnvironmentExport } from "../../shared/environments/environment-io.util";
 import {
-  serializeEnvironmentExport,
-  validateEnvironmentExport,
-} from "../../shared/environments/environment-io.util";
+  EnvironmentImportService,
+} from "../../services/environment-import.service";
+import {
+  extractSecretId,
+  isSecretValue,
+} from "../../shared/environments/secret-variable.util";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -28,12 +32,6 @@ interface EnvironmentDraft {
   vars: { key: string; value: string }[];
   jsonText: string;
   jsonValid: boolean;
-}
-
-interface EnvironmentImportEntry {
-  doc: EnvironmentDoc;
-  action: "merge" | "replace";
-  targetId?: EnvironmentId | null;
 }
 
 @Component({
@@ -61,6 +59,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   private readonly secretsService = inject(SecretsService);
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly variableFocus = inject(VariableFocusService);
+  private readonly envImport = inject(EnvironmentImportService);
 
   readonly requestUnlock = output<void>();
 
@@ -78,10 +77,15 @@ export class EnvironmentsManagerComponent implements OnInit {
     }
   }
   private readonly secretPreview: Record<string, string> = {};
-  readonly envImportDialogVisible = signal(false);
-  readonly envImportErrors = signal<string[]>([]);
-  readonly pendingEnvImport = signal<EnvironmentImportEntry[]>([]);
-  readonly envImportFileName = signal("");
+
+  // Import-dialog state/pipeline lives in EnvironmentImportService now (see
+  // its own file) — these are direct pass-throughs so the template doesn't
+  // need to change.
+  readonly envImportDialogVisible = this.envImport.dialogVisible;
+  readonly envImportErrors = this.envImport.errors;
+  readonly pendingEnvImport = this.envImport.pendingEntries;
+  readonly envImportFileName = this.envImport.fileName;
+
   readonly newEnvDialogVisible = signal(false);
   readonly newEnvForm = signal({
     name: "",
@@ -172,47 +176,16 @@ export class EnvironmentsManagerComponent implements OnInit {
       return;
     }
     const text = await file.text();
-    const parsed = validateEnvironmentExport(text);
-    this.envImportErrors.set(parsed.errors ?? []);
-    this.pendingEnvImport.set(
-      parsed.payload ? this.buildEnvImportEntries(parsed.payload) : []
-    );
-    this.envImportFileName.set(file.name);
-    this.envImportDialogVisible.set(true);
+    this.envImport.stageFile(file.name, text, this.environments());
     input.value = "";
   }
 
   async confirmEnvironmentImport(): Promise<void> {
-    if (!this.pendingEnvImport().length || this.envImportErrors().length) {
-      this.closeEnvImportDialog();
-      return;
-    }
-    const usedNames = new Set(this.environments().map((env) => env.name));
-    for (const entry of this.pendingEnvImport()) {
-      if (entry.action === "replace" && entry.targetId) {
-        await this.envService.updateEnvironment(entry.targetId, {
-          name: entry.doc.name,
-          description: entry.doc.description,
-          vars: entry.doc.vars,
-        });
-        usedNames.add(entry.doc.name);
-      } else {
-        const name = this.ensureUniqueEnvironmentName(entry.doc.name, usedNames);
-        await this.envService.createEnvironment({
-          name,
-          description: entry.doc.description,
-          vars: entry.doc.vars,
-        });
-      }
-    }
-    this.closeEnvImportDialog();
+    await this.envImport.confirm(this.environments());
   }
 
   closeEnvImportDialog(): void {
-    this.envImportDialogVisible.set(false);
-    this.envImportErrors.set([]);
-    this.pendingEnvImport.set([]);
-    this.envImportFileName.set("");
+    this.envImport.close();
   }
 
   async duplicate(env: EnvironmentDoc): Promise<void> {
@@ -257,7 +230,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   isSecretValue(value: string | undefined): boolean {
-    return typeof value === "string" && /\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}/i.test(value);
+    return isSecretValue(value);
   }
 
   async protectVariable(index: number): Promise<void> {
@@ -293,7 +266,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     if (typeof value !== "string") {
       return;
     }
-    const secretId = this.extractSecretId(value);
+    const secretId = extractSecretId(value);
     if (!secretId) {
       return;
     }
@@ -305,7 +278,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   getSecretPreview(value: string | undefined): string | null {
-    const secretId = this.extractSecretId(value ?? "");
+    const secretId = extractSecretId(value ?? "");
     if (!secretId) {
       return null;
     }
@@ -317,21 +290,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   setEnvImportAction(index: number, action: "merge" | "replace"): void {
-    const current = this.pendingEnvImport()[index];
-    if (!current) {
-      return;
-    }
-    if (action === "replace" && !current.targetId) {
-      return;
-    }
-    this.pendingEnvImport.update((entries) =>
-      entries.map((entry, i) => (i === index ? { ...current, action } : entry))
-    );
-  }
-
-  private extractSecretId(value: string): string | null {
-    const match = value.match(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/i);
-    return match ? match[1] : null;
+    this.envImport.setEntryAction(index, action);
   }
 
   onPairsChange(): void {
@@ -409,33 +368,6 @@ export class EnvironmentsManagerComponent implements OnInit {
       jsonText: JSON.stringify(env.vars ?? {}, null, 2),
       jsonValid: true,
     };
-  }
-
-  private buildEnvImportEntries(payload: EnvironmentDoc[]): EnvironmentImportEntry[] {
-    const existing = this.environments();
-    return payload.map((doc) => {
-      const target = existing.find((env) => env.name === doc.name);
-      return {
-        doc,
-        action: target ? "replace" : "merge",
-        targetId: target?.id ?? target?.meta.id ?? null,
-      };
-    });
-  }
-
-  private ensureUniqueEnvironmentName(name: string, used: Set<string>): string {
-    if (!used.has(name)) {
-      used.add(name);
-      return name;
-    }
-    let counter = 2;
-    let candidate = `${name} (${counter})`;
-    while (used.has(candidate)) {
-      counter += 1;
-      candidate = `${name} (${counter})`;
-    }
-    used.add(candidate);
-    return candidate;
   }
 
   private highlightVariable(key: string): void {

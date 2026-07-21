@@ -8,12 +8,7 @@ import { MenuModule } from "primeng/menu";
 import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
-import {
-  CurlExportContext,
-  InspectorExportEntry,
-  buildCurlCommand,
-  toHar,
-} from "../../shared/inspect/export.util";
+import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
 import { TestResult } from "../../models/test-assertion.models";
 import {
@@ -21,28 +16,29 @@ import {
   WorkerSearchResult,
 } from "../../shared/json-worker/json-worker.service";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
+import {
+  ResponseExportContext,
+  buildExportEntry,
+} from "../../shared/inspect/response-export-entry.util";
+import {
+  TIMING_PHASE_ORDER,
+  TIMING_SUMMARY_TOOLTIPS,
+  TimingBar,
+  WATERFALL_TOOLTIP,
+  formatBytes,
+  formatMs,
+  getFallbackBars,
+  getTimingBars,
+} from "../../shared/inspect/timing-bars.util";
+import { writeToClipboard } from "../../shared/http/clipboard.util";
+
+export type { ResponseExportContext } from "../../shared/inspect/response-export-entry.util";
 
 type ResponseTab = "body" | "headers" | "timings" | "tests";
 
 interface ResponseHeader {
   name: string;
   value: string;
-}
-
-interface TimingBar {
-  key?: string;
-  label: string;
-  duration: number;
-  percent: number;
-  tooltip?: string;
-}
-
-export interface ResponseExportContext {
-  id: string;
-  method: string;
-  url: string;
-  headers: Record<string, string>;
-  body?: unknown;
 }
 
 @Component({
@@ -62,6 +58,18 @@ export interface ResponseExportContext {
   templateUrl: "./response-viewer.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+// ~430 lines: timing-bar math/formatting and HAR export-entry assembly
+// already moved to shared/inspect/timing-bars.util.ts and
+// response-export-entry.util.ts (both pure, both testable without this
+// component), and the clipboard fallback is now shared/http/clipboard.util.ts
+// (deduped with ApiParamsComponent, which had an identical copy). What's
+// left is the async JSON pretty-print/search pipeline (formatAndAssign/
+// prepareFormatting/onSearchQueryChange), which is inherently stateful -
+// it debounces against a Web Worker with token-based cancellation to avoid
+// a slow parse of a huge payload clobbering a newer, smaller one - plus the
+// signal-based response state itself. See
+// docs/plans/plan-specimen-modernization.md Part G for the rest of the
+// file-size audit.
 export class ResponseViewerComponent {
   private readonly jsonWorker = inject(JsonWorkerService);
 
@@ -95,69 +103,9 @@ export class ResponseViewerComponent {
 
   readonly activeTab = model<ResponseTab>("body");
 
-  readonly timingSummaryTooltips = {
-    duration:
-      "Overall time between sending the request and receiving the last byte of the response.",
-    transferSize:
-      "Total bytes transferred over the network for this response, including headers if available.",
-    encodedBodySize:
-      "Size of the compressed response body as delivered over the network.",
-    decodedBodySize:
-      "Size of the response body after decompression in the browser.",
-  };
-
-  readonly waterfallTooltip =
-    "Each bar shows how much time was spent in a network phase relative to the total response duration.";
-
-  readonly timingPhaseOrder: {
-    key: keyof NonNullable<ResponseInspection["phases"]>;
-    label: string;
-    description: string;
-  }[] = [
-    {
-      key: "redirect",
-      label: "Redirect",
-      description:
-        "Time spent following HTTP redirects before the final request.",
-    },
-    {
-      key: "dns",
-      label: "DNS",
-      description: "Lookup time to resolve the host name to an IP address.",
-    },
-    {
-      key: "tcp",
-      label: "TCP",
-      description: "TCP handshake duration, including establishing the socket.",
-    },
-    {
-      key: "tls",
-      label: "TLS",
-      description: "Secure connection setup (TLS/SSL) if HTTPS is used.",
-    },
-    {
-      key: "request",
-      label: "Request",
-      description:
-        "Time from finishing the connection to sending the first byte of the request body.",
-    },
-    {
-      key: "ttfb",
-      label: "TTFB",
-      description:
-        "Time to first byte—server processing plus initial network latency.",
-    },
-    {
-      key: "content",
-      label: "Content",
-      description:
-        "Time to receive the full response body after the first byte arrives.",
-    },
-  ];
-
-  private readonly phaseDescriptionMap = new Map(
-    this.timingPhaseOrder.map((phase) => [phase.key, phase.description])
-  );
+  readonly timingSummaryTooltips = TIMING_SUMMARY_TOOLTIPS;
+  readonly waterfallTooltip = WATERFALL_TOOLTIP;
+  readonly timingPhaseOrder = TIMING_PHASE_ORDER;
 
   private readonly largePayloadThreshold = 1_000_000;
   private readonly formattedBody = signal("");
@@ -249,7 +197,7 @@ export class ResponseViewerComponent {
       body: context.body,
     };
     const curlText = buildCurlCommand(curlContext);
-    await this.writeToClipboard(curlText);
+    await writeToClipboard(curlText);
   }
 
   async copyAsHar(): Promise<void> {
@@ -257,32 +205,7 @@ export class ResponseViewerComponent {
     if (!entry) {
       return;
     }
-    await this.writeToClipboard(JSON.stringify(toHar(entry), null, 2));
-  }
-
-  private async writeToClipboard(text: string): Promise<void> {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-      }
-    } catch {
-      // Fallback below.
-    }
-
-    try {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.top = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    } catch {
-      console.warn("Failed to copy to clipboard.");
-    }
+    await writeToClipboard(JSON.stringify(toHar(entry), null, 2));
   }
 
   private prepareFormatting(): void {
@@ -486,116 +409,25 @@ export class ResponseViewerComponent {
     return source();
   }
 
-  private buildExportEntry(): InspectorExportEntry | null {
-    const context = this.exportContext();
-    if (!context) {
-      return null;
-    }
-
-    const inspection = this.inspectionValue;
-    const url = context.url || inspection?.url || "";
-    const responseStatusCode = this.responseStatusCode();
-    const statusCode =
-      responseStatusCode !== undefined ? responseStatusCode : null;
-
-    if (!url || statusCode === null) {
-      return null;
-    }
-
-    const startedDateTime = inspection?.startEpoch
-      ? new Date(inspection.startEpoch).toISOString()
-      : new Date().toISOString();
-
-    const duration =
-      typeof inspection?.duration === "number" &&
-      Number.isFinite(inspection.duration)
-        ? inspection.duration
-        : Math.max(
-            0,
-            (inspection?.endTime ?? 0) - (inspection?.startTime ?? 0)
-          );
-
-    const entry: InspectorExportEntry = {
-      id: inspection?.id ?? context.id ?? this.createFallbackId(),
-      startedDateTime,
-      time: duration,
-      req: {
-        method: context.method,
-        url,
-        headers: normalizeHeaderRecord(context.headers),
-        body: context.body,
-      },
-      res: {
-        status: statusCode,
-        statusText: this.responseStatusText() ?? "",
-        headers: this.buildResponseHeadersRecord(),
-        body: this.isError() ? this.responseError() : this.responseData(),
-        sizes: inspection?.sizes,
-      },
-      phases: inspection?.phases,
-    };
-
-    return entry;
-  }
-
-  private buildResponseHeadersRecord(): Record<string, string> {
-    return this.responseHeaders().reduce<Record<string, string>>(
-      (acc, header) => {
-        if (!header?.name) {
-          return acc;
-        }
-        acc[header.name] = header.value ?? "";
-        return acc;
-      },
-      {}
-    );
-  }
-
-  private createFallbackId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `export-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  private buildExportEntry() {
+    return buildExportEntry({
+      context: this.exportContext(),
+      inspection: this.inspectionValue,
+      statusCode: this.responseStatusCode(),
+      statusText: this.responseStatusText(),
+      responseHeaders: this.responseHeaders(),
+      isError: this.isError(),
+      responseData: this.responseData(),
+      responseError: this.responseError(),
+    });
   }
 
   getTimingBars(): TimingBar[] {
-    const inspection = this.inspectionValue;
-    if (!inspection?.phases || !inspection.duration) {
-      return [];
-    }
-
-    return this.timingPhaseOrder
-      .map((phase) => {
-        const duration = inspection.phases?.[phase.key] ?? 0;
-        const percent =
-          inspection.duration > 0
-            ? Math.min(100, Math.max((duration / inspection.duration) * 100, 0))
-            : 0;
-        return {
-          key: phase.key,
-          label: phase.label,
-          duration,
-          percent,
-          tooltip: this.phaseDescriptionMap.get(phase.key),
-        };
-      })
-      .filter((phase) => phase.duration > 0);
+    return getTimingBars(this.inspectionValue);
   }
 
   getFallbackBars(): TimingBar[] {
-    const inspection = this.inspectionValue;
-    if (!inspection?.duration) {
-      return [];
-    }
-
-    return [
-      {
-        label: "Total",
-        duration: inspection.duration,
-        percent: 100,
-        tooltip: this.timingSummaryTooltips.duration,
-      },
-    ];
+    return getFallbackBars(this.inspectionValue);
   }
 
   hasGranularTimings(): boolean {
@@ -603,47 +435,10 @@ export class ResponseViewerComponent {
   }
 
   formatMs(value: number | undefined | null): string {
-    if (!value || value <= 0) {
-      return "—";
-    }
-    if (value < 1) {
-      return `${value.toFixed(2)} ms`;
-    }
-    if (value < 100) {
-      return `${value.toFixed(1)} ms`;
-    }
-    return `${Math.round(value)} ms`;
+    return formatMs(value);
   }
 
   formatBytes(value: number | undefined): string {
-    if (!value || value <= 0) {
-      return "—";
-    }
-    const units = ["B", "KB", "MB", "GB"];
-    let size = value;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex += 1;
-    }
-
-    const precision = size >= 100 ? 0 : size >= 10 ? 1 : 2;
-    return `${size.toFixed(precision)} ${units[unitIndex]}`;
+    return formatBytes(value);
   }
-}
-
-function normalizeHeaderRecord(
-  record: Record<string, string>
-): Record<string, string> {
-  return Object.entries(record ?? {}).reduce<Record<string, string>>(
-    (acc, [key, value]) => {
-      if (!key) {
-        return acc;
-      }
-      acc[key] = value ?? "";
-      return acc;
-    },
-    {}
-  );
 }

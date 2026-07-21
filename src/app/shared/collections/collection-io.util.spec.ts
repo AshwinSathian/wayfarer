@@ -1,5 +1,6 @@
 import { CollectionTree } from "../../services/collections.service";
 import { importCollection, serializeDeterministic, validateCollection } from "./collection-io.util";
+import { describe, it, expect } from "vitest";
 
 describe("collection-io.util", () => {
   it("produces byte-identical output after import/export round-trip", () => {
@@ -60,7 +61,7 @@ describe("collection-io.util", () => {
 
   it("rejects invalid payloads with helpful errors", () => {
     const invalid = validateCollection("null");
-    expect(invalid.ok).toBeFalse();
+    expect(invalid.ok).toBe(false);
     expect(invalid.errors?.[0].path).toBe("root");
 
     const valid = validateCollection({
@@ -74,6 +75,6 @@ describe("collection-io.util", () => {
       folders: [],
       requests: [],
     });
-    expect(valid.ok).toBeTrue();
+    expect(valid.ok).toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import {
   ResponseInspectorService,
   ResponseInspection,
 } from "./response-inspector.service";
+import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
 interface MutablePerformance {
   now: () => number;
@@ -65,7 +66,7 @@ describe("ResponseInspectorService", () => {
     expect(inspection?.url).toBe(url);
     expect(inspection?.duration).toBeCloseTo(60, 5);
     expect(inspection?.phases).toBeUndefined();
-    expect(inspection?.limitedByCors).toBeTrue();
+    expect(inspection?.limitedByCors).toBe(true);
   });
 
   it("normalizes phases and sizes from matching resource timing entry", () => {
@@ -110,7 +111,7 @@ describe("ResponseInspectorService", () => {
     // the status bar" bug.
     expect(inspection?.duration).toBeCloseTo(75, 5);
     expect(inspection?.phases).toEqual(
-      jasmine.objectContaining({
+      expect.objectContaining({
         redirect: 4,
         dns: 6,
         tcp: 8,
@@ -125,7 +126,7 @@ describe("ResponseInspectorService", () => {
       encodedBodySize: 3072,
       decodedBodySize: 8192,
     });
-    expect(inspection?.limitedByCors).toBeFalse();
+    expect(inspection?.limitedByCors).toBe(false);
   });
 
   it("ignores a stale/mismatched resource timing entry instead of reporting a wrong breakdown", () => {
@@ -170,7 +171,7 @@ describe("ResponseInspectorService", () => {
     // breakdown is reported rather than a misleading one borrowed from an
     // unrelated request.
     expect(inspection?.phases).toBeUndefined();
-    expect(inspection?.limitedByCors).toBeTrue();
+    expect(inspection?.limitedByCors).toBe(true);
   });
 
   it("falls back gracefully when markResponse is invoked before markRequest", () => {

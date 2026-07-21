@@ -1,0 +1,100 @@
+@let currentAuth = auth();
+<div class="space-y-4">
+  <div class="flex items-center gap-3">
+    <label class="ds-form-label min-w-[72px]" for="auth-type-select">Type</label>
+    <p-select
+      inputId="auth-type-select"
+      [options]="authTypes"
+      [ngModel]="currentAuth.type"
+      (ngModelChange)="onAuthTypeChange($event)"
+      optionLabel="label"
+      optionValue="value"
+      appendTo="body"
+      styleClass="w-48"
+    ></p-select>
+  </div>
+
+  @if (currentAuth.type === 'bearer') {
+  <div class="flex items-center gap-3">
+    <label class="ds-form-label min-w-[72px]" for="auth-bearer-token">Token</label>
+    <input
+      id="auth-bearer-token"
+      pInputText
+      class="flex-1 font-mono"
+      placeholder="Enter bearer token"
+      [ngModel]="currentAuth.bearer?.token ?? ''"
+      (ngModelChange)="setBearerToken($event)"
+    />
+  </div>
+  }
+
+  @if (currentAuth.type === 'basic') {
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center gap-3">
+      <label class="ds-form-label min-w-[72px]" for="auth-basic-username">Username</label>
+      <input
+        id="auth-basic-username"
+        pInputText
+        class="flex-1 font-mono"
+        placeholder="Username"
+        [ngModel]="currentAuth.basic?.username ?? ''"
+        (ngModelChange)="setBasicUsername($event)"
+      />
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="ds-form-label min-w-[72px]" for="auth-basic-password">Password</label>
+      <div class="flex flex-1 items-center gap-2">
+        <input
+          id="auth-basic-password"
+          pInputText
+          class="flex-1 font-mono"
+          [type]="showPassword() ? 'text' : 'password'"
+          placeholder="Password"
+          [ngModel]="currentAuth.basic?.password ?? ''"
+          (ngModelChange)="setBasicPassword($event)"
+        />
+        <button pButton type="button" text [icon]="showPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          (click)="onTogglePasswordVisibility()"></button>
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (currentAuth.type === 'api-key') {
+  <div class="flex flex-col gap-3">
+    <div class="flex items-center gap-3">
+      <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
+      <input id="auth-apikey-key" pInputText class="flex-1 font-mono" placeholder="Header or param name"
+        [ngModel]="currentAuth.apiKey?.key ?? ''"
+        (ngModelChange)="setApiKeyField({ key: $event })" />
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="ds-form-label min-w-[72px]" for="auth-apikey-value">Value</label>
+      <input id="auth-apikey-value" pInputText class="flex-1 font-mono" placeholder="Key value"
+        [ngModel]="currentAuth.apiKey?.value ?? ''"
+        (ngModelChange)="setApiKeyField({ value: $event })" />
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="ds-form-label min-w-[72px]" for="auth-apikey-addto">Add to</label>
+      <p-select
+        inputId="auth-apikey-addto"
+        [options]="apiKeyAddToOptions"
+        [ngModel]="currentAuth.apiKey?.addTo ?? 'header'"
+        (ngModelChange)="setApiKeyField({ addTo: $event })"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+        styleClass="w-40"
+      ></p-select>
+    </div>
+  </div>
+  }
+
+  @if (currentAuth.type === 'none') {
+  <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
+    <span class="material-symbols-outlined icon-sm text-label-tertiary">info</span>
+    <p class="type-callout text-label-tertiary">No authentication will be applied to this request.</p>
+  </div>
+  }
+</div>

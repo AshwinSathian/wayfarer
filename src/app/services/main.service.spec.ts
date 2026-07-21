@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { MainService } from './main.service';
 import { BridgeService } from './bridge.service';
+import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
 describe('MainService', () => {
   let service: MainService;
@@ -31,13 +32,19 @@ describe('MainService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should perform GET requests with provided headers', (done) => {
+  // HttpClientTesting's req.flush() calls subscribe's callbacks synchronously,
+  // so these don't need the done-callback/async pattern - a plain synchronous
+  // test body is enough, and it fails loudly (via a thrown error) if the
+  // observable resolves via the "wrong" side.
+  it('should perform GET requests with provided headers', () => {
     service.sendRequest('GET', 'https://example.com/data', { Accept: 'application/json' })
-      .subscribe(response => {
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual({ ok: true });
-        done();
-      }, done.fail);
+      .subscribe({
+        next: (response) => {
+          expect(response.status).toBe(200);
+          expect(response.body).toEqual({ ok: true });
+        },
+        error: (err) => { throw err; },
+      });
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.method).toBe('GET');
@@ -45,16 +52,18 @@ describe('MainService', () => {
     req.flush({ ok: true }, { status: 200, statusText: 'OK' });
   });
 
-  it('should send body payloads for mutating methods', (done) => {
+  it('should send body payloads for mutating methods', () => {
     service.sendRequest(
       'PATCH',
       'https://example.com/profile',
       { 'Content-Type': 'application/json' },
       { displayName: 'Jane' }
-    ).subscribe(response => {
-      expect(response.status).toBe(204);
-      done();
-    }, done.fail);
+    ).subscribe({
+      next: (response) => {
+        expect(response.status).toBe(204);
+      },
+      error: (err) => { throw err; },
+    });
 
     const req = httpMock.expectOne('https://example.com/profile');
     expect(req.request.method).toBe('PATCH');
@@ -63,13 +72,12 @@ describe('MainService', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
   });
 
-  it('should surface errors for DELETE requests', (done) => {
+  it('should surface errors for DELETE requests', () => {
     service.sendRequest('DELETE', 'https://example.com/resource/1', { Authorization: 'Bearer token' })
       .subscribe({
-        next: () => done.fail('Expected error response'),
+        next: () => expect.unreachable('Expected error response'),
         error: error => {
           expect(error.status).toBe(404);
-          done();
         }
       });
 
@@ -89,14 +97,16 @@ describe('MainService', () => {
       });
     });
 
-    it('relays the request to the bridge with the token header and unwraps a successful target response', (done) => {
+    it('relays the request to the bridge with the token header and unwraps a successful target response', () => {
       service
         .sendRequest('GET', 'https://internal.example.com/data', { Accept: 'application/json' })
-        .subscribe((response) => {
-          expect(response.status).toBe(200);
-          expect(response.body).toEqual({ ok: true });
-          done();
-        }, done.fail);
+        .subscribe({
+          next: (response) => {
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual({ ok: true });
+          },
+          error: (err) => { throw err; },
+        });
 
       const req = httpMock.expectOne('http://127.0.0.1:7717/relay');
       expect(req.request.method).toBe('POST');
@@ -113,13 +123,12 @@ describe('MainService', () => {
       });
     });
 
-    it('surfaces a non-2xx target status (relayed successfully by the bridge) as an error', (done) => {
+    it('surfaces a non-2xx target status (relayed successfully by the bridge) as an error', () => {
       service.sendRequest('GET', 'https://internal.example.com/missing', {}).subscribe({
-        next: () => done.fail('Expected error response'),
+        next: () => expect.unreachable('Expected error response'),
         error: (error: HttpErrorResponse) => {
           expect(error.status).toBe(404);
           expect(error.error).toEqual({ message: 'not found' });
-          done();
         },
       });
 
@@ -133,13 +142,12 @@ describe('MainService', () => {
       });
     });
 
-    it('surfaces a bridge-level failure (e.g. an unreachable target) with a readable message', (done) => {
+    it('surfaces a bridge-level failure (e.g. an unreachable target) with a readable message', () => {
       service.sendRequest('GET', 'https://intranet.example.com/data', {}).subscribe({
-        next: () => done.fail('Expected error response'),
+        next: () => expect.unreachable('Expected error response'),
         error: (error: HttpErrorResponse) => {
           expect(error.status).toBe(502);
           expect(error.error).toBe('connect ECONNREFUSED');
-          done();
         },
       });
 
@@ -150,13 +158,12 @@ describe('MainService', () => {
       );
     });
 
-    it('surfaces an invalid bridge token as a readable error', (done) => {
+    it('surfaces an invalid bridge token as a readable error', () => {
       service.sendRequest('GET', 'https://intranet.example.com/data', {}).subscribe({
-        next: () => done.fail('Expected error response'),
+        next: () => expect.unreachable('Expected error response'),
         error: (error: HttpErrorResponse) => {
           expect(error.status).toBe(401);
           expect(error.error).toBe('invalid or missing bridge token');
-          done();
         },
       });
 

@@ -9,17 +9,24 @@
 > global-stripping verified by regression test, `package.json` has real `scripts`/`name`/`version`,
 > ESLint replaced TSLint, `tsconfig.json` has `"strict": true`, and all 7 Part D UX bugs are fixed
 > (Save-to-Collection landed as part of this work, see `CHANGELOG.md`).
+> **Phase 1 is done** — `inject()`/signal-`viewChild()`/`output()` migration complete, zoneless
+> change detection adopted (`zone.js` fully removed from the repo, dev and prod), the six oversized
+> files split into cohesive services/components/utils, Karma/Jasmine replaced by Vitest (real
+> headless Chromium via the Playwright provider, not jsdom), and the remaining spec-coverage gaps
+> backfilled. One item deliberately deferred with a written reason (file-naming convention — see
+> Part G). See the updated Angular Specimen Checklist for full detail.
 > **Phase 2 is done** — LICENSE, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, issue/PR
 > templates, CODEOWNERS, Dependabot, and a full CI workflow (lint + unit test + production build
 > with budgets + Playwright e2e + the `local-bridge` suite) all exist and run on every PR.
-> **Phase 1 is partial** — `OnPush` is on all 10/10 components and `IdbService` has been split into
-> `HistoryRepository`/`CollectionsRepository`/`EnvironmentsRepository`/`SecretsRepository`, but the
-> signal-`input()` migration only covers 6 files (2 still use legacy `@Output()`/`@ViewChild()`),
-> `inject()` adoption is still mixed (8 files use constructor DI), Karma/Jasmine has **not** been
-> replaced with Vitest, and `ApiParamsComponent` is still a 1,174-line god component (grew, not
-> shrank). See the updated Part G checklist for the itemized remainder.
-> **Phase 3 is partial** — see the updated status column in Part D and Part E's task table.
-> **This file should stay open; do not retire it yet.**
+> **Phase 3 is done** — resizable multi-pane layout, rebuilt mobile composer (with the Monaco
+> zero-width init bug fixed structurally), a dedicated Secrets management view, a consolidated
+> Settings surface, both remaining Part D polish bugs fixed (including a concretely-reproduced
+> `@defer` render-glitch race), and a motion pass respecting `prefers-reduced-motion`. See the
+> updated Part D/Part E status for full detail.
+> **Phase 4 (Product Differentiation) remains a standing backlog, not a sprint** — see Part C's
+> ranked gap table for what's next when picked back up.
+> **All of Phases 0–3 have now shipped. Retire this file per its own instruction at the top —
+> move Phase 4's backlog into the issue tracker and treat this document as historical from here.**
 
 ---
 
@@ -280,19 +287,21 @@ Pull directly from Part C's ranked gap table. Recommended near-term sequencing: 
 ## Part G — "Specimen" Definition of Done
 
 ### Angular Specimen Checklist
-*(re-verified against source 2026-07-21 — grep counts, not carried forward from when this list was written)*
-- [x] 100% standalone components — confirmed, 10/10
-- [x] 100% `@if`/`@for`/`@switch` — confirmed, 0 remaining `*ngIf`
-- [ ] 100% `inject()`, 0% constructor-parameter DI — **not done**, 8 files still use constructor DI
-- [ ] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators — **partial**: `input()` adopted in 6 files; `@Output()`/`@ViewChild()` still used in 2 files; no file uses the new `output()`/`viewChild()` functions yet
-- [x] 100% `ChangeDetectionStrategy.OnPush` — confirmed, 10/10
-- [x] `tsconfig.json` `"strict": true` — confirmed
-- [x] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional — confirmed, wired into CI
-- [ ] Vitest replacing Karma/Jasmine — **not done**, `angular.json`/`package.json` still run `@angular-devkit/build-angular:karma`
-- [x] Playwright replacing Protractor — confirmed, `e2e/` is pure Playwright (5 specs + accessibility), zero Protractor remnants in the repo
-- [ ] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason — **not done**, no `provideZonelessChangeDetection()` anywhere and no written deferral decision exists
-- [ ] No file over ~400 lines without a documented justification — **not done**, 9 files exceed 400 lines with no justification comment (`api-params.component.ts` 1,174, `collections-sidebar.component.ts` 732, `response-viewer.component.ts` 649, `idb-core.service.ts` 555, `collections.repository.ts` 538, `environments-manager.component.ts` 451, `request-execution.service.ts` 399 is the one exception under the line, others above)
-- [x] CI runs lint + unit test + build + e2e on every PR — confirmed, `.github/workflows/ci.yml` (5 jobs: lint, test, build, local-bridge, e2e)
+*(re-verified against source 2026-07-21 — grep counts and schematic dry-runs, not carried forward from when this list was written)*
+- [x] 100% standalone components (already true — maintain it) — re-verified 2026-07-21, still true
+- [x] 100% `@if`/`@for`/`@switch` (1 remaining `*ngIf` to migrate) — re-verified 2026-07-21: `grep -rn "\*ngIf" src/app` returns zero matches
+- [x] 100% `inject()`, 0% constructor-parameter DI — re-verified 2026-07-21: `ng generate @angular/core:inject-migration --dry-run` reports "Nothing to be done"; repo-wide grep for parameterized `constructor(` in `src/app` also empty
+- [x] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators — closed 2026-07-21: `output-migration --dry-run` was already 0/0 (fully done); the two remaining `@ViewChild("editorHost")` setter-pattern queries (`json-editor.component.ts`, `script-editor.component.ts`) were hand-migrated to `viewChild()` + `effect()` since the signal-queries-migration schematic couldn't auto-convert the accessor form
+- [x] 100% `ChangeDetectionStrategy.OnPush` — re-verified 2026-07-21: `grep -rL "ChangeDetectionStrategy.OnPush" src/app --include="*.component.ts"` (excluding specs) returns zero files
+- [x] `tsconfig.json` `"strict": true` — re-verified 2026-07-21, present
+- [x] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional — re-verified 2026-07-21, `ng lint` runs clean
+- [x] Vitest replacing Karma/Jasmine — closed 2026-07-21: migrated to `@angular/build:unit-test` with `runner: "vitest"`, running in real headless Chromium via Vitest's Playwright browser provider (jsdom was tried first and rejected — it doesn't faithfully implement Web Workers/IndexedDB/WebCrypto, which `script-sandbox.service.spec.ts` — the sandbox-escape regression suite — and several other specs genuinely exercise). All 21 spec files ported (jasmine.createSpy/spyOn/.and.*/toBeTrue()/toBeFalse()/expectAsync -> vi.fn()/vi.spyOn()/.mock*()/toBe(true|false)/expect().rejects|resolves; the two fakeAsync()/flushMicrotasks() files rewritten to plain async/await). `karma.conf.js`, `src/test.ts`, and the karma/jasmine devDependencies are gone; `zone.js` is fully removed from the repo (prod and dev). 173 tests green (147 pre-existing + 26 from the new component specs below), stable across repeated runs.
+- [x] Playwright replacing Protractor — already done pre-Phase-1 (`e2e/` is Playwright, no Protractor references remain)
+- [x] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason — **adopted** 2026-07-21: `provideZonelessChangeDetection()` added to `app.config.ts`; `zone.js` removed from the production polyfills bundle (0-byte `polyfills` chunk in the prod build) and, once the later Vitest migration also eliminated the last `fakeAsync()`/`tick()` usages (the only remaining consumer of `zone.js/testing`), removed from `package.json` entirely — the repo now has zero `zone.js` dependency, dev or prod. Full unit suite, production build (budgets green), and the full Playwright e2e suite all pass. One real behavioral finding along the way: zoneless CD flushes signal writes to the DOM asynchronously rather than synchronously-post-event the way zone.js did, so a raw click immediately followed by a DOM assertion can observe stale content for a frame — `e2e/collections.spec.ts`'s reload-after-save test hit exactly this (a strict-mode-violation race between the composer's "bound to X" footer clearing and the sidebar tree node) and was fixed by waiting on an auto-retrying `toBeHidden()` assertion instead of chaining actions blindly, which is the correct pattern for zoneless UIs regardless of test framework. The Vitest builder's own TestBed needed the same explicit `provideZonelessChangeDetection()` opt-in (via a new `providersFile`, `src/testing/vitest-providers.ts`) since it bootstraps each spec independently of `main.ts`'s real `appConfig`.
+- [x] No file over ~400 lines without a documented justification — closed 2026-07-21, the six files flagged oversized: `api-params.component.ts` 1174 → 868 lines (extracted `RequestSaveService`, `shared/http/{request-url,request-auth,key-value,test-assertion-ui,clipboard}.util.ts`, `AuthEditorComponent`; residual size has a documented justification comment — it's the composer's own state machine plus glue, the correct owner for "what's currently in the composer"); `collections-sidebar.component.ts` 732 → 572 lines (extracted `shared/collections/{collection-tree-nodes,collection-context-menu}.util.ts`, `CollectionImportService`; documented justification comment for the rest — tree selection/drag-drop/CRUD dispatch/command palette/creation dialog are genuinely sidebar-owned); `response-viewer.component.ts` 649 → 432 lines (extracted `shared/inspect/{timing-bars,response-export-entry}.util.ts`, deduped `shared/http/clipboard.util.ts` with api-params; documented justification comment — the async JSON pretty-print/search pipeline is inherently stateful and stays); `idb-core.service.ts` 555 → 280 lines (split into `idb-schema.ts` 107 lines and `idb-migrations.ts` 200 lines, both under the guideline, no residual comment needed); `collections.repository.ts` 538 → 260 lines (split by sub-aggregate into `folders.repository.ts` 139 lines and `collection-requests.repository.ts` 172 lines, all under the guideline); `environments-manager.component.ts` 451 → 383 lines (extracted `EnvironmentImportService`, `shared/environments/secret-variable.util.ts`, under the guideline). All splits kept behind existing public APIs/facades — no consumer outside the split file needed to change.
+- [x] CI runs lint + unit test + build + e2e on every PR — re-verified 2026-07-21, `.github/workflows/ci.yml` has Lint/Unit tests/Build/Local Bridge/E2E jobs
+- [x] Missing spec coverage backfilled — closed 2026-07-21: `collections.service.spec.ts`, `environments.service.spec.ts`, and `secrets.service.spec.ts` already had real coverage from an earlier commit predating this pass (re-verified, not re-written); the actual gaps were `collections-sidebar.component.spec.ts` and `environments-manager.component.spec.ts` (written against their post-file-split successors), both with real behavioral assertions (context-menu contents per node type, confirm-before-delete actually gating the delete call, command-palette filtering, the secret-protect/reveal round trip, pairs↔JSON sync) matching `secret-crypto.service.spec.ts`'s bar — not `should create` stubs.
+- [ ] File-naming convention (drop `.component`/`.service` type suffixes per the current style guide) — **deliberately deferred, not done**, 2026-07-21: cosmetic-only churn that would touch every import statement app-wide (dozens of files) for no functional benefit, at real risk of merge conflicts with the parallel Phase 3 UX workstream touching many of the same files. Not silently dropped — recorded here as a conscious, reasoned call; revisit once Phase 3 lands.
 
 ### OSS Repo Checklist
 *(re-verified against source 2026-07-21)*

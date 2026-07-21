@@ -2,16 +2,17 @@ import { TestBed } from "@angular/core/testing";
 import { EnvironmentsService } from "./environments.service";
 import { IdbService } from "../data/idb.service";
 import { EnvironmentDoc } from "../models/environments.models";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
-  listEnvironments = jasmine.createSpy("listEnvironments").and.resolveTo([]);
-  getActiveEnvironmentId = jasmine.createSpy("getActiveEnvironmentId").and.resolveTo(null);
-  setActiveEnvironment = jasmine.createSpy("setActiveEnvironment").and.resolveTo();
-  createEnvironment = jasmine.createSpy("createEnvironment");
-  updateEnvironment = jasmine.createSpy("updateEnvironment");
-  duplicateEnvironment = jasmine.createSpy("duplicateEnvironment");
-  deleteEnvironment = jasmine.createSpy("deleteEnvironment").and.resolveTo();
-  reorderEnvironments = jasmine.createSpy("reorderEnvironments").and.resolveTo();
+  listEnvironments = vi.fn().mockResolvedValue([]);
+  getActiveEnvironmentId = vi.fn().mockResolvedValue(null);
+  setActiveEnvironment = vi.fn().mockResolvedValue(undefined);
+  createEnvironment = vi.fn();
+  updateEnvironment = vi.fn();
+  duplicateEnvironment = vi.fn();
+  deleteEnvironment = vi.fn().mockResolvedValue(undefined);
+  reorderEnvironments = vi.fn().mockResolvedValue(undefined);
 }
 
 function buildEnv(id: string, overrides: Partial<EnvironmentDoc> = {}): EnvironmentDoc {
@@ -40,15 +41,15 @@ describe("EnvironmentsService", () => {
   it("starts with no environments, no active environment, not loading", () => {
     expect(service.environments()).toEqual([]);
     expect(service.activeEnvironment()).toBeNull();
-    expect(service.loading()).toBeFalse();
+    expect(service.loading()).toBe(false);
   });
 
   describe("refresh()", () => {
     it("auto-activates the first environment when none is active", async () => {
       const envA = buildEnv("a");
       const envB = buildEnv("b");
-      idb.listEnvironments.and.resolveTo([envA, envB]);
-      idb.getActiveEnvironmentId.and.resolveTo(null);
+      idb.listEnvironments.mockResolvedValue([envA, envB]);
+      idb.getActiveEnvironmentId.mockResolvedValue(null);
 
       await service.refresh();
 
@@ -60,8 +61,8 @@ describe("EnvironmentsService", () => {
     it("respects an already-active environment id instead of overriding it", async () => {
       const envA = buildEnv("a");
       const envB = buildEnv("b");
-      idb.listEnvironments.and.resolveTo([envA, envB]);
-      idb.getActiveEnvironmentId.and.resolveTo("b");
+      idb.listEnvironments.mockResolvedValue([envA, envB]);
+      idb.getActiveEnvironmentId.mockResolvedValue("b");
 
       await service.refresh();
 
@@ -70,8 +71,8 @@ describe("EnvironmentsService", () => {
     });
 
     it("clears the active environment when the list is empty", async () => {
-      idb.listEnvironments.and.resolveTo([]);
-      idb.getActiveEnvironmentId.and.resolveTo(null);
+      idb.listEnvironments.mockResolvedValue([]);
+      idb.getActiveEnvironmentId.mockResolvedValue(null);
 
       await service.refresh();
 
@@ -80,29 +81,29 @@ describe("EnvironmentsService", () => {
 
     it("sets loading true only for the duration of the refresh", async () => {
       let loadingDuringCall: boolean | undefined;
-      idb.listEnvironments.and.callFake(async () => {
+      idb.listEnvironments.mockImplementation(async () => {
         loadingDuringCall = service.loading();
         return [];
       });
 
       await service.refresh();
 
-      expect(loadingDuringCall).toBeTrue();
-      expect(service.loading()).toBeFalse();
+      expect(loadingDuringCall).toBe(true);
+      expect(service.loading()).toBe(false);
     });
 
     it("resets loading to false even if the underlying call throws", async () => {
-      idb.listEnvironments.and.rejectWith(new Error("boom"));
+      idb.listEnvironments.mockRejectedValue(new Error("boom"));
 
-      await expectAsync(service.refresh()).toBeRejected();
+      await expect(service.refresh()).rejects.toThrow();
 
-      expect(service.loading()).toBeFalse();
+      expect(service.loading()).toBe(false);
     });
   });
 
   describe("ensureLoaded()", () => {
     it("triggers a refresh the first time when there are no environments yet", async () => {
-      idb.listEnvironments.and.resolveTo([buildEnv("a")]);
+      idb.listEnvironments.mockResolvedValue([buildEnv("a")]);
 
       await service.ensureLoaded();
 
@@ -110,7 +111,7 @@ describe("EnvironmentsService", () => {
     });
 
     it("does not refresh again once environments are already loaded", async () => {
-      idb.listEnvironments.and.resolveTo([buildEnv("a")]);
+      idb.listEnvironments.mockResolvedValue([buildEnv("a")]);
       await service.ensureLoaded();
 
       await service.ensureLoaded();
@@ -122,9 +123,9 @@ describe("EnvironmentsService", () => {
   describe("mutation methods refresh state from IdbService afterward", () => {
     it("createEnvironment() persists then re-reads the full list", async () => {
       const created = buildEnv("new");
-      idb.createEnvironment.and.resolveTo(created);
-      idb.listEnvironments.and.resolveTo([created]);
-      idb.getActiveEnvironmentId.and.resolveTo("new");
+      idb.createEnvironment.mockResolvedValue(created);
+      idb.listEnvironments.mockResolvedValue([created]);
+      idb.getActiveEnvironmentId.mockResolvedValue("new");
 
       const result = await service.createEnvironment({ name: "New" });
 
@@ -135,9 +136,9 @@ describe("EnvironmentsService", () => {
 
     it("updateEnvironment() persists then refreshes", async () => {
       const updated = buildEnv("a", { name: "Renamed" });
-      idb.updateEnvironment.and.resolveTo(updated);
-      idb.listEnvironments.and.resolveTo([updated]);
-      idb.getActiveEnvironmentId.and.resolveTo("a");
+      idb.updateEnvironment.mockResolvedValue(updated);
+      idb.listEnvironments.mockResolvedValue([updated]);
+      idb.getActiveEnvironmentId.mockResolvedValue("a");
 
       const result = await service.updateEnvironment("a", { name: "Renamed" });
 
@@ -147,8 +148,8 @@ describe("EnvironmentsService", () => {
     });
 
     it("deleteEnvironment() persists then refreshes", async () => {
-      idb.listEnvironments.and.resolveTo([]);
-      idb.getActiveEnvironmentId.and.resolveTo(null);
+      idb.listEnvironments.mockResolvedValue([]);
+      idb.getActiveEnvironmentId.mockResolvedValue(null);
 
       await service.deleteEnvironment("a");
 
@@ -160,10 +161,10 @@ describe("EnvironmentsService", () => {
   describe("setActiveEnvironment()", () => {
     it("persists the choice and updates activeEnvironment synchronously without a full refresh", async () => {
       const envA = buildEnv("a");
-      idb.listEnvironments.and.resolveTo([envA]);
-      idb.getActiveEnvironmentId.and.resolveTo(null);
+      idb.listEnvironments.mockResolvedValue([envA]);
+      idb.getActiveEnvironmentId.mockResolvedValue(null);
       await service.refresh();
-      idb.listEnvironments.calls.reset();
+      idb.listEnvironments.mockClear();
 
       await service.setActiveEnvironment("a");
 
@@ -176,8 +177,8 @@ describe("EnvironmentsService", () => {
 
     it("can clear the active environment by passing null", async () => {
       const envA = buildEnv("a");
-      idb.listEnvironments.and.resolveTo([envA]);
-      idb.getActiveEnvironmentId.and.resolveTo("a");
+      idb.listEnvironments.mockResolvedValue([envA]);
+      idb.getActiveEnvironmentId.mockResolvedValue("a");
       await service.refresh();
 
       await service.setActiveEnvironment(null);

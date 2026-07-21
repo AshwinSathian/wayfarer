@@ -5,12 +5,12 @@ import {
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild,
   effect,
   forwardRef,
   inject,
   input,
-  output
+  output,
+  viewChild
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
@@ -64,15 +64,7 @@ export class ScriptEditorComponent
   readonly readOnly = input(false);
   readonly valueChange = output<string>();
 
-  @ViewChild("editorHost", { static: false })
-  set editorHost(host: ElementRef<HTMLDivElement> | undefined) {
-    this.editorHostRef = host;
-    if (host) {
-      void this.initializeEditor();
-    }
-  }
-
-  private editorHostRef?: ElementRef<HTMLDivElement>;
+  readonly editorHost = viewChild<ElementRef<HTMLDivElement>>("editorHost");
 
   private editorInstance: MonacoTypes.editor.IStandaloneCodeEditor | null = null;
   private model: MonacoTypes.editor.ITextModel | null = null;
@@ -89,6 +81,15 @@ export class ScriptEditorComponent
       const theme = this.themeService.theme();
       if (loadedMonaco) {
         loadedMonaco.editor.setTheme(monacoThemeName(theme));
+      }
+    });
+
+    // Signal-driven replacement for the old @ViewChild setter: fires once
+    // the @defer'd host element mounts (and again on any later re-mount).
+    effect(() => {
+      const host = this.editorHost();
+      if (host) {
+        void this.initializeEditor();
       }
     });
   }
@@ -131,7 +132,8 @@ export class ScriptEditorComponent
   }
 
   private async initializeEditor(): Promise<void> {
-    if (this.editorInstance || !this.editorHostRef) {
+    const host = this.editorHost();
+    if (this.editorInstance || !host) {
       return;
     }
 
@@ -144,7 +146,7 @@ export class ScriptEditorComponent
       this.model ??
       monaco.editor.createModel(this.internalValue, "javascript", undefined);
 
-    this.editorInstance = monaco.editor.create(this.editorHostRef.nativeElement, {
+    this.editorInstance = monaco.editor.create(host.nativeElement, {
       model: this.model,
       automaticLayout: true,
       minimap: { enabled: false },

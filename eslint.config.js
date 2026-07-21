@@ -67,7 +67,7 @@ module.exports = defineConfig([
     // can't be expressed generically across the version-to-version migration
     // helpers in this file, which by design operate on stores whose exact
     // schema varies by the DB version being migrated from.
-    files: ["src/app/data/idb-core.service.ts"],
+    files: ["src/app/data/idb-migrations.ts"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },

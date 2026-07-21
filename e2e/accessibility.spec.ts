@@ -43,6 +43,14 @@ test.describe("Accessibility (primary flows)", () => {
     await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+    // The status bar carries `.animate-fade-in` (opacity 0 -> 1 over
+    // --dur-standard). Scanning immediately after the status badge's text
+    // appears can catch the duration/size pills mid-transition, where their
+    // interpolated opacity temporarily drops effective text contrast below
+    // 4.5:1 even though the token itself (#9C9CA1 on --fill-secondary,
+    // 5.31:1) is compliant at rest. Wait for the animation to actually
+    // settle instead of scanning a transitional frame.
+    await expect(page.locator(".animate-fade-in").first()).toHaveCSS("opacity", "1");
 
     const results = await buildAxe(page).analyze();
 

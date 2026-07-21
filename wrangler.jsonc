@@ -4,10 +4,11 @@
   "compatibility_date": "2026-07-20",
   "routes": [
     {
-      "pattern": "api-sandbox.ashwinsathian.com",
+      "pattern": "wayfarer.ashwinsathian.com",
       "custom_domain": true
     }
   ],
+  "preview_urls": true,
   "assets": {
     "directory": "dist/wayfarer/browser",
     "not_found_handling": "single-page-application"

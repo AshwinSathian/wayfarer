@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Domain cutover + CI/CD**: deployed to Cloudflare (Workers with static
+  assets — the currently-recommended path over the legacy Pages product,
+  same CDN/edge) at `wayfarer.ashwinsathian.com`, per
+  `docs/plans/plan-rebrand-enterprise-strategy.md` Part D5/R2. `.github/workflows/deploy.yml`
+  now auto-deploys to production on every push to `master` that CI passes
+  (gated on the `CI` workflow's own conclusion, not a duplicate check).
+  `.github/workflows/preview.yml` uploads a Cloudflare Workers Version for
+  every PR — a real, working preview URL that never receives production
+  traffic — and comments it on the PR. `api-sandbox.ashwinsathian.com` was
+  never actually deployed (confirmed directly against the account before
+  this change), so no redirect was needed from it.
 - A Trust Center (`docs/trust-center.md`) and a pre-answered procurement
   security questionnaire (`docs/security-questionnaire.md`), so a security
   reviewer can find the data-residency, encryption, subprocessor, and

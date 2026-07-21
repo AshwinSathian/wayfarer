@@ -1,0 +1,74 @@
+name: Preview Deploy
+
+# Uploads a Cloudflare Workers Version for every PR - it's built and given a
+# unique preview URL but never receives production traffic (production stays
+# pinned to the version deploy.yml promotes on master). This is the Workers
+# equivalent of Cloudflare Pages' per-branch preview deployments.
+on:
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Build & upload preview version
+    # Secrets aren't exposed to pull_request runs from forks; skip rather
+    # than fail noisily on every external contribution.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build -- --configuration=production
+      - name: Upload preview version
+        id: preview
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --message "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}"
+      - name: Comment preview URL on the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `${{ steps.preview.outputs.command-output }}`;
+            const match = output.match(/Version Preview URL:\s*(https:\/\/\S+)/);
+            const url = match ? match[1] : null;
+            const body = url
+              ? `🔎 Preview deployed: ${url}\n\n(a Cloudflare Workers version preview - not on the custom domain, and it never receives production traffic)`
+              : `⚠️ Preview version uploaded, but the preview URL couldn't be parsed from wrangler's output. Check the workflow log.`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = "<!-- preview-deploy-comment -->";
+            const existing = comments.find((c) => c.body.includes(marker));
+            const fullBody = `${marker}\n${body}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+            }

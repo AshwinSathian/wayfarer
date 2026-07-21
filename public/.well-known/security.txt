@@ -5,5 +5,5 @@ Contact: mailto:ashwinsathyan19@gmail.com
 Contact: https://github.com/AshwinSathian/wayfarer/security/advisories/new
 Expires: 2027-07-21T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://api-sandbox.ashwinsathian.com/.well-known/security.txt
+Canonical: https://wayfarer.ashwinsathian.com/.well-known/security.txt
 Policy: https://github.com/AshwinSathian/wayfarer/blob/master/SECURITY.md

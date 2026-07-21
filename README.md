@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. Everything — requests, collections, secrets — lives in your browser, encrypted at rest, exportable any time. When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-**Live demo:** https://api-sandbox.ashwinsathian.com/
+**Live demo:** https://wayfarer.ashwinsathian.com/
 
 ---
 
@@ -179,6 +179,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 - [Local Bridge (optional CORS/intranet relay)](local-bridge/README.md)
 - [Trust Center](docs/trust-center.md) — encryption, data residency, subprocessors, compliance status
 - [Security questionnaire (pre-answered)](docs/security-questionnaire.md)
+- [Deployment](docs/deployment.md) — Cloudflare Workers setup, CI/CD, headers/CSP
 
 ---
 

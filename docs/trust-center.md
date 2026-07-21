@@ -93,7 +93,7 @@ keeps working even if the site that served it goes offline (see the PWA
 service-worker config in [`ngsw-config.json`](../ngsw-config.json)). Your
 data is not affected by the demo site's uptime at all, because the demo site
 never holds it: it's in your browser's IndexedDB regardless of whether
-`https://api-sandbox.ashwinsathian.com/` is reachable at this moment.
+`https://wayfarer.ashwinsathian.com/` is reachable at this moment.
 
 ## Data deletion
 

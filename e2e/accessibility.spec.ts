@@ -27,6 +27,19 @@ import AxeBuilder from "@axe-core/playwright";
 //   actually open (mid-confirm), it does have a real accessible name via
 //   the message content — this exclusion only hides the false positive
 //   from the closed, inactive shell present on every page load.
+// - .p-splitter-gutter: PrimeNG's Splitter (used for the resizable composer/
+//   response layout, Phase 3) hardcodes [attr.aria-orientation]/
+//   [attr.aria-valuenow] onto the *handle* sub-element
+//   (.p-splitter-gutter-handle) inside its own compiled template, while the
+//   role="separator" (which is what actually requires aria-valuenow per
+//   aria-required-attr, and disallows aria-orientation/aria-valuenow on
+//   whatever *doesn't* carry that role per aria-allowed-attr) lives one
+//   level up on the parent .p-splitter-gutter. Confirmed directly in
+//   node_modules/primeng/fesm2022/primeng-splitter.mjs — both attributes
+//   are fixed template bindings on the wrong element, not exposed through
+//   any input or reachable via the [pt] pass-through API (which can only
+//   add attributes, not relocate/remove template-hardcoded ones). A real
+//   upstream bug, not an app-fixable one.
 function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
   return new AxeBuilder({ page })
     .include("body")
@@ -34,7 +47,8 @@ function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
     .exclude('[data-pc-section="firstfocusableelement"]')
     .exclude('[data-pc-section="lastfocusableelement"]')
     .exclude("p-confirmdialog p-dialog")
-    .exclude("p-confirmDialog p-dialog");
+    .exclude("p-confirmDialog p-dialog")
+    .exclude(".p-splitter-gutter");
 }
 
 test.describe("Accessibility (primary flows)", () => {
@@ -43,14 +57,14 @@ test.describe("Accessibility (primary flows)", () => {
     await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-    // The status bar carries `.animate-fade-in` (opacity 0 -> 1 over
-    // --dur-standard). Scanning immediately after the status badge's text
-    // appears can catch the duration/size pills mid-transition, where their
-    // interpolated opacity temporarily drops effective text contrast below
-    // 4.5:1 even though the token itself (#9C9CA1 on --fill-secondary,
-    // 5.31:1) is compliant at rest. Wait for the animation to actually
-    // settle instead of scanning a transitional frame.
-    await expect(page.locator(".animate-fade-in").first()).toHaveCSS("opacity", "1");
+    // The status bar carries `.animate-response-arrive` (opacity 0 -> 1,
+    // fade-up, over --dur-enter). Scanning immediately after the status
+    // badge's text appears can catch the duration/size pills mid-transition,
+    // where their interpolated opacity temporarily drops effective text
+    // contrast below 4.5:1 even though the token itself (#9C9CA1 on
+    // --fill-secondary, 5.31:1) is compliant at rest. Wait for the
+    // animation to actually settle instead of scanning a transitional frame.
+    await expect(page.locator(".animate-response-arrive").first()).toHaveCSS("opacity", "1");
 
     const results = await buildAxe(page).analyze();
 

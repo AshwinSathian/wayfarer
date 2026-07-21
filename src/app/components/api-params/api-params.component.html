@@ -39,16 +39,33 @@
         outlined
         (click)="clearComposer()"
       ></button>
-      <button
-        pButton
-        type="button"
-        icon="pi pi-terminal"
-        [disabled]="!endpoint()"
-        title="Copy as cURL"
-        severity="secondary"
-        outlined
-        (click)="copyAsCurl()"
-      ></button>
+      <!--
+        Disabled native buttons ignore an author-specified `cursor` in most
+        browsers (the UA always paints the default arrow over a genuinely
+        disabled control, regardless of CSS) — wrapping in a plain,
+        non-disabled span is the standard way around that, and it also
+        makes the tooltip's hover target unambiguous rather than relying on
+        whether a given browser still dispatches hover events to a disabled
+        element at all.
+      -->
+      <span
+        class="curl-btn-wrap"
+        [class.is-disabled]="!endpoint()"
+        [pTooltip]="endpoint() ? 'Copy as cURL' : 'Enter a URL first to copy as cURL'"
+        tooltipPosition="bottom"
+      >
+        <button
+          pButton
+          type="button"
+          icon="pi pi-terminal"
+          [disabled]="!endpoint()"
+          class="curl-btn"
+          aria-label="Copy as cURL"
+          severity="secondary"
+          outlined
+          (click)="copyAsCurl()"
+        ></button>
+      </span>
       <button
         pButton
         type="button"
@@ -118,125 +135,190 @@
   }
   }
 
-  <!-- ── Request config tabs ──────────────────────────────── -->
-  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
-    <!-- Desktop tabs -->
-    <div class="hidden md:block px-2 pt-1">
-      <p-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
-        <div class="flex items-center justify-between w-full pr-2">
-          <p-tablist>
-            <p-tab value="params">Params</p-tab>
-            <p-tab value="headers">Headers</p-tab>
-            @if (isBodyMethod(selectedRequestMethod())) {
-            <p-tab value="body">Body</p-tab>
-            }
-            <p-tab value="auth">Auth</p-tab>
-            <p-tab value="scripts">Scripts</p-tab>
-          </p-tablist>
-
-          @if (activeTab() === 'headers' || activeTab() === 'body') {
-          <p-selectButton
-            [options]="editorModeOptions"
-            [ngModel]="editorMode()"
-            (ngModelChange)="onEditorModeChange($event)"
-            [ngModelOptions]="{ standalone: true }"
-            size="small"
-          ></p-selectButton>
-          }
-        </div>
-
-        <p-tabpanels>
-          <p-tabpanel value="params">
-            <div class="px-4 pb-5">
-              <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
-            </div>
-          </p-tabpanel>
-          <p-tabpanel value="headers">
-            <div class="px-4 pb-5">
-              <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-            </div>
-          </p-tabpanel>
-          @if (isBodyMethod(selectedRequestMethod())) {
-          <p-tabpanel value="body">
-            <div class="px-4 pb-5">
-              <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-            </div>
-          </p-tabpanel>
-          }
-          <p-tabpanel value="auth">
-            <div class="px-4 pb-5">
-              <app-auth-editor
-                [auth]="requestAuth()"
-                [showPassword]="showAuthPassword()"
-                (authTypeChange)="onAuthTypeChange($event)"
-                (authChange)="requestAuth.set($event)"
-                (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
-              ></app-auth-editor>
-            </div>
-          </p-tabpanel>
-          <p-tabpanel value="scripts">
-            <div class="px-4 pb-5">
-              <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
-            </div>
-          </p-tabpanel>
-        </p-tabpanels>
-      </p-tabs>
-    </div>
-
-    <!-- Mobile accordion. PrimeNG 20's Accordion projects its header/content
-         through dedicated <p-accordion-header>/<p-accordion-content> child
-         components, not the older pTemplate="header" ng-template pattern —
-         using the old pattern silently dropped every header (no label, no
-         collapse toggle) and left all panel content stacked and simultaneously
-         mounted, which is also why two Monaco script editors mounting at once
-         left one stuck on "Loading editor...". -->
-    <div class="md:hidden">
-      <p-accordion
-        [multiple]="true"
-        [value]="mobileActivePanels()"
-        (valueChange)="onMobileIndexChange($event)"
-      >
-        <p-accordion-panel value="params">
-          <p-accordion-header>Params</p-accordion-header>
-          <p-accordion-content>
-            <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
-          </p-accordion-content>
-        </p-accordion-panel>
-        <p-accordion-panel value="headers">
-          <p-accordion-header>Headers</p-accordion-header>
-          <p-accordion-content>
-            <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-          </p-accordion-content>
-        </p-accordion-panel>
-        @if (isBodyMethod(selectedRequestMethod())) {
-        <p-accordion-panel value="body">
-          <p-accordion-header>Body</p-accordion-header>
-          <p-accordion-content>
-            <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-          </p-accordion-content>
-        </p-accordion-panel>
-        }
-        <p-accordion-panel value="auth">
-          <p-accordion-header>Auth</p-accordion-header>
-          <p-accordion-content>
-            <app-auth-editor
-              [auth]="requestAuth()"
-              [showPassword]="showAuthPassword()"
-              (authTypeChange)="onAuthTypeChange($event)"
-              (authChange)="requestAuth.set($event)"
-              (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
-            ></app-auth-editor>
-          </p-accordion-content>
-        </p-accordion-panel>
-        <p-accordion-panel value="scripts">
-          <p-accordion-header>Scripts</p-accordion-header>
-          <p-accordion-content>
-            <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
-          </p-accordion-content>
-        </p-accordion-panel>
-      </p-accordion>
-    </div>
+  <!-- ── Request config + response ────────────────────────── -->
+  @if (isMobile()) {
+  <!-- Mobile: single-tab-at-a-time accordion (deliberately non-multiple —
+       see mobileActivePanels' doc comment in the component), stacked above
+       the response panel. Only one of Params/Headers/Body/Auth/Scripts is
+       ever expanded — and therefore mounted-and-visible — at a time, so at
+       most one Monaco instance is ever live here. -->
+  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-up">
+    <p-accordion
+      [value]="mobileActivePanels()"
+      (valueChange)="onMobileIndexChange($event)"
+      [transitionOptions]="accordionTransitionOptions"
+    >
+      <p-accordion-panel value="params">
+        <p-accordion-header>Params</p-accordion-header>
+        <p-accordion-content>
+          <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+        </p-accordion-content>
+      </p-accordion-panel>
+      <p-accordion-panel value="headers">
+        <p-accordion-header>Headers</p-accordion-header>
+        <p-accordion-content>
+          <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+        </p-accordion-content>
+      </p-accordion-panel>
+      @if (isBodyMethod(selectedRequestMethod())) {
+      <p-accordion-panel value="body">
+        <p-accordion-header>Body</p-accordion-header>
+        <p-accordion-content>
+          <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+        </p-accordion-content>
+      </p-accordion-panel>
+      }
+      <p-accordion-panel value="auth">
+        <p-accordion-header>Auth</p-accordion-header>
+        <p-accordion-content>
+          <app-auth-editor
+            [auth]="requestAuth()"
+            [showPassword]="showAuthPassword()"
+            (authTypeChange)="onAuthTypeChange($event)"
+            (authChange)="requestAuth.set($event)"
+            (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
+          ></app-auth-editor>
+        </p-accordion-content>
+      </p-accordion-panel>
+      <p-accordion-panel value="scripts">
+        <p-accordion-header>Scripts</p-accordion-header>
+        <p-accordion-content>
+          <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+        </p-accordion-content>
+      </p-accordion-panel>
+    </p-accordion>
   </section>
+
+  @if (shouldShowResponsePanel) {
+  <app-response-viewer
+    class="animate-fade-up"
+    [loading]="loadingState()"
+    [responseData]="responseData()"
+    [responseError]="responseError()"
+    [responseBodyIsJson]="responseBodyIsJson()"
+    [responseHeaders]="responseHeadersView()"
+    [responseStatusCode]="responseStatusCode()"
+    [responseStatusText]="responseStatusText()"
+    [isError]="responseIsError()"
+    [inspection]="responseInspection"
+    [responseContentLength]="responseContentLength()"
+    [exportContext]="responseExportContext()"
+    [testResults]="lastTestResults()"
+    [(activeTab)]="responseTab"
+  ></app-response-viewer>
+  }
+  } @else {
+  <!-- Desktop: a real resizable split between the composer and the response
+       viewer (Part D: "large amounts of dead canvas at 1024-1440px+ where
+       every competitor uses a resizable multi-pane split"). The chosen
+       split ratio is persisted automatically by p-splitter's own
+       stateStorage/stateKey mechanism under a wayfarer:-namespaced
+       localStorage key, matching this app's existing key-naming convention
+       (see theme.service.ts). -->
+  <p-splitter
+    class="composer-response-splitter"
+    stateStorage="local"
+    stateKey="wayfarer:composer-split"
+    [panelSizes]="[55, 45]"
+    [minSizes]="[28, 22]"
+    [gutterSize]="8"
+  >
+    <ng-template pTemplate>
+      <div class="composer-pane">
+        <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
+          <div class="px-2 pt-1">
+            <p-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
+              <div class="flex items-center justify-between w-full pr-2">
+                <p-tablist>
+                  <p-tab value="params">Params</p-tab>
+                  <p-tab value="headers">Headers</p-tab>
+                  @if (isBodyMethod(selectedRequestMethod())) {
+                  <p-tab value="body">Body</p-tab>
+                  }
+                  <p-tab value="auth">Auth</p-tab>
+                  <p-tab value="scripts">Scripts</p-tab>
+                </p-tablist>
+
+                @if (activeTab() === 'headers' || activeTab() === 'body') {
+                <p-selectButton
+                  [options]="editorModeOptions"
+                  [ngModel]="editorMode()"
+                  (ngModelChange)="onEditorModeChange($event)"
+                  [ngModelOptions]="{ standalone: true }"
+                  size="small"
+                ></p-selectButton>
+                }
+              </div>
+
+              <p-tabpanels>
+                <p-tabpanel value="params">
+                  <div class="px-4 pb-5">
+                    <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+                  </div>
+                </p-tabpanel>
+                <p-tabpanel value="headers">
+                  <div class="px-4 pb-5">
+                    <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+                  </div>
+                </p-tabpanel>
+                @if (isBodyMethod(selectedRequestMethod())) {
+                <p-tabpanel value="body">
+                  <div class="px-4 pb-5">
+                    <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+                  </div>
+                </p-tabpanel>
+                }
+                <p-tabpanel value="auth">
+                  <div class="px-4 pb-5">
+                    <app-auth-editor
+                      [auth]="requestAuth()"
+                      [showPassword]="showAuthPassword()"
+                      (authTypeChange)="onAuthTypeChange($event)"
+                      (authChange)="requestAuth.set($event)"
+                      (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
+                    ></app-auth-editor>
+                  </div>
+                </p-tabpanel>
+                <p-tabpanel value="scripts">
+                  <div class="px-4 pb-5">
+                    <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+                  </div>
+                </p-tabpanel>
+              </p-tabpanels>
+            </p-tabs>
+          </div>
+        </section>
+      </div>
+    </ng-template>
+    <ng-template pTemplate>
+      <div class="response-pane">
+        @if (shouldShowResponsePanel) {
+        <app-response-viewer
+          class="animate-fade-up"
+          [loading]="loadingState()"
+          [responseData]="responseData()"
+          [responseError]="responseError()"
+          [responseBodyIsJson]="responseBodyIsJson()"
+          [responseHeaders]="responseHeadersView()"
+          [responseStatusCode]="responseStatusCode()"
+          [responseStatusText]="responseStatusText()"
+          [isError]="responseIsError()"
+          [inspection]="responseInspection"
+          [responseContentLength]="responseContentLength()"
+          [exportContext]="responseExportContext()"
+          [testResults]="lastTestResults()"
+          [(activeTab)]="responseTab"
+        ></app-response-viewer>
+        } @else {
+        <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6">
+          <span class="material-symbols-outlined icon-lg text-label-tertiary">bolt</span>
+          <p class="type-callout text-label-secondary">Send a request to see the response here</p>
+        </div>
+        }
+      </div>
+    </ng-template>
+  </p-splitter>
+  }
 
   <!-- ── Params template ──────────────────────────────────── -->
   <ng-template #paramsContent>
@@ -420,25 +502,6 @@
     </div>
   </ng-template>
 
-  <!-- ── Response panel ───────────────────────────────────── -->
-  @if (shouldShowResponsePanel) {
-  <app-response-viewer
-    class="animate-fade-up"
-    [loading]="loadingState()"
-    [responseData]="responseData()"
-    [responseError]="responseError()"
-    [responseBodyIsJson]="responseBodyIsJson()"
-    [responseHeaders]="responseHeadersView()"
-    [responseStatusCode]="responseStatusCode()"
-    [responseStatusText]="responseStatusText()"
-    [isError]="responseIsError()"
-    [inspection]="responseInspection"
-    [responseContentLength]="responseContentLength()"
-    [exportContext]="responseExportContext()"
-    [testResults]="lastTestResults()"
-    [(activeTab)]="responseTab"
-  ></app-response-viewer>
-  }
 
 </div>
 

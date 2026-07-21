@@ -22,6 +22,7 @@ import {
   loadMonaco,
   loadedMonaco,
   monacoThemeName,
+  waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
@@ -35,8 +36,12 @@ const noop = () => {};
     class: "block w-full",
   },
   template: `
+    <!-- "on timer(400ms)" fallback: see json-editor.component.ts's template
+         comment — "on viewport" alone reproducibly missed its trigger under
+         rapid structural churn (viewport/tab transitions), leaving the
+         editor permanently stuck on the placeholder below. -->
     <div [style.height.px]="height() ?? 200">
-      @defer (on viewport) {
+      @defer (on viewport; on timer(400ms)) {
         <div
           #editorHost
           class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"
@@ -73,6 +78,7 @@ export class ScriptEditorComponent
   private onChange: (val: string) => void = noop;
   private onTouched: () => void = noop;
   private isUpdatingFromEditor = false;
+  private destroyed = false;
 
   private readonly themeService = inject(ThemeService);
 
@@ -101,6 +107,7 @@ export class ScriptEditorComponent
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.editorInstance?.dispose();
     this.model?.dispose();
     this.editorInstance = null;
@@ -136,8 +143,17 @@ export class ScriptEditorComponent
     if (this.editorInstance || !host) {
       return;
     }
+    const hostEl = host.nativeElement;
 
-    this.monacoModule = await loadMonaco();
+    const [monacoModule] = await Promise.all([
+      loadMonaco(),
+      waitForNonZeroWidth(hostEl),
+    ]);
+    if (this.destroyed || this.editorInstance || !this.editorHost()) {
+      // Disposed, or a concurrent call already initialized, while awaiting.
+      return;
+    }
+    this.monacoModule = monacoModule;
     const monaco = this.monacoModule;
 
     defineSandboxThemes(monaco);

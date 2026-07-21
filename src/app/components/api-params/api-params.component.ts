@@ -6,11 +6,13 @@ import {
   Signal,
   effect,
   inject,
+  input,
   signal,
   viewChild,
   output,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { PrimeTemplate } from "primeng/api";
 import { AccordionModule } from "primeng/accordion";
 import { ButtonModule } from "primeng/button";
 import { ChipModule } from "primeng/chip";
@@ -21,7 +23,9 @@ import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { SelectModule } from "primeng/select";
 import { SelectButtonModule } from "primeng/selectbutton";
 import { SkeletonModule } from "primeng/skeleton";
+import { SplitterModule } from "primeng/splitter";
 import { TabsModule } from "primeng/tabs";
+import { TooltipModule } from "primeng/tooltip";
 import { EnvironmentsService } from "src/app/services/environments.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
@@ -46,6 +50,7 @@ import {
   resolveTemplate,
 } from "../../shared/environments/env-resolution.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
+import { prefersReducedMotion } from "../../shared/motion/prefers-reduced-motion";
 import {
   RequestExecutionService,
   RequestExecutionResponse,
@@ -92,6 +97,7 @@ type ContextType = "Body" | "Headers";
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    PrimeTemplate,
     ButtonModule,
     AccordionModule,
     SelectModule,
@@ -99,6 +105,8 @@ type ContextType = "Body" | "Headers";
     InputTextModule,
     ProgressSpinnerModule,
     TabsModule,
+    TooltipModule,
+    SplitterModule,
     FloatLabelModule,
     SkeletonModule,
     ChipModule,
@@ -110,6 +118,7 @@ type ContextType = "Body" | "Headers";
     ResponseViewerComponent,
   ],
   templateUrl: "./api-params.component.html",
+  styleUrls: ["./api-params.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~870 lines: this is the request composer's root — it already delegates
@@ -135,6 +144,15 @@ export class ApiParamsComponent {
   private readonly requestSave = inject(RequestSaveService);
 
   readonly newRequest = output<void>();
+
+  /**
+   * Threaded down from AppComponent via AppShellComponent — the same
+   * signal that already drives the collections sidebar's mobile-drawer vs.
+   * desktop-pinned split, reused here so the composer/response layout has
+   * exactly one source of truth for the breakpoint rather than a second,
+   * independent one.
+   */
+  readonly isMobile = input(false);
 
   readonly urlInputRef = viewChild<ElementRef<HTMLInputElement>>("urlInput");
 
@@ -200,7 +218,13 @@ export class ApiParamsComponent {
   readonly endpointError = signal("");
   readonly loadingState = signal(false);
   readonly activeTab = signal("headers");
-  readonly mobileActivePanels = signal<string[]>(["headers"]);
+  /**
+   * Single-panel-at-a-time mobile accordion state (a plain string, not an
+   * array) — the accordion is deliberately non-multiple so only one
+   * composer section (and, critically, at most one Monaco instance inside
+   * it) is ever expanded at once on narrow viewports.
+   */
+  readonly mobileActivePanels = signal<string>("headers");
   /** Request-scoped variables (distinct from environment vars). Never mutated post-construction today — a hook for a future "request variables" UI. */
   private readonly requestVariables: Record<string, string> = {};
   readonly variableTokens = signal<VariableToken[]>([]);
@@ -499,6 +523,19 @@ export class ApiParamsComponent {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  /**
+   * Mobile accordion's expand/collapse timing — PrimeNG's Accordion drives
+   * this via @angular/animations (Web Animations API), which the CSS-only
+   * `prefers-reduced-motion` override in design-system/animations.css
+   * cannot reach, hence the explicit check here. Uses this app's own
+   * --dur-standard/--ease-standard feel instead of PrimeNG's default
+   * easing when motion is allowed, for the same "deliberate, not
+   * decorative" tab-switch motion as the rest of the composer.
+   */
+  get accordionTransitionOptions(): string {
+    return prefersReducedMotion() ? "1ms linear" : "240ms cubic-bezier(0.25, 0, 0, 1)";
+  }
+
   get shouldShowResponsePanel(): boolean {
     return (
       this.loadingState() ||
@@ -772,20 +809,21 @@ export class ApiParamsComponent {
   onMobileIndexChange(
     value: string | number | string[] | number[] | null | undefined
   ): void {
-    const panels = Array.isArray(value)
-      ? value.map(String)
+    const panel = Array.isArray(value)
+      ? String(value[0] ?? "headers")
       : value != null
-      ? [String(value)]
-      : [];
+      ? String(value)
+      : "headers";
 
-    const mobileActivePanels = panels.length ? [...panels] : ["headers"];
-    this.mobileActivePanels.set(mobileActivePanels);
+    this.mobileActivePanels.set(panel);
 
-    if (
-      this.isBodyMethod(this.selectedRequestMethod()) &&
-      mobileActivePanels.includes("body")
-    ) {
+    if (this.isBodyMethod(this.selectedRequestMethod()) && panel === "body") {
       this.activeTab.set("body");
+    } else if (panel === "params" || panel === "auth" || panel === "scripts") {
+      // Keep activeTab in sync for non-headers/body panels too, so state
+      // (e.g. which JSON editor synced) matches whatever the user is
+      // actually looking at.
+      this.activeTab.set(panel);
     } else {
       this.activeTab.set("headers");
     }
@@ -793,9 +831,9 @@ export class ApiParamsComponent {
 
   private syncMobilePanelsFromActiveTab(): void {
     if (this.isBodyMethod(this.selectedRequestMethod())) {
-      this.mobileActivePanels.set(this.activeTab() === "body" ? ["body"] : ["headers"]);
+      this.mobileActivePanels.set(this.activeTab() === "body" ? "body" : "headers");
     } else {
-      this.mobileActivePanels.set(["headers"]);
+      this.mobileActivePanels.set("headers");
     }
   }
 

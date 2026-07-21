@@ -155,3 +155,39 @@
 
 .ease-standard { transition-timing-function: var(--ease-standard); }
 .ease-spring   { transition-timing-function: var(--ease-spring); }
+
+/* ── Tab switch / arrival motion ─────────────────────────────
+   Applied to the desktop composer's p-tabpanel content, the mobile
+   accordion's p-accordion-content, and the response viewer's own
+   p-tabpanel content — a single shared convention for "a panel just
+   became active" rather than a bespoke animation per surface. Deliberately
+   understated (a few px of lift, not a slide/bounce) per the "deliberate,
+   not decorative" motion brief. */
+.animate-panel-in {
+  animation: fade-up var(--dur-standard) var(--ease-standard) both;
+}
+
+/* Response-arrival pulse — restarted imperatively (class removed and
+   re-added on a fresh response, see ResponseViewerComponent) rather than
+   relying on a CSS-only re-trigger, since simply changing bound data does
+   not restart an already-applied CSS animation. */
+.animate-response-arrive {
+  animation: fade-up var(--dur-enter) var(--ease-spring) both;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────
+   The single place every animation/transition in the app is expected to
+   route through. Anything added under design-system/ or component styles
+   should be a plain `animation`/`transition` declaration (as above) so
+   this blanket override actually reaches it — do not reintroduce motion
+   via inline JS-driven timing that bypasses CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

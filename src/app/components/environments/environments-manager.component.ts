@@ -21,9 +21,10 @@ import {
   EnvironmentImportService,
 } from "../../services/environment-import.service";
 import {
+  buildSecretReference,
   extractSecretId,
-  isSecretValue,
-} from "../../shared/environments/secret-variable.util";
+  isSecretReference,
+} from "../../shared/secrets/secret-reference.util";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -230,7 +231,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   isSecretValue(value: string | undefined): boolean {
-    return isSecretValue(value);
+    return isSecretReference(value);
   }
 
   async protectVariable(index: number): Promise<void> {
@@ -252,7 +253,7 @@ export class EnvironmentsManagerComponent implements OnInit {
       environmentId: draft.id,
       plaintext: String(pair.value),
     });
-    draft.vars[index].value = `{{$secret.${secretId}}}`;
+    draft.vars[index].value = buildSecretReference(secretId);
     this.updateDraft(draft);
     this.syncJsonFromPairs();
   }

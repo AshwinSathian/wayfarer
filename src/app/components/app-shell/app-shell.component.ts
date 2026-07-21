@@ -33,6 +33,8 @@ import { ApiParamsComponent } from "../api-params/api-params.component";
 import { PastRequestsComponent } from "../past-requests/past-requests.component";
 import { CollectionsSidebarComponent, PaletteAction } from "../collections/collections-sidebar.component";
 import { EnvironmentsManagerComponent } from "../environments/environments-manager.component";
+import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
+import { SettingsComponent } from "../settings/settings.component";
 
 @Component({
   selector: "app-shell",
@@ -53,6 +55,8 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
     ConfirmDialogModule,
     CollectionsSidebarComponent,
     EnvironmentsManagerComponent,
+    SecretsManagerComponent,
+    SettingsComponent,
   ],
   templateUrl: "./app-shell.component.html",
   styleUrls: ["./app-shell.component.css"],
@@ -101,6 +105,9 @@ export class AppShellComponent implements OnInit {
   readonly unlockPassphrase = signal("");
   resettingAll = false;
   readonly unlockError = signal("");
+
+  readonly secretsDialogVisible = signal(false);
+  readonly settingsDialogVisible = signal(false);
 
   readonly bridgeDialogVisible = signal(false);
   readonly bridgeUrlDraft = signal("");
@@ -152,6 +159,11 @@ export class AppShellComponent implements OnInit {
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
       },
       {
+        id: "open-secrets-manager",
+        label: "Manage Secrets",
+        run: () => this.secretsDialogVisible.set(true),
+      },
+      {
         id: "open-local-bridge-settings",
         label: "Local Bridge Settings",
         run: () => this.openBridgeSettings(),
@@ -160,6 +172,11 @@ export class AppShellComponent implements OnInit {
         id: "reset-all-data",
         label: "Reset All Data…",
         run: () => this.confirmResetAllData(),
+      },
+      {
+        id: "open-settings",
+        label: "Settings",
+        run: () => this.settingsDialogVisible.set(true),
       },
     ];
   }

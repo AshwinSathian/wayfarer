@@ -10,7 +10,7 @@ import {
 } from "../models/collections.models";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments.models";
 import { PastRequest, PastRequestKey } from "../models/history.models";
-import { SecretEnvelope, SecretId } from "../models/secrets.models";
+import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets.models";
 import { IdbCoreService } from "./idb-core.service";
 import { HistoryRepository } from "./history.repository";
 import { CollectionsRepository } from "./collections.repository";
@@ -256,6 +256,18 @@ export class IdbService {
 
   async peekSecretEnvelope(): Promise<SecretEnvelope | null> {
     return this.secrets.peekSecretEnvelope();
+  }
+
+  async listSecrets(): Promise<SecretDoc[]> {
+    return this.secrets.listAll();
+  }
+
+  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+    return this.secrets.renameSecret(id, name);
+  }
+
+  async deleteSecret(id: SecretId): Promise<void> {
+    return this.secrets.deleteSecret(id);
   }
 
   // ── Cross-cutting ────────────────────────────────────────────────────

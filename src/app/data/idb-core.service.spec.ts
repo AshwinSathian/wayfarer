@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { IdbCoreService } from "./idb-core.service";
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 describe("IdbCoreService", () => {
   let service: IdbCoreService;
@@ -15,7 +16,7 @@ describe("IdbCoreService", () => {
 
   it("opens a real IndexedDB connection when available", async () => {
     await service.init();
-    expect(service.useMemoryFallback).toBeFalse();
+    expect(service.useMemoryFallback).toBe(false);
     const db = await service.getDatabase();
     expect(db).not.toBeNull();
   });
@@ -27,7 +28,7 @@ describe("IdbCoreService", () => {
     const svc = new IdbCoreService();
     await svc.init();
 
-    expect(svc.useMemoryFallback).toBeTrue();
+    expect(svc.useMemoryFallback).toBe(true);
     expect(await svc.getDatabase()).toBeNull();
 
     (globalThis as unknown as Record<string, unknown>).indexedDB = original;
@@ -40,15 +41,15 @@ describe("IdbCoreService", () => {
     // leaving a real IndexedDB connection dangling for resetDatabase() to
     // (fail to) clean up afterward.
     const svc = new IdbCoreService();
-    spyOn(svc, "init").and.resolveTo();
+    vi.spyOn(svc, "init").mockResolvedValue(undefined);
     const error = new Error("resolve failed");
     (svc as any).dbPromise = Promise.reject(error);
-    const errorSpy = spyOn(console, "error");
+    const errorSpy = vi.spyOn(console, "error");
 
     const result = await svc.getDatabase();
 
     expect(result).toBeNull();
-    expect(svc.useMemoryFallback).toBeTrue();
+    expect(svc.useMemoryFallback).toBe(true);
     expect(errorSpy).toHaveBeenCalledWith(
       "[IDB] Failed to resolve database instance. Switching to in-memory store.",
       error
@@ -62,7 +63,7 @@ describe("IdbCoreService", () => {
     await svc.init();
     (globalThis as unknown as Record<string, unknown>).indexedDB = original;
 
-    await expectAsync(svc.ensurePersistentSupport()).toBeRejectedWithError(
+    await expect(svc.ensurePersistentSupport()).rejects.toThrow(
       "Persistent storage is not available in this environment."
     );
   });
@@ -98,12 +99,12 @@ describe("IdbCoreService", () => {
 
   it("resetDatabase() clears connection state so a subsequent init() starts fresh", async () => {
     await service.init();
-    expect(service.useMemoryFallback).toBeFalse();
+    expect(service.useMemoryFallback).toBe(false);
 
     await service.resetDatabase();
     await service.init();
 
-    expect(service.useMemoryFallback).toBeFalse();
+    expect(service.useMemoryFallback).toBe(false);
     const db = await service.getDatabase();
     expect(db).not.toBeNull();
   });

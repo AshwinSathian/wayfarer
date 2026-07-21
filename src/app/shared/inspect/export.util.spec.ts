@@ -1,4 +1,5 @@
 import { toHar, InspectorExportEntry } from "./export.util";
+import { describe, it, expect } from "vitest";
 
 describe("export.util", () => {
   function createEntry(partial?: Partial<InspectorExportEntry>): InspectorExportEntry {

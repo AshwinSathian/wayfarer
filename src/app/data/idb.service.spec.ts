@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { IdbService } from './idb.service';
 import { IdbCoreService } from './idb-core.service';
 import { PastRequest } from '../models/history.models';
+import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
 const createRequest = (overrides: Partial<PastRequest> = {}): PastRequest => ({
   method: 'GET',
@@ -102,7 +103,7 @@ describe('IdbService (memory fallback, indexedDB unavailable)', () => {
     const core = TestBed.inject(IdbCoreService);
 
     await service.init();
-    expect(core.useMemoryFallback).toBeTrue();
+    expect(core.useMemoryFallback).toBe(true);
 
     const key = await service.add(createRequest({ url: 'https://memory-only', createdAt: 42 }));
     expect(key).toBe(1);

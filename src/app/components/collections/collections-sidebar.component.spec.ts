@@ -4,6 +4,7 @@ import { ConfirmationService } from "primeng/api";
 import { CollectionsSidebarComponent, PaletteAction } from "./collections-sidebar.component";
 import { CollectionsService, CollectionTree } from "../../services/collections.service";
 import { Collection, Folder, Meta, RequestDoc } from "../../models/collections.models";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function meta(id: string): Meta {
   return { id, createdAt: 1, updatedAt: 1, version: 1 };
@@ -118,7 +119,7 @@ describe("CollectionsSidebarComponent", () => {
       expect(folderNode?.children?.[0].key).toBe("request:r2");
 
       const requestNode = nodes[0].children?.find((n) => n.key === "request:r1");
-      expect(requestNode?.leaf).toBeTrue();
+      expect(requestNode?.leaf).toBe(true);
     });
   });
 
@@ -165,7 +166,7 @@ describe("CollectionsSidebarComponent", () => {
       // two different instances.
       const confirmationService = fixture.debugElement.injector.get(ConfirmationService);
       let capturedAccept: (() => void) | undefined;
-      spyOn(confirmationService, "confirm").and.callFake((cfg: any) => {
+      vi.spyOn(confirmationService, "confirm").mockImplementation((cfg: any) => {
         capturedAccept = cfg.accept;
         return confirmationService;
       });
@@ -187,7 +188,7 @@ describe("CollectionsSidebarComponent", () => {
 
       await component.handleAction("new-folder", node);
 
-      expect(component.creationDialogVisible()).toBeTrue();
+      expect(component.creationDialogVisible()).toBe(true);
       expect(component.creationTitle).toBe("New Folder");
     });
   });
@@ -225,13 +226,13 @@ describe("CollectionsSidebarComponent", () => {
 
     it("executePaletteAction runs the action and closes the palette", async () => {
       component.openCommandPalette();
-      expect(component.commandPaletteVisible()).toBeTrue();
-      const action: PaletteAction = { id: "x", label: "X", run: jasmine.createSpy("run") };
+      expect(component.commandPaletteVisible()).toBe(true);
+      const action: PaletteAction = { id: "x", label: "X", run: vi.fn() };
 
       await component.executePaletteAction(action);
 
       expect(action.run).toHaveBeenCalled();
-      expect(component.commandPaletteVisible()).toBeFalse();
+      expect(component.commandPaletteVisible()).toBe(false);
     });
   });
 
@@ -241,13 +242,13 @@ describe("CollectionsSidebarComponent", () => {
       collectionsService.setTree([{ collection, folders: [], requests: [] }]);
 
       void component.handleCreateCollection();
-      expect(component.creationDisabled).toBeTrue();
+      expect(component.creationDisabled).toBe(true);
 
       component.onCreationNameChange("  ");
-      expect(component.creationDisabled).toBeTrue();
+      expect(component.creationDisabled).toBe(true);
 
       component.onCreationNameChange("Real Name");
-      expect(component.creationDisabled).toBeFalse();
+      expect(component.creationDisabled).toBe(false);
     });
 
     it("submitCreation creates a collection with the trimmed name and closes the dialog", async () => {
@@ -257,19 +258,19 @@ describe("CollectionsSidebarComponent", () => {
       await component.submitCreation();
 
       expect(collectionsService.createCollectionCalls).toEqual([{ name: "Trimmed" }]);
-      expect(component.creationDialogVisible()).toBeFalse();
+      expect(component.creationDialogVisible()).toBe(false);
     });
   });
 
   describe("keyboard shortcuts", () => {
     it("Cmd+K opens the command palette and prevents the browser default", () => {
       const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });
-      spyOn(event, "preventDefault");
+      vi.spyOn(event, "preventDefault");
 
       component.handleGlobalKeydown(event);
 
       expect(event.preventDefault).toHaveBeenCalled();
-      expect(component.commandPaletteVisible()).toBeTrue();
+      expect(component.commandPaletteVisible()).toBe(true);
     });
 
     it("ignores shortcuts entirely while typing in a form field", () => {
@@ -279,7 +280,7 @@ describe("CollectionsSidebarComponent", () => {
 
       component.handleGlobalKeydown(event);
 
-      expect(component.commandPaletteVisible()).toBeFalse();
+      expect(component.commandPaletteVisible()).toBe(false);
     });
   });
 });

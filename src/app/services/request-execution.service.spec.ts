@@ -10,33 +10,32 @@ import { ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
 import { AssertionRunnerService } from "../shared/scripts/assertion-runner.service";
 import { EnvironmentDoc } from "../models/environments.models";
 import { ScriptExecutionResult } from "../models/test-assertion.models";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class MainServiceStub {
   private response$: Observable<HttpResponse<unknown>> = of(
     new HttpResponse({ status: 200, statusText: "OK", body: { ok: true } })
   );
 
-  sendRequest = jasmine
-    .createSpy("sendRequest")
-    .and.callFake(() => this.response$);
+  sendRequest = vi.fn()
+    .mockImplementation(() => this.response$);
 
   setResponse(response$: Observable<HttpResponse<unknown>>): void {
     this.response$ = response$;
-    this.sendRequest.and.callFake(() => this.response$);
+    this.sendRequest.mockImplementation(() => this.response$);
   }
 }
 
 class ResponseInspectorServiceStub {
-  markRequest = jasmine.createSpy("markRequest");
-  markResponse = jasmine.createSpy("markResponse");
+  markRequest = vi.fn();
+  markResponse = vi.fn();
 }
 
 class EnvironmentsServiceStub {
   private readonly activeEnvSignal = signal<EnvironmentDoc | null>(null);
   readonly activeEnvironment = this.activeEnvSignal.asReadonly();
-  updateEnvironment = jasmine
-    .createSpy("updateEnvironment")
-    .and.callFake(async (id: string, patch: Partial<EnvironmentDoc>) => {
+  updateEnvironment = vi.fn()
+    .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
       const current = this.activeEnvSignal();
       if (current && current.meta.id === id) {
         this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
@@ -51,7 +50,7 @@ class EnvironmentsServiceStub {
 class ScriptSandboxServiceStub {
   private nextResult: ScriptExecutionResult = { logs: [], envMutations: {}, testResults: [] };
 
-  execute = jasmine.createSpy("execute").and.callFake(async () => this.nextResult);
+  execute = vi.fn().mockImplementation(async () => this.nextResult);
 
   setNextResult(result: ScriptExecutionResult): void {
     this.nextResult = result;
@@ -122,9 +121,9 @@ describe("RequestExecutionService", () => {
       {},
       undefined
     );
-    expect(result.response.isError).toBeFalse();
+    expect(result.response.isError).toBe(false);
     expect(result.response.statusCode).toBe(200);
-    expect(result.response.bodyIsJson).toBeTrue();
+    expect(result.response.bodyIsJson).toBe(true);
     expect(result.response.dataText).toContain("world");
     expect(result.history.status).toBe(200);
     expect(result.history.url).toBe("https://example.com/hello");
@@ -139,11 +138,11 @@ describe("RequestExecutionService", () => {
     });
 
     expect(responseInspector.markRequest).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       "https://example.com/marked"
     );
     expect(responseInspector.markResponse).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       "https://example.com/marked"
     );
   });
@@ -159,7 +158,7 @@ describe("RequestExecutionService", () => {
 
     expect(mainService.sendRequest).toHaveBeenCalledWith(
       "POST",
-      jasmine.any(String),
+      expect.any(String),
       {},
       { name: "widget" }
     );
@@ -175,7 +174,7 @@ describe("RequestExecutionService", () => {
 
     expect(mainService.sendRequest).toHaveBeenCalledWith(
       "DELETE",
-      jasmine.any(String),
+      expect.any(String),
       {},
       undefined
     );
@@ -195,8 +194,8 @@ describe("RequestExecutionService", () => {
       buildRequest: () => builtRequest(),
     });
 
-    expect(result.response.isError).toBeTrue();
-    expect(result.response.bodyIsJson).toBeFalse();
+    expect(result.response.isError).toBe(true);
+    expect(result.response.bodyIsJson).toBe(false);
     expect(result.response.errorText).not.toContain("isTrusted");
     expect(result.response.errorText.length).toBeGreaterThan(0);
     expect(result.history.error).toBeDefined();
@@ -217,9 +216,9 @@ describe("RequestExecutionService", () => {
       buildRequest: () => builtRequest(),
     });
 
-    expect(result.response.isError).toBeTrue();
+    expect(result.response.isError).toBe(true);
     expect(result.response.statusCode).toBe(500);
-    expect(result.response.bodyIsJson).toBeTrue();
+    expect(result.response.bodyIsJson).toBe(true);
     expect(result.response.errorText).toContain("boom");
   });
 
@@ -247,7 +246,7 @@ describe("RequestExecutionService", () => {
   });
 
   it("merges pre-script test results into the final testResults", async () => {
-    scriptSandbox.execute.and.callFake(async (script: string) => {
+    scriptSandbox.execute.mockImplementation(async (script: string) => {
       if (script.includes("pre")) {
         return {
           logs: [],
@@ -266,7 +265,7 @@ describe("RequestExecutionService", () => {
     });
 
     expect(result.testResults).toEqual([
-      jasmine.objectContaining({ label: "pre check", passed: true }),
+      expect.objectContaining({ label: "pre check", passed: true }),
     ]);
   });
 
@@ -289,11 +288,11 @@ describe("RequestExecutionService", () => {
 
     expect(scriptSandbox.execute).toHaveBeenCalledWith(
       "pm.test('post check', () => true);",
-      jasmine.any(Object),
-      jasmine.objectContaining({ statusCode: 201 }),
+      expect.any(Object),
+      expect.objectContaining({ statusCode: 201 }),
     );
     expect(result.testResults).toEqual([
-      jasmine.objectContaining({ label: "post check", passed: true }),
+      expect.objectContaining({ label: "post check", passed: true }),
     ]);
   });
 
@@ -310,7 +309,7 @@ describe("RequestExecutionService", () => {
     });
 
     expect(result.testResults.length).toBe(1);
-    expect(result.testResults[0].passed).toBeTrue();
+    expect(result.testResults[0].passed).toBe(true);
   });
 
   it("applies post-script env mutations too", async () => {
@@ -330,7 +329,7 @@ describe("RequestExecutionService", () => {
 
     expect(environmentsService.updateEnvironment).toHaveBeenCalledWith(
       "env-1",
-      jasmine.objectContaining({ vars: jasmine.objectContaining({ counter: "2" }) })
+      expect.objectContaining({ vars: expect.objectContaining({ counter: "2" }) })
     );
   });
 });

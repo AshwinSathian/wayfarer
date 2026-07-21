@@ -8,6 +8,7 @@ import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service"
 import { VariableFocusService } from "../../services/variable-focus.service";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
 import { VariableToken } from "../../shared/environments/env-resolution.util";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function makeEnv(id: EnvironmentId, vars: Record<string, string> = {}): EnvironmentDoc {
   return {
@@ -144,7 +145,7 @@ describe("EnvironmentsManagerComponent", () => {
         { key: "API_KEY", value: "abc" },
         { key: "BASE_URL", value: "https://example.com" },
       ]);
-      expect(draft?.jsonValid).toBeTrue();
+      expect(draft?.jsonValid).toBe(true);
       expect(JSON.parse(draft!.jsonText)).toEqual({ API_KEY: "abc", BASE_URL: "https://example.com" });
     });
 
@@ -185,7 +186,7 @@ describe("EnvironmentsManagerComponent", () => {
       component.onJsonChange("{not json", false, undefined);
 
       expect(component.draft()?.vars).toEqual(before!);
-      expect(component.draft()?.jsonValid).toBeFalse();
+      expect(component.draft()?.jsonValid).toBe(false);
     });
 
     it("save() sends a trimmed name and a key/value record built from non-blank pairs", async () => {
@@ -215,9 +216,9 @@ describe("EnvironmentsManagerComponent", () => {
     });
 
     it("isSecretValue/getSecretPreview recognize the {{$secret.<id>}} placeholder format", () => {
-      expect(component.isSecretValue("{{$secret.abc-123}}")).toBeTrue();
-      expect(component.isSecretValue("plain text")).toBeFalse();
-      expect(component.isSecretValue(undefined)).toBeFalse();
+      expect(component.isSecretValue("{{$secret.abc-123}}")).toBe(true);
+      expect(component.isSecretValue("plain text")).toBe(false);
+      expect(component.isSecretValue(undefined)).toBe(false);
     });
 
     it("protectVariable replaces the plaintext value with a {{$secret.<id>}} placeholder when unlocked", async () => {
@@ -233,7 +234,7 @@ describe("EnvironmentsManagerComponent", () => {
 
     it("protectVariable asks the caller to unlock instead of saving when the vault is locked", async () => {
       secretCrypto.unlocked = false;
-      const unlockSpy = jasmine.createSpy("requestUnlock");
+      const unlockSpy = vi.fn();
       component.requestUnlock.subscribe(unlockSpy);
 
       await component.protectVariable(0);

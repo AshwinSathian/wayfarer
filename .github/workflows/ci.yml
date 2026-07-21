@@ -33,6 +33,11 @@ jobs:
           node-version: 20
           cache: "npm"
       - run: npm ci
+      # Vitest runs in real headless Chromium via the Playwright browser
+      # provider (angular.json's "test" target), not jsdom - Web Workers
+      # (script-sandbox.service.spec.ts), IndexedDB, and WebCrypto all need
+      # a real browser, and jsdom stubs none of them faithfully enough.
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:ci
 
   build:

@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { ScriptSandboxService } from "./script-sandbox.service";
+import { describe, it, beforeEach, expect } from "vitest";
 
 describe("ScriptSandboxService", () => {
   let service: ScriptSandboxService;
@@ -21,7 +22,7 @@ describe("ScriptSandboxService", () => {
     `);
     expect(result.error).toBeUndefined();
     expect(result.testResults.length).toBe(1);
-    expect(result.testResults[0].passed).toBeTrue();
+    expect(result.testResults[0].passed).toBe(true);
   });
 
   it("gives scripts read/write access to the environment it was handed", async () => {
@@ -34,7 +35,7 @@ describe("ScriptSandboxService", () => {
       `,
       { API_KEY: "abc123" }
     );
-    expect(result.testResults[0].passed).toBeTrue();
+    expect(result.testResults[0].passed).toBe(true);
     expect(result.envMutations["TOKEN"]).toBe("minted-by-script");
   });
 
@@ -59,7 +60,7 @@ describe("ScriptSandboxService", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      expect(test.passed).withContext(test.label + ": " + test.error).toBeTrue();
+      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
     }
   });
 
@@ -70,7 +71,7 @@ describe("ScriptSandboxService", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      expect(test.passed).withContext(test.label + ": " + test.error).toBeTrue();
+      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
     }
   });
 
@@ -100,7 +101,7 @@ describe("ScriptSandboxService", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      expect(test.passed).withContext(test.label + ": " + test.error).toBeTrue();
+      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
     }
   });
 
@@ -128,7 +129,7 @@ describe("ScriptSandboxService", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      expect(test.passed).withContext(test.label + ": " + test.error).toBeTrue();
+      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
     }
   });
 
@@ -142,7 +143,7 @@ describe("ScriptSandboxService", () => {
       `,
       { VISIBLE: "yes" }
     );
-    expect(result.testResults.every((t) => t.passed)).toBeTrue();
+    expect(result.testResults.every((t) => t.passed)).toBe(true);
   });
 
   it("surfaces a script's own runtime errors instead of throwing out of the service", async () => {

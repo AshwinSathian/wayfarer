@@ -1,6 +1,6 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ApiParamsComponent } from './api-params.component';
@@ -11,16 +11,17 @@ import { EnvironmentsService } from '../../services/environments.service';
 import { EnvironmentDoc } from '../../models/environments.models';
 import { CollectionsService, CollectionTree } from '../../services/collections.service';
 import { Meta, RequestDoc } from '../../models/collections.models';
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
-  init = jasmine.createSpy('init').and.returnValue(Promise.resolve());
-  add = jasmine.createSpy('add').and.returnValue(Promise.resolve(1));
+  init = vi.fn().mockReturnValue(Promise.resolve());
+  add = vi.fn().mockReturnValue(Promise.resolve(1));
 }
 
 class ResponseInspectorServiceStub {
   readonly latest = signal(null).asReadonly();
-  markRequest = jasmine.createSpy('markRequest');
-  markResponse = jasmine.createSpy('markResponse');
+  markRequest = vi.fn();
+  markResponse = vi.fn();
 }
 
 class EnvironmentsServiceStub {
@@ -28,10 +29,9 @@ class EnvironmentsServiceStub {
   readonly activeEnvironment = this.activeEnvSignal.asReadonly();
   readonly environments = signal<EnvironmentDoc[]>([]).asReadonly();
   readonly loading = signal(false).asReadonly();
-  ensureLoaded = jasmine.createSpy('ensureLoaded').and.returnValue(Promise.resolve());
-  updateEnvironment = jasmine
-    .createSpy('updateEnvironment')
-    .and.callFake(async (id: string, patch: Partial<EnvironmentDoc>) => {
+  ensureLoaded = vi.fn().mockReturnValue(Promise.resolve());
+  updateEnvironment = vi.fn()
+    .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
       const current = this.activeEnvSignal();
       if (current && current.meta.id === id) {
         this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
@@ -67,7 +67,7 @@ class CollectionsServiceStub {
   readonly tree = this.treeSignal.asReadonly();
   readonly loading = signal(false).asReadonly();
 
-  createRequest = jasmine.createSpy('createRequest').and.callFake(
+  createRequest = vi.fn().mockImplementation(
     async (payload: {
       collectionId: string;
       folderId?: string;
@@ -89,7 +89,7 @@ class CollectionsServiceStub {
       })
   );
 
-  updateRequest = jasmine.createSpy('updateRequest').and.callFake(
+  updateRequest = vi.fn().mockImplementation(
     async (id: string, patch: Partial<RequestDoc>): Promise<RequestDoc> =>
       makeRequestDoc({ id, ...patch })
   );
@@ -159,10 +159,10 @@ describe('ApiParamsComponent', () => {
     expect(idbService.add).not.toHaveBeenCalled();
   });
 
-  it('should send GET requests and persist history', fakeAsync(() => {
+  it('should send GET requests and persist history', async () => {
     const mockCreatedAt = 1_700_000_000_000;
-    spyOn(Date, 'now').and.returnValue(mockCreatedAt);
-    spyOn(performance, 'now').and.returnValues(1000, 1105);
+    vi.spyOn(Date, 'now').mockReturnValue(mockCreatedAt);
+    vi.spyOn(performance, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1105);
 
     let emitted = false;
     component.newRequest.subscribe(() => emitted = true);
@@ -170,9 +170,9 @@ describe('ApiParamsComponent', () => {
     component.endpoint.set('https://example.com/data');
     component.selectedRequestMethod.set('GET');
 
-    component.sendRequest();
+    const pending = component.sendRequest();
     expect(responseInspector.markRequest).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       'https://example.com/data'
     );
 
@@ -180,24 +180,24 @@ describe('ApiParamsComponent', () => {
     expect(req.request.method).toBe('GET');
     req.flush({ ok: true }, { status: 200, statusText: 'OK' });
 
-    flushMicrotasks();
+    await pending;
 
     expect(responseInspector.markResponse).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       'https://example.com/data'
     );
     expect(component.responseData()).toContain('ok');
-    expect(component.responseBodyIsJson()).toBeTrue();
+    expect(component.responseBodyIsJson()).toBe(true);
     expect(component.responseStatusCode()).toBe(200);
-    expect(component.shouldShowResponsePanel).toBeTrue();
-    expect(idbService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.shouldShowResponsePanel).toBe(true);
+    expect(idbService.add).toHaveBeenCalledWith(expect.objectContaining({
       method: 'GET',
       url: 'https://example.com/data',
       status: 200,
       durationMs: 105,
       createdAt: mockCreatedAt
     }));
-    expect(emitted).toBeTrue();
+    expect(emitted).toBe(true);
     // A successful send must NOT wipe the composer — the request stays
     // visible/editable so the user can tweak a header and resend, the same
     // way every competing API client behaves. This used to unconditionally
@@ -205,21 +205,21 @@ describe('ApiParamsComponent', () => {
     // (method/url/headers/body/auth/params) the instant a response arrived.
     expect(component.endpoint()).toBe('https://example.com/data');
     expect(component.selectedRequestMethod()).toBe('GET');
-  }));
+  });
 
-  it('should send POST requests and record errors', fakeAsync(() => {
+  it('should send POST requests and record errors', async () => {
     const mockCreatedAt = 1_800_000_000_000;
-    spyOn(Date, 'now').and.returnValue(mockCreatedAt);
-    spyOn(performance, 'now').and.returnValues(2000, 2150);
+    vi.spyOn(Date, 'now').mockReturnValue(mockCreatedAt);
+    vi.spyOn(performance, 'now').mockReturnValueOnce(2000).mockReturnValueOnce(2150);
 
     component.onRequestMethodChange('POST');
     component.endpoint.set('https://example.com/create');
     component.requestBody.set([{ key: 'isActive', value: 'true' }]);
     component.requestHeaders.set([{ key: 'Content-Type', value: 'application/json' }]);
 
-    component.sendRequest();
+    const pending = component.sendRequest();
     expect(responseInspector.markRequest).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       'https://example.com/create'
     );
 
@@ -228,38 +228,38 @@ describe('ApiParamsComponent', () => {
     expect(req.request.body).toEqual({ isActive: 'true' });
     req.flush({ message: 'failed' }, { status: 500, statusText: 'Server Error' });
 
-    flushMicrotasks();
+    await pending;
 
     expect(responseInspector.markResponse).toHaveBeenCalledWith(
-      jasmine.any(String),
+      expect.any(String),
       'https://example.com/create'
     );
     expect(component.responseError()).toContain('failed');
-    expect(component.responseBodyIsJson()).toBeTrue();
+    expect(component.responseBodyIsJson()).toBe(true);
     expect(component.responseStatusCode()).toBe(500);
-    expect(component.shouldShowResponsePanel).toBeTrue();
-    expect(idbService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.shouldShowResponsePanel).toBe(true);
+    expect(idbService.add).toHaveBeenCalledWith(expect.objectContaining({
       method: 'POST',
       url: 'https://example.com/create',
       body: { isActive: 'true' },
       status: 500,
-      error: jasmine.any(String)
+      error: expect.any(String)
     }));
     expect(component.activeTab()).toBe('headers');
 
-  }));
+  });
 
-  it('should send PUT requests with body payload', fakeAsync(() => {
+  it('should send PUT requests with body payload', async () => {
     const mockCreatedAt = 1_810_000_000_000;
-    spyOn(Date, 'now').and.returnValue(mockCreatedAt);
-    spyOn(performance, 'now').and.returnValues(3000, 3185);
+    vi.spyOn(Date, 'now').mockReturnValue(mockCreatedAt);
+    vi.spyOn(performance, 'now').mockReturnValueOnce(3000).mockReturnValueOnce(3185);
 
     component.onRequestMethodChange('PUT');
     component.endpoint.set('https://example.com/items/42');
     component.requestBody.set([{ key: 'name', value: 'Widget' }]);
     component.requestHeaders.set([{ key: 'X-Trace', value: 'abc123' }]);
 
-    component.sendRequest();
+    const pending = component.sendRequest();
 
     const req = httpMock.expectOne('https://example.com/items/42');
     expect(req.request.method).toBe('PUT');
@@ -267,39 +267,39 @@ describe('ApiParamsComponent', () => {
     expect(req.request.headers.get('X-Trace')).toBe('abc123');
     req.flush({ updated: true }, { status: 200, statusText: 'OK' });
 
-    flushMicrotasks();
+    await pending;
 
     expect(component.responseData()).toContain('updated');
-    const history = idbService.add.calls.mostRecent().args[0] as PastRequest;
+    const history = idbService.add.mock.lastCall![0] as PastRequest;
     expect(history.method).toBe('PUT');
     expect(history.body).toEqual({ name: 'Widget' });
     expect(component.activeTab()).toBe('headers');
-  }));
+  });
 
-  it('should handle DELETE requests without body', fakeAsync(() => {
+  it('should handle DELETE requests without body', async () => {
     const mockCreatedAt = 1_820_000_000_000;
-    spyOn(Date, 'now').and.returnValue(mockCreatedAt);
-    spyOn(performance, 'now').and.returnValues(4000, 4150);
+    vi.spyOn(Date, 'now').mockReturnValue(mockCreatedAt);
+    vi.spyOn(performance, 'now').mockReturnValueOnce(4000).mockReturnValueOnce(4150);
 
     component.onRequestMethodChange('DELETE');
     component.endpoint.set('https://example.com/items/99');
     component.requestHeaders.set([{ key: 'Authorization', value: 'Bearer xyz' }]);
 
-    component.sendRequest();
+    const pending = component.sendRequest();
 
     const req = httpMock.expectOne('https://example.com/items/99');
     expect(req.request.method).toBe('DELETE');
     expect(req.request.body).toBeNull();
     req.flush(null, { status: 204, statusText: 'No Content' });
 
-    flushMicrotasks();
+    await pending;
 
     expect(idbService.add).toHaveBeenCalled();
-    const stored = idbService.add.calls.mostRecent().args[0] as PastRequest;
+    const stored = idbService.add.mock.lastCall![0] as PastRequest;
     expect(stored.method).toBe('DELETE');
     expect(stored.body).toBeUndefined();
     expect(component.activeTab()).toBe('headers');
-  }));
+  });
 
   it('should populate form when loading past requests', () => {
     const stored: PastRequest = {
@@ -370,33 +370,32 @@ describe('ApiParamsComponent', () => {
     expect(component.selectedRequestMethod()).toBe('GET');
   });
 
-  it('saveCurrentRequest updates the bound collection request in place, without opening Save As', fakeAsync(() => {
+  it('saveCurrentRequest updates the bound collection request in place, without opening Save As', async () => {
     const doc = makeRequestDoc({ id: 'bound-1' });
     component.loadCollectionRequest(doc);
     component.endpoint.set('https://saved.example.com/edited');
     component.selectedRequestMethod.set('POST');
 
-    component.saveCurrentRequest();
-    flushMicrotasks();
+    await component.saveCurrentRequest();
 
     expect(collectionsService.updateRequest).toHaveBeenCalledWith(
       'bound-1',
-      jasmine.objectContaining({ method: 'POST', url: 'https://saved.example.com/edited' })
+      expect.objectContaining({ method: 'POST', url: 'https://saved.example.com/edited' })
     );
     expect(collectionsService.createRequest).not.toHaveBeenCalled();
-    expect(component.saveAsDialogVisible()).toBeFalse();
-  }));
+    expect(component.saveAsDialogVisible()).toBe(false);
+  });
 
   it('saveCurrentRequest opens Save As when the composer is not bound to a collection request', () => {
     expect(component.loadedCollectionRequest()).toBeNull();
 
     component.saveCurrentRequest();
 
-    expect(component.saveAsDialogVisible()).toBeTrue();
+    expect(component.saveAsDialogVisible()).toBe(true);
     expect(collectionsService.updateRequest).not.toHaveBeenCalled();
   });
 
-  it('confirmSaveAs creates a new request with the full composer state and binds the composer to it', fakeAsync(() => {
+  it('confirmSaveAs creates a new request with the full composer state and binds the composer to it', async () => {
     collectionsService.setTree([
       {
         collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0 },
@@ -411,11 +410,10 @@ describe('ApiParamsComponent', () => {
     expect(component.saveAsCollectionId()).toBe('c1');
 
     component.saveAsName.set('My new request');
-    component.confirmSaveAs();
-    flushMicrotasks();
+    await component.confirmSaveAs();
 
     expect(collectionsService.createRequest).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+      expect.objectContaining({
         collectionId: 'c1',
         name: 'My new request',
         method: 'GET',
@@ -424,31 +422,31 @@ describe('ApiParamsComponent', () => {
     );
     expect(collectionsService.updateRequest).toHaveBeenCalled();
     expect(component.loadedCollectionRequest()).not.toBeNull();
-    expect(component.saveAsDialogVisible()).toBeFalse();
-  }));
+    expect(component.saveAsDialogVisible()).toBe(false);
+  });
 
   it('isSaveAsDisabled is true without a name or a chosen collection', () => {
     component.saveAsName.set('');
     component.saveAsCollectionId.set('c1');
-    expect(component.isSaveAsDisabled).toBeTrue();
+    expect(component.isSaveAsDisabled).toBe(true);
 
     component.saveAsName.set('Named');
     component.saveAsCollectionId.set(null);
-    expect(component.isSaveAsDisabled).toBeTrue();
+    expect(component.isSaveAsDisabled).toBe(true);
 
     component.saveAsCollectionId.set('c1');
-    expect(component.isSaveAsDisabled).toBeFalse();
+    expect(component.isSaveAsDisabled).toBe(false);
   });
 
   it('manages dynamic header and body rows', () => {
     component.requestHeaders.set([{ key: '', value: '' }]);
-    expect(component.isAddDisabled('Headers')).toBeTrue();
+    expect(component.isAddDisabled('Headers')).toBe(true);
 
     component.requestHeaders.update((items) => {
       items[0] = { key: 'Accept', value: 'application/json' };
       return items;
     });
-    expect(component.isAddDisabled('Headers')).toBeFalse();
+    expect(component.isAddDisabled('Headers')).toBe(false);
 
     component.addItem('Headers');
     expect(component.requestHeaders().length).toBe(2);
@@ -479,7 +477,7 @@ describe('ApiParamsComponent', () => {
     expect(body).toEqual({ count: '42', enabled: 'false' });
   });
 
-  it('resolves {{var}} placeholders from the active environment into the actual outgoing request', fakeAsync(() => {
+  it('resolves {{var}} placeholders from the active environment into the actual outgoing request', async () => {
     environmentsService.setActiveEnvironment(
       buildEnvironment({ baseHost: 'jsonplaceholder.typicode.com', authToken: 'secret-token' })
     );
@@ -489,15 +487,15 @@ describe('ApiParamsComponent', () => {
       { key: 'Authorization', value: 'Bearer {{authToken}}' },
     ]);
 
-    component.sendRequest();
+    const pending = component.sendRequest();
 
     const req = httpMock.expectOne('https://jsonplaceholder.typicode.com/todos/1');
     expect(req.request.headers.get('Authorization')).toBe('Bearer secret-token');
     req.flush({ id: 1 }, { status: 200, statusText: 'OK' });
-    flushMicrotasks();
-  }));
+    await pending;
+  });
 
-  it('leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it', fakeAsync(() => {
+  it('leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it', async () => {
     environmentsService.setActiveEnvironment(buildEnvironment({}));
 
     component.endpoint.set('https://example.com/data');
@@ -505,13 +503,13 @@ describe('ApiParamsComponent', () => {
       { key: 'X-Missing', value: '{{doesNotExist}}' },
     ]);
 
-    component.sendRequest();
+    const pending = component.sendRequest();
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
     req.flush({}, { status: 200, statusText: 'OK' });
-    flushMicrotasks();
-  }));
+    await pending;
+  });
 
   it('keeps the JSON editor text showing the literal {{var}} template, not a resolved snapshot', () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ baseHost: 'example.com' }));

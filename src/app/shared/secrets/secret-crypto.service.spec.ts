@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { SecretCryptoService } from "./secret-crypto.service";
+import { describe, it, beforeEach, expect } from "vitest";
 
 describe("SecretCryptoService", () => {
   let service: SecretCryptoService;
@@ -19,7 +20,7 @@ describe("SecretCryptoService", () => {
 
   it("rejects decryption with wrong passphrase", async () => {
     const envelope = await service.encrypt("secret", "pass");
-    await expectAsync(service.decrypt(envelope, "nope")).toBeRejected();
+    await expect(service.decrypt(envelope, "nope")).rejects.toThrow();
   });
 
   it("generates base64url fields", async () => {

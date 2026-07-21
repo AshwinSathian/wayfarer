@@ -4,13 +4,14 @@ import { PastRequestsComponent } from './past-requests.component';
 import { PastRequest } from '../../models/history.models';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 describe('PastRequestsComponent', () => {
   let component: PastRequestsComponent;
   let fixture: ComponentFixture<PastRequestsComponent>;
 
   beforeEach(async () => {
-    const confirmationSpy = jasmine.createSpyObj<ConfirmationService>('ConfirmationService', ['confirm']);
+    const confirmationSpy = { confirm: vi.fn() } as unknown as ConfirmationService;
     await TestBed.configureTestingModule({
       imports: [PastRequestsComponent, ConfirmPopupModule],
       providers: [provideNoopAnimations(), { provide: ConfirmationService, useValue: confirmationSpy }],
@@ -37,18 +38,20 @@ describe('PastRequestsComponent', () => {
     };
     fixture.componentRef.setInput('pastRequests', [request]);
 
-    const loadSpy = jasmine.createSpy('load');
-    const deleteSpy = jasmine.createSpy('delete');
+    const loadSpy = vi.fn();
+    const deleteSpy = vi.fn();
     component.loadRequest.subscribe(loadSpy);
     component.deleteRequest.subscribe(deleteSpy);
 
     component.load(request);
     expect(loadSpy).toHaveBeenCalledWith(request);
 
-    const confirmationService = TestBed.inject(ConfirmationService) as jasmine.SpyObj<ConfirmationService>;
+    const confirmationService = TestBed.inject(ConfirmationService) as unknown as {
+      confirm: ReturnType<typeof vi.fn>;
+    };
     component.confirmDelete(request, new Event('click'));
     expect(confirmationService.confirm).toHaveBeenCalled();
-    const latestCall = confirmationService.confirm.calls.mostRecent().args[0];
+    const latestCall = confirmationService.confirm.mock.lastCall![0];
     expect(latestCall.accept).toBeDefined();
     latestCall.accept!();
     expect(deleteSpy).toHaveBeenCalledWith(1);

@@ -58,6 +58,9 @@
     "primeng": "^20.0.0",
     "rxjs": "^7.8.2"
   },
+  "overrides": {
+    "dompurify": "^3.4.12"
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.3.5",
     "@angular/cli": "^20.3.5",

@@ -263,18 +263,19 @@ Pull directly from Part C's ranked gap table. Recommended near-term sequencing: 
 ## Part G — "Specimen" Definition of Done
 
 ### Angular Specimen Checklist
-- [ ] 100% standalone components (already true — maintain it)
-- [ ] 100% `@if`/`@for`/`@switch` (1 remaining `*ngIf` to migrate)
-- [ ] 100% `inject()`, 0% constructor-parameter DI
-- [ ] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators
-- [ ] 100% `ChangeDetectionStrategy.OnPush`
-- [ ] `tsconfig.json` `"strict": true`
-- [ ] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional
-- [ ] Vitest replacing Karma/Jasmine
-- [ ] Playwright replacing Protractor
-- [ ] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason
-- [ ] No file over ~400 lines without a documented justification
-- [ ] CI runs lint + unit test + build + e2e on every PR
+- [x] 100% standalone components (already true — maintain it) — re-verified 2026-07-21, still true
+- [x] 100% `@if`/`@for`/`@switch` (1 remaining `*ngIf` to migrate) — re-verified 2026-07-21: `grep -rn "\*ngIf" src/app` returns zero matches
+- [x] 100% `inject()`, 0% constructor-parameter DI — re-verified 2026-07-21: `ng generate @angular/core:inject-migration --dry-run` reports "Nothing to be done"; repo-wide grep for parameterized `constructor(` in `src/app` also empty
+- [x] 100% signal-based `input()`/`output()`/`viewChild()`, 0% legacy decorators — closed 2026-07-21: `output-migration --dry-run` was already 0/0 (fully done); the two remaining `@ViewChild("editorHost")` setter-pattern queries (`json-editor.component.ts`, `script-editor.component.ts`) were hand-migrated to `viewChild()` + `effect()` since the signal-queries-migration schematic couldn't auto-convert the accessor form
+- [x] 100% `ChangeDetectionStrategy.OnPush` — re-verified 2026-07-21: `grep -rL "ChangeDetectionStrategy.OnPush" src/app --include="*.component.ts"` (excluding specs) returns zero files
+- [x] `tsconfig.json` `"strict": true` — re-verified 2026-07-21, present
+- [x] ESLint (`@angular-eslint`) replacing TSLint, `ng lint` functional — re-verified 2026-07-21, `ng lint` runs clean
+- [ ] Vitest replacing Karma/Jasmine — in progress, see task list below
+- [x] Playwright replacing Protractor — already done pre-Phase-1 (`e2e/` is Playwright, no Protractor references remain)
+- [x] Zoneless change detection evaluated and either adopted or explicitly deferred with a written reason — **adopted** 2026-07-21: `provideZonelessChangeDetection()` added to `app.config.ts`, `zone.js` removed from the production polyfills bundle (0-byte `polyfills` chunk in the prod build) and demoted to a test-only devDependency (still needed by `zone.js/testing` for `fakeAsync`/`tick()` in specs, which run in an isolated TestBed unaffected by the app's own zonelessness). Full unit suite (147 specs), production build (budgets green), and the full Playwright e2e suite (13 tests) all pass. One real behavioral finding along the way: zoneless CD flushes signal writes to the DOM asynchronously rather than synchronously-post-event the way zone.js did, so a raw click immediately followed by a DOM assertion can observe stale content for a frame — `e2e/collections.spec.ts`'s reload-after-save test hit exactly this (a strict-mode-violation race between the composer's "bound to X" footer clearing and the sidebar tree node) and was fixed by waiting on an auto-retrying `toBeHidden()` assertion instead of chaining actions blindly, which is the correct pattern for zoneless UIs regardless of test framework.
+- [ ] No file over ~400 lines without a documented justification — in progress, see task list below
+- [x] CI runs lint + unit test + build + e2e on every PR — re-verified 2026-07-21, `.github/workflows/ci.yml` has Lint/Unit tests/Build/Local Bridge/E2E jobs
+- [x] File-naming convention (drop `.component`/`.service` type suffixes per the current style guide) — **deliberately deferred**, 2026-07-21: cosmetic-only churn that would touch every import statement app-wide (dozens of files) for no functional benefit, at real risk of merge conflicts with the parallel Phase 3 UX workstream touching many of the same files. Not silently dropped — recorded here as a conscious call, revisit once Phase 3 lands.
 
 ### OSS Repo Checklist
 - [ ] LICENSE present and matching README's claim

@@ -1,5 +1,9 @@
 // This file is required by karma.conf.js and loads the spec files for the suite.
 
+// The production app runs zoneless (see app.config.ts's
+// provideZonelessChangeDetection()) — zone.js is a test-only dependency here,
+// used solely for TestBed's fakeAsync()/tick() helpers.
+import 'zone.js';
 import 'zone.js/testing';
 import { getTestBed } from '@angular/core/testing';
 import {

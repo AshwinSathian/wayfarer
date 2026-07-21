@@ -2,7 +2,7 @@ import {
   provideHttpClient,
   withInterceptorsFromDi,
 } from "@angular/common/http";
-import { ApplicationConfig } from "@angular/core";
+import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
 import { provideAnimations } from "@angular/platform-browser/animations";
 import { provideServiceWorker } from "@angular/service-worker";
 import { definePreset } from "@primeng/themes";
@@ -60,6 +60,7 @@ const SandboxTheme = definePreset(Aura, {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZonelessChangeDetection(),
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
     providePrimeNG({

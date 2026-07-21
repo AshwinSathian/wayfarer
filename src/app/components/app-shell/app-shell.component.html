@@ -134,6 +134,18 @@
           </span>
         </button>
 
+        <!-- Manage Secrets — a dedicated, discoverable home for the vault
+             concept, previously reachable only as flagged rows buried
+             inside the Environments editor or via the command palette. -->
+        <button
+          class="ds-icon-btn"
+          (click)="secretsDialogVisible.set(true)"
+          title="Manage secrets"
+          aria-label="Manage secrets"
+        >
+          <span class="material-symbols-outlined icon-md">key</span>
+        </button>
+
         <!-- Local Bridge -->
         <button
           class="ds-icon-btn"
@@ -391,6 +403,12 @@
     </div>
   </div>
 </p-dialog>
+
+<!-- Secrets management dialog -->
+<app-secrets-manager
+  [(visible)]="secretsDialogVisible"
+  (requestUnlock)="openLockDialog()"
+></app-secrets-manager>
 
 <!-- Confirm dialog (global) -->
 <p-confirmdialog #cd header="Confirmation">

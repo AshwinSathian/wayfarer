@@ -47,4 +47,41 @@ export class SecretsRepository {
     await tx.done;
     return envelope;
   }
+
+  /**
+   * Metadata for every secret in the vault, across all environments —
+   * ciphertext envelopes included (needed to decrypt on reveal) but never
+   * plaintext, which this repository never sees. Backs the dedicated
+   * Secrets management view (Part D/E, Phase 3).
+   */
+  async listAll(): Promise<SecretDoc[]> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadonly(["secrets"]);
+    const items = await tx.objectStore("secrets").getAll();
+    await tx.done;
+    return this.core.ensureIds(items);
+  }
+
+  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["secrets"]);
+    const store = tx.objectStore("secrets");
+    return this.core.commitOrRollback(tx, async () => {
+      const doc = await store.get(id);
+      if (!doc) {
+        return null;
+      }
+      doc.name = name.trim() || doc.name;
+      await store.put(doc);
+      return doc;
+    });
+  }
+
+  async deleteSecret(id: SecretId): Promise<void> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["secrets"]);
+    await this.core.commitOrRollback(tx, async () => {
+      await tx.objectStore("secrets").delete(id);
+    });
+  }
 }

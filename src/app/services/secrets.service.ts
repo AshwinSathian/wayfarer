@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { IdbService } from "../data/idb.service";
-import { SecretEnvelope, SecretId } from "../models/secrets.models";
+import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets.models";
 import { SecretCryptoService } from "../shared/secrets/secret-crypto.service";
 
 export interface SaveSecretRequest {
@@ -54,6 +54,19 @@ export class SecretsService {
 
   async hasAnySecrets(): Promise<boolean> {
     return (await this.idb.peekSecretEnvelope()) !== null;
+  }
+
+  /** All secrets across every environment, ciphertext only — for the dedicated Secrets management view. */
+  async listSecrets(): Promise<SecretDoc[]> {
+    return this.idb.listSecrets();
+  }
+
+  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+    return this.idb.renameSecret(id, name);
+  }
+
+  async deleteSecret(id: SecretId): Promise<void> {
+    return this.idb.deleteSecret(id);
   }
 
   async verifyAndUnlock(passphrase: string): Promise<boolean> {

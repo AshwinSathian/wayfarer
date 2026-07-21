@@ -20,6 +20,11 @@ import {
   serializeEnvironmentExport,
   validateEnvironmentExport,
 } from "../../shared/environments/environment-io.util";
+import {
+  buildSecretReference,
+  extractSecretId,
+  isSecretReference,
+} from "../../shared/secrets/secret-reference.util";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -257,7 +262,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   isSecretValue(value: string | undefined): boolean {
-    return typeof value === "string" && /\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}/i.test(value);
+    return isSecretReference(value);
   }
 
   async protectVariable(index: number): Promise<void> {
@@ -279,7 +284,7 @@ export class EnvironmentsManagerComponent implements OnInit {
       environmentId: draft.id,
       plaintext: String(pair.value),
     });
-    draft.vars[index].value = `{{$secret.${secretId}}}`;
+    draft.vars[index].value = buildSecretReference(secretId);
     this.updateDraft(draft);
     this.syncJsonFromPairs();
   }
@@ -293,7 +298,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     if (typeof value !== "string") {
       return;
     }
-    const secretId = this.extractSecretId(value);
+    const secretId = extractSecretId(value);
     if (!secretId) {
       return;
     }
@@ -305,7 +310,7 @@ export class EnvironmentsManagerComponent implements OnInit {
   }
 
   getSecretPreview(value: string | undefined): string | null {
-    const secretId = this.extractSecretId(value ?? "");
+    const secretId = extractSecretId(value ?? "");
     if (!secretId) {
       return null;
     }
@@ -327,11 +332,6 @@ export class EnvironmentsManagerComponent implements OnInit {
     this.pendingEnvImport.update((entries) =>
       entries.map((entry, i) => (i === index ? { ...current, action } : entry))
     );
-  }
-
-  private extractSecretId(value: string): string | null {
-    const match = value.match(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/i);
-    return match ? match[1] : null;
   }
 
   onPairsChange(): void {

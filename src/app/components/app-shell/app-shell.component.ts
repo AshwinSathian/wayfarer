@@ -33,6 +33,7 @@ import { ApiParamsComponent } from "../api-params/api-params.component";
 import { PastRequestsComponent } from "../past-requests/past-requests.component";
 import { CollectionsSidebarComponent, PaletteAction } from "../collections/collections-sidebar.component";
 import { EnvironmentsManagerComponent } from "../environments/environments-manager.component";
+import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
 
 @Component({
   selector: "app-shell",
@@ -53,6 +54,7 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
     ConfirmDialogModule,
     CollectionsSidebarComponent,
     EnvironmentsManagerComponent,
+    SecretsManagerComponent,
   ],
   templateUrl: "./app-shell.component.html",
   styleUrls: ["./app-shell.component.css"],
@@ -102,6 +104,8 @@ export class AppShellComponent implements OnInit {
   resettingAll = false;
   readonly unlockError = signal("");
 
+  readonly secretsDialogVisible = signal(false);
+
   readonly bridgeDialogVisible = signal(false);
   readonly bridgeUrlDraft = signal("");
   readonly bridgeTokenDraft = signal("");
@@ -150,6 +154,11 @@ export class AppShellComponent implements OnInit {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
         label: this.secretsUnlocked ? "Lock Secrets" : "Unlock Secrets",
         run: () => (this.secretsUnlocked ? this.lockSecrets() : this.openLockDialog()),
+      },
+      {
+        id: "open-secrets-manager",
+        label: "Manage Secrets",
+        run: () => this.secretsDialogVisible.set(true),
       },
       {
         id: "open-local-bridge-settings",

@@ -67,6 +67,7 @@ import {
   validateUrl,
 } from "../../shared/http/request-url.util";
 import { buildAuthHeaders, buildAuthQueryParam } from "../../shared/http/request-auth.util";
+import { writeToClipboard } from "../../shared/http/clipboard.util";
 import {
   bodyObjectFromRows,
   isPlainObject,
@@ -708,31 +709,7 @@ export class ApiParamsComponent {
       ? this.resolveBody(this.buildBody(), context)
       : undefined;
     const curlText = buildCurlCommand({ method, url, headers, body });
-    await this.writeToClipboard(curlText);
-  }
-
-  private async writeToClipboard(text: string): Promise<void> {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-        return;
-      }
-    } catch {
-      // Fallback below.
-    }
-    try {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.top = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    } catch {
-      console.warn("Failed to copy to clipboard.");
-    }
+    await writeToClipboard(curlText);
   }
 
   onEditorModeChange(mode: EditorMode): void {

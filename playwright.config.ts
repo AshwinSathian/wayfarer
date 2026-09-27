@@ -8,7 +8,9 @@ export default defineConfig({
   workers: process.env["CI"] ? 1 : undefined,
   reporter: process.env["CI"] ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: "http://localhost:4200",
+    // BASE_URL points the suite at a deployed site (e.g. production smoke)
+    // and skips the local webServer.
+    baseURL: process.env["BASE_URL"] ?? "http://localhost:4200",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -18,7 +20,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
+  webServer: process.env["BASE_URL"] ? undefined : {
     // In CI, build once and serve the static production output instead of
     // `ng serve`. This isn't just about speed: Angular's dev server
     // (Vite-based) compiles each `?worker` module on demand, on first

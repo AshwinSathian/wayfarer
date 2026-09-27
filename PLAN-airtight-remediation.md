@@ -373,7 +373,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - AC: `curl -s https://wayfarer.ashwinsathian.com/` contains neither `/cdn-cgi/challenge-platform` nor `cloudflareinsights`; `curl -sI` shows no `nel` or `report-to` header; a new `@claim` smoke test `no-edge-injection` asserts 0 CSP violation events on page load in 3 browsers and runs in `synthetic.yml` (P1.8), so a zone setting that is turned back on is caught within 6 h.
 - [ ] **P0.13** Reserve the npm names (owner action, needs npm login with 2FA): publish `wayfarer-bridge@0.0.0-reserved` and `wayfarer-cli@0.0.0-reserved`, each with a README that says "Name reserved for github.com/AshwinSathian/wayfarer; first release ships with v2.4.0", npm points `latest` at the placeholder until the first real release replaces it, and the README says so.
   - AC: `npm view wayfarer-bridge maintainers` and `npm view wayfarer-cli maintainers` list the maintainer's npm account.
-- [ ] **P0.10** Open GitHub issues for every F-ID (label `audit-2026-09`) and link them from this file's section 12.
+- [x] **P0.10** Open GitHub issues for every F-ID (label `audit-2026-09`) and link them from this file's section 12.
   - AC: 42 issues exist, and the matrix has an issue number per row.
 - [ ] **P0.11** Release v1.1.0 with a CHANGELOG entry that lists what is disabled and why.
   - AC: tag `v1.1.0` exists, and the production site's Settings view shows version `1.1.0`.
@@ -864,52 +864,52 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 
 ## 12. Traceability matrix (audit finding → tasks)
 
-Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue numbers are filled in by P0.10.
+Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue numbers were filled in by P0.10 (label `audit-2026-09`).
 
-| ID | Finding | Tasks | Status |
-|---|---|---|---|
-| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | In progress (tripwire #57) |
-| F02 | Sandbox isolation is a deny-list | P3.1, P3.2, P3.7 | Open |
-| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | In progress (tripwire #57) |
-| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | In progress (tripwire #57) |
-| F05 | Binary responses shown as mojibake | P0.4, P2.13 | Open |
-| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | In progress (tripwire #57) |
-| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | In progress (tripwire #57) |
-| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | In progress (tripwire #57) |
-| F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | Open |
-| F10 | No cancel, no timeout | P2.3 | Open |
-| F11 | Duration includes pre-script time | P2.15 | Open |
-| F12 | Phase timings empty cross-origin, presented as complete | P2.15, P6.1 | Open |
-| F13 | "Encrypted at rest" overclaim | P0.9, P1.4, P7.6 | Open |
-| F14 | History stores resolved credentials in plaintext | P2.8, P2.9 | Open |
-| F15 | Collection export writes credentials in plaintext | P2.8, P4.6 | Open |
-| F16 | No `storage.persist`; Safari eviction; "can't be locked out" overclaim | P0.9, P2.11 | Open |
-| F17 | No full backup; vault not exportable; env export has dangling secret refs | P2.6, P2.11 | Open |
-| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, P0.12 | Open |
-| F19 | Viewer lacks search/JSONPath/HTML/image; redirects invisible | P2.13, P2.3, P5.4 | Open |
-| F20 | `pm.*` is a small subset while the name implies compatibility | P3.3, P3.4, P3.5, P3.11 | Open |
-| F21 | No Postman/Insomnia/OpenAPI/cURL/HAR import | P4.1–P4.5 | Open |
-| F22 | Bridge: global toggle vs docs, not on npm, token handling, no PNA | P0.9, P6.2, P6.3, P6.4, P6.6 | Open |
-| F23 | Bridge: `Set-Cookie` joined, no decompression, lossy text decode | P6.1 | Open |
-| F24 | Injected `Accept`; forbidden and hidden headers undisclosed | P2.3, P2.14 | Open |
-| F25 | Enterprise paperwork premature and unverified | P0.9, P1.4, P7.6 (D12) | Open |
-| F26 | No runner, no CLI | P5.2, P6.5 | Open |
-| F27 | No GraphQL/WebSocket/SSE | P5.5, P5.6, P5.7 | Open |
-| F28 | No OAuth2, no cookie jar | P4.7, P5.3 | Open |
-| F29 | No multi-tab; history unbounded, unsearchable | P2.9, P2.17, P5.1 | Open |
-| F30 | Request vars reserved, globals hard-coded, no inheritance | P2.4, P4.9 | Open |
-| F31 | Codegen cURL only; cURL export bugs | P4.6 | Open |
-| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | Open |
-| F33 | Icon ligature text as accessible names | P0.8, P7.1 | Open |
-| F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | Open |
-| F35 | Docs volume exceeds product; prose-heavy changelog | P7.6 | Open |
-| F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | Open |
-| F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | Open |
-| F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | Open |
-| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | Open |
-| F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | Open |
-| F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | Open |
-| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | Open |
+| ID | Finding | Tasks | Issue | Status |
+|---|---|---|---|---|
+| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | #58 | In progress (tripwire #57) |
+| F02 | Sandbox isolation is a deny-list | P3.1, P3.2, P3.7 | #59 | Open |
+| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | #60 | In progress (tripwire #57) |
+| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | #61 | In progress (tripwire #57) |
+| F05 | Binary responses shown as mojibake | P0.4, P2.13 | #62 | Open |
+| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | #63 | In progress (tripwire #57) |
+| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | #64 | In progress (tripwire #57) |
+| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | #65 | In progress (tripwire #57) |
+| F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | #66 | Open |
+| F10 | No cancel, no timeout | P2.3 | #67 | Open |
+| F11 | Duration includes pre-script time | P2.15 | #68 | Open |
+| F12 | Phase timings empty cross-origin, presented as complete | P2.15, P6.1 | #69 | Open |
+| F13 | "Encrypted at rest" overclaim | P0.9, P1.4, P7.6 | #70 | Open |
+| F14 | History stores resolved credentials in plaintext | P2.8, P2.9 | #71 | Open |
+| F15 | Collection export writes credentials in plaintext | P2.8, P4.6 | #72 | Open |
+| F16 | No `storage.persist`; Safari eviction; "can't be locked out" overclaim | P0.9, P2.11 | #73 | Open |
+| F17 | No full backup; vault not exportable; env export has dangling secret refs | P2.6, P2.11 | #74 | Open |
+| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, P0.12 | #75 | Open |
+| F19 | Viewer lacks search/JSONPath/HTML/image; redirects invisible | P2.13, P2.3, P5.4 | #76 | Open |
+| F20 | `pm.*` is a small subset while the name implies compatibility | P3.3, P3.4, P3.5, P3.11 | #77 | Open |
+| F21 | No Postman/Insomnia/OpenAPI/cURL/HAR import | P4.1–P4.5 | #78 | Open |
+| F22 | Bridge: global toggle vs docs, not on npm, token handling, no PNA | P0.9, P6.2, P6.3, P6.4, P6.6 | #79 | Open |
+| F23 | Bridge: `Set-Cookie` joined, no decompression, lossy text decode | P6.1 | #80 | Open |
+| F24 | Injected `Accept`; forbidden and hidden headers undisclosed | P2.3, P2.14 | #81 | Open |
+| F25 | Enterprise paperwork premature and unverified | P0.9, P1.4, P7.6 (D12) | #82 | Open |
+| F26 | No runner, no CLI | P5.2, P6.5 | #83 | Open |
+| F27 | No GraphQL/WebSocket/SSE | P5.5, P5.6, P5.7 | #84 | Open |
+| F28 | No OAuth2, no cookie jar | P4.7, P5.3 | #85 | Open |
+| F29 | No multi-tab; history unbounded, unsearchable | P2.9, P2.17, P5.1 | #86 | Open |
+| F30 | Request vars reserved, globals hard-coded, no inheritance | P2.4, P4.9 | #87 | Open |
+| F31 | Codegen cURL only; cURL export bugs | P4.6 | #88 | Open |
+| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | #89 | Open |
+| F33 | Icon ligature text as accessible names | P0.8, P7.1 | #90 | Open |
+| F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | #91 | Open |
+| F35 | Docs volume exceeds product; prose-heavy changelog | P7.6 | #92 | Open |
+| F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | #93 | Open |
+| F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | #94 | Open |
+| F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | #95 | Open |
+| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | #96 | Open |
+| F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Open |
+| F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | #98 | Open |
+| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | Open |
 
 ## 13. Adversarial review log
 

@@ -340,7 +340,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 
 **Tasks:**
 
-- [ ] **P0.1** Write a failing tripwire test per P0 finding before fixing it: scripts under prod CSP must either run or show the disabled banner, never fail silently (F01), secret placeholder on the wire (F03), non-JSON body (F04), network-failure status (F06), auth-tab variable (F07), nested body variable (F08).
+- [x] **P0.1** Write a failing tripwire test per P0 finding before fixing it: scripts under prod CSP must either run or show the disabled banner, never fail silently (F01), secret placeholder on the wire (F03), non-JSON body (F04), network-failure status (F06), auth-tab variable (F07), nested body variable (F08).
   - AC: `e2e/tripwire.spec.ts` exists; each test is linked to its F-ID in its title; the commit history shows each failing on `3a6ccb0` and passing after its fix.
   - Note: F01 must run against a server that applies `_headers`, so the minimal `e2e/support/prod-server.mjs` from P1.1 is pulled forward here.
 - [ ] **P0.2** Disable script execution in production builds. Show a banner in the Scripts tab: "Scripts are temporarily disabled while the sandbox is rebuilt (tracking #N)". Tests-tab assertions keep working.
@@ -868,14 +868,14 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 
 | ID | Finding | Tasks | Status |
 |---|---|---|---|
-| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | Open |
+| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | In progress (tripwire #57) |
 | F02 | Sandbox isolation is a deny-list | P3.1, P3.2, P3.7 | Open |
-| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | Open |
-| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | Open |
+| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | In progress (tripwire #57) |
+| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | In progress (tripwire #57) |
 | F05 | Binary responses shown as mojibake | P0.4, P2.13 | Open |
-| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | Open |
-| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | Open |
-| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | Open |
+| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | In progress (tripwire #57) |
+| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | In progress (tripwire #57) |
+| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | In progress (tripwire #57) |
 | F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | Open |
 | F10 | No cancel, no timeout | P2.3 | Open |
 | F11 | Duration includes pre-script time | P2.15 | Open |

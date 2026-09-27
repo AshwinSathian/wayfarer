@@ -34,8 +34,10 @@ export default defineConfig({
     // structural fix, not a retry/timeout band-aid around the symptom.
     // Locally, `ng serve` is kept for fast iteration when writing/debugging
     // a spec (reusing a dev server you may already have running).
+    // prod-server.mjs applies public/_headers like Cloudflare does, so CI
+    // sees production's CSP (see e2e/tripwire.spec.ts F01).
     command: process.env["CI"]
-      ? "npm run build -- --configuration=production && python3 -m http.server 4200 --directory dist/wayfarer/browser"
+      ? "npm run build -- --configuration=production && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
       : "npx ng serve --configuration development",
     url: "http://localhost:4200",
     reuseExistingServer: !process.env["CI"],

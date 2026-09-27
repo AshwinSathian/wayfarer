@@ -1,6 +1,6 @@
 # RFC: Airtight Remediation — make every Wayfarer claim true, tested, and shipped
 
-> Status: OPEN FOR REVIEW
+> Status: LOCKED (v1.0, 2026-09-28). Changes after lock need an entry in section 16 (Change log).
 > Scale: Epic
 > Target start: 2026-09-29
 > Created: 2026-09-28
@@ -44,6 +44,12 @@ When Phase 7's exit criteria pass, all of the following are true and verified by
 | Escape hatch | No Electron and no extension. The Local Bridge becomes first-class: published to npm, with per-request routing, a cookie jar, raw headers and Private/Local Network Access handling. The UI discloses what the browser changed or hid. |
 | Product goal | OSS traction now, enterprise later. Keep only enterprise foundations that cost little: SBOM, provenance, a self-host tarball and a test-backed Trust page. Drop SOC 2 roadmap prose. |
 | Validation | No network telemetry. Add local-only in-app diagnostics that a user can copy into an issue, plus scheduled synthetic monitoring of production. |
+| npm names | Unscoped `wayfarer-bridge` and `wayfarer-cli` (both unclaimed on 2026-09-28). Reserved in Phase 0 (P0.13). Scoping can be revisited later. |
+| Cloudflare zone | Turn Bot Fight Mode off for the whole `ashwinsathian.com` zone (it can't be scoped to a hostname, and it forces JavaScript Detections). Disable Web Analytics, Email Obfuscation and Rocket Loader for the Wayfarer hostname with a Configuration Rule. Disable NEL for the zone. See P0.12. |
+| History bodies | Stored by default, capped at 1 MB each; a setting turns this off. |
+| Request timeout | Default 0 (no timeout), matching Postman; configurable per request and globally. |
+| Plan file | Stays at the repo root while in progress; moved to `docs/archive/` at P7.8. |
+| Compatibility fixtures | Newman's own integration collections (Apache-2.0) with Newman as the reference runner, plus two real-world MIT collections: Adyen and Microsoft Graph. See P4.2. |
 
 ## 2. Background
 
@@ -133,8 +139,8 @@ Node CLI: npx wayfarer-cli run <file> ── packages/core + undici fetch + Quic
 |---|---|---|---|
 | npm workspaces root | `package.json` (`"workspaces": ["packages/*"]`) | Modified | App stays at repo root to avoid churn. |
 | Core engine | `packages/core/` | New | Zero Angular imports, enforced by ESLint `no-restricted-imports` and its own `tsconfig`. |
-| CLI | `packages/cli/` | New | Published as `wayfarer-cli` (name TBC, Q1). |
-| Bridge | `local-bridge/` → `packages/bridge/` | Moved + Modified | Published as `wayfarer-bridge` (name TBC, Q1). |
+| CLI | `packages/cli/` | New | Published as `wayfarer-cli` (reserved in P0.13). |
+| Bridge | `local-bridge/` → `packages/bridge/` | Moved + Modified | Published as `wayfarer-bridge` (reserved in P0.13). |
 | Transport | `packages/core/src/transport/{fetch,bridge,route-policy}.ts` | New | Replaces `MainService`, which is deleted. |
 | Variable resolver | `packages/core/src/variables/resolver.ts` | New | Replaces `env-resolution.util.ts` resolution functions. Chip/token extraction moves too. |
 | Redactor | `packages/core/src/redaction/redactor.ts` | New | Used by history, HAR, cURL, codegen, exports, diagnostics. |
@@ -251,7 +257,7 @@ POST /relay { method, url, headers: [name, value][], bodyB64?, followRedirects, 
 - Deploy: `wrangler versions upload` → smoke against the version preview URL → `wrangler versions deploy` at 100% → prod smoke → on failure, `wrangler rollback`.
 - New workflows: `synthetic.yml` (cron `0 */6 * * *`, prod smoke in 3 browsers, opens or updates an issue labeled `prod-down`), `release.yml` (tag → GitHub Release with `dist` tarball, CycloneDX SBOM via `npm sbom`, npm publish of CLI and bridge with `--provenance`), `codeql.yml`, `scorecard.yml`.
 - All third-party GitHub Actions pinned to commit SHAs. Dependabot keeps them current.
-- Cloudflare zone (manual, owner action): disable Web Analytics auto-injection and Bot Fight Mode JS detections for `wayfarer.ashwinsathian.com`. Document NEL behaviour (see Q2).
+- Cloudflare zone (manual, owner action, P0.12): Bot Fight Mode off zone-wide; a Configuration Rule turns off Web Analytics, Email Obfuscation and Rocket Loader for `wayfarer.ashwinsathian.com`; NEL off for the zone.
 
 ## 5. Alternatives considered
 
@@ -308,7 +314,7 @@ Trade-offs accepted:
 | R8 | OAuth token endpoints lack CORS, so the flows fail in-browser | H | M | 6 | Token requests use RoutePolicy. When the bridge is unavailable, the error names the missing `Access-Control-Allow-Origin` and links `docs/browser-limits.md#oauth`. The mock IdP fixture tests both paths. | Maintainer |
 | R9 | Bundle size regresses the "lightweight" feel (QuickJS, GraphQL, OpenAPI parser, Monaco) | M | M | 4 | All heavy modules load lazily. Budgets are set in P1.12 from the measured baseline and are CI-enforced. | Maintainer |
 | R10 | Postman compatibility claims drift from reality | M | M | 4 | `docs/postman-compatibility.md` is generated from the conformance suite. Each row is a test. CI fails on mismatch. | Maintainer |
-| R11 | npm names `wayfarer-cli` / `wayfarer-bridge` unavailable or squatted | M | L | 2 | Q1: pick a scope such as `@wayfarer-http/*` before Phase 6. Checked with `npm view`. | Maintainer |
+| R11 | npm names `wayfarer-cli` / `wayfarer-bridge` squatted before first release | L | L | 1 | Both unclaimed on 2026-09-28; reserved in Phase 0 (P0.13). Fallback: scope `@wayfarer-http/*`. | Maintainer |
 | R12 | Custom SW ships a broken update and pins users on an old version | L | H | 3 | The SW never caches `index.html` beyond a network-first strategy. It checks the version manifest on each navigation. A kill-switch version (`sw-kill.js`) is committed, and its deploy is documented in `docs/deployment.md`. e2e covers the offline and update flows. | Maintainer |
 
 ## 8. Dependencies
@@ -316,11 +322,11 @@ Trade-offs accepted:
 - **Upstream / libraries (new):**
   - Runtime: `quickjs-emscripten` + `@jitl/quickjs-wasmfile-release-sync`, `chai` (bundled into the VM), `crypto-js`, `lodash`, `uuid`, `moment` (lazy, inside the VM), `yaml` (`maxAliasCount: 100`), `@scalar/openapi-parser` (TBC in P4.3 spike), `set-cookie-parser`, `jsonpath-plus` (only if it runs without eval under our CSP; otherwise a hand-written JSONPath subset), `graphql`, `@noble/hashes`, `@fontsource-variable/inter`, `@fontsource/jetbrains-mono`.
   - Runtime (lazy, P5.5): `graphql-language-service`. Icons: Material Symbols SVG sources (Apache-2.0, attribution via `extractLicenses` + `THIRD_PARTY_NOTICES.md`).
-  - Dev: `fast-check`, `@stryker-mutator/core` + vitest runner, `knip`, `@lhci/cli` (P7.2), `lychee` link checker via its GitHub Action (P7.6).
+  - Dev: `newman` (reference runner for golden results, P3.4 and P4.2), `fast-check`, `@stryker-mutator/core` + vitest runner, `knip`, `@lhci/cli` (P7.2), `lychee` link checker via its GitHub Action (P7.6).
 - **Upstream / platform:** Cloudflare Workers static assets (`_headers`, versions, rollback), GitHub Actions, npm registry (provenance), Playwright browsers (Chromium, Firefox, WebKit).
 - **Downstream:** users' existing IndexedDB data (v1–v4), existing exported collection/environment files (`$id` v1), the Phase 2 market re-analysis.
-- **External / owner actions:** Cloudflare dashboard zone settings (Q2), npm account/org (Q1), GitHub repo settings (enable private vulnerability reporting, branch protection requiring all CI jobs).
-- **Blocked by:** nothing for Phase 0. Phase 6 is blocked by Q1.
+- **External / owner actions:** Cloudflare dashboard zone settings (P0.12), npm account with 2FA (P0.13), GitHub repo settings (enable private vulnerability reporting, branch protection requiring all CI jobs).
+- **Blocked by:** nothing. P0.12 and P0.13 are owner actions in the Cloudflare dashboard and npm; everything else in Phase 0 can start without them.
 
 ## 9. Phases and milestones
 
@@ -358,6 +364,15 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - Remove "everything encrypted at rest", "can't be locked out by construction", "Postman-grade", "no subprocessors" (name Cloudflare as static host that sees IP and user-agent), the passphrase rotation procedure, "retry through the bridge" and "works offline".
   - Add a "Known limitations" section linking the tracking issues.
   - AC: a reviewer checklist in the PR maps each removed or changed sentence to an F-ID, and none of the removed phrases appear in `grep -ri` over the repo.
+- [ ] **P0.12** Cloudflare zone hardening (owner action, guided by `docs/runbook.md#cloudflare-zone`, written in this task). In the dashboard for `ashwinsathian.com`:
+  1. Security → Bots → turn **Bot Fight Mode** off. This is zone-wide; there is no per-hostname scope, and while it is on, JavaScript Detections cannot be disabled.
+  2. Rules → Configuration Rules → create rule "wayfarer-no-injection", matching `http.host eq "wayfarer.ashwinsathian.com"`, with Web Analytics (RUM) **off**, Email Obfuscation **off** and Rocket Loader **off**.
+  3. Analytics & Logs → Web Analytics → if a site exists for the hostname, remove its automatic-setup rule.
+  4. Network → **Network Error Logging** off (or `PATCH /zones/{zone_id}/settings/nel` with `{"value":{"enabled":false}}`).
+  5. Record in the runbook what was changed and when, so it can be audited and reverted.
+  - AC: `curl -s https://wayfarer.ashwinsathian.com/` contains neither `/cdn-cgi/challenge-platform` nor `cloudflareinsights`; `curl -sI` shows no `nel` or `report-to` header; a new `@claim` smoke test `no-edge-injection` asserts 0 CSP violation events on page load in 3 browsers and runs in `synthetic.yml` (P1.8), so a zone setting that is turned back on is caught within 6 h.
+- [ ] **P0.13** Reserve the npm names (owner action, needs npm login with 2FA): publish `wayfarer-bridge@0.0.0-reserved` and `wayfarer-cli@0.0.0-reserved`, each with a README that says "Name reserved for github.com/AshwinSathian/wayfarer; first release ships with v2.4.0", npm points `latest` at the placeholder until the first real release replaces it, and the README says so.
+  - AC: `npm view wayfarer-bridge maintainers` and `npm view wayfarer-cli maintainers` list the maintainer's npm account.
 - [ ] **P0.10** Open GitHub issues for every F-ID (label `audit-2026-09`) and link them from this file's section 12.
   - AC: 42 issues exist, and the matrix has an issue number per row.
 - [ ] **P0.11** Release v1.1.0 with a CHANGELOG entry that lists what is disabled and why.
@@ -390,7 +405,8 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - `/sse`;
   - `/ws`;
   - `/oauth/{authorize,token}`;
-  - `/big/:mb`.
+  - `/big/:mb`;
+  - Postman Echo–compatible routes used by Newman's integration collections (`/get`, `/post`, `/put`, `/patch`, `/delete`, `/headers`, `/response-headers`, `/cookies`, `/cookies/set`, `/cookies/delete`, `/basic-auth`, `/status/:code`, `/delay/:s`, `/gzip`, `/deflate`, `/encoding/utf8`), with the same JSON response shapes. Fixture URLs pointing at `postman-echo.com` are rewritten to the echo-server at load time.
   - AC: no e2e spec references `jsonplaceholder` or `httpbin` (`grep` in CI fails the build if any does).
 - [ ] **P1.3** Playwright projects for `chromium`, `firefox` and `webkit`, plus a `claims` project (retries 0) that runs tests tagged `@claim`.
   - AC: the CI e2e job runs 3 browsers and reports per-browser results; a test tagged `@claim` fails CI on first failure.
@@ -577,7 +593,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - `pm.sendRequest(req, cb)` and its promise form, brokered by the host through RoutePolicy, max 10 per run, and redacted in logs.
   - AC: the conformance suite `packages/core/test/pm-compat/*.test.ts` has one test per matrix row, and all pass in Node and in the browser worker.
 - [ ] **P3.4** Legacy Postman sandbox globals: `postman.setEnvironmentVariable/getEnvironmentVariable/clearEnvironmentVariable/setGlobalVariable/setNextRequest/getResponseHeader`, `tests[...]`, `responseBody`, `responseCode`, `responseTime`, `responseHeaders`, `request`, `environment`, `globals`, `iteration`.
-  - AC: a fixture collection using only legacy syntax (10 scripts) produces the same test results as the fixture's recorded Postman run (`e2e/fixtures/postman-legacy.results.json`).
+  - AC: a fixture collection using only legacy syntax (10 scripts) produces the same assertion names and pass/fail results as Newman (dev dependency, the reference implementation) running the same collection against the same echo-server; the golden file `packages/core/test/fixtures/postman-legacy.golden.json` is regenerated by `npm run golden` and CI fails on drift.
 - [ ] **P3.5** `require` shim for `crypto-js`, `lodash`, `uuid`, `chai`, `moment`, `atob`, `btoa`. Sources are pre-bundled as strings and loaded into the VM on first `require`. Host-native shims back crypto-js `SHA256`, `HmacSHA256`, `MD5`, `SHA1`, `HmacSHA1` and `enc.Base64/Hex/Utf8`. Any other module throws `WayfarerUnsupportedError: require('xml2js') is not supported — see docs/postman-compatibility.md#require`.
   - AC: a unit test checks HMAC output equals Node `crypto` for 100 random inputs; `require('cheerio')` throws the named error.
 - [ ] **P3.6** Resource limits:
@@ -626,7 +642,11 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - input caps: 50 MB file, YAML `maxAliasCount: 100`.
   - AC: a 5,000-request Postman fixture imports in ≤ 10 s in Chromium CI; a YAML alias-bomb fixture is rejected with a message in ≤ 1 s.
 - [ ] **P4.2** Postman importer: Collection v2.0/v2.1 (folders, variables, auth including inherit and noauth, all body modes, events → scripts, descriptions); Postman environment and globals dumps.
-  - AC: 3 real-world public collections vendored under `packages/core/test/fixtures/postman/` (with their licenses) import with 0 errors; export back to v2.1 (P4.6) and re-import gives a deep-equal model.
+  - Fixtures, vendored at pinned commits under `packages/core/test/fixtures/postman/` with their LICENSE files:
+    - `postmanlabs/newman` `test/integration/**` collections (Apache-2.0, 42 entries on 2026-09-28) — the compatibility oracle;
+    - `Adyen/adyen-postman` (MIT, maintained) — real-world API-key auth, environments and scripts;
+    - `microsoftgraph/microsoftgraph-postman-collections` (MIT, archived 2021, used as a frozen snapshot) — real-world OAuth2 and large folder trees.
+  - AC: all 3 sources import with 0 errors (unsupported features show up only as report warnings); export back to v2.1 (P4.6) and re-import gives a deep-equal model; for every Newman integration collection whose scripts use only matrix-supported APIs, the Wayfarer runner and Newman give identical assertion names and pass/fail results against the echo-server. The count of such collections is recorded in Appendix A, and collections excluded by the matrix are listed with the unsupported API that excludes them.
 - [ ] **P4.3** OpenAPI 3.0/3.1 and Swagger 2.0 importer. Spike first: `@scalar/openapi-parser` vs `@apidevtools/swagger-parser` — pick by bundle size and browser compatibility, and record the decision.
   - Mapping: tags → folders; `servers[0]` → collection variable `baseUrl`; parameters → params and headers with example values; request bodies from `example`/`examples`/schema-generated sample; security schemes → auth (apiKey, http bearer/basic, oauth2 flows).
   - AC: the Petstore 3.0, 3.1 and Swagger 2.0 fixtures import with operation count equal to the spec's path × method count; `$ref` cycles terminate.
@@ -735,8 +755,8 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - AC: unit tests for the 8 D7 cases; e2e: a POST with a JSON body (non-simple) against `/cors/none` auto-retries via the bridge; a simple POST form against `/cors/none` asks for confirmation instead of retrying.
 - [ ] **P6.5** `packages/cli`: `wayfarer-cli run <collection|workspace-backup|postman.json> [-e env.json] [-d data.csv] [-n iterations] [--reporter cli,junit,json] [--bail] [--timeout ms] [--insecure]`. Uses the same `packages/core` (resolver, auth, QuickJS Node variant, runner), undici `fetch`, and the file-based vault via `--vault-file` plus the `WAYFARER_VAULT_PASSPHRASE` env var.
   - AC: the CLI run of the P5.2 fixture produces the same results JSON as the in-app runner (a CI diff test); exit code 1 on any failed test and 0 otherwise; runs on Node 20 and 22 in CI.
-- [ ] **P6.6** Publish `wayfarer-bridge` and `wayfarer-cli` (names per Q1) via `release.yml` with `npm publish --provenance`. `docs/cli.md` gets a GitHub Actions example.
-  - AC: `npx wayfarer-bridge --help` and `npx wayfarer-cli --version` work from a clean machine; the npm page shows the provenance badge.
+- [ ] **P6.6** Publish `wayfarer-bridge` and `wayfarer-cli` via `release.yml` with `npm publish --provenance`. `docs/cli.md` gets a GitHub Actions example.
+  - AC: `npx wayfarer-bridge --help` and `npx wayfarer-cli --version` work from a clean machine; the npm page shows the provenance badge; `npm deprecate` is set on both `0.0.0-reserved` placeholders.
 
 **Exit criteria:**
 - `npx wayfarer-bridge` paired in under 60 s in the documented flow on 3 browsers (or the documented HTTPS alternative).
@@ -788,8 +808,8 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - AC: `check:claims` green; every doc under `docs/` is linked from README; no doc references a deleted file (link checker via `lychee` offline mode in CI).
 - [ ] **P7.7** Release engineering: `release.yml` attaches a `dist` tarball, a CycloneDX SBOM (`npm sbom --sbom-format cyclonedx`) and SHA-256 checksums to the GitHub Release. Settings shows the version and commit.
   - AC: the v2.5.0 release page has 3 assets and the checksum verifies.
-- [ ] **P7.8** Close-out audit: re-run the Phase 1 audit procedure (live Playwright probes of the 8 original P0 behaviours on production, in 3 browsers) and update section 12 with final statuses.
-  - AC: every F-ID row is `Closed` with a PR link, or `Deferred` with a follow-up issue; the probe script `scripts/audit-probes.spec.ts` is committed and passes on production.
+- [ ] **P7.8** Close-out audit (then move this file to `docs/archive/PLAN-airtight-remediation.md`): re-run the Phase 1 audit procedure (live Playwright probes of the 8 original P0 behaviours on production, in 3 browsers) and update section 12 with final statuses.
+  - AC: every F-ID row is `Closed` with a PR link, or `Deferred` with a follow-up issue; the probe script `scripts/audit-probes.spec.ts` is committed and passes on production; this file lives at `docs/archive/` and the root copy is gone.
 
 **Exit criteria:**
 - All section 1 success criteria hold.
@@ -865,7 +885,7 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F15 | Collection export writes credentials in plaintext | P2.8, P4.6 | Open |
 | F16 | No `storage.persist`; Safari eviction; "can't be locked out" overclaim | P0.9, P2.11 | Open |
 | F17 | No full backup; vault not exportable; env export has dangling secret refs | P2.6, P2.11 | Open |
-| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, Q2 | Open |
+| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, P0.12 | Open |
 | F19 | Viewer lacks search/JSONPath/HTML/image; redirects invisible | P2.13, P2.3, P5.4 | Open |
 | F20 | `pm.*` is a small subset while the name implies compatibility | P3.3, P3.4, P3.5, P3.11 | Open |
 | F21 | No Postman/Insomnia/OpenAPI/cURL/HAR import | P4.1–P4.5 | Open |
@@ -921,6 +941,14 @@ Second pass (draft 2 → draft 3):
 21. **Phase 2 had 17 tasks in 15 days, including the component split and all viewers.** Raised to 18 days, and the milestones were recomputed.
 22. **The "no telemetry" claim had no test.** P0.8 now adds the `no-third-party-requests` `@claim` test.
 
+Lock review (v1.0):
+
+23. **"A hand-recorded Postman result is a weak oracle."** Newman is Postman's own open-source runtime. P3.4 and P4.2 now generate golden results by running Newman against the same local echo-server, so compatibility is measured against the reference implementation, not a snapshot someone recorded once.
+24. **"Newman's fixtures call postman-echo.com, which breaks the no-internet rule for PR e2e."** The echo-server implements the Postman Echo routes those fixtures use, and fixture URLs are rewritten at load (P1.2).
+25. **"Turning off zone settings once is not durable; someone can re-enable them."** P0.12 adds the `no-edge-injection` `@claim` test to the 6-hourly synthetic run, so a regression is caught within 6 hours.
+26. **"The npm names are free today but not guaranteed tomorrow."** P0.13 reserves them in Phase 0 rather than at Phase 6 publish time.
+27. **"Microsoft Graph's collection repo is archived."** It is used only as a frozen import fixture for OAuth2 and large-tree import. No behaviour depends on it being maintained.
+
 Final review against the plan-quality checklist:
 - goal observable (section 1);
 - every task has a binary AC;
@@ -935,12 +963,7 @@ Final review against the plan-quality checklist:
 
 ## 14. Open questions
 
-- [ ] **Q1** npm package names: `wayfarer-bridge` and `wayfarer-cli` unscoped, or a scope (for example `@wayfarer-http/bridge`)? `wayfarer-local-bridge` returned 404 on 2026-09-28. — owner: Ashwin; needed before P6.6.
-- [ ] **Q2** Cloudflare zone settings for `wayfarer.ashwinsathian.com`: will you disable Web Analytics auto-injection and Bot Fight Mode JS detections? Is NEL configurable on your plan? If not, the Trust Center discloses it. — owner: Ashwin; needed before P0.9 is merged.
-- [ ] **Q3** Default: store response bodies in history (capped at 1 MB) — on or off? Plan assumes on. — owner: Ashwin; before P2.9.
-- [ ] **Q4** Default request timeout: plan assumes 0 (none, matching Postman). — owner: Ashwin; before P2.3.
-- [ ] **Q5** Is this plan file meant to stay in the repo long-term? Commit `3a6ccb0` removed internal planning docs. Keep it at the root while in progress, and move it to `docs/archive/` at P7.8? — owner: Ashwin.
-- [ ] **Q6** Real-world Postman fixtures for P4.2: are there specific public collections you want as the compatibility benchmark? The plan assumes 3 widely used public workspaces with permissive licenses. — owner: Ashwin; before P4.2.
+None as of the lock (2026-09-28). The answers to the six pre-lock questions are recorded in section 1 ("Decisions already made"). Questions that come up during execution are added here with an owner and a deadline, and the change is logged in section 16.
 
 ## 15. Follow-up work (out of scope)
 
@@ -952,6 +975,13 @@ Final review against the plan-quality checklist:
 - Digest, NTLM, Hawk and OAuth 1.0 auth.
 - Docker image for self-hosting.
 
+## 16. Change log
+
+| Date | Version | Change |
+|---|---|---|
+| 2026-09-28 | draft 1–3 | Initial plan and two adversarial review passes (section 13, items 1–22). |
+| 2026-09-28 | v1.0 LOCKED | Maintainer answers applied: unscoped npm names reserved early (P0.13); Cloudflare zone hardening with Bot Fight Mode off zone-wide (P0.12); history bodies on and timeout 0 confirmed; plan archived at P7.8; Newman integration collections plus Adyen and Microsoft Graph chosen as fixtures, with Newman as the reference runner (P3.4, P4.2). Final review items 23–27 in section 13. |
+
 ## Appendix A — Measurements (filled during execution)
 
 | Metric | Value | Recorded in task |
@@ -960,6 +990,7 @@ Final review against the plan-quality checklist:
 | OpenSSF Scorecard | _pending_ | P1.14 |
 | Script benchmark p95 / WASM cold load | _pending_ | P3.10 |
 | Phase 0–2 actual/estimate ratio | _pending_ | Phase 2 checkpoint |
+| Newman collections within matrix / total | _pending_ | P4.2 |
 
 ## Appendix B — Audit evidence (2026-09-27, production)
 

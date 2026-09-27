@@ -24,6 +24,41 @@ export interface BuiltRequest {
   usesBody: boolean;
 }
 
+/**
+ * Thrown by `execute()` when a request must not reach the network. The
+ * message is user-facing.
+ */
+export class SendBlockedError extends Error {
+  override readonly name = "SendBlockedError";
+}
+
+const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
+
+export const SECRET_PLACEHOLDER_BLOCKED =
+  "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
+  "This request references one, so it was not sent.";
+
+/**
+ * True when a built request still carries a literal `{{$secret.<id>}}`
+ * placeholder anywhere it would go on the wire (F03). The URL is also checked
+ * percent-decoded, since URL normalisation may have encoded the braces.
+ */
+function containsSecretPlaceholder(request: BuiltRequest): boolean {
+  let decodedUrl = request.url;
+  try {
+    decodedUrl = decodeURIComponent(request.url);
+  } catch {
+    // Malformed escape: the raw URL is still checked below.
+  }
+  const wire = [
+    request.url,
+    decodedUrl,
+    JSON.stringify(request.headers),
+    request.usesBody ? JSON.stringify(request.body ?? null) : "",
+  ];
+  return wire.some((text) => SECRET_PLACEHOLDER.test(text));
+}
+
 export interface RequestExecutionSpec {
   preRequestScript: string;
   postRequestScript: string;
@@ -94,6 +129,12 @@ export class RequestExecutionService {
     // Built only now, after the pre-script (and any environment mutations
     // it made) has already landed — see BuiltRequest / buildRequest's doc.
     const request = spec.buildRequest();
+    // ponytail: blocks instead of resolving; resolving here would put the
+    // plaintext into history (F14). Vault resolution plus redaction replace
+    // this in P2.4/P2.5.
+    if (containsSecretPlaceholder(request)) {
+      throw new SendBlockedError(SECRET_PLACEHOLDER_BLOCKED);
+    }
 
     this.responseInspector.markRequest(requestId, request.url);
 

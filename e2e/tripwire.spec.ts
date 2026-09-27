@@ -146,7 +146,6 @@ test.describe("Phase 0 tripwires", () => {
   });
 
   test("F03: a protected-variable placeholder is never sent on the wire", async ({ page }) => {
-    test.fail(true, "open until P0.3 lands");
     const hits = await captureTarget(page);
     // Scan every request to any host, not only the routed target.
     const leaks: string[] = [];

@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { Observable, of, throwError } from "rxjs";
 import { signal } from "@angular/core";
-import { RequestExecutionService, BuiltRequest } from "./request-execution.service";
+import { RequestExecutionService, BuiltRequest, SendBlockedError } from "./request-execution.service";
 import { MainService } from "./main.service";
 import { EnvironmentsService } from "./environments.service";
 import { ResponseInspectorService } from "../shared/inspect/response-inspector.service";
@@ -362,6 +362,42 @@ describe("RequestExecutionService", () => {
       expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
       expect(result.testResults).toHaveLength(1);
       expect(result.testResults[0]).toEqual(expect.objectContaining({ passed: true, source: "assertion" }));
+    });
+  });
+
+  describe("protected-variable placeholders (P0.3, #60)", () => {
+    const secret = "{{$secret.0b6f1c2e-0000-4000-8000-000000000001}}";
+    const cases: [string, Partial<BuiltRequest>][] = [
+      ["URL", { url: `https://example.com/?key=${secret}` }],
+      ["header value", { headers: { "X-Api-Key": secret } }],
+      ["header name", { headers: { [secret]: "1" } }],
+      ["nested body", { method: "POST", usesBody: true, body: { a: { b: [secret] } } }],
+      ["spaced placeholder", { headers: { Authorization: "Bearer {{ $secret.abc }}" } }],
+      ["percent-encoded URL", { url: "https://example.com/?key=%7B%7B%24secret.abc%7D%7D" }],
+    ];
+
+    for (const [where, overrides] of cases) {
+      it(`blocks the send when the ${where} still holds one`, async () => {
+        await expect(
+          service.execute({
+            preRequestScript: "",
+            postRequestScript: "",
+            tests: [],
+            buildRequest: () => builtRequest(overrides),
+          })
+        ).rejects.toThrow(SendBlockedError);
+        expect(mainService.sendRequest).not.toHaveBeenCalled();
+      });
+    }
+
+    it("still sends an ordinary {{var}} left unresolved", async () => {
+      await service.execute({
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest({ headers: { "X-Id": "{{missing}}" } }),
+      });
+      expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
     });
   });
 });

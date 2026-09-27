@@ -55,7 +55,9 @@ import { prefersReducedMotion } from "../../shared/motion/prefers-reduced-motion
 import {
   RequestExecutionService,
   RequestExecutionResponse,
+  RequestExecutionResult,
   BuiltRequest,
+  SendBlockedError,
 } from "../../services/request-execution.service";
 import { RequestSaveService, RequestContentSnapshot } from "../../services/request-save.service";
 import {
@@ -435,12 +437,22 @@ export class ApiParamsComponent {
 
     this.loadingState.set(true);
 
-    const result = await this.requestExecution.execute({
-      preRequestScript: this.preRequestScript(),
-      postRequestScript: this.postRequestScript(),
-      tests: this.requestTests(),
-      buildRequest: () => this.buildRequestForExecution(endpointText),
-    });
+    let result: RequestExecutionResult;
+    try {
+      result = await this.requestExecution.execute({
+        preRequestScript: this.preRequestScript(),
+        postRequestScript: this.postRequestScript(),
+        tests: this.requestTests(),
+        buildRequest: () => this.buildRequestForExecution(endpointText),
+      });
+    } catch (error) {
+      this.loadingState.set(false);
+      if (error instanceof SendBlockedError) {
+        this.endpointError.set(error.message);
+        return;
+      }
+      throw error;
+    }
 
     this.loadingState.set(false);
     this.lastTestResults.set(result.testResults);

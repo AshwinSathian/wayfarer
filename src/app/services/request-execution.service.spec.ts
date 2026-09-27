@@ -6,7 +6,7 @@ import { RequestExecutionService, BuiltRequest } from "./request-execution.servi
 import { MainService } from "./main.service";
 import { EnvironmentsService } from "./environments.service";
 import { ResponseInspectorService } from "../shared/inspect/response-inspector.service";
-import { ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
+import { SCRIPTS_ENABLED, ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
 import { AssertionRunnerService } from "../shared/scripts/assertion-runner.service";
 import { EnvironmentDoc } from "../models/environments.models";
 import { ScriptExecutionResult } from "../models/test-assertion.models";
@@ -331,5 +331,37 @@ describe("RequestExecutionService", () => {
       "env-1",
       expect.objectContaining({ vars: expect.objectContaining({ counter: "2" }) })
     );
+  });
+
+  describe("with scripts disabled (P0.2, #58)", () => {
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          RequestExecutionService,
+          AssertionRunnerService,
+          { provide: MainService, useValue: mainService },
+          { provide: ResponseInspectorService, useValue: responseInspector },
+          { provide: EnvironmentsService, useValue: environmentsService },
+          { provide: ScriptSandboxService, useValue: scriptSandbox },
+          { provide: SCRIPTS_ENABLED, useValue: false },
+        ],
+      });
+      service = TestBed.inject(RequestExecutionService);
+    });
+
+    it("never calls the sandbox, but still sends and runs Tests-tab assertions", async () => {
+      const result = await service.execute({
+        preRequestScript: "pm.environment.set('a', '1');",
+        postRequestScript: "pm.test('t', () => {});",
+        tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
+        buildRequest: () => builtRequest(),
+      });
+
+      expect(scriptSandbox.execute).not.toHaveBeenCalled();
+      expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
+      expect(result.testResults).toHaveLength(1);
+      expect(result.testResults[0]).toEqual(expect.objectContaining({ passed: true, source: "assertion" }));
+    });
   });
 });

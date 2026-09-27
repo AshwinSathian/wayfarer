@@ -127,7 +127,6 @@ test.describe("Phase 0 tripwires", () => {
   test.use({ serviceWorkers: "block" });
 
   test("F01: a script under production CSP either runs or shows the disabled banner, never fails silently", async ({ page }) => {
-    test.fail(true, "open until P0.2 lands");
     await captureTarget(page);
     const response = await seedAndOpen(page, {}, {
       method: "GET",

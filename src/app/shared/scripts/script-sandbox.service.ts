@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, InjectionToken, isDevMode } from "@angular/core";
 import { ScriptExecutionResult } from "../../models/test-assertion.models";
 
 export interface ScriptResponseContext {
@@ -10,6 +10,22 @@ export interface ScriptResponseContext {
 }
 
 const DEFAULT_TIMEOUT_MS = 5000;
+
+/**
+ * Whether pre/post-request scripts run at all. False in production builds:
+ * the worker below evaluates scripts with `new Function`, which production's
+ * CSP (`script-src 'self'`, no `'unsafe-eval'`) blocks, so every script
+ * failed there without a word (F01, #58). Scripts come back with the QuickJS
+ * sandbox (P3.1), which deletes this token. Dev builds keep the old worker
+ * so its spec suite still runs.
+ */
+export const SCRIPTS_ENABLED = new InjectionToken<boolean>("SCRIPTS_ENABLED", {
+  providedIn: "root",
+  factory: () => isDevMode(),
+});
+
+/** GitHub issue tracking the disabled script sandbox; shown in the Scripts tab banner. */
+export const SCRIPTS_DISABLED_ISSUE = 58;
 
 /**
  * Runs user-authored pre/post-request scripts in an isolated Web Worker

@@ -416,6 +416,16 @@
   <!-- ── Scripts template ─────────────────────────────────── -->
   <ng-template #scriptsContent>
     <div class="space-y-6">
+      @if (!scriptsEnabled) {
+      <div role="status" class="flex items-start gap-2 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+        <span class="material-symbols-outlined icon-sm text-status-warning" aria-hidden="true">warning</span>
+        <p class="type-callout text-status-warning">
+          Scripts are temporarily disabled while the sandbox is rebuilt (tracking
+          <a class="underline" href="https://github.com/AshwinSathian/wayfarer/issues/{{ scriptsDisabledIssue }}" target="_blank" rel="noopener noreferrer">#{{ scriptsDisabledIssue }}</a>).
+          Scripts below are saved but not run. Tests-tab assertions still run.
+        </p>
+      </div>
+      }
       <!-- Pre-request script -->
       <div class="space-y-2">
         <div class="flex items-center gap-2">

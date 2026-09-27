@@ -5,6 +5,7 @@ import { MainService } from "./main.service";
 import { EnvironmentsService } from "./environments.service";
 import { ResponseInspectorService } from "../shared/inspect/response-inspector.service";
 import {
+  SCRIPTS_ENABLED,
   ScriptSandboxService,
   ScriptResponseContext,
 } from "../shared/scripts/script-sandbox.service";
@@ -70,6 +71,7 @@ export class RequestExecutionService {
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly responseInspector = inject(ResponseInspectorService);
   private readonly scriptSandbox = inject(ScriptSandboxService);
+  private readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
   private readonly assertionRunner = inject(AssertionRunnerService);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
@@ -78,7 +80,7 @@ export class RequestExecutionService {
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
 
-    if (spec.preRequestScript?.trim()) {
+    if (this.scriptsEnabled && spec.preRequestScript?.trim()) {
       const preResult = await this.scriptSandbox.execute(
         spec.preRequestScript,
         this.getEnvSnapshot()
@@ -207,7 +209,7 @@ export class RequestExecutionService {
   ): Promise<TestResult[]> {
     let results: TestResult[] = [];
 
-    if (spec.postRequestScript?.trim()) {
+    if (this.scriptsEnabled && spec.postRequestScript?.trim()) {
       const responseCtx: ScriptResponseContext = {
         statusCode,
         statusText,

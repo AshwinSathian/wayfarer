@@ -33,6 +33,7 @@ import { AuthType, HttpAuthPlaceholder, RequestDoc } from "../../models/collecti
 import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ScriptEditorComponent } from "../script-editor/script-editor.component";
+import { SCRIPTS_DISABLED_ISSUE, SCRIPTS_ENABLED } from "../../shared/scripts/script-sandbox.service";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
 import { AuthEditorComponent } from "./auth-editor/auth-editor.component";
 import {
@@ -140,6 +141,8 @@ export class ApiParamsComponent {
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly variableFocus = inject(VariableFocusService);
   private readonly requestExecution = inject(RequestExecutionService);
+  readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
+  readonly scriptsDisabledIssue = SCRIPTS_DISABLED_ISSUE;
   private readonly requestSave = inject(RequestSaveService);
 
   readonly newRequest = output<void>();

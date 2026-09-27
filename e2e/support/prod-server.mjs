@@ -82,7 +82,13 @@ function headersFor(pathname) {
 }
 
 async function resolveFile(pathname) {
-  const candidate = normalize(join(root, decodeURIComponent(pathname)));
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return null; // malformed escape: fall through to the SPA shell, don't crash
+  }
+  const candidate = normalize(join(root, decoded));
   if (candidate !== root && !candidate.startsWith(root + sep)) return null;
   for (const file of [candidate, join(candidate, "index.html")]) {
     try {

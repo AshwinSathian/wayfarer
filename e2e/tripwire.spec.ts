@@ -77,7 +77,7 @@ async function seedAndOpen(
   await page.goto("/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && db.version === 4)
+    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 4)
   );
   await page.evaluate(
     async ({ vars, request }) => {
@@ -149,6 +149,12 @@ test.describe("Phase 0 tripwires", () => {
   test("F03: a protected-variable placeholder is never sent on the wire", async ({ page }) => {
     test.fail(true, "open until P0.3 lands");
     const hits = await captureTarget(page);
+    // Scan every request to any host, not only the routed target.
+    const leaks: string[] = [];
+    page.on("request", (request) => {
+      const wire = [request.url(), JSON.stringify(request.headers()), request.postData() ?? ""].join("\n");
+      if (/\{\{\s*\$secret\./.test(wire)) leaks.push(request.url());
+    });
     await seedAndOpen(page, { apiKey: "{{$secret.00000000-0000-4000-8000-0000000000f3}}" }, {
       method: "GET",
       url: `${TARGET}/f03`,
@@ -158,7 +164,11 @@ test.describe("Phase 0 tripwires", () => {
     await send(page);
 
     await expect(page.getByText(/Protected variables are not yet applied to requests/)).toBeVisible();
+    // A fix that shows the error but still sends in the background must fail:
+    // give any in-flight send time to reach the wire before asserting.
+    await page.waitForTimeout(1_000);
     expect(hits).toHaveLength(0);
+    expect(leaks).toEqual([]);
   });
 
   for (const [contentType, body] of [

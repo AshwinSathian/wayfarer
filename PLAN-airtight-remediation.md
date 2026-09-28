@@ -28,7 +28,7 @@ A September 2026 adversarial audit found that Wayfarer's three differentiators a
 When Phase 7's exit criteria pass, all of the following are true and verified by CI on every commit:
 
 1. Every factual claim in `README.md` and `docs/trust-center.md` carries a claim ID. Each ID is enforced by at least one automated test that runs against production-equivalent headers in Chromium, Firefox and WebKit. CI fails if a claim has no test.
-2. Every finding F01–F42 is closed by a merged task whose AC is met, or is explicitly moved to section 15 (Follow-up Work) with a reason.
+2. Every finding F01–F43 (F43 was found during Phase 1) is closed by a merged task whose AC is met, or is explicitly moved to section 15 (Follow-up Work) with a reason.
 3. A Postman user can import a v2.1 collection (with environment), run it in-app and from `npx wayfarer-cli`, and get identical pass/fail results for scripts inside the published compatibility matrix.
 4. The production site passes a synthetic smoke suite every 6 hours. A failure opens a GitHub issue automatically.
 
@@ -408,7 +408,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - `/ws`;
   - `/oauth/{authorize,token}`;
   - `/big/:mb`;
-  - Postman Echo–compatible routes used by Newman's integration collections (`/get`, `/post`, `/put`, `/patch`, `/delete`, `/headers`, `/response-headers`, `/cookies`, `/cookies/set`, `/cookies/delete`, `/basic-auth`, `/status/:code`, `/delay/:s`, `/gzip`, `/deflate`, `/encoding/utf8`), with the same JSON response shapes. Fixture URLs pointing at `postman-echo.com` are rewritten to the echo-server at load time.
+  - Postman Echo–compatible routes used by Newman's integration collections, on their own origin `127.0.0.1:4302` so their paths match Postman's exactly (`/get`, `/post`, `/put`, `/patch`, `/delete`, `/headers`, `/response-headers`, `/cookies`, `/cookies/set`, `/cookies/delete`, `/basic-auth`, `/status/:code`, `/delay/:s`, `/gzip`, `/deflate`, `/encoding/utf8`), with the same JSON response shapes. Fixture URLs pointing at `postman-echo.com` are rewritten to the echo-server at load time.
   - AC: no e2e spec references `jsonplaceholder` or `httpbin` (`grep` in CI fails the build if any does).
 - [x] **P1.3** Playwright projects for `chromium`, `firefox` and `webkit`, plus a `claims` project (retries 0) that runs tests tagged `@claim`.
   - AC: the CI e2e job runs 3 browsers and reports per-browser results; a test tagged `@claim` fails CI on first failure.
@@ -446,10 +446,10 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - `tsconfig.json` `lib` set to `["ES2022", "DOM", "DOM.Iterable"]`;
   - `knip` with zero unused files, exports or deps;
   - all 36 silent catches either rethrow or call `DiagnosticsService.record(error, context)` (a stub in this phase, completed in P7.3).
-  - AC: `npm run lint` and `npx knip` pass with the rules enabled; `grep -rn "catch {" src/app --include=*.ts | grep -v spec` returns 0 lines.
+  - AC: `npm run lint` and `npx knip` pass with the rules enabled; `grep -rn "catch {" src/app --include=*.ts | grep -v '\.spec\.ts'` returns 0 lines. (The original `grep -v spec` also hid `src/app/shared/inspect/`; see change log v1.0.2.)
 - [x] **P1.12** Measure the bundle baseline (initial JS/CSS transfer size, gzip) and set `angular.json` budgets to `maximumError = baseline × 1.10` for initial. Add a `bundle-report` CI artifact.
   - AC: budgets in `angular.json` equal the recorded baseline numbers in this file's Appendix A; the build fails if they are exceeded.
-- [ ] **P1.13** Coverage: Vitest v8 coverage in browser mode, with thresholds `src/app/**` lines ≥ 70% and `packages/core/**` lines ≥ 90% (enforced once core exists).
+- [ ] **P1.13** *(Deferred 2026-09-28 by the maintainer: done with the Angular upgrade after this plan; see section 15.)* Coverage: Vitest v8 coverage in browser mode, with thresholds `src/app/**` lines ≥ 70% and `packages/core/**` lines ≥ 90% (enforced once core exists).
   - AC: CI fails below threshold.
 - [ ] **P1.14** Supply chain:
   - pin all Actions to SHAs;
@@ -913,6 +913,7 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Closed (#102) |
 | F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | #98 | Open |
 | F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | In progress (spike #102; fix in P6.2) |
+| F43 | Every query parameter typed in the URL was sent twice (found by the Phase 1 rails) | P1.4 (claims), tripwire F43 | #104 | Closed (#102) |
 
 ## 13. Adversarial review log
 
@@ -964,6 +965,12 @@ Final review against the plan-quality checklist:
 - open questions listed;
 - no time-relative language.
 
+Phase 1 execution review (PR #102):
+
+28. **"Tag the tests that exist; untested bullets are marketing."** Rejected: every behavioural bullet got a test. That found a wire bug (F43), a history-delete popup bug and a false bullet ("raw view"). A claim ledger that skips features only checks the sentences that were easy to check.
+29. **"Serve Postman Echo under a path prefix."** Rejected after review: a prefix changes `pm.request.url` and every path Newman's scripts assert on. A separate origin keeps them byte-identical.
+30. **"Block service workers in e2e so routes are deterministic."** Kept only where a route needs it (the tripwires). The C-001 test uses a real echo target with the worker active, so it also covers requests the worker makes.
+
 ## 14. Open questions
 
 None as of the lock (2026-09-28). The answers to the six pre-lock questions are recorded in section 1 ("Decisions already made"). Questions that come up during execution are added here with an owner and a deadline, and the change is logged in section 16.
@@ -977,6 +984,7 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 - mTLS client certificates in the bridge.
 - Digest, NTLM, Hawk and OAuth 1.0 auth.
 - Docker image for self-hosting.
+- P1.13 coverage gates (`src/app/**` lines ≥ 70% in browser mode, CI-enforced): do it together with the Angular upgrade planned after this plan. Angular 20.3's `@angular/build:unit-test` collects no browser-mode coverage and has no thresholds option (maintainer decision, 2026-09-28). `packages/core` ≥ 90% (Node Vitest) is unaffected and starts with P2.1.
 
 ## 16. Change log
 
@@ -985,7 +993,7 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 | 2026-09-28 | draft 1–3 | Initial plan and two adversarial review passes (section 13, items 1–22). |
 | 2026-09-28 | v1.0 LOCKED | Maintainer answers applied: unscoped npm names reserved early (P0.13); Cloudflare zone hardening with Bot Fight Mode off zone-wide (P0.12); history bodies on and timeout 0 confirmed; plan archived at P7.8; Newman integration collections plus Adyen and Microsoft Graph chosen as fixtures, with Newman as the reference runner (P3.4, P4.2). Final review items 23–27 in section 13. |
 | 2026-09-28 | v1.0.1 | Maintainer decision: `deploy.yml` and `preview.yml` removed; production deploys are manual from the CLI (`docs/deployment.md`) until P1.7, which now creates `deploy.yml` rather than modifying it. |
-| 2026-09-28 | v1.0.2 (pending maintainer approval, PR #102) | Phase 1 deviations: **P1.2** Postman Echo–compatible routes live under `/pm/` (fixtures rewrite `postman-echo.com` to `http://127.0.0.1:4300/pm`), because Postman's `/delay/:s` (seconds) conflicts with the native `/delay/:ms`. **P1.3** the `@claim` project is one per engine (`claims-chromium`, `claims-firefox`, `claims-webkit`), retries 0. **P1.4** a claim is a statement about privacy, security, data handling, network behaviour or a stated fact the app guarantees; known-limitation bullets stay tracked by their issues; README Highlights are covered by feature specs until P7.6. **P1.11** there were 42 silent catches, not 36 (`grep -v spec` also hides `src/app/shared/inspect/`); non-DI utilities call `recordDiagnostic`, injectables call `DiagnosticsService.record`. **P1.13 blocked**: Angular 20.3's `@angular/build:unit-test` collects no browser-mode coverage (0/0 even with include `**`) and has no thresholds option; needs a maintainer decision (upgrade Angular, or move the gate). **P1.7** `deploy.yml` is manual (`workflow_dispatch`), keeping v1.0.1's manual-deploy decision; it deploys a green CI run's artifact. **P1.9/P1.10** see D13 and P6.2. |
+| 2026-09-28 | v1.0.2 | Phase 1 deviations, each reviewed adversarially and decided under the maintainer's delegation (PR #102). **P1.2** Postman Echo–compatible routes get their own origin, `127.0.0.1:4302`, and fixtures rewrite only the origin: Postman's `/delay/:s` (seconds) collides with the native `/delay/:ms`, and a path prefix (the first draft) would have changed every path Newman's scripts see. **P1.3** kept: one retry-free claims project per engine (`claims-<browser>`), since success criterion 1 needs every claim in 3 browsers. **P1.4** reversed: the first draft excluded README feature bullets; the ledger now covers every behavioural statement in README and Trust Center (C-001–C-041), and `docs/claims.md` defines the exclusions (opinion, third-party facts, history, process commitments, issue-linked limitations). Writing those tests found F43 (#104, query sent twice), a stacked-popup bug in history delete, one false bullet ("raw view") and three imprecise ones (cURL, HAR size, "How it works" scripts); all fixed. **P1.11** fact: 42 silent catches, not 36; the AC grep is corrected to `grep -v '\.spec\.ts'`. **P1.7** kept: `deploy.yml` is manual (`workflow_dispatch`), consistent with v1.0.1; a push trigger would deploy every merge, including before P0.12. **P1.6** kept: Playwright's WebKit can't emulate offline for worker-served navigations, so WebKit offline is tested by stopping the server; the C-001 test no longer needs to block service workers. **P1.13** deferred by the maintainer to the post-plan Angular upgrade (section 15). **P1.9/P1.10** see D13 and P6.2. |
 
 ## Appendix A — Measurements (filled during execution)
 

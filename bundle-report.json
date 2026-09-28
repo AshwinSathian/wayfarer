@@ -1,10 +1,10 @@
 {
   "initial": {
-    "raw": 1707095,
-    "gzip": 443272,
+    "raw": 1707422,
+    "gzip": 443436,
     "js": {
-      "raw": 1370209,
-      "gzip": 343600
+      "raw": 1370536,
+      "gzip": 343764
     },
     "css": {
       "raw": 336886,
@@ -17,9 +17,9 @@
         "gzip": 998
       },
       {
-        "file": "main-UEV552PH.js",
-        "raw": 1368077,
-        "gzip": 342582
+        "file": "main-PGMAM3W4.js",
+        "raw": 1368404,
+        "gzip": 342746
       },
       {
         "file": "polyfills-PJGX3BAA.js",

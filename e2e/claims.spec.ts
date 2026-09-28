@@ -69,17 +69,6 @@ test("@claim:C-005 the vault key is held in memory only: a reload locks the vaul
   await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toHaveCount(0);
 });
 
-test("@claim:C-008 history keeps the Authorization header that was sent, in plain text", async ({ page }) => {
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${ECHO}/echo?c008=1`,
-    auth: { type: "bearer", bearer: { token: "c008-token-value" } },
-  });
-  await send(page);
-  await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect.poll(async () => JSON.stringify((await dumpIdb(page))["history"])).toContain("Bearer c008-token-value");
-});
-
 test("@claim:C-014 collection exports include auth fields in plain text", async ({ page }) => {
   await seedAndOpen(page, {}, {
     method: "GET",

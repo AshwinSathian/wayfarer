@@ -69,7 +69,9 @@ sw.addEventListener("fetch", (event) => {
 async function networkFirstShell(request: Request): Promise<Response> {
   try {
     const response = await fetch(request);
-    if (response.ok) await (await caches.open(CACHE)).put(SHELL, response.clone());
+    // Only the SPA's index.html is the shell; a navigation to a text file
+    // (THIRD_PARTY_NOTICES.md, security.txt) must not replace it.
+    if (response.ok && isHtml(response)) await (await caches.open(CACHE)).put(SHELL, response.clone());
     return response;
   } catch (error) {
     // Offline or unreachable: serve the cached shell (every route is the SPA).
@@ -85,7 +87,10 @@ async function cacheFirst(request: Request): Promise<Response> {
   const response = await fetch(request);
   // A missing asset gets the SPA's index.html with a 200 from the host; never
   // cache that under a script or font URL.
-  const isHtml = response.headers.get("content-type")?.includes("text/html") ?? false;
-  if (response.ok && !isHtml) await (await caches.open(CACHE)).put(request, response.clone());
+  if (response.ok && !isHtml(response)) await (await caches.open(CACHE)).put(request, response.clone());
   return response;
+}
+
+function isHtml(response: Response): boolean {
+  return response.headers.get("content-type")?.includes("text/html") ?? false;
 }

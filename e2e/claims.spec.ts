@@ -8,6 +8,10 @@ import { dumpIdb, seedAndOpen, send } from "./support/app";
 
 const PASSPHRASE = "correct horse battery staple";
 
+interface TrustedTypesFactory {
+  createPolicy(name: string, options: { createScript(s: string): string }): { createScript(s: string): string };
+}
+
 /** Creates an environment with one protected variable holding `plaintext`, saved. */
 async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await page.getByRole("button", { name: "New environment" }).click();
@@ -112,8 +116,7 @@ test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injecte
     );
     // Trusted Types (C-016) would already refuse the string; approve it with a
     // throwaway policy so this checks that script-src blocks it on its own.
-    type Factory = { createPolicy(n: string, o: { createScript(s: string): string }): { createScript(s: string): string } };
-    const factory = (window as unknown as { trustedTypes?: Factory }).trustedTypes;
+    const factory = (window as unknown as { trustedTypes?: TrustedTypesFactory }).trustedTypes;
     const code = "window.__c011 = true";
     const script = document.createElement("script");
     script.textContent = factory ? factory.createPolicy("c011-test", { createScript: (s) => s }).createScript(code) : code;

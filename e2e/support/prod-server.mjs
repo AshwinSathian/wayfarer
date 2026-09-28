@@ -132,7 +132,7 @@ function startServer(root, port) {
     } catch (error) {
       console.error("prod-server:", error);
       res.statusCode = 500;
-      res.end(String(error));
+      res.end("Internal Server Error");
     }
   }).listen(port, function () {
     console.log(`prod-server: ${root} on http://localhost:${this.address().port}`);

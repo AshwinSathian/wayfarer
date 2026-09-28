@@ -19,9 +19,16 @@ export function serialize(spec, { meta = false } = {}) {
 
 /** Replaces the CSP line of the first `/*` rule in a `_headers` file. */
 export function applyToHeaders(text, policy) {
-  const pattern = /^(\/\*\r?\n(?:[ \t]+.*\r?\n)*?[ \t]+Content-Security-Policy:)[^\r\n]*/m;
-  if (!pattern.test(text)) throw new Error("public/_headers: no Content-Security-Policy line under /*");
-  return text.replace(pattern, (_, head) => `${head} ${policy}`);
+  const lines = text.split("\n");
+  const rule = lines.findIndex((line) => line.replace(/\r$/, "") === "/*");
+  for (let i = rule + 1; rule >= 0 && i < lines.length && /^[ \t]/.test(lines[i]); i++) {
+    const match = /^([ \t]+Content-Security-Policy:)/.exec(lines[i]);
+    if (match) {
+      lines[i] = `${match[1]} ${policy}${lines[i].endsWith("\r") ? "\r" : ""}`;
+      return lines.join("\n");
+    }
+  }
+  throw new Error("public/_headers: no Content-Security-Policy line under /*");
 }
 
 /** Replaces the content attribute of the CSP <meta> in index.html. */

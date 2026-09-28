@@ -1,10 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const DIST = "dist/wayfarer/browser";
+
+// The worker only exists in the production build (npm run build).
+test.skip(!existsSync(join(DIST, "sw.js")), "needs the production build: run `npm run build` (CI=1 does it)");
 
 let root: string;
 let server: ChildProcess;
@@ -50,6 +54,18 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
   await page.reload();
   await expect(page.locator("input.address-url")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send request" })).toBeVisible();
+});
+
+test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell", async ({ page, context, browserName }) => {
+  await loadControlled(page);
+  // Served same-origin as text/markdown and text/plain: never the app shell.
+  await page.goto(`${base}/THIRD_PARTY_NOTICES.md`);
+  await page.goto(`${base}/.well-known/security.txt`);
+  server.kill();
+  await new Promise((resolve) => server.once("exit", resolve));
+  if (browserName !== "webkit") await context.setOffline(true);
+  await page.goto(`${base}/`);
+  await expect(page.locator("input.address-url")).toBeVisible();
 });
 
 test("@claim:C-010 with the service worker in control, a DNS failure shows the real network error, not a 504", async ({ page }) => {

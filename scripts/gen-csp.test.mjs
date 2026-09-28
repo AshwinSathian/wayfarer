@@ -32,6 +32,17 @@ test("applyToHeaders rewrites only the CSP line of the /* rule", () => {
   );
 });
 
+test("applyToHeaders keeps CRLF line endings and is linear on pathological input", () => {
+  assert.equal(
+    applyToHeaders("/*\r\n  X-A: 1\r\n  Content-Security-Policy: old\r\n", "new"),
+    "/*\r\n  X-A: 1\r\n  Content-Security-Policy: new\r\n"
+  );
+  const evil = "/*\n" + "\t\t\n".repeat(50_000);
+  const start = performance.now();
+  assert.throws(() => applyToHeaders(evil, "x"), /Content-Security-Policy/);
+  assert.ok(performance.now() - start < 1000);
+});
+
 test("applyToIndex rewrites the CSP meta content attribute", () => {
   const before = '<meta\n  http-equiv="Content-Security-Policy"\n  content="old"\n/>';
   assert.equal(applyToIndex(before, "a 'self'"), '<meta\n  http-equiv="Content-Security-Policy"\n  content="a \'self\'"\n/>');

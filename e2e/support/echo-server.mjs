@@ -32,6 +32,13 @@ const ECHO_PORT = 4300;
 const ECHO_SECOND_PORT = 4301;
 const MAX_BIG_MB = 100;
 const MAX_DELAY_MS = 60_000;
+const MAX_WS_FRAME = 16 << 20;
+
+/** A request-supplied integer, clamped to [min, max]; `fallback` when absent or not a number. */
+function clampInt(raw, min, max, fallback) {
+  const n = Number.parseInt(String(raw ?? ""), 10);
+  return Number.isFinite(n) ? Math.min(Math.max(n, min), max) : fallback;
+}
 
 /**
  * Newman's integration collections target postman-echo.com. Fixture loaders
@@ -155,7 +162,7 @@ async function handle(req, res) {
     return send(res, 200, { ...cors, "content-type": "application/json", "content-encoding": "deflate" }, deflateSync(JSON.stringify({ deflated: true })));
   }
   if ((m = /^\/delay\/(\d+)$/.exec(path))) {
-    const ms = Math.min(Number(m[1]), MAX_DELAY_MS);
+    const ms = clampInt(m[1], 0, MAX_DELAY_MS, 0);
     const timer = setTimeout(() => json(res, 200, { delayMs: ms }, cors), ms);
     res.on("close", () => clearTimeout(timer));
     return;
@@ -164,7 +171,7 @@ async function handle(req, res) {
   if (path === "/sse") return sse(req, res, url, cors);
   if (path === "/oauth/authorize") return authorize(res, url, cors);
   if (path === "/oauth/token") return token(res, body, cors);
-  if ((m = /^\/big\/(\d+)$/.exec(path))) return big(res, Math.min(Number(m[1]), MAX_BIG_MB), cors);
+  if ((m = /^\/big\/(\d+)$/.exec(path))) return big(res, clampInt(m[1], 0, MAX_BIG_MB, 0), cors);
   return json(res, 404, { error: "not found", path }, cors);
 }
 
@@ -202,9 +209,9 @@ function corsRoute(req, res, variant) {
 }
 
 function sse(req, res, url, cors) {
-  const count = Math.min(Number(url.searchParams.get("count") ?? 5), 1000);
-  const interval = Math.min(Number(url.searchParams.get("interval") ?? 50), 10_000);
-  const lastId = Number(req.headers["last-event-id"] ?? 0);
+  const count = clampInt(url.searchParams.get("count"), 1, 1000, 5);
+  const interval = clampInt(url.searchParams.get("interval"), 1, 10_000, 50);
+  const lastId = clampInt(req.headers["last-event-id"], 0, 1e9, 0);
   res.writeHead(200, { ...cors, "content-type": "text/event-stream", "cache-control": "no-store" });
   let id = lastId;
   const timer = setInterval(() => {
@@ -349,7 +356,7 @@ function postmanEcho(req, res, url, body, cors) {
   }
   if ((m = /^\/status\/(\d{3})$/.exec(path))) return json(res, Number(m[1]), { status: Number(m[1]) }, cors);
   if ((m = /^\/delay\/(\d+)$/.exec(path))) {
-    const seconds = Math.min(Number(m[1]), 10);
+    const seconds = clampInt(m[1], 0, 10, 0);
     const timer = setTimeout(() => json(res, 200, { delay: m[1] }, cors), seconds * 1000);
     res.on("close", () => clearTimeout(timer));
     return;
@@ -383,7 +390,14 @@ function upgrade(req, socket) {
   socket.on("data", (data) => {
     buffer = Buffer.concat([buffer, data]);
     for (;;) {
-      const frame = readFrame(buffer);
+      let frame;
+      try {
+        frame = readFrame(buffer);
+      } catch (error) {
+        console.error("echo-server: /ws", error.message);
+        socket.destroy();
+        return;
+      }
       if (!frame) break;
       buffer = buffer.subarray(frame.length);
       if (frame.opcode === 0x8) {
@@ -412,6 +426,7 @@ function readFrame(buf) {
     len = Number(buf.readBigUInt64BE(2));
     offset = 10;
   }
+  if (len > MAX_WS_FRAME) throw new RangeError(`WebSocket frame over ${MAX_WS_FRAME} bytes`);
   const maskLen = masked ? 4 : 0;
   if (buf.length < offset + maskLen + len) return null;
   const mask = masked ? buf.subarray(offset, offset + 4) : null;

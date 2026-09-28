@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Deploys are manual from the CLI (`wrangler versions upload`, check the
+  preview, `wrangler versions deploy`); see `docs/deployment.md`. The
+  `deploy.yml` and `preview.yml` workflows are removed. They had failed on
+  every run since 2026-07-30 for lack of Cloudflare secrets.
+
 ## [1.1.0] - 2026-09-28
 
 A September 2026 audit found features that failed without telling you and

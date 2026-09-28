@@ -110,8 +110,13 @@ test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injecte
     const violation = new Promise<string>((resolve) =>
       document.addEventListener("securitypolicyviolation", (e) => resolve(e.effectiveDirective), { once: true })
     );
+    // Trusted Types (C-016) would already refuse the string; approve it with a
+    // throwaway policy so this checks that script-src blocks it on its own.
+    type Factory = { createPolicy(n: string, o: { createScript(s: string): string }): { createScript(s: string): string } };
+    const factory = (window as unknown as { trustedTypes?: Factory }).trustedTypes;
+    const code = "window.__c011 = true";
     const script = document.createElement("script");
-    script.textContent = "window.__c011 = true";
+    script.textContent = factory ? factory.createPolicy("c011-test", { createScript: (s) => s }).createScript(code) : code;
     document.head.append(script);
     return { directive: await violation, ran: (window as unknown as { __c011?: boolean }).__c011 === true };
   });

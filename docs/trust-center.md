@@ -65,6 +65,15 @@ intranet-only API, see that component's own security model: the bridge
 relays your request from a process running on your own machine, and never
 leaves your network unless your target host does.
 
+## Content-Security-Policy
+
+Every page is served with a strict Content-Security-Policy, generated from
+[`security/csp.json`](../security/csp.json): scripts only from the app's
+own origin, no `eval`, no inline script. <!-- claim:C-011 -->
+It also requires Trusted Types, so strings can't reach DOM script sinks
+such as `innerHTML` or a `Worker` URL unless the app's policy approves
+them; its default policy approves only same-origin script URLs. <!-- claim:C-016 -->
+
 ## Script sandbox isolation
 
 Pre/post-request scripts are **disabled in the hosted app** while the

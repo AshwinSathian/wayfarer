@@ -8,18 +8,51 @@
     "Fonts are self-hosted and icons are inline SVG, so no third-party origin appears here."
   ],
   "directives": {
-    "default-src": ["'self'"],
-    "script-src": ["'self'"],
-    "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:"],
-    "font-src": ["'self'", "data:"],
-    "worker-src": ["'self'", "blob:"],
-    "connect-src": ["*"],
-    "object-src": ["'none'"],
-    "base-uri": ["'self'"],
-    "form-action": ["'self'"],
-    "frame-ancestors": ["'none'"],
-    "frame-src": ["'none'"],
-    "manifest-src": ["'self'"]
+    "default-src": [
+      "'self'"
+    ],
+    "script-src": [
+      "'self'"
+    ],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'"
+    ],
+    "img-src": [
+      "'self'",
+      "data:"
+    ],
+    "font-src": [
+      "'self'",
+      "data:"
+    ],
+    "worker-src": [
+      "'self'",
+      "blob:"
+    ],
+    "connect-src": [
+      "*"
+    ],
+    "object-src": [
+      "'none'"
+    ],
+    "base-uri": [
+      "'self'"
+    ],
+    "form-action": [
+      "'self'"
+    ],
+    "frame-ancestors": [
+      "'none'"
+    ],
+    "frame-src": [
+      "'none'"
+    ],
+    "manifest-src": [
+      "'self'"
+    ],
+    "require-trusted-types-for": [
+      "'script'"
+    ]
   }
 }

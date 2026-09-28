@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { Observable, catchError, of, switchMap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, throwError } from 'rxjs';
 import { PastRequest } from '../models/history.models';
+import { decodeResponseBody } from '../shared/http/response-body.util';
 import { BridgeService } from './bridge.service';
 
 interface BridgeRelayEnvelope {
@@ -34,21 +35,38 @@ export class MainService {
       return this.sendViaBridge(bridge.url, bridge.token, method, url, headers, body);
     }
 
-    const httpHeaders = new HttpHeaders(headers);
-    const options: {
-      headers: HttpHeaders;
-      observe: 'response';
-      body?: unknown;
-    } = {
-      headers: httpHeaders,
-      observe: 'response'
-    };
-
-    if (body !== undefined) {
-      options.body = body;
-    }
-
-    return this._httpClient.request(method, url, options);
+    // Raw bytes, decoded by decodeResponseBody: HttpClient's default
+    // responseType 'json' turned every non-JSON body into a
+    // {error, text} parse-failure wrapper (F04) and binary into mojibake (F05).
+    return this._httpClient
+      .request(method, url, {
+        headers: new HttpHeaders(headers),
+        observe: 'response',
+        responseType: 'arraybuffer',
+        body,
+      })
+      .pipe(
+        map((response) =>
+          response.clone<unknown>({
+            body: decodeResponseBody(response.body, response.headers.get('content-type')),
+          })
+        ),
+        catchError((err: HttpErrorResponse) => {
+          if (!(err.error instanceof ArrayBuffer)) {
+            return throwError(() => err);
+          }
+          return throwError(
+            () =>
+              new HttpErrorResponse({
+                error: decodeResponseBody(err.error, err.headers?.get('content-type')),
+                headers: err.headers,
+                status: err.status,
+                statusText: err.statusText,
+                url: err.url ?? url,
+              })
+          );
+        })
+      );
   }
 
   /**
@@ -135,22 +153,27 @@ export class MainService {
   }
 
   private decodeBridgeBody(envelope: BridgeRelayEnvelope): unknown {
-    let text = envelope.body ?? '';
+    const raw = envelope.body ?? '';
+    let bytes: ArrayBuffer;
     if (envelope.bodyEncoding === 'base64') {
       try {
-        text = atob(text);
+        bytes = Uint8Array.from(atob(raw), (char) => char.charCodeAt(0)).buffer;
       } catch {
-        // leave as the raw base64 string if it somehow doesn't decode
+        // Not valid base64: show what the bridge sent as text.
+        bytes = new TextEncoder().encode(raw).buffer;
       }
+    } else {
+      bytes = new TextEncoder().encode(raw).buffer;
     }
-    if (!text) {
-      return null;
+    let contentType = Object.entries(envelope.headers ?? {}).find(
+      ([name]) => name.toLowerCase() === 'content-type'
+    )?.[1];
+    if (envelope.bodyEncoding !== 'base64') {
+      // The bridge already decoded this body to a string, and it was
+      // re-encoded as UTF-8 above; the target's own charset no longer applies.
+      contentType = contentType?.replace(/;\s*charset\s*=\s*[^;]*/i, '');
     }
-    try {
-      return JSON.parse(text);
-    } catch {
-      return text;
-    }
+    return decodeResponseBody(bytes, contentType);
   }
 
   private describeBridgeError(body: BridgeRelayErrorBody | undefined): string | undefined {

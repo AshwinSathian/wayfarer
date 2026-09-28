@@ -9,6 +9,7 @@ import { ResponseInspectorService } from "../shared/inspect/response-inspector.s
 import { SCRIPTS_ENABLED, ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
 import { AssertionRunnerService } from "../shared/scripts/assertion-runner.service";
 import { EnvironmentDoc } from "../models/environments.models";
+import { BinaryBody } from "../shared/http/response-body.util";
 import { ScriptExecutionResult } from "../models/test-assertion.models";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
@@ -399,5 +400,21 @@ describe("RequestExecutionService", () => {
       });
       expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("passes a binary body through for download instead of stringifying it (P0.4, #62)", async () => {
+    const png = new BinaryBody(new Uint8Array([0x89, 0x50]).buffer, "image/png");
+    mainService.setResponse(of(new HttpResponse({ status: 200, statusText: "OK", body: png })));
+
+    const result = await service.execute({
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+
+    expect(result.response.binary).toBe(png);
+    expect(result.response.bodyIsJson).toBe(false);
+    expect(result.response.dataText).toBe("");
   });
 });

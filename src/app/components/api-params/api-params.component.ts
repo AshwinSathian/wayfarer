@@ -34,6 +34,7 @@ import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ScriptEditorComponent } from "../script-editor/script-editor.component";
 import { SCRIPTS_DISABLED_ISSUE, SCRIPTS_ENABLED } from "../../shared/scripts/script-sandbox.service";
+import { BinaryBody } from "../../shared/http/response-body.util";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
 import { AuthEditorComponent } from "./auth-editor/auth-editor.component";
 import {
@@ -211,6 +212,7 @@ export class ApiParamsComponent {
   readonly responseIsError = signal(false);
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
+  readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseInspection: Signal<ResponseInspection | null>;
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly requestBody = signal<{ key: string; value: unknown }[]>([
@@ -503,6 +505,7 @@ export class ApiParamsComponent {
     this.responseBodyIsJson.set(response.bodyIsJson);
     this.responseHeadersView.set(response.headersView);
     this.responseContentLength.set(response.contentLength);
+    this.responseBinary.set(response.binary ?? null);
     this.responseTab.set("body");
     this.responseData.set(response.dataText);
     this.responseError.set(response.errorText);
@@ -526,6 +529,7 @@ export class ApiParamsComponent {
     this.responseStatusText.set(undefined);
     this.responseIsError.set(false);
     this.responseContentLength.set(undefined);
+    this.responseBinary.set(null);
     this.responseTab.set("body");
     this.responseExportContext.set(null);
   }

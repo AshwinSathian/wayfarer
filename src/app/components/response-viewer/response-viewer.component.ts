@@ -9,6 +9,7 @@ import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
+import { BinaryBody } from "../../shared/http/response-body.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
 import { TestResult } from "../../models/test-assertion.models";
 import {
@@ -83,6 +84,7 @@ export class ResponseViewerComponent {
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);
   readonly testResults = input<TestResult[]>([]);
+  readonly responseBinary = input<BinaryBody | null>(null);
 
   exportItems: MenuItem[] = [
     {
@@ -173,6 +175,23 @@ export class ResponseViewerComponent {
 
   get testFailCount(): number {
     return this.testResults().filter((r) => !r.passed).length;
+  }
+
+  /** Saves a binary body with its exact bytes (F05); preview ships in v2.0 (P2.13). */
+  downloadBinary(): void {
+    const binary = this.responseBinary();
+    if (!binary) {
+      return;
+    }
+    const extension = binary.contentType.split("/")[1]?.split(/[+;]/)[0] || "bin";
+    // Always octet-stream: a blob: URL shares the app's origin, so a
+    // server-chosen type such as text/html must never be renderable here.
+    const url = URL.createObjectURL(new Blob([binary.bytes], { type: "application/octet-stream" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `response.${extension}`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   get canExport(): boolean {

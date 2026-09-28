@@ -13,6 +13,10 @@ import { CollectionsService, CollectionTree } from '../../services/collections.s
 import { Meta, RequestDoc } from '../../models/collections.models';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
+// MainService reads raw bytes (responseType 'arraybuffer'), so fixtures flush what the wire carries.
+const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).buffer;
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 class IdbServiceMock {
   init = vi.fn().mockReturnValue(Promise.resolve());
   add = vi.fn().mockReturnValue(Promise.resolve(1));
@@ -178,7 +182,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.method).toBe('GET');
-    req.flush({ ok: true }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ ok: true }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
 
     await pending;
 
@@ -226,7 +230,7 @@ describe('ApiParamsComponent', () => {
     const req = httpMock.expectOne('https://example.com/create');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ isActive: 'true' });
-    req.flush({ message: 'failed' }, { status: 500, statusText: 'Server Error' });
+    req.flush(jsonBytes({ message: 'failed' }), { status: 500, statusText: 'Server Error', headers: JSON_HEADERS });
 
     await pending;
 
@@ -265,7 +269,7 @@ describe('ApiParamsComponent', () => {
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({ name: 'Widget' });
     expect(req.request.headers.get('X-Trace')).toBe('abc123');
-    req.flush({ updated: true }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ updated: true }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
 
     await pending;
 
@@ -290,7 +294,7 @@ describe('ApiParamsComponent', () => {
     const req = httpMock.expectOne('https://example.com/items/99');
     expect(req.request.method).toBe('DELETE');
     expect(req.request.body).toBeNull();
-    req.flush(null, { status: 204, statusText: 'No Content' });
+    req.flush(new ArrayBuffer(0), { status: 204, statusText: 'No Content' });
 
     await pending;
 
@@ -491,7 +495,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://jsonplaceholder.typicode.com/todos/1');
     expect(req.request.headers.get('Authorization')).toBe('Bearer secret-token');
-    req.flush({ id: 1 }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ id: 1 }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
     await pending;
   });
 
@@ -507,7 +511,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
-    req.flush({}, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
     await pending;
   });
 

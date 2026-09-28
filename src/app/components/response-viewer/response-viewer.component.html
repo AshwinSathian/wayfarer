@@ -122,7 +122,14 @@
               </div>
               }
 
-              @if (!isError()) {
+              @if (responseBinary(); as binary) {
+              <div class="flex flex-wrap items-center gap-3 rounded-xl bg-canvas-panel border border-separator p-4">
+                <p class="type-callout text-label-secondary">
+                  Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }}) — preview ships in v2.0
+                </p>
+                <button pButton type="button" size="small" severity="secondary" label="Download" aria-label="Download response body" icon="pi pi-download" (click)="downloadBinary()"></button>
+              </div>
+              } @else if (!isError()) {
                 @if (responseBodyIsJson()) {
                 <app-json-editor
                   name="responseJson"

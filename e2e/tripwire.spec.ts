@@ -175,7 +175,6 @@ test.describe("Phase 0 tripwires", () => {
     ["text/plain; charset=utf-8", "tripwire F04 plain text"],
   ]) {
     test(`F04: a ${contentType.split(";")[0]} response renders as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
-      test.fail(true, "open until P0.4 lands");
       await captureTarget(page, { contentType, body });
       await page.goto("/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
@@ -190,6 +189,27 @@ test.describe("Phase 0 tripwires", () => {
       expect(await viewerText()).not.toContain('"text":');
     });
   }
+
+  test("F05: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff]);
+    await captureTarget(page, { contentType: "image/png", body: png });
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${TARGET}/f05.png`);
+    await send(page);
+
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    const viewer = page.locator("app-response-viewer");
+    await expect(viewer.getByText(`Binary response (${png.length} bytes, image/png)`)).toBeVisible();
+
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      viewer.getByRole("button", { name: "Download" }).click(),
+    ]);
+    const saved = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of saved) chunks.push(chunk as Buffer);
+    expect(Buffer.concat(chunks)).toEqual(png);
+  });
 
   test("F07: {{vars}} in the Auth tab are resolved before sending", async ({ page }) => {
     test.fail(true, "open until P0.6 lands");

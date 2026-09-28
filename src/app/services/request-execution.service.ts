@@ -14,6 +14,7 @@ import {
   AssertionResponseContext,
 } from "../shared/scripts/assertion-runner.service";
 import { PastRequest } from "../models/history.models";
+import { BinaryBody } from "../shared/http/response-body.util";
 import { TestAssertion, TestResult } from "../models/test-assertion.models";
 
 export interface BuiltRequest {
@@ -83,6 +84,8 @@ export interface RequestExecutionResponse {
   errorText: string;
   headersView: { name: string; value: string }[];
   contentLength?: number;
+  /** Set when the body is binary; the viewer offers it as a download (F05). */
+  binary?: BinaryBody;
 }
 
 export interface RequestExecutionResult {
@@ -188,6 +191,7 @@ export class RequestExecutionService {
           errorText: "",
           headersView: this.extractHeadersList(response.headers),
           contentLength: this.extractContentLength(response.headers),
+          binary: response.body instanceof BinaryBody ? response.body : undefined,
         },
       };
     } catch (err) {
@@ -235,6 +239,7 @@ export class RequestExecutionService {
             : this.stringifyPayload(errorBody),
           headersView: this.extractHeadersList(error.headers),
           contentLength: this.extractContentLength(error.headers),
+          binary: error.error instanceof BinaryBody ? error.error : undefined,
         },
       };
     }
@@ -314,6 +319,9 @@ export class RequestExecutionService {
 
   private isJsonPayload(payload: unknown): boolean {
     if (payload === null || payload === undefined) {
+      return false;
+    }
+    if (payload instanceof BinaryBody) {
       return false;
     }
     if (typeof payload === "object") {
@@ -428,7 +436,7 @@ export class RequestExecutionService {
 
   private stringifyPayload(payload: unknown): string {
     try {
-      if (payload === null || payload === undefined) {
+      if (payload === null || payload === undefined || payload instanceof BinaryBody) {
         return "";
       }
       if (typeof payload === "string") {

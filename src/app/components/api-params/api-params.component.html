@@ -204,6 +204,7 @@
     [responseContentLength]="responseContentLength()"
     [exportContext]="responseExportContext()"
     [testResults]="lastTestResults()"
+    [responseBinary]="responseBinary()"
     [(activeTab)]="responseTab"
   ></app-response-viewer>
   }
@@ -307,6 +308,7 @@
           [responseContentLength]="responseContentLength()"
           [exportContext]="responseExportContext()"
           [testResults]="lastTestResults()"
+          [responseBinary]="responseBinary()"
           [(activeTab)]="responseTab"
         ></app-response-viewer>
         } @else {

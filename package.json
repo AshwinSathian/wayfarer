@@ -38,7 +38,8 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "bridge": "node local-bridge/bin/cli.js",
-    "bridge:test": "node --test local-bridge/test/"
+    "bridge:test": "node --test local-bridge/test/",
+    "test:scripts": "node --test e2e/support/*.test.mjs"
   },
   "dependencies": {
     "@angular/animations": "^20.3.4",

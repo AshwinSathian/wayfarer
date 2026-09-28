@@ -5,6 +5,7 @@ import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
 import { SelectModule } from "primeng/select";
 import { AuthType, HttpAuthPlaceholder } from "../../../models/collections.models";
+import { IconComponent } from "../../../shared/icon/icon.component";
 
 /**
  * The composer's Auth tab — extracted out of `ApiParamsComponent` (same
@@ -17,7 +18,7 @@ import { AuthType, HttpAuthPlaceholder } from "../../../models/collections.model
 @Component({
   selector: "app-auth-editor",
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, SelectModule],
+  imports: [IconComponent, CommonModule, FormsModule, ButtonModule, InputTextModule, SelectModule],
   templateUrl: "./auth-editor.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

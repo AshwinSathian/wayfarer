@@ -7,6 +7,58 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-28
+
+A September 2026 audit found features that failed without telling you and
+docs that claimed more than the code does. This release fixes what can be
+fixed now, disables the rest with a visible explanation, and corrects the
+docs. Every finding is an issue labelled `audit-2026-09`.
+
+### Disabled
+
+- **Scripts in production builds**, including the hosted app. The sandbox
+  evaluates scripts with `new Function`, which the site's CSP forbids, so
+  every script failed without an error. The Scripts tab shows a banner;
+  Tests-tab assertions still run. Scripts return on a QuickJS sandbox (#58).
+- **Sending requests that reference a vault secret.** The placeholder
+  `{{$secret.<id>}}` went out literally. The request is now blocked with an
+  inline error; vault resolution ships in v2.0 (#60).
+- **Offline support.** The service worker faked `504 Gateway Timeout` on
+  network failures, so it was replaced by Angular's safety worker, which
+  unregisters itself (#63).
+
+### Fixed
+
+- Non-JSON responses (HTML, XML, text) show as text instead of
+  `{"error":{},"text":…}`; binary responses offer a byte-exact download
+  (#61, #62).
+- Network failures show a network-error message with DNS/CORS guidance
+  instead of a synthetic `504` or `0 Unknown Error` (#63).
+- `{{vars}}` resolve in the Auth tab and at any depth of a JSON body; nested
+  bodies are no longer sent as `"[object Object]"`, and numbers and booleans
+  keep their types (#64, #65).
+- Reset All Data reports failure when another tab blocks it, and other tabs
+  show a reload banner. Each tab opened three database connections at
+  startup and leaked two; it now opens one (#94).
+
+### Changed
+
+- Fonts are self-hosted and icons are inline SVG: no requests to Google.
+  Icon-only buttons have real accessible names (#75, #90).
+- README, Trust Center, security questionnaire, and the secrets, scripts,
+  storage and Local Bridge docs now match the code, with Known limitations
+  sections. Cloudflare is named as the static host (#70, #73, #75, #82).
+- Settings shows the app version.
+- CI e2e serves the build with production's headers (`e2e/support/prod-server.mjs`).
+
+### Added
+
+- `docs/runbook.md`: Cloudflare zone hardening, deploy secrets, npm name
+  reservation.
+- Tripwire e2e tests for each audit finding fixed here.
+
+**Also in this release:** the work below landed after 1.0.0 but was never tagged.
+
 ### Added
 
 - **Domain cutover + CI/CD**: deployed to Cloudflare (Workers with static

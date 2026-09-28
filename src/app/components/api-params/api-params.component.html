@@ -91,7 +91,7 @@
 
   @if (loadedCollectionRequest(); as bound) {
   <p class="type-footnote text-label-tertiary flex items-center gap-1.5 -mt-2">
-    <span class="material-symbols-outlined icon-xs">folder</span>
+    <app-icon name="folder" class="icon-xs" />
     Editing <span class="text-label-secondary">{{ bound.name }}</span> — Save writes back to this request.
     <button type="button" class="underline" (click)="clearComposer()">Start a new request instead</button>
   </p>
@@ -99,7 +99,7 @@
 
   @if (endpointError() !== '') {
   <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
-    <span class="material-symbols-outlined icon-xs">error</span>
+    <app-icon name="error" class="icon-xs" />
     {{ endpointError() }}
   </p>
   }
@@ -129,7 +129,7 @@
   </div>
   @if (missingVariableKeys().length) {
   <p class="type-footnote text-status-warning flex items-center gap-1.5">
-    <span class="material-symbols-outlined icon-xs">warning</span>
+    <app-icon name="warning" class="icon-xs" />
     Missing: {{ missingVariableKeys().join(', ') }}
   </p>
   }
@@ -204,6 +204,7 @@
     [responseContentLength]="responseContentLength()"
     [exportContext]="responseExportContext()"
     [testResults]="lastTestResults()"
+    [responseBinary]="responseBinary()"
     [(activeTab)]="responseTab"
   ></app-response-viewer>
   }
@@ -307,11 +308,12 @@
           [responseContentLength]="responseContentLength()"
           [exportContext]="responseExportContext()"
           [testResults]="lastTestResults()"
+          [responseBinary]="responseBinary()"
           [(activeTab)]="responseTab"
         ></app-response-viewer>
         } @else {
         <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6">
-          <span class="material-symbols-outlined icon-lg text-label-tertiary">bolt</span>
+          <app-icon name="bolt" class="icon-lg text-label-tertiary" />
           <p class="type-callout text-label-secondary">Send a request to see the response here</p>
         </div>
         }
@@ -362,7 +364,7 @@
     <div class="space-y-2">
       @if (!headersJsonValid()) {
       <small class="type-footnote text-status-error flex items-center gap-1">
-        <span class="material-symbols-outlined icon-xs">error</span>
+        <app-icon name="error" class="icon-xs" />
         Invalid JSON
       </small>
       }
@@ -396,7 +398,7 @@
     <div class="space-y-2">
       @if (!bodyJsonValid()) {
       <small class="type-footnote text-status-error flex items-center gap-1">
-        <span class="material-symbols-outlined icon-xs">error</span>
+        <app-icon name="error" class="icon-xs" />
         Invalid JSON
       </small>
       }
@@ -416,10 +418,20 @@
   <!-- ── Scripts template ─────────────────────────────────── -->
   <ng-template #scriptsContent>
     <div class="space-y-6">
+      @if (!scriptsEnabled) {
+      <div role="status" class="flex items-start gap-2 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+        <app-icon name="warning" class="icon-sm text-status-warning" />
+        <p class="type-callout text-status-warning">
+          Scripts are temporarily disabled while the sandbox is rebuilt (tracking
+          <a class="underline" href="https://github.com/AshwinSathian/wayfarer/issues/{{ scriptsDisabledIssue }}" target="_blank" rel="noopener noreferrer">#{{ scriptsDisabledIssue }}</a>).
+          Scripts below are saved but not run. Tests-tab assertions still run.
+        </p>
+      </div>
+      }
       <!-- Pre-request script -->
       <div class="space-y-2">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined icon-sm text-label-tertiary">play_arrow</span>
+          <app-icon name="play_arrow" class="icon-sm text-label-tertiary" />
           <div class="ds-section-label">Pre-request Script</div>
         </div>
         <p class="type-caption text-label-tertiary">
@@ -437,7 +449,7 @@
       <!-- Post-response script -->
       <div class="space-y-2">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined icon-sm text-label-tertiary">replay</span>
+          <app-icon name="replay" class="icon-sm text-label-tertiary" />
           <div class="ds-section-label">Post-response Script</div>
         </div>
         <p class="type-caption text-label-tertiary">
@@ -455,7 +467,7 @@
       <!-- Visual test assertions -->
       <div class="space-y-3">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined icon-sm text-label-tertiary">rule</span>
+          <app-icon name="rule" class="icon-sm text-label-tertiary" />
           <div class="ds-section-label">Tests</div>
         </div>
         @for (test of requestTests(); track test.id; let i = $index) {

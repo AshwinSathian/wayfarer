@@ -91,6 +91,12 @@ test.describe("Accessibility (primary flows)", () => {
   test("collections sidebar has no critical/serious violations", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "New collection" }).click();
+    // Scan the settled page, not a frame of the entrance/dialog fade: a
+    // half-faded label measured 4.38-4.46:1 while its at-rest colours are
+    // ~5.9:1. Self-hosted fonts paint earlier, which made that frame likelier.
+    await page.waitForFunction(() =>
+      document.getAnimations().every((animation) => animation.playState !== "running")
+    );
 
     const results = await buildAxe(page).analyze();
 

@@ -8,6 +8,7 @@ import { PopoverModule } from "primeng/popover";
 import { SkeletonModule } from "primeng/skeleton";
 import { TooltipModule } from "primeng/tooltip";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 export interface HistoryGroup {
   label: string;
@@ -18,6 +19,7 @@ export interface HistoryGroup {
   selector: "app-past-requests",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     ButtonModule,
     TooltipModule,

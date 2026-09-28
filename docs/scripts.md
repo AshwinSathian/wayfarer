@@ -1,5 +1,17 @@
 # Pre/Post-Request Scripts & Assertions
 
+> **Status (v1.1.0): scripts are disabled in production builds**, including
+> the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
+> The worker below evaluates script text with `new Function`, and the
+> site's Content-Security-Policy (`script-src 'self'`, no `'unsafe-eval'`)
+> forbids that, so every script used to fail without a visible error. The
+> Scripts tab now shows a banner, scripts are saved but not run, and
+> Tests-tab assertions keep working. Scripts return on a QuickJS (WASM)
+> sandbox that grants only an allow-listed API
+> ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)). The rest of
+> this document describes the current worker, which still runs in local
+> development builds.
+
 Wayfarer lets you attach a pre-request script, a post-response script, and
 a set of visual test assertions to any request. This document describes the
 `pm.*` API surface those scripts see and, separately and honestly, the
@@ -105,7 +117,7 @@ call), and unconditionally `terminate()`s the worker afterward. A worker is
 never reused across runs, so nothing persists between one script execution
 and the next.
 
-**Why this is a real boundary, not a block-list:** a dedicated Worker is a
+**What the worker boundary gives you:** a dedicated Worker is a
 separate JS realm. It structurally has no `window`, no `document`, no
 cookies, no `localStorage`, and no reference back to the main thread's
 memory (where the secrets vault's derived key and other requests' data
@@ -149,12 +161,16 @@ in the first place, and `fetch`/`XMLHttpRequest`/etc. have already been
 deleted before the script runs. The shadowing is kept as defense-in-depth on
 top of that, not as the primary guarantee.
 
-**Net effect:** a script, including one loaded from an imported, untrusted
-collection, can read/write environment variables via `pm.environment` and
-report `pm.test()` results back to the host, but cannot reach the DOM,
-cookies, `localStorage`, the main thread's memory (including the secrets
-vault's in-memory key), or the network, because none of those are reachable
-from inside the worker realm it actually executes in.
+**Net effect:** a script cannot reach the DOM, cookies, `localStorage`, or
+the main thread's memory (including the secrets vault's in-memory key);
+the worker realm doesn't have them. Network access is a different story:
+it is blocked only by the deny-list above, so any network-capable global
+that isn't on the list (for example a newer API such as `WebTransport`)
+would still be reachable, and a script can also post its own messages to
+the host. That is a deny-list, not an allow-list, and it is why the
+sandbox is being replaced
+([#59](https://github.com/AshwinSathian/wayfarer/issues/59)). Don't run
+scripts from collections you don't trust.
 
 **Caveats worth knowing:**
 

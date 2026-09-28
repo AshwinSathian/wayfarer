@@ -30,6 +30,7 @@ import {
   CollectionNodeAction,
   buildContextItems,
 } from "../../shared/collections/collection-context-menu.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 type NodeData = CollectionNodeData;
 
@@ -48,6 +49,7 @@ export interface PaletteAction {
   selector: "app-collections-sidebar",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     TreeModule,

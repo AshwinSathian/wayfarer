@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
-import { IdbCoreService } from "./idb-core.service";
+import { DatabaseResetBlockedError, IdbCoreService } from "./idb-core.service";
+import { DB_NAME } from "./idb-schema";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 describe("IdbCoreService", () => {
@@ -107,5 +108,47 @@ describe("IdbCoreService", () => {
     expect(service.useMemoryFallback).toBe(false);
     const db = await service.getDatabase();
     expect(db).not.toBeNull();
+  });
+
+  describe("honest reset (P0.7, #94)", () => {
+    it("opens one connection no matter how many callers init() concurrently", async () => {
+      const open = vi.spyOn(indexedDB, "open");
+      try {
+        await Promise.all([service.init(), service.getDatabase(), service.init()]);
+        expect(open).toHaveBeenCalledTimes(1);
+      } finally {
+        open.mockRestore();
+      }
+    });
+
+    it("fails with the close-other-tabs message while another connection holds the database", async () => {
+      await service.init();
+      // A connection that ignores versionchange, like a tab running a build
+      // from before this fix.
+      const held = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open(DB_NAME);
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+
+      try {
+        await expect(service.resetDatabase()).rejects.toThrow(DatabaseResetBlockedError);
+        await expect(service.resetDatabase()).rejects.toThrow("Close other Wayfarer tabs and try again");
+      } finally {
+        held.close();
+      }
+    }, 15_000);
+
+    it("closes this tab's connection and flags it when another tab resets", async () => {
+      const otherTab = new IdbCoreService();
+      await otherTab.init();
+      await service.init();
+
+      await service.resetDatabase();
+
+      await vi.waitFor(() => expect(otherTab.closedByOtherTab()).toBe(true));
+      await expect(otherTab.getDatabase()).rejects.toThrow(/reset in another tab/);
+      expect(service.closedByOtherTab()).toBe(false);
+    });
   });
 });

@@ -25,6 +25,7 @@ import {
   extractSecretId,
   isSecretReference,
 } from "../../shared/secrets/secret-reference.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -39,6 +40,7 @@ interface EnvironmentDraft {
   selector: "app-environments-manager",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     ButtonModule,

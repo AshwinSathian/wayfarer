@@ -33,6 +33,8 @@ import { AuthType, HttpAuthPlaceholder, RequestDoc } from "../../models/collecti
 import { buildCurlCommand } from "../../shared/inspect/export.util";
 import { JsonEditorComponent } from "../json-editor/json-editor.component";
 import { ScriptEditorComponent } from "../script-editor/script-editor.component";
+import { SCRIPTS_DISABLED_ISSUE, SCRIPTS_ENABLED } from "../../shared/scripts/script-sandbox.service";
+import { BinaryBody } from "../../shared/http/response-body.util";
 import { ApiParamsBasicComponent } from "./basic-editor/basic-editor.component";
 import { AuthEditorComponent } from "./auth-editor/auth-editor.component";
 import {
@@ -48,13 +50,16 @@ import {
   VariableToken,
   collectVariableTokens,
   resolveTemplate,
+  resolveTemplateDeep,
 } from "../../shared/environments/env-resolution.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
 import { prefersReducedMotion } from "../../shared/motion/prefers-reduced-motion";
 import {
   RequestExecutionService,
   RequestExecutionResponse,
+  RequestExecutionResult,
   BuiltRequest,
+  SendBlockedError,
 } from "../../services/request-execution.service";
 import { RequestSaveService, RequestContentSnapshot } from "../../services/request-save.service";
 import {
@@ -71,10 +76,11 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../../shared/http/request-url.util";
-import { buildAuthHeaders, buildAuthQueryParam } from "../../shared/http/request-auth.util";
+import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../../shared/http/request-auth.util";
 import { writeToClipboard } from "../../shared/http/clipboard.util";
 import {
   bodyObjectFromRows,
+  bodyRowsFromObject,
   isPlainObject,
   mergeHeaderRowsFromParsed,
   rowsFromObject,
@@ -86,6 +92,7 @@ import {
   needsKey,
   operatorsFor,
 } from "../../shared/http/test-assertion-ui.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";
@@ -94,6 +101,7 @@ type ContextType = "Body" | "Headers";
   selector: "app-api-params",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -140,6 +148,8 @@ export class ApiParamsComponent {
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly variableFocus = inject(VariableFocusService);
   private readonly requestExecution = inject(RequestExecutionService);
+  readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
+  readonly scriptsDisabledIssue = SCRIPTS_DISABLED_ISSUE;
   private readonly requestSave = inject(RequestSaveService);
 
   readonly newRequest = output<void>();
@@ -206,6 +216,7 @@ export class ApiParamsComponent {
   readonly responseIsError = signal(false);
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
+  readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseInspection: Signal<ResponseInspection | null>;
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly requestBody = signal<{ key: string; value: unknown }[]>([
@@ -318,7 +329,7 @@ export class ApiParamsComponent {
     this.endpoint.set(request.url);
     this.requestHeaders.set(rowsFromObject(request.headers));
     if (request.body && typeof request.body === "object") {
-      this.requestBody.set(rowsFromObject(request.body as Record<string, unknown>));
+      this.requestBody.set(bodyRowsFromObject(request.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(request.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -348,7 +359,7 @@ export class ApiParamsComponent {
     this.endpoint.set(doc.url);
     this.requestHeaders.set(rowsFromObject(doc.headers ?? {}));
     if (doc.body && typeof doc.body === "object") {
-      this.requestBody.set(rowsFromObject(doc.body as Record<string, unknown>));
+      this.requestBody.set(bodyRowsFromObject(doc.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(doc.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -432,12 +443,22 @@ export class ApiParamsComponent {
 
     this.loadingState.set(true);
 
-    const result = await this.requestExecution.execute({
-      preRequestScript: this.preRequestScript(),
-      postRequestScript: this.postRequestScript(),
-      tests: this.requestTests(),
-      buildRequest: () => this.buildRequestForExecution(endpointText),
-    });
+    let result: RequestExecutionResult;
+    try {
+      result = await this.requestExecution.execute({
+        preRequestScript: this.preRequestScript(),
+        postRequestScript: this.postRequestScript(),
+        tests: this.requestTests(),
+        buildRequest: () => this.buildRequestForExecution(endpointText),
+      });
+    } catch (error) {
+      this.loadingState.set(false);
+      if (error instanceof SendBlockedError) {
+        this.endpointError.set(error.message);
+        return;
+      }
+      throw error;
+    }
 
     this.loadingState.set(false);
     this.lastTestResults.set(result.testResults);
@@ -458,14 +479,15 @@ export class ApiParamsComponent {
     const method = this.selectedRequestMethod();
     const usesBody = this.isBodyMethod(method);
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = buildAuthHeaders(this.requestAuth());
+    const auth = resolveAuth(this.requestAuth(), (text) => resolveTemplate(text, context));
+    const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const body = usesBody ? this.resolveBody(this.buildBody(), context) : undefined;
     let url = appendEnabledParams(
       normalizeUrl(resolveTemplate(endpointText.trim(), context)),
       this.requestParams()
     );
-    const authParam = buildAuthQueryParam(this.requestAuth());
+    const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
@@ -488,6 +510,7 @@ export class ApiParamsComponent {
     this.responseBodyIsJson.set(response.bodyIsJson);
     this.responseHeadersView.set(response.headersView);
     this.responseContentLength.set(response.contentLength);
+    this.responseBinary.set(response.binary ?? null);
     this.responseTab.set("body");
     this.responseData.set(response.dataText);
     this.responseError.set(response.errorText);
@@ -511,6 +534,7 @@ export class ApiParamsComponent {
     this.responseStatusText.set(undefined);
     this.responseIsError.set(false);
     this.responseContentLength.set(undefined);
+    this.responseBinary.set(null);
     this.responseTab.set("body");
     this.responseExportContext.set(null);
   }
@@ -599,14 +623,7 @@ export class ApiParamsComponent {
     body: Record<string, unknown> | undefined,
     context: VariableContext
   ): Record<string, unknown> | undefined {
-    if (!body) {
-      return body;
-    }
-    const resolved: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(body)) {
-      resolved[key] = typeof value === "string" ? resolveTemplate(value, context) : value;
-    }
-    return resolved;
+    return body && (resolveTemplateDeep(body, context) as Record<string, unknown>);
   }
 
   maybeUpdateVariablePreview(): void {
@@ -730,14 +747,15 @@ export class ApiParamsComponent {
     }
     const context = this.buildVariableContext();
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = buildAuthHeaders(this.requestAuth());
+    const auth = resolveAuth(this.requestAuth(), (text) => resolveTemplate(text, context));
+    const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod();
     let url = appendEnabledParams(
       normalizeUrl(resolveTemplate(endpoint.trim(), context)),
       this.requestParams()
     );
-    const authParam = buildAuthQueryParam(this.requestAuth());
+    const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
@@ -800,7 +818,7 @@ export class ApiParamsComponent {
     if (!isPlainObject(value)) {
       return;
     }
-    const bodyRows = rowsFromObject(value);
+    const bodyRows = bodyRowsFromObject(value);
     this.requestBody.set(bodyRows.length ? bodyRows : [{ key: "", value: "" }]);
     this.maybeUpdateVariablePreview();
   }

@@ -33,16 +33,12 @@ All envelope fields use base64url so they stay filename/JSON friendly.
 3. Locking drops the in‑memory key.
 4. A `beforeunload` listener automatically locks when the tab refreshes or closes.
 
-Because there is no persisted verifier, the UI attempts to decrypt a stored envelope to validate the passphrase and surfaces a gentle error when it fails.
+Because there is no persisted verifier, the UI validates a passphrase by decrypting one stored envelope. With no secrets stored, there is nothing to check against, so any passphrase "unlocks" ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 
-## Passphrase Rotation
+## Known limitations
 
-To rotate secrets:
+- **Secrets can't be used in requests yet.** A protected variable holds a `{{$secret.<id>}}` placeholder, and the request resolver doesn't decrypt it. Since v1.1.0, a request that still contains such a placeholder is blocked with an inline error instead of being sent with the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
+- **No passphrase rotation.** Each secret is encrypted under a key derived from the passphrase that was unlocked when it was saved, and there is no way to re-encrypt existing secrets under a new passphrase ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)). The vault v2 design (a data key wrapped by the passphrase key) fixes this.
+- **A forgotten passphrase is unrecoverable.** There is no escrow; the only way out is to delete the secrets.
 
-1. **Unlock** with the current passphrase.
-2. **Reveal** or export the environment variables that contain `{{$secret.*}}` placeholders.
-3. **Lock**, then **unlock** with the new passphrase.
-4. **Re‑encrypt** each sensitive value (Protect Variable → new ciphertext).
-5. Optionally delete stale secrets via the IndexedDB `secrets` store (future UI).
-
-At no point does the app send secrets to a backend; everything stays local to the browser profile.
+Secrets never leave the browser: the app has no backend, and today it can't even put them in a request.

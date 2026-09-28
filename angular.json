@@ -28,6 +28,11 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "/"
+              },
+              {
+                "glob": "THIRD_PARTY_NOTICES.md",
+                "input": ".",
+                "output": "/"
               }
             ],
             "styles": [
@@ -58,7 +63,6 @@
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
                   "type": "initial",

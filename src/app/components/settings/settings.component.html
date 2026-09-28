@@ -94,7 +94,7 @@
           [class.text-status-success]="status.kind === 'ok'"
           [class.text-status-error]="status.kind === 'error'"
         >
-          <span class="material-symbols-outlined icon-xs mt-0.5">{{ status.kind === 'ok' ? 'check_circle' : 'error' }}</span>
+          <app-icon [name]="status.kind === 'ok' ? 'check_circle' : 'error'" class="icon-xs mt-0.5" />
           {{ status.message }}
         </p>
         }
@@ -150,6 +150,15 @@
         </ul>
       </details>
       }
+    </section>
+
+    <!-- About -->
+    <section class="flex flex-col gap-2">
+      <h3 class="ds-section-label">About</h3>
+      <div class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3">
+        <p class="type-subhead text-label-primary">Version</p>
+        <span class="type-callout text-label-secondary font-mono" data-testid="app-version">{{ version }}</span>
+      </div>
     </section>
 
     <!-- Danger zone -->

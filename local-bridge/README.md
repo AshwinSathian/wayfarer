@@ -27,8 +27,13 @@ npm run bridge
 
 This prints a **port** (default `7717`) and a **bridge token**. Open
 Wayfarer, go to the Local Bridge settings (toolbar → bridge icon), enable
-it, and enter both. From then on, requests that fail via a direct fetch can
-be retried through the bridge for that session.
+it, and enter both. While it is enabled, **every** request goes through the
+bridge; there is no per-request choice and no automatic fallback from a
+failed direct request ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
+Turn it off in the same settings to go back to direct requests.
+
+The bridge isn't published to npm yet; run it from a clone of this
+repository.
 
 Stop the process (`Ctrl+C`) when you're done; it doesn't need to run
 continuously, and per the security model below, it shouldn't.
@@ -104,9 +109,17 @@ the rest of this project gives its security-relevant surfaces.
   may not expect.
 - No streaming: the full response is buffered in memory before being
   wrapped and returned, capped at 25MB.
-- No redirect following beyond what Node's own `http`/`https` clients do by
-  default (none: redirects come back as an ordinary 3xx response for
-  Wayfarer to display, same as a direct fetch would show them).
+- No redirect following: redirects come back as an ordinary 3xx response.
+  A direct browser request, by contrast, follows redirects and shows only
+  the final response.
+- Multiple `Set-Cookie` headers are joined into one comma-separated value,
+  which breaks cookies whose `Expires` contains a comma, and compressed
+  responses are not decompressed
+  ([#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
+- Whether browsers let the hosted HTTPS app reach `http://127.0.0.1` is not
+  yet verified in every browser (Chrome's Local Network Access prompt,
+  Safari's mixed-content rules)
+  ([#99](https://github.com/AshwinSathian/wayfarer/issues/99)).
 
 ## CLI reference
 

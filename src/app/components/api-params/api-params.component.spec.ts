@@ -13,6 +13,10 @@ import { CollectionsService, CollectionTree } from '../../services/collections.s
 import { Meta, RequestDoc } from '../../models/collections.models';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
+// MainService reads raw bytes (responseType 'arraybuffer'), so fixtures flush what the wire carries.
+const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).buffer;
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
 class IdbServiceMock {
   init = vi.fn().mockReturnValue(Promise.resolve());
   add = vi.fn().mockReturnValue(Promise.resolve(1));
@@ -178,7 +182,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.method).toBe('GET');
-    req.flush({ ok: true }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ ok: true }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
 
     await pending;
 
@@ -226,7 +230,7 @@ describe('ApiParamsComponent', () => {
     const req = httpMock.expectOne('https://example.com/create');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ isActive: 'true' });
-    req.flush({ message: 'failed' }, { status: 500, statusText: 'Server Error' });
+    req.flush(jsonBytes({ message: 'failed' }), { status: 500, statusText: 'Server Error', headers: JSON_HEADERS });
 
     await pending;
 
@@ -265,7 +269,7 @@ describe('ApiParamsComponent', () => {
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual({ name: 'Widget' });
     expect(req.request.headers.get('X-Trace')).toBe('abc123');
-    req.flush({ updated: true }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ updated: true }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
 
     await pending;
 
@@ -290,7 +294,7 @@ describe('ApiParamsComponent', () => {
     const req = httpMock.expectOne('https://example.com/items/99');
     expect(req.request.method).toBe('DELETE');
     expect(req.request.body).toBeNull();
-    req.flush(null, { status: 204, statusText: 'No Content' });
+    req.flush(new ArrayBuffer(0), { status: 204, statusText: 'No Content' });
 
     await pending;
 
@@ -316,9 +320,10 @@ describe('ApiParamsComponent', () => {
     expect(component.selectedRequestMethod()).toBe('POST');
     expect(component.endpoint()).toBe('https://example.com/update');
     expect(component.requestHeaders()[0].key).toBe('Authorization');
+    // Values keep their JSON types, so replaying sends 3/true, not "3"/"true" (P0.6).
     expect(component.requestBody()).toEqual([
-      { key: 'count', value: '3' },
-      { key: 'enabled', value: 'true' },
+      { key: 'count', value: 3 },
+      { key: 'enabled', value: true },
     ]);
     expect(component.activeTab()).toBe('body');
   });
@@ -491,7 +496,7 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://jsonplaceholder.typicode.com/todos/1');
     expect(req.request.headers.get('Authorization')).toBe('Bearer secret-token');
-    req.flush({ id: 1 }, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({ id: 1 }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
     await pending;
   });
 
@@ -507,8 +512,73 @@ describe('ApiParamsComponent', () => {
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
-    req.flush({}, { status: 200, statusText: 'OK' });
+    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
     await pending;
+  });
+
+  describe('{{var}} resolution in nested bodies and auth (P0.6, #64 #65)', () => {
+    async function sendAndCapture(url: string) {
+      const pending = component.sendRequest();
+      const req = httpMock.expectOne((r) => r.url.startsWith(url));
+      const captured = { body: req.request.body, headers: req.request.headers, url: req.request.urlWithParams };
+      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      await pending;
+      return captured;
+    }
+
+    beforeEach(() => {
+      environmentsService.setActiveEnvironment(
+        buildEnvironment({ v: 'resolved', user: 'ada', pass: 'pw', keyName: 'X-Key' })
+      );
+    });
+
+    it('resolves variables at depth 3 and inside arrays, keeping non-string types', async () => {
+      component.onRequestMethodChange('POST');
+      component.endpoint.set('https://example.com/nested');
+      component.onBodyJsonParsed({
+        a: { b: { c: '{{v}}' } },
+        list: ['{{v}}', { deep: ['x-{{v}}'] }],
+        n: 1,
+        flag: false,
+        nothing: null,
+      });
+
+      const { body } = await sendAndCapture('https://example.com/nested');
+
+      expect(body).toEqual({
+        a: { b: { c: 'resolved' } },
+        list: ['resolved', { deep: ['x-resolved'] }],
+        n: 1,
+        flag: false,
+        nothing: null,
+      });
+    });
+
+    it('resolves a bearer token', async () => {
+      component.endpoint.set('https://example.com/bearer');
+      component.requestAuth.set({ type: 'bearer', bearer: { token: '{{v}}' } });
+      const { headers } = await sendAndCapture('https://example.com/bearer');
+      expect(headers.get('Authorization')).toBe('Bearer resolved');
+    });
+
+    it('resolves basic username and password before encoding', async () => {
+      component.endpoint.set('https://example.com/basic');
+      component.requestAuth.set({ type: 'basic', basic: { username: '{{user}}', password: '{{pass}}' } });
+      const { headers } = await sendAndCapture('https://example.com/basic');
+      expect(headers.get('Authorization')).toBe(`Basic ${btoa('ada:pw')}`);
+    });
+
+    it('resolves API-key name and value, in a header and in the query', async () => {
+      component.endpoint.set('https://example.com/key');
+      component.requestAuth.set({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'header' } });
+      const header = await sendAndCapture('https://example.com/key');
+      expect(header.headers.get('X-Key')).toBe('resolved');
+
+      component.endpoint.set('https://example.com/query');
+      component.requestAuth.set({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'query' } });
+      const query = await sendAndCapture('https://example.com/query');
+      expect(query.url).toContain('X-Key=resolved');
+    });
   });
 
   it('keeps the JSON editor text showing the literal {{var}} template, not a resolved snapshot', () => {

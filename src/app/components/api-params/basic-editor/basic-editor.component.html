@@ -15,6 +15,16 @@
       (ngModelChange)="itemChange.emit()"
       [attr.aria-label]="context() + ' name, row ' + (index + 1)"
     />
+    @if (isStructured(item.value)) {
+    <input
+      pInputText
+      class="w-full font-mono"
+      readonly
+      [value]="asJson(item.value)"
+      title="Nested value: edit it in JSON mode"
+      [attr.aria-label]="context() + ' value, row ' + (index + 1) + ' (read-only, edit in JSON mode)'"
+    />
+    } @else {
     <input
       pInputText
       class="w-full font-mono"
@@ -23,6 +33,7 @@
       (ngModelChange)="itemChange.emit()"
       [attr.aria-label]="context() + ' value, row ' + (index + 1)"
     />
+    }
     <div class="flex justify-end md:block md:text-center">
       <button
         pButton

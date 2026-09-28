@@ -5,6 +5,7 @@ import { MainService } from "./main.service";
 import { EnvironmentsService } from "./environments.service";
 import { ResponseInspectorService } from "../shared/inspect/response-inspector.service";
 import {
+  SCRIPTS_ENABLED,
   ScriptSandboxService,
   ScriptResponseContext,
 } from "../shared/scripts/script-sandbox.service";
@@ -13,6 +14,7 @@ import {
   AssertionResponseContext,
 } from "../shared/scripts/assertion-runner.service";
 import { PastRequest } from "../models/history.models";
+import { BinaryBody } from "../shared/http/response-body.util";
 import { TestAssertion, TestResult } from "../models/test-assertion.models";
 
 export interface BuiltRequest {
@@ -21,6 +23,46 @@ export interface BuiltRequest {
   headers: Record<string, string>;
   body?: Record<string, unknown>;
   usesBody: boolean;
+}
+
+/**
+ * Thrown by `execute()` when a request must not reach the network. The
+ * message is user-facing.
+ */
+export class SendBlockedError extends Error {
+  override readonly name = "SendBlockedError";
+}
+
+const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
+
+export const NETWORK_ERROR_TEXT =
+  "Network error — no response was received. The host may not resolve (DNS), may have refused " +
+  "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
+  "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
+
+export const SECRET_PLACEHOLDER_BLOCKED =
+  "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
+  "This request references one, so it was not sent.";
+
+/**
+ * True when a built request still carries a literal `{{$secret.<id>}}`
+ * placeholder anywhere it would go on the wire (F03). The URL is also checked
+ * percent-decoded, since URL normalisation may have encoded the braces.
+ */
+function containsSecretPlaceholder(request: BuiltRequest): boolean {
+  let decodedUrl = request.url;
+  try {
+    decodedUrl = decodeURIComponent(request.url);
+  } catch {
+    // Malformed escape: the raw URL is still checked below.
+  }
+  const wire = [
+    request.url,
+    decodedUrl,
+    JSON.stringify(request.headers),
+    request.usesBody ? JSON.stringify(request.body ?? null) : "",
+  ];
+  return wire.some((text) => SECRET_PLACEHOLDER.test(text));
 }
 
 export interface RequestExecutionSpec {
@@ -47,6 +89,8 @@ export interface RequestExecutionResponse {
   errorText: string;
   headersView: { name: string; value: string }[];
   contentLength?: number;
+  /** Set when the body is binary; the viewer offers it as a download (F05). */
+  binary?: BinaryBody;
 }
 
 export interface RequestExecutionResult {
@@ -70,6 +114,7 @@ export class RequestExecutionService {
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly responseInspector = inject(ResponseInspectorService);
   private readonly scriptSandbox = inject(ScriptSandboxService);
+  private readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
   private readonly assertionRunner = inject(AssertionRunnerService);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
@@ -78,7 +123,7 @@ export class RequestExecutionService {
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
 
-    if (spec.preRequestScript?.trim()) {
+    if (this.scriptsEnabled && spec.preRequestScript?.trim()) {
       const preResult = await this.scriptSandbox.execute(
         spec.preRequestScript,
         this.getEnvSnapshot()
@@ -92,6 +137,12 @@ export class RequestExecutionService {
     // Built only now, after the pre-script (and any environment mutations
     // it made) has already landed — see BuiltRequest / buildRequest's doc.
     const request = spec.buildRequest();
+    // ponytail: blocks instead of resolving; resolving here would put the
+    // plaintext into history (F14). Vault resolution plus redaction replace
+    // this in P2.4/P2.5.
+    if (containsSecretPlaceholder(request)) {
+      throw new SendBlockedError(SECRET_PLACEHOLDER_BLOCKED);
+    }
 
     this.responseInspector.markRequest(requestId, request.url);
 
@@ -145,6 +196,7 @@ export class RequestExecutionService {
           errorText: "",
           headersView: this.extractHeadersList(response.headers),
           contentLength: this.extractContentLength(response.headers),
+          binary: response.body instanceof BinaryBody ? response.body : undefined,
         },
       };
     } catch (err) {
@@ -192,6 +244,7 @@ export class RequestExecutionService {
             : this.stringifyPayload(errorBody),
           headersView: this.extractHeadersList(error.headers),
           contentLength: this.extractContentLength(error.headers),
+          binary: error.error instanceof BinaryBody ? error.error : undefined,
         },
       };
     }
@@ -207,7 +260,7 @@ export class RequestExecutionService {
   ): Promise<TestResult[]> {
     let results: TestResult[] = [];
 
-    if (spec.postRequestScript?.trim()) {
+    if (this.scriptsEnabled && spec.postRequestScript?.trim()) {
       const responseCtx: ScriptResponseContext = {
         statusCode,
         statusText,
@@ -273,6 +326,9 @@ export class RequestExecutionService {
     if (payload === null || payload === undefined) {
       return false;
     }
+    if (payload instanceof BinaryBody) {
+      return false;
+    }
     if (typeof payload === "object") {
       const hasBlob = typeof Blob !== "undefined" && payload instanceof Blob;
       const hasArrayBuffer =
@@ -314,10 +370,13 @@ export class RequestExecutionService {
 
   private resolveErrorBody(error: HttpErrorResponse): unknown {
     if (this.isNetworkError(error)) {
-      return (
-        error.message ||
-        "Network error — no response was received. Check the URL, your connection, or whether the API allows cross-origin requests (CORS)."
-      );
+      // A string here is the Local Bridge's own explanation; keep it. The
+      // HttpClient message ("Http failure response for ...: 0 Unknown Error")
+      // says nothing useful, so it never wins over the guidance (F06).
+      if (typeof error.error === "string" && error.error) {
+        return error.error;
+      }
+      return NETWORK_ERROR_TEXT;
     }
     return error.error ?? error.message;
   }
@@ -385,7 +444,7 @@ export class RequestExecutionService {
 
   private stringifyPayload(payload: unknown): string {
     try {
-      if (payload === null || payload === undefined) {
+      if (payload === null || payload === undefined || payload instanceof BinaryBody) {
         return "";
       }
       if (typeof payload === "string") {

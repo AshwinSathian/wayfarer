@@ -2,13 +2,14 @@ import { TestBed } from "@angular/core/testing";
 import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { Observable, of, throwError } from "rxjs";
 import { signal } from "@angular/core";
-import { RequestExecutionService, BuiltRequest } from "./request-execution.service";
+import { RequestExecutionService, BuiltRequest, SendBlockedError } from "./request-execution.service";
 import { MainService } from "./main.service";
 import { EnvironmentsService } from "./environments.service";
 import { ResponseInspectorService } from "../shared/inspect/response-inspector.service";
-import { ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
+import { SCRIPTS_ENABLED, ScriptSandboxService } from "../shared/scripts/script-sandbox.service";
 import { AssertionRunnerService } from "../shared/scripts/assertion-runner.service";
 import { EnvironmentDoc } from "../models/environments.models";
+import { BinaryBody } from "../shared/http/response-body.util";
 import { ScriptExecutionResult } from "../models/test-assertion.models";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
@@ -184,7 +185,9 @@ describe("RequestExecutionService", () => {
   it("shapes a network error (status 0) into a readable message rather than leaking the raw event", async () => {
     const progressEvent =
       typeof ProgressEvent !== "undefined" ? new ProgressEvent("error") : ({} as ProgressEvent);
-    const error = new HttpErrorResponse({ status: 0, error: progressEvent });
+    // HttpClient always sets a message ("Http failure response for ...: 0
+    // Unknown Error"), which used to win over the guidance text (P0.5, #63).
+    const error = new HttpErrorResponse({ status: 0, error: progressEvent, url: "https://x.invalid/" });
     mainService.setResponse(throwError(() => error));
 
     const result = await service.execute({
@@ -197,7 +200,9 @@ describe("RequestExecutionService", () => {
     expect(result.response.isError).toBe(true);
     expect(result.response.bodyIsJson).toBe(false);
     expect(result.response.errorText).not.toContain("isTrusted");
-    expect(result.response.errorText.length).toBeGreaterThan(0);
+    expect(result.response.errorText).toMatch(/^Network error/);
+    expect(result.response.errorText).toMatch(/CORS/);
+    expect(result.response.errorText).not.toContain("Unknown Error");
     expect(result.history.error).toBeDefined();
   });
 
@@ -331,5 +336,89 @@ describe("RequestExecutionService", () => {
       "env-1",
       expect.objectContaining({ vars: expect.objectContaining({ counter: "2" }) })
     );
+  });
+
+  describe("with scripts disabled (P0.2, #58)", () => {
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          RequestExecutionService,
+          AssertionRunnerService,
+          { provide: MainService, useValue: mainService },
+          { provide: ResponseInspectorService, useValue: responseInspector },
+          { provide: EnvironmentsService, useValue: environmentsService },
+          { provide: ScriptSandboxService, useValue: scriptSandbox },
+          { provide: SCRIPTS_ENABLED, useValue: false },
+        ],
+      });
+      service = TestBed.inject(RequestExecutionService);
+    });
+
+    it("never calls the sandbox, but still sends and runs Tests-tab assertions", async () => {
+      const result = await service.execute({
+        preRequestScript: "pm.environment.set('a', '1');",
+        postRequestScript: "pm.test('t', () => {});",
+        tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
+        buildRequest: () => builtRequest(),
+      });
+
+      expect(scriptSandbox.execute).not.toHaveBeenCalled();
+      expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
+      expect(result.testResults).toHaveLength(1);
+      expect(result.testResults[0]).toEqual(expect.objectContaining({ passed: true, source: "assertion" }));
+    });
+  });
+
+  describe("protected-variable placeholders (P0.3, #60)", () => {
+    const secret = "{{$secret.0b6f1c2e-0000-4000-8000-000000000001}}";
+    const cases: [string, Partial<BuiltRequest>][] = [
+      ["URL", { url: `https://example.com/?key=${secret}` }],
+      ["header value", { headers: { "X-Api-Key": secret } }],
+      ["header name", { headers: { [secret]: "1" } }],
+      ["nested body", { method: "POST", usesBody: true, body: { a: { b: [secret] } } }],
+      ["spaced placeholder", { headers: { Authorization: "Bearer {{ $secret.abc }}" } }],
+      ["percent-encoded URL", { url: "https://example.com/?key=%7B%7B%24secret.abc%7D%7D" }],
+    ];
+
+    for (const [where, overrides] of cases) {
+      it(`blocks the send when the ${where} still holds one`, async () => {
+        await expect(
+          service.execute({
+            preRequestScript: "",
+            postRequestScript: "",
+            tests: [],
+            buildRequest: () => builtRequest(overrides),
+          })
+        ).rejects.toThrow(SendBlockedError);
+        expect(mainService.sendRequest).not.toHaveBeenCalled();
+      });
+    }
+
+    it("still sends an ordinary {{var}} left unresolved", async () => {
+      await service.execute({
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest({ headers: { "X-Id": "{{missing}}" } }),
+      });
+      expect(mainService.sendRequest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("passes a binary body through for download instead of stringifying it (P0.4, #62)", async () => {
+    const png = new BinaryBody(new Uint8Array([0x89, 0x50]).buffer, "image/png");
+    mainService.setResponse(of(new HttpResponse({ status: 200, statusText: "OK", body: png })));
+
+    const result = await service.execute({
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+
+    expect(result.response.binary).toBe(png);
+    expect(result.response.bodyIsJson).toBe(false);
+    expect(result.response.dataText).toBe("");
   });
 });

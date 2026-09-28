@@ -4,11 +4,11 @@
     <div class="mb-3 flex items-center justify-between gap-2">
       <span class="type-overline text-label-tertiary">Environments</span>
       <div class="flex items-center gap-0.5">
-        <button class="ds-icon-btn" (click)="envImportInput.click()" title="Import">
-          <span class="material-symbols-outlined icon-sm">upload</span>
+        <button class="ds-icon-btn" (click)="envImportInput.click()" title="Import" aria-label="Import environments">
+          <app-icon name="upload" class="icon-sm" />
         </button>
-        <button class="ds-icon-btn" (click)="exportEnvironments()" title="Export">
-          <span class="material-symbols-outlined icon-sm">download</span>
+        <button class="ds-icon-btn" (click)="exportEnvironments()" title="Export" aria-label="Export environments">
+          <app-icon name="download" class="icon-sm" />
         </button>
         <button pButton size="small" icon="pi pi-plus" severity="secondary" aria-label="New environment" (click)="openNewEnvironmentDialog()"></button>
       </div>
@@ -24,7 +24,7 @@
 
     @if (!environments().length) {
     <div class="ds-empty-state py-6">
-      <span class="material-symbols-outlined icon-lg text-label-tertiary">dns</span>
+      <app-icon name="dns" class="icon-lg text-label-tertiary" />
       <p class="type-caption text-label-tertiary text-center">No environments yet.</p>
     </div>
     } @else {
@@ -45,7 +45,7 @@
           <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
           @if (activeEnvId === env.meta.id) {
           <span class="env-active-tag mt-1">
-            <span class="material-symbols-outlined icon-xs">radio_button_checked</span>
+            <app-icon name="radio_button_checked" class="icon-xs" />
             In use
           </span>
           }
@@ -130,7 +130,7 @@
             <div class="space-y-2">
               @if (!form.jsonValid) {
               <p class="type-footnote text-status-error flex items-center gap-1">
-                <span class="material-symbols-outlined icon-xs">error</span>
+                <app-icon name="error" class="icon-xs" />
                 Invalid JSON
               </p>
               }
@@ -153,7 +153,7 @@
   </div>
   } @else {
   <div class="ds-empty-state">
-    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">dns</span>
+    <app-icon name="dns" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
     <p class="type-callout text-label-tertiary max-w-[220px] text-center">Select or create an environment to begin editing.</p>
   </div>
   }
@@ -245,7 +245,7 @@
   </div>
   } @else {
   <div class="ds-empty-state py-6">
-    <span class="material-symbols-outlined icon-lg text-label-tertiary">upload_file</span>
+    <app-icon name="upload_file" class="icon-lg text-label-tertiary" />
     <p class="type-callout text-label-tertiary">Select a valid export file to continue.</p>
   </div>
   }

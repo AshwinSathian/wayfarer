@@ -42,4 +42,13 @@ export class ApiParamsBasicComponent {
    * parent has no other way to know the content changed.
    */
   readonly itemChange = output<void>();
+
+  /** Objects, arrays and null (from JSON mode) can't be edited as one text field; they're shown read-only as JSON. */
+  isStructured(value: unknown): boolean {
+    return typeof value === "object";
+  }
+
+  asJson(value: unknown): string {
+    return JSON.stringify(value);
+  }
 }

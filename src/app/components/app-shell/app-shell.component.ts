@@ -29,6 +29,7 @@ import { EnvironmentsService } from "../../services/environments.service";
 import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service";
 import { SecretsService } from "../../services/secrets.service";
 import { IdbService } from "../../data/idb.service";
+import { DatabaseResetBlockedError } from "../../data/idb-core.service";
 import { ThemeService } from "../../services/theme.service";
 import { BridgeService } from "../../services/bridge.service";
 import { ApiParamsComponent } from "../api-params/api-params.component";
@@ -37,11 +38,13 @@ import { CollectionsSidebarComponent, PaletteAction } from "../collections/colle
 import { EnvironmentsManagerComponent } from "../environments/environments-manager.component";
 import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
 import { SettingsComponent } from "../settings/settings.component";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 @Component({
   selector: "app-shell",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     DrawerModule,
     ButtonModule,
@@ -86,6 +89,7 @@ export class AppShellComponent implements OnInit {
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly secretsService = inject(SecretsService);
   private readonly idb = inject(IdbService);
+  readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly themeService = inject(ThemeService);
   readonly bridgeService = inject(BridgeService);
 
@@ -107,6 +111,7 @@ export class AppShellComponent implements OnInit {
   readonly confirmPassphrase = signal("");
   readonly unlockPassphrase = signal("");
   resettingAll = false;
+  readonly resetError = signal("");
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
@@ -374,21 +379,32 @@ export class AppShellComponent implements OnInit {
     this.closeBridgeSettings();
   }
 
+  /** Reloads only after the data is really gone; otherwise says why (F37). */
   private async performResetAllData(): Promise<void> {
     if (this.resettingAll) {
       return;
     }
     this.resettingAll = true;
+    this.resetError.set("");
     try {
       await this.idb.resetDatabase();
-      this.clearLocalCaches();
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
-    } finally {
+      this.resetError.set(
+        error instanceof DatabaseResetBlockedError
+          ? error.message
+          : "Reset failed; your data was not deleted. Reload the page and try again."
+      );
       this.resettingAll = false;
-      this.secretCrypto.lock();
-      location.reload();
+      return;
     }
+    this.clearLocalCaches();
+    this.secretCrypto.lock();
+    location.reload();
+  }
+
+  reload(): void {
+    location.reload();
   }
 
   private clearLocalCaches(): void {

@@ -1,7 +1,7 @@
 {
   "name": "wayfarer",
-  "version": "1.0.0",
-  "description": "The API client that can't rug-pull you: a local-first, no-account API testing client with collections, environments, an encrypted secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
+  "version": "1.1.0",
+  "description": "A local-first, no-account API client that runs entirely in the browser: collections, environments, an encrypted secrets vault, test assertions, and a response viewer.",
   "license": "MIT",
   "private": true,
   "author": "Ashwin Sathian",
@@ -51,6 +51,8 @@
     "@angular/platform-browser-dynamic": "^20.3.4",
     "@angular/router": "^20.3.4",
     "@angular/service-worker": "^20.3.4",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@primeng/themes": "^20.2.0",
     "idb": "^8.0.3",
     "monaco-editor": "^0.54.0",

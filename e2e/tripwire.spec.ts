@@ -127,7 +127,6 @@ test.describe("Phase 0 tripwires", () => {
   test.use({ serviceWorkers: "block" });
 
   test("F01: a script under production CSP either runs or shows the disabled banner, never fails silently", async ({ page }) => {
-    test.fail(true, "open until P0.2 lands");
     await captureTarget(page);
     const response = await seedAndOpen(page, {}, {
       method: "GET",
@@ -147,7 +146,6 @@ test.describe("Phase 0 tripwires", () => {
   });
 
   test("F03: a protected-variable placeholder is never sent on the wire", async ({ page }) => {
-    test.fail(true, "open until P0.3 lands");
     const hits = await captureTarget(page);
     // Scan every request to any host, not only the routed target.
     const leaks: string[] = [];
@@ -177,7 +175,6 @@ test.describe("Phase 0 tripwires", () => {
     ["text/plain; charset=utf-8", "tripwire F04 plain text"],
   ]) {
     test(`F04: a ${contentType.split(";")[0]} response renders as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
-      test.fail(true, "open until P0.4 lands");
       await captureTarget(page, { contentType, body });
       await page.goto("/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
@@ -193,8 +190,28 @@ test.describe("Phase 0 tripwires", () => {
     });
   }
 
+  test("F05: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
+    const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff]);
+    await captureTarget(page, { contentType: "image/png", body: png });
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${TARGET}/f05.png`);
+    await send(page);
+
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    const viewer = page.locator("app-response-viewer");
+    await expect(viewer.getByText(`Binary response (${png.length} bytes, image/png)`)).toBeVisible();
+
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      viewer.getByRole("button", { name: "Download" }).click(),
+    ]);
+    const saved = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of saved) chunks.push(chunk as Buffer);
+    expect(Buffer.concat(chunks)).toEqual(png);
+  });
+
   test("F07: {{vars}} in the Auth tab are resolved before sending", async ({ page }) => {
-    test.fail(true, "open until P0.6 lands");
     const hits = await captureTarget(page);
     await seedAndOpen(page, { token: "f07-token-value" }, {
       method: "GET",
@@ -209,7 +226,6 @@ test.describe("Phase 0 tripwires", () => {
   });
 
   test("F08: {{vars}} nested in a JSON body (objects and arrays) are resolved before sending", async ({ page }) => {
-    test.fail(true, "open until P0.6 lands");
     const hits = await captureTarget(page);
     await seedAndOpen(page, { token: "f08-value" }, {
       method: "POST",
@@ -228,18 +244,21 @@ test.describe("Phase 0 tripwires", () => {
 });
 
 test.describe("Phase 0 tripwires (service worker active)", () => {
-  test("F06: a DNS failure shows a network error, not a synthetic 504", async ({ page }) => {
-    test.fail(true, "open until P0.5 lands");
+  test("F06: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
     const response = await page.goto("/");
     await expectProdParity(response);
-    // Let the production service worker (if any) install and take control,
-    // as it has for any returning user, then load the app under it.
-    await page.evaluate(() =>
-      Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((resolve) => setTimeout(resolve, 35_000)),
-      ])
-    );
+    // Recreate a returning pre-v1.1.0 visitor: a registration for
+    // /ngsw-worker.js. On the audited build that URL is the Angular service
+    // worker; from v1.1.0 it is the safety worker, which unregisters itself.
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.register("/ngsw-worker.js");
+      const worker = registration.installing ?? registration.waiting ?? registration.active;
+      await new Promise<void>((resolve) => {
+        const settled = () => worker?.state === "activated" || worker?.state === "redundant";
+        if (!worker || settled()) return resolve();
+        worker.addEventListener("statechange", () => settled() && resolve());
+      });
+    });
     await page.reload();
 
     await page.locator("input.address-url").fill("https://tripwire-f06.invalid/");
@@ -247,5 +266,8 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
 
     await expect(page.getByText(/Network error/).first()).toBeVisible();
     await expect(page.locator(".status-badge")).not.toHaveText("504");
+    expect(
+      await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)
+    ).toBe(0);
   });
 });

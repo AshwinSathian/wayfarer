@@ -11,7 +11,3 @@ export interface EnvironmentDoc {
 
 export type EnvironmentId = UUID;
 
-export interface EnvironmentExport {
-  meta: Meta;
-  environments: EnvironmentDoc[];
-}

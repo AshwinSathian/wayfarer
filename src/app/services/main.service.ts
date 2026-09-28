@@ -158,8 +158,9 @@ export class MainService {
     if (envelope.bodyEncoding === 'base64') {
       try {
         bytes = Uint8Array.from(atob(raw), (char) => char.charCodeAt(0)).buffer;
-      } catch {
-        // Not valid base64: show what the bridge sent as text.
+      } catch (error) {
+        // Not valid base64 (atob throws InvalidCharacterError): show what the bridge sent as text.
+        if (!(error instanceof DOMException)) throw error;
         bytes = new TextEncoder().encode(raw).buffer;
       }
     } else {

@@ -1,4 +1,5 @@
-import { Injectable, OnDestroy } from "@angular/core";
+import { Injectable, OnDestroy, inject } from "@angular/core";
+import { DiagnosticsService } from "../../services/diagnostics.service";
 
 type WorkerJob =
   | { kind: "parse-pretty"; input: string; indent?: number }
@@ -27,6 +28,7 @@ const WORKER_MODULE_URL = new URL("./json.worker.ts", import.meta.url);
   providedIn: "root",
 })
 export class JsonWorkerService implements OnDestroy {
+  private readonly diagnostics = inject(DiagnosticsService);
   private worker: Worker | null = null;
   private nextId = 1;
   private readonly pending = new Map<number, PendingJob>();
@@ -89,7 +91,8 @@ export class JsonWorkerService implements OnDestroy {
 
         worker.postMessage({ id: jobId, job });
       });
-    } catch {
+    } catch (error) {
+      this.diagnostics.record(error, "json worker: job failed, running it inline");
       return Promise.resolve().then(() => fallback());
     }
   }

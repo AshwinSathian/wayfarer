@@ -30,6 +30,7 @@ import {
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
+import { parseJson, stringifyJson } from "../../shared/json/safe-json.util";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
 const noop = () => {};
@@ -297,21 +298,14 @@ export class JsonEditorComponent
   }
 
   private stringifyValue(value: unknown): string {
-    try {
-      return JSON.stringify(value, undefined, 2);
-    } catch {
-      return "";
-    }
+    return stringifyJson(value, 2) ?? "";
   }
 
   private tryParseJson(value: string): { isValid: boolean; parsed: unknown } {
     if (!value.trim()) {
       return { isValid: true, parsed: undefined };
     }
-    try {
-      return { isValid: true, parsed: JSON.parse(value) };
-    } catch {
-      return { isValid: false, parsed: undefined };
-    }
+    const parsed = parseJson(value);
+    return parsed.ok ? { isValid: true, parsed: parsed.value } : { isValid: false, parsed: undefined };
   }
 }

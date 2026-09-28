@@ -115,7 +115,7 @@ async function resolveFile(root, pathname) {
   return null;
 }
 
-export function startServer(root, port) {
+function startServer(root, port) {
   return createServer(async (req, res) => {
     try {
       // `_headers` is re-read per request so a test can swap the build in place.

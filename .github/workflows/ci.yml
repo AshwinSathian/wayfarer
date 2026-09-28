@@ -28,6 +28,8 @@ jobs:
       - run: npm run test:scripts
       - run: npm run check:csp
       - run: npm run check:claims
+      # P1.11: no unused files, exports or dependencies.
+      - run: npx knip
 
   test:
     name: Unit tests

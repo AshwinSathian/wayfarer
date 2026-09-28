@@ -45,4 +45,4 @@ function loadOrCreateToken({ rotate = false } = {}) {
   return token;
 }
 
-module.exports = { loadOrCreateToken, generateToken, TOKEN_FILE, CONFIG_DIR };
+module.exports = { loadOrCreateToken, TOKEN_FILE };

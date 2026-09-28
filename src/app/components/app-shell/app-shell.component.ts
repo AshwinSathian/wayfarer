@@ -39,6 +39,7 @@ import { EnvironmentsManagerComponent } from "../environments/environments-manag
 import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
 import { SettingsComponent } from "../settings/settings.component";
 import { IconComponent } from "../../shared/icon/icon.component";
+import { DiagnosticsService } from "../../services/diagnostics.service";
 
 @Component({
   selector: "app-shell",
@@ -69,6 +70,7 @@ import { IconComponent } from "../../shared/icon/icon.component";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {
+  private readonly diagnostics = inject(DiagnosticsService);
   readonly pastRequests = input<PastRequest[]>([]);
   readonly historyLoading = input(false);
   readonly drawerVisible = input(true);
@@ -410,15 +412,12 @@ export class AppShellComponent implements OnInit {
   private clearLocalCaches(): void {
     const keys = ["wayfarer:active-environment", "wayfarer:feature-flags"];
     for (const key of keys) {
-      try {
-        localStorage.removeItem(key);
-      } catch {
-        // ignored
-      }
-      try {
-        sessionStorage.removeItem(key);
-      } catch {
-        // ignored
+      for (const storage of ["localStorage", "sessionStorage"] as const) {
+        try {
+          window[storage].removeItem(key);
+        } catch (error) {
+          this.diagnostics.record(error, `reset: could not clear ${storage} key ${key}`);
+        }
       }
     }
   }

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { ConfirmationService } from "primeng/api";
+import { Confirmation, ConfirmationService } from "primeng/api";
 import { CollectionsSidebarComponent, PaletteAction } from "./collections-sidebar.component";
 import { CollectionsService, CollectionTree } from "../../services/collections.service";
 import { Collection, Folder, Meta, RequestDoc } from "../../models/collections.models";
@@ -166,8 +166,8 @@ describe("CollectionsSidebarComponent", () => {
       // two different instances.
       const confirmationService = fixture.debugElement.injector.get(ConfirmationService);
       let capturedAccept: (() => void) | undefined;
-      vi.spyOn(confirmationService, "confirm").mockImplementation((cfg: any) => {
-        capturedAccept = cfg.accept;
+      vi.spyOn(confirmationService, "confirm").mockImplementation((cfg: Confirmation) => {
+        capturedAccept = cfg.accept as (() => void) | undefined;
         return confirmationService;
       });
 

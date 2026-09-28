@@ -28,8 +28,8 @@ import { createHash, randomBytes } from "node:crypto";
 import { deflateSync, gzipSync } from "node:zlib";
 import { pathToFileURL } from "node:url";
 
-export const ECHO_PORT = 4300;
-export const ECHO_SECOND_PORT = 4301;
+const ECHO_PORT = 4300;
+const ECHO_SECOND_PORT = 4301;
 const MAX_BIG_MB = 100;
 const MAX_DELAY_MS = 60_000;
 

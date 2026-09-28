@@ -1,3 +1,4 @@
+import { parseJson } from "../../shared/json/safe-json.util";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { ResponseViewerComponent } from "./response-viewer.component";
@@ -8,11 +9,8 @@ import { describe, it, beforeEach, expect, vi } from "vitest";
 class JsonWorkerServiceStub {
   parsePretty = vi.fn()
     .mockImplementation(async (input: string, indent = 4) => {
-      try {
-        return JSON.stringify(JSON.parse(input), null, indent);
-      } catch {
-        return input;
-      }
+      const parsed = parseJson(input);
+      return parsed.ok ? JSON.stringify(parsed.value, null, indent) : input;
     });
   minify = vi.fn()
     .mockImplementation(async (input: string) => input);

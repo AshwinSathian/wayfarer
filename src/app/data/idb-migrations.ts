@@ -1,5 +1,5 @@
-import { IDBPCursorWithValue, IDBPDatabase, IDBPObjectStore, IDBPTransaction } from "idb";
-import { ApiSandboxDB, DB_VERSION, HistoryRecord, StoreCollection } from "./idb-schema";
+import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, IndexNames } from "idb";
+import { ApiSandboxDB, DB_VERSION, HistoryRecord, StoreCollection, StoreName } from "./idb-schema";
 
 /**
  * Object-store creation + index/upgrade logic for `IdbCoreService`'s
@@ -11,11 +11,10 @@ import { ApiSandboxDB, DB_VERSION, HistoryRecord, StoreCollection } from "./idb-
 
 /* istanbul ignore next -- helper invoked only during IndexedDB migrations */
 async function ensureFields(
-  store: IDBPObjectStore<any, any, any, "versionchange">,
+  store: IDBPObjectStore<ApiSandboxDB, StoreCollection, "history", "versionchange">,
   defaults: Record<string, unknown>
 ): Promise<void> {
-  let cursor: IDBPCursorWithValue<any, any, any, any, "versionchange"> | null =
-    await store.openCursor();
+  let cursor = await store.openCursor();
   while (cursor) {
     const value = { ...cursor.value } as HistoryRecord;
     let updated = false;
@@ -37,9 +36,9 @@ async function ensureFields(
   }
 }
 
-function ensureIndex(
-  store: IDBPObjectStore<any, any, any, "versionchange">,
-  name: string,
+function ensureIndex<S extends StoreName>(
+  store: IDBPObjectStore<ApiSandboxDB, StoreCollection, S, "versionchange">,
+  name: IndexNames<ApiSandboxDB, S>,
   keyPath: string | string[],
   options?: IDBIndexParameters
 ): void {
@@ -70,13 +69,13 @@ async function ensureHistoryStore(
   const legacyStoreName = "pastRequests";
   const storeNames = Array.from(db.objectStoreNames as DOMStringList);
   if (storeNames.includes(legacyStoreName)) {
-    const legacy = (transaction as IDBPTransaction<any, any, any>).objectStore(legacyStoreName);
+    const legacy = (transaction as IDBPTransaction<unknown, ArrayLike<string>, "versionchange">).objectStore(legacyStoreName);
     let cursor = await legacy.openCursor();
     while (cursor) {
       await store.put(cursor.value as HistoryRecord);
       cursor = await cursor.continue();
     }
-    (db as IDBPDatabase<any>).deleteObjectStore(legacyStoreName);
+    (db as IDBPDatabase<unknown>).deleteObjectStore(legacyStoreName);
   }
 
   if (oldVersion < 3) {

@@ -1,7 +1,7 @@
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
 
-export type VariableSource = "request" | "environment" | "global" | "missing";
-export type VariableLocation = "url" | "header" | "body";
+type VariableSource = "request" | "environment" | "global" | "missing";
+type VariableLocation = "url" | "header" | "body";
 
 export interface VariableContext {
   requestVars?: Record<string, string>;
@@ -20,7 +20,7 @@ export interface VariableToken {
 
 const PLACEHOLDER_PATTERN = /{{\s*([\w.-]+)\s*}}/g;
 
-export function resolveVariable(
+function resolveVariable(
   variable: string,
   context: VariableContext
 ): { value?: string; source: VariableSource; environmentId?: EnvironmentId } {
@@ -82,7 +82,7 @@ export function resolveTemplateDeep(value: unknown, context: VariableContext): u
   return value;
 }
 
-export function extractVariables(
+function extractVariables(
   text: string | undefined,
   location: VariableLocation,
   field: string,

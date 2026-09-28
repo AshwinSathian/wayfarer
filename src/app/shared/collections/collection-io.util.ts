@@ -1,3 +1,4 @@
+import { parseJson } from "../json/safe-json.util";
 import {
   Collection,
   CollectionExport,
@@ -12,7 +13,7 @@ export interface ValidationResult {
   message: string;
 }
 
-export interface CollectionImportPlanEntry {
+interface CollectionImportPlanEntry {
   type: "collection" | "folder" | "request";
   name: string;
   id: string;
@@ -112,14 +113,6 @@ export function importCollection(
     },
     idRemap,
   };
-}
-
-export function parseCollectionImport(text: string): {
-  payload?: CollectionExport;
-  errors?: ValidationResult[];
-} {
-  const result = validateCollection(text);
-  return result.ok ? { payload: normalizeExport(result.payload!) } : { errors: result.errors };
 }
 
 export function sortByOrder<T extends { order?: number; meta?: { id?: string }; id?: string }>(
@@ -358,11 +351,8 @@ function cloneValue<T>(value: T): T {
 }
 
 function safeParse(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
+  const parsed = parseJson(text);
+  return parsed.ok ? parsed.value : null;
 }
 
 function newId(): CollectionId {

@@ -28,6 +28,11 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "/"
+              },
+              {
+                "glob": "THIRD_PARTY_NOTICES.md",
+                "input": ".",
+                "output": "/"
               }
             ],
             "styles": [

@@ -3,11 +3,11 @@
   <div class="flex items-center justify-between gap-2">
     <span class="type-overline text-label-tertiary">Collections</span>
     <div class="flex items-center gap-0.5">
-      <button class="ds-icon-btn" (click)="openCommandPalette()" title="Command palette (⌘K)">
-        <span class="material-symbols-outlined icon-sm">bolt</span>
+      <button class="ds-icon-btn" (click)="openCommandPalette()" title="Command palette (⌘K)" aria-label="Open command palette">
+        <app-icon name="bolt" class="icon-sm" />
       </button>
-      <button class="ds-icon-btn" (click)="fileInput.click()" title="Import collection">
-        <span class="material-symbols-outlined icon-sm">upload</span>
+      <button class="ds-icon-btn" (click)="fileInput.click()" title="Import collection" aria-label="Import collection">
+        <app-icon name="upload" class="icon-sm" />
       </button>
       <button pButton icon="pi pi-plus" size="small" severity="secondary" aria-label="New collection" (click)="handleCreateCollection()"></button>
     </div>
@@ -25,7 +25,7 @@
   <p-skeleton width="100%" height="160px" borderRadius="14px"></p-skeleton>
   } @else if (!nodes().length) {
   <div class="ds-empty-state">
-    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">folder_open</span>
+    <app-icon name="folder_open" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
     <p class="type-callout text-label-tertiary max-w-[180px] text-center">No collections yet. Create one to organise your requests.</p>
   </div>
   } @else {
@@ -55,9 +55,9 @@
         />
         } @else {
           @if (node.data?.type === 'collection') {
-          <span class="material-symbols-outlined icon-sm text-label-tertiary flex-shrink-0">folder_open</span>
+          <app-icon name="folder_open" class="icon-sm text-label-tertiary flex-shrink-0" />
           } @else if (node.data?.type === 'folder') {
-          <span class="material-symbols-outlined icon-sm text-label-tertiary flex-shrink-0">folder</span>
+          <app-icon name="folder" class="icon-sm text-label-tertiary flex-shrink-0" />
           } @else if (node.data?.type === 'request' && node.data?.method) {
           <span class="method-badge method-{{ node.data.method.toLowerCase() }} flex-shrink-0">
             {{ node.data.method }}
@@ -142,7 +142,7 @@
   } }
   @else {
   <div class="ds-empty-state">
-    <span class="material-symbols-outlined icon-lg text-label-tertiary">upload_file</span>
+    <app-icon name="upload_file" class="icon-lg text-label-tertiary" />
     <p class="type-callout text-label-tertiary">Select a valid collection export file to proceed.</p>
   </div>
   }
@@ -238,7 +238,7 @@
       }
       } @else {
       <div class="ds-empty-state py-6">
-        <span class="material-symbols-outlined icon-md text-label-tertiary">search_off</span>
+        <app-icon name="search_off" class="icon-md text-label-tertiary" />
         <p class="type-callout text-label-tertiary">No matching commands.</p>
       </div>
       }

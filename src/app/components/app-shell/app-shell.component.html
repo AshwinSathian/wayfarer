@@ -21,7 +21,7 @@
         </div>
         @if (isMobile()) {
         <button class="ds-icon-btn" aria-label="Close navigation" (click)="toggleDrawer.emit()">
-          <span class="material-symbols-outlined icon-md">side_navigation</span>
+          <app-icon name="side_navigation" class="icon-md" />
         </button>
         }
       </div>
@@ -91,7 +91,7 @@
       <!-- Left: nav toggle + brand -->
       <div class="flex items-center gap-2">
         <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
-          <span class="material-symbols-outlined icon-md">side_navigation</span>
+          <app-icon name="side_navigation" class="icon-md" />
         </button>
         <div class="hidden md:flex items-center gap-2">
           <div class="brand-logo-icon" style="width:22px; height:22px; border-radius: 5px;">
@@ -129,9 +129,7 @@
           [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
           [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
         >
-          <span class="material-symbols-outlined icon-md">
-            {{ secretsUnlocked ? 'lock_open' : 'lock' }}
-          </span>
+          <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
         </button>
 
         <!-- Manage Secrets — a dedicated, discoverable home for the vault
@@ -143,7 +141,7 @@
           title="Manage secrets"
           aria-label="Manage secrets"
         >
-          <span class="material-symbols-outlined icon-md">key</span>
+          <app-icon name="key" class="icon-md" />
         </button>
 
         <!-- Local Bridge -->
@@ -154,7 +152,7 @@
           title="Local Bridge settings"
           aria-label="Local Bridge settings"
         >
-          <span class="material-symbols-outlined icon-md">router</span>
+          <app-icon name="router" class="icon-md" />
         </button>
 
         <!-- Theme toggle -->
@@ -162,10 +160,9 @@
           class="ds-icon-btn"
           (click)="themeService.toggle()"
           [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+          [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
         >
-          <span class="material-symbols-outlined icon-md">
-            {{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}
-          </span>
+          <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-md" />
         </button>
 
         <!-- History -->
@@ -176,7 +173,7 @@
           title="Request history"
           aria-label="Request history"
         >
-          <span class="material-symbols-outlined icon-md">history</span>
+          <app-icon name="history" class="icon-md" />
         </button>
 
         <!-- Settings -->
@@ -186,7 +183,7 @@
           title="Settings"
           aria-label="Settings"
         >
-          <span class="material-symbols-outlined icon-md">settings</span>
+          <app-icon name="settings" class="icon-md" />
         </button>
       </div>
     </header>
@@ -228,7 +225,7 @@
   <div class="flex h-full flex-col">
     <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined icon-sm text-label-tertiary">history</span>
+        <app-icon name="history" class="icon-sm text-label-tertiary" />
         <span class="type-title-3 text-label-primary">History</span>
       </div>
       <div class="flex items-center gap-1">
@@ -245,8 +242,8 @@
           aria-label="Clear all history"
           (click)="confirmClear()"
         ></button>
-        <button class="ds-icon-btn" (click)="historyDrawerVisible.set(false)" title="Close">
-          <span class="material-symbols-outlined icon-md">close</span>
+        <button class="ds-icon-btn" (click)="historyDrawerVisible.set(false)" title="Close" aria-label="Close history">
+          <app-icon name="close" class="icon-md" />
         </button>
       </div>
     </div>
@@ -274,9 +271,7 @@
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <span class="material-symbols-outlined icon-md text-label-tertiary mt-0.5 flex-shrink-0">
-        {{ isFirstVaultSetup() ? 'shield_lock' : 'lock' }}
-      </span>
+      <app-icon [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'" class="icon-md text-label-tertiary mt-0.5 flex-shrink-0" />
       <p class="type-callout text-label-secondary leading-relaxed">
         @if (isFirstVaultSetup()) {
         Create a passphrase to encrypt your secrets. You'll need it to access them in future sessions.
@@ -311,7 +306,7 @@
 
     @if (unlockError()) {
     <p class="type-footnote text-status-error flex items-center gap-1.5">
-      <span class="material-symbols-outlined icon-xs">error</span>
+      <app-icon name="error" class="icon-xs" />
       {{ unlockError() }}
     </p>
     }
@@ -341,7 +336,7 @@
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <span class="material-symbols-outlined icon-md text-label-tertiary mt-0.5 flex-shrink-0">router</span>
+      <app-icon name="router" class="icon-md text-label-tertiary mt-0.5 flex-shrink-0" />
       <p class="type-callout text-label-secondary leading-relaxed">
         Optional relay for CORS-restrictive or intranet-only APIs. Runs on your own machine — nothing is sent anywhere unless you enable it here.
         <a
@@ -410,11 +405,11 @@
       <span class="type-footnote text-label-tertiary">Checking…</span>
       } @else if (bridgeTestStatus() === 'ok') {
       <span class="type-footnote text-status-success flex items-center gap-1">
-        <span class="material-symbols-outlined icon-xs">check_circle</span> Reachable
+        <app-icon name="check_circle" class="icon-xs" /> Reachable
       </span>
       } @else if (bridgeTestStatus() === 'fail') {
       <span class="type-footnote text-status-error flex items-center gap-1">
-        <span class="material-symbols-outlined icon-xs">error</span> Not reachable
+        <app-icon name="error" class="icon-xs" /> Not reachable
       </span>
       }
     </div>
@@ -451,7 +446,7 @@
   >
     <div class="flex flex-col items-center p-8 bg-canvas-overlay rounded-2xl">
       <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4">
-        <span class="material-symbols-outlined icon-lg text-status-error">warning</span>
+        <app-icon name="warning" class="icon-lg text-status-error" />
       </div>
       <span id="global-confirm-dialog-header" class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
       <p id="global-confirm-dialog-message" class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>

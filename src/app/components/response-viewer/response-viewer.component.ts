@@ -32,6 +32,7 @@ import {
   getTimingBars,
 } from "../../shared/inspect/timing-bars.util";
 import { writeToClipboard } from "../../shared/http/clipboard.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry.util";
 
@@ -46,6 +47,7 @@ interface ResponseHeader {
   selector: "app-response-viewer",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     TabsModule,

@@ -1,8 +1,10 @@
-/* ── External fonts ─────────────────────────────────────── */
-/* Inter Variable — full optical-size + weight range */
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,250,0,-25");
+/* ── Fonts (self-hosted; no requests to Google, F18) ────── */
+/* Inter Variable — full optical-size + weight range, upright and italic */
+@import "@fontsource-variable/inter/opsz.css";
+@import "@fontsource-variable/inter/opsz-italic.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
 
 /* ── Design system ──────────────────────────────────────── */
 @import "./design-system/tokens.css";

@@ -29,25 +29,23 @@ pre,
 }
 
 /* ── Icon system ─────────────────────────────────────────── */
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined', sans-serif;
-  /* FILL 0 = outline, wght 250 = ultra-light (SF Symbols feel),
-     opsz 20 = small optical size for UI icons */
-  font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20;
-  line-height: 1;
+/* <app-icon> renders an inline SVG sized 1em, so these classes size it
+   through font-size and colour it through currentColor. Glyphs are Material
+   Symbols Outlined, weight 300 (see src/app/shared/icon/icon-paths.ts). */
+.app-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  user-select: none;
+  line-height: 1;
   flex-shrink: 0;
+  user-select: none;
 }
 
-.icon-xs  { font-size: 14px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 16; }
-.icon-sm  { font-size: 16px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20; }
-.icon-md  { font-size: 20px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 20; }
-.icon-lg  { font-size: 24px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 24; }
-.icon-xl  { font-size: 32px; font-variation-settings: 'FILL' 0, 'wght' 250, 'GRAD' -25, 'opsz' 48; }
-.icon-filled { font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 20; }
+.icon-xs  { font-size: 14px; }
+.icon-sm  { font-size: 16px; }
+.icon-md  { font-size: 20px; }
+.icon-lg  { font-size: 24px; }
+.icon-xl  { font-size: 32px; }
 
 /* ── Type scale ──────────────────────────────────────────── */
 /* Apple-inspired scale: tighter tracking on larger sizes,

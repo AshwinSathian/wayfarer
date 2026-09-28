@@ -38,11 +38,13 @@ import { CollectionsSidebarComponent, PaletteAction } from "../collections/colle
 import { EnvironmentsManagerComponent } from "../environments/environments-manager.component";
 import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
 import { SettingsComponent } from "../settings/settings.component";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 @Component({
   selector: "app-shell",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     DrawerModule,
     ButtonModule,

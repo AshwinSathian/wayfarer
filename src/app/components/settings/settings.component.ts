@@ -11,6 +11,7 @@ import {
   serializeEnvironmentExport,
   validateEnvironmentExport,
 } from "../../shared/environments/environment-io.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 interface KeyboardShortcut {
   keys: string;
@@ -30,7 +31,7 @@ interface KeyboardShortcut {
 @Component({
   selector: "app-settings",
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, TooltipModule],
+  imports: [IconComponent, CommonModule, ButtonModule, DialogModule, TooltipModule],
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

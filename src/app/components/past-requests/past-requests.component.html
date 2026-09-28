@@ -13,7 +13,7 @@
   </div>
   } @else if (!pastRequests().length) {
   <div class="flex flex-col items-center gap-2.5 p-6 text-center">
-    <span class="material-symbols-outlined icon-xl text-label-tertiary" style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;">history</span>
+    <app-icon name="history" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
     <p class="type-footnote text-label-tertiary">No history yet.</p>
   </div>
   } @else {
@@ -71,9 +71,10 @@
               class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
               pTooltip="Delete"
               tooltipPosition="top"
+              aria-label="Delete history entry"
               (click)="confirmDelete(request, $event)"
             >
-              <span class="material-symbols-outlined icon-sm text-status-error">delete</span>
+              <app-icon name="delete" class="icon-sm text-status-error" />
             </button>
 
             <p-confirmpopup #cp>

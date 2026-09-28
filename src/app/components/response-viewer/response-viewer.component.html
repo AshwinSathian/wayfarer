@@ -35,7 +35,7 @@
       <!-- Duration -->
       @if (inspData && inspData.duration) {
       <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
-        <span class="material-symbols-outlined icon-xs">timer</span>
+        <app-icon name="timer" class="icon-xs" />
         {{ formatMs(inspData.duration) }}
       </span>
       }
@@ -43,7 +43,7 @@
       <!-- Size -->
       @if (responseContentLength()) {
       <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
-        <span class="material-symbols-outlined icon-xs">data_object</span>
+        <app-icon name="data_object" class="icon-xs" />
         {{ formatBytes(responseContentLength()) }}
       </span>
       }
@@ -188,7 +188,7 @@
             @let inspectionData = inspectionValue;
             @if (!inspectionData) {
             <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
-              <span class="material-symbols-outlined icon-md text-label-tertiary">timer</span>
+              <app-icon name="timer" class="icon-md text-label-tertiary" />
               <p class="type-callout text-label-tertiary">Timing data will appear after you send a request.</p>
             </div>
             } @else {
@@ -198,32 +198,32 @@
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Duration</span>
-                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                      [pTooltip]="timingSummaryTooltips.duration" tooltipPosition="top">info</span>
+                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                      [pTooltip]="timingSummaryTooltips.duration" tooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Transfer</span>
-                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                      [pTooltip]="timingSummaryTooltips.transferSize" tooltipPosition="top">info</span>
+                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                      [pTooltip]="timingSummaryTooltips.transferSize" tooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Encoded</span>
-                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                      [pTooltip]="timingSummaryTooltips.encodedBodySize" tooltipPosition="top">info</span>
+                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                      [pTooltip]="timingSummaryTooltips.encodedBodySize" tooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Decoded</span>
-                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                      [pTooltip]="timingSummaryTooltips.decodedBodySize" tooltipPosition="top">info</span>
+                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                      [pTooltip]="timingSummaryTooltips.decodedBodySize" tooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
                 </div>
@@ -234,12 +234,12 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="ds-section-label">Waterfall</span>
-                    <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                      [pTooltip]="waterfallTooltip" tooltipPosition="top">info</span>
+                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                      [pTooltip]="waterfallTooltip" tooltipPosition="top" />
                   </div>
                   @if (inspectionData.limitedByCors) {
                   <span class="type-footnote text-status-warning flex items-center gap-1">
-                    <span class="material-symbols-outlined icon-xs">warning</span>
+                    <app-icon name="warning" class="icon-xs" />
                     CORS-limited timings
                   </span>
                   }
@@ -252,8 +252,8 @@
                     <div class="flex w-24 items-center gap-1.5">
                       <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
                       @if (phase.tooltip) {
-                      <span class="material-symbols-outlined icon-xs text-label-tertiary cursor-help"
-                        [pTooltip]="phase.tooltip" tooltipPosition="top">info</span>
+                      <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
+                        [pTooltip]="phase.tooltip" tooltipPosition="top" />
                       }
                     </div>
                     <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
@@ -300,7 +300,7 @@
             <div class="space-y-2 pb-4">
               @if (!testResults().length) {
               <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
-                <span class="material-symbols-outlined icon-md text-label-tertiary">rule</span>
+                <app-icon name="rule" class="icon-md text-label-tertiary" />
                 <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
               </div>
               } @else {
@@ -311,10 +311,9 @@
                   [class.test-result-pass]="result.passed"
                   [class.test-result-fail]="!result.passed"
                 >
-                  <span class="mt-0.5 flex-shrink-0 material-symbols-outlined icon-sm"
+                  <app-icon [name]="result.passed ? 'check_circle' : 'cancel'" class="mt-0.5 flex-shrink-0 icon-sm" 
                     [class.text-status-success]="result.passed"
-                    [class.text-status-error]="!result.passed"
-                  >{{ result.passed ? 'check_circle' : 'cancel' }}</span>
+                    [class.text-status-error]="!result.passed" />
                   <div class="flex-1 min-w-0">
                     <div class="type-callout"
                       [class.text-status-success]="result.passed"
@@ -334,11 +333,11 @@
 
               <div class="flex items-center gap-4 pt-3 border-t border-separator">
                 <span class="type-subhead text-status-success flex items-center gap-1.5">
-                  <span class="material-symbols-outlined icon-xs">check_circle</span>
+                  <app-icon name="check_circle" class="icon-xs" />
                   {{ testPassCount }} passed
                 </span>
                 <span class="type-subhead text-status-error flex items-center gap-1.5">
-                  <span class="material-symbols-outlined icon-xs">cancel</span>
+                  <app-icon name="cancel" class="icon-xs" />
                   {{ testFailCount }} failed
                 </span>
               </div>

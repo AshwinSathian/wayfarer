@@ -92,6 +92,7 @@ import {
   needsKey,
   operatorsFor,
 } from "../../shared/http/test-assertion-ui.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";
@@ -100,6 +101,7 @@ type ContextType = "Body" | "Headers";
   selector: "app-api-params",
   standalone: true,
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

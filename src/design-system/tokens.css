@@ -172,7 +172,7 @@
   --glow-warning:  0 0 0 3px rgba(255, 159, 10, 0.25);
 
   /* ── Typography ───────────────────────────────────────────*/
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
 }
 

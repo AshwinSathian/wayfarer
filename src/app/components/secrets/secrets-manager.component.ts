@@ -22,6 +22,7 @@ import { SecretCryptoService } from "../../shared/secrets/secret-crypto.service"
 import { extractSecretId } from "../../shared/secrets/secret-reference.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
 import { VariableToken } from "../../shared/environments/env-resolution.util";
+import { IconComponent } from "../../shared/icon/icon.component";
 
 interface SecretUsage {
   environmentId: string;
@@ -45,7 +46,7 @@ interface SecretRow {
 @Component({
   selector: "app-secrets-manager",
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule, TooltipModule],
+  imports: [IconComponent, CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule, TooltipModule],
   templateUrl: "./secrets-manager.component.html",
   styleUrls: ["./secrets-manager.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

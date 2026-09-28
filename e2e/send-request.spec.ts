@@ -24,7 +24,7 @@ test.describe("Send request → view response", () => {
     // than what the status bar already reported (regression coverage for
     // the Timings/status-bar mismatch bug).
     const statusBarDurationText = await page
-      .locator("span:has(.material-symbols-outlined:text('timer'))")
+      .locator("span:has(app-icon[name='timer'])")
       .first()
       .textContent();
     await responseViewer.getByRole("tab", { name: "Timings" }).click();

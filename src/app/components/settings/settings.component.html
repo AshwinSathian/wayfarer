@@ -94,7 +94,7 @@
           [class.text-status-success]="status.kind === 'ok'"
           [class.text-status-error]="status.kind === 'error'"
         >
-          <span class="material-symbols-outlined icon-xs mt-0.5">{{ status.kind === 'ok' ? 'check_circle' : 'error' }}</span>
+          <app-icon [name]="status.kind === 'ok' ? 'check_circle' : 'error'" class="icon-xs mt-0.5" />
           {{ status.message }}
         </p>
         }

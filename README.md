@@ -16,12 +16,12 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 ## Why Wayfarer?
 
-- Your work stays on your device. There's no account or server, so no update, acquisition, or pricing page can gate access to data you already have. Browser storage can still be cleared or evicted (Safari removes site data after 7 days without a visit), so export what you can't lose.
+- Your work stays on your device. There's no account or server, so no update, acquisition, or pricing page can gate access to data you already have. <!-- claim:C-001 --> <!-- claim:C-002 --> Browser storage can still be cleared or evicted (Safari removes site data after 7 days without a visit), so export what you can't lose.
 - Zero clutter, just the essentials. Compose a request and see a clean, structured response.
 - Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
-- Shareable results. Export a request/response as **HAR 1.2** for teammates and tooling.
+- Shareable results. Export a request/response as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
 - No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
-- Dark‑first UI, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly.
+- Dark‑first UI, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-030 -->
 
 ---
 
@@ -29,59 +29,59 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Request Composer**
 
-  - Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`
-  - URL field with live validation
-  - Query Params, Headers, Auth (Bearer / Basic / API Key), and Scripts tabs
-  - Body editor (enabled only when it makes sense), with an optional **Monaco JSON editor** mode for power users
-  - **Copy as cURL** for any request
+  - Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` <!-- claim:C-017 -->
+  - URL field with live validation <!-- claim:C-018 -->
+  - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs <!-- claim:C-019 -->
+  - Body tab for `POST`, `PUT` and `PATCH` only, with a Basic (rows) or **JSON** editor mode <!-- claim:C-039 -->
+  - **Copy as cURL** for any request once it has a URL <!-- claim:C-020 -->
 
 - **Pre/Post-Request Scripts & Test Assertions**
 
-  - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API
+  - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API <!-- claim:C-040 -->
   - **Scripts are disabled in the hosted app** while the sandbox is rebuilt ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); scripts you write are saved but not run. <!-- claim:C-006 --> See [`docs/scripts.md`](docs/scripts.md)
   - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
-  - Results surface in a dedicated **Tests** tab in the response viewer
+  - Results surface in a dedicated **Tests** tab in the response viewer <!-- claim:C-021 -->
 
 - **Response Viewer**
 
-  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs; HTML, XML and text bodies shown as text; binary bodies offered as a download <!-- claim:C-009 -->
-  - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69))
-  - Copy helpers and raw view
+  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs; HTML, XML and text bodies shown as text; binary bodies offered as a download <!-- claim:C-009 --> <!-- claim:C-022 -->
+  - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
+  - An **Export** menu that copies the exchange as cURL or HAR <!-- claim:C-035 -->
 
 - **Collections & Environments**
 
-  - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer**
-  - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type
-  - Deterministic collection import/export
+  - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
+  - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
+  - Deterministic collection import/export (a round trip is byte-identical) <!-- claim:C-026 -->
 
 - **Secrets Vault**
 
   - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 -->
   - Protected values can't be used in requests yet: a request that references one is blocked instead of sending the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)) <!-- claim:C-007 -->
-  - Guided first-use passphrase setup flow; see [`docs/secrets.md`](docs/secrets.md)
-  - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced
+  - Guided first-use passphrase setup flow <!-- claim:C-027 -->; see [`docs/secrets.md`](docs/secrets.md)
+  - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced <!-- claim:C-028 -->
 
 - **History & Navigation**
 
   - History drawer with date‑grouped, relative timestamps
-  - Re‑run and delete entries
-  - Command palette (⌘K) for fast keyboard-driven navigation
+  - Load an entry back into the composer, delete one, or clear all <!-- claim:C-029 -->
+  - Command palette (⌘K) for fast keyboard-driven navigation <!-- claim:C-030 -->
 
 - **Layout & Settings**
 
-  - Resizable split between the composer and response viewer on desktop, with the chosen ratio remembered across reloads
-  - A rebuilt mobile composer: one section open at a time, instead of every tab stacked and unlabeled
-  - A dedicated **Settings** view for theme, environments export/import, Reset All Data, Local Bridge configuration, and a keyboard-shortcuts reference
-  - Deliberate, reduced-motion-aware animation on tab switches, response arrival, and dialogs
+  - Resizable split between the composer and response viewer on desktop, with the chosen ratio remembered across reloads <!-- claim:C-031 -->
+  - A rebuilt mobile composer: one section open at a time, instead of every tab stacked and unlabeled <!-- claim:C-032 -->
+  - A dedicated **Settings** view for theme, environments export/import, Reset All Data, Local Bridge configuration, and a keyboard-shortcuts reference <!-- claim:C-033 -->
+  - Deliberate, reduced-motion-aware animation on tab switches, response arrival, and dialogs <!-- claim:C-034 -->
 
 - **Exports**
 
   - **HAR 1.2** – Standard archive for HTTP requests/responses (great for bug reports)
-  - Large bodies are safely truncated/omitted in exports to keep files lightweight
+  - Bodies over 256 KB, and bodies that aren't JSON, are left out of the HAR with a comment, to keep files small <!-- claim:C-035 -->
 
 - **PWA**
 
-  - Installable from the browser, and loads offline after the first visit; the service worker only caches the app's own files and never touches the requests you send <!-- claim:C-015 --> <!-- claim:C-010 -->. Dark and light themes are both intentionally designed, not one inverted from the other
+  - Installable from the browser <!-- claim:C-036 -->, and loads offline after the first visit; the service worker only caches the app's own files and never touches the requests you send <!-- claim:C-015 --> <!-- claim:C-010 -->. Dark and light themes are both intentionally designed, not one inverted from the other <!-- claim:C-037 -->
 
 ---
 
@@ -114,21 +114,21 @@ npm run test:ci
 **Notes**
 
 - Calling third‑party APIs may require CORS to be enabled by that API. For CORS-restrictive or intranet-only APIs, run the optional [Local Bridge](local-bridge/README.md) (`npm run bridge`) instead of a hand-rolled proxy.
-- History, collections, environments, and secrets are stored locally in **IndexedDB** and are **specific to the browser and device** you're using.
+- History, collections, environments, and secrets are stored locally in **IndexedDB** and are **specific to the browser and device** you're using. <!-- claim:C-002 -->
 
 ---
 
 ## How it works (in 60 seconds)
 
 - The **Request Composer** accepts a URL, method, query params, headers, auth, and (if applicable) a JSON body.
-- Optional pre-request and post-response scripts (or visual assertions) run before/after the call.
+- Visual assertions run after the call <!-- claim:C-021 -->. Pre- and post-request scripts are saved but don't run in the hosted app yet <!-- claim:C-006 -->.
 - The app sends the request and shows:
   - **Body** (pretty‑printed for JSON)
   - **Headers**
   - **Timings** (total duration and sizes; phase timings when the server allows them)
-  - **Tests** (assertion + script results)
-- Each request can be **saved to a Collection** for later reuse, or replayed from **History**.
-- You can **export** any call as HAR to share with teammates or attach to tickets.
+  - **Tests** (assertion results) <!-- claim:C-022 -->
+- Each request can be **saved to a Collection** for later reuse, or loaded back from **History**. <!-- claim:C-024 --> <!-- claim:C-029 -->
+- You can **export** any call as HAR to share with teammates or attach to tickets. <!-- claim:C-035 -->
 
 ---
 
@@ -137,7 +137,7 @@ npm run test:ci
 - Everything (requests, history, collections, environments, and secrets) is stored **locally** in your browser via **IndexedDB (IDB)**. <!-- claim:C-002 -->
 - **Nothing is uploaded** to Wayfarer; there is no backend and no account system. <!-- claim:C-001 --> The hosted app is served as static files by Cloudflare, which, like any web host, sees your IP address and user agent when the page loads (see the [Trust Center](docs/trust-center.md#subprocessors)).
 - Only vault secrets are encrypted. History keeps the request headers that were sent, including `Authorization`, in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)). <!-- claim:C-003 --> <!-- claim:C-008 -->
-- You're in control: clear individual entries or wipe the entire history anytime.
+- You're in control: clear individual entries or wipe the entire history anytime. <!-- claim:C-029 -->
 - Need a clean slate? **Settings → Reset all data** deletes the local database and app-specific storage, then reloads. If another Wayfarer tab still has the data open, it tells you to close that tab instead of claiming success. <!-- claim:C-013 -->
 
 ---
@@ -154,10 +154,10 @@ It's widely accepted by browsers, proxies, and observability tools, and is great
 Current focus is JSON APIs. Form/file helpers may land later.
 
 **Will there be a light theme?**  
-Yes, dark and light themes both ship today, each intentionally designed.
+Yes, dark and light themes both ship today, each intentionally designed. <!-- claim:C-037 -->
 
 **Are my secrets/API keys safe?**  
-Values in the secrets vault are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. <!-- claim:C-008 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.
+Values in the secrets vault are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. <!-- claim:C-008 --> <!-- claim:C-014 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.
 
 **Wait, wasn't this called API Sandbox?**  
 Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same storage model, same MIT license: only the name and identity changed, never the promise that your data stays on your device. See the [CHANGELOG](CHANGELOG.md) for details.

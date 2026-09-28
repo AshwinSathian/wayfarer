@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Secrets vault", () => {
-  test("first-use flow: create a vault passphrase, then it's usable to lock/unlock", async ({ page }) => {
+  test("@claim:C-027 first-use flow: create a vault passphrase, then it's usable to lock/unlock", async ({ page }) => {
     await page.goto("/");
 
     await page.getByRole("button", { name: "Unlock secrets" }).click();

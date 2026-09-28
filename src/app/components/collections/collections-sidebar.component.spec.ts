@@ -263,7 +263,7 @@ describe("CollectionsSidebarComponent", () => {
   });
 
   describe("keyboard shortcuts", () => {
-    it("Cmd+K opens the command palette and prevents the browser default", () => {
+    it("@claim:C-030 Cmd+K opens the command palette and prevents the browser default", () => {
       const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });
       vi.spyOn(event, "preventDefault");
 

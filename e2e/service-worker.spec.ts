@@ -144,6 +144,14 @@ test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker 
   await loadControlled(page);
   await cp("scripts/sw-kill.js", join(root, "sw.js"));
   await page.goto(`${base}/`);
-  await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  expect(await page.evaluate(() => caches.keys())).toEqual([]);
+  // The kill switch reloads open tabs, so evaluate only once the page settles.
+  const settled = async <T>(fn: () => Promise<T>): Promise<T | "navigating"> => {
+    await page.waitForLoadState();
+    return page.evaluate(fn).catch((error: Error) => {
+      if (/context was destroyed|navigat/i.test(error.message)) return "navigating" as const;
+      throw error;
+    });
+  };
+  await expect.poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  await expect.poll(() => settled(() => caches.keys())).toEqual([]);
 });

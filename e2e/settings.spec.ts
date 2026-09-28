@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 
 test.describe("Settings surface", () => {
-  test("opens from the toolbar and toggles the theme", async ({ page }) => {
+  test("@claim:C-033 @claim:C-037 opens from the toolbar and toggles the theme", async ({ page }) => {
     await page.goto("/");
     const initialTheme = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
 
@@ -15,7 +15,7 @@ test.describe("Settings surface", () => {
       .not.toBe(initialTheme);
   });
 
-  test("opens from the command palette", async ({ page }) => {
+  test("@claim:C-030 opens from the command palette", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press("Meta+K");
     await page.getByPlaceholder("Type a command").fill("Settings");
@@ -24,7 +24,7 @@ test.describe("Settings surface", () => {
     await expect(page.locator(".p-dialog-title")).toHaveText("Settings");
   });
 
-  test("lists keyboard shortcuts, including live command palette actions", async ({ page }) => {
+  test("@claim:C-033 lists keyboard shortcuts, including live command palette actions", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
 
@@ -35,7 +35,7 @@ test.describe("Settings surface", () => {
     await expect(page.getByText("Local Bridge Settings", { exact: true })).toBeVisible();
   });
 
-  test("Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {
+  test("@claim:C-033 Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Reset all data" }).click();
@@ -47,7 +47,7 @@ test.describe("Settings surface", () => {
     await expect(page.getByText("Reset all data?")).toBeHidden();
   });
 
-  test("Local Bridge settings are reachable from Settings", async ({ page }) => {
+  test("@claim:C-033 Local Bridge settings are reachable from Settings", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Configure Local Bridge" }).click();
@@ -58,7 +58,7 @@ test.describe("Settings surface", () => {
     await expect(page.getByRole("dialog", { name: "Local Bridge" })).toBeVisible();
   });
 
-  test("exports environments as a JSON file", async ({ page }) => {
+  test("@claim:C-033 exports environments as a JSON file", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
 

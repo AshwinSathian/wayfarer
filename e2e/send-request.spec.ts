@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
 
 test.describe("Send request → view response", () => {
-  test("sends a GET request and renders the response body, headers, and status", async ({ page }) => {
+  test("@claim:C-022 sends a GET request and renders the response body, headers, and status", async ({ page }) => {
     await page.goto("/");
 
     const urlInput = page.locator("input.address-url");
@@ -53,7 +53,7 @@ test.describe("Send request → view response", () => {
     await expect(urlInput).toHaveValue("");
   });
 
-  test("rejects an unparseable URL instead of silently succeeding", async ({ page }) => {
+  test("@claim:C-018 rejects an unparseable URL instead of silently succeeding", async ({ page }) => {
     await page.goto("/");
 
     const urlInput = page.locator("input.address-url");

@@ -19,7 +19,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.locator("app-response-viewer")).toBeVisible();
   });
 
-  test("persists the chosen split ratio across a reload", async ({ page }) => {
+  test("@claim:C-031 persists the chosen split ratio across a reload", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
@@ -48,7 +48,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 test.describe("Mobile composer (390px)", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("shows one composer section at a time via a single-open accordion, with real labels", async ({ page }) => {
+  test("@claim:C-032 shows one composer section at a time via a single-open accordion, with real labels", async ({ page }) => {
     await page.goto("/");
 
     // Headers is open by default; the others are present as labeled,
@@ -65,7 +65,7 @@ test.describe("Mobile composer (390px)", () => {
     await expect(page.locator("#auth-type-select")).toBeVisible();
   });
 
-  test("Monaco initializes in the Scripts panel instead of getting stuck on the loading placeholder", async ({ page }) => {
+  test("@claim:C-040 Monaco initializes in the Scripts panel instead of getting stuck on the loading placeholder", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Scripts", exact: true }).click();
 

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
 
 test.describe("Collections", () => {
-  test("creates a collection, creates a request inside it, and loads it into the composer", async ({ page }) => {
+  test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({ page }) => {
     await page.goto("/");
 
     // Create a collection via the sidebar header's "+" button.

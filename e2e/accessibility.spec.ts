@@ -53,7 +53,7 @@ function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
 }
 
 test.describe("Accessibility (primary flows)", () => {
-  test("composer + response viewer have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 composer + response viewer have no critical/serious violations", async ({ page }) => {
     await page.goto("/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -89,7 +89,7 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("collections sidebar has no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 collections sidebar has no critical/serious violations", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "New collection" }).click();
     // Scan the settled page, not a frame of the entrance/dialog fade: a
@@ -110,7 +110,7 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
     await page.goto("/");
 
     await page.getByRole("button", { name: "New collection" }).click();
@@ -152,7 +152,7 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
+  test("@claim:C-038 an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
     page,
   }) => {
     await page.goto("/");

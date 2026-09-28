@@ -50,6 +50,7 @@ export interface SeededRequest {
   body?: unknown;
   auth?: unknown;
   postRequestScript?: string;
+  tests?: unknown[];
 }
 
 /**

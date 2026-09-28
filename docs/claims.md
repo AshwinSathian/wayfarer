@@ -1,27 +1,35 @@
 # Claims ledger
 
-Every factual statement that Wayfarer's public docs make about privacy,
-security, data handling or network behaviour is a **claim**, with a stable
-ID. Each claim is:
+Every factual statement that Wayfarer's README and Trust Center make about
+what the app does is a **claim**, with a stable ID: privacy, security, data
+handling and network behaviour, and every feature the README lists. Each
+claim is:
 
 - marked where the docs make it, with `<!-- claim:C-NNN -->` (the same ID can
   be marked in several places);
 - listed below with the test that proves it;
 - proved by at least one automated test whose title contains `@claim:C-NNN`.
   e2e claim tests run in Chromium, Firefox and WebKit against the production
-  build with production headers, with retries disabled.
+  build with production headers, with retries disabled (`claims-*` projects).
 
 `npm run check:claims` ([`scripts/check-claims.mjs`](../scripts/check-claims.mjs))
-runs in CI and fails when a marker has no row, a row has no marker, or a row
-has no test (for example, because the test was deleted or renamed).
+runs in CI and fails when a marker has no row, a row has no marker, a row has
+no test (for example, because the test was deleted or renamed), or a test is
+tagged with an ID that has no row.
 
-Known-limitation bullets ("no request timeout", with an issue link) are
-tracked by their issue, not here: they disappear when the issue is fixed.
-Feature descriptions (the README's Highlights) are covered by the feature
-specs in `e2e/`; P7.6 generates the README feature list from this ledger.
+Not claims, by design, so not in this ledger:
+
+- opinion and tone ("zero clutter", "great defaults");
+- facts about third parties (Safari's storage eviction, what CORS requires);
+- history (the rename from API Sandbox) and roadmap intent;
+- process commitments (disclosure handling, changelog practice), which
+  `SECURITY.md` owns;
+- known-limitation bullets that link an issue: the issue tracks them, and
+  they disappear when it is fixed.
 
 To add a claim: write the test first (title `@claim:C-NNN …`), add the row,
-then add the marker next to the sentence.
+then add the marker next to the sentence. A statement that no test can
+back gets reworded until one can, or removed.
 
 | ID | Statement | Source | Test |
 |---|---|---|---|
@@ -41,3 +49,28 @@ then add the marker next to the sentence.
 | C-014 | Collection exports include auth fields in plain text. | docs/trust-center.md | e2e/claims.spec.ts |
 | C-015 | After one visit the app loads offline; its service worker caches only the app's own files and never answers requests to other origins. | README.md, docs/trust-center.md | e2e/service-worker.spec.ts |
 | C-016 | The Content-Security-Policy requires Trusted Types for DOM script sinks; only same-origin script URLs pass the app's default policy. | docs/trust-center.md | e2e/trusted-types.spec.ts |
+| C-017 | The composer offers GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS and sends the chosen method. | README.md | e2e/features.spec.ts |
+| C-018 | The URL field is validated live; an unparseable URL is rejected instead of sent. | README.md | e2e/send-request.spec.ts |
+| C-019 | Bearer, Basic and API-key auth (header or query) set in the Auth tab reach the server. | README.md | e2e/features.spec.ts |
+| C-020 | Copy as cURL copies a command for the current request once it has a URL. | README.md | e2e/features.spec.ts |
+| C-021 | Visual assertions (10 operators; status, headers, body, duration) run after the call and report in the Tests tab. | README.md | e2e/features.spec.ts, src/app/shared/scripts/assertion-runner.service.spec.ts |
+| C-022 | The response viewer has Body (pretty JSON), Headers, Timings and Tests tabs. | README.md | e2e/send-request.spec.ts |
+| C-023 | Phase timings are withheld unless the server sends `Timing-Allow-Origin`. | README.md | e2e/features.spec.ts |
+| C-024 | Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. | README.md | e2e/features.spec.ts, e2e/collections.spec.ts |
+| C-025 | The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. | README.md | e2e/environments.spec.ts |
+| C-026 | Collection export and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.util.spec.ts |
+| C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
+| C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
+| C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |
+| C-030 | ⌘K opens a command palette. | README.md | e2e/settings.spec.ts, src/app/components/collections/collections-sidebar.component.spec.ts |
+| C-031 | The composer/response split is resizable and remembered across reloads. | README.md | e2e/layout.spec.ts |
+| C-032 | On mobile the composer shows one section at a time, with labels. | README.md | e2e/layout.spec.ts |
+| C-033 | Settings covers theme, environment export and import, Reset all data, Local Bridge and a shortcuts reference. | README.md | e2e/settings.spec.ts, e2e/features.spec.ts |
+| C-034 | Animations respect `prefers-reduced-motion`. | README.md | e2e/features.spec.ts |
+| C-035 | Responses export as HAR 1.2 (or cURL) from the Export menu; bodies over 256 KB or not JSON are left out with a comment. | README.md | e2e/features.spec.ts, src/app/shared/inspect/export.util.spec.ts |
+| C-036 | The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. | README.md | e2e/features.spec.ts |
+| C-037 | Dark and light themes both ship, switchable in Settings. | README.md | e2e/settings.spec.ts |
+| C-038 | The primary views have no critical or serious axe accessibility violations. | README.md | e2e/accessibility.spec.ts |
+| C-039 | The Body tab exists only for POST, PUT and PATCH, with a Basic or JSON editor. | README.md | e2e/features.spec.ts |
+| C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.service.spec.ts |
+| C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |

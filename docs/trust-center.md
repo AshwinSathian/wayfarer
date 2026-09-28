@@ -59,11 +59,12 @@ Wayfarer has no server of its own, so there's no "our API" to TLS-protect.
 Outbound traffic is the request you build, sent directly to the host you
 specify. If that host is `https://`, the connection is TLS-protected by the
 browser exactly as it would be for any other web request; Wayfarer doesn't
-touch, weaken, or intercept that connection. If you use the optional
+touch, weaken, or intercept that connection. <!-- claim:C-015 --> If you use the optional
 [Local Bridge](../local-bridge/README.md) to reach a CORS-restrictive or
 intranet-only API, see that component's own security model: the bridge
-relays your request from a process running on your own machine, and never
-leaves your network unless your target host does.
+relays your request from a process running on your own machine, and only
+for an allowed origin that presents its token. <!-- claim:C-041 --> The
+request never leaves your network unless your target host does.
 
 ## Content-Security-Policy
 

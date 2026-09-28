@@ -41,7 +41,8 @@
     "bridge:test": "node --test local-bridge/test/",
     "test:scripts": "node --test e2e/support/*.test.mjs scripts/*.test.mjs",
     "gen:csp": "node scripts/gen-csp.mjs",
-    "check:csp": "node scripts/gen-csp.mjs --check"
+    "check:csp": "node scripts/gen-csp.mjs --check",
+    "check:claims": "node scripts/check-claims.mjs"
   },
   "dependencies": {
     "@angular/animations": "^20.3.4",

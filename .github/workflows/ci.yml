@@ -27,6 +27,7 @@ jobs:
         run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"
       - run: npm run test:scripts
       - run: npm run check:csp
+      - run: npm run check:claims
 
   test:
     name: Unit tests

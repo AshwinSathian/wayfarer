@@ -1,4 +1,5 @@
-import { test, expect, type Page, type Request, type Response } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { TARGET, captureTarget, expectProdParity, seedAndOpen, send } from "./support/app";
 
 // Phase 0 tripwires (PLAN-airtight-remediation.md, P0.1). One test per P0
 // audit finding, each titled with its F-ID. Each was written to fail against
@@ -15,118 +16,12 @@ import { test, expect, type Page, type Request, type Response } from "@playwrigh
 // production headers (e2e/support/prod-server.mjs). Locally, run them with
 // `CI=1 npx playwright test e2e/tripwire.spec.ts`.
 
-const TARGET = "https://tripwire.test";
-
-async function expectProdParity(response: Response | null): Promise<void> {
-  expect(
-    response?.headers()["content-security-policy"],
-    "tripwire needs the prod build on prod-server.mjs; run with CI=1"
-  ).toContain("script-src 'self'");
-}
-
-/** Routes TARGET to a CORS-permissive fake and records every non-preflight request that reaches it. */
-async function captureTarget(
-  page: Page,
-  reply: { contentType: string; body: string | Buffer } = {
-    contentType: "application/json",
-    body: '{"ok":true}',
-  }
-): Promise<Request[]> {
-  const hits: Request[] = [];
-  await page.route(`${TARGET}/**`, async (route) => {
-    const request = route.request();
-    const cors = {
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "*",
-      "access-control-allow-headers": request.headers()["access-control-request-headers"] ?? "*",
-    };
-    if (request.method() === "OPTIONS") {
-      await route.fulfill({ status: 204, headers: cors });
-      return;
-    }
-    hits.push(request);
-    await route.fulfill({
-      status: 200,
-      headers: { ...cors, "content-type": reply.contentType },
-      body: reply.body,
-    });
-  });
-  return hits;
-}
-
-interface SeededRequest {
-  method: string;
-  url: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-  auth?: unknown;
-  postRequestScript?: string;
-}
-
-/**
- * Writes an active environment and a one-request collection straight into
- * IndexedDB (after the app has created and migrated the database), reloads,
- * and opens the request in the composer. Seeding avoids driving Monaco for
- * scripts and nested JSON bodies.
- */
-async function seedAndOpen(
-  page: Page,
-  vars: Record<string, string>,
-  request: SeededRequest
-): Promise<Response | null> {
-  await page.goto("/");
-  await expect(page.locator("input.address-url")).toBeVisible();
-  await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 4)
-  );
-  await page.evaluate(
-    async ({ vars, request }) => {
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const open = indexedDB.open("api-sandbox");
-        open.onsuccess = () => resolve(open.result);
-        open.onerror = () => reject(open.error);
-      });
-      const read = db.transaction("meta").objectStore("meta").get("state");
-      const state = await new Promise((resolve) => (read.onsuccess = () => resolve(read.result)));
-      const now = Date.now();
-      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
-      const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
-      tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars, order: 0 });
-      tx.objectStore("meta").put({ schemaVersion: 1, ...(state ?? {}), key: "state", activeEnvironmentId: "env-tw" });
-      tx.objectStore("collections").put({ id: "col-tw", meta: meta("col-tw"), name: "Tripwire collection", order: 0 });
-      tx.objectStore("requests").put({
-        id: "req-tw",
-        meta: meta("req-tw"),
-        collectionId: "col-tw",
-        name: "Tripwire request",
-        order: 0,
-        headers: {},
-        ...request,
-      });
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-      db.close();
-    },
-    { vars, request }
-  );
-  const response = await page.reload();
-  await page.getByText("Tripwire request", { exact: true }).dblclick();
-  await expect(page.locator("input.address-url")).toHaveValue(request.url);
-  return response;
-}
-
-async function send(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Send request" }).click();
-}
-
 test.describe("Phase 0 tripwires", () => {
   // Routed targets must not be shadowed by the app's service worker; F06
   // (below) is the one tripwire that needs the worker.
   test.use({ serviceWorkers: "block" });
 
-  test("F01: a script under production CSP either runs or shows the disabled banner, never fails silently", async ({ page }) => {
+  test("F01 @claim:C-006: a script under production CSP either runs or shows the disabled banner, never fails silently", async ({ page }) => {
     await captureTarget(page);
     const response = await seedAndOpen(page, {}, {
       method: "GET",
@@ -145,7 +40,7 @@ test.describe("Phase 0 tripwires", () => {
     await expect(ran.or(banner).first()).toBeVisible();
   });
 
-  test("F03: a protected-variable placeholder is never sent on the wire", async ({ page }) => {
+  test("F03 @claim:C-007: a protected-variable placeholder is never sent on the wire", async ({ page }) => {
     const hits = await captureTarget(page);
     // Scan every request to any host, not only the routed target.
     const leaks: string[] = [];
@@ -174,7 +69,7 @@ test.describe("Phase 0 tripwires", () => {
     ["application/xml", "<tripwire>F04 xml</tripwire>"],
     ["text/plain; charset=utf-8", "tripwire F04 plain text"],
   ]) {
-    test(`F04: a ${contentType.split(";")[0]} response renders as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
+    test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response renders as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
       await captureTarget(page, { contentType, body });
       await page.goto("/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
@@ -190,7 +85,7 @@ test.describe("Phase 0 tripwires", () => {
     });
   }
 
-  test("F05: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
+  test("F05 @claim:C-009: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff]);
     await captureTarget(page, { contentType: "image/png", body: png });
     await page.goto("/");
@@ -244,7 +139,7 @@ test.describe("Phase 0 tripwires", () => {
 });
 
 test.describe("Phase 0 tripwires (service worker active)", () => {
-  test("F06: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
+  test("F06 @claim:C-010: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
     const response = await page.goto("/");
     await expectProdParity(response);
     // Recreate a returning pre-v1.1.0 visitor: a registration for

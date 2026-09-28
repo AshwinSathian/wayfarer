@@ -6,7 +6,7 @@
 
 **The API client that can't rug-pull you.**
 
-Wayfarer is a local-first API client. No account. No cloud. No telemetry. Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; values you put in the secrets vault are encrypted, everything else is stored as plain text. When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
+Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
 > **v1.1.0 status:** some features are disabled or limited while an audit's findings are fixed. See [Known limitations](#known-limitations).
 
@@ -20,7 +20,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. Your r
 - Zero clutter, just the essentials. Compose a request and see a clean, structured response.
 - Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
 - Shareable results. Export a request/response as **HAR 1.2** for teammates and tooling.
-- No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere.
+- No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
 - Dark‑first UI, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly.
 
 ---
@@ -38,13 +38,13 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. Your r
 - **Pre/Post-Request Scripts & Test Assertions**
 
   - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API
-  - **Scripts are disabled in the hosted app** while the sandbox is rebuilt ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); scripts you write are saved but not run. See [`docs/scripts.md`](docs/scripts.md)
+  - **Scripts are disabled in the hosted app** while the sandbox is rebuilt ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); scripts you write are saved but not run. <!-- claim:C-006 --> See [`docs/scripts.md`](docs/scripts.md)
   - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
   - Results surface in a dedicated **Tests** tab in the response viewer
 
 - **Response Viewer**
 
-  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs; HTML, XML and text bodies shown as text; binary bodies offered as a download
+  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs; HTML, XML and text bodies shown as text; binary bodies offered as a download <!-- claim:C-009 -->
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69))
   - Copy helpers and raw view
 
@@ -56,8 +56,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. Your r
 
 - **Secrets Vault**
 
-  - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only
-  - Protected values can't be used in requests yet: a request that references one is blocked instead of sending the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60))
+  - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 -->
+  - Protected values can't be used in requests yet: a request that references one is blocked instead of sending the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)) <!-- claim:C-007 -->
   - Guided first-use passphrase setup flow; see [`docs/secrets.md`](docs/secrets.md)
   - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced
 
@@ -134,11 +134,11 @@ npm run test:ci
 
 ## Privacy & Data
 
-- Everything (requests, history, collections, environments, and secrets) is stored **locally** in your browser via **IndexedDB (IDB)**.
-- **Nothing is uploaded** to Wayfarer; there is no backend and no account system. The hosted app is served as static files by Cloudflare, which, like any web host, sees your IP address and user agent when the page loads (see the [Trust Center](docs/trust-center.md#subprocessors)).
-- Only vault secrets are encrypted. History keeps the request headers that were sent, including `Authorization`, in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)).
+- Everything (requests, history, collections, environments, and secrets) is stored **locally** in your browser via **IndexedDB (IDB)**. <!-- claim:C-002 -->
+- **Nothing is uploaded** to Wayfarer; there is no backend and no account system. <!-- claim:C-001 --> The hosted app is served as static files by Cloudflare, which, like any web host, sees your IP address and user agent when the page loads (see the [Trust Center](docs/trust-center.md#subprocessors)).
+- Only vault secrets are encrypted. History keeps the request headers that were sent, including `Authorization`, in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)). <!-- claim:C-003 --> <!-- claim:C-008 -->
 - You're in control: clear individual entries or wipe the entire history anytime.
-- Need a clean slate? **Settings → Reset all data** deletes the local database and app-specific storage, then reloads. If another Wayfarer tab still has the data open, it tells you to close that tab instead of claiming success.
+- Need a clean slate? **Settings → Reset all data** deletes the local database and app-specific storage, then reloads. If another Wayfarer tab still has the data open, it tells you to close that tab instead of claiming success. <!-- claim:C-013 -->
 
 ---
 
@@ -157,7 +157,7 @@ Current focus is JSON APIs. Form/file helpers may land later.
 Yes, dark and light themes both ship today, each intentionally designed.
 
 **Are my secrets/API keys safe?**  
-Values in the secrets vault are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only exists in memory. Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. See [`docs/secrets.md`](docs/secrets.md) for the full model.
+Values in the secrets vault are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. <!-- claim:C-008 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.
 
 **Wait, wasn't this called API Sandbox?**  
 Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same storage model, same MIT license: only the name and identity changed, never the promise that your data stays on your device. See the [CHANGELOG](CHANGELOG.md) for details.

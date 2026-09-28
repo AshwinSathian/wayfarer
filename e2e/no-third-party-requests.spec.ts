@@ -32,7 +32,7 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   }
 }
 
-test("@claim no-third-party-requests: a full session talks only to the app and the user's target", async ({ page, baseURL }) => {
+test("@claim:C-001 no-third-party-requests: a full session talks only to the app and the user's target", async ({ page, baseURL }) => {
   const appOrigin = new URL(baseURL ?? "http://localhost:4200").origin;
   const foreign: string[] = [];
   const failed: string[] = [];

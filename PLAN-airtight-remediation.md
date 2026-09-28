@@ -343,24 +343,24 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 - [x] **P0.1** Write a failing tripwire test per P0 finding before fixing it: scripts under prod CSP must either run or show the disabled banner, never fail silently (F01), secret placeholder on the wire (F03), non-JSON body (F04), network-failure status (F06), auth-tab variable (F07), nested body variable (F08).
   - AC: `e2e/tripwire.spec.ts` exists; each test is linked to its F-ID in its title; the commit history shows each failing on `3a6ccb0` and passing after its fix.
   - Note: F01 must run against a server that applies `_headers`, so the minimal `e2e/support/prod-server.mjs` from P1.1 is pulled forward here.
-- [ ] **P0.2** Disable script execution in production builds. Show a banner in the Scripts tab: "Scripts are temporarily disabled while the sandbox is rebuilt (tracking #N)". Tests-tab assertions keep working.
+- [x] **P0.2** Disable script execution in production builds. Show a banner in the Scripts tab: "Scripts are temporarily disabled while the sandbox is rebuilt (tracking #N)". Tests-tab assertions keep working.
   - AC: with prod headers, a request that has a script shows the banner, `ScriptSandboxService.execute` is never called (spy in the unit test), and the assertions still produce results.
-- [ ] **P0.3** Block sends that would transmit a literal `{{$secret.*}}`.
+- [x] **P0.3** Block sends that would transmit a literal `{{$secret.*}}`.
   - Scan the resolved URL, headers and body for `/\{\{\s*\$secret\./`. If found, show the inline error "Protected variables are not yet applied to requests; vault resolution ships in v2.0".
   - AC: tripwire F03 asserts no network request is made and the error text is visible.
-- [ ] **P0.4** Change `MainService.sendRequest` to `responseType: 'arraybuffer'`, decode text with `TextDecoder` (charset from content-type, default UTF-8), parse JSON only when content-type matches `/json|\+json/` or the text parses. Binary content-types show "Binary response (N bytes) — preview ships in v2.0" plus a Download button.
+- [x] **P0.4** Change `MainService.sendRequest` to `responseType: 'arraybuffer'`, decode text with `TextDecoder` (charset from content-type, default UTF-8), parse JSON only when content-type matches `/json|\+json/` or the text parses. Binary content-types show "Binary response (N bytes) — preview ships in v2.0" plus a Download button.
   - AC: tripwire F04 passes for text/html, application/xml and text/plain; image/png shows the binary notice, not mojibake.
-- [ ] **P0.5** Replace the Angular SW with Angular's shipped `safety-worker.js` (unregisters itself, clears caches), copied to the output path `ngsw-worker.js` so already-registered clients pick it up. Remove "works offline" wording from README, Trust Center and manifest description until P1.6.
+- [x] **P0.5** Replace the Angular SW with Angular's shipped `safety-worker.js` (unregisters itself, clears caches), copied to the output path `ngsw-worker.js` so already-registered clients pick it up. Remove "works offline" wording from README, Trust Center and manifest description until P1.6.
   - AC: tripwire F06 shows "Network error" plus the CORS/DNS guidance, not 504; `navigator.serviceWorker.getRegistrations()` is empty after one reload in e2e.
-- [ ] **P0.6** Resolve `{{vars}}` in auth fields (bearer token, basic username/password, API-key name/value) and recursively in nested body values, arrays included.
+- [x] **P0.6** Resolve `{{vars}}` in auth fields (bearer token, basic username/password, API-key name/value) and recursively in nested body values, arrays included.
   - AC: tripwires F07 and F08 pass; unit tests in `api-params.component.spec.ts` cover depth 3 and arrays.
-- [ ] **P0.7** Honest reset: `resetDatabase()` treats `onblocked` as failure.
+- [x] **P0.7** Honest reset: `resetDatabase()` treats `onblocked` as failure.
   - It broadcasts `close` on BroadcastChannel `wayfarer:lifecycle` (other tabs close their DB and show "Data was reset in another tab — reload") and retries once after 2 s.
   - If the retry fails, the UI says "Close other Wayfarer tabs and try again". No `.catch(() => undefined)` remains.
   - AC: e2e with two pages: reset in page A succeeds and page B shows the banner; a unit test with a held connection gets the failure message.
-- [ ] **P0.8** Self-host fonts. Replace Material Symbols with the `<app-icon>` inline-SVG component (30 glyphs, `aria-hidden="true"`, with `aria-label` on the owning button). Remove Google domains from CSP (both copies).
+- [x] **P0.8** Self-host fonts. Replace Material Symbols with the `<app-icon>` inline-SVG component (30 glyphs, `aria-hidden="true"`, with `aria-label` on the owning button). Remove Google domains from CSP (both copies).
   - AC: new `@claim` test `no-third-party-requests`: a full session (load, send to echo-server, open every view) makes 0 requests to origins other than the app and the user's target; with all non-self requests blocked in Playwright, the page loads with 0 failed requests; the accessibility snapshot contains no button named `bolt`, `upload`, `light_mode` or any other ligature name; `grep -r googleapis src public` returns nothing.
-- [ ] **P0.9** Claims correction pass on `README.md`, `docs/trust-center.md`, `docs/security-questionnaire.md`, `docs/secrets.md`, `docs/scripts.md`, `local-bridge/README.md` and `package.json` `description`.
+- [x] **P0.9** Claims correction pass on `README.md`, `docs/trust-center.md`, `docs/security-questionnaire.md`, `docs/secrets.md`, `docs/scripts.md`, `local-bridge/README.md` and `package.json` `description`.
   - Remove "everything encrypted at rest", "can't be locked out by construction", "Postman-grade", "no subprocessors" (name Cloudflare as static host that sees IP and user-agent), the passphrase rotation procedure, "retry through the bridge" and "works offline".
   - Add a "Known limitations" section linking the tracking issues.
   - AC: a reviewer checklist in the PR maps each removed or changed sentence to an F-ID, and none of the removed phrases appear in `grep -ri` over the repo.
@@ -868,31 +868,31 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 
 | ID | Finding | Tasks | Issue | Status |
 |---|---|---|---|---|
-| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | #58 | In progress (tripwire #57) |
+| F01 | Scripts fail in prod (CSP blocks `new Function`) | P0.1, P0.2, P3.1, P3.7 | #58 | In progress (tripwire #57; disabled #100) |
 | F02 | Sandbox isolation is a deny-list | P3.1, P3.2, P3.7 | #59 | Open |
-| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | #60 | In progress (tripwire #57) |
-| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | #61 | In progress (tripwire #57) |
-| F05 | Binary responses shown as mojibake | P0.4, P2.13 | #62 | Open |
-| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | #63 | In progress (tripwire #57) |
-| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | #64 | In progress (tripwire #57) |
-| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | #65 | In progress (tripwire #57) |
-| F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | #66 | Open |
+| F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | #60 | In progress (#100) |
+| F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | #61 | In progress (#100) |
+| F05 | Binary responses shown as mojibake | P0.4, P2.13 | #62 | In progress (#100) |
+| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | #63 | In progress (#100) |
+| F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | #64 | In progress (#100) |
+| F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | #65 | In progress (#100) |
+| F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | #66 | In progress (docs #100) |
 | F10 | No cancel, no timeout | P2.3 | #67 | Open |
 | F11 | Duration includes pre-script time | P2.15 | #68 | Open |
 | F12 | Phase timings empty cross-origin, presented as complete | P2.15, P6.1 | #69 | Open |
-| F13 | "Encrypted at rest" overclaim | P0.9, P1.4, P7.6 | #70 | Open |
-| F14 | History stores resolved credentials in plaintext | P2.8, P2.9 | #71 | Open |
+| F13 | "Encrypted at rest" overclaim | P0.9, P1.4, P7.6 | #70 | In progress (docs #100) |
+| F14 | History stores resolved credentials in plaintext | P2.8, P2.9 | #71 | In progress (docs #100) |
 | F15 | Collection export writes credentials in plaintext | P2.8, P4.6 | #72 | Open |
-| F16 | No `storage.persist`; Safari eviction; "can't be locked out" overclaim | P0.9, P2.11 | #73 | Open |
+| F16 | No `storage.persist`; Safari eviction; "can't be locked out" overclaim | P0.9, P2.11 | #73 | In progress (docs #100) |
 | F17 | No full backup; vault not exportable; env export has dangling secret refs | P2.6, P2.11 | #74 | Open |
-| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, P0.12 | #75 | Open |
+| F18 | Google Fonts request; Cloudflare injection/NEL; "no subprocessors" overclaim | P0.8, P0.9, P0.12 | #75 | In progress (#100; P0.12 owner action pending) |
 | F19 | Viewer lacks search/JSONPath/HTML/image; redirects invisible | P2.13, P2.3, P5.4 | #76 | Open |
-| F20 | `pm.*` is a small subset while the name implies compatibility | P3.3, P3.4, P3.5, P3.11 | #77 | Open |
+| F20 | `pm.*` is a small subset while the name implies compatibility | P3.3, P3.4, P3.5, P3.11 | #77 | In progress (docs #100) |
 | F21 | No Postman/Insomnia/OpenAPI/cURL/HAR import | P4.1–P4.5 | #78 | Open |
-| F22 | Bridge: global toggle vs docs, not on npm, token handling, no PNA | P0.9, P6.2, P6.3, P6.4, P6.6 | #79 | Open |
-| F23 | Bridge: `Set-Cookie` joined, no decompression, lossy text decode | P6.1 | #80 | Open |
+| F22 | Bridge: global toggle vs docs, not on npm, token handling, no PNA | P0.9, P6.2, P6.3, P6.4, P6.6 | #79 | In progress (docs #100) |
+| F23 | Bridge: `Set-Cookie` joined, no decompression, lossy text decode | P6.1 | #80 | In progress (docs #100) |
 | F24 | Injected `Accept`; forbidden and hidden headers undisclosed | P2.3, P2.14 | #81 | Open |
-| F25 | Enterprise paperwork premature and unverified | P0.9, P1.4, P7.6 (D12) | #82 | Open |
+| F25 | Enterprise paperwork premature and unverified | P0.9, P1.4, P7.6 (D12) | #82 | In progress (docs #100) |
 | F26 | No runner, no CLI | P5.2, P6.5 | #83 | Open |
 | F27 | No GraphQL/WebSocket/SSE | P5.5, P5.6, P5.7 | #84 | Open |
 | F28 | No OAuth2, no cookie jar | P4.7, P5.3 | #85 | Open |
@@ -900,16 +900,16 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F30 | Request vars reserved, globals hard-coded, no inheritance | P2.4, P4.9 | #87 | Open |
 | F31 | Codegen cURL only; cURL export bugs | P4.6 | #88 | Open |
 | F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | #89 | Open |
-| F33 | Icon ligature text as accessible names | P0.8, P7.1 | #90 | Open |
+| F33 | Icon ligature text as accessible names | P0.8, P7.1 | #90 | In progress (#100) |
 | F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | #91 | Open |
 | F35 | Docs volume exceeds product; prose-heavy changelog | P7.6 | #92 | Open |
 | F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | #93 | Open |
-| F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | #94 | Open |
+| F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | #94 | In progress (#100) |
 | F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | #95 | Open |
 | F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | #96 | Open |
 | F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Open |
 | F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | #98 | Open |
-| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | Open |
+| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | In progress (docs #100) |
 
 ## 13. Adversarial review log
 

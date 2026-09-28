@@ -142,29 +142,45 @@ test("/ws echoes text in order", { skip: typeof WebSocket === "undefined" && "ne
   ws.close(1000);
 });
 
-test("Postman Echo routes under /pm keep Postman's response shapes", async () => {
-  const getRes = await (await get("/pm/get?foo=bar")).json();
+const pmServer = await startEchoServer(0, "127.0.0.1", { postmanEcho: true });
+const PM = `http://127.0.0.1:${pmServer.address().port}`;
+test.after(() => pmServer.close());
+const pm = (path, init) => fetch(`${PM}${path}`, init);
+
+test("the Postman Echo origin serves Postman's paths and response shapes unchanged", async () => {
+  const getRes = await (await pm("/get?foo=bar")).json();
   assert.deepEqual(getRes.args, { foo: "bar" });
   assert.equal(getRes.url, "https://postman-echo.com/get?foo=bar");
-  const post = await (await get("/pm/post", { method: "POST", headers: { "content-type": "application/json" }, body: '{"a":1}' })).json();
+  const post = await (await pm("/post", { method: "POST", headers: { "content-type": "application/json" }, body: '{"a":1}' })).json();
   assert.deepEqual(post.json, { a: 1 });
-  const form = await (await get("/pm/post", { method: "POST", body: new URLSearchParams({ k: "v" }) })).json();
+  const form = await (await pm("/post", { method: "POST", body: new URLSearchParams({ k: "v" }) })).json();
   assert.deepEqual(form.form, { k: "v" });
-  assert.equal((await get("/pm/basic-auth")).status, 401);
-  const auth = await get("/pm/basic-auth", { headers: { authorization: `Basic ${Buffer.from("postman:password").toString("base64")}` } });
+  assert.equal((await pm("/basic-auth")).status, 401);
+  const auth = await pm("/basic-auth", { headers: { authorization: `Basic ${Buffer.from("postman:password").toString("base64")}` } });
   assert.deepEqual(await auth.json(), { authenticated: true });
-  assert.equal((await get("/pm/response-headers?x-foo=bar")).headers.get("x-foo"), "bar");
-  const cookies = await get("/pm/cookies/set?c=1", { redirect: "manual" });
-  assert.equal(cookies.headers.get("location"), "/pm/cookies");
-  assert.deepEqual(await (await get("/pm/cookies", { headers: { cookie: "c=1; d=2" } })).json(), { cookies: { c: "1", d: "2" } });
-  assert.match(await (await get("/pm/encoding/utf8")).text(), /𝄞/);
-  assert.deepEqual(await (await get("/pm/delay/0")).json(), { delay: "0" });
-  assert.equal((await get("/pm/status/201")).status, 201);
-  assert.equal((await get("/pm/get", { method: "POST" })).status, 404);
+  assert.equal((await pm("/response-headers?x-foo=bar")).headers.get("x-foo"), "bar");
+  const cookies = await pm("/cookies/set?c=1", { redirect: "manual" });
+  assert.equal(cookies.headers.get("location"), "/cookies");
+  assert.deepEqual(await (await pm("/cookies", { headers: { cookie: "c=1; d=2" } })).json(), { cookies: { c: "1", d: "2" } });
+  assert.match(await (await pm("/encoding/utf8")).text(), /𝄞/);
+  const start = Date.now();
+  assert.deepEqual(await (await pm("/delay/1")).json(), { delay: "1" });
+  assert.ok(Date.now() - start >= 950, "Postman's /delay/:s takes seconds");
+  assert.equal((await pm("/status/201")).status, 201);
+  assert.equal((await pm("/get", { method: "POST" })).status, 404);
+  const gz = await pm("/gzip");
+  assert.equal((await gz.json()).gzipped, true);
 });
 
-test("rewritePostmanEcho points postman-echo.com at /pm and leaves lookalikes alone", () => {
-  assert.equal(rewritePostmanEcho("https://postman-echo.com/get?x=1"), "http://127.0.0.1:4300/pm/get?x=1");
-  assert.equal(rewritePostmanEcho("http://POSTMAN-ECHO.com"), "http://127.0.0.1:4300/pm");
+test("the native origin keeps millisecond /delay and has no Postman routes", async () => {
+  assert.equal((await get("/get")).status, 404);
+  assert.equal((await get("/pm/get")).status, 404);
+});
+
+test("rewritePostmanEcho swaps only the origin, keeps the path, and leaves lookalikes alone", () => {
+  assert.equal(rewritePostmanEcho("https://postman-echo.com/get?x=1"), "http://127.0.0.1:4302/get?x=1");
+  assert.equal(rewritePostmanEcho("http://POSTMAN-ECHO.com"), "http://127.0.0.1:4302");
+  assert.equal(rewritePostmanEcho("https://postman-echo.com:443/delay/2"), "http://127.0.0.1:4302/delay/2");
   assert.equal(rewritePostmanEcho("https://postman-echo.com.evil.test/get"), "https://postman-echo.com.evil.test/get");
+  assert.equal(rewritePostmanEcho("https://api.postman-echo.com/get"), "https://api.postman-echo.com/get");
 });

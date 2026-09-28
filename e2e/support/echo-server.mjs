@@ -17,12 +17,13 @@
 //   /oauth/authorize, /oauth/token mock IdP: auth code + PKCE (S256),
 //                                  client_credentials, password, refresh_token
 //   /big/:mb                       mb MiB of bytes, streamed
-// Postman Echo–compatible routes live under /pm/ (see rewritePostmanEcho).
+// Postman Echo–compatible routes (Newman's fixtures) are served on their own
+// origin, 127.0.0.1:4302, with Postman's paths unchanged (see rewritePostmanEcho).
 //
 // CORS: every route except /cors/* answers with a permissive policy
 // (origin reflected, credentials allowed, all response headers exposed).
 //
-// Usage: node e2e/support/echo-server.mjs [port] [secondPort]
+// Usage: node e2e/support/echo-server.mjs [port] [secondPort] [postmanEchoPort]
 import { createServer } from "node:http";
 import { createHash, randomBytes } from "node:crypto";
 import { deflateSync, gzipSync } from "node:zlib";
@@ -30,6 +31,7 @@ import { pathToFileURL } from "node:url";
 
 const ECHO_PORT = 4300;
 const ECHO_SECOND_PORT = 4301;
+const POSTMAN_ECHO_PORT = 4302;
 const MAX_BIG_MB = 100;
 const MAX_DELAY_MS = 60_000;
 const MAX_WS_FRAME = 16 << 20;
@@ -43,10 +45,12 @@ function clampInt(raw, min, max, fallback) {
 /**
  * Newman's integration collections target postman-echo.com. Fixture loaders
  * rewrite them here; Postman Echo's `/delay/:s` takes seconds while the
- * native `/delay/:ms` takes milliseconds, hence the separate /pm/ prefix.
+ * native `/delay/:ms` takes milliseconds, so Postman Echo gets its own origin
+ * and only the origin is rewritten: paths, queries and fragments stay exactly
+ * as the fixture wrote them.
  */
-export function rewritePostmanEcho(url, base = `http://127.0.0.1:${ECHO_PORT}`) {
-  return url.replace(/^https?:\/\/postman-echo\.com(?=[/?#]|$)/i, `${base}/pm`);
+export function rewritePostmanEcho(url, base = `http://127.0.0.1:${POSTMAN_ECHO_PORT}`) {
+  return url.replace(/^https?:\/\/postman-echo\.com(?::\d+)?(?=[/?#]|$)/i, base);
 }
 
 // A 1×1 transparent PNG.
@@ -130,15 +134,18 @@ function b64url(buffer) {
   return buffer.toString("base64url");
 }
 
-async function handle(req, res) {
+async function handle(req, res, { postmanEcho: postman = false } = {}) {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "127.0.0.1"}`);
   const path = url.pathname;
   const body = await readBody(req);
 
+  if (postman) {
+    const cors = corsHeaders(req);
+    return req.method === "OPTIONS" ? send(res, 204, cors) : postmanEcho(req, res, url, body, cors);
+  }
   if (path.startsWith("/cors/")) return corsRoute(req, res, path.slice(6));
   const cors = corsHeaders(req);
   if (req.method === "OPTIONS") return send(res, 204, cors);
-  if (path.startsWith("/pm/")) return postmanEcho(req, res, url, body, cors);
 
   let m;
   if (path === "/echo") return json(res, 200, reflect(req, url, body), cors);
@@ -306,7 +313,7 @@ function big(res, mb, cors) {
 // Postman Echo–compatible subset used by Newman's integration collections,
 // with the same JSON response shapes.
 function postmanEcho(req, res, url, body, cors) {
-  const path = url.pathname.slice(3); // strip "/pm"
+  const path = url.pathname;
   const args = Object.fromEntries(url.searchParams);
   const headers = Object.fromEntries(pairs(req.rawHeaders).map(([k, v]) => [k.toLowerCase(), v]));
   const fullUrl = `https://postman-echo.com${path}${url.search}`;
@@ -344,11 +351,11 @@ function postmanEcho(req, res, url, body, cors) {
   if (path === "/cookies") return json(res, 200, { cookies }, cors);
   if (path === "/cookies/set") {
     const set = [...url.searchParams].map(([k, v]) => `${k}=${v}; Path=/`);
-    return send(res, 302, { ...cors, location: "/pm/cookies", "set-cookie": set });
+    return send(res, 302, { ...cors, location: "/cookies", "set-cookie": set });
   }
   if (path === "/cookies/delete") {
     const expired = [...url.searchParams.keys()].map((k) => `${k}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
-    return send(res, 302, { ...cors, location: "/pm/cookies", "set-cookie": expired });
+    return send(res, 302, { ...cors, location: "/cookies", "set-cookie": expired });
   }
   if (path === "/basic-auth") {
     const ok = req.headers.authorization === `Basic ${Buffer.from("postman:password").toString("base64")}`;
@@ -450,9 +457,10 @@ function writeFrame(opcode, payload) {
   return Buffer.concat([head, payload]);
 }
 
-export function startEchoServer(port = ECHO_PORT, host = "127.0.0.1") {
+/** `options.postmanEcho` serves only the Postman Echo–compatible routes, at their Postman paths. */
+export function startEchoServer(port = ECHO_PORT, host = "127.0.0.1", options = {}) {
   const server = createServer((req, res) => {
-    handle(req, res).catch((error) => {
+    handle(req, res, options).catch((error) => {
       console.error("echo-server:", error);
       if (!res.headersSent) json(res, 500, { error: String(error) });
       else res.destroy();
@@ -463,9 +471,11 @@ export function startEchoServer(port = ECHO_PORT, host = "127.0.0.1") {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const ports = [Number(process.argv[2] ?? ECHO_PORT), Number(process.argv[3] ?? ECHO_SECOND_PORT)];
-  for (const port of ports) {
+  const [first = ECHO_PORT, second = ECHO_SECOND_PORT, postman = POSTMAN_ECHO_PORT] = process.argv.slice(2).map(Number);
+  for (const port of [first, second]) {
     await startEchoServer(port);
     console.log(`echo-server: http://127.0.0.1:${port}`);
   }
+  await startEchoServer(postman, "127.0.0.1", { postmanEcho: true });
+  console.log(`echo-server: Postman Echo routes on http://127.0.0.1:${postman}`);
 }

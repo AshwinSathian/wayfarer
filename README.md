@@ -197,6 +197,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 - [Storage layout](docs/storage.md)
 - [Scripts & sandbox model](docs/scripts.md)
 - [Local Bridge (optional CORS/intranet relay)](local-bridge/README.md)
+- [Browser limits](docs/browser-limits.md): what the browser blocks, including reaching the Local Bridge
 - [Trust Center](docs/trust-center.md): encryption, data residency, subprocessors, compliance status
 - [Security questionnaire (pre-answered)](docs/security-questionnaire.md)
 - [Deployment](docs/deployment.md): Cloudflare Workers setup, CI/CD, headers/CSP

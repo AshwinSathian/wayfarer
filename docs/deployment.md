@@ -31,7 +31,7 @@ git switch main && git pull --ff-only
 git status --short                          # must print nothing
 gh run list --workflow ci.yml --branch main --limit 1   # must be "completed success" for HEAD
 npm ci
-npm run build -- --configuration=production
+npm run build
 ```
 
 Deploy only a commit whose CI run is green, and only from a clean tree. The

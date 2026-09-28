@@ -62,7 +62,7 @@ jobs:
       # configuration (initial: 2mb warning / 5mb error). Angular's own
       # build enforces these and fails the step if they're exceeded, so no
       # extra bundle-size tooling is needed here.
-      - run: npm run build -- --configuration=production
+      - run: npm run build
 
   local-bridge:
     name: Local Bridge (zero-dependency Node test suite)

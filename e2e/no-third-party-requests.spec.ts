@@ -32,6 +32,13 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   }
 }
 
+// Playwright's WebKit doesn't apply page.route() to requests that pass
+// through a service worker's fetch handler, even one that doesn't answer
+// them (ours never answers cross-origin requests; e2e/service-worker.spec.ts
+// proves that). Block the worker so the routed target stays deterministic;
+// the worker itself only ever fetches the app's own files.
+test.use({ serviceWorkers: "block" });
+
 test("@claim:C-001 no-third-party-requests: a full session talks only to the app and the user's target", async ({ page, baseURL }) => {
   const appOrigin = new URL(baseURL ?? "http://localhost:4200").origin;
   const foreign: string[] = [];

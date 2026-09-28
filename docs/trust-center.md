@@ -103,10 +103,13 @@ No third-party audits or certifications exist.
 
 ## Business continuity / availability
 
-Wayfarer is a static, client-side application. It does not work offline
-today: v1.1.0 removed the service worker, which faked `504` responses on
-network failures ([#63](https://github.com/AshwinSathian/wayfarer/issues/63)). <!-- claim:C-010 -->
-Offline support returns with a same-origin-only service worker. Your data
+Wayfarer is a static, client-side application. After one visit it loads
+with the network off: a service worker keeps the app's own files. <!-- claim:C-015 -->
+That worker only ever handles requests to the app's own origin; the
+requests you send go straight to the network, so a network failure shows
+the real error, never a synthetic `504` (the pre-v1.1.0 worker did that,
+[#63](https://github.com/AshwinSathian/wayfarer/issues/63)). <!-- claim:C-010 --> <!-- claim:C-015 -->
+Your data
 is not affected by the site's uptime, because the site never holds it: it's
 in your browser's IndexedDB whether or not
 `https://wayfarer.ashwinsathian.com/` is reachable.
@@ -129,7 +132,6 @@ These are open, tracked, and scheduled in
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
-- No offline support ([#63](https://github.com/AshwinSathian/wayfarer/issues/63)).
 - The vault passphrase can't be rotated, and with no secrets stored any passphrase "unlocks" ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 - No request cancel or timeout ([#67](https://github.com/AshwinSathian/wayfarer/issues/67)); the reported duration includes script time ([#68](https://github.com/AshwinSathian/wayfarer/issues/68)); cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - History and collection exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).

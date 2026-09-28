@@ -40,6 +40,7 @@ import { SecretsManagerComponent } from "../secrets/secrets-manager.component";
 import { SettingsComponent } from "../settings/settings.component";
 import { IconComponent } from "../../shared/icon/icon.component";
 import { DiagnosticsService } from "../../services/diagnostics.service";
+import { SwUpdateService } from "../../services/sw-update.service";
 
 @Component({
   selector: "app-shell",
@@ -71,6 +72,7 @@ import { DiagnosticsService } from "../../services/diagnostics.service";
 })
 export class AppShellComponent implements OnInit {
   private readonly diagnostics = inject(DiagnosticsService);
+  protected readonly swUpdate = inject(SwUpdateService);
   readonly pastRequests = input<PastRequest[]>([]);
   readonly historyLoading = input(false);
   readonly drawerVisible = input(true);

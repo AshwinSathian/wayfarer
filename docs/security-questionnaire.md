@@ -90,9 +90,9 @@ Cloudflare at all.
 
 ## Business continuity and availability
 
-The application is static. It does not work offline today: v1.1.0 removed
-the service worker, which faked `504` responses on network failures
-([#63](https://github.com/AshwinSathian/wayfarer/issues/63)). A user's data
+The application is static. After one visit it loads offline, from a
+service worker that caches only the app's own files and never handles
+requests to other origins. A user's data
 is unaffected by the site's availability, since the site never stores it.
 It only serves the app's own code.
 

@@ -134,7 +134,9 @@ function startServer(root, port) {
       res.statusCode = 500;
       res.end(String(error));
     }
-  }).listen(port, () => console.log(`prod-server: ${root} on http://localhost:${port}`));
+  }).listen(port, function () {
+    console.log(`prod-server: ${root} on http://localhost:${this.address().port}`);
+  });
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

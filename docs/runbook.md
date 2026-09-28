@@ -216,3 +216,22 @@ These are the P0.13 checks: `npm view … maintainers` lists the maintainer acco
 - Publish from CI with **trusted publishing**: npmjs.com → package → Settings → Trusted Publisher → GitHub Actions, repository `AshwinSathian/wayfarer`, workflow `release.yml`. CI then publishes through OIDC, with no stored token, and gets a provenance attestation automatically. The package has to exist before a trusted publisher can be added, which is one more reason to reserve now. At that point, change `mfa=publish` to the setting the npm docs recommend for trusted publishing.
 - After the real release: `npm deprecate wayfarer-bridge@0.0.0-reserved "placeholder; use the latest release"`, and the same for `wayfarer-cli`.
 - Don't unpublish the placeholders. npm allows unpublishing only within 72 hours, and an unpublished name can't be reused for 24 hours, which is a window for a squatter.
+
+## Service worker
+
+The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
+
+### Service worker kill switch
+
+Use this if a deployed `sw.js` is broken (for example, users are stuck on an old version or requests misbehave only with the worker active). Rolling back alone may not help, because browsers keep the installed worker.
+
+1. Build the current commit, then replace the worker with the kill switch:
+
+   ```sh
+   npm ci && npm run build
+   cp scripts/sw-kill.js dist/wayfarer/browser/sw.js
+   ```
+
+2. Upload and promote it as in [`deployment.md`](deployment.md) (steps 2–4). Browsers fetch `/sw.js` on their next navigation (it is never HTTP-cached: `updateViaCache: "none"`), install the kill switch, which deletes all caches, unregisters, and reloads open tabs from the network.
+3. Check in a browser that had the app open: DevTools → Application → Service workers shows no registration after one reload, and Cache Storage is empty.
+4. Fix the worker, then deploy normally; the app registers the fixed `/sw.js` again.

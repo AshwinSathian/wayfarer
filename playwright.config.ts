@@ -49,7 +49,7 @@ export default defineConfig({
           // server and intermittently broke e2e/layout.spec.ts in CI.
           // Locally, `ng serve` is kept for fast iteration.
           command: CI
-            ? "(test -f dist/wayfarer/browser/index.html || npm run build -- --configuration=production) && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
+            ? "(test -f dist/wayfarer/browser/index.html || npm run build) && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
             : "npx ng serve --configuration development",
           url: "http://localhost:4200",
           reuseExistingServer: !CI,

@@ -81,7 +81,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **PWA**
 
-  - Installable from the browser (no offline support yet, see [#63](https://github.com/AshwinSathian/wayfarer/issues/63)); dark and light themes are both intentionally designed, not one inverted from the other
+  - Installable from the browser, and loads offline after the first visit; the service worker only caches the app's own files and never touches the requests you send <!-- claim:C-015 --> <!-- claim:C-010 -->. Dark and light themes are both intentionally designed, not one inverted from the other
 
 ---
 
@@ -170,7 +170,7 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
-- Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)); no offline support ([#63](https://github.com/AshwinSathian/wayfarer/issues/63)).
+- Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - The vault passphrase can't be rotated ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 - No request cancel or timeout ([#67](https://github.com/AshwinSathian/wayfarer/issues/67)); duration includes script time ([#68](https://github.com/AshwinSathian/wayfarer/issues/68)).
 - History and exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).

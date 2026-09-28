@@ -246,18 +246,21 @@ test.describe("Phase 0 tripwires", () => {
 });
 
 test.describe("Phase 0 tripwires (service worker active)", () => {
-  test("F06: a DNS failure shows a network error, not a synthetic 504", async ({ page }) => {
-    test.fail(true, "open until P0.5 lands");
+  test("F06: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
     const response = await page.goto("/");
     await expectProdParity(response);
-    // Let the production service worker (if any) install and take control,
-    // as it has for any returning user, then load the app under it.
-    await page.evaluate(() =>
-      Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((resolve) => setTimeout(resolve, 35_000)),
-      ])
-    );
+    // Recreate a returning pre-v1.1.0 visitor: a registration for
+    // /ngsw-worker.js. On the audited build that URL is the Angular service
+    // worker; from v1.1.0 it is the safety worker, which unregisters itself.
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.register("/ngsw-worker.js");
+      const worker = registration.installing ?? registration.waiting ?? registration.active;
+      await new Promise<void>((resolve) => {
+        const settled = () => worker?.state === "activated" || worker?.state === "redundant";
+        if (!worker || settled()) return resolve();
+        worker.addEventListener("statechange", () => settled() && resolve());
+      });
+    });
     await page.reload();
 
     await page.locator("input.address-url").fill("https://tripwire-f06.invalid/");
@@ -265,5 +268,8 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
 
     await expect(page.getByText(/Network error/).first()).toBeVisible();
     await expect(page.locator(".status-badge")).not.toHaveText("504");
+    expect(
+      await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)
+    ).toBe(0);
   });
 });

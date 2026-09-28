@@ -87,10 +87,11 @@ data in the first place, so there is nothing to sub-process.
 
 ## Business continuity and availability
 
-The application is static and mostly functions offline once loaded (PWA
-service worker, see [`ngsw-config.json`](../ngsw-config.json)). A user's
-data is entirely unaffected by the demo site's availability, since the demo
-site never stores it. It only ever serves the app's own code.
+The application is static. It does not work offline today: v1.1.0 removed
+the service worker, which faked `504` responses on network failures
+([#63](https://github.com/AshwinSathian/wayfarer/issues/63)). A user's data
+is unaffected by the site's availability, since the site never stores it.
+It only serves the app's own code.
 
 ## Incident history
 

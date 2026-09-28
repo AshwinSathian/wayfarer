@@ -185,7 +185,9 @@ describe("RequestExecutionService", () => {
   it("shapes a network error (status 0) into a readable message rather than leaking the raw event", async () => {
     const progressEvent =
       typeof ProgressEvent !== "undefined" ? new ProgressEvent("error") : ({} as ProgressEvent);
-    const error = new HttpErrorResponse({ status: 0, error: progressEvent });
+    // HttpClient always sets a message ("Http failure response for ...: 0
+    // Unknown Error"), which used to win over the guidance text (P0.5, #63).
+    const error = new HttpErrorResponse({ status: 0, error: progressEvent, url: "https://x.invalid/" });
     mainService.setResponse(throwError(() => error));
 
     const result = await service.execute({
@@ -198,7 +200,9 @@ describe("RequestExecutionService", () => {
     expect(result.response.isError).toBe(true);
     expect(result.response.bodyIsJson).toBe(false);
     expect(result.response.errorText).not.toContain("isTrusted");
-    expect(result.response.errorText.length).toBeGreaterThan(0);
+    expect(result.response.errorText).toMatch(/^Network error/);
+    expect(result.response.errorText).toMatch(/CORS/);
+    expect(result.response.errorText).not.toContain("Unknown Error");
     expect(result.history.error).toBeDefined();
   });
 

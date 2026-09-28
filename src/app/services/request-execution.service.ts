@@ -35,6 +35,11 @@ export class SendBlockedError extends Error {
 
 const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
 
+export const NETWORK_ERROR_TEXT =
+  "Network error — no response was received. The host may not resolve (DNS), may have refused " +
+  "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
+  "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
+
 export const SECRET_PLACEHOLDER_BLOCKED =
   "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
   "This request references one, so it was not sent.";
@@ -365,10 +370,13 @@ export class RequestExecutionService {
 
   private resolveErrorBody(error: HttpErrorResponse): unknown {
     if (this.isNetworkError(error)) {
-      return (
-        error.message ||
-        "Network error — no response was received. Check the URL, your connection, or whether the API allows cross-origin requests (CORS)."
-      );
+      // A string here is the Local Bridge's own explanation; keep it. The
+      // HttpClient message ("Http failure response for ...: 0 Unknown Error")
+      // says nothing useful, so it never wins over the guidance (F06).
+      if (typeof error.error === "string" && error.error) {
+        return error.error;
+      }
+      return NETWORK_ERROR_TEXT;
     }
     return error.error ?? error.message;
   }

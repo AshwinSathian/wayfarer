@@ -88,12 +88,13 @@ audit" as the honest current answer, not as compliance-by-absence.
 
 ## Business continuity / availability
 
-Wayfarer is a static, client-side application: once loaded, most of the UI
-keeps working even if the site that served it goes offline (see the PWA
-service-worker config in [`ngsw-config.json`](../ngsw-config.json)). Your
-data is not affected by the demo site's uptime at all, because the demo site
-never holds it: it's in your browser's IndexedDB regardless of whether
-`https://wayfarer.ashwinsathian.com/` is reachable at this moment.
+Wayfarer is a static, client-side application. It does not work offline
+today: v1.1.0 removed the service worker, which faked `504` responses on
+network failures ([#63](https://github.com/AshwinSathian/wayfarer/issues/63)).
+Offline support returns with a same-origin-only service worker. Your data
+is not affected by the site's uptime, because the site never holds it: it's
+in your browser's IndexedDB whether or not
+`https://wayfarer.ashwinsathian.com/` is reachable.
 
 ## Data deletion
 

@@ -79,7 +79,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. Everyt
 
 - **PWA**
 
-  - Installable from the browser; dark and light themes are both intentionally designed, not one inverted from the other
+  - Installable from the browser (no offline support yet, see [#63](https://github.com/AshwinSathian/wayfarer/issues/63)); dark and light themes are both intentionally designed, not one inverted from the other
 
 ---
 

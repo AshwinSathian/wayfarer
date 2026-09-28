@@ -294,6 +294,8 @@ POST /relay { method, url, headers: [name, value][], bodyB64?, followRedirects, 
 - **D11 — Semver release per phase.** v1.1.0 (Phase 0), v1.2.0 (Phase 1), v2.0.0 (Phase 2: data model v5 and export v2 are breaking), v2.1–v2.5 for Phases 3–7.
 - **D12 — Enterprise paperwork trimmed.** `docs/security-questionnaire.md` is merged into `docs/trust-center.md` as a "Procurement quick answers" section. The SOC 2 roadmap prose is replaced by one line: "No third-party audits or certifications exist."
 
+- **D13 — Trusted Types enforced (spike P1.9, 2026-09-28).** `require-trusted-types-for 'script'` is in `security/csp.json`. With it enforced and no policy, Chromium, Firefox and WebKit reported exactly three sinks: `ServiceWorkerContainer.register('/sw.js')`, `new Worker(new URL('worker-*.js', import.meta.url))` (Monaco's editor/json/css/html/ts workers, the JSON worker, the script sandbox worker) and PrimeNG Tooltip's `innerHTML = ""`. Angular and Monaco use their own named policies and reported nothing. The fix is one `default` policy (`src/app/shared/security/trusted-types.ts`): script URLs only on the app's own origin over http(s), HTML only the empty string, no `createScript`. No `trusted-types` name allow-list: Monaco creates many version-specific policy names, and an allow-list would break editors on upgrade without adding sink protection. Claim C-016 tests it in 3 browsers.
+
 Trade-offs accepted:
 - Scripts run slower than in Postman. Mitigation: host-native crypto shims, and a benchmark gate in P3.10.
 - Chromium-only enhancements are limited to optional features.
@@ -391,9 +393,9 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 
 **Tasks:**
 
-- [ ] **P1.1** `e2e/support/prod-server.mjs` (Node, zero dependencies): serves `dist/wayfarer/browser`, parses `public/_headers` (path globs and header lines), and falls back to SPA `index.html`. `playwright.config.ts` uses it in CI.
+- [x] **P1.1** `e2e/support/prod-server.mjs` (Node, zero dependencies): serves `dist/wayfarer/browser`, parses `public/_headers` (path globs and header lines), and falls back to SPA `index.html`. `playwright.config.ts` uses it in CI.
   - AC: `curl -sI localhost:4200/<sandbox worker>` shows the same CSP as production; a unit test covers the `_headers` parser with the 3 rule shapes Cloudflare documents.
-- [ ] **P1.2** `e2e/support/echo-server.mjs`: deterministic target on `127.0.0.1:4300` and a second origin on `:4301`. Routes:
+- [x] **P1.2** `e2e/support/echo-server.mjs`: deterministic target on `127.0.0.1:4300` and a second origin on `:4301`. Routes:
   - `/echo` (reflects method, headers, body);
   - `/content/:type`;
   - `/redirect/:n`;
@@ -408,16 +410,16 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - `/big/:mb`;
   - Postman Echo–compatible routes used by Newman's integration collections (`/get`, `/post`, `/put`, `/patch`, `/delete`, `/headers`, `/response-headers`, `/cookies`, `/cookies/set`, `/cookies/delete`, `/basic-auth`, `/status/:code`, `/delay/:s`, `/gzip`, `/deflate`, `/encoding/utf8`), with the same JSON response shapes. Fixture URLs pointing at `postman-echo.com` are rewritten to the echo-server at load time.
   - AC: no e2e spec references `jsonplaceholder` or `httpbin` (`grep` in CI fails the build if any does).
-- [ ] **P1.3** Playwright projects for `chromium`, `firefox` and `webkit`, plus a `claims` project (retries 0) that runs tests tagged `@claim`.
+- [x] **P1.3** Playwright projects for `chromium`, `firefox` and `webkit`, plus a `claims` project (retries 0) that runs tests tagged `@claim`.
   - AC: the CI e2e job runs 3 browsers and reports per-browser results; a test tagged `@claim` fails CI on first failure.
-- [ ] **P1.4** Claims ledger: `docs/claims.md` lists `C-001…` with statement, source doc and test file. Docs mark claims inline with `<!-- claim:C-001 -->`. `scripts/check-claims.mjs` fails if:
+- [x] **P1.4** Claims ledger: `docs/claims.md` lists `C-001…` with statement, source doc and test file. Docs mark claims inline with `<!-- claim:C-001 -->`. `scripts/check-claims.mjs` fails if:
   - a doc marker has no ledger row;
   - a ledger row has no test whose title contains `@claim:C-001`;
   - a ledger row has no doc marker.
   - AC: `npm run check:claims` runs in the CI lint job; deleting any claimed test makes CI red (verified once in a throwaway PR).
-- [ ] **P1.5** CSP single source: `security/csp.json` → `scripts/gen-csp.mjs` writes the CSP into `public/_headers` and `src/index.html` (meta, without `frame-ancestors`).
+- [x] **P1.5** CSP single source: `security/csp.json` → `scripts/gen-csp.mjs` writes the CSP into `public/_headers` and `src/index.html` (meta, without `frame-ancestors`).
   - AC: `npm run check:csp` fails when either file is hand-edited out of sync.
-- [ ] **P1.6** Custom service worker (`src/sw.ts`, built by `scripts/build-sw.mjs` with a hashed asset manifest):
+- [x] **P1.6** Custom service worker (`src/sw.ts`, built by `scripts/build-sw.mjs` with a hashed asset manifest):
   - network-first for navigations;
   - cache-first for hashed same-origin assets;
   - `if (new URL(request.url).origin !== self.location.origin) return;` so cross-origin traffic is never intercepted;
@@ -434,18 +436,18 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - AC: a deliberately failing smoke in a test branch leaves production unchanged (the previous version id is still active in `wrangler deployments list`).
 - [ ] **P1.8** `synthetic.yml` (cron every 6 h) runs `@smoke` on production in 3 browsers and creates or updates an issue labelled `prod-down` on failure.
   - AC: a manual `workflow_dispatch` run against a broken preview URL opens the issue.
-- [ ] **P1.9** Spike: Trusted Types (`require-trusted-types-for 'script'`) with Angular, Monaco and PrimeNG.
+- [x] **P1.9** Spike: Trusted Types (`require-trusted-types-for 'script'`) with Angular, Monaco and PrimeNG.
   - AC: the decision is recorded in section 6 with the list of violations observed; if it passes, the header is in `security/csp.json`.
-- [ ] **P1.10** Spike, risk R4: bridge reachability from `https://wayfarer.ashwinsathian.com` to `http://127.0.0.1:7717` in the current stable Chrome, Firefox and Safari. Record LNA prompts, mixed-content blocks, and whether `Access-Control-Allow-Private-Network` is needed.
+- [x] **P1.10** Spike, risk R4: bridge reachability from `https://wayfarer.ashwinsathian.com` to `http://127.0.0.1:7717` in the current stable Chrome, Firefox and Safari. Record LNA prompts, mixed-content blocks, and whether `Access-Control-Allow-Private-Network` is needed.
   - AC: `docs/browser-limits.md#bridge-reachability` has a 3-row result table with browser versions, and the Phase 6 design is updated if HTTPS loopback is required.
-- [ ] **P1.11** Hygiene gates:
+- [x] **P1.11** Hygiene gates:
   - ESLint `no-empty` with `allowEmptyCatch: false`, plus a custom rule or `no-restricted-syntax` banning `.catch(() => undefined)`;
   - `@typescript-eslint/no-explicit-any: error`;
   - `tsconfig.json` `lib` set to `["ES2022", "DOM", "DOM.Iterable"]`;
   - `knip` with zero unused files, exports or deps;
   - all 36 silent catches either rethrow or call `DiagnosticsService.record(error, context)` (a stub in this phase, completed in P7.3).
   - AC: `npm run lint` and `npx knip` pass with the rules enabled; `grep -rn "catch {" src/app --include=*.ts | grep -v spec` returns 0 lines.
-- [ ] **P1.12** Measure the bundle baseline (initial JS/CSS transfer size, gzip) and set `angular.json` budgets to `maximumError = baseline × 1.10` for initial. Add a `bundle-report` CI artifact.
+- [x] **P1.12** Measure the bundle baseline (initial JS/CSS transfer size, gzip) and set `angular.json` budgets to `maximumError = baseline × 1.10` for initial. Add a `bundle-report` CI artifact.
   - AC: budgets in `angular.json` equal the recorded baseline numbers in this file's Appendix A; the build fails if they are exceeded.
 - [ ] **P1.13** Coverage: Vitest v8 coverage in browser mode, with thresholds `src/app/**` lines ≥ 70% and `packages/core/**` lines ≥ 90% (enforced once core exists).
   - AC: CI fails below threshold.
@@ -745,7 +747,8 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 - [ ] **P6.2** Bridge hardening:
   - the `Host` header must be `127.0.0.1:<port>` or `localhost:<port>` (DNS-rebinding defence);
   - `Access-Control-Allow-Private-Network: true` on preflights that request it;
-  - HTTPS loopback mode if spike P1.10 requires it;
+  - HTTPS loopback mode (required: P1.10 found WebKit blocks `http://127.0.0.1` from the HTTPS site as mixed content; see `docs/browser-limits.md#bridge-reachability`);
+  - a pre-explained Local Network Access prompt (P1.10: Chrome 153 denies loopback until the user grants it);
   - a one-time pairing code shown in the terminal that the app exchanges for the token (no manual token copy);
   - the token is still revocable via `--rotate-token`.
   - AC: tests: a wrong `Host` gives 403; the PNA preflight header is present; pairing with a wrong code 3 times locks pairing for 60 s.
@@ -873,7 +876,7 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F03 | Vault secrets never resolved into requests | P0.3, P2.4, P2.5, P2.6 | #60 | In progress (#100) |
 | F04 | Non-JSON responses render as parse-error wrapper | P0.4, P2.3, P2.13 | #61 | In progress (#100) |
 | F05 | Binary responses shown as mojibake | P0.4, P2.13 | #62 | In progress (#100) |
-| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | #63 | In progress (#100) |
+| F06 | Angular SW fakes 504 on network/CORS failure | P0.5, P1.6 | #63 | In progress (#100; same-origin SW #102) |
 | F07 | Auth tab ignores `{{vars}}` | P0.6, P2.4, P4.9 | #64 | In progress (#100) |
 | F08 | Body is JSON-object only; nested vars unresolved | P0.6, P2.12 | #65 | In progress (#100) |
 | F09 | Rotation impossible; no verifier; zero-secret unlock accepts any passphrase | P0.9, P2.6 | #66 | In progress (docs #100) |
@@ -899,17 +902,17 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F29 | No multi-tab; history unbounded, unsearchable | P2.9, P2.17, P5.1 | #86 | Open |
 | F30 | Request vars reserved, globals hard-coded, no inheritance | P2.4, P4.9 | #87 | Open |
 | F31 | Codegen cURL only; cURL export bugs | P4.6 | #88 | Open |
-| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | #89 | Open |
+| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | #89 | In progress (#102) |
 | F33 | Icon ligature text as accessible names | P0.8, P7.1 | #90 | In progress (#100) |
-| F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | #91 | Open |
+| F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | #91 | In progress (budgets #102) |
 | F35 | Docs volume exceeds product; prose-heavy changelog | P7.6 | #92 | Open |
-| F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | #93 | Open |
+| F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | #93 | In progress (silent catches #102) |
 | F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | #94 | In progress (#100) |
-| F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | #95 | Open |
-| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | #96 | Open |
-| F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Open |
+| F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | #95 | In progress (#102; deploy drill pending owner) |
+| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | #96 | Closed (#102) |
+| F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Closed (#102) |
 | F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | #98 | Open |
-| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | In progress (docs #100) |
+| F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | In progress (spike #102; fix in P6.2) |
 
 ## 13. Adversarial review log
 
@@ -982,12 +985,13 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 | 2026-09-28 | draft 1–3 | Initial plan and two adversarial review passes (section 13, items 1–22). |
 | 2026-09-28 | v1.0 LOCKED | Maintainer answers applied: unscoped npm names reserved early (P0.13); Cloudflare zone hardening with Bot Fight Mode off zone-wide (P0.12); history bodies on and timeout 0 confirmed; plan archived at P7.8; Newman integration collections plus Adyen and Microsoft Graph chosen as fixtures, with Newman as the reference runner (P3.4, P4.2). Final review items 23–27 in section 13. |
 | 2026-09-28 | v1.0.1 | Maintainer decision: `deploy.yml` and `preview.yml` removed; production deploys are manual from the CLI (`docs/deployment.md`) until P1.7, which now creates `deploy.yml` rather than modifying it. |
+| 2026-09-28 | v1.0.2 (pending maintainer approval, PR #102) | Phase 1 deviations: **P1.2** Postman Echo–compatible routes live under `/pm/` (fixtures rewrite `postman-echo.com` to `http://127.0.0.1:4300/pm`), because Postman's `/delay/:s` (seconds) conflicts with the native `/delay/:ms`. **P1.3** the `@claim` project is one per engine (`claims-chromium`, `claims-firefox`, `claims-webkit`), retries 0. **P1.4** a claim is a statement about privacy, security, data handling, network behaviour or a stated fact the app guarantees; known-limitation bullets stay tracked by their issues; README Highlights are covered by feature specs until P7.6. **P1.11** there were 42 silent catches, not 36 (`grep -v spec` also hides `src/app/shared/inspect/`); non-DI utilities call `recordDiagnostic`, injectables call `DiagnosticsService.record`. **P1.13 blocked**: Angular 20.3's `@angular/build:unit-test` collects no browser-mode coverage (0/0 even with include `**`) and has no thresholds option; needs a maintainer decision (upgrade Angular, or move the gate). **P1.7** `deploy.yml` is manual (`workflow_dispatch`), keeping v1.0.1's manual-deploy decision; it deploys a green CI run's artifact. **P1.9/P1.10** see D13 and P6.2. |
 
 ## Appendix A — Measurements (filled during execution)
 
 | Metric | Value | Recorded in task |
 |---|---|---|
-| Initial bundle baseline (gzip JS / CSS) | _pending_ | P1.12 |
+| Initial bundle baseline | raw 1,707,095 B (JS 1,370,209 / CSS 336,886); gzip (level 9) 443,272 B (JS 343,600 / CSS 99,672), measured at `b5aa772` (after P1.6). Budgets: `angular.json` initial error 1878kb / warning 1793kb (Angular kb = 1000 B); `bundle:report` gzip error 487,600 B | P1.12 |
 | OpenSSF Scorecard | _pending_ | P1.14 |
 | Script benchmark p95 / WASM cold load | _pending_ | P3.10 |
 | Phase 0–2 actual/estimate ratio | _pending_ | Phase 2 checkpoint |

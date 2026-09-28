@@ -1,7 +1,7 @@
 {
   "name": "wayfarer",
   "version": "1.0.0",
-  "description": "The API client that can't rug-pull you: a local-first, no-account API testing client with collections, environments, an encrypted secrets vault, pre/post-request scripts, and a Postman-grade response viewer, entirely in the browser.",
+  "description": "A local-first, no-account API client that runs entirely in the browser: collections, environments, an encrypted secrets vault, test assertions, and a response viewer.",
   "license": "MIT",
   "private": true,
   "author": "Ashwin Sathian",

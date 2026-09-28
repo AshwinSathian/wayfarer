@@ -28,4 +28,6 @@ Forward migrations hook into the upgrade callback and are staged through helpers
 
 ## Resetting
 
-`IdbCoreService.resetDatabase()` closes any open connection, deletes the local database, and resets the internal state. The UI exposes this via **Reset All Data**, which also clears app-specific `localStorage`/`sessionStorage` keys and reloads the page, ensuring the next launch starts from a clean slate.
+`IdbCoreService.resetDatabase()` closes this tab's connection, tells other tabs to close theirs (BroadcastChannel `wayfarer:lifecycle`, plus the `versionchange` event the delete fires), and deletes the database. If the database is still not deleted 2 s later (a tab that ignores the request, for example one running a build from before v1.1.0), it fails with "Close other Wayfarer tabs and try again". The UI exposes this via **Settings → Reset all data**. Only after a successful delete does it clear app-specific `localStorage`/`sessionStorage` keys and reload. Other tabs close their connection, stop saving, and show "Data was reset in another tab — reload".
+
+A blocked delete request can't be cancelled: it stays queued and completes when the blocking tab closes, so the data may still disappear after the reset reported failure.

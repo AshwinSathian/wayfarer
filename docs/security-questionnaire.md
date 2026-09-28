@@ -39,10 +39,12 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
 - **Encryption at rest?** Secrets (API keys, tokens, credentials stored in
   the vault) are encrypted with AES-GCM (256-bit) using a key derived via
   PBKDF2-SHA-256 (200,000 iterations) from a user-chosen passphrase. Full
-  spec: [`docs/secrets.md`](secrets.md). Non-secret data (request bodies,
-  collection structure, history) is stored as plaintext in IndexedDB,
-  protected by the browser's storage sandbox and the device's own disk
-  encryption, not an app-level cipher.
+  spec: [`docs/secrets.md`](secrets.md). Everything else (collections,
+  environments, history) is stored as plain text in IndexedDB, protected by
+  the browser's storage sandbox and the device's own disk encryption, not
+  an app-level cipher. History includes the request headers that were
+  sent, so an `Authorization` header is stored in plain text
+  ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)).
 - **Encryption in transit?** The app itself has no server to reach over
   the network. Outbound traffic is the user's own request to their own
   chosen target, protected by standard TLS whenever that target is
@@ -80,10 +82,11 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
 
 ## Subprocessors
 
-None. A subprocessor list is meaningful when a vendor's backend shares
-customer data with other vendors (payment processors, email senders,
-analytics platforms, etc.). Wayfarer has no backend that receives customer
-data in the first place, so there is nothing to sub-process.
+**Cloudflare**, as the static host of `https://wayfarer.ashwinsathian.com/`.
+It sees the IP address, user agent, and URL of each page load, as any web
+host does. It never receives collections, environments, history, or
+secrets. There are no other subprocessors. A self-hosted build involves no
+Cloudflare at all.
 
 ## Business continuity and availability
 
@@ -106,9 +109,7 @@ would be handled if one ever came in.
 
 | Certification | Status |
 |---|---|
-| SOC 2 Type II | Not started. Requires a 6–12 month control-effectiveness observation window; planned to begin ahead of the first enterprise deal that requires it, not after |
-| ISO 27001 | Not pursued |
-| Penetration test report | None commissioned to date |
+| SOC 2, ISO 27001, penetration test | No third-party audits or certifications exist. |
 | GDPR / CCPA | No personal data is collected, stored, or processed by the vendor in the first place; see Data residency above. Users are the sole controllers of any personal data they choose to enter into their own local requests |
 
 ## Vulnerability disclosure
@@ -129,6 +130,9 @@ project's standing anti-goal on ambiguous open-source claims.
 
 ---
 
-*Last reviewed: 2026-07-21. If your procurement process needs an answer
+Open audit findings, including the limitations above, are listed in the
+[Trust Center](trust-center.md#known-limitations).
+
+*Last reviewed: 2026-09-28. If your procurement process needs an answer
 this document doesn't cover, please open an issue rather than assuming.
 An absence here means "not yet written down," not "no."*

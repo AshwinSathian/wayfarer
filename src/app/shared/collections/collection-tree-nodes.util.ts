@@ -54,7 +54,3 @@ export function isCollectionRef(ref: Collection | Folder | RequestDoc): ref is C
 export function isFolderRef(ref: Collection | Folder | RequestDoc): ref is Folder {
   return "collectionId" in ref && !("method" in ref);
 }
-
-export function isRequestRef(ref: Collection | Folder | RequestDoc): ref is RequestDoc {
-  return "method" in ref;
-}

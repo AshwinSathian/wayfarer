@@ -1,4 +1,5 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable, signal, inject } from "@angular/core";
+import { DiagnosticsService } from "./diagnostics.service";
 
 const STORAGE_KEY = "wayfarer:bridge";
 const DEFAULT_URL = "http://127.0.0.1:7717";
@@ -20,6 +21,7 @@ const DEFAULT_CONFIG: BridgeConfig = { enabled: false, url: DEFAULT_URL, token: 
  */
 @Injectable({ providedIn: "root" })
 export class BridgeService {
+  private readonly diagnostics = inject(DiagnosticsService);
   readonly config = signal<BridgeConfig>(DEFAULT_CONFIG);
 
   constructor() {
@@ -48,7 +50,8 @@ export class BridgeService {
       const response = await fetch(`${base}/health`, { signal: controller.signal });
       clearTimeout(timeout);
       return response.ok;
-    } catch {
+    } catch (error) {
+      this.diagnostics.record(error, "bridge: health check failed");
       return false;
     }
   }
@@ -65,7 +68,8 @@ export class BridgeService {
         url: typeof parsed.url === "string" && parsed.url ? parsed.url : DEFAULT_URL,
         token: typeof parsed.token === "string" ? parsed.token : "",
       };
-    } catch {
+    } catch (error) {
+      this.diagnostics.record(error, "bridge: stored settings unreadable, using defaults");
       return DEFAULT_CONFIG;
     }
   }
@@ -73,8 +77,9 @@ export class BridgeService {
   private persist(config: BridgeConfig): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-    } catch {
-      // localStorage unavailable — bridge preference just won't survive a reload
+    } catch (error) {
+      // The bridge preference just won't survive a reload.
+      this.diagnostics.record(error, "bridge: could not save settings");
     }
   }
 }

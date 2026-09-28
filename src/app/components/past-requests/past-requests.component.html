@@ -77,18 +77,6 @@
               <app-icon name="delete" class="icon-sm text-status-error" />
             </button>
 
-            <p-confirmpopup #cp>
-              <ng-template #headless let-message>
-                <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
-                  <span class="text-label-secondary">{{ message.message }}</span>
-                  <div class="flex items-center gap-2 mt-3">
-                    <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
-                    <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
-                  </div>
-                </div>
-              </ng-template>
-            </p-confirmpopup>
-
             <p-popover #detailsPopover appendTo="body" [dismissable]="true">
               <div class="space-y-1.5 min-w-[180px] max-w-xs type-callout p-1">
                 <p class="text-label-primary truncate font-mono text-xs">{{ request.url }}</p>
@@ -138,5 +126,18 @@
     </div>
     }
   </div>
+  <!-- One popup for the whole list (an instance per entry opened a stacked
+       copy per entry), keyed so Reset all data's confirm dialog doesn't open it. -->
+  <p-confirmpopup #cp key="history-delete">
+    <ng-template #headless let-message>
+      <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
+        <span class="text-label-secondary">{{ message.message }}</span>
+        <div class="flex items-center gap-2 mt-3">
+          <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
+          <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
+        </div>
+      </div>
+    </ng-template>
+  </p-confirmpopup>
   }
 </section>

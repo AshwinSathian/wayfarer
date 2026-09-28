@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ECHO } from "./support/echo";
 import AxeBuilder from "@axe-core/playwright";
 
 // Exclusions for known, confirmed third-party-library internals this app's
@@ -52,9 +53,9 @@ function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
 }
 
 test.describe("Accessibility (primary flows)", () => {
-  test("composer + response viewer have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 composer + response viewer have no critical/serious violations", async ({ page }) => {
     await page.goto("/");
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
     // The status bar carries `.animate-response-arrive` (opacity 0 -> 1,
@@ -88,7 +89,7 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("collections sidebar has no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 collections sidebar has no critical/serious violations", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "New collection" }).click();
     // Scan the settled page, not a frame of the entrance/dialog fade: a
@@ -109,7 +110,7 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
     await page.goto("/");
 
     await page.getByRole("button", { name: "New collection" }).click();
@@ -123,7 +124,7 @@ test.describe("Accessibility (primary flows)", () => {
     // steady-state contrast.
     await expect(page.locator("#creation-name-input")).toBeHidden();
 
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Save to Collection" }).click();
     await expect(page.locator("#save-as-name")).toBeVisible();
 
@@ -151,13 +152,13 @@ test.describe("Accessibility (primary flows)", () => {
     ).toEqual([]);
   });
 
-  test("an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
+  test("@claim:C-038 an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
     page,
   }) => {
     await page.goto("/");
     // The "Clear all history" confirm is disabled until there's history —
     // send one request first so it's reachable.
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 

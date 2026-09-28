@@ -16,7 +16,7 @@ async function resetAllData(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
 }
 
-test("Reset All Data in one tab deletes the data and tells the other tab to reload", async ({ context }) => {
+test("@claim:C-013 Reset All Data in one tab deletes the data and tells the other tab to reload", async ({ context }) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
   await pageA.goto("/");

@@ -1,10 +1,12 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable, signal, inject } from "@angular/core";
+import { DiagnosticsService } from "./diagnostics.service";
 
 const STORAGE_KEY = "wayfarer:theme";
 const LEGACY_STORAGE_KEY = "api-sandbox:theme";
 
 @Injectable({ providedIn: "root" })
 export class ThemeService {
+  private readonly diagnostics = inject(DiagnosticsService);
   readonly theme = signal<"dark" | "light">("dark");
 
   constructor() {
@@ -14,8 +16,8 @@ export class ThemeService {
       if (stored === "light" || stored === "dark") {
         initial = stored;
       }
-    } catch {
-      // localStorage unavailable
+    } catch (error) {
+      this.diagnostics.record(error, "theme: localStorage unavailable, using the default theme");
     }
     this.theme.set(initial);
     this.applyTheme(initial);
@@ -27,8 +29,8 @@ export class ThemeService {
     this.applyTheme(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignored
+    } catch (error) {
+      this.diagnostics.record(error, "theme: could not save the theme choice");
     }
   }
 

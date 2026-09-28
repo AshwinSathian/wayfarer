@@ -1,0 +1,81 @@
+name: Synthetic monitor
+
+# P1.8: every 6 hours, run the @smoke tests against production in Chromium,
+# Firefox and WebKit. On failure, open an issue labelled prod-down, or comment
+# on the one already open. The first run after a fix that passes closes it.
+# A manual run can target another URL (for example a broken preview URL, to
+# check that the alert fires).
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Site to check"
+        required: false
+        default: "https://wayfarer.ashwinsathian.com"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: synthetic
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright test --grep @smoke --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }} --retries=1
+        env:
+          CI: "1"
+          BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: synthetic-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 14
+
+  alert:
+    name: Open or update the prod-down issue
+    needs: smoke
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ needs.smoke.result }}
+          TARGET: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
+        run: |
+          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          OPEN=$(gh issue list -R "$GITHUB_REPOSITORY" --label prod-down --state open --json number --jq '.[0].number // empty')
+          if [ "$RESULT" = "success" ]; then
+            if [ -n "$OPEN" ]; then
+              gh issue close "$OPEN" -R "$GITHUB_REPOSITORY" --comment "Synthetic smoke passing again for $TARGET: $RUN_URL"
+            fi
+            exit 0
+          fi
+          gh label create prod-down -R "$GITHUB_REPOSITORY" --color B60205 --description "Production is failing smoke tests" --force
+          if [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" -R "$GITHUB_REPOSITORY" --body "Still failing ($RESULT) for $TARGET: $RUN_URL"
+          else
+            gh issue create -R "$GITHUB_REPOSITORY" --label prod-down \
+              --title "Synthetic smoke failing for $TARGET" \
+              --body "The 6-hourly @smoke run ($RESULT) failed for $TARGET: $RUN_URL."
+          fi

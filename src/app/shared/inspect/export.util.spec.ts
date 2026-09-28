@@ -24,7 +24,7 @@ describe("export.util", () => {
     };
   }
 
-  it("builds a minimal HAR entry with JSON bodies", () => {
+  it("@claim:C-035 builds a minimal HAR 1.2 entry with JSON bodies", () => {
     const entry = createEntry({
       req: {
         method: "POST",
@@ -79,7 +79,7 @@ describe("export.util", () => {
     expect(harEntry.timings.receive).toBe(30);
   });
 
-  it("omits non-JSON bodies and annotates with a comment", () => {
+  it("@claim:C-035 omits non-JSON bodies and annotates with a comment", () => {
     const entry = createEntry({
       req: {
         method: "PUT",
@@ -104,4 +104,14 @@ describe("export.util", () => {
     expect(harEntry.response.content.comment).toBe("omitted (size or type)");
   });
 
+  it("@claim:C-035 omits a JSON body over 256 KB instead of inlining it", () => {
+    const big = { data: "x".repeat(300 * 1024) };
+    const small = { data: "x".repeat(1024) };
+    const harFor = (body: unknown) =>
+      toHar(createEntry({ res: { status: 200, statusText: "OK", headers: { "Content-Type": "application/json" }, body } })).log.entries[0];
+
+    expect(harFor(big).response.content.text).toBeUndefined();
+    expect(harFor(big).response.content.comment).toBe("omitted (size or type)");
+    expect(harFor(small).response.content.text).toContain('"data"');
+  });
 });

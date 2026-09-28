@@ -42,7 +42,7 @@ describe('AppComponent', () => {
   });
 
   afterEach(() => {
-    delete (window as any).innerWidth;
+    Reflect.deleteProperty(window, "innerWidth");
   });
 
   it('should create the app', () => {

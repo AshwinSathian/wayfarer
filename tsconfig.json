@@ -15,10 +15,7 @@
     "typeRoots": [
       "node_modules/@types"
     ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "useDefineForClassFields": false,
     "strict": true
   },

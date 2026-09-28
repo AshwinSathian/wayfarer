@@ -33,6 +33,8 @@ import {
 } from "../../shared/inspect/timing-bars.util";
 import { writeToClipboard } from "../../shared/http/clipboard.util";
 import { IconComponent } from "../../shared/icon/icon.component";
+import { DiagnosticsService } from "../../services/diagnostics.service";
+import { parseJson, stringifyJson } from "../../shared/json/safe-json.util";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry.util";
 
@@ -72,6 +74,7 @@ interface ResponseHeader {
 // a slow parse of a huge payload clobbering a newer, smaller one, plus the
 // signal-based response state itself.
 export class ResponseViewerComponent {
+  private readonly diagnostics = inject(DiagnosticsService);
   private readonly jsonWorker = inject(JsonWorkerService);
 
   readonly loading = input(false);
@@ -308,7 +311,8 @@ export class ResponseViewerComponent {
         return;
       }
       this.assignFormatted(kind, source, formatted);
-    } catch {
+    } catch (error) {
+      this.diagnostics.record(error, "response viewer: worker formatting failed, formatting inline");
       if (!this.isCurrentToken(token, kind)) {
         return;
       }
@@ -345,11 +349,8 @@ export class ResponseViewerComponent {
   }
 
   private prettyPrintInline(input: string): string {
-    try {
-      return JSON.stringify(JSON.parse(input), null, 4);
-    } catch {
-      return input;
-    }
+    const parsed = parseJson(input);
+    return parsed.ok ? (stringifyJson(parsed.value, 4) ?? input) : input;
   }
 
   async onSearchQueryChange(value: string): Promise<void> {
@@ -371,7 +372,8 @@ export class ResponseViewerComponent {
         this.searchResult.set(result);
         this.searchActiveIndex.set(0);
       }
-    } catch {
+    } catch (error) {
+      this.diagnostics.record(error, "response viewer: search failed");
       if (token === this.searchToken) {
         this.searchResult.set(null);
       }

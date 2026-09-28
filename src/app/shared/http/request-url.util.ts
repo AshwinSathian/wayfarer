@@ -12,7 +12,7 @@ export interface QueryParamRow {
   enabled: boolean;
 }
 
-export function hasExplicitScheme(text: string): boolean {
+function hasExplicitScheme(text: string): boolean {
   return /^https?:\/\//i.test(text);
 }
 
@@ -30,10 +30,8 @@ export function normalizeUrl(text: string): string {
 export function validateUrl(text: string): boolean {
   if (!text) return false;
   const schemePresent = hasExplicitScheme(text);
-  let parsed: URL;
-  try {
-    parsed = new URL(normalizeUrl(text));
-  } catch {
+  const parsed = URL.parse(normalizeUrl(text));
+  if (!parsed) {
     return false;
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
@@ -62,16 +60,22 @@ export function validateUrl(text: string): boolean {
 
 /** Appends a single key/value pair onto a URL's query string, tolerating an unparseable base URL by returning it unchanged. */
 export function appendQueryParam(url: string, key: string, value: string): string {
-  try {
-    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
-    parsed.searchParams.append(key, value);
-    return parsed.toString();
-  } catch {
+  const parsed = URL.parse(url.startsWith("http") ? url : `https://${url}`);
+  if (!parsed) {
     return url;
   }
+  parsed.searchParams.append(key, value);
+  return parsed.toString();
 }
 
-/** Appends every enabled, keyed param row onto a URL's query string. */
+/**
+ * Adds the enabled, keyed param rows to a URL's query string, except the
+ * ones it already carries. The Params tab mirrors the URL field's query
+ * (parseParamsFromUrl / buildUrlFromParams), so appending every row sent each
+ * parameter twice (F43). Rows still matter when the URL field couldn't be
+ * parsed to mirror them, e.g. `{{baseUrl}}/users` before resolution. Matching
+ * is per key=value occurrence, so a deliberate repeat beyond the URL stays.
+ */
 export function appendEnabledParams(baseUrl: string, params: QueryParamRow[]): string {
   if (!baseUrl) {
     return baseUrl;
@@ -80,15 +84,23 @@ export function appendEnabledParams(baseUrl: string, params: QueryParamRow[]): s
   if (!enabledParams.length) {
     return baseUrl;
   }
-  try {
-    const url = new URL(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`);
-    for (const param of enabledParams) {
-      url.searchParams.append(param.key, param.value);
-    }
-    return url.toString();
-  } catch {
+  const url = URL.parse(baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`);
+  if (!url) {
     return baseUrl;
   }
+  const present = new Map<string, number>();
+  const pairKey = (key: string, value: string) => JSON.stringify([key, value]);
+  url.searchParams.forEach((value, key) => present.set(pairKey(key, value), (present.get(pairKey(key, value)) ?? 0) + 1));
+  for (const param of enabledParams) {
+    const k = pairKey(param.key, param.value);
+    const remaining = present.get(k) ?? 0;
+    if (remaining > 0) {
+      present.set(k, remaining - 1);
+    } else {
+      url.searchParams.append(param.key, param.value);
+    }
+  }
+  return url.toString();
 }
 
 const browserOrigin = (): string =>
@@ -107,16 +119,15 @@ export function parseParamsFromUrl(url: string): QueryParamRow[] | null {
   if (!url) {
     return [{ key: "", value: "", enabled: true }];
   }
-  try {
-    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`, browserOrigin());
-    const entries: QueryParamRow[] = [];
-    parsed.searchParams.forEach((value, key) => {
-      entries.push({ key, value, enabled: true });
-    });
-    return entries.length ? entries : [{ key: "", value: "", enabled: true }];
-  } catch {
+  const parsed = URL.parse(url.startsWith("http") ? url : `https://${url}`, browserOrigin());
+  if (!parsed) {
     return null;
   }
+  const entries: QueryParamRow[] = [];
+  parsed.searchParams.forEach((value, key) => {
+    entries.push({ key, value, enabled: true });
+  });
+  return entries.length ? entries : [{ key: "", value: "", enabled: true }];
 }
 
 /**
@@ -129,19 +140,18 @@ export function buildUrlFromParams(endpoint: string, params: QueryParamRow[]): s
   if (!endpoint) {
     return null;
   }
-  try {
-    const base = browserOrigin();
-    const url = new URL(endpoint.startsWith("http") ? endpoint : `https://${endpoint}`, base);
-    url.search = "";
-    for (const param of params) {
-      if (param.enabled && param.key) {
-        url.searchParams.append(param.key, param.value);
-      }
-    }
-    const reconstructed = url.toString();
-    const isAbsolute = endpoint.startsWith("http://") || endpoint.startsWith("https://");
-    return isAbsolute ? reconstructed : reconstructed.replace(base + "/", "");
-  } catch {
+  const base = browserOrigin();
+  const url = URL.parse(endpoint.startsWith("http") ? endpoint : `https://${endpoint}`, base);
+  if (!url) {
     return null;
   }
+  url.search = "";
+  for (const param of params) {
+    if (param.enabled && param.key) {
+      url.searchParams.append(param.key, param.value);
+    }
+  }
+  const reconstructed = url.toString();
+  const isAbsolute = endpoint.startsWith("http://") || endpoint.startsWith("https://");
+  return isAbsolute ? reconstructed : reconstructed.replace(base + "/", "");
 }

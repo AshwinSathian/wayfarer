@@ -79,8 +79,11 @@ export class SecretsService {
       await this.crypto.decrypt(sample, passphrase);
       await this.crypto.unlock(passphrase);
       return true;
-    } catch {
-      return false;
+    } catch (error) {
+      // AES-GCM authentication failure: the passphrase is wrong. Anything
+      // else (a corrupt envelope) is a real error and must surface.
+      if (error instanceof DOMException && error.name === "OperationError") return false;
+      throw error;
     }
   }
 

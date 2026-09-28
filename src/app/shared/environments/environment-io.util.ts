@@ -1,3 +1,4 @@
+import { parseJson } from "../json/safe-json.util";
 import { EnvironmentDoc } from "../../models/environments.models";
 import { deepSort, sortByOrder } from "../collections/collection-io.util";
 
@@ -66,11 +67,8 @@ function prepareEnvironments(environments: EnvironmentDoc[]): EnvironmentDoc[] {
 }
 
 function safeParse(text: string): unknown {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
+  const parsed = parseJson(text);
+  return parsed.ok ? parsed.value : null;
 }
 
 function cloneValue<T>(value: T): T {

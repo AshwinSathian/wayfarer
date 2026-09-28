@@ -175,11 +175,21 @@ describe("SecretsService", () => {
     it("returns false and never unlocks when the passphrase fails to decrypt the sample", async () => {
       const sample = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
       idb.peekSecretEnvelope.mockResolvedValue(sample);
-      crypto.decrypt.mockRejectedValue(new Error("bad passphrase"));
+      // What WebCrypto's AES-GCM decrypt throws when authentication fails.
+      crypto.decrypt.mockRejectedValue(new DOMException("The operation failed", "OperationError"));
 
       const ok = await service.verifyAndUnlock("wrong-passphrase");
 
       expect(ok).toBe(false);
+      expect(crypto.unlock).not.toHaveBeenCalled();
+    });
+
+    it("surfaces a corrupt envelope instead of reporting a wrong passphrase (P1.11, F36)", async () => {
+      const sample = { v: 1, alg: "AES-GCM", salt: "!", iv: "y", ct: "x" } as SecretEnvelope;
+      idb.peekSecretEnvelope.mockResolvedValue(sample);
+      crypto.decrypt.mockRejectedValue(new DOMException("bad base64", "InvalidCharacterError"));
+
+      await expect(service.verifyAndUnlock("any")).rejects.toThrow("bad base64");
       expect(crypto.unlock).not.toHaveBeenCalled();
     });
   });

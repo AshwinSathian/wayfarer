@@ -11,23 +11,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Wayfarer is a local-first API client — no account, no cloud, no catch." />
     <!--
-      Content-Security-Policy: second line of defense alongside the Web Worker
-      script sandbox (see docs/scripts.md). script-src has no 'unsafe-eval' /
-      'unsafe-inline', so even a bug that got attacker-controlled markup onto
-      the page couldn't turn it into running script. connect-src is wide open
-      because sending requests to arbitrary user-specified API hosts is this
-      app's core feature, not a gap. worker-src covers Monaco's editor/language
-      workers and the script sandbox worker, both same-origin bundled assets.
-      style-src allows 'unsafe-inline' for PrimeNG's inline positioning styles
-      (overlays/dialogs) — a much smaller blast radius than inline script.
-      Fonts are self-hosted (Fontsource) and icons are inline SVG, so no
-      third-party origin appears here. Keep this in sync with public/_headers.
-      frame-ancestors isn't enforceable via <meta>; see public/_headers for the
-      real HTTP-header delivery of this same policy on hosts that serve it.
+      Content-Security-Policy, generated from security/csp.json by
+      `npm run gen:csp` (do not edit by hand; `npm run check:csp` fails CI on
+      drift). The rationale for each directive is in that file. The same
+      policy is sent as an HTTP header via public/_headers, which also carries
+      frame-ancestors (a <meta> policy can't).
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; manifest-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; worker-src 'self' blob:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; manifest-src 'self'; require-trusted-types-for 'script'"
     />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png" />

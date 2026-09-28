@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
 // docs/runbook.md#cloudflare-zone. Tagged @smoke so synthetic.yml (P1.8) runs
 // it against production every 6 hours. By hand:
 // BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test e2e/no-edge-injection.spec.ts
-test("@claim @smoke no-edge-injection: page load triggers no CSP violations", async ({ page }) => {
+test("@claim:C-012 @smoke no-edge-injection: page load triggers no CSP violations", async ({ page }) => {
   await page.addInitScript(() => {
     const violations: string[] = [];
     (window as unknown as { __cspViolations: string[] }).__cspViolations = violations;

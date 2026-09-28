@@ -14,6 +14,8 @@
  * handed to it. That stripping happens first, before any user code is ever evaluated.
  */
 
+import { parseJson, stringifyJson } from "../json/safe-json.util";
+
 type WorkerGlobal = Record<string, unknown>;
 
 const FORBIDDEN_GLOBALS = [
@@ -38,23 +40,17 @@ function stripDangerousGlobals(): void {
   for (const key of FORBIDDEN_GLOBALS) {
     // `delete` alone is not enough: in Chrome, these globals are writable but
     // *non-configurable* own properties of the worker global object, so
-    // `delete self.fetch` silently fails (throws in this always-strict module
-    // worker, caught below) and the property survives untouched. Reassigning
+    // `delete self.fetch` fails (Reflect.deleteProperty returns false where a
+    // strict-mode `delete` would throw) and the property survives. Reassigning
     // to `undefined` does work, since the property is writable — that's what
     // actually removes `fetch`/`importScripts`/etc. from reach. Verified by
     // the regression suite in script-sandbox.service.spec.ts, which caught
     // delete-only stripping failing to block `Function('return fetch')()`.
-    try {
-      delete globalScope[key];
-    } catch {
-      // non-configurable; reassignment below is what actually matters.
-    }
-    try {
-      globalScope[key] = undefined;
-    } catch {
-      // Non-writable in this engine too — realm-level isolation (no DOM,
-      // cookies, localStorage, or main-thread heap access) still holds.
-    }
+    // false = non-configurable; the reassignment below is what matters.
+    Reflect.deleteProperty(globalScope, key);
+    // false = non-writable in this engine too: realm-level isolation (no DOM,
+    // cookies, localStorage, or main-thread heap access) still holds.
+    Reflect.set(globalScope, key, undefined);
   }
 }
 
@@ -162,11 +158,8 @@ function buildPmApi(
         status: response.statusText,
         json: () => {
           if (typeof response.body === "string") {
-            try {
-              return JSON.parse(response.body);
-            } catch {
-              return null;
-            }
+            const parsed = parseJson(response.body);
+            return parsed.ok ? parsed.value : null;
           }
           return response.body ?? null;
         },
@@ -174,11 +167,7 @@ function buildPmApi(
           if (typeof response.body === "string") {
             return response.body;
           }
-          try {
-            return JSON.stringify(response.body);
-          } catch {
-            return "";
-          }
+          return stringifyJson(response.body) ?? "";
         },
         headers: {
           get: (name: string) => response.headers[name] ?? response.headers[name.toLowerCase()] ?? null,
@@ -218,11 +207,7 @@ function buildConsoleApi(logs: string[]) {
         if (typeof a === "string") {
           return a;
         }
-        try {
-          return JSON.stringify(a);
-        } catch {
-          return String(a);
-        }
+        return stringifyJson(a) ?? String(a);
       })
       .join(" ");
   return {

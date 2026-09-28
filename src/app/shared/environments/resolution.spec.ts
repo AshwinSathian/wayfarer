@@ -1,3 +1,4 @@
+import { EnvironmentDoc } from "../../models/environments.models";
 import { collectVariableTokens, resolveTemplate } from "./env-resolution.util";
 import { describe, it, expect } from "vitest";
 
@@ -16,7 +17,7 @@ describe("variable resolution", () => {
           name: "Env",
           order: 1,
           vars: { host: "env.host", token: "env-token" },
-        } as any,
+        } as EnvironmentDoc,
         globals: { token: "global-token" },
       }
     );
@@ -48,7 +49,7 @@ describe("resolveTemplate", () => {
       name: "Env",
       order: 1,
       vars: { baseHost: "jsonplaceholder.typicode.com", token: "env-token" },
-    } as any,
+    } as EnvironmentDoc,
     globals: { globalOnly: "global-value" },
   };
 

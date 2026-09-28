@@ -16,6 +16,7 @@ import {
 import { PastRequest } from "../models/history.models";
 import { BinaryBody } from "../shared/http/response-body.util";
 import { TestAssertion, TestResult } from "../models/test-assertion.models";
+import { parseJson, stringifyJson } from "../shared/json/safe-json.util";
 
 export interface BuiltRequest {
   method: PastRequest["method"];
@@ -35,12 +36,12 @@ export class SendBlockedError extends Error {
 
 const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
 
-export const NETWORK_ERROR_TEXT =
+const NETWORK_ERROR_TEXT =
   "Network error — no response was received. The host may not resolve (DNS), may have refused " +
   "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
   "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
 
-export const SECRET_PLACEHOLDER_BLOCKED =
+const SECRET_PLACEHOLDER_BLOCKED =
   "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
   "This request references one, so it was not sent.";
 
@@ -53,8 +54,9 @@ function containsSecretPlaceholder(request: BuiltRequest): boolean {
   let decodedUrl = request.url;
   try {
     decodedUrl = decodeURIComponent(request.url);
-  } catch {
+  } catch (error) {
     // Malformed escape: the raw URL is still checked below.
+    if (!(error instanceof URIError)) throw error;
   }
   const wire = [
     request.url,
@@ -340,12 +342,7 @@ export class RequestExecutionService {
       return true;
     }
     if (typeof payload === "string") {
-      try {
-        JSON.parse(payload);
-        return true;
-      } catch {
-        return false;
-      }
+      return parseJson(payload).ok;
     }
     return false;
   }
@@ -435,24 +432,16 @@ export class RequestExecutionService {
     if (typeof payload === "string") {
       return payload;
     }
-    try {
-      return JSON.stringify(payload);
-    } catch {
-      return this.stringifyPayload(payload);
-    }
+    return stringifyJson(payload) ?? this.stringifyPayload(payload);
   }
 
   private stringifyPayload(payload: unknown): string {
-    try {
-      if (payload === null || payload === undefined || payload instanceof BinaryBody) {
-        return "";
-      }
-      if (typeof payload === "string") {
-        return payload;
-      }
-      return JSON.stringify(payload, undefined, 4);
-    } catch {
-      return String(payload);
+    if (payload === null || payload === undefined || payload instanceof BinaryBody) {
+      return "";
     }
+    if (typeof payload === "string") {
+      return payload;
+    }
+    return stringifyJson(payload, 4) ?? String(payload);
   }
 }

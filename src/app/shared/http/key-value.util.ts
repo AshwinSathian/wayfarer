@@ -45,6 +45,15 @@ export function rowsFromObject(object: Record<string, unknown>): { key: string; 
 }
 
 /**
+ * Plain object -> body row list, keeping each value as it is (nested
+ * objects, arrays, numbers, booleans, null). `rowsFromObject` stringifies,
+ * which turned a nested JSON body into "[object Object]" (F08).
+ */
+export function bodyRowsFromObject(object: Record<string, unknown>): { key: string; value: unknown }[] {
+  return Object.entries(object).map(([key, value]) => ({ key, value: value ?? null }));
+}
+
+/**
  * Merges a parsed JSON headers object (from the JSON-mode editor) back into
  * ordered row form, keeping the Content-Type row first and falling back to
  * whatever Content-Type was already set (or the given default) if the

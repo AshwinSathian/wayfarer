@@ -60,6 +60,28 @@ export function resolveTemplate(
   });
 }
 
+/**
+ * `resolveTemplate` applied to every string inside a JSON-like value
+ * (objects, arrays, any depth). Keys and non-string values are left as they
+ * are (F08).
+ */
+export function resolveTemplateDeep(value: unknown, context: VariableContext): unknown {
+  if (typeof value === "string") {
+    return resolveTemplate(value, context);
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => resolveTemplateDeep(item, context));
+  }
+  if (typeof value === "object" && value !== null) {
+    const resolved: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      resolved[key] = resolveTemplateDeep(item, context);
+    }
+    return resolved;
+  }
+  return value;
+}
+
 export function extractVariables(
   text: string | undefined,
   location: VariableLocation,

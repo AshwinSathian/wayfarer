@@ -32,3 +32,26 @@ export function buildAuthQueryParam(
   }
   return null;
 }
+
+/** Applies `resolve` (e.g. `{{var}}` substitution) to every auth field that goes on the wire (F07). */
+export function resolveAuth(
+  auth: HttpAuthPlaceholder | undefined,
+  resolve: (text: string) => string
+): HttpAuthPlaceholder | undefined {
+  if (!auth) {
+    return auth;
+  }
+  return {
+    ...auth,
+    bearer: auth.bearer && { token: resolve(auth.bearer.token) },
+    basic: auth.basic && {
+      username: resolve(auth.basic.username),
+      password: resolve(auth.basic.password ?? ""),
+    },
+    apiKey: auth.apiKey && {
+      ...auth.apiKey,
+      key: resolve(auth.apiKey.key),
+      value: resolve(auth.apiKey.value ?? ""),
+    },
+  };
+}

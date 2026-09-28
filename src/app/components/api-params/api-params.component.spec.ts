@@ -320,9 +320,10 @@ describe('ApiParamsComponent', () => {
     expect(component.selectedRequestMethod()).toBe('POST');
     expect(component.endpoint()).toBe('https://example.com/update');
     expect(component.requestHeaders()[0].key).toBe('Authorization');
+    // Values keep their JSON types, so replaying sends 3/true, not "3"/"true" (P0.6).
     expect(component.requestBody()).toEqual([
-      { key: 'count', value: '3' },
-      { key: 'enabled', value: 'true' },
+      { key: 'count', value: 3 },
+      { key: 'enabled', value: true },
     ]);
     expect(component.activeTab()).toBe('body');
   });
@@ -513,6 +514,71 @@ describe('ApiParamsComponent', () => {
     expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
     req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
     await pending;
+  });
+
+  describe('{{var}} resolution in nested bodies and auth (P0.6, #64 #65)', () => {
+    async function sendAndCapture(url: string) {
+      const pending = component.sendRequest();
+      const req = httpMock.expectOne((r) => r.url.startsWith(url));
+      const captured = { body: req.request.body, headers: req.request.headers, url: req.request.urlWithParams };
+      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      await pending;
+      return captured;
+    }
+
+    beforeEach(() => {
+      environmentsService.setActiveEnvironment(
+        buildEnvironment({ v: 'resolved', user: 'ada', pass: 'pw', keyName: 'X-Key' })
+      );
+    });
+
+    it('resolves variables at depth 3 and inside arrays, keeping non-string types', async () => {
+      component.onRequestMethodChange('POST');
+      component.endpoint.set('https://example.com/nested');
+      component.onBodyJsonParsed({
+        a: { b: { c: '{{v}}' } },
+        list: ['{{v}}', { deep: ['x-{{v}}'] }],
+        n: 1,
+        flag: false,
+        nothing: null,
+      });
+
+      const { body } = await sendAndCapture('https://example.com/nested');
+
+      expect(body).toEqual({
+        a: { b: { c: 'resolved' } },
+        list: ['resolved', { deep: ['x-resolved'] }],
+        n: 1,
+        flag: false,
+        nothing: null,
+      });
+    });
+
+    it('resolves a bearer token', async () => {
+      component.endpoint.set('https://example.com/bearer');
+      component.requestAuth.set({ type: 'bearer', bearer: { token: '{{v}}' } });
+      const { headers } = await sendAndCapture('https://example.com/bearer');
+      expect(headers.get('Authorization')).toBe('Bearer resolved');
+    });
+
+    it('resolves basic username and password before encoding', async () => {
+      component.endpoint.set('https://example.com/basic');
+      component.requestAuth.set({ type: 'basic', basic: { username: '{{user}}', password: '{{pass}}' } });
+      const { headers } = await sendAndCapture('https://example.com/basic');
+      expect(headers.get('Authorization')).toBe(`Basic ${btoa('ada:pw')}`);
+    });
+
+    it('resolves API-key name and value, in a header and in the query', async () => {
+      component.endpoint.set('https://example.com/key');
+      component.requestAuth.set({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'header' } });
+      const header = await sendAndCapture('https://example.com/key');
+      expect(header.headers.get('X-Key')).toBe('resolved');
+
+      component.endpoint.set('https://example.com/query');
+      component.requestAuth.set({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'query' } });
+      const query = await sendAndCapture('https://example.com/query');
+      expect(query.url).toContain('X-Key=resolved');
+    });
   });
 
   it('keeps the JSON editor text showing the literal {{var}} template, not a resolved snapshot', () => {

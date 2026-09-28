@@ -50,6 +50,7 @@ import {
   VariableToken,
   collectVariableTokens,
   resolveTemplate,
+  resolveTemplateDeep,
 } from "../../shared/environments/env-resolution.util";
 import { VariableFocusService } from "../../services/variable-focus.service";
 import { prefersReducedMotion } from "../../shared/motion/prefers-reduced-motion";
@@ -75,10 +76,11 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../../shared/http/request-url.util";
-import { buildAuthHeaders, buildAuthQueryParam } from "../../shared/http/request-auth.util";
+import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../../shared/http/request-auth.util";
 import { writeToClipboard } from "../../shared/http/clipboard.util";
 import {
   bodyObjectFromRows,
+  bodyRowsFromObject,
   isPlainObject,
   mergeHeaderRowsFromParsed,
   rowsFromObject,
@@ -325,7 +327,7 @@ export class ApiParamsComponent {
     this.endpoint.set(request.url);
     this.requestHeaders.set(rowsFromObject(request.headers));
     if (request.body && typeof request.body === "object") {
-      this.requestBody.set(rowsFromObject(request.body as Record<string, unknown>));
+      this.requestBody.set(bodyRowsFromObject(request.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(request.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -355,7 +357,7 @@ export class ApiParamsComponent {
     this.endpoint.set(doc.url);
     this.requestHeaders.set(rowsFromObject(doc.headers ?? {}));
     if (doc.body && typeof doc.body === "object") {
-      this.requestBody.set(rowsFromObject(doc.body as Record<string, unknown>));
+      this.requestBody.set(bodyRowsFromObject(doc.body as Record<string, unknown>));
       this.activeTab.set(this.isBodyMethod(doc.method) ? "body" : "headers");
     } else {
       this.requestBody.set([{ key: "", value: "" }]);
@@ -475,14 +477,15 @@ export class ApiParamsComponent {
     const method = this.selectedRequestMethod();
     const usesBody = this.isBodyMethod(method);
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = buildAuthHeaders(this.requestAuth());
+    const auth = resolveAuth(this.requestAuth(), (text) => resolveTemplate(text, context));
+    const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const body = usesBody ? this.resolveBody(this.buildBody(), context) : undefined;
     let url = appendEnabledParams(
       normalizeUrl(resolveTemplate(endpointText.trim(), context)),
       this.requestParams()
     );
-    const authParam = buildAuthQueryParam(this.requestAuth());
+    const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
@@ -618,14 +621,7 @@ export class ApiParamsComponent {
     body: Record<string, unknown> | undefined,
     context: VariableContext
   ): Record<string, unknown> | undefined {
-    if (!body) {
-      return body;
-    }
-    const resolved: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(body)) {
-      resolved[key] = typeof value === "string" ? resolveTemplate(value, context) : value;
-    }
-    return resolved;
+    return body && (resolveTemplateDeep(body, context) as Record<string, unknown>);
   }
 
   maybeUpdateVariablePreview(): void {
@@ -749,14 +745,15 @@ export class ApiParamsComponent {
     }
     const context = this.buildVariableContext();
     const baseHeaders = this.resolveHeaders(this.buildHeaders(), context);
-    const authHeaders = buildAuthHeaders(this.requestAuth());
+    const auth = resolveAuth(this.requestAuth(), (text) => resolveTemplate(text, context));
+    const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod();
     let url = appendEnabledParams(
       normalizeUrl(resolveTemplate(endpoint.trim(), context)),
       this.requestParams()
     );
-    const authParam = buildAuthQueryParam(this.requestAuth());
+    const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
@@ -819,7 +816,7 @@ export class ApiParamsComponent {
     if (!isPlainObject(value)) {
       return;
     }
-    const bodyRows = rowsFromObject(value);
+    const bodyRows = bodyRowsFromObject(value);
     this.requestBody.set(bodyRows.length ? bodyRows : [{ key: "", value: "" }]);
     this.maybeUpdateVariablePreview();
   }

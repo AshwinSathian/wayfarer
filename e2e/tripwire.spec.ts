@@ -212,7 +212,6 @@ test.describe("Phase 0 tripwires", () => {
   });
 
   test("F07: {{vars}} in the Auth tab are resolved before sending", async ({ page }) => {
-    test.fail(true, "open until P0.6 lands");
     const hits = await captureTarget(page);
     await seedAndOpen(page, { token: "f07-token-value" }, {
       method: "GET",
@@ -227,7 +226,6 @@ test.describe("Phase 0 tripwires", () => {
   });
 
   test("F08: {{vars}} nested in a JSON body (objects and arrays) are resolved before sending", async ({ page }) => {
-    test.fail(true, "open until P0.6 lands");
     const hits = await captureTarget(page);
     await seedAndOpen(page, { token: "f08-value" }, {
       method: "POST",

@@ -1,48 +1,59 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const CI = !!process.env["CI"];
+// BASE_URL points the suite at a deployed site (production, or a version
+// preview URL) and skips the local servers. Run it with `--grep @smoke`.
+const BASE_URL = process.env["BASE_URL"];
+
+const BROWSERS = [
+  { name: "chromium", device: devices["Desktop Chrome"] },
+  { name: "firefox", device: devices["Desktop Firefox"] },
+  { name: "webkit", device: devices["Desktop Safari"] },
+] as const;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  forbidOnly: !!process.env["CI"],
-  retries: process.env["CI"] ? 2 : 0,
-  workers: process.env["CI"] ? 1 : undefined,
-  reporter: process.env["CI"] ? [["list"], ["html", { open: "never" }]] : "list",
+  forbidOnly: CI,
+  retries: CI ? 2 : 0,
+  workers: CI ? 2 : undefined,
+  reporter: CI ? [["list"], ["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }]] : "list",
   use: {
-    // BASE_URL points the suite at a deployed site (e.g. production smoke)
-    // and skips the local webServer.
-    baseURL: process.env["BASE_URL"] ?? "http://localhost:4200",
+    baseURL: BASE_URL ?? "http://localhost:4200",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-  ],
-  webServer: process.env["BASE_URL"] ? undefined : {
-    // In CI, build once and serve the static production output instead of
-    // `ng serve`. This isn't just about speed: Angular's dev server
-    // (Vite-based) compiles each `?worker` module on demand, on first
-    // request, rather than pre-bundling it at build time. Under a cold
-    // server — which CI always is, since `reuseExistingServer` is false —
-    // several of Monaco's `?worker` imports requested concurrently for the
-    // first time could race that on-demand transform and resolve to a
-    // module whose `.default` was `undefined` instead of the worker
-    // constructor, intermittently but reproducibly failing
-    // e2e/layout.spec.ts's rapid-transition test in CI while always passing
-    // locally against an already-warm dev server. A production build has no
-    // on-demand compilation step for this to race against — it's the
-    // structural fix, not a retry/timeout band-aid around the symptom.
-    // Locally, `ng serve` is kept for fast iteration when writing/debugging
-    // a spec (reusing a dev server you may already have running).
-    // prod-server.mjs applies public/_headers like Cloudflare does, so CI
-    // sees production's CSP (see e2e/tripwire.spec.ts F01).
-    command: process.env["CI"]
-      ? "npm run build -- --configuration=production && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
-      : "npx ng serve --configuration development",
-    url: "http://localhost:4200",
-    reuseExistingServer: !process.env["CI"],
-    timeout: 180_000,
-  },
+  // P1.3: every spec runs in all three engines. Tests tagged @claim back a
+  // public claim (docs/claims.md), so they run in their own projects with
+  // retries disabled: a claim test that fails once fails CI.
+  projects: BROWSERS.flatMap(({ name, device }) => [
+    { name, use: { ...device }, grepInvert: /@claim\b/ },
+    { name: `claims-${name}`, use: { ...device }, grep: /@claim\b/, retries: 0 },
+  ]),
+  webServer: BASE_URL
+    ? undefined
+    : [
+        {
+          // Deterministic request target (P1.2); e2e never calls the internet.
+          command: "node e2e/support/echo-server.mjs",
+          url: "http://127.0.0.1:4300/status/200",
+          reuseExistingServer: !CI,
+        },
+        {
+          // CI serves the production build through prod-server.mjs, which
+          // applies public/_headers like Cloudflare does, so e2e sees
+          // production's CSP (e2e/tripwire.spec.ts F01). A prebuilt dist/
+          // (the CI build artifact, P1.7) is served as-is; otherwise build.
+          // A production build also avoids Angular's dev server compiling
+          // Monaco's `?worker` imports on demand, which raced under a cold
+          // server and intermittently broke e2e/layout.spec.ts in CI.
+          // Locally, `ng serve` is kept for fast iteration.
+          command: CI
+            ? "(test -f dist/wayfarer/browser/index.html || npm run build -- --configuration=production) && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
+            : "npx ng serve --configuration development",
+          url: "http://localhost:4200",
+          reuseExistingServer: !CI,
+          timeout: 180_000,
+        },
+      ],
 });

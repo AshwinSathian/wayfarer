@@ -22,6 +22,10 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run lint
+      # P1.2: e2e targets the local echo-server only, never the internet.
+      - name: No third-party targets in e2e
+        run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"
+      - run: npm run test:scripts
 
   test:
     name: Unit tests

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ECHO } from "./support/echo";
 
 test.describe("Collections", () => {
   test("creates a collection, creates a request inside it, and loads it into the composer", async ({ page }) => {
@@ -51,7 +52,7 @@ test.describe("Collections", () => {
 
     // Compose a request from scratch — nothing selected/bound yet, so Save
     // must open "Save to Collection" rather than silently failing.
-    await urlInput.fill("https://jsonplaceholder.typicode.com/todos/7");
+    await urlInput.fill(`${ECHO}/content/json?todo=7`);
     await page.getByRole("button", { name: "Save to Collection" }).click();
 
     const saveDialog = page.locator(".p-dialog:visible").last();
@@ -72,11 +73,11 @@ test.describe("Collections", () => {
     await page.getByRole("button", { name: "New request", exact: true }).click();
     await expect(urlInput).toHaveValue("");
     await page.getByText("My Saved Request", { exact: true }).dblclick();
-    await expect(urlInput).toHaveValue("https://jsonplaceholder.typicode.com/todos/7");
+    await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=7`);
 
     // Editing and hitting the now-"Save" (in-place) button persists the
     // change back onto the same request rather than creating a duplicate.
-    await urlInput.fill("https://jsonplaceholder.typicode.com/todos/8");
+    await urlInput.fill(`${ECHO}/content/json?todo=8`);
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.waitForTimeout(300);
 
@@ -90,6 +91,6 @@ test.describe("Collections", () => {
     // the same text and trip Playwright's strict-mode check.
     await expect(page.getByRole("main").getByText("My Saved Request", { exact: true })).toBeHidden();
     await page.getByText("My Saved Request", { exact: true }).dblclick();
-    await expect(urlInput).toHaveValue("https://jsonplaceholder.typicode.com/todos/8");
+    await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=8`);
   });
 });

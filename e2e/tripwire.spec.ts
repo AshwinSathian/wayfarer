@@ -254,7 +254,9 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
       const registration = await navigator.serviceWorker.register("/ngsw-worker.js");
       const worker = registration.installing ?? registration.waiting ?? registration.active;
       await new Promise<void>((resolve) => {
-        const settled = () => worker?.state === "activated" || worker?.state === "redundant";
+        // Firefox never reports "activated" for a worker that unregisters
+        // itself while activating; "activating" already means it took over.
+        const settled = () => ["activating", "activated", "redundant"].includes(worker?.state ?? "");
         if (!worker || settled()) return resolve();
         worker.addEventListener("statechange", () => settled() && resolve());
       });

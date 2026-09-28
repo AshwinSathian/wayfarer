@@ -1,11 +1,12 @@
 import { test, expect } from "@playwright/test";
+import { ECHO } from "./support/echo";
 
 test.describe("Send request → view response", () => {
   test("sends a GET request and renders the response body, headers, and status", async ({ page }) => {
     await page.goto("/");
 
     const urlInput = page.locator("input.address-url");
-    await urlInput.fill("https://jsonplaceholder.typicode.com/todos/1");
+    await urlInput.fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
 
     // Status badge shows a real 2xx code, not a silently-faked one.
@@ -36,7 +37,7 @@ test.describe("Send request → view response", () => {
     await page.goto("/");
 
     const urlInput = page.locator("input.address-url");
-    await urlInput.fill("https://jsonplaceholder.typicode.com/todos/1");
+    await urlInput.fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
@@ -44,7 +45,7 @@ test.describe("Send request → view response", () => {
     // the entire composer (method/url/headers/body/auth) the instant the
     // response arrived, breaking the basic "tweak and resend" loop every
     // API client relies on.
-    await expect(urlInput).toHaveValue("https://jsonplaceholder.typicode.com/todos/1");
+    await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=1`);
 
     // The explicit "New request" action is now the only thing that clears
     // the composer.

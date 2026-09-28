@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { ECHO } from "./support/echo";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
   test("shows a resizable split between the composer and the response viewer", async ({ page }) => {
@@ -8,7 +9,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     // Before any response exists, the response pane shows its own empty state.
     await expect(page.getByText("Send a request to see the response here")).toBeVisible();
 
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
@@ -21,7 +22,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   test("persists the chosen split ratio across a reload", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
@@ -89,7 +90,7 @@ test.describe("Disabled 'Copy as cURL' affordance", () => {
     await expect(page.getByRole("tooltip")).toHaveText(/enter a url first/i);
 
     // Once a URL is entered, it becomes enabled with the plain "Copy as cURL" tooltip.
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await expect(curlButton).toBeEnabled();
   });
 });
@@ -97,10 +98,15 @@ test.describe("Disabled 'Copy as cURL' affordance", () => {
 test.describe("Render stability under rapid tab/viewport transitions", () => {
   test("rapid response-tab switching and viewport resizing never leaves a JSON editor stuck loading", async ({ page }) => {
     const pageErrors: string[] = [];
-    page.on("pageerror", (err) => pageErrors.push(String(err)));
+    page.on("pageerror", (err) => {
+      // The HTML spec reports this as an error event when a ResizeObserver
+      // callback resizes an observed element; WebKit surfaces it to
+      // Playwright, Chromium and Firefox don't. It is not an app error.
+      if (!/^ResizeObserver loop/.test(err.message)) pageErrors.push(String(err));
+    });
 
     await page.goto("/");
-    await page.locator("input.address-url").fill("https://jsonplaceholder.typicode.com/todos/1");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 

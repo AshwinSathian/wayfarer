@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 
 test.describe("Settings surface", () => {
@@ -62,8 +63,16 @@ test.describe("Settings surface", () => {
     await page.getByRole("button", { name: "Settings", exact: true }).click();
 
     const downloadPromise = page.waitForEvent("download");
-    await page.getByRole("button", { name: "Export environments" }).click();
+    // Scoped: the environments panel has its own "Export environments" button.
+    await page.getByRole("dialog").getByRole("button", { name: "Export environments" }).click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe("environments-export.json");
+  });
+
+  test("shows the app version from package.json (P0.11)", async ({ page }) => {
+    const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
+    await page.goto("/");
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await expect(page.getByTestId("app-version")).toHaveText(version);
   });
 });

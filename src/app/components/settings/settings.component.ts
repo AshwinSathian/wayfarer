@@ -11,6 +11,7 @@ import {
   serializeEnvironmentExport,
   validateEnvironmentExport,
 } from "../../shared/environments/environment-io.util";
+import { version } from "../../../../package.json";
 import { IconComponent } from "../../shared/icon/icon.component";
 
 interface KeyboardShortcut {
@@ -50,6 +51,9 @@ export class SettingsComponent {
   readonly openSecrets = output<void>();
 
   readonly importStatus = signal<{ kind: "ok" | "error"; message: string } | null>(null);
+
+  /** From package.json, so the release bump is the only place it changes. */
+  readonly version = version;
 
   readonly fixedShortcuts: KeyboardShortcut[] = [
     { keys: "⌘K / Ctrl+K", description: "Open the command palette" },

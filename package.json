@@ -1,6 +1,6 @@
 {
   "name": "wayfarer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A local-first, no-account API client that runs entirely in the browser: collections, environments, an encrypted secrets vault, test assertions, and a response viewer.",
   "license": "MIT",
   "private": true,

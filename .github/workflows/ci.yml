@@ -26,6 +26,7 @@ jobs:
       - name: No third-party targets in e2e
         run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"
       - run: npm run test:scripts
+      - run: npm run check:csp
 
   test:
     name: Unit tests

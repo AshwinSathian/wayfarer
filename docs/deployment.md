@@ -99,8 +99,10 @@ doesn't rebuild. It can't undo anything stored in users' browsers. See
 
 [`public/_headers`](../public/_headers) is applied by Cloudflare to every
 response and defines the Content-Security-Policy, `X-Content-Type-Options`,
-`Referrer-Policy`, and `Permissions-Policy`. The CSP is duplicated as a
-`<meta>` tag in `src/index.html`; keep the two in sync.
+`Referrer-Policy`, and `Permissions-Policy`. The CSP comes from
+[`security/csp.json`](../security/csp.json): `npm run gen:csp` writes it into
+`public/_headers` and the `<meta>` tag in `src/index.html`, and
+`npm run check:csp` (in CI) fails if either file was edited by hand.
 [`e2e/support/prod-server.mjs`](../e2e/support/prod-server.mjs) applies the
 same file locally, so CI's e2e runs see production's headers.
 

@@ -68,7 +68,14 @@ export function appendQueryParam(url: string, key: string, value: string): strin
   return parsed.toString();
 }
 
-/** Appends every enabled, keyed param row onto a URL's query string. */
+/**
+ * Adds the enabled, keyed param rows to a URL's query string, except the
+ * ones it already carries. The Params tab mirrors the URL field's query
+ * (parseParamsFromUrl / buildUrlFromParams), so appending every row sent each
+ * parameter twice (F43). Rows still matter when the URL field couldn't be
+ * parsed to mirror them, e.g. `{{baseUrl}}/users` before resolution. Matching
+ * is per key=value occurrence, so a deliberate repeat beyond the URL stays.
+ */
 export function appendEnabledParams(baseUrl: string, params: QueryParamRow[]): string {
   if (!baseUrl) {
     return baseUrl;
@@ -81,8 +88,17 @@ export function appendEnabledParams(baseUrl: string, params: QueryParamRow[]): s
   if (!url) {
     return baseUrl;
   }
+  const present = new Map<string, number>();
+  const pairKey = (key: string, value: string) => JSON.stringify([key, value]);
+  url.searchParams.forEach((value, key) => present.set(pairKey(key, value), (present.get(pairKey(key, value)) ?? 0) + 1));
   for (const param of enabledParams) {
-    url.searchParams.append(param.key, param.value);
+    const k = pairKey(param.key, param.value);
+    const remaining = present.get(k) ?? 0;
+    if (remaining > 0) {
+      present.set(k, remaining - 1);
+    } else {
+      url.searchParams.append(param.key, param.value);
+    }
   }
   return url.toString();
 }

@@ -171,3 +171,17 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
     expect(scripts.filter((url) => url.endsWith("/ngsw-worker.js"))).toEqual([]);
   });
 });
+
+test.describe("Tripwires found by the Phase 1 rails", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("F43: a query typed in the URL is sent once, not duplicated by the mirrored Params rows", async ({ page }) => {
+    const hits = await captureTarget(page);
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${TARGET}/f43?a=1&b=two`);
+    await send(page);
+    await expect.poll(() => hits.length).toBe(1);
+    expect(new URL(hits[0].url()).search).toBe("?a=1&b=two");
+  });
+});
+

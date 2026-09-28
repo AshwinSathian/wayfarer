@@ -42,6 +42,9 @@ export class IdbService {
   private readonly environments = inject(EnvironmentsRepository);
   private readonly secrets = inject(SecretsRepository);
 
+  /** True once another tab reset all data; see IdbCoreService.closedByOtherTab. */
+  readonly closedByOtherTab = this.core.closedByOtherTab.asReadonly();
+
   async init(): Promise<void> {
     return this.core.init();
   }

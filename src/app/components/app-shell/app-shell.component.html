@@ -194,6 +194,18 @@
     <!-- Page content -->
     <main class="flex-1 overflow-y-auto">
       <div class="flex w-full flex-col gap-5 px-4 pb-16 pt-5 md:px-8">
+        @if (dataResetElsewhere()) {
+        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
+          <button pButton type="button" size="small" severity="secondary" label="Reload" aria-label="Reload" (click)="reload()"></button>
+        </div>
+        }
+        @if (resetError()) {
+        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
+          <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
+          <button pButton type="button" size="small" severity="secondary" label="Dismiss" aria-label="Dismiss" (click)="resetError.set('')"></button>
+        </div>
+        }
         <app-api-params [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-api-params>
         <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
       </div>

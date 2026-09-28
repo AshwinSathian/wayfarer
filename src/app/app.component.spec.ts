@@ -1,4 +1,5 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
@@ -19,6 +20,7 @@ class IdbServiceMock {
   setActiveEnvironment = vi.fn().mockReturnValue(Promise.resolve());
   peekSecretEnvelope = vi.fn().mockReturnValue(Promise.resolve(null));
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));
+  closedByOtherTab = signal(false).asReadonly();
 }
 
 describe('AppComponent', () => {

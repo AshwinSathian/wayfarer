@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, signal } from "@angular/core";
 import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
 import { Meta, META_VERSION } from "../models/collections.models";
 import {
@@ -15,6 +15,22 @@ import { runUpgrade } from "./idb-migrations";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";
+
+const LIFECYCLE_CHANNEL = "wayfarer:lifecycle";
+const RESET_GRACE_MS = 2000;
+
+interface LifecycleMessage {
+  type: "close";
+}
+
+/** Reset All Data could not delete the database because another tab still has it open. */
+export class DatabaseResetBlockedError extends Error {
+  override readonly name = "DatabaseResetBlockedError";
+
+  constructor() {
+    super("Close other Wayfarer tabs and try again.");
+  }
+}
 
 /**
  * Owns everything that's shared across the per-aggregate repositories
@@ -33,18 +49,40 @@ export { META_STATE_KEY } from "./idb-schema";
 @Injectable({ providedIn: "root" })
 export class IdbCoreService {
   private dbPromise?: Promise<IDBPDatabase<ApiSandboxDB>>;
-  private initialized = false;
+  /**
+   * Shared by concurrent `init()` callers. It used to be an `initialized`
+   * flag set only after the open finished, so every caller that arrived
+   * meanwhile opened its own connection (three per tab at startup). The
+   * untracked ones were never closed and blocked Reset All Data forever (F37).
+   */
+  private initPromise?: Promise<void>;
+  private resetting = false;
   private _useMemoryFallback = false;
+
+  /** True once another tab reset all data; the app shows a reload banner. */
+  readonly closedByOtherTab = signal(false);
+
+  private readonly lifecycle =
+    typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(LIFECYCLE_CHANNEL);
+
+  constructor() {
+    this.lifecycle?.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
+      if (event.data?.type === "close") {
+        void this.closeForReset();
+      }
+    });
+  }
 
   get useMemoryFallback(): boolean {
     return this._useMemoryFallback;
   }
 
-  async init(): Promise<void> {
-    if (this.initialized) {
-      return;
-    }
+  init(): Promise<void> {
+    this.initPromise ??= this.open();
+    return this.initPromise;
+  }
 
+  private async open(): Promise<void> {
     if (typeof indexedDB === "undefined") {
       this.logError(
         "indexedDB is not available in this environment. Falling back to in-memory store."
@@ -57,11 +95,13 @@ export class IdbCoreService {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
         upgrade: async (db, oldVersion, newVersion, transaction) =>
           runUpgrade(db, oldVersion, newVersion, transaction),
+        // Another tab is deleting (or upgrading) the database; holding the
+        // connection would block it.
+        blocking: () => void this.closeForReset(),
       });
 
       await this.dbPromise;
       await this.ensureMetaDocument();
-      this.initialized = true;
     } catch (error) {
       this.logError(
         "Failed to open IndexedDB. Falling back to in-memory store.",
@@ -72,6 +112,14 @@ export class IdbCoreService {
   }
 
   async getDatabase(): Promise<IDBPDatabase<ApiSandboxDB> | null> {
+    if (this.closedByOtherTab()) {
+      // Reopening would recreate the database the other tab just deleted.
+      throw new Error("Data was reset in another tab; reload this tab.");
+    }
+    if (this.resetting) {
+      // Reopening now would block this tab's own delete.
+      throw new Error("Data is being reset.");
+    }
     await this.init();
 
     if (this._useMemoryFallback) {
@@ -165,28 +213,74 @@ export class IdbCoreService {
     return state;
   }
 
+  /**
+   * Deletes the whole database (Reset All Data). Resolves only once the
+   * database is actually gone (F37):
+   * 1. Other tabs are told to close their connection (BroadcastChannel,
+   *    plus the `versionchange` event the delete itself fires).
+   * 2. The delete gets 2 s for them to do so. `blocked` alone isn't
+   *    failure: it also fires while a tab is still closing.
+   * 3. If the database still isn't deleted, this throws
+   *    DatabaseResetBlockedError.
+   *
+   * One delete request only: a second request would queue behind a blocked
+   * one and never fire any event.
+   *
+   * ponytail: an IndexedDB delete request can't be cancelled. A blocked one
+   * stays queued and completes when the blocking tab closes, so the data may
+   * disappear after this has reported failure.
+   */
   async resetDatabase(): Promise<void> {
-    if (this.dbPromise) {
-      try {
-        const db = await this.dbPromise;
-        db.close();
-      } catch {
-        // ignore
+    this.resetting = true;
+    try {
+      await this.closeConnection();
+      if (typeof indexedDB !== "undefined") {
+        this.lifecycle?.postMessage({ type: "close" } satisfies LifecycleMessage);
+        await this.deleteDatabase();
       }
+    } finally {
+      this.resetting = false;
     }
-
-    if (typeof indexedDB !== "undefined") {
-      await new Promise<void>((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(DB_NAME);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error ?? new Error("Failed to delete database"));
-        request.onblocked = () => resolve();
-      }).catch(() => undefined);
-    }
-
-    this.dbPromise = undefined;
-    this.initialized = false;
     this._useMemoryFallback = false;
+  }
+
+  private deleteDatabase(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const request = indexedDB.deleteDatabase(DB_NAME);
+      const deadline = setTimeout(() => reject(new DatabaseResetBlockedError()), RESET_GRACE_MS);
+      request.onsuccess = () => {
+        clearTimeout(deadline);
+        resolve();
+      };
+      request.onerror = () => {
+        clearTimeout(deadline);
+        reject(request.error ?? new Error("Failed to delete database"));
+      };
+    });
+  }
+
+  private async closeConnection(): Promise<void> {
+    const pending = this.dbPromise;
+    this.dbPromise = undefined;
+    this.initPromise = undefined;
+    if (!pending) {
+      return;
+    }
+    try {
+      (await pending).close();
+    } catch (error) {
+      // The open had already failed, so there is no connection to close.
+      this.logError("Closing a database connection that never opened.", error);
+    }
+  }
+
+  /** Another tab reset the data: drop this tab's connection so its delete isn't blocked, and never reopen. */
+  private async closeForReset(): Promise<void> {
+    if (this.closedByOtherTab() || this.resetting) {
+      return;
+    }
+    this.closedByOtherTab.set(true);
+    await this.closeConnection();
   }
 
   createMeta(): Meta {
@@ -256,7 +350,7 @@ export class IdbCoreService {
 
   private enableMemoryFallback(): void {
     this._useMemoryFallback = true;
-    this.initialized = true;
+    this.initPromise ??= Promise.resolve();
     this.dbPromise = undefined;
   }
 

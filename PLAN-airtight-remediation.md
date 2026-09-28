@@ -981,6 +981,7 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 |---|---|---|
 | 2026-09-28 | draft 1–3 | Initial plan and two adversarial review passes (section 13, items 1–22). |
 | 2026-09-28 | v1.0 LOCKED | Maintainer answers applied: unscoped npm names reserved early (P0.13); Cloudflare zone hardening with Bot Fight Mode off zone-wide (P0.12); history bodies on and timeout 0 confirmed; plan archived at P7.8; Newman integration collections plus Adyen and Microsoft Graph chosen as fixtures, with Newman as the reference runner (P3.4, P4.2). Final review items 23–27 in section 13. |
+| 2026-09-28 | v1.0.1 | Maintainer decision: `deploy.yml` and `preview.yml` removed; production deploys are manual from the CLI (`docs/deployment.md`) until P1.7, which now creates `deploy.yml` rather than modifying it. |
 
 ## Appendix A — Measurements (filled during execution)
 

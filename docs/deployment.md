@@ -8,11 +8,43 @@ lives in [`wrangler.jsonc`](../wrangler.jsonc).
 
 ## How it ships
 
-Deploys are **manual, from the maintainer's machine**, with the `wrangler`
-CLI pinned in `devDependencies`. There is no deploy workflow in GitHub
-Actions: CI (`ci.yml`) only verifies. An artifact-once pipeline with
-automatic smoke tests and rollback replaces this in Phase 1 (plan task
-P1.7).
+**Build once, deploy what was tested** (P1.7). Every push to `main` runs CI
+(`.github/workflows/ci.yml`), which builds `dist/wayfarer/browser` once,
+uploads it as the `dist` artifact (kept 14 days), and runs the e2e suite in
+Chromium, Firefox and WebKit against exactly those files.
+
+`.github/workflows/deploy.yml` (Actions → **Deploy** → *Run workflow*)
+deploys a green CI run's artifact without rebuilding:
+
+1. records the live version (the rollback target);
+2. `wrangler versions upload` (not live yet), tagged with the commit;
+3. runs the `@smoke` tests against the version's preview URL in 3 browsers;
+   if they fail, the workflow stops and **production is untouched**;
+4. `wrangler versions deploy <id>@100%`;
+5. runs `@smoke` against production; if they fail, `wrangler rollback` to
+   the version from step 1 and opens a `prod-down` issue.
+
+`ci_run_id` picks a specific CI run (default: the latest green run on
+`main`). `drill_failing_smoke` makes step 3 fail on purpose, to prove that a
+failing smoke leaves production alone (check `npx wrangler deployments
+list`: the previous version is still active).
+
+`.github/workflows/synthetic.yml` runs the same `@smoke` tests against
+production every 6 hours in 3 browsers and opens (or comments on) a
+`prod-down` issue when they fail; the next passing run closes it.
+
+### One-time setup (owner)
+
+1. Cloudflare dashboard → My Profile → API Tokens → *Create token* with the
+   **Edit Cloudflare Workers** template, scoped to the account that owns the
+   `wayfarer` Worker.
+2. GitHub → Settings → Secrets and variables → Actions → add
+   `CLOUDFLARE_API_TOKEN` (the token) and `CLOUDFLARE_ACCOUNT_ID`.
+3. GitHub → Settings → Environments → create `production` (the deploy job
+   uses it). Optionally add yourself as a required reviewer.
+
+The manual procedure below stays as the fallback when Actions is
+unavailable.
 
 ## Manual deploy
 
@@ -58,7 +90,7 @@ Check the preview before promoting it:
 ```bash
 PREVIEW=https://<preview-url-from-the-output>
 curl -sI "$PREVIEW/" | grep -i content-security-policy     # the CSP from public/_headers
-BASE_URL="$PREVIEW" npx playwright test e2e/no-edge-injection.spec.ts e2e/tripwire.spec.ts
+BASE_URL="$PREVIEW" npx playwright test --grep @smoke
 ```
 
 The preview runs on `workers.dev`, outside the `ashwinsathian.com` zone,
@@ -79,7 +111,7 @@ you're skipping the preview check on purpose.)
 ```bash
 curl -sI https://wayfarer.ashwinsathian.com/ | grep -iE 'content-security-policy|nel|report-to'
 curl -s https://wayfarer.ashwinsathian.com/ | grep -oE 'main-[A-Z0-9]+\.js'   # same name as dist/wayfarer/browser/index.html
-BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test e2e/no-edge-injection.spec.ts
+BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test --grep @smoke
 ```
 
 Then open Settings in the live app and check the version.

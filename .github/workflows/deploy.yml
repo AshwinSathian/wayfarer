@@ -1,0 +1,167 @@
+name: Deploy
+
+# Artifact-once deploy (P1.7): ships the exact dist/ that a green CI run on
+# main built and tested. Never rebuilds.
+#
+#   upload version -> @smoke on its preview URL -> promote to 100%
+#   -> @smoke on production -> on failure, roll back to the previous version
+#
+# If the preview smoke fails, nothing is promoted and production is untouched.
+# Manual trigger only: Actions -> Deploy -> Run workflow. Needs the
+# CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets (docs/deployment.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: "CI run whose dist artifact to deploy (default: latest green CI run on main)"
+        required: false
+        default: ""
+      drill_failing_smoke:
+        description: "Drill: make the preview smoke fail on purpose (nothing is promoted)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+env:
+  PROD_URL: https://wayfarer.ashwinsathian.com
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Pick the CI run
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_RUN: ${{ inputs.ci_run_id }}
+        run: |
+          if [ -n "$INPUT_RUN" ] && ! [[ "$INPUT_RUN" =~ ^[0-9]+$ ]]; then
+            echo "ci_run_id must be a number" >&2; exit 1
+          fi
+          if [ -n "$INPUT_RUN" ]; then
+            gh run view "$INPUT_RUN" -R "$GITHUB_REPOSITORY" --json databaseId,headSha,headBranch,conclusion,workflowName > run.json
+          else
+            gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push --status success --limit 1 \
+              --json databaseId,headSha,headBranch,conclusion,workflowName --jq '.[0]' > run.json
+          fi
+          node -e '
+            const r = require("./run.json");
+            if (r.workflowName !== "CI" || r.headBranch !== "main" || r.conclusion !== "success") {
+              console.error("Refusing to deploy: not a successful CI run on main", r); process.exit(1);
+            }
+            console.log(`id=${r.databaseId}\nsha=${r.headSha}`);
+          ' >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.run.outputs.sha }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist/wayfarer/browser/
+          run-id: ${{ steps.run.outputs.id }}
+          github-token: ${{ github.token }}
+
+      - name: Record the live version (rollback target)
+        id: previous
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler deployments status --json > status.json
+          node -e '
+            const s = require("./status.json");
+            const live = [...(s.versions ?? [])].sort((a, b) => b.percentage - a.percentage)[0];
+            if (!live?.version_id) { console.error("No live version found", s); process.exit(1); }
+            console.log(`version_id=${live.version_id}`);
+          ' >> "$GITHUB_OUTPUT"
+
+      - name: Upload version (not live)
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+          SHA: ${{ steps.run.outputs.sha }}
+          CI_RUN: ${{ steps.run.outputs.id }}
+        run: |
+          VERSION=$(node -p 'const v = require("./package.json").version; if (!/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(v)) throw new Error("bad version " + v); v')
+          npx wrangler versions upload --tag "${SHA:0:12}" --message "v$VERSION ${SHA:0:12} (CI run $CI_RUN)"
+          node -e '
+            const lines = require("fs").readFileSync(process.env.WRANGLER_OUTPUT_FILE_PATH, "utf8").trim().split("\n").map(JSON.parse);
+            const upload = lines.find((l) => l.type === "version-upload");
+            if (!upload?.version_id || !upload?.preview_url) { console.error("No version id / preview URL in wrangler output", lines); process.exit(1); }
+            console.log(`version_id=${upload.version_id}\npreview_url=${upload.preview_url}`);
+          ' >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke the preview URL
+        env:
+          BASE_URL: ${{ steps.upload.outputs.preview_url }}
+          EXPECTED_VERSION: ${{ steps.upload.outputs.version }}
+          SMOKE_DRILL_FAIL: ${{ inputs.drill_failing_smoke && '1' || '' }}
+        run: npx playwright test --grep @smoke
+
+      - name: Promote to 100%
+        id: promote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VERSION_ID: ${{ steps.upload.outputs.version_id }}
+          VERSION: ${{ steps.upload.outputs.version }}
+        run: npx wrangler versions deploy "$VERSION_ID@100%" --yes --message "promote v$VERSION"
+
+      - name: Smoke production
+        env:
+          BASE_URL: ${{ env.PROD_URL }}
+          EXPECTED_VERSION: ${{ steps.upload.outputs.version }}
+        run: |
+          # Give every edge location a moment to serve the new version.
+          sleep 30
+          npx playwright test --grep @smoke --retries=2
+
+      - name: Roll back
+        if: failure() && steps.promote.outcome == 'success'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIOUS: ${{ steps.previous.outputs.version_id }}
+        run: |
+          npx wrangler rollback "$PREVIOUS" --yes --message "auto-rollback: production smoke failed (run $GITHUB_RUN_ID)"
+
+      - name: Open a prod-down issue
+        if: failure() && steps.promote.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.run.outputs.sha }}
+          PREVIOUS: ${{ steps.previous.outputs.version_id }}
+        run: |
+          gh label create prod-down -R "$GITHUB_REPOSITORY" --color B60205 --description "Production is failing smoke tests" --force
+          gh issue create -R "$GITHUB_REPOSITORY" --label prod-down \
+            --title "Deploy of $SHA failed production smoke; rolled back" \
+            --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Rolled back to version $PREVIOUS."
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: deploy-playwright-report
+          path: playwright-report/
+          retention-days: 14

@@ -17,7 +17,6 @@
   ],
   "ignoreDependencies": [
     "primeicons",
-    "@angular/language-service",
-    "wrangler"
+    "@angular/language-service"
   ]
 }

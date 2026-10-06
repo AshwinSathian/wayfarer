@@ -1,25 +1,20 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { CollectionRequestsRepository } from "./collection-requests.repository";
-import { CollectionsRepository } from "./collections.repository";
-import { EnvironmentsRepository } from "./environments.repository";
-import { FoldersRepository } from "./folders.repository";
-import { IdbCoreService } from "./idb-core.service";
+import { IdbService } from "./idb.service";
+import { SecretEnvelope } from "../models/secrets.models";
 
-// These run against the real IndexedDB of the test browser: the stores,
-// indexes and transactions are the ones users' data lives in.
-describe("collection repositories (real IndexedDB)", () => {
-  let core: IdbCoreService;
-  let collections: CollectionsRepository;
-  let folders: FoldersRepository;
-  let requests: CollectionRequestsRepository;
+// These run against the real IndexedDB of the test browser, through
+// IdbService, the facade the app calls: the stores, indexes and transactions
+// are the ones users' data lives in.
+describe("collections, folders and requests (real IndexedDB)", () => {
+  let core: IdbService;
+  let collections: IdbService;
+  let folders: IdbService;
+  let requests: IdbService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = TestBed.inject(IdbCoreService);
-    collections = TestBed.inject(CollectionsRepository);
-    folders = TestBed.inject(FoldersRepository);
-    requests = TestBed.inject(CollectionRequestsRepository);
+    core = collections = folders = requests = TestBed.inject(IdbService);
   });
 
   afterEach(async () => {
@@ -209,14 +204,13 @@ describe("collection repositories (real IndexedDB)", () => {
   });
 });
 
-describe("EnvironmentsRepository (real IndexedDB)", () => {
-  let core: IdbCoreService;
-  let environments: EnvironmentsRepository;
+describe("environments (real IndexedDB)", () => {
+  let core: IdbService;
+  let environments: IdbService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = TestBed.inject(IdbCoreService);
-    environments = TestBed.inject(EnvironmentsRepository);
+    core = environments = TestBed.inject(IdbService);
   });
 
   afterEach(async () => {
@@ -268,5 +262,93 @@ describe("EnvironmentsRepository (real IndexedDB)", () => {
     await environments.deleteEnvironment(dev.meta.id);
     expect(await environments.getActiveEnvironmentId()).toBeNull();
     expect(await environments.listEnvironments()).toEqual([]);
+  });
+});
+
+describe("secrets (real IndexedDB)", () => {
+  let core: IdbService;
+  let secrets: IdbService;
+  const envelope = (tag: string): SecretEnvelope => ({ v: 1, alg: "AES-GCM", salt: `salt-${tag}`, iv: `iv-${tag}`, ct: `ct-${tag}` });
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    core = secrets = TestBed.inject(IdbService);
+  });
+
+  afterEach(async () => {
+    await core.resetDatabase();
+  });
+
+  it("stores and returns exactly the envelope it was given, per secret id", async () => {
+    expect(await secrets.peekSecretEnvelope()).toBeNull();
+    expect(await secrets.listSecrets()).toEqual([]);
+
+    await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("a") });
+    await secrets.writeCipher({ id: "s-2", name: "Token", envelope: envelope("b") });
+
+    expect(await secrets.readCipher("s-1")).toEqual(envelope("a"));
+    expect(await secrets.readCipher("s-2")).toEqual(envelope("b"));
+    expect(await secrets.readCipher("missing")).toBeNull();
+    expect(await secrets.peekSecretEnvelope()).not.toBeNull();
+
+    const listed = await secrets.listSecrets();
+    expect(listed.map((s) => [s.id, s.name, s.environmentId]).sort()).toEqual([
+      ["s-1", "API key", "env-1"],
+      ["s-2", "Token", undefined],
+    ]);
+
+    // Writing the same id again replaces the ciphertext.
+    await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("c") });
+    expect(await secrets.readCipher("s-1")).toEqual(envelope("c"));
+    expect(await secrets.listSecrets()).toHaveLength(2);
+  });
+
+  it("renames without touching the ciphertext, keeps the old name for a blank one, and deletes", async () => {
+    await secrets.writeCipher({ id: "s-1", name: "API key", envelope: envelope("a") });
+
+    expect((await secrets.renameSecret("s-1", "  Stripe key "))?.name).toBe("Stripe key");
+    expect((await secrets.renameSecret("s-1", "   "))?.name).toBe("Stripe key");
+    expect(await secrets.renameSecret("missing", "x")).toBeNull();
+    expect(await secrets.readCipher("s-1")).toEqual(envelope("a"));
+
+    await secrets.deleteSecret("s-1");
+    expect(await secrets.readCipher("s-1")).toBeNull();
+    expect(await secrets.listSecrets()).toEqual([]);
+  });
+});
+
+describe("history (real IndexedDB)", () => {
+  let idb: IdbService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    idb = TestBed.inject(IdbService);
+  });
+
+  afterEach(async () => {
+    await idb.resetDatabase();
+  });
+
+  it("returns entries newest first, finds them by URL, and deletes one or all", async () => {
+    const first = await idb.add({ method: "GET", url: "https://api.test/a", headers: { A: "1" }, createdAt: 100, status: 200 });
+    const second = await idb.add({ method: "POST", url: "https://api.test/b", headers: {}, body: { x: 1 }, createdAt: 200 });
+    const third = await idb.add({ method: "GET", url: "https://api.test/a", headers: {}, createdAt: 300, error: "Network error" });
+    expect(new Set([first, second, third]).size).toBe(3);
+
+    expect((await idb.getLatest()).map((h) => h.createdAt)).toEqual([300, 200, 100]);
+    expect((await idb.getLatest(2)).map((h) => h.createdAt)).toEqual([300, 200]);
+    expect(await idb.get(second!)).toMatchObject({ method: "POST", url: "https://api.test/b", body: { x: 1 } });
+    expect(await idb.get(9999)).toBeNull();
+
+    const sameUrl = await idb.findByUrl("https://api.test/a");
+    expect(sameUrl.map((h) => h.createdAt).sort()).toEqual([100, 300]);
+    expect(await idb.findByUrl("https://api.test/a", 1)).toHaveLength(1);
+    expect(await idb.findByUrl("https://api.test/none")).toEqual([]);
+
+    await idb.delete(second!);
+    expect((await idb.getLatest()).map((h) => h.createdAt)).toEqual([300, 100]);
+
+    await idb.clear();
+    expect(await idb.getLatest()).toEqual([]);
   });
 });

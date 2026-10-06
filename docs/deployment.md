@@ -43,10 +43,14 @@ production every 6 hours in 3 browsers and opens (or comments on) a
 3. GitHub → Settings → Environments → create `production` (the deploy job
    uses it). Optionally add yourself as a required reviewer.
 
-Do the Cloudflare zone changes in [`runbook.md`](runbook.md#cloudflare-zone)
-(P0.12) **before the first run**. Until then the zone injects scripts, the
-`no-edge-injection` smoke test fails on production, and step 5 rolls the
-deploy back; `synthetic.yml` also keeps its `prod-down` issue open.
+Two repository variables (Settings → Secrets and variables → Actions →
+Variables) stage the rollout, because the Cloudflare changes are scheduled
+last:
+
+| Variable | Set to `true` when | Until then |
+|---|---|---|
+| `ZONE_HARDENED` | the zone changes in [`runbook.md`](runbook.md#cloudflare-zone) (P0.12) are done | deploy and synthetic skip the `no-edge-injection` test, with a warning; the zone still injects scripts, which the CSP blocks |
+| `SYNTHETIC_ENABLED` | production runs a build shipped by `deploy.yml` | the 6-hourly schedule does nothing; manual runs still work |
 
 The manual procedure below stays as the fallback when Actions is
 unavailable.

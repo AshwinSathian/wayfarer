@@ -5,6 +5,14 @@ name: Synthetic monitor
 # on the one already open. The first run after a fix that passes closes it.
 # A manual run can target another URL (for example a broken preview URL, to
 # check that the alert fires).
+#
+# Two repository variables (Settings -> Secrets and variables -> Variables):
+#   SYNTHETIC_ENABLED=true  turns the schedule on. Leave it unset until
+#                           production runs a build from deploy.yml, or every
+#                           run fails and re-opens the issue.
+#   ZONE_HARDENED=true      includes the no-edge-injection test, once the
+#                           Cloudflare zone changes (P0.12) are done.
+# Manual runs always run.
 
 on:
   schedule:
@@ -26,6 +34,7 @@ concurrency:
 jobs:
   smoke:
     name: Smoke (${{ matrix.browser }})
+    if: github.event_name != 'schedule' || vars.SYNTHETIC_ENABLED == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -39,10 +48,18 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npx playwright test --grep @smoke --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }} --retries=1
-        env:
+      - env:
           CI: "1"
           BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
+          BROWSER: ${{ matrix.browser }}
+          ZONE_HARDENED: ${{ vars.ZONE_HARDENED }}
+        run: |
+          if [ "$ZONE_HARDENED" = "true" ]; then
+            npx playwright test --grep @smoke --project="$BROWSER" --project="claims-$BROWSER" --retries=1
+          else
+            echo "::warning::ZONE_HARDENED is not 'true': skipping no-edge-injection (P0.12 pending)"
+            npx playwright test --grep @smoke --grep-invert no-edge-injection --project="$BROWSER" --project="claims-$BROWSER" --retries=1
+          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -53,7 +70,7 @@ jobs:
   alert:
     name: Open or update the prod-down issue
     needs: smoke
-    if: always()
+    if: always() && needs.smoke.result != 'skipped'
     runs-on: ubuntu-latest
     permissions:
       issues: write

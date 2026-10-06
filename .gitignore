@@ -58,4 +58,5 @@ Thumbs.db
 
 # Claude Code local state
 /.claude/worktrees
-/.claude/settings.local.jsonbundle-report.json
+/.claude/settings.local.json
+bundle-report.json

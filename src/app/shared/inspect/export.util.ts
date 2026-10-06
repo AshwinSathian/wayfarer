@@ -1,3 +1,5 @@
+import { parseJson, stringifyJson } from "../json/safe-json.util";
+
 const HAR_VERSION = "1.2";
 const HAR_CREATOR = { name: "Wayfarer", version: "1" };
 const MAX_INLINE_BODY = 256 * 1024; // 256 KB
@@ -31,11 +33,7 @@ export function buildCurlCommand(context: CurlExportContext): string {
     if (typeof context.body === "string") {
       bodyStr = context.body;
     } else {
-      try {
-        bodyStr = JSON.stringify(context.body);
-      } catch {
-        bodyStr = String(context.body);
-      }
+      bodyStr = stringifyJson(context.body) ?? String(context.body);
     }
     if (bodyStr) {
       parts.push(`-d '${escapeSingleQuotes(bodyStr)}'`);
@@ -242,32 +240,31 @@ function parseQueryParams(url: string): HarQueryString[] {
     return [];
   }
 
-  try {
-    const base =
-      typeof window !== "undefined" && window.location?.origin
-        ? window.location.origin
-        : "http://localhost";
-    const parsed = new URL(url, base);
+  const base =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : "http://localhost";
+  const parsed = URL.parse(url, base);
+  if (parsed) {
     const params: HarQueryString[] = [];
     parsed.searchParams.forEach((value, name) => {
       params.push({ name, value });
     });
     return params;
-  } catch {
-    const [, query = ""] = url.split("?");
-    if (!query) {
-      return [];
-    }
-    return query
-      .split("&")
-      .filter(Boolean)
-      .map((segment) => {
-        const [rawName, ...rest] = segment.split("=");
-        const name = decodeURIComponent(rawName ?? "");
-        const value = decodeURIComponent(rest.join("=") ?? "");
-        return { name, value };
-      });
   }
+  const [, query = ""] = url.split("?");
+  if (!query) {
+    return [];
+  }
+  return query
+    .split("&")
+    .filter(Boolean)
+    .map((segment) => {
+      const [rawName, ...rest] = segment.split("=");
+      const name = decodeURIComponent(rawName ?? "");
+      const value = decodeURIComponent(rest.join("=") ?? "");
+      return { name, value };
+    });
 }
 
 function inferMimeType(headers: Record<string, string>): string | undefined {
@@ -293,16 +290,14 @@ function extractJsonBody(
     if (!body.trim()) {
       return { comment: OMITTED_COMMENT };
     }
-    try {
-      const parsed = JSON.parse(body);
-      pretty = JSON.stringify(parsed, null, 2);
-    } catch {
+    const parsed = parseJson(body);
+    if (!parsed.ok) {
       return { comment: OMITTED_COMMENT };
     }
+    pretty = stringifyJson(parsed.value, 2) ?? body;
   } else if (typeof body === "object") {
-    try {
-      pretty = JSON.stringify(body, null, 2);
-    } catch {
+    pretty = stringifyJson(body, 2);
+    if (pretty === undefined) {
       return { comment: OMITTED_COMMENT };
     }
   } else {

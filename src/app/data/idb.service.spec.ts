@@ -92,7 +92,7 @@ describe('IdbService (memory fallback, indexedDB unavailable)', () => {
   const originalIndexedDB = globalThis.indexedDB;
 
   afterEach(() => {
-    (globalThis as any).indexedDB = originalIndexedDB;
+    (globalThis as { indexedDB: IDBFactory }).indexedDB = originalIndexedDB;
   });
 
   it('uses in-memory storage end-to-end when indexedDB is unavailable', async () => {

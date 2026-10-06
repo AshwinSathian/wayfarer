@@ -121,6 +121,7 @@ export class PastRequestsComponent implements OnChanges {
     const id = req.id;
     if (typeof id !== "undefined") {
       this.confirmationService.confirm({
+        key: "history-delete",
         target: event.currentTarget as EventTarget,
         message: "Remove this request from history?",
         rejectButtonProps: {

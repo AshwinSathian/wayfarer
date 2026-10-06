@@ -3,7 +3,7 @@ import { importCollection, serializeDeterministic, validateCollection } from "./
 import { describe, it, expect } from "vitest";
 
 describe("collection-io.util", () => {
-  it("produces byte-identical output after import/export round-trip", () => {
+  it("@claim:C-026 produces byte-identical output after import/export round-trip", () => {
     const tree: CollectionTree = {
       collection: {
         id: "c2",

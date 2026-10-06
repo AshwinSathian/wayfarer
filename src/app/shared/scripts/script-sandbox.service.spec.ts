@@ -14,7 +14,7 @@ describe("ScriptSandboxService", () => {
     return service.execute(script, {});
   }
 
-  it("runs a benign script and reports its pm.test results", async () => {
+  it("@claim:C-040 runs a benign script and reports its pm.test results", async () => {
     const result = await runAssertionScript(`
       pm.test("addition works", () => {
         if (1 + 1 !== 2) { throw new Error("math is broken"); }
@@ -25,7 +25,7 @@ describe("ScriptSandboxService", () => {
     expect(result.testResults[0].passed).toBe(true);
   });
 
-  it("gives scripts read/write access to the environment it was handed", async () => {
+  it("@claim:C-040 gives scripts read/write access to the environment it was handed", async () => {
     const result = await service.execute(
       `
         pm.test("reads env", () => {

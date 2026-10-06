@@ -1,3 +1,5 @@
+import { recordDiagnostic } from "../../services/diagnostics.service";
+
 /**
  * Best-effort clipboard write, shared by the composer's "Copy as cURL" and
  * the response viewer's "Copy as cURL"/"Copy as HAR" export actions.
@@ -11,8 +13,9 @@ export async function writeToClipboard(text: string): Promise<void> {
       await navigator.clipboard.writeText(text);
       return;
     }
-  } catch {
-    // Fallback below.
+  } catch (error) {
+    // Permission denied or no focus: try the fallback below.
+    recordDiagnostic(error, "clipboard: Clipboard API write failed, trying execCommand");
   }
   try {
     const textarea = document.createElement("textarea");
@@ -22,9 +25,10 @@ export async function writeToClipboard(text: string): Promise<void> {
     textarea.style.top = "-9999px";
     document.body.appendChild(textarea);
     textarea.select();
-    document.execCommand("copy");
+    const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
-  } catch {
-    console.warn("Failed to copy to clipboard.");
+    if (!copied) recordDiagnostic(new Error("execCommand('copy') returned false"), "clipboard");
+  } catch (error) {
+    recordDiagnostic(error, "clipboard: copy failed");
   }
 }

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Environments", () => {
-  test("creates an environment, adds a variable, and resolves it as a live chip while typing the URL", async ({
+  test("@claim:C-025 creates an environment, adds a variable, and resolves it as a live chip while typing the URL", async ({
     page,
   }) => {
     await page.goto("/");

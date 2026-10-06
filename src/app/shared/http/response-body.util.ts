@@ -1,3 +1,5 @@
+import { parseJson } from "../json/safe-json.util";
+
 /**
  * A response body that isn't text (image, PDF, archive, ...). Kept as raw
  * bytes so the viewer can offer a lossless download instead of rendering
@@ -41,7 +43,9 @@ export function decodeResponseBody(
     // No content-type: text only if the bytes are valid UTF-8.
     try {
       text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    } catch {
+    } catch (error) {
+      // A fatal decoder throws TypeError on invalid UTF-8: that means binary.
+      if (!(error instanceof TypeError)) throw error;
       return new BinaryBody(bytes, "");
     }
   } else if (JSON_TYPE.test(mediaType) || TEXT_TYPE.test(mediaType)) {
@@ -52,14 +56,11 @@ export function decodeResponseBody(
 
   const trimmed = text.trim();
   if (JSON_TYPE.test(mediaType) || trimmed.startsWith("{") || trimmed.startsWith("[")) {
-    try {
-      const parsed: unknown = JSON.parse(text);
-      // A JSON `null` stays the text "null", so the viewer doesn't report an empty body.
-      if (parsed !== null && (JSON_TYPE.test(mediaType) || typeof parsed === "object")) {
-        return parsed;
-      }
-    } catch {
-      // Not valid JSON: show it as the text it is.
+    // Not valid JSON: show it as the text it is.
+    const parsed = parseJson(text);
+    // A JSON `null` stays the text "null", so the viewer doesn't report an empty body.
+    if (parsed.ok && parsed.value !== null && (JSON_TYPE.test(mediaType) || typeof parsed.value === "object")) {
+      return parsed.value;
     }
   }
   return text;
@@ -74,8 +75,9 @@ function decodeText(bytes: ArrayBuffer, charset: string): string {
   let decoder: TextDecoder;
   try {
     decoder = new TextDecoder(charset);
-  } catch {
+  } catch (error) {
     // Unknown charset label (TextDecoder throws RangeError): fall back to UTF-8.
+    if (!(error instanceof RangeError)) throw error;
     decoder = new TextDecoder("utf-8");
   }
   return decoder.decode(bytes);

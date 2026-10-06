@@ -10,33 +10,58 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+# Third-party actions are pinned to commit SHAs (P1.14); Dependabot updates them.
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: "npm"
       - run: npm ci
+      # P1.14: registry signatures of every installed package.
+      - run: npm audit signatures
       - run: npm run lint
+      # P1.2: e2e targets the local echo-server only, never the internet.
+      - name: No third-party targets in e2e
+        run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"
+      - run: npm run test:scripts
+      - run: npm run check:csp
+      # P1.11: no unused files, exports or dependencies.
+      - run: npx knip
+
+  claims:
+    name: Claims ledger
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      # P1.4: every doc claim has a ledger row and a test titled @claim:<id>.
+      # The claim tests themselves run in the retry-free claims-* projects
+      # of the e2e job.
+      - run: npm run check:claims
 
   test:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: "npm"
       - run: npm ci
       # Vitest runs in real headless Chromium via the Playwright browser
-      # provider (angular.json's "test" target), not jsdom - Web Workers
-      # (script-sandbox.service.spec.ts), IndexedDB, and WebCrypto all need
-      # a real browser, and jsdom stubs none of them faithfully enough.
+      # provider (angular.json's "test" target), not jsdom - Web Workers,
+      # IndexedDB, and WebCrypto all need a real browser.
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ci
 
@@ -44,43 +69,68 @@ jobs:
     name: Build (production, budgets enforced)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: "npm"
       - run: npm ci
-      # angular.json defines bundle-size budgets under the production
-      # configuration (initial: 2mb warning / 5mb error). Angular's own
-      # build enforces these and fails the step if they're exceeded, so no
-      # extra bundle-size tooling is needed here.
-      - run: npm run build -- --configuration=production
+      # angular.json budgets fail the build above the P1.12 baseline x 1.10
+      # (raw bytes); bundle:report does the same for gzip.
+      - run: npm run build
+      - run: npm run bundle:report
+      # P1.7: build once. e2e and deploy.yml use exactly these files.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: dist/wayfarer/browser/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bundle-report
+          path: bundle-report.json
+          retention-days: 14
 
   local-bridge:
     name: Local Bridge (zero-dependency Node test suite)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
       - run: npm run bridge:test
 
   e2e:
-    name: E2E (Playwright)
+    name: E2E (${{ matrix.browser }})
+    needs: build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: "npm"
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist/wayfarer/browser/
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      # Serves the downloaded build through prod-server.mjs (production
+      # headers). claims-<browser> runs the @claim tests with retries off.
+      - run: npx playwright test --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }}
+        env:
+          CI: "1"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 7

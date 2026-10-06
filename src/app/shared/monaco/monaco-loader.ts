@@ -2,7 +2,6 @@
  * Shared Monaco loading state. All editor components import from here
  * so Monaco is initialised exactly once per session.
  */
-import type * as MonacoTypes from "monaco-editor";
 
 export type MonacoEditorModule = typeof import("monaco-editor/esm/vs/editor/editor.api");
 
@@ -64,7 +63,7 @@ let monacoLoader: Promise<MonacoEditorModule> | null = null;
 let environmentConfigured = false;
 
 export let loadedMonaco: MonacoEditorModule | null = null;
-export let sandboxThemesDefined = false;
+let sandboxThemesDefined = false;
 
 export function loadMonaco(): Promise<MonacoEditorModule> {
   if (!monacoLoader) {
@@ -200,6 +199,3 @@ export function waitForNonZeroWidth(
     const timer = setTimeout(finish, timeoutMs);
   });
 }
-
-// Re-exported so callers can refer to MonacoTypes without importing monaco-editor directly.
-export type { MonacoTypes };

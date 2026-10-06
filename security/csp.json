@@ -1,0 +1,58 @@
+{
+  "$comment": [
+    "Single source of the Content-Security-Policy (P1.5). `npm run gen:csp` writes it into public/_headers (HTTP header, applied by Cloudflare) and src/index.html (<meta>, minus the directives a meta policy ignores). `npm run check:csp` fails CI when either file drifts.",
+    "script-src never gets 'unsafe-eval' or 'unsafe-inline' (plan section 2, Constraints).",
+    "connect-src is open because sending requests to arbitrary user-specified hosts is the app's core feature.",
+    "worker-src covers Monaco's workers and the script sandbox worker, both same-origin bundles.",
+    "style-src allows 'unsafe-inline' for PrimeNG's inline positioning styles (overlays, dialogs).",
+    "Fonts are self-hosted and icons are inline SVG, so no third-party origin appears here."
+  ],
+  "directives": {
+    "default-src": [
+      "'self'"
+    ],
+    "script-src": [
+      "'self'"
+    ],
+    "style-src": [
+      "'self'",
+      "'unsafe-inline'"
+    ],
+    "img-src": [
+      "'self'",
+      "data:"
+    ],
+    "font-src": [
+      "'self'",
+      "data:"
+    ],
+    "worker-src": [
+      "'self'",
+      "blob:"
+    ],
+    "connect-src": [
+      "*"
+    ],
+    "object-src": [
+      "'none'"
+    ],
+    "base-uri": [
+      "'self'"
+    ],
+    "form-action": [
+      "'self'"
+    ],
+    "frame-ancestors": [
+      "'none'"
+    ],
+    "frame-src": [
+      "'none'"
+    ],
+    "manifest-src": [
+      "'self'"
+    ],
+    "require-trusted-types-for": [
+      "'script'"
+    ]
+  }
+}

@@ -37,6 +37,24 @@ module.exports = defineConfig([
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      // P1.11 (F36, F40): no silently swallowed errors, no explicit any.
+      "@typescript-eslint/no-explicit-any": "error",
+      "no-empty": ["error", { allowEmptyCatch: false }],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CatchClause[param=null]",
+          message: "Bind the error, then handle it explicitly: rethrow, or record it with DiagnosticsService.record / recordDiagnostic.",
+        },
+        {
+          selector: "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='Identifier'][body.name='undefined']",
+          message: ".catch(() => undefined) hides failures. Handle or record the error.",
+        },
+        {
+          selector: "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='BlockStatement'][body.body.length=0]",
+          message: ".catch(() => {}) hides failures. Handle or record the error.",
+        },
+      ],
     },
   },
   {
@@ -50,26 +68,14 @@ module.exports = defineConfig([
   {
     // Test doubles legitimately implement interfaces with no-op methods and
     // intentionally-unused parameters (e.g. a stub Worker's postMessage()) —
-    // that's the point of a stub, not a code smell. Test fixtures also
-    // routinely need `as any` to build deliberately-partial mock data.
+    // that's the point of a stub, not a code smell.
     files: ["src/testing/**/*.ts", "**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-empty-function": "off",
-      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { args: "none", varsIgnorePattern: "^_" },
       ],
-    },
-  },
-  {
-    // idb's generic type parameters (IDBPObjectStore<DB, TxStores, Store, Mode>)
-    // can't be expressed generically across the version-to-version migration
-    // helpers in this file, which by design operate on stores whose exact
-    // schema varies by the DB version being migrated from.
-    files: ["src/app/data/idb-migrations.ts"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ]);

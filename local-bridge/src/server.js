@@ -239,7 +239,6 @@ function createServer({ token, allowedOrigins }) {
 
 module.exports = {
   createServer,
-  decodeBody,
   sanitizeOutgoingHeaders,
   timingSafeEqualStrings,
 };

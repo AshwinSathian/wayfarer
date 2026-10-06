@@ -138,7 +138,7 @@ describe("AssertionRunnerService", () => {
   describe("operators", () => {
     const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
 
-    it("equals / not-equals coerce numeric and boolean-looking strings before comparing", () => {
+    it("@claim:C-021 equals / not-equals coerce numeric and boolean-looking strings before comparing", () => {
       const [eq] = service.run(
         [assertion({ target: "status", operator: "equals", expected: "200" })],
         response
@@ -152,7 +152,7 @@ describe("AssertionRunnerService", () => {
       expect(neq.passed).toBe(true);
     });
 
-    it("contains / not-contains do substring matching on stringified values", () => {
+    it("@claim:C-021 contains / not-contains do substring matching on stringified values", () => {
       const [contains] = service.run(
         [assertion({ target: "status", operator: "contains", expected: "0" })],
         response
@@ -166,7 +166,7 @@ describe("AssertionRunnerService", () => {
       expect(notContains.passed).toBe(true);
     });
 
-    it("exists / not-exists treat both null and undefined as absent", () => {
+    it("@claim:C-021 exists / not-exists treat both null and undefined as absent", () => {
       const withHeader: AssertionResponseContext = {
         statusCode: 200,
         body: null,
@@ -185,7 +185,7 @@ describe("AssertionRunnerService", () => {
       expect(notExists.passed).toBe(true);
     });
 
-    it("is-array / is-object distinguish arrays from plain objects", () => {
+    it("@claim:C-021 is-array / is-object distinguish arrays from plain objects", () => {
       const arrayResponse: AssertionResponseContext = {
         statusCode: 200,
         body: [1, 2, 3],
@@ -204,7 +204,7 @@ describe("AssertionRunnerService", () => {
       expect(notObject.passed).toBe(false);
     });
 
-    it("less-than / greater-than only pass for actual numeric values", () => {
+    it("@claim:C-021 less-than / greater-than only pass for actual numeric values", () => {
       const durationResponse: AssertionResponseContext = {
         statusCode: 200,
         body: null,

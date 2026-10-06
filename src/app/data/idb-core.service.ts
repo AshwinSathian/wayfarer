@@ -12,6 +12,7 @@ import {
   StoreName,
 } from "./idb-schema";
 import { runUpgrade } from "./idb-migrations";
+import { recordDiagnostic } from "../services/diagnostics.service";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";
@@ -187,8 +188,11 @@ export class IdbCoreService {
     } catch (error) {
       try {
         tx.abort();
-      } catch {
-        // ignore secondary failures
+      } catch (abortError) {
+        // InvalidStateError: the transaction already aborted or finished.
+        if (!(abortError instanceof DOMException && abortError.name === "InvalidStateError")) {
+          recordDiagnostic(abortError, "idb: abort after a failed transaction");
+        }
       }
       throw error;
     }

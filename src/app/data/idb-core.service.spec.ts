@@ -44,7 +44,7 @@ describe("IdbCoreService", () => {
     const svc = new IdbCoreService();
     vi.spyOn(svc, "init").mockResolvedValue(undefined);
     const error = new Error("resolve failed");
-    (svc as any).dbPromise = Promise.reject(error);
+    (svc as unknown as { dbPromise: Promise<unknown> }).dbPromise = Promise.reject(error);
     const errorSpy = vi.spyOn(console, "error");
 
     const result = await svc.getDatabase();

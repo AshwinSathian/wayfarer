@@ -470,7 +470,7 @@ describe('ApiParamsComponent', () => {
       { key: 'Authorization', value: 'Bearer token' },
       { key: '', value: 'ignore-me' }
     ]);
-    const headers = (component as any).buildHeaders();
+    const headers = (component as unknown as { buildHeaders(): Record<string, string> }).buildHeaders();
     expect(headers).toEqual({ Authorization: 'Bearer token' });
 
     component.requestBody.set([
@@ -478,7 +478,7 @@ describe('ApiParamsComponent', () => {
       { key: 'enabled', value: 'false' },
       { key: '', value: 'skip' }
     ]);
-    const body = (component as any).buildBody();
+    const body = (component as unknown as { buildBody(): unknown }).buildBody();
     expect(body).toEqual({ count: '42', enabled: 'false' });
   });
 

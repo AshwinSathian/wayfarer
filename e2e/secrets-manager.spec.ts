@@ -18,7 +18,7 @@ test.describe("Secrets management view", () => {
     await expect(page.locator(".p-dialog-title")).toHaveText("Secrets");
   });
 
-  test("lists a protected variable, supports reveal, rename, locate, and delete", async ({ page }) => {
+  test("@claim:C-028 lists a protected variable, supports reveal, rename, locate, and delete", async ({ page }) => {
     await page.goto("/");
 
     // Create an environment with one variable.

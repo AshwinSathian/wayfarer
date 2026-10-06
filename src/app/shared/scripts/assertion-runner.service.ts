@@ -5,6 +5,7 @@ import {
   TestAssertion,
   TestResult,
 } from "../../models/test-assertion.models";
+import { parseJson } from "../json/safe-json.util";
 
 export interface AssertionResponseContext {
   statusCode: number;
@@ -82,11 +83,8 @@ export class AssertionRunnerService {
       return null;
     }
     if (typeof body === "string") {
-      try {
-        return JSON.parse(body);
-      } catch {
-        return body;
-      }
+      const parsed = parseJson(body);
+      return parsed.ok ? parsed.value : body;
     }
     return body;
   }

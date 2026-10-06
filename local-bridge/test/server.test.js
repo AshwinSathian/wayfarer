@@ -56,7 +56,7 @@ test('GET /health returns ok without requiring a token', async () => {
   }
 });
 
-test('POST /relay rejects requests from an unlisted Origin with 403', async () => {
+test('@claim:C-041 POST /relay rejects requests from an unlisted Origin with 403', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
@@ -75,7 +75,7 @@ test('POST /relay rejects requests from an unlisted Origin with 403', async () =
   }
 });
 
-test('POST /relay rejects a missing/incorrect token with 401, even from an allowed origin', async () => {
+test('@claim:C-041 POST /relay rejects a missing/incorrect token with 401, even from an allowed origin', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
@@ -124,7 +124,7 @@ test('POST /relay rejects an unparseable/unsupported target URL with 400', async
   }
 });
 
-test('POST /relay forwards a GET to the target and wraps its response', async () => {
+test('@claim:C-041 POST /relay forwards a GET to the target and wraps its response', async () => {
   const target = await startTarget((req, res) => {
     assert.equal(req.headers['x-probe'], 'yes');
     res.writeHead(200, { 'Content-Type': 'application/json' });

@@ -3,6 +3,7 @@
   "entry": [
     "src/sw.ts",
     "src/**/*.worker.ts",
+    "src/**/*.spec.ts",
     "src/testing/**/*.ts",
     "e2e/**/*.{ts,mjs}",
     "scripts/*.mjs",

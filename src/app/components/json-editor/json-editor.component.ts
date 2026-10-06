@@ -12,7 +12,6 @@ import {
   output,
   viewChild
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { ThemeService } from "../../services/theme.service";
 import {
   ControlValueAccessor,
@@ -38,7 +37,6 @@ const noop = () => {};
 @Component({
   selector: "app-json-editor",
   standalone: true,
-  imports: [CommonModule],
   host: {
     class: "block w-full min-h-[200px]",
   },

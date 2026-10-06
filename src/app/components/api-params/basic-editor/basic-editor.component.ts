@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -10,7 +9,6 @@ type ContextType = "Body" | "Headers";
   selector: "app-api-params-basic",
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ButtonModule,
     InputTextModule,

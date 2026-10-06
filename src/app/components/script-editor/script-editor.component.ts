@@ -12,7 +12,6 @@ import {
   output,
   viewChild
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { ThemeService } from "../../services/theme.service";
 import type * as MonacoTypes from "monaco-editor";
@@ -31,7 +30,6 @@ const noop = () => {};
 @Component({
   selector: "app-script-editor",
   standalone: true,
-  imports: [CommonModule],
   host: {
     class: "block w-full",
   },

@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -18,7 +17,7 @@ import { IconComponent } from "../../../shared/icon/icon.component";
 @Component({
   selector: "app-auth-editor",
   standalone: true,
-  imports: [IconComponent, CommonModule, FormsModule, ButtonModule, InputTextModule, SelectModule],
+  imports: [IconComponent, FormsModule, ButtonModule, InputTextModule, SelectModule],
   templateUrl: "./auth-editor.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -52,6 +52,18 @@ function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
     .exclude(".p-splitter-gutter");
 }
 
+// axe reads computed colours, so a dialog sampled while it fades in reports
+// blended, low-contrast text that no user ever reads. Scan only once every
+// finite animation and transition on the page has finished.
+async function analyze(page: Parameters<typeof AxeBuilder>[0]["page"]) {
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .every((a) => a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity)
+  );
+  return buildAxe(page).analyze();
+}
+
 test.describe("Accessibility (primary flows)", () => {
   test("@claim:C-038 composer + response viewer have no critical/serious violations", async ({ page }) => {
     await page.goto("/");
@@ -78,7 +90,7 @@ test.describe("Accessibility (primary flows)", () => {
     await page.mouse.move(0, 0);
     await expect(page.locator(".p-tooltip")).toHaveCount(0);
 
-    const results = await buildAxe(page).analyze();
+    const results = await analyze(page);
 
     const seriousOrWorse = results.violations.filter(
       (v) => v.impact === "serious" || v.impact === "critical"
@@ -99,7 +111,7 @@ test.describe("Accessibility (primary flows)", () => {
       document.getAnimations().every((animation) => animation.playState !== "running")
     );
 
-    const results = await buildAxe(page).analyze();
+    const results = await analyze(page);
 
     const seriousOrWorse = results.violations.filter(
       (v) => v.impact === "serious" || v.impact === "critical"
@@ -128,7 +140,7 @@ test.describe("Accessibility (primary flows)", () => {
     await page.getByRole("button", { name: "Save to Collection" }).click();
     await expect(page.locator("#save-as-name")).toBeVisible();
 
-    const saveAsResults = await buildAxe(page).analyze();
+    const saveAsResults = await analyze(page);
     const saveAsViolations = saveAsResults.violations.filter(
       (v) => v.impact === "serious" || v.impact === "critical"
     );
@@ -142,7 +154,7 @@ test.describe("Accessibility (primary flows)", () => {
     await page.keyboard.press("Meta+K");
     await expect(page.getByPlaceholder("Type a command")).toBeVisible();
 
-    const paletteResults = await buildAxe(page).analyze();
+    const paletteResults = await analyze(page);
     const paletteViolations = paletteResults.violations.filter(
       (v) => v.impact === "serious" || v.impact === "critical"
     );

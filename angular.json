@@ -17,9 +17,6 @@
               "base": "dist/wayfarer"
             },
             "index": "src/index.html",
-            "polyfills": [
-              "src/polyfills.ts"
-            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
@@ -108,7 +105,7 @@
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
             "providersFile": "src/testing/vitest-providers.ts",
-            "runnerConfig": "vitest.config.ts",
+            "runnerConfig": "vitest.config.mts",
             "browsers": ["ChromiumHeadless"]
           }
         },

@@ -31,7 +31,6 @@ export function precacheList(root) {
 export function compileServiceWorker() {
   const options = {
     target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.None,
     lib: ["lib.es2022.d.ts", "lib.webworker.d.ts"],
     strict: true,
     noEmit: true,

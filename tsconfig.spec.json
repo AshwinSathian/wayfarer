@@ -7,39 +7,38 @@
     ],
     "paths": {
       "monaco-editor/esm/vs/editor/editor.api": [
-        "src/testing/monaco/monaco-editor.api.stub.ts"
+        "./src/testing/monaco/monaco-editor.api.stub.ts"
       ],
       "monaco-editor/esm/vs/editor/editor.worker?worker": [
-        "src/testing/monaco/worker.stub.ts"
+        "./src/testing/monaco/worker.stub.ts"
       ],
       "monaco-editor/esm/vs/language/json/json.worker?worker": [
-        "src/testing/monaco/worker.stub.ts"
+        "./src/testing/monaco/worker.stub.ts"
       ],
       "monaco-editor/esm/vs/language/css/css.worker?worker": [
-        "src/testing/monaco/worker.stub.ts"
+        "./src/testing/monaco/worker.stub.ts"
       ],
       "monaco-editor/esm/vs/language/html/html.worker?worker": [
-        "src/testing/monaco/worker.stub.ts"
+        "./src/testing/monaco/worker.stub.ts"
       ],
       "monaco-editor/esm/vs/language/typescript/ts.worker?worker": [
-        "src/testing/monaco/worker.stub.ts"
+        "./src/testing/monaco/worker.stub.ts"
       ],
       "monaco-editor/esm/vs/language/json/monaco.contribution": [
-        "src/testing/monaco/contribution.stub.ts"
+        "./src/testing/monaco/contribution.stub.ts"
       ],
       "monaco-editor/esm/vs/language/css/monaco.contribution": [
-        "src/testing/monaco/contribution.stub.ts"
+        "./src/testing/monaco/contribution.stub.ts"
       ],
       "monaco-editor/esm/vs/language/html/monaco.contribution": [
-        "src/testing/monaco/contribution.stub.ts"
+        "./src/testing/monaco/contribution.stub.ts"
       ],
       "monaco-editor/esm/vs/language/typescript/monaco.contribution": [
-        "src/testing/monaco/contribution.stub.ts"
+        "./src/testing/monaco/contribution.stub.ts"
       ]
     }
   },
   "files": [
-    "src/polyfills.ts",
     "src/testing/vitest-providers.ts"
   ],
   "include": [

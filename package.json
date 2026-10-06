@@ -76,7 +76,7 @@
     }
   },
   "devDependencies": {
-    "@angular-eslint/builder": "21.0.1",
+    "@angular-eslint/builder": "22.5.0",
     "@angular/build": "^22.2.1",
     "@angular/cli": "^22.2.1",
     "@angular/compiler-cli": "^22.2.1",
@@ -86,7 +86,7 @@
     "@playwright/test": "^1.61.1",
     "@types/node": "^20.12.7",
     "@vitest/browser-playwright": "^4.1.11",
-    "angular-eslint": "21.0.1",
+    "angular-eslint": "22.5.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.39.1",
     "knip": "^6.38.0",

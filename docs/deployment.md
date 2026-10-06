@@ -59,7 +59,7 @@ unavailable.
 
 ### Prerequisites (once)
 
-- Node 22 (see `.nvmrc`; `wrangler` refuses older versions).
+- Node 24 (see `.nvmrc`; Angular 22 needs 22.22.3 or later, or 24.15 or later).
 - `npx wrangler login`, then `npx wrangler whoami`. Check that the account
   listed is the one that owns the `wayfarer` Worker. If you belong to several
   accounts, set `CLOUDFLARE_ACCOUNT_ID` in your shell so wrangler never has to

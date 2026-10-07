@@ -106,6 +106,7 @@
             "runner": "vitest",
             "providersFile": "src/testing/vitest-providers.ts",
             "runnerConfig": "vitest.config.mts",
+            "isolate": true,
             "coverageInclude": ["src/app/**/*.ts"],
             "coverageReporters": ["text-summary", "json-summary"],
             "coverageThresholds": {

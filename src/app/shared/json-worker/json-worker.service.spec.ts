@@ -17,8 +17,10 @@ describe("JsonWorkerService", () => {
   });
 
   // Both paths must give the same answers: the worker is an optimisation,
-  // and the inline fallback is what runs wherever workers are unavailable.
-  for (const mode of ["worker", "inline fallback"] as const) {
+  // and the inline fallback is what runs wherever a worker is unavailable or
+  // fails to load. "worker when it loads" does not prove the worker ran: on
+  // CI it fails to load and the service falls back (see #109).
+  for (const mode of ["worker when it loads", "inline fallback"] as const) {
     describe(mode, () => {
       beforeEach(() => {
         if (mode === "inline fallback") vi.stubGlobal("Worker", undefined);
@@ -54,10 +56,10 @@ describe("JsonWorkerService", () => {
     });
   }
 
-  it("records the worker's failure and still answers inline", async () => {
+  it("records a failed worker job and still answers inline", async () => {
     const record = vi.spyOn(TestBed.inject(DiagnosticsService), "record");
-    // The worker rejects invalid JSON; the service then retries inline,
-    // which throws the parse error the caller sees.
+    // The worker rejects invalid JSON (or fails to load); the service then
+    // retries inline, which throws the parse error the caller sees.
     await expect(service.parsePretty("{nope")).rejects.toThrow(SyntaxError);
     expect(record).toHaveBeenCalledWith(expect.any(Error), "json worker: job failed, running it inline");
   });

@@ -110,7 +110,7 @@
             "coverageInclude": ["src/app/**/*.ts"],
             "coverageReporters": ["text-summary", "json-summary"],
             "coverageThresholds": {
-              "lines": 70
+              "lines": 99
             },
             "browsers": ["ChromiumHeadless"]
           }

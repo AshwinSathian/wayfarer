@@ -521,7 +521,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 
 Inventory re-measured on 2026-10-06 at `0dfe14b`: 26 `primeng/*` entry points in 16 files, plus `@primeng/themes` and `@primeng/themes/aura` in `src/app/app.config.ts`; 26 distinct `pi-*` tokens in `src` and `e2e`; 63 distinct `.p-*` selectors in `src` and `e2e`.
 
-- [ ] **P1.5.7** Migration map `docs/ui-migration.md`: one row per PrimeNG usage with its replacement, the CDK primitive behind it, the tests that cover it today and the tests to add, ordered by risk, lowest first. Shown to the maintainer; work continues unless they object. Deleted in P1.5.18.
+- [x] **P1.5.7** Migration map `docs/ui-migration.md`: one row per PrimeNG usage with its replacement, the CDK primitive behind it, the tests that cover it today and the tests to add, ordered by risk, lowest first. Shown to the maintainer; work continues unless they object. Deleted in P1.5.18.
   - AC: the file has a row for each of the 26 entry points, the Aura preset, every `pi-*` icon and every `.p-*` selector group; every row names at least one existing or planned test.
 - [ ] **P1.5.8** Slice 1, leaf controls: button, text input, textarea, checkbox, chip, skeleton, spinner, panel, toolbar, float label. Native elements and CSS under `src/app/ui/`.
   - AC: `grep -rnE "primeng/(button|inputtext|textarea|checkbox|chip|skeleton|progressspinner|panel|toolbar|floatlabel)" src` returns nothing; every baseline command passes in 3 engines; test counts are not lower.
@@ -1006,7 +1006,7 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F43 | Every query parameter typed in the URL was sent twice (found by the Phase 1 rails) | P1.4 (claims), tripwire F43 | #104 | Closed (#102) |
 | F44 | A failed IndexedDB write left an unhandled `AbortError` beside the real error (found by the P1.5.5 data-layer tests) | P1.5.5 | #106 | Closed (#107) |
 | F45 | The app's JSON worker is never bundled (its URL is built in a constant the bundler does not recognise), so large responses are formatted on the main thread through the inline fallback (found by the P1.5.5 tests) | Unscheduled: the maintainer decides where it goes | #109 | Open |
-| F46 | After a drawer closed, its backdrop stayed and blocked every click: a regression from #107 (PrimeNG 21's backdrop removal went through Angular's animation renderer, which never flushed in a zoneless app). Found while capturing the Part B screenshots | Hotfix before Part B | #111 | In progress (hotfix PR) |
+| F46 | After a drawer closed, its backdrop stayed and blocked every click: a regression from #107 (PrimeNG 21's backdrop removal went through Angular's animation renderer, which never flushed in a zoneless app). Found while capturing the Part B screenshots | Hotfix before Part B | #111 | Closed (#112) |
 
 ## 13. Adversarial review log
 

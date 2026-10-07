@@ -41,14 +41,17 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   expect(await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations)).toEqual([]);
   expect(errors).toEqual([]);
 
-  const blocked = await page.evaluate(() => {
-    const div = document.createElement("div");
-    try {
-      div.innerHTML = "<img src=x onerror=alert(1)>";
-      return false;
-    } catch (error) {
-      return error instanceof TypeError;
-    }
-  });
-  expect(blocked).toBe(true);
+  // No string becomes markup, not even the empty one (the policy has no createHTML).
+  const blocked = await page.evaluate(() =>
+    ["<img src=x onerror=alert(1)>", ""].map((html) => {
+      const div = document.createElement("div");
+      try {
+        div.innerHTML = html;
+        return false;
+      } catch (error) {
+        return error instanceof TypeError;
+      }
+    })
+  );
+  expect(blocked).toEqual([true, true]);
 });

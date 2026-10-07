@@ -218,7 +218,7 @@
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Duration</span>
                     <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [pTooltip]="timingSummaryTooltips.duration" tooltipPosition="top" />
+                      [uiTooltip]="timingSummaryTooltips.duration" uiTooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
                 </div>
@@ -226,7 +226,7 @@
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Transfer</span>
                     <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [pTooltip]="timingSummaryTooltips.transferSize" tooltipPosition="top" />
+                      [uiTooltip]="timingSummaryTooltips.transferSize" uiTooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
                 </div>
@@ -234,7 +234,7 @@
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Encoded</span>
                     <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [pTooltip]="timingSummaryTooltips.encodedBodySize" tooltipPosition="top" />
+                      [uiTooltip]="timingSummaryTooltips.encodedBodySize" uiTooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
                 </div>
@@ -242,7 +242,7 @@
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Decoded</span>
                     <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [pTooltip]="timingSummaryTooltips.decodedBodySize" tooltipPosition="top" />
+                      [uiTooltip]="timingSummaryTooltips.decodedBodySize" uiTooltipPosition="top" />
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
                 </div>
@@ -254,7 +254,7 @@
                   <div class="flex items-center gap-1.5">
                     <span class="ds-section-label">Waterfall</span>
                     <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [pTooltip]="waterfallTooltip" tooltipPosition="top" />
+                      [uiTooltip]="waterfallTooltip" uiTooltipPosition="top" />
                   </div>
                   @if (inspectionData.limitedByCors) {
                   <span class="type-footnote text-status-warning flex items-center gap-1">
@@ -272,7 +272,7 @@
                       <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
                       @if (phase.tooltip) {
                       <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                        [pTooltip]="phase.tooltip" tooltipPosition="top" />
+                        [uiTooltip]="phase.tooltip" uiTooltipPosition="top" />
                       }
                     </div>
                     <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">

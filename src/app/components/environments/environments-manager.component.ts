@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
 import { TabsModule } from "primeng/tabs";
-import { TooltipModule } from "primeng/tooltip";
+import { TooltipDirective } from "../../ui/tooltip.directive";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
 import { EnvironmentsService } from "../../services/environments.service";
 import { SecretsService } from "../../services/secrets.service";
@@ -42,7 +42,7 @@ interface EnvironmentDraft {
     ButtonDirective,
     TabsModule,
     DialogModule,
-    TooltipModule,
+    TooltipDirective,
     JsonEditorComponent,
   ],
   templateUrl: "./environments-manager.component.html",

@@ -248,8 +248,8 @@
           iconOnly
           type="button"
           [disabled]="historyLoading() || !pastRequests().length"
-          pTooltip="Clear all history"
-          tooltipPosition="bottom"
+          uiTooltip="Clear all history"
+          uiTooltipPosition="bottom"
           aria-label="Clear all history"
           (click)="confirmClear()"
         ><app-icon name="delete" /></button>

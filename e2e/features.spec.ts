@@ -257,3 +257,63 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
   await expect.poll(clipboard).toHaveLength(1);
   expect((await clipboard())[0]).toContain(`${ECHO}/content/json?c035curl=1`);
 });
+
+// Slice 2 of the PrimeNG removal: tooltips and the history details card are
+// reachable with the keyboard alone, and dismissible.
+test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?tooltip=1`);
+
+  const curl = page.getByRole("button", { name: "Copy as cURL" });
+  await curl.focus();
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toHaveText("Copy as cURL");
+  const describedBy = await page.locator(".curl-btn-wrap").getAttribute("aria-describedby");
+  expect(describedBy).toBe(await tooltip.getAttribute("id"));
+
+  await page.keyboard.press("Escape");
+  await expect(tooltip).toHaveCount(0);
+  await expect(curl).toBeFocused();
+
+  // The app is still usable: the next button takes the click.
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+});
+
+test("a history entry shows its details on keyboard focus and hides them on blur", async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?details=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await page.getByRole("button", { name: "Request history" }).click();
+
+  // Reach the entry with the keyboard: focus that scripts or clicks set does
+  // not open the card. Safari tabs to non-inputs with Option+Tab.
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
+  const entry = page.getByRole("button", { name: /^Load request .*details=1 into composer$/ });
+  // PrimeNG's drawer does not move focus into itself, so start from its
+  // Close button (the drawer replacement in slice 5 takes focus on open).
+  const tabToEntry = async () => {
+    await page.getByRole("button", { name: "Close history" }).focus();
+    for (let i = 0; i < 4 && !(await entry.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+    await expect(entry).toBeFocused();
+  };
+  await tabToEntry();
+  // The next stop, the entry's Delete button, has a tooltip of its own.
+  const card = page.getByRole("tooltip").filter({ hasText: "Status: 200" });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("details=1");
+
+  await page.keyboard.press(tab);
+  await expect(entry).not.toBeFocused();
+  await expect(card).toHaveCount(0);
+
+  // Escape closes it too.
+  await page.keyboard.press(`Shift+${tab}`);
+  await expect(entry).toBeFocused();
+  await expect(card).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(card).toHaveCount(0);
+});
+

@@ -32,14 +32,16 @@ Tests added: `button.directive.spec.ts`; e2e for the checkbox (Space and label),
 
 Still to do for these controls in later slices: the `Inputs` and `Buttons` sections of `primeng-overrides.css` stay until slice 5, because PrimeNG's dialog close button and select still use those classes.
 
-### Slice 2 — tooltip, popover (P1.5.9)
+### Slice 2 — tooltip, popover (P1.5.9) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `pTooltip` (11) with `tooltipPosition` | icon buttons, disabled cURL wrapper | `uiTooltip` directive: shows on hover and focus, hides on Escape and blur, `role="tooltip"`, `aria-describedby` on the host | Overlay (flexible position) | `layout.spec.ts` (disabled cURL explains why), `accessibility.spec.ts` (no leftover tooltip) | e2e keyboard: focus shows, Escape hides, text is announced through `aria-describedby` |
-| `p-popover` (1): `dismissable`, `appendTo="body"` | history entry details | `uiPopover` (template in an overlay): opens on click, closes on outside click and Escape, focus returns | Overlay, FocusMonitor | `features.spec.ts` C-029 | e2e keyboard and "usable after close" |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `pTooltip` (11), `tooltipPosition` | `[uiTooltip]="text"`, `uiTooltipPosition` (`src/app/ui/tooltip.directive.ts`) on CDK Overlay | Shows on hover and focus, closes on leave, blur and Escape, stays while hovered, `role="tooltip"` + `aria-describedby` |
+| `p-popover` (1) | `[uiTooltip]="template"`: the same directive renders a template as a details card | It was only opened on hover and focus, so it is the same pattern |
 
-Security in this slice: `createHTML` and `allowHtml` leave the Trusted Types default policy (PrimeNG's Tooltip was their only user). This PR waits for the maintainer's OK.
+Security: `createHTML` and `allowHtml` are gone from the Trusted Types default policy.
+
+Tests added: `tooltip.directive.spec.ts` (5), e2e keyboard tests for the tooltip and the history details card, a stricter C-016 (the empty string is rejected as HTML too).
 
 ### Slice 3 — tabs, accordion, select button (P1.5.10)
 
@@ -66,6 +68,8 @@ Security in this slice: `createHTML` and `allowHtml` leave the Trusted Types def
 | `p-drawer` (2): left navigation on phones, right history | app shell | `ui-drawer`: same contract as dialog, `side` input | Dialog, FocusTrap | `layout.spec.ts` (usable after close), `features.spec.ts` C-029 | keyboard and focus tests for both |
 | `p-confirmDialog` (2) + `ConfirmationService.confirm` (5 calls) | delete collection/folder/request, clear history, reset all data, delete secret | `ConfirmService.confirm({ title, message, acceptLabel, danger }): Promise<boolean>` rendering one `ui-confirm-dialog` (`role="alertdialog"`) | Dialog | `accessibility.spec.ts` (accessible name), `reset-all-data.spec.ts` C-013, `secrets-manager.spec.ts` C-028 | Unit for the service (resolve true and false, one at a time). e2e: focus starts on Cancel for dangerous actions, Escape cancels |
 | `p-confirmpopup` (keyed `history-delete`) | history entry delete | same `ConfirmService` with an `anchor` element, rendered as a popover | Overlay | `features.spec.ts` C-029, `past-requests.component.spec.ts` | keyboard and focus return |
+
+Gap to close in this slice: PrimeNG's drawer does not move focus into itself; Tab keeps walking the page behind it. The replacement takes focus on open and traps it (remove the workaround in `e2e/features.spec.ts`, "a history entry shows its details").
 
 Known difference to remove: on phones a dialog opened from the navigation drawer is clipped to the drawer's width today (screens `dark-mobile/17-dialog-new-collection`). The new dialog renders in the overlay container at full width. This is listed as an intended fix, not a redesign.
 

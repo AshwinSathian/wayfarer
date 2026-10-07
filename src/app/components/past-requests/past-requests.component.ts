@@ -4,8 +4,7 @@ import { AccordionModule } from "primeng/accordion";
 import { ConfirmationService } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { ConfirmPopupModule } from "primeng/confirmpopup";
-import { PopoverModule } from "primeng/popover";
-import { TooltipModule } from "primeng/tooltip";
+import { TooltipDirective } from "../../ui/tooltip.directive";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
 import { IconComponent } from "../../shared/icon/icon.component";
 
@@ -21,8 +20,7 @@ export interface HistoryGroup {
     IconComponent,
     CommonModule,
     ButtonDirective,
-    TooltipModule,
-    PopoverModule,
+    TooltipDirective,
     AccordionModule,
     ConfirmPopupModule,
   ],

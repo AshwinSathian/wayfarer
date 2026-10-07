@@ -20,7 +20,7 @@ import { SelectModule } from "primeng/select";
 import { SelectButtonModule } from "primeng/selectbutton";
 import { SplitterModule } from "primeng/splitter";
 import { TabsModule } from "primeng/tabs";
-import { TooltipModule } from "primeng/tooltip";
+import { TooltipDirective } from "../../ui/tooltip.directive";
 import { EnvironmentsService } from "../../services/environments.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
@@ -106,7 +106,7 @@ type ContextType = "Body" | "Headers";
     SelectModule,
     SelectButtonModule,
     TabsModule,
-    TooltipModule,
+    TooltipDirective,
     SplitterModule,
     DialogModule,
     JsonEditorComponent,

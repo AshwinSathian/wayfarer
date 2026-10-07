@@ -50,8 +50,8 @@
       <span
         class="curl-btn-wrap"
         [class.is-disabled]="!endpoint()"
-        [pTooltip]="endpoint() ? 'Copy as cURL' : 'Enter a URL first to copy as cURL'"
-        tooltipPosition="bottom"
+        [uiTooltip]="endpoint() ? 'Copy as cURL' : 'Enter a URL first to copy as cURL'"
+        uiTooltipPosition="bottom"
       >
         <button
           uiButton

@@ -83,7 +83,7 @@ test.describe("Accessibility (primary flows)", () => {
     // real user reading the response wouldn't still have their cursor
     // parked on a toolbar button.
     await page.mouse.move(0, 0);
-    await expect(page.locator(".p-tooltip")).toHaveCount(0);
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
 
     const results = await analyze(page);
 

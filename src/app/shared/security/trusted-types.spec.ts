@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { allowHtml, allowScriptUrl } from "./trusted-types";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { allowScriptUrl, installTrustedTypesPolicy } from "./trusted-types";
 
 const ORIGIN = "https://wayfarer.ashwinsathian.com";
 
@@ -20,10 +20,18 @@ describe("Trusted Types default policy", () => {
     }
   });
 
-  it("allows only the empty string as HTML", () => {
-    expect(allowHtml("")).toBe("");
-    expect(allowHtml("<b>x</b>")).toBeNull();
-    expect(allowHtml("<img src=x onerror=alert(1)>")).toBeNull();
-    expect(allowHtml(" ")).toBeNull();
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("installs a default policy that can create script URLs and nothing else: no HTML, no script text", () => {
+    const createPolicy = vi.fn();
+    vi.stubGlobal("trustedTypes", { createPolicy });
+
+    installTrustedTypesPolicy();
+
+    expect(createPolicy).toHaveBeenCalledOnce();
+    const [name, options] = createPolicy.mock.calls[0] as [string, Record<string, unknown>];
+    expect(name).toBe("default");
+    expect(Object.keys(options)).toEqual(["createScriptURL"]);
+    expect((options["createScriptURL"] as (input: string) => string | null)("https://evil.example/x.js")).toBeNull();
   });
 });

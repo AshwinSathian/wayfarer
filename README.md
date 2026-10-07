@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-> **v1.1.0 status:** some features are disabled or limited while an audit's findings are fixed. See [Known limitations](#known-limitations).
+> **v1.3.0 status:** some features are disabled or limited while an audit's findings are fixed. See [Known limitations](#known-limitations).
 
 **Live demo:** https://wayfarer.ashwinsathian.com/
 

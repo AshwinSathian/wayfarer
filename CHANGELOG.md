@@ -7,12 +7,57 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-07
+
+The app moves to Angular 22 and drops PrimeNG. Every dialog, menu, select,
+tab, tooltip, tree and the split are now Wayfarer's own components, built on
+the Angular CDK. Nothing about the layout or the colours is meant to change;
+the differences that remain are listed in the pull request that finished the
+work, with before and after screenshots.
+
 ### Changed
 
+- **Angular 20.3 to 22.2, TypeScript 6, Vitest 5** for unit tests, with a
+  coverage gate (lines of `src/app` at 70% or more; 75.8% today).
+- **PrimeNG, `@primeng/themes` and `primeicons` are removed.** The first
+  load is about 42% smaller (initial JavaScript and CSS, 989,854 B instead of
+  1,707,095 B; 284,702 B instead of 443,272 B compressed). The size budgets are
+  tightened to match.
+- The Trusted Types policy no longer allows any string to become HTML.
+- Keyboard use is complete in every dialog, drawer, menu, select, tab list,
+  tree and the split: focus moves in, stays in, and returns; Escape closes the
+  top-most thing only. In the collections tree, arrows walk it, F2 renames,
+  Shift+F10 opens the menu and Alt+Up or Alt+Down reorders.
+- A dialog opened from the phone navigation drawer is no longer clipped to the
+  drawer.
+- The split between the composer and the response can be moved with the
+  keyboard and stops at its minimum sizes.
 - Deploys are manual from the CLI (`wrangler versions upload`, check the
   preview, `wrangler versions deploy`); see `docs/deployment.md`. The
   `deploy.yml` and `preview.yml` workflows are removed. They had failed on
   every run since 2026-07-30 for lack of Cloudflare secrets.
+
+### Fixed
+
+- The history and navigation drawers could leave an invisible layer that
+  swallowed every click (#111).
+- Large responses were parsed on the main thread because the JSON worker was
+  never bundled (#109).
+- Dark "secondary" buttons were unreadable (1.03:1) and some text on
+  confirmations and danger buttons was below the contrast minimum (#114).
+- Copying through the clipboard fallback left keyboard focus on the page body
+  (#122).
+- An Escape pressed while a context menu was opening could close the drawer
+  around it and leave the menu open (#125); the menu could offer the previous
+  row's actions for one frame.
+
+### Security
+
+- The content security policy is unchanged. `style-src` still needs
+  `'unsafe-inline'`: Monaco writes style attributes for every line it draws,
+  and Angular, the CDK and 13 template lines add inline styles. The reasons
+  are recorded in `security/csp.json` and the plan.
+- No `innerHTML`, `bypassSecurityTrust*` or `eval` was added.
 
 ## [1.1.0] - 2026-09-28
 

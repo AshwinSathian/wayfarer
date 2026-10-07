@@ -17,13 +17,18 @@ describe("JsonWorkerService", () => {
   });
 
   // Both paths must give the same answers: the worker is an optimisation,
-  // and the inline fallback is what runs wherever a worker is unavailable or
-  // fails to load. "worker when it loads" does not prove the worker ran: on
-  // CI it fails to load and the service falls back (see #109).
-  for (const mode of ["worker when it loads", "inline fallback"] as const) {
+  // and the inline fallback is what runs wherever a worker is unavailable.
+  for (const mode of ["worker", "inline fallback"] as const) {
     describe(mode, () => {
       beforeEach(() => {
         if (mode === "inline fallback") vi.stubGlobal("Worker", undefined);
+      });
+
+      it(mode === "worker" ? "answers from the worker, without falling back" : "answers without a worker", async () => {
+        const record = vi.spyOn(TestBed.inject(DiagnosticsService), "record");
+        expect(await service.minify("[ 1, 2 ]")).toBe("[1,2]");
+        // A fallback after a failed worker job is recorded; none happened.
+        expect(record).not.toHaveBeenCalled();
       });
 
       it("pretty-prints with the requested indent", async () => {

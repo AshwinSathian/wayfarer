@@ -22,7 +22,6 @@ export interface WorkerSearchResult {
 }
 
 const WORKER_TIMEOUT_MS = 10_000;
-const WORKER_MODULE_URL = new URL("./json.worker.ts", import.meta.url);
 
 @Injectable({
   providedIn: "root",
@@ -103,7 +102,9 @@ export class JsonWorkerService implements OnDestroy {
     }
 
     if (!this.worker) {
-      this.worker = new Worker(WORKER_MODULE_URL, { type: "module" });
+      // The URL must be written inside `new Worker(...)`: that is the only
+      // form the bundler recognises and emits a worker chunk for (F45).
+      this.worker = new Worker(new URL("./json.worker", import.meta.url), { type: "module" });
       this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
         this.handleWorkerMessage(event.data);
       };

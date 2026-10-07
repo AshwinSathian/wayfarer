@@ -16,7 +16,7 @@ import { PrimeTemplate } from "primeng/api";
 import { UI_ACCORDION } from "../../ui/accordion.component";
 import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { SelectModule } from "primeng/select";
+import { SelectComponent } from "../../ui/select.component";
 import { SegmentedComponent } from "../../ui/segmented.component";
 import { SplitterModule } from "primeng/splitter";
 import { UI_TABS } from "../../ui/tabs.component";
@@ -102,7 +102,7 @@ type ContextType = "Body" | "Headers";
     PrimeTemplate,
     ButtonDirective,
     UI_ACCORDION,
-    SelectModule,
+    SelectComponent,
     SegmentedComponent,
     UI_TABS,
     TooltipDirective,

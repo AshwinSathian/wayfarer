@@ -105,11 +105,8 @@ for (const theme of THEMES) {
         await section("Scripts").click();
         await button("Add test").click();
       });
-      await state("method-select-open", async () => {
-        await page.locator(".address-method").click();
-        await page.getByRole("option", { name: "POST", exact: true }).waitFor();
-      });
       await state("composer-body-post", async () => {
+        await page.locator(".address-method").click();
         await page.getByRole("option", { name: "POST", exact: true }).click();
         await section("Body").click();
       });
@@ -154,7 +151,9 @@ for (const theme of THEMES) {
         await dialog("Save to Collection").getByRole("combobox").first().click();
         await page.getByRole("option").first().waitFor();
       }, async () => {
-        await page.getByRole("option", { name: "Billing" }).click();
+        const billing = page.getByRole("option", { name: "Billing" });
+        if (!(await billing.isVisible())) await dialog("Save to Collection").getByRole("combobox").first().click();
+        await billing.click();
       });
       await act("button Save click", () => button("Save").click());
       await state("sidebar-tree", async () => {
@@ -216,7 +215,7 @@ for (const theme of THEMES) {
         await button("Delete history entry").first().click();
         await button("Delete", alert()).waitFor();
       }, async () => {
-        await button("Cancel", alert()).click();
+        if (await alert().isVisible()) await button("Cancel", alert()).click();
       });
       await state("history-clear-confirm", async () => {
         await button("Clear all history").click();
@@ -252,6 +251,14 @@ for (const theme of THEMES) {
         await page.waitForTimeout(600);
         await escape();
       });
+
+      // Last on purpose: a full-page screenshot can close an open list, and
+      // nothing after this depends on it.
+      await state("method-select-open", async () => {
+        await page.locator(".address-method").click();
+        await page.getByRole("option", { name: "POST", exact: true }).waitFor();
+      });
+      await escape();
 
       if (mobile) {
         await state("mobile-navigation-drawer", async () => {

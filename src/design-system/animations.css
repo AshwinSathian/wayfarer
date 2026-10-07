@@ -103,10 +103,9 @@
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
 }
 
-.p-menu,
-.p-contextmenu,
-.p-popover,
-.p-select-overlay {
+.ui-menu-panel,
+.ui-popover,
+.ui-select-panel {
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
 

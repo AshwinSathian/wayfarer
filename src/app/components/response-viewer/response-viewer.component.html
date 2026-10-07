@@ -51,7 +51,7 @@
       <!-- Export -->
       @if (canExport) {
       <div class="ml-auto">
-        <p-menu #exportMenu [model]="exportItems" [popup]="true"></p-menu>
+        <ui-menu #exportMenu [items]="exportItems" />
         <button
           uiButton
           tone="secondary"

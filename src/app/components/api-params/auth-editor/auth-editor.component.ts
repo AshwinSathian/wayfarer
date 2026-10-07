@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../../ui/button.directive";
-import { SelectModule } from "primeng/select";
+import { SelectComponent } from "../../../ui/select.component";
 import { AuthType, HttpAuthPlaceholder } from "../../../models/collections.models";
 import { IconComponent } from "../../../shared/icon/icon.component";
 
@@ -16,7 +16,7 @@ import { IconComponent } from "../../../shared/icon/icon.component";
 @Component({
   selector: "app-auth-editor",
   standalone: true,
-  imports: [IconComponent, FormsModule, ButtonDirective, SelectModule],
+  imports: [IconComponent, FormsModule, ButtonDirective, SelectComponent],
   templateUrl: "./auth-editor.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -5,14 +5,13 @@
     <!-- Unified method + URL bar -->
     <div class="address-bar flex-1">
       <!-- Method selector -->
-      <p-select
+      <ui-select
         [options]="requestMethods"
-        appendTo="body"
         [ngModel]="selectedRequestMethod()"
         (ngModelChange)="onRequestMethodChange($event)"
-        styleClass="method-select"
-        class="address-method"
-      ></p-select>
+        ariaLabel="HTTP method"
+        class="address-method method-select"
+      />
 
       <!-- URL input -->
       <input
@@ -488,14 +487,14 @@
         </div>
         @for (test of requestTests(); track test.id; let i = $index) {
         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
-          <p-select
+          <ui-select
             [options]="assertionTargetOptions"
             [(ngModel)]="test.target"
             optionLabel="label"
             optionValue="value"
-            appendTo="body"
-            styleClass="w-36"
-          ></p-select>
+            ariaLabel="Assert on"
+            class="w-36"
+          />
           @if (needsKey(test.target)) {
           <input
             class="ui-input w-44"
@@ -503,14 +502,14 @@
             [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
            />
           }
-          <p-select
+          <ui-select
             [options]="operatorsFor(test.target)"
             [(ngModel)]="test.operator"
             optionLabel="label"
             optionValue="value"
-            appendTo="body"
-            styleClass="w-44"
-          ></p-select>
+            ariaLabel="Operator"
+            class="w-44"
+          />
           @if (needsExpected(test.operator)) {
           <input
             class="ui-input flex-1 min-w-[120px]"
@@ -568,7 +567,7 @@
     </div>
     <div class="flex flex-col gap-1.5">
       <label for="save-as-collection" class="type-footnote text-label-secondary">Collection</label>
-      <p-select
+      <ui-select
         inputId="save-as-collection"
         [options]="saveAsCollectionOptions()"
         [ngModel]="saveAsCollectionId()"
@@ -576,13 +575,13 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Choose a collection"
-        styleClass="w-full"
-      ></p-select>
+        class="w-full"
+      />
     </div>
     @if (saveAsFolderOptions().length) {
     <div class="flex flex-col gap-1.5">
       <label for="save-as-folder" class="type-footnote text-label-secondary">Folder (optional)</label>
-      <p-select
+      <ui-select
         inputId="save-as-folder"
         [options]="saveAsFolderOptions()"
         [ngModel]="saveAsFolderId()"
@@ -590,9 +589,9 @@
         optionLabel="label"
         optionValue="value"
         placeholder="No folder"
-        [showClear]="true"
-        styleClass="w-full"
-      ></p-select>
+        showClear
+        class="w-full"
+      />
     </div>
     }
     }

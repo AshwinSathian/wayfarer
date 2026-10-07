@@ -172,10 +172,18 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
     await expect(page.locator(".status-badge")).not.toHaveText("504");
     // From v1.2.0 the app registers its own same-origin worker, /sw.js
     // (P1.6); the old Angular worker must be gone.
-    const scripts = await page.evaluate(async () =>
-      (await navigator.serviceWorker.getRegistrations()).map((r) => (r.active ?? r.waiting ?? r.installing)?.scriptURL ?? "")
-    );
-    expect(scripts.filter((url) => url.endsWith("/ngsw-worker.js"))).toEqual([]);
+    // The safety worker unregisters itself asynchronously: on a slow runner
+    // it can still be listed for a moment after the reload (#118). It must
+    // be gone, so wait for that rather than sampling once.
+    await expect
+      .poll(async () =>
+        (
+          await page.evaluate(async () =>
+            (await navigator.serviceWorker.getRegistrations()).map((r) => (r.active ?? r.waiting ?? r.installing)?.scriptURL ?? "")
+          )
+        ).filter((url) => url.endsWith("/ngsw-worker.js"))
+      )
+      .toEqual([]);
   });
 });
 

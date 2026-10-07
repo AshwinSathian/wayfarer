@@ -1,4 +1,5 @@
-import { MenuItem, TreeNode } from "primeng/api";
+import { TreeNode } from "primeng/api";
+import { UiMenuItem } from "../../ui/menu.component";
 import { CollectionNodeData } from "./collection-tree-nodes.util";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
@@ -13,33 +14,33 @@ export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "du
 export function buildContextItems(
   node: TreeNode<CollectionNodeData>,
   dispatch: (action: CollectionNodeAction, node: TreeNode<CollectionNodeData>) => void
-): MenuItem[] {
+): UiMenuItem[] {
   const data = node.data as CollectionNodeData;
 
   if (data.type === "collection") {
     return [
-      { label: "New Folder", icon: "pi pi-folder", command: () => dispatch("new-folder", node) },
-      { label: "New Request", icon: "pi pi-plus", command: () => dispatch("new-request", node) },
+      { label: "New Folder", icon: "folder", command: () => dispatch("new-folder", node) },
+      { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
       { separator: true },
-      { label: "Rename", icon: "pi pi-pencil", command: () => dispatch("rename", node) },
-      { label: "Duplicate", icon: "pi pi-copy", command: () => dispatch("duplicate", node) },
-      { label: "Export", icon: "pi pi-download", command: () => dispatch("export", node) },
-      { label: "Delete", icon: "pi pi-trash", command: () => dispatch("delete", node) },
+      { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+      { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
+      { label: "Export", icon: "download", command: () => dispatch("export", node) },
+      { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
     ];
   }
 
   if (data.type === "folder") {
     return [
-      { label: "New Request", icon: "pi pi-plus", command: () => dispatch("new-request", node) },
-      { label: "Rename", icon: "pi pi-pencil", command: () => dispatch("rename", node) },
-      { label: "Duplicate", icon: "pi pi-copy", command: () => dispatch("duplicate", node) },
-      { label: "Delete", icon: "pi pi-trash", command: () => dispatch("delete", node) },
+      { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
+      { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+      { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
+      { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
     ];
   }
 
   return [
-    { label: "Rename", icon: "pi pi-pencil", command: () => dispatch("rename", node) },
-    { label: "Duplicate", icon: "pi pi-copy", command: () => dispatch("duplicate", node) },
-    { label: "Delete", icon: "pi pi-trash", command: () => dispatch("delete", node) },
+    { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
+    { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
+    { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
   ];
 }

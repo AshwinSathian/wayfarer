@@ -36,7 +36,7 @@ async function recordClipboard(page: Page): Promise<() => Promise<string[]>> {
 
 test("@claim:C-017 the composer offers GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS, and sends the one chosen", async ({ page }) => {
   await page.goto("/");
-  await page.locator("p-select.address-method").click();
+  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
   await expect(page.getByRole("option")).toHaveText(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
   await page.getByRole("option", { name: "PATCH", exact: true }).click();
   await page.locator("input.address-url").fill(`${ECHO}/echo?c017=1`);
@@ -148,11 +148,7 @@ test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Export response" }).click();
-  // A real mouse click on the label. Playwright's locator click scrolls first
-  // in Firefox/WebKit, and PrimeNG closes popup menus on scroll.
-  const box = await page.getByRole("menuitem", { name: "Copy as HAR" }).getByText("Copy as HAR").boundingBox();
-  expect(box).not.toBeNull();
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.getByRole("menuitem", { name: "Copy as HAR" }).click();
   await expect.poll(clipboard).toHaveLength(1);
   const har = JSON.parse((await clipboard())[0]) as { log: { version: string; entries: { request: { url: string }; response: { status: number } }[] } };
   expect(har.log.version).toBe("1.2");
@@ -178,7 +174,7 @@ test("@claim:C-039 the Body tab exists only for POST, PUT and PATCH, with a Basi
   await page.goto("/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
   await expect(bodyTab).toHaveCount(0);
-  await page.locator("p-select.address-method").click();
+  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
   await page.getByRole("option", { name: "POST", exact: true }).click();
   await bodyTab.first().click();
   await expect(page.getByRole("radio", { name: "JSON" }).or(page.getByRole("button", { name: "JSON", exact: true })).first()).toBeVisible();
@@ -255,8 +251,7 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Export response" }).click();
-  const box = await page.getByRole("menuitem", { name: "Copy as cURL" }).getByText("Copy as cURL").boundingBox();
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.getByRole("menuitem", { name: "Copy as cURL" }).click();
   await expect.poll(clipboard).toHaveLength(1);
   expect((await clipboard())[0]).toContain(`${ECHO}/content/json?c035curl=1`);
 });

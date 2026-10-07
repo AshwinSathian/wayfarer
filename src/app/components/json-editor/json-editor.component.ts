@@ -38,7 +38,8 @@ const noop = () => {};
   selector: "app-json-editor",
   standalone: true,
   host: {
-    class: "block w-full min-h-[200px]",
+    // Monaco sizes itself to this element, so the element must not size itself to Monaco (F52).
+    class: "block w-full min-h-[200px] [contain:inline-size]",
   },
   template: `
     <!--

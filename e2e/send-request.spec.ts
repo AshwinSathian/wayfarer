@@ -75,3 +75,31 @@ test.describe("Send request → view response", () => {
     await expect(page.getByText(/isTrusted/i)).toHaveCount(0, { timeout: 15_000 });
   });
 });
+
+// F45: the JSON worker was never bundled, so searching and formatting a
+// response always fell back to the main thread after one failed request.
+test("searching a response runs in the app's JSON worker, not on the main thread", async ({ page }) => {
+  const requested: string[] = [];
+  page.on("request", (request) => requested.push(new URL(request.url()).pathname));
+  const workerUrls: string[] = [];
+  page.on("worker", (worker) => workerUrls.push(new URL(worker.url()).pathname));
+  const consoleErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" || message.type() === "warning") consoleErrors.push(message.text());
+  });
+
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+
+  const before = workerUrls.length;
+  await page.getByPlaceholder("Search response…").fill(":");
+  await expect(page.getByRole("button", { name: "Next search match" })).toBeEnabled();
+
+  // A worker shipped with the app answered: no source file was requested,
+  // and the service did not report a failed job.
+  expect(requested.filter((path) => path.endsWith(".ts"))).toEqual([]);
+  expect(workerUrls.slice(before).some((path) => /^\/worker-[A-Z0-9]+\.js$/.test(path))).toBe(true);
+  expect(consoleErrors.filter((text) => text.includes("json worker"))).toEqual([]);
+});

@@ -213,14 +213,12 @@
 </div>
 
 <!-- New environment dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="New environment"
   [visible]="newEnvDialogVisible()"
   (visibleChange)="newEnvDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '420px' }"
-  (onHide)="closeNewEnvironmentDialog()"
+  width="420px"
+  (hide)="closeNewEnvironmentDialog()"
 >
   <div class="flex flex-col gap-3">
     <div>
@@ -244,7 +242,7 @@
        />
     </div>
   </div>
-  <ng-template pTemplate="footer">
+  <div uiDialogFooter>
     <div class="flex justify-end gap-2">
       <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeNewEnvironmentDialog()">Cancel</button>
       <button
@@ -254,18 +252,16 @@
         (click)="submitNewEnvironment()"
       >Create</button>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
+</ui-dialog>
 
 <!-- Import environments dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Import environments"
   [visible]="envImportDialogVisible()"
   (visibleChange)="envImportDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '440px' }"
-  (onHide)="closeEnvImportDialog()"
+  width="440px"
+  (hide)="closeEnvImportDialog()"
 >
   @if (envImportErrors().length) {
   <div class="space-y-1 type-callout text-status-error">
@@ -319,7 +315,7 @@
     <p class="type-callout text-label-tertiary">Select a valid export file to continue.</p>
   </div>
   }
-  <ng-template pTemplate="footer">
+  <div uiDialogFooter>
     <div class="flex justify-end gap-2">
       <button uiButton tone="secondary" variant="outlined" aria-label="Cancel import" (click)="closeEnvImportDialog()">Cancel</button>
       <button
@@ -329,5 +325,5 @@
         (click)="confirmEnvironmentImport()"
       >Import</button>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
+</ui-dialog>

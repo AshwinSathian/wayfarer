@@ -30,6 +30,9 @@
   --ctl-chevron: #252840;
   --ctl-highlight: rgba(99, 102, 241, 0.15);
   --ctl-menu-icon: #2e3350;
+  --ctl-drawer-shadow: rgba(0, 0, 0, 0.50);
+  /* --status-error on --status-error-fill is 3.5:1 on overlay surfaces. */
+  --ctl-danger-on-fill: #ff7a70;
 }
 
 [data-theme="light"] {
@@ -57,6 +60,8 @@
   --ctl-chevron: #94a3b8;
   --ctl-highlight: #eef2ff;
   --ctl-menu-icon: #94a3b8;
+  --ctl-drawer-shadow: rgba(0, 0, 0, 0.12);
+  --ctl-danger-on-fill: #c81e1e;
 }
 
 /* ── Button ──────────────────────────────────────────────── */
@@ -166,7 +171,7 @@
 .ui-btn--danger {
   --btn-bg: var(--status-error-fill);
   --btn-border: var(--status-error-border);
-  --btn-fg: var(--status-error);
+  --btn-fg: var(--ctl-danger-on-fill);
   --btn-bg-hover: var(--status-error-fill);
   --btn-border-hover: var(--status-error-border);
   --btn-bg-active: var(--status-error-fill);
@@ -352,14 +357,6 @@
     transform: translateX(100%);
   }
 }
-
-/* ── Overlays (CDK) ──────────────────────────────────────── */
-/* Above PrimeNG's dialogs and drawers, which start at 1100, until they are
-   replaced (docs/ui-migration.md, slice 5). */
-.cdk-overlay-container {
-  z-index: 12000;
-}
-
 /* ── Tooltip ─────────────────────────────────────────────── */
 .ui-tooltip {
   max-width: 12.5rem;
@@ -815,4 +812,129 @@
 
 .ui-menu-separator {
   border-top: 1px solid var(--ctl-surface-border);
+}
+
+/* ── Dialog ──────────────────────────────────────────────── */
+.ui-dialog-backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px) saturate(1.4);
+  -webkit-backdrop-filter: blur(6px) saturate(1.4);
+}
+
+.ui-dialog-panel .cdk-dialog-container,
+.ui-confirm-panel .cdk-dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-2xl);
+  outline: none;
+  background: var(--glass-dialog);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-dialog);
+  color: var(--ctl-surface-text);
+}
+
+.ui-dialog-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.ui-dialog-title {
+  color: var(--label-primary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.010em;
+}
+
+.ui-dialog-close.ui-btn {
+  flex: none;
+  height: 40px;
+}
+
+.ui-dialog-content {
+  flex: 1 1 auto;
+  padding: 20px 24px;
+  overflow: auto;
+}
+
+.ui-dialog-footer {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--separator);
+}
+
+.ui-dialog-footer:empty {
+  display: none;
+}
+
+.ui-dialog-footer > [uiDialogFooter] {
+  display: contents;
+}
+
+/* ── Drawer ──────────────────────────────────────────────── */
+.ui-drawer-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.ui-drawer-panel .cdk-dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: auto;
+  outline: none;
+  background: var(--glass-toolbar);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--ctl-surface-text);
+}
+
+.ui-drawer-panel--left .cdk-dialog-container {
+  border-right: 1px solid var(--separator);
+  box-shadow: 4px 0 32px var(--ctl-drawer-shadow);
+  animation: ui-drawer-in-left var(--dur-enter) var(--ease-enter) both;
+}
+
+.ui-drawer-panel--right .cdk-dialog-container {
+  border-left: 1px solid var(--separator);
+  box-shadow: -4px 0 32px var(--ctl-drawer-shadow);
+  animation: ui-drawer-in-right var(--dur-enter) var(--ease-enter) both;
+}
+
+@keyframes ui-drawer-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes ui-drawer-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* ── Confirmation ────────────────────────────────────────── */
+.ui-confirm-popup-backdrop {
+  background: transparent;
+}
+
+.ui-confirm-popup .cdk-dialog-container {
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  outline: none;
+  background: var(--glass-overlay);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-overlay);
 }

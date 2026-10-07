@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
 
 // Keyboard-only use of the app's own widgets (docs: WAI-ARIA Authoring
@@ -222,4 +222,127 @@ test("with the mouse: a second click on the Export button or on a select closes 
   await expect(page.getByRole("listbox")).toBeVisible();
   await method.click();
   await expect(page.getByRole("listbox")).toHaveCount(0);
+});
+
+// ── Modal surfaces (WAI-ARIA dialog and alert dialog patterns) ─────────────
+// Each one: focus moves in on open, Tab cannot leave, Escape closes, focus
+// goes back to what opened it, and the page takes a click afterwards.
+
+/** Presses Tab `times` times each way and checks focus never leaves `surface`. Safari tabs to buttons with Option+Tab. */
+async function expectFocusTrapped(page: Page, surface: Locator, browserName: string, times = 8) {
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
+  const inside = () => surface.evaluate((el) => el.contains(document.activeElement));
+  expect(await inside()).toBe(true);
+  for (const key of [tab, `Shift+${tab}`]) {
+    for (let i = 0; i < times; i++) {
+      await page.keyboard.press(key);
+      expect(await inside(), `focus left the surface on ${key} #${i + 1}`).toBe(true);
+    }
+  }
+}
+
+test("settings dialog: focus moves in, Tab stays in, Escape closes at once and focus returns", async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Settings", exact: true });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+
+  const dialog = page.getByRole("dialog", { name: "Settings" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expectFocusTrapped(page, dialog, browserName);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+
+  // Open again and close the moment it is there, without waiting for the fade.
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeAttached();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+
+  await page.locator("input.address-url").click();
+  await expect(page.locator("input.address-url")).toBeFocused();
+});
+
+test("history drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Request history" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+
+  const drawer = page.getByRole("dialog", { name: "Request history" });
+  await expect(drawer).toBeVisible();
+  await expectFocusTrapped(page, drawer, browserName, 4);
+
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  await page.locator("input.address-url").click();
+  await expect(page.locator("input.address-url")).toBeFocused();
+});
+
+test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Toggle sidebar" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+
+  const drawer = page.getByRole("dialog", { name: "Navigation" });
+  await expect(drawer).toBeVisible();
+  await expectFocusTrapped(page, drawer, browserName);
+
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  await page.locator("input.address-url").click();
+  await expect(page.locator("input.address-url")).toBeFocused();
+});
+
+test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and focus returns", async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?confirm=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await page.getByRole("button", { name: "Request history" }).click();
+  const drawer = page.getByRole("dialog", { name: "Request history" });
+  const entry = drawer.getByRole("button", { name: /^Load request .*confirm=1 into composer$/ });
+  await expect(entry).toBeVisible();
+
+  // The centred alert dialog.
+  const clear = drawer.getByRole("button", { name: "Clear all history" });
+  await clear.focus();
+  await page.keyboard.press("Enter");
+  const alert = page.getByRole("alertdialog", { name: "Are you sure?" });
+  await expect(alert).toBeVisible();
+  await expect(alert.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await expectFocusTrapped(page, alert, browserName, 3);
+  await page.keyboard.press("Escape");
+  await expect(alert).toHaveCount(0);
+  await expect(clear).toBeFocused();
+  await expect(entry).toBeVisible();
+
+  // The small popup under a history entry's Delete button.
+  const del = drawer.getByRole("button", { name: "Delete history entry" });
+  await del.focus();
+  await page.keyboard.press("Enter");
+  const popup = page.getByRole("alertdialog", { name: "Remove this request from history?" });
+  await expect(popup).toBeVisible();
+  await expect(popup.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await expectFocusTrapped(page, popup, browserName, 3);
+  await page.keyboard.press("Escape");
+  await expect(popup).toHaveCount(0);
+  await expect(del).toBeFocused();
+  await expect(entry).toBeVisible();
+
+  // Escape closed only the confirmation: the drawer is still open and closes on the next one.
+  await expect(drawer).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
 });

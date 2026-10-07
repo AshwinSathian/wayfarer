@@ -26,7 +26,7 @@ test.describe("Secrets vault", () => {
     // variable is actually protected via the environments editor's lock
     // icon; that's covered by its own flow, not this one.)
     await page.getByRole("button", { name: "Unlock secrets" }).click();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Create vault passphrase");
+    await expect(page.getByRole("dialog", { name: "Create vault passphrase", exact: true })).toBeVisible();
   });
 
   test("rejects a mismatched passphrase confirmation on first use", async ({ page }) => {

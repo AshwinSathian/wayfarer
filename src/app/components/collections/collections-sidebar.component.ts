@@ -2,16 +2,15 @@ import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
-  ConfirmationService,
   TreeNode,
   TreeDragDropService,
 } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
 import { TreeModule } from "primeng/tree";
-import { DialogModule } from "primeng/dialog";
+import { ConfirmService } from "../../ui/confirm.service";
+import { DialogComponent } from "../../ui/dialog.component";
 import { SelectComponent } from "../../ui/select.component";
-import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { RequestDoc } from "../../models/collections.models";
 import { CollectionsService } from "../../services/collections.service";
 import { CollectionImportService } from "../../services/collection-import.service";
@@ -51,13 +50,12 @@ export interface PaletteAction {
     TreeModule,
     MenuComponent,
     ButtonDirective,
-    DialogModule,
+    DialogComponent,
     SelectComponent,
-    ConfirmDialogModule,
   ],
   templateUrl: "./collections-sidebar.component.html",
   styleUrls: ["./collections-sidebar.component.css"],
-  providers: [ConfirmationService, TreeDragDropService],
+  providers: [TreeDragDropService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~570 lines: tree-node building/type guards moved to
@@ -71,7 +69,7 @@ export interface PaletteAction {
 // the same coupling elsewhere.
 export class CollectionsSidebarComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
-  private readonly confirmationService = inject(ConfirmationService);
+  private readonly confirm = inject(ConfirmService);
   private readonly collectionImport = inject(CollectionImportService);
 
   readonly loadRequest = output<RequestDoc>();
@@ -454,23 +452,19 @@ export class CollectionsSidebarComponent implements OnInit {
   }
 
   private async deleteNode(data: NodeData): Promise<void> {
-    this.confirmationService.confirm({
+    const confirmed = await this.confirm.confirm({
+      title: "Delete item?",
       message: "This action cannot be undone. Continue?",
-      header: "Delete item?",
-      icon: "pi pi-exclamation-triangle",
       acceptLabel: "Delete",
-      rejectLabel: "Cancel",
-      acceptButtonStyleClass: "p-button-danger",
-      accept: async () => {
-        if (data.type === "collection") {
-          await this.collectionsService.deleteCollection(data.ref.meta.id);
-        } else if (data.type === "folder") {
-          await this.collectionsService.deleteFolder(data.ref.meta.id);
-        } else {
-          await this.collectionsService.deleteRequest(data.ref.meta.id);
-        }
-      },
     });
+    if (!confirmed) return;
+    if (data.type === "collection") {
+      await this.collectionsService.deleteCollection(data.ref.meta.id);
+    } else if (data.type === "folder") {
+      await this.collectionsService.deleteFolder(data.ref.meta.id);
+    } else {
+      await this.collectionsService.deleteRequest(data.ref.meta.id);
+    }
   }
 
   private async exportCollection(node: TreeNode<NodeData>): Promise<void> {

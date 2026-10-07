@@ -55,7 +55,7 @@ test.describe("Collections", () => {
     await urlInput.fill(`${ECHO}/content/json?todo=7`);
     await page.getByRole("button", { name: "Save to Collection" }).click();
 
-    const saveDialog = page.locator(".p-dialog:visible").last();
+    const saveDialog = page.getByRole("dialog", { name: "Save to Collection" });
     await expect(saveDialog).toBeVisible();
     await saveDialog.locator("#save-as-name").fill("My Saved Request");
     await saveDialog.getByRole("button", { name: "Save", exact: true }).click();

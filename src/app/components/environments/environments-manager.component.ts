@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../ui/button.directive";
-import { DialogModule } from "primeng/dialog";
+import { DialogComponent } from "../../ui/dialog.component";
 import { UI_TABS } from "../../ui/tabs.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
@@ -41,7 +41,7 @@ interface EnvironmentDraft {
     FormsModule,
     ButtonDirective,
     UI_TABS,
-    DialogModule,
+    DialogComponent,
     TooltipDirective,
     JsonEditorComponent,
   ],

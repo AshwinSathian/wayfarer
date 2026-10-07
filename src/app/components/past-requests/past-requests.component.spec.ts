@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PastRequestsComponent } from './past-requests.component';
 import { PastRequest } from '../../models/history.models';
-import { ConfirmationService } from 'primeng/api';
-import { ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ConfirmService } from '../../ui/confirm.service';
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 describe('PastRequestsComponent', () => {
@@ -10,10 +9,10 @@ describe('PastRequestsComponent', () => {
   let fixture: ComponentFixture<PastRequestsComponent>;
 
   beforeEach(async () => {
-    const confirmationSpy = { confirm: vi.fn() } as unknown as ConfirmationService;
+    const confirmationSpy = { confirm: vi.fn() } as unknown as ConfirmService;
     await TestBed.configureTestingModule({
-      imports: [PastRequestsComponent, ConfirmPopupModule],
-      providers: [{ provide: ConfirmationService, useValue: confirmationSpy }],
+      imports: [PastRequestsComponent],
+      providers: [{ provide: ConfirmService, useValue: confirmationSpy }],
     }).compileComponents();
   });
 
@@ -27,7 +26,7 @@ describe('PastRequestsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('emits events when loading and deleting entries', () => {
+  it('emits events when loading and deleting entries', async () => {
     const request: PastRequest = {
       id: 1,
       method: 'GET',
@@ -45,14 +44,19 @@ describe('PastRequestsComponent', () => {
     component.load(request);
     expect(loadSpy).toHaveBeenCalledWith(request);
 
-    const confirmationService = TestBed.inject(ConfirmationService) as unknown as {
+    const confirmService = TestBed.inject(ConfirmService) as unknown as {
       confirm: ReturnType<typeof vi.fn>;
     };
-    component.confirmDelete(request, new Event('click'));
-    expect(confirmationService.confirm).toHaveBeenCalled();
-    const latestCall = confirmationService.confirm.mock.lastCall![0];
-    expect(latestCall.accept).toBeDefined();
-    latestCall.accept!();
+    // The user backs out: nothing is deleted.
+    confirmService.confirm.mockResolvedValueOnce(false);
+    await component.confirmDelete(request, new Event('click'));
+    expect(confirmService.confirm).toHaveBeenCalledOnce();
+    expect(deleteSpy).not.toHaveBeenCalled();
+
+    // The user accepts.
+    confirmService.confirm.mockResolvedValueOnce(true);
+    await component.confirmDelete(request, new Event('click'));
+    expect(confirmService.confirm.mock.lastCall![0]).toMatchObject({ message: 'Remove this request from history?', acceptLabel: 'Delete' });
     expect(deleteSpy).toHaveBeenCalledWith(1);
   });
 });

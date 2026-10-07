@@ -139,18 +139,5 @@
     </div>
     }
   </div>
-  <!-- One popup for the whole list (an instance per entry opened a stacked
-       copy per entry), keyed so Reset all data's confirm dialog doesn't open it. -->
-  <p-confirmpopup #cp key="history-delete">
-    <ng-template #headless let-message>
-      <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
-        <span class="text-label-secondary">{{ message.message }}</span>
-        <div class="flex items-center gap-2 mt-3">
-          <button uiButton type="button" tone="danger" variant="text" size="sm" (click)="cp.onAccept()">Delete</button>
-          <button uiButton type="button" tone="secondary" variant="text" size="sm" (click)="cp.onReject()">Cancel</button>
-        </div>
-      </div>
-    </ng-template>
-  </p-confirmpopup>
   }
 </section>

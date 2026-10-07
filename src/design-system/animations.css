@@ -99,8 +99,13 @@
 
 /* ── Applied animations ──────────────────────────────────── */
 
-.p-dialog {
+.ui-dialog-panel .cdk-dialog-container,
+.ui-confirm-panel .cdk-dialog-container {
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
+}
+
+.ui-confirm-popup .cdk-dialog-container {
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
 
 .ui-menu-panel,

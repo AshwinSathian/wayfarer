@@ -1,11 +1,10 @@
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Settings"
   [visible]="visible()"
   (visibleChange)="visible.set($event)"
-  [modal]="true"
-  [dismissableMask]="true"
-  [style]="{ width: '540px', maxWidth: '92vw' }"
+  dismissableMask
+  width="540px"
+  maxWidth="92vw"
 >
   <div class="flex flex-col gap-5 max-h-[70vh] overflow-y-auto pr-1">
     <!-- Appearance -->
@@ -178,4 +177,4 @@
       </div>
     </section>
   </div>
-</p-dialog>
+</ui-dialog>

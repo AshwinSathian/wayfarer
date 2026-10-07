@@ -3,10 +3,10 @@
   <div class="flex flex-col gap-1.5 p-1">
     @for (skeleton of skeletonPlaceholders; track skeleton) {
     <div class="rounded-xl bg-canvas-elevated border border-separator p-3">
-      <p-skeleton height="0.875rem" width="60%" borderRadius="6px"></p-skeleton>
+      <span class="ui-skeleton h-[0.875rem] w-[60%]" aria-hidden="true"></span>
       <div class="mt-2 flex gap-1.5">
-        <p-skeleton height="0.625rem" width="3.5rem" borderRadius="9999px"></p-skeleton>
-        <p-skeleton height="0.625rem" width="2.5rem" borderRadius="9999px"></p-skeleton>
+        <span class="ui-skeleton h-[0.625rem] w-[3.5rem]" aria-hidden="true"></span>
+        <span class="ui-skeleton h-[0.625rem] w-[2.5rem]" aria-hidden="true"></span>
       </div>
     </div>
     }
@@ -111,8 +111,24 @@
                     }
                     <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
                     <div class="flex items-center gap-2">
-                      <button pButton type="button" text label="Load" aria-label="Load request" severity="secondary" size="small" (click)="load(request)"></button>
-                      <button pButton type="button" text label="Delete" aria-label="Delete request" severity="danger" size="small" (click)="confirmDelete(request, $event)"></button>
+                      <button
+                        uiButton
+                        tone="secondary"
+                        variant="text"
+                        size="sm"
+                        type="button"
+                        aria-label="Load request"
+                        (click)="load(request)"
+                      >Load</button>
+                      <button
+                        uiButton
+                        tone="danger"
+                        variant="text"
+                        size="sm"
+                        type="button"
+                        aria-label="Delete request"
+                        (click)="confirmDelete(request, $event)"
+                      >Delete</button>
                     </div>
                   </div>
                 </p-accordion-content>
@@ -133,8 +149,8 @@
       <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
         <span class="text-label-secondary">{{ message.message }}</span>
         <div class="flex items-center gap-2 mt-3">
-          <p-button (onClick)="cp.onAccept()" label="Delete" severity="danger" size="small" text />
-          <p-button (onClick)="cp.onReject()" label="Cancel" text size="small" severity="secondary" />
+          <button uiButton type="button" tone="danger" variant="text" size="sm" (click)="cp.onAccept()">Delete</button>
+          <button uiButton type="button" tone="secondary" variant="text" size="sm" (click)="cp.onReject()">Cancel</button>
         </div>
       </div>
     </ng-template>

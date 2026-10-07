@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { InputTextModule } from "primeng/inputtext";
+import { ButtonDirective } from "../../../ui/button.directive";
+import { IconComponent } from "../../../shared/icon/icon.component";
 
 type ContextType = "Body" | "Headers";
 
@@ -9,9 +9,8 @@ type ContextType = "Body" | "Headers";
   selector: "app-api-params-basic",
   standalone: true,
   imports: [
-    FormsModule,
-    ButtonModule,
-    InputTextModule,
+    IconComponent, FormsModule,
+    ButtonDirective,
   ],
   templateUrl: "./basic-editor.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

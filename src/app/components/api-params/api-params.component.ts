@@ -14,15 +14,10 @@ import {
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { PrimeTemplate } from "primeng/api";
 import { AccordionModule } from "primeng/accordion";
-import { ButtonModule } from "primeng/button";
-import { ChipModule } from "primeng/chip";
+import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { ProgressSpinnerModule } from "primeng/progressspinner";
 import { SelectModule } from "primeng/select";
 import { SelectButtonModule } from "primeng/selectbutton";
-import { SkeletonModule } from "primeng/skeleton";
 import { SplitterModule } from "primeng/splitter";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
@@ -106,18 +101,13 @@ type ContextType = "Body" | "Headers";
     FormsModule,
     ReactiveFormsModule,
     PrimeTemplate,
-    ButtonModule,
+    ButtonDirective,
     AccordionModule,
     SelectModule,
     SelectButtonModule,
-    InputTextModule,
-    ProgressSpinnerModule,
     TabsModule,
     TooltipModule,
     SplitterModule,
-    FloatLabelModule,
-    SkeletonModule,
-    ChipModule,
     DialogModule,
     JsonEditorComponent,
     ScriptEditorComponent,

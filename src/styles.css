@@ -10,6 +10,7 @@
 @import "./design-system/tokens.css";
 @import "./design-system/typography.css";
 @import "./design-system/components.css";
+@import "./design-system/controls.css";
 @import "./design-system/primeng-overrides.css";
 @import "./design-system/animations.css";
 

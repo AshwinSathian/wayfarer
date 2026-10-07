@@ -79,18 +79,6 @@
   -webkit-backdrop-filter: blur(6px) saturate(1.4) !important;
 }
 
-/* ── Card ────────────────────────────────────────────────── */
-.p-card {
-  background: var(--canvas-panel) !important;
-  border: 1px solid var(--separator) !important;
-  border-radius: var(--radius-xl) !important;
-  box-shadow: none !important;
-}
-
-.p-card-body {
-  padding: 24px !important;
-}
-
 /* ── Inputs ──────────────────────────────────────────────── */
 .p-inputtext {
   height: 40px !important;
@@ -461,21 +449,6 @@
   border-color: var(--separator) !important;
 }
 
-/* ── Skeleton ────────────────────────────────────────────── */
-.p-skeleton {
-  background: var(--fill-secondary) !important;
-  border-radius: var(--radius-md) !important;
-}
-
-.p-skeleton::after {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--fill-primary),
-    transparent
-  ) !important;
-}
-
 /* ── Tooltip ─────────────────────────────────────────────── */
 .p-tooltip .p-tooltip-text {
   background: var(--canvas-overlay) !important;
@@ -555,40 +528,6 @@
 
 .p-contextmenu .p-menu-item:hover .p-menu-item-link {
   background: var(--fill-hover) !important;
-}
-
-/* ── FloatLabel ──────────────────────────────────────────── */
-.p-floatlabel label {
-  color: var(--label-tertiary) !important;
-  font-size: 13px !important;
-}
-
-.p-floatlabel:focus-within label,
-.p-floatlabel.p-floatlabel-active label {
-  color: var(--accent-text) !important;
-}
-
-/* ── Checkbox ────────────────────────────────────────────── */
-.p-checkbox .p-checkbox-box {
-  background: var(--canvas-elevated) !important;
-  border-color: var(--separator) !important;
-  border-radius: var(--radius-xs) !important;
-  width: 16px !important;
-  height: 16px !important;
-  transition:
-    background var(--dur-quick) var(--ease-standard),
-    border-color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard) !important;
-}
-
-.p-checkbox:hover .p-checkbox-box {
-  border-color: var(--accent-border) !important;
-}
-
-.p-checkbox.p-checkbox-checked .p-checkbox-box {
-  background: var(--accent) !important;
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 3px var(--accent-fill) !important;
 }
 
 /* ── Confirm dialog ──────────────────────────────────────── */

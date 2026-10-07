@@ -19,12 +19,11 @@
     <label class="ds-form-label min-w-[72px]" for="auth-bearer-token">Token</label>
     <input
       id="auth-bearer-token"
-      pInputText
-      class="flex-1 font-mono"
+      class="ui-input flex-1"
       placeholder="Enter bearer token"
       [ngModel]="currentAuth.bearer?.token ?? ''"
       (ngModelChange)="setBearerToken($event)"
-    />
+     />
   </div>
   }
 
@@ -34,28 +33,31 @@
       <label class="ds-form-label min-w-[72px]" for="auth-basic-username">Username</label>
       <input
         id="auth-basic-username"
-        pInputText
-        class="flex-1 font-mono"
+        class="ui-input flex-1"
         placeholder="Username"
         [ngModel]="currentAuth.basic?.username ?? ''"
         (ngModelChange)="setBasicUsername($event)"
-      />
+       />
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-basic-password">Password</label>
       <div class="flex flex-1 items-center gap-2">
         <input
           id="auth-basic-password"
-          pInputText
-          class="flex-1 font-mono"
+          class="ui-input flex-1"
           [type]="showPassword() ? 'text' : 'password'"
           placeholder="Password"
           [ngModel]="currentAuth.basic?.password ?? ''"
           (ngModelChange)="setBasicPassword($event)"
-        />
-        <button pButton type="button" text [icon]="showPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+         />
+        <button
+          uiButton
+          variant="text"
+          iconOnly
+          type="button"
           [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
-          (click)="onTogglePasswordVisibility()"></button>
+          (click)="onTogglePasswordVisibility()"
+        ><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" /></button>
       </div>
     </div>
   </div>
@@ -65,15 +67,23 @@
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
-      <input id="auth-apikey-key" pInputText class="flex-1 font-mono" placeholder="Header or param name"
+      <input
+        id="auth-apikey-key"
+        class="ui-input flex-1"
+        placeholder="Header or param name"
         [ngModel]="currentAuth.apiKey?.key ?? ''"
-        (ngModelChange)="setApiKeyField({ key: $event })" />
+        (ngModelChange)="setApiKeyField({ key: $event })"
+       />
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-value">Value</label>
-      <input id="auth-apikey-value" pInputText class="flex-1 font-mono" placeholder="Key value"
+      <input
+        id="auth-apikey-value"
+        class="ui-input flex-1"
+        placeholder="Key value"
         [ngModel]="currentAuth.apiKey?.value ?? ''"
-        (ngModelChange)="setApiKeyField({ value: $event })" />
+        (ngModelChange)="setApiKeyField({ value: $event })"
+       />
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-addto">Add to</label>

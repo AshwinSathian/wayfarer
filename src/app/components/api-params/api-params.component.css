@@ -1,5 +1,5 @@
 /* Address bar — unified focus state on the wrapper */
-.address-bar .p-inputtext:focus {
+.address-bar .ui-input:focus {
   border-color: transparent !important;
   box-shadow: none !important;
 }
@@ -26,7 +26,7 @@
    transform/shadow); the "why" is surfaced via the pTooltip bound on the
    wrapping .curl-btn-wrap span in the template (a real not-allowed cursor
    needs that wrapper too — see the template comment). */
-.curl-btn.p-button:disabled {
+.curl-btn.ui-btn:disabled {
   opacity: 0.4 !important;
   box-shadow: none !important;
 }

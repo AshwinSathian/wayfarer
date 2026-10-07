@@ -212,4 +212,34 @@ test.describe("Accessibility (primary flows)", () => {
       .filter((n) => !isKnownDormantShell(n.html));
     expect(unexpectedNodes).toEqual([]);
   });
+
+  // F47: the popup's Cancel was a "secondary text" button, which in the dark
+  // theme was drawn in near-black on a dark surface.
+  // Scoped to the popup's buttons for now: the popup itself has no accessible
+  // name and its message is low-contrast, both PrimeNG's; the whole popup is
+  // scanned once it is replaced (docs/ui-migration.md, slice 5).
+  test("@claim:C-038 the history delete confirmation's buttons have no critical/serious violations, in both themes", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?a11y=1`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+
+    for (const theme of ["dark", "light"]) {
+      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      await page.getByRole("button", { name: "Request history" }).click();
+      await page.getByRole("button", { name: "Delete history entry" }).first().click();
+      await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeVisible();
+
+      await settled(page);
+      const results = await new AxeBuilder({ page }).include('[role="alertdialog"] button').analyze();
+      const seriousOrWorse = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(
+        seriousOrWorse,
+        `${theme}: ` + seriousOrWorse.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.html.slice(0, 80)).join(" | ")})`).join("\n")
+      ).toEqual([]);
+
+      await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
+      await page.getByRole("button", { name: "Close history" }).click();
+    }
+  });
 });

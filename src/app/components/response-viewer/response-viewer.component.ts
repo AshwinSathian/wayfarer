@@ -2,10 +2,8 @@ import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MenuItem } from "primeng/api";
-import { ButtonModule } from "primeng/button";
-import { InputTextModule } from "primeng/inputtext";
+import { ButtonDirective } from "../../ui/button.directive";
 import { MenuModule } from "primeng/menu";
-import { SkeletonModule } from "primeng/skeleton";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
@@ -53,12 +51,10 @@ interface ResponseHeader {
     CommonModule,
     FormsModule,
     TabsModule,
-    SkeletonModule,
     TooltipModule,
     JsonEditorComponent,
-    ButtonModule,
+    ButtonDirective,
     MenuModule,
-    InputTextModule,
   ],
   templateUrl: "./response-viewer.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,13 +1,9 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { ChipModule } from "primeng/chip";
+import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { InputTextModule } from "primeng/inputtext";
-import { PanelModule } from "primeng/panel";
 import { TabsModule } from "primeng/tabs";
-import { TextareaModule } from "primeng/textarea";
 import { TooltipModule } from "primeng/tooltip";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -43,14 +39,10 @@ interface EnvironmentDraft {
     IconComponent,
     CommonModule,
     FormsModule,
-    ButtonModule,
-    InputTextModule,
-    TextareaModule,
+    ButtonDirective,
     TabsModule,
-    PanelModule,
     DialogModule,
     TooltipModule,
-    ChipModule,
     JsonEditorComponent,
   ],
   templateUrl: "./environments-manager.component.html",

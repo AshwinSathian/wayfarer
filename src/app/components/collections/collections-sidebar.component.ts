@@ -7,11 +7,8 @@ import {
   TreeNode,
   TreeDragDropService,
 } from "primeng/api";
-import { ButtonModule } from "primeng/button";
+import { ButtonDirective } from "../../ui/button.directive";
 import { ContextMenuModule } from "primeng/contextmenu";
-import { InputTextModule } from "primeng/inputtext";
-import { CheckboxModule } from "primeng/checkbox";
-import { SkeletonModule } from "primeng/skeleton";
 import { TreeModule } from "primeng/tree";
 import { DialogModule } from "primeng/dialog";
 import { SelectModule } from "primeng/select";
@@ -54,10 +51,7 @@ export interface PaletteAction {
     FormsModule,
     TreeModule,
     ContextMenuModule,
-    ButtonModule,
-    InputTextModule,
-    CheckboxModule,
-    SkeletonModule,
+    ButtonDirective,
     DialogModule,
     SelectModule,
     ConfirmDialogModule,

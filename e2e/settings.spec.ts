@@ -75,4 +75,30 @@ test.describe("Settings surface", () => {
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.getByTestId("app-version")).toHaveText(version);
   });
+
+  test("the Local Bridge checkbox is a real checkbox: Space and its label both toggle it", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Local Bridge settings" }).click();
+    const checkbox = page.getByRole("checkbox", { name: /route requests through the bridge/i });
+    await expect(checkbox).not.toBeChecked();
+
+    await checkbox.focus();
+    await page.keyboard.press("Space");
+    await expect(checkbox).toBeChecked();
+
+    await page.getByText("Route requests through the bridge").click();
+    await expect(checkbox).not.toBeChecked();
+  });
+
+  test("a button reached with the keyboard shows the focus ring", async ({ page, browserName }) => {
+    await page.goto("/");
+    await page.locator("input.address-url").focus();
+    // Safari moves focus to buttons with Option+Tab unless the user changed the default.
+    await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
+
+    const focused = page.locator(":focus");
+    await expect(focused).toHaveRole("button");
+    expect(await focused.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe("solid");
+    expect(await focused.evaluate((el) => parseFloat(getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(2);
+  });
 });

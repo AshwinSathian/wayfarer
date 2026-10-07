@@ -10,9 +10,8 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConfirmationService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
+import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { InputTextModule } from "primeng/inputtext";
 import { TooltipModule } from "primeng/tooltip";
 import { SecretDoc, SecretId } from "../../models/secrets.models";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -45,7 +44,7 @@ interface SecretRow {
 @Component({
   selector: "app-secrets-manager",
   standalone: true,
-  imports: [IconComponent, FormsModule, ButtonModule, DialogModule, InputTextModule, TooltipModule],
+  imports: [IconComponent, FormsModule, ButtonDirective, DialogModule, TooltipModule],
   templateUrl: "./secrets-manager.component.html",
   styleUrls: ["./secrets-manager.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

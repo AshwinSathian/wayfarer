@@ -37,14 +37,14 @@ for (const theme of THEMES) {
       await page.goto("/");
       const mobile = viewportName === "mobile";
 
-      /** Screenshot of the current state, once nothing is animating. */
+      /** Full-page screenshot of the current state, once nothing is animating. Full page, so the scroll position a step left behind does not matter. */
       const shot = async (name: string) => {
         await page.waitForFunction(() =>
           document.getAnimations().every((a) => a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity)
         );
         await page.waitForTimeout(150);
         index += 1;
-        await page.screenshot({ path: join(dir, `${String(index).padStart(2, "0")}-${name}.png`), animations: "disabled", caret: "hide" });
+        await page.screenshot({ path: join(dir, `${String(index).padStart(2, "0")}-${name}.png`), animations: "disabled", caret: "hide", fullPage: true });
       };
       /** One state. A failure is recorded and the run continues, so a missing shot is visible in report.txt. */
       const state = async (name: string, reach: () => Promise<void>, leave?: () => Promise<void>) => {

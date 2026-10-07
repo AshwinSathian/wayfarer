@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { TARGET, captureTarget, expectProdParity, seedAndOpen, send } from "./support/app";
+import { still } from "./support/settled";
 
 // Phase 0 tripwires (PLAN-airtight-remediation.md, P0.1). One test per P0
 // audit finding, each titled with its F-ID. Each was written to fail against
@@ -33,7 +34,9 @@ test.describe("Phase 0 tripwires", () => {
     await send(page);
     await expect(page.locator(".status-badge")).toHaveText("200");
 
-    await page.getByRole("tab", { name: "Scripts" }).click();
+    const scriptsTab = page.getByRole("tab", { name: "Scripts" });
+    await still(scriptsTab);
+    await scriptsTab.click();
     await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
     const ran = page.locator(".test-result-pass", { hasText: "tripwire F01 script ran" });
     const banner = page.getByText(/Scripts are temporarily disabled/);

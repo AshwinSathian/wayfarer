@@ -10,7 +10,14 @@
         <button class="ds-icon-btn" (click)="exportEnvironments()" title="Export" aria-label="Export environments">
           <app-icon name="download" class="icon-sm" />
         </button>
-        <button pButton size="small" icon="pi pi-plus" severity="secondary" aria-label="New environment" (click)="openNewEnvironmentDialog()"></button>
+        <button
+          uiButton
+          tone="secondary"
+          size="sm"
+          iconOnly
+          aria-label="New environment"
+          (click)="openNewEnvironmentDialog()"
+        ><app-icon name="add" /></button>
       </div>
     </div>
 
@@ -52,19 +59,34 @@
         </div>
         <div class="flex items-center gap-0.5 flex-shrink-0">
           <button
-            pButton
-            icon="pi pi-check"
-            severity="success"
-            size="small"
-            text
+            uiButton
+            tone="success"
+            variant="text"
+            size="sm"
+            iconOnly
             [disabled]="activeEnvId === env.meta.id"
             (click)="setActive(env); $event.stopPropagation()"
             pTooltip="Use for requests"
             tooltipPosition="top"
             aria-label="Use for requests"
-          ></button>
-          <button pButton icon="pi pi-copy" size="small" text [attr.aria-label]="'Duplicate ' + env.name" (click)="duplicate(env); $event.stopPropagation()"></button>
-          <button pButton icon="pi pi-trash" size="small" text severity="danger" [attr.aria-label]="'Delete ' + env.name" (click)="remove(env); $event.stopPropagation()"></button>
+          ><app-icon name="check" /></button>
+          <button
+            uiButton
+            variant="text"
+            size="sm"
+            iconOnly
+            [attr.aria-label]="'Duplicate ' + env.name"
+            (click)="duplicate(env); $event.stopPropagation()"
+          ><app-icon name="content_copy" /></button>
+          <button
+            uiButton
+            tone="danger"
+            variant="text"
+            size="sm"
+            iconOnly
+            [attr.aria-label]="'Delete ' + env.name"
+            (click)="remove(env); $event.stopPropagation()"
+          ><app-icon name="delete" /></button>
         </div>
       </button>
       }
@@ -78,11 +100,17 @@
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
-        <input id="env-name-input" pInputText class="w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+        <input id="env-name-input" class="ui-input w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
       </div>
       <div>
         <label for="env-description-input" class="ds-form-label">Description</label>
-        <input id="env-description-input" pInputText class="w-full" [(ngModel)]="form.description" (ngModelChange)="syncDraft(form)" placeholder="Optional" />
+        <input
+          id="env-description-input"
+          class="ui-input w-full"
+          [(ngModel)]="form.description"
+          (ngModelChange)="syncDraft(form)"
+          placeholder="Optional"
+         />
       </div>
     </div>
 
@@ -102,9 +130,19 @@
                   'ring-2 ring-accent-border bg-accent-fill/40': focusedVariableKey() === item.key
                 }"
               >
-                <input pInputText placeholder="KEY" [(ngModel)]="form.vars[$index].key" (ngModelChange)="onPairsChange()" />
+                <input
+                  class="ui-input"
+                  placeholder="KEY"
+                  [(ngModel)]="form.vars[$index].key"
+                  (ngModelChange)="onPairsChange()"
+                 />
                 @if (!isSecretValue(form.vars[$index].value)) {
-                <input pInputText placeholder="Value" [(ngModel)]="form.vars[$index].value" (ngModelChange)="onPairsChange()" />
+                <input
+                  class="ui-input"
+                  placeholder="Value"
+                  [(ngModel)]="form.vars[$index].value"
+                  (ngModelChange)="onPairsChange()"
+                 />
                 } @else {
                 <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
                   <div class="type-caption text-status-warning font-semibold">Secret stored</div>
@@ -119,11 +157,26 @@
                   </div>
                 </div>
                 }
-                <button pButton icon="pi pi-lock" text severity="secondary" [disabled]="isSecretValue(form.vars[$index].value)" aria-label="Mark variable as secret" (click)="protectVariable($index)"></button>
-                <button pButton icon="pi pi-times" text severity="secondary" aria-label="Remove variable" (click)="removeVariable($index)"></button>
+                <button
+                  uiButton
+                  tone="secondary"
+                  variant="text"
+                  iconOnly
+                  [disabled]="isSecretValue(form.vars[$index].value)"
+                  aria-label="Mark variable as secret"
+                  (click)="protectVariable($index)"
+                ><app-icon name="lock" /></button>
+                <button
+                  uiButton
+                  tone="secondary"
+                  variant="text"
+                  iconOnly
+                  aria-label="Remove variable"
+                  (click)="removeVariable($index)"
+                ><app-icon name="close" /></button>
               </div>
               }
-              <button pButton icon="pi pi-plus" size="small" label="Add Variable" aria-label="Add variable" severity="secondary" (click)="addVariable()"></button>
+              <button uiButton tone="secondary" size="sm" aria-label="Add variable" (click)="addVariable()"><app-icon name="add" /> Add Variable</button>
             </div>
           </p-tabpanel>
           <p-tabpanel value="json">
@@ -148,7 +201,7 @@
     </div>
 
     <div class="mt-5 flex justify-end">
-      <button pButton label="Save changes" aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"></button>
+      <button uiButton aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()">Save changes</button>
     </div>
   </div>
   } @else {
@@ -172,17 +225,34 @@
   <div class="flex flex-col gap-3">
     <div>
       <label for="new-env-name-input" class="ds-form-label">Name</label>
-      <input id="new-env-name-input" pInputText class="w-full" [ngModel]="newEnvForm().name" (ngModelChange)="onNewEnvNameChange($event)" placeholder="Environment name" />
+      <input
+        id="new-env-name-input"
+        class="ui-input w-full"
+        [ngModel]="newEnvForm().name"
+        (ngModelChange)="onNewEnvNameChange($event)"
+        placeholder="Environment name"
+       />
     </div>
     <div>
       <label for="new-env-description-input" class="ds-form-label">Description</label>
-      <input id="new-env-description-input" pInputText class="w-full" [ngModel]="newEnvForm().description" (ngModelChange)="onNewEnvDescriptionChange($event)" placeholder="Optional" />
+      <input
+        id="new-env-description-input"
+        class="ui-input w-full"
+        [ngModel]="newEnvForm().description"
+        (ngModelChange)="onNewEnvDescriptionChange($event)"
+        placeholder="Optional"
+       />
     </div>
   </div>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeNewEnvironmentDialog()"></button>
-      <button pButton label="Create" aria-label="Create environment" [disabled]="!newEnvForm().name.trim()" (click)="submitNewEnvironment()"></button>
+      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeNewEnvironmentDialog()">Cancel</button>
+      <button
+        uiButton
+        aria-label="Create environment"
+        [disabled]="!newEnvForm().name.trim()"
+        (click)="submitNewEnvironment()"
+      >Create</button>
     </div>
   </ng-template>
 </p-dialog>
@@ -251,8 +321,13 @@
   }
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" aria-label="Cancel import" severity="secondary" outlined (click)="closeEnvImportDialog()"></button>
-      <button pButton label="Import" aria-label="Confirm import" [disabled]="!pendingEnvImport() || envImportErrors().length > 0" (click)="confirmEnvironmentImport()"></button>
+      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel import" (click)="closeEnvImportDialog()">Cancel</button>
+      <button
+        uiButton
+        aria-label="Confirm import"
+        [disabled]="!pendingEnvImport() || envImportErrors().length > 0"
+        (click)="confirmEnvironmentImport()"
+      >Import</button>
     </div>
   </ng-template>
 </p-dialog>

@@ -1,9 +1,9 @@
 <div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
   @if (loading()) {
   <div class="space-y-3 p-6">
-    <p-skeleton height="2.25rem" borderRadius="12px"></p-skeleton>
-    <p-skeleton height="1.5rem" width="60%" borderRadius="10px"></p-skeleton>
-    <p-skeleton height="9rem" borderRadius="12px"></p-skeleton>
+    <span class="ui-skeleton h-[2.25rem] w-full" aria-hidden="true"></span>
+    <span class="ui-skeleton h-[1.5rem] w-[60%]" aria-hidden="true"></span>
+    <span class="ui-skeleton h-[9rem] w-full" aria-hidden="true"></span>
   </div>
   } @else {
   <div>
@@ -53,17 +53,14 @@
       <div class="ml-auto">
         <p-menu #exportMenu [model]="exportItems" [popup]="true"></p-menu>
         <button
-          pButton
+          uiButton
+          tone="secondary"
+          variant="outlined"
+          size="sm"
           type="button"
-          label="Export"
           aria-label="Export response"
-          icon="pi pi-download"
-          iconPos="left"
-          size="small"
-          severity="secondary"
-          outlined
           (click)="exportMenu.toggle($event)"
-        ></button>
+        ><app-icon name="download" /> Export</button>
       </div>
       }
     </div>
@@ -98,20 +95,35 @@
               @if (responseBodyIsJson()) {
               <div class="flex flex-wrap items-center gap-2">
                 <input
-                  pInputText
-                  class="w-48"
+                  class="ui-input w-48"
                   [value]="searchQuery()"
                   (input)="onSearchQueryChange($any($event.target).value)"
                   placeholder="Search response…"
-                />
+                 />
                 <span class="type-footnote text-label-tertiary tabular-nums">
                   {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count || 0 }}
                 </span>
                 <div class="flex items-center gap-0.5">
-                  <button pButton type="button" icon="pi pi-angle-up" size="small" text aria-label="Previous search match"
-                    [disabled]="!searchResult()?.count" (click)="stepSearch(-1)"></button>
-                  <button pButton type="button" icon="pi pi-angle-down" size="small" text aria-label="Next search match"
-                    [disabled]="!searchResult()?.count" (click)="stepSearch(1)"></button>
+                  <button
+                    uiButton
+                    variant="text"
+                    size="sm"
+                    iconOnly
+                    type="button"
+                    aria-label="Previous search match"
+                    [disabled]="!searchResult()?.count"
+                    (click)="stepSearch(-1)"
+                  ><app-icon name="keyboard_arrow_up" /></button>
+                  <button
+                    uiButton
+                    variant="text"
+                    size="sm"
+                    iconOnly
+                    type="button"
+                    aria-label="Next search match"
+                    [disabled]="!searchResult()?.count"
+                    (click)="stepSearch(1)"
+                  ><app-icon name="keyboard_arrow_down" /></button>
                 </div>
               </div>
               }
@@ -127,7 +139,14 @@
                 <p class="type-callout text-label-secondary">
                   Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }}) — preview ships in v2.0
                 </p>
-                <button pButton type="button" size="small" severity="secondary" label="Download" aria-label="Download response body" icon="pi pi-download" (click)="downloadBinary()"></button>
+                <button
+                  uiButton
+                  tone="secondary"
+                  size="sm"
+                  type="button"
+                  aria-label="Download response body"
+                  (click)="downloadBinary()"
+                ><app-icon name="download" /> Download</button>
               </div>
               } @else if (!isError()) {
                 @if (responseBodyIsJson()) {

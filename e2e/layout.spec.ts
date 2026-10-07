@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { still } from "./support/settled";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
   test("shows a resizable split between the composer and the response viewer", async ({ page }) => {
@@ -27,18 +28,8 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
     const gutter = page.locator(".composer-response-splitter .p-splitter-gutter");
-    // The panes are still settling when the status badge appears, and the
-    // gutter moves with them. Measure it only once it has stopped, or the
-    // press lands beside it and nothing is dragged.
-    let lastX = NaN;
-    await expect
-      .poll(async () => {
-        const x = (await gutter.boundingBox())?.x ?? NaN;
-        const settled = x === lastX;
-        lastX = x;
-        return settled;
-      })
-      .toBe(true);
+    // The gutter moves while the panes settle; measure it once it is still.
+    await still(gutter);
     const gutterBox = await gutter.boundingBox();
     expect(gutterBox).not.toBeNull();
 

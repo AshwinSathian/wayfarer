@@ -19,7 +19,8 @@ module.exports = defineConfig([
         "error",
         {
           type: "attribute",
-          prefix: "app",
+          // "ui": the app's own widgets in src/app/ui.
+          prefix: ["app", "ui"],
           style: "camelCase",
         },
       ],
@@ -27,7 +28,7 @@ module.exports = defineConfig([
         "error",
         {
           type: "element",
-          prefix: "app",
+          prefix: ["app", "ui"],
           style: "kebab-case",
         },
       ],

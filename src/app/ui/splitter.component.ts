@@ -93,13 +93,11 @@ export class SplitterComponent implements OnInit {
   protected onKeydown(event: KeyboardEvent): void {
     const { left, width } = this.host.nativeElement.getBoundingClientRect();
     const start = (event.currentTarget as HTMLElement).getBoundingClientRect().left - left;
-    const towardEnd = getComputedStyle(this.host.nativeElement).direction === "rtl" ? "ArrowLeft" : "ArrowRight";
-    const towardStart = towardEnd === "ArrowRight" ? "ArrowLeft" : "ArrowRight";
     switch (event.key) {
-      case towardStart:
+      case "ArrowLeft":
         this.setStartWidth(start - width * KEY_STEP);
         break;
-      case towardEnd:
+      case "ArrowRight":
         this.setStartWidth(start + width * KEY_STEP);
         break;
       case "Home":

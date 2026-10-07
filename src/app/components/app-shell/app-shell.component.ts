@@ -14,15 +14,11 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ConfirmationService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
+import { ButtonDirective } from "../../ui/button.directive";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DialogModule } from "primeng/dialog";
 import { DrawerModule } from "primeng/drawer";
 import { SelectModule } from "primeng/select";
-import { InputTextModule } from "primeng/inputtext";
-import { CheckboxModule } from "primeng/checkbox";
-import { SkeletonModule } from "primeng/skeleton";
-import { ToolbarModule } from "primeng/toolbar";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
 import { RequestDoc } from "../../models/collections.models";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -49,13 +45,9 @@ import { SwUpdateService } from "../../services/sw-update.service";
     IconComponent,
     CommonModule,
     DrawerModule,
-    ButtonModule,
-    ToolbarModule,
-    SkeletonModule,
+    ButtonDirective,
     SelectModule,
     DialogModule,
-    InputTextModule,
-    CheckboxModule,
     FormsModule,
     ApiParamsComponent,
     PastRequestsComponent,

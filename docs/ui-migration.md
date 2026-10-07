@@ -18,20 +18,19 @@ The maintainer allowed Material as a fallback. None of the widgets below needs i
 
 ## Slices, lowest risk first
 
-### Slice 1 — leaf controls (P1.5.8)
+### Slice 1 — leaf controls (P1.5.8) — done
 
-| PrimeNG | Where (uses) | Replacement | Tests today | Tests to add |
-|---|---|---|---|---|
-| `pButton` (58), `p-button` (4): `label`, `icon`, `severity` (secondary, danger), `size="small"`, `text`, `outlined`, `[disabled]` | every component | Native `<button>` with `ui-button` directive: classes for variant and size, `<app-icon>` and text as content. No ripple (see differences). | Every e2e flow clicks them by role and name; axe C-038 | Unit: variant and size classes, disabled state. e2e: visible focus ring by keyboard. |
-| `pInputText` (29) | forms in all dialogs, composer rows | Native `<input>` with `ui-input` class | Forms filled in most e2e specs | None beyond the screens comparison |
-| `pTextarea` (1) | environment JSON editor | Native `<textarea>` with `ui-input` class | `environments-manager.component.spec.ts` | None |
-| `p-checkbox` (2) | Local Bridge enable, import "as copy" | Native `<input type="checkbox">` with `ui-checkbox` class and a real `<label>` | `settings.spec.ts` (bridge), `collections-sidebar.component.spec.ts` | e2e: toggle with Space, label click toggles |
-| `p-chip` (2) | `{{var}}` chips (C-025), environment badges | `<span class="ui-chip">` | `environments.spec.ts` C-025 | None |
-| `p-skeleton` (7): `width`, `height`, `borderRadius` | loading states in sidebar, history, response, shell | `<span class="ui-skeleton">` with inline size, `aria-hidden="true"` | none | Unit: sidebar shows skeletons while loading, then the tree |
-| `p-progressSpinner` (1) | Send button while a request runs | `<app-icon name="progress_activity">` with the existing spin animation | `send-request.spec.ts` | e2e: Send shows a busy state (`aria-busy`) during `/delay/800` |
-| `p-panel` (1) | environment editor section | `<section class="ui-panel">` with a heading | `environments.spec.ts` | None |
-| `p-toolbar` (1) | app shell header | `<header role="toolbar">` with flex classes | every e2e uses the header buttons | None |
-| `p-floatlabel` (1) | Save to Collection name field | CSS float label on `:focus-within` and `:not(:placeholder-shown)` | `collections.spec.ts`, axe C-038 (label contrast) | None |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `pButton` (58), `p-button` (4), one `label.p-button` | Native `<button uiButton>` (`src/app/ui/button.directive.ts`): `tone`, `variant`, `size`, `iconOnly`; icon and label are projected content | Styles in `src/design-system/controls.css`, measured against PrimeNG in every state and theme |
+| `pInputText` (29) | Native `<input class="ui-input">` | The `font-mono` class on 13 of them never applied under PrimeNG and was removed |
+| `p-checkbox` (2) | Native `<input type="checkbox" class="ui-checkbox">` | `inputId` became `id`; the existing `<label>` wraps it |
+| `p-skeleton` (7) | `<span class="ui-skeleton h-[..] w-[..]" aria-hidden="true">` | The `borderRadius` input was already overridden to one radius |
+| `chip`, `panel`, `toolbar`, `floatlabel`, `progressspinner`, `textarea` | Nothing | Imported, used in no template |
+
+Tests added: `button.directive.spec.ts`; e2e for the checkbox (Space and label), the keyboard focus ring, and the popup buttons' contrast in both themes (F47).
+
+Still to do for these controls in later slices: the `Inputs` and `Buttons` sections of `primeng-overrides.css` stay until slice 5, because PrimeNG's dialog close button and select still use those classes.
 
 ### Slice 2 — tooltip, popover (P1.5.9)
 
@@ -98,7 +97,9 @@ Listed here so the final screenshot comparison can tell them from bugs.
 1. No ripple on buttons. PrimeNG's ripple is an ink effect on click; the app's own buttons (`ds-icon-btn`) never had it. Removing it makes the two families behave the same.
 2. Dialogs opened from the phone navigation drawer are no longer clipped to the drawer.
 3. Escape closes a dialog immediately after it opens.
-4. Focus rings come from one token-based rule instead of PrimeNG's.
+4. Focus rings come from the global `:focus-visible` rule instead of PrimeNG's 1 px ring.
+5. Dark "secondary text" buttons and light "danger text" buttons are readable (F47).
+6. Icons in buttons are Material Symbols instead of PrimeIcons: same slot, different drawing.
 
 ## Screens not captured on phones
 

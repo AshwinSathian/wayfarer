@@ -2,10 +2,9 @@ import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
 import { AccordionModule } from "primeng/accordion";
 import { ConfirmationService } from "primeng/api";
-import { ButtonModule } from "primeng/button";
+import { ButtonDirective } from "../../ui/button.directive";
 import { ConfirmPopupModule } from "primeng/confirmpopup";
 import { PopoverModule } from "primeng/popover";
-import { SkeletonModule } from "primeng/skeleton";
 import { TooltipModule } from "primeng/tooltip";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
 import { IconComponent } from "../../shared/icon/icon.component";
@@ -21,11 +20,10 @@ export interface HistoryGroup {
   imports: [
     IconComponent,
     CommonModule,
-    ButtonModule,
+    ButtonDirective,
     TooltipModule,
     PopoverModule,
     AccordionModule,
-    SkeletonModule,
     ConfirmPopupModule,
   ],
   templateUrl: "./past-requests.component.html",

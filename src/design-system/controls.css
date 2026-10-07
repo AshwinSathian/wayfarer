@@ -1,0 +1,338 @@
+/* ============================================================
+   Controls — buttons, inputs and other leaf controls.
+   Markup: native elements plus the directives in src/app/ui/.
+   ============================================================ */
+
+/* Control colours that are not general design tokens. */
+[data-theme="dark"],
+:root {
+  --ctl-primary: #818cf8;
+  --ctl-primary-hover: #a5b4fc;
+  --ctl-primary-active: #c7d2fe;
+  --ctl-primary-border: #4338ca;
+  --ctl-primary-tint: color-mix(in srgb, #818cf8, transparent 96%);
+  --ctl-primary-tint-strong: color-mix(in srgb, #818cf8, transparent 84%);
+  /* PrimeNG's dark values here were #252840 on dark surfaces (1.03:1). */
+  --ctl-neutral: var(--label-secondary-on-fill);
+  --ctl-neutral-tint: var(--fill-hover);
+  --ctl-neutral-tint-strong: var(--fill-active);
+  --ctl-danger: #f87171;
+  --ctl-danger-tint: color-mix(in srgb, #f87171, transparent 96%);
+  --ctl-danger-tint-strong: color-mix(in srgb, #f87171, transparent 84%);
+  --ctl-success: #4ade80;
+  --ctl-success-tint: color-mix(in srgb, #4ade80, transparent 96%);
+  --ctl-success-tint-strong: color-mix(in srgb, #4ade80, transparent 84%);
+}
+
+[data-theme="light"] {
+  --ctl-primary: #6366f1;
+  --ctl-primary-hover: #4f46e5;
+  --ctl-primary-active: #4338ca;
+  --ctl-primary-border: #c7d2fe;
+  --ctl-primary-tint: #eef2ff;
+  --ctl-primary-tint-strong: #e0e7ff;
+  --ctl-neutral: #64748b;
+  --ctl-neutral-tint: #f8fafc;
+  --ctl-neutral-tint-strong: #f1f5f9;
+  /* PrimeNG's #ef4444 is 3.8:1 on the light surfaces. */
+  --ctl-danger: #c81e1e;
+  --ctl-danger-tint: #fef2f2;
+  --ctl-danger-tint-strong: #fee2e2;
+  --ctl-success: #22c55e;
+  --ctl-success-tint: #f0fdf4;
+  --ctl-success-tint-strong: #dcfce7;
+}
+
+/* ── Button ──────────────────────────────────────────────── */
+.ui-btn {
+  --btn-bg: var(--ctl-primary);
+  --btn-border: var(--ctl-primary);
+  --btn-fg: #ffffff;
+  --btn-bg-hover: var(--ctl-primary-hover);
+  --btn-border-hover: var(--ctl-primary-hover);
+  --btn-bg-active: var(--ctl-primary-active);
+  --btn-border-active: var(--ctl-primary-active);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  overflow: hidden;
+  border: 1px solid var(--btn-border);
+  border-radius: var(--radius-md);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.004em;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard),
+    opacity var(--dur-quick) var(--ease-standard);
+}
+
+/* Material Symbols glyphs sit inside their em box with a margin, so they
+   are drawn larger than the 16px slot they occupy in the layout. */
+.ui-btn .app-icon {
+  margin: -2px;
+  font-size: 20px;
+}
+
+.ui-btn:not(:disabled):hover {
+  background: var(--btn-bg-hover);
+  border-color: var(--btn-border-hover);
+}
+
+.ui-btn:not(:disabled):active {
+  background: var(--btn-bg-active);
+  border-color: var(--btn-border-active);
+  transform: scale(0.96);
+}
+
+/* The focus ring is the global :focus-visible ring (styles.css); only the
+   radius it resets is restored here. */
+.ui-btn:focus-visible {
+  border-radius: var(--radius-md);
+}
+
+.ui-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Sizes */
+.ui-btn--sm {
+  padding: 6px 10px;
+}
+
+.ui-btn--sm .app-icon {
+  font-size: 18px;
+}
+
+.ui-btn--icon {
+  gap: 0;
+  width: 40px;
+  padding-inline: 0;
+}
+
+/* An icon-only button is as tall as one with a label: a zero-width
+   character gives it the same line box. */
+.ui-btn--icon::after {
+  content: "\00a0";
+  width: 0;
+  visibility: hidden;
+}
+
+.ui-btn--icon.ui-btn--sm {
+  width: 32px;
+}
+
+/* Tones (solid) */
+.ui-btn--secondary {
+  --btn-bg: var(--fill-secondary);
+  --btn-border: var(--separator);
+  --btn-fg: var(--label-primary);
+  --btn-bg-hover: var(--fill-hover);
+  --btn-border-hover: var(--separator);
+  --btn-bg-active: var(--fill-hover);
+  --btn-border-active: var(--separator);
+}
+
+.ui-btn--danger {
+  --btn-bg: var(--status-error-fill);
+  --btn-border: var(--status-error-border);
+  --btn-fg: var(--status-error);
+  --btn-bg-hover: var(--status-error-fill);
+  --btn-border-hover: var(--status-error-border);
+  --btn-bg-active: var(--status-error-fill);
+  --btn-border-active: var(--status-error-border);
+}
+
+/* Outlined */
+.ui-btn--outlined {
+  --btn-bg: transparent;
+  --btn-border: var(--ctl-primary-border);
+  --btn-fg: var(--ctl-primary);
+  --btn-bg-hover: var(--ctl-primary-tint);
+  --btn-border-hover: var(--ctl-primary-border);
+  --btn-bg-active: var(--ctl-primary-tint-strong);
+  --btn-border-active: var(--ctl-primary-border);
+}
+
+.ui-btn--outlined.ui-btn--secondary {
+  --btn-border: var(--separator);
+  --btn-fg: var(--label-primary);
+  --btn-bg-hover: var(--fill-hover);
+  --btn-border-hover: var(--fill-primary);
+  --btn-bg-active: var(--fill-hover);
+  --btn-border-active: var(--fill-primary);
+}
+
+/* Text */
+.ui-btn--text {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--ctl-primary);
+  --btn-bg-hover: var(--ctl-primary-tint);
+  --btn-border-hover: transparent;
+  --btn-bg-active: var(--ctl-primary-tint-strong);
+  --btn-border-active: transparent;
+}
+
+.ui-btn--text.ui-btn--secondary {
+  --btn-fg: var(--ctl-neutral);
+  --btn-bg-hover: var(--ctl-neutral-tint);
+  --btn-bg-active: var(--ctl-neutral-tint-strong);
+}
+
+.ui-btn--text.ui-btn--danger {
+  --btn-fg: var(--ctl-danger);
+  --btn-bg-hover: var(--ctl-danger-tint);
+  --btn-bg-active: var(--ctl-danger-tint-strong);
+}
+
+.ui-btn--text.ui-btn--success {
+  --btn-fg: var(--ctl-success);
+  --btn-bg-hover: var(--ctl-success-tint);
+  --btn-bg-active: var(--ctl-success-tint-strong);
+}
+
+/* Send — the gradient call to action */
+.send-btn.ui-btn {
+  height: 40px;
+  padding: 0 22px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-accent);
+  color: #ffffff;
+  font-weight: 560;
+  letter-spacing: -0.006em;
+  box-shadow: 0 2px 12px rgba(76, 110, 245, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20);
+}
+
+.send-btn.ui-btn:not(:disabled):hover {
+  background: var(--gradient-accent);
+  box-shadow: 0 4px 18px rgba(76, 110, 245, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px) scale(1.01);
+}
+
+.send-btn.ui-btn:not(:disabled):active {
+  background: var(--gradient-accent);
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 6px rgba(76, 110, 245, 0.30);
+}
+
+.send-btn.ui-btn:focus-visible {
+  border-radius: var(--radius-lg);
+}
+
+.send-btn.ui-btn:disabled {
+  opacity: 0.4;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Text input ──────────────────────────────────────────── */
+.ui-input {
+  height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--canvas-elevated);
+  color: var(--label-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.003em;
+  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
+  appearance: none;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.ui-input:hover:not(:focus) {
+  border-color: var(--fill-primary);
+}
+
+.ui-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: var(--glow-accent);
+  outline: none;
+  border-radius: var(--radius-md);
+}
+
+.ui-input::placeholder {
+  color: var(--label-placeholder);
+  font-weight: 400;
+}
+
+.ui-input:disabled {
+  cursor: default;
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+/* A native checkbox drawn as a 16px box in a 20px slot. */
+.ui-checkbox {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0 4px 4px 0;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-xs);
+  background: var(--canvas-elevated) center / 14px 14px no-repeat;
+  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
+  appearance: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.ui-checkbox:hover {
+  border-color: var(--accent-border);
+}
+
+.ui-checkbox:checked {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%23fff' d='M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z'/%3E%3C/svg%3E");
+  box-shadow: 0 0 0 3px var(--accent-fill);
+}
+
+/* ── Skeleton ────────────────────────────────────────────── */
+.ui-skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--fill-secondary);
+}
+
+.ui-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--fill-primary), transparent);
+  animation: ui-skeleton-shimmer 1.2s infinite;
+}
+
+@keyframes ui-skeleton-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

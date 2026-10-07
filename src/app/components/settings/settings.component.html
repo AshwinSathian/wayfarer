@@ -17,16 +17,14 @@
           <p class="type-caption text-label-tertiary mt-0.5">Switch between the dark (OLED-true) and light themes.</p>
         </div>
         <button
-          pButton
+          uiButton
+          tone="secondary"
+          variant="outlined"
+          size="sm"
           type="button"
-          [label]="themeService.theme() === 'dark' ? 'Dark' : 'Light'"
-          [icon]="themeService.theme() === 'dark' ? 'pi pi-moon' : 'pi pi-sun'"
           aria-label="Toggle theme"
-          severity="secondary"
-          outlined
-          size="small"
           (click)="themeService.toggle()"
-        ></button>
+        ><app-icon [name]="themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode'" /> {{ themeService.theme() === 'dark' ? 'Dark' : 'Light' }}</button>
       </div>
     </section>
 
@@ -39,15 +37,14 @@
           <p class="type-caption text-label-tertiary mt-0.5">View, reveal, rename, and delete secrets across every environment.</p>
         </div>
         <button
-          pButton
+          uiButton
+          tone="secondary"
+          variant="outlined"
+          size="sm"
           type="button"
-          label="Manage"
           aria-label="Manage secrets"
-          severity="secondary"
-          outlined
-          size="small"
           (click)="openSecrets.emit(); close()"
-        ></button>
+        >Manage</button>
       </div>
     </section>
 
@@ -62,21 +59,23 @@
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <button
-              pButton
+              uiButton
+              tone="secondary"
+              variant="outlined"
+              size="sm"
               type="button"
-              icon="pi pi-download"
-              label="Export"
               aria-label="Export environments"
-              severity="secondary"
-              outlined
-              size="small"
               (click)="exportEnvironments()"
-            ></button>
+            ><app-icon name="download" /> Export</button>
             <label
-              class="p-button p-button-secondary p-button-outlined p-button-sm inline-flex items-center gap-2 cursor-pointer"
+              uiButton
+              tone="secondary"
+              variant="outlined"
+              size="sm"
+              class="inline-flex items-center gap-2 cursor-pointer"
               style="height: 2rem; padding: 0 0.75rem;"
             >
-              <span class="pi pi-upload" aria-hidden="true"></span>
+              <app-icon name="upload" class="icon-sm" />
               <span>Import</span>
               <input
                 type="file"
@@ -115,15 +114,14 @@
           </p>
         </div>
         <button
-          pButton
+          uiButton
+          tone="secondary"
+          variant="outlined"
+          size="sm"
           type="button"
-          label="Configure"
           aria-label="Configure Local Bridge"
-          severity="secondary"
-          outlined
-          size="small"
           (click)="openBridgeSettings.emit(); close()"
-        ></button>
+        >Configure</button>
       </div>
     </section>
 
@@ -170,14 +168,13 @@
           <p class="type-caption text-label-tertiary mt-0.5">Deletes every collection, environment, secret, and history item. Cannot be undone.</p>
         </div>
         <button
-          pButton
+          uiButton
+          tone="danger"
+          size="sm"
           type="button"
-          label="Reset…"
           aria-label="Reset all data"
-          severity="danger"
-          size="small"
           (click)="resetAllData.emit()"
-        ></button>
+        >Reset…</button>
       </div>
     </section>
   </div>

@@ -17,28 +17,27 @@
       <!-- URL input -->
       <input
         #urlInput
-        pInputText
         type="url"
-        class="address-url font-mono"
+        class="ui-input address-url"
         [ngModel]="endpoint()"
         (ngModelChange)="onEndpointChange($event)"
         placeholder="https://api.example.com/v1/endpoint"
         style="height: 40px; border: none !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 14px;"
-      />
+       />
     </div>
 
     <!-- Action buttons -->
     <div class="flex items-center gap-2 sm:flex-shrink-0">
       <button
-        pButton
+        uiButton
+        tone="secondary"
+        variant="outlined"
+        iconOnly
         type="button"
-        icon="pi pi-plus"
         title="New request"
         aria-label="New request"
-        severity="secondary"
-        outlined
         (click)="clearComposer()"
-      ></button>
+      ><app-icon name="add" /></button>
       <!--
         Disabled native buttons ignore an author-specified `cursor` in most
         browsers (the UA always paints the default arrow over a genuinely
@@ -55,37 +54,36 @@
         tooltipPosition="bottom"
       >
         <button
-          pButton
+          uiButton
+          tone="secondary"
+          variant="outlined"
+          iconOnly
           type="button"
-          icon="pi pi-terminal"
           [disabled]="!endpoint()"
-          class="curl-btn"
           aria-label="Copy as cURL"
-          severity="secondary"
-          outlined
           (click)="copyAsCurl()"
-        ></button>
+          class="curl-btn"
+        ><app-icon name="terminal" /></button>
       </span>
       <button
-        pButton
+        uiButton
+        tone="secondary"
+        variant="outlined"
+        iconOnly
         type="button"
-        [icon]="savingRequest() ? 'pi pi-spin pi-spinner' : 'pi pi-save'"
         [disabled]="!endpoint() || savingRequest()"
         [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
-        [aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
-        severity="secondary"
-        outlined
+        [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
         (click)="saveCurrentRequest()"
-      ></button>
+      ><app-icon [name]="savingRequest() ? 'progress_activity' : 'save'" [class.animate-spin]="savingRequest()" /></button>
       <button
-        pButton
+        uiButton
         type="button"
         [disabled]="!endpoint()"
-        label="Send"
         aria-label="Send request"
         (click)="sendRequest()"
         class="send-btn"
-      ></button>
+      >Send</button>
     </div>
   </div>
 
@@ -334,15 +332,40 @@
       @for (param of requestParams(); track param; let i = $index) {
       <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
         <input type="checkbox" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
-        <input pInputText class="w-full font-mono" [(ngModel)]="param.key" (ngModelChange)="onParamChange()" placeholder="key" />
-        <input pInputText class="w-full font-mono" [(ngModel)]="param.value" (ngModelChange)="onParamChange()" placeholder="value" />
+        <input
+          class="ui-input w-full"
+          [(ngModel)]="param.key"
+          (ngModelChange)="onParamChange()"
+          placeholder="key"
+         />
+        <input
+          class="ui-input w-full"
+          [(ngModel)]="param.value"
+          (ngModelChange)="onParamChange()"
+          placeholder="value"
+         />
         <div class="flex justify-end md:block">
-          <button pButton type="button" text icon="pi pi-times" severity="danger" aria-label="Remove parameter" (click)="removeParam(i)"></button>
+          <button
+            uiButton
+            tone="danger"
+            variant="text"
+            iconOnly
+            type="button"
+            aria-label="Remove parameter"
+            (click)="removeParam(i)"
+          ><app-icon name="close" /></button>
         </div>
       </div>
       }
       <div class="pt-1">
-        <button pButton type="button" icon="pi pi-plus" label="Add Param" aria-label="Add parameter" severity="secondary" [disabled]="isAddParamDisabled()" (click)="addParam()"></button>
+        <button
+          uiButton
+          tone="secondary"
+          type="button"
+          aria-label="Add parameter"
+          [disabled]="isAddParamDisabled()"
+          (click)="addParam()"
+        ><app-icon name="add" /> Add Param</button>
       </div>
     </div>
   </ng-template>
@@ -482,11 +505,10 @@
           ></p-select>
           @if (needsKey(test.target)) {
           <input
-            pInputText
-            class="w-44 font-mono"
+            class="ui-input w-44"
             [(ngModel)]="test.key"
             [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
-          />
+           />
           }
           <p-select
             [options]="operatorsFor(test.target)"
@@ -498,17 +520,24 @@
           ></p-select>
           @if (needsExpected(test.operator)) {
           <input
-            pInputText
-            class="flex-1 min-w-[120px] font-mono"
+            class="ui-input flex-1 min-w-[120px]"
             [(ngModel)]="test.expected"
             placeholder="expected value"
-          />
+           />
           }
-          <button pButton type="button" text icon="pi pi-times" severity="danger" aria-label="Remove test" (click)="removeTest(i)"></button>
+          <button
+            uiButton
+            tone="danger"
+            variant="text"
+            iconOnly
+            type="button"
+            aria-label="Remove test"
+            (click)="removeTest(i)"
+          ><app-icon name="close" /></button>
         </div>
         }
         <div>
-          <button pButton type="button" icon="pi pi-plus" label="Add Test" aria-label="Add test" severity="secondary" (click)="addTest()"></button>
+          <button uiButton tone="secondary" type="button" aria-label="Add test" (click)="addTest()"><app-icon name="add" /> Add Test</button>
         </div>
       </div>
     </div>
@@ -537,13 +566,12 @@
       <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
       <input
         id="save-as-name"
-        pInputText
         type="text"
-        class="w-full"
+        class="ui-input w-full"
         [ngModel]="saveAsName()"
         (ngModelChange)="saveAsName.set($event)"
         placeholder="Request name"
-      />
+       />
     </div>
     <div class="flex flex-col gap-1.5">
       <label for="save-as-collection" class="type-footnote text-label-secondary">Collection</label>
@@ -577,14 +605,8 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeSaveAsDialog()"></button>
-      <button
-        pButton
-        [label]="savingRequest() ? 'Saving…' : 'Save'"
-        aria-label="Save"
-        [disabled]="isSaveAsDisabled || savingRequest()"
-        (click)="confirmSaveAs()"
-      ></button>
+      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeSaveAsDialog()">Cancel</button>
+      <button uiButton aria-label="Save" [disabled]="isSaveAsDisabled || savingRequest()" (click)="confirmSaveAs()">{{ savingRequest() ? 'Saving…' : 'Save' }}</button>
     </div>
   </div>
 </p-dialog>

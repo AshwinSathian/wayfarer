@@ -29,15 +29,13 @@
       @if (isMobile()) {
       <div class="px-4 py-3">
         <button
-          pButton
+          uiButton
+          variant="outlined"
           type="button"
-          icon="pi pi-plus-circle"
-          label="New request"
           aria-label="New request"
-          outlined
-          class="w-full"
           (click)="handleNewRequest()"
-        ></button>
+          class="w-full"
+        ><app-icon name="add_circle" /> New request</button>
       </div>
       }
 
@@ -194,19 +192,26 @@
         @if (swUpdate.updateAvailable()) {
         <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
-          <button pButton type="button" size="small" severity="secondary" label="Reload" aria-label="Reload" (click)="swUpdate.applyUpdate()"></button>
+          <button
+            uiButton
+            tone="secondary"
+            size="sm"
+            type="button"
+            aria-label="Reload"
+            (click)="swUpdate.applyUpdate()"
+          >Reload</button>
         </div>
         }
         @if (dataResetElsewhere()) {
         <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
           <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
-          <button pButton type="button" size="small" severity="secondary" label="Reload" aria-label="Reload" (click)="reload()"></button>
+          <button uiButton tone="secondary" size="sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
         </div>
         }
         @if (resetError()) {
         <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
           <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
-          <button pButton type="button" size="small" severity="secondary" label="Dismiss" aria-label="Dismiss" (click)="resetError.set('')"></button>
+          <button uiButton tone="secondary" size="sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
         </div>
         }
         <app-api-params [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-api-params>
@@ -236,18 +241,18 @@
       </div>
       <div class="flex items-center gap-1">
         <button
-          pButton
+          uiButton
+          tone="danger"
+          variant="text"
+          size="sm"
+          iconOnly
           type="button"
-          icon="pi pi-trash"
-          severity="danger"
-          text
-          size="small"
           [disabled]="historyLoading() || !pastRequests().length"
           pTooltip="Clear all history"
           tooltipPosition="bottom"
           aria-label="Clear all history"
           (click)="confirmClear()"
-        ></button>
+        ><app-icon name="delete" /></button>
         <button class="ds-icon-btn" (click)="historyDrawerVisible.set(false)" title="Close" aria-label="Close history">
           <app-icon name="close" class="icon-md" />
         </button>
@@ -289,24 +294,22 @@
 
     <div class="flex flex-col gap-3">
       <input
-        pInputText
         type="password"
-        class="w-full"
+        class="ui-input w-full"
         [ngModel]="unlockPassphrase()"
         (ngModelChange)="unlockPassphrase.set($event)"
         [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
         (keydown.enter)="unlockSecrets()"
-      />
+       />
       @if (isFirstVaultSetup()) {
       <input
-        pInputText
         type="password"
-        class="w-full"
+        class="ui-input w-full"
         [ngModel]="confirmPassphrase()"
         (ngModelChange)="confirmPassphrase.set($event)"
         placeholder="Confirm passphrase"
         (keydown.enter)="unlockSecrets()"
-      />
+       />
       }
     </div>
 
@@ -318,14 +321,13 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeLockDialog()"></button>
+      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeLockDialog()">Cancel</button>
       <button
-        pButton
-        [label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock'"
+        uiButton
         [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock secrets'"
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
-      ></button>
+      >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button>
     </div>
   </div>
 </p-dialog>
@@ -359,13 +361,14 @@
         <p class="type-subhead text-label-primary">Route requests through the bridge</p>
         <p class="type-caption text-label-tertiary mt-0.5">Applies to every request until you turn this off again.</p>
       </div>
-      <p-checkbox
-        inputId="bridge-enabled-checkbox"
-        binary="true"
+      <input
+        type="checkbox"
+        class="ui-checkbox"
+        id="bridge-enabled-checkbox"
         [ngModel]="bridgeEnabledDraft()"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="bridgeEnabledDraft.set($event)"
-      ></p-checkbox>
+       />
     </label>
 
     <div class="flex flex-col gap-3">
@@ -373,40 +376,37 @@
         <label for="bridge-url-input" class="type-footnote text-label-secondary">Bridge URL</label>
         <input
           id="bridge-url-input"
-          pInputText
           type="text"
-          class="w-full"
+          class="ui-input w-full"
           [ngModel]="bridgeUrlDraft()"
           (ngModelChange)="bridgeUrlDraft.set($event); bridgeTestStatus.set('idle')"
           placeholder="http://127.0.0.1:7717"
-        />
+         />
       </div>
       <div class="flex flex-col gap-1.5">
         <label for="bridge-token-input" class="type-footnote text-label-secondary">Bridge token</label>
         <input
           id="bridge-token-input"
-          pInputText
           type="password"
-          class="w-full"
+          class="ui-input w-full"
           [ngModel]="bridgeTokenDraft()"
           (ngModelChange)="bridgeTokenDraft.set($event); bridgeTestStatus.set('idle')"
           placeholder="Printed when you start wayfarer-local-bridge"
-        />
+         />
       </div>
     </div>
 
     <div class="flex items-center justify-between">
       <button
-        pButton
+        uiButton
+        tone="secondary"
+        variant="outlined"
+        size="sm"
         type="button"
-        label="Test connection"
         aria-label="Test connection"
-        severity="secondary"
-        outlined
-        size="small"
         [disabled]="!bridgeUrlDraft() || bridgeTestStatus() === 'testing'"
         (click)="testBridgeConnection()"
-      ></button>
+      >Test connection</button>
       @if (bridgeTestStatus() === 'testing') {
       <span class="type-footnote text-label-tertiary">Checking…</span>
       } @else if (bridgeTestStatus() === 'ok') {
@@ -421,8 +421,8 @@
     </div>
 
     <div class="flex justify-end gap-2">
-      <button pButton label="Cancel" aria-label="Cancel" severity="secondary" outlined (click)="closeBridgeSettings()"></button>
-      <button pButton label="Save" aria-label="Save" (click)="saveBridgeSettings()"></button>
+      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeBridgeSettings()">Cancel</button>
+      <button uiButton aria-label="Save" (click)="saveBridgeSettings()">Save</button>
     </div>
   </div>
 </p-dialog>
@@ -457,20 +457,8 @@
       <span id="global-confirm-dialog-header" class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
       <p id="global-confirm-dialog-message" class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>
       <div class="flex items-center gap-3 mt-6">
-        <p-button
-          severity="danger"
-          label="Proceed"
-          (onClick)="onAccept()"
-          styleClass="w-28"
-        ></p-button>
-        <p-button
-          label="Cancel"
-          text
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="onReject()"
-          styleClass="w-28"
-        ></p-button>
+        <button uiButton type="button" tone="danger" (click)="onAccept()" class="w-28">Proceed</button>
+        <button uiButton type="button" tone="secondary" variant="text" (click)="onReject()" class="w-28">Cancel</button>
       </div>
     </div>
   </ng-template>

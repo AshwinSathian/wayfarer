@@ -8,57 +8,52 @@
   @for (item of items(); track item; let index = $index) {
   <div class="flex flex-col gap-3 md:grid md:grid-cols-[1fr_1fr_auto] md:items-center md:gap-4">
     <input
-      pInputText
-      class="w-full font-mono"
+      class="ui-input w-full"
       [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.key"
       (ngModelChange)="itemChange.emit()"
       [attr.aria-label]="context() + ' name, row ' + (index + 1)"
-    />
+     />
     @if (isStructured(item.value)) {
     <input
-      pInputText
-      class="w-full font-mono"
+      class="ui-input w-full"
       readonly
       [value]="asJson(item.value)"
       title="Nested value: edit it in JSON mode"
       [attr.aria-label]="context() + ' value, row ' + (index + 1) + ' (read-only, edit in JSON mode)'"
-    />
+     />
     } @else {
     <input
-      pInputText
-      class="w-full font-mono"
+      class="ui-input w-full"
       [disabled]="disableItem()(item, index)"
       [(ngModel)]="item.value"
       (ngModelChange)="itemChange.emit()"
       [attr.aria-label]="context() + ' value, row ' + (index + 1)"
-    />
+     />
     }
     <div class="flex justify-end md:block md:text-center">
       <button
-        pButton
+        uiButton
+        tone="danger"
+        variant="text"
+        iconOnly
         type="button"
-        text
-        icon="pi pi-times"
         [disabled]="disableItem()(item, index)"
-        severity="danger"
         [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
         (click)="removeItem()(index, context())"
-      ></button>
+      ><app-icon name="close" /></button>
     </div>
   </div>
   }
 
   <div class="pt-2">
     <button
-      pButton
+      uiButton
+      tone="secondary"
       type="button"
-      icon="pi pi-plus"
-      [label]="addLabel()"
       [attr.aria-label]="addLabel()"
       [disabled]="isAddDisabled()(context())"
-      severity="secondary"
       (click)="addItem()(context())"
-    ></button>
+    ><app-icon name="add" /> {{ addLabel() }}</button>
   </div>
 </div>

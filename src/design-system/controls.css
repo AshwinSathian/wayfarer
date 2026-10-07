@@ -946,3 +946,27 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ── Splitter ────────────────────────────────────────────── */
+.ui-splitter {
+  display: flex;
+  flex-wrap: nowrap;
+  border-radius: 6px;
+}
+
+.ui-splitter-pane {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ui-splitter-gutter {
+  flex: 0 0 8px;
+  background: var(--ctl-surface-border);
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.ui-splitter--resizing {
+  user-select: none;
+}

@@ -12,13 +12,12 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { PrimeTemplate } from "primeng/api";
 import { UI_ACCORDION } from "../../ui/accordion.component";
 import { ButtonDirective } from "../../ui/button.directive";
 import { DialogComponent } from "../../ui/dialog.component";
 import { SelectComponent } from "../../ui/select.component";
+import { SplitterComponent } from "../../ui/splitter.component";
 import { SegmentedComponent } from "../../ui/segmented.component";
-import { SplitterModule } from "primeng/splitter";
 import { UI_TABS } from "../../ui/tabs.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -99,14 +98,13 @@ type ContextType = "Body" | "Headers";
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    PrimeTemplate,
     ButtonDirective,
     UI_ACCORDION,
     SelectComponent,
     SegmentedComponent,
     UI_TABS,
     TooltipDirective,
-    SplitterModule,
+    SplitterComponent,
     DialogComponent,
     JsonEditorComponent,
     ScriptEditorComponent,

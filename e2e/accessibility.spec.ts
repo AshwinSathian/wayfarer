@@ -3,18 +3,10 @@ import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
 import AxeBuilder from "@axe-core/playwright";
 
-// Exclusions for third-party internals the app's own templates cannot
-// reach, each one investigated first:
-//
-// - .monaco-editor: third-party widget, entirely its own DOM and rendering.
-// - .p-splitter-gutter: PrimeNG's Splitter puts aria-orientation and the
-//   aria-value* attributes on the gutter and role="separator" one level
-//   down, on the handle. Goes with the splitter (docs/ui-migration.md, slice 6).
+// The one exclusion: .monaco-editor, a third-party widget with its own DOM
+// and rendering that the app's templates cannot reach.
 function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
-  return new AxeBuilder({ page })
-    .include("body")
-    .exclude(".monaco-editor")
-    .exclude(".p-splitter-gutter");
+  return new AxeBuilder({ page }).include("body").exclude(".monaco-editor");
 }
 
 // Scan only once the page has stopped animating (see settled()).

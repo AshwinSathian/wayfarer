@@ -208,20 +208,16 @@
   <!-- Desktop: a real resizable split between the composer and the response
        viewer (Part D: "large amounts of dead canvas at 1024-1440px+ where
        every competitor uses a resizable multi-pane split"). The chosen
-       split ratio is persisted automatically by p-splitter's own
-       stateStorage/stateKey mechanism under a wayfarer:-namespaced
-       localStorage key, matching this app's existing key-naming convention
-       (see theme.service.ts). -->
-  <p-splitter
+       split ratio is kept in localStorage under a wayfarer:-namespaced key,
+       matching this app's key-naming convention (see theme.service.ts). -->
+  <ui-splitter
     class="composer-response-splitter"
-    stateStorage="local"
-    stateKey="wayfarer:composer-split"
-    [panelSizes]="[55, 45]"
+    storageKey="wayfarer:composer-split"
+    [sizes]="[55, 45]"
     [minSizes]="[28, 22]"
-    [gutterSize]="8"
+    ariaLabel="Resize the composer and the response"
   >
-    <ng-template pTemplate>
-      <div class="composer-pane">
+      <div uiSplitterStart class="composer-pane">
         <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
           <div class="px-2 pt-1">
             <ui-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
@@ -280,9 +276,7 @@
           </div>
         </section>
       </div>
-    </ng-template>
-    <ng-template pTemplate>
-      <div class="response-pane">
+      <div uiSplitterEnd class="response-pane">
         @if (shouldShowResponsePanel) {
         <app-response-viewer
           class="animate-fade-up"
@@ -308,8 +302,7 @@
         </div>
         }
       </div>
-    </ng-template>
-  </p-splitter>
+  </ui-splitter>
   }
 
   <!-- ── Params template ──────────────────────────────────── -->

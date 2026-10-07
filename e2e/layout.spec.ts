@@ -14,9 +14,9 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
-    const splitter = page.locator(".composer-response-splitter.p-splitter");
+    const splitter = page.locator(".composer-response-splitter");
     await expect(splitter).toBeVisible();
-    await expect(splitter.locator(".p-splitter-gutter")).toBeVisible();
+    await expect(splitter.getByRole("separator")).toBeVisible();
     await expect(page.locator("app-response-viewer")).toBeVisible();
   });
 
@@ -27,11 +27,13 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
-    const gutter = page.locator(".composer-response-splitter .p-splitter-gutter");
+    const gutter = page.locator(".composer-response-splitter").getByRole("separator");
+    const composer = page.locator(".composer-pane");
     // The gutter moves while the panes settle; measure it once it is still.
     await still(gutter);
     const gutterBox = await gutter.boundingBox();
     expect(gutterBox).not.toBeNull();
+    const widthBefore = (await composer.boundingBox())!.width;
 
     // Drag the gutter a meaningful distance to the right.
     await page.mouse.move(gutterBox!.x + gutterBox!.width / 2, gutterBox!.y + gutterBox!.height / 2);
@@ -39,12 +41,40 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.mouse.move(gutterBox!.x + 160, gutterBox!.y + gutterBox!.height / 2, { steps: 10 });
     await page.mouse.up();
 
+    const widthAfter = (await composer.boundingBox())!.width;
+    expect(widthAfter).toBeGreaterThan(widthBefore + 100);
     const stateKey = await page.evaluate(() => localStorage.getItem("wayfarer:composer-split"));
     expect(stateKey).not.toBeNull();
 
     await page.reload();
     const stateKeyAfterReload = await page.evaluate(() => localStorage.getItem("wayfarer:composer-split"));
     expect(stateKeyAfterReload).toBe(stateKey);
+    // The stored ratio is applied, not only kept.
+    await expect.poll(async () => Math.abs((await composer.boundingBox())!.width - widthAfter)).toBeLessThan(2);
+  });
+
+  test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const splitter = page.locator(".composer-response-splitter");
+    const gutter = splitter.getByRole("separator");
+    const composer = page.locator(".composer-pane");
+    const response = page.locator(".response-pane");
+    await still(gutter);
+    const total = (await splitter.boundingBox())!.width;
+
+    const dragTo = async (x: number) => {
+      const box = (await gutter.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(x, box.y + box.height / 2, { steps: 40 });
+      await page.mouse.up();
+    };
+
+    await dragTo(0);
+    expect((await composer.boundingBox())!.width).toBeGreaterThanOrEqual(total * 0.28 - 1);
+    await dragTo(1439);
+    expect((await response.boundingBox())!.width).toBeGreaterThanOrEqual(total * 0.22 - 1);
   });
 });
 

@@ -7,14 +7,16 @@ import { CollectionsService } from "./collections.service";
 // (the `tree` signal) must match what was written, after every operation.
 describe("CollectionsService with real storage", () => {
   let service: CollectionsService;
+  let idb: IdbService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(CollectionsService);
+    idb = TestBed.inject(IdbService);
   });
 
   afterEach(async () => {
-    await TestBed.inject(IdbService).resetDatabase();
+    await idb.resetDatabase();
   });
 
   const names = () => service.tree().map((t) => t.collection.name);

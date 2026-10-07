@@ -27,13 +27,16 @@ function deleteDatabase(): Promise<void> {
 
 // Upgrades run once, on a user's real data, and IndexedDB cannot downgrade.
 describe("upgrading a database left by an older release", () => {
+  let idb: IdbService;
+
   beforeEach(async () => {
     await deleteDatabase();
     TestBed.configureTestingModule({});
+    idb = TestBed.inject(IdbService);
   });
 
   afterEach(async () => {
-    await TestBed.inject(IdbService).resetDatabase();
+    await idb.resetDatabase();
   });
 
   it("moves v1 history out of the legacy store and fills the fields added later", async () => {
@@ -43,7 +46,6 @@ describe("upgrading a database left by an older release", () => {
       legacy.add({ url: "https://api.test/old-2", headers: {}, createdAt: 200, method: "POST", status: 201 });
     });
 
-    const idb = TestBed.inject(IdbService);
     await idb.init();
 
     const history = await idb.getLatest();
@@ -87,7 +89,6 @@ describe("upgrading a database left by an older release", () => {
       db.createObjectStore("secrets", { keyPath: "meta.id" });
     });
 
-    const idb = TestBed.inject(IdbService);
     await idb.init();
 
     // Every read below goes through an index the old database did not have.

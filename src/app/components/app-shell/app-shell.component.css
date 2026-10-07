@@ -13,10 +13,9 @@
   flex-shrink: 0;
 }
 
-/* Desktop pinned collections sidebar — deliberately NOT a p-drawer (see the
-   comment in app-shell.component.html). Visually matches .p-drawer's "left"
-   styling from design-system/primeng-overrides.css so swapping the two
-   implementations between mobile/desktop is not a visible change. */
+/* Desktop pinned collections sidebar: deliberately not a ui-drawer (see the
+   comment in app-shell.component.html). It looks like the left drawer, so
+   swapping the two between phone and desktop is not a visible change. */
 .app-sidebar-pinned {
   position: fixed;
   top: 0;

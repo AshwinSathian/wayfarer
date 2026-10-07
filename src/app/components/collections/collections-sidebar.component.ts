@@ -455,7 +455,6 @@ export class CollectionsSidebarComponent implements OnInit {
     const confirmed = await this.confirm.confirm({
       title: "Delete item?",
       message: "This action cannot be undone. Continue?",
-      acceptLabel: "Delete",
     });
     if (!confirmed) return;
     if (data.type === "collection") {

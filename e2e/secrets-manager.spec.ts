@@ -75,9 +75,8 @@ test.describe("Secrets management view", () => {
     await page.getByRole("button", { name: "Save name" }).click();
     await expect(page.getByText("Renamed Token", { exact: true })).toBeVisible();
 
-    // Delete (routed through the app's global confirm dialog — its headless
-    // template always renders "Proceed"/"Cancel" regardless of the
-    // acceptLabel passed to ConfirmationService, see app-shell.component.html).
+    // Delete goes through the confirm service, whose default labels are
+    // "Proceed" and "Cancel".
     await page.getByRole("button", { name: "Delete Renamed Token" }).click();
     await page.getByRole("button", { name: "Proceed", exact: true }).click();
     await expect(page.getByText("No secrets yet")).toBeVisible();

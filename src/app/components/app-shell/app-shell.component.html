@@ -63,12 +63,10 @@
     <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
   </ui-drawer>
   } @else if (drawerVisible()) {
-  <!-- Desktop: persistent pinned chrome, not an overlay. It must NOT trap keyboard
-       focus — PrimeNG's p-drawer always applies pFocusTrap internally regardless of
-       the `modal` input, which previously made Tab loop forever inside the sidebar's
-       3 header icons and left the Send button/response viewer unreachable by
-       keyboard (Part D bug #2). Rendering it as a plain, non-trapping <aside>
-       instead of p-drawer removes the trap structurally. -->
+  <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
+       focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
+       icons and left the Send button and the response viewer unreachable by
+       keyboard (Part D bug #2). A plain <aside> has no trap. -->
   <aside class="app-sidebar-pinned" [style.width]="drawerWidth" aria-label="Collections sidebar">
     <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
   </aside>

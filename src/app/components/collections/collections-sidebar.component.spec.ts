@@ -167,7 +167,7 @@ describe("CollectionsSidebarComponent", () => {
       const pending = component.handleAction("delete", requestNode!);
       await Promise.resolve();
 
-      expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete item?", acceptLabel: "Delete" }));
+      expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete item?" }));
       expect(collectionsService.deleteRequestCalls).toEqual([]);
 
       answer(true);

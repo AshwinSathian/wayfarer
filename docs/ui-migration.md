@@ -69,6 +69,8 @@ Tests added: `tooltip.directive.spec.ts` (5), e2e keyboard tests for the tooltip
 | `p-confirmDialog` (2) + `ConfirmationService.confirm` (5 calls) | delete collection/folder/request, clear history, reset all data, delete secret | `ConfirmService.confirm({ title, message, acceptLabel, danger }): Promise<boolean>` rendering one `ui-confirm-dialog` (`role="alertdialog"`) | Dialog | `accessibility.spec.ts` (accessible name), `reset-all-data.spec.ts` C-013, `secrets-manager.spec.ts` C-028 | Unit for the service (resolve true and false, one at a time). e2e: focus starts on Cancel for dangerous actions, Escape cancels |
 | `p-confirmpopup` (keyed `history-delete`) | history entry delete | same `ConfirmService` with an `anchor` element, rendered as a popover | Overlay | `features.spec.ts` C-029, `past-requests.component.spec.ts` | keyboard and focus return |
 
+Gap to close in this slice: PrimeNG's drawer does not move focus into itself; Tab keeps walking the page behind it. The replacement takes focus on open and traps it (remove the workaround in `e2e/features.spec.ts`, "a history entry shows its details").
+
 Known difference to remove: on phones a dialog opened from the navigation drawer is clipped to the drawer's width today (screens `dark-mobile/17-dialog-new-collection`). The new dialog renders in the overlay container at full width. This is listed as an intended fix, not a redesign.
 
 ### Slice 6 — splitter (P1.5.13)

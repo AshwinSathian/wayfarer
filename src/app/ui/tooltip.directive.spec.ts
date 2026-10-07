@@ -71,15 +71,27 @@ describe("TooltipDirective", () => {
   it("shows on keyboard focus and closes on blur and on Escape", async () => {
     const { fixture, text } = await setup();
 
-    fire(text, "focusin");
+    text.focus();
     await fixture.whenStable();
+    expect(text.matches(":focus-visible")).toBe(true);
     expect(tooltip()).not.toBeNull();
-    fire(text, "focusout");
+    text.blur();
     expect(tooltip()).toBeNull();
 
-    fire(text, "focusin");
+    text.focus();
     await fixture.whenStable();
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(tooltip()).toBeNull();
+    fixture.destroy();
+  });
+
+  it("does not open for focus the browser shows no ring for (a click, or focus handed back by a dialog)", async () => {
+    const { fixture, text } = await setup();
+    // A focusin whose target does not match :focus-visible, as after a mouse click.
+    const other = document.createElement("div");
+    text.append(other);
+    other.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    await fixture.whenStable();
     expect(tooltip()).toBeNull();
     fixture.destroy();
   });
@@ -94,7 +106,7 @@ describe("TooltipDirective", () => {
     fixture.componentInstance.text.set("Now it has text");
     await fixture.whenStable();
     fire(text, "mouseenter");
-    fire(text, "focusin");
+    text.focus();
     await fixture.whenStable();
     expect(document.querySelectorAll('[role="tooltip"]')).toHaveLength(1);
     fixture.destroy();
@@ -104,7 +116,7 @@ describe("TooltipDirective", () => {
     const { fixture, card } = await setup();
     fixture.componentInstance.position.set("bottom");
 
-    fire(card, "focusin");
+    card.focus();
     await fixture.whenStable();
 
     expect(tooltip()?.classList.contains("ui-popover")).toBe(true);

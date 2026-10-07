@@ -29,7 +29,7 @@ class TooltipPanelComponent {
   host: {
     "(mouseenter)": "show()",
     "(mouseleave)": "hideSoon()",
-    "(focusin)": "show()",
+    "(focusin)": "showForKeyboard($event)",
     "(focusout)": "hide()",
     "(document:keydown.escape)": "hide()",
     "[attr.aria-describedby]": "describedBy()",
@@ -81,6 +81,15 @@ export class TooltipDirective implements OnDestroy {
 
     this.overlayRef = ref;
     this.describedBy.set(this.id);
+  }
+
+  /**
+   * Focus opens the tooltip only when the browser would draw a focus ring,
+   * that is, for keyboard focus. Focus that a click or a closing dialog
+   * puts back on the host does not pop a tooltip up under the pointer.
+   */
+  showForKeyboard(event: FocusEvent): void {
+    if ((event.target as Element).matches(":focus-visible")) this.show();
   }
 
   /** Leaves time for the pointer to travel from the host onto the tooltip. */

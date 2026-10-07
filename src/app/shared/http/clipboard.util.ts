@@ -18,6 +18,8 @@ export async function writeToClipboard(text: string): Promise<void> {
     recordDiagnostic(error, "clipboard: Clipboard API write failed, trying execCommand");
   }
   try {
+    // Selecting the textarea takes focus; give it back afterwards.
+    const focused = document.activeElement;
     const textarea = document.createElement("textarea");
     textarea.value = text;
     textarea.setAttribute("readonly", "");
@@ -27,6 +29,7 @@ export async function writeToClipboard(text: string): Promise<void> {
     textarea.select();
     const copied = document.execCommand("copy");
     document.body.removeChild(textarea);
+    if (focused instanceof HTMLElement) focused.focus();
     if (!copied) recordDiagnostic(new Error("execCommand('copy') returned false"), "clipboard");
   } catch (error) {
     recordDiagnostic(error, "clipboard: copy failed");

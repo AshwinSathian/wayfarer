@@ -89,6 +89,8 @@ describe("ui-menu", () => {
     trigger.click();
     await settle();
     expect(menu()).not.toBeNull();
+    // A real second click: the press must not close it for the click to reopen it.
+    trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     trigger.click();
     await settle();
     expect(menu()).toBeNull();

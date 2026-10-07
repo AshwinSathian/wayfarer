@@ -52,6 +52,7 @@ export class MenuComponent implements OnDestroy {
   private readonly menu = viewChild(CdkMenu);
   private overlayRef: OverlayRef | null = null;
   private returnFocusTo: HTMLElement | null = null;
+  private anchor: HTMLElement | null = null;
   private stopListening: () => void = () => undefined;
 
   private listen(onPress: (event: PointerEvent) => void): () => void {
@@ -63,6 +64,7 @@ export class MenuComponent implements OnDestroy {
   toggle(event: Event): void {
     if (this.overlayRef) return this.hide();
     const anchor = event.currentTarget as HTMLElement;
+    this.anchor = anchor;
     this.open(
       this.overlay
         .position()
@@ -81,6 +83,7 @@ export class MenuComponent implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.hide();
+    this.anchor = null;
     this.open(
       this.overlay
         .position()
@@ -121,8 +124,11 @@ export class MenuComponent implements OnDestroy {
     this.overlayRef = ref;
     // Close on the next press outside. A press, not a click: the click or
     // right-click that opened the menu is still being released.
+    // Not a press on the trigger either: its click toggles the menu shut.
+    const trigger = this.anchor;
     this.stopListening = this.listen((event) => {
-      if (!ref.overlayElement.contains(event.target as Node)) this.hide();
+      const target = event.target as Node;
+      if (!ref.overlayElement.contains(target) && !trigger?.contains(target)) this.hide();
     });
     // Through the menu, so its arrow-key navigation starts from this item.
     afterNextRender(() => this.menu()?.focusFirstItem("keyboard"), { injector: this.injector });

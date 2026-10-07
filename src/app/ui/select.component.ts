@@ -66,7 +66,7 @@ interface Choice {
         <app-icon name="close" />
       </button>
     }
-    <span class="ui-select-chevron" aria-hidden="true" (click)="trigger.focus(); toggle()"><app-icon name="keyboard_arrow_down" /></span>
+    <span class="ui-select-chevron" aria-hidden="true" (mousedown)="$event.preventDefault()" (click)="trigger.focus(); toggle()"><app-icon name="keyboard_arrow_down" /></span>
 
     <ng-template #panel>
       <ul class="ui-select-list" role="listbox" [id]="baseId + '-list'" (mousedown)="$event.preventDefault()">

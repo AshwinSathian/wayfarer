@@ -204,3 +204,22 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await page.keyboard.press("Enter");
   await expect(page.locator("p-tree input")).toBeVisible();
 });
+
+test("with the mouse: a second click on the Export button or on a select closes it again", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json?toggle=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+
+  const exportButton = page.getByRole("button", { name: "Export response" });
+  await exportButton.click();
+  await expect(page.getByRole("menu")).toBeVisible();
+  await exportButton.click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+
+  const method = page.getByRole("combobox", { name: /^HTTP method/ });
+  await method.click();
+  await expect(page.getByRole("listbox")).toBeVisible();
+  await method.click();
+  await expect(page.getByRole("listbox")).toHaveCount(0);
+});

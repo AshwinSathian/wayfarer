@@ -204,6 +204,27 @@ describe("ui-select", () => {
     fixture.destroy();
   });
 
+  it("closes when the chevron is clicked while open, instead of reopening", async () => {
+    const { fixture, root, combo, options } = await setup();
+    const chevron = root.querySelector<HTMLElement>("ui-select .ui-select-chevron")!;
+    combo().focus();
+    combo().click();
+    await fixture.whenStable();
+    expect(options().length).toBeGreaterThan(0);
+
+    // A real click: the press must not blur the trigger (which closes the
+    // list) or the click that follows would open it again.
+    const press = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+    chevron.dispatchEvent(press);
+    expect(press.defaultPrevented).toBe(true);
+    chevron.click();
+    await fixture.whenStable();
+
+    expect(options()).toHaveLength(0);
+    expect(document.activeElement).toBe(combo());
+    fixture.destroy();
+  });
+
   it("does not open while disabled", async () => {
     const { fixture, combo, options, key } = await setup();
     fixture.componentInstance.disabled.set(true);

@@ -4,7 +4,7 @@ Wayfarer's own code is MIT-licensed (see [LICENSE](LICENSE)). The production bui
 
 ## Material Symbols (icon path data)
 
-`src/app/shared/icon/icon-paths.ts` contains SVG path data for 33 glyphs from Material Symbols Outlined, weight 300, by Google, taken from the `@material-symbols/svg-300` package (version 0.47.5, https://github.com/marella/material-symbols). Licensed under the Apache License, Version 2.0; the full text follows at the end of this file.
+`src/app/shared/icon/icon-paths.ts` contains SVG path data for 40 glyphs from Material Symbols Outlined, weight 300, by Google, taken from the `@material-symbols/svg-300` package (version 0.47.5, https://github.com/marella/material-symbols). Licensed under the Apache License, Version 2.0; the full text follows at the end of this file.
 
 ## Inter
 

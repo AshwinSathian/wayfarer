@@ -13,13 +13,6 @@ updates:
     labels:
       - "dependencies"
     ignore:
-      # PrimeNG 22 is commercially licensed ("PrimeUI"); 21 is the last MIT
-      # line. PrimeNG is being removed (plan Phase 1.5, Part B); until then
-      # it must never move to 22. Delete these entries with the packages.
-      - dependency-name: "primeng"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@primeng/themes"
-        update-types: ["version-update:semver-major"]
       # TypeScript moves with Angular: @angular/build 22 accepts >=6.0 <6.1.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]

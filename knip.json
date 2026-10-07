@@ -17,7 +17,6 @@
     "local-bridge/**/*.js"
   ],
   "ignoreDependencies": [
-    "primeicons",
     "@angular/language-service"
   ],
   "ignoreExportsUsedInFile": true

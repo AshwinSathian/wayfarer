@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { IdbService } from './data/idb.service';
 import { PastRequest } from './models/history.models';
-import { ConfirmationService } from 'primeng/api';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
@@ -34,7 +33,6 @@ describe('AppComponent', () => {
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
         { provide: IdbService, useValue: idbService },
-        ConfirmationService,
       ],
     }).compileComponents();
   });

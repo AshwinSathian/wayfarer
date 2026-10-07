@@ -67,20 +67,17 @@ CDK Listbox was not used: it needs focus inside the list, and this pattern keeps
 
 Tests added: 13 unit, 4 keyboard-only e2e (method select, a select inside a dialog, export menu, collection context menu).
 
-For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu]="$any(contextMenu)"`; the new tree calls `menu.show(event)` itself.
+For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu]="$any(contextMenu)"`; the new tree calls `menu.show(event)` itself. PrimeNG calls `show` a moment after the right-click, so on a phone an Escape pressed in that moment closes the navigation drawer and the menu then opens with no owner (seen only from a script). The new tree opens the menu in the same event; add that case to the keyboard e2e test.
 
-### Slice 5 — dialog, drawer, confirm dialog, confirm popup (P1.5.12)
+### Slice 5 — dialog, drawer, confirm dialog, confirm popup (P1.5.12) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `p-dialog` (10): `header`, `[(visible)]`, `modal`, footer template, `closeOnEscape` | vault, Local Bridge, Save to Collection, new collection, import collection, command palette, new environment, import environments, Secrets, Settings | `ui-dialog`: `[(open)]`, `title`, content and footer slots; `role="dialog"`, `aria-modal`, labelled by its title | Dialog, FocusTrap, scroll blocking | `accessibility.spec.ts` C-038, `secrets.spec.ts` C-027, `settings.spec.ts`, `layout.spec.ts` (usable after close) | Per dialog: focus moves in, Tab stays in, Escape closes, focus returns; Escape works at once after open (PrimeNG 21 swallows it during the fade) |
-| `p-drawer` (2): left navigation on phones, right history | app shell | `ui-drawer`: same contract as dialog, `side` input | Dialog, FocusTrap | `layout.spec.ts` (usable after close), `features.spec.ts` C-029 | keyboard and focus tests for both |
-| `p-confirmDialog` (2) + `ConfirmationService.confirm` (5 calls) | delete collection/folder/request, clear history, reset all data, delete secret | `ConfirmService.confirm({ title, message, acceptLabel, danger }): Promise<boolean>` rendering one `ui-confirm-dialog` (`role="alertdialog"`) | Dialog | `accessibility.spec.ts` (accessible name), `reset-all-data.spec.ts` C-013, `secrets-manager.spec.ts` C-028 | Unit for the service (resolve true and false, one at a time). e2e: focus starts on Cancel for dangerous actions, Escape cancels |
-| `p-confirmpopup` (keyed `history-delete`) | history entry delete | same `ConfirmService` with an `anchor` element, rendered as a popover | Overlay | `features.spec.ts` C-029, `past-requests.component.spec.ts` | keyboard and focus return |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `p-dialog` (10) | `ui-dialog` (`src/app/ui/dialog.component.ts`) on CDK Dialog | `header`, `[visible]` / `(visibleChange)`, `(hide)`, `width`, `maxWidth`, `dismissableMask`, footer slot `[uiDialogFooter]`. Controlled: Escape and the close button ask the owner to close |
+| `p-drawer` (2) | `ui-drawer`, same file and contract | `side`, `width`, `ariaLabel`. Takes focus and traps it; the backdrop closes it |
+| `p-confirmDialog` (2), `p-confirmpopup` (1), `ConfirmationService` | `ConfirmService.confirm({ title?, message, acceptLabel?, rejectLabel?, anchor? }): Promise<boolean>` (`src/app/ui/confirm.service.ts`) | `role="alertdialog"`, focus starts on Cancel. With `anchor` it is the small popup under that element |
 
-Gap to close in this slice: PrimeNG's drawer does not move focus into itself; Tab keeps walking the page behind it. The replacement takes focus on open and traps it (remove the workaround in `e2e/features.spec.ts`, "a history entry shows its details").
-
-Known difference to remove: on phones a dialog opened from the navigation drawer is clipped to the drawer's width today (screens `dark-mobile/17-dialog-new-collection`). The new dialog renders in the overlay container at full width. This is listed as an intended fix, not a redesign.
+Tests added: 10 unit, 4 keyboard-only e2e (settings dialog, history drawer, phone navigation drawer, both confirmations). The accessibility scans no longer exclude anything inside a dialog.
 
 ### Slice 6 — splitter (P1.5.13)
 
@@ -113,6 +110,9 @@ Listed here so the final screenshot comparison can tell them from bugs.
 4. Focus rings come from the global `:focus-visible` rule instead of PrimeNG's 1 px ring.
 5. Dark "secondary text" buttons and light "danger text" buttons are readable (F47).
 6. Icons in buttons are Material Symbols instead of PrimeIcons: same slot, different drawing.
+7. Drawers take keyboard focus and keep it until closed.
+8. The history drawer no longer has a 3 px lighter left edge (a PrimeNG default that no token asked for).
+9. Confirmation text and the filled danger button are slightly lighter or darker, to reach 4.5:1 (F47).
 
 ## Screens not captured on phones
 

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
-import { Confirmation, ConfirmationService } from "primeng/api";
+import { ConfirmService } from "../../ui/confirm.service";
 import { CollectionsSidebarComponent, PaletteAction } from "./collections-sidebar.component";
 import { CollectionsService, CollectionTree } from "../../services/collections.service";
 import { Collection, Folder, Meta, RequestDoc } from "../../models/collections.models";
@@ -90,7 +90,6 @@ describe("CollectionsSidebarComponent", () => {
       imports: [CollectionsSidebarComponent],
       providers: [
         { provide: CollectionsService, useValue: collectionsService },
-        ConfirmationService,
       ],
     }).compileComponents();
 
@@ -153,32 +152,39 @@ describe("CollectionsSidebarComponent", () => {
   });
 
   describe("handleAction dispatch", () => {
-    it("routes 'delete' on a request node through ConfirmationService, and only calls deleteRequest once the user accepts", () => {
+    it("routes 'delete' on a request node through ConfirmService, and only calls deleteRequest once the user accepts", async () => {
       const collection = makeCollection("c1");
       const request = makeRequest("r1", "c1");
       collectionsService.setTree([{ collection, folders: [], requests: [request] }]);
       const requestNode = component.nodes()[0].children?.[0];
       expect(requestNode).toBeDefined();
 
-      // ConfirmationService is provided at the component level (see the
-      // @Component `providers` array), so it must be resolved from the
-      // component's own injector, not TestBed's root injector — those are
-      // two different instances.
-      const confirmationService = fixture.debugElement.injector.get(ConfirmationService);
-      let capturedAccept: (() => void) | undefined;
-      vi.spyOn(confirmationService, "confirm").mockImplementation((cfg: Confirmation) => {
-        capturedAccept = cfg.accept as (() => void) | undefined;
-        return confirmationService;
-      });
+      let answer: (accepted: boolean) => void = () => undefined;
+      const confirm = vi.spyOn(TestBed.inject(ConfirmService), "confirm").mockImplementation(
+        () => new Promise<boolean>((resolve) => (answer = resolve))
+      );
 
-      void component.handleAction("delete", requestNode!);
+      const pending = component.handleAction("delete", requestNode!);
+      await Promise.resolve();
 
-      expect(confirmationService.confirm).toHaveBeenCalled();
+      expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ title: "Delete item?" }));
       expect(collectionsService.deleteRequestCalls).toEqual([]);
 
-      capturedAccept?.();
+      answer(true);
+      await pending;
 
       expect(collectionsService.deleteRequestCalls).toEqual(["r1"]);
+    });
+
+    it("does not delete when the user backs out of the confirmation", async () => {
+      const collection = makeCollection("c1");
+      const request = makeRequest("r1", "c1");
+      collectionsService.setTree([{ collection, folders: [], requests: [request] }]);
+      vi.spyOn(TestBed.inject(ConfirmService), "confirm").mockResolvedValue(false);
+
+      await component.handleAction("delete", component.nodes()[0].children![0]);
+
+      expect(collectionsService.deleteRequestCalls).toEqual([]);
     });
 
     it("creates a folder under the collection when dispatched 'new-folder' on a collection node", async () => {

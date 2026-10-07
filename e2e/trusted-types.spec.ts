@@ -29,7 +29,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   await expect(page.getByText("Loading editor…")).toHaveCount(0);
   for (const name of ["Settings", "Request history", "Manage secrets", "Local Bridge settings"]) {
     await page.getByRole("button", { name, exact: true }).click();
-    await expect(page.locator(".p-dialog, .p-drawer").first()).toBeVisible();
+    await expect(page.getByRole("dialog").first()).toBeVisible();
     await settled(page);
     await page.keyboard.press("Escape");
   }

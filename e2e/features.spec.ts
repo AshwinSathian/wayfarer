@@ -114,7 +114,7 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
     await expect(page.locator(".status-badge")).toHaveText("200");
   }
   await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.locator(".p-drawer");
+  const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByText("Today", { exact: true })).toBeVisible();
 
   await drawer.getByRole("button", { name: `Load request ${ECHO}/content/json?c029=1 into composer` }).click();
@@ -125,7 +125,7 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
   await expect(entries).toHaveCount(2);
   await drawer.getByRole("button", { name: "Delete history entry" }).first().click();
   // One confirmation, not one per history entry stacked on top of each other.
-  const popup = page.locator(".p-confirmpopup").filter({ hasText: "Remove this request from history?" });
+  const popup = page.getByRole("alertdialog", { name: "Remove this request from history?" });
   await expect(popup).toHaveCount(1);
   await popup.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(entries).toHaveCount(1);
@@ -236,7 +236,7 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const drawer = page.locator(".p-drawer");
+  const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByRole("button", { name: /^Load request .*c029clear=1/ })).toBeVisible();
   await page.getByRole("button", { name: "Clear all history" }).click();
   const confirm = page.getByRole("alertdialog").or(page.getByRole("dialog")).filter({ hasText: "Your entire history will be cleared" });
@@ -290,10 +290,8 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // not open the card. Safari tabs to non-inputs with Option+Tab.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
   const entry = page.getByRole("button", { name: /^Load request .*details=1 into composer$/ });
-  // PrimeNG's drawer does not move focus into itself, so start from its
-  // Close button (the drawer replacement in slice 5 takes focus on open).
+  // The drawer takes focus when it opens; walk on from there.
   const tabToEntry = async () => {
-    await page.getByRole("button", { name: "Close history" }).focus();
     for (let i = 0; i < 4 && !(await entry.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
     await expect(entry).toBeFocused();
   };

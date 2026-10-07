@@ -83,14 +83,12 @@
 </div>
 
 <!-- Import collection dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Import collection"
   [visible]="importDialogVisible()"
   (visibleChange)="importDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '440px' }"
-  (onHide)="closeImportDialog()"
+  width="440px"
+  (hide)="closeImportDialog()"
 >
   @if (importErrors().length) {
   <div class="space-y-2 type-callout text-status-error">
@@ -152,7 +150,7 @@
     <p class="type-callout text-label-tertiary">Select a valid collection export file to proceed.</p>
   </div>
   }
-  <ng-template pTemplate="footer">
+  <div uiDialogFooter>
     <div class="flex justify-end gap-2">
       <button uiButton tone="secondary" variant="outlined" aria-label="Cancel import" (click)="closeImportDialog()">Cancel</button>
       <button
@@ -162,18 +160,16 @@
         (click)="confirmImport()"
       >Import</button>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
+</ui-dialog>
 
 <!-- Create collection/folder/request dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   [header]="creationTitle"
   [visible]="creationDialogVisible()"
   (visibleChange)="creationDialogVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '420px' }"
-  (onHide)="closeCreationDialog()"
+  width="420px"
+  (hide)="closeCreationDialog()"
 >
   <div class="flex flex-col gap-3">
     <label for="creation-name-input" class="ds-form-label">
@@ -207,23 +203,21 @@
     </div>
     }
   </div>
-  <ng-template pTemplate="footer">
+  <div uiDialogFooter>
     <div class="flex justify-end gap-2">
       <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeCreationDialog()">Cancel</button>
       <button uiButton aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()">Create</button>
     </div>
-  </ng-template>
-</p-dialog>
+  </div>
+</ui-dialog>
 
 <!-- Command palette -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Command palette"
   [visible]="commandPaletteVisible()"
   (visibleChange)="commandPaletteVisible.set($event)"
-  [modal]="true"
-  [style]="{ width: '440px' }"
-  (onHide)="closeCommandPalette()"
+  width="440px"
+  (hide)="closeCommandPalette()"
 >
   <div class="flex flex-col gap-3">
     <input
@@ -251,6 +245,4 @@
       }
     </div>
   </div>
-</p-dialog>
-
-<p-confirmDialog header="Confirmation"></p-confirmDialog>
+</ui-dialog>

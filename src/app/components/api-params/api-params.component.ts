@@ -15,7 +15,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { PrimeTemplate } from "primeng/api";
 import { UI_ACCORDION } from "../../ui/accordion.component";
 import { ButtonDirective } from "../../ui/button.directive";
-import { DialogModule } from "primeng/dialog";
+import { DialogComponent } from "../../ui/dialog.component";
 import { SelectComponent } from "../../ui/select.component";
 import { SegmentedComponent } from "../../ui/segmented.component";
 import { SplitterModule } from "primeng/splitter";
@@ -107,7 +107,7 @@ type ContextType = "Body" | "Headers";
     UI_TABS,
     TooltipDirective,
     SplitterModule,
-    DialogModule,
+    DialogComponent,
     JsonEditorComponent,
     ScriptEditorComponent,
     ApiParamsBasicComponent,

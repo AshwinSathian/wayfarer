@@ -2,9 +2,7 @@ import { CommonModule } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
-  Injector,
   OnInit,
-  afterNextRender,
   effect,
   inject,
   input,
@@ -13,11 +11,9 @@ import {
   output
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ConfirmationService } from "primeng/api";
+import { ConfirmService } from "../../ui/confirm.service";
 import { ButtonDirective } from "../../ui/button.directive";
-import { ConfirmDialogModule } from "primeng/confirmdialog";
-import { DialogModule } from "primeng/dialog";
-import { DrawerModule } from "primeng/drawer";
+import { DialogComponent, DrawerComponent } from "../../ui/dialog.component";
 import { SelectComponent } from "../../ui/select.component";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
 import { RequestDoc } from "../../models/collections.models";
@@ -44,14 +40,13 @@ import { SwUpdateService } from "../../services/sw-update.service";
   imports: [
     IconComponent,
     CommonModule,
-    DrawerModule,
+    DrawerComponent,
     ButtonDirective,
     SelectComponent,
-    DialogModule,
+    DialogComponent,
     FormsModule,
     ApiParamsComponent,
     PastRequestsComponent,
-    ConfirmDialogModule,
     CollectionsSidebarComponent,
     EnvironmentsManagerComponent,
     SecretsManagerComponent,
@@ -59,7 +54,6 @@ import { SwUpdateService } from "../../services/sw-update.service";
   ],
   templateUrl: "./app-shell.component.html",
   styleUrls: ["./app-shell.component.css"],
-  providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {
@@ -79,8 +73,7 @@ export class AppShellComponent implements OnInit {
 
   readonly apiParams = viewChild.required(ApiParamsComponent);
 
-  private readonly confirmationService = inject(ConfirmationService);
-  private readonly injector = inject(Injector);
+  private readonly confirm = inject(ConfirmService);
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly secretsService = inject(SecretsService);
@@ -225,61 +218,19 @@ export class AppShellComponent implements OnInit {
     }
   }
 
-  confirmClear() {
-    this.confirmationService.confirm({
-      header: "Are you sure?",
-      message: "Your entire history will be cleared",
-      accept: () => this.clearHistory.emit(),
-    });
-    this.fixConfirmDialogAriaLabelledBy();
+  async confirmClear(): Promise<void> {
+    if (await this.confirm.confirm({ title: "Are you sure?", message: "Your entire history will be cleared" })) {
+      this.clearHistory.emit();
+    }
   }
 
-  confirmResetAllData(): void {
-    this.confirmationService.confirm({
-      header: "Reset all data?",
+  async confirmResetAllData(): Promise<void> {
+    const confirmed = await this.confirm.confirm({
+      title: "Reset all data?",
       message:
         "This will delete every collection, request, environment, secret, history item, and preference stored in your browser. This cannot be undone.",
-      icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Reset",
-      rejectLabel: "Cancel",
-      acceptButtonStyleClass: "p-button-danger",
-      accept: () => this.performResetAllData(),
     });
-    this.fixConfirmDialogAriaLabelledBy();
-  }
-
-  /**
-   * PrimeNG's ConfirmDialog always auto-generates aria-labelledby pointing at
-   * an internal header <span> — but that span only renders in its default
-   * (non-headless) template. We use a #headless template (for design-system
-   * styling), so the generated id is permanently dangling, leaving the open
-   * dialog with no accessible name. Re-point it at the real header element
-   * we render ourselves, once Angular has painted the just-opened dialog.
-   *
-   * Two bugs fixed here, found via a failing e2e run against a production
-   * build (never caught before — CI had only ever exercised this against
-   * `ng serve`'s dev server): the selector was `[data-pc-name="dialog"]`,
-   * but the actually-rendered attribute on this PrimeNG version's dialog
-   * panel is `data-pc-name="t"` — an internal, unstable-looking name not
-   * worth matching on at all — so the selector never matched anything and
-   * this "fix" was a silent no-op. Selecting on `.p-confirmdialog[role]`
-   * instead (the class axe itself reports as the violating node's target)
-   * is what the panel actually carries. Separately, replaced the bare
-   * `setTimeout(fn)` — a Zone-era "run after this render" idiom — with
-   * `afterNextRender()`, which is the correct, zoneless-safe primitive for
-   * the same intent (this app adopted zoneless change detection, under
-   * which a bare macrotask isn't guaranteed to run after the dialog's DOM
-   * is actually committed).
-   */
-  private fixConfirmDialogAriaLabelledBy(): void {
-    afterNextRender(
-      () => {
-        document
-          .querySelector('.p-confirmdialog[role="alertdialog"]')
-          ?.setAttribute("aria-labelledby", "global-confirm-dialog-header");
-      },
-      { injector: this.injector }
-    );
+    if (confirmed) await this.performResetAllData();
   }
 
   async ngOnInit(): Promise<void> {

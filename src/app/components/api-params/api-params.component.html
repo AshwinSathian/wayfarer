@@ -539,14 +539,12 @@
 </div>
 
 <!-- Save to Collection dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Save to Collection"
   [visible]="saveAsDialogVisible()"
   (visibleChange)="saveAsDialogVisible.set($event)"
-  [modal]="true"
-  [dismissableMask]="true"
-  [style]="{ width: '420px' }"
+  dismissableMask
+  width="420px"
 >
   <div class="flex flex-col gap-4">
     @if (!saveAsCollectionOptions().length) {
@@ -601,4 +599,4 @@
       <button uiButton aria-label="Save" [disabled]="isSaveAsDisabled || savingRequest()" (click)="confirmSaveAs()">{{ savingRequest() ? 'Saving…' : 'Save' }}</button>
     </div>
   </div>
-</p-dialog>
+</ui-dialog>

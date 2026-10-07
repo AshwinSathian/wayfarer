@@ -9,9 +9,9 @@ import {
   signal,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ConfirmationService } from "primeng/api";
+import { ConfirmService } from "../../ui/confirm.service";
 import { ButtonDirective } from "../../ui/button.directive";
-import { DialogModule } from "primeng/dialog";
+import { DialogComponent } from "../../ui/dialog.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { SecretDoc, SecretId } from "../../models/secrets.models";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -44,7 +44,7 @@ interface SecretRow {
 @Component({
   selector: "app-secrets-manager",
   standalone: true,
-  imports: [IconComponent, FormsModule, ButtonDirective, DialogModule, TooltipDirective],
+  imports: [IconComponent, FormsModule, ButtonDirective, DialogComponent, TooltipDirective],
   templateUrl: "./secrets-manager.component.html",
   styleUrls: ["./secrets-manager.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,7 +54,7 @@ export class SecretsManagerComponent {
   private readonly secretCrypto = inject(SecretCryptoService);
   private readonly environmentsService = inject(EnvironmentsService);
   private readonly variableFocus = inject(VariableFocusService);
-  private readonly confirmationService = inject(ConfirmationService);
+  private readonly confirm = inject(ConfirmService);
 
   readonly visible = model(false);
   readonly requestUnlock = output<void>();
@@ -178,20 +178,16 @@ export class SecretsManagerComponent {
     this.cancelRename();
   }
 
-  confirmDelete(row: SecretRow): void {
-    this.confirmationService.confirm({
-      header: "Delete secret?",
+  async confirmDelete(row: SecretRow): Promise<void> {
+    const confirmed = await this.confirm.confirm({
+      title: "Delete secret?",
       message: row.usages.length
         ? `"${row.doc.name}" is still referenced by ${row.usages.length} environment variable${
             row.usages.length === 1 ? "" : "s"
           } (${row.usages.map((u) => `${u.environmentName}.${u.variableKey}`).join(", ")}). Those variables will stop resolving. This cannot be undone.`
         : `This will permanently delete the encrypted secret "${row.doc.name}". This cannot be undone.`,
-      icon: "pi pi-exclamation-triangle",
-      acceptLabel: "Delete",
-      rejectLabel: "Cancel",
-      acceptButtonStyleClass: "p-button-danger",
-      accept: () => void this.deleteSecret(row.doc.id),
     });
+    if (confirmed) await this.deleteSecret(row.doc.id);
   }
 
   private async deleteSecret(id: SecretId): Promise<void> {

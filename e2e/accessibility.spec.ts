@@ -3,53 +3,17 @@ import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
 import AxeBuilder from "@axe-core/playwright";
 
-// Exclusions for known, confirmed third-party-library internals this app's
-// own templates/attributes cannot reach — not a way to dodge app-fixable
-// issues, each one was actually investigated first:
+// Exclusions for third-party internals the app's own templates cannot
+// reach, each one investigated first:
 //
-// - .monaco-editor: third-party widget, entirely its own DOM/rendering.
-// - [data-pc-section="firstfocusableelement"/"lastfocusableelement"]:
-//   PrimeNG's own focus-trap boundary sentinels (aria-hidden and
-//   role="presentation" already, but shipped with tabindex="0" upstream).
-// - p-confirmdialog's host p-dialog: PrimeNG's ConfirmDialog renders an
-//   inner <p-dialog role="alertdialog" data-pc-section="host"> that keeps
-//   `role="alertdialog"` on its host wrapper *unconditionally*, even while
-//   fully closed (content collapses to an empty <!--container--> comment).
-//   Tried, in order: a raw aria-label attribute (rejected by
-//   aria-prohibited-attr since the host itself carries no role at the
-//   binding surface Angular sees), [ariaLabelledBy] (not a real ConfirmDialog
-//   input — that property only exists on the plain Dialog component),
-//   two different [pt] pass-through paths (root.root, root.host) traced
-//   directly from PrimeNG's compiled source, and a static `header` input
-//   (confirmed to genuinely forward to the inner p-dialog's own [header]
-//   binding, but only takes effect on content the dialog renders while
-//   open — the *closed* host wrapper's role attribute isn't conditional on
-//   that at all). This is a real upstream gap: a dormant, empty dialog
-//   shouldn't carry an interactive ARIA role in the first place. When it's
-//   actually open (mid-confirm), it does have a real accessible name via
-//   the message content — this exclusion only hides the false positive
-//   from the closed, inactive shell present on every page load.
-// - .p-splitter-gutter: PrimeNG's Splitter (used for the resizable composer/
-//   response layout, Phase 3) hardcodes [attr.aria-orientation]/
-//   [attr.aria-valuenow] onto the *handle* sub-element
-//   (.p-splitter-gutter-handle) inside its own compiled template, while the
-//   role="separator" (which is what actually requires aria-valuenow per
-//   aria-required-attr, and disallows aria-orientation/aria-valuenow on
-//   whatever *doesn't* carry that role per aria-allowed-attr) lives one
-//   level up on the parent .p-splitter-gutter. Confirmed directly in
-//   node_modules/primeng/fesm2022/primeng-splitter.mjs — both attributes
-//   are fixed template bindings on the wrong element, not exposed through
-//   any input or reachable via the [pt] pass-through API (which can only
-//   add attributes, not relocate/remove template-hardcoded ones). A real
-//   upstream bug, not an app-fixable one.
+// - .monaco-editor: third-party widget, entirely its own DOM and rendering.
+// - .p-splitter-gutter: PrimeNG's Splitter puts aria-orientation and the
+//   aria-value* attributes on the gutter and role="separator" one level
+//   down, on the handle. Goes with the splitter (docs/ui-migration.md, slice 6).
 function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
   return new AxeBuilder({ page })
     .include("body")
     .exclude(".monaco-editor")
-    .exclude('[data-pc-section="firstfocusableelement"]')
-    .exclude('[data-pc-section="lastfocusableelement"]')
-    .exclude("p-confirmdialog p-dialog")
-    .exclude("p-confirmDialog p-dialog")
     .exclude(".p-splitter-gutter");
 }
 
@@ -172,53 +136,23 @@ test.describe("Accessibility (primary flows)", () => {
     await page.getByRole("button", { name: "Request history" }).click();
     await page.getByRole("button", { name: "Clear all history" }).click();
 
-    // Deliberately does NOT use buildAxe()'s "body" root — this test exists
-    // specifically to inspect every alertdialog-role node on the page. That
-    // surfaces two closed, empty shells that are collateral, not the dialog
-    // under test:
-    //  - ConfirmDialog itself renders TWO internal <p-dialog> children (only
-    //    one of which — pc52/pc61 style markers vary by mount — is ever the
-    //    "live" one at a time), and BOTH always carry role="alertdialog" on
-    //    their host tag even while permanently empty (`<!--container-->`).
-    //    This is the same closed-shell case documented above for p-dialog.
-    //  - The history list's own per-row p-confirmpopup (delete-request
-    //    affordance) has the identical pattern: its closed portal-rendered
-    //    root also keeps role="alertdialog" unconditionally.
-    // The actual open dialog is rendered via a separate CDK-style portal that
-    // is NOT a DOM descendant of <p-confirmdialog>, so it's unaffected by
-    // either dormant shell above.
-    //
-    // AxeBuilder#exclude can't remove these two: axe-core's context
-    // resolution only prunes exclude matches that are *descendants* of an
-    // include root — it can't drop the include-root node itself, which is
-    // exactly what happens here since `[role="alertdialog"]` matches these
-    // dormant elements directly. So the known-dormant nodes are filtered out
-    // of the results in JS instead, and we assert nothing real is left over.
+    // The open confirmation is an alert dialog named by its heading and
+    // described by its message, and nothing else on the page claims that role.
+    const confirm = page.getByRole("alertdialog", { name: "Are you sure?" });
+    await expect(confirm).toBeVisible();
+    await expect(confirm).toHaveAccessibleDescription("Your entire history will be cleared");
+    await expect(page.getByRole("alertdialog")).toHaveCount(1);
+
+    await settled(page);
     const results = await new AxeBuilder({ page }).include('[role="alertdialog"]').analyze();
-    const nameViolations = results.violations.filter((v) => v.id === "aria-dialog-name");
-    // A dormant shell's entire content collapses to a single Angular comment
-    // placeholder (`<!--container-->`, or sometimes just an empty `<!---->` —
-    // the exact text isn't meaningful, only that there's no real rendered
-    // content). Match structurally (element whose only child is an HTML
-    // comment) rather than one specific comment string, since more surfaces
-    // ship this exact PrimeNG closed-shell pattern over time (Secrets
-    // Manager's and Settings' own confirm dialogs, as of this pass) and each
-    // one's placeholder comment text isn't something this test should have
-    // to enumerate by hand.
-    const isKnownDormantShell = (html: string) =>
-      /<!--[^>]*--><\/[a-zA-Z][\w-]*>\s*$/.test(html) || html.includes("p-confirmpopup");
-    const unexpectedNodes = nameViolations
-      .flatMap((v) => v.nodes)
-      .filter((n) => !isKnownDormantShell(n.html));
-    expect(unexpectedNodes).toEqual([]);
+    const seriousOrWorse = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+    expect(seriousOrWorse, seriousOrWorse.map((v) => `${v.id}: ${v.help}`).join("\n")).toEqual([]);
   });
 
   // F47: the popup's Cancel was a "secondary text" button, which in the dark
-  // theme was drawn in near-black on a dark surface.
-  // Scoped to the popup's buttons for now: the popup itself has no accessible
-  // name and its message is low-contrast, both PrimeNG's; the whole popup is
-  // scanned once it is replaced (docs/ui-migration.md, slice 5).
-  test("@claim:C-038 the history delete confirmation's buttons have no critical/serious violations, in both themes", async ({ page }) => {
+  // theme was drawn in near-black on a dark surface; the popup had no
+  // accessible name and a low-contrast message.
+  test("@claim:C-038 the history delete confirmation has no critical/serious violations, in both themes", async ({ page }) => {
     await page.goto("/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?a11y=1`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -231,7 +165,7 @@ test.describe("Accessibility (primary flows)", () => {
       await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeVisible();
 
       await settled(page);
-      const results = await new AxeBuilder({ page }).include('[role="alertdialog"] button').analyze();
+      const results = await new AxeBuilder({ page }).include('[role="alertdialog"]').analyze();
       const seriousOrWorse = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
       expect(
         seriousOrWorse,

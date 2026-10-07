@@ -7,7 +7,7 @@ test.describe("Settings surface", () => {
     const initialTheme = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
 
     await page.getByRole("button", { name: "Settings", exact: true }).click();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Settings");
+    await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Toggle theme" }).click();
     await expect
@@ -21,7 +21,7 @@ test.describe("Settings surface", () => {
     await page.getByPlaceholder("Type a command").fill("Settings");
     await page.getByText("Settings", { exact: true }).click();
     await expect(page.getByPlaceholder("Type a command")).toBeHidden();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Settings");
+    await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
   });
 
   test("@claim:C-033 lists keyboard shortcuts, including live command palette actions", async ({ page }) => {
@@ -51,10 +51,7 @@ test.describe("Settings surface", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Configure Local Bridge" }).click();
-    // Settings closes itself when handing off — its own dialog title can
-    // still be mid-close-transition in the DOM for a moment, so scope to
-    // the Local Bridge dialog by its accessible name rather than any
-    // ".p-dialog-title" on the page.
+    // Settings closes itself when handing off, so name the dialog expected.
     await expect(page.getByRole("dialog", { name: "Local Bridge" })).toBeVisible();
   });
 

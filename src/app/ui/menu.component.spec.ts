@@ -55,6 +55,18 @@ describe("ui-menu", () => {
     fixture.destroy();
   });
 
+  it("keeps focus on the trigger when it is closed again before it has rendered", async () => {
+    const { fixture, trigger, menu, settle } = await setup();
+    trigger.focus();
+    trigger.click();
+    trigger.click();
+    await settle();
+
+    expect(menu()).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+    fixture.destroy();
+  });
+
   it("runs the chosen item, closes, and gives focus back to the trigger", async () => {
     const { fixture, trigger, menu, items, settle } = await setup();
     trigger.focus();

@@ -1,9 +1,8 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
 import { UI_ACCORDION } from "../../ui/accordion.component";
-import { ConfirmationService } from "primeng/api";
+import { ConfirmService } from "../../ui/confirm.service";
 import { ButtonDirective } from "../../ui/button.directive";
-import { ConfirmPopupModule } from "primeng/confirmpopup";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { PastRequest, PastRequestKey } from "../../models/history.models";
 import { IconComponent } from "../../shared/icon/icon.component";
@@ -22,7 +21,6 @@ export interface HistoryGroup {
     ButtonDirective,
     TooltipDirective,
     UI_ACCORDION,
-    ConfirmPopupModule,
   ],
   templateUrl: "./past-requests.component.html",
   styleUrls: ["./past-requests.component.css"],
@@ -35,7 +33,7 @@ export class PastRequestsComponent implements OnChanges {
   readonly loadRequest = output<PastRequest>();
   readonly deleteRequest = output<PastRequestKey>();
 
-  private readonly confirmationService = inject(ConfirmationService);
+  private readonly confirm = inject(ConfirmService);
 
   readonly skeletonPlaceholders = Array.from({ length: 4 }).map((_, i) => i);
 
@@ -113,25 +111,15 @@ export class PastRequestsComponent implements OnChanges {
     this.loadRequest.emit(req);
   }
 
-  confirmDelete(req: PastRequest, event: Event) {
+  async confirmDelete(req: PastRequest, event: Event): Promise<void> {
     const id = req.id;
-    if (typeof id !== "undefined") {
-      this.confirmationService.confirm({
-        key: "history-delete",
-        target: event.currentTarget as EventTarget,
-        message: "Remove this request from history?",
-        rejectButtonProps: {
-          label: "Cancel",
-          severity: "secondary",
-          text: true,
-        },
-        acceptButtonProps: {
-          label: "Delete",
-          severity: "danger",
-        },
-        accept: () => this.deleteRequest.emit(id),
-      });
-    }
+    if (typeof id === "undefined") return;
+    const confirmed = await this.confirm.confirm({
+      message: "Remove this request from history?",
+      acceptLabel: "Delete",
+      anchor: event.currentTarget as HTMLElement,
+    });
+    if (confirmed) this.deleteRequest.emit(id);
   }
 
   trackById(_index: number, item: PastRequest): PastRequestKey | undefined {

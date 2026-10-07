@@ -12,7 +12,7 @@ const TARGET = ECHO;
 /** Every view a session can open, each followed by an accessibility snapshot. */
 async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   const snap = async () => snapshots.push(await page.locator("body").ariaSnapshot());
-  const panel = page.locator(".p-dialog, .p-drawer").first();
+  const panel = page.getByRole("dialog").first();
   const open = async (button: string) => {
     await page.getByRole("button", { name: button, exact: true }).click();
     await expect(panel).toBeVisible();
@@ -21,7 +21,7 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   };
   const closeDialog = async () => {
     await page.keyboard.press("Escape");
-    await expect(page.locator(".p-dialog-mask, .p-drawer-mask")).toHaveCount(0);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   };
 
   await snap();

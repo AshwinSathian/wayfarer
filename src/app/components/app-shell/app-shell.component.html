@@ -53,26 +53,20 @@
   <!-- Mobile: a true modal overlay — trapping keyboard focus inside it while open
        is correct here, since it covers the whole screen and there's nothing else
        to reach until it closes. -->
-  <p-drawer
-    position="left"
+  <ui-drawer
+    side="left"
+    ariaLabel="Navigation"
     [visible]="drawerVisible()"
-    [modal]="true"
-    [dismissible]="true"
-    [closeOnEscape]="true"
-    [blockScroll]="true"
-    [showCloseIcon]="false"
-    [style]="{ width: drawerWidth }"
-    (onHide)="closeDrawer.emit()"
+    [width]="drawerWidth"
+    (visibleChange)="closeDrawer.emit()"
   >
     <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
-  </p-drawer>
+  </ui-drawer>
   } @else if (drawerVisible()) {
-  <!-- Desktop: persistent pinned chrome, not an overlay. It must NOT trap keyboard
-       focus — PrimeNG's p-drawer always applies pFocusTrap internally regardless of
-       the `modal` input, which previously made Tab loop forever inside the sidebar's
-       3 header icons and left the Send button/response viewer unreachable by
-       keyboard (Part D bug #2). Rendering it as a plain, non-trapping <aside>
-       instead of p-drawer removes the trap structurally. -->
+  <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
+       focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
+       icons and left the Send button and the response viewer unreachable by
+       keyboard (Part D bug #2). A plain <aside> has no trap. -->
   <aside class="app-sidebar-pinned" [style.width]="drawerWidth" aria-label="Collections sidebar">
     <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
   </aside>
@@ -222,16 +216,12 @@
 </div>
 
 <!-- History drawer -->
-<p-drawer
-  position="right"
+<ui-drawer
+  side="right"
+  ariaLabel="Request history"
   [visible]="historyDrawerVisible()"
   (visibleChange)="historyDrawerVisible.set($event)"
-  [modal]="true"
-  [dismissible]="true"
-  [closeOnEscape]="true"
-  [blockScroll]="false"
-  [showCloseIcon]="false"
-  [style]="{ width: '27rem' }"
+  width="27rem"
 >
   <div class="flex h-full flex-col">
     <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
@@ -268,17 +258,15 @@
       ></app-past-requests>
     </div>
   </div>
-</p-drawer>
+</ui-drawer>
 
 <!-- Unlock / setup secrets dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   [header]="isFirstVaultSetup() ? 'Create vault passphrase' : 'Unlock secrets'"
   [visible]="lockDialogVisible()"
   (visibleChange)="lockDialogVisible.set($event)"
-  [modal]="true"
-  [dismissableMask]="true"
-  [style]="{ width: '400px' }"
+  dismissableMask
+  width="400px"
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
@@ -330,17 +318,15 @@
       >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button>
     </div>
   </div>
-</p-dialog>
+</ui-dialog>
 
 <!-- Local Bridge settings dialog -->
-<p-dialog
-  closeAriaLabel="Close"
+<ui-dialog
   header="Local Bridge"
   [visible]="bridgeDialogVisible()"
   (visibleChange)="bridgeDialogVisible.set($event)"
-  [modal]="true"
-  [dismissableMask]="true"
-  [style]="{ width: '440px' }"
+  dismissableMask
+  width="440px"
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
@@ -425,7 +411,7 @@
       <button uiButton aria-label="Save" (click)="saveBridgeSettings()">Save</button>
     </div>
   </div>
-</p-dialog>
+</ui-dialog>
 
 <!-- Secrets management dialog -->
 <app-secrets-manager
@@ -441,25 +427,3 @@
   (openBridgeSettings)="openBridgeSettings()"
   (resetAllData)="confirmResetAllData()"
 ></app-settings>
-
-<!-- Confirm dialog (global) -->
-<p-confirmdialog #cd header="Confirmation">
-  <ng-template
-    #headless
-    let-message
-    let-onAccept="onAccept"
-    let-onReject="onReject"
-  >
-    <div class="flex flex-col items-center p-8 bg-canvas-overlay rounded-2xl">
-      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4">
-        <app-icon name="warning" class="icon-lg text-status-error" />
-      </div>
-      <span id="global-confirm-dialog-header" class="type-title-2 text-label-primary mb-2">{{ message.header }}</span>
-      <p id="global-confirm-dialog-message" class="type-body text-label-secondary text-center max-w-xs">{{ message.message }}</p>
-      <div class="flex items-center gap-3 mt-6">
-        <button uiButton type="button" tone="danger" (click)="onAccept()" class="w-28">Proceed</button>
-        <button uiButton type="button" tone="secondary" variant="text" (click)="onReject()" class="w-28">Cancel</button>
-      </div>
-    </div>
-  </ng-template>
-</p-confirmdialog>

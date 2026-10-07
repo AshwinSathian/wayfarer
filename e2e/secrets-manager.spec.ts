@@ -4,7 +4,7 @@ test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Manage secrets" }).click();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Secrets");
+    await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("No secrets yet")).toBeVisible();
   });
 
@@ -15,7 +15,7 @@ test.describe("Secrets management view", () => {
     await page.getByPlaceholder("Type a command").fill("Manage Secrets");
     await page.getByText("Manage Secrets", { exact: true }).click();
     await expect(page.getByPlaceholder("Type a command")).toBeHidden();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Secrets");
+    await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
   });
 
   test("@claim:C-028 lists a protected variable, supports reveal, rename, locate, and delete", async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe("Secrets management view", () => {
 
     // Open the Secrets view and verify the new secret is listed with its usage.
     await page.getByRole("button", { name: "Manage secrets" }).click();
-    await expect(page.locator(".p-dialog-title")).toHaveText("Secrets");
+    await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("API_TOKEN", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /Locate API_TOKEN in environment Secrets E2E Env/ })).toBeVisible();
 
@@ -75,9 +75,8 @@ test.describe("Secrets management view", () => {
     await page.getByRole("button", { name: "Save name" }).click();
     await expect(page.getByText("Renamed Token", { exact: true })).toBeVisible();
 
-    // Delete (routed through the app's global confirm dialog — its headless
-    // template always renders "Proceed"/"Cancel" regardless of the
-    // acceptLabel passed to ConfirmationService, see app-shell.component.html).
+    // Delete goes through the confirm service, whose default labels are
+    // "Proceed" and "Cancel".
     await page.getByRole("button", { name: "Delete Renamed Token" }).click();
     await page.getByRole("button", { name: "Proceed", exact: true }).click();
     await expect(page.getByText("No secrets yet")).toBeVisible();

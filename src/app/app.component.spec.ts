@@ -1,7 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { IdbService } from './data/idb.service';
 import { PastRequest } from './models/history.models';
@@ -34,7 +33,6 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideHttpClient(withXhr(), withInterceptorsFromDi()),
-        provideNoopAnimations(),
         { provide: IdbService, useValue: idbService },
         ConfirmationService,
       ],

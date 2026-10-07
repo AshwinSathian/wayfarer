@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { settled } from "./support/settled";
 
 // P1.9: the CSP requires Trusted Types for DOM script sinks
 // (security/csp.json), and src/app/shared/security/trusted-types.ts installs
@@ -27,6 +28,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   for (const name of ["Settings", "Request history", "Manage secrets", "Local Bridge settings"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.locator(".p-dialog, .p-drawer").first()).toBeVisible();
+    await settled(page);
     await page.keyboard.press("Escape");
   }
   const viewer = page.locator("app-response-viewer");

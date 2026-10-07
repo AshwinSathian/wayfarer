@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
 import AxeBuilder from "@axe-core/playwright";
 
@@ -52,15 +53,9 @@ function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
     .exclude(".p-splitter-gutter");
 }
 
-// axe reads computed colours, so a dialog sampled while it fades in reports
-// blended, low-contrast text that no user ever reads. Scan only once every
-// finite animation and transition on the page has finished.
+// Scan only once the page has stopped animating (see settled()).
 async function analyze(page: Parameters<typeof AxeBuilder>[0]["page"]) {
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .every((a) => a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity)
-  );
+  await settled(page);
   return buildAxe(page).analyze();
 }
 

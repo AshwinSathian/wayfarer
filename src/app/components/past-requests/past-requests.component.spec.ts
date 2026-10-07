@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { PastRequestsComponent } from './past-requests.component';
 import { PastRequest } from '../../models/history.models';
 import { ConfirmationService } from 'primeng/api';
@@ -14,7 +13,7 @@ describe('PastRequestsComponent', () => {
     const confirmationSpy = { confirm: vi.fn() } as unknown as ConfirmationService;
     await TestBed.configureTestingModule({
       imports: [PastRequestsComponent, ConfirmPopupModule],
-      providers: [provideNoopAnimations(), { provide: ConfirmationService, useValue: confirmationSpy }],
+      providers: [{ provide: ConfirmationService, useValue: confirmationSpy }],
     }).compileComponents();
   });
 

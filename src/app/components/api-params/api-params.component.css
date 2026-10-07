@@ -1,5 +1,5 @@
 /* Address bar — unified focus state on the wrapper */
-.address-bar .p-inputtext:focus {
+.address-bar .ui-input:focus {
   border-color: transparent !important;
   box-shadow: none !important;
 }

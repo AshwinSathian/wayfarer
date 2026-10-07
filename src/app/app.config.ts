@@ -4,7 +4,6 @@ import {
   withXhr
 } from "@angular/common/http";
 import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
-import { provideAnimations } from "@angular/platform-browser/animations";
 import { definePreset } from "@primeng/themes";
 import Aura from "@primeng/themes/aura";
 import { providePrimeNG } from "primeng/config";
@@ -61,7 +60,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
-    provideAnimations(),
     providePrimeNG({
       ripple: true,
       theme: {

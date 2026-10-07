@@ -140,3 +140,37 @@ test.describe("Render stability under rapid tab/viewport transitions", () => {
     expect(pageErrors).toEqual([]);
   });
 });
+
+// F46: an overlay's backdrop must be gone once the overlay has closed. With
+// PrimeNG 21 the backdrop stayed in the page and swallowed every later click.
+test.describe("The app stays usable after an overlay closes", () => {
+  test("after the history drawer closes, the toolbar can be clicked", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Request history" }).click();
+    await page.getByRole("button", { name: "Close history" }).click();
+
+    await page.getByRole("button", { name: "Settings", exact: true }).click({ timeout: 5_000 });
+    await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+  });
+
+  test("after a dialog closes with Escape, the composer can be clicked", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Settings" })).toBeHidden();
+
+    await page.getByRole("button", { name: "Request history" }).click({ timeout: 5_000 });
+    await expect(page.getByRole("button", { name: "Close history" })).toBeVisible();
+  });
+
+  test("on a phone, after the navigation drawer closes, the composer can be clicked", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Toggle sidebar" }).first().click();
+    await page.getByRole("button", { name: "Close navigation" }).click();
+
+    await page.getByRole("button", { name: "Scripts", exact: true }).click({ timeout: 5_000 });
+    await expect(page.getByRole("button", { name: "Add test" })).toBeVisible();
+  });
+});

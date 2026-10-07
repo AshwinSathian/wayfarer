@@ -2,7 +2,6 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ApiParamsComponent } from './api-params.component';
 import { IdbService } from '../../data/idb.service';
 import { PastRequest } from '../../models/history.models';
@@ -136,7 +135,6 @@ describe('ApiParamsComponent', () => {
         { provide: ResponseInspectorService, useValue: responseInspector },
         { provide: EnvironmentsService, useValue: environmentsService },
         { provide: CollectionsService, useValue: collectionsService },
-        provideNoopAnimations(),
       ],
     }).compileComponents();
   });

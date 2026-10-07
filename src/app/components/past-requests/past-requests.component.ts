@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
-import { AccordionModule } from "primeng/accordion";
+import { UI_ACCORDION } from "../../ui/accordion.component";
 import { ConfirmationService } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { ConfirmPopupModule } from "primeng/confirmpopup";
@@ -21,7 +21,7 @@ export interface HistoryGroup {
     CommonModule,
     ButtonDirective,
     TooltipDirective,
-    AccordionModule,
+    UI_ACCORDION,
     ConfirmPopupModule,
   ],
   templateUrl: "./past-requests.component.html",

@@ -157,6 +157,10 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
         const settled = () => ["activating", "activated", "redundant"].includes(worker?.state ?? "");
         if (!worker || settled()) return resolve();
         worker.addEventListener("statechange", () => settled() && resolve());
+        // The safety worker unregisters itself, and a browser may then report
+        // no further state (#118). The assertions below do not depend on
+        // which state was seen, so stop waiting after 5 s.
+        setTimeout(resolve, 5_000);
       });
     });
     await page.reload();

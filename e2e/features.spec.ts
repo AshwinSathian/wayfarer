@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
 import { seedAndOpen, send } from "./support/app";
+import { still } from "./support/settled";
 
 // Claim tests for the README's feature list (docs/claims.md, C-017 onward),
 // against the local echo-server in all three engines.
@@ -95,7 +96,9 @@ test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow
   await page.locator("input.address-url").fill(`${ECHO}/cors/no-expose?c023=${Date.now()}`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await page.locator("app-response-viewer").getByRole("tab", { name: "Timings" }).click();
+  const timingsTab = page.locator("app-response-viewer").getByRole("tab", { name: "Timings" });
+  await still(timingsTab);
+  await timingsTab.click();
   const timings = page.getByRole("tabpanel", { name: "Timings" });
   await expect(timings.getByText("CORS-limited timings")).toBeVisible();
   for (const phase of ["DNS", "Connect", "TLS", "TTFB"]) {

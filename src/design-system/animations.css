@@ -157,9 +157,9 @@
 .ease-spring   { transition-timing-function: var(--ease-spring); }
 
 /* ── Tab switch / arrival motion ─────────────────────────────
-   Applied to the desktop composer's p-tabpanel content, the mobile
-   accordion's p-accordion-content, and the response viewer's own
-   p-tabpanel content — a single shared convention for "a panel just
+   Applied to the desktop composer's ui-tabpanel content, the mobile
+   accordion's ui-accordion-content, and the response viewer's own
+   ui-tabpanel content — a single shared convention for "a panel just
    became active" rather than a bespoke animation per surface. Deliberately
    understated (a few px of lift, not a slide/bounce) per the "deliberate,
    not decorative" motion brief. */

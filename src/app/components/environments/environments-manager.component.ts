@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSig
 import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { TabsModule } from "primeng/tabs";
+import { UI_TABS } from "../../ui/tabs.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments.models";
 import { EnvironmentsService } from "../../services/environments.service";
@@ -40,7 +40,7 @@ interface EnvironmentDraft {
     CommonModule,
     FormsModule,
     ButtonDirective,
-    TabsModule,
+    UI_TABS,
     DialogModule,
     TooltipDirective,
     JsonEditorComponent,

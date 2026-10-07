@@ -68,12 +68,12 @@
 
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="px-4 pt-1">
-      <p-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
-        <p-tablist>
-          <p-tab value="body">Body</p-tab>
-          <p-tab value="headers">Headers</p-tab>
-          <p-tab value="timings">Timings</p-tab>
-          <p-tab value="tests">
+      <ui-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
+        <ui-tablist>
+          <ui-tab value="body">Body</ui-tab>
+          <ui-tab value="headers">Headers</ui-tab>
+          <ui-tab value="timings">Timings</ui-tab>
+          <ui-tab value="tests">
             Tests
             @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
@@ -85,12 +85,12 @@
               }
             </span>
             }
-          </p-tab>
-        </p-tablist>
+          </ui-tab>
+        </ui-tablist>
 
-        <p-tabpanels>
+        <ui-tabpanels>
           <!-- ── Body tab ───────────────────────────────────── -->
-          <p-tabpanel value="body">
+          <ui-tabpanel value="body">
             <div class="space-y-3 pb-4">
               @if (responseBodyIsJson()) {
               <div class="flex flex-wrap items-center gap-2">
@@ -176,10 +176,10 @@
                 }
               }
             </div>
-          </p-tabpanel>
+          </ui-tabpanel>
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <p-tabpanel value="headers">
+          <ui-tabpanel value="headers">
             <div class="pb-4">
               <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden">
                 @if (responseHeaders().length) {
@@ -200,10 +200,10 @@
                 }
               </div>
             </div>
-          </p-tabpanel>
+          </ui-tabpanel>
 
           <!-- ── Timings tab ────────────────────────────────── -->
-          <p-tabpanel value="timings">
+          <ui-tabpanel value="timings">
             @let inspectionData = inspectionValue;
             @if (!inspectionData) {
             <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
@@ -312,10 +312,10 @@
               </div>
             </div>
             }
-          </p-tabpanel>
+          </ui-tabpanel>
 
           <!-- ── Tests tab ──────────────────────────────────── -->
-          <p-tabpanel value="tests">
+          <ui-tabpanel value="tests">
             <div class="space-y-2 pb-4">
               @if (!testResults().length) {
               <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
@@ -362,9 +362,9 @@
               </div>
               }
             </div>
-          </p-tabpanel>
-        </p-tabpanels>
-      </p-tabs>
+          </ui-tabpanel>
+        </ui-tabpanels>
+      </ui-tabs>
     </div>
   </div>
   }

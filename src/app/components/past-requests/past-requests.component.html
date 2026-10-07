@@ -90,15 +90,15 @@
 
           <!-- Mobile accordion -->
           <div class="md:hidden">
-            <p-accordion>
-              <p-accordion-panel [value]="request.id ?? $index">
-                <p-accordion-header>
+            <ui-accordion>
+              <ui-accordion-panel [value]="request.id ?? $index">
+                <ui-accordion-header>
                   <div class="flex items-center gap-2">
                     <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
                     <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
                   </div>
-                </p-accordion-header>
-                <p-accordion-content>
+                </ui-accordion-header>
+                <ui-accordion-content>
                   <div class="space-y-2 type-callout text-label-secondary">
                     @if (request.status !== undefined) {
                     <p>Status: <span class="font-semibold">{{ request.status }}</span></p>
@@ -128,9 +128,9 @@
                       >Delete</button>
                     </div>
                   </div>
-                </p-accordion-content>
-              </p-accordion-panel>
-            </p-accordion>
+                </ui-accordion-content>
+              </ui-accordion-panel>
+            </ui-accordion>
           </div>
 
         </div>

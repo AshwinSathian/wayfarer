@@ -30,7 +30,7 @@ test.describe("Secrets management view", () => {
     // Scoped to the environment editor's own KEY/Value inputs (exact,
     // case-sensitive match) — the composer's Params tab has its own
     // lowercase "key"/"value" placeholders always mounted (PrimeNG's
-    // p-tabs keeps every tabpanel's content in the DOM, [hidden] on the
+    // ui-tabs keeps every tabpanel's content in the DOM, [hidden] on the
     // inactive ones rather than removing it), which a loose/case-
     // insensitive placeholder match would otherwise collide with.
     await page.getByRole("button", { name: "Add variable" }).click();

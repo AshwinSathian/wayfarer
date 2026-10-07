@@ -204,107 +204,6 @@
   width: 28px !important;
 }
 
-/* ── Tabs ────────────────────────────────────────────────── */
-.p-tabs .p-tablist {
-  background: transparent !important;
-  border-bottom: 1px solid var(--separator) !important;
-  gap: 0 !important;
-}
-
-.p-tabs .p-tablist-tab-list {
-  background: transparent !important;
-  border-bottom: none !important;
-  padding: 0 !important;
-  gap: 0 !important;
-}
-
-.p-tab {
-  color: var(--label-secondary) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
-  padding: 10px 16px !important;
-  border: none !important;
-  background: transparent !important;
-  border-bottom: 2px solid transparent !important;
-  transition:
-    color var(--dur-quick) var(--ease-standard),
-    border-color var(--dur-quick) var(--ease-standard) !important;
-  position: relative !important;
-}
-
-.p-tab:hover {
-  color: var(--label-primary) !important;
-  background: transparent !important;
-}
-
-.p-tab.p-tab-active {
-  color: var(--label-primary) !important;
-  border-bottom-color: var(--accent) !important;
-  font-weight: 580 !important;
-}
-
-.p-tabpanels {
-  background: transparent !important;
-  padding: 18px 0 0 !important;
-}
-
-.p-tabpanel {
-  background: transparent !important;
-  padding: 0 !important;
-}
-
-/* ── Tab switch motion ────────────────────────────────────────
-   Every p-tabpanel (composer, response viewer, environments editor) keeps
-   its content mounted and toggles the `hidden` attribute rather than
-   destroying/recreating it — going from [hidden] to not-[hidden] is a
-   genuine re-entry into the render tree, so a plain CSS animation here
-   reliably replays on every switch without any imperative JS. Deliberately
-   the same fade-up + a few px of lift used elsewhere (animations.css),
-   not a bespoke motion per surface. */
-.p-tabpanel:not([hidden]) {
-  animation: fade-up var(--dur-standard) var(--ease-standard) both;
-}
-
-/* ── SelectButton ────────────────────────────────────────── */
-.p-selectbutton {
-  background: var(--fill-secondary) !important;
-  border: 1px solid var(--separator) !important;
-  border-radius: var(--radius-sm) !important;
-  padding: 3px !important;
-  gap: 1px !important;
-}
-
-.p-selectbutton .p-togglebutton {
-  background: transparent !important;
-  border: none !important;
-  /* var(--label-secondary) here measures ~4.27:1 against this control's
-     actual composited background (--fill-secondary over the panel behind
-     it), just under WCAG AA's 4.5:1 for normal text — see
-     --label-secondary-on-fill in tokens.css. */
-  color: var(--label-secondary-on-fill) !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
-  padding: 5px 14px !important;
-  border-radius: calc(var(--radius-sm) - 2px) !important;
-  transition:
-    background var(--dur-quick) var(--ease-standard),
-    color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard) !important;
-}
-
-.p-selectbutton .p-togglebutton.p-togglebutton-checked {
-  background: var(--canvas-overlay) !important;
-  color: var(--label-primary) !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
-}
-
-.p-selectbutton .p-togglebutton:hover:not(.p-togglebutton-checked) {
-  color: var(--label-primary) !important;
-  background: var(--fill-hover) !important;
-}
-
 /* ── Buttons ─────────────────────────────────────────────── */
 .p-button {
   border-radius: var(--radius-md) !important;
@@ -426,27 +325,6 @@
   color: var(--label-primary) !important;
   font-size: 13px !important;
   letter-spacing: -0.002em !important;
-}
-
-/* ── Accordion ───────────────────────────────────────────── */
-.p-accordion-header-link {
-  background: transparent !important;
-  border-color: var(--separator) !important;
-  color: var(--label-secondary) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.002em !important;
-  transition: background var(--dur-micro) var(--ease-standard) !important;
-}
-
-.p-accordion-header-link:hover {
-  background: var(--fill-hover) !important;
-  color: var(--label-primary) !important;
-}
-
-.p-accordion-content {
-  background: transparent !important;
-  border-color: var(--separator) !important;
 }
 
 /* ── Menu ────────────────────────────────────────────────── */

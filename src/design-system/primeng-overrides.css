@@ -449,40 +449,6 @@
   border-color: var(--separator) !important;
 }
 
-/* ── Tooltip ─────────────────────────────────────────────── */
-.p-tooltip .p-tooltip-text {
-  background: var(--canvas-overlay) !important;
-  border: 1px solid var(--separator) !important;
-  border-radius: var(--radius-sm) !important;
-  font-size: 12px !important;
-  letter-spacing: -0.002em !important;
-  /* --label-secondary is tuned for --canvas-app/panel/elevated (see its
-     definition in tokens.css) — on this control's actual composited
-     background (--canvas-overlay, a step lighter), it measured 4.27:1,
-     under WCAG AA's 4.5:1 for normal text (confirmed via an axe-core CI
-     failure on the "Copy as cURL" tooltip). --label-secondary-on-fill is
-     the token tokens.css already defines for exactly this "lighter
-     composited surface" case. */
-  color: var(--label-secondary-on-fill) !important;
-  box-shadow: var(--shadow-overlay) !important;
-  padding: 6px 10px !important;
-}
-
-/* ── Popover ─────────────────────────────────────────────── */
-.p-popover {
-  background: var(--glass-overlay) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
-  border: 1px solid var(--glass-border-strong) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-overlay) !important;
-}
-
-.p-popover::before,
-.p-popover::after {
-  display: none !important;
-}
-
 /* ── Menu ────────────────────────────────────────────────── */
 .p-menu {
   background: var(--glass-overlay) !important;

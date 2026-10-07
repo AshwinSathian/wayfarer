@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from "@angular/core";
 import { ButtonDirective } from "../../ui/button.directive";
 import { DialogModule } from "primeng/dialog";
-import { TooltipModule } from "primeng/tooltip";
 import { EnvironmentsService } from "../../services/environments.service";
 import { ThemeService } from "../../services/theme.service";
 import { BridgeService } from "../../services/bridge.service";
@@ -31,7 +30,7 @@ interface KeyboardShortcut {
 @Component({
   selector: "app-settings",
   standalone: true,
-  imports: [IconComponent, ButtonDirective, DialogModule, TooltipModule],
+  imports: [IconComponent, ButtonDirective, DialogModule],
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

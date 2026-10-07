@@ -5,7 +5,7 @@ import { MenuItem } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { MenuModule } from "primeng/menu";
 import { TabsModule } from "primeng/tabs";
-import { TooltipModule } from "primeng/tooltip";
+import { TooltipDirective } from "../../ui/tooltip.directive";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
 import { BinaryBody } from "../../shared/http/response-body.util";
 import { ResponseInspection } from "../../shared/inspect/response-inspector.service";
@@ -51,7 +51,7 @@ interface ResponseHeader {
     CommonModule,
     FormsModule,
     TabsModule,
-    TooltipModule,
+    TooltipDirective,
     JsonEditorComponent,
     ButtonDirective,
     MenuModule,

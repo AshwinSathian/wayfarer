@@ -81,10 +81,10 @@
 }
 
 /* Material Symbols glyphs sit inside their em box with a margin, so they
-   are drawn larger than the 16px slot they occupy in the layout. */
+   are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
 .ui-btn .app-icon {
-  margin: -2px;
-  font-size: 20px;
+  margin: -3px;
+  font-size: 22px;
 }
 
 .ui-btn:not(:disabled):hover {
@@ -115,7 +115,7 @@
 }
 
 .ui-btn--sm .app-icon {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .ui-btn--icon {
@@ -335,4 +335,40 @@
   to {
     transform: translateX(100%);
   }
+}
+
+/* ── Overlays (CDK) ──────────────────────────────────────── */
+/* Above PrimeNG's dialogs and drawers, which start at 1100, until they are
+   replaced (docs/ui-migration.md, slice 5). */
+.cdk-overlay-container {
+  z-index: 12000;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+.ui-tooltip {
+  max-width: 12.5rem;
+  padding: 6px 10px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-overlay);
+  /* --label-secondary measures 4.27:1 on --canvas-overlay. */
+  color: var(--label-secondary-on-fill);
+  font-size: 12px;
+  letter-spacing: -0.002em;
+  white-space: pre-line;
+  word-break: break-word;
+  box-shadow: var(--shadow-overlay);
+  animation: fade-in var(--dur-quick) var(--ease-standard);
+}
+
+/* ── Popover: a card of details under its trigger ────────── */
+.ui-popover {
+  padding: 0.75rem;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--glass-overlay);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-overlay);
+  animation: fade-in var(--dur-quick) var(--ease-standard);
 }

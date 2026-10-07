@@ -42,10 +42,7 @@
               (click)="load(request)"
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"
-              (mouseenter)="detailsPopover.show($event)"
-              (mouseleave)="detailsPopover.hide()"
-              (focus)="detailsPopover.show($event)"
-              (blur)="detailsPopover.hide()"
+              [uiTooltip]="details"
             >{{ request.url }}</span>
 
             @if (request.status !== undefined) {
@@ -69,15 +66,15 @@
 
             <button
               class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
-              pTooltip="Delete"
-              tooltipPosition="top"
+              uiTooltip="Delete"
+              uiTooltipPosition="top"
               aria-label="Delete history entry"
               (click)="confirmDelete(request, $event)"
             >
               <app-icon name="delete" class="icon-sm text-status-error" />
             </button>
 
-            <p-popover #detailsPopover appendTo="body" [dismissable]="true">
+            <ng-template #details>
               <div class="space-y-1.5 min-w-[180px] max-w-xs type-callout p-1">
                 <p class="text-label-primary truncate font-mono text-xs">{{ request.url }}</p>
                 @if (request.status !== undefined) {
@@ -88,7 +85,7 @@
                 }
                 <p class="text-label-tertiary text-xs">{{ request.createdAt | date:'medium' }}</p>
               </div>
-            </p-popover>
+            </ng-template>
           </div>
 
           <!-- Mobile accordion -->

@@ -32,14 +32,16 @@ Tests added: `button.directive.spec.ts`; e2e for the checkbox (Space and label),
 
 Still to do for these controls in later slices: the `Inputs` and `Buttons` sections of `primeng-overrides.css` stay until slice 5, because PrimeNG's dialog close button and select still use those classes.
 
-### Slice 2 — tooltip, popover (P1.5.9)
+### Slice 2 — tooltip, popover (P1.5.9) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `pTooltip` (11) with `tooltipPosition` | icon buttons, disabled cURL wrapper | `uiTooltip` directive: shows on hover and focus, hides on Escape and blur, `role="tooltip"`, `aria-describedby` on the host | Overlay (flexible position) | `layout.spec.ts` (disabled cURL explains why), `accessibility.spec.ts` (no leftover tooltip) | e2e keyboard: focus shows, Escape hides, text is announced through `aria-describedby` |
-| `p-popover` (1): `dismissable`, `appendTo="body"` | history entry details | `uiPopover` (template in an overlay): opens on click, closes on outside click and Escape, focus returns | Overlay, FocusMonitor | `features.spec.ts` C-029 | e2e keyboard and "usable after close" |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `pTooltip` (11), `tooltipPosition` | `[uiTooltip]="text"`, `uiTooltipPosition` (`src/app/ui/tooltip.directive.ts`) on CDK Overlay | Shows on hover and focus, closes on leave, blur and Escape, stays while hovered, `role="tooltip"` + `aria-describedby` |
+| `p-popover` (1) | `[uiTooltip]="template"`: the same directive renders a template as a details card | It was only opened on hover and focus, so it is the same pattern |
 
-Security in this slice: `createHTML` and `allowHtml` leave the Trusted Types default policy (PrimeNG's Tooltip was their only user). This PR waits for the maintainer's OK.
+Security: `createHTML` and `allowHtml` are gone from the Trusted Types default policy.
+
+Tests added: `tooltip.directive.spec.ts` (5), e2e keyboard tests for the tooltip and the history details card, a stricter C-016 (the empty string is rejected as HTML too).
 
 ### Slice 3 — tabs, accordion, select button (P1.5.10)
 

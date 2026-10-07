@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { still } from "./support/settled";
 
 // Keyboard-only use of the app's own widgets (docs: WAI-ARIA Authoring
 // Practices patterns). One test per widget, in all three engines.
@@ -345,4 +346,32 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await expect(drawer).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
+});
+
+test("composer and response split: the gutter is a focusable separator moved by arrow keys, Home and End, and the result is kept", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const gutter = page.getByRole("separator", { name: "Resize the composer and the response" });
+  const composer = page.locator(".composer-pane");
+  await still(gutter);
+  const total = (await page.locator(".composer-response-splitter").boundingBox())!.width;
+  const width = async () => (await composer.boundingBox())!.width;
+
+  await gutter.focus();
+  await expect(gutter).toHaveAttribute("aria-valuenow", "55");
+  const start = await width();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(width).toBeGreaterThan(start + 10);
+  await page.keyboard.press("ArrowLeft");
+  await expect.poll(async () => Math.abs((await width()) - start)).toBeLessThan(1);
+
+  await page.keyboard.press("Home");
+  await expect(gutter).toHaveAttribute("aria-valuenow", "28");
+  await expect.poll(async () => Math.abs((await width()) - total * 0.28)).toBeLessThan(2);
+  await page.keyboard.press("End");
+  await expect.poll(async () => Math.abs((await page.locator(".response-pane").boundingBox())!.width - total * 0.22)).toBeLessThan(2);
+  const atEnd = await width();
+
+  await page.reload();
+  await expect.poll(async () => Math.abs((await width()) - atEnd)).toBeLessThan(2);
 });

@@ -79,11 +79,13 @@ For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu
 
 Tests added: 10 unit, 4 keyboard-only e2e (settings dialog, history drawer, phone navigation drawer, both confirmations). The accessibility scans no longer exclude anything inside a dialog.
 
-### Slice 6 — splitter (P1.5.13)
+### Slice 6 — splitter (P1.5.13) — done
 
-| PrimeNG | Where | Replacement | Tests today | Tests to add |
-|---|---|---|---|---|
-| `p-splitter`: `panelSizes [55,45]`, `minSizes [28,22]`, `gutterSize 8`, `stateStorage="local"`, `stateKey="wayfarer:composer-split"` | composer / response on desktop | `ui-splitter`: two panes, a `role="separator"` handle with `aria-valuenow/min/max`, pointer events with capture, arrows and Home/End, same key and same stored format (`[left, right]` percentages) | `layout.spec.ts` C-031 (drag persists across reload) | e2e keyboard resize; unit: stored value from PrimeNG is read unchanged, minimum sizes hold |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `p-splitter` (1) | `ui-splitter` (`src/app/ui/splitter.component.ts`), panes marked `uiSplitterStart` / `uiSplitterEnd` | `sizes`, `minSizes`, `storageKey`, `ariaLabel`. Same localStorage key and format as PrimeNG. Arrow keys, Home, End |
+
+Tests added: 11 unit, 1 keyboard e2e, 1 drag e2e (minimum sizes); C-031 also checks the stored ratio is applied.
 
 ### Slice 7 — collections tree (P1.5.14)
 
@@ -112,7 +114,8 @@ Listed here so the final screenshot comparison can tell them from bugs.
 6. Icons in buttons are Material Symbols instead of PrimeIcons: same slot, different drawing.
 7. Drawers take keyboard focus and keep it until closed.
 8. The history drawer no longer has a 3 px lighter left edge (a PrimeNG default that no token asked for).
-9. Confirmation text and the filled danger button are slightly lighter or darker, to reach 4.5:1 (F47).
+9. The split's gutter can be focused and moved with the keyboard, and a drag past a minimum size stops at the minimum.
+10. Confirmation text and the filled danger button are slightly lighter or darker, to reach 4.5:1 (F47).
 
 ## Screens not captured on phones
 

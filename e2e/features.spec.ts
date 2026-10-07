@@ -147,6 +147,8 @@ test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c035=1`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
+  // The response slides in; a button that moves between press and release takes no click.
+  await still(page.getByRole("button", { name: "Export response" }));
   await page.getByRole("button", { name: "Export response" }).click();
   await page.getByRole("menuitem", { name: "Copy as HAR" }).click();
   await expect.poll(clipboard).toHaveLength(1);

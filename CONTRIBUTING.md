@@ -1,7 +1,7 @@
 # Contributing to Wayfarer
 
 Thanks for considering a contribution. Wayfarer is a local-first, no-account
-API testing client (Angular + PrimeNG + IndexedDB), and the goal is to keep it
+API testing client (Angular + IndexedDB), and the goal is to keep it
 fast, simple, and trustworthy. This guide covers everything you need to go
 from `git clone` to an open pull request.
 

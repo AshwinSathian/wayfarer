@@ -95,7 +95,7 @@ Tests added: 11 unit, 1 keyboard e2e, 1 drag e2e (minimum sizes); C-031 also che
 
 Tests added: 8 unit (tree), 5 unit (sidebar), 2 keyboard e2e (tree; phone Escape with a menu open), 1 drag e2e.
 
-### Slice 8 — delete PrimeNG (P1.5.15)
+### Slice 8 — delete PrimeNG (P1.5.15) — done
 
 - `providePrimeNG` and the Aura preset leave `app.config.ts`. The preset only fed PrimeNG's own variables; the app's colours already come from `tokens.css`.
 - 26 `pi-*` tokens → `<app-icon>`. Glyphs to add to `icon-paths.ts`: `add`, `content_copy`, `edit`, `visibility`, `visibility_off`, `save`, `expand_more`, `expand_less`, `terminal`, `add_circle`. Already present: `check_circle`, `close`, `delete`, `download`, `upload`, `folder`, `key`, `lock`, `dark_mode`, `light_mode`, `warning`, `progress_activity`.

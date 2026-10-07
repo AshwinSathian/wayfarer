@@ -53,11 +53,11 @@ describe("ui-splitter", () => {
     fixture.destroy();
   });
 
-  it("reads sizes stored by the PrimeNG splitter unchanged", async () => {
+  it("reads sizes stored by the earlier splitter unchanged", async () => {
     localStorage.setItem(KEY, "[67.5365344467641,31.628392484342378]");
     const { fixture, width } = await setup();
 
-    // PrimeNG stored each pane's width over the total width: 1008 × 67.54% and 1008 × 31.63%.
+    // The earlier splitter stored each pane's width over the total width: 1008 × 67.54% and 1008 × 31.63%.
     expect(width("start")).toBeCloseTo(680.8, 0);
     expect(width("end")).toBeCloseTo(318.8, 0);
     fixture.destroy();

@@ -296,7 +296,7 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
   expect((await clipboard())[0]).toContain(`${ECHO}/content/json?c035curl=1`);
 });
 
-// Slice 2 of the PrimeNG removal: tooltips and the history details card are
+// Tooltips and the history details card are
 // reachable with the keyboard alone, and dismissible.
 test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page }) => {
   await page.goto("/");

@@ -131,7 +131,7 @@ describe("CollectionsSidebarComponent", () => {
 
       component.handleNodeSelect(node);
 
-      const labels = component.contextItems().map((item) => item.label);
+      const labels = component.contextItems().map((item) => ("label" in item ? item.label : undefined));
       expect(labels).toContain("New Folder");
       expect(labels).toContain("New Request");
       expect(labels).toContain("Export");
@@ -147,7 +147,7 @@ describe("CollectionsSidebarComponent", () => {
 
       component.handleNodeSelect(requestNode!);
 
-      const labels = component.contextItems().map((item) => item.label);
+      const labels = component.contextItems().map((item) => ("label" in item ? item.label : undefined));
       expect(labels).toEqual(["Rename", "Duplicate", "Delete"]);
     });
   });

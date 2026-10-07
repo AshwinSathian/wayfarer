@@ -105,16 +105,16 @@
       <!-- Right: actions cluster -->
       <div class="flex items-center gap-2">
         <!-- Environment selector -->
-        <p-select
+        <ui-select
           [options]="dropdownOptions()"
           [ngModel]="selectedEnvironmentId()"
-          (ngModelChange)="selectedEnvironmentId.set($event)"
+          (ngModelChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
           placeholder="No environment"
           optionLabel="label"
           optionValue="value"
-          (onChange)="handleEnvironmentChange($event.value)"
-          styleClass="env-switcher"
-        ></p-select>
+          ariaLabel="Environment"
+          class="env-switcher"
+        />
 
         <!-- Divider -->
         <div class="w-px h-5 bg-separator hidden sm:block"></div>

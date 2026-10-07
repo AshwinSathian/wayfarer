@@ -1,9 +1,8 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MenuItem } from "primeng/api";
+import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
 import { ButtonDirective } from "../../ui/button.directive";
-import { MenuModule } from "primeng/menu";
 import { UI_TABS } from "../../ui/tabs.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
@@ -54,7 +53,7 @@ interface ResponseHeader {
     TooltipDirective,
     JsonEditorComponent,
     ButtonDirective,
-    MenuModule,
+    MenuComponent,
   ],
   templateUrl: "./response-viewer.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,15 +86,15 @@ export class ResponseViewerComponent {
   readonly testResults = input<TestResult[]>([]);
   readonly responseBinary = input<BinaryBody | null>(null);
 
-  exportItems: MenuItem[] = [
+  readonly exportItems: UiMenuItem[] = [
     {
       label: "Copy as cURL",
-      icon: "pi pi-terminal",
+      icon: "terminal",
       command: () => this.copyAsCurl(),
     },
     {
       label: "Copy as HAR",
-      icon: "pi pi-copy",
+      icon: "content_copy",
       command: () => this.copyAsHar(),
     },
   ];

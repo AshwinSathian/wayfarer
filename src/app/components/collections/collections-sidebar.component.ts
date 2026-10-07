@@ -3,15 +3,14 @@ import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, sig
 import { FormsModule } from "@angular/forms";
 import {
   ConfirmationService,
-  MenuItem,
   TreeNode,
   TreeDragDropService,
 } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
-import { ContextMenuModule } from "primeng/contextmenu";
+import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
 import { TreeModule } from "primeng/tree";
 import { DialogModule } from "primeng/dialog";
-import { SelectModule } from "primeng/select";
+import { SelectComponent } from "../../ui/select.component";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { RequestDoc } from "../../models/collections.models";
 import { CollectionsService } from "../../services/collections.service";
@@ -50,10 +49,10 @@ export interface PaletteAction {
     CommonModule,
     FormsModule,
     TreeModule,
-    ContextMenuModule,
+    MenuComponent,
     ButtonDirective,
     DialogModule,
-    SelectModule,
+    SelectComponent,
     ConfirmDialogModule,
   ],
   templateUrl: "./collections-sidebar.component.html",
@@ -84,7 +83,7 @@ export class CollectionsSidebarComponent implements OnInit {
   );
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<TreeNode<NodeData> | null>(null);
-  readonly contextItems = signal<MenuItem[]>([]);
+  readonly contextItems = signal<UiMenuItem[]>([]);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 

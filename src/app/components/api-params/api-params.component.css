@@ -5,7 +5,7 @@
 }
 
 /* Method select inside address bar — no outer border/radius conflict */
-.address-bar .method-select.p-select {
+.address-bar .method-select.ui-select {
   border: none !important;
   border-right: 1px solid var(--separator) !important;
   background: transparent !important;
@@ -13,8 +13,8 @@
   height: 40px !important;
 }
 
-.address-bar .method-select.p-select:hover,
-.address-bar .method-select.p-select.p-focus {
+.address-bar .method-select.ui-select:hover,
+.address-bar .method-select.ui-select:focus-within {
   border-right-color: var(--separator) !important;
   box-shadow: none !important;
 }

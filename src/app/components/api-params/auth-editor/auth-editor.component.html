@@ -2,16 +2,15 @@
 <div class="space-y-4">
   <div class="flex items-center gap-3">
     <label class="ds-form-label min-w-[72px]" for="auth-type-select">Type</label>
-    <p-select
+    <ui-select
       inputId="auth-type-select"
       [options]="authTypes"
       [ngModel]="currentAuth.type"
       (ngModelChange)="onAuthTypeChange($event)"
       optionLabel="label"
       optionValue="value"
-      appendTo="body"
-      styleClass="w-48"
-    ></p-select>
+      class="w-48"
+    />
   </div>
 
   @if (currentAuth.type === 'bearer') {
@@ -87,16 +86,15 @@
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-addto">Add to</label>
-      <p-select
+      <ui-select
         inputId="auth-apikey-addto"
         [options]="apiKeyAddToOptions"
         [ngModel]="currentAuth.apiKey?.addTo ?? 'header'"
         (ngModelChange)="setApiKeyField({ addTo: $event })"
         optionLabel="label"
         optionValue="value"
-        appendTo="body"
-        styleClass="w-40"
-      ></p-select>
+        class="w-40"
+      />
     </div>
   </div>
   }

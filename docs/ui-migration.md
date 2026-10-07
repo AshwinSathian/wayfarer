@@ -55,14 +55,19 @@ No CDK primitive was needed. Tests added: 10 unit, 4 keyboard-only e2e (`e2e/key
 
 Looks reproduced as they were, pending F48: the phone accordions' light panels in the dark theme and the grey pill in the Basic/JSON switch.
 
-### Slice 4 — select, menu, context menu (P1.5.11)
+### Slice 4 — select, menu, context menu (P1.5.11) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `p-select` (9): `options`, `optionLabel`, `optionValue`, `placeholder`, `appendTo="body"`, `ngModel` | method, environment switcher, auth type, assertion target and operator, collection and folder pickers | `ui-select`: `role="combobox"` button plus listbox in an overlay, type-ahead, `ControlValueAccessor` | Overlay, CdkListbox | `features.spec.ts` C-017, C-019, C-021; `environments.spec.ts` | e2e keyboard: open, arrows, type-ahead, Enter, Escape, focus return; usable after close |
-| `p-menu` (popup, `model`) | response Export menu | `ui-menu` on a trigger | CdkMenu, CdkMenuTrigger | `features.spec.ts` C-035 | e2e keyboard |
-| `p-contextMenu` (`model`) | collections tree | same `ui-menu`, opened at the pointer and from the keyboard (Shift+F10, ContextMenu key) | CdkContextMenuTrigger | `features.spec.ts` C-024, `claims.spec.ts` C-014 | e2e keyboard open and activate |
-| `MenuItem` (primeng/api) | `collection-context-menu.util.ts`, response viewer | own `UiMenuItem` type: `label`, `icon`, `disabled`, `separator`, `command` | — | `collections-sidebar.component.spec.ts` | Unit for the util with the new type |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `p-select` (9) | `ui-select` (`src/app/ui/select.component.ts`) on CDK Overlay | Select-only combobox: focus stays on the trigger, `aria-activedescendant`, type-ahead, `ControlValueAccessor`. `inputId`, `optionLabel`, `optionValue`, `placeholder`, `showClear`, `ariaLabel` |
+| `p-menu` (1), `p-contextMenu` (1) | `ui-menu` (`src/app/ui/menu.component.ts`) on CDK Menu + Overlay | `toggle(event)` under a trigger, `show(event)` at the pointer. Focus moves in and returns |
+| `MenuItem` | `UiMenuItem` | `{ label, icon?, command }` or `{ separator: true }` |
+
+CDK Listbox was not used: it needs focus inside the list, and this pattern keeps it on the combobox.
+
+Tests added: 13 unit, 4 keyboard-only e2e (method select, a select inside a dialog, export menu, collection context menu).
+
+For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu]="$any(contextMenu)"`; the new tree calls `menu.show(event)` itself.
 
 ### Slice 5 — dialog, drawer, confirm dialog, confirm popup (P1.5.12)
 

@@ -189,6 +189,21 @@ async function createCollection(page: Page, name: string): Promise<void> {
   await expect(page.getByText(name, { exact: true })).toBeVisible();
 }
 
+const treeItem = (page: Page, name: string) => page.getByRole("treeitem", { name, exact: true });
+/** Names of the tree's rows, top to bottom, limited to those starting with `prefix`. */
+const treeOrder = (page: Page, prefix: string) => async () =>
+  (await page.getByRole("treeitem").evaluateAll((items) => items.map((item) => item.getAttribute("aria-label") ?? ""))).filter((name) => name.startsWith(prefix));
+
+/** Opens a row's context menu (`size` items once it shows that row's actions), picks an item, and fills the creation dialog. */
+async function createUnder(page: Page, parent: string, size: number, item: string, name: string): Promise<void> {
+  await page.getByRole("tree").getByText(parent, { exact: true }).click({ button: "right" });
+  await expect(page.getByRole("menuitem")).toHaveCount(size);
+  await page.getByRole("menuitem", { name: item }).click();
+  await page.locator("#creation-name-input").fill(name);
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+}
+
 test("@claim:C-024 collections can be renamed inline and reordered by drag and drop, and both survive a reload", async ({ page }) => {
   await page.goto("/");
   await createCollection(page, "C024 Alpha");
@@ -196,21 +211,44 @@ test("@claim:C-024 collections can be renamed inline and reordered by drag and d
 
   await page.getByText("C024 Alpha", { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Rename" }).click();
-  const input = page.locator("p-tree input");
+  const input = page.getByRole("tree").getByRole("textbox");
   await input.fill("C024 Gamma");
   await input.press("Enter");
   await expect(page.getByText("C024 Gamma", { exact: true })).toBeVisible();
 
-  const names = () => page.locator("p-tree .p-tree-node-label").allInnerTexts();
-  const order = async () => (await names()).map((n) => n.trim()).filter((n) => n.startsWith("C024"));
+  const order = treeOrder(page, "C024");
   expect(await order()).toEqual(["C024 Gamma", "C024 Beta"]);
-  // Drop Beta on the top quarter of Gamma's row: PrimeNG's "insert before" zone.
-  const row = (name: string) => page.locator(`li[role="treeitem"][aria-label="${name}"] > .p-tree-node-content`);
-  await row("C024 Beta").dragTo(row("C024 Gamma"), { targetPosition: { x: 12, y: 2 } });
+  // Drop Beta on the top edge of Gamma's row: "insert before".
+  await treeItem(page, "C024 Beta").dragTo(treeItem(page, "C024 Gamma"), { targetPosition: { x: 12, y: 2 } });
   await expect.poll(order).toEqual(["C024 Beta", "C024 Gamma"]);
 
   await page.reload();
   await expect.poll(order).toEqual(["C024 Beta", "C024 Gamma"]);
+});
+
+test("folders and requests are reordered by drag and drop among their own kind, and a drop onto a folder moves nothing", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await createCollection(page, "Drag Col");
+  await createUnder(page, "Drag Col", 6, "New Folder", "Drag Folder A");
+  await createUnder(page, "Drag Col", 6, "New Folder", "Drag Folder B");
+  await createUnder(page, "Drag Col", 6, "New Request", "Drag Req 1");
+  await createUnder(page, "Drag Col", 6, "New Request", "Drag Req 2");
+  const order = treeOrder(page, "Drag ");
+  await expect.poll(order).toEqual(["Drag Col", "Drag Folder A", "Drag Folder B", "Drag Req 1", "Drag Req 2"]);
+
+  // A request before its sibling.
+  await treeItem(page, "Drag Req 2").dragTo(treeItem(page, "Drag Req 1"), { targetPosition: { x: 40, y: 2 } });
+  await expect.poll(order).toEqual(["Drag Col", "Drag Folder A", "Drag Folder B", "Drag Req 2", "Drag Req 1"]);
+
+  // A folder before its sibling.
+  await treeItem(page, "Drag Folder B").dragTo(treeItem(page, "Drag Folder A"), { targetPosition: { x: 40, y: 2 } });
+  await expect.poll(order).toEqual(["Drag Col", "Drag Folder B", "Drag Folder A", "Drag Req 2", "Drag Req 1"]);
+
+  // A request dropped on the middle of a folder's row stays where it was.
+  await treeItem(page, "Drag Req 1").dragTo(treeItem(page, "Drag Folder A"), { targetPosition: { x: 40, y: 19 } });
+  await page.reload();
+  await expect.poll(order).toEqual(["Drag Col", "Drag Folder B", "Drag Folder A", "Drag Req 2", "Drag Req 1"]);
 });
 
 test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({ page, browser }) => {

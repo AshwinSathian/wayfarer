@@ -1,19 +1,19 @@
-import { TreeNode } from "primeng/api";
+import { UiTreeNode } from "../../ui/tree.component";
 import { Collection, Folder, RequestDoc } from "../../models/collections.models";
 import { CollectionTree } from "../../services/collections.service";
 
-/** Discriminated union backing every PrimeNG `TreeNode.data` in the collections sidebar. */
+/** Discriminated union backing every tree node's `data` in the collections sidebar. */
 export type CollectionNodeData =
   | { type: "collection"; ref: Collection }
   | { type: "folder"; ref: Folder }
   | { type: "request"; ref: RequestDoc };
 
-/** Pure conversion from the collections service's tree shape to PrimeNG `p-tree` nodes. */
-export function collectionsToNodes(trees: CollectionTree[]): TreeNode<CollectionNodeData>[] {
+/** Pure conversion from the collections service's tree shape to `ui-tree` nodes. */
+export function collectionsToNodes(trees: CollectionTree[]): UiTreeNode<CollectionNodeData>[] {
   return trees.map((entry) => toCollectionNode(entry));
 }
 
-function toCollectionNode(entry: CollectionTree): TreeNode<CollectionNodeData> {
+function toCollectionNode(entry: CollectionTree): UiTreeNode<CollectionNodeData> {
   return {
     key: `collection:${entry.collection.meta.id}`,
     label: entry.collection.name,
@@ -26,7 +26,7 @@ function toCollectionNode(entry: CollectionTree): TreeNode<CollectionNodeData> {
   };
 }
 
-function toFolderNode(folder: Folder, entry: CollectionTree): TreeNode<CollectionNodeData> {
+function toFolderNode(folder: Folder, entry: CollectionTree): UiTreeNode<CollectionNodeData> {
   const children = entry.requests
     .filter((req) => req.folderId === folder.meta.id)
     .map((req) => toRequestNode(req));
@@ -38,12 +38,11 @@ function toFolderNode(folder: Folder, entry: CollectionTree): TreeNode<Collectio
   };
 }
 
-function toRequestNode(req: RequestDoc): TreeNode<CollectionNodeData> {
+function toRequestNode(req: RequestDoc): UiTreeNode<CollectionNodeData> {
   return {
     key: `request:${req.meta.id}`,
     label: req.name || req.url || req.method,
     data: { type: "request", ref: req },
-    leaf: true,
   };
 }
 

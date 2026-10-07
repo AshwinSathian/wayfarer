@@ -67,6 +67,26 @@ describe("ui-menu", () => {
     fixture.destroy();
   });
 
+  it("show(event, items) opens with those items at once, and Escape closes it from wherever focus is", async () => {
+    const { fixture, root, menu, items, settle } = await setup();
+    const area = root.querySelector<HTMLElement>("#area")!;
+    const other: UiMenuItem[] = [{ label: "Rename", command: () => undefined }];
+    area.addEventListener("contextmenu", (event) => fixture.debugElement.query((d) => d.componentInstance instanceof MenuComponent).componentInstance.show(event, other), { capture: true, once: true });
+
+    area.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 30, clientY: 30 }));
+    await settle();
+    expect(items().map((i) => i.textContent?.trim())).toEqual(["Rename"]);
+
+    // Focus is somewhere else; CDK reads the legacy keyCode.
+    root.querySelector<HTMLElement>("#elsewhere")!.focus();
+    const escape = new KeyboardEvent("keydown", { key: "Escape", keyCode: 27, bubbles: true, cancelable: true });
+    document.body.dispatchEvent(escape);
+    await settle();
+    expect(menu()).toBeNull();
+    expect(escape.defaultPrevented).toBe(true);
+    fixture.destroy();
+  });
+
   it("runs the chosen item, closes, and gives focus back to the trigger", async () => {
     const { fixture, trigger, menu, items, settle } = await setup();
     trigger.focus();

@@ -76,6 +76,26 @@ class CollectionsServiceStub {
   async exportCollectionJson(): Promise<string | null> {
     return null;
   }
+
+  readonly reorderCalls: { kind: string; order: { id: string; order: number }[] }[] = [];
+  readonly renameCalls: { id: string; name: string }[] = [];
+
+  async reorderCollections(order: { id: string; order: number }[]): Promise<void> {
+    this.reorderCalls.push({ kind: "collections", order });
+  }
+
+  async reorderFolders(order: { id: string; order: number }[]): Promise<void> {
+    this.reorderCalls.push({ kind: "folders", order });
+  }
+
+  async reorderRequests(order: { id: string; order: number }[]): Promise<void> {
+    this.reorderCalls.push({ kind: "requests", order });
+  }
+
+  async renameRequest(id: string, name: string): Promise<null> {
+    this.renameCalls.push({ id, name });
+    return null;
+  }
 }
 
 describe("CollectionsSidebarComponent", () => {
@@ -98,7 +118,7 @@ describe("CollectionsSidebarComponent", () => {
   });
 
   describe("tree construction", () => {
-    it("converts a CollectionTree into nested PrimeNG tree nodes, folders and unfoldered requests as children", () => {
+    it("converts a CollectionTree into nested tree nodes, folders and unfoldered requests as children", () => {
       const collection = makeCollection("c1");
       const folder = makeFolder("f1", "c1");
       const rootRequest = makeRequest("r1", "c1");
@@ -118,7 +138,96 @@ describe("CollectionsSidebarComponent", () => {
       expect(folderNode?.children?.[0].key).toBe("request:r2");
 
       const requestNode = nodes[0].children?.find((n) => n.key === "request:r1");
-      expect(requestNode?.leaf).toBe(true);
+      expect(requestNode?.children).toBeUndefined();
+    });
+  });
+
+  describe("the rendered tree", () => {
+    const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[role="treeitem"]'));
+    const row = (name: string) => rows().find((r) => r.getAttribute("aria-label") === name)!;
+
+    beforeEach(async () => {
+      document.body.append(fixture.nativeElement);
+      collectionsService.setTree([
+        { collection: makeCollection("c1"), folders: [makeFolder("f1", "c1"), makeFolder("f2", "c1")], requests: [makeRequest("r1", "c1"), makeRequest("r2", "c1"), makeRequest("r3", "c1", "f1")] },
+        { collection: makeCollection("c2"), folders: [], requests: [] },
+      ]);
+      await fixture.whenStable();
+    });
+
+    it("lists collections expanded and folders collapsed, folders before requests", () => {
+      expect(rows().map((r) => `${r.getAttribute("aria-level")} ${r.getAttribute("aria-label")}`)).toEqual([
+        "1 Collection c1",
+        "2 Folder f1",
+        "2 Folder f2",
+        "2 Request r1",
+        "2 Request r2",
+        "1 Collection c2",
+      ]);
+      expect(row("Folder f1").getAttribute("aria-expanded")).toBe("false");
+    });
+
+    it("saves a new order for the kind that moved: collections, folders or requests", async () => {
+      const [c1, c2] = component.nodes();
+      const [f1, f2, r1, r2] = c1.children!;
+
+      await component.handleReorder({ node: c2, siblings: [c2, c1] });
+      await component.handleReorder({ node: f2, siblings: [f2, f1] });
+      await component.handleReorder({ node: r2, siblings: [r2, r1] });
+
+      expect(collectionsService.reorderCalls).toEqual([
+        { kind: "collections", order: [{ id: "c2", order: 1 }, { id: "c1", order: 2 }] },
+        { kind: "folders", order: [{ id: "f2", order: 1 }, { id: "f1", order: 2 }] },
+        { kind: "requests", order: [{ id: "r2", order: 1 }, { id: "r1", order: 2 }] },
+      ]);
+    });
+
+    it("Alt+ArrowUp on a request saves the new order of the requests around it", async () => {
+      row("Request r2").focus();
+      row("Request r2").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true, bubbles: true, cancelable: true }));
+      await fixture.whenStable();
+
+      expect(collectionsService.reorderCalls).toEqual([{ kind: "requests", order: [{ id: "r2", order: 1 }, { id: "r1", order: 2 }] }]);
+    });
+
+    it("F2 starts an inline rename with the name selected; Enter saves it and focus goes back to the row", async () => {
+      const settle = async () => {
+        await fixture.whenStable();
+        await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+        await fixture.whenStable();
+      };
+      row("Request r1").focus();
+      row("Request r1").dispatchEvent(new KeyboardEvent("keydown", { key: "F2", bubbles: true, cancelable: true }));
+      await settle();
+
+      const field = row("Request r1").querySelector("input")!;
+      expect(document.activeElement).toBe(field);
+      expect(field.value).toBe("Request r1");
+      expect([field.selectionStart, field.selectionEnd]).toEqual([0, "Request r1".length]);
+
+      field.value = "Renamed";
+      field.dispatchEvent(new Event("input"));
+      const enter = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+      field.dispatchEvent(enter);
+      await settle();
+
+      expect(collectionsService.renameCalls).toEqual([{ id: "r1", name: "Renamed" }]);
+      expect(row("Request r1").querySelector("input")).toBeNull();
+      expect(document.activeElement).toBe(row("Request r1"));
+    });
+
+    it("Escape leaves the rename without saving and does not reach a drawer around the tree", async () => {
+      component.beginRename(component.nodes()[0].children![2]);
+      await fixture.whenStable();
+      const field = row("Request r1").querySelector("input")!;
+
+      const escape = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+      field.dispatchEvent(escape);
+      await fixture.whenStable();
+
+      expect(escape.defaultPrevented).toBe(true);
+      expect(collectionsService.renameCalls).toEqual([]);
+      expect(row("Request r1").querySelector("input")).toBeNull();
     });
   });
 

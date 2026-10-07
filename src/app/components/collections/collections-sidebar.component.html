@@ -36,47 +36,45 @@
     <p class="type-callout text-label-tertiary max-w-[180px] text-center">No collections yet. Create one to organise your requests.</p>
   </div>
   } @else {
-  <p-tree
-    [value]="nodes()"
-    selectionMode="single"
-    [draggableNodes]="true"
-    [droppableNodes]="true"
-    (onNodeSelect)="handleNodeSelect($event.node)"
-    (onNodeDrop)="handleDrop($event)"
-    (onNodeContextMenuSelect)="handleNodeSelect($event.node)"
-    [contextMenu]="$any(contextMenu)"
+  <ui-tree
+    #tree
+    ariaLabel="Collections"
+    [nodes]="nodes()"
+    [group]="nodeKind"
+    (selected)="handleNodeSelect($event)"
+    (menu)="openContextMenu(contextMenu, $event.node, $event.event)"
+    (edit)="beginRename($event)"
+    (reorder)="handleReorder($event)"
   >
-    <ng-template let-node pTemplate="default">
+    <ng-template let-node>
       <div class="flex w-full items-center gap-2 min-w-0">
         @if (editingKey() === node.key) {
         <input
           class="ui-input w-full bg-transparent type-body"
-          [ngModel]="editingValue()"
-          (ngModelChange)="editingValue.set($event)"
-          (keydown.enter)="commitRename(node)"
-          (keydown.escape)="cancelEdit()"
+          [attr.aria-label]="'Rename ' + node.label"
+          #renameField
+          [value]="editingValue()"
+          (input)="editingValue.set(renameField.value)"
+          (keydown.enter)="endRename(tree, node, $event, true)"
+          (keydown.escape)="endRename(tree, node, $event, false)"
           (blur)="commitRename(node)"
           style="height: 28px !important;"
          />
         } @else {
-          @if (node.data?.type === 'collection') {
+          @if (node.data.type === 'collection') {
           <app-icon name="folder_open" class="icon-sm text-label-tertiary flex-shrink-0" />
-          } @else if (node.data?.type === 'folder') {
+          } @else if (node.data.type === 'folder') {
           <app-icon name="folder" class="icon-sm text-label-tertiary flex-shrink-0" />
-          } @else if (node.data?.type === 'request' && node.data?.method) {
-          <span class="method-badge method-{{ node.data.method.toLowerCase() }} flex-shrink-0">
-            {{ node.data.method }}
-          </span>
           }
           <span
             class="type-body text-label-primary truncate"
-            [title]="node.data?.type === 'request' ? 'Double-click to load into composer' : ''"
+            [title]="node.data.type === 'request' ? 'Double-click to load into composer' : ''"
             (dblclick)="handleNodeDoubleClick(node)"
           >{{ node.label }}</span>
         }
       </div>
     </ng-template>
-  </p-tree>
+  </ui-tree>
   }
 
   <ui-menu #contextMenu [items]="contextItems()" />

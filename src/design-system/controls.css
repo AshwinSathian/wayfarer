@@ -29,6 +29,7 @@
   --ctl-segment-checked: #6b7280;
   --ctl-chevron: #252840;
   --ctl-highlight: rgba(99, 102, 241, 0.15);
+  --ctl-highlight-text: #a5b4fc;
   --ctl-menu-icon: #2e3350;
   --ctl-drawer-shadow: rgba(0, 0, 0, 0.50);
   /* --status-error on --status-error-fill is 3.5:1 on overlay surfaces. */
@@ -59,6 +60,7 @@
   --ctl-segment-checked: #ffffff;
   --ctl-chevron: #94a3b8;
   --ctl-highlight: #eef2ff;
+  --ctl-highlight-text: #4338ca;
   --ctl-menu-icon: #94a3b8;
   --ctl-drawer-shadow: rgba(0, 0, 0, 0.12);
   --ctl-danger-on-fill: #c81e1e;
@@ -969,4 +971,69 @@
 
 .ui-splitter--resizing {
   user-select: none;
+}
+
+/* ── Tree ────────────────────────────────────────────────── */
+.ui-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.ui-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-standard);
+}
+
+.ui-tree-row--selected {
+  background: var(--ctl-highlight);
+}
+
+.ui-tree-row:hover {
+  background: var(--fill-hover);
+}
+
+.ui-tree-row:focus-visible {
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.ui-tree-row--drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.ui-tree-row--drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.ui-tree-toggle {
+  display: flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--ctl-surface-muted);
+  /* The glyph fills half of its box: 28px draws it as large as the old 16px chevron. */
+  font-size: 28px;
+}
+
+.ui-tree-row--selected .ui-tree-toggle {
+  color: var(--ctl-highlight-text);
+}
+
+.ui-tree-toggle--hidden {
+  visibility: hidden;
+}
+
+.ui-tree-label {
+  color: var(--label-primary);
+  font-size: 13px;
+  letter-spacing: -0.002em;
 }

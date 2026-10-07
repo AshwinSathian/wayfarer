@@ -165,12 +165,11 @@ for (const theme of THEMES) {
         await page.getByRole("menu").waitFor();
       }, escape);
       await state("dialog-import-collection", async () => {
-        await page.locator('input[type="file"]').first().setInputFiles({ name: "billing.json", mimeType: "application/json", buffer: Buffer.from(COLLECTION_FILE) });
+        // On a phone the collections panel lives in the navigation drawer, after the page in the document.
+        await (mobile ? dialog("Navigation") : page).locator('input[type="file"]').first().setInputFiles({ name: "billing.json", mimeType: "application/json", buffer: Buffer.from(COLLECTION_FILE) });
         await dialog("Import collection").waitFor();
       }, async () => {
-        // On a phone the dialog is clipped by the drawer and Cancel is off screen.
-        if (mobile) await escape();
-        else await button("Cancel import").click();
+        await button("Cancel import").click();
         await dialog("Import collection").waitFor({ state: "hidden" });
       });
       await state("command-palette", async () => {

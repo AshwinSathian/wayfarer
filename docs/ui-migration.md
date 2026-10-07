@@ -67,7 +67,7 @@ CDK Listbox was not used: it needs focus inside the list, and this pattern keeps
 
 Tests added: 13 unit, 4 keyboard-only e2e (method select, a select inside a dialog, export menu, collection context menu).
 
-For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu]="$any(contextMenu)"`; the new tree calls `menu.show(event)` itself.
+For slice 7: the PrimeNG tree still opens the context menu through `[contextMenu]="$any(contextMenu)"`; the new tree calls `menu.show(event)` itself. PrimeNG calls `show` a moment after the right-click, so on a phone an Escape pressed in that moment closes the navigation drawer and the menu then opens with no owner (seen only from a script). The new tree opens the menu in the same event; add that case to the keyboard e2e test.
 
 ### Slice 5 — dialog, drawer, confirm dialog, confirm popup (P1.5.12) — done
 

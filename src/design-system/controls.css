@@ -938,3 +938,11 @@
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-overlay);
 }
+
+/* The button a confirmation starts on shows its focus ring however the
+   confirmation was opened, so the default answer is visible before Enter. */
+.ui-confirm-panel .ui-btn:focus,
+.ui-confirm-popup .ui-btn:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

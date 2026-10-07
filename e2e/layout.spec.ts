@@ -68,6 +68,18 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
   });
 
+  test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "New environment" }).click();
+    await page.getByPlaceholder("Environment name").fill("Wide");
+    await page.getByRole("button", { name: "Create environment" }).click();
+    await page.getByRole("tab", { name: "JSON", exact: true }).click();
+    await expect(page.getByText("Loading editor…")).toHaveCount(0);
+    await page.waitForTimeout(1000);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
+  });
+
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");

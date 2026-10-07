@@ -87,13 +87,13 @@ Tests added: 10 unit, 4 keyboard-only e2e (settings dialog, history drawer, phon
 
 Tests added: 11 unit, 1 keyboard e2e, 1 drag e2e (minimum sizes); C-031 also checks the stored ratio is applied.
 
-### Slice 7 — collections tree (P1.5.14)
+### Slice 7 — collections tree (P1.5.14) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `p-tree` with `TreeNode`, drag and drop, node templates, selection, inline rename, context menu | collections sidebar | `ui-tree` over the existing `collection-tree-nodes.util.ts` output (own `UiTreeNode` type): `role="tree"`/`treeitem`, `aria-expanded`, `aria-level`, arrows, Home/End, type-ahead, F2 to rename | CdkTree, DragDrop | `features.spec.ts` C-024 (drag reorder, rename, load), `collections.spec.ts`, `collections-sidebar.component.spec.ts` (13 tests) | e2e keyboard: expand, collapse, rename with F2, open the menu, reorder with Alt+Arrow |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `p-tree`, `TreeNode`, `TreeDragDropService` | `ui-tree` (`src/app/ui/tree.component.ts`), `UiTreeNode`; `nodes`, `ariaLabel`, `group`, outputs `selected`, `menu`, `edit`, `reorder`; row template as content | No CDK: native HTML drag and drop and roving tabindex. Nodes reorder among siblings of one `group` and one parent; other drops are refused |
 
-Highest risk in the phase: drag and drop must keep the same drop rules (reorder within a parent, move into a folder, never a folder into itself). The existing C-024 test is extended with those three cases against PrimeNG before the swap.
+Tests added: 8 unit (tree), 5 unit (sidebar), 2 keyboard e2e (tree; phone Escape with a menu open), 1 drag e2e.
 
 ### Slice 8 — delete PrimeNG (P1.5.15)
 
@@ -115,7 +115,8 @@ Listed here so the final screenshot comparison can tell them from bugs.
 7. Drawers take keyboard focus and keep it until closed.
 8. The history drawer no longer has a 3 px lighter left edge (a PrimeNG default that no token asked for).
 9. The split's gutter can be focused and moved with the keyboard, and a drag past a minimum size stops at the minimum.
-10. Confirmation text and the filled danger button are slightly lighter or darker, to reach 4.5:1 (F47).
+10. The tree is keyboard-complete (arrows, F2, Shift+F10, Alt+Arrow) and its chevron turns accent-coloured on the selected row.
+11. Confirmation text and the filled danger button are slightly lighter or darker, to reach 4.5:1 (F47).
 
 ## Screens not captured on phones
 

@@ -1,7 +1,7 @@
 import { CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
 import { Overlay, OverlayRef } from "@angular/cdk/overlay";
 import { TemplatePortal } from "@angular/cdk/portal";
-import { ChangeDetectionStrategy, Component, OnDestroy, TemplateRef, ViewContainerRef, afterNextRender, inject, input, viewChild, Injector } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnDestroy, TemplateRef, ViewContainerRef, afterNextRender, inject, input, signal, viewChild, Injector } from "@angular/core";
 import { IconComponent } from "../shared/icon/icon.component";
 import { IconName } from "../shared/icon/icon-paths";
 
@@ -15,7 +15,8 @@ export type UiMenuItem = { label: string; icon?: IconName; command: () => void }
  *   <ui-menu #menu [items]="items" />
  *
  * `toggle(event)` opens it under the element that was clicked; `show(event)`
- * opens it at the pointer, for a context menu. Focus moves to the first
+ * opens it at the pointer, for a context menu (`show(event, items)` when the
+ * items depend on what was clicked). Focus moves to the first
  * item; arrow keys, Home, End and typing move; Enter and Space run an item;
  * Escape, Tab and a click outside close it. Focus then returns to where it was.
  */
@@ -25,7 +26,7 @@ export type UiMenuItem = { label: string; icon?: IconName; command: () => void }
   template: `
     <ng-template #panel>
       <div class="ui-menu" cdkMenu tabindex="-1" (keydown.escape)="$event.stopPropagation(); hide()" (keydown.tab)="hide()">
-        @for (item of items(); track $index) {
+        @for (item of shown(); track $index) {
           @if ("separator" in item) {
             <div class="ui-menu-separator" role="separator"></div>
           } @else {
@@ -44,6 +45,8 @@ export type UiMenuItem = { label: string; icon?: IconName; command: () => void }
 })
 export class MenuComponent implements OnDestroy {
   readonly items = input.required<readonly UiMenuItem[]>();
+  /** The items of the open menu, fixed when it opens. */
+  protected readonly shown = signal<readonly UiMenuItem[]>([]);
 
   private readonly overlay = inject(Overlay);
   private readonly viewContainer = inject(ViewContainerRef);
@@ -65,6 +68,7 @@ export class MenuComponent implements OnDestroy {
     if (this.overlayRef) return this.hide();
     const anchor = event.currentTarget as HTMLElement;
     this.anchor = anchor;
+    this.shown.set(this.items());
     this.open(
       this.overlay
         .position()
@@ -79,11 +83,12 @@ export class MenuComponent implements OnDestroy {
   }
 
   /** Opens at the pointer (a context menu) and suppresses the browser's own menu. */
-  show(event: MouseEvent): void {
+  show(event: MouseEvent, items: readonly UiMenuItem[] = this.items()): void {
     event.preventDefault();
     event.stopPropagation();
     this.hide();
     this.anchor = null;
+    this.shown.set(items);
     this.open(
       this.overlay
         .position()
@@ -121,6 +126,13 @@ export class MenuComponent implements OnDestroy {
     });
     ref.attach(new TemplatePortal(this.panel(), this.viewContainer));
     ref.detachments().subscribe(() => this.hide());
+    // Escape closes the menu wherever focus is, and nothing under it: a
+    // dialog or drawer the menu was opened from stays open.
+    ref.keydownEvents().subscribe((event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      this.hide();
+    });
     this.overlayRef = ref;
     // Close on the next press outside. A press, not a click: the click or
     // right-click that opened the menu is still being released.

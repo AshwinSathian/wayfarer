@@ -1,16 +1,12 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import {
-  TreeNode,
-  TreeDragDropService,
-} from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
-import { TreeModule } from "primeng/tree";
 import { ConfirmService } from "../../ui/confirm.service";
 import { DialogComponent } from "../../ui/dialog.component";
 import { SelectComponent } from "../../ui/select.component";
+import { TreeComponent, UiTreeNode } from "../../ui/tree.component";
 import { RequestDoc } from "../../models/collections.models";
 import { CollectionsService } from "../../services/collections.service";
 import { CollectionImportService } from "../../services/collection-import.service";
@@ -29,11 +25,6 @@ import { IconComponent } from "../../shared/icon/icon.component";
 
 type NodeData = CollectionNodeData;
 
-interface TreeDragDropEvent {
-  dragNode?: TreeNode<NodeData> | null;
-  tree?: { value?: TreeNode<NodeData>[] };
-}
-
 export interface PaletteAction {
   id: string;
   label: string;
@@ -47,7 +38,7 @@ export interface PaletteAction {
     IconComponent,
     CommonModule,
     FormsModule,
-    TreeModule,
+    TreeComponent,
     MenuComponent,
     ButtonDirective,
     DialogComponent,
@@ -55,7 +46,6 @@ export interface PaletteAction {
   ],
   templateUrl: "./collections-sidebar.component.html",
   styleUrls: ["./collections-sidebar.component.css"],
-  providers: [TreeDragDropService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~570 lines: tree-node building/type guards moved to
@@ -68,6 +58,8 @@ export interface PaletteAction {
 // sidebar-owned interaction state, not extractable without just relocating
 // the same coupling elsewhere.
 export class CollectionsSidebarComponent implements OnInit {
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly collectionsService = inject(CollectionsService);
   private readonly confirm = inject(ConfirmService);
   private readonly collectionImport = inject(CollectionImportService);
@@ -76,11 +68,11 @@ export class CollectionsSidebarComponent implements OnInit {
   /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
   readonly externalActions = input<PaletteAction[]>([]);
 
-  readonly nodes = computed<TreeNode<NodeData>[]>(() =>
+  readonly nodes = computed<UiTreeNode<NodeData>[]>(() =>
     collectionsToNodes(this.collectionsService.tree())
   );
   readonly loading = this.collectionsService.loading;
-  readonly selectedNode = signal<TreeNode<NodeData> | null>(null);
+  readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
@@ -308,14 +300,14 @@ export class CollectionsSidebarComponent implements OnInit {
     }
   }
 
-  handleNodeSelect(node: TreeNode<NodeData>): void {
+  handleNodeSelect(node: UiTreeNode<NodeData>): void {
     this.selectedNode.set(node);
     this.contextItems.set(
       buildContextItems(node, (action, target) => this.dispatchContextAction(action, target))
     );
   }
 
-  private dispatchContextAction(action: CollectionNodeAction, node: TreeNode<NodeData>): void {
+  private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {
     if (action === "export") {
       void this.exportCollection(node);
       return;
@@ -323,7 +315,7 @@ export class CollectionsSidebarComponent implements OnInit {
     void this.handleAction(action, node);
   }
 
-  handleNodeDoubleClick(node: TreeNode<NodeData>): void {
+  handleNodeDoubleClick(node: UiTreeNode<NodeData>): void {
     const data = node.data as NodeData | undefined;
     if (data?.type === "request") {
       this.emitLoadRequest(data.ref);
@@ -334,46 +326,53 @@ export class CollectionsSidebarComponent implements OnInit {
     this.loadRequest.emit(doc);
   }
 
-  async handleDrop(event: TreeDragDropEvent): Promise<void> {
-    const dragData = event.dragNode?.data as NodeData | undefined;
-    if (!dragData) {
-      return;
-    }
-    if (dragData.type === "collection") {
-      const order = (event.tree?.value ?? this.nodes()).map((n, index) => ({
-        id: (n.data as NodeData).ref.meta.id,
-        order: index + 1,
-      }));
-      await this.collectionsService.reorderCollections(order);
-      return;
-    }
+  /** Opens the context menu for a node, with that node's actions. */
+  openContextMenu(menu: MenuComponent, node: UiTreeNode<NodeData>, event: MouseEvent): void {
+    this.handleNodeSelect(node);
+    // Passed directly: the menu's own input is not updated until the next render.
+    menu.show(event, this.contextItems());
+  }
 
-    if (dragData.type === "folder") {
-      const siblings = event.dragNode?.parent?.children ?? [];
-      const order = siblings.map((n, index) => ({
-        id: (n.data as NodeData).ref.meta.id,
-        order: index + 1,
-      }));
-      await this.collectionsService.reorderFolders(order);
-      return;
-    }
-
-    if (dragData.type === "request") {
-      const siblings = event.dragNode?.parent?.children ?? [];
-      const order = siblings.map((n, index) => ({
-        id: (n.data as NodeData).ref.meta.id,
-        order: index + 1,
-      }));
-      await this.collectionsService.reorderRequests(order);
+  /** Saves the new order of a node's siblings after a drag and drop or an Alt+Arrow move. */
+  async handleReorder(event: { node: UiTreeNode<NodeData>; siblings: UiTreeNode<NodeData>[] }): Promise<void> {
+    const order = event.siblings.map((sibling, index) => ({ id: sibling.data.ref.meta.id, order: index + 1 }));
+    switch (event.node.data.type) {
+      case "collection":
+        return this.collectionsService.reorderCollections(order);
+      case "folder":
+        return this.collectionsService.reorderFolders(order);
+      case "request":
+        return this.collectionsService.reorderRequests(order);
     }
   }
 
-  beginRename(node: TreeNode<NodeData>): void {
+  /** Nodes are reordered among their own kind only: collections, folders or requests. */
+  readonly nodeKind = (node: UiTreeNode<NodeData>): string => node.data.type;
+
+  beginRename(node: UiTreeNode<NodeData>): void {
     this.editingKey.set(node.key ?? null);
     this.editingValue.set(node.label ?? "");
+    afterNextRender(
+      () => {
+        const field = this.host.nativeElement.querySelector<HTMLInputElement>('[role="tree"] input');
+        field?.focus();
+        field?.select();
+      },
+      { injector: this.injector }
+    );
   }
 
-  async commitRename(node: TreeNode<NodeData>): Promise<void> {
+  /** Ends an inline rename from the keyboard and puts focus back on the node's row. */
+  async endRename(tree: TreeComponent<NodeData>, node: UiTreeNode<NodeData>, event: Event, commit: boolean): Promise<void> {
+    // The key ends the rename only; a drawer around the tree stays open.
+    event.preventDefault();
+    event.stopPropagation();
+    if (commit) await this.commitRename(node);
+    else this.cancelEdit();
+    if (this.editingKey() === null) afterNextRender(() => tree.focusNode(node.key), { injector: this.injector });
+  }
+
+  async commitRename(node: UiTreeNode<NodeData>): Promise<void> {
     const key = node.key;
     if (!key) {
       return;
@@ -402,7 +401,7 @@ export class CollectionsSidebarComponent implements OnInit {
 
   async handleAction(
     action: Exclude<CollectionNodeAction, "export">,
-    node: TreeNode<NodeData>
+    node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;
     switch (action) {
@@ -466,7 +465,7 @@ export class CollectionsSidebarComponent implements OnInit {
     }
   }
 
-  private async exportCollection(node: TreeNode<NodeData>): Promise<void> {
+  private async exportCollection(node: UiTreeNode<NodeData>): Promise<void> {
     const data = node.data as NodeData;
     if (data.type !== "collection") {
       return;

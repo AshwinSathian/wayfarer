@@ -1,5 +1,5 @@
-import { TreeNode } from "primeng/api";
 import { UiMenuItem } from "../../ui/menu.component";
+import { UiTreeNode } from "../../ui/tree.component";
 import { CollectionNodeData } from "./collection-tree-nodes.util";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
@@ -12,8 +12,8 @@ export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "du
  * this just decides which actions are offered for which node type.
  */
 export function buildContextItems(
-  node: TreeNode<CollectionNodeData>,
-  dispatch: (action: CollectionNodeAction, node: TreeNode<CollectionNodeData>) => void
+  node: UiTreeNode<CollectionNodeData>,
+  dispatch: (action: CollectionNodeAction, node: UiTreeNode<CollectionNodeData>) => void
 ): UiMenuItem[] {
   const data = node.data as CollectionNodeData;
 

@@ -203,7 +203,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("menuitem", { name: "Rename" })).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page.locator("p-tree input")).toBeVisible();
+  await expect(page.getByRole("tree").getByRole("textbox")).toBeVisible();
 });
 
 test("with the mouse: a second click on the Export button or on a select closes it again", async ({ page }) => {
@@ -374,4 +374,102 @@ test("composer and response split: the gutter is a focusable separator moved by 
 
   await page.reload();
   await expect.poll(async () => Math.abs((await width()) - atEnd)).toBeLessThan(2);
+});
+
+/** Opens a tree row's context menu, picks an item, and fills the creation dialog. */
+async function createUnder(page: Page, parent: string, item: string, name: string): Promise<void> {
+  await page.getByRole("treeitem", { name: parent, exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: item }).click();
+  await page.locator("#creation-name-input").fill(name);
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+}
+
+test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reorders, Shift+F10 opens the menu", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New collection" }).click();
+  await page.locator("#creation-name-input").fill("Tree Col");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await createUnder(page, "Tree Col", "New Folder", "Tree Folder");
+  await createUnder(page, "Tree Col", "New Request", "Tree Req 1");
+  await createUnder(page, "Tree Col", "New Request", "Tree Req 2");
+  await createUnder(page, "Tree Folder", "New Request", "Tree Inner");
+  const item = (name: string) => page.getByRole("treeitem", { name, exact: true });
+  const order = async () => (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? ""))).filter((n) => n.startsWith("Tree "));
+
+  // Exactly one row is in the tab order.
+  await expect(page.locator('[role="treeitem"][tabindex="0"]')).toHaveCount(1);
+
+  // Walk and expand.
+  await item("Tree Col").focus();
+  await expect(item("Tree Col")).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("ArrowDown");
+  await expect(item("Tree Folder")).toBeFocused();
+  await expect(item("Tree Folder")).toHaveAttribute("aria-expanded", "false");
+  await expect(item("Tree Inner")).toHaveCount(0);
+  await page.keyboard.press("ArrowRight");
+  await expect(item("Tree Folder")).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("ArrowRight");
+  await expect(item("Tree Inner")).toBeFocused();
+  await expect(item("Tree Inner")).toHaveAttribute("aria-level", "3");
+  await page.keyboard.press("ArrowLeft");
+  await expect(item("Tree Folder")).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(item("Tree Inner")).toHaveCount(0);
+  await page.keyboard.press("End");
+  await expect(item("Tree Req 2")).toBeFocused();
+
+  // Enter selects.
+  await page.keyboard.press("Enter");
+  await expect(item("Tree Req 2")).toHaveAttribute("aria-selected", "true");
+
+  // Alt+ArrowUp moves the request above its sibling, keeps focus on it, and the order is saved.
+  await page.keyboard.press("Alt+ArrowUp");
+  await expect.poll(order).toEqual(["Tree Col", "Tree Folder", "Tree Req 2", "Tree Req 1"]);
+  await expect(item("Tree Req 2")).toBeFocused();
+
+  // F2 renames in place; Enter saves and focus returns to the row.
+  await page.keyboard.press("F2");
+  const field = page.getByRole("tree").getByRole("textbox");
+  await expect(field).toBeFocused();
+  await page.keyboard.type("Tree Req Two");
+  await page.keyboard.press("Enter");
+  await expect(item("Tree Req Two")).toBeFocused();
+
+  // Escape abandons a rename.
+  await page.keyboard.press("F2");
+  await expect(field).toBeFocused();
+  await page.keyboard.type("discarded");
+  await page.keyboard.press("Escape");
+  await expect(field).toHaveCount(0);
+  await expect(item("Tree Req Two")).toBeFocused();
+
+  // Shift+F10 opens the row's menu; Escape closes it and focus returns to the row.
+  await page.keyboard.press("Shift+F10");
+  await expect(page.getByRole("menuitem")).toHaveText(["Rename", "Duplicate", "Delete"]);
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(item("Tree Req Two")).toBeFocused();
+
+  await page.reload();
+  await expect.poll(order).toEqual(["Tree Col", "Tree Folder", "Tree Req Two", "Tree Req 1"]);
+});
+
+test("phone: Escape with a tree row's menu open closes the menu and leaves the navigation drawer open", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Toggle sidebar" }).click();
+  const drawer = page.getByRole("dialog", { name: "Navigation" });
+  await drawer.getByRole("button", { name: "New collection" }).click();
+  await page.locator("#creation-name-input").fill("Phone Col");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+
+  await drawer.getByRole("treeitem", { name: "Phone Col" }).click({ button: "right" });
+  // No wait for the menu: it opens in the same event as the right-click.
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("treeitem", { name: "Phone Col" })).toBeFocused();
 });

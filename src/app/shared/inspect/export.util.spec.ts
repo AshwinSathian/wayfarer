@@ -1,4 +1,4 @@
-import { toHar, InspectorExportEntry } from "./export.util";
+import { buildCurlCommand, toHar, InspectorExportEntry } from "./export.util";
 import { describe, it, expect } from "vitest";
 
 describe("export.util", () => {
@@ -113,5 +113,37 @@ describe("export.util", () => {
     expect(harFor(big).response.content.text).toBeUndefined();
     expect(harFor(big).response.content.comment).toBe("omitted (size or type)");
     expect(harFor(small).response.content.text).toContain('"data"');
+  });
+
+  describe("buildCurlCommand", () => {
+    it("writes a GET as the bare URL plus its headers, one argument per line", () => {
+      expect(buildCurlCommand({ method: "GET", url: "https://api.test/items?a=1", headers: { Accept: "application/json", "": "skipped" } })).toBe(
+        "curl \\\n  'https://api.test/items?a=1' \\\n  -H 'Accept: application/json'"
+      );
+    });
+
+    it("adds the method and a JSON body for other methods", () => {
+      expect(buildCurlCommand({ method: "POST", url: "https://api.test/items", headers: {}, body: { name: "a" } })).toBe(
+        "curl \\\n  -X POST \\\n  'https://api.test/items' \\\n  -d '{\"name\":\"a\"}'"
+      );
+    });
+
+    it("escapes single quotes so a value cannot end the shell string early", () => {
+      const command = buildCurlCommand({
+        method: "PUT",
+        url: "https://api.test/o'brien",
+        headers: { "X-Note": "it's" },
+        body: "name='x'; rm -rf /",
+      });
+
+      expect(command).toContain("'https://api.test/o'\\''brien'");
+      expect(command).toContain("-H 'X-Note: it'\\''s'");
+      expect(command).toContain("-d 'name='\\''x'\\''; rm -rf /'");
+    });
+
+    it("leaves out an empty or absent body", () => {
+      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: "" })).not.toContain("-d ");
+      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: null })).not.toContain("-d ");
+    });
   });
 });

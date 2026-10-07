@@ -1,11 +1,11 @@
 # RFC: Airtight Remediation — make every Wayfarer claim true, tested, and shipped
 
-> Status: LOCKED (v1.0, 2026-09-28). Changes after lock need an entry in section 16 (Change log).
+> Status: LOCKED (v1.0, 2026-09-28; current v1.1.1, 2026-10-06). Changes after lock need an entry in section 16 (Change log).
 > Scale: Epic
 > Target start: 2026-09-29
 > Created: 2026-09-28
 > Author: Ashwin Sathian
-> Estimated effort: 83 engineering days + 25% buffer = 104 days (~21 weeks) for one engineer
+> Estimated effort: 95 engineering days + 25% buffer = 119 days (~24 weeks) for one engineer (83 at lock; Phase 1.5 added 12 in v1.1.0)
 > Supersedes: nothing (no prior plan in repo)
 > Follow-on: re-run the Phase 2 competitive analysis after Phase 7 exit criteria pass
 
@@ -28,7 +28,7 @@ A September 2026 adversarial audit found that Wayfarer's three differentiators a
 When Phase 7's exit criteria pass, all of the following are true and verified by CI on every commit:
 
 1. Every factual claim in `README.md` and `docs/trust-center.md` carries a claim ID. Each ID is enforced by at least one automated test that runs against production-equivalent headers in Chromium, Firefox and WebKit. CI fails if a claim has no test.
-2. Every finding F01–F43 (F43 was found during Phase 1) is closed by a merged task whose AC is met, or is explicitly moved to section 15 (Follow-up Work) with a reason.
+2. Every finding F01–F45 (F43 was found during Phase 1, F44 and F45 during Phase 1.5) is closed by a merged task whose AC is met, or is explicitly moved to section 15 (Follow-up Work) with a reason.
 3. A Postman user can import a v2.1 collection (with environment), run it in-app and from `npx wayfarer-cli`, and get identical pass/fail results for scripts inside the published compatibility matrix.
 4. The production site passes a synthetic smoke suite every 6 hours. A failure opens a GitHub issue automatically.
 
@@ -97,7 +97,7 @@ When Phase 7's exit criteria pass, all of the following are true and verified by
 - Not in scope: Digest, NTLM, Hawk, Akamai EdgeGrid, and OAuth 1.0 auth. Importers flag them as unsupported.
 - Not in scope: Bruno `.bru` import (Bruno can export to Postman format), and File System Access "workspace folders" (a Phase 2 wedge candidate).
 - Not in scope: SOC 2, ISO 27001, paid pen test, SSO/SCIM.
-- Not in scope: rewriting the app away from Angular or PrimeNG.
+- Not in scope: rewriting the app away from Angular. (PrimeNG was also listed here at lock; D14 reversed that in v1.1.0, and Phase 1.5 removes it.)
 - Not in scope: marketing site, launch campaign, positioning. The Phase 2 re-run owns these.
 
 ## 4. Architecture
@@ -290,11 +290,24 @@ POST /relay { method, url, headers: [name, value][], bodyB64?, followRedirects, 
   Otherwise the user sees "The browser may have sent this request; retry via bridge?".
 - **D8 — Vault v2 uses DEK/KEK.** Unlock is per tab; lock propagates to all tabs. A random AES-GCM-256 DEK encrypts secrets. The KEK is PBKDF2-SHA256 (600k, 16-byte salt) from the passphrase and wraps the DEK. A verifier (AES-GCM encryption of a fixed 32-byte constant under the DEK) validates unlock. Rotation re-wraps the DEK only. Auto-lock after 15 minutes idle (configurable 1–240, or never). A lock in any tab locks all tabs via BroadcastChannel `wayfarer:vault`.
 - **D9 — Shortcuts avoid browser-reserved chords.** Browser tabs cannot intercept Cmd/Ctrl+T, W, N, Tab. New/close tab use Alt+T / Alt+W (Option on macOS), listed in the palette. An installed PWA (standalone window) additionally maps Cmd/Ctrl+T/W where the browser allows it.
-- **D10 — Material Symbols webfont replaced by inline SVG icons.** Rationale: removes a Google request, removes ligature text leaking into accessible names (F33), and ships only the 30 used glyphs. PrimeIcons stays only where PrimeNG requires it.
-- **D11 — Semver release per phase.** v1.1.0 (Phase 0), v1.2.0 (Phase 1), v2.0.0 (Phase 2: data model v5 and export v2 are breaking), v2.1–v2.5 for Phases 3–7.
+- **D10 — Material Symbols webfont replaced by inline SVG icons.** Rationale: removes a Google request, removes ligature text leaking into accessible names (F33), and ships only the 30 used glyphs. PrimeIcons stays only where PrimeNG requires it (until Phase 1.5 removes both; D15).
+- **D11 — Semver release per phase.** v1.1.0 (Phase 0), v1.2.0 (Phase 1), v1.3.0 (Phase 1.5), v2.0.0 (Phase 2: data model v5 and export v2 are breaking), v2.1–v2.5 for Phases 3–7.
 - **D12 — Enterprise paperwork trimmed.** `docs/security-questionnaire.md` is merged into `docs/trust-center.md` as a "Procurement quick answers" section. The SOC 2 roadmap prose is replaced by one line: "No third-party audits or certifications exist."
 
 - **D13 — Trusted Types enforced (spike P1.9, 2026-09-28).** `require-trusted-types-for 'script'` is in `security/csp.json`. With it enforced and no policy, Chromium, Firefox and WebKit reported exactly three sinks: `ServiceWorkerContainer.register('/sw.js')`, `new Worker(new URL('worker-*.js', import.meta.url))` (Monaco's editor/json/css/html/ts workers, the JSON worker, the script sandbox worker) and PrimeNG Tooltip's `innerHTML = ""`. Angular and Monaco use their own named policies and reported nothing. The fix is one `default` policy (`src/app/shared/security/trusted-types.ts`): script URLs only on the app's own origin over http(s), HTML only the empty string, no `createScript`. No `trusted-types` name allow-list: Monaco creates many version-specific policy names, and an allow-list would break editors on upgrade without adding sink protection. Claim C-016 tests it in 3 browsers.
+
+- **D14 — Leave PrimeNG; move to Angular 22 first (maintainer, 2026-10-06).** Checked against the registry on 2026-10-06:
+  - `primeng@22.1.2` ships a `LICENSE.md` titled "PrimeUI License" (commercial, licence key). `primeng@21.1.10` and `20.4.0` ship the MIT text.
+  - `primeng@21` peers on `@angular/core ^21.0.7`; nothing MIT peers on Angular 22. `@primeng/themes` stops at 21.0.4.
+  - So staying on PrimeNG caps the app at Angular 21, on a line that gets no further MIT releases.
+  - The app is at its smallest now. Phases 2 and 5 add editors, viewers, tabs and a runner; building them on PrimeNG would mean migrating them later.
+  - Trade-off: about 12 days with no new user-visible feature, and the project owns its widgets' accessibility. Mitigation: the 41 claim tests in 3 engines, plus a keyboard-only e2e per overlay and composite widget (P1.5.9–P1.5.14).
+- **D15 — Replacement stack: Angular CDK primitives plus the project's own components.** They live in `src/app/ui/`, are standalone, signal-based and OnPush, and are styled with the existing tokens (`src/design-system/`, Tailwind).
+  - Default: custom components on CDK and Tailwind. Angular Material (MIT, same release train as Angular and the CDK) is allowed where a custom widget would cost more than it is worth (maintainer, 2026-10-06); the migration map (P1.5.7) names each such widget and the reason, and Material is themed from the project's tokens so nothing looks different. No other UI library, and no other new runtime dependency without the maintainer's approval.
+  - Native elements where they are enough (`<button>`, `<input>`, `<textarea>`, `<input type="checkbox">`, `<details>`); CSS for skeleton, spinner, chip, panel, toolbar and float label; CDK Overlay, Dialog, FocusTrap, Listbox, Menu, Tree, Accordion and DragDrop for the rest.
+  - Icons: the existing inline-SVG `<app-icon>` replaces every `pi pi-*` glyph. This completes D10; no icon font remains.
+  - Theme: the Aura preset is replaced by the project's own CSS custom properties. Dark and light look the same as before.
+  - API rule: each component exposes only what the app uses today. No speculative options.
 
 Trade-offs accepted:
 - Scripts run slower than in Postman. Mitigation: host-native crypto shims, and a benchmark gate in P3.10.
@@ -313,6 +326,8 @@ Trade-offs accepted:
 | R5 | Redaction misses a secret-derived value and it lands in history or exports | M | H | 6 | D5 output value-matching. Mutation testing ≥ 85% on `redactor.ts`. Property tests with random secrets across base64, URL-encode and concatenation. The export UI previews the redacted output before download. | Maintainer |
 | R6 | 3-browser e2e flake makes CI untrustworthy | H | M | 6 | Deterministic local fixtures only (no internet in PR e2e). `@claim` tests may not use retries (a `retries: 0` project). A flake register in `e2e/FLAKES.md` needs an issue link. One external canary runs only in the nightly `synthetic.yml`. | Maintainer |
 | R7 | Trusted Types breaks Monaco or PrimeNG | M | L | 2 | Spike P1.9. If it fails, record the decision in section 6 and ship without TT. Not blocking. | Maintainer |
+| R13 | Replacing 26 PrimeNG entry points regresses behaviour or accessibility that no test covers | M | H | 6 | Test-first: an untested behaviour gets a test against the PrimeNG version before its slice starts. No test is deleted, skipped or loosened. One slice at a time, each fully green in 3 engines. Before/after screenshots of every view and dialog (P1.5.17). | Maintainer |
+| R14 | PrimeNG 21 does not run on Angular 22 behind a peer override | M | M | 4 | Decided by experiment in P1.5.2. Fallback: Part A lands Angular 21, and Angular 22 lands after PrimeNG is gone (P1.5.15). PrimeNG 22 is never installed. | Maintainer |
 | R8 | OAuth token endpoints lack CORS, so the flows fail in-browser | H | M | 6 | Token requests use RoutePolicy. When the bridge is unavailable, the error names the missing `Access-Control-Allow-Origin` and links `docs/browser-limits.md#oauth`. The mock IdP fixture tests both paths. | Maintainer |
 | R9 | Bundle size regresses the "lightweight" feel (QuickJS, GraphQL, OpenAPI parser, Monaco) | M | M | 4 | All heavy modules load lazily. Budgets are set in P1.12 from the measured baseline and are CI-enforced. | Maintainer |
 | R10 | Postman compatibility claims drift from reality | M | M | 4 | `docs/postman-compatibility.md` is generated from the conformance suite. Each row is a test. CI fails on mismatch. | Maintainer |
@@ -449,7 +464,7 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
   - AC: `npm run lint` and `npx knip` pass with the rules enabled; `grep -rn "catch {" src/app --include=*.ts | grep -v '\.spec\.ts'` returns 0 lines. (The original `grep -v spec` also hid `src/app/shared/inspect/`; see change log v1.0.2.)
 - [x] **P1.12** Measure the bundle baseline (initial JS/CSS transfer size, gzip) and set `angular.json` budgets to `maximumError = baseline × 1.10` for initial. Add a `bundle-report` CI artifact.
   - AC: budgets in `angular.json` equal the recorded baseline numbers in this file's Appendix A; the build fails if they are exceeded.
-- [ ] **P1.13** *(Deferred 2026-09-28 by the maintainer: done with the Angular upgrade after this plan; see section 15.)* Coverage: Vitest v8 coverage in browser mode, with thresholds `src/app/**` lines ≥ 70% and `packages/core/**` lines ≥ 90% (enforced once core exists).
+- [ ] **P1.13** *(Deferred 2026-09-28 by the maintainer, then scheduled as P1.5.5 in v1.1.0; ticked when P1.5.5 is.)* Coverage: Vitest v8 coverage in browser mode, with thresholds `src/app/**` lines ≥ 70% and `packages/core/**` lines ≥ 90% (enforced once core exists).
   - AC: CI fails below threshold.
 - [ ] **P1.14** Supply chain:
   - pin all Actions to SHAs;
@@ -463,6 +478,80 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 - Deploy is artifact-once with rollback proven.
 - The synthetic monitor is live.
 - The claims ledger covers every claim in README and Trust Center.
+
+### Phase 1.5 — Platform reset: Angular 22, PrimeNG removed (~12 days) → v1.3.0
+
+**Goal:** the app runs on the current Angular major with no PrimeNG, PrimeNG theme or PrimeIcons, so Phases 2–5 build their UI once, on the final stack (D14, D15).
+
+**Deliverable:** Angular 22 with its coupled tooling; `src/app/ui/` components on CDK primitives; a coverage gate; a tighter Trusted Types policy; a smaller initial bundle. No new feature and no visual change.
+
+**Rules for this phase (binding on every task):**
+- No test is deleted, skipped, marked `.fixme` or loosened. A test that encodes a PrimeNG class gets a role- or label-based locator; its assertion stays.
+- Every user-visible behaviour that exists before a slice exists after it. An untested behaviour of a component about to be replaced gets a test first, passing against the PrimeNG version.
+- No redesign: same layout, spacing, colours and motion in both themes.
+- A claim's wording changes only together with its ledger row and its test.
+- Not touched: `ApiParamsComponent` structure beyond swapping widgets (P2.17 owns the split), Cloudflare settings, `ZONE_HARDENED`, `SYNTHETIC_ENABLED`.
+
+**Delivery (maintainer decision, 2026-10-06):** every branch starts from `main` and merges back through a PR, continuously: one PR for Part A (`phase-1.5/a-angular-22`), then one PR per Part B slice (`phase-1.5/b-<slice>`). A PR merges when CI is green, except PRs that change security posture (CSP, Trusted Types), stored data or public claims, which wait for the maintainer's explicit OK. Node, TypeScript and the other tools move to whatever the target Angular version requires, without a separate decision.
+
+**Baseline (main at `0dfe14b`, 2026-10-06, Node 24.19.0 locally):** see Appendix A, row "Phase 1.5 baseline".
+
+**Part A — Angular upgrade**
+
+- [x] **P1.5.1** Angular 20.3 → 21 with the official migrations (`ng update @angular/core@21 @angular/cli@21`, then `@angular/cdk@21`), PrimeNG 20 → 21 (MIT), and Vitest 3 → 4 with the browser provider package the Angular 21 unit-test builder requires. The migration output is read and recorded in the commit body.
+  - AC: every baseline command passes; unit count ≥ 216 and e2e count ≥ 231; `ng version` shows 21.x; one commit.
+- [x] **P1.5.2** Angular 21 → 22 (`ng update @angular/core@22 @angular/cli@22`, `@angular/cdk@22`). `.nvmrc` moves to a Node release inside Angular 22's range (`^22.22.3 || ^24.15.0`; today it is 22.16.0) and `engines.node` follows. PrimeNG stays at 21 behind an npm `overrides` entry for its Angular peers, commented as temporary and naming P1.5.15 as its removal.
+  - AC: every baseline command passes in 3 engines with PrimeNG 21 on Angular 22; `ng version` shows 22.x; `npm ls primeng` shows 21.x. If any baseline command fails because of PrimeNG 21 on Angular 22, work stops and the maintainer chooses the R14 fallback; the failure output is recorded in section 16.
+- [x] **P1.5.3** Coupled tooling, one commit each: the builders in `angular.json` move from `@angular-devkit/build-angular` to `@angular/build` (the package is then removed); TypeScript to the newest version in Angular 22's peer range (`>=6.0 <6.1` today; not TypeScript 7); `angular-eslint` 22; `typescript-eslint` to the newest release that supports that TypeScript; Vitest and its browser provider to the newest version in `@angular/build@22`'s peer range; `@types/node` to the `.nvmrc` major.
+  - AC: every baseline command passes after each commit; `npm ls` reports no invalid peer other than the commented PrimeNG override; the lockfile installs with `npx npm@10 ci`.
+- [x] **P1.5.4** Proofs that the upgrade broke nothing that tests do not already name, each a command with output kept in the commit body:
+  - zoneless: `grep -rn "zone.js" src angular.json package.json` returns nothing and `provideZonelessChangeDetection` (or its Angular 22 default) is in effect;
+  - service worker: `scripts/build-sw.mjs` runs in `npm run build` and `e2e/service-worker.spec.ts` passes in 3 engines;
+  - Trusted Types: `e2e/trusted-types.spec.ts` reports 0 violations in 3 engines;
+  - Monaco: the build output still contains the 5 Monaco worker chunks and the sandbox worker, and `e2e/layout.spec.ts` C-040 passes;
+  - budgets: `npm run bundle:report` is re-run and the new numbers go into Appendix A with the reason for any change; a budget is raised only with a recorded reason, never silently;
+  - `npx knip` is clean.
+  - AC: all six hold; every deprecation warning that the migrations or the build print is either fixed or listed in section 16 with a reason.
+- [x] **P1.5.5** Coverage gate (closes P1.13 for `src/app/**`): v8 coverage in browser mode through the unit-test builder's `coverage` and `coverageThresholds` options, lines ≥ 70% for `src/app/**`, enforced by `npm run test:ci` in CI. If measured coverage is below 70%, the number and the 10 largest uncovered files are reported, cheap tests are added, and the threshold is lowered only with the maintainer's decision.
+  - AC: CI fails below the threshold, proven once by a throwaway PR that raises the threshold above the measured value (run link recorded in section 16); the measured percentage is in Appendix A.
+- [x] **P1.5.6** Close the Dependabot PRs this supersedes (#45–#53, and #55 if every package in it is covered), each with a comment naming the PR that replaces it. #41–#43 (GitHub Actions) are not superseded and stay open.
+  - AC: `gh pr list --author app/dependabot --state open` lists no npm PR for a package upgraded in P1.5.1–P1.5.3.
+
+**Part B — PrimeNG removal** (starts when Part A's PR is merged)
+
+Inventory re-measured on 2026-10-06 at `0dfe14b`: 26 `primeng/*` entry points in 16 files, plus `@primeng/themes` and `@primeng/themes/aura` in `src/app/app.config.ts`; 26 distinct `pi-*` tokens in `src` and `e2e`; 63 distinct `.p-*` selectors in `src` and `e2e`.
+
+- [ ] **P1.5.7** Migration map `docs/ui-migration.md`: one row per PrimeNG usage with its replacement, the CDK primitive behind it, the tests that cover it today and the tests to add, ordered by risk, lowest first. Shown to the maintainer; work continues unless they object. Deleted in P1.5.18.
+  - AC: the file has a row for each of the 26 entry points, the Aura preset, every `pi-*` icon and every `.p-*` selector group; every row names at least one existing or planned test.
+- [ ] **P1.5.8** Slice 1, leaf controls: button, text input, textarea, checkbox, chip, skeleton, spinner, panel, toolbar, float label. Native elements and CSS under `src/app/ui/`.
+  - AC: `grep -rnE "primeng/(button|inputtext|textarea|checkbox|chip|skeleton|progressspinner|panel|toolbar|floatlabel)" src` returns nothing; every baseline command passes in 3 engines; test counts are not lower.
+- [ ] **P1.5.9** Slice 2, tooltip and popover on CDK Overlay. The Trusted Types default policy loses `createHTML` (PrimeNG Tooltip's `innerHTML = ""` was its only reason); `docs/trust-center.md`, the C-016 ledger row and its test change together if the wording does.
+  - AC: `primeng/tooltip` and `primeng/popover` are not imported; `allowHtml` and `createHTML` are gone from `src/app/shared/security/trusted-types.ts`; `e2e/trusted-types.spec.ts` reports 0 violations in 3 engines; a keyboard-only e2e covers each (focus shows the tooltip and Escape hides it; the popover opens, traps nothing, closes on Escape and returns focus).
+- [ ] **P1.5.10** Slice 3, tabs, accordion and select button, following the WAI-ARIA tabs, accordion and radio-group patterns.
+  - AC: the three entry points are not imported; a keyboard-only e2e per widget (arrow keys, Home/End, Enter/Space) passes in 3 engines; `e2e/accessibility.spec.ts` has 0 critical or serious violations.
+- [ ] **P1.5.11** Slice 4, select, menu and context menu on CDK Overlay with Listbox and Menu.
+  - AC: the three entry points are not imported; keyboard-only e2e per widget (open, arrow keys, type-ahead for select, Enter, Escape, focus return) passes in 3 engines.
+- [ ] **P1.5.12** Slice 5, dialog, drawer, confirm dialog and confirm popup on CDK Dialog with FocusTrap. `ConfirmationService` is replaced by a small typed confirm service.
+  - AC: `primeng/dialog`, `drawer`, `confirmdialog`, `confirmpopup` are not imported and `ConfirmationService` does not appear in `src`; for each overlay a keyboard-only e2e proves focus moves in, Tab stays inside, Escape closes and focus returns to the trigger, in 3 engines.
+- [ ] **P1.5.13** Slice 6, splitter with pointer events and CSS, keyboard-resizable (`role="separator"`, arrow keys), ratio persisted as today.
+  - AC: `primeng/splitter` is not imported; C-031 passes unchanged in 3 engines; a keyboard e2e resizes the split with arrow keys.
+- [ ] **P1.5.14** Slice 7, collections tree with drag-and-drop reorder, inline rename and context menu, on CDK Tree and DragDrop.
+  - AC: `primeng/tree` is not imported; C-024 passes in 3 engines; a keyboard-only e2e expands, collapses, renames and opens the context menu.
+- [ ] **P1.5.15** Slice 8, delete PrimeNG: the three packages, the peer override from P1.5.2, `providePrimeNG` and the Aura preset (replaced by the project's CSS custom properties), `primeicons.css` in `angular.json`, `src/design-system/primeng-overrides.css`, every `pi pi-*` class (replaced by `<app-icon>`), every `.p-*` selector, the `primeng` keyword in `package.json`. `THIRD_PARTY_NOTICES.md` is updated. If R14's fallback was taken, Angular 22 lands here.
+  - AC: `grep -rniE "primeng|primeicons|@primeng|providePrimeNG|pi pi-" src e2e angular.json package.json` returns nothing; `grep -rnE "\.p-[a-z]" e2e src` returns nothing; `grep -ciE "primeng|primeicons" package-lock.json` is 0; every baseline command passes in 3 engines; 41 or more claims are green with retries 0; unit and e2e counts are not lower than the baseline.
+- [ ] **P1.5.16** CSP: with PrimeNG gone, test whether `style-src 'unsafe-inline'` can be dropped (CDK Overlay positions through the CSSOM; Monaco and Angular's component styles are checked too). If it can, it is dropped through `security/csp.json` and `npm run gen:csp`, with a new claim and test. If it cannot, section 16 records exactly which code still needs it. No `innerHTML`, `bypassSecurityTrust*` or `eval` is added anywhere in the phase.
+  - AC: either `security/csp.json` has no `'unsafe-inline'` and a `@claim` test proves 0 CSP violations across every view in 3 engines, or section 16 names each remaining inline-style source with the violation report that shows it; `grep -rnE "innerHTML|bypassSecurityTrust|\beval\(" src/app --include=*.ts | grep -v '\.spec\.ts'` shows no line added by this phase.
+- [ ] **P1.5.17** Bundle and screenshots. Initial bundle (raw and gzip) is lower than the Part A number; both are in Appendix A; `angular.json` budgets and `bundle:report`'s gzip limit are tightened to the new baseline × 1.10. Screenshots of every view and dialog, dark and light, at desktop width and 390 px, taken before Part B and after it, are attached to the final PR; every difference is listed and explained, and an unexplained difference is a bug.
+  - AC: Appendix A has both rows and the budgets equal the new baseline × 1.10; the final PR has both screenshot sets and the difference list.
+- [ ] **P1.5.18** Release: delete `docs/ui-migration.md`; tick the tasks; update section 12 and Appendix A; version 1.3.0, tag `v1.3.0`, CHANGELOG entry. No deploy (v1.0.3: Cloudflare work is done at the end of the plan).
+  - AC: tag `v1.3.0` exists on a commit whose CI run is green; `docs/ui-migration.md` is gone; the CHANGELOG has a 1.3.0 entry.
+
+**Exit criteria:**
+- `ng version` shows 22.x and no PrimeNG package is installed.
+- Every baseline command passes in 3 engines, with 41 or more claims green at retries 0 and test counts not lower than the baseline.
+- The coverage gate is live.
+- The Trusted Types policy has no HTML allowance; the `style-src` question is answered with evidence.
+- The initial bundle is smaller than after Part A, and the budgets are tightened to match.
 
 ### Phase 2 — Core engine, transport, variables, vault, data model (~18 days) → v2.0.0
 
@@ -825,12 +914,13 @@ Task format: `ID — task — AC`. Every AC is binary. "Tested" means a test exi
 |---|---|---|---|
 | M0 Truthful | v1.1.0 | Phase 0 exit criteria | 4 |
 | M1 Verified | v1.2.0 | Phase 1 exit criteria | 12 |
-| M2 Correct core | v2.0.0 | Phase 2 exit criteria, R1 checkpoint recorded | 30 |
-| M3 Scripts | v2.1.0 | Phase 3 exit criteria | 42 |
-| M4 Interop | v2.2.0 | Phase 4 exit criteria | 55 |
-| M5 Workspace | v2.3.0 | Phase 5 exit criteria | 65 |
-| M6 Bridge + CLI | v2.4.0 | Phase 6 exit criteria | 75 |
-| M7 Gate | v2.5.0 | Phase 7 exit criteria; Phase 2 re-analysis started | 83 (+21 buffer = 104) |
+| M1.5 Platform reset | v1.3.0 | Phase 1.5 exit criteria | 24 |
+| M2 Correct core | v2.0.0 | Phase 2 exit criteria, R1 checkpoint recorded | 42 |
+| M3 Scripts | v2.1.0 | Phase 3 exit criteria | 54 |
+| M4 Interop | v2.2.0 | Phase 4 exit criteria | 67 |
+| M5 Workspace | v2.3.0 | Phase 5 exit criteria | 77 |
+| M6 Bridge + CLI | v2.4.0 | Phase 6 exit criteria | 87 |
+| M7 Gate | v2.5.0 | Phase 7 exit criteria; Phase 2 re-analysis started | 95 (+24 buffer = 119) |
 
 ## 10. Testing strategy
 
@@ -902,18 +992,20 @@ Status values: Open / In progress / Closed (PR #) / Deferred (issue #). Issue nu
 | F29 | No multi-tab; history unbounded, unsearchable | P2.9, P2.17, P5.1 | #86 | Open |
 | F30 | Request vars reserved, globals hard-coded, no inheritance | P2.4, P4.9 | #87 | Open |
 | F31 | Codegen cURL only; cURL export bugs | P4.6 | #88 | Open |
-| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.7, P1.8 | #89 | In progress (#102) |
-| F33 | Icon ligature text as accessible names | P0.8, P7.1 | #90 | In progress (#100) |
-| F34 | Loose budgets, heavy eager bundles | P1.12, P7.2 | #91 | In progress (budgets #102) |
+| F32 | Tests miss seams; no prod smoke; third-party e2e deps; weak network test; Chromium only | P0.1, P1.1–P1.4, P1.5.5 (coverage gate), P1.7, P1.8 | #89 | In progress (#102) |
+| F33 | Icon ligature text as accessible names | P0.8, P1.5.15, P7.1 | #90 | In progress (#100) |
+| F34 | Loose budgets, heavy eager bundles | P1.12, P1.5.17, P7.2 | #91 | In progress (budgets #102) |
 | F35 | Docs volume exceeds product; prose-heavy changelog | P7.6 | #92 | Open |
 | F36 | 36 silent catches; silent memory fallback | P1.11, P2.9, P7.3 | #93 | In progress (silent catches #102) |
 | F37 | Multi-tab lost updates; no versionchange handling; reset succeeds while blocked | P0.7, P2.2, P2.10 | #94 | In progress (#100) |
 | F38 | Deploy rebuilds instead of shipping tested artifact; no rollback | P1.7 | #95 | In progress (#102; deploy drill pending owner) |
-| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9 | #96 | Closed (#102) |
+| F39 | CSP meta/header drift risk; no Trusted Types | P1.5, P1.9; tightened by P1.5.9 (no HTML allowance) and P1.5.16 (`style-src`) | #96 | Closed (#102) |
 | F40 | `tsconfig` lib mismatch, dead config, explicit `any` | P1.11 | #97 | Closed (#102) |
 | F41 | Imported collection scripts run without review (supply-chain vector) | P3.8 | #98 | Open |
 | F42 | Bridge unreachable risk under Chrome LNA / Safari mixed content (unverified) | P1.10, P6.2 | #99 | In progress (spike #102; fix in P6.2) |
 | F43 | Every query parameter typed in the URL was sent twice (found by the Phase 1 rails) | P1.4 (claims), tripwire F43 | #104 | Closed (#102) |
+| F44 | A failed IndexedDB write left an unhandled `AbortError` beside the real error (found by the P1.5.5 data-layer tests) | P1.5.5 | #106 | In progress (fix in #107) |
+| F45 | The app's JSON worker is never bundled (its URL is built in a constant the bundler does not recognise), so large responses are formatted on the main thread through the inline fallback (found by the P1.5.5 tests) | Unscheduled: the maintainer decides where it goes | #109 | Open |
 
 ## 13. Adversarial review log
 
@@ -984,7 +1076,7 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 - mTLS client certificates in the bridge.
 - Digest, NTLM, Hawk and OAuth 1.0 auth.
 - Docker image for self-hosting.
-- P1.13 coverage gates (`src/app/**` lines ≥ 70% in browser mode, CI-enforced): do it together with the Angular upgrade planned after this plan. Angular 20.3's `@angular/build:unit-test` collects no browser-mode coverage and has no thresholds option (maintainer decision, 2026-09-28). `packages/core` ≥ 90% (Node Vitest) is unaffected and starts with P2.1.
+- *(Moved into the plan in v1.1.0: the Angular upgrade and the P1.13 coverage gate for `src/app/**` are Phase 1.5, tasks P1.5.1–P1.5.5. `packages/core` ≥ 90% still starts with P2.1.)*
 
 ## 16. Change log
 
@@ -995,12 +1087,18 @@ None as of the lock (2026-09-28). The answers to the six pre-lock questions are 
 | 2026-09-28 | v1.0.1 | Maintainer decision: `deploy.yml` and `preview.yml` removed; production deploys are manual from the CLI (`docs/deployment.md`) until P1.7, which now creates `deploy.yml` rather than modifying it. |
 | 2026-09-28 | v1.0.2 | Phase 1 deviations, each reviewed adversarially and decided under the maintainer's delegation (PR #102). **P1.2** Postman Echo–compatible routes get their own origin, `127.0.0.1:4302`, and fixtures rewrite only the origin: Postman's `/delay/:s` (seconds) collides with the native `/delay/:ms`, and a path prefix (the first draft) would have changed every path Newman's scripts see. **P1.3** kept: one retry-free claims project per engine (`claims-<browser>`), since success criterion 1 needs every claim in 3 browsers. **P1.4** reversed: the first draft excluded README feature bullets; the ledger now covers every behavioural statement in README and Trust Center (C-001–C-041), and `docs/claims.md` defines the exclusions (opinion, third-party facts, history, process commitments, issue-linked limitations). Writing those tests found F43 (#104, query sent twice), a stacked-popup bug in history delete, one false bullet ("raw view") and three imprecise ones (cURL, HAR size, "How it works" scripts); all fixed. **P1.11** fact: 42 silent catches, not 36; the AC grep is corrected to `grep -v '\.spec\.ts'`. **P1.7** kept: `deploy.yml` is manual (`workflow_dispatch`), consistent with v1.0.1; a push trigger would deploy every merge, including before P0.12. **P1.6** kept: Playwright's WebKit can't emulate offline for worker-served navigations, so WebKit offline is tested by stopping the server; the C-001 test no longer needs to block service workers. **P1.13** deferred by the maintainer to the post-plan Angular upgrade (section 15). **P1.9/P1.10** see D13 and P6.2. |
 | 2026-10-06 | v1.0.3 | Maintainer decision: all Cloudflare work moves to the end of the plan and is done in one pass: P0.12 (zone), the deploy secrets and `production` environment, the P1.7 rollback drill, the P1.8 alert check, and switching the 6-hourly schedule on. Until then two repository variables keep the pipeline honest instead of red: without `ZONE_HARDENED=true`, deploy and synthetic skip `no-edge-injection` with a warning; without `SYNTHETIC_ENABLED=true`, the schedule is idle. Phase 1's exit criteria "rollback proven" and "synthetic monitor is live" close in that pass; the rest of Phase 1 is met by PR #102. |
+| 2026-10-06 | v1.1.0 | Maintainer decisions: **Phase 1.5 inserted** between Phases 1 and 2 (Angular 20.3 → 22, PrimeNG, `@primeng/themes` and `primeicons` removed; release v1.3.0). D14 and D15 added; the non-goal "not rewriting away from PrimeNG" is reversed; D10's PrimeIcons exception ends at P1.5.15; D11 gains v1.3.0. P1.13 becomes P1.5.5 and leaves section 15. Risks R13 and R14 added. Milestones and the effort estimate move by 12 days. Section 12: F32, F33, F34 and F39 gain Phase 1.5 tasks. **Delivery:** PR #102 merged by the maintainer's instruction; Phase 1.5 work goes through PRs based on `main`, merged continuously. Angular Material is allowed as a fallback inside D15. Baseline for the phase recorded in Appendix A. **Baseline finding:** `@claim:C-031` (split ratio persists) failed in the full local run and in 2 of 10 repeats on Chromium (0 of 10 on Firefox and WebKit) at `0dfe14b`, on PrimeNG's splitter; the test reads `localStorage` straight after `mouse.up`. Cause: the test measured the gutter while the panes were still settling after the response arrived (x moved from about 921 to 939.9 px), so the press landed beside it; the app saves correctly once a drag happens. The test now waits for the gutter to stop moving; 120 of 120 repeats pass in 3 engines. The assertion is unchanged. |
+| 2026-10-06 | v1.1.1 | Part A of Phase 1.5, as executed. **R14 experiment:** PrimeNG 21.1.10 runs on Angular 22.2.1 behind an npm `overrides` entry for its six Angular peers; every baseline command passes in 3 engines, so Part A ships Angular 22 and the fallback is not used. **Order:** the `@angular/build` builder switch (planned for P1.5.3) happened in P1.5.1, because Angular 21's unit-test builder rejects the `@angular-devkit/build-angular` application builder; TypeScript 6 and typescript-eslint 8.71 landed with Angular 22 in P1.5.2, because Angular 22 does not accept TypeScript 5.9 and lint needs a typescript-eslint that accepts 6. **Node:** `.nvmrc` 22.16.0 → 24.19.0 (Angular 22 needs `^22.22.3 \|\| ^24.15.0`). **Workaround kept:** `vitest.config.mts` serves the script sandbox worker to specs; `@angular/build` 21 and 22 emit it at the workspace root while Vite requests it from the spec's directory with a `?worker_file` query. Remove it when the builder handles this. **Tests changed, assertions unchanged:** C-031 (waits for the gutter to stop moving) and C-038 (axe waits for finite animations; PrimeNG 21 fades dialogs in with CSS). **Removed:** `src/polyfills.ts` (comment-only), `baseUrl` (deprecated in TypeScript 6). **Deprecation warnings left:** none; the build, unit and lint logs are clean. **Not run:** the optional `router-current-navigation` migration (the app never calls `Router.getCurrentNavigation`). **Migrations reverted:** `$safeNavigationMigration` wrappers and two suppressed extended diagnostics (neither was needed), and the removal of `tsconfig` `lib` (P1.11 keeps it explicit). **Coverage:** measured 50.91%, below the 70% target; raised to 70.71% with real tests instead of lowering the threshold. **F44** found and fixed (#106). **F45** found and left open (#109): not on the migration path. **Unit tests run isolated:** `angular.json` sets `"isolate": true` for the test target. With the builder's default (`false`), CI ran some spec files without the builder's TestBed reset hooks, so every test after the first in those files failed with "Cannot configure the test module when the test module has already been instantiated". It happened on every CI run, on Vitest 4 and 5, in 3 to 5 files that changed from run to run, and never locally (also not with caches cleared, `CI=true`, or under CPU load). A diagnostic run (throwaway PR #108) showed neither `beforeEach` nor `afterEach` from the setup file firing in the failing files. Isolated, CI passes 276 of 276 in 29 s. Cost: each spec file gets its own iframe. **Coverage gate proven in CI:** throwaway PR #108 raised the threshold to 99 and its Unit tests job failed with "Coverage for lines (70.74%) does not meet global threshold (99%)" (run 37553485655, job 112574203560). **Dependabot:** #45–#53 closed as superseded by #107; #55 stays open (monaco, Playwright, axe, autoprefixer, postcss, wrangler are not part of this phase), as do #41–#43 (Actions). `dependabot.yml` now ignores PrimeNG majors, so PrimeNG 22 is never proposed, and TypeScript minors and majors, which move with Angular. |
 
 ## Appendix A — Measurements (filled during execution)
 
 | Metric | Value | Recorded in task |
 |---|---|---|
 | Initial bundle baseline | raw 1,707,095 B (JS 1,370,209 / CSS 336,886); gzip (level 9) 443,272 B (JS 343,600 / CSS 99,672), measured at `b5aa772` (after P1.6). Budgets: `angular.json` initial error 1878kb / warning 1793kb (Angular kb = 1000 B); `bundle:report` gzip error 487,600 B | P1.12 |
+| Phase 1.5 baseline (main `0dfe14b`, 2026-10-06, Angular 20.3.26, PrimeNG 20.4.0, Node 24.19.0 locally) | lint, knip, `check:claims` (41 claims), `check:csp`: pass. `test:scripts` 46/46, `bridge:test` 11/11, `test:ci` 216/216 in 25 files. Build passes. Initial bundle raw 1,707,620 B (JS 1,370,734 / CSS 336,886); gzip 443,535 B (JS 343,863 / CSS 99,672). e2e (`CI=1`, 3 engines): 231 tests, 226 passed, 4 skipped by design (deploy drill ×3, WebKit offline smoke), 1 failed: `@claim:C-031` in `claims-chromium`, which fails about 2 runs in 10 on Chromium at this commit (see section 16, v1.1.0) | Phase 1.5 preflight |
+| After Part A (Angular 22.2.1, PrimeNG 21.1.10, TypeScript 6.0.3) — initial bundle | raw 1,755,210 B (JS 1,418,324 / CSS 336,886); gzip 456,595 B (JS 356,923 / CSS 99,672). That is +47,590 B raw and +13,060 B gzip over the Phase 1.5 baseline, all of it JavaScript: Angular 21 with PrimeNG 21 added 42,344 B raw, Angular 22 another 5,246 B. CSS is byte-identical. Budgets unchanged (1,878,000 raw / 487,600 gzip); they are re-based in P1.5.17, after PrimeNG is gone. e2e: 231 tests, 227 passed, 4 skipped by design, 0 failed. | P1.5.4 |
+| `src/app/**` line coverage (v8, browser mode, nothing excluded) | 50.91% (2005/3938) when first measured; 70.71% (2787/3941) with the gate on, after 60 new tests (216 → 276). Threshold: lines ≥ 70%. Margin is 28 lines, so each Part B component ships with its tests. | P1.5.5 |
+| After Part B (no PrimeNG) — initial bundle raw / gzip, new budgets | _pending_ | P1.5.17 |
 | OpenSSF Scorecard | _pending_ | P1.14 |
 | Script benchmark p95 / WASM cold load | _pending_ | P3.10 |
 | Phase 0–2 actual/estimate ratio | _pending_ | Phase 2 checkpoint |

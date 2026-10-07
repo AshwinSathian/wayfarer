@@ -40,7 +40,7 @@ If `npm run start`/`test`/`lint` aren't defined yet in your checkout, use
 `ng serve`, `ng test`, and `ng lint` directly as a fallback. The underlying
 Angular CLI commands are always available once `npm ci` finishes.
 
-Requires **Node 20+** and a modern browser.
+Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern browser.
 
 ## Branch & PR Flow
 

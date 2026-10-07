@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
 import { IdbService } from './data/idb.service';
@@ -7,7 +6,7 @@ import { PastRequest, PastRequestKey } from './models/history.models';
 @Component({
     selector: 'app-root',
     standalone: true,
-    imports: [CommonModule, AppShellComponent],
+    imports: [AppShellComponent],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,

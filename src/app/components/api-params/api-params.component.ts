@@ -26,7 +26,7 @@ import { SkeletonModule } from "primeng/skeleton";
 import { SplitterModule } from "primeng/splitter";
 import { TabsModule } from "primeng/tabs";
 import { TooltipModule } from "primeng/tooltip";
-import { EnvironmentsService } from "src/app/services/environments.service";
+import { EnvironmentsService } from "../../services/environments.service";
 import { IdbService } from "../../data/idb.service";
 import { PastRequest } from "../../models/history.models";
 import { AuthType, HttpAuthPlaceholder, RequestDoc } from "../../models/collections.models";

@@ -87,7 +87,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 ## Quick Start (Local)
 
-> Requires **Node 20+** and a modern browser.
+> Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern browser.
 
 ```bash
 # 1) Clone the repo

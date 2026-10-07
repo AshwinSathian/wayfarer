@@ -1,0 +1,106 @@
+import { TestBed } from "@angular/core/testing";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { IdbService } from "../data/idb.service";
+import { CollectionsService } from "./collections.service";
+
+// CollectionsService over the real IndexedDB stores: what the sidebar shows
+// (the `tree` signal) must match what was written, after every operation.
+describe("CollectionsService with real storage", () => {
+  let service: CollectionsService;
+  let idb: IdbService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(CollectionsService);
+    idb = TestBed.inject(IdbService);
+  });
+
+  afterEach(async () => {
+    await idb.resetDatabase();
+  });
+
+  const names = () => service.tree().map((t) => t.collection.name);
+  const tree = (id: string) => service.getCollectionTree(id)!;
+
+  it("keeps the tree in step with collection, folder and request changes", async () => {
+    await service.ensureLoaded();
+    expect(service.tree()).toEqual([]);
+    expect(service.loading()).toBe(false);
+
+    const billing = await service.createCollection({ name: "Billing" });
+    const users = await service.createCollection({ name: "Users" });
+    expect(names()).toEqual(["Billing", "Users"]);
+    expect(service.getCollection(billing.meta.id)?.name).toBe("Billing");
+    expect(service.getCollection("missing")).toBeUndefined();
+
+    await service.renameCollection(billing.meta.id, { name: "Payments" });
+    await service.reorderCollections([
+      { id: users.meta.id, order: 0 },
+      { id: billing.meta.id, order: 1 },
+    ]);
+    expect(names()).toEqual(["Users", "Payments"]);
+
+    const auth = await service.createFolder({ collectionId: billing.meta.id, name: "Auth" });
+    const misc = await service.createFolder({ collectionId: billing.meta.id, name: "Misc" });
+    const login = await service.createRequest({
+      collectionId: billing.meta.id,
+      folderId: auth.meta.id,
+      name: "Login",
+      method: "POST",
+      url: "https://api.test/login",
+    });
+    const ping = await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });
+
+    await service.reorderFolders([
+      { id: misc.meta.id, order: 0 },
+      { id: auth.meta.id, order: 1 },
+    ]);
+    await service.reorderRequests([
+      { id: ping.meta.id, order: 0 },
+      { id: login.meta.id, order: 1 },
+    ]);
+    expect(tree(billing.meta.id).folders.map((f) => f.name)).toEqual(["Misc", "Auth"]);
+    expect(tree(billing.meta.id).requests.map((r) => r.name)).toEqual(["Ping", "Login"]);
+    // Changes inside one collection leave the other collection's entry alone.
+    expect(tree(users.meta.id).requests).toEqual([]);
+
+    const authCopy = await service.duplicateFolder(auth.meta.id);
+    const loginCopy = await service.duplicateRequest(login.meta.id);
+    expect(tree(billing.meta.id).folders.map((f) => f.name)).toContain("Auth copy");
+    // Ping, Login, the Login inside "Auth copy", and the duplicated request.
+    expect(tree(billing.meta.id).requests).toHaveLength(4);
+    expect(tree(billing.meta.id).requests.filter((r) => r.folderId === authCopy!.meta.id)).toHaveLength(1);
+    expect(tree(billing.meta.id).requests.map((r) => r.meta.id)).toContain(loginCopy!.meta.id);
+    expect(await service.duplicateFolder("missing")).toBeNull();
+    expect(await service.duplicateRequest("missing")).toBeNull();
+
+    await service.deleteRequest(loginCopy!.meta.id);
+    await service.deleteFolder(authCopy!.meta.id);
+    expect(tree(billing.meta.id).folders.map((f) => f.name)).toEqual(["Misc", "Auth"]);
+    expect(tree(billing.meta.id).requests.map((r) => r.name)).toEqual(["Ping", "Login"]);
+
+    const copy = await service.duplicateCollection(billing.meta.id);
+    expect(tree(copy!.meta.id).requests.map((r) => r.name)).toEqual(["Ping", "Login"]);
+
+    await service.deleteCollection(copy!.meta.id);
+    expect(names()).toEqual(["Users", "Payments"]);
+  });
+
+  it("exports a collection and imports the file back, as the original or as a copy", async () => {
+    const billing = await service.createCollection({ name: "Billing" });
+    await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });
+
+    const json = await service.exportCollectionJson(billing.meta.id);
+    expect(JSON.parse(json!).collection.name).toBe("Billing");
+    expect(await service.exportCollectionJson("missing")).toBeNull();
+
+    await service.deleteCollection(billing.meta.id);
+    expect(service.tree()).toEqual([]);
+
+    const restored = await service.importCollection(JSON.parse(json!));
+    expect(restored?.meta.id).toBe(billing.meta.id);
+    expect(tree(billing.meta.id).requests.map((r) => r.name)).toEqual(["Ping"]);
+    // Re-exporting what was imported gives the same file.
+    expect(await service.exportCollectionJson(billing.meta.id)).toBe(json);
+  });
+});

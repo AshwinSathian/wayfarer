@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -46,7 +45,7 @@ interface SecretRow {
 @Component({
   selector: "app-secrets-manager",
   standalone: true,
-  imports: [IconComponent, CommonModule, FormsModule, ButtonModule, DialogModule, InputTextModule, TooltipModule],
+  imports: [IconComponent, FormsModule, ButtonModule, DialogModule, InputTextModule, TooltipModule],
   templateUrl: "./secrets-manager.component.html",
   styleUrls: ["./secrets-manager.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

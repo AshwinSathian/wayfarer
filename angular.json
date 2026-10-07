@@ -11,15 +11,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": {
               "base": "dist/wayfarer"
             },
             "index": "src/index.html",
-            "polyfills": [
-              "src/polyfills.ts"
-            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
@@ -81,7 +78,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "buildTarget": "wayfarer:build:development"
           },
@@ -96,7 +93,7 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "wayfarer:build"
           }
@@ -108,6 +105,13 @@
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
             "providersFile": "src/testing/vitest-providers.ts",
+            "runnerConfig": "vitest.config.mts",
+            "isolate": true,
+            "coverageInclude": ["src/app/**/*.ts"],
+            "coverageReporters": ["text-summary", "json-summary"],
+            "coverageThresholds": {
+              "lines": 70
+            },
             "browsers": ["ChromiumHeadless"]
           }
         },

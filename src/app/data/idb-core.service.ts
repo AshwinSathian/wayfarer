@@ -186,6 +186,13 @@ export class IdbCoreService {
       await tx.done;
       return result;
     } catch (error) {
+      // Aborting rejects tx.done with an AbortError. The caller gets the
+      // original error below, so that rejection is expected, not unhandled.
+      tx.done.catch((doneError: unknown) => {
+        if (!(doneError instanceof DOMException && doneError.name === "AbortError")) {
+          recordDiagnostic(doneError, "idb: transaction failed after its work threw");
+        }
+      });
       try {
         tx.abort();
       } catch (abortError) {

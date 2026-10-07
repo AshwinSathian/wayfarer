@@ -53,6 +53,21 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect.poll(async () => Math.abs((await composer.boundingBox())!.width - widthAfter)).toBeLessThan(2);
   });
 
+  test("opening an editor tab does not make the page wider than the window", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?wide=1`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await expect(page.getByText("Loading editor…")).toHaveCount(0);
+    // The editor sizes itself to its container: a container that sizes itself to the editor grows without end.
+    await page.waitForTimeout(1000);
+    const splitter = page.locator(".composer-response-splitter");
+    expect((await splitter.boundingBox())!.width).toBeLessThanOrEqual(1440);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
+  });
+
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
@@ -163,7 +178,7 @@ test.describe("Render stability under rapid tab/viewport transitions", () => {
 });
 
 // F46: an overlay's backdrop must be gone once the overlay has closed. With
-// PrimeNG 21 the backdrop stayed in the page and swallowed every later click.
+// the previous drawer library the backdrop stayed in the page and swallowed every later click.
 test.describe("The app stays usable after an overlay closes", () => {
   test("after the history drawer closes, the toolbar can be clicked", async ({ page }) => {
     await page.goto("/");

@@ -12,7 +12,7 @@
   --ctl-primary-border: #4338ca;
   --ctl-primary-tint: color-mix(in srgb, #818cf8, transparent 96%);
   --ctl-primary-tint-strong: color-mix(in srgb, #818cf8, transparent 84%);
-  /* PrimeNG's dark values here were #252840 on dark surfaces (1.03:1). */
+  /* The earlier dark values here were #252840 on dark surfaces (1.03:1). */
   --ctl-neutral: var(--label-secondary-on-fill);
   --ctl-neutral-tint: var(--fill-hover);
   --ctl-neutral-tint-strong: var(--fill-active);
@@ -46,7 +46,7 @@
   --ctl-neutral: #64748b;
   --ctl-neutral-tint: #f8fafc;
   --ctl-neutral-tint-strong: #f1f5f9;
-  /* PrimeNG's #ef4444 is 3.8:1 on the light surfaces. */
+  /* The earlier #ef4444 is 3.8:1 on the light surfaces. */
   --ctl-danger: #c81e1e;
   --ctl-danger-tint: #fef2f2;
   --ctl-danger-tint-strong: #fee2e2;
@@ -954,6 +954,9 @@
   display: flex;
   flex-wrap: nowrap;
   border-radius: 6px;
+  /* The panes' widths come from the splitter, never the other way round. Without this an
+     editor that sizes itself to its pane makes the pane, then the splitter, wider, without end. */
+  contain: inline-size;
 }
 
 .ui-splitter-pane {

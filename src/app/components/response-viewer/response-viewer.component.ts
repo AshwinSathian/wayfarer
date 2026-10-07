@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { MenuItem } from "primeng/api";
 import { ButtonDirective } from "../../ui/button.directive";
 import { MenuModule } from "primeng/menu";
-import { TabsModule } from "primeng/tabs";
+import { UI_TABS } from "../../ui/tabs.component";
 import { TooltipDirective } from "../../ui/tooltip.directive";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export.util";
 import { BinaryBody } from "../../shared/http/response-body.util";
@@ -50,7 +50,7 @@ interface ResponseHeader {
     IconComponent,
     CommonModule,
     FormsModule,
-    TabsModule,
+    UI_TABS,
     TooltipDirective,
     JsonEditorComponent,
     ButtonDirective,

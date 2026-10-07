@@ -43,13 +43,17 @@ Security: `createHTML` and `allowHtml` are gone from the Trusted Types default p
 
 Tests added: `tooltip.directive.spec.ts` (5), e2e keyboard tests for the tooltip and the history details card, a stricter C-016 (the empty string is rejected as HTML too).
 
-### Slice 3 — tabs, accordion, select button (P1.5.10)
+### Slice 3 — tabs, accordion, select button (P1.5.10) — done
 
-| PrimeNG | Where | Replacement | CDK | Tests today | Tests to add |
-|---|---|---|---|---|---|
-| `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel` (3 sets) | composer (5 tabs, Body conditional), response viewer, environment editor | `ui-tabs` / `ui-tab` / `ui-tab-panel`: `role="tablist"`, roving tabindex, arrows, Home, End, automatic activation | none needed (FocusKeyManager) | `send-request.spec.ts` C-022, `features.spec.ts` C-039, `layout.spec.ts` (rapid tab switches) | e2e keyboard for each tab set |
-| `p-accordion` (mobile composer, history day groups) | `api-params`, `past-requests` | `ui-accordion` / `ui-accordion-item`: button headers with `aria-expanded` and `aria-controls`, single-open option | CdkAccordion | `layout.spec.ts` C-032, C-040; `features.spec.ts` C-029 | e2e keyboard: Enter and Space toggle, single-open holds; reduced motion (C-034 stays) |
-| `p-selectButton` (1) | Basic / JSON editor mode | `ui-segmented`: `role="radiogroup"` of `role="radio"` buttons, arrows move and select | none | `features.spec.ts` C-039 | e2e keyboard |
+| PrimeNG | Replacement | Notes |
+|---|---|---|
+| `p-tabs`, `p-tablist`, `p-tab`, `p-tabpanels`, `p-tabpanel` (3 sets) | `ui-tabs`, `ui-tablist`, `ui-tab`, `ui-tabpanels`, `ui-tabpanel` (`src/app/ui/tabs.component.ts`) | Controlled by `[value]` / `(valueChange)`. Arrow keys, Home, End; automatic activation. Hidden panels stay mounted |
+| `p-accordion` and its panel, header, content (2) | `ui-accordion`, `ui-accordion-panel`, `ui-accordion-header`, `ui-accordion-content` | Single open. Header is a `<button aria-expanded>`. Closed content is `inert`. Height animates in CSS |
+| `p-selectButton` (1) | `ui-segmented` | Radio group; arrows move and select |
+
+No CDK primitive was needed. Tests added: 10 unit, 4 keyboard-only e2e (`e2e/keyboard.spec.ts`).
+
+Looks reproduced as they were, pending F48: the phone accordions' light panels in the dark theme and the grey pill in the Basic/JSON switch.
 
 ### Slice 4 — select, menu, context menu (P1.5.11)
 

@@ -22,6 +22,11 @@
   --ctl-success: #4ade80;
   --ctl-success-tint: color-mix(in srgb, #4ade80, transparent 96%);
   --ctl-success-tint-strong: color-mix(in srgb, #4ade80, transparent 84%);
+  --ctl-surface: #9ca3af;
+  --ctl-surface-border: #474d70;
+  --ctl-surface-muted: #252840;
+  --ctl-surface-text: #0b0c10;
+  --ctl-segment-checked: #6b7280;
 }
 
 [data-theme="light"] {
@@ -41,6 +46,11 @@
   --ctl-success: #22c55e;
   --ctl-success-tint: #f0fdf4;
   --ctl-success-tint-strong: #dcfce7;
+  --ctl-surface: #ffffff;
+  --ctl-surface-border: #e2e8f0;
+  --ctl-surface-muted: #64748b;
+  --ctl-surface-text: #334155;
+  --ctl-segment-checked: #ffffff;
 }
 
 /* ── Button ──────────────────────────────────────────────── */
@@ -371,4 +381,217 @@
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-overlay);
   animation: fade-in var(--dur-quick) var(--ease-standard);
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.ui-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.ui-tablist {
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--separator);
+  scrollbar-width: none;
+}
+
+.ui-tablist::-webkit-scrollbar {
+  display: none;
+}
+
+.ui-tab {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0 0 -1px;
+  padding: 10px 16px;
+  border-bottom: 2px solid transparent;
+  color: var(--label-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.002em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard);
+}
+
+.ui-tab:hover {
+  color: var(--label-primary);
+}
+
+.ui-tab--active {
+  border-bottom-color: var(--accent);
+  color: var(--label-primary);
+  font-weight: 580;
+}
+
+.ui-tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.ui-tabpanels {
+  display: block;
+  padding: 18px 0 0;
+  color: var(--ctl-surface-text);
+}
+
+.ui-tabpanel {
+  display: block;
+}
+
+.ui-tabpanel[hidden] {
+  display: none;
+}
+
+/* A panel that becomes visible re-enters the render tree, so the animation
+   replays on every switch. */
+.ui-tabpanel:not([hidden]) {
+  animation: fade-up var(--dur-standard) var(--ease-standard) both;
+}
+
+/* ── Accordion ───────────────────────────────────────────── */
+.ui-accordion {
+  display: block;
+}
+
+.ui-accordion-panel {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--ctl-surface-border);
+}
+
+.ui-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.125rem;
+  border: 0;
+  background: var(--ctl-surface);
+  color: var(--ctl-surface-muted);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.ui-accordion-header:hover,
+.ui-accordion-panel--open > ui-accordion-header > .ui-accordion-header {
+  color: var(--ctl-surface-text);
+}
+
+.ui-accordion-panel:first-child .ui-accordion-header {
+  border-start-start-radius: 6px;
+  border-start-end-radius: 6px;
+}
+
+.ui-accordion-panel:last-child:not(.ui-accordion-panel--open) .ui-accordion-header {
+  border-end-start-radius: 6px;
+  border-end-end-radius: 6px;
+}
+
+.ui-accordion-header:focus-visible {
+  outline-offset: -2px;
+}
+
+.ui-accordion-chevron {
+  flex: none;
+  margin: -5px -5px -5px 0;
+  font-size: 26px;
+}
+
+/* Open and close animate the row height. A closed panel is laid out (so an
+   editor inside keeps its size) but invisible and inert. */
+.ui-accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows 240ms cubic-bezier(0.25, 0, 0, 1),
+    visibility 0s 240ms;
+}
+
+.ui-accordion-panel--open > .ui-accordion-content {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows 240ms cubic-bezier(0.25, 0, 0, 1),
+    visibility 0s;
+}
+
+.ui-accordion-content-clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ui-accordion-content-body {
+  padding: 0 1.125rem 1.125rem;
+  background: var(--ctl-surface);
+  color: var(--ctl-surface-text);
+}
+
+/* ── Segmented control ───────────────────────────────────── */
+.ui-segmented {
+  display: inline-flex;
+  gap: 1px;
+  padding: 3px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--fill-secondary);
+  user-select: none;
+  vertical-align: bottom;
+}
+
+.ui-segmented-option {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  padding: 5px 14px;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  /* --label-secondary measures 4.27:1 on this control's background. */
+  color: var(--label-secondary-on-fill);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.002em;
+  cursor: pointer;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.ui-segmented-option:hover:not(.ui-segmented-option--checked) {
+  background: var(--fill-hover);
+  color: var(--label-primary);
+}
+
+.ui-segmented-option--checked {
+  background: var(--canvas-overlay);
+  color: var(--label-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.ui-segmented-label {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+}
+
+.ui-segmented-option--checked .ui-segmented-label {
+  background: var(--ctl-segment-checked);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
 }

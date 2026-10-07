@@ -141,34 +141,33 @@
        ever expanded — and therefore mounted-and-visible — at a time, so at
        most one Monaco instance is ever live here. -->
   <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-up">
-    <p-accordion
+    <ui-accordion
       [value]="mobileActivePanels()"
       (valueChange)="onMobileIndexChange($event)"
-      [transitionOptions]="accordionTransitionOptions"
     >
-      <p-accordion-panel value="params">
-        <p-accordion-header>Params</p-accordion-header>
-        <p-accordion-content>
+      <ui-accordion-panel value="params">
+        <ui-accordion-header>Params</ui-accordion-header>
+        <ui-accordion-content>
           <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
-        </p-accordion-content>
-      </p-accordion-panel>
-      <p-accordion-panel value="headers">
-        <p-accordion-header>Headers</p-accordion-header>
-        <p-accordion-content>
+        </ui-accordion-content>
+      </ui-accordion-panel>
+      <ui-accordion-panel value="headers">
+        <ui-accordion-header>Headers</ui-accordion-header>
+        <ui-accordion-content>
           <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-        </p-accordion-content>
-      </p-accordion-panel>
+        </ui-accordion-content>
+      </ui-accordion-panel>
       @if (isBodyMethod(selectedRequestMethod())) {
-      <p-accordion-panel value="body">
-        <p-accordion-header>Body</p-accordion-header>
-        <p-accordion-content>
+      <ui-accordion-panel value="body">
+        <ui-accordion-header>Body</ui-accordion-header>
+        <ui-accordion-content>
           <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-        </p-accordion-content>
-      </p-accordion-panel>
+        </ui-accordion-content>
+      </ui-accordion-panel>
       }
-      <p-accordion-panel value="auth">
-        <p-accordion-header>Auth</p-accordion-header>
-        <p-accordion-content>
+      <ui-accordion-panel value="auth">
+        <ui-accordion-header>Auth</ui-accordion-header>
+        <ui-accordion-content>
           <app-auth-editor
             [auth]="requestAuth()"
             [showPassword]="showAuthPassword()"
@@ -176,15 +175,15 @@
             (authChange)="requestAuth.set($event)"
             (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
           ></app-auth-editor>
-        </p-accordion-content>
-      </p-accordion-panel>
-      <p-accordion-panel value="scripts">
-        <p-accordion-header>Scripts</p-accordion-header>
-        <p-accordion-content>
+        </ui-accordion-content>
+      </ui-accordion-panel>
+      <ui-accordion-panel value="scripts">
+        <ui-accordion-header>Scripts</ui-accordion-header>
+        <ui-accordion-content>
           <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
-        </p-accordion-content>
-      </p-accordion-panel>
-    </p-accordion>
+        </ui-accordion-content>
+      </ui-accordion-panel>
+    </ui-accordion>
   </section>
 
   @if (shouldShowResponsePanel) {
@@ -226,48 +225,42 @@
       <div class="composer-pane">
         <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
           <div class="px-2 pt-1">
-            <p-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
+            <ui-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
               <div class="flex items-center justify-between w-full pr-2">
-                <p-tablist>
-                  <p-tab value="params">Params</p-tab>
-                  <p-tab value="headers">Headers</p-tab>
+                <ui-tablist>
+                  <ui-tab value="params">Params</ui-tab>
+                  <ui-tab value="headers">Headers</ui-tab>
                   @if (isBodyMethod(selectedRequestMethod())) {
-                  <p-tab value="body">Body</p-tab>
+                  <ui-tab value="body">Body</ui-tab>
                   }
-                  <p-tab value="auth">Auth</p-tab>
-                  <p-tab value="scripts">Scripts</p-tab>
-                </p-tablist>
+                  <ui-tab value="auth">Auth</ui-tab>
+                  <ui-tab value="scripts">Scripts</ui-tab>
+                </ui-tablist>
 
                 @if (activeTab() === 'headers' || activeTab() === 'body') {
-                <p-selectButton
-                  [options]="editorModeOptions"
-                  [ngModel]="editorMode()"
-                  (ngModelChange)="onEditorModeChange($event)"
-                  [ngModelOptions]="{ standalone: true }"
-                  size="small"
-                ></p-selectButton>
+                <ui-segmented [options]="editorModeOptions" [value]="editorMode()" (valueChange)="onEditorModeChange($event)" aria-label="Editor mode" />
                 }
               </div>
 
-              <p-tabpanels>
-                <p-tabpanel value="params">
+              <ui-tabpanels>
+                <ui-tabpanel value="params">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
                   </div>
-                </p-tabpanel>
-                <p-tabpanel value="headers">
+                </ui-tabpanel>
+                <ui-tabpanel value="headers">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="headersContent"></ng-container>
                   </div>
-                </p-tabpanel>
+                </ui-tabpanel>
                 @if (isBodyMethod(selectedRequestMethod())) {
-                <p-tabpanel value="body">
+                <ui-tabpanel value="body">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
                   </div>
-                </p-tabpanel>
+                </ui-tabpanel>
                 }
-                <p-tabpanel value="auth">
+                <ui-tabpanel value="auth">
                   <div class="px-4 pb-5">
                     <app-auth-editor
                       [auth]="requestAuth()"
@@ -277,14 +270,14 @@
                       (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
                     ></app-auth-editor>
                   </div>
-                </p-tabpanel>
-                <p-tabpanel value="scripts">
+                </ui-tabpanel>
+                <ui-tabpanel value="scripts">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
                   </div>
-                </p-tabpanel>
-              </p-tabpanels>
-            </p-tabs>
+                </ui-tabpanel>
+              </ui-tabpanels>
+            </ui-tabs>
           </div>
         </section>
       </div>

@@ -19,5 +19,6 @@
   "ignoreDependencies": [
     "primeicons",
     "@angular/language-service"
-  ]
+  ],
+  "ignoreExportsUsedInFile": true
 }

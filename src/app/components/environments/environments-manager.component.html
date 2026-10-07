@@ -115,13 +115,13 @@
     </div>
 
     <div class="mt-5">
-      <p-tabs [value]="editorTab()" (valueChange)="onEditorTabChange($event)">
-        <p-tablist>
-          <p-tab value="pairs">Key / Value</p-tab>
-          <p-tab value="json">JSON</p-tab>
-        </p-tablist>
-        <p-tabpanels>
-          <p-tabpanel value="pairs">
+      <ui-tabs [value]="editorTab()" (valueChange)="onEditorTabChange($event)">
+        <ui-tablist>
+          <ui-tab value="pairs">Key / Value</ui-tab>
+          <ui-tab value="json">JSON</ui-tab>
+        </ui-tablist>
+        <ui-tabpanels>
+          <ui-tabpanel value="pairs">
             <div class="flex flex-col gap-2">
               @for (item of form.vars; track $index) {
               <div
@@ -178,8 +178,8 @@
               }
               <button uiButton tone="secondary" size="sm" aria-label="Add variable" (click)="addVariable()"><app-icon name="add" /> Add Variable</button>
             </div>
-          </p-tabpanel>
-          <p-tabpanel value="json">
+          </ui-tabpanel>
+          <ui-tabpanel value="json">
             <div class="space-y-2">
               @if (!form.jsonValid) {
               <p class="type-footnote text-status-error flex items-center gap-1">
@@ -195,9 +195,9 @@
                 [height]="240"
               ></app-json-editor>
             </div>
-          </p-tabpanel>
-        </p-tabpanels>
-      </p-tabs>
+          </ui-tabpanel>
+        </ui-tabpanels>
+      </ui-tabs>
     </div>
 
     <div class="mt-5 flex justify-end">

@@ -12,8 +12,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - `{{constructor}}`, `{{toString}}` and other names that exist on every
   JavaScript object no longer resolve to engine internals; like any unset
   variable, they stay as typed.
-- Basic auth with characters outside Latin-1 (for example `€` or `日本`) no
-  longer fails the send; credentials are encoded as UTF-8 (RFC 7617).
+- Basic auth credentials are encoded as UTF-8 (RFC 7617), as browsers and
+  curl do. Characters outside Latin-1 (`€`, `日本`) used to fail the send, and
+  accented Latin-1 characters (`é`) went out as Latin-1 bytes; plain ASCII
+  credentials are unchanged.
 - A protected-variable placeholder inside Basic auth credentials is now
   caught before the send. Base64 hid it from the check, so the literal
   placeholder (never the secret) went on the wire.

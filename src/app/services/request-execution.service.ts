@@ -71,7 +71,7 @@ function containsSecretPlaceholder(request: BuiltRequest): boolean {
 
 /** The `user:password` inside a `Basic` header value, where base64 would hide a placeholder; "" otherwise. */
 function decodeBasicCredentials(headerValue: string): string {
-  const encoded = /^Basic\s+(\S+)$/i.exec(headerValue)?.[1];
+  const encoded = /^\s*Basic\s+(\S+)/i.exec(headerValue)?.[1];
   if (!encoded) return "";
   try {
     return atob(encoded);

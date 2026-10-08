@@ -21,6 +21,10 @@ function generateToken() {
 function loadOrCreateToken({ rotate = false } = {}) {
   try {
     fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+    // mkdir's mode only applies to a directory it creates, and writeFile's
+    // only to a new file: tighten what an earlier run or the user left looser.
+    fs.chmodSync(CONFIG_DIR, 0o700);
+    if (fs.existsSync(TOKEN_FILE)) fs.chmodSync(TOKEN_FILE, 0o600);
   } catch {
     // best-effort — an unwritable home directory just means no persistence
   }

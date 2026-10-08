@@ -66,6 +66,9 @@ the rest of this project gives its security-relevant surfaces.
 - **Binds to `127.0.0.1` only.** The bridge is never reachable from another
   device on your network; only processes on your own machine can even
   open a TCP connection to it.
+- **Loopback `Host` only.** A request whose `Host` header is not
+  `127.0.0.1`, `localhost` or `[::1]` is refused with 421. That stops DNS
+  rebinding, where a page's own hostname is re-pointed at your machine.
 - **Origin allowlist.** Every request must carry a browser-set `Origin`
   header matching an explicitly allowed value (the hosted Wayfarer app and
   local dev origins by default; add more with `--allow-origin`). A page
@@ -76,7 +79,8 @@ the rest of this project gives its security-relevant surfaces.
   independent gate on top of the Origin check: Origin alone only proves
   *which site* is asking, not that it's a Wayfarer instance you configured.
   The token is generated on first run, persisted at
-  `~/.wayfarer-local-bridge/token` (mode `0600`) so it survives restarts,
+  `~/.wayfarer-local-bridge/token` (mode `0600`, re-applied at every start)
+  so it survives restarts,
   and compared with a constant-time check to avoid trivial timing leaks.
 - **What the token protects against, and what it doesn't:** anyone who
   learns your token *and* can get a page loaded from an allowed origin into
@@ -127,11 +131,17 @@ the rest of this project gives its security-relevant surfaces.
 wayfarer-local-bridge [options]
 
   --port <n>            Port to listen on (default: 7717)
-  --token <value>        Use a fixed token instead of the persisted/generated one
+  --token <value>        Use a fixed token (16 characters or more) instead of the
+                          persisted/generated one. Other users of the machine can
+                          read it in the process list: prefer the
+                          WAYFARER_BRIDGE_TOKEN environment variable.
   --rotate-token          Generate and persist a fresh token, replacing the saved one
-  --allow-origin <url>    Additional allowed Origin (repeatable)
+  --allow-origin <url>    Additional allowed Origin (repeatable), e.g. https://example.com
   --help                  Show help
 ```
+
+A wrong argument (a port that is not a number, an option without its value)
+stops the bridge with an error instead of falling back to a default.
 
 ## Development
 

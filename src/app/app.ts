@@ -71,8 +71,7 @@ export class App implements OnInit {
 
   private updateViewportFlags(): void {
     const previous = this.isMobile();
-    const width = typeof window !== 'undefined' ? window.innerWidth : 1200;
-    const isMobile = width < 768;
+    const isMobile = window.innerWidth < 768;
     this.isMobile.set(isMobile);
 
     if (!this.viewportInitialized) {

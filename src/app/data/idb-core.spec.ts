@@ -92,13 +92,6 @@ describe("IdbCore", () => {
     expect(withId.id).toBe("explicit");
   });
 
-  it("clone() deep-copies without sharing references", () => {
-    const original = { nested: { value: 1 } };
-    const cloned = service.clone(original);
-    cloned.nested.value = 2;
-    expect(original.nested.value).toBe(1);
-  });
-
   it("resetDatabase() clears connection state so a subsequent init() starts fresh", async () => {
     await service.init();
     expect(service.useMemoryFallback).toBe(false);

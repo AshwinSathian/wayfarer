@@ -78,7 +78,7 @@ export class EnvironmentsRepository {
       }
       const meta = this.core.createMeta();
       const clone: EnvironmentDoc = {
-        ...this.core.clone(doc),
+        ...structuredClone(doc),
         id: meta.id,
         meta,
         name: `${doc.name} copy`,

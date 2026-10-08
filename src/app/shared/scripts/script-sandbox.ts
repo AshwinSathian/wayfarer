@@ -56,15 +56,6 @@ export class ScriptSandbox {
       return Promise.resolve({ logs: [], envMutations: {}, testResults: [] });
     }
 
-    if (typeof Worker === "undefined") {
-      return Promise.resolve({
-        logs: [],
-        envMutations: {},
-        testResults: [],
-        error: "Scripts are unavailable: Web Workers are not supported in this browser.",
-      });
-    }
-
     return new Promise<ScriptExecutionResult>((resolve) => {
       const runId = newId();
       const worker = new Worker(new URL("./script-runner.worker", import.meta.url), {

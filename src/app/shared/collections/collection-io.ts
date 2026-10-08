@@ -190,7 +190,7 @@ function buildPlan(
 function remapIdentifiers(
   payload: CollectionExport
 ): { payload: CollectionExport; idRemap: Record<string, string> } {
-  const clone = cloneExport(payload);
+  const clone = structuredClone(payload);
   const idMap: Record<string, string> = {};
 
   const newCollectionId = newId();
@@ -201,7 +201,7 @@ function remapIdentifiers(
   clone.collection.meta = touchMeta(clone.collection.meta);
 
   clone.folders = clone.folders.map((folder) => {
-    const updated = cloneValue(folder);
+    const updated = structuredClone(folder);
     const mappedId = newId();
     const originalId = folder.id ?? folder.meta.id;
     idMap[originalId] = mappedId;
@@ -216,7 +216,7 @@ function remapIdentifiers(
   });
 
   clone.requests = clone.requests.map((request) => {
-    const updated = cloneValue(request);
+    const updated = structuredClone(request);
     const mappedId = newId();
     const originalId = request.id ?? request.meta.id;
     idMap[originalId] = mappedId;
@@ -234,7 +234,7 @@ function remapIdentifiers(
 }
 
 function normalizeExport(payload: CollectionExport): CollectionExport {
-  const normalized = cloneExport(payload);
+  const normalized = structuredClone(payload);
   ensureDocId(normalized.collection);
   normalized.folders = sortByOrder(normalized.folders.map((folder) => ensureDocId(folder)));
   normalized.requests = sortByOrder(normalized.requests.map((request) => ensureDocId(request)));
@@ -339,17 +339,6 @@ function validateNumber(value: unknown, path: string, errors: ValidationResult[]
   if (typeof value !== "number" || Number.isNaN(value)) {
     errors.push({ path, message: "Value must be a number." });
   }
-}
-
-function cloneExport(payload: CollectionExport): CollectionExport {
-  return cloneValue(payload);
-}
-
-function cloneValue<T>(value: T): T {
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function safeParse(text: string): unknown {

@@ -242,11 +242,7 @@ function parseQueryParams(url: string): HarQueryString[] {
     return [];
   }
 
-  const base =
-    typeof window !== "undefined" && window.location?.origin
-      ? window.location.origin
-      : "http://localhost";
-  const parsed = URL.parse(url, base);
+  const parsed = URL.parse(url, location.origin);
   if (parsed) {
     const params: HarQueryString[] = [];
     parsed.searchParams.forEach((value, name) => {

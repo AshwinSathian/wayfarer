@@ -342,14 +342,7 @@ export class RequestExecutor {
       return false;
     }
     if (typeof payload === "object") {
-      const hasBlob = typeof Blob !== "undefined" && payload instanceof Blob;
-      const hasArrayBuffer =
-        typeof ArrayBuffer !== "undefined" && payload instanceof ArrayBuffer;
-      const hasFormData = typeof FormData !== "undefined" && payload instanceof FormData;
-      if (hasBlob || hasArrayBuffer || hasFormData) {
-        return false;
-      }
-      return true;
+      return !(payload instanceof Blob || payload instanceof ArrayBuffer || payload instanceof FormData);
     }
     if (typeof payload === "string") {
       return parseJson(payload).ok;
@@ -369,10 +362,7 @@ export class RequestExecutor {
     if (error.status === 0) {
       return true;
     }
-    return (
-      (typeof ProgressEvent !== "undefined" && error.error instanceof ProgressEvent) ||
-      (typeof ErrorEvent !== "undefined" && error.error instanceof ErrorEvent)
-    );
+    return error.error instanceof ProgressEvent || error.error instanceof ErrorEvent;
   }
 
   private resolveErrorBody(error: HttpErrorResponse): unknown {

@@ -100,6 +100,13 @@ When contributing:
   significant logic to an already-large file (e.g. `idb.ts`,
   `api-params.ts`), consider whether it belongs in a new,
   focused service instead.
+- **Styling** is Tailwind CSS 4 utilities over the design system, with no
+  Tailwind reset. See "Styling and layout" in [`CLAUDE.md`](CLAUDE.md) before
+  touching `src/styles.css`, `--ctl-*` colours or a breakpoint. Nothing may
+  be wider than the window from 360 px up; an e2e test checks it.
+- **No guards for environments the app cannot run in** (`typeof window`,
+  `typeof Worker`, a `structuredClone` fallback). It is a browser app on
+  current browsers.
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
   colors/spacing.

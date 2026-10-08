@@ -68,19 +68,12 @@ export function validateEnvironmentExport(
 }
 
 function prepareEnvironments(environments: EnvironmentDoc[]): EnvironmentDoc[] {
-  return sortByOrder(environments).map((env) => ensureEnvId(cloneValue(env)));
+  return sortByOrder(environments).map((env) => ensureEnvId(structuredClone(env)));
 }
 
 function safeParse(text: string): unknown {
   const parsed = parseJson(text);
   return parsed.ok ? parsed.value : null;
-}
-
-function cloneValue<T>(value: T): T {
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function ensureEnvId(env: EnvironmentDoc): EnvironmentDoc {

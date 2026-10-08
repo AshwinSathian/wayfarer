@@ -78,7 +78,7 @@ export class FoldersRepository {
       }
       const meta = this.core.createMeta();
       const clone: Folder = {
-        ...this.core.clone(original),
+        ...structuredClone(original),
         id: meta.id,
         meta,
         name: `${original.name} copy`,
@@ -92,7 +92,7 @@ export class FoldersRepository {
       for (const request of requests) {
         const reqMeta = this.core.createMeta();
         const copy: RequestDoc = {
-          ...this.core.clone(request),
+          ...structuredClone(request),
           id: reqMeta.id,
           meta: reqMeta,
           folderId: clone.meta.id,

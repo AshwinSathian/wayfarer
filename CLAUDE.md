@@ -20,7 +20,14 @@ npx knip                # no unused files, exports or dependencies
 ```
 
 Run lint, unit tests, build and the Chromium e2e before opening a PR. CI
-runs all of them, plus Firefox and WebKit.
+runs all of them, plus Firefox and WebKit. For a change to CSS, layout or a
+template, run all three locally first (`npx playwright install` once, then
+drop the `--project` flags): WebKit and Firefox differ in ways Chromium does
+not show (scrollbar width, focus, fonts).
+
+After switching to a branch whose `package.json` differs, run `npm ci`.
+`node_modules` from another branch fails the build in ways that look like
+code errors.
 
 ## Naming and structure
 
@@ -54,6 +61,63 @@ runs all of them, plus Firefox and WebKit.
 - Never write `standalone: true`. Use `styleUrl`, not `styleUrls`.
 - Lifecycle hooks are synchronous: `void this.load()`, not `async ngOnInit`.
 
+## Styling and layout
+
+- Tailwind CSS 4. Its configuration is the `@theme` block in
+  `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
+  Tailwind names onto the design tokens in `src/design-system/tokens.css`.
+- Only `tailwindcss/theme.css` and `tailwindcss/utilities.css` are
+  imported. **No preflight**: the design system is the base. The utilities
+  are imported without a cascade layer on purpose, so source order decides
+  between them and the design system. Do not move either into `@layer`.
+- Because preflight is off, `src/styles.css` carries the one reset the
+  utilities need: `box-sizing: border-box` on everything. Do not remove it.
+- `border` draws a border (Tailwind 4 sets the style). Add it only where a
+  line should show.
+- Widget colours are the `--ctl-*` variables in
+  `src/design-system/controls.css`. In both themes they must come from the
+  design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
+- Nothing may be wider than the window at any width from 360 px up. The
+  e2e test "nothing is wider than a N px window" checks eight widths; add a
+  width there when a breakpoint changes. A flex child that holds wide
+  content needs `min-w-0`.
+- Below 1024 px the toolbar shows only what Settings does not also offer.
+  A new toolbar action needs `max-lg:hidden` and a home in Settings.
+- For any change that could move pixels (a CSS framework or dependency
+  upgrade, tokens, a reset), compare before and after: a throwaway
+  Playwright spec with `toHaveScreenshot` at 390, 820 and 1440 px in both
+  themes, baseline taken on `main`'s build. Read the diff images. Do not
+  commit the spec or its snapshots.
+- Review what an upgrade tool writes line by line. The Tailwind tool turned
+  preflight on, changed the cascade and rewrote words in test titles.
+
+## Monaco
+
+- Imported through `src/app/shared/monaco/monaco-loader.ts` only, from the
+  package's entry points (`monaco-editor/editor`,
+  `monaco-editor/languages/features/<x>/register`,
+  `monaco-editor/languages/definitions/<x>/register`). Never
+  `monaco-editor/esm/...`, and never the root `monaco-editor`, which bundles
+  every language.
+- Only JSON and TypeScript/JavaScript are bundled. A new language needs its
+  register import, a worker wrapper if it has a service, and a path mapping
+  to the stub in `tsconfig.spec.json`.
+- Its stylesheet is the separate `monaco.css` (see `styles` in
+  `angular.json`), linked by the loader when the first editor mounts. Do not
+  import it from `src/styles.css`: that puts 390 kB on first load.
+
+## Dependencies and the bundle
+
+- `npm audit` reports 0 and must stay there. Fix the dependency (or its
+  override); do not run `npm audit fix --force`.
+- The size budgets (`angular.json`, `bundle:report` in `package.json`) are
+  the measured baseline times 1.10. When a change moves the baseline, reset
+  them in the same PR and say why in the changelog.
+- `/3rdpartylicenses.txt` ships with the app (`scripts/build-sw.mjs`).
+  Angular lists direct dependencies only; a package that bundles others
+  (Monaco bundles DOMPurify and marked) is added to the list in that script.
+- Close a Dependabot PR that a hand-made update supersedes, with the reason.
+
 ## TypeScript
 
 - `tsconfig.json` matches `ng new --strict`. Do not loosen it.
@@ -82,8 +146,22 @@ runs all of them, plus Firefox and WebKit.
   place a value can go on the wire.
 - The CSP lives in `security/csp.json`; run `npm run gen:csp`. No
   `unsafe-eval`, no third-party origin.
-- Vault crypto, the envelope format and stored data change only through the
-  plan's Vault v2 (P2.6). Do not add an interim format.
+- The vault derives keys with PBKDF2-SHA-256 at 600,000 iterations (claim
+  C-004) and uses the passphrase exactly as typed. The envelope format
+  changes only through the plan's Vault v2 (P2.6); do not add an interim
+  one. Raising the iteration count in place was a one-time decision made
+  while no stored data existed; with users, it needs a migration.
+- Response headers live in `public/_headers`: CSP (generated), HSTS for this
+  host only (no `includeSubDomains`, no `preload`), COOP and CORP
+  `same-origin`. The smoke e2e asserts them.
+- Local Bridge (`local-bridge/`): zero dependencies; binds to 127.0.0.1;
+  refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
+  `/relay`; caps request and response bodies; rejects a wrong argument
+  instead of defaulting. Keep every one of these when changing it.
+- Importers read a picked file with `readImportText` and validate with the
+  shared validators, which enforce the 10 MB cap.
+- When storage is unavailable or was reset elsewhere, say so in the shell's
+  banners; never fall back silently.
 - Reset all data must remove everything the app stored, including every
   `wayfarer:` key in `localStorage`.
 
@@ -107,3 +185,7 @@ runs all of them, plus Firefox and WebKit.
 - PRs that change security posture, stored data or public claims wait for
   the maintainer unless they have said otherwise for the session.
 - Stage files by name. `git add -A` has committed test screenshots here.
+- A claim in a changelog entry or PR body is checked before it is written:
+  run the command (`npm audit`, the test, the build) and quote its result.
+- When one PR in a series merges, merge `main` into the open ones and rerun
+  the suites before merging them; `CHANGELOG.md` conflicts on every one.

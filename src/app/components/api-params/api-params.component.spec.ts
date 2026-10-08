@@ -498,6 +498,21 @@ describe('ApiParamsComponent', () => {
     await pending;
   });
 
+  it('sends a {{var}} query param once, resolved, whether typed in the URL or in the Params tab', async () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ baseUrl: 'api.test', token: 'abc' }));
+
+    component.onEndpointChange('{{baseUrl}}/users?token={{token}}');
+    component.requestParams.update((rows) => [...rows, { key: 'page', value: '{{token}}', enabled: true }]);
+    component.onParamChange();
+    expect(component.endpoint()).toBe('{{baseUrl}}/users?token={{token}}&page={{token}}');
+
+    const pending = component.sendRequest();
+
+    const req = httpMock.expectOne('https://api.test/users?token=abc&page=abc');
+    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    await pending;
+  });
+
   it('leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it', async () => {
     environmentsService.setActiveEnvironment(buildEnvironment({}));
 

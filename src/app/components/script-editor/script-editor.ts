@@ -31,7 +31,7 @@ const noop = () => {};
   selector: "app-script-editor",
   host: {
     // Monaco sizes itself to this element, so the element must not size itself to Monaco (F52).
-    class: "block w-full [contain:inline-size]",
+    class: "block w-full contain-[inline-size]",
   },
   template: `
     <!-- "on timer(400ms)" fallback: see json-editor.ts's template

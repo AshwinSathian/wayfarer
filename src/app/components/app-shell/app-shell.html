@@ -76,7 +76,7 @@
   <div
     class="flex flex-1 flex-col"
     style="transition: margin-left var(--dur-enter) var(--ease-standard);"
-    [class]="!isMobile() && drawerVisible() ? 'md:ml-[22rem]' : ''"
+    [class]="!isMobile() && drawerVisible() ? 'md:ml-88' : ''"
   >
     <!-- Top toolbar -->
     <header class="ds-toolbar">
@@ -270,7 +270,7 @@
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <app-icon [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'" class="icon-md text-label-tertiary mt-0.5 flex-shrink-0" />
+      <app-icon [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'" class="icon-md text-label-tertiary mt-0.5 shrink-0" />
       <p class="type-callout text-label-secondary leading-relaxed">
         @if (isFirstVaultSetup()) {
         Create a passphrase to encrypt your secrets. You'll need it to access them in future sessions.
@@ -330,7 +330,7 @@
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <app-icon name="router" class="icon-md text-label-tertiary mt-0.5 flex-shrink-0" />
+      <app-icon name="router" class="icon-md text-label-tertiary mt-0.5 shrink-0" />
       <p class="type-callout text-label-secondary leading-relaxed">
         Optional relay for CORS-restrictive or intranet-only APIs. Runs on your own machine — nothing is sent anywhere unless you enable it here.
         <a

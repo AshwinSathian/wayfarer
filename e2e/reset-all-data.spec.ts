@@ -33,3 +33,18 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
   await expect(pageA.getByText("No collections yet", { exact: false })).toBeVisible();
   await expect(pageA.getByText("Reset me", { exact: true })).toHaveCount(0);
 });
+
+test("Reset All Data also clears the bridge token and the other wayfarer: preferences", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url: "http://127.0.0.1:7717", token: "secret" }));
+    localStorage.setItem("elsewhere", "kept");
+  });
+
+  const reloaded = page.waitForEvent("load");
+  await resetAllData(page);
+  await reloaded;
+
+  expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("elsewhere"))).toBe("kept");
+});

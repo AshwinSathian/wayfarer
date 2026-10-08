@@ -90,7 +90,7 @@ export class CollectionsRepository {
 
       const duplicate: Collection = {
         ...this.core.clone(original),
-        id: this.core.randomId(),
+        id: crypto.randomUUID(),
         meta: this.core.createMeta(),
         name: `${original.name} copy`,
         order: await this.core.nextOrder(collectionStore.index("by-order")),
@@ -111,7 +111,7 @@ export class CollectionsRepository {
       const folderClones = sourceFolders.map((folder) => {
         const clone: Folder = {
           ...this.core.clone(folder),
-          id: this.core.randomId(),
+          id: crypto.randomUUID(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
           order: folder.order,
@@ -130,7 +130,7 @@ export class CollectionsRepository {
       for (const request of sourceRequests) {
         const clone: RequestDoc = {
           ...this.core.clone(request),
-          id: this.core.randomId(),
+          id: crypto.randomUUID(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
           order: request.order,

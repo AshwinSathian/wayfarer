@@ -7,6 +7,26 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Security
+
+- **Copy as cURL** no longer lets an imported collection run commands or read
+  files when its output is pasted into a shell: the method is quoted unless it
+  is a plain verb, and the body goes out with `--data-raw` (a body starting
+  with `@` was read from a local file by `-d`).
+- Importing a collection now rejects a request whose method is not GET, POST,
+  PUT, PATCH, DELETE, HEAD or OPTIONS.
+- **Reset all data** now also clears the Local Bridge token and every other
+  `wayfarer:` setting in the browser. It cleared two keys, one of them unused.
+- The Local Bridge's default allowed origins name the hosted app
+  (`wayfarer.ashwinsathian.com`) instead of its old domain.
+- The deploy workflow refuses a CI run that did not come from a push to
+  `main`, so a pull request from a fork branch named `main` cannot be shipped.
+
+### Changed
+
+- Identifiers come from `crypto.randomUUID()` directly. Seven copies of a
+  helper with an insecure `Math.random()` fallback are gone.
+
 ## [1.3.0] - 2026-10-07
 
 The app moves to Angular 22 and drops PrimeNG. Every dialog, menu, select,

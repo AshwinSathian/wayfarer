@@ -120,7 +120,7 @@ export class RequestExecutionService {
   private readonly assertionRunner = inject(AssertionRunnerService);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
-    const requestId = this.createRequestId();
+    const requestId = crypto.randomUUID();
     const startedAt = performance.now();
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
@@ -317,12 +317,6 @@ export class RequestExecutionService {
     await this.environmentsService.updateEnvironment(active.meta.id, { vars });
   }
 
-  private createRequestId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
 
   private isJsonPayload(payload: unknown): boolean {
     if (payload === null || payload === undefined) {

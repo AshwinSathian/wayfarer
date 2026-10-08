@@ -297,7 +297,7 @@ export class IdbCoreService {
   createMeta(): Meta {
     const now = Date.now();
     return {
-      id: this.randomId(),
+      id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
       version: META_VERSION,
@@ -314,13 +314,6 @@ export class IdbCoreService {
       ...meta,
       updatedAt: Date.now(),
     };
-  }
-
-  randomId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
-    }
-    return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`;
   }
 
   async nextOrder(index: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }): Promise<number> {

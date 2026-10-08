@@ -22,7 +22,7 @@ export class SecretsService {
       throw new Error("Secrets are locked. Unlock before saving new secrets.");
     }
     const envelope = await this.crypto.encryptWithSession(request.plaintext);
-    const id = this.randomId();
+    const id = crypto.randomUUID();
     await this.idb.writeCipher({
       id,
       name: request.name,
@@ -85,12 +85,5 @@ export class SecretsService {
       if (error instanceof DOMException && error.name === "OperationError") return false;
       throw error;
     }
-  }
-
-  private randomId(): SecretId {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
-    }
-    return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`;
   }
 }

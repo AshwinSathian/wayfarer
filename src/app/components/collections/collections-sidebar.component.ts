@@ -10,7 +10,7 @@ import { TreeComponent, UiTreeNode } from "../../ui/tree.component";
 import { RequestDoc } from "../../models/collections.models";
 import { CollectionsService } from "../../services/collections.service";
 import { CollectionImportService } from "../../services/collection-import.service";
-import { PastRequest } from "../../models/history.models";
+import { HTTP_METHODS, PastRequest } from "../../models/history.models";
 import {
   CollectionNodeData,
   collectionsToNodes,
@@ -98,15 +98,7 @@ export class CollectionsSidebarComponent implements OnInit {
     name: "",
     method: "GET" as PastRequest["method"],
   });
-  readonly methodOptions = [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "HEAD",
-    "OPTIONS",
-  ].map((method) => ({ label: method, value: method as PastRequest["method"] }));
+  readonly methodOptions = HTTP_METHODS.map((method) => ({ label: method, value: method }));
 
   async ngOnInit(): Promise<void> {
     await this.collectionsService.ensureLoaded();

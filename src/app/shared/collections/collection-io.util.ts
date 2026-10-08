@@ -2,10 +2,10 @@ import { parseJson } from "../json/safe-json.util";
 import {
   Collection,
   CollectionExport,
-  CollectionId,
   Folder,
   RequestDoc,
 } from "../../models/collections.models";
+import { HTTP_METHODS, HttpMethod } from "../../models/history.models";
 import { CollectionTree } from "../../services/collections.service";
 
 export interface ValidationResult {
@@ -193,7 +193,7 @@ function remapIdentifiers(
   const clone = cloneExport(payload);
   const idMap: Record<string, string> = {};
 
-  const newCollectionId = newId();
+  const newCollectionId = crypto.randomUUID();
   const originalCollectionId = clone.collection.id ?? clone.collection.meta.id;
   idMap[originalCollectionId] = newCollectionId;
   clone.collection.id = newCollectionId;
@@ -202,7 +202,7 @@ function remapIdentifiers(
 
   clone.folders = clone.folders.map((folder) => {
     const updated = cloneValue(folder);
-    const mappedId = newId();
+    const mappedId = crypto.randomUUID();
     const originalId = folder.id ?? folder.meta.id;
     idMap[originalId] = mappedId;
     updated.id = mappedId;
@@ -217,7 +217,7 @@ function remapIdentifiers(
 
   clone.requests = clone.requests.map((request) => {
     const updated = cloneValue(request);
-    const mappedId = newId();
+    const mappedId = crypto.randomUUID();
     const originalId = request.id ?? request.meta.id;
     idMap[originalId] = mappedId;
     updated.id = mappedId;
@@ -295,7 +295,9 @@ function validateRequestDoc(
   validateRequiredString(request?.id ?? request?.meta?.id, `${path}.id`, errors);
   validateRequiredString(request?.collectionId, `${path}.collectionId`, errors);
   validateRequiredString(request?.name, `${path}.name`, errors);
-  validateRequiredString(request?.method, `${path}.method`, errors);
+  if (!HTTP_METHODS.includes(request?.method as HttpMethod)) {
+    errors.push({ path: `${path}.method`, message: `Method must be one of ${HTTP_METHODS.join(", ")}.` });
+  }
   validateRequiredString(request?.url, `${path}.url`, errors);
   if (typeof request?.headers !== "object" || request.headers === null) {
     errors.push({
@@ -353,13 +355,6 @@ function cloneValue<T>(value: T): T {
 function safeParse(text: string): unknown {
   const parsed = parseJson(text);
   return parsed.ok ? parsed.value : null;
-}
-
-function newId(): CollectionId {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  return `col-${Math.random().toString(16).slice(2, 10)}-${Date.now().toString(16)}`;
 }
 
 function touchMeta(meta: Collection["meta"]): Collection["meta"] {

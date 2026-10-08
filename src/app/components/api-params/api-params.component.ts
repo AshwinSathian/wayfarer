@@ -480,7 +480,7 @@ export class ApiParamsComponent {
     }
 
     this.responseExportContext.set({
-      id: this.createRequestId(),
+      id: crypto.randomUUID(),
       method,
       url,
       headers: { ...headers },
@@ -526,12 +526,6 @@ export class ApiParamsComponent {
     this.responseExportContext.set(null);
   }
 
-  private createRequestId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
 
   get shouldShowResponsePanel(): boolean {
     return (
@@ -859,7 +853,7 @@ export class ApiParamsComponent {
   }
 
   addTest(): void {
-    const id = this.createRequestId();
+    const id = crypto.randomUUID();
     this.requestTests.update((tests) => [
       ...tests,
       { id, target: "status", operator: "equals", expected: "" },

@@ -50,15 +50,15 @@ jobs:
             echo "ci_run_id must be a number" >&2; exit 1
           fi
           if [ -n "$INPUT_RUN" ]; then
-            gh run view "$INPUT_RUN" -R "$GITHUB_REPOSITORY" --json databaseId,headSha,headBranch,conclusion,workflowName > run.json
+            gh run view "$INPUT_RUN" -R "$GITHUB_REPOSITORY" --json databaseId,headSha,headBranch,conclusion,workflowName,event > run.json
           else
             gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push --status success --limit 1 \
-              --json databaseId,headSha,headBranch,conclusion,workflowName --jq '.[0]' > run.json
+              --json databaseId,headSha,headBranch,conclusion,workflowName,event --jq '.[0]' > run.json
           fi
           node -e '
             const r = require("./run.json");
-            if (r.workflowName !== "CI" || r.headBranch !== "main" || r.conclusion !== "success") {
-              console.error("Refusing to deploy: not a successful CI run on main", r); process.exit(1);
+            if (r.workflowName !== "CI" || r.event !== "push" || r.headBranch !== "main" || r.conclusion !== "success") {
+              console.error("Refusing to deploy: not a successful push CI run on main", r); process.exit(1);
             }
             console.log(`id=${r.databaseId}\nsha=${r.headSha}`);
           ' >> "$GITHUB_OUTPUT"

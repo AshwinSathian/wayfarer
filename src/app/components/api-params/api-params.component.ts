@@ -62,7 +62,6 @@ import {
   AssertionOperator,
 } from "../../models/test-assertion.models";
 import {
-  appendEnabledParams,
   appendQueryParam,
   buildUrlFromParams,
   normalizeUrl,
@@ -470,10 +469,8 @@ export class ApiParamsComponent {
     const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const body = usesBody ? this.resolveBody(this.buildBody(), context) : undefined;
-    let url = appendEnabledParams(
-      normalizeUrl(resolveTemplate(endpointText.trim(), context)),
-      this.requestParams()
-    );
+    // The Params rows are already in the URL field (they mirror its query).
+    let url = normalizeUrl(resolveTemplate(endpointText.trim(), context));
     const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
@@ -684,10 +681,7 @@ export class ApiParamsComponent {
   }
 
   private syncParamsFromUrl(url: string): void {
-    const parsed = parseParamsFromUrl(url);
-    if (parsed) {
-      this.requestParams.set(parsed);
-    }
+    this.requestParams.set(parseParamsFromUrl(url));
   }
 
   private syncUrlFromParams(): void {
@@ -719,10 +713,7 @@ export class ApiParamsComponent {
     const authHeaders = buildAuthHeaders(auth);
     const headers = { ...baseHeaders, ...authHeaders };
     const method = this.selectedRequestMethod();
-    let url = appendEnabledParams(
-      normalizeUrl(resolveTemplate(endpoint.trim(), context)),
-      this.requestParams()
-    );
+    let url = normalizeUrl(resolveTemplate(endpoint.trim(), context));
     const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);

@@ -51,6 +51,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   caught before the send. Base64 hid it from the check, so the literal
   placeholder (never the secret) went on the wire.
 - A body or header key named `__proto__` is sent and exported as data.
+- Editing a row in the **Params** tab rewrites only the query of the URL
+  field. It used to rebuild the whole URL, which lower-cased a `{{baseUrl}}`
+  host and percent-encoded a `{{token}}` value (neither resolved afterwards),
+  added `https://` and a trailing slash, and dropped the rows when the URL
+  did not parse.
+- A query parameter whose value is a `{{variable}}` is sent once, resolved.
+  It went out twice: resolved, and again as the literal placeholder.
 
 ## [1.3.0] - 2026-10-07
 

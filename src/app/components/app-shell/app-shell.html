@@ -29,8 +29,7 @@
       @if (isMobile()) {
       <div class="px-4 py-3">
         <button
-          uiButton
-          variant="outlined"
+          matButton="outlined"
           type="button"
           aria-label="New request"
           (click)="handleNewRequest()"
@@ -189,9 +188,7 @@
         <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
           <button
-            uiButton
-            tone="secondary"
-            size="sm"
+            matButton="filled" class="btn-secondary btn-sm"
             type="button"
             aria-label="Reload"
             (click)="swUpdate.applyUpdate()"
@@ -201,7 +198,7 @@
         @if (dataResetElsewhere()) {
         <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
           <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
-          <button uiButton tone="secondary" size="sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
+          <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
         </div>
         }
         @if (storageUnavailable()) {
@@ -212,7 +209,7 @@
         @if (resetError()) {
         <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
           <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
-          <button uiButton tone="secondary" size="sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
+          <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
         </div>
         }
         <app-api-params [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-api-params>
@@ -238,11 +235,7 @@
       </div>
       <div class="flex items-center gap-1">
         <button
-          uiButton
-          tone="danger"
-          variant="text"
-          size="sm"
-          iconOnly
+          matIconButton class="btn-danger btn-sm"
           type="button"
           [disabled]="historyLoading() || !pastRequests().length"
           matTooltip="Clear all history"
@@ -316,9 +309,9 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeLockDialog()">Cancel</button>
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeLockDialog()">Cancel</button>
       <button
-        uiButton
+        matButton="filled"
         [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock secrets'"
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
@@ -391,10 +384,7 @@
 
     <div class="flex items-center justify-between">
       <button
-        uiButton
-        tone="secondary"
-        variant="outlined"
-        size="sm"
+        matButton="outlined" class="btn-secondary btn-sm"
         type="button"
         aria-label="Test connection"
         [disabled]="!bridgeUrlDraft() || bridgeTestStatus() === 'testing'"
@@ -414,8 +404,8 @@
     </div>
 
     <div class="flex justify-end gap-2">
-      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeBridgeSettings()">Cancel</button>
-      <button uiButton aria-label="Save" (click)="saveBridgeSettings()">Save</button>
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeBridgeSettings()">Cancel</button>
+      <button matButton="filled" aria-label="Save" (click)="saveBridgeSettings()">Save</button>
     </div>
   </div>
 </ui-dialog>

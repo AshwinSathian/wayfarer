@@ -10,10 +10,7 @@
         <app-icon name="upload" class="icon-sm" />
       </button>
       <button
-        uiButton
-        tone="secondary"
-        size="sm"
-        iconOnly
+        matButton="filled" class="btn-secondary btn-sm btn-square"
         aria-label="New collection"
         (click)="handleCreateCollection()"
       ><app-icon name="add" /></button>
@@ -149,9 +146,9 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel import" (click)="closeImportDialog()">Cancel</button>
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="closeImportDialog()">Cancel</button>
       <button
-        uiButton
+        matButton="filled"
         aria-label="Confirm import"
         [disabled]="!importAnalysis()?.payload || importErrors().length > 0"
         (click)="confirmImport()"
@@ -202,8 +199,8 @@
   </div>
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeCreationDialog()">Cancel</button>
-      <button uiButton aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()">Create</button>
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeCreationDialog()">Cancel</button>
+      <button matButton="filled" aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()">Create</button>
     </div>
   </div>
 </ui-dialog>

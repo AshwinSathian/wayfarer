@@ -28,10 +28,7 @@
     <!-- Action buttons -->
     <div class="flex items-center gap-2 sm:shrink-0">
       <button
-        uiButton
-        tone="secondary"
-        variant="outlined"
-        iconOnly
+        matButton="outlined" class="btn-secondary btn-square"
         type="button"
         title="New request"
         aria-label="New request"
@@ -53,10 +50,7 @@
         matTooltipPosition="below"
       >
         <button
-          uiButton
-          tone="secondary"
-          variant="outlined"
-          iconOnly
+          matButton="outlined"
           type="button"
           [disabled]="!endpoint()"
           matTooltip="Copy as cURL"
@@ -64,14 +58,11 @@
           [matTooltipDisabled]="!endpoint()"
           aria-label="Copy as cURL"
           (click)="copyAsCurl()"
-          class="curl-btn"
+          class="btn-secondary btn-square curl-btn"
         ><app-icon name="terminal" /></button>
       </span>
       <button
-        uiButton
-        tone="secondary"
-        variant="outlined"
-        iconOnly
+        matButton="outlined" class="btn-secondary btn-square"
         type="button"
         [disabled]="!endpoint() || savingRequest()"
         [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
@@ -79,7 +70,7 @@
         (click)="saveCurrentRequest()"
       ><app-icon [name]="savingRequest() ? 'progress_activity' : 'save'" [class.animate-spin]="savingRequest()" /></button>
       <button
-        uiButton
+        matButton="filled"
         type="button"
         [disabled]="!endpoint()"
         aria-label="Send request"
@@ -334,10 +325,7 @@
          />
         <div class="flex justify-end md:block">
           <button
-            uiButton
-            tone="danger"
-            variant="text"
-            iconOnly
+            matIconButton class="btn-danger"
             type="button"
             aria-label="Remove parameter"
             (click)="removeParam(i)"
@@ -347,8 +335,7 @@
       }
       <div class="pt-1">
         <button
-          uiButton
-          tone="secondary"
+          matButton="filled" class="btn-secondary"
           type="button"
           aria-label="Add parameter"
           [disabled]="isAddParamDisabled()"
@@ -514,10 +501,7 @@
            />
           }
           <button
-            uiButton
-            tone="danger"
-            variant="text"
-            iconOnly
+            matIconButton class="btn-danger"
             type="button"
             aria-label="Remove test"
             (click)="removeTest(i)"
@@ -525,7 +509,7 @@
         </div>
         }
         <div>
-          <button uiButton tone="secondary" type="button" aria-label="Add test" (click)="addTest()"><app-icon name="add" /> Add Test</button>
+          <button matButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="addTest()"><app-icon name="add" /> Add Test</button>
         </div>
       </div>
     </div>
@@ -591,8 +575,8 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button uiButton tone="secondary" variant="outlined" aria-label="Cancel" (click)="closeSaveAsDialog()">Cancel</button>
-      <button uiButton aria-label="Save" [disabled]="isSaveAsDisabled || savingRequest()" (click)="confirmSaveAs()">{{ savingRequest() ? 'Saving…' : 'Save' }}</button>
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeSaveAsDialog()">Cancel</button>
+      <button matButton="filled" aria-label="Save" [disabled]="isSaveAsDisabled || savingRequest()" (click)="confirmSaveAs()">{{ savingRequest() ? 'Saving…' : 'Save' }}</button>
     </div>
   </div>
 </ui-dialog>

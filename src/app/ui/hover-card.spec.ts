@@ -81,6 +81,21 @@ describe("HoverCard", () => {
     fixture.destroy();
   });
 
+  it("closes on Escape even when something stops the key on its way up (a tooltip that is fading out)", async () => {
+    const { fixture, row } = await setup();
+    row.focus();
+    await fixture.whenStable();
+    expect(card()).not.toBeNull();
+
+    const swallow = (event: Event) => event.stopPropagation();
+    document.body.addEventListener("keydown", swallow);
+    row.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    document.body.removeEventListener("keydown", swallow);
+
+    expect(card()).toBeNull();
+    fixture.destroy();
+  });
+
   it("does not open for focus the browser shows no ring for (a click, or focus handed back by a dialog)", async () => {
     const { fixture, row } = await setup();
     // A focusin whose target does not match :focus-visible, as after a mouse click.

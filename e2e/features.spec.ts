@@ -300,6 +300,10 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
 // reachable with the keyboard alone, and dismissible.
 test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page, browserName }) => {
   await page.goto("/");
+  // Off the window's corner: a headless pointer rests at (0, 0), which is
+  // where the CDK first places an overlay before positioning it. Material
+  // hides a tooltip the pointer has entered and then left.
+  await page.mouse.move(640, 600);
   await page.locator("input.address-url").fill(`${ECHO}/content/json?tooltip=1`);
 
   // Reach the button with the keyboard: Material shows a tooltip for

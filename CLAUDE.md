@@ -106,6 +106,19 @@ code errors.
   For what has no token, write a rule there with more specificity than
   Material's own: its component styles load after the global sheet.
 - Import the one directive or component (`MatTooltip`), not its module.
+- Buttons: `matButton="filled"`, `matButton="outlined"`, `matButton` (text)
+  or `matIconButton`, with `btn-secondary` / `btn-danger` / `btn-success`
+  for the tone, `btn-sm` for the size and `btn-square` for an icon alone in
+  a filled or outlined button. Colours are the `--btn-*` variables in
+  `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
+  button that clicks a hidden `<input type="file">`.
+- A token whose value is a variable set on the component (`--btn-fg`) must
+  be overridden on the component's class, not on `html`: a variable is
+  resolved where it is declared.
+- A Tailwind utility on a Material host loses to Material for any property
+  Material sets there (height, padding, min-width, font, colour, border).
+  Width and margin utilities are safe. Change the rest through tokens.
+- Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
 - `matTooltip` takes text and watches focus on its host only. Put it on the
   focusable element, not on a wrapper.
 

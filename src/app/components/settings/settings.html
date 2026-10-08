@@ -16,10 +16,7 @@
           <p class="type-caption text-label-tertiary mt-0.5">Switch between the dark (OLED-true) and light themes.</p>
         </div>
         <button
-          uiButton
-          tone="secondary"
-          variant="outlined"
-          size="sm"
+          matButton="outlined" class="btn-secondary btn-sm"
           type="button"
           aria-label="Toggle theme"
           (click)="themeService.toggle()"
@@ -36,10 +33,7 @@
           <p class="type-caption text-label-tertiary mt-0.5">View, reveal, rename, and delete secrets across every environment.</p>
         </div>
         <button
-          uiButton
-          tone="secondary"
-          variant="outlined"
-          size="sm"
+          matButton="outlined" class="btn-secondary btn-sm"
           type="button"
           aria-label="Manage secrets"
           (click)="openSecrets.emit(); close()"
@@ -58,32 +52,22 @@
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button
-              uiButton
-              tone="secondary"
-              variant="outlined"
-              size="sm"
+              matButton="outlined" class="btn-secondary btn-sm"
               type="button"
               aria-label="Export environments"
               (click)="exportEnvironments()"
             ><app-icon name="download" /> Export</button>
-            <label
-              uiButton
-              tone="secondary"
-              variant="outlined"
-              size="sm"
-              class="inline-flex items-center gap-2 cursor-pointer"
-              style="height: 2rem; padding: 0 0.75rem;"
-            >
-              <app-icon name="upload" class="icon-sm" />
-              <span>Import</span>
-              <input
-                type="file"
-                accept="application/json"
-                class="hidden"
-                aria-label="Import environments from file"
-                (change)="handleEnvironmentImport($event)"
-              />
-            </label>
+            <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="environmentFile.click()">
+              <app-icon name="upload" /> Import
+            </button>
+            <input
+              #environmentFile
+              type="file"
+              accept="application/json"
+              class="hidden"
+              aria-label="Import environments from file"
+              (change)="handleEnvironmentImport($event)"
+            />
           </div>
         </div>
         @if (importStatus(); as status) {
@@ -113,10 +97,7 @@
           </p>
         </div>
         <button
-          uiButton
-          tone="secondary"
-          variant="outlined"
-          size="sm"
+          matButton="outlined" class="btn-secondary btn-sm"
           type="button"
           aria-label="Configure Local Bridge"
           (click)="openBridgeSettings.emit(); close()"
@@ -167,9 +148,7 @@
           <p class="type-caption text-label-tertiary mt-0.5">Deletes every collection, environment, secret, and history item. Cannot be undone.</p>
         </div>
         <button
-          uiButton
-          tone="danger"
-          size="sm"
+          matButton="filled" class="btn-danger btn-sm"
           type="button"
           aria-label="Reset all data"
           (click)="resetAllData.emit()"

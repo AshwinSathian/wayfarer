@@ -108,3 +108,51 @@ html {
   text-align: start;
   white-space: pre-line;
 }
+
+/* ── Button ──────────────────────────────────────────────── */
+/* Colours are the --btn-* variables a button's variant and tone classes set
+   (controls.css). The state layer is off: hover and press change the
+   button's own background there. The tokens are set on the button, not on
+   html: a variable is resolved where it is declared, and --btn-* exist only
+   on the button. */
+@function button-tokens($variant) {
+  @return (
+    #{$variant}-container-shape: var(--radius-md),
+    #{$variant}-label-text-color: var(--btn-fg),
+    #{$variant}-disabled-label-text-color: var(--btn-fg),
+    #{$variant}-label-text-size: 14px,
+    #{$variant}-label-text-weight: 500,
+    #{$variant}-label-text-tracking: -0.004em,
+    #{$variant}-hover-state-layer-opacity: 0,
+    #{$variant}-focus-state-layer-opacity: 0,
+    #{$variant}-pressed-state-layer-opacity: 0,
+    #{$variant}-touch-target-display: none
+  );
+}
+
+.mat-mdc-button-base {
+  @include mat.button-overrides(button-tokens(filled));
+  @include mat.button-overrides(button-tokens(outlined));
+  @include mat.button-overrides(button-tokens(text));
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--btn-bg),
+      filled-disabled-container-color: var(--btn-bg),
+      outlined-outline-color: var(--btn-border),
+      outlined-disabled-outline-color: var(--btn-border),
+    )
+  );
+  @include mat.icon-button-overrides(
+    (
+      container-shape: var(--radius-md),
+      /* The glyph takes its size from <app-icon>'s font size, as everywhere. */
+      icon-size: 1em,
+      icon-color: var(--btn-fg),
+      disabled-icon-color: var(--btn-fg),
+      hover-state-layer-opacity: 0,
+      focus-state-layer-opacity: 0,
+      pressed-state-layer-opacity: 0,
+      touch-target-display: none,
+    )
+  );
+}

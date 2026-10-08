@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { UI_ACCORDION } from "../../ui/accordion";
-import { Button } from "../../ui/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { Select } from "../../ui/select";
 import { Splitter } from "../../ui/splitter";
@@ -97,7 +97,7 @@ type ContextType = "Body" | "Headers";
     Icon,
     FormsModule,
     ReactiveFormsModule,
-    Button,
+    MatButton, MatIconButton,
     UI_ACCORDION,
     Select,
     Segmented,

@@ -2,7 +2,7 @@ import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Menu, UiMenuItem } from "../../ui/menu";
-import { Button } from "../../ui/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { UI_TABS } from "../../ui/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export";
@@ -51,7 +51,7 @@ interface ResponseHeader {
     UI_TABS,
     MatTooltip,
     JsonEditor,
-    Button,
+    MatButton, MatIconButton,
     Menu,
   ],
   templateUrl: "./response-viewer.html",

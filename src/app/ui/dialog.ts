@@ -16,7 +16,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { Icon } from "../shared/icon/icon";
-import { Button } from "./button";
+import { MatIconButton } from "@angular/material/button";
 
 let nextId = 0;
 
@@ -118,12 +118,12 @@ abstract class ModalPanel implements OnDestroy {
  */
 @Component({
   selector: "ui-dialog",
-  imports: [Icon, Button],
+  imports: [Icon, MatIconButton],
   template: `
     <ng-template #content>
       <div class="ui-dialog-header">
         <span class="ui-dialog-title" [id]="titleId">{{ header() }}</span>
-        <button uiButton type="button" tone="secondary" variant="text" iconOnly class="ui-dialog-close" aria-label="Close" (click)="requestClose()">
+        <button matIconButton type="button" class="btn-secondary ui-dialog-close" aria-label="Close" (click)="requestClose()">
           <app-icon name="close" />
         </button>
       </div>

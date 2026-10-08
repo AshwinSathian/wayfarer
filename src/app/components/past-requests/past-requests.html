@@ -109,19 +109,13 @@
                     <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
                     <div class="flex items-center gap-2">
                       <button
-                        uiButton
-                        tone="secondary"
-                        variant="text"
-                        size="sm"
+                        matButton class="btn-secondary btn-sm"
                         type="button"
                         aria-label="Load request"
                         (click)="load(request)"
                       >Load</button>
                       <button
-                        uiButton
-                        tone="danger"
-                        variant="text"
-                        size="sm"
+                        matButton class="btn-danger btn-sm"
                         type="button"
                         aria-label="Delete request"
                         (click)="confirmDelete(request, $event)"

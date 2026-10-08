@@ -33,10 +33,7 @@
     }
     <div class="flex justify-end md:block md:text-center">
       <button
-        uiButton
-        tone="danger"
-        variant="text"
-        iconOnly
+        matIconButton class="btn-danger"
         type="button"
         [disabled]="disableItem()(item, index)"
         [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
@@ -48,8 +45,7 @@
 
   <div class="pt-2">
     <button
-      uiButton
-      tone="secondary"
+      matButton="filled" class="btn-secondary"
       type="button"
       [attr.aria-label]="addLabel()"
       [disabled]="isAddDisabled()(context())"

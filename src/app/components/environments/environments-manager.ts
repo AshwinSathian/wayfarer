@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Button } from "../../ui/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { UI_TABS } from "../../ui/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -37,7 +37,7 @@ interface EnvironmentDraft {
   imports: [
     Icon,
     FormsModule,
-    Button,
+    MatButton, MatIconButton,
     UI_TABS,
     Dialog,
     MatTooltip,

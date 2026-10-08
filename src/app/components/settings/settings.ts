@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from "@angular/core";
-import { Button } from "../../ui/button";
+import { MatButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme } from "../../services/theme";
@@ -30,7 +30,7 @@ interface KeyboardShortcut {
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, Button, Dialog],
+  imports: [Icon, MatButton, Dialog],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

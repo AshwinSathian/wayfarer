@@ -3,7 +3,7 @@ import { Overlay } from "@angular/cdk/overlay";
 import { ChangeDetectionStrategy, Component, Injectable, InjectionToken, inject } from "@angular/core";
 import { firstValueFrom } from "rxjs";
 import { Icon } from "../shared/icon/icon";
-import { Button } from "./button";
+import { MatButton } from "@angular/material/button";
 
 export interface ConfirmOptions {
   /** Heading of a centred confirmation. Omit it together with setting `anchor` for a small popup. */
@@ -25,14 +25,14 @@ const CONFIRM_ID = new InjectionToken<string>("confirm id");
 /** The confirmation itself. Focus starts on the button that backs out. */
 @Component({
   selector: "ui-confirm",
-  imports: [Icon, Button],
+  imports: [Icon, MatButton],
   template: `
     @if (options.anchor) {
       <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
         <span class="text-label-secondary-on-fill" [id]="id + '-message'">{{ options.message }}</span>
         <div class="flex items-center gap-2 mt-3">
-          <button uiButton type="button" tone="danger" variant="text" size="sm" (click)="ref.close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-          <button uiButton type="button" tone="secondary" variant="text" size="sm" cdkFocusInitial (click)="ref.close(false)">
+          <button matButton class="btn-danger btn-sm" type="button" (click)="ref.close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+          <button matButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="ref.close(false)">
             {{ options.rejectLabel ?? "Cancel" }}
           </button>
         </div>
@@ -43,8 +43,8 @@ const CONFIRM_ID = new InjectionToken<string>("confirm id");
         <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
         <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{ options.message }}</p>
         <div class="flex items-center gap-3 mt-6">
-          <button uiButton type="button" tone="danger" class="w-28" (click)="ref.close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-          <button uiButton type="button" tone="secondary" variant="text" class="w-28" cdkFocusInitial (click)="ref.close(false)">
+          <button matButton="filled" type="button" class="btn-danger w-28" (click)="ref.close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+          <button matButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="ref.close(false)">
             {{ options.rejectLabel ?? "Cancel" }}
           </button>
         </div>

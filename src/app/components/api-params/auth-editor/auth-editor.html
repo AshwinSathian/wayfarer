@@ -50,9 +50,7 @@
           (ngModelChange)="setBasicPassword($event)"
          />
         <button
-          uiButton
-          variant="text"
-          iconOnly
+          matIconButton
           type="button"
           [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
           (click)="onTogglePasswordVisibility()"

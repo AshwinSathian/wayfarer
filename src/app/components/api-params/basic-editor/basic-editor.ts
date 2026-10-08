@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Button } from "../../../ui/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { Icon } from "../../../shared/icon/icon";
 
 type ContextType = "Body" | "Headers";
@@ -9,7 +9,7 @@ type ContextType = "Body" | "Headers";
   selector: "app-api-params-basic",
   imports: [
     Icon, FormsModule,
-    Button,
+    MatButton, MatIconButton,
   ],
   templateUrl: "./basic-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

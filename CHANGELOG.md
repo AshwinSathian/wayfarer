@@ -7,6 +7,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **Test connection** in the Local Bridge settings no longer writes the
+  URL being tested into the saved settings while the check runs.
+- The Local Bridge answers 502 when a target's response is over 25 MB,
+  instead of holding all of it in memory.
+- Importing environments rejects a variable whose value is not text.
+- DOMPurify, which the Monaco editor bundles, is 3.4.16 (GHSA advisories
+  against 3.4.15 and earlier).
+
 ### Security
 
 - **Copy as cURL** no longer lets an imported collection run commands or read

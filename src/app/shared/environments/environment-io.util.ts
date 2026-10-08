@@ -52,6 +52,8 @@ export function validateEnvironmentExport(
       Array.isArray(env.vars)
     ) {
       errors.push(`environments[${index}].vars must be an object.`);
+    } else if (Object.values(env.vars).some((value) => typeof value !== "string")) {
+      errors.push(`environments[${index}].vars values must be strings.`);
     }
   });
 

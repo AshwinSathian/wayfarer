@@ -43,10 +43,9 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  standalone: true,
   imports: [IconComponent, FormsModule, ButtonDirective, DialogComponent, TooltipDirective],
   templateUrl: "./secrets-manager.component.html",
-  styleUrls: ["./secrets-manager.component.css"],
+  styleUrl: "./secrets-manager.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SecretsManagerComponent {

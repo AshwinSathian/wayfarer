@@ -36,7 +36,6 @@ import { SwUpdateService } from "../../services/sw-update.service";
 
 @Component({
   selector: "app-shell",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -53,7 +52,7 @@ import { SwUpdateService } from "../../services/sw-update.service";
     SettingsComponent,
   ],
   templateUrl: "./app-shell.component.html",
-  styleUrls: ["./app-shell.component.css"],
+  styleUrl: "./app-shell.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {
@@ -354,15 +353,16 @@ export class AppShellComponent implements OnInit {
     location.reload();
   }
 
+  /** Every key the app ever wrote: theme, bridge URL and token, split ratios (`api-sandbox:` is the pre-rename prefix). */
   private clearLocalCaches(): void {
-    const keys = ["wayfarer:active-environment", "wayfarer:feature-flags"];
-    for (const key of keys) {
-      for (const storage of ["localStorage", "sessionStorage"] as const) {
-        try {
-          window[storage].removeItem(key);
-        } catch (error) {
-          this.diagnostics.record(error, `reset: could not clear ${storage} key ${key}`);
+    for (const name of ["localStorage", "sessionStorage"] as const) {
+      try {
+        const storage = window[name];
+        for (const key of Object.keys(storage)) {
+          if (/^(wayfarer|api-sandbox):/.test(key)) storage.removeItem(key);
         }
+      } catch (error) {
+        this.diagnostics.record(error, `reset: could not clear ${name}`);
       }
     }
   }

@@ -86,13 +86,13 @@ import {
   operatorsFor,
 } from "../../shared/http/test-assertion-ui.util";
 import { IconComponent } from "../../shared/icon/icon.component";
+import { newId } from "../../shared/id.util";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";
 
 @Component({
   selector: "app-api-params",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -113,7 +113,7 @@ type ContextType = "Body" | "Headers";
     ResponseViewerComponent,
   ],
   templateUrl: "./api-params.component.html",
-  styleUrls: ["./api-params.component.css"],
+  styleUrl: "./api-params.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~870 lines: this is the request composer's root — it already delegates
@@ -480,7 +480,7 @@ export class ApiParamsComponent {
     }
 
     this.responseExportContext.set({
-      id: this.createRequestId(),
+      id: newId(),
       method,
       url,
       headers: { ...headers },
@@ -526,12 +526,6 @@ export class ApiParamsComponent {
     this.responseExportContext.set(null);
   }
 
-  private createRequestId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
 
   get shouldShowResponsePanel(): boolean {
     return (
@@ -859,7 +853,7 @@ export class ApiParamsComponent {
   }
 
   addTest(): void {
-    const id = this.createRequestId();
+    const id = newId();
     this.requestTests.update((tests) => [
       ...tests,
       { id, target: "status", operator: "equals", expected: "" },

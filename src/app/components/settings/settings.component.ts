@@ -29,10 +29,9 @@ interface KeyboardShortcut {
  */
 @Component({
   selector: "app-settings",
-  standalone: true,
   imports: [IconComponent, ButtonDirective, DialogComponent],
   templateUrl: "./settings.component.html",
-  styleUrls: ["./settings.component.css"],
+  styleUrl: "./settings.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsComponent {

@@ -1,5 +1,6 @@
 import { Injectable, InjectionToken, isDevMode } from "@angular/core";
 import { ScriptExecutionResult } from "../../models/test-assertion.models";
+import { newId } from "../id.util";
 
 export interface ScriptResponseContext {
   statusCode: number;
@@ -65,7 +66,7 @@ export class ScriptSandboxService {
     }
 
     return new Promise<ScriptExecutionResult>((resolve) => {
-      const runId = this.createRunId();
+      const runId = newId();
       const worker = new Worker(new URL("./script-runner.worker", import.meta.url), {
         type: "module",
       });
@@ -118,12 +119,5 @@ export class ScriptSandboxService {
       worker.addEventListener("error", onError);
       worker.postMessage({ type: "run", runId, script, env, response });
     });
-  }
-
-  private createRunId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 }

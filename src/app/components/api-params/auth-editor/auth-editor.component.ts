@@ -15,7 +15,6 @@ import { IconComponent } from "../../../shared/icon/icon.component";
  */
 @Component({
   selector: "app-auth-editor",
-  standalone: true,
   imports: [IconComponent, FormsModule, ButtonDirective, SelectComponent],
   templateUrl: "./auth-editor.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

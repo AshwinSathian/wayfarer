@@ -16,7 +16,8 @@ export function buildCurlCommand(context: CurlExportContext): string {
   const parts: string[] = ["curl"];
 
   if (context.method !== "GET") {
-    parts.push(`-X ${context.method}`);
+    // An imported collection can carry any string as its method; only a plain token goes unquoted.
+    parts.push(`-X ${/^[A-Za-z]+$/.test(context.method) ? context.method : `'${escapeSingleQuotes(context.method)}'`}`);
   }
 
   parts.push(`'${escapeSingleQuotes(context.url)}'`);
@@ -36,7 +37,8 @@ export function buildCurlCommand(context: CurlExportContext): string {
       bodyStr = stringifyJson(context.body) ?? String(context.body);
     }
     if (bodyStr) {
-      parts.push(`-d '${escapeSingleQuotes(bodyStr)}'`);
+      // --data-raw: plain -d reads a body starting with "@" from a local file.
+      parts.push(`--data-raw '${escapeSingleQuotes(bodyStr)}'`);
     }
   }
 

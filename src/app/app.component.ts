@@ -5,10 +5,9 @@ import { PastRequest, PastRequestKey } from './models/history.models';
 
 @Component({
     selector: 'app-root',
-    standalone: true,
     imports: [AppShellComponent],
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
+    styleUrl: './app.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {

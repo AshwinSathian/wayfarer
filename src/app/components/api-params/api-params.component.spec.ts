@@ -1,5 +1,5 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { ApiParamsComponent } from './api-params.component';
@@ -129,7 +129,7 @@ describe('ApiParamsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ApiParamsComponent],
       providers: [
-        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: IdbService, useValue: idbService },
         { provide: ResponseInspectorService, useValue: responseInspector },

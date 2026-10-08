@@ -7,6 +7,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Leftovers of the Angular 22 upgrade are gone: `standalone: true`,
+  `styleUrls`, `withInterceptorsFromDi()` (there are no DI interceptors),
+  `fullTemplateTypeCheck` and `useDefineForClassFields: false`. The app now
+  registers `provideBrowserGlobalErrorListeners()`, as a new Angular 22 app
+  does, so uncaught errors and unhandled rejections reach `ErrorHandler`.
+- `tsconfig.json` matches what `ng new --strict` writes: `noImplicitOverride`,
+  `noPropertyAccessFromIndexSignature`, `noImplicitReturns`,
+  `noFallthroughCasesInSwitch`, `isolatedModules`, `module: preserve` and
+  `strictInputAccessModifiers`. Web workers compile against ES2022, like the
+  app, instead of ES2018.
+- `favicon.ico` lives in `public/`; the empty `src/assets` folder is removed.
+
 ## [1.3.0] - 2026-10-07
 
 The app moves to Angular 22 and drops PrimeNG. Every dialog, menu, select,

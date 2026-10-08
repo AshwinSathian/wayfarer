@@ -35,6 +35,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   `strictInputAccessModifiers`. Web workers compile against ES2022, like the
   app, instead of ES2018.
 - `favicon.ico` lives in `public/`; the empty `src/assets` folder is removed.
+- Code follows more of the Angular style guide: `host` metadata instead of
+  `@HostListener`, `[class]` bindings instead of `ngClass`, single imports
+  (`NgTemplateOutlet`, `DatePipe`, `JsonPipe`) instead of `CommonModule`, and
+  lifecycle hooks that are not `async`.
+- Lint is type-aware and fails on a dropped promise
+  (`no-floating-promises`, `no-misused-promises`), a component that is not
+  `OnPush`, `@HostListener`/`@HostBinding`, a signal used without calling it,
+  and an `async` lifecycle hook.
+- A database upgrade that fails part-way is rolled back, so the database
+  keeps its old version instead of a half-applied schema.
 - Identifiers come from one `newId()` helper. Seven copies with a
   `Math.random()` fallback are gone; where `crypto.randomUUID` is missing
   (a copy served over plain http) it uses `crypto.getRandomValues`.

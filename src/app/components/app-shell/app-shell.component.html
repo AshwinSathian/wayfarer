@@ -76,7 +76,7 @@
   <div
     class="flex flex-1 flex-col"
     style="transition: margin-left var(--dur-enter) var(--ease-standard);"
-    [ngClass]="{ 'md:ml-[22rem]': !isMobile() && drawerVisible() }"
+    [class]="!isMobile() && drawerVisible() ? 'md:ml-[22rem]' : ''"
   >
     <!-- Top toolbar -->
     <header class="ds-toolbar">

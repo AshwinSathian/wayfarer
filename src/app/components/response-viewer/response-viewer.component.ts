@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
@@ -45,8 +45,8 @@ interface ResponseHeader {
 @Component({
   selector: "app-response-viewer",
   imports: [
+    JsonPipe,
     IconComponent,
-    CommonModule,
     FormsModule,
     UI_TABS,
     TooltipDirective,
@@ -89,16 +89,14 @@ export class ResponseViewerComponent {
     {
       label: "Copy as cURL",
       icon: "terminal",
-      command: () => this.copyAsCurl(),
+      command: () => void this.copyAsCurl(),
     },
     {
       label: "Copy as HAR",
       icon: "content_copy",
-      command: () => this.copyAsHar(),
+      command: () => void this.copyAsHar(),
     },
   ];
-
-  private readonly fallbackInspection = signal<ResponseInspection | null>(null);
 
   readonly activeTab = model<ResponseTab>("body");
 
@@ -420,8 +418,7 @@ export class ResponseViewerComponent {
   }
 
   get inspectionValue(): ResponseInspection | null {
-    const source = this.inspection() ?? this.fallbackInspection;
-    return source();
+    return this.inspection()?.() ?? null;
   }
 
   private buildExportEntry() {

@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../ui/button.directive";
@@ -36,7 +35,6 @@ interface EnvironmentDraft {
   selector: "app-environments-manager",
   imports: [
     IconComponent,
-    CommonModule,
     FormsModule,
     ButtonDirective,
     UI_TABS,
@@ -109,8 +107,8 @@ export class EnvironmentsManagerComponent implements OnInit {
       });
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.envService.ensureLoaded();
+  ngOnInit(): void {
+    void this.envService.ensureLoaded();
   }
 
   selectEnvironment(id: EnvironmentId): void {
@@ -237,7 +235,6 @@ export class EnvironmentsManagerComponent implements OnInit {
       return;
     }
     if (!this.secretCrypto.isUnlocked) {
-      // TODO: The 'emit' function requires a mandatory void argument
       this.requestUnlock.emit();
       return;
     }

@@ -156,7 +156,7 @@ describe('ApiParamsComponent', () => {
 
   it('should validate URLs and block invalid submissions', () => {
     component.endpoint.set('not-a-url');
-    component.sendRequest();
+    void component.sendRequest();
     expect(component.endpointError()).toContain('valid URL');
     expect(idbService.add).not.toHaveBeenCalled();
   });
@@ -392,7 +392,7 @@ describe('ApiParamsComponent', () => {
   it('saveCurrentRequest opens Save As when the composer is not bound to a collection request', () => {
     expect(component.loadedCollectionRequest()).toBeNull();
 
-    component.saveCurrentRequest();
+    void component.saveCurrentRequest();
 
     expect(component.saveAsDialogVisible()).toBe(true);
     expect(collectionsService.updateRequest).not.toHaveBeenCalled();

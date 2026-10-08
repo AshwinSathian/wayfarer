@@ -48,7 +48,7 @@
             @if (request.status !== undefined) {
             <span
               class="type-caption font-mono flex-shrink-0 tabular-nums"
-              [ngClass]="{
+              [class]="{
                 'text-status-success': request.status >= 200 && request.status < 300,
                 'text-status-warning': request.status >= 300 && request.status < 500,
                 'text-status-error':   request.status >= 500 || request.status === 0

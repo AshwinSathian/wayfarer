@@ -1,5 +1,5 @@
 import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, IndexNames } from "idb";
-import { ApiSandboxDB, DB_VERSION, HistoryRecord, StoreCollection, StoreName } from "./idb-schema";
+import { ApiSandboxDB, HistoryRecord, StoreCollection, StoreName } from "./idb-schema";
 
 /**
  * Object-store creation + index/upgrade logic for `IdbCoreService`'s
@@ -173,11 +173,6 @@ function ensureMetaStore(db: IDBPDatabase<ApiSandboxDB>): void {
   }
 }
 
-/** Scaffold for forward migrations beyond the current DB_VERSION. No-op today. */
-async function migrateV1toV2(): Promise<void> {
-  // Scaffold for forward migrations. No-op for now.
-}
-
 /** The full `openDB(...).upgrade` handler — creates/updates every object store and index, then runs any versioned data migrations. */
 export async function runUpgrade(
   db: IDBPDatabase<ApiSandboxDB>,
@@ -192,8 +187,4 @@ export async function runUpgrade(
   ensureEnvironmentsStore(db, transaction);
   ensureSecretsStore(db, transaction);
   ensureMetaStore(db);
-
-  if (oldVersion < DB_VERSION) {
-    await migrateV1toV2();
-  }
 }

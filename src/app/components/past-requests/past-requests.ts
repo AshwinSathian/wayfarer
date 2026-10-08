@@ -1,6 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
-import { UI_ACCORDION } from "../../ui/accordion";
+import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { Confirm } from "../../ui/confirm";
 import { MatButton } from "@angular/material/button";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -21,7 +21,7 @@ export interface HistoryGroup {
     MatButton,
     MatTooltip,
     HoverCard,
-    UI_ACCORDION,
+    MatAccordion, MatExpansionPanel, MatExpansionPanelHeader,
   ],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",

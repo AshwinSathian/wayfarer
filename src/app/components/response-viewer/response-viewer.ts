@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, inp
 import { FormsModule } from "@angular/forms";
 import { Menu, UiMenuItem } from "../../ui/menu";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { UI_TABS } from "../../ui/tabs";
+import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export";
 import { BinaryBody } from "../../shared/http/response-body";
@@ -48,7 +48,7 @@ interface ResponseHeader {
     JsonPipe,
     Icon,
     FormsModule,
-    UI_TABS,
+    MatTabNav, MatTabLink, MatTabNavPanel,
     MatTooltip,
     JsonEditor,
     MatButton, MatIconButton,

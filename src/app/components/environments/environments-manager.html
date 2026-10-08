@@ -99,13 +99,13 @@
     </div>
 
     <div class="mt-5">
-      <ui-tabs [value]="editorTab()" (valueChange)="onEditorTabChange($event)">
-        <ui-tablist>
-          <ui-tab value="pairs">Key / Value</ui-tab>
-          <ui-tab value="json">JSON</ui-tab>
-        </ui-tablist>
-        <ui-tabpanels>
-          <ui-tabpanel value="pairs">
+      <div class="tabs">
+        <div mat-tab-nav-bar class="tab-bar" [tabPanel]="editorPanel" [mat-stretch-tabs]="false" disablePagination>
+          <button mat-tab-link type="button" [active]="editorTab() === 'pairs'" (click)="onEditorTabChange('pairs')" (focus)="onEditorTabChange('pairs')">Key / Value</button>
+          <button mat-tab-link type="button" [active]="editorTab() === 'json'" (click)="onEditorTabChange('json')" (focus)="onEditorTabChange('json')">JSON</button>
+        </div>
+        <mat-tab-nav-panel #editorPanel class="tab-panes">
+          <div class="tab-pane" [hidden]="editorTab() !== 'pairs'">
             <div class="flex flex-col gap-2">
               @for (item of form.vars; track $index) {
               <div
@@ -154,8 +154,8 @@
               }
               <button matButton="filled" class="btn-secondary btn-sm" aria-label="Add variable" (click)="addVariable()"><app-icon name="add" /> Add Variable</button>
             </div>
-          </ui-tabpanel>
-          <ui-tabpanel value="json">
+          </div>
+          <div class="tab-pane" [hidden]="editorTab() !== 'json'">
             <div class="space-y-2">
               @if (!form.jsonValid) {
               <p class="type-footnote text-status-error flex items-center gap-1">
@@ -171,9 +171,9 @@
                 [height]="240"
               ></app-json-editor>
             </div>
-          </ui-tabpanel>
-        </ui-tabpanels>
-      </ui-tabs>
+          </div>
+        </mat-tab-nav-panel>
+      </div>
     </div>
 
     <div class="mt-5 flex justify-end">

@@ -395,214 +395,178 @@
 }
 
 /* ── Tabs ────────────────────────────────────────────────── */
-.ui-tabs {
+/* Markup: a mat-tab-nav-bar (class tab-bar) of mat-tab-link buttons and one
+   mat-tab-nav-panel (class tab-panes) holding a tab-pane per tab. Every pane
+   stays mounted and takes the hidden attribute, so an editor inside keeps
+   its state. Colours and type come through Material's tokens. */
+.tabs {
   display: flex;
   flex-direction: column;
 }
 
-.ui-tablist {
-  position: relative;
-  display: flex;
+/* A bar that does not fit scrolls sideways, without a scrollbar. */
+.tab-bar .mat-mdc-tab-link-container {
   overflow-x: auto;
-  overflow-y: hidden;
-  border-bottom: 1px solid var(--separator);
   scrollbar-width: none;
 }
 
-.ui-tablist::-webkit-scrollbar {
+.tab-bar .mat-mdc-tab-link-container::-webkit-scrollbar {
   display: none;
 }
 
-.ui-tab {
-  position: relative;
-  flex-shrink: 0;
-  margin: 0 0 -1px;
-  padding: 10px 16px;
-  border-bottom: 2px solid transparent;
-  color: var(--label-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.002em;
-  white-space: nowrap;
-  cursor: pointer;
+.tab-bar .mat-mdc-tab-link.mdc-tab {
+  min-width: 0;
+  height: auto;
+  /* 2px more below: the indicator is drawn inside the tab, under the label. */
+  padding: 10px 16px 12px;
   user-select: none;
-  transition:
-    color var(--dur-quick) var(--ease-standard),
-    border-color var(--dur-quick) var(--ease-standard);
 }
 
-.ui-tab:hover {
-  color: var(--label-primary);
+/* Labels share a baseline: a tab holding a badge is taller than the rest. */
+.tab-bar .mat-mdc-tab-link .mdc-tab__content {
+  align-items: flex-start;
 }
 
-.ui-tab--active {
-  border-bottom-color: var(--accent);
-  color: var(--label-primary);
+.tab-bar .mat-mdc-tab-link .mdc-tab__text-label {
+  display: inline;
+  line-height: normal;
+  transition: color var(--dur-quick) var(--ease-standard);
+}
+
+.tab-bar .mat-mdc-tab-link.mdc-tab--active {
   font-weight: 580;
 }
 
-.ui-tab:focus-visible {
+.tab-bar .mat-mdc-tab-link .mdc-tab__ripple::before {
+  display: none;
+}
+
+.tab-bar .mat-mdc-tab-link:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
-.ui-tabpanels {
+.tab-panes {
   display: block;
   padding: 18px 0 0;
   color: var(--ctl-surface-text);
 }
 
-.ui-tabpanel {
+.tab-pane {
   display: block;
 }
 
-.ui-tabpanel[hidden] {
+.tab-pane[hidden] {
   display: none;
 }
 
-/* A panel that becomes visible re-enters the render tree, so the animation
+/* A pane that becomes visible re-enters the render tree, so the animation
    replays on every switch. */
-.ui-tabpanel:not([hidden]) {
+.tab-pane:not([hidden]) {
   animation: fade-up var(--dur-standard) var(--ease-standard) both;
 }
 
 /* ── Accordion ───────────────────────────────────────────── */
-.ui-accordion {
-  display: block;
-}
-
-.ui-accordion-panel {
-  display: flex;
-  flex-direction: column;
+/* Markup: <mat-accordion class="sections" displayMode="flat"> of
+   mat-expansion-panel. Material keeps a closed panel's content mounted,
+   invisible and inert, so an editor inside keeps its state. */
+.sections .mat-expansion-panel {
   border-bottom: 1px solid var(--ctl-surface-border);
 }
 
-.ui-accordion-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+.sections .mat-expansion-panel-header {
   padding: 1.125rem;
-  border: 0;
-  background: var(--ctl-surface);
   color: var(--ctl-surface-muted);
-  font: inherit;
-  font-weight: 600;
-  text-align: start;
-  cursor: pointer;
   transition:
     background 0.2s,
     color 0.2s;
 }
 
-.ui-accordion-header:hover,
-.ui-accordion-panel--open > ui-accordion-header > .ui-accordion-header {
+.sections .mat-expansion-panel-header:hover,
+.sections .mat-expansion-panel-header.mat-expanded {
   color: var(--ctl-surface-text);
 }
 
-.ui-accordion-panel:first-child .ui-accordion-header {
-  border-start-start-radius: 6px;
-  border-start-end-radius: 6px;
-}
-
-.ui-accordion-panel:last-child:not(.ui-accordion-panel--open) .ui-accordion-header {
-  border-end-start-radius: 6px;
-  border-end-end-radius: 6px;
-}
-
-.ui-accordion-header:focus-visible {
+.sections .mat-expansion-panel-header:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
 
-.ui-accordion-chevron {
+/* The chevron is the app's own glyph (Material's is heavier); it turns
+   over when the panel opens. */
+.sections .mat-expansion-panel-header .mat-content {
+  align-items: center;
+  justify-content: space-between;
+  margin-right: 0;
+}
+
+.sections .section-chevron {
   flex: none;
   margin: -5px -5px -5px 0;
   font-size: 26px;
+  transition: transform var(--dur-standard) var(--ease-standard);
 }
 
-/* Open and close animate the row height. A closed panel is laid out (so an
-   editor inside keeps its size) but invisible and inert. */
-.ui-accordion-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  visibility: hidden;
-  transition:
-    grid-template-rows 240ms cubic-bezier(0.25, 0, 0, 1),
-    visibility 0s 240ms;
+.sections .mat-expansion-panel-header.mat-expanded .section-chevron {
+  transform: rotate(180deg);
 }
 
-.ui-accordion-panel--open > .ui-accordion-content {
-  grid-template-rows: 1fr;
-  visibility: visible;
-  transition:
-    grid-template-rows 240ms cubic-bezier(0.25, 0, 0, 1),
-    visibility 0s;
-}
-
-.ui-accordion-content-clip {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.ui-accordion-content-body {
+.sections .mat-expansion-panel-body {
   padding: 0 1.125rem 1.125rem;
-  background: var(--ctl-surface);
-  color: var(--ctl-surface-text);
 }
 
 /* ── Segmented control ───────────────────────────────────── */
-.ui-segmented {
-  display: inline-flex;
+/* Markup: <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator>.
+   Colours, type and shape come through Material's tokens
+   (material-theme.scss); this is the padded track and the raised option. */
+.mat-button-toggle-group.segmented {
   gap: 1px;
   padding: 3px;
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-sm);
+  overflow: visible;
+  border-color: var(--separator);
   background: var(--fill-secondary);
   user-select: none;
   vertical-align: bottom;
 }
 
-.ui-segmented-option {
-  position: relative;
-  display: inline-flex;
+.segmented .mat-button-toggle.mat-button-toggle-appearance-standard {
   overflow: hidden;
-  padding: 5px 14px;
-  border: none;
+  border: 0;
   border-radius: calc(var(--radius-sm) - 2px);
-  background: transparent;
-  /* --label-secondary measures 4.27:1 on this control's background. */
-  color: var(--label-secondary-on-fill);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.002em;
-  cursor: pointer;
   transition:
     background var(--dur-quick) var(--ease-standard),
     color var(--dur-quick) var(--ease-standard),
     box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-.ui-segmented-option:hover:not(.ui-segmented-option--checked) {
+.segmented .mat-button-toggle:hover:not(.mat-button-toggle-checked) {
   background: var(--fill-hover);
   color: var(--label-primary);
 }
 
-.ui-segmented-option--checked {
-  background: var(--canvas-overlay);
-  color: var(--label-primary);
+.segmented .mat-button-toggle-checked {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
-.ui-segmented-label {
+.segmented .mat-button-toggle-button {
+  padding: 5px 14px;
+}
+
+.segmented .mat-button-toggle-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
+.segmented .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
   display: inline-flex;
-  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
 }
 
-.ui-segmented-option--checked .ui-segmented-label {
+.segmented .mat-button-toggle-checked .mat-button-toggle-label-content {
   background: var(--ctl-segment-checked);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
 }

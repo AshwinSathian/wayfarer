@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSig
 import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
-import { UI_TABS } from "../../ui/tabs";
+import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -38,7 +38,7 @@ interface EnvironmentDraft {
     Icon,
     FormsModule,
     MatButton, MatIconButton,
-    UI_TABS,
+    MatTabNav, MatTabLink, MatTabNavPanel,
     Dialog,
     MatTooltip,
     JsonEditor,

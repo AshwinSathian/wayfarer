@@ -61,6 +61,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   caught before the send. Base64 hid it from the check, so the literal
   placeholder (never the secret) went on the wire.
 - A body or header key named `__proto__` is sent and exported as data.
+- The vault's lock state updates everywhere at once. Views other than the
+  toolbar could keep showing the previous state after an unlock or a lock.
+- Locking the vault clears every secret value revealed on screen.
 
 ## [1.3.0] - 2026-10-07
 

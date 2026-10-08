@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from "@angular/core";
+import { Injectable, OnDestroy, signal } from "@angular/core";
 import { SecretEnvelope } from "../../models/secrets.models";
 
 interface DeriveOptions {
@@ -18,7 +18,8 @@ const IV_LENGTH = 12;
 export class SecretCryptoService implements OnDestroy {
   private readonly encoder = new TextEncoder();
   private readonly decoder = new TextDecoder();
-  private sessionBaseKey: CryptoKey | null = null;
+  // A signal, so every view and effect that reads `isUnlocked` follows unlock and lock.
+  private readonly sessionBaseKey = signal<CryptoKey | null>(null);
   private readonly unloadHandler = () => this.lock();
 
   constructor() {
@@ -57,30 +58,28 @@ export class SecretCryptoService implements OnDestroy {
   }
 
   async unlock(passphrase: string): Promise<void> {
-    this.sessionBaseKey = await this.importPassphrase(passphrase);
+    this.sessionBaseKey.set(await this.importPassphrase(passphrase));
   }
 
   lock(): void {
-    this.sessionBaseKey = null;
+    this.sessionBaseKey.set(null);
   }
 
   get isUnlocked(): boolean {
-    return this.sessionBaseKey !== null;
+    return this.sessionBaseKey() !== null;
   }
 
   async encryptWithSession(plaintext: string): Promise<SecretEnvelope> {
-    this.ensureSession();
     const salt = this.randomBytes(SALT_LENGTH);
-    const key = await this.deriveFromMaterial(this.sessionBaseKey!, salt);
+    const key = await this.deriveFromMaterial(this.ensureSession(), salt);
     return this.encryptWithKey(plaintext, key, salt);
   }
 
   async decryptWithSession(envelope: SecretEnvelope): Promise<string> {
-    this.ensureSession();
     const salt = this.fromBase64Url(envelope.salt);
     const iv = this.fromBase64Url(envelope.iv);
     const ciphertext = this.fromBase64Url(envelope.ct);
-    const key = await this.deriveFromMaterial(this.sessionBaseKey!, salt);
+    const key = await this.deriveFromMaterial(this.ensureSession(), salt);
     return this.decryptWithKey(ciphertext, key, iv);
   }
 
@@ -191,9 +190,11 @@ export class SecretCryptoService implements OnDestroy {
     return bytes;
   }
 
-  private ensureSession(): void {
-    if (!this.sessionBaseKey) {
+  private ensureSession(): CryptoKey {
+    const key = this.sessionBaseKey();
+    if (!key) {
       throw new Error("Secret store is locked.");
     }
+    return key;
   }
 }

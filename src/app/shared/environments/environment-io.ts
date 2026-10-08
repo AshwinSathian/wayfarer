@@ -1,4 +1,4 @@
-import { parseJson } from "../json/safe-json";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../json/safe-json";
 import { EnvironmentDoc } from "../../models/environments";
 import { deepSort, sortByOrder } from "../collections/collection-io";
 
@@ -16,6 +16,9 @@ export function serializeEnvironmentExport(environments: EnvironmentDoc[]): stri
 export function validateEnvironmentExport(
   input: string | object
 ): EnvironmentValidationResult {
+  if (isOversizedImport(input)) {
+    return { ok: false, errors: [IMPORT_TOO_LARGE] };
+  }
   const parsed = typeof input === "string" ? safeParse(input) : input;
   if (!parsed) {
     return { ok: false, errors: ["File does not contain a valid JSON payload."] };

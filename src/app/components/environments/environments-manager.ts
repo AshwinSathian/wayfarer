@@ -21,6 +21,7 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
+import { readImportText } from "../../shared/json/safe-json";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -171,7 +172,7 @@ export class EnvironmentsManager implements OnInit {
     if (!file) {
       return;
     }
-    const text = await file.text();
+    const text = await readImportText(file);
     this.envImport.stageFile(file.name, text, this.environments());
     input.value = "";
   }

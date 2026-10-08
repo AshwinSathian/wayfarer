@@ -24,7 +24,7 @@ export function precacheList(root) {
   const files = readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => join(entry.parentPath, entry.name).slice(root.length + 1).split("\\").join("/"));
-  const extra = files.filter((f) => /\.css$|^media\/.*\.woff2$|^icons\/|^manifest\.webmanifest$|^favicon\.ico$/.test(f));
+  const extra = files.filter((f) => /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.ico$/.test(f));
   return ["/", ...new Set([...referenced, ...extra].map((f) => `/${f.replace(/^\//, "")}`))].sort();
 }
 

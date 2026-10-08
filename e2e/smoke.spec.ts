@@ -26,6 +26,13 @@ test("@smoke the app shell loads with production security headers", async ({ pag
   }
 });
 
+test("responses carry HSTS and the cross-origin isolation headers", async ({ request }) => {
+  const headers = (await request.get("/")).headers();
+  expect(headers["strict-transport-security"]).toBe("max-age=31536000");
+  expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
+  expect(headers["cross-origin-resource-policy"]).toBe("same-origin");
+});
+
 test("the licences of the bundled packages are served with the app", async ({ request }) => {
   const response = await request.get("/3rdpartylicenses.txt");
   expect(response.status()).toBe(200);

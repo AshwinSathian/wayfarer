@@ -78,6 +78,7 @@ export class AppShell implements OnInit {
   private readonly secretsService = inject(SecretsVault);
   private readonly idb = inject(Idb);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
+  readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
 

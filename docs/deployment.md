@@ -140,7 +140,9 @@ doesn't rebuild. It can't undo anything stored in users' browsers. See
 
 [`public/_headers`](../public/_headers) is applied by Cloudflare to every
 response and defines the Content-Security-Policy, `X-Content-Type-Options`,
-`Referrer-Policy`, and `Permissions-Policy`. The CSP comes from
+`Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` (this
+host only, one year) and the `Cross-Origin-Opener-Policy` /
+`Cross-Origin-Resource-Policy` pair. The CSP comes from
 [`security/csp.json`](../security/csp.json): `npm run gen:csp` writes it into
 `public/_headers` and the `<meta>` tag in `src/index.html`, and
 `npm run check:csp` (in CI) fails if either file was edited by hand.

@@ -1,4 +1,4 @@
-import { parseJson } from "../json/safe-json";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../json/safe-json";
 import {
   Collection,
   CollectionExport,
@@ -43,6 +43,9 @@ export function serializeDeterministic(
 export function validateCollection(
   input: string | object
 ): { ok: boolean; errors?: ValidationResult[]; payload?: CollectionExport } {
+  if (isOversizedImport(input)) {
+    return { ok: false, errors: [{ path: "root", message: IMPORT_TOO_LARGE }] };
+  }
   const payload = typeof input === "string" ? safeParse(input) : input;
   if (!payload || typeof payload !== "object") {
     return {

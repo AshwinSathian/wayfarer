@@ -44,6 +44,8 @@ export class Idb {
 
   /** True once another tab reset all data; see IdbCore.closedByOtherTab. */
   readonly closedByOtherTab = this.core.closedByOtherTab.asReadonly();
+  /** True when the browser gives the app no storage; see IdbCore.memoryOnly. */
+  readonly memoryOnly = this.core.memoryOnly.asReadonly();
 
   async init(): Promise<void> {
     return this.core.init();

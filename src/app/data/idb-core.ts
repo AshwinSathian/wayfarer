@@ -59,10 +59,16 @@ export class IdbCore {
    */
   private initPromise?: Promise<void>;
   private resetting = false;
-  private _useMemoryFallback = false;
 
   /** True once another tab reset all data; the app shows a reload banner. */
   readonly closedByOtherTab = signal(false);
+
+  /**
+   * True when IndexedDB could not be opened (blocked storage, some private
+   * windows): history lives in memory for this tab and nothing else can be
+   * saved. The app says so in a banner instead of failing save by save.
+   */
+  readonly memoryOnly = signal(false);
 
   private readonly lifecycle =
     typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(LIFECYCLE_CHANNEL);
@@ -76,7 +82,7 @@ export class IdbCore {
   }
 
   get useMemoryFallback(): boolean {
-    return this._useMemoryFallback;
+    return this.memoryOnly();
   }
 
   init(): Promise<void> {
@@ -130,7 +136,7 @@ export class IdbCore {
     }
     await this.init();
 
-    if (this._useMemoryFallback) {
+    if (this.memoryOnly()) {
       return null;
     }
 
@@ -148,7 +154,7 @@ export class IdbCore {
 
   async ensurePersistentSupport(): Promise<void> {
     await this.init();
-    if (this._useMemoryFallback) {
+    if (this.memoryOnly()) {
       throw new Error("Persistent storage is not available in this environment.");
     }
   }
@@ -259,7 +265,7 @@ export class IdbCore {
     } finally {
       this.resetting = false;
     }
-    this._useMemoryFallback = false;
+    this.memoryOnly.set(false);
   }
 
   private deleteDatabase(): Promise<void> {
@@ -360,13 +366,13 @@ export class IdbCore {
   }
 
   private enableMemoryFallback(): void {
-    this._useMemoryFallback = true;
+    this.memoryOnly.set(true);
     this.initPromise ??= Promise.resolve();
     this.dbPromise = undefined;
   }
 
   private async ensureMetaDocument(): Promise<void> {
-    if (this._useMemoryFallback || !this.dbPromise) {
+    if (this.memoryOnly() || !this.dbPromise) {
       return;
     }
     const db = await this.dbPromise;

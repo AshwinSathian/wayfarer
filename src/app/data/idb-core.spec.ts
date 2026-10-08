@@ -30,6 +30,7 @@ describe("IdbCore", () => {
     await svc.init();
 
     expect(svc.useMemoryFallback).toBe(true);
+    expect(svc.memoryOnly()).toBe(true);
     expect(await svc.getDatabase()).toBeNull();
 
     (globalThis as unknown as Record<string, unknown>)["indexedDB"] = original;

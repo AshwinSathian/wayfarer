@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Security
 
+- Responses carry `Strict-Transport-Security` (one year, this host only),
+  `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Resource-Policy: same-origin`.
+- A collection or environment file over 10 MB is refused by size before it
+  is read into memory.
 - **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
   minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
   cannot be read; there were none in use.
@@ -93,6 +98,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   caught before the send. Base64 hid it from the check, so the literal
   placeholder (never the secret) went on the wire.
 - A body or header key named `__proto__` is sent and exported as data.
+- When the browser gives the app no storage (some private windows, storage
+  blocked for the site), a banner says so. The app used to carry on in
+  memory without a word: history vanished with the tab, and every save of a
+  collection, environment or secret failed.
+- The editor's icon font is part of the offline cache.
 - **Nothing runs past the edge of the window any more.** On first load the
   request card was 49 px wider than its column, so the Send button was cut
   off until a response arrived; on a phone, and beside the pinned sidebar

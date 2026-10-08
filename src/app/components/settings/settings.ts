@@ -11,6 +11,7 @@ import {
 } from "../../shared/environments/environment-io";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
+import { readImportText } from "../../shared/json/safe-json";
 
 interface KeyboardShortcut {
   keys: string;
@@ -71,7 +72,7 @@ export class Settings {
     if (!file) {
       return;
     }
-    const text = await file.text();
+    const text = await readImportText(file);
     const result = validateEnvironmentExport(text);
     if (!result.ok || !result.payload) {
       this.importStatus.set({

@@ -204,6 +204,11 @@
           <button uiButton tone="secondary" size="sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
         </div>
         }
+        @if (storageUnavailable()) {
+        <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning">This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p>
+        </div>
+        }
         @if (resetError()) {
         <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
           <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>

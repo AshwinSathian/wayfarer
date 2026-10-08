@@ -119,7 +119,7 @@ Undo each step in reverse order: delete rule `wayfarer-no-injection`, re-enable 
 These are good hygiene for a site whose pitch is trust. Each changes behaviour for the whole zone, so they're listed separately and are your call:
 
 - **SSL/TLS → Edge Certificates:** *Always Use HTTPS* on; *Minimum TLS Version* 1.2; *TLS 1.3* on.
-- **HSTS:** better sent from `public/_headers` for this host only (`Strict-Transport-Security: max-age=31536000`) than zone-wide. Don't tick *includeSubDomains* or *preload* unless every subdomain of `ashwinsathian.com` is HTTPS-only forever: preload is effectively irreversible.
+- **HSTS:** sent from `public/_headers` for this host only (`Strict-Transport-Security: max-age=31536000`), not zone-wide. Don't tick *includeSubDomains* or *preload* unless every subdomain of `ashwinsathian.com` is HTTPS-only forever: preload is effectively irreversible.
 - **DNS → Settings → DNSSEC:** enable it, then add the DS record at your registrar if it isn't Cloudflare.
 
 ### Change record

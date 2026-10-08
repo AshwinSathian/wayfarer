@@ -34,6 +34,14 @@ describe("environment-io.util", () => {
     expect(validateEnvironmentExport({ environments: "none" })).toEqual({ ok: false, errors: ["Expected an array of environments."] });
   });
 
+  it("rejects a variable whose value is not a string", () => {
+    const result = validateEnvironmentExport([
+      { id: "e", meta: { id: "e", createdAt: 1, updatedAt: 1, version: 1 }, name: "E", order: 1, vars: { a: "ok", b: { nested: true } } },
+    ]);
+
+    expect(result.errors).toEqual(["environments[0].vars values must be strings."]);
+  });
+
   it("names each invalid field by its position", () => {
     const result = validateEnvironmentExport([null, { name: " ", order: "1", vars: [] }, env("ok", "Fine", 3)]);
 

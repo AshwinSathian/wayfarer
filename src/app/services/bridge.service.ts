@@ -34,13 +34,9 @@ export class BridgeService {
     this.persist(next);
   }
 
-  /** Base URL with any trailing slash removed, for building `${base}/relay` etc. */
-  get baseUrl(): string {
-    return this.config().url.replace(/\/+$/, "");
-  }
-
-  async checkHealth(): Promise<boolean> {
-    const base = this.baseUrl;
+  /** Probes `url` (the saved bridge URL by default) without changing the saved settings. */
+  async checkHealth(url = this.config().url): Promise<boolean> {
+    const base = url.replace(/\/+$/, "");
     if (!base) {
       return false;
     }

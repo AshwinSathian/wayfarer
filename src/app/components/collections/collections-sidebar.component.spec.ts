@@ -388,6 +388,20 @@ describe("CollectionsSidebarComponent", () => {
       expect(component.commandPaletteVisible()).toBe(true);
     });
 
+    it("runs the single-key shortcut C only while focus is inside the panel", () => {
+      const press = (target: Element) => {
+        const event = new KeyboardEvent("keydown", { key: "c" });
+        Object.defineProperty(event, "target", { value: target });
+        component.handleGlobalKeydown(event);
+      };
+
+      press(document.body);
+      expect(component.creationDialogVisible()).toBe(false);
+
+      press(fixture.nativeElement as HTMLElement);
+      expect(component.creationDialogVisible()).toBe(true);
+    });
+
     it("ignores shortcuts entirely while typing in a form field", () => {
       const input = document.createElement("input");
       const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });

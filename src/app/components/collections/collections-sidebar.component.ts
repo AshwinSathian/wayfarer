@@ -144,6 +144,13 @@ export class CollectionsSidebarComponent implements OnInit {
       return;
     }
 
+    // Single-key shortcuts act only while focus is in this panel (WCAG 2.1.4):
+    // otherwise "c", "n" or Delete pressed anywhere, e.g. on a dialog button
+    // or with speech input, would create or delete things here.
+    if (!target || !this.host.nativeElement.contains(target)) {
+      return;
+    }
+
     if (event.key === "Delete" && this.selectedNode()) {
       event.preventDefault();
       void this.handleAction("delete", this.selectedNode()!);

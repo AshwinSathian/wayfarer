@@ -3,10 +3,10 @@
   <div class="flex flex-col gap-1.5 p-1">
     @for (skeleton of skeletonPlaceholders; track skeleton) {
     <div class="rounded-xl bg-canvas-elevated border border-separator p-3">
-      <span class="ui-skeleton h-[0.875rem] w-[60%]" aria-hidden="true"></span>
+      <span class="ui-skeleton h-3.5 w-[60%]" aria-hidden="true"></span>
       <div class="mt-2 flex gap-1.5">
-        <span class="ui-skeleton h-[0.625rem] w-[3.5rem]" aria-hidden="true"></span>
-        <span class="ui-skeleton h-[0.625rem] w-[2.5rem]" aria-hidden="true"></span>
+        <span class="ui-skeleton h-2.5 w-14" aria-hidden="true"></span>
+        <span class="ui-skeleton h-2.5 w-10" aria-hidden="true"></span>
       </div>
     </div>
     }
@@ -31,7 +31,7 @@
 
           <!-- Desktop row -->
           <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
-            <span class="method-badge method-{{ request.method.toLowerCase() }} flex-shrink-0">
+            <span class="method-badge method-{{ request.method.toLowerCase() }} shrink-0">
               {{ request.method }}
             </span>
             <span
@@ -47,7 +47,7 @@
 
             @if (request.status !== undefined) {
             <span
-              class="type-caption font-mono flex-shrink-0 tabular-nums"
+              class="type-caption font-mono shrink-0 tabular-nums"
               [class]="{
                 'text-status-success': request.status >= 200 && request.status < 300,
                 'text-status-warning': request.status >= 300 && request.status < 500,
@@ -57,15 +57,15 @@
             }
 
             @if (request.durationMs) {
-            <span class="type-caption text-label-tertiary flex-shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
+            <span class="type-caption text-label-tertiary shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
             }
 
-            <span class="type-caption text-label-tertiary flex-shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
+            <span class="type-caption text-label-tertiary shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
               {{ relativeTime(request.createdAt) }}
             </span>
 
             <button
-              class="ds-icon-btn w-7 h-7 flex-shrink-0 opacity-0 group-hover:opacity-100"
+              class="ds-icon-btn w-7 h-7 shrink-0 opacity-0 group-hover:opacity-100"
               uiTooltip="Delete"
               uiTooltipPosition="top"
               aria-label="Delete history entry"

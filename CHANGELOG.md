@@ -24,6 +24,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- Tailwind CSS 3 to 4. Its configuration is now the `@theme` block in
+  `src/styles.css`; `tailwind.config.js` and autoprefixer are gone. One thing
+  looks different: cards and panels whose markup asked for a border
+  (`border border-separator`) now have it. With Tailwind 3 and its reset
+  switched off, those borders had a width but no style, so they never drew.
+- `npm audit` reports no known vulnerabilities.
 - **First load is about 27% smaller** (716 kB instead of 983 kB; 198 kB
   instead of 241 kB compressed). The Monaco editor's stylesheet was part of
   the first download; it now loads with the editor. The size budgets are

@@ -15,9 +15,79 @@
 @import "./design-system/animations.css";
 
 /* ── Tailwind ───────────────────────────────────────────── */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Theme variables and utilities only. No preflight: the design system above
+   is the base layer. The utilities are imported without a cascade layer, so
+   they keep their place in source order: after the design system, before the
+   global rules below. In a layer they would lose to every rule outside one. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css";
+
+/* Tailwind names for the design tokens (src/design-system/tokens.css).
+   Radius, easing and font names are the same on both sides. */
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
+
+  --color-canvas-app: var(--canvas-app);
+  --color-canvas-sidebar: var(--canvas-sidebar);
+  --color-canvas-panel: var(--canvas-panel);
+  --color-canvas-elevated: var(--canvas-elevated);
+  --color-canvas-overlay: var(--canvas-overlay);
+
+  --color-label-primary: var(--label-primary);
+  --color-label-secondary: var(--label-secondary);
+  --color-label-secondary-on-fill: var(--label-secondary-on-fill);
+  --color-label-tertiary: var(--label-tertiary);
+  --color-label-placeholder: var(--label-placeholder);
+
+  --color-fill-primary: var(--fill-primary);
+  --color-fill-secondary: var(--fill-secondary);
+  --color-fill-hover: var(--fill-hover);
+  --color-fill-active: var(--fill-active);
+
+  --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-border: var(--accent-border);
+  --color-accent-text: var(--accent-text);
+
+  --color-separator: var(--separator);
+  --color-separator-opaque: var(--separator-opaque);
+
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-error: var(--status-error);
+  --color-status-info: var(--status-info);
+  --color-status-success-fill: var(--status-success-fill);
+  --color-status-success-border: var(--status-success-border);
+  --color-status-warning-fill: var(--status-warning-fill);
+  --color-status-warning-border: var(--status-warning-border);
+  --color-status-error-fill: var(--status-error-fill);
+  --color-status-error-border: var(--status-error-border);
+  --color-status-info-fill: var(--status-info-fill);
+  --color-status-info-border: var(--status-info-border);
+
+  --color-method-get: var(--method-get);
+  --color-method-post: var(--method-post);
+  --color-method-put: var(--method-put);
+  --color-method-patch: var(--method-patch);
+  --color-method-delete: var(--method-delete);
+  --color-method-head: var(--method-head);
+  --color-method-options: var(--method-options);
+
+  --radius-xs: 3px;
+  --radius-sm: 7px;
+  --radius: 10px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  --ease-standard: cubic-bezier(0.25, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
 /* ── Global resets ──────────────────────────────────────── */
 html,

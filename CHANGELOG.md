@@ -71,6 +71,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - The `C`, `N` and `Delete` shortcuts act only while focus is in the
   collections panel, as Settings says. They fired from anywhere on the page
   outside a text field.
+- Editing a row in the **Params** tab rewrites only the query of the URL
+  field. It used to rebuild the whole URL, which lower-cased a `{{baseUrl}}`
+  host and percent-encoded a `{{token}}` value (neither resolved afterwards),
+  added `https://` and a trailing slash, and dropped the rows when the URL
+  did not parse.
+- A query parameter whose value is a `{{variable}}` is sent once, resolved.
+  It went out twice: resolved, and again as the literal placeholder.
 - The vault's lock state updates everywhere at once. Views other than the
   toolbar could keep showing the previous state after an unlock or a lock.
 - Locking the vault clears every secret value revealed on screen.

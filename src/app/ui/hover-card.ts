@@ -18,7 +18,6 @@ let nextId = 0;
     "(mouseleave)": "hideSoon()",
     "(focusin)": "showForKeyboard($event)",
     "(focusout)": "hide()",
-    "(document:keydown.escape)": "hide()",
     "[attr.aria-describedby]": "describedBy()",
   },
 })
@@ -32,6 +31,9 @@ export class HoverCard implements OnDestroy {
   protected readonly describedBy = signal<string | null>(null);
   private overlayRef: OverlayRef | null = null;
   private hideTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly onKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") this.hide();
+  };
 
   show(): void {
     clearTimeout(this.hideTimer);
@@ -58,6 +60,10 @@ export class HoverCard implements OnDestroy {
     ref.updatePosition();
     ref.detachments().subscribe(() => this.hide());
 
+    // In the capture phase: a Material tooltip that is still fading out on
+    // the next button takes Escape on its way up and stops it there.
+    document.addEventListener("keydown", this.onKeydown, true);
+
     this.overlayRef = ref;
     this.describedBy.set(this.id);
   }
@@ -83,6 +89,7 @@ export class HoverCard implements OnDestroy {
     if (!ref) return;
     this.overlayRef = null;
     this.describedBy.set(null);
+    document.removeEventListener("keydown", this.onKeydown, true);
     ref.dispose();
   }
 

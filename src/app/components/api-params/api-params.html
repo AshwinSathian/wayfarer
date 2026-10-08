@@ -221,7 +221,7 @@
         <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
           <div class="px-2 pt-1">
             <ui-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
-              <div class="flex items-center justify-between w-full pr-2">
+              <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 w-full pr-2">
                 <ui-tablist>
                   <ui-tab value="params">Params</ui-tab>
                   <ui-tab value="headers">Headers</ui-tab>

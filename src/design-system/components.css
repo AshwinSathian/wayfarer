@@ -171,6 +171,13 @@
   z-index: 50;
 }
 
+/* Below the desktop width the toolbar shares the row with the pinned sidebar, or is on a phone. */
+@media (max-width: 1023px) {
+  .ds-toolbar {
+    padding: 0 12px;
+  }
+}
+
 /* ── Icon button ─────────────────────────────────────────── */
 .ds-icon-btn {
   display: inline-flex;

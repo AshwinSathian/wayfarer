@@ -90,6 +90,15 @@
 }
 
 /* ── Global resets ──────────────────────────────────────── */
+/* Every Tailwind size utility assumes border-box (it is in Tailwind's reset,
+   which this app does not load). Without it `w-full` plus padding or a border
+   is wider than its parent: the composer ran 49 px past the window edge. */
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
   background-color: var(--canvas-app);

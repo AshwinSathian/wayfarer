@@ -74,7 +74,7 @@
 
   <!-- Main content area -->
   <div
-    class="flex flex-1 flex-col"
+    class="flex min-w-0 flex-1 flex-col"
     style="transition: margin-left var(--dur-enter) var(--ease-standard);"
     [class]="!isMobile() && drawerVisible() ? 'md:ml-88' : ''"
   >
@@ -85,7 +85,7 @@
         <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
           <app-icon name="side_navigation" class="icon-md" />
         </button>
-        <div class="hidden md:flex items-center gap-2">
+        <div class="hidden lg:flex items-center gap-2">
           <div class="brand-logo-icon" style="width:22px; height:22px; border-radius: 5px;">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 11.5L3 7.5C3 4.7 5.2 2.5 8 2.5L11 2.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,7 +97,7 @@
       </div>
 
       <!-- Right: actions cluster -->
-      <div class="flex items-center gap-2">
+      <div class="flex min-w-0 items-center gap-2">
         <!-- Environment selector -->
         <ui-select
           [options]="dropdownOptions()"
@@ -113,6 +113,8 @@
         <!-- Divider -->
         <div class="w-px h-5 bg-separator hidden sm:block"></div>
 
+        <!-- Below the desktop width the toolbar keeps lock, history and settings; secrets,
+             the bridge and the theme are in Settings (max-lg:hidden below). -->
         <!-- Secrets lock -->
         <button
           class="ds-icon-btn"
@@ -128,7 +130,7 @@
              concept, previously reachable only as flagged rows buried
              inside the Environments editor or via the command palette. -->
         <button
-          class="ds-icon-btn"
+          class="ds-icon-btn max-lg:hidden"
           (click)="secretsDialogVisible.set(true)"
           title="Manage secrets"
           aria-label="Manage secrets"
@@ -138,7 +140,7 @@
 
         <!-- Local Bridge -->
         <button
-          class="ds-icon-btn"
+          class="ds-icon-btn max-lg:hidden"
           [class.text-status-success]="bridgeService.config().enabled"
           (click)="openBridgeSettings()"
           title="Local Bridge settings"
@@ -149,7 +151,7 @@
 
         <!-- Theme toggle -->
         <button
-          class="ds-icon-btn"
+          class="ds-icon-btn max-lg:hidden"
           (click)="themeService.toggle()"
           [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
           [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"

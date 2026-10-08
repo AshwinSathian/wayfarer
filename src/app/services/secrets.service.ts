@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { IdbService } from "../data/idb.service";
 import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets.models";
 import { SecretCryptoService } from "../shared/secrets/secret-crypto.service";
+import { newId } from "../shared/id.util";
 
 export interface SaveSecretRequest {
   name: string;
@@ -22,7 +23,7 @@ export class SecretsService {
       throw new Error("Secrets are locked. Unlock before saving new secrets.");
     }
     const envelope = await this.crypto.encryptWithSession(request.plaintext);
-    const id = crypto.randomUUID();
+    const id = newId();
     await this.idb.writeCipher({
       id,
       name: request.name,

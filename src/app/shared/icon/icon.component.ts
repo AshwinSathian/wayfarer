@@ -10,7 +10,6 @@ import { ICON_PATHS, IconName } from "./icon-paths";
  */
 @Component({
   selector: "app-icon",
-  standalone: true,
   template: `<svg viewBox="0 -960 960 960" width="1em" height="1em" fill="currentColor" focusable="false"><path [attr.d]="path()" /></svg>`,
   host: { class: "app-icon", "aria-hidden": "true" },
   changeDetection: ChangeDetectionStrategy.OnPush,

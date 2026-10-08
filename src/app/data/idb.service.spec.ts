@@ -96,7 +96,7 @@ describe('IdbService (memory fallback, indexedDB unavailable)', () => {
   });
 
   it('uses in-memory storage end-to-end when indexedDB is unavailable', async () => {
-    delete (globalThis as unknown as Record<string, unknown>).indexedDB;
+    delete (globalThis as unknown as Record<string, unknown>)["indexedDB"];
 
     TestBed.configureTestingModule({});
     const service = TestBed.inject(IdbService);

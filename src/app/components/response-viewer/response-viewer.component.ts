@@ -44,7 +44,6 @@ interface ResponseHeader {
 
 @Component({
   selector: "app-response-viewer",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,

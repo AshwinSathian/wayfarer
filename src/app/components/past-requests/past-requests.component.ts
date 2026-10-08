@@ -14,7 +14,6 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -23,7 +22,7 @@ export interface HistoryGroup {
     UI_ACCORDION,
   ],
   templateUrl: "./past-requests.component.html",
-  styleUrls: ["./past-requests.component.css"],
+  styleUrl: "./past-requests.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PastRequestsComponent implements OnChanges {

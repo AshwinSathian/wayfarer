@@ -17,6 +17,7 @@ import { PastRequest } from "../models/history.models";
 import { BinaryBody } from "../shared/http/response-body.util";
 import { TestAssertion, TestResult } from "../models/test-assertion.models";
 import { parseJson, stringifyJson } from "../shared/json/safe-json.util";
+import { newId } from "../shared/id.util";
 
 export interface BuiltRequest {
   method: PastRequest["method"];
@@ -120,7 +121,7 @@ export class RequestExecutionService {
   private readonly assertionRunner = inject(AssertionRunnerService);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
-    const requestId = crypto.randomUUID();
+    const requestId = newId();
     const startedAt = performance.now();
     const createdAt = Date.now();
     let testResults: TestResult[] = [];

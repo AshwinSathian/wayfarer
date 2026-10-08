@@ -7,6 +7,7 @@ import {
   RequestDoc,
 } from "../models/collections.models";
 import { IdbCoreService } from "./idb-core.service";
+import { newId } from "../shared/id.util";
 
 /**
  * Collection-level CRUD + import/export. Folder and request CRUD used to
@@ -90,7 +91,7 @@ export class CollectionsRepository {
 
       const duplicate: Collection = {
         ...this.core.clone(original),
-        id: crypto.randomUUID(),
+        id: newId(),
         meta: this.core.createMeta(),
         name: `${original.name} copy`,
         order: await this.core.nextOrder(collectionStore.index("by-order")),
@@ -111,7 +112,7 @@ export class CollectionsRepository {
       const folderClones = sourceFolders.map((folder) => {
         const clone: Folder = {
           ...this.core.clone(folder),
-          id: crypto.randomUUID(),
+          id: newId(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
           order: folder.order,
@@ -130,7 +131,7 @@ export class CollectionsRepository {
       for (const request of sourceRequests) {
         const clone: RequestDoc = {
           ...this.core.clone(request),
-          id: crypto.randomUUID(),
+          id: newId(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
           order: request.order,

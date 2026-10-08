@@ -29,7 +29,6 @@ const noop = () => {};
 
 @Component({
   selector: "app-script-editor",
-  standalone: true,
   host: {
     // Monaco sizes itself to this element, so the element must not size itself to Monaco (F52).
     class: "block w-full [contain:inline-size]",

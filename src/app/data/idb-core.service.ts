@@ -13,6 +13,7 @@ import {
 } from "./idb-schema";
 import { runUpgrade } from "./idb-migrations";
 import { recordDiagnostic } from "../services/diagnostics.service";
+import { newId } from "../shared/id.util";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";
@@ -297,7 +298,7 @@ export class IdbCoreService {
   createMeta(): Meta {
     const now = Date.now();
     return {
-      id: crypto.randomUUID(),
+      id: newId(),
       createdAt: now,
       updatedAt: now,
       version: META_VERSION,

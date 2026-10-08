@@ -1,5 +1,6 @@
 import { Injectable, InjectionToken, isDevMode } from "@angular/core";
 import { ScriptExecutionResult } from "../../models/test-assertion.models";
+import { newId } from "../id.util";
 
 export interface ScriptResponseContext {
   statusCode: number;
@@ -65,7 +66,7 @@ export class ScriptSandboxService {
     }
 
     return new Promise<ScriptExecutionResult>((resolve) => {
-      const runId = crypto.randomUUID();
+      const runId = newId();
       const worker = new Worker(new URL("./script-runner.worker", import.meta.url), {
         type: "module",
       });

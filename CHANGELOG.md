@@ -24,8 +24,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- Identifiers come from `crypto.randomUUID()` directly. Seven copies of a
-  helper with an insecure `Math.random()` fallback are gone.
+- Leftovers of the Angular 22 upgrade are gone: `standalone: true`,
+  `styleUrls`, `withInterceptorsFromDi()` (there are no DI interceptors),
+  `fullTemplateTypeCheck` and `useDefineForClassFields: false`. The app now
+  registers `provideBrowserGlobalErrorListeners()`, as a new Angular 22 app
+  does, so uncaught errors and unhandled rejections reach `ErrorHandler`.
+- `tsconfig.json` matches what `ng new --strict` writes: `noImplicitOverride`,
+  `noPropertyAccessFromIndexSignature`, `noImplicitReturns`,
+  `noFallthroughCasesInSwitch`, `isolatedModules`, `module: preserve` and
+  `strictInputAccessModifiers`. Web workers compile against ES2022, like the
+  app, instead of ES2018.
+- `favicon.ico` lives in `public/`; the empty `src/assets` folder is removed.
+- Identifiers come from one `newId()` helper. Seven copies with a
+  `Math.random()` fallback are gone; where `crypto.randomUUID` is missing
+  (a copy served over plain http) it uses `crypto.getRandomValues`.
 
 ## [1.3.0] - 2026-10-07
 

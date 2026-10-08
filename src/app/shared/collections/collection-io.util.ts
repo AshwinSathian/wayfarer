@@ -7,6 +7,7 @@ import {
 } from "../../models/collections.models";
 import { HTTP_METHODS, HttpMethod } from "../../models/history.models";
 import { CollectionTree } from "../../services/collections.service";
+import { newId } from "../id.util";
 
 export interface ValidationResult {
   path: string;
@@ -193,7 +194,7 @@ function remapIdentifiers(
   const clone = cloneExport(payload);
   const idMap: Record<string, string> = {};
 
-  const newCollectionId = crypto.randomUUID();
+  const newCollectionId = newId();
   const originalCollectionId = clone.collection.id ?? clone.collection.meta.id;
   idMap[originalCollectionId] = newCollectionId;
   clone.collection.id = newCollectionId;
@@ -202,7 +203,7 @@ function remapIdentifiers(
 
   clone.folders = clone.folders.map((folder) => {
     const updated = cloneValue(folder);
-    const mappedId = crypto.randomUUID();
+    const mappedId = newId();
     const originalId = folder.id ?? folder.meta.id;
     idMap[originalId] = mappedId;
     updated.id = mappedId;
@@ -217,7 +218,7 @@ function remapIdentifiers(
 
   clone.requests = clone.requests.map((request) => {
     const updated = cloneValue(request);
-    const mappedId = crypto.randomUUID();
+    const mappedId = newId();
     const originalId = request.id ?? request.meta.id;
     idMap[originalId] = mappedId;
     updated.id = mappedId;
@@ -312,7 +313,7 @@ function validateMeta(meta: unknown, path: string, errors: ValidationResult[]): 
     errors.push({ path, message: "Meta must be an object." });
     return;
   }
-  const m = meta as Record<string, unknown>;
+  const m = meta as Partial<Record<"id" | "createdAt" | "updatedAt" | "version", unknown>>;
   validateRequiredString(m.id, `${path}.id`, errors);
   if (typeof m.createdAt !== "number") {
     errors.push({ path: `${path}.createdAt`, message: "createdAt must be a number." });

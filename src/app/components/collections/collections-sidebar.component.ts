@@ -33,7 +33,6 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -45,7 +44,7 @@ export interface PaletteAction {
     SelectComponent,
   ],
   templateUrl: "./collections-sidebar.component.html",
-  styleUrls: ["./collections-sidebar.component.css"],
+  styleUrl: "./collections-sidebar.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~570 lines: tree-node building/type guards moved to

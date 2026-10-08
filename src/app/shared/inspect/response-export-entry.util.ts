@@ -1,5 +1,6 @@
 import { InspectorExportEntry } from "./export.util";
 import { ResponseInspection } from "./response-inspector.service";
+import { newId } from "../id.util";
 
 /**
  * Snapshot of the just-sent request, captured by `ApiParamsComponent` right
@@ -79,7 +80,7 @@ export function buildExportEntry(input: BuildExportEntryInput): InspectorExportE
   );
 
   return {
-    id: inspection?.id ?? context.id ?? crypto.randomUUID(),
+    id: inspection?.id ?? context.id ?? newId(),
     startedDateTime,
     time: duration,
     req: {

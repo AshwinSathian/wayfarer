@@ -36,7 +36,7 @@ back gets reworded until one can, or removed.
 | C-001 | No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose. | README.md, docs/trust-center.md | e2e/no-third-party-requests.spec.ts |
 | C-002 | Collections, environments and history are stored in the browser's IndexedDB on the user's device. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-003 | Values in the secrets vault are stored only as ciphertext; nothing the app persists holds the plaintext. Everything else is plain text. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
-| C-004 | Vault crypto: PBKDF2-SHA-256 with 200,000 iterations, AES-GCM-256, a random 16-byte salt and 12-byte IV per secret. | README.md, docs/trust-center.md | src/app/shared/secrets/secret-crypto.spec.ts |
+| C-004 | Vault crypto: PBKDF2-SHA-256 with 600,000 iterations, AES-GCM-256, a random 16-byte salt and 12-byte IV per secret. | README.md, docs/trust-center.md | src/app/shared/secrets/secret-crypto.spec.ts |
 | C-005 | The vault key is held in memory only; reloading the page locks the vault. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-006 | Scripts are disabled in the hosted app and say so with a banner; Tests-tab assertions still run. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
 | C-007 | A request that references a vault secret is blocked, never sent with the placeholder. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |

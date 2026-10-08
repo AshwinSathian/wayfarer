@@ -256,12 +256,13 @@ export class AppShell implements OnInit {
   }
 
   async unlockSecrets(): Promise<void> {
-    const passphrase = this.unlockPassphrase().trim();
+    // Used exactly as typed: trimming would silently weaken a passphrase that ends in a space.
+    const passphrase = this.unlockPassphrase();
     if (!passphrase) {
       return;
     }
     if (this.isFirstVaultSetup()) {
-      if (passphrase !== this.confirmPassphrase().trim()) {
+      if (passphrase !== this.confirmPassphrase()) {
         this.unlockError.set("Passphrases do not match.");
         return;
       }

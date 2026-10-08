@@ -56,7 +56,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Secrets Vault**
 
-  - Client-side, encrypted-at-rest secrets: PBKDF2 (200k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 -->
+  - Client-side, encrypted-at-rest secrets: PBKDF2 (600k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 -->
   - Protected values can't be used in requests yet: a request that references one is blocked instead of sending the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)) <!-- claim:C-007 -->
   - Guided first-use passphrase setup flow <!-- claim:C-027 -->; see [`docs/secrets.md`](docs/secrets.md)
   - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced <!-- claim:C-028 -->

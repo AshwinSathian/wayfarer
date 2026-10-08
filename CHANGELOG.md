@@ -78,6 +78,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   did not parse.
 - A query parameter whose value is a `{{variable}}` is sent once, resolved.
   It went out twice: resolved, and again as the literal placeholder.
+- The vault's lock state updates everywhere at once. Views other than the
+  toolbar could keep showing the previous state after an unlock or a lock.
+- Locking the vault clears every secret value revealed on screen.
 
 ## [1.3.0] - 2026-10-07
 

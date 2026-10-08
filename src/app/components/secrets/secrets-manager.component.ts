@@ -97,6 +97,10 @@ export class SecretsManagerComponent {
   }
 
   constructor() {
+    // Locking the vault hides what was revealed while it was open.
+    effect(() => {
+      if (!this.secretCrypto.isUnlocked) this.revealedValues.set({});
+    });
     effect(() => {
       if (this.visible()) {
         void this.refresh();

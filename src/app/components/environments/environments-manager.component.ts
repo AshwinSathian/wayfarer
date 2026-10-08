@@ -68,7 +68,7 @@ export class EnvironmentsManagerComponent implements OnInit {
       this.editorTab.set(value);
     }
   }
-  private readonly secretPreview: Record<string, string> = {};
+  private readonly secretPreview = signal<Record<string, string>>({});
 
   // Import-dialog state/pipeline lives in EnvironmentImportService now (see
   // its own file) — these are direct pass-throughs so the template doesn't
@@ -87,6 +87,10 @@ export class EnvironmentsManagerComponent implements OnInit {
   private focusTimeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    // Locking the vault hides what was revealed while it was open.
+    effect(() => {
+      if (!this.secretCrypto.isUnlocked) this.secretPreview.set({});
+    });
     effect(() => {
       const env = this.activeEnvironment();
       if (env && !this.selectedId()) {
@@ -263,8 +267,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     }
     const plaintext = await this.secretsService.readSecret(secretId);
     if (plaintext !== null) {
-      this.secretPreview[secretId] = plaintext;
-      this.draft.set({ ...draft });
+      this.secretPreview.update((previews) => ({ ...previews, [secretId]: plaintext }));
     }
   }
 
@@ -273,7 +276,7 @@ export class EnvironmentsManagerComponent implements OnInit {
     if (!secretId) {
       return null;
     }
-    return this.secretPreview[secretId] ?? null;
+    return this.secretPreview()[secretId] ?? null;
   }
 
   get secretsUnlocked(): boolean {

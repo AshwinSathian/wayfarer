@@ -1,3 +1,4 @@
+import { computed } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { SecretCryptoService } from "./secret-crypto.service";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
@@ -16,6 +17,17 @@ describe("SecretCryptoService", () => {
     const envelope = await service.encrypt("hello", "pass");
     const plaintext = await service.decrypt(envelope, "pass");
     expect(plaintext).toBe("hello");
+  });
+
+  it("exposes the lock state reactively, so OnPush views and effects follow unlock and lock", async () => {
+    const unlocked = computed(() => service.isUnlocked);
+    expect(unlocked()).toBe(false);
+
+    await service.unlock("passphrase");
+    expect(unlocked()).toBe(true);
+
+    service.lock();
+    expect(unlocked()).toBe(false);
   });
 
   it("rejects decryption with wrong passphrase", async () => {

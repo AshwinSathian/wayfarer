@@ -84,10 +84,13 @@ abstract class ModalPanel implements OnDestroy {
       }
     };
     ref.keydownEvents.subscribe(onKeydown);
-    // On the panel's own element as well: the CDK sends a key only to the
-    // topmost overlay that listens, and a Material tooltip open over a
-    // button in here would take Escape for itself.
-    ref.overlayRef.overlayElement.addEventListener("keydown", onKeydown);
+    // The CDK sends a key only to the topmost overlay that listens. A
+    // Material tooltip open over a button in here is such an overlay: it
+    // takes Escape for itself and stops it. While one is showing, Escape is
+    // read from the panel's own element, which hears it first.
+    ref.overlayRef.overlayElement.addEventListener("keydown", (event) => {
+      if (document.querySelector(".mat-mdc-tooltip-panel")) onKeydown(event);
+    });
     ref.backdropClick.subscribe(() => {
       if (this.closesOnBackdrop()) this.requestClose();
     });

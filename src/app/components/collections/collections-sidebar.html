@@ -184,16 +184,18 @@
      />
     @if (creationContext()?.type === 'request') {
     <div class="flex flex-col gap-1.5">
-      <label for="creation-method-select" class="ds-form-label">Method</label>
-      <ui-select
-        inputId="creation-method-select"
-        [options]="methodOptions"
+      <span id="creation-method-select-label" class="ds-form-label">Method</span>
+      <mat-select
+        class="select w-full!"
+        id="creation-method-select"
+        aria-labelledby="creation-method-select-label"
         [ngModel]="creationModel().method"
         (ngModelChange)="onCreationMethodChange($event)"
-        optionLabel="label"
-        optionValue="value"
-        class="w-full"
-      />
+      >
+        @for (option of methodOptions; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
     </div>
     }
   </div>

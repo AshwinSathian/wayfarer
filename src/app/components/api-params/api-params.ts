@@ -15,7 +15,8 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
-import { Select } from "../../ui/select";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { Splitter } from "../../ui/splitter";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
@@ -99,7 +100,7 @@ type ContextType = "Body" | "Headers";
     ReactiveFormsModule,
     MatButton, MatIconButton,
     MatAccordion, MatExpansionPanel, MatExpansionPanelHeader,
-    Select,
+    MatSelect, MatOption,
     MatButtonToggleGroup,
     MatButtonToggle,
     MatTabNav, MatTabLink, MatTabNavPanel,

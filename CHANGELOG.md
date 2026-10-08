@@ -12,9 +12,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The interface moves to Angular Material**, one widget family at a time,
   themed from Wayfarer's own design tokens so the look stays the same in
   both themes. So far: tooltips, buttons, tabs, the phone composer's and
-  history's accordions and the Basic / JSON switch. A tooltip now sits
-  about 4 px further from its button. The initial download grows to
-  888.63 kB from 722.84 kB; the size budgets are reset to the new baseline.
+  history's accordions, the Basic / JSON switch and every select. A tooltip
+  now sits about 4 px further from its button. The initial download grows
+  to 947.97 kB from 722.84 kB; the size budgets are reset to the new
+  baseline.
+- **Selects follow the native one's keys.** Enter or Space opens the list.
+  An arrow key or a letter on a closed select changes the value straight
+  away; it used to open the list.
+- The text in a select starts 12 px from its edge. It touched the border.
+- **Folder (optional)** in Save to Collection is cleared by choosing
+  **No folder** from the list. It had a small clear button.
 - **Import** under Settings, Environments, is a real button: it can be
   reached and pressed with the keyboard. It was a label around a hidden
   file field.

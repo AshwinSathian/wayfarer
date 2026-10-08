@@ -4,7 +4,8 @@ import { MatButton } from "@angular/material/button";
 import { Menu, UiMenuItem } from "../../ui/menu";
 import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
-import { Select } from "../../ui/select";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { Tree, UiTreeNode } from "../../ui/tree";
 import { RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
@@ -40,7 +41,7 @@ export interface PaletteAction {
     Menu,
     MatButton,
     Dialog,
-    Select,
+    MatSelect, MatOption,
   ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",

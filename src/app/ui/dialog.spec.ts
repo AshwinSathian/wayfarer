@@ -130,18 +130,28 @@ describe("ui-dialog and ui-drawer", () => {
     fixture.destroy();
   });
 
-  it("closes on Escape pressed inside it even when an overlay above stops the key (an open tooltip)", async () => {
+  it("closes on Escape pressed inside it while a tooltip above takes the key, and leaves any other overlay's Escape alone", async () => {
     const { fixture, host, settle, dialog } = await setup();
     host.open.set(true);
     await settle();
-
-    // What the CDK does for the topmost listening overlay: the key is stopped at the body.
+    // What the CDK does for the topmost listening overlay: the key never reaches the dialog's own overlay.
+    const container = document.querySelector(".cdk-overlay-container")!;
     const swallow = (event: Event) => event.stopPropagation();
-    document.body.addEventListener("keydown", swallow);
-    dialog()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-    document.body.removeEventListener("keydown", swallow);
-    await settle();
+    container.addEventListener("keydown", swallow);
+    const escape = () => dialog()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
 
+    // An open select's list: its Escape closes the list, not the dialog.
+    escape();
+    await settle();
+    expect(host.changes).toEqual([]);
+    expect(dialog()).not.toBeNull();
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "mat-mdc-tooltip-panel";
+    container.append(tooltip);
+    escape();
+    container.removeEventListener("keydown", swallow);
+    await settle();
     expect(host.changes).toEqual([false]);
     expect(dialog()).toBeNull();
     fixture.destroy();

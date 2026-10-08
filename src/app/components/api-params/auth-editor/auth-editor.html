@@ -1,16 +1,18 @@
 @let currentAuth = auth();
 <div class="space-y-4">
   <div class="flex items-center gap-3">
-    <label class="ds-form-label min-w-[72px]" for="auth-type-select">Type</label>
-    <ui-select
-      inputId="auth-type-select"
-      [options]="authTypes"
+    <span class="ds-form-label min-w-[72px]" id="auth-type-select-label">Type</span>
+    <mat-select
+      class="select w-48!"
+      id="auth-type-select"
+      aria-labelledby="auth-type-select-label"
       [ngModel]="currentAuth.type"
       (ngModelChange)="onAuthTypeChange($event)"
-      optionLabel="label"
-      optionValue="value"
-      class="w-48"
-    />
+    >
+      @for (option of authTypes; track option.value) {
+      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
   </div>
 
   @if (currentAuth.type === 'bearer') {
@@ -83,16 +85,18 @@
        />
     </div>
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" for="auth-apikey-addto">Add to</label>
-      <ui-select
-        inputId="auth-apikey-addto"
-        [options]="apiKeyAddToOptions"
+      <span class="ds-form-label min-w-[72px]" id="auth-apikey-addto-label">Add to</span>
+      <mat-select
+        class="select w-40!"
+        id="auth-apikey-addto"
+        aria-labelledby="auth-apikey-addto-label"
         [ngModel]="currentAuth.apiKey?.addTo ?? 'header'"
         (ngModelChange)="setApiKeyField({ addTo: $event })"
-        optionLabel="label"
-        optionValue="value"
-        class="w-40"
-      />
+      >
+        @for (option of apiKeyAddToOptions; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
     </div>
   </div>
   }

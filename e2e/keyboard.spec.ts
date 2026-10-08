@@ -93,13 +93,15 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
   await expect(page.getByRole("button", { name: "Add parameter" })).toBeVisible();
 });
 
-test("method select: keyboard opens it, arrows and typing move, Enter picks, Escape leaves the value alone", async ({ page }) => {
+// Material's select follows the native one: Enter or Space opens the list,
+// and an arrow key or a letter on the closed select changes the value.
+test("method select: Enter opens it, arrows and typing move, Enter picks, Escape leaves the value alone", async ({ page }) => {
   await page.goto("/");
   const method = page.getByRole("combobox", { name: /^HTTP method/ });
   await method.focus();
   await expect(method).toContainText("GET");
 
-  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
   await expect(method).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("option")).toHaveCount(7);
   await page.keyboard.press("ArrowDown");
@@ -108,12 +110,19 @@ test("method select: keyboard opens it, arrows and typing move, Enter picks, Esc
   await expect(method).toHaveAttribute("aria-expanded", "false");
   await expect(method).toBeFocused();
 
-  // Type-ahead: "d" goes to DELETE.
+  // On the closed select an arrow key changes the value without opening it.
+  await page.keyboard.press("ArrowDown");
+  await expect(method).toContainText("PUT");
+  await expect(method).toHaveAttribute("aria-expanded", "false");
+
+  // Type-ahead in the open list: "d" goes to DELETE.
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("option")).toHaveCount(7);
   await page.keyboard.press("d");
   await expect(page.getByRole("option", { name: "DELETE", exact: true })).toHaveClass(/active/);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("option")).toHaveCount(0);
-  await expect(method).toContainText("POST");
+  await expect(method).toContainText("PUT");
   await expect(method).toBeFocused();
 
   // The app is usable after the list closes.
@@ -135,14 +144,14 @@ test("a select inside a dialog: Escape closes the list first, the dialog second"
 
   const collection = dialog.locator("#save-as-collection");
   await collection.focus();
-  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
   await expect(page.getByRole("option", { name: "Keys" })).toBeVisible();
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("option")).toHaveCount(0);
   await expect(dialog).toBeVisible();
 
-  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
   await page.keyboard.press("Enter");
   await expect(collection).toContainText("Keys");
 });
@@ -221,7 +230,11 @@ test("with the mouse: a second click on the Export button or on a select closes 
   const method = page.getByRole("combobox", { name: /^HTTP method/ });
   await method.click();
   await expect(page.getByRole("listbox")).toBeVisible();
-  await method.click();
+  // The open list sits over a transparent backdrop, which is what a second
+  // click in the same place lands on. The CDK shows it a frame after the list.
+  await expect(page.locator(".cdk-overlay-backdrop-showing")).toBeVisible();
+  const box = (await method.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });
 

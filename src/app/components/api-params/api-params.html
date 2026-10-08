@@ -5,13 +5,16 @@
     <!-- Unified method + URL bar -->
     <div class="address-bar flex-1">
       <!-- Method selector -->
-      <ui-select
-        [options]="requestMethods"
+      <mat-select
+        class="select address-method method-select"
+        aria-label="HTTP method"
         [ngModel]="selectedRequestMethod()"
         (ngModelChange)="onRequestMethodChange($event)"
-        ariaLabel="HTTP method"
-        class="address-method method-select"
-      />
+      >
+        @for (option of requestMethods; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
 
       <!-- URL input -->
       <input
@@ -492,14 +495,15 @@
         </div>
         @for (test of requestTests(); track test.id; let i = $index) {
         <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
-          <ui-select
-            [options]="assertionTargetOptions"
+          <mat-select
+            class="select w-36!"
+            aria-label="Assert on"
             [(ngModel)]="test.target"
-            optionLabel="label"
-            optionValue="value"
-            ariaLabel="Assert on"
-            class="w-36"
-          />
+          >
+            @for (option of assertionTargetOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
           @if (needsKey(test.target)) {
           <input
             class="ui-input w-44"
@@ -507,14 +511,15 @@
             [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
            />
           }
-          <ui-select
-            [options]="operatorsFor(test.target)"
+          <mat-select
+            class="select w-44!"
+            aria-label="Operator"
             [(ngModel)]="test.operator"
-            optionLabel="label"
-            optionValue="value"
-            ariaLabel="Operator"
-            class="w-44"
-          />
+          >
+            @for (option of operatorsFor(test.target); track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
           @if (needsExpected(test.operator)) {
           <input
             class="ui-input flex-1 min-w-[120px]"
@@ -566,32 +571,36 @@
        />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label for="save-as-collection" class="type-footnote text-label-secondary">Collection</label>
-      <ui-select
-        inputId="save-as-collection"
-        [options]="saveAsCollectionOptions()"
+      <span id="save-as-collection-label" class="type-footnote text-label-secondary">Collection</span>
+      <mat-select
+        class="select w-full!"
+        id="save-as-collection"
+        aria-labelledby="save-as-collection-label"
         [ngModel]="saveAsCollectionId()"
         (ngModelChange)="onSaveAsCollectionChange($event)"
-        optionLabel="label"
-        optionValue="value"
         placeholder="Choose a collection"
-        class="w-full"
-      />
+      >
+        @for (option of saveAsCollectionOptions(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
     </div>
     @if (saveAsFolderOptions().length) {
     <div class="flex flex-col gap-1.5">
-      <label for="save-as-folder" class="type-footnote text-label-secondary">Folder (optional)</label>
-      <ui-select
-        inputId="save-as-folder"
-        [options]="saveAsFolderOptions()"
+      <span id="save-as-folder-label" class="type-footnote text-label-secondary">Folder (optional)</span>
+      <mat-select
+        class="select w-full!"
+        id="save-as-folder"
+        aria-labelledby="save-as-folder-label"
         [ngModel]="saveAsFolderId()"
         (ngModelChange)="saveAsFolderId.set($event)"
-        optionLabel="label"
-        optionValue="value"
         placeholder="No folder"
-        showClear
-        class="w-full"
-      />
+      >
+        <mat-option [value]="null">No folder</mat-option>
+        @for (option of saveAsFolderOptions(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
     </div>
     }
     }

@@ -15,7 +15,8 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog, Drawer } from "../../ui/dialog";
-import { Select } from "../../ui/select";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { PastRequest, PastRequestKey } from "../../models/history";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -42,7 +43,7 @@ import { SwUpdate } from "../../services/sw-update";
     Icon,
     Drawer,
     MatButton, MatIconButton,
-    Select,
+    MatSelect, MatOption,
     Dialog,
     MatTooltip,
     FormsModule,

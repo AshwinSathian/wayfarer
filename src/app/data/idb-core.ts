@@ -71,10 +71,10 @@ export class IdbCore {
   readonly memoryOnly = signal(false);
 
   private readonly lifecycle =
-    typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel(LIFECYCLE_CHANNEL);
+    new BroadcastChannel(LIFECYCLE_CHANNEL);
 
   constructor() {
-    this.lifecycle?.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
+    this.lifecycle.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
       if (event.data?.type === "close") {
         void this.closeForReset();
       }
@@ -259,7 +259,7 @@ export class IdbCore {
     try {
       await this.closeConnection();
       if (typeof indexedDB !== "undefined") {
-        this.lifecycle?.postMessage({ type: "close" } satisfies LifecycleMessage);
+        this.lifecycle.postMessage({ type: "close" } satisfies LifecycleMessage);
         await this.deleteDatabase();
       }
     } finally {
@@ -336,13 +336,6 @@ export class IdbCore {
     }
     const value = cursor.value as { order?: number };
     return (value?.order ?? 0) + 1;
-  }
-
-  clone<T>(value: T): T {
-    if (typeof structuredClone === "function") {
-      return structuredClone(value);
-    }
-    return JSON.parse(JSON.stringify(value)) as T;
   }
 
   ensureId<T extends { meta: Meta; id?: string }>(doc: T): T {

@@ -85,6 +85,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   what they do: `MainService` is `HttpTransport`, `CollectionsService` is
   `CollectionsStore`. `ng generate` produces these names without overrides.
   `CLAUDE.md` and `CONTRIBUTING.md` state the rules.
+- Checks for environments the app cannot run in are gone (`typeof window`,
+  `typeof Worker`, three copies of a `structuredClone` fallback). On a
+  plain-http page the vault now says it needs https or localhost.
+- `CLAUDE.md` and `CONTRIBUTING.md` carry the rules for styling and layout,
+  Monaco, dependencies and the bundle, and the Local Bridge.
 - A database upgrade that fails part-way is rolled back, so the database
   keeps its old version instead of a half-applied schema.
 - Identifiers come from one `newId()` helper. Seven copies with a

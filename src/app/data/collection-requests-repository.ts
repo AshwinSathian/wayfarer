@@ -133,7 +133,7 @@ export class CollectionRequestsRepository {
       }
       const meta = this.core.createMeta();
       const clone: RequestDoc = {
-        ...this.core.clone(doc),
+        ...structuredClone(doc),
         id: meta.id,
         meta,
         name: `${doc.name} copy`,

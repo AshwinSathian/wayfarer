@@ -90,7 +90,7 @@ export class CollectionsRepository {
       }
 
       const duplicate: Collection = {
-        ...this.core.clone(original),
+        ...structuredClone(original),
         id: newId(),
         meta: this.core.createMeta(),
         name: `${original.name} copy`,
@@ -111,7 +111,7 @@ export class CollectionsRepository {
       const folderIdMap = new Map<string, string>();
       const folderClones = sourceFolders.map((folder) => {
         const clone: Folder = {
-          ...this.core.clone(folder),
+          ...structuredClone(folder),
           id: newId(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
@@ -130,7 +130,7 @@ export class CollectionsRepository {
 
       for (const request of sourceRequests) {
         const clone: RequestDoc = {
-          ...this.core.clone(request),
+          ...structuredClone(request),
           id: newId(),
           meta: this.core.createMeta(),
           collectionId: duplicate.meta.id,
@@ -213,7 +213,7 @@ export class CollectionsRepository {
     const requestStore = tx.objectStore("requests");
 
     return this.core.commitOrRollback(tx, async () => {
-      const data = this.core.clone(payload);
+      const data = structuredClone(payload);
       this.core.ensureId(data.collection);
       data.folders = this.core.ensureIds(data.folders ?? []);
       data.requests = this.core.ensureIds(data.requests ?? []);

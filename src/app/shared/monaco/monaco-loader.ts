@@ -178,9 +178,6 @@ export function waitForNonZeroWidth(
   if (host.getBoundingClientRect().width > 0) {
     return Promise.resolve();
   }
-  if (typeof ResizeObserver === "undefined") {
-    return Promise.resolve();
-  }
   return new Promise((resolve) => {
     let settled = false;
     const finish = () => {

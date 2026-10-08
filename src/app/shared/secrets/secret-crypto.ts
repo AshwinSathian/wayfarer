@@ -106,8 +106,9 @@ export class SecretCrypto {
   }
 
   private async importPassphrase(passphrase: string): Promise<CryptoKey> {
-    if (typeof crypto === "undefined" || !crypto.subtle) {
-      throw new Error("WebCrypto API is not available in this environment.");
+    // crypto.subtle only exists in a secure context (https or localhost).
+    if (!crypto.subtle) {
+      throw new Error("The vault needs a secure page: open Wayfarer over https or on localhost.");
     }
     return crypto.subtle.importKey(
       "raw",
@@ -156,9 +157,6 @@ export class SecretCrypto {
     const binary = Array.from(bytes)
       .map((b) => String.fromCharCode(b))
       .join("");
-    if (typeof btoa !== "function") {
-      throw new Error("Base64 encoding is not supported in this environment.");
-    }
     const base64 = btoa(binary);
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
@@ -167,9 +165,6 @@ export class SecretCrypto {
     const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
     const pad = normalized.length % 4 ? 4 - (normalized.length % 4) : 0;
     const padded = normalized + "=".repeat(pad);
-    if (typeof atob !== "function") {
-      throw new Error("Base64 decoding is not supported in this environment.");
-    }
     const binary = atob(padded);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {

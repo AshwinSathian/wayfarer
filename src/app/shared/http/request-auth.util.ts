@@ -15,7 +15,9 @@ export function buildAuthHeaders(auth: HttpAuthPlaceholder | undefined): Record<
     return { Authorization: `Bearer ${auth.bearer.token}` };
   }
   if (auth.type === "basic" && auth.basic?.username) {
-    const encoded = btoa(`${auth.basic.username}:${auth.basic.password ?? ""}`);
+    // UTF-8 bytes (RFC 7617): btoa alone throws on anything outside Latin-1.
+    const bytes = new TextEncoder().encode(`${auth.basic.username}:${auth.basic.password ?? ""}`);
+    const encoded = btoa(String.fromCharCode(...bytes));
     return { Authorization: `Basic ${encoded}` };
   }
   if (auth.type === "api-key" && auth.apiKey?.key && auth.apiKey?.addTo === "header") {

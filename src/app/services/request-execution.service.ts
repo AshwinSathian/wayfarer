@@ -49,7 +49,8 @@ const SECRET_PLACEHOLDER_BLOCKED =
 /**
  * True when a built request still carries a literal `{{$secret.<id>}}`
  * placeholder anywhere it would go on the wire (F03). The URL is also checked
- * percent-decoded, since URL normalisation may have encoded the braces.
+ * percent-decoded, since URL normalisation may have encoded the braces, and
+ * Basic credentials base64-decoded.
  */
 function containsSecretPlaceholder(request: BuiltRequest): boolean {
   let decodedUrl = request.url;
@@ -63,9 +64,23 @@ function containsSecretPlaceholder(request: BuiltRequest): boolean {
     request.url,
     decodedUrl,
     JSON.stringify(request.headers),
+    ...Object.values(request.headers).map(decodeBasicCredentials),
     request.usesBody ? JSON.stringify(request.body ?? null) : "",
   ];
   return wire.some((text) => SECRET_PLACEHOLDER.test(text));
+}
+
+/** The `user:password` inside a `Basic` header value, where base64 would hide a placeholder; "" otherwise. */
+function decodeBasicCredentials(headerValue: string): string {
+  const encoded = /^\s*Basic\s+(\S+)/i.exec(headerValue)?.[1];
+  if (!encoded) return "";
+  try {
+    return atob(encoded);
+  } catch (error) {
+    // Not base64 (atob throws InvalidCharacterError): nothing hidden in it.
+    if (!(error instanceof DOMException)) throw error;
+    return "";
+  }
 }
 
 export interface RequestExecutionSpec {

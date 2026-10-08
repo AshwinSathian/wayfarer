@@ -20,15 +20,20 @@ export interface VariableToken {
 
 const PLACEHOLDER_PATTERN = /{{\s*([\w.-]+)\s*}}/g;
 
+/** Own keys only: `{{constructor}}` must not resolve to Object.prototype.constructor. */
+function own(record: Record<string, string> | undefined, key: string): string | undefined {
+  return record && Object.hasOwn(record, key) ? record[key] : undefined;
+}
+
 function resolveVariable(
   variable: string,
   context: VariableContext
 ): { value?: string; source: VariableSource; environmentId?: EnvironmentId } {
-  const requestValue = context.requestVars?.[variable];
+  const requestValue = own(context.requestVars, variable);
   if (requestValue !== undefined) {
     return { value: requestValue, source: "request" };
   }
-  const envValue = context.environment?.vars?.[variable];
+  const envValue = own(context.environment?.vars, variable);
   if (envValue !== undefined) {
     return {
       value: envValue,
@@ -36,7 +41,7 @@ function resolveVariable(
       environmentId: context.environment?.meta.id,
     };
   }
-  const globalValue = context.globals?.[variable];
+  const globalValue = own(context.globals, variable);
   if (globalValue !== undefined) {
     return { value: globalValue, source: "global" };
   }
@@ -73,11 +78,9 @@ export function resolveTemplateDeep(value: unknown, context: VariableContext): u
     return value.map((item) => resolveTemplateDeep(item, context));
   }
   if (typeof value === "object" && value !== null) {
-    const resolved: Record<string, unknown> = {};
-    for (const [key, item] of Object.entries(value)) {
-      resolved[key] = resolveTemplateDeep(item, context);
-    }
-    return resolved;
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, resolveTemplateDeep(item, context)])
+    );
   }
   return value;
 }

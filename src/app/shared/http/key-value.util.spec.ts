@@ -14,6 +14,13 @@ describe("key-value.util", () => {
     expect([[], null, "x", 1, undefined].map(isPlainObject)).toEqual([false, false, false, false, false]);
   });
 
+  it("keeps a body key named __proto__ as data", () => {
+    const body = bodyObjectFromRows([{ key: "__proto__", value: { admin: true } }]);
+
+    expect(Object.keys(body ?? {})).toEqual(["__proto__"]);
+    expect(JSON.stringify(body)).toBe('{"__proto__":{"admin":true}}');
+  });
+
   it("turns header rows into a string record, trimming keys and dropping blank ones", () => {
     expect(
       stringRecordFromRows([

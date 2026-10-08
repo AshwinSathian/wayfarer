@@ -32,7 +32,7 @@ you turn it on). <!-- claim:C-001 -->
 Secret values (API keys, tokens, passwords stored in the vault) are
 encrypted before they touch disk:
 
-- **KDF:** PBKDF2-SHA-256, 200,000 iterations, random 16-byte salt per secret. <!-- claim:C-004 -->
+- **KDF:** PBKDF2-SHA-256, 600,000 iterations, random 16-byte salt per secret. <!-- claim:C-004 -->
 - **Cipher:** AES-GCM, 256-bit key, random 12-byte IV per secret. <!-- claim:C-004 -->
 - **Key handling:** the derived key lives in memory only for the unlocked
   session and is dropped on lock or tab close; it is never itself persisted. <!-- claim:C-005 -->

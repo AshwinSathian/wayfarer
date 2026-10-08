@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Security
 
+- **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
+  minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
+  cannot be read; there were none in use.
+- The vault passphrase is used exactly as typed. Spaces at either end were
+  removed without a word.
 - **Copy as cURL** no longer lets an imported collection run commands or read
   files when its output is pasted into a shell: the method is quoted unless it
   is a plain verb, and the body goes out with `--data-raw` (a body starting
@@ -135,6 +140,11 @@ work, with before and after screenshots.
 
 ### Security
 
+- **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
+  minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
+  cannot be read; there were none in use.
+- The vault passphrase is used exactly as typed. Spaces at either end were
+  removed without a word.
 - The content security policy is unchanged. `style-src` still needs
   `'unsafe-inline'`: Monaco writes style attributes for every line it draws,
   and Angular, the CDK and 13 template lines add inline styles. The reasons
@@ -469,6 +479,11 @@ you being told plainly.
 
 ### Security
 
+- **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
+  minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
+  cannot be read; there were none in use.
+- The vault passphrase is used exactly as typed. Spaces at either end were
+  removed without a word.
 - Pre/post-request scripts now execute inside a dedicated Web Worker
   (`script-runner.worker.ts`) instead of via `new Function()` on the main
   thread, closing a sandbox-escape gap where a script could re-acquire

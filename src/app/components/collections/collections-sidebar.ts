@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Button } from "../../ui/button";
+import { MatButton } from "@angular/material/button";
 import { Menu, UiMenuItem } from "../../ui/menu";
 import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
@@ -38,7 +38,7 @@ export interface PaletteAction {
     FormsModule,
     Tree,
     Menu,
-    Button,
+    MatButton,
     Dialog,
     Select,
   ],

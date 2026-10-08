@@ -13,7 +13,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
-import { Button } from "../../ui/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog, Drawer } from "../../ui/dialog";
 import { Select } from "../../ui/select";
 import { PastRequest, PastRequestKey } from "../../models/history";
@@ -41,7 +41,7 @@ import { SwUpdate } from "../../services/sw-update";
     NgTemplateOutlet,
     Icon,
     Drawer,
-    Button,
+    MatButton, MatIconButton,
     Select,
     Dialog,
     MatTooltip,

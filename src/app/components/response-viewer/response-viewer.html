@@ -53,10 +53,7 @@
       <div class="ml-auto">
         <ui-menu #exportMenu [items]="exportItems" />
         <button
-          uiButton
-          tone="secondary"
-          variant="outlined"
-          size="sm"
+          matButton="outlined" class="btn-secondary btn-sm"
           type="button"
           aria-label="Export response"
           (click)="exportMenu.toggle($event)"
@@ -105,20 +102,14 @@
                 </span>
                 <div class="flex items-center gap-0.5">
                   <button
-                    uiButton
-                    variant="text"
-                    size="sm"
-                    iconOnly
+                    matIconButton class="btn-sm"
                     type="button"
                     aria-label="Previous search match"
                     [disabled]="!searchResult()?.count"
                     (click)="stepSearch(-1)"
                   ><app-icon name="keyboard_arrow_up" /></button>
                   <button
-                    uiButton
-                    variant="text"
-                    size="sm"
-                    iconOnly
+                    matIconButton class="btn-sm"
                     type="button"
                     aria-label="Next search match"
                     [disabled]="!searchResult()?.count"
@@ -140,9 +131,7 @@
                   Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }}) — preview ships in v2.0
                 </p>
                 <button
-                  uiButton
-                  tone="secondary"
-                  size="sm"
+                  matButton="filled" class="btn-secondary btn-sm"
                   type="button"
                   aria-label="Download response body"
                   (click)="downloadBinary()"

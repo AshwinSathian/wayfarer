@@ -70,7 +70,13 @@
 }
 
 /* ── Button ──────────────────────────────────────────────── */
-.ui-btn {
+/* Markup: Material's matButton ("filled", "outlined", or none for a text
+   button) and matIconButton, plus btn-secondary / btn-danger / btn-success
+   for the tone, btn-sm for the size and btn-square for an icon alone in a
+   filled or outlined button. Material reads the --btn-* colours below
+   through its tokens (material-theme.scss). Selectors here are doubled up
+   to outrank Material's own, which load after this sheet. */
+.mat-mdc-button-base {
   --btn-bg: var(--ctl-primary);
   --btn-border: var(--ctl-primary);
   --btn-fg: #ffffff;
@@ -78,26 +84,18 @@
   --btn-border-hover: var(--ctl-primary-hover);
   --btn-bg-active: var(--ctl-primary-active);
   --btn-border-active: var(--ctl-primary-active);
+}
 
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.mat-mdc-button-base.mdc-button,
+.mat-mdc-button-base.mat-mdc-icon-button {
   gap: 8px;
+  height: auto;
+  min-width: 0;
   padding: 8px 12px;
   overflow: hidden;
   border: 1px solid var(--btn-border);
-  border-radius: var(--radius-md);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
   line-height: normal;
-  letter-spacing: -0.004em;
   text-align: center;
-  cursor: pointer;
-  user-select: none;
   transition:
     background var(--dur-quick) var(--ease-standard),
     border-color var(--dur-quick) var(--ease-standard),
@@ -106,64 +104,78 @@
     opacity var(--dur-quick) var(--ease-standard);
 }
 
+/* An icon and its label sit in Material's label element. */
+.mat-mdc-button-base .mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Material Symbols glyphs sit inside their em box with a margin, so they
    are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
-.ui-btn .app-icon {
+.mat-mdc-button-base .app-icon {
   margin: -3px;
   font-size: 22px;
 }
 
-.ui-btn:not(:disabled):hover {
+.mat-mdc-button-base:not(:disabled):hover {
   background: var(--btn-bg-hover);
   border-color: var(--btn-border-hover);
 }
 
-.ui-btn:not(:disabled):active {
+.mat-mdc-button-base:not(:disabled):active {
   background: var(--btn-bg-active);
   border-color: var(--btn-border-active);
   transform: scale(0.96);
 }
 
-/* The focus ring is the global :focus-visible ring (styles.css); only the
-   radius it resets is restored here. */
-.ui-btn:focus-visible {
-  border-radius: var(--radius-md);
+/* Material removes the outline; this is the global focus ring (styles.css). */
+.mat-mdc-button-base:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-.ui-btn:disabled {
+.mat-mdc-button-base:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
 /* Sizes */
-.ui-btn--sm {
+.mat-mdc-button-base.btn-sm {
   padding: 6px 10px;
 }
 
-.ui-btn--sm .app-icon {
+.mat-mdc-button-base.btn-sm .app-icon {
   font-size: 20px;
 }
 
-.ui-btn--icon {
+.mat-mdc-button-base.btn-square,
+.mat-mdc-button-base.mat-mdc-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 0;
   width: 40px;
   padding-inline: 0;
+  font-size: 14px;
 }
 
 /* An icon-only button is as tall as one with a label: a zero-width
    character gives it the same line box. */
-.ui-btn--icon::after {
+.mat-mdc-button-base.btn-square .mdc-button__label::after,
+.mat-mdc-button-base.mat-mdc-icon-button::after {
   content: "\00a0";
   width: 0;
   visibility: hidden;
 }
 
-.ui-btn--icon.ui-btn--sm {
+.mat-mdc-button-base.btn-square.btn-sm,
+.mat-mdc-button-base.mat-mdc-icon-button.btn-sm {
   width: 32px;
 }
 
-/* Tones (solid) */
-.ui-btn--secondary {
+/* Tones (filled) */
+.btn-secondary {
   --btn-bg: var(--fill-secondary);
   --btn-border: var(--separator);
   --btn-fg: var(--label-primary);
@@ -173,7 +185,7 @@
   --btn-border-active: var(--separator);
 }
 
-.ui-btn--danger {
+.btn-danger {
   --btn-bg: var(--status-error-fill);
   --btn-border: var(--status-error-border);
   --btn-fg: var(--ctl-danger-on-fill);
@@ -184,7 +196,7 @@
 }
 
 /* Outlined */
-.ui-btn--outlined {
+.mat-mdc-outlined-button {
   --btn-bg: transparent;
   --btn-border: var(--ctl-primary-border);
   --btn-fg: var(--ctl-primary);
@@ -194,7 +206,8 @@
   --btn-border-active: var(--ctl-primary-border);
 }
 
-.ui-btn--outlined.ui-btn--secondary {
+.mat-mdc-outlined-button.btn-secondary {
+  --btn-bg: transparent;
   --btn-border: var(--separator);
   --btn-fg: var(--label-primary);
   --btn-bg-hover: var(--fill-hover);
@@ -203,8 +216,9 @@
   --btn-border-active: var(--fill-primary);
 }
 
-/* Text */
-.ui-btn--text {
+/* Text, and an icon alone */
+.mat-mdc-button,
+.mat-mdc-icon-button {
   --btn-bg: transparent;
   --btn-border: transparent;
   --btn-fg: var(--ctl-primary);
@@ -214,26 +228,37 @@
   --btn-border-active: transparent;
 }
 
-.ui-btn--text.ui-btn--secondary {
+.mat-mdc-button.btn-secondary,
+.mat-mdc-icon-button.btn-secondary {
+  --btn-bg: transparent;
+  --btn-border: transparent;
   --btn-fg: var(--ctl-neutral);
   --btn-bg-hover: var(--ctl-neutral-tint);
+  --btn-border-hover: transparent;
   --btn-bg-active: var(--ctl-neutral-tint-strong);
+  --btn-border-active: transparent;
 }
 
-.ui-btn--text.ui-btn--danger {
+.mat-mdc-button.btn-danger,
+.mat-mdc-icon-button.btn-danger {
+  --btn-bg: transparent;
+  --btn-border: transparent;
   --btn-fg: var(--ctl-danger);
   --btn-bg-hover: var(--ctl-danger-tint);
+  --btn-border-hover: transparent;
   --btn-bg-active: var(--ctl-danger-tint-strong);
+  --btn-border-active: transparent;
 }
 
-.ui-btn--text.ui-btn--success {
+.mat-mdc-button.btn-success,
+.mat-mdc-icon-button.btn-success {
   --btn-fg: var(--ctl-success);
   --btn-bg-hover: var(--ctl-success-tint);
   --btn-bg-active: var(--ctl-success-tint-strong);
 }
 
 /* Send — the gradient call to action */
-.send-btn.ui-btn {
+.send-btn.mat-mdc-button-base.mdc-button {
   height: 40px;
   padding: 0 22px;
   border: none;
@@ -245,23 +270,19 @@
   box-shadow: 0 2px 12px rgba(76, 110, 245, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20);
 }
 
-.send-btn.ui-btn:not(:disabled):hover {
+.send-btn.mat-mdc-button-base.mdc-button:not(:disabled):hover {
   background: var(--gradient-accent);
   box-shadow: 0 4px 18px rgba(76, 110, 245, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px) scale(1.01);
 }
 
-.send-btn.ui-btn:not(:disabled):active {
+.send-btn.mat-mdc-button-base.mdc-button:not(:disabled):active {
   background: var(--gradient-accent);
   transform: translateY(0) scale(0.97);
   box-shadow: 0 1px 6px rgba(76, 110, 245, 0.30);
 }
 
-.send-btn.ui-btn:focus-visible {
-  border-radius: var(--radius-lg);
-}
-
-.send-btn.ui-btn:disabled {
+.send-btn.mat-mdc-button-base.mdc-button:disabled {
   opacity: 0.4;
   transform: none;
   box-shadow: none;
@@ -845,7 +866,7 @@
   letter-spacing: -0.010em;
 }
 
-.ui-dialog-close.ui-btn {
+.ui-dialog-close.mat-mdc-icon-button {
   flex: none;
   height: 40px;
 }
@@ -931,8 +952,8 @@
 
 /* The button a confirmation starts on shows its focus ring however the
    confirmation was opened, so the default answer is visible before Enter. */
-.ui-confirm-panel .ui-btn:focus,
-.ui-confirm-popup .ui-btn:focus {
+.ui-confirm-panel .mat-mdc-button-base:focus,
+.ui-confirm-popup .mat-mdc-button-base:focus {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

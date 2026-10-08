@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, signal } from "@angular/core";
+import { Injectable, signal } from "@angular/core";
 import { SecretEnvelope } from "../../models/secrets";
 
 interface DeriveOptions {
@@ -6,7 +6,8 @@ interface DeriveOptions {
   hash?: AlgorithmIdentifier;
 }
 
-const DEFAULT_ITERATIONS = 200_000;
+// OWASP's 2023 minimum for PBKDF2-HMAC-SHA256.
+const DEFAULT_ITERATIONS = 600_000;
 const DEFAULT_HASH: AlgorithmIdentifier = "SHA-256";
 const AES_KEY_LENGTH = 256;
 const SALT_LENGTH = 16;
@@ -15,24 +16,11 @@ const IV_LENGTH = 12;
 @Injectable({
   providedIn: "root",
 })
-export class SecretCrypto implements OnDestroy {
+export class SecretCrypto {
   private readonly encoder = new TextEncoder();
   private readonly decoder = new TextDecoder();
   // A signal, so every view and effect that reads `isUnlocked` follows unlock and lock.
   private readonly sessionBaseKey = signal<CryptoKey | null>(null);
-  private readonly unloadHandler = () => this.lock();
-
-  constructor() {
-    if (typeof window !== "undefined") {
-      window.addEventListener("beforeunload", this.unloadHandler);
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (typeof window !== "undefined") {
-      window.removeEventListener("beforeunload", this.unloadHandler);
-    }
-  }
 
   async deriveKey(
     passphrase: string,

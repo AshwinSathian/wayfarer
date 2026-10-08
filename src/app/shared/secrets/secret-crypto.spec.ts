@@ -43,7 +43,7 @@ describe("SecretCrypto", () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it("@claim:C-004 derives with PBKDF2-SHA-256 at 200,000 iterations and encrypts with AES-GCM-256, 16-byte salt and 12-byte IV per secret", async () => {
+  it("@claim:C-004 derives with PBKDF2-SHA-256 at 600,000 iterations and encrypts with AES-GCM-256, 16-byte salt and 12-byte IV per secret", async () => {
     const deriveKey = vi.spyOn(crypto.subtle, "deriveKey");
     const encrypt = vi.spyOn(crypto.subtle, "encrypt");
     const first = await service.encrypt("payload", "pass");
@@ -54,7 +54,7 @@ describe("SecretCrypto", () => {
     const target = derived as AesKeyGenParams;
     expect(kdf.name).toBe("PBKDF2");
     expect(kdf.hash).toBe("SHA-256");
-    expect(kdf.iterations).toBe(200_000);
+    expect(kdf.iterations).toBe(600_000);
     expect(target).toEqual({ name: "AES-GCM", length: 256 });
     expect((encrypt.mock.calls[0][0] as AesGcmParams).name).toBe("AES-GCM");
 

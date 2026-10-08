@@ -20,7 +20,7 @@ All envelope fields use base64url so they stay filename/JSON friendly.
 
 ## Key Derivation + Cipher
 
-* **KDF:** PBKDF2 with SHA‑256, 200,000 iterations, 16‑byte salt.
+* **KDF:** PBKDF2 with SHA‑256, 600,000 iterations (OWASP's 2023 minimum), 16‑byte salt.
 * **Cipher:** AES‑GCM with 256‑bit keys and a random 12‑byte IV per encryption.
 * **Plaintext:** Never stored alongside the envelope; the IndexedDB row contains metadata + ciphertext only.
 
@@ -31,7 +31,7 @@ All envelope fields use base64url so they stay filename/JSON friendly.
 1. Unlocking imports the passphrase through WebCrypto and holds the base key in RAM.
 2. Encrypt/decrypt helpers derive per‑secret keys using the stored base key and the envelope's salt.
 3. Locking drops the in‑memory key.
-4. A `beforeunload` listener automatically locks when the tab refreshes or closes.
+4. The key lives only in the page's memory, so a reload or closing the tab discards it.
 
 Because there is no persisted verifier, the UI validates a passphrase by decrypting one stored envelope. With no secrets stored, there is nothing to check against, so any passphrase "unlocks" ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 

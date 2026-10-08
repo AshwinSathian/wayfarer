@@ -38,7 +38,7 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
 
 - **Encryption at rest?** Secrets (API keys, tokens, credentials stored in
   the vault) are encrypted with AES-GCM (256-bit) using a key derived via
-  PBKDF2-SHA-256 (200,000 iterations) from a user-chosen passphrase. Full
+  PBKDF2-SHA-256 (600,000 iterations) from a user-chosen passphrase. Full
   spec: [`docs/secrets.md`](secrets.md). Everything else (collections,
   environments, history) is stored as plain text in IndexedDB, protected by
   the browser's storage sandbox and the device's own disk encryption, not
@@ -50,8 +50,8 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
   chosen target, protected by standard TLS whenever that target is
   `https://`. Wayfarer neither weakens nor intercepts that connection.
 - **Key management?** The vault's derived key exists in memory only for
-  the duration of an unlocked session and is dropped on lock, tab close, or
-  `beforeunload`. There is no key-escrow, no server-side key storage, and
+  the duration of an unlocked session and is dropped on lock, reload or tab
+  close. There is no key-escrow, no server-side key storage, and
   no way for the maintainer to recover a lost passphrase. This is a
   structural trade-off of true client-side encryption, not an oversight.
 

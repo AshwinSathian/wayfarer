@@ -1,9 +1,10 @@
+import { recordDiagnostic } from "../../services/diagnostics";
 /**
  * Shared Monaco loading state. All editor components import from here
  * so Monaco is initialised exactly once per session.
  */
 
-export type MonacoEditorModule = typeof import("monaco-editor/esm/vs/editor/editor.api");
+export type MonacoEditorModule = typeof import("monaco-editor/editor");
 
 declare const self: typeof globalThis & {
   MonacoEnvironment?: {
@@ -16,8 +17,6 @@ type WorkerFactory = () => Worker;
 interface MonacoWorkerFactories {
   editor: WorkerFactory;
   json: WorkerFactory;
-  css: WorkerFactory;
-  html: WorkerFactory;
   typescript: WorkerFactory;
 }
 
@@ -36,13 +35,13 @@ interface MonacoWorkerFactories {
  * production build. Verified directly: a production build's every worker
  * resolved `.default === undefined`, while the exact same code under
  * `ng serve` resolved real constructors — meaning Monaco's background
- * workers (JSON/CSS/HTML/TS validation and completion) had never actually
+ * workers (JSON and TS validation and completion) had never actually
  * worked in the deployed app at all, not just under the rapid-transition
  * stress case that first surfaced it as an uncaught
  * `"... is not a constructor"` page error.
  *
  * Each `./workers/*.worker.ts` file is a thin wrapper (`import
- * "monaco-editor/esm/vs/.../*.worker.js"`) purely so Angular's builder has
+ * "monaco-editor/.../*.worker.js"`) purely so Angular's builder has
  * a literal, statically-analyzable relative path to treat as a worker entry
  * point — the actual worker code is still monaco-editor's own.
  */
@@ -51,10 +50,6 @@ const workerFactories: MonacoWorkerFactories = {
     new Worker(new URL("./workers/editor.worker", import.meta.url), { type: "module" }),
   json: () =>
     new Worker(new URL("./workers/json.worker", import.meta.url), { type: "module" }),
-  css: () =>
-    new Worker(new URL("./workers/css.worker", import.meta.url), { type: "module" }),
-  html: () =>
-    new Worker(new URL("./workers/html.worker", import.meta.url), { type: "module" }),
   typescript: () =>
     new Worker(new URL("./workers/typescript.worker", import.meta.url), { type: "module" }),
 };
@@ -63,22 +58,43 @@ let monacoLoader: Promise<MonacoEditorModule> | null = null;
 let environmentConfigured = false;
 
 export let loadedMonaco: MonacoEditorModule | null = null;
+/** Diagnostics settings of the JSON language service; set once Monaco has loaded. */
+export let jsonDefaults: typeof import("monaco-editor/languages/features/json/register").jsonDefaults | null = null;
 let sandboxThemesDefined = false;
+
+/**
+ * Monaco's stylesheet (390 kB) is its own file, `monaco.css` (see "styles" in
+ * angular.json), fetched with the editor instead of on first load. The
+ * builder emits the CSS that Monaco's modules import but never loads it.
+ */
+function loadMonacoStyles(): Promise<void> {
+  return new Promise((resolve) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "monaco.css";
+    link.onload = () => resolve();
+    link.onerror = () => {
+      // The editor still works, unstyled; say so instead of never mounting it.
+      recordDiagnostic(new Error("monaco.css failed to load"), "monaco: stylesheet");
+      resolve();
+    };
+    document.head.append(link);
+  });
+}
 
 export function loadMonaco(): Promise<MonacoEditorModule> {
   if (!monacoLoader) {
     monacoLoader = (async () => {
-      const monacoImport = import("monaco-editor/esm/vs/editor/editor.api");
-
-      await Promise.all([
-        monacoImport,
-        import("monaco-editor/esm/vs/language/json/monaco.contribution"),
-        import("monaco-editor/esm/vs/language/css/monaco.contribution"),
-        import("monaco-editor/esm/vs/language/html/monaco.contribution"),
-        import("monaco-editor/esm/vs/language/typescript/monaco.contribution"),
+      // Only what the two editors use: the core, the JSON service (JSON
+      // editor), and the TypeScript service plus JavaScript grammar (script editor).
+      const [monaco, json] = await Promise.all([
+        import("monaco-editor/editor"),
+        import("monaco-editor/languages/features/json/register"),
+        import("monaco-editor/languages/features/typescript/register"),
+        import("monaco-editor/languages/definitions/javascript/register"),
+        loadMonacoStyles(),
       ]);
-
-      const monaco = await monacoImport;
+      jsonDefaults = json.jsonDefaults;
 
       if (!environmentConfigured) {
         self.MonacoEnvironment = {
@@ -86,14 +102,6 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
             switch (label) {
               case "json":
                 return workerFactories.json();
-              case "css":
-              case "scss":
-              case "less":
-                return workerFactories.css();
-              case "html":
-              case "handlebars":
-              case "razor":
-                return workerFactories.html();
               case "typescript":
               case "javascript":
                 return workerFactories.typescript();

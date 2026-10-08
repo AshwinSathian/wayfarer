@@ -29,6 +29,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **First load is about 27% smaller** (716 kB instead of 983 kB; 198 kB
+  instead of 241 kB compressed). The Monaco editor's stylesheet was part of
+  the first download; it now loads with the editor. The size budgets are
+  tightened to match.
+- Monaco editor 0.54 to 0.57. Only what the app uses is bundled: the JSON
+  service and the TypeScript service. The CSS and HTML language services and
+  their two workers (1.8 MB) are gone. Scripts now have JavaScript syntax
+  colouring.
+- `/3rdpartylicenses.txt`, the licence texts of every bundled package, is
+  served with the app. The build wrote it one folder above what is deployed,
+  so the notices the MIT and Apache licences require did not ship. It now
+  also covers what Monaco bundles (DOMPurify, marked).
+- Playwright 1.64, wrangler 4.149, knip 6.39, axe 4.13. `npm audit` is down
+  from 16 findings to the 9 that come with Tailwind 3 at build time.
 - Leftovers of the Angular 22 upgrade are gone: `standalone: true`,
   `styleUrls`, `withInterceptorsFromDi()` (there are no DI interceptors),
   `fullTemplateTypeCheck` and `useDefineForClassFields: false`. The app now

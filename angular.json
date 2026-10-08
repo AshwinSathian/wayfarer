@@ -31,10 +31,18 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              {
+                "input": "node_modules/monaco-editor/min/vs/editor/editor.main.css",
+                "bundleName": "monaco",
+                "inject": false
+              }
             ],
             "scripts": [],
             "browser": "src/main.ts",
+            "loader": {
+              ".ttf": "file"
+            },
             "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
@@ -54,8 +62,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1040kb",
-                  "maximumError": "1089kb"
+                  "maximumWarning": "752kb",
+                  "maximumError": "788kb"
                 },
                 {
                   "type": "anyComponentStyle",

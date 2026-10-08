@@ -6,4 +6,4 @@
  * run as a worker's global script — they aren't meant to be `import()`ed as
  * an ordinary ES module themselves, only referenced this way.
  */
-import "monaco-editor/esm/vs/editor/editor.worker.js";
+import "monaco-editor/editor/editor.worker.js";

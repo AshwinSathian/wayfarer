@@ -57,10 +57,3 @@ export const editor = {
   defineTheme: (_themeName: string, _themeData: MonacoTypes.editor.IStandaloneThemeData): void => {},
 };
 
-export const languages = {
-  json: {
-    jsonDefaults: {
-      setDiagnosticsOptions: (_: unknown) => {},
-    },
-  },
-};

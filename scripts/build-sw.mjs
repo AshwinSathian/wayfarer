@@ -8,7 +8,7 @@
 //
 // Usage: node scripts/build-sw.mjs [root]   (default dist/wayfarer/browser)
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
@@ -66,6 +66,19 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.error("build-sw: unexpected option. Pass Angular options to ng build directly: npx ng build <options> && node scripts/build-sw.mjs");
     process.exit(1);
   }
-  const { version, precache } = writeServiceWorker(args[0] ?? "dist/wayfarer/browser");
+  const root = args[0] ?? "dist/wayfarer/browser";
+  // Angular writes the licences of every bundled package one level above the
+  // served folder; the MIT and Apache notices must ship with the bundle.
+  const licences = join(root, "..", "3rdpartylicenses.txt");
+  if (existsSync(licences)) {
+    // extractLicenses stops at direct dependencies. Monaco bundles other
+    // projects: its own notices file covers most, and DOMPurify and marked
+    // are npm packages of their own.
+    const extra = ["monaco-editor/ThirdPartyNotices.txt", "dompurify/LICENSE", "marked/LICENSE.md"]
+      .map((file) => `${"-".repeat(80)}\nBundled inside monaco-editor: ${file}\n\n${readFileSync(join("node_modules", file), "utf8")}`)
+      .join("\n");
+    writeFileSync(join(root, "3rdpartylicenses.txt"), `${readFileSync(licences, "utf8")}\n${extra}`);
+  }
+  const { version, precache } = writeServiceWorker(root);
   console.log(`build-sw: sw.js version ${version}, ${precache.length} precached files`);
 }

@@ -14,9 +14,6 @@
 @import "./design-system/controls.css";
 @import "./design-system/animations.css";
 
-/* ── Monaco editor ──────────────────────────────────────── */
-@import "monaco-editor/min/vs/editor/editor.main.css";
-
 /* ── Tailwind ───────────────────────────────────────────── */
 @tailwind base;
 @tailwind components;

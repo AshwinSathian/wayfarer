@@ -26,6 +26,15 @@ test("@smoke the app shell loads with production security headers", async ({ pag
   }
 });
 
+test("the licences of the bundled packages are served with the app", async ({ request }) => {
+  const response = await request.get("/3rdpartylicenses.txt");
+  expect(response.status()).toBe(200);
+  const text = await response.text();
+  for (const name of ["@angular/core", "monaco-editor", "rxjs", "idb"]) expect(text).toContain(`Package: ${name}`);
+  // Projects bundled inside Monaco.
+  for (const name of ["dompurify/LICENSE", "marked/LICENSE.md", "markedjs NOTICES"]) expect(text).toContain(name);
+});
+
 test("@smoke a request round-trips and renders", async ({ page, baseURL }) => {
   await page.goto("/");
   // The site's own manifest: same-origin, so no CORS and no third party.

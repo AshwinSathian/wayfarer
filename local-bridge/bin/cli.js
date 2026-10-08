@@ -12,32 +12,52 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'https://wayfarer.ashwinsathian.com',
 ];
 
-function parseArgs(argv) {
-  const args = { allowOrigin: [] };
+const MIN_TOKEN_LENGTH = 16;
+
+function parseArgs(argv, env = process.env) {
+  const args = { allowOrigin: [], token: env.WAYFARER_BRIDGE_TOKEN || undefined };
+  const fail = (message) => {
+    console.error(`${message}\n`);
+    args.help = true;
+    args.exitCode = 1;
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
+    const value = () => {
+      const next = argv[(i += 1)];
+      if (next === undefined || next.startsWith('--')) fail(`${arg} needs a value`);
+      return next;
+    };
     switch (arg) {
-      case '--port':
-        args.port = Number(argv[(i += 1)]);
+      case '--port': {
+        const port = Number(value());
+        if (Number.isInteger(port) && port > 0 && port < 65536) args.port = port;
+        else fail('--port must be a whole number from 1 to 65535');
         break;
+      }
       case '--token':
-        args.token = argv[(i += 1)];
+        args.token = value();
         break;
       case '--rotate-token':
         args.rotateToken = true;
         break;
-      case '--allow-origin':
-        args.allowOrigin.push(argv[(i += 1)]);
+      case '--allow-origin': {
+        const origin = value();
+        // An Origin header is scheme://host[:port], nothing after it.
+        if (origin && URL.canParse(origin) && new URL(origin).origin === origin) args.allowOrigin.push(origin);
+        else fail(`--allow-origin must be an origin like https://example.com, got: ${origin}`);
         break;
+      }
       case '--help':
       case '-h':
         args.help = true;
         break;
       default:
-        console.error(`Unknown argument: ${arg}\n`);
-        args.help = true;
-        args.exitCode = 1;
+        fail(`Unknown argument: ${arg}`);
     }
+  }
+  if (args.token !== undefined && args.token.length < MIN_TOKEN_LENGTH) {
+    fail(`The token must be at least ${MIN_TOKEN_LENGTH} characters`);
   }
   return args;
 }
@@ -55,6 +75,8 @@ Usage:
 Options:
   --port <n>            Port to listen on (default: ${DEFAULT_PORT})
   --token <value>        Use a fixed token instead of the persisted/generated one
+                          (other users can read it in the process list; prefer the
+                          WAYFARER_BRIDGE_TOKEN environment variable)
   --rotate-token          Generate and persist a fresh token, replacing the saved one
   --allow-origin <url>    Additional allowed Origin (repeatable). Defaults already
                           include localhost dev and the hosted Wayfarer app.
@@ -74,7 +96,7 @@ function main() {
     return;
   }
 
-  const port = Number.isFinite(args.port) && args.port > 0 ? args.port : DEFAULT_PORT;
+  const port = args.port ?? DEFAULT_PORT;
   const token = args.token ?? loadOrCreateToken({ rotate: Boolean(args.rotateToken) });
   const allowedOrigins = new Set([...DEFAULT_ALLOWED_ORIGINS, ...args.allowOrigin]);
 
@@ -116,4 +138,6 @@ function main() {
   process.on('SIGTERM', shutdown);
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { parseArgs };

@@ -36,6 +36,10 @@ function timingSafeEqualStrings(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
+function isLoopbackHost(host) {
+  return /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/i.test(String(host ?? ''));
+}
+
 function sendJson(res, status, payload, extraHeaders = {}) {
   if (res.headersSent) {
     return;
@@ -193,6 +197,13 @@ function createServer({ token, allowedOrigins }) {
   const origins = allowedOrigins instanceof Set ? allowedOrigins : new Set(allowedOrigins ?? []);
 
   return http.createServer((req, res) => {
+    // A loopback name is the only Host a browser sends when it really means
+    // this process. Anything else is a DNS-rebinding page whose hostname was
+    // re-pointed at 127.0.0.1; refuse it before looking at anything else.
+    if (!isLoopbackHost(req.headers.host)) {
+      sendJson(res, 421, { error: 'unexpected Host header' });
+      return;
+    }
     const origin = req.headers.origin;
     const originAllowed = typeof origin === 'string' && origins.has(origin);
 
@@ -248,6 +259,7 @@ function createServer({ token, allowedOrigins }) {
 
 module.exports = {
   createServer,
+  isLoopbackHost,
   sanitizeOutgoingHeaders,
   timingSafeEqualStrings,
 };

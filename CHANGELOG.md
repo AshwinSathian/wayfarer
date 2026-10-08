@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Security
 
+- Local Bridge: a request whose `Host` is not a loopback name is refused
+  (DNS rebinding); the token file and its folder are set back to owner-only
+  at every start; the token can come from `WAYFARER_BRIDGE_TOKEN` instead
+  of the command line, and must be 16 characters or more; a wrong argument
+  is an error, not a silent default.
 - Responses carry `Strict-Transport-Security` (one year, this host only),
   `Cross-Origin-Opener-Policy: same-origin` and
   `Cross-Origin-Resource-Policy: same-origin`.

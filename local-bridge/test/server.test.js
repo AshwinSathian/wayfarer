@@ -256,3 +256,25 @@ test('POST /relay answers 502 instead of buffering a target response over the si
     await close(bridge);
   }
 });
+
+test('a request whose Host is not a loopback name is refused (DNS rebinding)', async () => {
+  const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
+  const port = await listen(bridge);
+  const status = (host) =>
+    new Promise((resolve, reject) => {
+      http
+        .get({ host: '127.0.0.1', port, path: '/health', headers: { Host: host } }, (res) => {
+          res.resume();
+          resolve(res.statusCode);
+        })
+        .on('error', reject);
+    });
+  try {
+    assert.equal(await status('attacker.example:7717'), 421);
+    assert.equal(await status(`127.0.0.1:${port}`), 200);
+    assert.equal(await status(`localhost:${port}`), 200);
+    assert.equal(await status(`[::1]:${port}`), 200);
+  } finally {
+    await close(bridge);
+  }
+});

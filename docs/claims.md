@@ -36,7 +36,7 @@ back gets reworded until one can, or removed.
 | C-001 | No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose. | README.md, docs/trust-center.md | e2e/no-third-party-requests.spec.ts |
 | C-002 | Collections, environments and history are stored in the browser's IndexedDB on the user's device. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-003 | Values in the secrets vault are stored only as ciphertext; nothing the app persists holds the plaintext. Everything else is plain text. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
-| C-004 | Vault crypto: PBKDF2-SHA-256 with 200,000 iterations, AES-GCM-256, a random 16-byte salt and 12-byte IV per secret. | README.md, docs/trust-center.md | src/app/shared/secrets/secret-crypto.service.spec.ts |
+| C-004 | Vault crypto: PBKDF2-SHA-256 with 200,000 iterations, AES-GCM-256, a random 16-byte salt and 12-byte IV per secret. | README.md, docs/trust-center.md | src/app/shared/secrets/secret-crypto.spec.ts |
 | C-005 | The vault key is held in memory only; reloading the page locks the vault. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-006 | Scripts are disabled in the hosted app and say so with a banner; Tests-tab assertions still run. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
 | C-007 | A request that references a vault secret is blocked, never sent with the placeholder. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
@@ -53,24 +53,24 @@ back gets reworded until one can, or removed.
 | C-018 | The URL field is validated live; an unparseable URL is rejected instead of sent. | README.md | e2e/send-request.spec.ts |
 | C-019 | Bearer, Basic and API-key auth (header or query) set in the Auth tab reach the server. | README.md | e2e/features.spec.ts |
 | C-020 | Copy as cURL copies a command for the current request once it has a URL. | README.md | e2e/features.spec.ts |
-| C-021 | Visual assertions (10 operators; status, headers, body, duration) run after the call and report in the Tests tab. | README.md | e2e/features.spec.ts, src/app/shared/scripts/assertion-runner.service.spec.ts |
+| C-021 | Visual assertions (10 operators; status, headers, body, duration) run after the call and report in the Tests tab. | README.md | e2e/features.spec.ts, src/app/shared/scripts/assertion-runner.spec.ts |
 | C-022 | The response viewer has Body (pretty JSON), Headers, Timings and Tests tabs. | README.md | e2e/send-request.spec.ts |
 | C-023 | Phase timings are withheld unless the server sends `Timing-Allow-Origin`. | README.md | e2e/features.spec.ts |
 | C-024 | Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. | README.md | e2e/features.spec.ts, e2e/collections.spec.ts |
 | C-025 | The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. | README.md | e2e/environments.spec.ts |
-| C-026 | Collection export and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.util.spec.ts |
+| C-026 | Collection export and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
 | C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
 | C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
 | C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |
-| C-030 | ⌘K opens a command palette. | README.md | e2e/settings.spec.ts, src/app/components/collections/collections-sidebar.component.spec.ts |
+| C-030 | ⌘K opens a command palette. | README.md | e2e/settings.spec.ts, src/app/components/collections/collections-sidebar.spec.ts |
 | C-031 | The composer/response split is resizable and remembered across reloads. | README.md | e2e/layout.spec.ts |
 | C-032 | On mobile the composer shows one section at a time, with labels. | README.md | e2e/layout.spec.ts |
 | C-033 | Settings covers theme, environment export and import, Reset all data, Local Bridge and a shortcuts reference. | README.md | e2e/settings.spec.ts, e2e/features.spec.ts |
 | C-034 | Animations respect `prefers-reduced-motion`. | README.md | e2e/features.spec.ts |
-| C-035 | Responses export as HAR 1.2 (or cURL) from the Export menu; bodies over 256 KB or not JSON are left out with a comment. | README.md | e2e/features.spec.ts, src/app/shared/inspect/export.util.spec.ts |
+| C-035 | Responses export as HAR 1.2 (or cURL) from the Export menu; bodies over 256 KB or not JSON are left out with a comment. | README.md | e2e/features.spec.ts, src/app/shared/inspect/export.spec.ts |
 | C-036 | The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. | README.md | e2e/features.spec.ts |
 | C-037 | Dark and light themes both ship, switchable in Settings. | README.md | e2e/settings.spec.ts |
 | C-038 | The primary views have no critical or serious axe accessibility violations. | README.md | e2e/accessibility.spec.ts |
 | C-039 | The Body tab exists only for POST, PUT and PATCH, with a Basic or JSON editor. | README.md | e2e/features.spec.ts |
-| C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.service.spec.ts |
+| C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.spec.ts |
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |

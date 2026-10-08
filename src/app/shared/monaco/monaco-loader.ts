@@ -25,7 +25,7 @@ interface MonacoWorkerFactories {
  * Worker factories, built via Angular's own `new Worker(new URL(...))`
  * syntax (statically detected and bundled by the esbuild-based builder —
  * see `webWorkerTsConfig` in angular.json, the same mechanism
- * `script-sandbox.service.ts` already uses for its own worker) rather than
+ * `script-sandbox.ts` already uses for its own worker) rather than
  * Vite's `?worker`-suffixed dynamic-import convention this file used to use.
  *
  * That `?worker` suffix is Vite-specific: it happened to work under

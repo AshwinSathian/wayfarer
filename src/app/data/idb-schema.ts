@@ -6,17 +6,17 @@ import {
   FolderId,
   RequestDoc,
   RequestDocId,
-} from "../models/collections.models";
-import { EnvironmentDoc, EnvironmentId } from "../models/environments.models";
-import { PastRequest, PastRequestKey } from "../models/history.models";
-import { SecretDoc, SecretId } from "../models/secrets.models";
+} from "../models/collections";
+import { EnvironmentDoc, EnvironmentId } from "../models/environments";
+import { PastRequest, PastRequestKey } from "../models/history";
+import { SecretDoc, SecretId } from "../models/secrets";
 
 /**
- * The IndexedDB schema shape shared by `IdbCoreService` and every
+ * The IndexedDB schema shape shared by `IdbCore` and every
  * per-aggregate repository. Split out on its own so a repository that only
  * needs the type (e.g. `HistoryRepository` typing a cursor) doesn't have to
  * import the connection/migration logic that lives alongside it in
- * `idb-core.service.ts`/`idb-migrations.ts`.
+ * `idb-core.ts`/`idb-migrations.ts`.
  */
 
 export type HistoryRecord = PastRequest & { id: PastRequestKey };

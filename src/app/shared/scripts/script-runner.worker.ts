@@ -14,7 +14,7 @@
  * handed to it. That stripping happens first, before any user code is ever evaluated.
  */
 
-import { parseJson, stringifyJson } from "../json/safe-json.util";
+import { parseJson, stringifyJson } from "../json/safe-json";
 
 type WorkerGlobal = Record<string, unknown>;
 
@@ -44,7 +44,7 @@ function stripDangerousGlobals(): void {
     // strict-mode `delete` would throw) and the property survives. Reassigning
     // to `undefined` does work, since the property is writable — that's what
     // actually removes `fetch`/`importScripts`/etc. from reach. Verified by
-    // the regression suite in script-sandbox.service.spec.ts, which caught
+    // the regression suite in script-sandbox.spec.ts, which caught
     // delete-only stripping failing to block `Function('return fetch')()`.
     // false = non-configurable; the reassignment below is what matters.
     Reflect.deleteProperty(globalScope, key);

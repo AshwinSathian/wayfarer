@@ -172,7 +172,7 @@
 }
 
 /* Response-arrival pulse — restarted imperatively (class removed and
-   re-added on a fresh response, see ResponseViewerComponent) rather than
+   re-added on a fresh response, see ResponseViewer) rather than
    relying on a CSS-only re-trigger, since simply changing bound data does
    not restart an already-applied CSS animation. */
 .animate-response-arrive {

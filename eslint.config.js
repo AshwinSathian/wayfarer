@@ -57,7 +57,7 @@ module.exports = defineConfig([
         "error",
         {
           selector: "CatchClause[param=null]",
-          message: "Bind the error, then handle it explicitly: rethrow, or record it with DiagnosticsService.record / recordDiagnostic.",
+          message: "Bind the error, then handle it explicitly: rethrow, or record it with Diagnostics.record / recordDiagnostic.",
         },
         {
           selector: "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='Identifier'][body.name='undefined']",

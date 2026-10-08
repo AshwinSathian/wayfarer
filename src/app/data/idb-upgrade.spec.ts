@@ -1,8 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { IdbCoreService } from "./idb-core.service";
+import { IdbCore } from "./idb-core";
 import { DB_NAME, DB_VERSION } from "./idb-schema";
-import { IdbService } from "./idb.service";
+import { Idb } from "./idb";
 
 /** Builds a database the way an older release left it, with the raw API. */
 function seedOldDatabase(version: number, build: (db: IDBDatabase) => void): Promise<void> {
@@ -27,12 +27,12 @@ function deleteDatabase(): Promise<void> {
 
 // Upgrades run once, on a user's real data, and IndexedDB cannot downgrade.
 describe("upgrading a database left by an older release", () => {
-  let idb: IdbService;
+  let idb: Idb;
 
   beforeEach(async () => {
     await deleteDatabase();
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(IdbService);
+    idb = TestBed.inject(Idb);
   });
 
   afterEach(async () => {
@@ -56,7 +56,7 @@ describe("upgrading a database left by an older release", () => {
     expect(history[1].headers).toEqual({ A: "1" });
     expect(history[0].status).toBe(201);
 
-    const db = (await TestBed.inject(IdbCoreService).getDatabase())!;
+    const db = (await TestBed.inject(IdbCore).getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
     expect([...db.objectStoreNames].sort()).toEqual(
       ["collections", "environments", "folders", "history", "meta", "requests", "secrets"].sort()

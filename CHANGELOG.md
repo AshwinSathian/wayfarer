@@ -43,6 +43,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   (`no-floating-promises`, `no-misused-promises`), a component that is not
   `OnPush`, `@HostListener`/`@HostBinding`, a signal used without calling it,
   and an `async` lifecycle hook.
+- Files and classes are named as the Angular style guide now asks: no
+  `.component`, `.directive`, `.service`, `.util` or `.models` in file names,
+  and no `Component`, `Directive` or `Service` at the end of class names
+  (`collections-sidebar.ts`, `CollectionsSidebar`). Services are named for
+  what they do: `MainService` is `HttpTransport`, `CollectionsService` is
+  `CollectionsStore`. `ng generate` produces these names without overrides.
+  `CLAUDE.md` and `CONTRIBUTING.md` state the rules.
 - A database upgrade that fails part-way is rolled back, so the database
   keeps its old version instead of a half-applied schema.
 - Identifiers come from one `newId()` helper. Seven copies with a

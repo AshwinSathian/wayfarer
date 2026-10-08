@@ -1,0 +1,457 @@
+import { Injectable, inject } from "@angular/core";
+import { HttpErrorResponse, HttpHeaders } from "@angular/common/http";
+import { firstValueFrom } from "rxjs";
+import { HttpTransport } from "./http-transport";
+import { EnvironmentsStore } from "./environments-store";
+import { ResponseInspector } from "../shared/inspect/response-inspector";
+import {
+  SCRIPTS_ENABLED,
+  ScriptSandbox,
+  ScriptResponseContext,
+} from "../shared/scripts/script-sandbox";
+import {
+  AssertionRunner,
+  AssertionResponseContext,
+} from "../shared/scripts/assertion-runner";
+import { PastRequest } from "../models/history";
+import { BinaryBody } from "../shared/http/response-body";
+import { TestAssertion, TestResult } from "../models/test-assertion";
+import { parseJson, stringifyJson } from "../shared/json/safe-json";
+import { newId } from "../shared/id";
+
+export interface BuiltRequest {
+  method: PastRequest["method"];
+  url: string;
+  headers: Record<string, string>;
+  body?: Record<string, unknown>;
+  usesBody: boolean;
+}
+
+/**
+ * Thrown by `execute()` when a request must not reach the network. The
+ * message is user-facing.
+ */
+export class SendBlockedError extends Error {
+  override readonly name = "SendBlockedError";
+}
+
+const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
+
+const NETWORK_ERROR_TEXT =
+  "Network error — no response was received. The host may not resolve (DNS), may have refused " +
+  "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
+  "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
+
+const SECRET_PLACEHOLDER_BLOCKED =
+  "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
+  "This request references one, so it was not sent.";
+
+/**
+ * True when a built request still carries a literal `{{$secret.<id>}}`
+ * placeholder anywhere it would go on the wire (F03). The URL is also checked
+ * percent-decoded, since URL normalisation may have encoded the braces, and
+ * Basic credentials base64-decoded.
+ */
+function containsSecretPlaceholder(request: BuiltRequest): boolean {
+  let decodedUrl = request.url;
+  try {
+    decodedUrl = decodeURIComponent(request.url);
+  } catch (error) {
+    // Malformed escape: the raw URL is still checked below.
+    if (!(error instanceof URIError)) throw error;
+  }
+  const wire = [
+    request.url,
+    decodedUrl,
+    JSON.stringify(request.headers),
+    ...Object.values(request.headers).map(decodeBasicCredentials),
+    request.usesBody ? JSON.stringify(request.body ?? null) : "",
+  ];
+  return wire.some((text) => SECRET_PLACEHOLDER.test(text));
+}
+
+/** The `user:password` inside a `Basic` header value, where base64 would hide a placeholder; "" otherwise. */
+function decodeBasicCredentials(headerValue: string): string {
+  const encoded = /^\s*Basic\s+(\S+)/i.exec(headerValue)?.[1];
+  if (!encoded) return "";
+  try {
+    return atob(encoded);
+  } catch (error) {
+    // Not base64 (atob throws InvalidCharacterError): nothing hidden in it.
+    if (!(error instanceof DOMException)) throw error;
+    return "";
+  }
+}
+
+export interface RequestExecutionSpec {
+  preRequestScript: string;
+  postRequestScript: string;
+  tests: TestAssertion[];
+  /**
+   * Builds the actual method/url/headers/body to send. Invoked *after* the
+   * pre-request script has run (and any pm.environment.set() mutations from
+   * it have been persisted) — not upfront — so a pre-script that sets a
+   * variable this same request's own headers/body/URL reference (e.g. an
+   * auth token fetched by a prior call) is reflected in what actually gets
+   * sent, matching the ordering `pre-script -> build -> send` implies.
+   */
+  buildRequest: () => BuiltRequest;
+}
+
+export interface RequestExecutionResponse {
+  isError: boolean;
+  statusCode?: number;
+  statusText?: string;
+  bodyIsJson: boolean;
+  dataText: string;
+  errorText: string;
+  headersView: { name: string; value: string }[];
+  contentLength?: number;
+  /** Set when the body is binary; the viewer offers it as a download (F05). */
+  binary?: BinaryBody;
+}
+
+export interface RequestExecutionResult {
+  durationMs: number;
+  testResults: TestResult[];
+  response: RequestExecutionResponse;
+  history: PastRequest;
+}
+
+/**
+ * Owns the pre-script -> send -> post-script -> assertions pipeline that
+ * used to live inline in ApiParams.sendRequest(). Extracted so the
+ * sequencing (and the response-shaping/error-classification logic it
+ * depends on) is unit-testable without an Angular component harness, and so
+ * ApiParams itself only has to own request-*building* (turning form
+ * state into a spec) rather than request-*execution*.
+ */
+@Injectable({ providedIn: "root" })
+export class RequestExecutor {
+  private readonly transport = inject(HttpTransport);
+  private readonly environmentsService = inject(EnvironmentsStore);
+  private readonly responseInspector = inject(ResponseInspector);
+  private readonly scriptSandbox = inject(ScriptSandbox);
+  private readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
+  private readonly assertionRunner = inject(AssertionRunner);
+
+  async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
+    const requestId = newId();
+    const startedAt = performance.now();
+    const createdAt = Date.now();
+    let testResults: TestResult[] = [];
+
+    if (this.scriptsEnabled && spec.preRequestScript?.trim()) {
+      const preResult = await this.scriptSandbox.execute(
+        spec.preRequestScript,
+        this.getEnvSnapshot()
+      );
+      if (preResult.testResults.length) {
+        testResults = [...preResult.testResults];
+      }
+      await this.applyEnvMutations(preResult.envMutations);
+    }
+
+    // Built only now, after the pre-script (and any environment mutations
+    // it made) has already landed — see BuiltRequest / buildRequest's doc.
+    const request = spec.buildRequest();
+    // ponytail: blocks instead of resolving; resolving here would put the
+    // plaintext into history (F14). Vault resolution plus redaction replace
+    // this in P2.4/P2.5.
+    if (containsSecretPlaceholder(request)) {
+      throw new SendBlockedError(SECRET_PLACEHOLDER_BLOCKED);
+    }
+
+    this.responseInspector.markRequest(requestId, request.url);
+
+    try {
+      const response = await firstValueFrom(
+        this.transport.sendRequest(
+          request.method,
+          request.url,
+          request.headers,
+          request.usesBody ? request.body ?? {} : undefined
+        )
+      );
+      this.responseInspector.markResponse(requestId, request.url);
+
+      const durationMs = Math.round(performance.now() - startedAt);
+      const bodyIsJson = this.isJsonPayload(response.body);
+      const postTestResults = await this.runPostScriptAndAssertions(
+        spec,
+        response.status,
+        response.statusText ?? "",
+        response.body,
+        this.extractHeadersMap(response.headers),
+        durationMs
+      );
+      testResults = [...testResults, ...postTestResults];
+
+      const history: PastRequest = {
+        method: request.method,
+        url: request.url,
+        headers: request.headers,
+        createdAt,
+        status: response.status,
+        durationMs,
+      };
+      if (request.usesBody) {
+        history.body = request.body;
+      }
+
+      return {
+        durationMs,
+        testResults,
+        history,
+        response: {
+          isError: false,
+          statusCode: response.status,
+          statusText: response.statusText ?? "",
+          bodyIsJson,
+          dataText: bodyIsJson
+            ? this.serializeJsonPayload(response.body)
+            : this.stringifyPayload(response.body),
+          errorText: "",
+          headersView: this.extractHeadersList(response.headers),
+          contentLength: this.extractContentLength(response.headers),
+          binary: response.body instanceof BinaryBody ? response.body : undefined,
+        },
+      };
+    } catch (err) {
+      const error = err as HttpErrorResponse;
+      this.responseInspector.markResponse(requestId, request.url);
+
+      const durationMs = Math.round(performance.now() - startedAt);
+      const errorBody = this.resolveErrorBody(error);
+      const bodyIsJson = !this.isNetworkError(error) && this.isJsonPayload(error.error);
+      const postTestResults = await this.runPostScriptAndAssertions(
+        spec,
+        error.status,
+        error.statusText ?? "",
+        error.error,
+        this.extractHeadersMap(error.headers),
+        durationMs
+      );
+      testResults = [...testResults, ...postTestResults];
+
+      const history: PastRequest = {
+        method: request.method,
+        url: request.url,
+        headers: request.headers,
+        createdAt,
+        status: error.status,
+        durationMs,
+        error: this.extractError(error),
+      };
+      if (request.usesBody) {
+        history.body = request.body;
+      }
+
+      return {
+        durationMs,
+        testResults,
+        history,
+        response: {
+          isError: true,
+          statusCode: error.status,
+          statusText: error.statusText ?? "",
+          bodyIsJson,
+          dataText: "",
+          errorText: bodyIsJson
+            ? this.serializeJsonPayload(errorBody)
+            : this.stringifyPayload(errorBody),
+          headersView: this.extractHeadersList(error.headers),
+          contentLength: this.extractContentLength(error.headers),
+          binary: error.error instanceof BinaryBody ? error.error : undefined,
+        },
+      };
+    }
+  }
+
+  private async runPostScriptAndAssertions(
+    spec: RequestExecutionSpec,
+    statusCode: number,
+    statusText: string,
+    body: unknown,
+    headers: Record<string, string>,
+    durationMs: number
+  ): Promise<TestResult[]> {
+    let results: TestResult[] = [];
+
+    if (this.scriptsEnabled && spec.postRequestScript?.trim()) {
+      const responseCtx: ScriptResponseContext = {
+        statusCode,
+        statusText,
+        body,
+        headers,
+        durationMs,
+      };
+      const postResult = await this.scriptSandbox.execute(
+        spec.postRequestScript,
+        this.getEnvSnapshot(),
+        responseCtx
+      );
+      results = [...results, ...postResult.testResults];
+      await this.applyEnvMutations(postResult.envMutations);
+    }
+
+    if (spec.tests.length) {
+      const assertionCtx: AssertionResponseContext = {
+        statusCode,
+        body,
+        headers,
+        durationMs,
+      };
+      const assertionResults = this.assertionRunner.run(spec.tests, assertionCtx);
+      results = [...results, ...assertionResults];
+    }
+
+    return results;
+  }
+
+  private getEnvSnapshot(): Record<string, string> {
+    return { ...(this.environmentsService.activeEnvironment()?.vars ?? {}) };
+  }
+
+  private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {
+    const keys = Object.keys(mutations);
+    if (!keys.length) {
+      return;
+    }
+    const active = this.environmentsService.activeEnvironment();
+    if (!active) {
+      return;
+    }
+    const vars = { ...active.vars };
+    for (const key of keys) {
+      if (mutations[key] === "") {
+        delete vars[key];
+      } else {
+        vars[key] = mutations[key];
+      }
+    }
+    await this.environmentsService.updateEnvironment(active.meta.id, { vars });
+  }
+
+
+  private isJsonPayload(payload: unknown): boolean {
+    if (payload === null || payload === undefined) {
+      return false;
+    }
+    if (payload instanceof BinaryBody) {
+      return false;
+    }
+    if (typeof payload === "object") {
+      const hasBlob = typeof Blob !== "undefined" && payload instanceof Blob;
+      const hasArrayBuffer =
+        typeof ArrayBuffer !== "undefined" && payload instanceof ArrayBuffer;
+      const hasFormData = typeof FormData !== "undefined" && payload instanceof FormData;
+      if (hasBlob || hasArrayBuffer || hasFormData) {
+        return false;
+      }
+      return true;
+    }
+    if (typeof payload === "string") {
+      return parseJson(payload).ok;
+    }
+    return false;
+  }
+
+  /**
+   * True when the browser never got a response to parse — a CORS rejection,
+   * DNS failure, refused connection, etc. In that case `HttpErrorResponse.error`
+   * is the raw `ProgressEvent`/`ErrorEvent` the browser fired, not a response
+   * body. Stringifying that object directly used to leak `{"isTrusted":true}`
+   * (an Event's only own-enumerable property) into the response viewer instead
+   * of a readable message.
+   */
+  private isNetworkError(error: HttpErrorResponse): boolean {
+    if (error.status === 0) {
+      return true;
+    }
+    return (
+      (typeof ProgressEvent !== "undefined" && error.error instanceof ProgressEvent) ||
+      (typeof ErrorEvent !== "undefined" && error.error instanceof ErrorEvent)
+    );
+  }
+
+  private resolveErrorBody(error: HttpErrorResponse): unknown {
+    if (this.isNetworkError(error)) {
+      // A string here is the Local Bridge's own explanation; keep it. The
+      // HttpClient message ("Http failure response for ...: 0 Unknown Error")
+      // says nothing useful, so it never wins over the guidance (F06).
+      if (typeof error.error === "string" && error.error) {
+        return error.error;
+      }
+      return NETWORK_ERROR_TEXT;
+    }
+    return error.error ?? error.message;
+  }
+
+  private extractError(error: HttpErrorResponse): string {
+    if (error.message) {
+      return error.message;
+    }
+    return "Unknown error";
+  }
+
+  private extractHeadersList(
+    headers: HttpHeaders | null | undefined
+  ): { name: string; value: string }[] {
+    if (!headers) {
+      return [];
+    }
+    const keys = headers.keys();
+    return keys
+      .map((name) => {
+        const values = headers.getAll(name);
+        return {
+          name,
+          value: values && values.length ? values.join(", ") : "",
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private extractHeadersMap(headers: HttpHeaders | null | undefined): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+    return headers.keys().reduce((acc, key) => {
+      acc[key] = headers.get(key) ?? "";
+      return acc;
+    }, {} as Record<string, string>);
+  }
+
+  private extractContentLength(headers: HttpHeaders | null | undefined): number | undefined {
+    if (!headers) {
+      return undefined;
+    }
+    const value = headers.get("content-length");
+    if (!value) {
+      return undefined;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  private serializeJsonPayload(payload: unknown): string {
+    if (payload === null || payload === undefined) {
+      return "";
+    }
+    if (typeof payload === "string") {
+      return payload;
+    }
+    return stringifyJson(payload) ?? this.stringifyPayload(payload);
+  }
+
+  private stringifyPayload(payload: unknown): string {
+    if (payload === null || payload === undefined || payload instanceof BinaryBody) {
+      return "";
+    }
+    if (typeof payload === "string") {
+      return payload;
+    }
+    return stringifyJson(payload, 4) ?? String(payload);
+  }
+}

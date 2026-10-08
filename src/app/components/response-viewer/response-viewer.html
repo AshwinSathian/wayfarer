@@ -1,9 +1,9 @@
 <div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
   @if (loading()) {
   <div class="space-y-3 p-6">
-    <span class="ui-skeleton h-[2.25rem] w-full" aria-hidden="true"></span>
-    <span class="ui-skeleton h-[1.5rem] w-[60%]" aria-hidden="true"></span>
-    <span class="ui-skeleton h-[9rem] w-full" aria-hidden="true"></span>
+    <span class="ui-skeleton h-9 w-full" aria-hidden="true"></span>
+    <span class="ui-skeleton h-6 w-[60%]" aria-hidden="true"></span>
+    <span class="ui-skeleton h-36 w-full" aria-hidden="true"></span>
   </div>
   } @else {
   <div>
@@ -330,7 +330,7 @@
                   [class.test-result-pass]="result.passed"
                   [class.test-result-fail]="!result.passed"
                 >
-                  <app-icon [name]="result.passed ? 'check_circle' : 'cancel'" class="mt-0.5 flex-shrink-0 icon-sm" 
+                  <app-icon [name]="result.passed ? 'check_circle' : 'cancel'" class="mt-0.5 shrink-0 icon-sm" 
                     [class.text-status-success]="result.passed"
                     [class.text-status-error]="!result.passed" />
                   <div class="flex-1 min-w-0">
@@ -345,7 +345,7 @@
                     <div class="type-caption text-label-tertiary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
                     }
                   </div>
-                  <span class="type-caption text-label-tertiary flex-shrink-0 capitalize">{{ result.source }}</span>
+                  <span class="type-caption text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
                 </div>
                 }
               </div>

@@ -42,10 +42,8 @@
       <button
         type="button"
         class="env-item"
-        [ngClass]="{
-          active: selectedId() === env.meta.id,
-          current: activeEnvId === env.meta.id
-        }"
+        [class.active]="selectedId() === env.meta.id"
+        [class.current]="activeEnvId === env.meta.id"
         (click)="selectEnvironment(env.meta.id)"
       >
         <div class="flex flex-col items-start min-w-0">
@@ -126,9 +124,7 @@
               @for (item of form.vars; track $index) {
               <div
                 class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all duration-150"
-                [ngClass]="{
-                  'ring-2 ring-accent-border bg-accent-fill/40': focusedVariableKey() === item.key
-                }"
+                [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
               >
                 <input
                   class="ui-input"
@@ -288,21 +284,20 @@
         <button
           type="button"
           class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
-          [ngClass]="{
-            'border-accent-border bg-accent-fill text-accent-text': entry.action === 'merge',
-            'border-separator bg-transparent text-label-secondary hover:bg-fill-hover': entry.action !== 'merge'
-          }"
+          [class]="entry.action === 'merge'
+            ? 'border-accent-border bg-accent-fill text-accent-text'
+            : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
           (click)="setEnvImportAction(idx, 'merge')"
         >Merge as new</button>
         <button
           type="button"
           class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
           [disabled]="!entry.targetId"
-          [ngClass]="{
-            'border-status-warning-border bg-status-warning-fill text-status-warning': entry.action === 'replace',
-            'border-separator bg-transparent text-label-secondary hover:bg-fill-hover': entry.action !== 'replace' || !entry.targetId,
-            'opacity-40 cursor-not-allowed': !entry.targetId
-          }"
+          [class]="entry.action === 'replace' && entry.targetId
+            ? 'border-status-warning-border bg-status-warning-fill text-status-warning'
+            : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
+          [class.opacity-40]="!entry.targetId"
+          [class.cursor-not-allowed]="!entry.targetId"
           (click)="setEnvImportAction(idx, 'replace')"
         >Replace existing</button>
       </div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { AppShellComponent } from './components/app-shell/app-shell.component';
 import { IdbService } from './data/idb.service';
 import { PastRequest, PastRequestKey } from './models/history.models';
@@ -9,6 +9,7 @@ import { PastRequest, PastRequestKey } from './models/history.models';
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: { '(window:resize)': 'onWindowResize()' },
 })
 export class AppComponent implements OnInit {
   private readonly idbService = inject(IdbService);
@@ -20,7 +21,7 @@ export class AppComponent implements OnInit {
   private viewportInitialized = false;
 
   ngOnInit(): void {
-    this.initializeHistory();
+    void this.initializeHistory();
     this.updateViewportFlags();
   }
 
@@ -59,7 +60,6 @@ export class AppComponent implements OnInit {
     this.drawerVisible.update((visible) => !visible);
   }
 
-  @HostListener('window:resize')
   onWindowResize(): void {
     this.updateViewportFlags();
   }

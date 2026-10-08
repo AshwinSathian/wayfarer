@@ -95,8 +95,14 @@ export class IdbCoreService {
 
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
-        upgrade: async (db, oldVersion, newVersion, transaction) =>
-          runUpgrade(db, oldVersion, newVersion, transaction),
+        upgrade: (db, oldVersion, newVersion, transaction) => {
+          // A failed migration aborts the whole upgrade: the database keeps
+          // its old version and schema instead of a half-migrated one.
+          runUpgrade(db, oldVersion, newVersion, transaction).catch((error: unknown) => {
+            this.logError("Database upgrade failed; rolling back.", error);
+            transaction.abort();
+          });
+        },
         // Another tab is deleting (or upgrading) the database; holding the
         // connection would block it.
         blocking: () => void this.closeForReset(),

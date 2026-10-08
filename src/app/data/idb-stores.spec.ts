@@ -1,20 +1,20 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { IdbService } from "./idb.service";
-import { SecretEnvelope } from "../models/secrets.models";
+import { Idb } from "./idb";
+import { SecretEnvelope } from "../models/secrets";
 
 // These run against the real IndexedDB of the test browser, through
-// IdbService, the facade the app calls: the stores, indexes and transactions
+// Idb, the facade the app calls: the stores, indexes and transactions
 // are the ones users' data lives in.
 describe("collections, folders and requests (real IndexedDB)", () => {
-  let core: IdbService;
-  let collections: IdbService;
-  let folders: IdbService;
-  let requests: IdbService;
+  let core: Idb;
+  let collections: Idb;
+  let folders: Idb;
+  let requests: Idb;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = collections = folders = requests = TestBed.inject(IdbService);
+    core = collections = folders = requests = TestBed.inject(Idb);
   });
 
   afterEach(async () => {
@@ -205,12 +205,12 @@ describe("collections, folders and requests (real IndexedDB)", () => {
 });
 
 describe("environments (real IndexedDB)", () => {
-  let core: IdbService;
-  let environments: IdbService;
+  let core: Idb;
+  let environments: Idb;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = environments = TestBed.inject(IdbService);
+    core = environments = TestBed.inject(Idb);
   });
 
   afterEach(async () => {
@@ -266,13 +266,13 @@ describe("environments (real IndexedDB)", () => {
 });
 
 describe("secrets (real IndexedDB)", () => {
-  let core: IdbService;
-  let secrets: IdbService;
+  let core: Idb;
+  let secrets: Idb;
   const envelope = (tag: string): SecretEnvelope => ({ v: 1, alg: "AES-GCM", salt: `salt-${tag}`, iv: `iv-${tag}`, ct: `ct-${tag}` });
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = secrets = TestBed.inject(IdbService);
+    core = secrets = TestBed.inject(Idb);
   });
 
   afterEach(async () => {
@@ -318,11 +318,11 @@ describe("secrets (real IndexedDB)", () => {
 });
 
 describe("history (real IndexedDB)", () => {
-  let idb: IdbService;
+  let idb: Idb;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(IdbService);
+    idb = TestBed.inject(Idb);
   });
 
   afterEach(async () => {

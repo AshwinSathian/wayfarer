@@ -53,7 +53,7 @@ test.describe("Secrets management view", () => {
     await expect(page.getByText("Secret stored")).toBeVisible();
 
     // Protecting a variable only updates the in-editor draft — persist it so
-    // EnvironmentsService (and therefore the Secrets view's usage
+    // EnvironmentsStore (and therefore the Secrets view's usage
     // cross-reference) actually picks up the {{$secret.<id>}} reference.
     await page.getByRole("button", { name: "Save changes" }).click();
 

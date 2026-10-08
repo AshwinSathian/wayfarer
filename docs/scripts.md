@@ -29,7 +29,7 @@ time of writing.
 Scripts run with a single injected `pm` object and a shimmed `console`.
 This is the complete surface, as implemented in `buildPmApi()` inside
 `src/app/shared/scripts/script-runner.worker.ts` (the code that actually
-evaluates script text; `script-sandbox.service.ts` on the main thread only
+evaluates script text; `script-sandbox.ts` on the main thread only
 sends the script in and receives structured-clone results back):
 
 ### `pm.environment`
@@ -91,8 +91,8 @@ browser devtools console.
 ## Visual Test Assertions (Tests tab)
 
 Alongside scripts, requests can carry a list of declarative assertions
-(`TestAssertion`, `src/app/models/test-assertion.models.ts`), evaluated by
-`AssertionRunnerService` without running any user script at all:
+(`TestAssertion`, `src/app/models/test-assertion.ts`), evaluated by
+`AssertionRunner` without running any user script at all:
 
 - **Targets:** `status` (status code), `duration` (response time in ms),
   `header` (by name, case-insensitive), `body` (whole body, or a dot/bracket
@@ -109,7 +109,7 @@ are the safer option when a script isn't strictly needed.
 
 Scripts execute in a **dedicated Web Worker**
 (`src/app/shared/scripts/script-runner.worker.ts`), not on the main thread.
-`ScriptSandboxService.execute()` (`script-sandbox.service.ts`) spawns a
+`ScriptSandbox.execute()` (`script-sandbox.ts`) spawns a
 brand-new worker for every single script run, sends it the script text plus
 plain-data `env`/`response` context via `postMessage`, waits for a `result`
 message (or a timeout, default **5000ms**, configurable via the `execute()`
@@ -175,7 +175,7 @@ scripts from collections you don't trust.
 **Caveats worth knowing:**
 
 - This isolation model is covered by a regression suite,
-  `script-sandbox.service.spec.ts`, that asserts, among other things, that
+  `script-sandbox.spec.ts`, that asserts, among other things, that
   `window`/`self`/`globalThis.window`/`document`/`localStorage` are all
   `typeof "undefined"` from inside a script, and specifically that
   `Function("return typeof fetch")()` (the exact re-acquisition technique

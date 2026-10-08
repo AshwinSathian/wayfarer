@@ -1,5 +1,5 @@
-import { EnvironmentDoc } from "../../models/environments.models";
-import { collectVariableTokens, resolveTemplate } from "./env-resolution.util";
+import { EnvironmentDoc } from "../../models/environments";
+import { collectVariableTokens, resolveTemplate } from "./env-resolution";
 import { describe, it, expect } from "vitest";
 
 describe("variable resolution", () => {

@@ -65,18 +65,40 @@ Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern br
 This repo is intended to read as a clean, current Angular reference example.
 When contributing:
 
-- **Standalone components only**: no `NgModule`-based components.
-- **Modern control flow**: use `@if` / `@for` / `@switch`, not `*ngIf` /
-  `*ngFor` / `*ngSwitch`.
-- **`inject()`** for dependency injection rather than constructor-parameter
-  DI, in new and touched code.
-- **Signals**: prefer `input()`/`output()`/`viewChild()` and `computed()`/
-  `signal()` over the legacy decorator-based equivalents in new code.
-- Follow the [Angular style guide](https://angular.dev/style-guide) for
-  naming, file organization, and component structure.
+- **Naming** follows the [Angular style guide](https://angular.dev/style-guide):
+  - File names are hyphenated and carry no type suffix: `user-profile.ts`,
+    `user-profile.html`, `user-profile.css`, `user-profile.spec.ts`. Not
+    `user-profile.component.ts`, `x.service.ts`, `x.util.ts`, `x.models.ts`.
+    Only `*.spec.ts` and `*.worker.ts` keep a dotted suffix (tooling reads
+    them).
+  - Class names carry no `Component`, `Directive` or `Service` suffix:
+    `UserProfile`, `Tooltip`. Name a service for what it does or holds
+    (`CollectionsStore`, `RequestExecutor`, `HttpTransport`), not `XService`.
+  - `ng generate` already produces these names; `angular.json` no longer
+    overrides them.
+- **Standalone is the default**: never write `standalone: true`, and no
+  `NgModule`s.
+- **`OnPush` everywhere**; the app is zoneless. State a template reads must
+  be a signal, or the view will not update.
+- **Signals**: `input()`, `output()`, `model()`, `viewChild()`, `computed()`,
+  `signal()`. No `@Input`, `@Output`, `@ViewChild`.
+- **`inject()`**, not constructor parameters.
+- **`host` metadata**, not `@HostListener` / `@HostBinding`.
+- **`[class]` / `[class.x]` / `[style.x]`**, not `ngClass` / `ngStyle`. Note
+  that `[class]="{ 'a b': cond }"` does not split a key with several classes
+  the way `ngClass` did; use a ternary string for those.
+- **Import the one directive or pipe a template uses** (`NgTemplateOutlet`,
+  `DatePipe`), not `CommonModule`.
+- **Control flow** is `@if` / `@for` / `@switch`.
+- **Lifecycle hooks are not `async`.** Start the work with `void this.load()`.
+- **No dropped promises**: await it, return it, or mark it `void` on purpose.
+  Lint fails otherwise.
+- **No silent failures**: no empty `catch`, no `.catch(() => {})`. Handle the
+  error or record it with `Diagnostics.record` / `recordDiagnostic`.
+- **No `any`**, and `tsconfig.json` stays at what `ng new --strict` writes.
 - Keep files reasonably small and single-purpose. If you're adding
-  significant logic to an already-large file (e.g. `idb.service.ts`,
-  `api-params.component.ts`), consider whether it belongs in a new,
+  significant logic to an already-large file (e.g. `idb.ts`,
+  `api-params.ts`), consider whether it belongs in a new,
   focused service instead.
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
@@ -89,7 +111,7 @@ When contributing:
   the most security-sensitive parts of the app and should never regress
   silently.
 - Look at `*.spec.ts` files next to the code you're changing for the existing
-  testing patterns (e.g. `secret-crypto.service.spec.ts` for a good example of
+  testing patterns (e.g. `secret-crypto.spec.ts` for a good example of
   a real, meaningful test rather than a stub).
 
 ## Reporting Bugs & Requesting Features

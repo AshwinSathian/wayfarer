@@ -26,7 +26,7 @@ All envelope fields use base64url so they stay filename/JSON friendly.
 
 ## Locker Model
 
-`SecretCryptoService` keeps the derived passphrase key in memory only:
+`SecretCrypto` keeps the derived passphrase key in memory only:
 
 1. Unlocking imports the passphrase through WebCrypto and holds the base key in RAM.
 2. Encrypt/decrypt helpers derive per‑secret keys using the stored base key and the envelope's salt.

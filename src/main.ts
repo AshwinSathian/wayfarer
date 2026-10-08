@@ -2,12 +2,12 @@
 // so it is in place before any component touches a DOM script sink.
 import { installTrustedTypesPolicy } from "./app/shared/security/trusted-types";
 import { bootstrapApplication } from "@angular/platform-browser";
-import { AppComponent } from "./app/app.component";
+import { App } from "./app/app";
 import { appConfig } from "./app/app.config";
-import { SwUpdateService } from "./app/services/sw-update.service";
+import { SwUpdate } from "./app/services/sw-update";
 
 installTrustedTypesPolicy();
 
-bootstrapApplication(AppComponent, appConfig)
-  .then((app) => app.injector.get(SwUpdateService).register())
+bootstrapApplication(App, appConfig)
+  .then((app) => app.injector.get(SwUpdate).register())
   .catch((err) => console.error(err));

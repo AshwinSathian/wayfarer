@@ -1,0 +1,37 @@
+/* Toolbar glass effect is applied via .ds-toolbar in components.css.
+   Component-specific overrides only below. */
+
+:host {
+  display: contents;
+}
+
+/* Separator between toolbar action groups */
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--separator);
+  flex-shrink: 0;
+}
+
+/* Desktop pinned collections sidebar: deliberately not a ui-drawer (see the
+   comment in app-shell.html). It looks like the left drawer, so
+   swapping the two between phone and desktop is not a visible change. */
+.app-sidebar-pinned {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-toolbar);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--separator);
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.50);
+  animation: fade-in var(--dur-enter) var(--ease-enter) both;
+}
+
+[data-theme="light"] .app-sidebar-pinned {
+  box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
+}

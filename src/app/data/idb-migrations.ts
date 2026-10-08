@@ -2,7 +2,7 @@ import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, IndexNames } from "idb"
 import { ApiSandboxDB, HistoryRecord, StoreCollection, StoreName } from "./idb-schema";
 
 /**
- * Object-store creation + index/upgrade logic for `IdbCoreService`'s
+ * Object-store creation + index/upgrade logic for `IdbCore`'s
  * `openDB(...).upgrade` callback. Split out from the service itself because
  * none of this needs the service's own connection/transaction-helper state —
  * it's a pure (if IndexedDB-native-API-heavy) function of

@@ -12,7 +12,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The interface moves to Angular Material**, one widget family at a time,
   themed from Wayfarer's own design tokens so the look stays the same in
   both themes. First: tooltips. A tooltip now sits about 4 px further from
-  its button. The initial download grows by 29 kB (752.08 kB from
+  its button. The initial download grows by 29 kB (752.14 kB from
   722.84 kB) for Material's theme and tooltip; the size budgets are reset
   to the new baseline.
 

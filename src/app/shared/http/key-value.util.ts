@@ -11,29 +11,20 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 
 /** Row list -> plain object, dropping blank-key rows and stringifying values (used for headers, which are always string-valued on the wire). */
 export function stringRecordFromRows(rows: { key: string; value: unknown }[]): Record<string, string> {
-  return rows.reduce((acc, item) => {
-    const key = (item?.key ?? "").trim();
-    if (!key) {
-      return acc;
-    }
-    acc[key] = String(item.value ?? "");
-    return acc;
-  }, {} as Record<string, string>);
+  return Object.fromEntries(keyedRows(rows).map(([key, value]) => [key, String(value ?? "")]));
 }
 
 /** Row list -> plain object (or undefined if empty), preserving raw value types — used for the request body. */
 export function bodyObjectFromRows(
   rows: { key: string; value: unknown }[]
 ): Record<string, unknown> | undefined {
-  const body = rows.reduce((acc, item) => {
-    const key = (item?.key ?? "").trim();
-    if (!key) {
-      return acc;
-    }
-    acc[key] = item.value;
-    return acc;
-  }, {} as Record<string, unknown>);
-  return Object.keys(body).length ? body : undefined;
+  const entries = keyedRows(rows);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+/** [trimmed key, value] of every row with a key. Object.fromEntries keeps a "__proto__" key as data. */
+function keyedRows(rows: { key: string; value: unknown }[]): [string, unknown][] {
+  return rows.map((row): [string, unknown] => [(row?.key ?? "").trim(), row?.value]).filter(([key]) => key);
 }
 
 /** Plain object -> row list (the inverse of the two functions above), used when loading a saved/history request into the editors. Values are always stringified — this feeds the Body/Headers key/value editors, which are text inputs. */

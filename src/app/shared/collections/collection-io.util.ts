@@ -142,11 +142,7 @@ export function deepSort<T>(value: T): T {
     const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
       a.localeCompare(b)
     );
-    const result: Record<string, unknown> = {};
-    for (const [key, val] of entries) {
-      result[key] = deepSort(val);
-    }
-    return result as T;
+    return Object.fromEntries(entries.map(([key, val]) => [key, deepSort(val)])) as T;
   }
 
   return value;

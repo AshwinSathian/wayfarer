@@ -7,6 +7,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- `{{constructor}}`, `{{toString}}` and other names that exist on every
+  JavaScript object no longer resolve to engine internals; like any unset
+  variable, they stay as typed.
+- Basic auth with characters outside Latin-1 (for example `€` or `日本`) no
+  longer fails the send; credentials are encoded as UTF-8 (RFC 7617).
+- A protected-variable placeholder inside Basic auth credentials is now
+  caught before the send. Base64 hid it from the check, so the literal
+  placeholder (never the secret) went on the wire.
+- A body or header key named `__proto__` is sent and exported as data.
+
 ## [1.3.0] - 2026-10-07
 
 The app moves to Angular 22 and drops PrimeNG. Every dialog, menu, select,

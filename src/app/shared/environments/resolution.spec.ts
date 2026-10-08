@@ -53,6 +53,12 @@ describe("resolveTemplate", () => {
     globals: { globalOnly: "global-value" },
   };
 
+  it("leaves a name that only exists on Object.prototype as literal text", () => {
+    expect(resolveTemplate("{{constructor}}/{{toString}}/{{__proto__}}", context)).toBe(
+      "{{constructor}}/{{toString}}/{{__proto__}}"
+    );
+  });
+
   it("substitutes every resolvable {{key}} occurrence with its resolved value", () => {
     expect(resolveTemplate("https://{{baseHost}}/todos/1", context)).toBe(
       "https://jsonplaceholder.typicode.com/todos/1"

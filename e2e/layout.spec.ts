@@ -77,7 +77,8 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(page.locator("input.address-url")).toBeVisible();
       await still(page.locator("app-api-params"));
 
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+      // Not wider; WebKit reports it narrower by the 5 px vertical scrollbar.
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       const send = await page.getByRole("button", { name: "Send request" }).boundingBox();
       expect(send!.x + send!.width).toBeLessThanOrEqual(width);
     });

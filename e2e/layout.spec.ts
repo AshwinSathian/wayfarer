@@ -68,6 +68,22 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
   });
 
+  // The composer ran 49 px past the window (no box-sizing reset), and below
+  // 1024 px the toolbar was wider than the space beside the pinned sidebar.
+  for (const width of [1440, 1024, 900, 768, 767, 640, 420, 360]) {
+    test(`nothing is wider than a ${width} px window`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      await expect(page.locator("input.address-url")).toBeVisible();
+      await still(page.locator("app-api-params"));
+
+      // Not wider; WebKit reports it narrower by the 5 px vertical scrollbar.
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      const send = await page.getByRole("button", { name: "Send request" }).boundingBox();
+      expect(send!.x + send!.width).toBeLessThanOrEqual(width);
+    });
+  }
+
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");

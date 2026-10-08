@@ -108,6 +108,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   memory without a word: history vanished with the tab, and every save of a
   collection, environment or secret failed.
 - The editor's icon font is part of the offline cache.
+- **Nothing runs past the edge of the window any more.** On first load the
+  request card was 49 px wider than its column, so the Send button was cut
+  off until a response arrived; on a phone, and beside the pinned sidebar
+  below 1024 px, the whole page scrolled sideways. The app had no
+  `box-sizing: border-box` rule, which every width class assumes. Below
+  1024 px the toolbar now keeps lock, history and settings; secrets, the
+  bridge and the theme stay reachable from Settings.
+- Dark theme: the request sections on a phone were a pale grey block with
+  near-black text, and the arrows of selects and the icons in menus were
+  almost invisible (1.2:1). They use the theme's own surface and label
+  colours now.
+- The request tabs wrap instead of sliding under the Basic/JSON switch when
+  the pane is narrow.
 - **Test connection** in the Local Bridge settings no longer writes the
   URL being tested into the saved settings while the check runs.
 - The Local Bridge answers 502 when a target's response is over 25 MB,

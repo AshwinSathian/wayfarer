@@ -42,7 +42,7 @@
               (click)="load(request)"
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"
-              [uiTooltip]="details"
+              [uiHoverCard]="details"
             >{{ request.url }}</span>
 
             @if (request.status !== undefined) {
@@ -66,8 +66,8 @@
 
             <button
               class="ds-icon-btn w-7 h-7 shrink-0 opacity-0 group-hover:opacity-100"
-              uiTooltip="Delete"
-              uiTooltipPosition="top"
+              matTooltip="Delete"
+              matTooltipPosition="above"
               aria-label="Delete history entry"
               (click)="confirmDelete(request, $event)"
             >

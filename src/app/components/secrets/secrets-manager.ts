@@ -12,7 +12,7 @@ import { FormsModule } from "@angular/forms";
 import { Confirm } from "../../ui/confirm";
 import { Button } from "../../ui/button";
 import { Dialog } from "../../ui/dialog";
-import { Tooltip } from "../../ui/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
 import { SecretDoc, SecretId } from "../../models/secrets";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
@@ -43,7 +43,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [Icon, FormsModule, Button, Dialog, Tooltip],
+  imports: [Icon, FormsModule, Button, Dialog, MatTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

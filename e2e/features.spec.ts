@@ -298,16 +298,23 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
 
 // Tooltips and the history details card are
 // reachable with the keyboard alone, and dismissible.
-test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page }) => {
+test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page, browserName }) => {
   await page.goto("/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?tooltip=1`);
 
+  // Reach the button with the keyboard: Material shows a tooltip for
+  // keyboard focus only. Safari tabs to non-inputs with Option+Tab.
   const curl = page.getByRole("button", { name: "Copy as cURL" });
-  await curl.focus();
-  const tooltip = page.getByRole("tooltip");
+  await page.locator("input.address-url").focus();
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
+  for (let i = 0; i < 4 && !(await curl.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+  await expect(curl).toBeFocused();
+  const tooltip = page.locator(".mat-mdc-tooltip");
   await expect(tooltip).toHaveText("Copy as cURL");
-  const describedBy = await page.locator(".curl-btn-wrap").getAttribute("aria-describedby");
-  expect(describedBy).toBe(await tooltip.getAttribute("id"));
+  // The tooltip repeats the button's name, so Material adds no description:
+  // a screen reader would say the same words twice.
+  await expect(curl).toHaveAccessibleName("Copy as cURL");
+  await expect(curl).not.toHaveAttribute("aria-describedby");
 
   await page.keyboard.press("Escape");
   await expect(tooltip).toHaveCount(0);

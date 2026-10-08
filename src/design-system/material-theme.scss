@@ -1,0 +1,110 @@
+/* ============================================================
+   Angular Material theme.
+   Material reads its colours, shapes and type from the --mat-sys-* variables
+   this file defines. Every colour is a design token (tokens.css) or a control
+   colour (controls.css), so both themes follow [data-theme] with no second
+   theme here. Listed in angular.json before styles.css: the design system and
+   the Tailwind utilities come later and win on equal specificity.
+   ============================================================ */
+@use "@angular/material" as mat;
+
+html {
+  @include mat.theme(
+    (
+      /* The palette only fills the variables not overridden below. */
+      color: mat.$azure-palette,
+      typography: (
+        plain-family: var(--font-sans),
+        brand-family: var(--font-sans),
+        bold-weight: 600,
+        medium-weight: 500,
+        regular-weight: 400,
+      ),
+      density: 0,
+    ),
+    $overrides: (
+      background: var(--canvas-app),
+      on-background: var(--label-primary),
+      surface: var(--canvas-panel),
+      surface-dim: var(--canvas-app),
+      surface-bright: var(--canvas-overlay),
+      surface-container-lowest: var(--canvas-app),
+      surface-container-low: var(--canvas-sidebar),
+      surface-container: var(--canvas-elevated),
+      surface-container-high: var(--canvas-overlay),
+      surface-container-highest: var(--canvas-overlay),
+      surface-variant: var(--fill-secondary),
+      surface-tint: transparent,
+      on-surface: var(--label-primary),
+      on-surface-variant: var(--label-secondary-on-fill),
+      inverse-surface: var(--canvas-overlay),
+      inverse-on-surface: var(--label-secondary-on-fill),
+      inverse-primary: var(--accent-text),
+      outline: var(--fill-primary),
+      outline-variant: var(--separator),
+      scrim: #000000,
+      shadow: #000000,
+      primary: var(--ctl-primary),
+      on-primary: #ffffff,
+      primary-container: var(--accent-fill),
+      on-primary-container: var(--accent-text),
+      primary-fixed: var(--accent-fill),
+      primary-fixed-dim: var(--accent-border),
+      on-primary-fixed: var(--accent-text),
+      on-primary-fixed-variant: var(--accent-text),
+      secondary: var(--ctl-neutral),
+      on-secondary: #ffffff,
+      secondary-container: var(--fill-secondary),
+      on-secondary-container: var(--label-primary),
+      secondary-fixed: var(--fill-secondary),
+      secondary-fixed-dim: var(--fill-primary),
+      on-secondary-fixed: var(--label-primary),
+      on-secondary-fixed-variant: var(--label-primary),
+      tertiary: var(--accent),
+      on-tertiary: #ffffff,
+      tertiary-container: var(--accent-fill),
+      on-tertiary-container: var(--accent-text),
+      tertiary-fixed: var(--accent-fill),
+      tertiary-fixed-dim: var(--accent-border),
+      on-tertiary-fixed: var(--accent-text),
+      on-tertiary-fixed-variant: var(--accent-text),
+      error: var(--ctl-danger),
+      on-error: #ffffff,
+      error-container: var(--status-error-fill),
+      on-error-container: var(--ctl-danger-on-fill),
+      corner-extra-small: var(--radius-xs),
+      corner-small: var(--radius-sm),
+      corner-medium: var(--radius-md),
+      corner-large: var(--radius-lg),
+      corner-extra-large: var(--radius-2xl),
+      corner-full: var(--radius-full),
+    )
+  );
+}
+
+/* ── Tooltip ─────────────────────────────────────────────── */
+html {
+  @include mat.tooltip-overrides(
+    (
+      container-color: var(--canvas-overlay),
+      container-shape: var(--radius-sm),
+      /* --label-secondary measures 4.27:1 on --canvas-overlay. */
+      supporting-text-color: var(--label-secondary-on-fill),
+      supporting-text-size: 12px,
+      supporting-text-line-height: normal,
+      supporting-text-tracking: -0.002em,
+    )
+  );
+}
+
+/* Material adds its component styles after this sheet, so a rule here needs
+   more specificity than the one it replaces. */
+.mat-mdc-tooltip .mat-mdc-tooltip-surface {
+  /* 12.5rem of text, as before: the surface is border-box. */
+  max-width: calc(12.5rem + 22px);
+  padding: 6px 10px;
+  border: 1px solid var(--separator);
+  box-shadow: var(--shadow-overlay);
+  text-align: start;
+  white-space: pre-line;
+}

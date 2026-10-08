@@ -42,14 +42,15 @@
     "gen:csp": "node scripts/gen-csp.mjs",
     "check:csp": "node scripts/gen-csp.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=217500"
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=225900"
   },
   "dependencies": {
-    "@angular/cdk": "^22.2.1",
+    "@angular/cdk": "^22.2.2",
     "@angular/common": "^22.2.1",
     "@angular/compiler": "^22.2.1",
     "@angular/core": "^22.2.1",
     "@angular/forms": "^22.2.1",
+    "@angular/material": "^22.2.2",
     "@angular/platform-browser": "^22.2.1",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",

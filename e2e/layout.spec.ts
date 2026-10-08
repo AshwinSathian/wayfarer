@@ -163,7 +163,7 @@ test.describe("Disabled 'Copy as cURL' affordance", () => {
     expect(Number(opacity)).toBeLessThan(1);
 
     await curlWrap.hover();
-    await expect(page.getByRole("tooltip")).toHaveText(/enter a url first/i);
+    await expect(page.locator(".mat-mdc-tooltip")).toHaveText(/enter a url first/i);
 
     // Once a URL is entered, it becomes enabled with the plain "Copy as cURL" tooltip.
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);

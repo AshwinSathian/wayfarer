@@ -19,7 +19,7 @@ import { Select } from "../../ui/select";
 import { Splitter } from "../../ui/splitter";
 import { Segmented } from "../../ui/segmented";
 import { UI_TABS } from "../../ui/tabs";
-import { Tooltip } from "../../ui/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Idb } from "../../data/idb";
 import { PastRequest } from "../../models/history";
@@ -102,7 +102,7 @@ type ContextType = "Body" | "Headers";
     Select,
     Segmented,
     UI_TABS,
-    Tooltip,
+    MatTooltip,
     Splitter,
     Dialog,
     JsonEditor,

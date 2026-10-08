@@ -77,7 +77,10 @@ abstract class ModalPanel implements OnDestroy {
       restoreFocus: true,
       ...this.config(),
     });
-    ref.keydownEvents.subscribe((event) => {
+    // On the panel's own element, not `ref.keydownEvents`: the CDK sends a
+    // key only to the topmost overlay that listens, and a Material tooltip
+    // open over a button in here would take Escape for itself.
+    ref.overlayRef.overlayElement.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !event.defaultPrevented) {
         event.preventDefault();
         this.requestClose();

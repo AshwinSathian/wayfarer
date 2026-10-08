@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { Button } from "../../ui/button";
 import { Dialog } from "../../ui/dialog";
 import { UI_TABS } from "../../ui/tabs";
-import { Tooltip } from "../../ui/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
@@ -40,7 +40,7 @@ interface EnvironmentDraft {
     Button,
     UI_TABS,
     Dialog,
-    Tooltip,
+    MatTooltip,
     JsonEditor,
   ],
   templateUrl: "./environments-manager.html",

@@ -245,8 +245,8 @@
           iconOnly
           type="button"
           [disabled]="historyLoading() || !pastRequests().length"
-          uiTooltip="Clear all history"
-          uiTooltipPosition="bottom"
+          matTooltip="Clear all history"
+          matTooltipPosition="below"
           aria-label="Clear all history"
           (click)="confirmClear()"
         ><app-icon name="delete" /></button>

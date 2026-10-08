@@ -32,13 +32,14 @@ test.describe("Accessibility (primary flows)", () => {
     // Playwright's click() leaves the cursor exactly where it clicked — it
     // doesn't move away afterwards. The cURL button sits right next to Send
     // in the toolbar, so the cursor can end up resting on/near it, and its
-    // `pTooltip` correctly (this isn't a bug) stays open for as long as the
+    // tooltip correctly (this isn't a bug) stays open for as long as the
     // cursor stays there. A genuinely-open tooltip with low-contrast default
     // text is a real, if incidental, violation to scan into. Move the mouse
     // well away from any hoverable chrome before scanning, the same way a
     // real user reading the response wouldn't still have their cursor
     // parked on a toolbar button.
     await page.mouse.move(0, 0);
+    await expect(page.locator(".mat-mdc-tooltip")).toHaveCount(0);
     await expect(page.getByRole("tooltip")).toHaveCount(0);
 
     const results = await analyze(page);

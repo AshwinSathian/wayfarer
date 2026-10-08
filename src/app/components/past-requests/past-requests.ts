@@ -3,7 +3,8 @@ import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } 
 import { UI_ACCORDION } from "../../ui/accordion";
 import { Confirm } from "../../ui/confirm";
 import { Button } from "../../ui/button";
-import { Tooltip } from "../../ui/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
+import { HoverCard } from "../../ui/hover-card";
 import { PastRequest, PastRequestKey } from "../../models/history";
 import { Icon } from "../../shared/icon/icon";
 
@@ -18,7 +19,8 @@ export interface HistoryGroup {
     DatePipe,
     Icon,
     Button,
-    Tooltip,
+    MatTooltip,
+    HoverCard,
     UI_ACCORDION,
   ],
   templateUrl: "./past-requests.html",

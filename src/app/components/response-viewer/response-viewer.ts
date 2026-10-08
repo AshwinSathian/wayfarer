@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { Menu, UiMenuItem } from "../../ui/menu";
 import { Button } from "../../ui/button";
 import { UI_TABS } from "../../ui/tabs";
-import { Tooltip } from "../../ui/tooltip";
+import { MatTooltip } from "@angular/material/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export";
 import { BinaryBody } from "../../shared/http/response-body";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
@@ -49,7 +49,7 @@ interface ResponseHeader {
     Icon,
     FormsModule,
     UI_TABS,
-    Tooltip,
+    MatTooltip,
     JsonEditor,
     Button,
     Menu,

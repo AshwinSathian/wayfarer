@@ -11,6 +11,7 @@ import {
   output
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { Button } from "../../ui/button";
 import { Dialog, Drawer } from "../../ui/dialog";
@@ -43,6 +44,7 @@ import { SwUpdate } from "../../services/sw-update";
     Button,
     Select,
     Dialog,
+    MatTooltip,
     FormsModule,
     ApiParams,
     PastRequests,

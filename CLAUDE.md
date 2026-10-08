@@ -91,6 +91,24 @@ code errors.
 - Review what an upgrade tool writes line by line. The Tailwind tool turned
   preflight on, changed the cascade and rewrote words in test titles.
 
+## Angular Material
+
+- Widgets are Angular Material components (maintainer, 2026-10-09; this
+  reverses the "custom on CDK" default of decision D14 in the plan). The
+  migration runs one widget family per PR; until it ends, `src/app/ui` still
+  holds the custom ones. What Material has no component for (the splitter,
+  the hover card) stays there, built on the CDK.
+- The theme is `src/design-system/material-theme.scss`, listed before
+  `src/styles.css` in `angular.json`. It maps Material's `--mat-sys-*`
+  variables onto the design tokens, so `[data-theme]` switches both. No
+  second theme, no Material palette colour in the UI, no Roboto.
+- Restyle a component with its `mat.<name>-overrides` mixin in that file.
+  For what has no token, write a rule there with more specificity than
+  Material's own: its component styles load after the global sheet.
+- Import the one directive or component (`MatTooltip`), not its module.
+- `matTooltip` takes text and watches focus on its host only. Put it on the
+  focusable element, not on a wrapper.
+
 ## Monaco
 
 - Imported through `src/app/shared/monaco/monaco-loader.ts` only, from the

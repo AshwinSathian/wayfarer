@@ -6,7 +6,7 @@ const crypto = require('node:crypto');
 const { URL } = require('node:url');
 const pkg = require('../package.json');
 
-const MAX_BODY_BYTES = 25 * 1024 * 1024; // 25MB — generous for API testing, not "proxy anything"
+const MAX_BODY_BYTES = 25 * 1024 * 1024; // 25MB, for the request and for the target's response — generous for API testing, not "proxy anything"
 const RELAY_TIMEOUT_MS = 30_000;
 
 // Headers we never forward as-is: connection-management headers Node sets
@@ -140,7 +140,16 @@ function relay(payload, res) {
     { method, headers: outgoingHeaders, timeout: RELAY_TIMEOUT_MS },
     (upstreamRes) => {
       const chunks = [];
-      upstreamRes.on('data', (chunk) => chunks.push(chunk));
+      let bytes = 0;
+      upstreamRes.on('data', (chunk) => {
+        bytes += chunk.length;
+        if (bytes > MAX_BODY_BYTES) {
+          // Buffering an unbounded response would exhaust this process's memory.
+          outgoing.destroy(Object.assign(new Error('response body too large'), { code: 'RELAY_RESPONSE_TOO_LARGE' }));
+          return;
+        }
+        chunks.push(chunk);
+      });
       upstreamRes.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const { text, encoding } = decodeBody(buffer, upstreamRes.headers['content-type']);

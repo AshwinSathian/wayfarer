@@ -50,6 +50,9 @@ Thumbs.db
 # Cloudflare
 .wrangler
 
+# Vitest browser mode (failure screenshots)
+/.vitest
+
 # Playwright
 /test-results
 /playwright-report

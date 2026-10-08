@@ -61,6 +61,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   caught before the send. Base64 hid it from the check, so the literal
   placeholder (never the secret) went on the wire.
 - A body or header key named `__proto__` is sent and exported as data.
+- **Test connection** in the Local Bridge settings no longer writes the
+  URL being tested into the saved settings while the check runs.
+- The Local Bridge answers 502 when a target's response is over 25 MB,
+  instead of holding all of it in memory.
+- Importing environments rejects a variable whose value is not text.
+- DOMPurify, which the Monaco editor bundles, is 3.4.16 (GHSA advisories
+  against 3.4.15 and earlier).
+- The `C`, `N` and `Delete` shortcuts act only while focus is in the
+  collections panel, as Settings says. They fired from anywhere on the page
+  outside a text field.
 
 ## [1.3.0] - 2026-10-07
 

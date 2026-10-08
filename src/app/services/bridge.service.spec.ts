@@ -52,9 +52,14 @@ describe("BridgeService", () => {
     expect(fresh.config().url).toBe("http://127.0.0.1:7717");
   });
 
-  it("strips a trailing slash from the configured URL via baseUrl", () => {
-    service.update({ url: "http://localhost:7717/" });
-    expect(service.baseUrl).toBe("http://localhost:7717");
+  it("checkHealth probes the given URL, trailing slash removed, without saving it", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await expect(service.checkHealth("http://localhost:9999/")).resolves.toBe(true);
+
+    expect(fetchSpy.mock.calls[0][0]).toBe("http://localhost:9999/health");
+    expect(service.config().url).toBe("http://127.0.0.1:7717");
+    fetchSpy.mockRestore();
   });
 
   it("checkHealth returns true when the bridge responds ok", async () => {

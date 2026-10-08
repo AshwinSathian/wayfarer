@@ -14,7 +14,19 @@ module.exports = defineConfig([
       angular.configs.tsRecommended,
     ],
     processor: angular.processInlineTemplates,
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: __dirname } },
     rules: {
+      // A promise is awaited, returned, or marked `void` on purpose; never dropped.
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/await-thenable": "error",
+      // angular.dev/style-guide: host metadata, OnPush, signals, sync lifecycle hooks.
+      "@angular-eslint/prefer-host-metadata-property": "error",
+      "@angular-eslint/prefer-on-push-component-change-detection": "error",
+      "@angular-eslint/prefer-signals": "error",
+      "@angular-eslint/no-uncalled-signals": "error",
+      "@angular-eslint/no-async-lifecycle-method": "error",
+      "@angular-eslint/consistent-component-styles": "error",
       "@angular-eslint/directive-selector": [
         "error",
         {

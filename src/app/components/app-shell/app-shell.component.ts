@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -37,8 +37,8 @@ import { SwUpdateService } from "../../services/sw-update.service";
 @Component({
   selector: "app-shell",
   imports: [
+    NgTemplateOutlet,
     IconComponent,
-    CommonModule,
     DrawerComponent,
     ButtonDirective,
     SelectComponent,
@@ -232,8 +232,8 @@ export class AppShellComponent implements OnInit {
     if (confirmed) await this.performResetAllData();
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.environmentsService.ensureLoaded();
+  ngOnInit(): void {
+    void this.environmentsService.ensureLoaded();
   }
 
   async handleEnvironmentChange(id: string | null): Promise<void> {

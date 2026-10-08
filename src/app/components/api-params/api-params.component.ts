@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -93,8 +93,8 @@ type ContextType = "Body" | "Headers";
 @Component({
   selector: "app-api-params",
   imports: [
+    NgTemplateOutlet,
     IconComponent,
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     ButtonDirective,

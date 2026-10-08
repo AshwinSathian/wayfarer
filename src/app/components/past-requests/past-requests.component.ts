@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
 import { UI_ACCORDION } from "../../ui/accordion.component";
 import { ConfirmService } from "../../ui/confirm.service";
@@ -15,8 +15,8 @@ export interface HistoryGroup {
 @Component({
   selector: "app-past-requests",
   imports: [
+    DatePipe,
     IconComponent,
-    CommonModule,
     ButtonDirective,
     TooltipDirective,
     UI_ACCORDION,

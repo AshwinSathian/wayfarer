@@ -24,7 +24,7 @@ describe("IdbCoreService", () => {
 
   it("falls back to memory mode when indexedDB is unavailable", async () => {
     const original = globalThis.indexedDB;
-    delete (globalThis as unknown as Record<string, unknown>).indexedDB;
+    delete (globalThis as unknown as Record<string, unknown>)["indexedDB"];
 
     const svc = new IdbCoreService();
     await svc.init();
@@ -32,7 +32,7 @@ describe("IdbCoreService", () => {
     expect(svc.useMemoryFallback).toBe(true);
     expect(await svc.getDatabase()).toBeNull();
 
-    (globalThis as unknown as Record<string, unknown>).indexedDB = original;
+    (globalThis as unknown as Record<string, unknown>)["indexedDB"] = original;
   });
 
   it("switches to memory mode when the database promise rejects", async () => {
@@ -59,10 +59,10 @@ describe("IdbCoreService", () => {
 
   it("ensurePersistentSupport() throws once memory fallback is active", async () => {
     const original = globalThis.indexedDB;
-    delete (globalThis as unknown as Record<string, unknown>).indexedDB;
+    delete (globalThis as unknown as Record<string, unknown>)["indexedDB"];
     const svc = new IdbCoreService();
     await svc.init();
-    (globalThis as unknown as Record<string, unknown>).indexedDB = original;
+    (globalThis as unknown as Record<string, unknown>)["indexedDB"] = original;
 
     await expect(svc.ensurePersistentSupport()).rejects.toThrow(
       "Persistent storage is not available in this environment."

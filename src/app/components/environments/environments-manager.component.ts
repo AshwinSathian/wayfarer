@@ -34,7 +34,6 @@ interface EnvironmentDraft {
 
 @Component({
   selector: "app-environments-manager",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -46,7 +45,7 @@ interface EnvironmentDraft {
     JsonEditorComponent,
   ],
   templateUrl: "./environments-manager.component.html",
-  styleUrls: ["./environments-manager.component.css"],
+  styleUrl: "./environments-manager.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnvironmentsManagerComponent implements OnInit {

@@ -92,7 +92,6 @@ type ContextType = "Body" | "Headers";
 
 @Component({
   selector: "app-api-params",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -113,7 +112,7 @@ type ContextType = "Body" | "Headers";
     ResponseViewerComponent,
   ],
   templateUrl: "./api-params.component.html",
-  styleUrls: ["./api-params.component.css"],
+  styleUrl: "./api-params.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // ~870 lines: this is the request composer's root — it already delegates

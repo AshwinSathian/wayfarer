@@ -7,7 +7,6 @@ type ContextType = "Body" | "Headers";
 
 @Component({
   selector: "app-api-params-basic",
-  standalone: true,
   imports: [
     IconComponent, FormsModule,
     ButtonDirective,

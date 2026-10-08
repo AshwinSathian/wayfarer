@@ -36,7 +36,6 @@ import { SwUpdateService } from "../../services/sw-update.service";
 
 @Component({
   selector: "app-shell",
-  standalone: true,
   imports: [
     IconComponent,
     CommonModule,
@@ -53,7 +52,7 @@ import { SwUpdateService } from "../../services/sw-update.service";
     SettingsComponent,
   ],
   templateUrl: "./app-shell.component.html",
-  styleUrls: ["./app-shell.component.css"],
+  styleUrl: "./app-shell.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent implements OnInit {

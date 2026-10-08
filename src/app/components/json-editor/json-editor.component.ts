@@ -36,7 +36,6 @@ const noop = () => {};
 
 @Component({
   selector: "app-json-editor",
-  standalone: true,
   host: {
     // Monaco sizes itself to this element, so the element must not size itself to Monaco (F52).
     class: "block w-full min-h-[200px] [contain:inline-size]",

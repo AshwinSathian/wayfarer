@@ -1,6 +1,6 @@
 # Third-party notices
 
-Wayfarer's own code is MIT-licensed (see [LICENSE](LICENSE)). The production build also contains the third-party material below. npm dependencies bundled into JavaScript are listed in the build's `3rdpartylicenses.txt` (Angular `extractLicenses`).
+Wayfarer's own code is MIT-licensed (see [LICENSE](LICENSE)). The production build also contains the third-party material below. npm dependencies bundled into JavaScript are listed, with their licence texts, in [`/3rdpartylicenses.txt`](3rdpartylicenses.txt), which the build writes (Angular `extractLicenses`) and serves next to this file.
 
 ## Material Symbols (icon path data)
 

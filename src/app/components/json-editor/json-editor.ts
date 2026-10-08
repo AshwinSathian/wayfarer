@@ -24,6 +24,7 @@ import type * as MonacoTypes from "monaco-editor";
 import {
   MonacoEditorModule,
   defineSandboxThemes,
+  jsonDefaults,
   loadMonaco,
   loadedMonaco,
   monacoThemeName,
@@ -271,14 +272,9 @@ export class JsonEditor
   }
 
   private applySchemaDiagnostics(): void {
-    if (!this.monacoModule) {
-      return;
-    }
-    const monaco = this.monacoModule;
-
     const schemaUri = this.schemaUri();
     const schema = this.schema();
-    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+    jsonDefaults?.setDiagnosticsOptions({
       allowComments: true,
       validate: true,
       enableSchemaRequest: !!this.schemaUri(),

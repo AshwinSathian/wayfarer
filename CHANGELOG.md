@@ -45,9 +45,32 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   `strictInputAccessModifiers`. Web workers compile against ES2022, like the
   app, instead of ES2018.
 - `favicon.ico` lives in `public/`; the empty `src/assets` folder is removed.
+- Code follows more of the Angular style guide: `host` metadata instead of
+  `@HostListener`, `[class]` bindings instead of `ngClass`, single imports
+  (`NgTemplateOutlet`, `DatePipe`, `JsonPipe`) instead of `CommonModule`, and
+  lifecycle hooks that are not `async`.
+- Lint is type-aware and fails on a dropped promise
+  (`no-floating-promises`, `no-misused-promises`), a component that is not
+  `OnPush`, `@HostListener`/`@HostBinding`, a signal used without calling it,
+  and an `async` lifecycle hook.
+- A database upgrade that fails part-way is rolled back, so the database
+  keeps its old version instead of a half-applied schema.
 - Identifiers come from one `newId()` helper. Seven copies with a
   `Math.random()` fallback are gone; where `crypto.randomUUID` is missing
   (a copy served over plain http) it uses `crypto.getRandomValues`.
+### Fixed
+
+- `{{constructor}}`, `{{toString}}` and other names that exist on every
+  JavaScript object no longer resolve to engine internals; like any unset
+  variable, they stay as typed.
+- Basic auth credentials are encoded as UTF-8 (RFC 7617), as browsers and
+  curl do. Characters outside Latin-1 (`€`, `日本`) used to fail the send, and
+  accented Latin-1 characters (`é`) went out as Latin-1 bytes; plain ASCII
+  credentials are unchanged.
+- A protected-variable placeholder inside Basic auth credentials is now
+  caught before the send. Base64 hid it from the check, so the literal
+  placeholder (never the secret) went on the wire.
+- A body or header key named `__proto__` is sent and exported as data.
 
 ## [1.3.0] - 2026-10-07
 

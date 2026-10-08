@@ -379,6 +379,7 @@ describe("RequestExecutionService", () => {
       ["nested body", { method: "POST", usesBody: true, body: { a: { b: [secret] } } }],
       ["spaced placeholder", { headers: { Authorization: "Bearer {{ $secret.abc }}" } }],
       ["percent-encoded URL", { url: "https://example.com/?key=%7B%7B%24secret.abc%7D%7D" }],
+      ["Basic credentials", { headers: { Authorization: `Basic ${btoa(`user:${secret}`)}` } }],
     ];
 
     for (const [where, overrides] of cases) {

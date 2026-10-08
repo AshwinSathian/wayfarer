@@ -1,5 +1,4 @@
-import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ButtonDirective } from "../../ui/button.directive";
 import { MenuComponent, UiMenuItem } from "../../ui/menu.component";
@@ -35,7 +34,6 @@ export interface PaletteAction {
   selector: "app-collections-sidebar",
   imports: [
     IconComponent,
-    CommonModule,
     FormsModule,
     TreeComponent,
     MenuComponent,
@@ -46,6 +44,7 @@ export interface PaletteAction {
   templateUrl: "./collections-sidebar.component.html",
   styleUrl: "./collections-sidebar.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { "(window:keydown)": "handleGlobalKeydown($event)" },
 })
 // ~570 lines: tree-node building/type guards moved to
 // shared/collections/collection-tree-nodes.util.ts, context-menu building to
@@ -99,8 +98,8 @@ export class CollectionsSidebarComponent implements OnInit {
   });
   readonly methodOptions = HTTP_METHODS.map((method) => ({ label: method, value: method }));
 
-  async ngOnInit(): Promise<void> {
-    await this.collectionsService.ensureLoaded();
+  ngOnInit(): void {
+    void this.collectionsService.ensureLoaded();
   }
 
   async handleCreateCollection(): Promise<void> {
@@ -130,7 +129,6 @@ export class CollectionsSidebarComponent implements OnInit {
     this.collectionImport.close();
   }
 
-  @HostListener("window:keydown", ["$event"])
   handleGlobalKeydown(event: KeyboardEvent): void {
     if (this.importDialogVisible() || this.commandPaletteVisible()) {
       return;
@@ -148,7 +146,7 @@ export class CollectionsSidebarComponent implements OnInit {
 
     if (event.key === "Delete" && this.selectedNode()) {
       event.preventDefault();
-      this.handleAction("delete", this.selectedNode()!);
+      void this.handleAction("delete", this.selectedNode()!);
       return;
     }
 
@@ -187,7 +185,7 @@ export class CollectionsSidebarComponent implements OnInit {
   executeFirstPaletteAction(): void {
     const action = this.filteredPaletteActions[0];
     if (action) {
-      this.executePaletteAction(action);
+      void this.executePaletteAction(action);
     }
   }
 

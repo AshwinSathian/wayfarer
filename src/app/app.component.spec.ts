@@ -18,7 +18,7 @@ class IdbServiceMock {
   setActiveEnvironment = vi.fn().mockReturnValue(Promise.resolve());
   peekSecretEnvelope = vi.fn().mockReturnValue(Promise.resolve(null));
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));
-  closedByOtherTab = signal(false).asReadonly();
+  readonly closedByOtherTab = signal(false).asReadonly();
 }
 
 describe('AppComponent', () => {

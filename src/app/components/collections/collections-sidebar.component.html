@@ -131,10 +131,9 @@
         </div>
         <span
           class="rounded-full px-2.5 py-0.5 type-caption uppercase font-semibold"
-          [ngClass]="{
-            'bg-status-success-fill border border-status-success-border text-status-success': entry.action === 'create',
-            'bg-status-warning-fill border border-status-warning-border text-status-warning': entry.action === 'overwrite'
-          }"
+          [class]="entry.action === 'create'
+            ? 'bg-status-success-fill border border-status-success-border text-status-success'
+            : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
         >{{ entry.action }}</span>
       </div>
       }

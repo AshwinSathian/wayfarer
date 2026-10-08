@@ -21,6 +21,7 @@ import {
   buildContextItems,
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
+import { readImportText } from "../../shared/json/safe-json";
 
 type NodeData = CollectionNodeData;
 
@@ -112,7 +113,7 @@ export class CollectionsSidebar implements OnInit {
     if (!file) {
       return;
     }
-    const text = await file.text();
+    const text = await readImportText(file);
     this.collectionImport.stageFile(file.name, text);
     input.value = "";
   }

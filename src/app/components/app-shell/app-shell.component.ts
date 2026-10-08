@@ -306,13 +306,7 @@ export class AppShellComponent implements OnInit {
 
   async testBridgeConnection(): Promise<void> {
     this.bridgeTestStatus.set("testing");
-    const originalConfig = this.bridgeService.config();
-    // checkHealth() reads the service's current config, so stage the draft
-    // values there for the duration of the probe rather than duplicating
-    // the fetch logic here.
-    this.bridgeService.update({ url: this.bridgeUrlDraft().trim() });
-    const ok = await this.bridgeService.checkHealth();
-    this.bridgeService.update({ url: originalConfig.url });
+    const ok = await this.bridgeService.checkHealth(this.bridgeUrlDraft().trim());
     this.bridgeTestStatus.set(ok ? "ok" : "fail");
   }
 

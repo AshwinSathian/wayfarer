@@ -233,3 +233,26 @@ test('OPTIONS preflight only sets CORS headers for allowed origins', async () =>
     await close(bridge);
   }
 });
+
+test('POST /relay answers 502 instead of buffering a target response over the size limit', async () => {
+  const target = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(Buffer.alloc(26 * 1024 * 1024, 'x'));
+  });
+  const targetPort = await listen(target);
+  const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
+  const port = await listen(bridge);
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
+      method: 'POST',
+      headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
+      body: JSON.stringify({ method: 'GET', url: `http://127.0.0.1:${targetPort}/big` }),
+    });
+    assert.equal(res.status, 502);
+    assert.equal((await res.json()).error.code, 'RELAY_RESPONSE_TOO_LARGE');
+  } finally {
+    target.closeAllConnections();
+    await close(target);
+    await close(bridge);
+  }
+});

@@ -9,7 +9,7 @@ const DEFAULT_PORT = 7717;
 const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:4200',
   'http://127.0.0.1:4200',
-  'https://api-sandbox.ashwinsathian.com',
+  'https://wayfarer.ashwinsathian.com',
 ];
 
 function parseArgs(argv) {

@@ -1,5 +1,6 @@
 import { InspectorExportEntry } from "./export.util";
 import { ResponseInspection } from "./response-inspector.service";
+import { newId } from "../id.util";
 
 /**
  * Snapshot of the just-sent request, captured by `ApiParamsComponent` right
@@ -25,13 +26,6 @@ function normalizeHeaderRecord(record: Record<string, string>): Record<string, s
     acc[key] = value ?? "";
     return acc;
   }, {});
-}
-
-function createFallbackId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `export-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export interface BuildExportEntryInput {
@@ -86,7 +80,7 @@ export function buildExportEntry(input: BuildExportEntryInput): InspectorExportE
   );
 
   return {
-    id: inspection?.id ?? context.id ?? createFallbackId(),
+    id: inspection?.id ?? context.id ?? newId(),
     startedDateTime,
     time: duration,
     req: {

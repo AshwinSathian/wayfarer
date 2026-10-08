@@ -28,10 +28,9 @@ not what unblocks Chrome today.
 Two things found while measuring:
 
 - The bridge's default allowed origins are `http://localhost:4200`,
-  `http://127.0.0.1:4200` and `https://api-sandbox.ashwinsathian.com` (the
-  app's old domain). The hosted app's origin is not in the list, so
-  `npm run bridge` without `--allow-origin https://wayfarer.ashwinsathian.com`
-  rejects it.
+  `http://127.0.0.1:4200` and `https://wayfarer.ashwinsathian.com`. (Before
+  v1.3.1 the list named the app's old domain, so the hosted app was rejected
+  unless started with `--allow-origin`.)
 - Automating real Safari needs `safaridriver --enable` (an administrator
   password) and *Develop → Allow Remote Automation*, so the Safari row uses
   Playwright's WebKit. To check real Safari by hand: start the bridge as

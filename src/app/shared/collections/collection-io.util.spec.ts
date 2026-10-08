@@ -120,6 +120,17 @@ describe("collection-io.util", () => {
     }
   });
 
+  it("rejects a request whose method is not one of the HTTP verbs the app sends", () => {
+    const result = validateCollection({
+      meta: meta("m"),
+      collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1 },
+      folders: [],
+      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "GET; rm -rf ~", url: "https://a.test", headers: {}, order: 1 }],
+    });
+
+    expect(result.errors?.map((e) => e.path)).toEqual(["requests[0].method"]);
+  });
+
   it("rejects a file whose blocks are missing or of the wrong shape", () => {
     expect(validateCollection("{not json").ok).toBe(false);
     expect(validateCollection("42").ok).toBe(false);

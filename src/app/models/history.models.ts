@@ -1,6 +1,9 @@
+export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
+export type HttpMethod = (typeof HTTP_METHODS)[number];
+
 export interface PastRequest {
   id?: number;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+  method: HttpMethod;
   url: string;
   headers: Record<string, string>;
   body?: unknown;

@@ -13,6 +13,7 @@ import {
 } from "./idb-schema";
 import { runUpgrade } from "./idb-migrations";
 import { recordDiagnostic } from "../services/diagnostics.service";
+import { newId } from "../shared/id.util";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";
@@ -297,7 +298,7 @@ export class IdbCoreService {
   createMeta(): Meta {
     const now = Date.now();
     return {
-      id: this.randomId(),
+      id: newId(),
       createdAt: now,
       updatedAt: now,
       version: META_VERSION,
@@ -314,13 +315,6 @@ export class IdbCoreService {
       ...meta,
       updatedAt: Date.now(),
     };
-  }
-
-  randomId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID();
-    }
-    return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`;
   }
 
   async nextOrder(index: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }): Promise<number> {

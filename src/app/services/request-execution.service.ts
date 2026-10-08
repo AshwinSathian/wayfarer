@@ -17,6 +17,7 @@ import { PastRequest } from "../models/history.models";
 import { BinaryBody } from "../shared/http/response-body.util";
 import { TestAssertion, TestResult } from "../models/test-assertion.models";
 import { parseJson, stringifyJson } from "../shared/json/safe-json.util";
+import { newId } from "../shared/id.util";
 
 export interface BuiltRequest {
   method: PastRequest["method"];
@@ -120,7 +121,7 @@ export class RequestExecutionService {
   private readonly assertionRunner = inject(AssertionRunnerService);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
-    const requestId = this.createRequestId();
+    const requestId = newId();
     const startedAt = performance.now();
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
@@ -317,12 +318,6 @@ export class RequestExecutionService {
     await this.environmentsService.updateEnvironment(active.meta.id, { vars });
   }
 
-  private createRequestId(): string {
-    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return crypto.randomUUID();
-    }
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
 
   private isJsonPayload(payload: unknown): boolean {
     if (payload === null || payload === undefined) {

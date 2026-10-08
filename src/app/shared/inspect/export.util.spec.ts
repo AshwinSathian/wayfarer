@@ -124,7 +124,7 @@ describe("export.util", () => {
 
     it("adds the method and a JSON body for other methods", () => {
       expect(buildCurlCommand({ method: "POST", url: "https://api.test/items", headers: {}, body: { name: "a" } })).toBe(
-        "curl \\\n  -X POST \\\n  'https://api.test/items' \\\n  -d '{\"name\":\"a\"}'"
+        "curl \\\n  -X POST \\\n  'https://api.test/items' \\\n  --data-raw '{\"name\":\"a\"}'"
       );
     });
 
@@ -138,12 +138,19 @@ describe("export.util", () => {
 
       expect(command).toContain("'https://api.test/o'\\''brien'");
       expect(command).toContain("-H 'X-Note: it'\\''s'");
-      expect(command).toContain("-d 'name='\\''x'\\''; rm -rf /'");
+      expect(command).toContain("--data-raw 'name='\\''x'\\''; rm -rf /'");
+    });
+
+    it("quotes a method that is not a plain token and sends an @-body as data, not a file", () => {
+      const command = buildCurlCommand({ method: "GET; touch /tmp/x", url: "https://api.test/", headers: {}, body: "@/etc/passwd" });
+
+      expect(command).toContain("-X 'GET; touch /tmp/x'");
+      expect(command).toContain("--data-raw '@/etc/passwd'");
     });
 
     it("leaves out an empty or absent body", () => {
-      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: "" })).not.toContain("-d ");
-      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: null })).not.toContain("-d ");
+      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: "" })).not.toContain("--data-raw");
+      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: null })).not.toContain("--data-raw");
     });
   });
 });

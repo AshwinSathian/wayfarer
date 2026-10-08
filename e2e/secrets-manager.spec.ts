@@ -29,7 +29,7 @@ test.describe("Secrets management view", () => {
 
     // Scoped to the environment editor's own KEY/Value inputs (exact,
     // case-sensitive match) — the composer's Params tab has its own
-    // lowercase "key"/"value" placeholders always mounted (ui-tabs
+    // lowercase "key"/"value" placeholders always mounted (the tabs
     // keeps every tabpanel's content in the DOM, [hidden] on the
     // inactive ones rather than removing it), which a loose/case-
     // insensitive placeholder match would otherwise collide with.

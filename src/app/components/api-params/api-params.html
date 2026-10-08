@@ -134,49 +134,61 @@
        ever expanded — and therefore mounted-and-visible — at a time, so at
        most one Monaco instance is ever live here. -->
   <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-up">
-    <ui-accordion
-      [value]="mobileActivePanels()"
-      (valueChange)="onMobileIndexChange($event)"
-    >
-      <ui-accordion-panel value="params">
-        <ui-accordion-header>Params</ui-accordion-header>
-        <ui-accordion-content>
-          <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
-        </ui-accordion-content>
-      </ui-accordion-panel>
-      <ui-accordion-panel value="headers">
-        <ui-accordion-header>Headers</ui-accordion-header>
-        <ui-accordion-content>
-          <ng-container *ngTemplateOutlet="headersContent"></ng-container>
-        </ui-accordion-content>
-      </ui-accordion-panel>
+    <mat-accordion class="sections" displayMode="flat" hideToggle>
+      <mat-expansion-panel
+        #paramsSection
+        [expanded]="mobileActivePanels() === 'params'"
+        (opened)="onMobileIndexChange('params')"
+        (closed)="onMobilePanelClosed('params', paramsSection)"
+      >
+        <mat-expansion-panel-header>Params <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
+      </mat-expansion-panel>
+      <mat-expansion-panel
+        #headersSection
+        [expanded]="mobileActivePanels() === 'headers'"
+        (opened)="onMobileIndexChange('headers')"
+        (closed)="onMobilePanelClosed('headers', headersSection)"
+      >
+        <mat-expansion-panel-header>Headers <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <ng-container *ngTemplateOutlet="headersContent"></ng-container>
+      </mat-expansion-panel>
       @if (isBodyMethod(selectedRequestMethod())) {
-      <ui-accordion-panel value="body">
-        <ui-accordion-header>Body</ui-accordion-header>
-        <ui-accordion-content>
-          <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
-        </ui-accordion-content>
-      </ui-accordion-panel>
+      <mat-expansion-panel
+        #bodySection
+        [expanded]="mobileActivePanels() === 'body'"
+        (opened)="onMobileIndexChange('body')"
+        (closed)="onMobilePanelClosed('body', bodySection)"
+      >
+        <mat-expansion-panel-header>Body <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
+      </mat-expansion-panel>
       }
-      <ui-accordion-panel value="auth">
-        <ui-accordion-header>Auth</ui-accordion-header>
-        <ui-accordion-content>
-          <app-auth-editor
-            [auth]="requestAuth()"
-            [showPassword]="showAuthPassword()"
-            (authTypeChange)="onAuthTypeChange($event)"
-            (authChange)="requestAuth.set($event)"
-            (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
-          ></app-auth-editor>
-        </ui-accordion-content>
-      </ui-accordion-panel>
-      <ui-accordion-panel value="scripts">
-        <ui-accordion-header>Scripts</ui-accordion-header>
-        <ui-accordion-content>
-          <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
-        </ui-accordion-content>
-      </ui-accordion-panel>
-    </ui-accordion>
+      <mat-expansion-panel
+        #authSection
+        [expanded]="mobileActivePanels() === 'auth'"
+        (opened)="onMobileIndexChange('auth')"
+        (closed)="onMobilePanelClosed('auth', authSection)"
+      >
+        <mat-expansion-panel-header>Auth <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-auth-editor
+          [auth]="requestAuth()"
+          [showPassword]="showAuthPassword()"
+          (authTypeChange)="onAuthTypeChange($event)"
+          (authChange)="requestAuth.set($event)"
+          (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
+        ></app-auth-editor>
+      </mat-expansion-panel>
+      <mat-expansion-panel
+        #scriptsSection
+        [expanded]="mobileActivePanels() === 'scripts'"
+        (opened)="onMobileIndexChange('scripts')"
+        (closed)="onMobilePanelClosed('scripts', scriptsSection)"
+      >
+        <mat-expansion-panel-header>Scripts <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
+      </mat-expansion-panel>
+    </mat-accordion>
   </section>
 
   @if (shouldShowResponsePanel) {
@@ -214,42 +226,52 @@
       <div uiSplitterStart class="composer-pane">
         <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
           <div class="px-2 pt-1">
-            <ui-tabs [value]="activeTab()" (valueChange)="onActiveTabChange($event)">
+            <div class="tabs">
               <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 w-full pr-2">
-                <ui-tablist>
-                  <ui-tab value="params">Params</ui-tab>
-                  <ui-tab value="headers">Headers</ui-tab>
+                <div mat-tab-nav-bar class="tab-bar" [tabPanel]="composerPanel" [mat-stretch-tabs]="false" disablePagination>
+                  <button mat-tab-link type="button" [active]="activeTab() === 'params'" (click)="onActiveTabChange('params')" (focus)="onActiveTabChange('params')">Params</button>
+                  <button mat-tab-link type="button" [active]="activeTab() === 'headers'" (click)="onActiveTabChange('headers')" (focus)="onActiveTabChange('headers')">Headers</button>
                   @if (isBodyMethod(selectedRequestMethod())) {
-                  <ui-tab value="body">Body</ui-tab>
+                  <button mat-tab-link type="button" [active]="activeTab() === 'body'" (click)="onActiveTabChange('body')" (focus)="onActiveTabChange('body')">Body</button>
                   }
-                  <ui-tab value="auth">Auth</ui-tab>
-                  <ui-tab value="scripts">Scripts</ui-tab>
-                </ui-tablist>
+                  <button mat-tab-link type="button" [active]="activeTab() === 'auth'" (click)="onActiveTabChange('auth')" (focus)="onActiveTabChange('auth')">Auth</button>
+                  <button mat-tab-link type="button" [active]="activeTab() === 'scripts'" (click)="onActiveTabChange('scripts')" (focus)="onActiveTabChange('scripts')">Scripts</button>
+                </div>
 
                 @if (activeTab() === 'headers' || activeTab() === 'body') {
-                <ui-segmented [options]="editorModeOptions" [value]="editorMode()" (valueChange)="onEditorModeChange($event)" aria-label="Editor mode" />
+                <mat-button-toggle-group
+                  class="segmented"
+                  hideSingleSelectionIndicator
+                  aria-label="Editor mode"
+                  [value]="editorMode()"
+                  (change)="onEditorModeChange($event.value)"
+                >
+                  @for (option of editorModeOptions; track option.value) {
+                  <mat-button-toggle [value]="option.value">{{ option.label }}</mat-button-toggle>
+                  }
+                </mat-button-toggle-group>
                 }
               </div>
 
-              <ui-tabpanels>
-                <ui-tabpanel value="params">
+              <mat-tab-nav-panel #composerPanel class="tab-panes">
+                <div class="tab-pane" [hidden]="activeTab() !== 'params'">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="paramsContent"></ng-container>
                   </div>
-                </ui-tabpanel>
-                <ui-tabpanel value="headers">
+                </div>
+                <div class="tab-pane" [hidden]="activeTab() !== 'headers'">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="headersContent"></ng-container>
                   </div>
-                </ui-tabpanel>
+                </div>
                 @if (isBodyMethod(selectedRequestMethod())) {
-                <ui-tabpanel value="body">
+                <div class="tab-pane" [hidden]="activeTab() !== 'body'">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="bodyContent"></ng-container>
                   </div>
-                </ui-tabpanel>
+                </div>
                 }
-                <ui-tabpanel value="auth">
+                <div class="tab-pane" [hidden]="activeTab() !== 'auth'">
                   <div class="px-4 pb-5">
                     <app-auth-editor
                       [auth]="requestAuth()"
@@ -259,14 +281,14 @@
                       (togglePasswordVisibility)="toggleAuthPasswordVisibility()"
                     ></app-auth-editor>
                   </div>
-                </ui-tabpanel>
-                <ui-tabpanel value="scripts">
+                </div>
+                <div class="tab-pane" [hidden]="activeTab() !== 'scripts'">
                   <div class="px-4 pb-5">
                     <ng-container *ngTemplateOutlet="scriptsContent"></ng-container>
                   </div>
-                </ui-tabpanel>
-              </ui-tabpanels>
-            </ui-tabs>
+                </div>
+              </mat-tab-nav-panel>
+            </div>
           </div>
         </section>
       </div>

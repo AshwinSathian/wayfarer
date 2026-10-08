@@ -156,3 +156,74 @@ html {
     )
   );
 }
+
+/* ── Segmented control (button toggle) ───────────────────── */
+html {
+  @include mat.button-toggle-overrides(
+    (
+      shape: var(--radius-sm),
+      divider-color: var(--separator),
+      background-color: transparent,
+      /* --label-secondary measures 4.27:1 on this control's background. */
+      text-color: var(--label-secondary-on-fill),
+      selected-state-background-color: var(--canvas-overlay),
+      selected-state-text-color: var(--label-primary),
+      label-text-size: 12px,
+      label-text-weight: 500,
+      label-text-tracking: -0.002em,
+      label-text-line-height: normal,
+      height: auto,
+      hover-state-layer-opacity: 0,
+      focus-state-layer-opacity: 0,
+    )
+  );
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+html {
+  @include mat.tabs-overrides(
+    (
+      divider-color: var(--separator),
+      active-indicator-color: var(--accent),
+      active-hover-indicator-color: var(--accent),
+      active-focus-indicator-color: var(--accent),
+      active-indicator-height: 2px,
+      active-indicator-shape: 0,
+      inactive-label-text-color: var(--label-secondary),
+      inactive-hover-label-text-color: var(--label-primary),
+      inactive-focus-label-text-color: var(--label-secondary),
+      active-label-text-color: var(--label-primary),
+      active-hover-label-text-color: var(--label-primary),
+      active-focus-label-text-color: var(--label-primary),
+      label-text-size: 13px,
+      label-text-weight: 500,
+      label-text-tracking: -0.002em,
+    )
+  );
+}
+
+/* ── Accordion (expansion panel) ─────────────────────────── */
+html {
+  @include mat.expansion-overrides(
+    (
+      container-background-color: var(--ctl-surface),
+      container-text-color: var(--ctl-surface-text),
+      container-shape: 6px,
+      container-elevation-shadow: none,
+      container-text-font: inherit,
+      container-text-size: inherit,
+      container-text-weight: inherit,
+      container-text-line-height: inherit,
+      container-text-tracking: inherit,
+      header-collapsed-state-height: auto,
+      header-expanded-state-height: auto,
+      header-text-font: inherit,
+      header-text-size: inherit,
+      header-text-weight: 600,
+      header-text-line-height: normal,
+      header-text-tracking: inherit,
+      header-hover-state-layer-color: transparent,
+      header-focus-state-layer-color: transparent,
+    )
+  );
+}

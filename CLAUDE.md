@@ -112,6 +112,19 @@ code errors.
   a filled or outlined button. Colours are the `--btn-*` variables in
   `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
   button that clicks a hidden `<input type="file">`.
+- Segmented choice: `<mat-button-toggle-group class="segmented"
+  hideSingleSelectionIndicator>`.
+- Tabs: a `mat-tab-nav-bar` (class `tab-bar`) of `<button mat-tab-link>` and
+  one `mat-tab-nav-panel` (class `tab-panes`) holding a `tab-pane` div per
+  tab, each with `[hidden]`. Not `mat-tab-group`: it renders a tab's content
+  only once selected, and an editor in a pane must stay mounted. Each link
+  selects on `(click)` and on `(focus)`, so arrow keys switch panels as they
+  move.
+- Accordion: `<mat-accordion class="sections" displayMode="flat" hideToggle>`
+  with the app's `section-chevron` icon in each header. To hold one panel
+  open from a signal, bind `[expanded]` and handle `(opened)` and
+  `(closed)`: `(closed)` fires for the panel another one replaced, after
+  that one's `(opened)`.
 - A token whose value is a variable set on the component (`--btn-fg`) must
   be overridden on the component's class, not on `html`: a variable is
   resolved where it is declared.
@@ -121,6 +134,10 @@ code errors.
 - Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
 - `matTooltip` takes text and watches focus on its host only. Put it on the
   focusable element, not on a wrapper.
+- An e2e test that expects a tooltip from the keyboard first moves the
+  pointer off the window's corner (`page.mouse.move`). A headless pointer
+  rests at (0, 0), where the CDK first places an overlay, and Material hides
+  a tooltip the pointer entered and left.
 
 ## Monaco
 

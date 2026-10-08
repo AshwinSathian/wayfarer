@@ -90,41 +90,40 @@
 
           <!-- Mobile accordion -->
           <div class="md:hidden">
-            <ui-accordion>
-              <ui-accordion-panel [value]="request.id ?? $index">
-                <ui-accordion-header>
+            <mat-accordion class="sections" displayMode="flat" hideToggle>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
                   <div class="flex items-center gap-2">
                     <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
                     <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
                   </div>
-                </ui-accordion-header>
-                <ui-accordion-content>
-                  <div class="space-y-2 type-callout text-label-secondary">
-                    @if (request.status !== undefined) {
-                    <p>Status: <span class="font-semibold">{{ request.status }}</span></p>
-                    }
-                    @if (request.durationMs) {
-                    <p>Duration: {{ formatDuration(request.durationMs) }}</p>
-                    }
-                    <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
-                    <div class="flex items-center gap-2">
-                      <button
-                        matButton class="btn-secondary btn-sm"
-                        type="button"
-                        aria-label="Load request"
-                        (click)="load(request)"
-                      >Load</button>
-                      <button
-                        matButton class="btn-danger btn-sm"
-                        type="button"
-                        aria-label="Delete request"
-                        (click)="confirmDelete(request, $event)"
-                      >Delete</button>
-                    </div>
+                  <app-icon class="section-chevron" name="keyboard_arrow_down" />
+                </mat-expansion-panel-header>
+                <div class="space-y-2 type-callout text-label-secondary">
+                  @if (request.status !== undefined) {
+                  <p>Status: <span class="font-semibold">{{ request.status }}</span></p>
+                  }
+                  @if (request.durationMs) {
+                  <p>Duration: {{ formatDuration(request.durationMs) }}</p>
+                  }
+                  <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+                  <div class="flex items-center gap-2">
+                    <button
+                      matButton class="btn-secondary btn-sm"
+                      type="button"
+                      aria-label="Load request"
+                      (click)="load(request)"
+                    >Load</button>
+                    <button
+                      matButton class="btn-danger btn-sm"
+                      type="button"
+                      aria-label="Delete request"
+                      (click)="confirmDelete(request, $event)"
+                    >Delete</button>
                   </div>
-                </ui-accordion-content>
-              </ui-accordion-panel>
-            </ui-accordion>
+                </div>
+              </mat-expansion-panel>
+            </mat-accordion>
           </div>
 
         </div>

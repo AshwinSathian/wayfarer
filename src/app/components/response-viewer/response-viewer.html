@@ -65,12 +65,12 @@
 
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="px-4 pt-1">
-      <ui-tabs [value]="activeTab()" (valueChange)="onTabChange($event)">
-        <ui-tablist>
-          <ui-tab value="body">Body</ui-tab>
-          <ui-tab value="headers">Headers</ui-tab>
-          <ui-tab value="timings">Timings</ui-tab>
-          <ui-tab value="tests">
+      <div class="tabs">
+        <div mat-tab-nav-bar class="tab-bar" [tabPanel]="responsePanel" [mat-stretch-tabs]="false" disablePagination>
+          <button mat-tab-link type="button" [active]="activeTab() === 'body'" (click)="onTabChange('body')" (focus)="onTabChange('body')">Body</button>
+          <button mat-tab-link type="button" [active]="activeTab() === 'headers'" (click)="onTabChange('headers')" (focus)="onTabChange('headers')">Headers</button>
+          <button mat-tab-link type="button" [active]="activeTab() === 'timings'" (click)="onTabChange('timings')" (focus)="onTabChange('timings')">Timings</button>
+          <button mat-tab-link type="button" [active]="activeTab() === 'tests'" (click)="onTabChange('tests')" (focus)="onTabChange('tests')">
             Tests
             @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
@@ -82,12 +82,12 @@
               }
             </span>
             }
-          </ui-tab>
-        </ui-tablist>
+          </button>
+        </div>
 
-        <ui-tabpanels>
+        <mat-tab-nav-panel #responsePanel class="tab-panes">
           <!-- ── Body tab ───────────────────────────────────── -->
-          <ui-tabpanel value="body">
+          <div class="tab-pane" [hidden]="activeTab() !== 'body'">
             <div class="space-y-3 pb-4">
               @if (responseBodyIsJson()) {
               <div class="flex flex-wrap items-center gap-2">
@@ -165,10 +165,10 @@
                 }
               }
             </div>
-          </ui-tabpanel>
+          </div>
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <ui-tabpanel value="headers">
+          <div class="tab-pane" [hidden]="activeTab() !== 'headers'">
             <div class="pb-4">
               <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden">
                 @if (responseHeaders().length) {
@@ -189,10 +189,10 @@
                 }
               </div>
             </div>
-          </ui-tabpanel>
+          </div>
 
           <!-- ── Timings tab ────────────────────────────────── -->
-          <ui-tabpanel value="timings">
+          <div class="tab-pane" [hidden]="activeTab() !== 'timings'">
             @let inspectionData = inspectionValue;
             @if (!inspectionData) {
             <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
@@ -301,10 +301,10 @@
               </div>
             </div>
             }
-          </ui-tabpanel>
+          </div>
 
           <!-- ── Tests tab ──────────────────────────────────── -->
-          <ui-tabpanel value="tests">
+          <div class="tab-pane" [hidden]="activeTab() !== 'tests'">
             <div class="space-y-2 pb-4">
               @if (!testResults().length) {
               <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
@@ -351,9 +351,9 @@
               </div>
               }
             </div>
-          </ui-tabpanel>
-        </ui-tabpanels>
-      </ui-tabs>
+          </div>
+        </mat-tab-nav-panel>
+      </div>
     </div>
   </div>
   }

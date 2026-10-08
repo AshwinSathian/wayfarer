@@ -12,13 +12,13 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { UI_ACCORDION } from "../../ui/accordion";
+import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { Select } from "../../ui/select";
 import { Splitter } from "../../ui/splitter";
-import { Segmented } from "../../ui/segmented";
-import { UI_TABS } from "../../ui/tabs";
+import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
+import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Idb } from "../../data/idb";
@@ -98,10 +98,11 @@ type ContextType = "Body" | "Headers";
     FormsModule,
     ReactiveFormsModule,
     MatButton, MatIconButton,
-    UI_ACCORDION,
+    MatAccordion, MatExpansionPanel, MatExpansionPanelHeader,
     Select,
-    Segmented,
-    UI_TABS,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatTabNav, MatTabLink, MatTabNavPanel,
     MatTooltip,
     Splitter,
     Dialog,
@@ -803,6 +804,16 @@ export class ApiParams {
     } else {
       this.activeTab.set("headers");
     }
+  }
+
+  /**
+   * A section was closed. If nothing else took its place the accordion goes
+   * back to Headers; closing Headers itself therefore reopens it.
+   */
+  onMobilePanelClosed(panel: string, section: MatExpansionPanel): void {
+    if (this.mobileActivePanels() !== panel) return;
+    this.onMobileIndexChange(null);
+    if (this.mobileActivePanels() === panel) section.open();
   }
 
   private syncMobilePanelsFromActiveTab(): void {

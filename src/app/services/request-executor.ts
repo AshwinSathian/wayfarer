@@ -1,7 +1,6 @@
 import { Injectable, inject } from "@angular/core";
-import { HttpErrorResponse, HttpHeaders } from "@angular/common/http";
-import { firstValueFrom } from "rxjs";
-import { HttpTransport } from "./http-transport";
+import { RequestSettings } from "./request-settings";
+import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import {
@@ -14,14 +13,22 @@ import {
   AssertionResponseContext,
 } from "../shared/scripts/assertion-runner";
 import { PastRequest } from "../models/history";
-import { BinaryBody } from "../shared/http/response-body";
 import { TestAssertion, TestResult } from "../models/test-assertion";
-import { newId, parseJson, stringifyJson } from "@wayfarer/core";
+import {
+  BinaryBody,
+  TransportError,
+  decodeEnvelope,
+  newId,
+  parseJson,
+  stringifyJson,
+  type ResponseEnvelope,
+} from "@wayfarer/core";
 
 export interface BuiltRequest {
   method: PastRequest["method"];
   url: string;
-  headers: Record<string, string>;
+  /** In the order they are sent. */
+  headers: [string, string][];
   body?: Record<string, unknown>;
   usesBody: boolean;
 }
@@ -63,7 +70,7 @@ function containsSecretPlaceholder(request: BuiltRequest): boolean {
     request.url,
     decodedUrl,
     JSON.stringify(request.headers),
-    ...Object.values(request.headers).map(decodeBasicCredentials),
+    ...request.headers.map(([, value]) => decodeBasicCredentials(value)),
     request.usesBody ? JSON.stringify(request.body ?? null) : "",
   ];
   return wire.some((text) => SECRET_PLACEHOLDER.test(text));
@@ -95,6 +102,8 @@ export interface RequestExecutionSpec {
    * sent, matching the ordering `pre-script -> build -> send` implies.
    */
   buildRequest: () => BuiltRequest;
+  /** Aborted when the user cancels the send. */
+  signal?: AbortSignal;
 }
 
 export interface RequestExecutionResponse {
@@ -108,6 +117,17 @@ export interface RequestExecutionResponse {
   contentLength?: number;
   /** Set when the body is binary; the viewer offers it as a download (F05). */
   binary?: BinaryBody;
+  /** The URL the response came from, when the request was redirected there. */
+  redirectedTo?: string;
+}
+
+/** One outcome of a send, in the shapes its three consumers take. */
+interface Shaped {
+  /** The decoded body, for the post-response script and the assertions. */
+  body: unknown;
+  headers: Record<string, string>;
+  historyError?: string;
+  response: RequestExecutionResponse;
 }
 
 export interface RequestExecutionResult {
@@ -127,7 +147,8 @@ export interface RequestExecutionResult {
  */
 @Injectable({ providedIn: "root" })
 export class RequestExecutor {
-  private readonly transport = inject(HttpTransport);
+  private readonly transport = inject(TransportRouter);
+  private readonly settings = inject(RequestSettings);
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly responseInspector = inject(ResponseInspector);
   private readonly scriptSandbox = inject(ScriptSandbox);
@@ -136,7 +157,6 @@ export class RequestExecutor {
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
     const requestId = newId();
-    const startedAt = performance.now();
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
 
@@ -163,108 +183,110 @@ export class RequestExecutor {
 
     this.responseInspector.markRequest(requestId, request.url);
 
+    // The duration is the transport call alone: no script time (F11).
+    const startedAt = performance.now();
+    let outcome: ResponseEnvelope | TransportError;
     try {
-      const response = await firstValueFrom(
-        this.transport.sendRequest(
-          request.method,
-          request.url,
-          request.headers,
-          request.usesBody ? request.body ?? {} : undefined
-        )
-      );
-      this.responseInspector.markResponse(requestId, request.url);
-
-      const durationMs = Math.round(performance.now() - startedAt);
-      const bodyIsJson = this.isJsonPayload(response.body);
-      const postTestResults = await this.runPostScriptAndAssertions(
-        spec,
-        response.status,
-        response.statusText ?? "",
-        response.body,
-        this.extractHeadersMap(response.headers),
-        durationMs
-      );
-      testResults = [...testResults, ...postTestResults];
-
-      const history: PastRequest = {
-        method: request.method,
-        url: request.url,
-        headers: request.headers,
-        createdAt,
-        status: response.status,
-        durationMs,
-      };
-      if (request.usesBody) {
-        history.body = request.body;
-      }
-
-      return {
-        durationMs,
-        testResults,
-        history,
-        response: {
-          isError: false,
-          statusCode: response.status,
-          statusText: response.statusText ?? "",
-          bodyIsJson,
-          dataText: bodyIsJson
-            ? this.serializeJsonPayload(response.body)
-            : this.stringifyPayload(response.body),
-          errorText: "",
-          headersView: this.extractHeadersList(response.headers),
-          contentLength: this.extractContentLength(response.headers),
-          binary: response.body instanceof BinaryBody ? response.body : undefined,
+      outcome = await this.transport.send(
+        {
+          method: request.method,
+          url: request.url,
+          headers: request.headers,
+          body: request.usesBody ? JSON.stringify(request.body ?? {}) : undefined,
         },
-      };
-    } catch (err) {
-      const error = err as HttpErrorResponse;
-      this.responseInspector.markResponse(requestId, request.url);
-
-      const durationMs = Math.round(performance.now() - startedAt);
-      const errorBody = this.resolveErrorBody(error);
-      const bodyIsJson = !this.isNetworkError(error) && this.isJsonPayload(error.error);
-      const postTestResults = await this.runPostScriptAndAssertions(
-        spec,
-        error.status,
-        error.statusText ?? "",
-        error.error,
-        this.extractHeadersMap(error.headers),
-        durationMs
+        { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }
       );
-      testResults = [...testResults, ...postTestResults];
-
-      const history: PastRequest = {
-        method: request.method,
-        url: request.url,
-        headers: request.headers,
-        createdAt,
-        status: error.status,
-        durationMs,
-        error: this.extractError(error),
-      };
-      if (request.usesBody) {
-        history.body = request.body;
-      }
-
-      return {
-        durationMs,
-        testResults,
-        history,
-        response: {
-          isError: true,
-          statusCode: error.status,
-          statusText: error.statusText ?? "",
-          bodyIsJson,
-          dataText: "",
-          errorText: bodyIsJson
-            ? this.serializeJsonPayload(errorBody)
-            : this.stringifyPayload(errorBody),
-          headersView: this.extractHeadersList(error.headers),
-          contentLength: this.extractContentLength(error.headers),
-          binary: error.error instanceof BinaryBody ? error.error : undefined,
-        },
-      };
+    } catch (error) {
+      if (!(error instanceof TransportError)) throw error;
+      outcome = error;
     }
+    const durationMs = Math.round(performance.now() - startedAt);
+    this.responseInspector.markResponse(requestId, request.url);
+
+    const shaped = outcome instanceof TransportError ? this.shapeFailure(outcome, request.url) : this.shapeResponse(outcome, request.url);
+    const postTestResults = await this.runPostScriptAndAssertions(
+      spec,
+      shaped.response.statusCode ?? 0,
+      shaped.response.statusText ?? "",
+      shaped.body,
+      shaped.headers,
+      durationMs
+    );
+    testResults = [...testResults, ...postTestResults];
+
+    const history: PastRequest = {
+      method: request.method,
+      url: request.url,
+      headers: Object.fromEntries(request.headers),
+      createdAt,
+      durationMs,
+    };
+    if (shaped.response.statusCode !== undefined) {
+      history.status = shaped.response.statusCode;
+    }
+    if (shaped.historyError) {
+      history.error = shaped.historyError;
+    }
+    if (request.usesBody) {
+      history.body = request.body;
+    }
+
+    return { durationMs, testResults, history, response: shaped.response };
+  }
+
+  /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */
+  private shapeResponse(envelope: ResponseEnvelope, url: string): Shaped {
+    const body = decodeEnvelope(envelope);
+    const isError = envelope.status < 200 || envelope.status >= 300;
+    const failureText = `Http failure response for ${url}: ${envelope.status} ${envelope.statusText}`;
+    const shown = isError ? body ?? failureText : body;
+    const bodyIsJson = this.isJsonPayload(shown);
+    const text = bodyIsJson ? this.serializeJsonPayload(shown) : this.stringifyPayload(shown);
+    const header = (name: string) => envelope.headers.find(([key]) => key.toLowerCase() === name)?.[1];
+    const contentLength = Number(header("content-length") || NaN);
+    return {
+      body,
+      headers: Object.fromEntries(envelope.headers),
+      historyError: isError ? failureText : undefined,
+      response: {
+        isError,
+        statusCode: envelope.status,
+        statusText: envelope.statusText,
+        bodyIsJson,
+        dataText: isError ? "" : text,
+        errorText: isError ? text : "",
+        headersView: envelope.headers
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+        contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
+        binary: body instanceof BinaryBody ? body : undefined,
+        redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
+      },
+    };
+  }
+
+  /**
+   * No response arrived. The browser does not say why a request failed, so
+   * a network failure gets the guidance text (F06); a timeout, a cancel and
+   * the Local Bridge say what happened themselves.
+   */
+  private shapeFailure(failure: TransportError, url: string): Shaped {
+    const network = failure.kind === "network";
+    const statusCode = network ? 0 : failure.kind === "bridge" ? failure.status ?? 0 : undefined;
+    return {
+      body: network ? undefined : failure.message,
+      headers: {},
+      historyError: network ? `Http failure response for ${url}: 0 Unknown Error` : failure.message,
+      response: {
+        isError: true,
+        statusCode,
+        statusText: network ? "Unknown Error" : "",
+        bodyIsJson: false,
+        dataText: "",
+        errorText: network ? NETWORK_ERROR_TEXT : failure.message,
+        headersView: [],
+      },
+    };
   }
 
   private async runPostScriptAndAssertions(
@@ -347,81 +369,6 @@ export class RequestExecutor {
       return parseJson(payload).ok;
     }
     return false;
-  }
-
-  /**
-   * True when the browser never got a response to parse — a CORS rejection,
-   * DNS failure, refused connection, etc. In that case `HttpErrorResponse.error`
-   * is the raw `ProgressEvent`/`ErrorEvent` the browser fired, not a response
-   * body. Stringifying that object directly used to leak `{"isTrusted":true}`
-   * (an Event's only own-enumerable property) into the response viewer instead
-   * of a readable message.
-   */
-  private isNetworkError(error: HttpErrorResponse): boolean {
-    if (error.status === 0) {
-      return true;
-    }
-    return error.error instanceof ProgressEvent || error.error instanceof ErrorEvent;
-  }
-
-  private resolveErrorBody(error: HttpErrorResponse): unknown {
-    if (this.isNetworkError(error)) {
-      // A string here is the Local Bridge's own explanation; keep it. The
-      // HttpClient message ("Http failure response for ...: 0 Unknown Error")
-      // says nothing useful, so it never wins over the guidance (F06).
-      if (typeof error.error === "string" && error.error) {
-        return error.error;
-      }
-      return NETWORK_ERROR_TEXT;
-    }
-    return error.error ?? error.message;
-  }
-
-  private extractError(error: HttpErrorResponse): string {
-    if (error.message) {
-      return error.message;
-    }
-    return "Unknown error";
-  }
-
-  private extractHeadersList(
-    headers: HttpHeaders | null | undefined
-  ): { name: string; value: string }[] {
-    if (!headers) {
-      return [];
-    }
-    const keys = headers.keys();
-    return keys
-      .map((name) => {
-        const values = headers.getAll(name);
-        return {
-          name,
-          value: values && values.length ? values.join(", ") : "",
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  private extractHeadersMap(headers: HttpHeaders | null | undefined): Record<string, string> {
-    if (!headers) {
-      return {};
-    }
-    return headers.keys().reduce((acc, key) => {
-      acc[key] = headers.get(key) ?? "";
-      return acc;
-    }, {} as Record<string, string>);
-  }
-
-  private extractContentLength(headers: HttpHeaders | null | undefined): number | undefined {
-    if (!headers) {
-      return undefined;
-    }
-    const value = headers.get("content-length");
-    if (!value) {
-      return undefined;
-    }
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
   }
 
   private serializeJsonPayload(payload: unknown): string {

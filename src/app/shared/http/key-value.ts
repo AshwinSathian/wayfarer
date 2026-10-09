@@ -1,7 +1,7 @@
 /**
  * Pure conversions between the composer's key/value row editors
  * (Headers/Body/Params tabs, each backed by a `{ key, value }[]` signal)
- * and the plain objects the rest of the app (HttpClient calls, the JSON
+ * and the plain objects the rest of the app (the transport, the JSON
  * editor, `RequestDoc` persistence) actually deals in.
  */
 

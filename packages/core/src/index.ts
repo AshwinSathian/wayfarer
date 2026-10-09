@@ -1,3 +1,4 @@
+export { BinaryBody, decodeEnvelope } from "./http/response-body";
 export { newId } from "./id";
 export {
   V4_METHODS,
@@ -26,3 +27,12 @@ export {
   readImportText,
   stringifyJson,
 } from "./safe-json";
+export { BridgeTransport } from "./transport/bridge";
+export { FetchTransport } from "./transport/fetch";
+export {
+  TransportError,
+  type ResolvedRequest,
+  type ResponseEnvelope,
+  type Transport,
+  type TransportOptions,
+} from "./transport/transport";

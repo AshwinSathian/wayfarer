@@ -1,29 +1,61 @@
 import { TestBed } from "@angular/core/testing";
-import { HttpErrorResponse, HttpResponse } from "@angular/common/http";
-import { Observable, of, throwError } from "rxjs";
+import {
+  BinaryBody,
+  TransportError,
+  type ResolvedRequest,
+  type ResponseEnvelope,
+  type TransportOptions,
+} from "@wayfarer/core";
 import { signal } from "@angular/core";
 import { RequestExecutor, BuiltRequest, SendBlockedError } from "./request-executor";
-import { HttpTransport } from "./http-transport";
+import { RequestSettings } from "./request-settings";
+import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { SCRIPTS_ENABLED, ScriptSandbox } from "../shared/scripts/script-sandbox";
 import { AssertionRunner } from "../shared/scripts/assertion-runner";
 import { EnvironmentDoc } from "../models/environments";
-import { BinaryBody } from "../shared/http/response-body";
 import { ScriptExecutionResult } from "../models/test-assertion";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
-class MainServiceStub {
-  private response$: Observable<HttpResponse<unknown>> = of(
-    new HttpResponse({ status: 200, statusText: "OK", body: { ok: true } })
-  );
+const bytes = (value: unknown): ArrayBuffer =>
+  value === undefined ? new ArrayBuffer(0) : new TextEncoder().encode(typeof value === "string" ? value : JSON.stringify(value)).buffer;
 
-  sendRequest = vi.fn()
-    .mockImplementation(() => this.response$);
+/** A response as the transport returns it, with a JSON body by default. */
+function envelope(status: number, statusText: string, body?: unknown, contentType = "application/json"): ResponseEnvelope {
+  const buffer = body instanceof ArrayBuffer ? body : bytes(body);
+  return {
+    status,
+    statusText,
+    headers: [["content-type", contentType]],
+    body: buffer,
+    redirected: false,
+    finalUrl: "",
+    route: "direct",
+    sizes: { decoded: buffer.byteLength },
+  };
+}
 
-  setResponse(response$: Observable<HttpResponse<unknown>>): void {
-    this.response$ = response$;
-    this.sendRequest.mockImplementation(() => this.response$);
+class TransportStub {
+  private outcome: ResponseEnvelope | TransportError = envelope(200, "OK", { ok: true });
+
+  /** The call as the specs have always asserted it: method, URL, headers, body. */
+  sendRequest = vi.fn();
+  options: TransportOptions | undefined;
+
+  send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
+    this.options = options;
+    this.sendRequest(
+      request.method,
+      request.url,
+      Object.fromEntries(request.headers),
+      typeof request.body === "string" ? (JSON.parse(request.body) as unknown) : request.body
+    );
+    return this.outcome instanceof TransportError ? Promise.reject(this.outcome) : Promise.resolve(this.outcome);
+  }
+
+  setResponse(outcome: ResponseEnvelope | TransportError): void {
+    this.outcome = outcome;
   }
 }
 
@@ -72,7 +104,7 @@ function builtRequest(overrides: Partial<BuiltRequest> = {}): BuiltRequest {
   return {
     method: "GET",
     url: "https://example.com/data",
-    headers: {},
+    headers: [],
     usesBody: false,
     ...overrides,
   };
@@ -80,13 +112,13 @@ function builtRequest(overrides: Partial<BuiltRequest> = {}): BuiltRequest {
 
 describe("RequestExecutor", () => {
   let service: RequestExecutor;
-  let transport: MainServiceStub;
+  let transport: TransportStub;
   let responseInspector: ResponseInspectorServiceStub;
   let environmentsService: EnvironmentsServiceStub;
   let scriptSandbox: ScriptSandboxServiceStub;
 
   beforeEach(() => {
-    transport = new MainServiceStub();
+    transport = new TransportStub();
     responseInspector = new ResponseInspectorServiceStub();
     environmentsService = new EnvironmentsServiceStub();
     scriptSandbox = new ScriptSandboxServiceStub();
@@ -95,7 +127,7 @@ describe("RequestExecutor", () => {
       providers: [
         RequestExecutor,
         AssertionRunner,
-        { provide: HttpTransport, useValue: transport },
+        { provide: TransportRouter, useValue: transport },
         { provide: ResponseInspector, useValue: responseInspector },
         { provide: EnvironmentsStore, useValue: environmentsService },
         { provide: ScriptSandbox, useValue: scriptSandbox },
@@ -105,9 +137,7 @@ describe("RequestExecutor", () => {
   });
 
   it("sends the request built by buildRequest() and shapes a successful JSON response", async () => {
-    transport.setResponse(
-      of(new HttpResponse({ status: 200, statusText: "OK", body: { hello: "world" } }))
-    );
+    transport.setResponse(envelope(200, "OK", { hello: "world" }));
 
     const result = await service.execute({
       preRequestScript: "",
@@ -183,12 +213,8 @@ describe("RequestExecutor", () => {
   });
 
   it("shapes a network error (status 0) into a readable message rather than leaking the raw event", async () => {
-    const progressEvent =
-      typeof ProgressEvent !== "undefined" ? new ProgressEvent("error") : ({} as ProgressEvent);
-    // HttpClient always sets a message ("Http failure response for ...: 0
-    // Unknown Error"), which used to win over the guidance text (P0.5, #63).
-    const error = new HttpErrorResponse({ status: 0, error: progressEvent, url: "https://x.invalid/" });
-    transport.setResponse(throwError(() => error));
+    // The browser says no more than "Failed to fetch"; the guidance text is shown instead (P0.5, #63).
+    transport.setResponse(new TransportError("network", "Failed to fetch"));
 
     const result = await service.execute({
       preRequestScript: "",
@@ -207,12 +233,7 @@ describe("RequestExecutor", () => {
   });
 
   it("shapes a JSON error body from a real HTTP error response", async () => {
-    const error = new HttpErrorResponse({
-      status: 500,
-      statusText: "Server Error",
-      error: { message: "boom" },
-    });
-    transport.setResponse(throwError(() => error));
+    transport.setResponse(envelope(500, "Server Error", { message: "boom" }));
 
     const result = await service.execute({
       preRequestScript: "",
@@ -275,9 +296,7 @@ describe("RequestExecutor", () => {
   });
 
   it("runs the post-response script with response context and merges its test results", async () => {
-    transport.setResponse(
-      of(new HttpResponse({ status: 201, statusText: "Created", body: { id: 1 } }))
-    );
+    transport.setResponse(envelope(201, "Created", { id: 1 }));
     scriptSandbox.setNextResult({
       logs: [],
       envMutations: {},
@@ -302,9 +321,7 @@ describe("RequestExecutor", () => {
   });
 
   it("runs visual test assertions against the response and merges them into testResults", async () => {
-    transport.setResponse(
-      of(new HttpResponse({ status: 200, statusText: "OK", body: {} }))
-    );
+    transport.setResponse(envelope(200, "OK", {}));
 
     const result = await service.execute({
       preRequestScript: "",
@@ -345,7 +362,7 @@ describe("RequestExecutor", () => {
         providers: [
           RequestExecutor,
           AssertionRunner,
-          { provide: HttpTransport, useValue: transport },
+          { provide: TransportRouter, useValue: transport },
           { provide: ResponseInspector, useValue: responseInspector },
           { provide: EnvironmentsStore, useValue: environmentsService },
           { provide: ScriptSandbox, useValue: scriptSandbox },
@@ -374,12 +391,12 @@ describe("RequestExecutor", () => {
     const secret = "{{$secret.0b6f1c2e-0000-4000-8000-000000000001}}";
     const cases: [string, Partial<BuiltRequest>][] = [
       ["URL", { url: `https://example.com/?key=${secret}` }],
-      ["header value", { headers: { "X-Api-Key": secret } }],
-      ["header name", { headers: { [secret]: "1" } }],
+      ["header value", { headers: [["X-Api-Key", secret]] }],
+      ["header name", { headers: [[secret, "1"]] }],
       ["nested body", { method: "POST", usesBody: true, body: { a: { b: [secret] } } }],
-      ["spaced placeholder", { headers: { Authorization: "Bearer {{ $secret.abc }}" } }],
+      ["spaced placeholder", { headers: [["Authorization", "Bearer {{ $secret.abc }}"]] }],
       ["percent-encoded URL", { url: "https://example.com/?key=%7B%7B%24secret.abc%7D%7D" }],
-      ["Basic credentials", { headers: { Authorization: `Basic ${btoa(`user:${secret}`)}` } }],
+      ["Basic credentials", { headers: [["Authorization", `Basic ${btoa(`user:${secret}`)}`]] }],
     ];
 
     for (const [where, overrides] of cases) {
@@ -401,7 +418,7 @@ describe("RequestExecutor", () => {
         preRequestScript: "",
         postRequestScript: "",
         tests: [],
-        buildRequest: () => builtRequest({ headers: { "X-Id": "{{missing}}" } }),
+        buildRequest: () => builtRequest({ headers: [["X-Id", "{{missing}}"]] }),
       });
       expect(transport.sendRequest).toHaveBeenCalledTimes(1);
     });
@@ -409,7 +426,7 @@ describe("RequestExecutor", () => {
 
   it("passes a binary body through for download instead of stringifying it (P0.4, #62)", async () => {
     const png = new BinaryBody(new Uint8Array([0x89, 0x50]).buffer, "image/png");
-    transport.setResponse(of(new HttpResponse({ status: 200, statusText: "OK", body: png })));
+    transport.setResponse(envelope(200, "OK", png.bytes, "image/png"));
 
     const result = await service.execute({
       preRequestScript: "",
@@ -418,8 +435,90 @@ describe("RequestExecutor", () => {
       buildRequest: () => builtRequest(),
     });
 
-    expect(result.response.binary).toBe(png);
+    // The executor decodes the transport's bytes itself now, so this is an equal body, not the same object.
+    expect(result.response.binary).toEqual(png);
     expect(result.response.bodyIsJson).toBe(false);
     expect(result.response.dataText).toBe("");
+  });
+
+  // P2.3 (F10, F11)
+  it("passes the caller's signal and the timeout setting to the transport", async () => {
+    TestBed.inject(RequestSettings).timeoutMs.set(1500);
+    const controller = new AbortController();
+
+    await service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
+
+    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500 });
+  });
+
+  it("measures the duration around the transport call only, not the pre-request script (F11)", async () => {
+    let clock = 0;
+    vi.spyOn(performance, "now").mockImplementation(() => clock);
+    scriptSandbox.execute.mockImplementation(async () => {
+      clock += 5000;
+      return { logs: [], envMutations: {}, testResults: [] };
+    });
+    const send = transport.send.bind(transport);
+    transport.send = (request, options) => {
+      clock += 120;
+      return send(request, options);
+    };
+
+    const result = await service.execute({
+      preRequestScript: "pm.environment.set('a', '1');",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+    vi.restoreAllMocks();
+
+    expect(scriptSandbox.execute).toHaveBeenCalled();
+    expect(result.durationMs).toBe(120);
+    expect(result.history.durationMs).toBe(120);
+  });
+
+  it("shows a timeout and a cancel as what they are, with no status", async () => {
+    for (const failure of [
+      new TransportError("timeout", "Timed out after 1000 ms"),
+      new TransportError("aborted", "The request was cancelled."),
+    ]) {
+      transport.setResponse(failure);
+      const result = await service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+
+      expect(result.response).toEqual(
+        expect.objectContaining({ isError: true, statusCode: undefined, errorText: failure.message, dataText: "" })
+      );
+      expect(result.history.status).toBeUndefined();
+      expect(result.history.error).toBe(failure.message);
+    }
+  });
+
+  it("shows the Local Bridge's own failure with the status it answered", async () => {
+    transport.setResponse(new TransportError("bridge", "invalid or missing bridge token", 401));
+
+    const result = await service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+
+    expect(result.response).toEqual(
+      expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" })
+    );
+  });
+
+  it("reports the final URL of a redirected request, and an error status with no body by its status line", async () => {
+    transport.setResponse({ ...envelope(200, "OK", { ok: true }), redirected: true, finalUrl: "https://example.com/end" });
+    const redirected = await service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    expect(redirected.response.redirectedTo).toBe("https://example.com/end");
+
+    transport.setResponse(envelope(404, "Not Found"));
+    const missing = await service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    expect(missing.response.redirectedTo).toBeUndefined();
+    expect(missing.response.errorText).toBe("Http failure response for https://example.com/data: 404 Not Found");
+    expect(missing.history.error).toBe("Http failure response for https://example.com/data: 404 Not Found");
+  });
+
+  it("rethrows what is not a transport failure", async () => {
+    transport.send = () => Promise.reject(new RangeError("bug"));
+    await expect(
+      service.execute({ preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() })
+    ).rejects.toThrow(RangeError);
   });
 });

@@ -30,6 +30,12 @@
       <!-- Status text -->
       <span class="type-callout text-label-secondary">{{ responseStatusText() }}</span>
 
+      @if (redirectedTo(); as finalUrl) {
+      <span class="redirect-note type-footnote text-label-secondary min-w-0 break-all">
+        Redirected to <span class="font-mono">{{ finalUrl }}</span>
+      </span>
+      }
+
       @let inspData = inspectionValue;
 
       <!-- Duration -->

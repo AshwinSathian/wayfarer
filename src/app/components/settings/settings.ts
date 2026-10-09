@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme } from "../../services/theme";
 import { BridgeSettings } from "../../services/bridge-settings";
+import { RequestSettings } from "../../services/request-settings";
 import { PaletteAction } from "../collections/collections-sidebar";
 import {
   serializeEnvironmentExport,
@@ -30,7 +33,7 @@ interface KeyboardShortcut {
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, MatButton, Dialog],
+  imports: [Icon, MatButton, MatFormField, MatInput, Dialog],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +41,7 @@ interface KeyboardShortcut {
 export class Settings {
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
+  readonly requestSettings = inject(RequestSettings);
   private readonly environmentsService = inject(EnvironmentsStore);
 
   readonly visible = model(false);

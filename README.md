@@ -172,7 +172,6 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - The vault passphrase can't be rotated ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
-- No request cancel or timeout ([#67](https://github.com/AshwinSathian/wayfarer/issues/67)); duration includes script time ([#68](https://github.com/AshwinSathian/wayfarer/issues/68)).
 - History and exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).
 - No full-workspace backup; browser storage can be evicted ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).

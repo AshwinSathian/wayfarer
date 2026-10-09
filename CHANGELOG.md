@@ -7,7 +7,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **Cancel.** While a request is in flight, **Send** becomes **Cancel**;
+  pressing it stops the request at once. There was no way to stop one.
+- **Request timeout**, under Settings, Network: the milliseconds after which
+  a request is given up, with "Timed out after N ms" in place of a
+  response. The default, 0, waits for as long as it takes, as before.
+- A redirected request says so: "Redirected to" and the address the
+  response came from, beside the status.
+
 ### Changed
+
+- **Requests are sent with the browser's `fetch`**, and carry nothing of
+  Wayfarer's own: no `Referer`, no cookies, no cached answer. `Accept` is
+  what you set, or `*/*`; it used to be `application/json, text/plain, */*`
+  whenever you set none.
+- **The duration no longer includes a pre-request script's time.** It is
+  measured around the request alone.
+- A response body over 50 MB is offered as a download and not read into
+  the page.
+- The initial download is 1,134.07 kB (282.44 kB compressed), down from
+  1,151.73 kB: Angular's HTTP client is no longer part of it. The size
+  budgets are that measurement plus 10%.
 
 - For contributors: the repository is an npm workspace, and the parts of
   Wayfarer that do not need a browser page start moving into
@@ -18,6 +40,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   (body types, tabs) is added to those. Nothing changes on screen: 192
   screenshots at three widths, in both themes and three browsers, are
   identical to the previous build.
+
+### Fixed
+
+- A header named `__proto__` is sent, and appears in **Copy as cURL**. It
+  was silently left out of both.
 
 ## [1.4.0] - 2026-10-09
 

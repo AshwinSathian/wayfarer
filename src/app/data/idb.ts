@@ -110,6 +110,10 @@ export class Idb {
     return this.collections.duplicateCollection(id);
   }
 
+  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
+    return this.collections.changeCollectionVariables(id, changes);
+  }
+
   async deleteCollection(id: CollectionId): Promise<void> {
     return this.collections.deleteCollection(id);
   }
@@ -229,6 +233,14 @@ export class Idb {
 
   async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
     return this.environments.reorderEnvironments(order);
+  }
+
+  async getGlobals(): Promise<Row[]> {
+    return this.environments.getGlobals();
+  }
+
+  async changeGlobals(changes: VariableChange[]): Promise<Row[]> {
+    return this.environments.changeGlobals(changes);
   }
 
   async getActiveEnvironmentId(): Promise<EnvironmentId | null> {

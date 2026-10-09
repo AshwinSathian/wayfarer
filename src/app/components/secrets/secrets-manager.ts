@@ -22,7 +22,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { SecretCrypto } from "../../shared/secrets/secret-crypto";
 import { extractSecretId } from "../../shared/secrets/secret-reference";
 import { VariableFocus } from "../../services/variable-focus";
-import { VariableToken } from "../../shared/environments/env-resolution";
+import { VariableToken } from "../../services/variable-focus";
 import { Icon } from "../../shared/icon/icon";
 
 interface SecretUsage {

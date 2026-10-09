@@ -148,7 +148,6 @@ These are open, tracked, and scheduled in
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit), and there is no full-workspace backup yet ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 - The browser adds or hides some headers without telling you ([#81](https://github.com/AshwinSathian/wayfarer/issues/81)).
-- Edits to the same environment from two tabs can overwrite each other ([#94](https://github.com/AshwinSathian/wayfarer/issues/94)).
 
 All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09).
 

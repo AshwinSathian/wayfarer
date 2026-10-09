@@ -1,19 +1,19 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **6** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **7** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
 | `history`      | `id` (auto) | `by-createdAt`, `by-url`, `by-method`               | Requests as they were sent, with status and duration.     |
-| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, and whether their scripts are trusted. |
+| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, and whether their scripts are trusted. |
 | `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection.                    |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows.                 |
 | `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext).           |
 | `files`        | the file id | —                                                   | The files of multipart and binary request bodies: bytes and type. |
-| `meta`         | `key`       | —                                                   | App state: the active environment.                        |
+| `meta`         | `key`       | —                                                   | Two records: `state` (the active environment) and `globals` (the global variables). |
 
 ## Version 5 starts empty
 
@@ -23,6 +23,8 @@ Collection and environment files written before version 5 (they have no `$id`) a
 
 Version 6 added the `files` store and changed nothing else: a version 5 database keeps its data.
 
+Version 7 gave collections their variables. The upgrade adds an empty list to each stored collection and removes nothing. The global variables are a new record, `globals`, in `meta`; a database without it has none.
+
 ## Files
 
 A file picked for a request body is kept in memory until the request is saved. Saving writes it to `files` in the same transaction as the request. A file is deleted when no saved request names it any more: when the request is deleted (alone, or with its folder or collection), when its body lets go of the file, or when an import replaces the request. A copy of a request names the same file, and the file stays until the last of them is gone. A file can be 50 MB at most.
@@ -31,7 +33,7 @@ A file picked for a request body is kept in memory until the request is saved. S
 
 Every tab of the app uses the one database. After a write, the tab says which stores it touched on the BroadcastChannel `wayfarer:data`, and the other tabs read those stores again: a collection, an environment or a sent request made in one tab shows in the others without a reload. The request being composed is not replaced.
 
-A change to an environment's variables is sent as the change (set this name, remove that one), and applied to the stored variables inside the transaction that writes them. So two tabs that each add a variable to the same environment both keep theirs. Replacing an environment from an import file still replaces all of its variables.
+A change to an environment's variables is sent as the change (set this name, remove that one), and applied to the stored variables inside the transaction that writes them. So two tabs that each add a variable to the same environment both keep theirs. Replacing an environment from an import file still replaces all of its variables. A collection's variables and the global variables are changed the same way.
 
 ## When versions meet
 

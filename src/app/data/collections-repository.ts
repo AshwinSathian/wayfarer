@@ -9,7 +9,7 @@ import {
 } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
-import { newId } from "@wayfarer/core";
+import { applyVariableChanges, newId, type VariableChange } from "@wayfarer/core";
 
 /**
  * Collection-level CRUD + import/export. Folder and request CRUD used to
@@ -46,11 +46,29 @@ export class CollectionsRepository {
         name: payload.name.trim(),
         description: payload.description?.trim() || undefined,
         order: await this.core.nextOrder(store.index("by-order")),
+        variables: [],
         scriptTrust: { trusted: true },
       };
       this.core.ensureId(doc);
       await store.add(doc);
       return doc;
+    });
+  }
+
+  /** Changes some variables of a collection, reading the stored rows inside the transaction that writes them (D22). */
+  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["collections"]);
+    const store = tx.objectStore("collections");
+    return this.core.commitOrRollback(tx, async () => {
+      const existing = await store.get(id);
+      if (!existing) {
+        return null;
+      }
+      existing.variables = applyVariableChanges(existing.variables, changes);
+      existing.meta = this.core.touchMeta(existing.meta);
+      await store.put(existing);
+      return existing;
     });
   }
 

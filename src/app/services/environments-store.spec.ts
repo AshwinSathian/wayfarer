@@ -12,6 +12,8 @@ class IdbServiceMock {
   };
   listEnvironments = vi.fn().mockResolvedValue([]);
   getActiveEnvironmentId = vi.fn().mockResolvedValue(null);
+  getGlobals = vi.fn().mockResolvedValue([]);
+  changeGlobals = vi.fn();
   setActiveEnvironment = vi.fn().mockResolvedValue(undefined);
   createEnvironment = vi.fn();
   updateEnvironment = vi.fn();

@@ -1,4 +1,4 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson, validateRequestContent } from "@wayfarer/core";
+import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson, validateRequestContent, validateRows } from "@wayfarer/core";
 import {
   COLLECTION_FORMAT,
   Collection,
@@ -275,6 +275,7 @@ function validateCollectionDoc(
   validateRequiredString(doc?.id ?? doc?.meta?.id, `${path}.id`, errors);
   validateRequiredString(doc?.name, `${path}.name`, errors);
   validateNumber(doc?.order, `${path}.order`, errors);
+  errors.push(...validateRows(doc?.variables, `${path}.variables`));
 }
 
 function validateFolderDoc(

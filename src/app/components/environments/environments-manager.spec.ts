@@ -8,7 +8,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { SecretCrypto } from "../../shared/secrets/secret-crypto";
 import { VariableFocus } from "../../services/variable-focus";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
-import { VariableToken } from "../../shared/environments/env-resolution";
+import { VariableToken } from "../../services/variable-focus";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function makeEnv(id: EnvironmentId, vars: Record<string, string> = {}): EnvironmentDoc {
@@ -26,6 +26,7 @@ class EnvironmentsServiceStub {
   private readonly activeState = signal<EnvironmentDoc | null>(null);
   readonly environments = this.environmentsState.asReadonly();
   readonly activeEnvironment = this.activeState.asReadonly();
+  readonly globals = signal([]);
   readonly loading = signal(false);
 
   readonly createCalls: unknown[] = [];

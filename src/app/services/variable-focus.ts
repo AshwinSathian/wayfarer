@@ -1,6 +1,9 @@
 import { Injectable } from "@angular/core";
 import { Subject } from "rxjs";
-import { VariableToken } from "../shared/environments/env-resolution";
+import type { VariableToken as ResolvedToken } from "@wayfarer/core";
+
+/** A variable of the request being composed, and for one from an environment, which environment. */
+export type VariableToken = ResolvedToken & { environmentId?: string };
 
 @Injectable({
   providedIn: "root",

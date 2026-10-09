@@ -22,6 +22,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Variables for a collection, and global variables.** A collection has
+  its own variables (right-click it, **Variables**) and there are global
+  ones (**Global variables** in the Environments panel). `{{name}}` takes
+  the active environment's value, then the collection's, then the global
+  one. Before, only the active environment had variables.
+- **A variable's value may use other variables**, up to 10 deep: with
+  `url` set to `https://{{host}}/v1`, `{{url}}` is the whole address.
+  Variables that refer to each other in a circle are not sent, and the
+  composer says which.
+- **Dynamic variables**: `{{$guid}}`, `{{$randomUUID}}`, `{{$timestamp}}`,
+  `{{$isoTimestamp}}`, `{{$randomInt}}` and `{{$randomAlphaNumeric}}` give
+  a new value on every send. See [`docs/variables.md`](docs/variables.md).
+- A collection file now holds the collection's `variables`, and a file
+  without that field is refused. Stored collections keep their data: the
+  database moves to version 7 and each collection gets an empty list.
+
 - **Two tabs stay in step.** A collection, a request, an environment or a
   history entry saved in one tab appears in the other within a second;
   before, the other tab showed it only after a reload.

@@ -15,6 +15,7 @@ export class EnvironmentsStore {
   private readonly environmentsState = signal<EnvironmentDoc[]>([]);
   private readonly activeIdState = signal<EnvironmentId | null>(null);
   private readonly loadingState = signal(false);
+  private readonly globalsState = signal<Row[]>([]);
 
   constructor() {
     // Another tab changed an environment, or which one is active.
@@ -35,6 +36,8 @@ export class EnvironmentsStore {
       : null;
   });
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
+  /** The global variables: any request can use them, under any environment. */
+  readonly globals = this.globalsState.asReadonly();
 
   async ensureLoaded(): Promise<void> {
     if (!this.environmentsState().length && !this.loadingState()) {
@@ -47,6 +50,7 @@ export class EnvironmentsStore {
     try {
       const environments = await this.idb.listEnvironments();
       this.environmentsState.set(environments);
+      this.globalsState.set(await this.idb.getGlobals());
       const active = await this.idb.getActiveEnvironmentId();
       if (active) {
         this.activeIdState.set(active);
@@ -90,6 +94,13 @@ export class EnvironmentsStore {
     const doc = await this.idb.changeEnvironment(id, changes, details);
     await this.refresh();
     return doc;
+  }
+
+  /** Changes some global variables without replacing the rest; gives back what is stored now. */
+  async changeGlobals(changes: VariableChange[]): Promise<Row[]> {
+    const stored = await this.idb.changeGlobals(changes);
+    this.globalsState.set(stored);
+    return stored;
   }
 
   async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {

@@ -76,7 +76,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(6);
+    expect(DB_VERSION).toBe(7);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -93,7 +93,7 @@ describe("opening a database left by another release", () => {
     expect(collection.order).toBe(1);
   });
 
-  it("keeps what version 5 stored, and adds the files store (version 6)", async () => {
+  it("keeps what version 5 stored, adds the files store (version 6) and gives a collection its variables (version 7)", async () => {
     const v5 = await openRaw(5, (db) => {
       db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
       const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
@@ -107,9 +107,9 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(6);
+    expect(db.version).toBe(7);
     expect([...db.objectStoreNames]).toContain("files");
-    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Kept"]);
+    expect((await idb.listCollections()).map((c) => [c.name, c.variables, c.scriptTrust])).toEqual([["Kept", [], { trusted: true }]]);
     expect(core.clearedOldData()).toBe(false);
   });
 

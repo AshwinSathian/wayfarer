@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { VariableFocus } from "../../services/variable-focus";
-import { VariableToken } from "../../shared/environments/env-resolution";
+import { VariableToken } from "../../services/variable-focus";
 import { WorkspaceStore } from "../../state/workspace-store";
 
 /** One chip per `{{variable}}` in the draft, with its source and value. */

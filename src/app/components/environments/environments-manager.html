@@ -4,6 +4,9 @@
     <div class="mb-3 flex items-center justify-between gap-2">
       <span class="type-overline text-label-tertiary">Environments</span>
       <div class="flex items-center gap-0.5">
+        <button type="button" matIconButton class="btn-plain" (click)="globalsVisible.set(true)" title="Global variables" aria-label="Global variables">
+          <app-icon name="data_object" class="icon-sm" />
+        </button>
         <button type="button" matIconButton class="btn-plain" (click)="envImportInput.click()" title="Import" aria-label="Import environments">
           <app-icon name="upload" class="icon-sm" />
         </button>
@@ -309,3 +312,12 @@
     </div>
   </div>
 </ui-dialog>
+
+<app-variables-dialog
+  header="Global variables"
+  [hint]="globalsHint"
+  [variables]="globals()"
+  [visible]="globalsVisible()"
+  (visibleChange)="globalsVisible.set($event)"
+  (save)="saveGlobals($event)"
+/>

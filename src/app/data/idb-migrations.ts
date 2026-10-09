@@ -1,5 +1,5 @@
-import { IDBPDatabase } from "idb";
-import { ApiSandboxDB } from "./idb-schema";
+import { IDBPDatabase, IDBPTransaction } from "idb";
+import { ApiSandboxDB, StoreName } from "./idb-schema";
 
 /**
  * The `openDB(...).upgrade` handler. v5 does not read the shapes of v1 to v4,
@@ -8,12 +8,30 @@ import { ApiSandboxDB } from "./idb-schema";
  * nothing it catches: an error aborts the upgrade and the database keeps its
  * old version.
  */
-export function runUpgrade(db: IDBPDatabase<ApiSandboxDB>, oldVersion: number): void {
+export function runUpgrade(
+  db: IDBPDatabase<ApiSandboxDB>,
+  oldVersion: number,
+  tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
+): void {
   if (oldVersion < 5) {
     createV5Stores(db);
   }
   // 6 (P2.12): the files of multipart and binary bodies. Nothing stored changes shape.
-  db.createObjectStore("files");
+  if (oldVersion < 6) {
+    db.createObjectStore("files");
+  }
+  // 7 (P2.4): a collection has variables. A stored collection gets none; nothing is removed.
+  if (oldVersion >= 5 && oldVersion < 7) {
+    void addCollectionVariables(tx);
+  }
+}
+
+/** Inside the upgrade transaction: a failed write aborts it, and the database keeps its old version. */
+async function addCollectionVariables(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<void> {
+  const store = tx.objectStore("collections");
+  for (const collection of await store.getAll()) {
+    await store.put({ ...collection, variables: [] });
+  }
 }
 
 function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {

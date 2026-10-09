@@ -10,6 +10,7 @@ import {
   RequestDocId,
   RequestPatch,
 } from "../models/collections";
+import type { VariableChange } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { serializeDeterministic } from "../shared/collections/collection-io";
 
@@ -125,6 +126,12 @@ export class CollectionsStore {
     updates: { name?: string; description?: string }
   ): Promise<Collection | null> {
     const updated = await this.idb.renameCollection(id, updates);
+    await this.refresh();
+    return updated;
+  }
+
+  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
+    const updated = await this.idb.changeCollectionVariables(id, changes);
     await this.refresh();
     return updated;
   }

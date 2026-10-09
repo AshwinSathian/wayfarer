@@ -139,8 +139,8 @@ export class IdbCore {
     let replacedOldData = false;
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
-        upgrade: (db, oldVersion) => {
-          runUpgrade(db, oldVersion);
+        upgrade: (db, oldVersion, _newVersion, tx) => {
+          runUpgrade(db, oldVersion, tx);
           replacedOldData = oldVersion > 0 && oldVersion < 5;
         },
         // A tab running a build from before v5 does not close on request.
@@ -274,7 +274,7 @@ export class IdbCore {
       };
     }
     const tx = db.transaction("meta", "readonly");
-    const state = (await tx.store.get(META_STATE_KEY)) ?? {
+    const state = ((await tx.store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
       key: META_STATE_KEY,
       schemaVersion: DEFAULT_SCHEMA_VERSION,
       activeEnvironmentId: null,

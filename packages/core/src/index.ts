@@ -15,7 +15,16 @@ export type {
   Row,
   TestAssertion,
 } from "./model/request";
-export { applyVariableChanges, variableChanges, type VariableChange } from "./model/variables";
+export { applyVariableChanges, variableChanges, variablesByName, type VariableChange } from "./model/variables";
+export {
+  VARIABLE_SCOPES,
+  VariableNestingError,
+  VariableResolver,
+  type ScopeStack,
+  type VariableScope,
+  type VariableSource,
+  type VariableToken,
+} from "./variables/resolver";
 export { validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
 export {
   IMPORT_TOO_LARGE,

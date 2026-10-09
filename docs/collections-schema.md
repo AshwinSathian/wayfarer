@@ -6,7 +6,7 @@ Collections live in IndexedDB and travel as JSON files. A file is written the sa
 
 | Document     | Fields | Notes |
 |--------------|--------|-------|
-| `Collection` | `meta`, `id`, `name`, `order`, optional `description`; stored only: `scriptTrust` | `meta.id` is the key. `scriptTrust.trusted` is true for a collection made in this browser and false for an imported one. It is not written to a file. |
+| `Collection` | `meta`, `id`, `name`, `order`, `variables`, optional `description`; stored only: `scriptTrust` | `meta.id` is the key. `variables` is a list of `{key, value, enabled}` rows that every request of the collection can use (see [Variables](variables.md)); a file must have it, and it may be empty. `scriptTrust.trusted` is true for a collection made in this browser and false for an imported one. It is not written to a file. |
 | `Folder`     | `meta`, `id`, `collectionId`, `name`, `order`, optional `parentFolderId` | A folder at the top has no `parentFolderId`. |
 | `RequestDoc` | `meta`, `id`, `collectionId`, optional `folderId`, `name`, `order`, and the request fields below | |
 | `Meta`       | `id`, `createdAt`, `updatedAt`, `version: 1` | Times are milliseconds since the epoch. `version` is the version of this block, not of the file. |
@@ -56,7 +56,8 @@ A file is not in a collection file: only its `fileId` and `fileName` are. The by
     "id": "col-1",
     "meta": { "createdAt": 1717692390115, "id": "col-1", "updatedAt": 1717692390115, "version": 1 },
     "name": "Sample",
-    "order": 1
+    "order": 1,
+    "variables": [{ "enabled": true, "key": "base", "value": "https://api.example.com" }]
   },
   "folders": [
     {

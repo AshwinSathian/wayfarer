@@ -7,7 +7,7 @@ import { MatInput } from "@angular/material/input";
 import type { Row } from "@wayfarer/core";
 import { Icon } from "../../../shared/icon/icon";
 
-/** Name and value rows, each with a switch for whether it is sent: headers, and the fields of a form body. */
+/** Name and value rows, each with a switch for whether it is sent: headers, the fields of a form body, and (without the switch) variables. */
 @Component({
   selector: "app-rows-editor",
   imports: [FormsModule, Icon, MatButton, MatIconButton, MatCheckbox, MatFormField, MatInput],
@@ -19,6 +19,8 @@ export class RowsEditor {
   readonly context = input("Headers");
   readonly items = input<Row[]>([]);
   readonly addLabel = input("Add Item");
+  /** Whether each row has its "send" switch. Variables have none: a variable is there or it is not. */
+  readonly switches = input(true);
 
   /**
    * A field was edited. `[(ngModel)]` changes the row in place, which the

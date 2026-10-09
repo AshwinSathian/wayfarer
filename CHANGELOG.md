@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-09
+
+Everything merged after 1.3.0: the interface moves to Angular Material, the
+layout holds from 360 px up, and a round of security and robustness fixes.
+No stored data changes.
+
 ### Changed
 
 - **The interface is built on Angular Material**, themed from Wayfarer's
@@ -19,6 +25,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   skeletons, and the variable chips. The initial download grows to
   1,155.22 kB from 722.84 kB (288 kB from 199 kB compressed); the size budgets
   are reset to the new baseline.
+- At this release the initial download measures 1,151.73 kB (287.42 kB
+  compressed), 3.49 kB below the figure above, after unused styles were
+  removed. The size budgets are that measurement plus 10%.
 - The tick box beside each query parameter is drawn like the app's other
   checkboxes and has a name for screen readers. It was the browser's own,
   unnamed.
@@ -45,73 +54,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   today: its first section says what is done, what is merged but not
   released, and what comes next. It still described the app as it was
   before 37 later changes.
-
-### Fixed
-
-- For contributors: an end-to-end run no longer also runs the two support
-  servers' own test suites. Playwright picked them up by file name and ran
-  them inside every collection, outside its report.
-- For contributors: the layout tests also run at 390 px, the phone width
-  at which the header was once wider than the screen.
-- **Text meets the 4.5:1 contrast minimum in both themes, on every view.**
-  In the light theme the green of a 200 was 1.85:1 on its badge and the
-  orange of a warning 1.83:1; method badges, the label on a primary button
-  (2.98:1 in the dark theme) and small labels in the history drawer were
-  also under it. Primary buttons are now the brand indigo.
-- The list of response headers can be scrolled with the keyboard.
-
-- **The URL field can be typed in on a small laptop or tablet.** Between
-  768 and about 1000 px wide, with the sidebar open, the field shrank to a
-  16 px sliver beside its buttons. The buttons now move to the next line
-  when there is no room for both.
-- **The app is usable on a tablet and in a narrow window.** From 768 to
-  1199 px wide the collections sidebar stayed pinned open. At 820 px that
-  left the request and the response about 150 px each: a header's name
-  field was 20 px wide and a JSON response wrapped at every character. At
-  1024 px the Scripts tab was cut off and a header read "Content-" and
-  "applicatio". Below 1200 px the sidebar now opens over the page from the
-  toolbar button, as it does on a phone, and starts closed.
-- **Switching to the light theme no longer hides "No environment".** The
-  text in the toolbar's environment box stayed white on the light toolbar
-  for half a second after the switch.
-- **"Update available" no longer appears on a first visit.** On a slow
-  machine the service worker could take the page over before the app heard
-  it had installed, and the app took that first install for a new version.
-- **Clear all history** shows its tooltip. The button named one, but the
-  toolbar never loaded the code that draws it.
-
-### Security
-
-- Local Bridge: a request whose `Host` is not a loopback name is refused
-  (DNS rebinding); the token file and its folder are set back to owner-only
-  at every start; the token can come from `WAYFARER_BRIDGE_TOKEN` instead
-  of the command line, and must be 16 characters or more; a wrong argument
-  is an error, not a silent default.
-- Responses carry `Strict-Transport-Security` (one year, this host only),
-  `Cross-Origin-Opener-Policy: same-origin` and
-  `Cross-Origin-Resource-Policy: same-origin`.
-- A collection or environment file over 10 MB is refused by size before it
-  is read into memory.
-- **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
-  minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
-  cannot be read; there were none in use.
-- The vault passphrase is used exactly as typed. Spaces at either end were
-  removed without a word.
-- **Copy as cURL** no longer lets an imported collection run commands or read
-  files when its output is pasted into a shell: the method is quoted unless it
-  is a plain verb, and the body goes out with `--data-raw` (a body starting
-  with `@` was read from a local file by `-d`).
-- Importing a collection now rejects a request whose method is not GET, POST,
-  PUT, PATCH, DELETE, HEAD or OPTIONS.
-- **Reset all data** now also clears the Local Bridge token and every other
-  `wayfarer:` setting in the browser. It cleared two keys, one of them unused.
-- The Local Bridge's default allowed origins name the hosted app
-  (`wayfarer.ashwinsathian.com`) instead of its old domain.
-- The deploy workflow refuses a CI run that did not come from a push to
-  `main`, so a pull request from a fork branch named `main` cannot be shipped.
-
-### Changed
-
 - Tailwind CSS 3 to 4. Its configuration is now the `@theme` block in
   `src/styles.css`; `tailwind.config.js` and autoprefixer are gone. One thing
   looks different: cards and panels whose markup asked for a border
@@ -168,8 +110,40 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - Identifiers come from one `newId()` helper. Seven copies with a
   `Math.random()` fallback are gone; where `crypto.randomUUID` is missing
   (a copy served over plain http) it uses `crypto.getRandomValues`.
+
 ### Fixed
 
+- For contributors: an end-to-end run no longer also runs the two support
+  servers' own test suites. Playwright picked them up by file name and ran
+  them inside every collection, outside its report.
+- For contributors: the layout tests also run at 390 px, the phone width
+  at which the header was once wider than the screen.
+- **Text meets the 4.5:1 contrast minimum in both themes, on every view.**
+  In the light theme the green of a 200 was 1.85:1 on its badge and the
+  orange of a warning 1.83:1; method badges, the label on a primary button
+  (2.98:1 in the dark theme) and small labels in the history drawer were
+  also under it. Primary buttons are now the brand indigo.
+- The list of response headers can be scrolled with the keyboard.
+
+- **The URL field can be typed in on a small laptop or tablet.** Between
+  768 and about 1000 px wide, with the sidebar open, the field shrank to a
+  16 px sliver beside its buttons. The buttons now move to the next line
+  when there is no room for both.
+- **The app is usable on a tablet and in a narrow window.** From 768 to
+  1199 px wide the collections sidebar stayed pinned open. At 820 px that
+  left the request and the response about 150 px each: a header's name
+  field was 20 px wide and a JSON response wrapped at every character. At
+  1024 px the Scripts tab was cut off and a header read "Content-" and
+  "applicatio". Below 1200 px the sidebar now opens over the page from the
+  toolbar button, as it does on a phone, and starts closed.
+- **Switching to the light theme no longer hides "No environment".** The
+  text in the toolbar's environment box stayed white on the light toolbar
+  for half a second after the switch.
+- **"Update available" no longer appears on a first visit.** On a slow
+  machine the service worker could take the page over before the app heard
+  it had installed, and the app took that first install for a new version.
+- **Clear all history** shows its tooltip. The button named one, but the
+  toolbar never loaded the code that draws it.
 - `{{constructor}}`, `{{toString}}` and other names that exist on every
   JavaScript object no longer resolve to engine internals; like any unset
   variable, they stay as typed.
@@ -219,6 +193,36 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - The vault's lock state updates everywhere at once. Views other than the
   toolbar could keep showing the previous state after an unlock or a lock.
 - Locking the vault clears every secret value revealed on screen.
+
+### Security
+
+- Local Bridge: a request whose `Host` is not a loopback name is refused
+  (DNS rebinding); the token file and its folder are set back to owner-only
+  at every start; the token can come from `WAYFARER_BRIDGE_TOKEN` instead
+  of the command line, and must be 16 characters or more; a wrong argument
+  is an error, not a silent default.
+- Responses carry `Strict-Transport-Security` (one year, this host only),
+  `Cross-Origin-Opener-Policy: same-origin` and
+  `Cross-Origin-Resource-Policy: same-origin`.
+- A collection or environment file over 10 MB is refused by size before it
+  is read into memory.
+- **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
+  minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
+  cannot be read; there were none in use.
+- The vault passphrase is used exactly as typed. Spaces at either end were
+  removed without a word.
+- **Copy as cURL** no longer lets an imported collection run commands or read
+  files when its output is pasted into a shell: the method is quoted unless it
+  is a plain verb, and the body goes out with `--data-raw` (a body starting
+  with `@` was read from a local file by `-d`).
+- Importing a collection now rejects a request whose method is not GET, POST,
+  PUT, PATCH, DELETE, HEAD or OPTIONS.
+- **Reset all data** now also clears the Local Bridge token and every other
+  `wayfarer:` setting in the browser. It cleared two keys, one of them unused.
+- The Local Bridge's default allowed origins name the hosted app
+  (`wayfarer.ashwinsathian.com`) instead of its old domain.
+- The deploy workflow refuses a CI run that did not come from a push to
+  `main`, so a pull request from a fork branch named `main` cannot be shipped.
 
 ## [1.3.0] - 2026-10-07
 

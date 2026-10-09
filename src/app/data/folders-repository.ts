@@ -114,7 +114,13 @@ export class FoldersRepository {
     const requestStore = tx.objectStore("requests");
 
     await this.core.commitOrRollback(tx, async () => {
+      const folder = await folderStore.get(id);
       await folderStore.delete(id);
+      // The tree shows folders side by side, so a folder inside this one is
+      // not deleted with it: it moves up to where this one was (F60).
+      for (const inside of await folderStore.index("by-parentFolderId").getAll(id)) {
+        await folderStore.put({ ...inside, parentFolderId: folder?.parentFolderId, meta: this.core.touchMeta(inside.meta) });
+      }
       const requestIndex = requestStore.index("by-folderId");
       const requests = await requestIndex.getAll(id);
       await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));

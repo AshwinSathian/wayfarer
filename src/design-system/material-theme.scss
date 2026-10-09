@@ -227,3 +227,36 @@ html {
     )
   );
 }
+
+/* ── Select ──────────────────────────────────────────────── */
+html {
+  @include mat.select-overrides(
+    (
+      enabled-trigger-text-color: var(--label-primary),
+      disabled-trigger-text-color: var(--label-secondary),
+      placeholder-text-color: var(--label-primary),
+      enabled-arrow-color: var(--ctl-chevron),
+      focused-arrow-color: var(--ctl-chevron),
+      disabled-arrow-color: var(--ctl-chevron),
+      panel-background-color: var(--glass-overlay),
+      container-elevation-shadow: var(--shadow-overlay),
+      trigger-text-size: 14px,
+      trigger-text-weight: 400,
+      trigger-text-tracking: -0.003em,
+      trigger-text-line-height: 38px,
+    )
+  );
+  @include mat.option-overrides(
+    (
+      label-text-color: var(--label-primary),
+      selected-state-label-text-color: var(--label-primary),
+      selected-state-layer-color: var(--ctl-highlight),
+      hover-state-layer-color: var(--fill-hover),
+      focus-state-layer-color: var(--fill-hover),
+      label-text-size: 14px,
+      label-text-weight: 400,
+      label-text-tracking: -0.003em,
+      label-text-line-height: normal,
+    )
+  );
+}

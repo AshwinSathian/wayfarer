@@ -125,12 +125,25 @@ code errors.
   open from a signal, bind `[expanded]` and handle `(opened)` and
   `(closed)`: `(closed)` fires for the panel another one replaced, after
   that one's `(opened)`.
+- Select: `<mat-select class="select">` with `mat-option` children, used
+  without a form field (`controls.css` draws the box). Name it with
+  `aria-label`, or `aria-labelledby` pointing at a `<span>`: a `<label for>`
+  cannot name it. An optional choice gets a first `<mat-option
+  [value]="null">`; Material then shows the placeholder.
+- Material's select behaves like the native one: Enter or Space opens the
+  list, and an arrow key or a letter on the closed select changes the value.
 - A token whose value is a variable set on the component (`--btn-fg`) must
   be overridden on the component's class, not on `html`: a variable is
   resolved where it is declared.
 - A Tailwind utility on a Material host loses to Material for any property
-  Material sets there (height, padding, min-width, font, colour, border).
-  Width and margin utilities are safe. Change the rest through tokens.
+  Material sets there (height, padding, min-width, font, colour, border, and
+  width on a select). Give the utility Tailwind's important modifier
+  (`w-48!`), or change the property through a token. Margin utilities, and
+  width on a button, are safe as they are.
+- A Material tooltip is an overlay that takes Escape and stops it. A dialog
+  or drawer therefore also reads Escape from its own element while a
+  tooltip is showing; without that, a tooltip over a focused button keeps
+  the panel open.
 - Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
 - `matTooltip` takes text and watches focus on its host only. Put it on the
   focusable element, not on a wrapper.

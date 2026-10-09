@@ -42,7 +42,7 @@
     "gen:csp": "node scripts/gen-csp.mjs",
     "check:csp": "node scripts/gen-csp.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=254100"
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=269700"
   },
   "dependencies": {
     "@angular/cdk": "^22.2.2",

@@ -572,9 +572,13 @@
 }
 
 /* ── Select ──────────────────────────────────────────────── */
-.ui-select {
-  position: relative;
+/* Markup: <mat-select class="select"> with mat-option children, used without
+   a form field: the box is drawn here. Text colours and type come through
+   Material's tokens. */
+.mat-mdc-select.select {
   display: inline-flex;
+  align-items: center;
+  width: auto;
   height: 40px;
   border: 1px solid var(--separator);
   border-radius: var(--radius-md);
@@ -586,124 +590,78 @@
     box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-.ui-select:not(.ui-select--disabled):hover {
+.mat-mdc-select.select:not(.mat-mdc-select-disabled):hover {
   border-color: var(--fill-primary);
 }
 
-.ui-select:not(.ui-select--disabled):focus-within,
-.ui-select--open {
+/* The control draws its own focus state: border and glow. */
+.mat-mdc-select.select:not(.mat-mdc-select-disabled):focus,
+.mat-mdc-select.select.mat-select-open {
   border-color: var(--accent-border);
   box-shadow: var(--glow-accent);
-}
-
-.ui-select-trigger {
-  flex: 1 1 auto;
-  width: 1%;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  border-radius: inherit;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: inherit;
-}
-
-/* The control draws its own focus state (border and glow, above). */
-.ui-select-trigger:focus-visible {
   outline: none;
 }
 
-.ui-select-label {
-  display: block;
-  overflow: hidden;
-  color: var(--label-primary);
-  font-size: 14px;
-  line-height: 38px;
-  letter-spacing: -0.003em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.select .mat-mdc-select-trigger {
+  height: 100%;
 }
 
-.ui-select-chevron,
-.ui-select-clear {
-  display: flex;
-  flex: none;
-  align-items: center;
+.select .mat-mdc-select-value {
+  padding-inline-start: 12px;
+}
+
+/* The app's chevron glyph in place of Material's filled triangle. */
+.select .mat-mdc-select-arrow-wrapper {
   justify-content: center;
-  color: var(--ctl-chevron);
-}
-
-.ui-select-chevron {
   width: 40px;
-  font-size: 24px;
+  height: 100%;
 }
 
-.ui-select-clear {
-  padding: 0 2px;
-  border: 0;
-  background: none;
-  font-size: 16px;
-  cursor: pointer;
+.select .mat-mdc-select-arrow {
+  width: 24px;
+  height: 24px;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M480-357.85 253.85-584l32.61-32.61L480-423.08l193.54-193.53L706.15-584 480-357.85Z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-.ui-select-clear:hover {
-  color: var(--label-primary);
+.select.mat-select-open .mat-mdc-select-arrow {
+  transform: none;
 }
 
-.ui-select-panel {
-  overflow: hidden;
-  border: 1px solid var(--glass-border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--glass-overlay);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--shadow-overlay);
+.select .mat-mdc-select-arrow svg {
+  display: none;
 }
 
-.ui-select-list {
+/* The list. Material adds the panel to the overlay container, outside the
+   select, so these rules are not scoped to .select. */
+.cdk-overlay-pane div.mat-mdc-select-panel {
   display: flex;
   flex-direction: column;
   gap: 2px;
   max-height: 200px;
-  margin: 0;
+  margin-block: 2px;
   padding: 4px;
-  overflow: auto;
-  list-style: none;
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
 }
 
-.ui-select-option {
-  position: relative;
-  display: flex;
+.mat-mdc-select-panel .mat-mdc-option {
   flex: none;
-  align-items: center;
+  min-height: 0;
   padding: 9px 14px;
-  overflow: hidden;
-  color: var(--label-primary);
-  font-size: 14px;
-  letter-spacing: -0.003em;
+}
+
+.mat-mdc-select-panel .mat-mdc-option .mdc-list-item__primary-text {
   white-space: nowrap;
-  cursor: pointer;
-}
-
-.ui-select-option--selected {
-  background: var(--ctl-highlight);
-}
-
-.ui-select-option--active {
-  background: var(--fill-hover);
 }
 
 /* Method select: mono, upper case, joined to the URL field on its right */
-.method-select.ui-select {
+.mat-mdc-select.select.method-select {
   min-width: 110px;
   border-right: none;
   border-radius: var(--radius-md) 0 0 var(--radius-md);
-}
-
-.method-select.ui-select .ui-select-label {
-  padding: 0 12px;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 650;
@@ -712,7 +670,7 @@
 }
 
 /* Environment switcher: a pill in the toolbar */
-.env-switcher.ui-select {
+.mat-mdc-select.select.env-switcher {
   /* Shrinks on a phone so the toolbar never outgrows the window. */
   flex: 0 1 160px;
   min-width: 96px;
@@ -720,15 +678,14 @@
   height: 32px;
   border-radius: var(--radius-full);
   background: var(--fill-secondary);
-}
-
-.env-switcher .ui-select-label {
-  padding: 0 10px;
   font-size: 13px;
-  line-height: 30px;
 }
 
-.env-switcher .ui-select-chevron {
+.env-switcher .mat-mdc-select-value {
+  padding-inline-start: 10px;
+}
+
+.env-switcher .mat-mdc-select-arrow-wrapper {
   width: 28px;
 }
 

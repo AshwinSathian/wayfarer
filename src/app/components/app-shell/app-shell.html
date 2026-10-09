@@ -98,16 +98,17 @@
       <!-- Right: actions cluster -->
       <div class="flex min-w-0 items-center gap-2">
         <!-- Environment selector -->
-        <ui-select
-          [options]="dropdownOptions()"
+        <mat-select
+          class="select env-switcher"
+          aria-label="Environment"
           [ngModel]="selectedEnvironmentId()"
           (ngModelChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
           placeholder="No environment"
-          optionLabel="label"
-          optionValue="value"
-          ariaLabel="Environment"
-          class="env-switcher"
-        />
+        >
+          @for (option of dropdownOptions(); track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
 
         <!-- Divider -->
         <div class="w-px h-5 bg-separator hidden sm:block"></div>

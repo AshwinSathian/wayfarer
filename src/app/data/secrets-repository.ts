@@ -1,8 +1,10 @@
 import { Injectable, inject } from "@angular/core";
 import { EnvironmentId } from "../models/environments";
 import { Meta } from "../models/collections";
-import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets";
+import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
+import { SecretDoc, SecretId } from "../models/secrets";
 import { IdbCore } from "./idb-core";
+import { META_VAULT_KEY, VaultRecordDoc } from "./idb-schema";
 
 @Injectable({ providedIn: "root" })
 export class SecretsRepository {
@@ -38,14 +40,45 @@ export class SecretsRepository {
     return doc?.envelope ?? null;
   }
 
-  async peekSecretEnvelope(): Promise<SecretEnvelope | null> {
+  /** The vault record, or `null` when no passphrase has been chosen yet. */
+  async readVault(): Promise<VaultRecord | null> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadonly(["secrets"]);
-    const store = tx.objectStore("secrets");
-    const cursor = await store.openCursor();
-    const envelope = cursor?.value?.envelope ?? null;
+    const tx = await this.core.txReadonly(["meta"]);
+    const stored = (await tx.objectStore("meta").get(META_VAULT_KEY)) as VaultRecordDoc | undefined;
     await tx.done;
-    return envelope;
+    if (!stored) return null;
+    const { key: _key, ...record } = stored;
+    return record;
+  }
+
+  /**
+   * Stores the vault record. With `replace` false it is the first one and is
+   * not written when a record is already there (another tab chose a
+   * passphrase first); with `replace` true it is a change of passphrase and
+   * is not written when there is none. Says whether it was written.
+   */
+  async writeVault(record: VaultRecord, replace: boolean): Promise<boolean> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["meta"]);
+    const store = tx.objectStore("meta");
+    return this.core.commitOrRollback(tx, async () => {
+      const exists = (await store.get(META_VAULT_KEY)) !== undefined;
+      if (exists !== replace) return false;
+      await store.put({ ...record, key: META_VAULT_KEY });
+      return true;
+    });
+  }
+
+  /** Writes secrets from a vault file, each under the id it had there, in one transaction. */
+  async writeSecrets(docs: Pick<SecretDoc, "id" | "name" | "environmentId" | "envelope">[]): Promise<void> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["secrets"]);
+    const store = tx.objectStore("secrets");
+    await this.core.commitOrRollback(tx, async () => {
+      for (const doc of docs) {
+        await store.put({ ...doc, meta: this.core.createMetaWithId(doc.id) });
+      }
+    });
   }
 
   /**

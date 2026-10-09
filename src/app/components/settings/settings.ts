@@ -14,6 +14,7 @@ import {
 } from "../../shared/environments/environment-io";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
+import { SecretsVault } from "../../services/secrets-vault";
 import { readImportText } from "@wayfarer/core";
 
 interface KeyboardShortcut {
@@ -42,6 +43,7 @@ export class Settings {
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
   readonly requestSettings = inject(RequestSettings);
+  readonly vault = inject(SecretsVault);
   private readonly environmentsService = inject(EnvironmentsStore);
 
   readonly visible = model(false);

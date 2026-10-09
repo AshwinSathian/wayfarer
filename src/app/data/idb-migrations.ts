@@ -1,5 +1,5 @@
 import { IDBPDatabase, IDBPTransaction } from "idb";
-import { ApiSandboxDB, StoreName } from "./idb-schema";
+import { ApiSandboxDB, RemovedData, StoreName } from "./idb-schema";
 
 /**
  * The `openDB(...).upgrade` handler. v5 does not read the shapes of v1 to v4,
@@ -7,12 +7,14 @@ import { ApiSandboxDB, StoreName } from "./idb-schema";
  * empty (maintainer, 2026-10-09: no stored data exists to keep). It throws
  * nothing it catches: an error aborts the upgrade and the database keeps its
  * old version.
+ *
+ * Resolves, once the upgrade's writes are queued, to what it removed.
  */
 export function runUpgrade(
   db: IDBPDatabase<ApiSandboxDB>,
   oldVersion: number,
   tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
-): void {
+): Promise<RemovedData> {
   if (oldVersion < 5) {
     createV5Stores(db);
   }
@@ -24,6 +26,20 @@ export function runUpgrade(
   if (oldVersion >= 5 && oldVersion < 7) {
     void addCollectionVariables(tx);
   }
+  // 8 (P2.6): the vault has one data key, wrapped by the passphrase. A
+  // secret encrypted under a key of its own cannot be read with it, and is
+  // removed (maintainer, 2026-10-09: no stored data exists to keep).
+  if (oldVersion >= 5 && oldVersion < 8) {
+    return removeSecrets(tx);
+  }
+  return Promise.resolve(oldVersion > 0 && oldVersion < 5 ? "all" : null);
+}
+
+async function removeSecrets(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<RemovedData> {
+  const store = tx.objectStore("secrets");
+  const had = (await store.count()) > 0;
+  await store.clear();
+  return had ? "secrets" : null;
 }
 
 /** Inside the upgrade transaction: a failed write aborts it, and the database keeps its old version. */

@@ -56,7 +56,9 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Secrets Vault**
 
-  - Client-side, encrypted-at-rest secrets: PBKDF2 (600k iterations, SHA‑256) key derivation + AES‑GCM‑256, ciphertext-only in IndexedDB, key held in memory only <!-- claim:C-003 --> <!-- claim:C-004 --> <!-- claim:C-005 -->
+  - Client-side, encrypted-at-rest secrets: a passphrase key (PBKDF2, 600k iterations, SHA‑256) wraps a random AES‑GCM‑256 data key that encrypts each secret; ciphertext-only in IndexedDB <!-- claim:C-003 --> <!-- claim:C-004 -->
+  - The vault key is held in memory only: a reload locks the vault, and a tab locks itself after 15 idle minutes (1 to 240, or never, in Settings) <!-- claim:C-005 -->
+  - Change the vault passphrase without re-encrypting a secret <!-- claim:C-043 -->; export the vault as an encrypted file and import it into another browser <!-- claim:C-044 -->
   - Protected values can't be used in requests yet: a request that references one is blocked instead of sending the placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)) <!-- claim:C-007 -->
   - Guided first-use passphrase setup flow <!-- claim:C-027 -->; see [`docs/secrets.md`](docs/secrets.md)
   - A dedicated **Secrets management view** listing every secret across every environment in one place, with lock-aware reveal, rename, delete, and a "locate" chip that jumps to wherever a secret is referenced <!-- claim:C-028 -->
@@ -157,7 +159,7 @@ Current focus is JSON APIs. Form/file helpers may land later.
 Yes, dark and light themes both ship today, each intentionally designed. <!-- claim:C-037 -->
 
 **Are my secrets/API keys safe?**  
-Values in the secrets vault are encrypted at rest with AES‑GCM‑256 and a PBKDF2‑derived key that only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. <!-- claim:C-008 --> <!-- claim:C-014 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.
+Values in the secrets vault are encrypted at rest with AES‑GCM‑256 under a data key, which is stored only wrapped by a PBKDF2‑derived passphrase key; unwrapped, it only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in collections and history. <!-- claim:C-008 --> <!-- claim:C-014 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.
 
 **Wait, wasn't this called API Sandbox?**  
 Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same storage model, same MIT license: only the name and identity changed, never the promise that your data stays on your device. See the [CHANGELOG](CHANGELOG.md) for details.
@@ -171,7 +173,6 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
-- The vault passphrase can't be rotated ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 - History and exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).
 - No full-workspace backup; browser storage can be evicted ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).

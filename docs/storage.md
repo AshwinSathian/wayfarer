@@ -1,6 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **7** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **8** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
@@ -11,9 +11,9 @@ Wayfarer keeps everything in one IndexedDB database. The schema version is **7**
 | `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection.                    |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows.                 |
-| `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext).           |
+| `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext). See [Secrets vault](secrets.md). |
 | `files`        | the file id | —                                                   | The files of multipart and binary request bodies: bytes and type. |
-| `meta`         | `key`       | —                                                   | Two records: `state` (the active environment) and `globals` (the global variables). |
+| `meta`         | `key`       | —                                                   | Three records: `state` (the active environment), `globals` (the global variables) and `vault` (how the passphrase key is derived, and the wrapped data key). |
 
 ## Version 5 starts empty
 
@@ -24,6 +24,8 @@ Collection and environment files written before version 5 (they have no `$id`) a
 Version 6 added the `files` store and changed nothing else: a version 5 database keeps its data.
 
 Version 7 gave collections their variables. The upgrade adds an empty list to each stored collection and removes nothing. The global variables are a new record, `globals`, in `meta`; a database without it has none.
+
+Version 8 changed how the vault encrypts (one data key, wrapped by the passphrase, where each secret had a key of its own). Secrets stored before it cannot be read with the new key and are **removed** by the upgrade; nothing else is touched. When there were any, the page says so once. An environment variable that referred to a removed secret still holds its `{{$secret.<id>}}` reference, and needs its value again. Like version 5, this was decided while the app had no users with data to keep.
 
 ## Files
 

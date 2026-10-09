@@ -56,8 +56,9 @@ test("@claim:C-003 a vault value is stored only as ciphertext; nothing persisted
   await protectVariable(page, plaintext);
   await expect.poll(async () => (await dumpIdb(page))["secrets"]?.length ?? 0).toBe(1);
 
-  const [secret] = (await dumpIdb(page))["secrets"] as { envelope: { alg: string; ct: string } }[];
-  expect(secret.envelope.alg).toBe("AES-GCM");
+  const [secret] = (await dumpIdb(page))["secrets"] as { envelope: { v: number; iv: string; ct: string } }[];
+  expect(Object.keys(secret.envelope).sort()).toEqual(["ct", "iv", "v"]);
+  expect(secret.envelope.v).toBe(2);
   expect(await persistedText(page)).not.toContain(plaintext);
 });
 

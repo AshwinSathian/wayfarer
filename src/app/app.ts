@@ -17,7 +17,14 @@ export class App implements OnInit {
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
   readonly drawerVisible = signal(false);
+  /** Below 768 px: the composer's sections stack (one open at a time). */
   readonly isMobile = signal(false);
+  /**
+   * Below 1024 px the sidebar is a drawer over the page, closed until asked
+   * for. Pinned, it is 352 px wide: beside it a 768 px window left the
+   * composer and the response 150 px each.
+   */
+  readonly sidebarOverlay = signal(false);
   private viewportInitialized = false;
 
   ngOnInit(): void {
@@ -70,22 +77,14 @@ export class App implements OnInit {
   }
 
   private updateViewportFlags(): void {
-    const previous = this.isMobile();
-    const isMobile = window.innerWidth < 768;
-    this.isMobile.set(isMobile);
+    const wasOverlay = this.sidebarOverlay();
+    const overlay = window.innerWidth < 1024;
+    this.isMobile.set(window.innerWidth < 768);
+    this.sidebarOverlay.set(overlay);
 
-    if (!this.viewportInitialized) {
-      this.drawerVisible.set(!isMobile);
-      this.viewportInitialized = true;
-      return;
-    }
-
-    if (previous && !isMobile) {
-      this.drawerVisible.set(true);
-    }
-
-    if (!previous && isMobile) {
-      this.drawerVisible.set(false);
-    }
+    // On the first pass, and each time the window crosses the line: pinned
+    // means open, a drawer starts closed.
+    if (!this.viewportInitialized || wasOverlay !== overlay) this.drawerVisible.set(!overlay);
+    this.viewportInitialized = true;
   }
 }

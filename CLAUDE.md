@@ -81,6 +81,11 @@ code errors.
   e2e test "nothing is wider than a N px window" checks eight widths; add a
   width there when a breakpoint changes. A flex child that holds wide
   content needs `min-w-0`.
+- Two widths decide the layout, both in `App.updateViewportFlags`: below
+  1024 px the sidebar is a drawer over the page (`sidebarOverlay`), and
+  below 768 px the composer's sections stack (`isMobile`). They are
+  separate on purpose: pinned, the sidebar takes 352 px, and from 768 to
+  1023 px that left the composer and the response 150 px each.
 - Below 1024 px the toolbar shows only what Settings does not also offer.
   A new toolbar action needs `max-lg:hidden` and a home in Settings.
 - For any change that could move pixels (a CSS framework or dependency

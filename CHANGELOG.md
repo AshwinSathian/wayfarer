@@ -38,6 +38,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The app is usable on a tablet held upright and in a narrow window.**
+  From 768 to 1023 px wide the collections sidebar stayed pinned open and
+  left the request and the response about 150 px each: a header's name
+  field was 20 px wide and a JSON response wrapped at every character.
+  Below 1024 px the sidebar now opens over the page from the toolbar
+  button, as it does on a phone, and starts closed.
+
 - **Clear all history** shows its tooltip. The button named one, but the
   toolbar never loaded the code that draws it.
 

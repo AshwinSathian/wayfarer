@@ -1,9 +1,6 @@
-import { Dialog as CdkDialog, DialogConfig, DialogRef } from "@angular/cdk/dialog";
-import { Overlay } from "@angular/cdk/overlay";
 import {
   ChangeDetectionStrategy,
   Component,
-  Directive,
   OnDestroy,
   TemplateRef,
   ViewContainerRef,
@@ -18,97 +15,6 @@ import {
 import { MatIconButton } from "@angular/material/button";
 import { MatDialog, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import { Icon } from "../shared/icon/icon";
-
-/** The part of CDK's dialog configuration a panel decides for itself. */
-type PanelConfig = Pick<
-  DialogConfig,
-  "role" | "ariaLabel" | "ariaLabelledBy" | "panelClass" | "backdropClass" | "width" | "maxWidth" | "maxHeight" | "height" | "positionStrategy"
->;
-
-/**
- * What a modal dialog and a drawer share: they open when `visible` becomes
- * true and close when it becomes false; Escape (and, if allowed, a click on
- * the backdrop) asks the owner to close by emitting `visibleChange(false)`.
- * CDK Dialog provides the focus trap, the return of focus to the element
- * that had it, scroll blocking, `aria-modal` and the backdrop.
- */
-@Directive()
-abstract class ModalPanel implements OnDestroy {
-  readonly visible = input(false);
-  readonly visibleChange = output<boolean>();
-  /** Emitted once each time the panel has closed, whatever closed it. */
-  readonly hide = output<void>();
-
-  protected readonly dialog = inject(CdkDialog);
-  protected readonly overlay = inject(Overlay);
-  private readonly viewContainer = inject(ViewContainerRef);
-  protected abstract readonly content: () => TemplateRef<unknown>;
-  protected abstract config(): PanelConfig;
-  /** Whether a click on the backdrop closes the panel. */
-  protected abstract closesOnBackdrop(): boolean;
-  private ref: DialogRef | null = null;
-
-  constructor() {
-    effect(() => {
-      const visible = this.visible();
-      untracked(() => (visible ? this.open() : this.dismiss()));
-    });
-  }
-
-  /**
-   * Asks the owner to close: it sets `visible` to false, which closes the
-   * panel. Closing here as well would leave the panel shut while `visible`
-   * is still true if the owner reopens before the change is rendered.
-   */
-  protected requestClose(): void {
-    this.visibleChange.emit(false);
-  }
-
-  private open(): void {
-    if (this.ref) return;
-    const ref = this.dialog.open(this.content(), {
-      viewContainerRef: this.viewContainer,
-      hasBackdrop: true,
-      // Closing is decided here, so the owner always hears about it.
-      disableClose: true,
-      ariaModal: true,
-      autoFocus: "first-tabbable",
-      restoreFocus: true,
-      ...this.config(),
-    });
-    const onKeydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) {
-        event.preventDefault();
-        this.requestClose();
-      }
-    };
-    ref.keydownEvents.subscribe(onKeydown);
-    // The CDK sends a key only to the topmost overlay that listens. A
-    // Material tooltip open over a button in here is such an overlay: it
-    // takes Escape for itself and stops it. While one is showing, Escape is
-    // read from the panel's own element, which hears it first.
-    ref.overlayRef.overlayElement.addEventListener("keydown", (event) => {
-      if (document.querySelector(".mat-mdc-tooltip-panel")) onKeydown(event);
-    });
-    ref.backdropClick.subscribe(() => {
-      if (this.closesOnBackdrop()) this.requestClose();
-    });
-    this.ref = ref;
-  }
-
-  private dismiss(): void {
-    const ref = this.ref;
-    if (!ref) return;
-    this.ref = null;
-    ref.close();
-    this.hide.emit();
-  }
-
-  ngOnDestroy(): void {
-    this.ref?.close();
-    this.ref = null;
-  }
-}
 
 /**
  * A modal dialog, named by its header. Material's dialog is opened from
@@ -226,40 +132,5 @@ export class Dialog implements OnDestroy {
   ngOnDestroy(): void {
     this.ref?.close();
     this.ref = null;
-  }
-}
-
-/**
- * A panel that slides in from one side and behaves like a modal dialog.
- * It has no header of its own, so it needs an `ariaLabel`.
- */
-@Component({
-  selector: "ui-drawer",
-  template: `<ng-template #content><ng-content /></ng-template>`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class Drawer extends ModalPanel {
-  readonly side = input<"left" | "right">("left");
-  readonly width = input<string>();
-  readonly ariaLabel = input.required<string>();
-
-  protected readonly content = viewChild.required<TemplateRef<unknown>>("content");
-
-  protected config(): PanelConfig {
-    const position = this.overlay.position().global().top("0");
-    return {
-      role: "dialog",
-      ariaLabel: this.ariaLabel(),
-      panelClass: ["ui-drawer-panel", `ui-drawer-panel--${this.side()}`],
-      backdropClass: "ui-drawer-backdrop",
-      positionStrategy: this.side() === "left" ? position.left("0") : position.right("0"),
-      width: this.width(),
-      maxWidth: "100vw",
-      height: "100%",
-    };
-  }
-
-  protected closesOnBackdrop(): boolean {
-    return true;
   }
 }

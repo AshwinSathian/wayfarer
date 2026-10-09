@@ -13,9 +13,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   themed from Wayfarer's own design tokens so the look stays the same in
   both themes. So far: tooltips, buttons, tabs, the phone composer's and
   history's accordions, the Basic / JSON switch, every select, the Export
-  and collection menus, and every dialog and confirmation. A tooltip now
-  sits about 4 px further from its button. The initial download grows to
-  978.53 kB from 722.84 kB; the size budgets are reset to the new baseline.
+  and collection menus, every dialog and confirmation, and the navigation
+  and history drawers. A tooltip now sits about 4 px further from its
+  button. The initial download grows to 1,006.15 kB from 722.84 kB; the size
+  budgets are reset to the new baseline.
+- The page behind an open drawer can still be scrolled with the wheel. It
+  was held still.
 - **Selects follow the native one's keys.** Enter or Space opens the list.
   An arrow key or a letter on a closed select changes the value straight
   away; it used to open the list.

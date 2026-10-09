@@ -14,7 +14,8 @@ import { FormsModule } from "@angular/forms";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { Dialog, Drawer } from "../../ui/dialog";
+import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/material/sidenav";
+import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
 import { PastRequest, PastRequestKey } from "../../models/history";
@@ -41,7 +42,9 @@ import { SwUpdate } from "../../services/sw-update";
   imports: [
     NgTemplateOutlet,
     Icon,
-    Drawer,
+    MatSidenavContainer,
+    MatSidenav,
+    MatSidenavContent,
     MatButton, MatIconButton,
     MatSelect, MatOption,
     Dialog,
@@ -186,6 +189,25 @@ export class AppShell implements OnInit {
     return pastRequests?.length
       ? String(pastRequests.length)
       : undefined;
+  }
+
+  /** What had focus when a drawer opened. */
+  private drawerOpener: HTMLElement | null = null;
+
+  /**
+   * Moves focus into a drawer as it starts to open. Material does so when
+   * the slide ends; until then Tab walked the page underneath, and Escape,
+   * which a drawer reads from its own element, did nothing.
+   */
+  protected focusDrawer(panel: HTMLElement): void {
+    this.drawerOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    panel.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), [tabindex='0']")?.focus();
+  }
+
+  /** Material notes where focus was only once the slide has ended, by when it is inside the drawer. */
+  protected restoreDrawerFocus(): void {
+    this.drawerOpener?.focus();
+    this.drawerOpener = null;
   }
 
   get drawerWidth(): string {

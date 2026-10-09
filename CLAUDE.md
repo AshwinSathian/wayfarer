@@ -97,7 +97,8 @@ code errors.
   reverses the "custom on CDK" default of decision D14 in the plan). The
   migration runs one widget family per PR; until it ends, `src/app/ui` still
   holds the custom ones. What Material has no component for (the splitter,
-  the hover card) stays there, built on the CDK.
+  the hover card, the confirmation under a button) stays there, built on
+  the CDK.
 - The theme is `src/design-system/material-theme.scss`, listed before
   `src/styles.css` in `angular.json`. It maps Material's `--mat-sys-*`
   variables onto the design tokens, so `[data-theme]` switches both. No
@@ -150,6 +151,18 @@ code errors.
   pass `ariaModal: true`; Material's default is false.
 - The small confirmation under a button stays on the CDK's dialog:
   Material's is placed in the window, not against an element.
+- Drawer: `<mat-sidenav class="drawer" mode="over" fixedInViewport
+  [autoFocus]="false">` in the shell's `<mat-sidenav-container
+  class="shell">`, with `role="dialog"`, `aria-modal` and an `aria-label`
+  (Material sets none). The container and its content are `overflow:
+  visible`: the window scrolls the page, so the toolbar stays stuck to it.
+- The shell moves focus into a drawer when it starts to open and back when
+  it starts to close (`focusDrawer`, `restoreDrawerFocus`). Material does
+  both when the slide ends: until then Tab walked the page, Escape did
+  nothing (a drawer reads it from its own element), and the late move took
+  focus from a dialog opened from the drawer.
+- A drawer's content is in the page from the start, hidden while closed. A
+  dialog's is created when it opens.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
   to its default. Write a rule with `font: inherit` instead.

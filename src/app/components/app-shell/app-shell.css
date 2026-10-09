@@ -13,7 +13,7 @@
   flex-shrink: 0;
 }
 
-/* Desktop pinned collections sidebar: deliberately not a ui-drawer (see the
+/* Desktop pinned collections sidebar: deliberately not a drawer (see the
    comment in app-shell.html). It looks like the left drawer, so
    swapping the two between phone and desktop is not a visible change. */
 .app-sidebar-pinned {

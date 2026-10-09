@@ -251,6 +251,13 @@ html {
   );
 }
 
+/* Material fades a placeholder's colour in over half a second, for the label
+   that floats off it in a form field. There is none here, and on a theme
+   switch "No environment" stayed white on the light toolbar for that long. */
+.mat-mdc-select .mat-mdc-select-placeholder {
+  transition: none;
+}
+
 /* ── Menu ────────────────────────────────────────────────── */
 html {
   @include mat.menu-overrides(

@@ -101,7 +101,7 @@ test("a tab running this version closes its connection when a newer one updates 
   const newerTab = await context.newPage();
   await newerTab.goto(BLANK);
   // Resolves only once this tab's connection is closed: it was not in the way.
-  await openRaw(newerTab, 6);
+  await openRaw(newerTab, 99);
 
   await expect(page.getByText(/Wayfarer was updated in another tab/)).toBeVisible();
   await expect(page.getByText(/Data was reset in another tab/)).toHaveCount(0);
@@ -109,12 +109,12 @@ test("a tab running this version closes its connection when a newer one updates 
 
 test("a database from a newer version: the page says this tab is older, not that storage is blocked", async ({ page }) => {
   await page.goto(BLANK);
-  await openRaw(page, 6);
+  await openRaw(page, 99);
   await page.evaluate(() => window.heldDb?.close());
 
   await page.goto("/");
 
   await expect(page.getByText(/running an older Wayfarer/)).toBeVisible();
   await expect(page.getByText(/not letting Wayfarer store data/)).toHaveCount(0);
-  expect((await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version))).toBe(6);
+  expect((await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version))).toBe(99);
 });

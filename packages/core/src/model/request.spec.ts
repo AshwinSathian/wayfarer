@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyAuth, emptyRequest } from "./request";
+import { emptyAuth, emptyRequest, fileIdsOf } from "./request";
 import { validateRequestContent } from "./validate";
 
 describe("request model", () => {
@@ -8,6 +8,21 @@ describe("request model", () => {
     expect(emptyAuth("bearer")).toEqual({ type: "bearer", token: "" });
     expect(emptyAuth("basic")).toEqual({ type: "basic", username: "", password: "" });
     expect(emptyAuth("apikey")).toEqual({ type: "apikey", key: "", value: "", in: "header" });
+  });
+
+  it("lists the files of every part of a body, not only the part its mode sends", () => {
+    expect(fileIdsOf({ mode: "none" })).toEqual([]);
+    expect(
+      fileIdsOf({
+        mode: "raw",
+        raw: { language: "json", text: "{}" },
+        multipart: [
+          { kind: "text", key: "a", value: "f-0", enabled: true },
+          { kind: "file", key: "b", fileId: "f-1", fileName: "one.bin", enabled: false },
+        ],
+        binary: { fileId: "f-2", fileName: "two.bin" },
+      })
+    ).toEqual(["f-1", "f-2"]);
   });
 
   it("makes a new request each time, missing only its URL", () => {

@@ -22,6 +22,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Body types.** The Body tab now offers **None**, **Raw** (JSON, text,
+  XML, HTML or JavaScript, sent exactly as typed), **Form (URL-encoded)**,
+  **Multipart** (text fields and files) and **Binary file**. Before, a body
+  could only be a JSON object. `Content-Type` follows the body type unless
+  you set the header yourself. A file can be 50 MB at most; saved with a
+  request, it is kept in this browser and deleted with the request.
+- The Body tab is there for every method except `GET` and `HEAD` (it was
+  there for `POST`, `PUT` and `PATCH` only), and the body is kept when you
+  change the method.
+- **Bulk edit** on the Headers tab: the headers as text, one `Name: value`
+  per line, for pasting a block of them. A line that starts with `#` is
+  kept without being sent.
+- Each header row has a switch for whether it is sent.
+
 - **Header rows are saved as rows.** A saved request keeps its headers in
   the order you wrote them and keeps a name that appears twice. Before,
   headers were saved as one value per name. Environment variables are
@@ -48,6 +62,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The Basic / JSON switch is gone.** A JSON body is edited as text (it
+  was also editable as rows, which could only hold text values: a row
+  holding `42` was sent as `"42"`). Headers are edited as rows or with Bulk
+  edit (the JSON view could not hold a header twice, or their order).
+- A new request no longer starts with a `Content-Type: application/json`
+  header row, and a request sent with no body no longer sends `{}`.
+- Variables in a raw body are filled in as text, wherever they stand:
+  `{"n": {{count}}}` is now sent as `{"n": 3}`.
+- History keeps a text body as the text that was sent. A file or a
+  multipart body is not copied into history.
+- A file or multipart body cannot go through the Local Bridge yet; the
+  request says so and is not sent.
+- The initial download is 1,122.70 kB (282.11 kB compressed), down from
+  1,134.07 kB: the two editors that went were larger than the body types
+  that came. The size budgets are reset to the new measurement.
+
 - **Requests are sent with the browser's `fetch`**, and carry nothing of
   Wayfarer's own: no `Referer`, no cookies, no cached answer. `Accept` is
   what you set, or `*/*`; it used to be `application/json, text/plain, */*`
@@ -71,6 +101,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   identical to the previous build.
 
 ### Fixed
+
+- A JSON body that is an array, a string or a number can be written and
+  is sent as written (#65).
+- With a multipart body, a `Content-Type` header of your own is flagged:
+  it replaces the one that names the boundary between the parts.
 
 - Exporting a collection wrote each request's assertions sorted by their
   internal id, so they came back in a different order. They keep the order

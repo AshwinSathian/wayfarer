@@ -1,30 +1,27 @@
-@if (view.editorMode() === 'basic') {
-<app-api-params-basic
+<div class="flex justify-end pb-2">
+  <button matButton class="btn-sm" type="button" [attr.aria-pressed]="bulk()" (click)="toggleBulk()">
+    {{ bulk() ? "Edit as rows" : "Bulk edit" }}
+  </button>
+</div>
+@if (bulk()) {
+<label class="ds-form-label" for="headers-bulk">Headers, one <code>Name: value</code> per line. Start a line with <code>#</code> to keep it without sending it.</label>
+<mat-form-field class="field w-full">
+  <textarea matInput
+    id="headers-bulk"
+    class="type-mono-body"
+    rows="8"
+    spellcheck="false"
+    [value]="bulkText()"
+    (input)="onBulkInput($any($event.target).value)"
+  ></textarea>
+</mat-form-field>
+} @else {
+<app-rows-editor
   context="Headers"
   [items]="store.draft().headers"
-  [addLabel]="'Add Header'"
-  [isAddDisabled]="isAddDisabled"
-  [addItem]="addItem"
-  [removeItem]="removeItem"
-  [disableItem]="disableItem"
-  (itemChange)="store.refreshVariablePreview()"
-></app-api-params-basic>
-} @else {
-<div class="space-y-2">
-  @if (!view.headersJsonValid()) {
-  <small class="type-footnote text-status-error flex items-center gap-1">
-    <app-icon name="error" class="icon-xs" />
-    Invalid JSON
-  </small>
-  }
-  <app-json-editor
-    name="headersJson"
-    [ngModel]="view.headersJsonText()"
-    (ngModelChange)="view.headersJsonText.set($event)"
-    [ngModelOptions]="{ standalone: true }"
-    (jsonValidChange)="view.headersJsonValid.set($event)"
-    (parsedChange)="view.onHeadersJsonParsed($event)"
-    [height]="280"
-  ></app-json-editor>
-</div>
+  addLabel="Add Header"
+  (itemChange)="store.headersEdited()"
+  (add)="store.addHeader()"
+  (remove)="store.removeHeader($event)"
+></app-rows-editor>
 }

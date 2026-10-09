@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ASSERTION_OPERATORS,
   ASSERTION_TARGETS,
+  BODY_MODES,
   HTTP_METHODS,
   RAW_LANGUAGES,
   emptyRequest,
@@ -35,13 +36,29 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
   url: fc.string({ minLength: 1 }).filter((url) => url.trim() !== ""),
   params: fc.array(row, { maxLength: 3 }),
   headers: fc.array(row, { maxLength: 3 }),
-  body: fc.oneof(
-    fc.constant<RequestBody>({ mode: "none" }),
-    fc.record({
-      mode: fc.constant("raw" as const),
-      raw: fc.record({ language: fc.constantFrom(...RAW_LANGUAGES), text: fc.string() }),
-    })
-  ),
+  body: fc
+    .record(
+      {
+        raw: fc.record({ language: fc.constantFrom(...RAW_LANGUAGES), text: fc.string() }),
+        urlencoded: fc.array(row, { maxLength: 3 }),
+        multipart: fc.array(
+          fc.oneof(
+            fc.record({ kind: fc.constant("text" as const), key: fc.string(), value: fc.string(), enabled: fc.boolean() }),
+            fc.record({ kind: fc.constant("file" as const), key: fc.string(), fileId: fc.uuid(), fileName: fc.string(), enabled: fc.boolean() })
+          ),
+          { maxLength: 3 }
+        ),
+        binary: fc.record({ fileId: fc.uuid(), fileName: fc.string(), contentType: fc.string() }, { requiredKeys: ["fileId", "fileName"] }),
+      },
+      { requiredKeys: [] }
+    )
+    // The part the mode names is always there, except a binary body with no file chosen.
+    .chain((parts) =>
+      fc
+        .constantFrom(...BODY_MODES)
+        .filter((mode) => mode === "none" || mode === "binary" || parts[mode] !== undefined)
+        .map((mode): RequestBody => ({ mode, ...parts }))
+    ),
   auth: fc.oneof(
     fc.constant<AuthConfig>({ type: "none" }),
     fc.record({ type: fc.constant("bearer" as const), token: fc.string() }),
@@ -135,6 +152,33 @@ describe("validateRequestContent", () => {
     ]);
     expect(paths({ ...full(), body: { mode: "raw" } })).toEqual(["r.body.raw"]);
     expect(paths({ ...full(), body: { mode: "form" } })).toEqual(["r.body.mode"]);
+    expect(paths({ ...full(), body: { mode: "urlencoded" } })).toEqual(["r.body.urlencoded"]);
+    expect(paths({ ...full(), body: { mode: "binary" } })).toEqual([]);
+    // A part the mode does not name is checked all the same: it is stored, and sent once the mode changes.
+    expect(
+      paths({
+        ...full(),
+        body: {
+          mode: "none",
+          urlencoded: [{ key: "a", value: 1, enabled: true }],
+          multipart: [
+            { kind: "text", key: "a", enabled: true },
+            { kind: "file", key: "f", enabled: true, fileId: 7 },
+            { kind: "blob", key: "x", enabled: "yes" },
+          ],
+          binary: { fileId: "f-1", contentType: 3 },
+        },
+      })
+    ).toEqual([
+      "r.body.urlencoded[0].value",
+      "r.body.multipart[0].value",
+      "r.body.multipart[1].fileId",
+      "r.body.multipart[1].fileName",
+      "r.body.multipart[2].enabled",
+      "r.body.multipart[2].kind",
+      "r.body.binary.fileName",
+      "r.body.binary.contentType",
+    ]);
     expect(paths({ ...full(), auth: { type: "bearer" } })).toEqual(["r.auth.token"]);
     expect(paths({ ...full(), auth: { type: "basic", username: "u" } })).toEqual(["r.auth.password"]);
     expect(paths({ ...full(), auth: { type: "oauth2" } })).toEqual(["r.auth.type"]);

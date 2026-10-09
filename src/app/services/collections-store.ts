@@ -182,8 +182,8 @@ export class CollectionsStore {
     }
   }
 
-  async createRequest(payload: NewRequest): Promise<RequestDoc> {
-    const doc = await this.idb.createRequest(payload);
+  async createRequest(payload: NewRequest, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc> {
+    const doc = await this.idb.createRequest(payload, files);
     await this.refreshCollectionEntry(payload.collectionId);
     return doc;
   }
@@ -196,8 +196,8 @@ export class CollectionsStore {
     return doc;
   }
 
-  async updateRequest(id: RequestDocId, patch: RequestPatch): Promise<RequestDoc | null> {
-    const doc = await this.idb.updateRequest(id, patch);
+  async updateRequest(id: RequestDocId, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
+    const doc = await this.idb.updateRequest(id, patch, files);
     if (doc) {
       await this.refreshCollectionEntry(doc.collectionId);
     }

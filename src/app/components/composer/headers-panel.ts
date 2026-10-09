@@ -1,24 +1,35 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { FormsModule } from "@angular/forms";
-import { Icon } from "../../shared/icon/icon";
-import { BodyRow, DEFAULT_HEADER_KEY, RowContext, WorkspaceStore } from "../../state/workspace-store";
-import { JsonEditor } from "../json-editor/json-editor";
-import { ApiParamsBasic } from "./basic-editor/basic-editor";
-import { ComposerView } from "./composer-view";
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { MatButton } from "@angular/material/button";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { headerLines, rowsFromHeaderLines } from "../../shared/http/header-lines";
+import { WorkspaceStore } from "../../state/workspace-store";
+import { RowsEditor } from "./rows-editor/rows-editor";
 
-/** The request headers: rows, or one JSON object in JSON mode. The Content-Type row keeps its name. */
+/** The request headers: rows, or the same rows as text for pasting a block of them. */
 @Component({
   selector: "app-headers-panel",
-  imports: [FormsModule, Icon, JsonEditor, ApiParamsBasic],
+  imports: [MatButton, MatFormField, MatInput, RowsEditor],
   templateUrl: "./headers-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeadersPanel {
   protected readonly store = inject(WorkspaceStore);
-  protected readonly view = inject(ComposerView);
 
-  protected readonly addItem = (ctx: RowContext): void => this.store.addRow(ctx);
-  protected readonly removeItem = (index: number, ctx: RowContext): void => this.store.removeRow(index, ctx);
-  protected readonly isAddDisabled = (ctx: RowContext): boolean => this.store.isAddDisabled(ctx);
-  protected readonly disableItem = (item: BodyRow): boolean => item.key === DEFAULT_HEADER_KEY;
+  protected readonly bulk = signal(false);
+  /** The text as typed. The rows are read from it on every change; it is written from them only when bulk edit opens. */
+  protected readonly bulkText = signal("");
+
+  protected toggleBulk(): void {
+    if (!this.bulk()) {
+      this.bulkText.set(headerLines(this.store.draft().headers));
+    }
+    this.bulk.update((open) => !open);
+  }
+
+  protected onBulkInput(text: string): void {
+    this.bulkText.set(text);
+    this.store.patch({ headers: rowsFromHeaderLines(text) });
+    this.store.refreshVariablePreview();
+  }
 }

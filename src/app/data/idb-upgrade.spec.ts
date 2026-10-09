@@ -22,7 +22,7 @@ function deleteDatabase(): Promise<void> {
   });
 }
 
-const STORES = ["collections", "environments", "folders", "history", "meta", "requests", "secrets"];
+const STORES = ["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"];
 
 /** A v4 database with a document in every store, and the store v1 left behind. */
 function buildV4(db: IDBDatabase): void {
@@ -76,7 +76,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(5);
+    expect(DB_VERSION).toBe(6);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -91,6 +91,26 @@ describe("opening a database left by another release", () => {
     const collection = await idb.createCollection({ name: "New" });
     expect((await idb.listCollections()).map((c) => c.name)).toEqual(["New"]);
     expect(collection.order).toBe(1);
+  });
+
+  it("keeps what version 5 stored, and adds the files store (version 6)", async () => {
+    const v5 = await openRaw(5, (db) => {
+      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
+      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
+      collections.createIndex("by-order", "order");
+      collections.add({ id: "c-5", meta: { id: "c-5", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, scriptTrust: { trusted: true } });
+      for (const name of ["folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
+      db.createObjectStore("meta", { keyPath: "key" });
+    });
+    v5.close();
+
+    await idb.init();
+
+    const db = (await core.getDatabase())!;
+    expect(db.version).toBe(6);
+    expect([...db.objectStoreNames]).toContain("files");
+    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Kept"]);
+    expect(core.clearedOldData()).toBe(false);
   });
 
   it("does not report removed data on a first run", async () => {

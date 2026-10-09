@@ -28,9 +28,21 @@ export type StoreName =
   | "requests"
   | "environments"
   | "secrets"
+  | "files"
   | "meta";
 
 export type StoreCollection = ArrayLike<StoreName>;
+
+/**
+ * A file as it is stored: its bytes and its type, not a `Blob`. With a
+ * `Blob` in the store, saving a request failed in WebKit (the e2e test
+ * "multipart: … also after the request is saved" in Playwright's WebKit,
+ * whose contexts are private windows). Bytes are stored by all three engines.
+ */
+export interface StoredFile {
+  bytes: ArrayBuffer;
+  type: string;
+}
 
 export const META_STATE_KEY = "state";
 
@@ -92,6 +104,11 @@ export interface ApiSandboxDB extends DBSchema {
       "by-name": string;
     };
   };
+  /** The files of multipart and binary bodies, by the id a body refers to them with. */
+  files: {
+    key: string;
+    value: StoredFile;
+  };
   meta: {
     key: typeof META_STATE_KEY;
     value: MetaState;
@@ -100,5 +117,5 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 export const DEFAULT_SCHEMA_VERSION = 1;

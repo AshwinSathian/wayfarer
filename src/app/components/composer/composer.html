@@ -136,19 +136,6 @@
                   <button mat-tab-link type="button" [active]="view.activeTab() === 'scripts'" (click)="view.onActiveTabChange('scripts')" (focus)="view.onActiveTabChange('scripts')">Scripts</button>
                 </div>
 
-                @if (view.activeTab() === 'headers' || view.activeTab() === 'body') {
-                <mat-button-toggle-group
-                  class="segmented"
-                  hideSingleSelectionIndicator
-                  aria-label="Editor mode"
-                  [value]="view.editorMode()"
-                  (change)="view.onEditorModeChange($event.value)"
-                >
-                  @for (option of editorModeOptions; track option.value) {
-                  <mat-button-toggle [value]="option.value">{{ option.label }}</mat-button-toggle>
-                  }
-                </mat-button-toggle-group>
-                }
               </div>
 
               <mat-tab-nav-panel #composerPanel class="tab-panes">

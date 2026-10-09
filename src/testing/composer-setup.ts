@@ -21,6 +21,8 @@ export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 class IdbServiceMock {
   init = vi.fn().mockReturnValue(Promise.resolve());
   add = vi.fn().mockReturnValue(Promise.resolve(1));
+  readonly memoryOnly = signal(false).asReadonly();
+  readFile = vi.fn().mockReturnValue(Promise.resolve(undefined));
 }
 
 class ResponseInspectorServiceStub {

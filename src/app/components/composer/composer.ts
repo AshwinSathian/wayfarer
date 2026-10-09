@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } from "@angular/core";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
-import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
@@ -12,7 +11,7 @@ import { ResponseViewer } from "../response-viewer/response-viewer";
 import { AddressRow } from "./address-row";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
-import { ComposerView, EditorMode } from "./composer-view";
+import { ComposerView } from "./composer-view";
 import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
 import { SaveAsDialog } from "./save-as-dialog";
@@ -31,8 +30,6 @@ import { VariableChips } from "./variable-chips";
     MatAccordion,
     MatExpansionPanel,
     MatExpansionPanelHeader,
-    MatButtonToggleGroup,
-    MatButtonToggle,
     MatTabNav,
     MatTabLink,
     MatTabNavPanel,
@@ -69,11 +66,6 @@ export class Composer {
   private readonly addressRow = viewChild.required(AddressRow);
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
-  protected readonly editorModeOptions: { label: string; value: EditorMode }[] = [
-    { label: "Basic", value: "basic" },
-    { label: "JSON", value: "json" },
-  ];
-
   protected get hasBody(): boolean {
     return isBodyMethod(this.store.draft().method);
   }

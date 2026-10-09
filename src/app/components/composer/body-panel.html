@@ -1,30 +1,77 @@
-@if (view.editorMode() === 'basic') {
-<app-api-params-basic
-  context="Body"
-  [items]="store.bodyRows()"
-  [addLabel]="'Add Item'"
-  [isAddDisabled]="isAddDisabled"
-  [addItem]="addItem"
-  [removeItem]="removeItem"
-  [disableItem]="disableItem"
-  (itemChange)="store.bodyRowsEdited()"
-></app-api-params-basic>
-} @else {
-<div class="space-y-2">
-  @if (!view.bodyJsonValid()) {
-  <small class="type-footnote text-status-error flex items-center gap-1">
-    <app-icon name="error" class="icon-xs" />
-    Invalid JSON
-  </small>
+@let current = body();
+<div class="flex flex-wrap items-center gap-3 pb-3">
+  <span id="body-mode-label" class="ds-form-label">Body</span>
+  <mat-select class="select w-56!" aria-labelledby="body-mode-label" [ngModel]="current.mode" (ngModelChange)="setMode($event)">
+    @for (mode of modes; track mode.value) {
+    <mat-option [value]="mode.value">{{ mode.label }}</mat-option>
+    }
+  </mat-select>
+  @if (current.mode === 'raw') {
+  <mat-select
+    class="select w-36!"
+    aria-label="Raw body language"
+    [ngModel]="current.raw?.language ?? 'json'"
+    (ngModelChange)="setRaw({ language: $event })"
+  >
+    @for (language of languages; track language.value) {
+    <mat-option [value]="language.value">{{ language.label }}</mat-option>
+    }
+  </mat-select>
   }
+</div>
+
+@if (contentTypeBreaksMultipart()) {
+<p role="alert" class="type-footnote text-status-warning flex items-start gap-1 pb-3">
+  <app-icon name="error" class="icon-xs" />
+  The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between the parts. The server will not be able to read them. Remove the header or switch it off.
+</p>
+}
+@if (fileError()) {
+<p role="alert" class="type-footnote text-status-error flex items-start gap-1 pb-3">
+  <app-icon name="error" class="icon-xs" />
+  {{ fileError() }}
+</p>
+}
+
+@switch (current.mode) {
+  @case ('none') {
+  <p class="type-callout text-label-tertiary">This request is sent without a body.</p>
+  }
+  @case ('raw') {
   <app-json-editor
-    name="bodyJson"
-    [ngModel]="view.bodyJsonText()"
-    (ngModelChange)="view.bodyJsonText.set($event)"
+    name="bodyRaw"
+    [language]="current.raw?.language ?? 'json'"
+    [ngModel]="current.raw?.text ?? ''"
+    (ngModelChange)="setRaw({ text: $event })"
     [ngModelOptions]="{ standalone: true }"
-    (jsonValidChange)="view.bodyJsonValid.set($event)"
-    (parsedChange)="view.onBodyJsonParsed($event)"
     [height]="360"
   ></app-json-editor>
-</div>
+  }
+  @case ('urlencoded') {
+  <app-rows-editor
+    context="Body"
+    [items]="current.urlencoded ?? []"
+    addLabel="Add Field"
+    (itemChange)="store.refreshVariablePreview()"
+    (add)="addField()"
+    (remove)="removeField($event)"
+  ></app-rows-editor>
+  }
+  @case ('multipart') {
+  <app-multipart-editor
+    [parts]="current.multipart ?? []"
+    (partChange)="store.refreshVariablePreview()"
+    (add)="addPart()"
+    (remove)="removePart($event)"
+    (kindChange)="setPartKind($event.index, $event.kind)"
+    (filePicked)="setPartFile($event.index, $event.file)"
+  ></app-multipart-editor>
+  }
+  @case ('binary') {
+  <div class="flex min-w-0 items-center gap-3">
+    <button matButton="outlined" class="btn-secondary" type="button" (click)="binaryFile.click()">Choose file</button>
+    <span class="type-callout text-label-secondary truncate">{{ current.binary?.fileName || "No file chosen" }}</span>
+    <input #binaryFile type="file" class="hidden" aria-label="File to send as the body" (change)="setBinary(binaryFile)" />
+  </div>
+  }
 }

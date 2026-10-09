@@ -1,5 +1,6 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
+import { RequestFiles } from "./request-files";
 import type { RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 
@@ -18,6 +19,7 @@ export type RequestContentSnapshot = RequestContent;
 @Injectable({ providedIn: "root" })
 export class RequestSave {
   private readonly collectionsService = inject(CollectionsStore);
+  private readonly files = inject(RequestFiles);
 
   /**
    * The collection request the composer's current contents were loaded
@@ -68,7 +70,7 @@ export class RequestSave {
     }
     this.savingRequest.set(true);
     try {
-      const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot);
+      const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot, this.files.unsaved(snapshot.body));
       if (updated) {
         this.loadedCollectionRequest.set(updated);
       }
@@ -104,12 +106,10 @@ export class RequestSave {
     }
     this.savingRequest.set(true);
     try {
-      const doc = await this.collectionsService.createRequest({
-        ...snapshot,
-        collectionId,
-        folderId: this.saveAsFolderId() ?? undefined,
-        name,
-      });
+      const doc = await this.collectionsService.createRequest(
+        { ...snapshot, collectionId, folderId: this.saveAsFolderId() ?? undefined, name },
+        this.files.unsaved(snapshot.body)
+      );
       this.loadedCollectionRequest.set(doc);
       this.closeSaveAsDialog();
     } finally {

@@ -1,0 +1,47 @@
+<div class="flex flex-col gap-2">
+  @for (item of items(); track item; let index = $index) {
+  <!-- Wraps by its own room, not by the window's width: beside the pinned sidebar the composer is 391 px. -->
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <mat-checkbox
+      [aria-label]="'Send ' + context().toLowerCase() + ' row ' + (index + 1)"
+      [(ngModel)]="item.enabled"
+      (ngModelChange)="itemChange.emit()"
+    />
+    <mat-form-field class="field min-w-0 flex-1 basis-40">
+      <input matInput
+        placeholder="name"
+        [(ngModel)]="item.key"
+        (ngModelChange)="itemChange.emit()"
+        [attr.aria-label]="context() + ' name, row ' + (index + 1)"
+       />
+    </mat-form-field>
+    <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
+    <div class="flex min-w-0 flex-1 basis-48 items-center gap-2">
+    <mat-form-field class="field min-w-0 flex-1">
+      <input matInput
+        placeholder="value"
+        [(ngModel)]="item.value"
+        (ngModelChange)="itemChange.emit()"
+        [attr.aria-label]="context() + ' value, row ' + (index + 1)"
+       />
+    </mat-form-field>
+    <button
+      matIconButton class="btn-danger"
+      type="button"
+      [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
+      (click)="remove.emit(index)"
+    ><app-icon name="close" /></button>
+    </div>
+  </div>
+  }
+
+  <div class="pt-2">
+    <button
+      matButton="filled" class="btn-secondary"
+      type="button"
+      [attr.aria-label]="addLabel()"
+      [disabled]="addDisabled()"
+      (click)="add.emit()"
+    ><app-icon name="add" /> {{ addLabel() }}</button>
+  </div>
+</div>

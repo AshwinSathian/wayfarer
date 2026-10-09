@@ -1,11 +1,15 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
 export { newId } from "./id";
-export { HTTP_METHODS, emptyAuth, emptyRequest } from "./model/request";
+export { BODY_MODES, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf } from "./model/request";
 export type {
   AssertionOperator,
   AssertionTarget,
   AuthConfig,
+  BodyMode,
   Draft,
+  FileRef,
+  MultipartPart,
+  RawLanguage,
   RequestBody,
   RequestContent,
   Row,

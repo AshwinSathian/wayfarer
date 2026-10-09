@@ -34,6 +34,10 @@ export class BridgeTransport implements Transport {
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
     return withDeadline(options, async (signal) => {
+      // Protocol 1 carries the body as text inside JSON. Bytes and forms need protocol 2 (P6.1).
+      if (request.body !== undefined && typeof request.body !== "string") {
+        throw new TransportError("bridge", "The Local Bridge cannot relay a file or multipart body yet. Turn the bridge off to send this request.");
+      }
       const response = await this.fetchFn(`${this.bridge.url.replace(/\/+$/, "")}/relay`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": this.bridge.token },

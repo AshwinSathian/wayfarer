@@ -1,9 +1,12 @@
 import { Injectable, effect, inject, signal } from "@angular/core";
 import {
+  RAW_CONTENT_TYPES,
   emptyRequest,
   newId,
   parseJson,
   type Draft,
+  type FileRef,
+  type MultipartPart,
   type RequestBody,
   type RequestContent,
   type Row,
@@ -12,6 +15,7 @@ import { Idb } from "../data/idb";
 import { PastRequest } from "../models/history";
 import { TestResult } from "../models/test-assertion";
 import { EnvironmentsStore } from "../services/environments-store";
+import { RequestFiles } from "../services/request-files";
 import {
   BuiltRequest,
   RequestExecutionResponse,
@@ -24,10 +28,8 @@ import {
   VariableToken,
   collectVariableTokens,
   resolveTemplate,
-  resolveTemplateDeep,
 } from "../shared/environments/env-resolution";
 import { writeToClipboard } from "../shared/http/clipboard";
-import { bodyObjectFromRows, bodyRowsFromObject, isPlainObject } from "../shared/http/key-value";
 import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
 import {
   appendQueryParam,
@@ -41,40 +43,26 @@ import { buildCurlCommand } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 
-export type RowContext = "Body" | "Headers";
-export interface BodyRow {
-  key: string;
-  value: unknown;
-}
-
-export const DEFAULT_HEADER_KEY = "Content-Type";
-export const DEFAULT_HEADER_VALUE = "application/json";
-
-const BODY_METHODS = new Set(["POST", "PUT", "PATCH"]);
-
+/** GET and HEAD cannot carry a body: `fetch` refuses one. */
 export function isBodyMethod(method?: string): boolean {
-  return !!method && BODY_METHODS.has(method);
+  return !!method && method !== "GET" && method !== "HEAD";
 }
 
-const blankBodyRows = (): BodyRow[] => [{ key: "", value: "" }];
-const blankParams = (): Row[] => [{ key: "", value: "", enabled: true }];
-const defaultHeaders = (): Row[] => [{ key: DEFAULT_HEADER_KEY, value: DEFAULT_HEADER_VALUE, enabled: true }];
+/** A body as it is sent, with the `Content-Type` its mode implies. */
+interface SentBody {
+  data: string | Blob | FormData;
+  contentType?: string;
+}
+
+/** A body as text, for the places that show or copy one. A file or a form has none. */
+function textOf(body: BuiltRequest["body"]): string | undefined {
+  return typeof body === "string" ? body : undefined;
+}
+
+const blankRow = (): Row => ({ key: "", value: "", enabled: true });
 
 function emptyDraft(): Draft {
-  return { ...emptyRequest(), params: blankParams(), headers: defaultHeaders() };
-}
-
-/** A JSON value as body text. The row editor and history hold values; P2.12 leaves only the text. */
-function jsonBody(value: unknown): RequestBody {
-  const text = value === undefined ? undefined : JSON.stringify(value, null, 2);
-  return text === undefined ? { mode: "none" } : { mode: "raw", raw: { language: "json", text } };
-}
-
-/** The value a body's text stands for: its JSON, or the text itself when it is not JSON. */
-export function bodyValue(body: RequestBody): unknown {
-  if (body.mode === "none") return undefined;
-  const parsed = parseJson(body.raw.text);
-  return body.raw.language === "json" && parsed.ok ? parsed.value : body.raw.text;
+  return { ...emptyRequest(), params: [blankRow()], headers: [blankRow()] };
 }
 
 /** The headers that are sent: enabled rows with a name, in order. */
@@ -84,18 +72,33 @@ export function sentHeaders(rows: Row[]): [string, string][] {
 
 /** A history entry as a request: it carries what was sent, so no auth, scripts or tests. */
 export function requestFromHistory(entry: PastRequest): RequestContent {
+  const text = typeof entry.body === "string" ? entry.body : entry.body === undefined ? undefined : JSON.stringify(entry.body, null, 2);
   return {
     ...emptyRequest(),
     method: entry.method,
     url: entry.url,
     headers: Object.entries(entry.headers ?? {}).map(([key, value]) => ({ key, value: String(value ?? ""), enabled: true })),
-    body: jsonBody(entry.body),
+    body: text === undefined ? { mode: "none" } : { mode: "raw", raw: { language: parseJson(text).ok ? "json" : "text", text } },
   };
 }
 
 /** Rows as they are saved: names trimmed, rows without a name (the editor's blank row) left out. */
-function namedRows(rows: Row[]): Row[] {
+function namedRows<T extends { key: string }>(rows: T[]): T[] {
   return rows.map((row) => ({ ...row, key: row.key.trim() })).filter((row) => row.key);
+}
+
+/** Every text of a body that may hold a `{{variable}}`. */
+function bodyTexts(body: RequestBody): string[] {
+  switch (body.mode) {
+    case "raw":
+      return [body.raw?.text ?? ""];
+    case "urlencoded":
+      return (body.urlencoded ?? []).flatMap((row) => [row.key, row.value]);
+    case "multipart":
+      return (body.multipart ?? []).flatMap((part) => [part.key, part.kind === "text" ? part.value : ""]);
+    default:
+      return [];
+  }
 }
 
 /**
@@ -104,7 +107,7 @@ function namedRows(rows: Row[]): Row[] {
  * same fields.
  *
  * A row editor binds `[(ngModel)]` to a row's own fields, so rows change in
- * place: the panel then calls `refreshVariablePreview` (or `bodyRowsEdited`).
+ * place: the panel then calls `refreshVariablePreview`.
  */
 @Injectable({ providedIn: "root" })
 export class WorkspaceStore {
@@ -112,13 +115,9 @@ export class WorkspaceStore {
   private readonly responseInspector = inject(ResponseInspector);
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
+  private readonly files = inject(RequestFiles);
 
   readonly draft = signal<Draft>(emptyDraft());
-  /**
-   * The Basic body editor's rows. The draft holds the body as JSON text,
-   * which has no place for a row whose name is still empty.
-   */
-  readonly bodyRows = signal<BodyRow[]>(blankBodyRows());
 
   readonly endpointError = signal("");
   readonly loadingState = signal(false);
@@ -172,14 +171,21 @@ export class WorkspaceStore {
   /** The draft as it is saved: raw, with literal `{{var}}` text. */
   snapshot(): RequestContent {
     const { responseId: _response, ...content } = this.draft();
-    return { ...content, params: namedRows(content.params), headers: namedRows(content.headers) };
+    const body = { ...content.body };
+    if (body.urlencoded) body.urlencoded = namedRows(body.urlencoded);
+    if (body.multipart) body.multipart = namedRows(body.multipart);
+    return { ...content, params: namedRows(content.params), headers: namedRows(content.headers), body };
   }
 
+  /** The body is kept when the method changes: GET and HEAD send none, and it is there again for POST. */
   setMethod(method: string): void {
     this.patch({ method });
-    if (!isBodyMethod(method)) {
-      this.setBodyRows(blankBodyRows());
-    }
+  }
+
+  /** Changes part of the body: its mode, or the content of one mode. */
+  setBody(change: Partial<RequestBody>): void {
+    this.patch({ body: { ...this.draft().body, ...change } });
+    this.refreshVariablePreview();
   }
 
   /** The URL field was edited: the Params rows mirror its query. */
@@ -188,23 +194,11 @@ export class WorkspaceStore {
     this.refreshVariablePreview();
   }
 
-  setBodyRows(rows: BodyRow[]): void {
-    this.bodyRows.set(rows);
-    this.patch({ body: jsonBody(bodyObjectFromRows(rows)) });
-  }
-
-  /** A body row was edited in place. */
-  bodyRowsEdited(): void {
-    this.setBodyRows(this.bodyRows());
-    this.refreshVariablePreview();
-  }
-
   /**
    * Replaces the draft with a saved request or a history entry. A history
    * entry carries no scripts or tests, so the composer keeps its own.
-   * Returns whether the request has a body the row editor can show.
    */
-  load(request: RequestContent, source: "collection" | "history"): boolean {
+  load(request: RequestContent, source: "collection" | "history"): void {
     const current = this.draft();
     this.draft.set({
       ...structuredClone(request),
@@ -212,11 +206,6 @@ export class WorkspaceStore {
       ...(source === "history" ? { scripts: current.scripts, tests: current.tests } : {}),
       responseId: current.responseId,
     });
-    // Only an object has rows. Any other body stays in the draft as its text.
-    const body = bodyValue(request.body);
-    const hasBody = isPlainObject(body);
-    this.bodyRows.set(hasBody ? bodyRowsFromObject(body) : blankBodyRows());
-    return hasBody;
   }
 
   /** A new request. Scripts, tests and the response on screen stay. */
@@ -227,43 +216,36 @@ export class WorkspaceStore {
       tests: draft.tests,
       responseId: draft.responseId,
     }));
-    this.bodyRows.set(blankBodyRows());
     this.endpointError.set("");
     this.refreshVariablePreview();
   }
 
-  addRow(ctx: RowContext): void {
-    if (ctx === "Body") {
-      this.setBodyRows([...this.bodyRows(), { key: "", value: "" }]);
-    } else {
-      this.patch({ headers: [...this.draft().headers, { key: "", value: "", enabled: true }] });
-    }
+  /**
+   * A header row was edited in place. The list is replaced (its rows are
+   * not), so that what is computed from the draft's headers runs again.
+   */
+  headersEdited(): void {
+    this.patch({ headers: [...this.draft().headers] });
     this.refreshVariablePreview();
   }
 
-  removeRow(index: number, ctx: RowContext): void {
-    if (ctx === "Body") {
-      this.setBodyRows(this.bodyRows().filter((_, i) => i !== index));
-    } else {
-      this.patch({ headers: this.draft().headers.filter((_, i) => i !== index) });
-    }
-    this.refreshVariablePreview();
+  addHeader(): void {
+    this.patch({ headers: [...this.draft().headers, blankRow()] });
   }
 
-  isAddDisabled(ctx: RowContext): boolean {
-    const rows: BodyRow[] = ctx === "Body" ? this.bodyRows() : this.draft().headers;
-    const last = rows[rows.length - 1];
-    return !!last && (last.key === "" || last.value === "");
+  removeHeader(index: number): void {
+    this.patch({ headers: this.draft().headers.filter((_, i) => i !== index) });
+    this.refreshVariablePreview();
   }
 
   addParam(): void {
-    this.patch({ params: [...this.draft().params, { key: "", value: "", enabled: true }] });
+    this.patch({ params: [...this.draft().params, blankRow()] });
     this.refreshVariablePreview();
   }
 
   removeParam(index: number): void {
     const remaining = this.draft().params.filter((_, i) => i !== index);
-    this.patch({ params: remaining.length ? remaining : blankParams() });
+    this.patch({ params: remaining.length ? remaining : [blankRow()] });
     this.paramsEdited();
   }
 
@@ -351,14 +333,16 @@ export class WorkspaceStore {
     if (!endpoint) {
       return;
     }
-    const { method, url, headers, body } = this.resolveRequest(endpoint);
-    await writeToClipboard(buildCurlCommand({ method, url, headers: Object.fromEntries(headers), body }));
+    // Awaited only when the body has a file to read.
+    const { method, url, headers, body } = await this.resolveRequest(endpoint);
+    // A file or a form has no text to quote: the command is written without a body.
+    await writeToClipboard(buildCurlCommand({ method, url, headers: Object.fromEntries(headers), body: textOf(body) }));
   }
 
   refreshVariablePreview(): void {
     const activeEnv = this.environments.activeEnvironment();
     const { url: endpoint, headers } = this.draft();
-    const body = this.bodyRows();
+    const body = bodyTexts(this.draft().body);
     const fingerprint = JSON.stringify({
       endpoint,
       headers,
@@ -384,15 +368,19 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(endpointText: string): BuiltRequest {
-    const request = this.resolveRequest(endpointText);
+  private buildRequestForExecution(endpointText: string): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(endpointText);
+    return built instanceof Promise ? built.then((request) => this.recordForExport(request)) : this.recordForExport(built);
+  }
+
+  private recordForExport(request: BuiltRequest): BuiltRequest {
     const id = newId();
     this.responseExportContext.set({
       id,
       method: request.method,
       url: request.url,
       headers: Object.fromEntries(request.headers),
-      body: request.body,
+      body: textOf(request.body),
     });
     this.patch({ responseId: id });
     return request;
@@ -402,30 +390,94 @@ export class WorkspaceStore {
    * The draft with `{{var}}` placeholders substituted, as it is transmitted
    * or exported as a runnable command. The editors keep the literal template.
    */
-  private resolveRequest(endpointText: string): BuiltRequest {
+  private resolveRequest(endpointText: string): BuiltRequest | Promise<BuiltRequest> {
     const context = this.variableContext();
+    const resolve = (text: string): string => resolveTemplate(text, context);
     const content = this.snapshot();
-    const usesBody = isBodyMethod(content.method);
-    const template = bodyValue(content.body);
-    const auth = resolveAuth(content.auth, (text) => resolveTemplate(text, context));
+    // A promise only when a file has to be read: everything else is built at once.
+    const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
+    const finish = (body: SentBody | undefined): BuiltRequest => this.assemble(endpointText, content, body, resolve);
+    return sent instanceof Promise ? sent.then(finish) : finish(sent);
+  }
+
+  private assemble(
+    endpointText: string,
+    content: RequestContent,
+    sent: SentBody | undefined,
+    resolve: (text: string) => string
+  ): BuiltRequest {
+    const auth = resolveAuth(content.auth, resolve);
     // One value per name, whatever its case, the later one winning: the auth
     // header replaces a row of the same name. A Map keeps a name such as
     // "__proto__" as data (F56).
     const byName = new Map<string, [string, string]>();
     for (const [key, value] of [...sentHeaders(content.headers), ...Object.entries(buildAuthHeaders(auth))]) {
-      const name = resolveTemplate(key, context);
-      byName.set(name.toLowerCase(), [name, resolveTemplate(value, context)]);
+      const name = resolve(key);
+      byName.set(name.toLowerCase(), [name, resolve(value)]);
+    }
+    // The body's own type, unless the request names one.
+    if (sent?.contentType && !byName.has("content-type")) {
+      byName.set("content-type", ["Content-Type", sent.contentType]);
     }
     const headers = [...byName.values()];
-    const body =
-      usesBody && template ? (resolveTemplateDeep(template, context) as Record<string, unknown>) : undefined;
     // The Params rows are already in the URL field (they mirror its query).
-    let url = normalizeUrl(resolveTemplate(endpointText.trim(), context));
+    let url = normalizeUrl(resolve(endpointText.trim()));
     const authParam = buildAuthQueryParam(auth);
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
-    return { method: content.method, url, headers, body, usesBody };
+    return { method: content.method, url, headers, body: sent?.data };
+  }
+
+  /**
+   * The body as it is sent, by mode, with the `Content-Type` it implies. A
+   * form has none here: `fetch` writes the multipart type with its boundary.
+   */
+  private resolveBody(body: RequestBody, resolve: (text: string) => string): SentBody | undefined | Promise<SentBody> {
+    switch (body.mode) {
+      case "none":
+        return undefined;
+      case "raw": {
+        const text = resolve(body.raw?.text ?? "");
+        return text ? { data: text, contentType: RAW_CONTENT_TYPES[body.raw?.language ?? "text"] } : undefined;
+      }
+      case "urlencoded": {
+        const pairs = (body.urlencoded ?? []).filter((row) => row.enabled).map((row) => [resolve(row.key), resolve(row.value)]);
+        return { data: new URLSearchParams(pairs).toString(), contentType: "application/x-www-form-urlencoded" };
+      }
+      case "multipart":
+        return this.multipartForm((body.multipart ?? []).filter((item) => item.enabled), resolve);
+      case "binary":
+        return this.binaryFile(body.binary);
+    }
+  }
+
+  private async multipartForm(parts: MultipartPart[], resolve: (text: string) => string): Promise<SentBody> {
+    const form = new FormData();
+    for (const part of parts) {
+      if (part.kind === "text") {
+        form.append(resolve(part.key), resolve(part.value));
+      } else {
+        form.append(resolve(part.key), await this.fileOf(part), part.fileName);
+      }
+    }
+    return { data: form };
+  }
+
+  private async binaryFile(binary: RequestBody["binary"]): Promise<SentBody> {
+    if (!binary) {
+      throw new SendBlockedError("Choose a file for the body, or set the body to None.");
+    }
+    const file = await this.fileOf(binary);
+    return { data: file, contentType: binary.contentType || file.type || "application/octet-stream" };
+  }
+
+  private async fileOf(ref: FileRef): Promise<Blob> {
+    const file = await this.files.read(ref.fileId);
+    if (!file) {
+      throw new SendBlockedError(`The file "${ref.fileName}" is not stored in this browser. Choose it again.`);
+    }
+    return file;
   }
 
   private variableContext(): VariableContext {

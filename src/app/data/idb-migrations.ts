@@ -8,7 +8,15 @@ import { ApiSandboxDB } from "./idb-schema";
  * nothing it catches: an error aborts the upgrade and the database keeps its
  * old version.
  */
-export function runUpgrade(db: IDBPDatabase<ApiSandboxDB>): void {
+export function runUpgrade(db: IDBPDatabase<ApiSandboxDB>, oldVersion: number): void {
+  if (oldVersion < 5) {
+    createV5Stores(db);
+  }
+  // 6 (P2.12): the files of multipart and binary bodies. Nothing stored changes shape.
+  db.createObjectStore("files");
+}
+
+function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {
   for (const name of Array.from(db.objectStoreNames as DOMStringList)) {
     (db as unknown as IDBPDatabase).deleteObjectStore(name);
   }

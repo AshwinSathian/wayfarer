@@ -120,6 +120,17 @@ describe("BridgeTransport", () => {
     ).toMatchObject({ kind: "bridge", status: 503, message: "The bridge answered 503." });
   });
 
+  it("refuses a body that is not text, and makes no call: protocol 1 would relay it as {}", async () => {
+    for (const body of [new Blob(["x"]), new FormData(), new ArrayBuffer(1)]) {
+      const { fetch, calls } = relay({});
+      const sent = new BridgeTransport(BRIDGE, fetch).send({ method: "POST", url: "https://a.test", headers: [], body }, open());
+
+      await expect(sent).rejects.toThrow(TransportError);
+      await expect(sent).rejects.toThrow("cannot relay a file or multipart body");
+      expect(calls).toHaveLength(0);
+    }
+  });
+
   it("passes the body on, trims the bridge URL, and times out and cancels like the direct route", async () => {
     const { fetch, calls } = relay({ status: 200, statusText: "OK", headers: {}, body: "", bodyEncoding: "utf8" });
     await new BridgeTransport({ ...BRIDGE, url: "http://127.0.0.1:7717//" }, fetch).send(

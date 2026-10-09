@@ -1,0 +1,52 @@
+<div class="flex flex-col gap-2">
+  @for (part of parts(); track part; let index = $index) {
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <mat-checkbox
+      [aria-label]="'Send part ' + (index + 1)"
+      [(ngModel)]="part.enabled"
+      (ngModelChange)="partChange.emit()"
+    />
+    <mat-form-field class="field min-w-0 flex-1 basis-32">
+      <input matInput
+        placeholder="name"
+        [(ngModel)]="part.key"
+        (ngModelChange)="partChange.emit()"
+        [attr.aria-label]="'Part name, row ' + (index + 1)"
+       />
+    </mat-form-field>
+    <mat-select
+      class="select w-24!"
+      [aria-label]="'Part type, row ' + (index + 1)"
+      [ngModel]="part.kind"
+      (ngModelChange)="kindChange.emit({ index, kind: $event })"
+    >
+      <mat-option value="text">Text</mat-option>
+      <mat-option value="file">File</mat-option>
+    </mat-select>
+    <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
+    <div class="flex min-w-0 flex-1 basis-56 items-center gap-2">
+    @if (part.kind === 'text') {
+    <mat-form-field class="field min-w-0 flex-1">
+      <input matInput
+        placeholder="value"
+        [(ngModel)]="part.value"
+        (ngModelChange)="partChange.emit()"
+        [attr.aria-label]="'Part value, row ' + (index + 1)"
+       />
+    </mat-form-field>
+    } @else {
+    <div class="flex min-w-0 flex-1 items-center gap-2">
+      <button matButton="outlined" class="btn-secondary btn-sm shrink-0" type="button" (click)="file.click()">Choose file</button>
+      <span class="type-footnote text-label-secondary truncate">{{ part.fileName || "No file chosen" }}</span>
+      <input #file type="file" class="hidden" [attr.aria-label]="'File for part ' + (index + 1)" (change)="onFile(index, file)" />
+    </div>
+    }
+    <button matIconButton class="btn-danger" type="button" aria-label="Remove part" (click)="remove.emit(index)"><app-icon name="close" /></button>
+    </div>
+  </div>
+  }
+
+  <div class="pt-2">
+    <button matButton="filled" class="btn-secondary" type="button" aria-label="Add part" (click)="add.emit()"><app-icon name="add" /> Add Part</button>
+  </div>
+</div>

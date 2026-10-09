@@ -71,6 +71,6 @@ back gets reworded until one can, or removed.
 | C-036 | The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. | README.md | e2e/features.spec.ts |
 | C-037 | Dark and light themes both ship, switchable in Settings. | README.md | e2e/settings.spec.ts |
 | C-038 | The primary views have no critical or serious axe accessibility violations. | README.md | e2e/accessibility.spec.ts |
-| C-039 | The Body tab exists only for POST, PUT and PATCH, with a Basic or JSON editor. | README.md | e2e/features.spec.ts |
+| C-039 | The Body tab offers the modes none, raw, form, multipart and binary; GET and HEAD have no Body tab and send no body. | README.md | e2e/features.spec.ts |
 | C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.spec.ts |
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |

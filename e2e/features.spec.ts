@@ -182,14 +182,26 @@ test("@claim:C-036 the app is installable: a web app manifest with name, start U
   }
 });
 
-test("@claim:C-039 the Body tab exists only for POST, PUT and PATCH, with a Basic/JSON editor switch", async ({ page }) => {
+test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({ page }) => {
   await page.goto("/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
+  const method = page.getByRole("combobox", { name: /^HTTP method/ });
+  // A new request is a GET.
   await expect(bodyTab).toHaveCount(0);
-  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
-  await page.getByRole("option", { name: "POST", exact: true }).click();
+  for (const [name, tabs] of [["HEAD", 0], ["DELETE", 1], ["OPTIONS", 1], ["PATCH", 1], ["PUT", 1], ["POST", 1]] as const) {
+    await method.click();
+    await page.getByRole("option", { name, exact: true }).click();
+    // The list is closed before the select is opened again.
+    await expect(page.getByRole("option")).toHaveCount(0);
+    await expect(bodyTab, name).toHaveCount(tabs);
+  }
+
   await bodyTab.first().click();
-  await expect(page.getByRole("radio", { name: "JSON" }).or(page.getByRole("button", { name: "JSON", exact: true })).first()).toBeVisible();
+  await page.getByRole("combobox", { name: "Body", exact: true }).click();
+  await expect(page.getByRole("option")).toHaveText(["None", "Raw", "Form (URL-encoded)", "Multipart", "Binary file"]);
+  await page.getByRole("option", { name: "Raw", exact: true }).click();
+  await page.getByRole("combobox", { name: "Raw body language" }).click();
+  await expect(page.getByRole("option")).toHaveText(["JSON", "Text", "XML", "HTML", "JavaScript"]);
 });
 
 async function createCollection(page: Page, name: string): Promise<void> {

@@ -30,8 +30,8 @@ export interface BuiltRequest {
   url: string;
   /** In the order they are sent. */
   headers: [string, string][];
-  body?: Record<string, unknown>;
-  usesBody: boolean;
+  /** Text, a file, or a multipart form. Absent when the request has no body. */
+  body?: string | Blob | FormData;
 }
 
 /**
@@ -60,21 +60,39 @@ const SECRET_PLACEHOLDER_BLOCKED =
  * Basic credentials base64-decoded.
  */
 function containsSecretPlaceholder(request: BuiltRequest): boolean {
-  let decodedUrl = request.url;
-  try {
-    decodedUrl = decodeURIComponent(request.url);
-  } catch (error) {
-    // Malformed escape: the raw URL is still checked below.
-    if (!(error instanceof URIError)) throw error;
-  }
   const wire = [
     request.url,
-    decodedUrl,
+    percentDecoded(request.url),
     JSON.stringify(request.headers),
     ...request.headers.map(([, value]) => decodeBasicCredentials(value)),
-    request.usesBody ? JSON.stringify(request.body ?? null) : "",
+    ...bodyTexts(request.body),
   ];
   return wire.some((text) => SECRET_PLACEHOLDER.test(text));
+}
+
+function percentDecoded(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch (error) {
+    // Malformed escape: the text as it is gets checked too.
+    if (!(error instanceof URIError)) throw error;
+    return "";
+  }
+}
+
+/**
+ * The text a body puts on the wire: itself, also percent-decoded (a form
+ * body encodes the braces), and every name, value and file name of a
+ * multipart form. A file's own bytes are the user's and are not read.
+ */
+function bodyTexts(body: BuiltRequest["body"]): string[] {
+  if (typeof body === "string") {
+    return [body, percentDecoded(body.replaceAll("+", " "))];
+  }
+  if (body instanceof FormData) {
+    return [...body].flatMap(([name, value]) => [name, typeof value === "string" ? value : value.name]);
+  }
+  return [];
 }
 
 /** The `user:password` inside a `Basic` header value, where base64 would hide a placeholder; "" otherwise. */
@@ -102,7 +120,7 @@ export interface RequestExecutionSpec {
    * auth token fetched by a prior call) is reflected in what actually gets
    * sent, matching the ordering `pre-script -> build -> send` implies.
    */
-  buildRequest: () => BuiltRequest;
+  buildRequest: () => BuiltRequest | Promise<BuiltRequest>;
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
 }
@@ -174,7 +192,9 @@ export class RequestExecutor {
 
     // Built only now, after the pre-script (and any environment mutations
     // it made) has already landed — see BuiltRequest / buildRequest's doc.
-    const request = spec.buildRequest();
+    // Awaited only when it is a promise: a request with no file to read is sent in the same task as the click.
+    const built = spec.buildRequest();
+    const request = built instanceof Promise ? await built : built;
     // ponytail: blocks instead of resolving; resolving here would put the
     // plaintext into history (F14). Vault resolution plus redaction replace
     // this in P2.4/P2.5.
@@ -193,7 +213,7 @@ export class RequestExecutor {
           method: request.method,
           url: request.url,
           headers: request.headers,
-          body: request.usesBody ? JSON.stringify(request.body ?? {}) : undefined,
+          body: request.body,
         },
         { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }
       );
@@ -228,7 +248,8 @@ export class RequestExecutor {
     if (shaped.historyError) {
       history.error = shaped.historyError;
     }
-    if (request.usesBody) {
+    // History keeps a text body. A file or a form is not copied into it.
+    if (typeof request.body === "string") {
       history.body = request.body;
     }
 

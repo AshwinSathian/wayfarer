@@ -115,8 +115,8 @@ export class IdbCore {
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
         upgrade: (db, oldVersion) => {
-          runUpgrade(db);
-          replacedOldData = oldVersion > 0;
+          runUpgrade(db, oldVersion);
+          replacedOldData = oldVersion > 0 && oldVersion < 5;
         },
         // A tab running a build from before v5 does not close on request.
         blocked: () => this.upgradeBlocked.set(true),

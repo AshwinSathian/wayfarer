@@ -106,7 +106,6 @@ function builtRequest(overrides: Partial<BuiltRequest> = {}): BuiltRequest {
     method: "GET",
     url: "https://example.com/data",
     headers: [],
-    usesBody: false,
     ...overrides,
   };
 }
@@ -179,14 +178,15 @@ describe("RequestExecutor", () => {
     );
   });
 
-  it("includes the body in the sent request and history only when usesBody is true", async () => {
-    await service.execute({
+  it("includes a text body in the sent request and in history", async () => {
+    const result = await service.execute({
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
       buildRequest: () =>
-        builtRequest({ method: "POST", usesBody: true, body: { name: "widget" } }),
+        builtRequest({ method: "POST", body: JSON.stringify({ name: "widget" }) }),
     });
+    expect(result.history.body).toBe('{"name":"widget"}');
 
     expect(transport.sendRequest).toHaveBeenCalledWith(
       "POST",
@@ -196,12 +196,12 @@ describe("RequestExecutor", () => {
     );
   });
 
-  it("omits the body from the send call and history when usesBody is false", async () => {
+  it("omits the body from the send call and history when the request has none", async () => {
     const result = await service.execute({
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
-      buildRequest: () => builtRequest({ method: "DELETE", usesBody: false }),
+      buildRequest: () => builtRequest({ method: "DELETE" }),
     });
 
     expect(transport.sendRequest).toHaveBeenCalledWith(
@@ -388,13 +388,23 @@ describe("RequestExecutor", () => {
     });
   });
 
+  const form = (...parts: [string, string | File][]): FormData => {
+    const data = new FormData();
+    for (const [name, value] of parts) data.append(name, value);
+    return data;
+  };
+
   describe("protected-variable placeholders (P0.3, #60)", () => {
     const secret = "{{$secret.0b6f1c2e-0000-4000-8000-000000000001}}";
     const cases: [string, Partial<BuiltRequest>][] = [
       ["URL", { url: `https://example.com/?key=${secret}` }],
       ["header value", { headers: [["X-Api-Key", secret]] }],
       ["header name", { headers: [[secret, "1"]] }],
-      ["nested body", { method: "POST", usesBody: true, body: { a: { b: [secret] } } }],
+      ["nested body", { method: "POST", body: JSON.stringify({ a: { b: [secret] } }) }],
+      ["form body, percent-encoded", { method: "POST", body: new URLSearchParams([["key", "{{ $secret.abc }}"]]).toString() }],
+      ["multipart field value", { method: "POST", body: form(["key", secret]) }],
+      ["multipart field name", { method: "POST", body: form([secret, "1"]) }],
+      ["multipart file name", { method: "POST", body: form(["file", new File(["x"], `${secret}.txt`)]) }],
       ["spaced placeholder", { headers: [["Authorization", "Bearer {{ $secret.abc }}"]] }],
       ["percent-encoded URL", { url: "https://example.com/?key=%7B%7B%24secret.abc%7D%7D" }],
       ["Basic credentials", { headers: [["Authorization", `Basic ${btoa(`user:${secret}`)}`]] }],

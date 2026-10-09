@@ -15,8 +15,44 @@ export interface Row {
 export const RAW_LANGUAGES = ["json", "text", "xml", "html", "javascript"] as const;
 export type RawLanguage = (typeof RAW_LANGUAGES)[number];
 
-/** The body as the user wrote it: template text, `{{variables}}` intact. */
-export type RequestBody = { mode: "none" } | { mode: "raw"; raw: { language: RawLanguage; text: string } };
+export const BODY_MODES = ["none", "raw", "urlencoded", "multipart", "binary"] as const;
+export type BodyMode = (typeof BODY_MODES)[number];
+
+/** A file kept in the `files` store, by id, with the name it was picked under. */
+export interface FileRef {
+  fileId: string;
+  fileName: string;
+}
+
+export type MultipartPart = { key: string; enabled: boolean } & ({ kind: "text"; value: string } | ({ kind: "file" } & FileRef));
+
+/**
+ * The body as the user wrote it: template text, `{{variables}}` intact.
+ * `mode` says which part is sent. The others are kept, so changing the mode
+ * and changing it back loses nothing.
+ */
+export interface RequestBody {
+  mode: BodyMode;
+  raw?: { language: RawLanguage; text: string };
+  urlencoded?: Row[];
+  multipart?: MultipartPart[];
+  binary?: FileRef & { contentType?: string };
+}
+
+/** The `Content-Type` a raw body is sent with when the request sets none. */
+export const RAW_CONTENT_TYPES: Record<RawLanguage, string> = {
+  json: "application/json",
+  text: "text/plain",
+  xml: "application/xml",
+  html: "text/html",
+  javascript: "application/javascript",
+};
+
+/** The ids of every file a body refers to, whatever its mode: a mode not chosen keeps its files. */
+export function fileIdsOf(body: RequestBody): string[] {
+  const parts = (body.multipart ?? []).flatMap((part) => (part.kind === "file" ? [part.fileId] : []));
+  return body.binary ? [...parts, body.binary.fileId] : parts;
+}
 
 export type AuthConfig =
   | { type: "none" }

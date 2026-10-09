@@ -157,16 +157,20 @@ export class Idb {
     return this.collectionRequests.listRequests(collectionId);
   }
 
-  async createRequest(payload: NewRequest): Promise<RequestDoc> {
-    return this.collectionRequests.createRequest(payload);
+  async createRequest(payload: NewRequest, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc> {
+    return this.collectionRequests.createRequest(payload, files);
   }
 
   async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
     return this.collectionRequests.renameRequest(id, name);
   }
 
-  async updateRequest(id: RequestDocId, patch: RequestPatch): Promise<RequestDoc | null> {
-    return this.collectionRequests.updateRequest(id, patch);
+  async updateRequest(id: RequestDocId, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
+    return this.collectionRequests.updateRequest(id, patch, files);
+  }
+
+  async readFile(id: string): Promise<Blob | undefined> {
+    return this.collectionRequests.readFile(id);
   }
 
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {

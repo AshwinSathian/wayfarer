@@ -1,4 +1,4 @@
-import { ASSERTION_OPERATORS, ASSERTION_TARGETS, HTTP_METHODS, RAW_LANGUAGES } from "./request";
+import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, HTTP_METHODS, RAW_LANGUAGES } from "./request";
 
 export interface ValidationIssue {
   path: string;
@@ -53,14 +53,23 @@ class Checker {
     });
   }
 
+  enabled(row: Fields, rowPath: string): void {
+    if (typeof field(row, "enabled") !== "boolean") {
+      this.fail(`${rowPath}.enabled`, "Value must be true or false.");
+    }
+  }
+
   rows(value: unknown, path: string): void {
     this.list(value, path, (row, rowPath) => {
       this.string(row, "key", rowPath);
       this.string(row, "value", rowPath);
-      if (typeof field(row, "enabled") !== "boolean") {
-        this.fail(`${rowPath}.enabled`, "Value must be true or false.");
-      }
+      this.enabled(row, rowPath);
     });
+  }
+
+  fileRef(object: Fields, path: string): void {
+    this.string(object, "fileId", path);
+    this.string(object, "fileName", path);
   }
 }
 
@@ -90,12 +99,35 @@ export function validateRequestContent(value: unknown, path: string): Validation
 
   const body = check.object(field(request, "body"), `${path}.body`);
   if (body) {
-    check.oneOf(body, "mode", `${path}.body`, ["none", "raw"]);
-    if (field(body, "mode") === "raw") {
+    const mode = field(body, "mode");
+    check.oneOf(body, "mode", `${path}.body`, BODY_MODES);
+    // Each part is checked when present, and must be present when it is the one sent.
+    const part = (name: string) => (field(body, name) !== undefined || mode === name ? name : null);
+    if (part("raw")) {
       const raw = check.object(field(body, "raw"), `${path}.body.raw`);
       if (raw) {
         check.oneOf(raw, "language", `${path}.body.raw`, RAW_LANGUAGES);
         check.string(raw, "text", `${path}.body.raw`);
+      }
+    }
+    if (part("urlencoded")) {
+      check.rows(field(body, "urlencoded"), `${path}.body.urlencoded`);
+    }
+    if (part("multipart")) {
+      check.list(field(body, "multipart"), `${path}.body.multipart`, (item, itemPath) => {
+        check.string(item, "key", itemPath);
+        check.enabled(item, itemPath);
+        check.oneOf(item, "kind", itemPath, ["text", "file"]);
+        if (field(item, "kind") === "text") check.string(item, "value", itemPath);
+        if (field(item, "kind") === "file") check.fileRef(item, itemPath);
+      });
+    }
+    // A binary body with no file chosen yet has no `binary`.
+    if (field(body, "binary") !== undefined) {
+      const binary = check.object(field(body, "binary"), `${path}.body.binary`);
+      if (binary) {
+        check.fileRef(binary, `${path}.body.binary`);
+        check.string(binary, "contentType", `${path}.body.binary`, true);
       }
     }
   }

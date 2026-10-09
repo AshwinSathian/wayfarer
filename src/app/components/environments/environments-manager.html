@@ -160,6 +160,12 @@
                 ><app-icon name="close" /></button>
               </div>
               }
+              @if (shortSecretWarning(); as short) {
+              <p role="status" class="type-footnote text-status-warning flex items-center gap-1.5">
+                <app-icon name="warning" class="icon-xs" />
+                "{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be found and masked where a server sends it back.
+              </p>
+              }
               <button matButton="filled" class="btn-secondary btn-sm" aria-label="Add variable" (click)="addVariable()"><app-icon name="add" /> Add Variable</button>
             </div>
           </div>

@@ -32,10 +32,15 @@ you turn it on). <!-- claim:C-001 -->
 Secret values (API keys, tokens, passwords stored in the vault) are
 encrypted before they touch disk:
 
-- **KDF:** PBKDF2-SHA-256, 600,000 iterations, random 16-byte salt per secret. <!-- claim:C-004 -->
-- **Cipher:** AES-GCM, 256-bit key, random 12-byte IV per secret. <!-- claim:C-004 -->
-- **Key handling:** the derived key lives in memory only for the unlocked
-  session and is dropped on lock or tab close; it is never itself persisted. <!-- claim:C-005 -->
+- **KDF:** PBKDF2-SHA-256, 600,000 iterations, a random 16-byte salt. The key it derives from the passphrase wraps the data key. <!-- claim:C-004 -->
+- **Cipher:** AES-GCM with a random 256-bit data key, and a random 12-byte IV per secret. <!-- claim:C-004 -->
+- **Key handling:** the data key is stored only wrapped. Unwrapped, it lives in
+  memory for the unlocked session, as a key the browser will not export, and is
+  dropped on lock, reload or tab close, and after 15 idle minutes (configurable). <!-- claim:C-005 -->
+- **Passphrase change:** wraps the same data key under the new passphrase; the
+  old one stops working and no secret is re-encrypted. <!-- claim:C-043 -->
+- **Vault file:** the vault can be exported as a file that holds only ciphertext
+  and opens with its passphrase, and imported into another vault. <!-- claim:C-044 -->
 
 Full envelope format and key-derivation detail: [`docs/secrets.md`](secrets.md).
 
@@ -142,7 +147,6 @@ These are open, tracked, and scheduled in
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
-- The vault passphrase can't be rotated, and with no secrets stored any passphrase "unlocks" ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - History and collection exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit), and there is no full-workspace backup yet ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).

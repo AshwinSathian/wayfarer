@@ -19,7 +19,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { SecretDoc, SecretId } from "../../models/secrets";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
-import { SecretCrypto } from "../../shared/secrets/secret-crypto";
+import { VaultActions } from "./vault-actions";
 import { extractSecretId } from "../../shared/secrets/secret-reference";
 import { VariableFocus } from "../../services/variable-focus";
 import { VariableToken } from "../../services/variable-focus";
@@ -40,20 +40,18 @@ interface SecretRow {
  * Dedicated Secrets management view (Part D/E, Phase 3) — lists every
  * secret across every environment in one place instead of only as flagged
  * rows buried inside the Environments editor. Owns no crypto/persistence
- * logic itself: every read/write goes through SecretsVault, which in
- * turn defers to SecretCrypto (encryption) and SecretsRepository
- * (storage) — this component is presentation + orchestration only.
+ * logic itself: every read/write goes through SecretsVault — this
+ * component is presentation + orchestration only.
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [MatProgressSpinner, MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
+  imports: [VaultActions, MatProgressSpinner, MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SecretsManager {
   private readonly secretsService = inject(SecretsVault);
-  private readonly secretCrypto = inject(SecretCrypto);
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly variableFocus = inject(VariableFocus);
   private readonly confirm = inject(Confirm);
@@ -96,13 +94,13 @@ export class SecretsManager {
   });
 
   get secretsUnlocked(): boolean {
-    return this.secretCrypto.isUnlocked;
+    return this.secretsService.isUnlocked();
   }
 
   constructor() {
     // Locking the vault hides what was revealed while it was open.
     effect(() => {
-      if (!this.secretCrypto.isUnlocked) this.revealedValues.set({});
+      if (!this.secretsService.isUnlocked()) this.revealedValues.set({});
     });
     effect(() => {
       if (this.visible()) {
@@ -129,7 +127,7 @@ export class SecretsManager {
   }
 
   async reveal(id: SecretId): Promise<void> {
-    if (!this.secretCrypto.isUnlocked) {
+    if (!this.secretsService.isUnlocked()) {
       this.requestUnlock.emit();
       return;
     }

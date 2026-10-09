@@ -16,19 +16,19 @@ class IdbServiceMock {
   clear = vi.fn().mockReturnValue(Promise.resolve());
   delete = vi.fn().mockReturnValue(Promise.resolve());
   // AppShell.ngOnInit() calls EnvironmentsStore.ensureLoaded() and
-  // SecretsVault.hasAnySecrets(), both of which round-trip through Idb.
+  // SecretsVault.exists(), both of which round-trip through Idb.
   listEnvironments = vi.fn().mockReturnValue(Promise.resolve([]));
   getActiveEnvironmentId = vi.fn().mockReturnValue(Promise.resolve(null));
   getGlobals = vi.fn().mockReturnValue(Promise.resolve([]));
   setActiveEnvironment = vi.fn().mockReturnValue(Promise.resolve());
-  peekSecretEnvelope = vi.fn().mockReturnValue(Promise.resolve(null));
+  readVault = vi.fn().mockReturnValue(Promise.resolve(null));
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));
   readonly closedByOtherTab = signal(false).asReadonly();
   readonly memoryOnly = signal(false).asReadonly();
   readonly updatedElsewhere = signal(false).asReadonly();
   readonly upgradeBlocked = signal(false).asReadonly();
   readonly olderThanData = signal(false).asReadonly();
-  readonly clearedOldData = signal(false).asReadonly();
+  readonly clearedOldData = signal(null).asReadonly();
 }
 
 /** The window is this wide, as far as a min-width media query can tell. */

@@ -1,196 +1,273 @@
 import { TestBed } from "@angular/core/testing";
-import { SecretsVault } from "./secrets-vault";
+import { computed } from "@angular/core";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "../data/idb";
-import { SecretCrypto } from "../shared/secrets/secret-crypto";
-import { SecretEnvelope } from "../models/secrets";
-import { describe, it, beforeEach, expect, vi } from "vitest";
+import { SecretsVault } from "./secrets-vault";
 
-class IdbServiceMock {
-  writeCipher = vi.fn().mockResolvedValue(undefined);
-  readCipher = vi.fn().mockResolvedValue(null);
-  peekSecretEnvelope = vi.fn().mockResolvedValue(null);
-}
-
-class SecretCryptoServiceMock {
-  private _isUnlocked = false;
-  get isUnlocked(): boolean {
-    return this._isUnlocked;
-  }
-  setUnlocked(value: boolean): void {
-    this._isUnlocked = value;
-  }
-
-  encryptWithSession = vi.fn()
-    .mockResolvedValue({ v: 1, alg: "AES-GCM", salt: "salt", iv: "iv", ct: "enc" } as SecretEnvelope);
-  decryptWithSession = vi.fn().mockResolvedValue("plaintext");
-  decrypt = vi.fn().mockResolvedValue("plaintext");
-  unlock = vi.fn().mockResolvedValue(undefined);
-}
-
+// The vault over the real IndexedDB stores and the browser's WebCrypto:
+// what is asserted is what a user's browser stores and can open.
 describe("SecretsVault", () => {
-  let service: SecretsVault;
-  let idb: IdbServiceMock;
-  let crypto: SecretCryptoServiceMock;
+  let vault: SecretsVault;
+  let idb: Idb;
 
   beforeEach(() => {
-    idb = new IdbServiceMock();
-    crypto = new SecretCryptoServiceMock();
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: Idb, useValue: idb },
-        { provide: SecretCrypto, useValue: crypto },
-      ],
-    });
-    service = TestBed.inject(SecretsVault);
+    localStorage.removeItem("wayfarer:vault-idle-minutes");
+    TestBed.configureTestingModule({});
+    vault = TestBed.inject(SecretsVault);
+    idb = TestBed.inject(Idb);
   });
+
+  afterEach(async () => {
+    vi.useRealTimers();
+    vault.lock();
+    await idb.resetDatabase();
+  });
+
+  /** Another tab: its own vault service over the same database. */
+  function otherTab(): SecretsVault {
+    return TestBed.runInInjectionContext(() => new SecretsVault());
+  }
 
   describe("saveSecret()", () => {
     it("throws instead of persisting anything when the vault is locked", async () => {
-      crypto.setUnlocked(false);
-
-      await expect(
-        service.saveSecret({ name: "API key", plaintext: "shh" })
-      ).rejects.toThrow("Secrets are locked. Unlock before saving new secrets.");
-
-      expect(idb.writeCipher).not.toHaveBeenCalled();
+      await expect(vault.saveSecret({ name: "API key", plaintext: "shh" })).rejects.toThrow(
+        "Secrets are locked. Unlock before saving new secrets."
+      );
+      expect(await idb.listSecrets()).toEqual([]);
     });
 
     it("encrypts the plaintext and writes the envelope under a fresh id when unlocked", async () => {
-      crypto.setUnlocked(true);
+      await vault.create("correct horse");
+      const first = await vault.saveSecret({ name: "API key", environmentId: "env-1", plaintext: "shh" });
+      const second = await vault.saveSecret({ name: "Other", plaintext: "shh" });
 
-      const id = await service.saveSecret({
-        name: "API key",
-        environmentId: "env-1",
-        plaintext: "shh",
-      });
-
-      expect(crypto.encryptWithSession).toHaveBeenCalledWith("shh");
-      expect(idb.writeCipher).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id,
-          name: "API key",
-          environmentId: "env-1",
-          envelope: expect.objectContaining({ ct: "enc" }),
-        })
-      );
-      expect(typeof id).toBe("string");
-      expect(id.length).toBeGreaterThan(0);
+      expect(first).not.toBe(second);
+      const [doc] = (await idb.listSecrets()).filter((secret) => secret.id === first);
+      expect(doc).toMatchObject({ id: first, name: "API key", environmentId: "env-1", envelope: { v: 2 } });
+      expect(Object.keys(doc.envelope).sort()).toEqual(["ct", "iv", "v"]);
     });
 
-    it("never lets the plaintext itself reach Idb.writeCipher", async () => {
-      crypto.setUnlocked(true);
+    it("never lets the plaintext itself reach storage", async () => {
+      await vault.create("correct horse");
+      await vault.saveSecret({ name: "API key", plaintext: "super-secret-value" });
 
-      await service.saveSecret({ name: "API key", plaintext: "super-secret-value" });
-
-      const written = idb.writeCipher.mock.lastCall![0];
-      expect(JSON.stringify(written)).not.toContain("super-secret-value");
+      const stored = JSON.stringify([await idb.listSecrets(), await idb.readVault()]);
+      expect(stored).not.toContain("super-secret-value");
+      expect(stored).not.toContain("correct horse");
     });
   });
 
   describe("readSecret()", () => {
-    it("returns null without touching storage when the vault is locked", async () => {
-      crypto.setUnlocked(false);
+    it("returns null when the vault is locked", async () => {
+      await vault.create("correct horse");
+      const id = await vault.saveSecret({ name: "API key", plaintext: "shh" });
+      vault.lock();
 
-      const result = await service.readSecret("secret-1");
-
-      expect(result).toBeNull();
-      expect(idb.readCipher).not.toHaveBeenCalled();
+      expect(await vault.readSecret(id)).toBeNull();
     });
 
     it("returns null when no envelope exists for that id", async () => {
-      crypto.setUnlocked(true);
-      idb.readCipher.mockResolvedValue(null);
-
-      const result = await service.readSecret("missing");
-
-      expect(result).toBeNull();
-      expect(crypto.decryptWithSession).not.toHaveBeenCalled();
+      await vault.create("correct horse");
+      expect(await vault.readSecret("missing")).toBeNull();
     });
 
     it("decrypts and returns the plaintext when unlocked and the envelope exists", async () => {
-      crypto.setUnlocked(true);
-      const envelope = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.readCipher.mockResolvedValue(envelope);
+      await vault.create("correct horse");
+      const id = await vault.saveSecret({ name: "API key", plaintext: "héllo ✓" });
 
-      const result = await service.readSecret("secret-1");
+      expect(await vault.readSecret(id)).toBe("héllo ✓");
+    });
 
-      expect(crypto.decryptWithSession).toHaveBeenCalledWith(envelope);
-      expect(result).toBe("plaintext");
+    it("surfaces a damaged envelope instead of reporting no secret (P1.11, F36)", async () => {
+      await vault.create("correct horse");
+      const a = await vault.saveSecret({ name: "A", plaintext: "value a" });
+      const b = await vault.saveSecret({ name: "B", plaintext: "value b" });
+      const [envelopeA, envelopeB] = [(await idb.readCipher(a))!, (await idb.readCipher(b))!];
+
+      // Two secrets' ciphertexts swapped in storage: neither opens, since each is bound to its id.
+      await idb.writeCipher({ id: a, name: "A", envelope: envelopeB });
+      await idb.writeCipher({ id: b, name: "B", envelope: envelopeA });
+
+      await expect(vault.readSecret(a)).rejects.toThrow();
+      await expect(vault.readSecret(b)).rejects.toThrow();
     });
   });
 
-  describe("decryptEnvelope()", () => {
-    it("returns null when locked, without calling decryptWithSession", async () => {
-      crypto.setUnlocked(false);
-      const envelope = {} as SecretEnvelope;
-
-      expect(await service.decryptEnvelope(envelope)).toBeNull();
-      expect(crypto.decryptWithSession).not.toHaveBeenCalled();
+  describe("create() and unlock()", () => {
+    it("exists only once a passphrase has been chosen, whatever the lock state", async () => {
+      expect(await vault.exists()).toBe(false);
+      await vault.create("correct horse");
+      expect(await vault.exists()).toBe(true);
+      vault.lock();
+      expect(await vault.exists()).toBe(true);
     });
 
-    it("delegates to decryptWithSession when unlocked", async () => {
-      crypto.setUnlocked(true);
-      const envelope = {} as SecretEnvelope;
+    it("exposes the lock state reactively, so OnPush views and effects follow unlock and lock", async () => {
+      const unlocked = computed(() => vault.isUnlocked());
+      expect(unlocked()).toBe(false);
 
-      expect(await service.decryptEnvelope(envelope)).toBe("plaintext");
-      expect(crypto.decryptWithSession).toHaveBeenCalledWith(envelope);
+      await vault.create("correct horse");
+      expect(unlocked()).toBe(true);
+
+      vault.lock();
+      expect(unlocked()).toBe(false);
+    });
+
+    it("refuses a wrong passphrase with no secret stored, and never unlocks", async () => {
+      await vault.create("correct horse");
+      vault.lock();
+
+      expect(await vault.unlock("wrong horse")).toBe(false);
+      expect(vault.isUnlocked()).toBe(false);
+      expect(await vault.unlock("correct horse")).toBe(true);
+      expect(vault.isUnlocked()).toBe(true);
+    });
+
+    it("does not unlock when there is no vault yet", async () => {
+      expect(await vault.unlock("anything")).toBe(false);
+      expect(vault.isUnlocked()).toBe(false);
+    });
+
+    it("keeps the first passphrase when another tab chose one first", async () => {
+      await otherTab().create("theirs first");
+
+      expect(await vault.create("mine second")).toBe(false);
+      expect(vault.isUnlocked()).toBe(false);
+      expect(await vault.unlock("theirs first")).toBe(true);
     });
   });
 
-  describe("hasAnySecrets()", () => {
-    it("is false when the vault has never had anything written to it", async () => {
-      idb.peekSecretEnvelope.mockResolvedValue(null);
-      expect(await service.hasAnySecrets()).toBe(false);
+  it("@claim:C-043 changing the passphrase: the old one fails, the new one works, the secrets are intact and no secret row is rewritten", async () => {
+    await vault.create("old passphrase");
+    const id = await vault.saveSecret({ name: "API key", plaintext: "kept" });
+    const rowsBefore = JSON.stringify(await idb.listSecrets());
+
+    expect(await vault.changePassphrase("not it", "new passphrase")).toBe(false);
+    expect(await vault.changePassphrase("old passphrase", "new passphrase")).toBe(true);
+
+    expect(JSON.stringify(await idb.listSecrets())).toBe(rowsBefore);
+    // A tab that was unlocked stays so: the data key did not change.
+    expect(await vault.readSecret(id)).toBe("kept");
+    vault.lock();
+    expect(await vault.unlock("old passphrase")).toBe(false);
+    expect(await vault.unlock("new passphrase")).toBe(true);
+    expect(await vault.readSecret(id)).toBe("kept");
+  });
+
+  it("does not change the passphrase of a vault that does not exist", async () => {
+    expect(await vault.changePassphrase("a", "new passphrase")).toBe(false);
+    expect(await vault.exists()).toBe(false);
+  });
+
+  describe("export and import", () => {
+    it("@claim:C-044 a vault file holds the secrets encrypted, opens with the passphrase it was exported under, and its secrets keep their ids in the vault that imports it", async () => {
+      await vault.create("source passphrase");
+      const id = await vault.saveSecret({ name: "API key", environmentId: "env-1", plaintext: "travels-encrypted" });
+
+      expect(await vault.exportFile("wrong")).toBeNull();
+      const file = (await vault.exportFile("source passphrase"))!;
+      expect(file).not.toContain("travels-encrypted");
+      expect(file).not.toContain("source passphrase");
+      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault/2", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
+
+      // Another browser: a vault of its own, with another passphrase.
+      vault.lock();
+      await idb.resetDatabase();
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      vault = TestBed.inject(SecretsVault);
+      idb = TestBed.inject(Idb);
+      await vault.create("destination passphrase");
+
+      expect(await vault.importFile(file, "wrong")).toEqual({ error: "That is not the passphrase this file was exported with." });
+      expect(await idb.listSecrets()).toEqual([]);
+      expect(await vault.importFile(file, "source passphrase")).toEqual({ imported: 1 });
+
+      expect(await vault.readSecret(id)).toBe("travels-encrypted");
+      // Stored under this vault's key now: the destination passphrase opens it after a lock.
+      vault.lock();
+      expect(await vault.unlock("destination passphrase")).toBe(true);
+      expect(await vault.readSecret(id)).toBe("travels-encrypted");
+      expect((await idb.listSecrets())[0]).toMatchObject({ id, name: "API key", environmentId: "env-1" });
     });
 
-    it("is true once at least one secret envelope exists, independent of lock state", async () => {
-      idb.peekSecretEnvelope.mockResolvedValue({} as SecretEnvelope);
-      expect(await service.hasAnySecrets()).toBe(true);
+    it("refuses a file that is not a vault file, is too large, or has a damaged secret, and then imports nothing", async () => {
+      await vault.create("correct horse");
+      await vault.saveSecret({ name: "One", plaintext: "one" });
+      await vault.saveSecret({ name: "Two", plaintext: "two" });
+      const file = JSON.parse((await vault.exportFile("correct horse"))!) as { secrets: { envelope: { ct: string } }[] };
+      const before = JSON.stringify(await idb.listSecrets());
+
+      expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not valid JSON." });
+      expect(await vault.importFile("{}", "correct horse")).toEqual({
+        error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault/2".',
+      });
+      expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({ error: "The file is larger than 10 MB." });
+
+      // The second secret's ciphertext is the first's: it is not what the file's vault encrypted for that id.
+      file.secrets[1].envelope = file.secrets[0].envelope;
+      const result = await vault.importFile(JSON.stringify(file), "correct horse");
+      expect(result).toEqual({ error: expect.stringContaining("is damaged. Nothing was imported.") as string });
+      expect(JSON.stringify(await idb.listSecrets())).toBe(before);
+    });
+
+    it("needs this vault unlocked to import", async () => {
+      await vault.create("correct horse");
+      const file = (await vault.exportFile("correct horse"))!;
+      vault.lock();
+      await expect(vault.importFile(file, "correct horse")).rejects.toThrow("Secrets are locked");
     });
   });
 
-  describe("verifyAndUnlock()", () => {
-    it("treats an empty vault as first-use: unlocks with whatever passphrase is given", async () => {
-      idb.peekSecretEnvelope.mockResolvedValue(null);
+  describe("locking", () => {
+    it("a lock in one tab locks the others", async () => {
+      await vault.create("correct horse");
+      const other = otherTab();
+      await other.unlock("correct horse");
+      expect(other.isUnlocked()).toBe(true);
 
-      const ok = await service.verifyAndUnlock("new-passphrase");
+      vault.lock();
 
-      expect(ok).toBe(true);
-      expect(crypto.unlock).toHaveBeenCalledWith("new-passphrase");
-      expect(crypto.decrypt).not.toHaveBeenCalled();
+      await vi.waitFor(() => expect(other.isUnlocked()).toBe(false));
     });
 
-    it("verifies the passphrase against an existing secret before unlocking", async () => {
-      const sample = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.peekSecretEnvelope.mockResolvedValue(sample);
-      crypto.decrypt.mockResolvedValue("plaintext");
+    it("locks itself after the idle time, counted from the last key press or click; another tab is left alone", async () => {
+      await vault.create("correct horse");
+      const other = otherTab();
+      await other.unlock("correct horse");
+      vi.useFakeTimers();
+      vault.setIdleMinutes(1);
 
-      const ok = await service.verifyAndUnlock("correct-passphrase");
+      vi.advanceTimersByTime(59_000);
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "a" }));
+      vi.advanceTimersByTime(59_000);
+      expect(vault.isUnlocked()).toBe(true);
 
-      expect(crypto.decrypt).toHaveBeenCalledWith(sample, "correct-passphrase");
-      expect(crypto.unlock).toHaveBeenCalledWith("correct-passphrase");
-      expect(ok).toBe(true);
+      vi.advanceTimersByTime(1_000);
+      expect(vault.isUnlocked()).toBe(false);
+      expect(other.isUnlocked()).toBe(true);
+      other.lock();
     });
 
-    it("returns false and never unlocks when the passphrase fails to decrypt the sample", async () => {
-      const sample = { v: 1, alg: "AES-GCM", salt: "z", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.peekSecretEnvelope.mockResolvedValue(sample);
-      // What WebCrypto's AES-GCM decrypt throws when authentication fails.
-      crypto.decrypt.mockRejectedValue(new DOMException("The operation failed", "OperationError"));
+    it("the idle time is 15 minutes unless set, from 1 to 240, and 0 never locks; it is kept over a reload", async () => {
+      expect(vault.idleMinutes()).toBe(15);
+      vault.setIdleMinutes(1000);
+      expect(vault.idleMinutes()).toBe(240);
+      vault.setIdleMinutes(2.9);
+      expect(vault.idleMinutes()).toBe(2);
+      expect(otherTab().idleMinutes()).toBe(2);
+      vault.setIdleMinutes(-5);
+      expect(vault.idleMinutes()).toBe(0);
+      expect(otherTab().idleMinutes()).toBe(0);
 
-      const ok = await service.verifyAndUnlock("wrong-passphrase");
+      await vault.create("correct horse");
+      vi.useFakeTimers();
+      vault.setIdleMinutes(0);
+      vi.advanceTimersByTime(24 * 60 * 60_000);
+      expect(vault.isUnlocked()).toBe(true);
 
-      expect(ok).toBe(false);
-      expect(crypto.unlock).not.toHaveBeenCalled();
-    });
-
-    it("surfaces a corrupt envelope instead of reporting a wrong passphrase (P1.11, F36)", async () => {
-      const sample = { v: 1, alg: "AES-GCM", salt: "!", iv: "y", ct: "x" } as SecretEnvelope;
-      idb.peekSecretEnvelope.mockResolvedValue(sample);
-      crypto.decrypt.mockRejectedValue(new DOMException("bad base64", "InvalidCharacterError"));
-
-      await expect(service.verifyAndUnlock("any")).rejects.toThrow("bad base64");
-      expect(crypto.unlock).not.toHaveBeenCalled();
+      localStorage.setItem("wayfarer:vault-idle-minutes", "soon");
+      expect(otherTab().idleMinutes()).toBe(15);
     });
   });
 });

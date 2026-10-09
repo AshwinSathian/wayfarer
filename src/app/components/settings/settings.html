@@ -120,6 +120,24 @@
            />
         </mat-form-field>
       </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-separator bg-canvas-elevated px-4 py-3">
+        <div class="min-w-0">
+          <label for="vault-idle-minutes" class="type-subhead text-label-primary">Lock the vault when idle</label>
+          <p class="type-caption text-label-tertiary mt-0.5">Minutes without a key press or a click before this tab locks the secrets vault, 1 to 240. 0 never locks it.</p>
+        </div>
+        <mat-form-field class="field w-28">
+          <input matInput
+            id="vault-idle-minutes"
+            type="number"
+            min="0"
+            max="240"
+            step="1"
+            inputmode="numeric"
+            [value]="vault.idleMinutes()"
+            (change)="vault.setIdleMinutes(+$any($event.target).value)"
+           />
+        </mat-form-field>
+      </div>
     </section>
 
     <!-- Keyboard shortcuts -->

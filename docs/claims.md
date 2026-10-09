@@ -36,8 +36,8 @@ back gets reworded until one can, or removed.
 | C-001 | No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose. | README.md, docs/trust-center.md | e2e/no-third-party-requests.spec.ts |
 | C-002 | Collections, environments and history are stored in the browser's IndexedDB on the user's device. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-003 | Values in the secrets vault are stored only as ciphertext; nothing the app persists holds the plaintext. Everything else is plain text. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
-| C-004 | Vault crypto: PBKDF2-SHA-256 with 600,000 iterations, AES-GCM-256, a random 16-byte salt and 12-byte IV per secret. | README.md, docs/trust-center.md | src/app/shared/secrets/secret-crypto.spec.ts |
-| C-005 | The vault key is held in memory only; reloading the page locks the vault. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
+| C-004 | Vault crypto: a key derived from the passphrase with PBKDF2-SHA-256 (600,000 iterations, a random 16-byte salt) wraps a random AES-GCM-256 data key; each secret is encrypted under the data key with a random 12-byte IV of its own. | README.md, docs/trust-center.md | packages/core/src/vault/vault-crypto.spec.ts |
+| C-005 | The vault key is held in memory only: reloading the page locks the vault, and a tab locks itself after 15 idle minutes (configurable). | README.md, docs/trust-center.md | e2e/claims.spec.ts, e2e/vault.spec.ts |
 | C-006 | Scripts are disabled in the hosted app and say so with a banner; Tests-tab assertions still run. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
 | C-007 | A request that references a vault secret is blocked, never sent with the placeholder. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
 | C-008 | History keeps the headers that were sent, including `Authorization`, in plain text. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
@@ -74,3 +74,5 @@ back gets reworded until one can, or removed.
 | C-039 | The Body tab offers the modes none, raw, form, multipart and binary; GET and HEAD have no Body tab and send no body. | README.md | e2e/features.spec.ts |
 | C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.spec.ts |
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |
+| C-043 | The vault passphrase can be changed: the old one stops working and no secret is re-encrypted. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |
+| C-044 | The vault can be exported as a file that holds only ciphertext and opens with its passphrase, and imported into another vault. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |

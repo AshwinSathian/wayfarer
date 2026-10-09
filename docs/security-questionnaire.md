@@ -37,8 +37,9 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
 ## Encryption
 
 - **Encryption at rest?** Secrets (API keys, tokens, credentials stored in
-  the vault) are encrypted with AES-GCM (256-bit) using a key derived via
-  PBKDF2-SHA-256 (600,000 iterations) from a user-chosen passphrase. Full
+  the vault) are encrypted with AES-GCM (256-bit) under a random data key,
+  which is stored wrapped by a key derived via PBKDF2-SHA-256 (600,000
+  iterations) from a user-chosen passphrase. Full
   spec: [`docs/secrets.md`](secrets.md). Everything else (collections,
   environments, history) is stored as plain text in IndexedDB, protected by
   the browser's storage sandbox and the device's own disk encryption, not

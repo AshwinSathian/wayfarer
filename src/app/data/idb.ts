@@ -13,7 +13,8 @@ import {
 } from "../models/collections";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments";
 import { PastRequest, PastRequestKey } from "../models/history";
-import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets";
+import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
+import { SecretDoc, SecretId } from "../models/secrets";
 import { IdbCore } from "./idb-core";
 import { HistoryRepository } from "./history-repository";
 import { CollectionsRepository } from "./collections-repository";
@@ -266,8 +267,16 @@ export class Idb {
     return this.secrets.readCipher(id);
   }
 
-  async peekSecretEnvelope(): Promise<SecretEnvelope | null> {
-    return this.secrets.peekSecretEnvelope();
+  async readVault(): Promise<VaultRecord | null> {
+    return this.secrets.readVault();
+  }
+
+  async writeVault(record: VaultRecord, replace: boolean): Promise<boolean> {
+    return this.secrets.writeVault(record, replace);
+  }
+
+  async writeSecrets(docs: Pick<SecretDoc, "id" | "name" | "environmentId" | "envelope">[]): Promise<void> {
+    return this.secrets.writeSecrets(docs);
   }
 
   async listSecrets(): Promise<SecretDoc[]> {

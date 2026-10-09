@@ -5,7 +5,6 @@ import { Subject } from "rxjs";
 import { EnvironmentsManager } from "./environments-manager";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
-import { SecretCrypto } from "../../shared/secrets/secret-crypto";
 import { VariableFocus } from "../../services/variable-focus";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 import { VariableToken } from "../../services/variable-focus";
@@ -95,6 +94,8 @@ class EnvironmentsServiceStub {
 }
 
 class SecretsServiceStub {
+  unlocked = true;
+  isUnlocked = (): boolean => this.unlocked;
   savedSecrets: { name: string; environmentId: string; plaintext: string }[] = [];
   private nextId = 1;
 
@@ -113,25 +114,17 @@ class SecretsServiceStub {
   }
 }
 
-class SecretCryptoServiceStub {
-  unlocked = true;
-  get isUnlocked(): boolean {
-    return this.unlocked;
-  }
-}
 
 describe("EnvironmentsManager", () => {
   let component: EnvironmentsManager;
   let fixture: ComponentFixture<EnvironmentsManager>;
   let envService: EnvironmentsServiceStub;
   let secretsService: SecretsServiceStub;
-  let secretCrypto: SecretCryptoServiceStub;
   let focusSubject: Subject<VariableToken>;
 
   beforeEach(async () => {
     envService = new EnvironmentsServiceStub();
     secretsService = new SecretsServiceStub();
-    secretCrypto = new SecretCryptoServiceStub();
     focusSubject = new Subject<VariableToken>();
 
     await TestBed.configureTestingModule({
@@ -139,7 +132,6 @@ describe("EnvironmentsManager", () => {
       providers: [
         { provide: EnvironmentsStore, useValue: envService },
         { provide: SecretsVault, useValue: secretsService },
-        { provide: SecretCrypto, useValue: secretCrypto },
         { provide: VariableFocus, useValue: { focus$: focusSubject.asObservable(), requestFocus: () => {} } },
       ],
     }).compileComponents();
@@ -324,7 +316,7 @@ describe("EnvironmentsManager", () => {
     });
 
     it("protectVariable replaces the plaintext value with a {{$secret.<id>}} placeholder when unlocked", async () => {
-      secretCrypto.unlocked = true;
+      secretsService.unlocked = true;
 
       await component.protectVariable(0);
 
@@ -334,8 +326,18 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.vars[0].value).toMatch(/^\{\{\$secret\.secret-1\}\}$/);
     });
 
+    it("warns when a protected value is shorter than 6 characters, and not for a longer one (R5)", async () => {
+      component.draft()!.vars[0].value = "12345";
+      await component.protectVariable(0);
+      expect(component.shortSecretWarning()).toBe("TOKEN");
+
+      component.draft()!.vars.push({ key: "LONG", value: "123456", enabled: true });
+      await component.protectVariable(1);
+      expect(component.shortSecretWarning()).toBeNull();
+    });
+
     it("protectVariable asks the caller to unlock instead of saving when the vault is locked", async () => {
-      secretCrypto.unlocked = false;
+      secretsService.unlocked = false;
       const unlockSpy = vi.fn();
       component.requestUnlock.subscribe(unlockSpy);
 
@@ -347,7 +349,7 @@ describe("EnvironmentsManager", () => {
     });
 
     it("revealSecret fetches and caches the plaintext for a protected variable", async () => {
-      secretCrypto.unlocked = true;
+      secretsService.unlocked = true;
       await component.protectVariable(0);
       const placeholder = component.draft()!.vars[0].value;
 

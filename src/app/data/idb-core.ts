@@ -7,6 +7,7 @@ import {
   DB_VERSION,
   DEFAULT_SCHEMA_VERSION,
   MetaState,
+  RemovedData,
   META_STATE_KEY,
   StoreCollection,
   StoreName,
@@ -74,7 +75,7 @@ export class IdbCore {
   readonly olderThanData = signal(false);
 
   /** True when this open emptied a database an older release left: v5 does not read the shapes before it. */
-  readonly clearedOldData = signal(false);
+  readonly clearedOldData = signal<RemovedData>(null);
 
   /**
    * True when IndexedDB could not be opened (blocked storage, some private
@@ -136,12 +137,11 @@ export class IdbCore {
       return;
     }
 
-    let replacedOldData = false;
+    let removed: Promise<RemovedData> = Promise.resolve(null);
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
         upgrade: (db, oldVersion, _newVersion, tx) => {
-          runUpgrade(db, oldVersion, tx);
-          replacedOldData = oldVersion > 0 && oldVersion < 5;
+          removed = runUpgrade(db, oldVersion, tx);
         },
         // A tab running a build from before v5 does not close on request.
         blocked: () => this.upgradeBlocked.set(true),
@@ -153,7 +153,7 @@ export class IdbCore {
 
       await this.dbPromise;
       this.upgradeBlocked.set(false);
-      this.clearedOldData.set(replacedOldData);
+      this.clearedOldData.set(await removed);
       await this.ensureMetaDocument();
     } catch (error) {
       this.upgradeBlocked.set(false);

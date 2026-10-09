@@ -1,5 +1,5 @@
 import { DBSchema } from "idb";
-import type { Row } from "@wayfarer/core";
+import type { Row, VaultRecord } from "@wayfarer/core";
 import {
   Collection,
   CollectionId,
@@ -47,6 +47,7 @@ export interface StoredFile {
 
 export const META_STATE_KEY = "state";
 export const META_GLOBALS_KEY = "globals";
+export const META_VAULT_KEY = "vault";
 
 export interface MetaState {
   key: typeof META_STATE_KEY;
@@ -59,6 +60,12 @@ export interface GlobalsRecord {
   key: typeof META_GLOBALS_KEY;
   variables: Row[];
 }
+
+/** The vault: how its passphrase key is derived, and the data key wrapped under it. Absent until a passphrase is chosen. */
+export type VaultRecordDoc = VaultRecord & { key: typeof META_VAULT_KEY };
+
+/** What an upgrade removed, for the notice the shell shows once. */
+export type RemovedData = "all" | "secrets" | null;
 
 export interface ApiSandboxDB extends DBSchema {
   history: {
@@ -118,12 +125,12 @@ export interface ApiSandboxDB extends DBSchema {
     value: StoredFile;
   };
   meta: {
-    key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY;
-    value: MetaState | GlobalsRecord;
+    key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY | typeof META_VAULT_KEY;
+    value: MetaState | GlobalsRecord | VaultRecordDoc;
   };
 }
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 7;
+export const DB_VERSION = 8;
 export const DEFAULT_SCHEMA_VERSION = 1;

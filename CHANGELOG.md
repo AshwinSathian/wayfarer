@@ -15,12 +15,31 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   collections, folders, requests, environments, secrets and history from
   an earlier version are deleted, and the page says so once. Nothing is
   backed up. This was decided while the app has no users with data to keep.
+- **Secrets saved by earlier versions are removed.** The vault now
+  encrypts every secret under one data key (database version 8) and
+  cannot read secrets that each had a key of their own. The first time
+  this version opens, stored secrets are deleted and the page says so
+  once; collections, environments and history stay. A variable that used
+  a removed secret keeps its reference and needs its value again.
 - **Collection and environment files from earlier versions no longer
   import.** A file now starts with `"$id": "wayfarer/collection/2"` (or
   `wayfarer/environments/2`), and a file without it is refused with that
   reason. Export again from this version.
 
 ### Added
+
+- **Change the vault passphrase.** Secrets, **Change passphrase**. The
+  old passphrase stops working at once and no secret is re-encrypted.
+  Before, the passphrase could not be changed at all (#66).
+- **The vault locks itself** after 15 minutes without a key press or a
+  click. Settings, **Lock the vault when idle**, takes 1 to 240 minutes,
+  or 0 for never. **Locking in one tab locks every tab.**
+- **Vault file.** Secrets, **Export vault** writes every secret, still
+  encrypted, to a file that opens with the vault's passphrase; **Import
+  vault** reads one into this vault. See
+  [`docs/secrets.md`](docs/secrets.md).
+- Protecting a value shorter than 6 characters warns that it is too short
+  to be found and masked where a server sends it back.
 
 - **Variables for a collection, and global variables.** A collection has
   its own variables (right-click it, **Variables**) and there are global
@@ -128,6 +147,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   identical to the previous build.
 
 ### Fixed
+
+- **A wrong vault passphrase is always refused.** With no secret stored
+  yet, any passphrase "unlocked" the vault, and a secret saved then was
+  encrypted under whatever had been typed. The passphrase you choose is
+  now the vault's from the moment you choose it (#66).
 
 - **Two tabs no longer overwrite each other's environment variables.**
   Saving an environment wrote all of its variables as the tab had them, so

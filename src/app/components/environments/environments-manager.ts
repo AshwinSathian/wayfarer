@@ -8,8 +8,7 @@ import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 import { EnvironmentsStore } from "../../services/environments-store";
-import { SecretsVault } from "../../services/secrets-vault";
-import { SecretCrypto } from "../../shared/secrets/secret-crypto";
+import { SHORT_SECRET_LENGTH, SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -65,7 +64,6 @@ interface EnvironmentDraft {
 export class EnvironmentsManager implements OnInit {
   private readonly envService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
-  private readonly secretCrypto = inject(SecretCrypto);
   private readonly variableFocus = inject(VariableFocus);
   private readonly envImport = inject(EnvironmentImport);
 
@@ -76,6 +74,8 @@ export class EnvironmentsManager implements OnInit {
   readonly activeEnvironment = this.envService.activeEnvironment;
   readonly loading = this.envService.loading;
   readonly globals = this.envService.globals;
+  /** The name of a variable just protected whose value is too short to be found and masked later. */
+  readonly shortSecretWarning = signal<string | null>(null);
   readonly globalsVisible = signal(false);
   readonly globalsHint =
     "Every request can use these as {{name}}, whichever environment is active. An environment's or a collection's variable with the same name wins.";
@@ -109,7 +109,7 @@ export class EnvironmentsManager implements OnInit {
   constructor() {
     // Locking the vault hides what was revealed while it was open.
     effect(() => {
-      if (!this.secretCrypto.isUnlocked) this.secretPreview.set({});
+      if (!this.secretsService.isUnlocked()) this.secretPreview.set({});
     });
     effect(() => {
       const env = this.activeEnvironment();
@@ -271,7 +271,7 @@ export class EnvironmentsManager implements OnInit {
     if (!pair?.key?.trim() || !String(pair.value ?? "").trim()) {
       return;
     }
-    if (!this.secretCrypto.isUnlocked) {
+    if (!this.secretsService.isUnlocked()) {
       this.requestUnlock.emit();
       return;
     }
@@ -280,6 +280,7 @@ export class EnvironmentsManager implements OnInit {
       environmentId: draft.id,
       plaintext: String(pair.value),
     });
+    this.shortSecretWarning.set(String(pair.value).length < SHORT_SECRET_LENGTH ? pair.key.trim() : null);
     draft.vars[index].value = buildSecretReference(secretId);
     this.updateDraft(draft);
     this.syncJsonFromPairs();
@@ -313,7 +314,7 @@ export class EnvironmentsManager implements OnInit {
   }
 
   get secretsUnlocked(): boolean {
-    return this.secretCrypto.isUnlocked;
+    return this.secretsService.isUnlocked();
   }
 
   setEnvImportAction(index: number, action: "merge" | "replace"): void {

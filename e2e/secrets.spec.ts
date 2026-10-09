@@ -19,14 +19,10 @@ test.describe("Secrets vault", () => {
     await page.getByRole("button", { name: "Lock secrets" }).click();
     await expect(page.getByRole("button", { name: "Unlock secrets" })).toBeVisible();
 
-    // Nothing is actually persisted to the vault just from setting a
-    // passphrase — no secret has been encrypted yet — so re-opening the
-    // dialog correctly asks to create the vault again rather than treating
-    // this as a returning user. (hasAnySecrets() only becomes true once a
-    // variable is actually protected via the environments editor's lock
-    // icon; that's covered by its own flow, not this one.)
+    // The passphrase is the vault's from now on, also before any secret is
+    // stored: opening the dialog again asks for it, not for a new one.
     await page.getByRole("button", { name: "Unlock secrets" }).click();
-    await expect(page.getByRole("dialog", { name: "Create vault passphrase", exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Unlock secrets", exact: true })).toBeVisible();
   });
 
   test("rejects a mismatched passphrase confirmation on first use", async ({ page }) => {

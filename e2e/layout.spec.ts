@@ -124,6 +124,31 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
   });
 
+  // CLAUDE.md, "Below 1024 px the toolbar shows only what Settings does not
+  // also offer". A Tailwind `hidden` on a Material button loses to Material's
+  // own `display`, so the three came back and pushed Settings off a phone.
+  for (const width of [390, 820, 1023]) {
+    test(`at ${width} px the toolbar leaves secrets, the bridge and the theme to Settings`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      await expect(page.locator("input.address-url")).toBeVisible();
+      for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
+        await expect(page.getByRole("banner").getByRole("button", { name })).toBeHidden();
+      }
+      const settings = await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).boundingBox();
+      expect(settings!.x + settings!.width).toBeLessThanOrEqual(width);
+    });
+  }
+
+  // Not at 1024 px exactly: WebKit takes its scrollbar off the width a media query sees.
+  test("at 1100 px the toolbar shows secrets, the bridge and the theme", async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.goto("/");
+    for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
+      await expect(page.getByRole("banner").getByRole("button", { name })).toBeVisible();
+    }
+  });
+
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");

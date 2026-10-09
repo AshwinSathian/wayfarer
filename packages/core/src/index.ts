@@ -17,6 +17,20 @@ export type {
 } from "./model/request";
 export { applyVariableChanges, variableChanges, variablesByName, type VariableChange } from "./model/variables";
 export {
+  KDF_ITERATIONS,
+  VAULT_FILE_FORMAT,
+  createVault,
+  decryptSecret,
+  encryptSecret,
+  rewrapDek,
+  unwrapDek,
+  validateVaultFile,
+  type SecretEnvelope,
+  type VaultFile,
+  type VaultKey,
+  type VaultRecord,
+} from "./vault/vault-crypto";
+export {
   VARIABLE_SCOPES,
   VariableNestingError,
   VariableResolver,

@@ -25,7 +25,6 @@ import { MatSelect } from "@angular/material/select";
 import { PastRequest, PastRequestKey } from "../../models/history";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
-import { SecretCrypto } from "../../shared/secrets/secret-crypto";
 import { SecretsVault } from "../../services/secrets-vault";
 import { Idb } from "../../data/idb";
 import { DatabaseResetBlockedError } from "../../data/idb-core";
@@ -87,7 +86,6 @@ export class AppShell implements OnInit {
 
   private readonly confirm = inject(Confirm);
   private readonly environmentsService = inject(EnvironmentsStore);
-  private readonly secretCrypto = inject(SecretCrypto);
   private readonly secretsService = inject(SecretsVault);
   private readonly idb = inject(Idb);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
@@ -279,7 +277,7 @@ export class AppShell implements OnInit {
   }
 
   async openLockDialog(): Promise<void> {
-    this.isFirstVaultSetup.set(!(await this.secretsService.hasAnySecrets()));
+    this.isFirstVaultSetup.set(!(await this.secretsService.exists()));
     this.lockDialogVisible.set(true);
     this.unlockPassphrase.set("");
     this.confirmPassphrase.set("");
@@ -310,8 +308,15 @@ export class AppShell implements OnInit {
       }
     }
     try {
-      const ok = await this.secretsService.verifyAndUnlock(passphrase);
-      if (ok) {
+      if (this.isFirstVaultSetup()) {
+        if (await this.secretsService.create(passphrase)) {
+          this.closeLockDialog();
+        } else {
+          // Another tab chose a passphrase while this dialog was open.
+          this.isFirstVaultSetup.set(false);
+          this.unlockError.set("A vault passphrase was just set in another tab. Enter that passphrase.");
+        }
+      } else if (await this.secretsService.unlock(passphrase)) {
         this.closeLockDialog();
       } else {
         this.unlockError.set("Incorrect passphrase. Please try again.");
@@ -323,11 +328,11 @@ export class AppShell implements OnInit {
   }
 
   lockSecrets(): void {
-    this.secretCrypto.lock();
+    this.secretsService.lock();
   }
 
   get secretsUnlocked(): boolean {
-    return this.secretCrypto.isUnlocked;
+    return this.secretsService.isUnlocked();
   }
 
   openBridgeSettings(): void {
@@ -378,7 +383,7 @@ export class AppShell implements OnInit {
       return;
     }
     this.clearLocalCaches();
-    this.secretCrypto.lock();
+    this.secretsService.lock();
     location.reload();
   }
 

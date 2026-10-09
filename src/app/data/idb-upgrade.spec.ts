@@ -76,7 +76,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(7);
+    expect(DB_VERSION).toBe(8);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -85,7 +85,7 @@ describe("opening a database left by another release", () => {
     expect(await idb.listSecrets()).toEqual([]);
     expect(await idb.getLatest()).toEqual([]);
     expect(await idb.getActiveEnvironmentId()).toBeNull();
-    expect(core.clearedOldData()).toBe(true);
+    expect(core.clearedOldData()).toBe("all");
 
     // The recreated stores take new writes through their indexes.
     const collection = await idb.createCollection({ name: "New" });
@@ -94,6 +94,7 @@ describe("opening a database left by another release", () => {
   });
 
   it("keeps what version 5 stored, adds the files store (version 6) and gives a collection its variables (version 7)", async () => {
+    // No secret was stored, so version 8 has nothing to remove and nothing to say.
     const v5 = await openRaw(5, (db) => {
       db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
       const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
@@ -107,17 +108,49 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(7);
+    expect(db.version).toBe(8);
     expect([...db.objectStoreNames]).toContain("files");
     expect((await idb.listCollections()).map((c) => [c.name, c.variables, c.scriptTrust])).toEqual([["Kept", [], { trusted: true }]]);
-    expect(core.clearedOldData()).toBe(false);
+    expect(core.clearedOldData()).toBeNull();
+  });
+
+  it("removes secrets encrypted the old way and says so; everything else stays (version 8)", async () => {
+    const v7 = await openRaw(7, (db) => {
+      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
+      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
+      collections.createIndex("by-order", "order");
+      collections.add({ id: "c-7", meta: { id: "c-7", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, variables: [], scriptTrust: { trusted: true } });
+      const environments = db.createObjectStore("environments", { keyPath: "meta.id" });
+      environments.createIndex("by-order", "order");
+      environments.add({ id: "e-7", meta: { id: "e-7", createdAt: 1, updatedAt: 1, version: 1 }, name: "Dev", order: 1, vars: [{ key: "token", value: "{{$secret.s-1}}", enabled: true }] });
+      for (const name of ["folders", "requests"]) db.createObjectStore(name, { keyPath: "meta.id" });
+      db.createObjectStore("secrets", { keyPath: "meta.id" }).add({
+        id: "s-1",
+        meta: { id: "s-1", createdAt: 1, updatedAt: 1, version: 1 },
+        name: "token",
+        envelope: { v: 1, alg: "AES-GCM", salt: "c2FsdA", iv: "aXY", ct: "Y3Q" },
+      });
+      db.createObjectStore("files");
+      db.createObjectStore("meta", { keyPath: "key" });
+    });
+    v7.close();
+
+    await idb.init();
+
+    expect((await core.getDatabase())!.version).toBe(8);
+    expect(await idb.listSecrets()).toEqual([]);
+    expect(await idb.readVault()).toBeNull();
+    expect(core.clearedOldData()).toBe("secrets");
+    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Kept"]);
+    // The variable still names the secret that is gone; the send says so.
+    expect((await idb.listEnvironments())[0].vars[0].value).toBe("{{$secret.s-1}}");
   });
 
   it("does not report removed data on a first run", async () => {
     await idb.init();
 
     expect((await core.getDatabase())!.version).toBe(DB_VERSION);
-    expect(core.clearedOldData()).toBe(false);
+    expect(core.clearedOldData()).toBeNull();
   });
 
   it("waits, and says so, while a tab that will not close holds the old database; finishes when it closes", async () => {

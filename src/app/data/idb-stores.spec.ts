@@ -3,7 +3,7 @@ import { IdbCore } from "./idb-core";
 import { jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "./idb";
-import { SecretEnvelope } from "../models/secrets";
+import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
 
 // These run against the real IndexedDB of the test browser, through
 // Idb, the facade the app calls: the stores, indexes and transactions
@@ -461,7 +461,8 @@ describe("environments (real IndexedDB)", () => {
 describe("secrets (real IndexedDB)", () => {
   let core: Idb;
   let secrets: Idb;
-  const envelope = (tag: string): SecretEnvelope => ({ v: 1, alg: "AES-GCM", salt: `salt-${tag}`, iv: `iv-${tag}`, ct: `ct-${tag}` });
+  const envelope = (tag: string): SecretEnvelope => ({ v: 2, iv: `iv-${tag}`, ct: `ct-${tag}` });
+  const vault = (tag: string): VaultRecord => ({ v: 2, kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -473,7 +474,6 @@ describe("secrets (real IndexedDB)", () => {
   });
 
   it("stores and returns exactly the envelope it was given, per secret id", async () => {
-    expect(await secrets.peekSecretEnvelope()).toBeNull();
     expect(await secrets.listSecrets()).toEqual([]);
 
     await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("a") });
@@ -482,7 +482,6 @@ describe("secrets (real IndexedDB)", () => {
     expect(await secrets.readCipher("s-1")).toEqual(envelope("a"));
     expect(await secrets.readCipher("s-2")).toEqual(envelope("b"));
     expect(await secrets.readCipher("missing")).toBeNull();
-    expect(await secrets.peekSecretEnvelope()).not.toBeNull();
 
     const listed = await secrets.listSecrets();
     expect(listed.map((s) => [s.id, s.name, s.environmentId]).sort()).toEqual([
@@ -494,6 +493,36 @@ describe("secrets (real IndexedDB)", () => {
     await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("c") });
     expect(await secrets.readCipher("s-1")).toEqual(envelope("c"));
     expect(await secrets.listSecrets()).toHaveLength(2);
+  });
+
+  it("keeps one vault record: the first is not overwritten by a second, and a change of passphrase needs one to change (P2.6)", async () => {
+    expect(await secrets.readVault()).toBeNull();
+    // A change of passphrase with no vault writes nothing.
+    expect(await secrets.writeVault(vault("x"), true)).toBe(false);
+    expect(await secrets.readVault()).toBeNull();
+
+    // Two tabs choosing a passphrase at once: one record is kept, and each is told which.
+    const made = await Promise.all([secrets.writeVault(vault("a"), false), secrets.writeVault(vault("b"), false)]);
+    expect(made).toEqual([true, false]);
+    expect(await secrets.readVault()).toEqual(vault("a"));
+
+    expect(await secrets.writeVault(vault("rotated"), true)).toBe(true);
+    expect(await secrets.readVault()).toEqual(vault("rotated"));
+    // The record shares its store with the active environment and the globals, and leaves them alone.
+    expect(await secrets.getActiveEnvironmentId()).toBeNull();
+    expect(await secrets.getGlobals()).toEqual([]);
+  });
+
+  it("writes the secrets of a vault file in one transaction, each under its id", async () => {
+    await secrets.writeCipher({ id: "s-1", name: "Old name", envelope: envelope("old") });
+    await secrets.writeSecrets([
+      { id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("a") },
+      { id: "s-2", name: "Token", envelope: envelope("b") },
+    ]);
+    expect((await secrets.listSecrets()).map((s) => [s.id, s.name, s.environmentId, s.envelope]).sort()).toEqual([
+      ["s-1", "API key", "env-1", envelope("a")],
+      ["s-2", "Token", undefined, envelope("b")],
+    ]);
   });
 
   it("renames without touching the ciphertext, keeps the old name for a blank one, and deletes", async () => {

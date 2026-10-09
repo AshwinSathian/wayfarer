@@ -299,7 +299,13 @@
             }
             @if (clearedOldData() && !clearedNoticeDismissed()) {
             <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-              <p class="type-callout text-status-warning">Wayfarer 2 stores data in a new format. Collections, environments, secrets and history saved by an earlier version were removed.</p>
+              <p class="type-callout text-status-warning">
+                @if (clearedOldData() === 'all') {
+                Wayfarer 2 stores data in a new format. Collections, environments, secrets and history saved by an earlier version were removed.
+                } @else {
+                The secrets vault now keeps one key for all secrets. Secrets saved by an earlier version cannot be read with it and were removed. Variables that used them need their values again.
+                }
+              </p>
               <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="clearedNoticeDismissed.set(true)">Dismiss</button>
             </div>
             }

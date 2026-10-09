@@ -86,7 +86,7 @@ code errors.
   `src/design-system/controls.css`. In both themes they must come from the
   design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
 - Nothing may be wider than the window at any width from 360 px up. The
-  e2e test "nothing is wider than a N px window" checks eleven widths; add a
+  e2e test "nothing is wider than a N px window" checks twelve widths; add a
   width there when a breakpoint changes. A flex child that holds wide
   content needs `min-w-0`.
 - A window-width breakpoint (`sm:`, `md:`) does not know how wide a panel

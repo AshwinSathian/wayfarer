@@ -51,6 +51,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - For contributors: an end-to-end run no longer also runs the two support
   servers' own test suites. Playwright picked them up by file name and ran
   them inside every collection, outside its report.
+- For contributors: the layout tests also run at 390 px, the phone width
+  at which the header was once wider than the screen.
 - **Text meets the 4.5:1 contrast minimum in both themes, on every view.**
   In the light theme the green of a 200 was 1.85:1 on its badge and the
   orange of a warning 1.83:1; method badges, the label on a primary button

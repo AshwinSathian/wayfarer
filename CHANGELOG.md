@@ -13,6 +13,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Wayfarer that do not need a browser page start moving into
   `packages/core`, which a command-line runner will share later. Nothing
   changes in the app.
+- For contributors: the request composer is ten small components over one
+  draft of the request, where it was one 889-line component. Later work
+  (body types, tabs) is added to those. Nothing changes on screen: 192
+  screenshots at three widths, in both themes and three browsers, are
+  identical to the previous build.
 
 ## [1.4.0] - 2026-10-09
 

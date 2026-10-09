@@ -1,0 +1,86 @@
+<!-- Unified method + URL bar -->
+<div class="address-bar min-w-0 flex-[1_1_20rem]">
+  <!-- Method selector -->
+  <mat-select
+    class="select address-method method-select"
+    aria-label="HTTP method"
+    [ngModel]="store.draft().method"
+    (ngModelChange)="view.onRequestMethodChange($event)"
+  >
+    @for (option of requestMethods; track option.value) {
+    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+
+  <!-- URL input -->
+  <mat-form-field class="field address-field">
+    <input matInput
+      #urlInput
+      type="url"
+      class="address-url"
+      [ngModel]="store.draft().url"
+      (ngModelChange)="store.setUrl($event)"
+      placeholder="https://api.example.com/v1/endpoint"
+     />
+  </mat-form-field>
+</div>
+
+<!-- Action buttons -->
+<div class="flex shrink-0 items-center gap-2">
+  <button
+    matButton="outlined" class="btn-secondary btn-square"
+    type="button"
+    title="New request"
+    aria-label="New request"
+    (click)="view.clear()"
+  ><app-icon name="add" /></button>
+  <!--
+    Disabled native buttons ignore an author-specified `cursor` in most
+    browsers (the UA always paints the default arrow over a genuinely
+    disabled control, regardless of CSS) — wrapping in a plain,
+    non-disabled span is the standard way around that, and it also
+    makes the tooltip's hover target unambiguous rather than relying on
+    whether a given browser still dispatches hover events to a disabled
+    element at all.
+  -->
+  <span
+    class="curl-btn-wrap"
+    [class.is-disabled]="!store.draft().url"
+    [matTooltip]="store.draft().url ? '' : 'Enter a URL first to copy as cURL'"
+    matTooltipPosition="below"
+  >
+    <button
+      matButton="outlined"
+      type="button"
+      [disabled]="!store.draft().url"
+      matTooltip="Copy as cURL"
+      matTooltipPosition="below"
+      [matTooltipDisabled]="!store.draft().url"
+      aria-label="Copy as cURL"
+      (click)="store.copyAsCurl()"
+      class="btn-secondary btn-square curl-btn"
+    ><app-icon name="terminal" /></button>
+  </span>
+  <button
+    matButton="outlined" class="btn-secondary btn-square"
+    type="button"
+    [disabled]="!store.draft().url || savingRequest()"
+    [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    (click)="save()"
+  >
+    @if (savingRequest()) {
+    <mat-spinner diameter="18" aria-hidden="true" />
+    } @else {
+    <app-icon name="save" />
+    }
+  </button>
+  <button
+    matButton="filled"
+    type="button"
+    [disabled]="!store.draft().url"
+    aria-label="Send request"
+    (click)="send.emit()"
+    class="send-btn"
+  >Send</button>
+</div>

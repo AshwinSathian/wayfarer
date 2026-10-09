@@ -1,0 +1,42 @@
+<div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-4 px-1 md:grid">
+  <div class="ds-section-label"></div>
+  <div class="ds-section-label">Key</div>
+  <div class="ds-section-label">Value</div>
+  <div></div>
+</div>
+@for (param of store.draft().params; track param; let i = $index) {
+<div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
+  <mat-checkbox [aria-label]="'Send parameter ' + (i + 1)" [(ngModel)]="param.enabled" (ngModelChange)="store.paramsEdited()" />
+  <mat-form-field class="field w-full">
+    <input matInput
+      [(ngModel)]="param.key"
+      (ngModelChange)="store.paramsEdited()"
+      placeholder="key"
+     />
+  </mat-form-field>
+  <mat-form-field class="field w-full">
+    <input matInput
+      [(ngModel)]="param.value"
+      (ngModelChange)="store.paramsEdited()"
+      placeholder="value"
+     />
+  </mat-form-field>
+  <div class="flex justify-end md:block">
+    <button
+      matIconButton class="btn-danger"
+      type="button"
+      aria-label="Remove parameter"
+      (click)="store.removeParam(i)"
+    ><app-icon name="close" /></button>
+  </div>
+</div>
+}
+<div class="pt-1">
+  <button
+    matButton="filled" class="btn-secondary"
+    type="button"
+    aria-label="Add parameter"
+    [disabled]="store.isAddParamDisabled()"
+    (click)="store.addParam()"
+  ><app-icon name="add" /> Add Param</button>
+</div>

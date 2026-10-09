@@ -1,0 +1,30 @@
+@if (view.editorMode() === 'basic') {
+<app-api-params-basic
+  context="Body"
+  [items]="store.bodyRows()"
+  [addLabel]="'Add Item'"
+  [isAddDisabled]="isAddDisabled"
+  [addItem]="addItem"
+  [removeItem]="removeItem"
+  [disableItem]="disableItem"
+  (itemChange)="store.bodyRowsEdited()"
+></app-api-params-basic>
+} @else {
+<div class="space-y-2">
+  @if (!view.bodyJsonValid()) {
+  <small class="type-footnote text-status-error flex items-center gap-1">
+    <app-icon name="error" class="icon-xs" />
+    Invalid JSON
+  </small>
+  }
+  <app-json-editor
+    name="bodyJson"
+    [ngModel]="view.bodyJsonText()"
+    (ngModelChange)="view.bodyJsonText.set($event)"
+    [ngModelOptions]="{ standalone: true }"
+    (jsonValidChange)="view.bodyJsonValid.set($event)"
+    (parsedChange)="view.onBodyJsonParsed($event)"
+    [height]="360"
+  ></app-json-editor>
+</div>
+}

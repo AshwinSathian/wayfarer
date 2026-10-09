@@ -1,26 +1,4 @@
-export type AssertionTarget = "status" | "body" | "header" | "duration";
-
-export type AssertionOperator =
-  | "equals"
-  | "not-equals"
-  | "contains"
-  | "not-contains"
-  | "exists"
-  | "not-exists"
-  | "is-array"
-  | "is-object"
-  | "less-than"
-  | "greater-than";
-
-export interface TestAssertion {
-  id: string;
-  target: AssertionTarget;
-  /** JSON dot-path for body target (e.g. "data.users[0].id"), header name, or empty for status/duration */
-  key?: string;
-  operator: AssertionOperator;
-  /** Expected value (string representation; compared after coercion) */
-  expected?: string;
-}
+export type { AssertionOperator, AssertionTarget, TestAssertion } from "@wayfarer/core";
 
 export interface TestResult {
   label: string;

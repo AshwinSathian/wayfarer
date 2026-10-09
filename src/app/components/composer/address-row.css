@@ -1,0 +1,17 @@
+/* ── Disabled "Copy as cURL" ──────────────────────────────────
+   Matches the .send-btn disabled convention (reduced opacity, no
+   transform/shadow); the "why" is surfaced via the tooltip bound on the
+   wrapping .curl-btn-wrap span in the template (a real not-allowed cursor
+   needs that wrapper too — see the template comment). */
+.curl-btn.mat-mdc-button-base:disabled {
+  opacity: 0.4 !important;
+  box-shadow: none !important;
+}
+
+.curl-btn-wrap {
+  display: inline-flex;
+}
+
+.curl-btn-wrap.is-disabled {
+  cursor: not-allowed;
+}

@@ -1,0 +1,217 @@
+<div class="ds-panel p-6 w-full space-y-5">
+
+  <!-- Wraps by the room it has, not by the window's width: beside the pinned
+       sidebar a 1024 px window leaves this row 544 px. The bar asks for 20rem;
+       when the buttons do not fit beside that, they go on the next line. -->
+  <app-address-row class="flex flex-wrap items-start gap-3" (send)="sendRequest()" />
+
+  @if (loadedCollectionRequest(); as bound) {
+  <p class="type-footnote text-label-tertiary flex items-center gap-1.5 -mt-2">
+    <app-icon name="folder" class="icon-xs" />
+    Editing <span class="text-label-secondary">{{ bound.name }}</span> — Save writes back to this request.
+    <button type="button" class="underline" (click)="clearComposer()">Start a new request instead</button>
+  </p>
+  }
+
+  @if (store.endpointError() !== '') {
+  <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
+    <app-icon name="error" class="icon-xs" />
+    {{ store.endpointError() }}
+  </p>
+  }
+
+  <!-- ── Variable tokens preview ──────────────────────────── -->
+  @if (store.variableTokens().length) {
+  <app-variable-chips class="flex flex-wrap gap-2 rounded-xl bg-canvas-elevated px-4 py-3 border border-separator" />
+  @if (store.missingVariableKeys().length) {
+  <p class="type-footnote text-status-warning flex items-center gap-1.5">
+    <app-icon name="warning" class="icon-xs" />
+    Missing: {{ store.missingVariableKeys().join(', ') }}
+  </p>
+  }
+  }
+
+  <!-- ── Request config + response ────────────────────────── -->
+  @if (isMobile()) {
+  <!-- Mobile: single-tab-at-a-time accordion (deliberately non-multiple —
+       see mobileActivePanels' doc comment in ComposerView), stacked above
+       the response panel. Only one of Params/Headers/Body/Auth/Scripts is
+       ever expanded — and therefore mounted-and-visible — at a time, so at
+       most one Monaco instance is ever live here. -->
+  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-up">
+    <mat-accordion class="sections" displayMode="flat" hideToggle>
+      <mat-expansion-panel
+        #paramsSection
+        [expanded]="view.mobileActivePanels() === 'params'"
+        (opened)="view.onMobileIndexChange('params')"
+        (closed)="view.onMobilePanelClosed('params', paramsSection)"
+      >
+        <mat-expansion-panel-header>Params <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-params-panel class="flex flex-col gap-2" />
+      </mat-expansion-panel>
+      <mat-expansion-panel
+        #headersSection
+        [expanded]="view.mobileActivePanels() === 'headers'"
+        (opened)="view.onMobileIndexChange('headers')"
+        (closed)="view.onMobilePanelClosed('headers', headersSection)"
+      >
+        <mat-expansion-panel-header>Headers <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-headers-panel class="block" />
+      </mat-expansion-panel>
+      @if (hasBody) {
+      <mat-expansion-panel
+        #bodySection
+        [expanded]="view.mobileActivePanels() === 'body'"
+        (opened)="view.onMobileIndexChange('body')"
+        (closed)="view.onMobilePanelClosed('body', bodySection)"
+      >
+        <mat-expansion-panel-header>Body <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-body-panel class="block" />
+      </mat-expansion-panel>
+      }
+      <mat-expansion-panel
+        #authSection
+        [expanded]="view.mobileActivePanels() === 'auth'"
+        (opened)="view.onMobileIndexChange('auth')"
+        (closed)="view.onMobilePanelClosed('auth', authSection)"
+      >
+        <mat-expansion-panel-header>Auth <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-auth-panel />
+      </mat-expansion-panel>
+      <mat-expansion-panel
+        #scriptsSection
+        [expanded]="view.mobileActivePanels() === 'scripts'"
+        (opened)="view.onMobileIndexChange('scripts')"
+        (closed)="view.onMobilePanelClosed('scripts', scriptsSection)"
+      >
+        <mat-expansion-panel-header>Scripts <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-scripts-panel class="block space-y-6" />
+      </mat-expansion-panel>
+    </mat-accordion>
+  </section>
+
+  @if (store.shouldShowResponsePanel) {
+  <app-response-viewer
+    class="animate-fade-up"
+    [loading]="store.loadingState()"
+    [responseData]="store.responseData()"
+    [responseError]="store.responseError()"
+    [responseBodyIsJson]="store.responseBodyIsJson()"
+    [responseHeaders]="store.responseHeadersView()"
+    [responseStatusCode]="store.responseStatusCode()"
+    [responseStatusText]="store.responseStatusText()"
+    [isError]="store.responseIsError()"
+    [inspection]="store.responseInspection"
+    [responseContentLength]="store.responseContentLength()"
+    [exportContext]="store.responseExportContext()"
+    [testResults]="store.lastTestResults()"
+    [responseBinary]="store.responseBinary()"
+    [(activeTab)]="store.responseTab"
+  ></app-response-viewer>
+  }
+  } @else {
+  <!-- Desktop: a real resizable split between the composer and the response
+       viewer. The chosen split ratio is kept in localStorage under a
+       wayfarer:-namespaced key (see theme.ts). -->
+  <ui-splitter
+    class="composer-response-splitter"
+    storageKey="wayfarer:composer-split"
+    [sizes]="[55, 45]"
+    [minSizes]="[28, 22]"
+    ariaLabel="Resize the composer and the response"
+  >
+      <div uiSplitterStart class="composer-pane">
+        <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
+          <div class="px-2 pt-1">
+            <div class="tabs">
+              <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 w-full pr-2">
+                <div mat-tab-nav-bar class="tab-bar" [tabPanel]="composerPanel" [mat-stretch-tabs]="false" disablePagination>
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'params'" (click)="view.onActiveTabChange('params')" (focus)="view.onActiveTabChange('params')">Params</button>
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'headers'" (click)="view.onActiveTabChange('headers')" (focus)="view.onActiveTabChange('headers')">Headers</button>
+                  @if (hasBody) {
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'body'" (click)="view.onActiveTabChange('body')" (focus)="view.onActiveTabChange('body')">Body</button>
+                  }
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'auth'" (click)="view.onActiveTabChange('auth')" (focus)="view.onActiveTabChange('auth')">Auth</button>
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'scripts'" (click)="view.onActiveTabChange('scripts')" (focus)="view.onActiveTabChange('scripts')">Scripts</button>
+                </div>
+
+                @if (view.activeTab() === 'headers' || view.activeTab() === 'body') {
+                <mat-button-toggle-group
+                  class="segmented"
+                  hideSingleSelectionIndicator
+                  aria-label="Editor mode"
+                  [value]="view.editorMode()"
+                  (change)="view.onEditorModeChange($event.value)"
+                >
+                  @for (option of editorModeOptions; track option.value) {
+                  <mat-button-toggle [value]="option.value">{{ option.label }}</mat-button-toggle>
+                  }
+                </mat-button-toggle-group>
+                }
+              </div>
+
+              <mat-tab-nav-panel #composerPanel class="tab-panes">
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'params'">
+                  <div class="px-4 pb-5">
+                    <app-params-panel class="flex flex-col gap-2" />
+                  </div>
+                </div>
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'headers'">
+                  <div class="px-4 pb-5">
+                    <app-headers-panel class="block" />
+                  </div>
+                </div>
+                @if (hasBody) {
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'body'">
+                  <div class="px-4 pb-5">
+                    <app-body-panel class="block" />
+                  </div>
+                </div>
+                }
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'auth'">
+                  <div class="px-4 pb-5">
+                    <app-auth-panel />
+                  </div>
+                </div>
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'scripts'">
+                  <div class="px-4 pb-5">
+                    <app-scripts-panel class="block space-y-6" />
+                  </div>
+                </div>
+              </mat-tab-nav-panel>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div uiSplitterEnd class="response-pane">
+        @if (store.shouldShowResponsePanel) {
+        <app-response-viewer
+          class="animate-fade-up"
+          [loading]="store.loadingState()"
+          [responseData]="store.responseData()"
+          [responseError]="store.responseError()"
+          [responseBodyIsJson]="store.responseBodyIsJson()"
+          [responseHeaders]="store.responseHeadersView()"
+          [responseStatusCode]="store.responseStatusCode()"
+          [responseStatusText]="store.responseStatusText()"
+          [isError]="store.responseIsError()"
+          [inspection]="store.responseInspection"
+          [responseContentLength]="store.responseContentLength()"
+          [exportContext]="store.responseExportContext()"
+          [testResults]="store.lastTestResults()"
+          [responseBinary]="store.responseBinary()"
+          [(activeTab)]="store.responseTab"
+        ></app-response-viewer>
+        } @else {
+        <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6">
+          <app-icon name="bolt" class="icon-lg text-label-tertiary" />
+          <p class="type-callout text-label-secondary">Send a request to see the response here</p>
+        </div>
+        }
+      </div>
+  </ui-splitter>
+  }
+
+</div>
+
+<app-save-as-dialog />

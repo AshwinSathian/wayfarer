@@ -8,5 +8,8 @@
   "scripts": {
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.2"
   }
 }

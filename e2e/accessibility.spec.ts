@@ -202,7 +202,7 @@ for (const theme of ["dark", "light"] as const) {
     await scan("export menu");
     await page.keyboard.press("Escape");
     for (const tab of ["Params", "Auth", "Scripts"]) {
-      await page.locator("app-api-params").getByRole("tab", { name: tab, exact: true }).click();
+      await page.locator("app-composer").getByRole("tab", { name: tab, exact: true }).click();
       await scan(`composer ${tab}`);
     }
     for (const tab of ["Headers", "Timings", "Tests"]) {

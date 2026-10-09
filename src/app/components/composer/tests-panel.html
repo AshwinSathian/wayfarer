@@ -1,0 +1,51 @@
+<div class="flex items-center gap-2">
+  <app-icon name="rule" class="icon-sm text-label-tertiary" />
+  <div class="ds-section-label">Tests</div>
+</div>
+@for (test of store.draft().tests; track test.id; let i = $index) {
+<div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
+  <mat-select
+    class="select w-36!"
+    aria-label="Assert on"
+    [(ngModel)]="test.target"
+  >
+    @for (option of assertionTargetOptions; track option.value) {
+    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+  @if (needsKey(test.target)) {
+  <mat-form-field class="field w-44">
+    <input matInput
+      [(ngModel)]="test.key"
+      [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
+     />
+  </mat-form-field>
+  }
+  <mat-select
+    class="select w-44!"
+    aria-label="Operator"
+    [(ngModel)]="test.operator"
+  >
+    @for (option of operatorsFor(test.target); track option.value) {
+    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+    }
+  </mat-select>
+  @if (needsExpected(test.operator)) {
+  <mat-form-field class="field flex-1 min-w-[120px]!">
+    <input matInput
+      [(ngModel)]="test.expected"
+      placeholder="expected value"
+     />
+  </mat-form-field>
+  }
+  <button
+    matIconButton class="btn-danger"
+    type="button"
+    aria-label="Remove test"
+    (click)="store.removeTest(i)"
+  ><app-icon name="close" /></button>
+</div>
+}
+<div>
+  <button matButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"><app-icon name="add" /> Add Test</button>
+</div>

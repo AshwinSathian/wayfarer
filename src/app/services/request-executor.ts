@@ -119,10 +119,10 @@ export interface RequestExecutionResult {
 
 /**
  * Owns the pre-script -> send -> post-script -> assertions pipeline that
- * used to live inline in ApiParams.sendRequest(). Extracted so the
+ * used to live inline in the composer. Extracted so the
  * sequencing (and the response-shaping/error-classification logic it
  * depends on) is unit-testable without an Angular component harness, and so
- * ApiParams itself only has to own request-*building* (turning form
+ * WorkspaceStore only has to own request-*building* (turning form
  * state into a spec) rather than request-*execution*.
  */
 @Injectable({ providedIn: "root" })

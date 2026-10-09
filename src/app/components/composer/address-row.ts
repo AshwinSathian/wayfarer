@@ -1,0 +1,49 @@
+import { ChangeDetectionStrategy, Component, ElementRef, inject, output, viewChild } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { MatButton } from "@angular/material/button";
+import { MatOption } from "@angular/material/core";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MatSelect } from "@angular/material/select";
+import { MatTooltip } from "@angular/material/tooltip";
+import { HTTP_METHODS } from "../../models/history";
+import { RequestSave } from "../../services/request-save";
+import { Icon } from "../../shared/icon/icon";
+import { WorkspaceStore } from "../../state/workspace-store";
+import { ComposerView } from "./composer-view";
+
+/** The method and URL bar with New, Copy as cURL, Save and Send. */
+@Component({
+  selector: "app-address-row",
+  imports: [FormsModule, Icon, MatButton, MatFormField, MatInput, MatOption, MatProgressSpinner, MatSelect, MatTooltip],
+  templateUrl: "./address-row.html",
+  styleUrl: "./address-row.css",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class AddressRow {
+  protected readonly store = inject(WorkspaceStore);
+  protected readonly view = inject(ComposerView);
+  private readonly requestSave = inject(RequestSave);
+
+  readonly send = output<void>();
+
+  private readonly urlInput = viewChild<ElementRef<HTMLInputElement>>("urlInput");
+
+  protected readonly requestMethods = HTTP_METHODS.map((method) => ({ label: method, value: method }));
+  protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
+  protected readonly savingRequest = this.requestSave.savingRequest;
+
+  focusUrl(): void {
+    const el = this.urlInput()?.nativeElement;
+    if (!el) {
+      return;
+    }
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    el.focus();
+  }
+
+  protected async save(): Promise<void> {
+    await this.requestSave.save(this.store.snapshot());
+  }
+}

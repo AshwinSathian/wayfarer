@@ -40,10 +40,12 @@ code errors.
   `HttpTransport`, `SecretCrypto`. Repositories are `XRepository` in
   `x-repository.ts`.
 - Selectors: `app-` for features, `ui-` for the widgets in `src/app/ui`.
-- `PLAN-airtight-remediation.md` is locked and `CHANGELOG.md` is history:
-  both use the names from before the October 2026 rename
-  (`main.service.ts` / `MainService` is now `http-transport.ts` /
-  `HttpTransport`; otherwise drop the suffix). Do not rewrite them.
+- `PLAN-airtight-remediation.md` is the roadmap: read its section 0 first.
+  Its open tasks use today's names. Its sections 13 and 16, the audit's
+  problem statement and `CHANGELOG.md` are history and use the names from
+  before the October 2026 rename (`main.service.ts` / `MainService` is now
+  `http-transport.ts` / `HttpTransport`; otherwise drop the suffix). Do not
+  rewrite history. A change to the plan needs a row in its section 16.
 - Do not reorganise the top-level folders (`components`, `services`, `data`,
   `shared`, `ui`): Phase 2 of the plan moves code into `packages/core`.
 

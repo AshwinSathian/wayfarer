@@ -41,6 +41,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **Import** under Settings, Environments, is a real button: it can be
   reached and pressed with the keyboard. It was a label around a hidden
   file field.
+- The roadmap (`PLAN-airtight-remediation.md`) describes the code as it is
+  today: its first section says what is done, what is merged but not
+  released, and what comes next. It still described the app as it was
+  before 37 later changes.
 
 ### Fixed
 

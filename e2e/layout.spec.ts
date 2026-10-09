@@ -70,7 +70,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The composer ran 49 px past the window (no box-sizing reset), and below
   // 1024 px the toolbar was wider than the space beside the pinned sidebar.
-  for (const width of [1440, 1024, 900, 820, 768, 767, 640, 420, 360]) {
+  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 360]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
@@ -97,8 +97,10 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The 352 px sidebar was pinned from 768 px up. At 820 px that left the
   // composer and the response 150 px each: a header's name field was 20 px
-  // wide and the response wrapped at every character.
-  for (const width of [768, 820, 1023]) {
+  // wide and the response wrapped at every character. At 1024 px it left the
+  // composer 294 px: its fourth tab was cut off and a header's fields showed
+  // "Content-" and "applicatio".
+  for (const width of [768, 820, 1024, 1199]) {
     test(`at ${width} px the sidebar is a drawer, so the composer and the response have room`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
@@ -117,11 +119,21 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     });
   }
 
-  test("at 1024 px the sidebar is pinned beside the composer", async ({ page }) => {
-    await page.setViewportSize({ width: 1024, height: 900 });
+  // Not at 1200 px exactly: WebKit takes its scrollbar off the width a media query sees.
+  test("at 1220 px the sidebar is pinned beside the composer, and the composer still has room", async ({ page }) => {
+    await page.setViewportSize({ width: 1220, height: 900 });
     await page.goto("/");
+    await still(page.locator("app-api-params"));
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
+
+    const field = await page.getByLabel("Headers name, row 1").boundingBox();
+    // 111 px at 1220 px: "Content-Type" in full. Pinned at 1024 px it was 85 px.
+    expect(field!.width).toBeGreaterThanOrEqual(100);
+    // Every composer tab is on screen, none cut off by the pane's edge.
+    const pane = await page.locator(".ui-splitter-pane").first().boundingBox();
+    const last = await page.getByRole("tab", { name: "Scripts", exact: true }).first().boundingBox();
+    expect(last!.x + last!.width).toBeLessThanOrEqual(pane!.x + pane!.width + 1);
   });
 
   // CLAUDE.md, "Below 1024 px the toolbar shows only what Settings does not

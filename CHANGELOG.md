@@ -180,6 +180,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - Deleting a folder that had folders inside it (from an imported file)
   left them attached to a folder that no longer existed, and an export
   wrote that. They now move up one level (#190).
+- A tab told that its data was reset in another tab no longer tries to
+  read the stores when that other tab writes again; it logged an error
+  each time (#192).
 
 ## [1.4.0] - 2026-10-09
 

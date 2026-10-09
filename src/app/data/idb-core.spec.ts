@@ -22,6 +22,51 @@ describe("IdbCore", () => {
     expect(db).not.toBeNull();
   });
 
+  it("passes on another tab's changes only while it has the database open: not before, not after a reset, not once closed for another tab (F61)", async () => {
+    const otherTab = new BroadcastChannel("wayfarer:data");
+    const heard: string[][] = [];
+    service.onChangeElsewhere((stores) => heard.push(stores));
+    const tell = async (store: string) => {
+      otherTab.postMessage({ stores: [store] });
+      // A message to a second channel arrives after the first: by then the first was handled.
+      await new Promise<void>((resolve) => {
+        const probe = new BroadcastChannel("wayfarer:data");
+        probe.onmessage = () => {
+          probe.close();
+          resolve();
+        };
+        otherTab.postMessage({ stores: [] });
+      });
+    };
+    try {
+      // Never opened: there is nothing to read again, and reading would open the database.
+      await tell("before-open");
+      expect(heard).toEqual([]);
+
+      await service.init();
+      await tell("open");
+      expect(heard).toEqual([["open"], []]);
+
+      // Reset here: the page is about to reload. A listener must not open the database again.
+      await service.resetDatabase();
+      await tell("after-reset");
+      expect(heard).toEqual([["open"], []]);
+
+      // Closed because another tab reset the data: reading again would throw.
+      await service.init();
+      service.closedByOtherTab.set(true);
+      await tell("closed");
+      expect(heard).toEqual([["open"], []]);
+      service.closedByOtherTab.set(false);
+      service.updatedElsewhere.set(true);
+      await tell("updated");
+      expect(heard).toEqual([["open"], []]);
+      service.updatedElsewhere.set(false);
+    } finally {
+      otherTab.close();
+    }
+  });
+
   it("falls back to memory mode when indexedDB is unavailable", async () => {
     const original = globalThis.indexedDB;
     delete (globalThis as unknown as Record<string, unknown>)["indexedDB"];

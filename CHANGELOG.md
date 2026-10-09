@@ -38,6 +38,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The URL field can be typed in on a small laptop or tablet.** Between
+  768 and about 1000 px wide, with the sidebar open, the field shrank to a
+  16 px sliver beside its buttons. The buttons now move to the next line
+  when there is no room for both.
 - **"Update available" no longer appears on a first visit.** On a slow
   machine the service worker could take the page over before the app heard
   it had installed, and the app took that first install for a new version.

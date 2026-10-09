@@ -358,8 +358,10 @@ export class EnvironmentsManager implements OnInit {
       description: draft.description?.trim() ?? "",
     });
     if (saved && this.selectedId() === saved.meta.id) {
-      // What is stored now, the other tab's variables included.
-      this.draft.set(this.toDraft(saved));
+      // What is stored now, the other tab's variables included. The store's
+      // copy is the newer one when another tab's save landed while this one
+      // was returning (F62).
+      this.draft.set(this.toDraft(this.environments().find((env) => env.meta.id === saved.meta.id) ?? saved));
     }
   }
 

@@ -180,6 +180,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - Deleting a folder that had folders inside it (from an imported file)
   left them attached to a folder that no longer existed, and an export
   wrote that. They now move up one level (#190).
+- After two tabs saved the same environment at the same moment, one of
+  them could go on showing its own copy without the other tab's variable
+  until something else changed. It now shows what is stored (#195).
 - A tab told that its data was reset in another tab no longer tries to
   read the stores when that other tab writes again; it logged an error
   each time (#192).

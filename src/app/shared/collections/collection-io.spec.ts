@@ -1,62 +1,118 @@
+import { CollectionExport } from "../../models/collections";
 import { CollectionTree } from "../../services/collections-store";
+import { requestContent, rowsOf } from "../../../testing/request-fixtures";
 import { importCollection, serializeDeterministic, validateCollection } from "./collection-io";
 import { describe, it, expect } from "vitest";
 
 describe("collection-io", () => {
-  it("@claim:C-026 produces byte-identical output after import/export round-trip", () => {
-    const tree: CollectionTree = {
-      collection: {
-        id: "c2",
-        meta: { id: "c2", createdAt: 1, updatedAt: 2, version: 1 },
-        name: "Sample",
-        description: "Desc",
+  const tree = (): CollectionTree => ({
+    collection: {
+      id: "c2",
+      meta: { id: "c2", createdAt: 1, updatedAt: 2, version: 1 },
+      name: "Sample",
+      description: "Desc",
+      order: 2,
+      scriptTrust: { trusted: true },
+    },
+    folders: [
+      {
+        id: "f2",
+        meta: { id: "f2", createdAt: 1, updatedAt: 2, version: 1 },
+        collectionId: "c2",
+        name: "Folder B",
         order: 2,
       },
-      folders: [
-        {
-          id: "f2",
-          meta: { id: "f2", createdAt: 1, updatedAt: 2, version: 1 },
-          collectionId: "c2",
-          name: "Folder B",
-          order: 2,
-        },
-        {
-          id: "f1",
-          meta: { id: "f1", createdAt: 1, updatedAt: 2, version: 1 },
-          collectionId: "c2",
-          name: "Folder A",
-          order: 1,
-        },
-      ],
-      requests: [
-        {
-          id: "r2",
-          meta: { id: "r2", createdAt: 1, updatedAt: 2, version: 1 },
-          collectionId: "c2",
-          name: "Request B",
-          order: 2,
-          method: "GET",
-          url: "https://example-b.com",
-          headers: {},
-        },
-        {
-          id: "r1",
-          meta: { id: "r1", createdAt: 1, updatedAt: 2, version: 1 },
-          collectionId: "c2",
-          name: "Request A",
-          order: 1,
-          method: "GET",
-          url: "https://example-a.com",
-          headers: {},
-        },
-      ],
-    };
+      {
+        id: "f1",
+        meta: { id: "f1", createdAt: 1, updatedAt: 2, version: 1 },
+        collectionId: "c2",
+        name: "Folder A",
+        order: 1,
+      },
+    ],
+    requests: [
+      {
+        id: "r2",
+        meta: { id: "r2", createdAt: 1, updatedAt: 2, version: 1 },
+        collectionId: "c2",
+        name: "Request B",
+        order: 2,
+        ...requestContent({
+          method: "POST",
+          url: "{{base}}/b?x=1",
+          params: rowsOf({ x: "1" }),
+          // Not in alphabetical order, one name twice, one row switched off.
+          headers: [
+            { key: "X-Zeta", value: "1", enabled: true },
+            { key: "Accept", value: "text/plain", enabled: false },
+            { key: "Accept", value: "*/*", enabled: true },
+          ],
+          body: { mode: "raw", raw: { language: "json", text: '{ "n": {{count}},\n  "b": 1, "a": 2 }' } },
+          auth: { type: "apikey", key: "X-Key", value: "{{key}}", in: "query" },
+          scripts: { pre: "", post: "pm.test('ok', () => {})" },
+          tests: [
+            { id: "t-b", target: "status", operator: "equals", expected: "200" },
+            { id: "t-a", target: "body", key: "data.id", operator: "exists" },
+          ],
+          settings: { timeoutMs: 500 },
+        }),
+      },
+      {
+        id: "r1",
+        meta: { id: "r1", createdAt: 1, updatedAt: 2, version: 1 },
+        collectionId: "c2",
+        name: "Request A",
+        order: 1,
+        ...requestContent({ url: "https://example-a.com" }),
+      },
+    ],
+  });
 
-    const firstExport = serializeDeterministic(tree);
+  it("@claim:C-026 produces byte-identical output after import/export round-trip", () => {
+    const firstExport = serializeDeterministic(tree());
     const importResult = importCollection(firstExport);
     expect(importResult.payload).toBeTruthy();
     const secondExport = serializeDeterministic(importResult.payload!);
     expect(secondExport).toBe(firstExport);
+  });
+
+  it("writes format 2: its $id first, documents in order, and no trust flag", () => {
+    const text = serializeDeterministic(tree());
+    const file = JSON.parse(text) as CollectionExport;
+
+    expect(text.startsWith('{\n  "$id": "wayfarer/collection/2",')).toBe(true);
+    expect(file.folders.map((folder) => folder.name)).toEqual(["Folder A", "Folder B"]);
+    expect(file.requests.map((request) => request.name)).toEqual(["Request A", "Request B"]);
+    // Trust is this browser's decision about a collection, not part of the collection.
+    expect(text).not.toContain("scriptTrust");
+  });
+
+  it("keeps header rows and assertions in the order they were written (F57)", () => {
+    const request = (JSON.parse(serializeDeterministic(tree())) as CollectionExport).requests[1];
+
+    expect(request.headers.map((row) => [row.key, row.value, row.enabled])).toEqual([
+      ["X-Zeta", "1", true],
+      ["Accept", "text/plain", false],
+      ["Accept", "*/*", true],
+    ]);
+    expect(request.tests.map((test) => test.id)).toEqual(["t-b", "t-a"]);
+    // The body is the user's text, not a re-serialised value.
+    expect(request.body).toEqual({ mode: "raw", raw: { language: "json", text: '{ "n": {{count}},\n  "b": 1, "a": 2 }' } });
+  });
+
+  it("refuses a file that is not format 2, naming $id", () => {
+    // A format 1 file: no $id, headers as an object.
+    const formatOne = {
+      meta: meta("export-1"),
+      collection: { id: "col-1", meta: meta("col-1"), name: "Old", order: 1 },
+      folders: [],
+      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "GET", url: "https://a.test", headers: {}, order: 1 }],
+    };
+
+    expect(validateCollection(formatOne).errors).toEqual([
+      { path: "$id", message: 'Not a Wayfarer collection file: "$id" must be "wayfarer/collection/2".' },
+    ]);
+    expect(validateCollection({ ...validExport(), $id: "wayfarer/collection/3" }).errors?.[0].path).toBe("$id");
   });
 
   it("rejects invalid payloads with helpful errors", () => {
@@ -65,6 +121,7 @@ describe("collection-io", () => {
     expect(invalid.errors?.[0].path).toBe("root");
 
     const valid = validateCollection({
+      $id: "wayfarer/collection/2",
       meta: { id: "export-1", createdAt: 1, updatedAt: 1, version: 1 },
       collection: {
         id: "col-1",
@@ -80,6 +137,7 @@ describe("collection-io", () => {
 
   const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 as const });
   const validExport = () => ({
+    $id: "wayfarer/collection/2" as const,
     meta: meta("export-1"),
     collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1 },
     folders: [
@@ -87,13 +145,14 @@ describe("collection-io", () => {
       { id: "f-child", meta: meta("f-child"), collectionId: "col-1", parentFolderId: "f-parent", name: "Child", order: 2 },
     ],
     requests: [
-      { id: "r-1", meta: meta("r-1"), collectionId: "col-1", folderId: "f-child", name: "Login", method: "POST", url: "https://api.test/login", headers: {}, order: 1 },
-      { id: "r-2", meta: meta("r-2"), collectionId: "col-1", name: "Ping", method: "GET", url: "https://api.test/ping", headers: {}, order: 2 },
+      { id: "r-1", meta: meta("r-1"), collectionId: "col-1", folderId: "f-child", name: "Login", order: 1, ...requestContent({ method: "POST", url: "https://api.test/login" }) },
+      { id: "r-2", meta: meta("r-2"), collectionId: "col-1", name: "Ping", order: 2, ...requestContent({ url: "https://api.test/ping" }) },
     ],
   });
 
   it("names every problem in a malformed file by its path", () => {
     const broken = {
+      $id: "wayfarer/collection/2",
       meta: { id: "export-1", createdAt: "yesterday", updatedAt: 1, version: 2 },
       collection: { meta: meta(""), name: "", order: "first" },
       folders: [{ id: "f-1", meta: "nope", name: "Folder", order: 1 }],
@@ -122,10 +181,11 @@ describe("collection-io", () => {
 
   it("rejects a request whose method is not one of the HTTP verbs the app sends", () => {
     const result = validateCollection({
+      $id: "wayfarer/collection/2",
       meta: meta("m"),
       collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1 },
       folders: [],
-      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "GET; rm -rf ~", url: "https://a.test", headers: {}, order: 1 }],
+      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", order: 1, ...requestContent({ url: "https://a.test" }), method: "GET; rm -rf ~" }],
     });
 
     expect(result.errors?.map((e) => e.path)).toEqual(["requests[0].method"]);
@@ -135,11 +195,11 @@ describe("collection-io", () => {
     expect(validateCollection("{not json").ok).toBe(false);
     expect(validateCollection("42").ok).toBe(false);
 
-    const paths = validateCollection({ folders: "none", requests: {} }).errors!.map((e) => e.path);
+    const paths = validateCollection({ $id: "wayfarer/collection/2", folders: "none", requests: {} }).errors!.map((e) => e.path);
     expect(paths).toEqual(expect.arrayContaining(["collection", "folders", "requests", "meta"]));
 
-    expect(importCollection({ folders: [], requests: [] }).errors?.length).toBeGreaterThan(0);
-    expect(importCollection({ folders: [], requests: [] }).payload).toBeUndefined();
+    expect(importCollection({ $id: "wayfarer/collection/2", folders: [], requests: [] }).errors?.length).toBeGreaterThan(0);
+    expect(importCollection({ $id: "wayfarer/collection/2", folders: [], requests: [] }).payload).toBeUndefined();
   });
 
   it("plans an overwrite that keeps every id when importing over the original", () => {

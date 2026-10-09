@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
-import { CollectionId, FolderId, RequestDoc, RequestDocId } from "../models/collections";
-import { PastRequest } from "../models/history";
+import { emptyRequest } from "@wayfarer/core";
+import { CollectionId, NewRequest, RequestDoc, RequestDocId, RequestPatch } from "../models/collections";
 import { IdbCore } from "./idb-core";
 
 /**
@@ -25,32 +25,19 @@ export class CollectionRequestsRepository {
     return this.core.ensureIds(sorted);
   }
 
-  async createRequest(payload: {
-    collectionId: CollectionId;
-    folderId?: FolderId;
-    name: string;
-    method: PastRequest["method"];
-    url: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-    order?: number;
-  }): Promise<RequestDoc> {
+  async createRequest(payload: NewRequest): Promise<RequestDoc> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests"]);
     const store = tx.objectStore("requests");
     return this.core.commitOrRollback(tx, async () => {
       const meta = this.core.createMeta();
       const doc: RequestDoc = {
+        ...emptyRequest(),
+        ...payload,
         id: meta.id,
         meta,
-        collectionId: payload.collectionId,
-        folderId: payload.folderId,
         name: payload.name.trim(),
         order: payload.order ?? (await this.core.nextOrder(store.index("by-order"))),
-        method: payload.method,
-        url: payload.url,
-        headers: payload.headers ?? {},
-        body: payload.body,
       };
       this.core.ensureId(doc);
       await store.add(doc);
@@ -76,33 +63,10 @@ export class CollectionRequestsRepository {
   }
 
   /**
-   * Persists the composer's full working state (method/url/params/headers/
-   * body/auth/scripts/tests) back onto an existing collection request —
-   * the "Save" half of Save/Save As. `folderId` is included so a request
-   * can be re-filed into a different folder in the same call; `undefined`
-   * values are left untouched rather than clearing the field, since callers
-   * only pass the subset of fields the composer actually knows about.
+   * Writes the composer's request back onto a saved one: the "Save" half of
+   * Save and Save As. Fields the patch leaves out are kept.
    */
-  async updateRequest(
-    id: RequestDocId,
-    patch: Partial<
-      Pick<
-        RequestDoc,
-        | "name"
-        | "folderId"
-        | "method"
-        | "url"
-        | "params"
-        | "headers"
-        | "body"
-        | "vars"
-        | "auth"
-        | "preRequestScript"
-        | "postRequestScript"
-        | "tests"
-      >
-    >
-  ): Promise<RequestDoc | null> {
+  async updateRequest(id: RequestDocId, patch: RequestPatch): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests"]);
     const store = tx.objectStore("requests");

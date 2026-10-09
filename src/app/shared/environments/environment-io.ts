@@ -1,6 +1,6 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "@wayfarer/core";
-import { EnvironmentDoc } from "../../models/environments";
-import { deepSort, sortByOrder } from "../collections/collection-io";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson, validateRows } from "@wayfarer/core";
+import { ENVIRONMENTS_FORMAT, EnvironmentDoc } from "../../models/environments";
+import { sortByOrder, sortKeys } from "../collections/collection-io";
 
 export interface EnvironmentValidationResult {
   ok: boolean;
@@ -9,8 +9,7 @@ export interface EnvironmentValidationResult {
 }
 
 export function serializeEnvironmentExport(environments: EnvironmentDoc[]): string {
-  const normalized = prepareEnvironments(environments);
-  return JSON.stringify(deepSort(normalized), null, 2);
+  return JSON.stringify(sortKeys({ $id: ENVIRONMENTS_FORMAT, environments: prepareEnvironments(environments) }), null, 2);
 }
 
 export function validateEnvironmentExport(
@@ -24,15 +23,14 @@ export function validateEnvironmentExport(
     return { ok: false, errors: ["File does not contain a valid JSON payload."] };
   }
 
-  const value = Array.isArray(parsed)
-    ? parsed
-    : Array.isArray((parsed as Record<string, unknown>)["environments"])
-      ? ((parsed as Record<string, unknown>)["environments"] as EnvironmentDoc[])
-      : null;
-
-  if (!value) {
+  const file = parsed as { $id?: unknown; environments?: unknown };
+  if (file.$id !== ENVIRONMENTS_FORMAT) {
+    return { ok: false, errors: [`Not a Wayfarer environments file: "$id" must be "${ENVIRONMENTS_FORMAT}".`] };
+  }
+  if (!Array.isArray(file.environments)) {
     return { ok: false, errors: ["Expected an array of environments."] };
   }
+  const value = file.environments as EnvironmentDoc[];
 
   const errors: string[] = [];
   value.forEach((env, index) => {
@@ -49,14 +47,8 @@ export function validateEnvironmentExport(
     if (typeof env.order !== "number") {
       errors.push(`environments[${index}].order must be a number.`);
     }
-    if (
-      typeof env.vars !== "object" ||
-      env.vars === null ||
-      Array.isArray(env.vars)
-    ) {
-      errors.push(`environments[${index}].vars must be an object.`);
-    } else if (Object.values(env.vars).some((value) => typeof value !== "string")) {
-      errors.push(`environments[${index}].vars values must be strings.`);
+    for (const issue of validateRows(env.vars, `environments[${index}].vars`)) {
+      errors.push(`${issue.path}: ${issue.message}`);
     }
   });
 

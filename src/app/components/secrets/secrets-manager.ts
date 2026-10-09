@@ -72,7 +72,7 @@ export class SecretsManager {
     const environments = this.environmentsService.environments();
     const usagesBySecretId = new Map<SecretId, SecretUsage[]>();
     for (const env of environments) {
-      for (const [key, value] of Object.entries(env.vars ?? {})) {
+      for (const { key, value } of env.vars) {
         const secretId = extractSecretId(value);
         if (!secretId) {
           continue;

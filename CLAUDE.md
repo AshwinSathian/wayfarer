@@ -80,8 +80,9 @@ code errors.
 
 - The request being composed is one `Draft` (`@wayfarer/core`) in
   `WorkspaceStore` (`src/app/state/workspace-store.ts`), with the response
-  it last received. The stores still read and write v4: `draftFromV4` on
-  load, `store.snapshot()` (`draftToV4`) to save or send.
+  it last received. A saved request holds the same fields
+  (`RequestContent`): `store.load()` takes one and `store.snapshot()` gives
+  one back, to save or send.
 - `src/app/components/composer/` holds one component per part of the
   request. `ComposerView` holds what they share that is not the request:
   the open tab, Basic or JSON mode. A file there stays under 400 lines and a
@@ -339,7 +340,14 @@ code errors.
   placed where the tool reads it as an option or a file (`--data-raw`, not
   `-d`).
 - Imported files are untrusted: validate every field against the values the
-  app itself writes (methods, string-valued variables).
+  app itself writes (`validateRequestContent` and `validateRows` in
+  `@wayfarer/core`). A file must carry the format's `$id`
+  (`wayfarer/collection/2`, `wayfarer/environments/2`); there is no
+  converter for older files.
+- The database is version 5 and starts empty: `runUpgrade` deletes the
+  stores an older version left. No stored data exists to keep (maintainer,
+  2026-10-09), so a change of stored shape may do the same again until the
+  app has users; say so in the changelog and in `docs/storage.md`.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - The endpoint field is text, not a URL: it may hold `{{variables}}`. Do not

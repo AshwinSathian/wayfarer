@@ -114,7 +114,7 @@ test.describe("Phase 0 tripwires", () => {
     await seedAndOpen(page, { token: "f07-token-value" }, {
       method: "GET",
       url: `${TARGET}/f07`,
-      auth: { type: "bearer", bearer: { token: "{{token}}" } },
+      auth: { type: "bearer", token: "{{token}}" },
     });
 
     await send(page);

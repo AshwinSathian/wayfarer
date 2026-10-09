@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { rowsOf } from "../../testing/request-fixtures";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EnvironmentDoc } from "../models/environments";
 import { EnvironmentImport } from "./environment-import";
@@ -9,14 +10,17 @@ const env = (id: string, name: string, order: number, vars: Record<string, strin
   meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
   name,
   order,
-  vars,
+  vars: rowsOf(vars),
 });
 
 describe("EnvironmentImport", () => {
   let service: EnvironmentImport;
   const envService = { updateEnvironment: vi.fn(), createEnvironment: vi.fn() };
   const existing = [env("dev-1", "Dev", 1), env("stage-1", "Staging", 2)];
-  const file = JSON.stringify([env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })]);
+  const file = JSON.stringify({
+    $id: "wayfarer/environments/2",
+    environments: [env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })],
+  });
 
   beforeEach(() => {
     envService.updateEnvironment.mockReset();
@@ -66,8 +70,8 @@ describe("EnvironmentImport", () => {
 
     await service.confirm([...existing, env("qa-1", "QA", 3), env("qa-2", "QA (2)", 4)]);
 
-    expect(envService.updateEnvironment).toHaveBeenCalledExactlyOnceWith("dev-1", { name: "Dev", description: undefined, vars: { host: "new" } });
-    expect(envService.createEnvironment).toHaveBeenCalledExactlyOnceWith({ name: "QA (3)", description: undefined, vars: { host: "qa" } });
+    expect(envService.updateEnvironment).toHaveBeenCalledExactlyOnceWith("dev-1", { name: "Dev", description: undefined, vars: rowsOf({ host: "new" }) });
+    expect(envService.createEnvironment).toHaveBeenCalledExactlyOnceWith({ name: "QA (3)", description: undefined, vars: rowsOf({ host: "qa" }) });
     expect(service.dialogVisible()).toBe(false);
     expect(service.pendingEntries()).toEqual([]);
     expect(service.fileName()).toBe("");

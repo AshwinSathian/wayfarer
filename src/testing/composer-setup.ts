@@ -9,7 +9,8 @@ import { ResponseInspector } from '../app/shared/inspect/response-inspector';
 import { EnvironmentsStore } from '../app/services/environments-store';
 import { EnvironmentDoc } from '../app/models/environments';
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
-import { Meta, RequestDoc } from '../app/models/collections';
+import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
+import { requestContent, rowsOf } from './request-fixtures';
 import { vi } from "vitest";
 import { FetchMock } from './fetch-mock';
 
@@ -59,9 +60,7 @@ export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc 
     collectionId: 'c1',
     name: 'Saved request',
     order: 0,
-    method: 'GET',
-    url: 'https://saved.example.com',
-    headers: { Accept: 'application/json' },
+    ...requestContent({ url: 'https://saved.example.com', headers: rowsOf({ Accept: 'application/json' }) }),
     ...overrides,
   };
 }
@@ -72,25 +71,7 @@ class CollectionsServiceStub {
   readonly loading = signal(false).asReadonly();
 
   createRequest = vi.fn().mockImplementation(
-    async (payload: {
-      collectionId: string;
-      folderId?: string;
-      name: string;
-      method: RequestDoc['method'];
-      url: string;
-      headers?: Record<string, string>;
-      body?: unknown;
-    }): Promise<RequestDoc> =>
-      makeRequestDoc({
-        id: 'new-id',
-        collectionId: payload.collectionId,
-        folderId: payload.folderId,
-        name: payload.name,
-        method: payload.method,
-        url: payload.url,
-        headers: payload.headers ?? {},
-        body: payload.body,
-      })
+    async (payload: NewRequest): Promise<RequestDoc> => makeRequestDoc({ ...payload, id: 'new-id' })
   );
 
   updateRequest = vi.fn().mockImplementation(
@@ -109,7 +90,7 @@ export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
     meta: { id: 'env-1', createdAt: 1, updatedAt: 1, version: 1 },
     name: 'Test env',
     order: 1,
-    vars,
+    vars: rowsOf(vars),
   } as EnvironmentDoc;
 }
 

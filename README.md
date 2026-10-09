@@ -52,7 +52,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
-  - Deterministic collection import/export (a round trip is byte-identical) <!-- claim:C-026 -->
+  - Deterministic collection import/export in file format 2 (a round trip is byte-identical) <!-- claim:C-026 -->
 
 - **Secrets Vault**
 

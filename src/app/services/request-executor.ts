@@ -13,6 +13,7 @@ import {
   AssertionResponseContext,
 } from "../shared/scripts/assertion-runner";
 import { PastRequest } from "../models/history";
+import { variablesOf } from "../shared/environments/env-resolution";
 import { TestAssertion, TestResult } from "../models/test-assertion";
 import {
   BinaryBody,
@@ -25,7 +26,7 @@ import {
 } from "@wayfarer/core";
 
 export interface BuiltRequest {
-  method: PastRequest["method"];
+  method: string;
   url: string;
   /** In the order they are sent. */
   headers: [string, string][];
@@ -331,7 +332,7 @@ export class RequestExecutor {
   }
 
   private getEnvSnapshot(): Record<string, string> {
-    return { ...(this.environmentsService.activeEnvironment()?.vars ?? {}) };
+    return variablesOf(this.environmentsService.activeEnvironment()?.vars);
   }
 
   private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {
@@ -343,12 +344,11 @@ export class RequestExecutor {
     if (!active) {
       return;
     }
-    const vars = { ...active.vars };
+    // A set replaces every row of that name with one; an empty value removes them.
+    const vars = active.vars.filter((row) => !Object.hasOwn(mutations, row.key));
     for (const key of keys) {
-      if (mutations[key] === "") {
-        delete vars[key];
-      } else {
-        vars[key] = mutations[key];
+      if (mutations[key] !== "") {
+        vars.push({ key, value: mutations[key], enabled: true });
       }
     }
     await this.environmentsService.updateEnvironment(active.meta.id, { vars });

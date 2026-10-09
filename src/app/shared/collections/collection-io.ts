@@ -1,11 +1,11 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson } from "@wayfarer/core";
+import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson, validateRequestContent } from "@wayfarer/core";
 import {
+  COLLECTION_FORMAT,
   Collection,
   CollectionExport,
   Folder,
   RequestDoc,
 } from "../../models/collections";
-import { HTTP_METHODS, HttpMethod } from "../../models/history";
 import { CollectionTree } from "../../services/collections-store";
 
 export interface ValidationResult {
@@ -35,8 +35,7 @@ export function serializeDeterministic(
   source: CollectionTree | CollectionExport
 ): string {
   const payload = normalizeExport(toExport(source));
-  const ordered = deepSort(payload);
-  return JSON.stringify(ordered, null, 2);
+  return JSON.stringify(sortKeys(payload), null, 2);
 }
 
 export function validateCollection(
@@ -55,6 +54,13 @@ export function validateCollection(
 
   const errors: ValidationResult[] = [];
   const value = payload as Partial<CollectionExport>;
+  if (value.$id !== COLLECTION_FORMAT) {
+    // Nothing else is checked: a file in another format would fail on every field.
+    return {
+      ok: false,
+      errors: [{ path: "$id", message: `Not a Wayfarer collection file: "$id" must be "${COLLECTION_FORMAT}".` }],
+    };
+  }
   if (!value.collection) {
     errors.push({ path: "collection", message: "Missing collection block." });
   } else {
@@ -133,19 +139,21 @@ export function sortByOrder<T extends { order?: number; meta?: { id?: string }; 
   });
 }
 
-export function deepSort<T>(value: T): T {
+/**
+ * The same value with every object's keys in alphabetical order. Arrays keep
+ * their order: a list of header rows or assertions is in the order the user
+ * gave it (F57).
+ */
+export function sortKeys<T>(value: T): T {
   if (Array.isArray(value)) {
-    const items = sortByOrder(
-      value as unknown as { order?: number; meta?: { id?: string }; id?: string }[]
-    );
-    return items.map((item) => deepSort(item)) as T;
+    return value.map((item: unknown) => sortKeys(item)) as T;
   }
 
   if (value && typeof value === "object") {
     const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
       a.localeCompare(b)
     );
-    return Object.fromEntries(entries.map(([key, val]) => [key, deepSort(val)])) as T;
+    return Object.fromEntries(entries.map(([key, val]) => [key, sortKeys(val)])) as T;
   }
 
   return value;
@@ -241,25 +249,21 @@ function normalizeExport(payload: CollectionExport): CollectionExport {
 }
 
 function toExport(input: CollectionTree | CollectionExport): CollectionExport {
-  if (isCollectionTree(input)) {
-    return {
-      meta: input.collection.meta,
-      collection: input.collection,
-      folders: input.folders,
-      requests: input.requests,
-    };
+  if (!isCollectionTree(input)) {
+    return input;
   }
-  return input;
+  const { scriptTrust: _trust, ...collection } = input.collection;
+  return {
+    $id: COLLECTION_FORMAT,
+    meta: collection.meta,
+    collection,
+    folders: input.folders,
+    requests: input.requests,
+  };
 }
 
 function isCollectionTree(value: unknown): value is CollectionTree {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      "collection" in value &&
-      "folders" in value &&
-      "requests" in value
-  );
+  return Boolean(value && typeof value === "object" && !("$id" in value));
 }
 
 function validateCollectionDoc(
@@ -294,16 +298,7 @@ function validateRequestDoc(
   validateRequiredString(request?.id ?? request?.meta?.id, `${path}.id`, errors);
   validateRequiredString(request?.collectionId, `${path}.collectionId`, errors);
   validateRequiredString(request?.name, `${path}.name`, errors);
-  if (!HTTP_METHODS.includes(request?.method as HttpMethod)) {
-    errors.push({ path: `${path}.method`, message: `Method must be one of ${HTTP_METHODS.join(", ")}.` });
-  }
-  validateRequiredString(request?.url, `${path}.url`, errors);
-  if (typeof request?.headers !== "object" || request.headers === null) {
-    errors.push({
-      path: `${path}.headers`,
-      message: "Headers must be an object of string pairs.",
-    });
-  }
+  errors.push(...validateRequestContent(request, path));
 }
 
 function validateMeta(meta: unknown, path: string, errors: ValidationResult[]): void {

@@ -276,9 +276,31 @@
               <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
             </div>
             }
-            @if (storageUnavailable()) {
+            @if (updatedElsewhere()) {
+            <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+              <p class="type-callout text-status-warning">Wayfarer was updated in another tab — reload to continue. Changes made here are no longer saved.</p>
+              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
+            </div>
+            }
+            @if (upgradeBlocked()) {
+            <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+              <p class="type-callout text-status-warning">Close other Wayfarer tabs to finish the update. Nothing can be saved until then.</p>
+            </div>
+            }
+            @if (olderThanData()) {
+            <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+              <p class="type-callout text-status-warning">This tab is running an older Wayfarer than the one that saved your data — reload to get the current one. Until then nothing here is saved.</p>
+              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
+            </div>
+            } @else if (storageUnavailable()) {
             <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
               <p class="type-callout text-status-warning">This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p>
+            </div>
+            }
+            @if (clearedOldData() && !clearedNoticeDismissed()) {
+            <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+              <p class="type-callout text-status-warning">Wayfarer 2 stores data in a new format. Collections, environments, secrets and history saved by an earlier version were removed.</p>
+              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="clearedNoticeDismissed.set(true)">Dismiss</button>
             </div>
             }
             @if (resetError()) {

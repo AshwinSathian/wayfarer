@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
   TransportError,
@@ -96,7 +97,7 @@ function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
     meta: { id: "env-1", createdAt: 1, updatedAt: 1, version: 1 },
     name: "Test env",
     order: 1,
-    vars,
+    vars: rowsOf(vars),
   } as EnvironmentDoc;
 }
 
@@ -262,7 +263,7 @@ describe("RequestExecutor", () => {
       postRequestScript: "",
       tests: [],
       buildRequest: () => {
-        capturedEnvDuringBuild = environmentsService.activeEnvironment()?.vars?.["authToken"];
+        capturedEnvDuringBuild = environmentsService.activeEnvironment()?.vars.find((row) => row.key === "authToken")?.value;
         return builtRequest();
       },
     });
@@ -351,7 +352,7 @@ describe("RequestExecutor", () => {
 
     expect(environmentsService.updateEnvironment).toHaveBeenCalledWith(
       "env-1",
-      expect.objectContaining({ vars: expect.objectContaining({ counter: "2" }) })
+      expect.objectContaining({ vars: expect.arrayContaining([{ key: "counter", value: "2", enabled: true }]) })
     );
   });
 

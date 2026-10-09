@@ -1,4 +1,5 @@
 import { EnvironmentDoc } from "../../models/environments";
+import { rowsOf } from "../../../testing/request-fixtures";
 import { collectVariableTokens, resolveTemplate } from "./env-resolution";
 import { describe, it, expect } from "vitest";
 
@@ -16,7 +17,7 @@ describe("variable resolution", () => {
           meta: { id: "env-1", createdAt: 1, updatedAt: 1, version: 1 },
           name: "Env",
           order: 1,
-          vars: { host: "env.host", token: "env-token" },
+          vars: rowsOf({ host: "env.host", token: "env-token" }),
         } as EnvironmentDoc,
         globals: { token: "global-token" },
       }
@@ -48,7 +49,7 @@ describe("resolveTemplate", () => {
       meta: { id: "env-1", createdAt: 1, updatedAt: 1, version: 1 },
       name: "Env",
       order: 1,
-      vars: { baseHost: "jsonplaceholder.typicode.com", token: "env-token" },
+      vars: rowsOf({ baseHost: "jsonplaceholder.typicode.com", token: "env-token" }),
     } as EnvironmentDoc,
     globals: { globalOnly: "global-value" },
   };

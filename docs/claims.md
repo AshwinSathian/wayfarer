@@ -58,7 +58,7 @@ back gets reworded until one can, or removed.
 | C-023 | Phase timings are withheld unless the server sends `Timing-Allow-Origin`. | README.md | e2e/features.spec.ts |
 | C-024 | Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. | README.md | e2e/features.spec.ts, e2e/collections.spec.ts |
 | C-025 | The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. | README.md | e2e/environments.spec.ts |
-| C-026 | Collection export and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
+| C-026 | Collection export (file format 2) and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
 | C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
 | C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
 | C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |

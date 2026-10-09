@@ -92,6 +92,11 @@ export class AppShell implements OnInit {
   private readonly idb = inject(Idb);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
+  readonly updatedElsewhere = this.idb.updatedElsewhere;
+  readonly upgradeBlocked = this.idb.upgradeBlocked;
+  readonly olderThanData = this.idb.olderThanData;
+  readonly clearedOldData = this.idb.clearedOldData;
+  readonly clearedNoticeDismissed = signal(false);
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
 

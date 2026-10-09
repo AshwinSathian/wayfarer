@@ -73,7 +73,7 @@ test("@claim:C-008 history keeps the Authorization header that was sent, in plai
   await seedAndOpen(page, {}, {
     method: "GET",
     url: `${ECHO}/echo?c008=1`,
-    auth: { type: "bearer", bearer: { token: "c008-token-value" } },
+    auth: { type: "bearer", token: "c008-token-value" },
   });
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -84,7 +84,7 @@ test("@claim:C-014 collection exports include auth fields in plain text", async 
   await seedAndOpen(page, {}, {
     method: "GET",
     url: `${ECHO}/echo`,
-    auth: { type: "bearer", bearer: { token: "c014-token-value" } },
+    auth: { type: "bearer", token: "c014-token-value" },
   });
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   const [download] = await Promise.all([

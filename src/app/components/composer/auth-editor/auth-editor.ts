@@ -5,13 +5,16 @@ import { MatInput } from "@angular/material/input";
 import { MatIconButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import { AuthType, HttpAuthPlaceholder } from "../../../models/collections";
+import type { AuthConfig } from "@wayfarer/core";
 import { Icon } from "../../../shared/icon/icon";
+
+type AuthType = AuthConfig["type"];
+const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as const;
 
 /**
  * The composer's Auth tab — extracted out of the composer (same
  * pattern as `ApiParamsBasic` for Params/Headers/Body) so the
- * "build a new HttpAuthPlaceholder from a field edit" logic has its own
+ * "build a new AuthConfig from a field edit" logic has its own
  * testable home. The parent still owns the `showPassword` toggle state and
  * resets it on auth-type change/request load, so `authTypeChange` is a
  * distinct output from the generic `authChange` used by field edits.
@@ -23,18 +26,18 @@ import { Icon } from "../../../shared/icon/icon";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthEditor {
-  readonly auth = input.required<HttpAuthPlaceholder>();
+  readonly auth = input.required<AuthConfig>();
   readonly showPassword = input(false);
 
   readonly authTypeChange = output<AuthType>();
-  readonly authChange = output<HttpAuthPlaceholder>();
+  readonly authChange = output<AuthConfig>();
   readonly togglePasswordVisibility = output<void>();
 
   readonly authTypes: { label: string; value: AuthType }[] = [
     { label: "None", value: "none" },
     { label: "Bearer Token", value: "bearer" },
     { label: "Basic Auth", value: "basic" },
-    { label: "API Key", value: "api-key" },
+    { label: "API Key", value: "apikey" },
   ];
 
   readonly apiKeyAddToOptions: { label: string; value: "header" | "query" }[] = [
@@ -46,37 +49,24 @@ export class AuthEditor {
     this.authTypeChange.emit(type);
   }
 
+  // Each field belongs to one auth type, and its input exists only while that type is chosen.
   setBearerToken(token: string): void {
-    this.authChange.emit({ ...this.auth(), bearer: { token } });
+    this.authChange.emit({ type: "bearer", token });
   }
 
   setBasicUsername(username: string): void {
     const auth = this.auth();
-    this.authChange.emit({
-      ...auth,
-      basic: { username, password: auth.basic?.password ?? "" },
-    });
+    this.authChange.emit({ type: "basic", username, password: auth.type === "basic" ? auth.password : "" });
   }
 
   setBasicPassword(password: string): void {
     const auth = this.auth();
-    this.authChange.emit({
-      ...auth,
-      basic: { username: auth.basic?.username ?? "", password },
-    });
+    this.authChange.emit({ type: "basic", username: auth.type === "basic" ? auth.username : "", password });
   }
 
-  setApiKeyField(patch: Partial<{ key: string; value: string; addTo: "header" | "query" }>): void {
+  setApiKeyField(patch: Partial<{ key: string; value: string; in: "header" | "query" }>): void {
     const auth = this.auth();
-    this.authChange.emit({
-      ...auth,
-      apiKey: {
-        key: auth.apiKey?.key ?? "",
-        value: auth.apiKey?.value ?? "",
-        addTo: auth.apiKey?.addTo ?? "header",
-        ...patch,
-      },
-    });
+    this.authChange.emit({ ...(auth.type === "apikey" ? auth : emptyApiKey), ...patch });
   }
 
   onTogglePasswordVisibility(): void {

@@ -43,11 +43,13 @@ export async function captureTarget(
   return hits;
 }
 
+/** A request as a test states it: headers by name, the body as a JSON value. */
 export interface SeededRequest {
   method: string;
   url: string;
   headers?: Record<string, string>;
   body?: unknown;
+  /** As stored: `{type: "bearer", token}` and so on. */
   auth?: unknown;
   postRequestScript?: string;
   tests?: unknown[];
@@ -67,7 +69,7 @@ export async function seedAndOpen(
   await page.goto("/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 4)
+    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5)
   );
   await page.evaluate(
     async ({ vars, request }) => {
@@ -81,17 +83,35 @@ export async function seedAndOpen(
       const now = Date.now();
       const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
       const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
-      tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars, order: 0 });
+      const rows = (record: Record<string, string>) =>
+        Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
+      tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars: rows(vars), order: 0 });
       tx.objectStore("meta").put({ schemaVersion: 1, ...(state ?? {}), key: "state", activeEnvironmentId: "env-tw" });
-      tx.objectStore("collections").put({ id: "col-tw", meta: meta("col-tw"), name: "Tripwire collection", order: 0 });
+      tx.objectStore("collections").put({
+        id: "col-tw",
+        meta: meta("col-tw"),
+        name: "Tripwire collection",
+        order: 0,
+        scriptTrust: { trusted: true },
+      });
       tx.objectStore("requests").put({
         id: "req-tw",
         meta: meta("req-tw"),
         collectionId: "col-tw",
         name: "Tripwire request",
         order: 0,
-        headers: {},
-        ...request,
+        method: request.method,
+        url: request.url,
+        params: [],
+        headers: rows(request.headers ?? {}),
+        body:
+          request.body === undefined
+            ? { mode: "none" }
+            : { mode: "raw", raw: { language: "json", text: JSON.stringify(request.body, null, 2) } },
+        auth: request.auth ?? { type: "none" },
+        scripts: { pre: "", post: request.postRequestScript ?? "" },
+        tests: request.tests ?? [],
+        settings: {},
       });
       await new Promise<void>((resolve, reject) => {
         tx.oncomplete = () => resolve();

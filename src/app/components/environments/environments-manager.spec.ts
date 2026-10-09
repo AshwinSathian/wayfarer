@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { rowsOf } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
 import { Subject } from "rxjs";
 import { EnvironmentsManager } from "./environments-manager";
@@ -15,7 +16,7 @@ function makeEnv(id: EnvironmentId, vars: Record<string, string> = {}): Environm
     id,
     meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
     name: `Env ${id}`,
-    vars,
+    vars: rowsOf(vars),
     order: 0,
   };
 }
@@ -142,8 +143,8 @@ describe("EnvironmentsManager", () => {
       expect(component.selectedId()).toBe("e1");
       const draft = component.draft();
       expect(draft?.vars).toEqual([
-        { key: "API_KEY", value: "abc" },
-        { key: "BASE_URL", value: "https://example.com" },
+        { key: "API_KEY", value: "abc", enabled: true },
+        { key: "BASE_URL", value: "https://example.com", enabled: true },
       ]);
       expect(draft?.jsonValid).toBe(true);
       expect(JSON.parse(draft!.jsonText)).toEqual({ API_KEY: "abc", BASE_URL: "https://example.com" });
@@ -172,13 +173,13 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.vars.length).toBe(2);
 
       component.removeVariable(0);
-      expect(component.draft()?.vars).toEqual([{ key: "", value: "" }]);
+      expect(component.draft()?.vars).toEqual([{ key: "", value: "", enabled: true }]);
     });
 
     it("onJsonChange replaces the pairs from valid parsed JSON", () => {
       component.onJsonChange('{"X":"y"}', true, { X: "y" });
 
-      expect(component.draft()?.vars).toEqual([{ key: "X", value: "y" }]);
+      expect(component.draft()?.vars).toEqual([{ key: "X", value: "y", enabled: true }]);
     });
 
     it("onJsonChange leaves vars untouched when the JSON is invalid", () => {
@@ -189,14 +190,14 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.jsonValid).toBe(false);
     });
 
-    it("save() sends a trimmed name and a key/value record built from non-blank pairs", async () => {
+    it("save() sends a trimmed name and the rows that have a name", async () => {
       component.draft.update((d) => (d ? { ...d, name: "  Renamed  " } : d));
       component.addVariable();
 
       await component.save();
 
       expect(envService.updateCalls).toEqual([
-        { id: "e1", updates: { name: "Renamed", description: undefined, vars: { A: "1" } } },
+        { id: "e1", updates: { name: "Renamed", description: undefined, vars: rowsOf({ A: "1" }) } },
       ]);
     });
 

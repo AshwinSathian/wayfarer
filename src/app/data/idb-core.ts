@@ -1,4 +1,4 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable, WritableSignal, signal } from "@angular/core";
 import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
 import { Meta, META_VERSION } from "../models/collections";
 import {
@@ -63,6 +63,18 @@ export class IdbCore {
   /** True once another tab reset all data; the app shows a reload banner. */
   readonly closedByOtherTab = signal(false);
 
+  /** True once a tab running a newer release upgraded the database: this tab's code no longer matches it. */
+  readonly updatedElsewhere = signal(false);
+
+  /** True while the upgrade waits for a tab that holds the old database and will not close it. */
+  readonly upgradeBlocked = signal(false);
+
+  /** True when the database is from a newer release than this tab's code (a stale cache, a rollback). */
+  readonly olderThanData = signal(false);
+
+  /** True when this open emptied a database an older release left: v5 does not read the shapes before it. */
+  readonly clearedOldData = signal(false);
+
   /**
    * True when IndexedDB could not be opened (blocked storage, some private
    * windows): history lives in memory for this tab and nothing else can be
@@ -76,7 +88,7 @@ export class IdbCore {
   constructor() {
     this.lifecycle.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
       if (event.data?.type === "close") {
-        void this.closeForReset();
+        void this.closeForOtherTab(this.closedByOtherTab);
       }
     });
   }
@@ -99,24 +111,29 @@ export class IdbCore {
       return;
     }
 
+    let replacedOldData = false;
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
-        upgrade: (db, oldVersion, newVersion, transaction) => {
-          // A failed migration aborts the whole upgrade: the database keeps
-          // its old version and schema instead of a half-migrated one.
-          runUpgrade(db, oldVersion, newVersion, transaction).catch((error: unknown) => {
-            this.logError("Database upgrade failed; rolling back.", error);
-            transaction.abort();
-          });
+        upgrade: (db, oldVersion) => {
+          runUpgrade(db);
+          replacedOldData = oldVersion > 0;
         },
-        // Another tab is deleting (or upgrading) the database; holding the
-        // connection would block it.
-        blocking: () => void this.closeForReset(),
+        // A tab running a build from before v5 does not close on request.
+        blocked: () => this.upgradeBlocked.set(true),
+        // Another tab is deleting the database (no new version) or upgrading
+        // it; holding the connection would block either.
+        blocking: (_current, blockedVersion) =>
+          void this.closeForOtherTab(blockedVersion === null ? this.closedByOtherTab : this.updatedElsewhere),
       });
 
       await this.dbPromise;
+      this.upgradeBlocked.set(false);
+      this.clearedOldData.set(replacedOldData);
       await this.ensureMetaDocument();
     } catch (error) {
+      this.upgradeBlocked.set(false);
+      // VersionError: the stored version is above DB_VERSION.
+      this.olderThanData.set(error instanceof DOMException && error.name === "VersionError");
       this.logError(
         "Failed to open IndexedDB. Falling back to in-memory store.",
         error
@@ -129,6 +146,9 @@ export class IdbCore {
     if (this.closedByOtherTab()) {
       // Reopening would recreate the database the other tab just deleted.
       throw new Error("Data was reset in another tab; reload this tab.");
+    }
+    if (this.updatedElsewhere()) {
+      throw new Error("Wayfarer was updated in another tab; reload this tab.");
     }
     if (this.resetting) {
       // Reopening now would block this tab's own delete.
@@ -298,12 +318,12 @@ export class IdbCore {
     }
   }
 
-  /** Another tab reset the data: drop this tab's connection so its delete isn't blocked, and never reopen. */
-  private async closeForReset(): Promise<void> {
-    if (this.closedByOtherTab() || this.resetting) {
+  /** Another tab reset or upgraded the database: drop this tab's connection so it is not in the way, say which, and never reopen. */
+  private async closeForOtherTab(reason: WritableSignal<boolean>): Promise<void> {
+    if (this.closedByOtherTab() || this.updatedElsewhere() || this.resetting) {
       return;
     }
-    this.closedByOtherTab.set(true);
+    reason.set(true);
     await this.closeConnection();
   }
 

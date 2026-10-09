@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { MatExpansionPanel } from "@angular/material/expansion";
-import { authFromV4, type V4Request } from "@wayfarer/core";
-import { AuthType, RequestDoc } from "../../models/collections";
+import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
+import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
 import { bodyRowsFromObject, isPlainObject, mergeHeaderRowsFromParsed } from "../../shared/http/key-value";
@@ -9,7 +9,10 @@ import {
   DEFAULT_HEADER_KEY,
   DEFAULT_HEADER_VALUE,
   WorkspaceStore,
+  bodyValue,
   isBodyMethod,
+  requestFromHistory,
+  sentHeaders,
 } from "../../state/workspace-store";
 
 export type EditorMode = "basic" | "json";
@@ -49,7 +52,7 @@ export class ComposerView {
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
     this.requestSave.bind(null);
-    this.load(request, "history");
+    this.load(requestFromHistory(request), "history");
   }
 
   /**
@@ -93,8 +96,8 @@ export class ComposerView {
   }
 
   /** Auth type changes (unlike bearer/basic/apiKey field edits) also reset password visibility. */
-  onAuthTypeChange(type: AuthType): void {
-    this.store.patch({ auth: authFromV4({ type }) });
+  onAuthTypeChange(type: AuthConfig["type"]): void {
+    this.store.patch({ auth: emptyAuth(type) });
     this.showAuthPassword.set(false);
   }
 
@@ -170,7 +173,7 @@ export class ComposerView {
     if (this.mobileActivePanels() === panel) section.open();
   }
 
-  private load(request: V4Request, source: "collection" | "history"): void {
+  private load(request: RequestContent, source: "collection" | "history"): void {
     const hasBody = this.store.load(request, source);
     this.activeTab.set(hasBody && isBodyMethod(request.method) ? "body" : "headers");
     this.showAuthPassword.set(false);
@@ -192,8 +195,9 @@ export class ComposerView {
   private syncJsonEditorsFromState(): void {
     // Deliberately raw: this view keeps showing the literal {{var}}
     // template, not a resolved snapshot.
-    const { headers, body } = this.store.snapshot();
-    this.headersJsonText.set(JSON.stringify(headers, undefined, 4));
+    const draft = this.store.snapshot();
+    const body = bodyValue(draft.body);
+    this.headersJsonText.set(JSON.stringify(Object.fromEntries(sentHeaders(draft.headers)), undefined, 4));
     this.bodyJsonText.set(body ? JSON.stringify(body, undefined, 4) : "{}");
     this.headersJsonValid.set(true);
     this.bodyJsonValid.set(true);

@@ -5,8 +5,10 @@ import {
   CollectionId,
   Folder,
   FolderId,
+  NewRequest,
   RequestDoc,
   RequestDocId,
+  RequestPatch,
 } from "../models/collections";
 import { Idb } from "../data/idb";
 import { serializeDeterministic } from "../shared/collections/collection-io";
@@ -180,15 +182,7 @@ export class CollectionsStore {
     }
   }
 
-  async createRequest(payload: {
-    collectionId: CollectionId;
-    folderId?: FolderId;
-    name: string;
-    method: RequestDoc["method"];
-    url: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-  }): Promise<RequestDoc> {
+  async createRequest(payload: NewRequest): Promise<RequestDoc> {
     const doc = await this.idb.createRequest(payload);
     await this.refreshCollectionEntry(payload.collectionId);
     return doc;
@@ -202,26 +196,7 @@ export class CollectionsStore {
     return doc;
   }
 
-  async updateRequest(
-    id: RequestDocId,
-    patch: Partial<
-      Pick<
-        RequestDoc,
-        | "name"
-        | "folderId"
-        | "method"
-        | "url"
-        | "params"
-        | "headers"
-        | "body"
-        | "vars"
-        | "auth"
-        | "preRequestScript"
-        | "postRequestScript"
-        | "tests"
-      >
-    >
-  ): Promise<RequestDoc | null> {
+  async updateRequest(id: RequestDocId, patch: RequestPatch): Promise<RequestDoc | null> {
     const doc = await this.idb.updateRequest(id, patch);
     if (doc) {
       await this.refreshCollectionEntry(doc.collectionId);

@@ -74,3 +74,4 @@ back gets reworded until one can, or removed.
 | C-039 | The Body tab exists only for POST, PUT and PATCH, with a Basic or JSON editor. | README.md | e2e/features.spec.ts |
 | C-040 | The Monaco script editor supports a small `pm.*` subset (`pm.environment`, `pm.response`, `pm.test`, `pm.expect`). | README.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.spec.ts |
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |
+| C-042 | A request in flight can be cancelled, and a request timeout can be set in Settings; by default there is none. | README.md | e2e/transport.spec.ts |

@@ -16,6 +16,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   response. The default, 0, waits for as long as it takes, as before.
 - A redirected request says so: "Redirected to" and the address the
   response came from, beside the status.
+- The README lists Cancel and the request timeout, and a test in three
+  browsers holds it to that (claim C-042).
 
 ### Changed
 

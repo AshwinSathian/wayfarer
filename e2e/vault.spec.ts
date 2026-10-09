@@ -90,9 +90,14 @@ test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, 
   await page.keyboard.press("Escape");
   await createVault(page);
 
-  await page.clock.fastForward(59_000);
+  // The idle time is counted from the last key press. Pressing one here starts
+  // the minute at a known moment: the clock also runs in real time, and on a
+  // slow runner more than a second passed between making the vault and the
+  // first jump, which locked it "early".
+  await page.keyboard.press("Shift");
+  await page.clock.fastForward(55_000);
   await expect(lockButton(page)).toBeVisible();
-  await page.clock.fastForward(2_000);
+  await page.clock.fastForward(6_000);
 
   await expect(unlockButton(page)).toBeVisible();
 });

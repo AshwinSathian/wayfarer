@@ -1,7 +1,8 @@
 import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Menu, UiMenuItem } from "../../ui/menu";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
+import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -52,7 +53,7 @@ interface ResponseHeader {
     MatTooltip,
     JsonEditor,
     MatButton, MatIconButton,
-    Menu,
+    MatMenu, MatMenuItem, MatMenuTrigger,
   ],
   templateUrl: "./response-viewer.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

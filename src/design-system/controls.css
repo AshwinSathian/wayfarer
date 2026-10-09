@@ -812,44 +812,42 @@
 }
 
 /* ── Drawer ──────────────────────────────────────────────── */
-.ui-drawer-backdrop {
-  background: rgba(0, 0, 0, 0.6);
+/* Markup: <mat-sidenav class="drawer" mode="over" fixedInViewport> in the
+   shell's <mat-sidenav-container class="shell">. */
+
+/* The window scrolls the page, not the container, so the toolbar can stay
+   stuck to the top of the window. */
+.mat-drawer-container.shell,
+.shell > .mat-drawer-content {
+  overflow: visible;
 }
 
-.ui-drawer-panel .cdk-dialog-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: auto;
-  outline: none;
-  background: var(--glass-toolbar);
+.mat-drawer.drawer {
+  max-width: 100vw;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  color: var(--ctl-surface-text);
 }
 
-.ui-drawer-panel--left .cdk-dialog-container {
+.mat-drawer.drawer:not(.mat-drawer-end) {
   border-right: 1px solid var(--separator);
   box-shadow: 4px 0 32px var(--ctl-drawer-shadow);
-  animation: ui-drawer-in-left var(--dur-enter) var(--ease-enter) both;
 }
 
-.ui-drawer-panel--right .cdk-dialog-container {
+.mat-drawer.drawer.mat-drawer-end {
   border-left: 1px solid var(--separator);
   box-shadow: -4px 0 32px var(--ctl-drawer-shadow);
-  animation: ui-drawer-in-right var(--dur-enter) var(--ease-enter) both;
 }
 
-@keyframes ui-drawer-in-left {
-  from {
-    transform: translateX(-100%);
-  }
+/* The slide takes as long as it did. */
+.shell.mat-drawer-transition > .mat-drawer.drawer {
+  transition-duration: var(--dur-enter);
+  transition-timing-function: var(--ease-enter);
 }
 
-@keyframes ui-drawer-in-right {
-  from {
-    transform: translateX(100%);
-  }
+/* Material draws the scrim at half strength. */
+.shell > .mat-drawer-backdrop.mat-drawer-shown {
+  position: fixed;
+  opacity: 1;
 }
 
 /* ── Confirmation ────────────────────────────────────────── */

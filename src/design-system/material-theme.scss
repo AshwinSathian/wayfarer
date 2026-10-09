@@ -294,3 +294,19 @@ html {
     )
   );
 }
+
+/* ── Drawer (sidenav) ────────────────────────────────────── */
+html {
+  @include mat.sidenav-overrides(
+    (
+      container-background-color: var(--glass-toolbar),
+      container-text-color: var(--ctl-surface-text),
+      container-shape: 0,
+      container-divider-color: transparent,
+      /* The page under the container shows through: the shell paints it. */
+      content-background-color: transparent,
+      content-text-color: var(--label-primary),
+      scrim-color: rgba(0, 0, 0, 0.6),
+    )
+  );
+}

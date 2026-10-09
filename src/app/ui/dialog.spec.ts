@@ -1,31 +1,26 @@
 import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
-import { Dialog, Drawer } from "./dialog";
+import { Dialog } from "./dialog";
 
 @Component({
-  imports: [Dialog, Drawer],
+  imports: [Dialog],
   template: `
     <button id="opener" (click)="open.set(true)">Open</button>
     <ui-dialog header="Settings" [visible]="open()" (visibleChange)="changes.push($event); open.set($event)" (hide)="hides = hides + 1" [dismissableMask]="dismissable()" width="320px">
       <input id="first" />
       <div uiDialogFooter><button id="save">Save</button></div>
     </ui-dialog>
-    <ui-drawer side="right" ariaLabel="Request history" [visible]="drawer()" (visibleChange)="drawer.set($event)" (hide)="drawerHides = drawerHides + 1" width="200px">
-      <button id="in-drawer">Close history</button>
-    </ui-drawer>
   `,
 })
 class TestHost {
   readonly open = signal(false);
   readonly dismissable = signal(false);
-  readonly drawer = signal(false);
   readonly changes: boolean[] = [];
   hides = 0;
-  drawerHides = 0;
 }
 
-describe("ui-dialog and ui-drawer", () => {
+describe("ui-dialog", () => {
   async function setup() {
     const fixture = TestBed.createComponent(TestHost);
     document.body.append(fixture.nativeElement);
@@ -165,31 +160,5 @@ describe("ui-dialog and ui-drawer", () => {
     fixture.destroy();
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(dialog()).toBeNull();
-  });
-
-  it("drawer: a labelled modal panel on its side that closes on Escape and on the backdrop", async () => {
-    const { fixture, host, settle, dialog, backdrop, escape } = await setup();
-    host.drawer.set(true);
-    await settle();
-
-    const el = dialog()!;
-    expect(el.getAttribute("aria-label")).toBe("Request history");
-    expect(el.getAttribute("aria-modal")).toBe("true");
-    expect(el.closest(".ui-drawer-panel--right")).not.toBeNull();
-    expect(el.contains(document.activeElement)).toBe(true);
-
-    escape();
-    await settle();
-    expect(host.drawer()).toBe(false);
-    expect(dialog()).toBeNull();
-    expect(host.drawerHides).toBe(1);
-
-    host.drawer.set(true);
-    await settle();
-    backdrop()!.click();
-    await settle();
-    expect(host.drawer()).toBe(false);
-    expect(host.drawerHides).toBe(2);
-    fixture.destroy();
   });
 });

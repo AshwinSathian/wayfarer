@@ -17,18 +17,6 @@
   50%       { opacity: 0.55; }
 }
 
-/* Dialog appear — spring up from slight scale */
-@keyframes dialog-appear {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
 /* Fade in */
 @keyframes fade-in {
   from { opacity: 0; }
@@ -84,6 +72,18 @@
   100% { background: transparent; }
 }
 
+/* Dialog appear — spring up from slight scale */
+@keyframes dialog-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* Spin (loading indicator) */
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -99,18 +99,16 @@
 
 /* ── Applied animations ──────────────────────────────────── */
 
-.ui-dialog-panel .cdk-dialog-container,
-.ui-confirm-panel .cdk-dialog-container {
+/* Material's own dialog animation is off (see ui/dialog.ts): it holds back
+   the move of focus into the dialog until it ends. */
+.dialog-panel .mat-mdc-dialog-surface,
+.confirm-panel .mat-mdc-dialog-surface {
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
 }
 
-.ui-confirm-popup .cdk-dialog-container {
-  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
-}
-
-.ui-menu-panel,
-.ui-popover,
-.ui-select-panel {
+/* Material animates its own menus and select lists. */
+.ui-confirm-popup .cdk-dialog-container,
+.ui-popover {
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
 

@@ -142,6 +142,17 @@ code errors.
   before it sends a key.
 - An open menu or select sits over a transparent backdrop. A test that
   clicks its trigger a second time clicks the coordinates, not the element.
+- Dialog: `<ui-dialog>` (`src/app/ui/dialog.ts`) opens Material's dialog
+  from a template and keeps it in step with `[visible]`; `Confirm` opens it
+  from code. Both set Material's enter and exit animation to 0 ms: Material
+  moves focus in only when its entrance ends, and keeps the panel over the
+  page until its exit does. The entrance is drawn in `animations.css`. Both
+  pass `ariaModal: true`; Material's default is false.
+- The small confirmation under a button stays on the CDK's dialog:
+  Material's is placed in the window, not against an element.
+- A token cannot be `inherit` (or `initial`, `unset`): as a custom
+  property's value that word acts on the variable, and Material falls back
+  to its default. Write a rule with `font: inherit` instead.
 - A token whose value is a variable set on the component (`--btn-fg`) must
   be overridden on the component's class, not on `html`: a variable is
   resolved where it is declared.

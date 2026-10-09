@@ -210,18 +210,8 @@ html {
       container-text-color: var(--ctl-surface-text),
       container-shape: 6px,
       container-elevation-shadow: none,
-      container-text-font: inherit,
-      container-text-size: inherit,
-      container-text-weight: inherit,
-      container-text-line-height: inherit,
-      container-text-tracking: inherit,
       header-collapsed-state-height: auto,
       header-expanded-state-height: auto,
-      header-text-font: inherit,
-      header-text-size: inherit,
-      header-text-weight: 600,
-      header-text-line-height: normal,
-      header-text-tracking: inherit,
       header-hover-state-layer-color: transparent,
       header-focus-state-layer-color: transparent,
     )
@@ -275,6 +265,32 @@ html {
       item-label-text-line-height: normal,
       item-hover-state-layer-color: var(--fill-hover),
       item-focus-state-layer-color: var(--fill-hover),
+    )
+  );
+}
+
+/* ── Dialog ──────────────────────────────────────────────── */
+html {
+  @include mat.dialog-overrides(
+    (
+      container-color: var(--glass-dialog),
+      container-shape: var(--radius-2xl),
+      container-elevation-shadow: var(--shadow-dialog),
+      /* The caller sets a dialog's width; the window caps it. */
+      container-max-width: calc(100vw - 32px),
+      container-small-max-width: calc(100vw - 32px),
+      container-min-width: 0,
+      subhead-color: var(--label-primary),
+      subhead-size: 16px,
+      subhead-weight: 600,
+      subhead-line-height: 20px,
+      subhead-tracking: -0.01em,
+      headline-padding: 0,
+      supporting-text-color: var(--ctl-surface-text),
+      content-padding: 20px 24px,
+      with-actions-content-padding: 20px 24px,
+      actions-padding: 14px 24px,
+      actions-alignment: flex-end,
     )
   );
 }

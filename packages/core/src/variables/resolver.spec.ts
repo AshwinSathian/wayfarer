@@ -180,12 +180,16 @@ describe("VariableResolver", () => {
     });
 
     it("gives a whole number from 0 to 1000 and one letter or digit", () => {
-      for (let i = 0; i < 200; i++) {
+      const seen = new Set<string>();
+      for (let i = 0; i < 2000; i++) {
         const [int, char] = resolver.resolve("{{$randomInt}} {{$randomAlphaNumeric}}").split(" ");
         expect(int).toMatch(/^\d{1,4}$/);
         expect(Number(int)).toBeLessThanOrEqual(1000);
         expect(char).toMatch(/^[A-Za-z0-9]$/);
+        seen.add(char);
       }
+      // Every one of the 62 turns up: none is shut out by how the bits are cut down.
+      expect(seen.size).toBe(62);
     });
 
     it("leaves a name it does not know as written, and a row of that name is used", () => {

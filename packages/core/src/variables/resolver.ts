@@ -16,10 +16,19 @@ const PLACEHOLDER = /{{\s*(\$?[\w.-]+)\s*}}/g;
 const SECRET_PREFIX = "$secret.";
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-/** A whole number from 0 up to, not including, `limit`. */
+/**
+ * A whole number from 0 up to, not including, `limit`, each equally likely:
+ * random bits are masked to the smallest range that holds `limit` and drawn
+ * again when they fall outside it. A remainder would favour the low values.
+ */
 function randomBelow(limit: number): number {
-  // ponytail: modulo of 32 random bits; the bias is under one in a million for the limits used here.
-  return crypto.getRandomValues(new Uint32Array(1))[0] % limit;
+  const mask = 2 ** Math.ceil(Math.log2(limit)) - 1;
+  const draw = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(draw);
+    draw[0] &= mask;
+  } while (draw[0] >= limit);
+  return draw[0];
 }
 
 /** Postman's dynamic variables that need no data set. Each use gives a new value. */

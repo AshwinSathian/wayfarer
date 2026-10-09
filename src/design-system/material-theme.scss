@@ -299,7 +299,9 @@ html {
 html {
   @include mat.sidenav-overrides(
     (
-      container-background-color: var(--glass-toolbar),
+      /* The dialog's glass, not the toolbar's: at 80% the dimmed page showed
+         through and small grey text on it fell to 4.19:1. */
+      container-background-color: var(--glass-dialog),
       container-text-color: var(--ctl-surface-text),
       container-shape: 0,
       container-divider-color: transparent,

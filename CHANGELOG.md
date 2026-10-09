@@ -38,6 +38,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Text meets the 4.5:1 contrast minimum in both themes, on every view.**
+  In the light theme the green of a 200 was 1.85:1 on its badge and the
+  orange of a warning 1.83:1; method badges, the label on a primary button
+  (2.98:1 in the dark theme) and small labels in the history drawer were
+  also under it. Primary buttons are now the brand indigo.
+- The list of response headers can be scrolled with the keyboard.
+
 - **The URL field can be typed in on a small laptop or tablet.** Between
   768 and about 1000 px wide, with the sidebar open, the field shrank to a
   16 px sliver beside its buttons. The buttons now move to the next line

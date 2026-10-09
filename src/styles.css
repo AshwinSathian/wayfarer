@@ -89,6 +89,14 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Status colours as text use their text shade (tokens.css). Tailwind's
+   text-status-* utilities above read the fill colour, which is also right
+   for bg-status-* and border-status-*; these come after them and win. */
+.text-status-success { color: var(--status-success-text); }
+.text-status-warning { color: var(--status-warning-text); }
+.text-status-error   { color: var(--status-error-text); }
+.text-status-info    { color: var(--status-info-text); }
+
 /* ── Global resets ──────────────────────────────────────── */
 /* Every Tailwind size utility assumes border-box (it is in Tailwind's reset,
    which this app does not load). Without it `w-full` plus padding or a border

@@ -101,6 +101,14 @@
   --status-info-fill:      rgba(76, 110, 245, 0.14);
   --status-info-border:    rgba(76, 110, 245, 0.32);
 
+  /* Status and method colours as text. The colours above are for fills,
+     borders and icons; as 10 to 13 px text on their own tinted fill some of
+     them are under 4.5:1 (info 2.8:1, error 3.5:1, HEAD 2.1:1). */
+  --status-success-text: var(--status-success);
+  --status-warning-text: var(--status-warning);
+  --status-error-text:   #FF7A70;
+  --status-info-text:    var(--accent-text);
+
   /* ── HTTP Methods ─────────────────────────────────────────
      Aligned with Apple system semantic colours.
   */
@@ -124,6 +132,14 @@
 
   --method-options:      #5AC8FA;
   --method-options-fill: rgba(90, 200, 250, 0.12);
+
+  --method-get-text:     var(--accent-text);
+  --method-post-text:    var(--method-post);
+  --method-put-text:     var(--method-put);
+  --method-patch-text:   #D08BF6;
+  --method-delete-text:  #FF7A70;
+  --method-head-text:    #A1A1A6;
+  --method-options-text: var(--method-options);
 
   /* ── Radius ───────────────────────────────────────────────*/
   --radius-xs:   3px;
@@ -246,6 +262,13 @@
   --status-info-fill:      rgba(61, 90, 254, 0.10);
   --status-info-border:    rgba(61, 90, 254, 0.28);
 
+  /* On this theme's pale fills the status colours are 1.8:1 to 3.1:1 as
+     text (green 1.85:1). These are the same hues, dark enough to read. */
+  --status-success-text: #0F6229;
+  --status-warning-text: #7D4700;
+  --status-error-text:   #A81616;
+  --status-info-text:    #2A3FCC;
+
   --method-get:          #3D5AFE;
   --method-get-fill:     rgba(61, 90, 254, 0.10);
 
@@ -266,6 +289,14 @@
 
   --method-options:      #32ADE6;
   --method-options-fill: rgba(50, 173, 230, 0.10);
+
+  --method-get-text:     #2A3FCC;
+  --method-post-text:    #0F6229;
+  --method-put-text:     #7D4700;
+  --method-patch-text:   #7228A0;
+  --method-delete-text:  #A81616;
+  --method-head-text:    #505055;
+  --method-options-text: #085A80;
 
   --shadow-sm:      0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-card:    0 2px 10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);

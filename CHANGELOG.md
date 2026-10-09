@@ -52,12 +52,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   768 and about 1000 px wide, with the sidebar open, the field shrank to a
   16 px sliver beside its buttons. The buttons now move to the next line
   when there is no room for both.
-- **The app is usable on a tablet held upright and in a narrow window.**
-  From 768 to 1023 px wide the collections sidebar stayed pinned open and
+- **The app is usable on a tablet and in a narrow window.** From 768 to
+  1199 px wide the collections sidebar stayed pinned open. At 820 px that
   left the request and the response about 150 px each: a header's name
-  field was 20 px wide and a JSON response wrapped at every character.
-  Below 1024 px the sidebar now opens over the page from the toolbar
-  button, as it does on a phone, and starts closed.
+  field was 20 px wide and a JSON response wrapped at every character. At
+  1024 px the Scripts tab was cut off and a header read "Content-" and
+  "applicatio". Below 1200 px the sidebar now opens over the page from the
+  toolbar button, as it does on a phone, and starts closed.
 - **Switching to the light theme no longer hides "No environment".** The
   text in the toolbar's environment box stayed white on the light toolbar
   for half a second after the switch.

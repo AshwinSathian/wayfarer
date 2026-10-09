@@ -22,6 +22,15 @@ class IdbServiceMock {
   readonly memoryOnly = signal(false).asReadonly();
 }
 
+/** The window is this wide, as far as a min-width media query can tell. */
+function setWidth(width: number): void {
+  const real = window.matchMedia.bind(window);
+  vi.spyOn(window, "matchMedia").mockImplementation((query) => {
+    const min = /^\(min-width: (\d+)px\)$/.exec(query);
+    return min ? ({ matches: width >= Number(min[1]) } as MediaQueryList) : real(query);
+  });
+}
+
 describe('App', () => {
   let fixture: ComponentFixture<App>;
   let component: App;
@@ -39,7 +48,7 @@ describe('App', () => {
   });
 
   afterEach(() => {
-    Reflect.deleteProperty(window, "innerWidth");
+    vi.restoreAllMocks();
   });
 
   it('should create the app', () => {
@@ -49,7 +58,7 @@ describe('App', () => {
   });
 
   it('loads history on init', async () => {
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    setWidth(1400);
     const history: PastRequest[] = [{
       id: 1,
       method: 'GET',
@@ -76,7 +85,7 @@ describe('App', () => {
   });
 
   it('clears history via the service', async () => {
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    setWidth(1400);
     const history: PastRequest[] = [{ id: 1, method: 'GET', url: 'https://example.com', headers: {}, createdAt: 1 }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
@@ -95,7 +104,7 @@ describe('App', () => {
   });
 
   it('deletes history entries', async () => {
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    setWidth(1400);
     const history: PastRequest[] = [{ id: 5, method: 'GET', url: 'https://delete.me', headers: {}, createdAt: 1 }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
@@ -114,7 +123,7 @@ describe('App', () => {
   });
 
   it('controls drawer visibility state', async () => {
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    setWidth(1400);
     idbService.getLatest.mockReturnValue(Promise.resolve([]));
 
     fixture = TestBed.createComponent(App);
@@ -131,10 +140,10 @@ describe('App', () => {
     expect(component.drawerVisible()).toBe(false);
   });
 
-  it('pins the sidebar open from 1024 px, and keeps it a closed drawer below that; the stacked composer starts below 768 px', async () => {
+  it('pins the sidebar open from 1200 px, and keeps it a closed drawer below that; the stacked composer starts below 768 px', async () => {
     idbService.getLatest.mockReturnValue(Promise.resolve([]));
     const at = async (width: number) => {
-      Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+      setWidth(width);
       fixture = TestBed.createComponent(App);
       component = fixture.componentInstance;
       fixture.detectChanges();
@@ -142,17 +151,18 @@ describe('App', () => {
       return { drawer: component.drawerVisible(), overlay: component.sidebarOverlay(), mobile: component.isMobile() };
     };
 
-    expect(await at(1024)).toEqual({ drawer: true, overlay: false, mobile: false });
+    expect(await at(1200)).toEqual({ drawer: true, overlay: false, mobile: false });
     // A tablet, or a small laptop window: room for the two composer panes, not for a 352 px sidebar beside them.
-    expect(await at(1023)).toEqual({ drawer: false, overlay: true, mobile: false });
+    expect(await at(1199)).toEqual({ drawer: false, overlay: true, mobile: false });
+    expect(await at(1024)).toEqual({ drawer: false, overlay: true, mobile: false });
     expect(await at(768)).toEqual({ drawer: false, overlay: true, mobile: false });
     expect(await at(767)).toEqual({ drawer: false, overlay: true, mobile: true });
 
     // Crossing the line while open: the sidebar pins itself, and steps back out of the way.
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    setWidth(1400);
     component.onWindowResize();
     expect(component.drawerVisible()).toBe(true);
-    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 900 });
+    setWidth(900);
     component.onWindowResize();
     expect(component.drawerVisible()).toBe(false);
   });

@@ -1,9 +1,3 @@
-.address-bar .method-select.ui-select:hover,
-.address-bar .method-select.ui-select:focus-within {
-  border-right-color: var(--separator) !important;
-  box-shadow: none !important;
-}
-
 /* ── Disabled "Copy as cURL" ──────────────────────────────────
    Previously an icon-only outlined button with no disabled-state
    styling at all — visually indistinguishable from broken (Part D).

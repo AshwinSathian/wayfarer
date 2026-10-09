@@ -26,6 +26,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   with it, and `*` opens every folder beside the current row.
 - The page behind an open drawer can still be scrolled with the wheel. It
   was held still.
+- 160 lines of styles nothing used are gone (old panel, segmented-control
+  and status-bar classes, five animations). The initial download is 3 kB
+  smaller.
 - **Selects follow the native one's keys.** Enter or Space opens the list.
   An arrow key or a letter on a closed select changes the value straight
   away; it used to open the list.

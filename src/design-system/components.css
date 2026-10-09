@@ -5,11 +5,9 @@
 
 /* ── Background utilities ────────────────────────────────── */
 .bg-canvas-app      { background-color: var(--canvas-app); }
-.bg-canvas-sidebar  { background-color: var(--canvas-sidebar); }
 .bg-canvas-panel    { background-color: var(--canvas-panel); }
 .bg-canvas-elevated { background-color: var(--canvas-elevated); }
 .bg-canvas-overlay  { background-color: var(--canvas-overlay); }
-.bg-fill-primary    { background-color: var(--fill-primary); }
 .bg-fill-secondary  { background-color: var(--fill-secondary); }
 .bg-fill-hover      { background-color: var(--fill-hover); }
 .bg-accent-fill     { background-color: var(--accent-fill); }
@@ -18,7 +16,6 @@
 .text-label-primary   { color: var(--label-primary); }
 .text-label-secondary { color: var(--label-secondary); }
 .text-label-tertiary  { color: var(--label-tertiary); }
-.text-accent          { color: var(--accent-text); }
 .text-status-success  { color: var(--status-success); }
 .text-status-error    { color: var(--status-error); }
 .text-status-warning  { color: var(--status-warning); }
@@ -26,18 +23,6 @@
 
 /* ── Border utilities ────────────────────────────────────── */
 .border-separator        { border-color: var(--separator) !important; }
-.border-separator-opaque { border-color: var(--separator-opaque) !important; }
-.border-accent           { border-color: var(--accent-border) !important; }
-
-/* ── Method text colours ─────────────────────────────────── */
-.text-method-get     { color: var(--method-get); }
-.text-method-post    { color: var(--method-post); }
-.text-method-put     { color: var(--method-put); }
-.text-method-patch   { color: var(--method-patch); }
-.text-method-delete  { color: var(--method-delete); }
-.text-method-head    { color: var(--method-head); }
-.text-method-options { color: var(--method-options); }
-
 /* ── Method badges ───────────────────────────────────────── */
 .method-badge {
   display: inline-flex;
@@ -88,21 +73,6 @@
   border-radius: var(--radius-xl);
 }
 
-.ds-panel-elevated {
-  background: var(--canvas-elevated);
-  border: 1px solid var(--separator);
-  border-top-color: var(--glass-border);
-  border-radius: var(--radius-xl);
-}
-
-.ds-panel-glass {
-  background: var(--glass-panel);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border-strong);
-  border-radius: var(--radius-xl);
-}
-
 /* ── Section label ───────────────────────────────────────── */
 .ds-section-label {
   font-size: 10px;
@@ -120,38 +90,6 @@
   color: var(--label-secondary);
   letter-spacing: -0.002em;
   margin-bottom: 6px;
-}
-
-/* ── Segmented control ───────────────────────────────────── */
-.seg-control {
-  display: inline-flex;
-  background: var(--fill-secondary);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 1px;
-  border: 1px solid var(--separator);
-}
-
-.seg-option {
-  border-radius: calc(var(--radius-sm) - 2px);
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.002em;
-  color: var(--label-secondary);
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  transition:
-    background var(--dur-quick) var(--ease-standard),
-    color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
-}
-
-.seg-option.active {
-  background: var(--canvas-overlay);
-  color: var(--label-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
 }
 
 /* ── Toolbar ─────────────────────────────────────────────── */
@@ -247,17 +185,6 @@
   border-radius: var(--radius-full);
 }
 
-/* ── Response status bar ─────────────────────────────────── */
-.response-status-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  background: var(--canvas-elevated);
-  border: 1px solid var(--separator);
-}
-
 /* ── Empty state ─────────────────────────────────────────── */
 .ds-empty-state {
   display: flex;
@@ -270,14 +197,6 @@
   border-radius: var(--radius-xl);
   text-align: center;
   color: var(--label-tertiary);
-}
-
-/* ── Brand logomark ──────────────────────────────────────── */
-.brand-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
 }
 
 .brand-logo-icon {

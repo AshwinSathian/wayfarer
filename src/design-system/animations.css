@@ -5,12 +5,6 @@
 
 /* ── Keyframes ───────────────────────────────────────────── */
 
-/* Skeleton shimmer */
-@keyframes skeleton-shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
 /* Missing variable chip pulse */
 @keyframes chip-pulse {
   0%, 100% { opacity: 1; }
@@ -35,18 +29,6 @@
   }
 }
 
-/* Slide in from right (right drawer) */
-@keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
-
-/* Slide up (mobile sheets) */
-@keyframes slide-up {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
 /* Overlay enter — scale from 0.97 */
 @keyframes overlay-appear {
   from {
@@ -57,19 +39,6 @@
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-}
-
-/* Accent glow pulse (used on active/focused premium elements) */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(76, 110, 245, 0.25); }
-  50%       { box-shadow: 0 0 0 6px rgba(76, 110, 245, 0.10); }
-}
-
-/* Success flash (used after send) */
-@keyframes success-flash {
-  0%   { background: var(--status-success-fill); }
-  60%  { background: var(--status-success-fill); }
-  100% { background: transparent; }
 }
 
 /* Dialog appear — spring up from slight scale */
@@ -108,20 +77,8 @@
 
 /* ── Utility classes ─────────────────────────────────────── */
 
-.animate-fade-in {
-  animation: fade-in var(--dur-standard) var(--ease-enter) both;
-}
-
 .animate-fade-up {
   animation: fade-up var(--dur-enter) var(--ease-spring) both;
-}
-
-.animate-slide-up {
-  animation: slide-up var(--dur-enter) var(--ease-spring) both;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
 }
 
 .animate-badge-pop {
@@ -135,28 +92,6 @@
     background-color var(--dur-quick) var(--ease-standard),
     color var(--dur-quick) var(--ease-standard),
     border-color var(--dur-quick) var(--ease-standard) !important;
-}
-
-.transition-transform {
-  transition: transform var(--dur-quick) var(--ease-spring) !important;
-}
-
-.transition-opacity {
-  transition: opacity var(--dur-quick) var(--ease-standard) !important;
-}
-
-.ease-standard { transition-timing-function: var(--ease-standard); }
-.ease-spring   { transition-timing-function: var(--ease-spring); }
-
-/* ── Tab switch / arrival motion ─────────────────────────────
-   Applied to the desktop composer's tab-pane content, the mobile
-   accordion's panel content, and the response viewer's own
-   tab-pane content — a single shared convention for "a panel just
-   became active" rather than a bespoke animation per surface. Deliberately
-   understated (a few px of lift, not a slide/bounce) per the "deliberate,
-   not decorative" motion brief. */
-.animate-panel-in {
-  animation: fade-up var(--dur-standard) var(--ease-standard) both;
 }
 
 /* Response-arrival pulse — restarted imperatively (class removed and

@@ -9,7 +9,7 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export";
-import { BinaryBody } from "../../shared/http/response-body";
+import { BinaryBody } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
 import {
@@ -87,6 +87,8 @@ export class ResponseViewer {
   readonly exportContext = input<ResponseExportContext | null>(null);
   readonly testResults = input<TestResult[]>([]);
   readonly responseBinary = input<BinaryBody | null>(null);
+  /** The URL the response came from, when the request was redirected. */
+  readonly redirectedTo = input<string>();
 
   readonly exportItems: UiMenuItem[] = [
     {

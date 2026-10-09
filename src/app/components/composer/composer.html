@@ -106,6 +106,7 @@
     [exportContext]="store.responseExportContext()"
     [testResults]="store.lastTestResults()"
     [responseBinary]="store.responseBinary()"
+    [redirectedTo]="store.responseRedirectedTo()"
     [(activeTab)]="store.responseTab"
   ></app-response-viewer>
   }
@@ -200,6 +201,7 @@
           [exportContext]="store.responseExportContext()"
           [testResults]="store.lastTestResults()"
           [responseBinary]="store.responseBinary()"
+    [redirectedTo]="store.responseRedirectedTo()"
           [(activeTab)]="store.responseTab"
         ></app-response-viewer>
         } @else {

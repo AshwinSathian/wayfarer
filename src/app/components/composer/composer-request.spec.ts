@@ -1,4 +1,3 @@
-import { HttpTestingController } from '@angular/common/http/testing';
 import { authFromV4 } from '@wayfarer/core';
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { WorkspaceStore } from '../../state/workspace-store';
@@ -10,7 +9,7 @@ describe('Composer: rows, payloads and variables', () => {
   let component: Composer;
   let store: WorkspaceStore;
   let view: ComposerView;
-  let httpMock: HttpTestingController;
+  let httpMock: ComposerHarness['httpMock'];
   let environmentsService: ComposerHarness['environmentsService'];
 
   beforeEach(async () => {
@@ -179,5 +178,56 @@ describe('Composer: rows, payloads and variables', () => {
 
     expect(view.headersJsonText()).toContain('{{baseHost}}');
     expect(view.headersJsonText()).not.toContain('example.com');
+  });
+
+  // F56 (#178): built by assignment on a plain object, a header named __proto__ was dropped.
+  it('sends a header named __proto__ like any other, once per name whatever its case', async () => {
+    store.patch({ url: 'https://example.com/data' });
+    store.patch({
+      headers: rows([
+        { key: '__proto__', value: 'kept' },
+        { key: 'x-trace', value: 'first' },
+        { key: 'X-Trace', value: 'second' },
+      ]),
+    });
+
+    const pending = component.sendRequest();
+
+    const req = httpMock.expectOne('https://example.com/data');
+    expect(req.request.init.headers).toEqual([['__proto__', 'kept'], ['X-Trace', 'second']]);
+    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    await pending;
+  });
+
+  // P2.3 (F10)
+  it('cancel ends the request in flight: the response says so and Send is available again', async () => {
+    store.patch({ url: 'https://example.com/slow' });
+    const pending = component.sendRequest();
+    httpMock.expectOne('https://example.com/slow');
+    expect(store.loadingState()).toBe(true);
+
+    store.cancel();
+    await pending;
+
+    expect(store.loadingState()).toBe(false);
+    expect(store.responseError()).toBe('The request was cancelled.');
+    expect(store.responseStatusCode()).toBeUndefined();
+    expect(store.shouldShowResponsePanel).toBe(true);
+  });
+
+  it('shows where a redirected response came from, and forgets it on the next send', async () => {
+    store.patch({ url: 'https://example.com/start' });
+    const pending = component.sendRequest();
+    const response = new Response('{}', { status: 200, headers: JSON_HEADERS });
+    Object.defineProperty(response, 'redirected', { value: true });
+    Object.defineProperty(response, 'url', { value: 'https://example.com/end' });
+    httpMock.expectOne('https://example.com/start').respond(response);
+    await pending;
+    expect(store.responseRedirectedTo()).toBe('https://example.com/end');
+
+    const again = component.sendRequest();
+    expect(store.responseRedirectedTo()).toBeUndefined();
+    httpMock.expectOne('https://example.com/start').flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    await again;
   });
 });

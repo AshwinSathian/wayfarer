@@ -1,4 +1,3 @@
-import { provideHttpClient, withXhr } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
@@ -41,7 +40,6 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideHttpClient(withXhr()),
         { provide: Idb, useValue: idbService },
       ],
     }).compileComponents();

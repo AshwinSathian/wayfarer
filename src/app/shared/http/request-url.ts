@@ -18,9 +18,9 @@ function hasExplicitScheme(text: string): boolean {
 
 /**
  * Prefixes a scheme-less endpoint with `https://` so it's always sent to
- * HttpClient as an absolute URL. Without this, a scheme-less string like
+ * `fetch` as an absolute URL. Without this, a scheme-less string like
  * "not-a-url" is a *relative* URL as far as the browser is concerned, and
- * HttpClient silently resolves it against the app's own origin — fetching
+ * `fetch` silently resolves it against the app's own origin — fetching
  * the app's own index.html and reporting it back as a misleading "200 OK".
  */
 export function normalizeUrl(text: string): string {

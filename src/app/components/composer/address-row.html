@@ -75,6 +75,15 @@
     <app-icon name="save" />
     }
   </button>
+  @if (store.loadingState()) {
+  <button
+    matButton="filled"
+    type="button"
+    aria-label="Cancel request"
+    (click)="store.cancel()"
+    class="send-btn"
+  >Cancel</button>
+  } @else {
   <button
     matButton="filled"
     type="button"
@@ -83,4 +92,5 @@
     (click)="send.emit()"
     class="send-btn"
   >Send</button>
+  }
 </div>

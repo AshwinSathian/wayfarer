@@ -36,7 +36,7 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../shared/http/request-url";
-import { BinaryBody } from "../shared/http/response-body";
+import { BinaryBody } from "@wayfarer/core";
 import { buildCurlCommand } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
@@ -111,6 +111,7 @@ export class WorkspaceStore {
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
+  readonly responseRedirectedTo = signal<string | undefined>(undefined);
   readonly responseInspection = this.responseInspector.latest;
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly lastTestResults = signal<TestResult[]>([]);
@@ -118,6 +119,8 @@ export class WorkspaceStore {
   /** Request-scoped variables (distinct from environment vars). Never mutated post-construction today — a hook for a future "request variables" UI. */
   private readonly requestVariables: Record<string, string> = {};
   private previewFingerprint = "";
+  /** Aborts the send in flight. */
+  private inFlight: AbortController | null = null;
 
   constructor() {
     // Switching the active environment goes through no method here, so the
@@ -284,6 +287,8 @@ export class WorkspaceStore {
     }
 
     this.loadingState.set(true);
+    const controller = new AbortController();
+    this.inFlight = controller;
 
     let result: RequestExecutionResult;
     try {
@@ -292,6 +297,7 @@ export class WorkspaceStore {
         postRequestScript: draft.scripts.post,
         tests: draft.tests,
         buildRequest: () => this.buildRequestForExecution(endpointText),
+        signal: controller.signal,
       });
     } catch (error) {
       this.loadingState.set(false);
@@ -309,13 +315,18 @@ export class WorkspaceStore {
     return true;
   }
 
+  /** Gives up on the request in flight. The send then ends with "cancelled" instead of a response. */
+  cancel(): void {
+    this.inFlight?.abort();
+  }
+
   async copyAsCurl(): Promise<void> {
     const endpoint = this.draft().url;
     if (!endpoint) {
       return;
     }
     const { method, url, headers, body } = this.resolveRequest(endpoint);
-    await writeToClipboard(buildCurlCommand({ method, url, headers, body }));
+    await writeToClipboard(buildCurlCommand({ method, url, headers: Object.fromEntries(headers), body }));
   }
 
   refreshVariablePreview(): void {
@@ -354,7 +365,7 @@ export class WorkspaceStore {
       id,
       method: request.method,
       url: request.url,
-      headers: { ...request.headers },
+      headers: Object.fromEntries(request.headers),
       body: request.body,
     });
     this.patch({ responseId: id });
@@ -369,12 +380,16 @@ export class WorkspaceStore {
     const context = this.variableContext();
     const content = this.snapshot();
     const usesBody = isBodyMethod(content.method);
-    const baseHeaders: Record<string, string> = {};
-    for (const [key, value] of Object.entries(content.headers)) {
-      baseHeaders[resolveTemplate(key, context)] = resolveTemplate(value, context);
-    }
     const auth = resolveAuth(content.auth, (text) => resolveTemplate(text, context));
-    const headers = { ...baseHeaders, ...buildAuthHeaders(auth) };
+    // One value per name, whatever its case, the later one winning: the auth
+    // header replaces a row of the same name. A Map keeps a name such as
+    // "__proto__" as data (F56).
+    const byName = new Map<string, [string, string]>();
+    for (const [key, value] of [...Object.entries(content.headers), ...Object.entries(buildAuthHeaders(auth))]) {
+      const name = resolveTemplate(key, context);
+      byName.set(name.toLowerCase(), [name, resolveTemplate(value, context)]);
+    }
+    const headers = [...byName.values()];
     const body =
       usesBody && content.body
         ? (resolveTemplateDeep(content.body, context) as Record<string, unknown>)
@@ -404,6 +419,7 @@ export class WorkspaceStore {
     this.responseHeadersView.set(response.headersView);
     this.responseContentLength.set(response.contentLength);
     this.responseBinary.set(response.binary ?? null);
+    this.responseRedirectedTo.set(response.redirectedTo);
     this.responseTab.set("body");
     this.responseData.set(response.dataText);
     this.responseError.set(response.errorText);
@@ -419,6 +435,7 @@ export class WorkspaceStore {
     this.responseIsError.set(false);
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
+    this.responseRedirectedTo.set(undefined);
     this.responseTab.set("body");
     this.responseExportContext.set(null);
   }

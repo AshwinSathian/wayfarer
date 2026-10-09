@@ -70,7 +70,7 @@ When contributing:
     them).
   - Class names carry no `Component`, `Directive` or `Service` suffix:
     `UserProfile`, `Tooltip`. Name a service for what it does or holds
-    (`CollectionsStore`, `RequestExecutor`, `HttpTransport`), not `XService`.
+    (`CollectionsStore`, `RequestExecutor`, `TransportRouter`), not `XService`.
   - `ng generate` already produces these names; `angular.json` no longer
     overrides them.
 - **Standalone is the default**: never write `standalone: true`, and no

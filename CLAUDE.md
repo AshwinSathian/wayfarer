@@ -39,14 +39,15 @@ code errors.
   keep a dotted suffix.
 - Classes: no `Component`, `Directive` or `Service` suffix. A service is
   named for what it does or holds: `CollectionsStore`, `RequestExecutor`,
-  `HttpTransport`, `SecretCrypto`. Repositories are `XRepository` in
+  `TransportRouter`, `SecretCrypto`. Repositories are `XRepository` in
   `x-repository.ts`.
 - Selectors: `app-` for features, `ui-` for the widgets in `src/app/ui`.
 - `PLAN-airtight-remediation.md` is the roadmap: read its section 0 first.
   Its open tasks use today's names. Its sections 13 and 16, the audit's
   problem statement and `CHANGELOG.md` are history and use the names from
-  before the October 2026 rename (`main.service.ts` / `MainService` is now
-  `http-transport.ts` / `HttpTransport`; otherwise drop the suffix). Do not
+  before the October 2026 rename (`main.service.ts` / `MainService` became
+  `http-transport.ts` / `HttpTransport`, which P2.3 replaced with the
+  transports in `packages/core`; otherwise drop the suffix). Do not
   rewrite history. A change to the plan needs a row in its section 16.
 - Do not reorganise the top-level folders (`components`, `services`, `data`,
   `shared`, `ui`): Phase 2 of the plan moves code into `packages/core`.
@@ -62,6 +63,18 @@ code errors.
 - Code that moves there takes its tests with it. Core's gate is 90% of
   lines; `src/app` stays at 70%.
 - Export what the app uses from `packages/core/src/index.ts`.
+- Requests leave through a `Transport` (`packages/core/src/transport/`):
+  `FetchTransport`, or `BridgeTransport` when the Local Bridge is on;
+  `TransportRouter` picks. No `HttpClient` and no `@angular/common/http`
+  anywhere. A user's request is sent with `cache: "no-store"`,
+  `credentials: "omit"` and `referrerPolicy: "no-referrer"`; keep all three.
+- A transport takes a signal and a timeout through `withDeadline`. Do not
+  swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
+  WebKit that signal never aborted the fetch ("a request that outlasts the
+  timeout" in `e2e/transport.spec.ts` fails with it).
+- A spec that sends a request answers it with `FetchMock`
+  (`src/testing/fetch-mock.ts`); a core spec passes a `fakeFetch` to the
+  transport.
 
 ## Composer
 

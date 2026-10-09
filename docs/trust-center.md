@@ -143,7 +143,7 @@ These are open, tracked, and scheduled in
 - Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - The vault passphrase can't be rotated, and with no secrets stored any passphrase "unlocks" ([#66](https://github.com/AshwinSathian/wayfarer/issues/66)).
-- No request cancel or timeout ([#67](https://github.com/AshwinSathian/wayfarer/issues/67)); the reported duration includes script time ([#68](https://github.com/AshwinSathian/wayfarer/issues/68)); cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
+- Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - History and collection exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit), and there is no full-workspace backup yet ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).

@@ -1,4 +1,3 @@
-import { HttpTestingController } from '@angular/common/http/testing';
 import { authToV4 } from '@wayfarer/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PastRequest } from '../../models/history';
@@ -13,7 +12,7 @@ describe('Composer', () => {
   let store: WorkspaceStore;
   let view: ComposerView;
   let requestSave: RequestSave;
-  let httpMock: HttpTestingController;
+  let httpMock: ComposerHarness['httpMock'];
   let idbService: ComposerHarness['idbService'];
   let responseInspector: ComposerHarness['responseInspector'];
   let collectionsService: ComposerHarness['collectionsService'];

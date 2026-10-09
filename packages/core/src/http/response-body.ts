@@ -1,4 +1,5 @@
-import { parseJson } from "@wayfarer/core";
+import { parseJson } from "../safe-json";
+import type { ResponseEnvelope } from "../transport/transport";
 
 /**
  * A response body that isn't text (image, PDF, archive, ...). Kept as raw
@@ -7,12 +8,13 @@ import { parseJson } from "@wayfarer/core";
  */
 export class BinaryBody {
   constructor(
-    readonly bytes: ArrayBuffer,
+    /** A `Blob` when the body was over the display cap and never held as one buffer. */
+    readonly bytes: ArrayBuffer | Blob,
     readonly contentType: string
   ) {}
 
   get byteLength(): number {
-    return this.bytes.byteLength;
+    return this.bytes instanceof Blob ? this.bytes.size : this.bytes.byteLength;
   }
 }
 
@@ -72,13 +74,22 @@ function charsetOf(contentType: string): string {
 }
 
 function decodeText(bytes: ArrayBuffer, charset: string): string {
-  let decoder: TextDecoder;
   try {
-    decoder = new TextDecoder(charset);
+    return new TextDecoder(charset).decode(bytes);
   } catch (error) {
     // Unknown charset label (TextDecoder throws RangeError): fall back to UTF-8.
     if (!(error instanceof RangeError)) throw error;
-    decoder = new TextDecoder("utf-8");
+    return new TextDecoder("utf-8").decode(bytes);
   }
-  return decoder.decode(bytes);
+}
+
+/** What the viewer shows of a transport's answer. A body over the display cap is a download, whatever its type. */
+export function decodeEnvelope(envelope: ResponseEnvelope): unknown {
+  const contentType = envelope.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
+  if (envelope.body instanceof Blob) {
+    return new BinaryBody(envelope.body, (contentType ?? "").split(";")[0].trim());
+  }
+  // The route already decoded the text: the target's charset no longer applies.
+  const type = envelope.charset ? contentType?.replace(/;\s*charset\s*=\s*[^;]*/i, "") : contentType;
+  return decodeResponseBody(envelope.body, type);
 }

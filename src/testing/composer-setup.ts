@@ -1,5 +1,3 @@
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Composer } from '../app/components/composer/composer';
@@ -13,8 +11,9 @@ import { EnvironmentDoc } from '../app/models/environments';
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, RequestDoc } from '../app/models/collections';
 import { vi } from "vitest";
+import { FetchMock } from './fetch-mock';
 
-// HttpTransport reads raw bytes (responseType 'arraybuffer'), so fixtures flush what the wire carries.
+// Fixtures flush what the wire carries: bytes.
 export const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).buffer;
 export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -117,17 +116,16 @@ export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
 /** Header rows as the draft holds them. */
 export const rows = (items: { key: string; value: string }[]) => items.map((item) => ({ ...item, enabled: true }));
 
-/** The composer with its stores stubbed and HTTP captured, as both composer specs use it. */
+/** The composer with its stores stubbed and `fetch` captured, as both composer specs use it. */
 export async function setupComposer() {
   const idbService = new IdbServiceMock();
   const responseInspector = new ResponseInspectorServiceStub();
   const environmentsService = new EnvironmentsServiceStub();
   const collectionsService = new CollectionsServiceStub();
+  const httpMock = new FetchMock();
   await TestBed.configureTestingModule({
     imports: [Composer],
     providers: [
-      provideHttpClient(withXhr()),
-      provideHttpClientTesting(),
       { provide: Idb, useValue: idbService },
       { provide: ResponseInspector, useValue: responseInspector },
       { provide: EnvironmentsStore, useValue: environmentsService },
@@ -143,7 +141,7 @@ export async function setupComposer() {
     store: TestBed.inject(WorkspaceStore),
     requestSave: TestBed.inject(RequestSave),
     view: fixture.debugElement.injector.get(ComposerView),
-    httpMock: TestBed.inject(HttpTestingController),
+    httpMock,
     idbService,
     responseInspector,
     environmentsService,

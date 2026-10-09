@@ -70,7 +70,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The composer ran 49 px past the window (no box-sizing reset), and below
   // 1024 px the toolbar was wider than the space beside the pinned sidebar.
-  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 360]) {
+  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 390, 360]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");

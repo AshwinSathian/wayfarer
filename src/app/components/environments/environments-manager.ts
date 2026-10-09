@@ -23,7 +23,16 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText, variableChanges, type Row } from "@wayfarer/core";
+import { applyVariableChanges, readImportText, variableChanges, type Row } from "@wayfarer/core";
+
+/** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
+function jsonOf(rows: Row[]): string {
+  return JSON.stringify(
+    Object.fromEntries(rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value ?? ""])),
+    null,
+    2
+  );
+}
 
 interface EnvironmentDraft {
   id: EnvironmentId;
@@ -312,11 +321,14 @@ export class EnvironmentsManager implements OnInit {
     }
     draft.jsonText = text;
     draft.jsonValid = valid;
-    if (valid && value && typeof value === "object") {
-      const vars = Object.entries(value as Record<string, string>).map(
+    // The editor also reports the text the rows gave it. Only an edit made
+    // in the JSON view changes rows, and only the rows of the names it
+    // changed: a blank row, a switched-off row and a repeated name stay (F59).
+    if (valid && value && typeof value === "object" && text !== jsonOf(draft.vars)) {
+      const typed = Object.entries(value as Record<string, string>).map(
         ([key, val]) => ({ key, value: String(val ?? ""), enabled: true })
       );
-      draft.vars = vars;
+      draft.vars = applyVariableChanges(draft.vars, variableChanges(draft.vars, typed));
     }
     this.updateDraft(draft);
   }
@@ -358,11 +370,7 @@ export class EnvironmentsManager implements OnInit {
     if (!draft) {
       return;
     }
-    draft.jsonText = JSON.stringify(
-      Object.fromEntries(draft.vars.filter((row) => row.key.trim()).map((row) => [row.key.trim(), row.value ?? ""])),
-      null,
-      2
-    );
+    draft.jsonText = jsonOf(draft.vars);
     draft.jsonValid = true;
     this.draft.set({ ...draft });
   }
@@ -375,7 +383,7 @@ export class EnvironmentsManager implements OnInit {
       description: env.description,
       vars,
       loaded: env.vars.map((row) => ({ ...row })),
-      jsonText: JSON.stringify(Object.fromEntries(vars.map((row) => [row.key, row.value])), null, 2),
+      jsonText: jsonOf(vars),
       jsonValid: true,
     };
   }

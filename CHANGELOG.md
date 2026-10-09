@@ -131,6 +131,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   that is not an object is now left as it is (#183).
 - A header named `__proto__` is sent, and appears in **Copy as cURL**. It
   was silently left out of both.
+- **Environments editor.** Editing a variable removed a row you had just
+  added and not named yet. Opening an environment that came from a file
+  switched its switched-off variables back on and dropped the first of two
+  variables with the same name, and the next save stored that. Rows now
+  change only where you change them; the JSON view shows the variables in
+  use (#188).
 
 ## [1.4.0] - 2026-10-09
 

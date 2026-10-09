@@ -54,7 +54,11 @@ const v4Content: fc.Arbitrary<V4Content> = fc.record({
     fc.string({ minLength: 1 }).filter((name) => name === name.trim()),
     fc.string()
   ),
-  body: fc.option(fc.jsonValue(), { nil: undefined }),
+  // Through JSON text, as the composer's JSON editor produced it: -0 is written as 0.
+  body: fc.option(
+    fc.jsonValue().map((value): unknown => JSON.parse(JSON.stringify(value))),
+    { nil: undefined }
+  ),
   auth,
   preRequestScript: fc.string(),
   postRequestScript: fc.string(),
@@ -67,7 +71,8 @@ describe("v4 converters", () => {
       fc.property(v4Content, (request) => {
         expect(draftToV4(draftFromV4(request))).toEqual(request);
       }),
-      { numRuns: 200 }
+      // A fixed seed: a failure in CI is the same failure here.
+      { numRuns: 200, seed: 20261009 }
     );
   });
 

@@ -84,19 +84,23 @@ code errors.
   `src/design-system/controls.css`. In both themes they must come from the
   design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
 - Nothing may be wider than the window at any width from 360 px up. The
-  e2e test "nothing is wider than a N px window" checks nine widths; add a
+  e2e test "nothing is wider than a N px window" checks eleven widths; add a
   width there when a breakpoint changes. A flex child that holds wide
   content needs `min-w-0`.
 - A window-width breakpoint (`sm:`, `md:`) does not know how wide a panel
-  is: beside the pinned sidebar a 1024 px window leaves the composer 592 px.
+  is: beside the pinned sidebar a 1200 px window leaves the composer 391 px.
   A row that must not crush a field wraps by its own room (`flex-wrap` and
   a `flex-basis`), as the address row does. "the URL field has room to type
-  in at N px" checks it at the same nine widths.
+  in at N px" checks it at the same widths.
 - Two widths decide the layout, both in `App.updateViewportFlags`: below
-  1024 px the sidebar is a drawer over the page (`sidebarOverlay`), and
+  1200 px the sidebar is a drawer over the page (`sidebarOverlay`), and
   below 768 px the composer's sections stack (`isMobile`). They are
-  separate on purpose: pinned, the sidebar takes 352 px, and from 768 to
-  1023 px that left the composer and the response 150 px each.
+  separate on purpose: pinned, the sidebar takes 352 px. Beside it an
+  820 px window left the composer and the response 150 px each, and a
+  1024 px window cut off the composer's fourth tab.
+- Both are read with `matchMedia`, not `innerWidth`: WebKit takes a classic
+  scrollbar off the width a media query sees, so the two disagreed over
+  15 px. An e2e test of a layout "from N px" therefore uses N + 20.
 - Below 1024 px the toolbar shows only what Settings does not also offer.
   A new toolbar action needs `max-lg:hidden` and a home in Settings.
 - For any change that could move pixels (a CSS framework or dependency

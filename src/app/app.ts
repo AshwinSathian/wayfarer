@@ -20,9 +20,9 @@ export class App implements OnInit {
   /** Below 768 px: the composer's sections stack (one open at a time). */
   readonly isMobile = signal(false);
   /**
-   * Below 1024 px the sidebar is a drawer over the page, closed until asked
-   * for. Pinned, it is 352 px wide: beside it a 768 px window left the
-   * composer and the response 150 px each.
+   * Below 1200 px the sidebar is a drawer over the page, closed until asked
+   * for. Pinned, it is 352 px wide: beside it a 1024 px window left the
+   * composer 294 px (its fourth tab cut off) and the response 240 px.
    */
   readonly sidebarOverlay = signal(false);
   private viewportInitialized = false;
@@ -78,8 +78,10 @@ export class App implements OnInit {
 
   private updateViewportFlags(): void {
     const wasOverlay = this.sidebarOverlay();
-    const overlay = window.innerWidth < 1024;
-    this.isMobile.set(window.innerWidth < 768);
+    // Media queries, as the stylesheet's breakpoints are: WebKit takes the
+    // scrollbar off the width a query sees, and not off innerWidth.
+    const overlay = !matchMedia("(min-width: 1200px)").matches;
+    this.isMobile.set(!matchMedia("(min-width: 768px)").matches);
     this.sidebarOverlay.set(overlay);
 
     // On the first pass, and each time the window crosses the line: pinned

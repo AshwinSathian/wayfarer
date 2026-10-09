@@ -13,6 +13,8 @@ const BROWSERS = [
 
 export default defineConfig({
   testDir: "./e2e",
+  // The default also matches *.test.mjs, which are Node test suites (F54).
+  testMatch: "**/*.spec.ts",
   fullyParallel: true,
   forbidOnly: CI,
   retries: CI ? 2 : 0,

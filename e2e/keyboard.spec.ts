@@ -184,18 +184,18 @@ test("export menu: opens from the keyboard, arrows move, Escape returns focus, E
 
   await trigger.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("menuitem", { name: "Copy as cURL" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Copy as cURL", exact: true })).toBeFocused();
   await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("menuitem", { name: "Copy as HAR" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Copy as HAR", exact: true })).toBeFocused();
   await page.keyboard.press("Home");
-  await expect(page.getByRole("menuitem", { name: "Copy as cURL" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Copy as cURL", exact: true })).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(trigger).toBeFocused();
 
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("menuitem", { name: "Copy as cURL" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Copy as cURL", exact: true })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(trigger).toBeFocused();
@@ -215,12 +215,12 @@ test("collection context menu: arrow keys reach every action and Escape closes i
 
   await node.click({ button: "right" });
   const items = page.getByRole("menuitem");
-  await expect(items).toHaveText(["New Folder", "New Request", "Variables", "Rename", "Duplicate", "Export", "Delete"]);
+  await expect(items).toHaveText(["New Folder", "New Request", "Variables", "Rename", "Duplicate", "Export", "Export with credentials", "Delete"]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
-  await expect(page.getByRole("menuitem", { name: "Export" })).toBeFocused();
+  await expect(page.getByRole("menuitem", { name: "Export with credentials" })).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);

@@ -4,7 +4,7 @@ import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core"
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
-import { WorkspaceStore, isBodyMethod, requestFromHistory } from "../../state/workspace-store";
+import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 
 /**
  * What the composer shows of its draft, shared by its panels: the open tab
@@ -36,7 +36,8 @@ export class ComposerView {
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
     this.requestSave.bind(null);
-    this.load(requestFromHistory(request), "history");
+    this.load(request.template);
+    this.store.showRecorded(request);
   }
 
   /**
@@ -48,7 +49,7 @@ export class ComposerView {
    */
   loadCollectionRequest(doc: RequestDoc): void {
     this.requestSave.bind(doc);
-    this.load(doc, "collection");
+    this.load(doc);
   }
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
@@ -105,8 +106,8 @@ export class ComposerView {
     if (this.mobileActivePanels() === panel) section.open();
   }
 
-  private load(request: RequestContent, source: "collection" | "history"): void {
-    this.store.load(request, source);
+  private load(request: RequestContent): void {
+    this.store.load(request);
     this.activeTab.set(request.body.mode !== "none" && isBodyMethod(request.method) ? "body" : "headers");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();

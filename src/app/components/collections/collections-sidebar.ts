@@ -14,7 +14,7 @@ import { Tree, UiTreeNode } from "../../ui/tree";
 import { RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
 import { CollectionImport } from "../../services/collection-import";
-import { HTTP_METHODS, PastRequest } from "../../models/history";
+import { HTTP_METHODS } from "../../models/history";
 import {
   CollectionNodeData,
   collectionsToNodes,
@@ -109,7 +109,7 @@ export class CollectionsSidebar implements OnInit {
   } | null>(null);
   readonly creationModel = signal({
     name: "",
-    method: "GET" as PastRequest["method"],
+    method: "GET",
   });
   readonly methodOptions = HTTP_METHODS.map((method) => ({ label: method, value: method }));
 
@@ -319,8 +319,8 @@ export class CollectionsSidebar implements OnInit {
   }
 
   private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {
-    if (action === "export") {
-      void this.exportCollection(node);
+    if (action === "export" || action === "export-credentials") {
+      void this.exportCollection(node, action === "export-credentials");
       return;
     }
     if (action === "variables") {
@@ -415,7 +415,7 @@ export class CollectionsSidebar implements OnInit {
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export" | "variables">,
+    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "variables">,
     node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;
@@ -480,12 +480,12 @@ export class CollectionsSidebar implements OnInit {
     }
   }
 
-  private async exportCollection(node: UiTreeNode<NodeData>): Promise<void> {
+  private async exportCollection(node: UiTreeNode<NodeData>, credentials = false): Promise<void> {
     const data = node.data as NodeData;
     if (data.type !== "collection") {
       return;
     }
-    const json = await this.collectionsService.exportCollectionJson(data.ref.meta.id);
+    const json = await this.collectionsService.exportCollectionJson(data.ref.meta.id, { credentials });
     if (!json) {
       return;
     }
@@ -531,7 +531,7 @@ export class CollectionsSidebar implements OnInit {
     this.creationModel.update((model) => ({ ...model, name: value }));
   }
 
-  onCreationMethodChange(value: PastRequest["method"]): void {
+  onCreationMethodChange(value: string): void {
     this.creationModel.update((model) => ({ ...model, method: value }));
   }
 

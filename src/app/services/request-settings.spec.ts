@@ -33,4 +33,34 @@ describe("RequestSettings", () => {
     TestBed.resetTestingModule();
     expect(TestBed.inject(RequestSettings).timeoutMs()).toBe(0);
   });
+
+  it("history keeps 500 entries and their bodies, and a variable without a value holds a request back, until set otherwise", () => {
+    for (const key of ["wayfarer:history-cap", "wayfarer:history-bodies", "wayfarer:block-unresolved"]) localStorage.removeItem(key);
+    TestBed.resetTestingModule();
+    const settings = TestBed.inject(RequestSettings);
+    expect([settings.historyCap(), settings.historyBodies(), settings.blockUnresolved()]).toEqual([500, true, true]);
+
+    settings.setHistoryCap(5.9);
+    settings.setHistoryBodies(false);
+    settings.setBlockUnresolved(false);
+    expect([settings.historyCap(), settings.historyBodies(), settings.blockUnresolved()]).toEqual([5, false, false]);
+
+    // Kept over a reload.
+    TestBed.resetTestingModule();
+    const reloaded = TestBed.inject(RequestSettings);
+    expect([reloaded.historyCap(), reloaded.historyBodies(), reloaded.blockUnresolved()]).toEqual([5, false, false]);
+
+    // A cap is 1 to 5000; anything else is the default. Switching back on removes the key.
+    reloaded.setHistoryCap(99_999);
+    expect(reloaded.historyCap()).toBe(5000);
+    for (const bad of [0, -1, Number.NaN]) {
+      reloaded.setHistoryCap(bad);
+      expect(reloaded.historyCap()).toBe(500);
+    }
+    reloaded.setHistoryBodies(true);
+    reloaded.setBlockUnresolved(true);
+    expect(localStorage.getItem("wayfarer:history-bodies")).toBeNull();
+    expect(localStorage.getItem("wayfarer:block-unresolved")).toBeNull();
+    localStorage.removeItem("wayfarer:history-cap");
+  });
 });

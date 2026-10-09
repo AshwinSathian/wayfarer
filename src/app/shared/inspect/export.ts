@@ -1,4 +1,4 @@
-import { parseJson, stringifyJson } from "@wayfarer/core";
+import { Redactor, parseJson, stringifyJson, type RedactOptions } from "@wayfarer/core";
 
 const HAR_VERSION = "1.2";
 const HAR_CREATOR = { name: "Wayfarer", version: "1" };
@@ -10,6 +10,34 @@ export interface CurlExportContext {
   url: string;
   headers: Record<string, string>;
   body?: unknown;
+}
+
+/** A request as it was sent, with what a redactor must look for in it. */
+export interface SentRequest extends CurlExportContext {
+  /** The plaintext of the vault secrets placed into the request. */
+  secrets: string[];
+  /** The credentials of its Auth tab. */
+  credentials: string[];
+}
+
+/**
+ * The redactor for an export of this request (plan D5). Vault secrets are
+ * masked in every export. Credentials are masked unless the user asked for
+ * this export to carry them.
+ */
+export function exportRedactor(request: SentRequest, options: RedactOptions = {}): Redactor {
+  return new Redactor(options.credentials ? request.secrets : [...request.secrets, ...request.credentials]);
+}
+
+/** The request as it may be written into a command or a file. */
+export function redactedRequest(request: SentRequest, options: RedactOptions = {}): CurlExportContext {
+  const redactor = exportRedactor(request, options);
+  return {
+    method: request.method,
+    url: redactor.text(request.url),
+    headers: Object.fromEntries(redactor.headers(Object.entries(request.headers), options)),
+    body: typeof request.body === "string" ? redactor.text(request.body) : request.body,
+  };
 }
 
 export function buildCurlCommand(context: CurlExportContext): string {

@@ -2,15 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { Idb } from './idb';
 import { IdbCore } from './idb-core';
 import { PastRequest } from '../models/history';
+import { historyEntry } from '../../testing/request-fixtures';
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
-const createRequest = (overrides: Partial<PastRequest> = {}): PastRequest => ({
-  method: 'GET',
-  url: 'https://example.com/api',
-  headers: {},
-  createdAt: Date.now(),
-  ...overrides,
-});
+const createRequest = (fields: Parameters<typeof historyEntry>[0] = {}): PastRequest => historyEntry(fields);
 
 describe('Idb (facade)', () => {
   let service: Idb;
@@ -37,38 +32,39 @@ describe('Idb (facade)', () => {
   });
 
   it('adds and retrieves requests by id', async () => {
-    const key = await service.add(createRequest({ url: 'https://example.com/1' }));
+    const key = await service.add(createRequest({ url: 'https://example.com/1' }), 500);
     expect(typeof key).toBe('number');
 
     const stored = await service.get(key!);
-    expect(stored?.url).toBe('https://example.com/1');
+    expect(stored?.sent.url).toBe('https://example.com/1');
   });
 
   it('returns latest requests ordered by createdAt', async () => {
-    await service.add(createRequest({ url: 'https://example.com/old', createdAt: 1 }));
-    await service.add(createRequest({ url: 'https://example.com/new', createdAt: 5 }));
+    await service.add(createRequest({ url: 'https://example.com/old', createdAt: 1 }), 500);
+    await service.add(createRequest({ url: 'https://example.com/new', createdAt: 5 }), 500);
 
     const latest = await service.getLatest();
-    expect(latest[0]?.url).toBe('https://example.com/new');
-    expect(latest[1]?.url).toBe('https://example.com/old');
+    expect(latest[0]?.sent.url).toBe('https://example.com/new');
+    expect(latest[1]?.sent.url).toBe('https://example.com/old');
   });
 
-  it('filters requests by url', async () => {
-    await service.add(createRequest({ url: 'https://match.me' }));
-    await service.add(createRequest({ url: 'https://other.com' }));
-    await service.add(createRequest({ url: 'https://match.me', createdAt: 999 }));
+  it('keeps no more than the cap: the oldest entries go when a new one is written', async () => {
+    for (const createdAt of [3, 1, 2, 4]) {
+      await service.add(createRequest({ url: `https://example.com/${createdAt}`, createdAt }), 3);
+    }
+    expect((await service.getLatest()).map((entry) => entry.createdAt)).toEqual([4, 3, 2]);
 
-    const matches = await service.findByUrl('https://match.me');
-    expect(matches.length).toBe(2);
-    expect(matches[0]?.url).toBe('https://match.me');
+    // A smaller cap takes effect on the next write.
+    await service.add(createRequest({ createdAt: 5 }), 1);
+    expect((await service.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
   });
 
   it('deletes and clears requests', async () => {
-    const key = await service.add(createRequest({ url: 'https://delete.me' }));
+    const key = await service.add(createRequest({ url: 'https://delete.me' }), 500);
     await service.delete(key!);
     expect(await service.get(key!)).toBeNull();
 
-    await service.add(createRequest({ url: 'https://clear.me' }));
+    await service.add(createRequest({ url: 'https://clear.me' }), 500);
     await service.clear();
     expect(await service.getLatest()).toEqual([]);
   });
@@ -105,14 +101,18 @@ describe('Idb (memory fallback, indexedDB unavailable)', () => {
     await service.init();
     expect(core.useMemoryFallback).toBe(true);
 
-    const key = await service.add(createRequest({ url: 'https://memory-only', createdAt: 42 }));
+    const key = await service.add(createRequest({ url: 'https://memory-only', createdAt: 42 }), 500);
     expect(key).toBe(1);
 
     const latest = await service.getLatest();
     expect(latest.length).toBe(1);
-    expect(latest[0]?.url).toBe('https://memory-only');
+    expect(latest[0]?.sent.url).toBe('https://memory-only');
 
-    await service.delete(key!);
+    // The cap holds in memory too.
+    await service.add(createRequest({ createdAt: 50 }), 1);
+    expect((await service.getLatest()).map((entry) => entry.createdAt)).toEqual([50]);
+
+    await service.delete(2);
     expect(await service.getLatest()).toEqual([]);
   });
 });

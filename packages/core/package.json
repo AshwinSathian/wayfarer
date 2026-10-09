@@ -7,7 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "mutation": "stryker run"
   },
   "devDependencies": {
     "fast-check": "^4.10.2"

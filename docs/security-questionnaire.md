@@ -43,9 +43,9 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
   spec: [`docs/secrets.md`](secrets.md). Everything else (collections,
   environments, history) is stored as plain text in IndexedDB, protected by
   the browser's storage sandbox and the device's own disk encryption, not
-  an app-level cipher. History includes the request headers that were
-  sent, so an `Authorization` header is stored in plain text
-  ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)).
+  an app-level cipher. History stores what was sent and what came back
+  with credentials and vault secrets masked; a credential typed into a
+  saved request is plain text in the collection.
 - **Encryption in transit?** The app itself has no server to reach over
   the network. Outbound traffic is the user's own request to their own
   chosen target, protected by standard TLS whenever that target is

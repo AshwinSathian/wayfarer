@@ -219,6 +219,36 @@ describe("SecretsVault", () => {
     });
   });
 
+  describe("ensureUnlocked()", () => {
+    it("answers at once when the vault is open, and asks for the dialog when it is not", async () => {
+      await vault.create("correct horse");
+      expect(await vault.ensureUnlocked()).toBe(true);
+      expect(vault.unlockRequested()).toBe(false);
+
+      vault.lock();
+      const asked = vault.ensureUnlocked();
+      expect(vault.unlockRequested()).toBe(true);
+      await vault.unlock("correct horse");
+      vault.unlockDialogClosed();
+      expect(await asked).toBe(true);
+      expect(vault.unlockRequested()).toBe(false);
+    });
+
+    it("answers no when the dialog is closed without the passphrase, and to an earlier request when a second one takes its place", async () => {
+      await vault.create("correct horse");
+      vault.lock();
+
+      const first = vault.ensureUnlocked();
+      const second = vault.ensureUnlocked();
+      expect(await first).toBe(false);
+      vault.unlockDialogClosed();
+      expect(await second).toBe(false);
+      // Closing a dialog nobody asked for does nothing.
+      vault.unlockDialogClosed();
+      expect(vault.unlockRequested()).toBe(false);
+    });
+  });
+
   describe("locking", () => {
     it("a lock in one tab locks the others", async () => {
       await vault.create("correct horse");

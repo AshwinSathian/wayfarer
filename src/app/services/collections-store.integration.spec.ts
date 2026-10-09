@@ -103,4 +103,41 @@ describe("CollectionsStore with real storage", () => {
     // Re-exporting what was imported gives the same file.
     expect(await service.exportCollectionJson(billing.meta.id)).toBe(json);
   });
+
+  it("@claim:C-014 an exported collection has its credentials masked unless that export asks for them; a variable reference stays", async () => {
+    const collection = await service.createCollection({ name: "Billing" });
+    await service.changeCollectionVariables(collection.meta.id, [
+      { key: "api_key", value: "typed-collection-key" },
+      { key: "base", value: "https://api.test" },
+    ]);
+    await service.createRequest({
+      collectionId: collection.meta.id,
+      name: "Typed",
+      method: "GET",
+      url: "https://api.test/a",
+      headers: [{ key: "X-Api-Key", value: "typed-header-key", enabled: true }, { key: "Accept", value: "*/*", enabled: true }],
+      auth: { type: "bearer", token: "typed-bearer-token" },
+    });
+    await service.createRequest({
+      collectionId: collection.meta.id,
+      name: "Referenced",
+      method: "GET",
+      url: "https://api.test/b",
+      auth: { type: "basic", username: "alice", password: "{{password}}" },
+    });
+
+    const masked = (await service.exportCollectionJson(collection.meta.id))!;
+    expect(masked).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token/);
+    expect(masked).toContain('"token": "***"');
+    expect(masked).toContain('"password": "{{password}}"');
+    expect(masked).toContain('"value": "https://api.test"');
+    expect(masked).toContain('"value": "*/*"');
+
+    const whole = (await service.exportCollectionJson(collection.meta.id, { credentials: true }))!;
+    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token"]) {
+      expect(whole).toContain(credential);
+    }
+    // What is stored is not changed by an export.
+    expect(tree(collection.meta.id).requests.find((request) => request.name === "Typed")?.auth).toEqual({ type: "bearer", token: "typed-bearer-token" });
+  });
 });

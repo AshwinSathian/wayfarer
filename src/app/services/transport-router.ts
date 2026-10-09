@@ -18,10 +18,16 @@ import { BridgeSettings } from "./bridge-settings";
 export class TransportRouter implements Transport {
   private readonly bridge = inject(BridgeSettings);
 
+  /** The route a request sent now would take. */
+  route(): "direct" | "bridge" {
+    const bridge = this.bridge.config();
+    return bridge.enabled && bridge.url ? "bridge" : "direct";
+  }
+
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
     const bridge = this.bridge.config();
     const transport =
-      bridge.enabled && bridge.url ? new BridgeTransport({ url: bridge.url, token: bridge.token }) : new FetchTransport();
+      this.route() === "bridge" ? new BridgeTransport({ url: bridge.url, token: bridge.token }) : new FetchTransport();
     return transport.send(request, options);
   }
 }

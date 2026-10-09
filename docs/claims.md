@@ -39,14 +39,14 @@ back gets reworded until one can, or removed.
 | C-004 | Vault crypto: a key derived from the passphrase with PBKDF2-SHA-256 (600,000 iterations, a random 16-byte salt) wraps a random AES-GCM-256 data key; each secret is encrypted under the data key with a random 12-byte IV of its own. | README.md, docs/trust-center.md | packages/core/src/vault/vault-crypto.spec.ts |
 | C-005 | The vault key is held in memory only: reloading the page locks the vault, and a tab locks itself after 15 idle minutes (configurable). | README.md, docs/trust-center.md | e2e/claims.spec.ts, e2e/vault.spec.ts |
 | C-006 | Scripts are disabled in the hosted app and say so with a banner; Tests-tab assertions still run. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
-| C-007 | A request that references a vault secret is blocked, never sent with the placeholder. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
-| C-008 | History keeps the headers that were sent, including `Authorization`, in plain text. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
+| C-007 | A vault secret is sent as its plaintext when the vault is unlocked; a locked vault asks for the passphrase first; a secret's placeholder never reaches the network; and nothing stored, exported or copied holds the plaintext. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts, e2e/secrets-wire.spec.ts |
+| C-008 | History stores what was sent and what came back with credentials and vault secrets masked. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
 | C-009 | HTML, XML and text responses render as text; binary responses are offered as a download with the exact bytes. | README.md | e2e/tripwire.spec.ts |
 | C-010 | Network failures show the real network error, never a synthetic `504` from a service worker. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts, e2e/service-worker.spec.ts |
 | C-011 | The Content-Security-Policy forbids `eval` and inline script, so injected script does not run. | docs/trust-center.md | e2e/claims.spec.ts |
 | C-012 | The production page loads with no script the app didn't ship (0 CSP violations); checked every 6 hours. | docs/runbook.md | e2e/no-edge-injection.spec.ts |
 | C-013 | Settings → Reset all data deletes the database; if another tab holds it open, that tab is told to reload. | README.md, docs/trust-center.md | e2e/reset-all-data.spec.ts |
-| C-014 | Collection exports include auth fields in plain text. | docs/trust-center.md | e2e/claims.spec.ts |
+| C-014 | Collection exports mask credentials unless the user asks for them in that export. | README.md, docs/trust-center.md | e2e/claims.spec.ts, src/app/services/collections-store.integration.spec.ts |
 | C-015 | After one visit the app loads offline; its service worker caches only the app's own files and never answers requests to other origins. | README.md, docs/trust-center.md | e2e/service-worker.spec.ts |
 | C-016 | The Content-Security-Policy requires Trusted Types for DOM script sinks; only same-origin script URLs pass the app's default policy. | docs/trust-center.md | e2e/trusted-types.spec.ts |
 | C-017 | Any HTTP method can be typed and is sent in upper case; GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS are offered. | README.md | e2e/features.spec.ts |
@@ -76,3 +76,4 @@ back gets reworded until one can, or removed.
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |
 | C-043 | The vault passphrase can be changed: the old one stops working and no secret is re-encrypted. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |
 | C-044 | The vault can be exported as a file that holds only ciphertext and opens with its passphrase, and imported into another vault. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |
+| C-045 | A request with a `{{variable}}` that has no value is held back until the user chooses to send it as written. | README.md | e2e/secrets-wire.spec.ts |

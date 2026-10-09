@@ -8,7 +8,7 @@ import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 import { EnvironmentsStore } from "../../services/environments-store";
-import { SHORT_SECRET_LENGTH, SecretsVault } from "../../services/secrets-vault";
+import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -23,7 +23,7 @@ import {
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
 import { VariablesDialog } from "../variables/variables-dialog";
-import { applyVariableChanges, readImportText, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
+import { MIN_SECRET_LENGTH, applyVariableChanges, readImportText, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
 
 /** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
 function jsonOf(rows: Row[]): string {
@@ -280,7 +280,7 @@ export class EnvironmentsManager implements OnInit {
       environmentId: draft.id,
       plaintext: String(pair.value),
     });
-    this.shortSecretWarning.set(String(pair.value).length < SHORT_SECRET_LENGTH ? pair.key.trim() : null);
+    this.shortSecretWarning.set(String(pair.value).length < MIN_SECRET_LENGTH ? pair.key.trim() : null);
     draft.vars[index].value = buildSecretReference(secretId);
     this.updateDraft(draft);
     this.syncJsonFromPairs();

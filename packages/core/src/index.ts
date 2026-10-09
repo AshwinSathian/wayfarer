@@ -40,6 +40,7 @@ export {
   type VariableToken,
 } from "./variables/resolver";
 export { validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
+export { MASK, MIN_SECRET_LENGTH, Redactor, isCredentialHeader, type RedactOptions } from "./redact/redactor";
 export {
   IMPORT_TOO_LARGE,
   MAX_IMPORT_BYTES,

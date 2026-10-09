@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { WorkspaceStore, requestFromHistory, sentHeaders } from '../../state/workspace-store';
+import { WorkspaceStore, sentHeaders } from '../../state/workspace-store';
 import { headerLines } from '../../shared/http/header-lines';
-import { jsonBody, requestContent } from '../../../testing/request-fixtures';
+import { historyEntry, jsonBody, requestContent } from '../../../testing/request-fixtures';
 import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from '../../../testing/composer-setup';
 import { Composer } from './composer';
 import { ComposerView } from './composer-view';
@@ -84,7 +84,7 @@ describe('Composer: rows, payloads and variables', () => {
     const array = { mode: 'raw' as const, raw: { language: 'json' as const, text: '[1, 2]' } };
     const text = { mode: 'raw' as const, raw: { language: 'json' as const, text: '{"n": {{count}}}' } };
 
-    store.load(requestContent({ method: 'POST', url: 'https://a.test/array', body: array }), 'collection');
+    store.load(requestContent({ method: 'POST', url: 'https://a.test/array', body: array }));
     expect(store.snapshot().body).toEqual(array);
     let pending = component.sendRequest();
     let req = httpMock.expectOne('https://a.test/array');
@@ -94,7 +94,7 @@ describe('Composer: rows, payloads and variables', () => {
 
     // Not JSON until its variable is filled in.
     environmentsService.setActiveEnvironment(buildEnvironment({ count: '3' }));
-    store.load(requestContent({ method: 'POST', url: 'https://a.test/text', body: text }), 'collection');
+    store.load(requestContent({ method: 'POST', url: 'https://a.test/text', body: text }));
     expect(store.snapshot().body).toEqual(text);
     pending = component.sendRequest();
     req = httpMock.expectOne('https://a.test/text');
@@ -103,26 +103,38 @@ describe('Composer: rows, payloads and variables', () => {
     await pending;
   });
 
-  it('loads a history entry as what was sent, keeping the scripts and tests being composed', () => {
+  it('loads a history entry as the request it was composed as: variables not resolved, with its own scripts, and shows the response it recorded', () => {
     store.patch({ scripts: { pre: 'mine', post: '' } });
+    const entry = historyEntry({
+      method: 'POST',
+      url: 'https://{{host}}/x?a=1',
+      status: 201,
+      template: { headers: rows([{ key: 'A', value: '{{v}}' }]), body: jsonBody({ n: 1 }), scripts: { pre: 'theirs', post: '' } },
+    });
+    entry.response!.body = { text: '{"made":true}', truncated: false };
+    entry.response!.headers = [['Set-Cookie', '***']];
 
-    store.load(
-      requestFromHistory({ method: 'POST', url: 'https://a.test/x?a=1', headers: { A: '1' }, body: { n: 1 }, createdAt: 1 }),
-      'history'
-    );
+    component.loadPastRequest(entry);
 
     const draft = store.snapshot();
-    expect([draft.method, draft.url]).toEqual(['POST', 'https://a.test/x?a=1']);
-    expect(draft.headers).toEqual(rows([{ key: 'A', value: '1' }]));
+    expect([draft.method, draft.url]).toEqual(['POST', 'https://{{host}}/x?a=1']);
+    expect(draft.headers).toEqual(rows([{ key: 'A', value: '{{v}}' }]));
     expect(draft.params).toEqual(rows([{ key: 'a', value: '1' }]));
     expect(draft.body).toEqual(jsonBody({ n: 1 }));
     expect(draft.auth).toEqual({ type: 'none' });
-    expect(draft.scripts.pre).toBe('mine');
-    // A body is recorded as the text that was sent; text that is not JSON comes back as text.
-    const base = { method: 'POST', url: 'https://a.test', headers: {}, createdAt: 1 };
-    expect(requestFromHistory({ ...base, body: '{"a":1}' }).body).toEqual({ mode: 'raw', raw: { language: 'json', text: '{"a":1}' } });
-    expect(requestFromHistory({ ...base, body: 'a=1&b=2' }).body).toEqual({ mode: 'raw', raw: { language: 'text', text: 'a=1&b=2' } });
-    expect(requestFromHistory({ method: 'GET', url: '', headers: {}, createdAt: 1 }).body).toEqual({ mode: 'none' });
+    expect(draft.scripts.pre).toBe('theirs');
+    expect(store.responseStatusCode()).toBe(201);
+    expect(store.responseData()).toBe('{"made":true}');
+    expect(store.responseBodyIsJson()).toBe(true);
+    expect(store.responseHeadersView()).toEqual([{ name: 'Set-Cookie', value: '***' }]);
+
+    // An entry with no response shows the error it recorded; one with an error status shows its body as the error.
+    component.loadPastRequest(historyEntry({ error: 'Timed out after 1000 ms' }));
+    expect([store.responseStatusCode(), store.responseIsError(), store.responseError()]).toEqual([undefined, true, 'Timed out after 1000 ms']);
+    const failed = historyEntry({ status: 500 });
+    failed.response!.body = { text: 'boom', truncated: false };
+    component.loadPastRequest(failed);
+    expect([store.responseStatusCode(), store.responseData(), store.responseError()]).toEqual([500, '', 'boom']);
   });
 
   it('resolves {{var}} placeholders from the active environment into the actual outgoing request', async () => {
@@ -166,7 +178,10 @@ describe('Composer: rows, payloads and variables', () => {
       { key: 'X-Missing', value: '{{doesNotExist}}' },
     ]) });
 
-    const pending = component.sendRequest();
+    // Held back first (D3); sent as written once the user says so.
+    await component.sendRequest();
+    expect(store.unresolvedBlocked()).toEqual(['doesNotExist']);
+    const pending = store.send({ allowUnresolved: true });
 
     const req = httpMock.expectOne('https://example.com/data');
     expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');

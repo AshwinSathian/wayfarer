@@ -111,6 +111,12 @@ export class AppShell implements OnInit {
   readonly dropdownOptions = signal<{ label: string; value: string }[]>([]);
   readonly selectedEnvironmentId = signal<string | null>(null);
   readonly lockDialogVisible = signal(false);
+  /** A send that needs a vault secret asks for the vault to be opened. */
+  private readonly unlockWatcher = effect(() => {
+    if (this.secretsService.unlockRequested()) {
+      void this.openLockDialog();
+    }
+  });
   readonly historyDrawerVisible = signal(false);
   readonly isFirstVaultSetup = signal(false);
   readonly confirmPassphrase = signal("");
@@ -286,6 +292,8 @@ export class AppShell implements OnInit {
 
   closeLockDialog(): void {
     this.lockDialogVisible.set(false);
+    // Whoever asked for the vault to be opened gets its answer.
+    this.secretsService.unlockDialogClosed();
     this.unlockPassphrase.set("");
     this.confirmPassphrase.set("");
     this.unlockError.set("");

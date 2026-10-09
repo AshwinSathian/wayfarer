@@ -1,4 +1,5 @@
 import { emptyRequest, type RequestBody, type RequestContent, type Row } from "@wayfarer/core";
+import type { PastRequest } from "../app/models/history";
 
 /** Name and value pairs as enabled rows, in the order written. */
 export function rowsOf(record: Record<string, string>): Row[] {
@@ -13,4 +14,20 @@ export function jsonBody(value: unknown): RequestBody & { raw: { text: string } 
 /** A request with the given fields and nothing else set. */
 export function requestContent(fields: Partial<RequestContent> = {}): RequestContent {
   return { ...emptyRequest(), ...fields };
+}
+
+/** A history entry as the executor writes one: `url` and `method` are those of the template and of what was sent. */
+export function historyEntry(
+  fields: { method?: string; url?: string; createdAt?: number; status?: number; error?: string; template?: Partial<RequestContent> } = {}
+): PastRequest {
+  const method = fields.method ?? "GET";
+  const url = fields.url ?? "https://example.com/api";
+  return {
+    createdAt: fields.createdAt ?? Date.now(),
+    template: requestContent({ method, url, ...fields.template }),
+    sent: { method, url, headers: [] },
+    ...(fields.status !== undefined && { response: { status: fields.status, statusText: "", headers: [] } }),
+    ...(fields.error !== undefined && { error: fields.error }),
+    route: "direct",
+  };
 }

@@ -66,20 +66,16 @@ export class Idb {
 
   // ── History ──────────────────────────────────────────────────────────
 
-  async add(req: PastRequest): Promise<PastRequestKey | null> {
-    return this.history.add(req);
+  async add(req: PastRequest, cap: number): Promise<PastRequestKey | null> {
+    return this.history.add(req, cap);
   }
 
   async get(id: PastRequestKey): Promise<PastRequest | null> {
     return this.history.get(id);
   }
 
-  async getLatest(limit = 50): Promise<PastRequest[]> {
+  async getLatest(limit?: number): Promise<PastRequest[]> {
     return this.history.getLatest(limit);
-  }
-
-  async findByUrl(url: string, limit = 20): Promise<PastRequest[]> {
-    return this.history.findByUrl(url, limit);
   }
 
   async delete(id: PastRequestKey): Promise<void> {

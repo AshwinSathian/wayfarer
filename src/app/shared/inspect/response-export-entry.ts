@@ -16,6 +16,10 @@ export interface ResponseExportContext {
   url: string;
   headers: Record<string, string>;
   body?: unknown;
+  /** The plaintext of the vault secrets placed into the request: masked in every export. */
+  secrets: string[];
+  /** The credentials of its Auth tab: masked unless an export asks for them. */
+  credentials: string[];
 }
 
 function normalizeHeaderRecord(record: Record<string, string>): Record<string, string> {

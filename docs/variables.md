@@ -36,11 +36,11 @@ Random values come from the browser's `crypto.getRandomValues`.
 
 ## A variable that has no value
 
-`{{name}}` with no value anywhere is sent as written, and the composer lists it under "Missing".
+A request with a `{{name}}` that has no value anywhere is not sent. The composer says which variable and offers **Send anyway**, which sends it as written. Settings, "Hold back a request with a variable that has no value", switches this off: the variable is then sent as written, as Postman does. The chips list it under "Missing" either way.
 
 ## Secrets
 
-A protected variable holds `{{$secret.<id>}}`, a reference to a value in the vault. See [Secrets](secrets.md).
+A protected variable holds `{{$secret.<id>}}`, a reference to a value in the vault. It is resolved when the request is sent, and its value is never read for further variables: a secret that reads `{{token}}` is sent as that text. See [Secrets](secrets.md).
 
 ## Two tabs
 

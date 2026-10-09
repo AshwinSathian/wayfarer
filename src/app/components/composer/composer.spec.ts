@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { jsonBody, rowsOf } from '../../../testing/request-fixtures';
+import { historyEntry, jsonBody, rowsOf } from '../../../testing/request-fixtures';
 import { PastRequest } from '../../models/history';
 import { RequestSave } from '../../services/request-save';
 import { WorkspaceStore } from '../../state/workspace-store';
@@ -67,13 +67,17 @@ describe('Composer', () => {
     expect(store.responseBodyIsJson()).toBe(true);
     expect(store.responseStatusCode()).toBe(200);
     expect(store.shouldShowResponsePanel).toBe(true);
-    expect(idbService.add).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'GET',
-      url: 'https://example.com/data',
-      status: 200,
-      durationMs: 105,
-      createdAt: mockCreatedAt
-    }));
+    expect(idbService.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sent: expect.objectContaining({ method: 'GET', url: 'https://example.com/data' }) as unknown,
+        response: expect.objectContaining({ status: 200, body: { text: '{"ok":true}', truncated: false } }) as unknown,
+        route: 'direct',
+        durationMs: 105,
+        createdAt: mockCreatedAt,
+      }),
+      // The default cap.
+      500
+    );
     expect(emitted).toBe(true);
     // A successful send must NOT wipe the composer — the request stays
     // visible/editable so the user can tweak a header and resend, the same
@@ -115,13 +119,15 @@ describe('Composer', () => {
     expect(store.responseBodyIsJson()).toBe(true);
     expect(store.responseStatusCode()).toBe(500);
     expect(store.shouldShowResponsePanel).toBe(true);
-    expect(idbService.add).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'POST',
-      url: 'https://example.com/create',
-      body: jsonBody({ isActive: 'true' }).raw.text,
-      status: 500,
-      error: expect.any(String)
-    }));
+    expect(idbService.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sent: expect.objectContaining({ method: 'POST', url: 'https://example.com/create', bodyPreview: jsonBody({ isActive: 'true' }).raw.text }) as unknown,
+        template: expect.objectContaining({ method: 'POST', body: jsonBody({ isActive: 'true' }) }) as unknown,
+        response: expect.objectContaining({ status: 500 }) as unknown,
+        error: expect.any(String) as unknown,
+      }),
+      500
+    );
     expect(view.activeTab()).toBe('headers');
 
   });
@@ -148,9 +154,9 @@ describe('Composer', () => {
 
     expect(store.responseData()).toContain('updated');
     const history = idbService.add.mock.lastCall![0] as PastRequest;
-    expect(history.method).toBe('PUT');
+    expect(history.sent.method).toBe('PUT');
     // History keeps the body as the text that was sent.
-    expect(JSON.parse(history.body as string)).toEqual({ name: 'Widget' });
+    expect(JSON.parse(history.sent.bodyPreview!)).toEqual({ name: 'Widget' });
     expect(view.activeTab()).toBe('headers');
   });
 
@@ -174,19 +180,23 @@ describe('Composer', () => {
 
     expect(idbService.add).toHaveBeenCalled();
     const stored = idbService.add.mock.lastCall![0] as PastRequest;
-    expect(stored.method).toBe('DELETE');
-    expect(stored.body).toBeUndefined();
+    expect(stored.sent.method).toBe('DELETE');
+    expect(stored.sent.bodyPreview).toBeUndefined();
+    // A credential header typed by hand is not in history, neither as sent nor in the request as composed.
+    expect(stored.sent.headers).toEqual([['Authorization', '***']]);
+    expect(stored.template.headers).toEqual(rows([{ key: 'Authorization', value: '***' }]));
     expect(view.activeTab()).toBe('headers');
   });
 
   it('should populate form when loading past requests', () => {
     const stored: PastRequest = {
       id: 1,
-      method: 'POST',
-      url: 'https://example.com/update',
-      headers: { Authorization: 'Bearer token' },
-      body: { count: 3, enabled: true },
-      createdAt: 123
+      ...historyEntry({
+        method: 'POST',
+        url: 'https://example.com/update',
+        createdAt: 123,
+        template: { headers: rows([{ key: 'Authorization', value: '***' }]), body: jsonBody({ count: 3, enabled: true }) },
+      }),
     };
 
     component.loadPastRequest(stored);
@@ -203,12 +213,7 @@ describe('Composer', () => {
     component.loadCollectionRequest(makeRequestDoc());
     expect(requestSave.loadedCollectionRequest()).not.toBeNull();
 
-    component.loadPastRequest({
-      method: 'GET',
-      url: 'https://history.example.com',
-      headers: {},
-      createdAt: 1,
-    });
+    component.loadPastRequest(historyEntry({ url: 'https://history.example.com', createdAt: 1 }));
 
     expect(requestSave.loadedCollectionRequest()).toBeNull();
   });

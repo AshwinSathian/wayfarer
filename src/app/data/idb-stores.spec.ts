@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { IdbCore } from "./idb-core";
-import { jsonBody, rowsOf } from "../../testing/request-fixtures";
+import { historyEntry, jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "./idb";
 import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
@@ -396,7 +396,7 @@ describe("environments (real IndexedDB)", () => {
     try {
       const env = await environments.createEnvironment({ name: "Dev" });
       await environments.setActiveEnvironment(env.meta.id);
-      await environments.add({ method: "GET", url: "https://api.test", headers: {}, createdAt: 1 });
+      await environments.add(historyEntry({ url: "https://api.test", createdAt: 1 }), 500);
       await vi.waitFor(() => expect(heard).toEqual([["environments"], ["meta"], ["history"]]));
       expect(heardHere).toEqual([]);
 
@@ -551,21 +551,21 @@ describe("history (real IndexedDB)", () => {
     await idb.resetDatabase();
   });
 
-  it("returns entries newest first, finds them by URL, and deletes one or all", async () => {
-    const first = await idb.add({ method: "GET", url: "https://api.test/a", headers: { A: "1" }, createdAt: 100, status: 200 });
-    const second = await idb.add({ method: "POST", url: "https://api.test/b", headers: {}, body: { x: 1 }, createdAt: 200 });
-    const third = await idb.add({ method: "GET", url: "https://api.test/a", headers: {}, createdAt: 300, error: "Network error" });
+  it("returns entries newest first with what they recorded, and deletes one or all", async () => {
+    const first = await idb.add(historyEntry({ url: "https://api.test/a", createdAt: 100, status: 200 }), 500);
+    const second = await idb.add(historyEntry({ method: "POST", url: "https://api.test/b", createdAt: 200, template: { body: jsonBody({ x: 1 }) } }), 500);
+    const third = await idb.add(historyEntry({ url: "https://api.test/a", createdAt: 300, error: "Network error" }), 500);
     expect(new Set([first, second, third]).size).toBe(3);
 
     expect((await idb.getLatest()).map((h) => h.createdAt)).toEqual([300, 200, 100]);
     expect((await idb.getLatest(2)).map((h) => h.createdAt)).toEqual([300, 200]);
-    expect(await idb.get(second!)).toMatchObject({ method: "POST", url: "https://api.test/b", body: { x: 1 } });
+    expect(await idb.get(second!)).toMatchObject({
+      sent: { method: "POST", url: "https://api.test/b" },
+      template: { method: "POST", url: "https://api.test/b", body: jsonBody({ x: 1 }) },
+      route: "direct",
+    });
+    expect(await idb.get(first!)).toMatchObject({ response: { status: 200 } });
     expect(await idb.get(9999)).toBeNull();
-
-    const sameUrl = await idb.findByUrl("https://api.test/a");
-    expect(sameUrl.map((h) => h.createdAt).sort()).toEqual([100, 300]);
-    expect(await idb.findByUrl("https://api.test/a", 1)).toHaveLength(1);
-    expect(await idb.findByUrl("https://api.test/none")).toEqual([]);
 
     await idb.delete(second!);
     expect((await idb.getLatest()).map((h) => h.createdAt)).toEqual([300, 100]);

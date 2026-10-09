@@ -70,18 +70,28 @@ test("@claim:C-005 the vault key is held in memory only: a reload locks the vaul
   await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toHaveCount(0);
 });
 
-test("@claim:C-008 history keeps the Authorization header that was sent, in plain text", async ({ page }) => {
+test("@claim:C-008 history stores what was sent with its credentials masked, also where the server sent them back", async ({ page }) => {
   await seedAndOpen(page, {}, {
     method: "GET",
     url: `${ECHO}/echo?c008=1`,
+    headers: { "X-Api-Key": "c008-header-key" },
     auth: { type: "bearer", token: "c008-token-value" },
   });
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect.poll(async () => JSON.stringify((await dumpIdb(page))["history"])).toContain("Bearer c008-token-value");
+  // The echo-server sent both back.
+
+  await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
+  const [entry] = (await dumpIdb(page))["history"] as { sent: { url: string; headers: [string, string][] }; response: { body: { text: string } } }[];
+  expect(entry.sent.url).toBe(`${ECHO}/echo?c008=1`);
+  expect(entry.sent.headers).toContainEqual(["Authorization", "***"]);
+  expect(entry.sent.headers).toContainEqual(["X-Api-Key", "***"]);
+  expect(entry.response.body.text).toContain("***");
+  // The saved request holds what was typed, as collections do (C-003). History does not.
+  expect(JSON.stringify((await dumpIdb(page))["history"])).not.toMatch(/c008-token-value|c008-header-key/);
 });
 
-test("@claim:C-014 collection exports include auth fields in plain text", async ({ page }) => {
+test("@claim:C-014 a collection export masks credentials unless that export asks for them", async ({ page }) => {
   await seedAndOpen(page, {}, {
     method: "GET",
     url: `${ECHO}/echo`,
@@ -90,11 +100,23 @@ test("@claim:C-014 collection exports include auth fields in plain text", async 
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   const [download] = await Promise.all([
     page.waitForEvent("download"),
-    page.getByRole("menuitem", { name: "Export" }).click(),
+    page.getByRole("menuitem", { name: "Export", exact: true }).click(),
   ]);
-  const chunks: Buffer[] = [];
-  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
-  expect(Buffer.concat(chunks).toString("utf8")).toContain("c014-token-value");
+  const text = async (file: typeof download) => {
+    const chunks: Buffer[] = [];
+    for await (const chunk of await file.createReadStream()) chunks.push(chunk as Buffer);
+    return Buffer.concat(chunks).toString("utf8");
+  };
+  const masked = await text(download);
+  expect(masked).not.toContain("c014-token-value");
+  expect(masked).toContain('"token": "***"');
+
+  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
+  const [whole] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("menuitem", { name: "Export with credentials" }).click(),
+  ]);
+  expect(await text(whole)).toContain("c014-token-value");
 });
 
 test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injected inline script", async ({ page, request }) => {

@@ -66,3 +66,7 @@ Thumbs.db
 /.claude/settings.local.json
 bundle-report.json
 /screens
+
+# Stryker (mutation testing of packages/core)
+.stryker-tmp
+/packages/*/reports

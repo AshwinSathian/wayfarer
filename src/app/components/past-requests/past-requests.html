@@ -18,7 +18,19 @@
   </div>
   } @else {
   <div class="flex flex-col gap-4">
-    @for (group of groups; track group.label) {
+    <mat-form-field class="field w-full">
+      <input matInput
+        type="search"
+        aria-label="Search history"
+        placeholder="Search by URL, method or status"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+       />
+    </mat-form-field>
+    @if (!groups().length) {
+    <p class="type-footnote text-label-tertiary px-2">No request in history matches.</p>
+    }
+    @for (group of groups(); track group.label) {
     <div>
       <!-- Group date label -->
       <div class="px-2 pb-1.5">
@@ -31,29 +43,29 @@
 
           <!-- Desktop row -->
           <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
-            <span class="method-badge method-{{ request.method.toLowerCase() }} shrink-0">
-              {{ request.method }}
+            <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0">
+              {{ request.sent.method }}
             </span>
             <span
               class="flex-1 cursor-pointer truncate type-mono-body text-label-secondary hover:text-label-primary transition-colors"
               role="button"
               tabindex="0"
-              [attr.aria-label]="'Load request ' + request.url + ' into composer'"
+              [attr.aria-label]="'Load request ' + request.sent.url + ' into composer'"
               (click)="load(request)"
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"
               [uiHoverCard]="details"
-            >{{ request.url }}</span>
+            >{{ request.sent.url }}</span>
 
-            @if (request.status !== undefined) {
+            @if (request.response) {
             <span
               class="type-caption font-mono shrink-0 tabular-nums"
               [class]="{
-                'text-status-success': request.status >= 200 && request.status < 300,
-                'text-status-warning': request.status >= 300 && request.status < 500,
-                'text-status-error':   request.status >= 500 || request.status === 0
+                'text-status-success': request.response.status >= 200 && request.response.status < 300,
+                'text-status-warning': request.response.status >= 300 && request.response.status < 500,
+                'text-status-error':   request.response.status >= 500 || request.response.status === 0
               }"
-            >{{ request.status }}</span>
+            >{{ request.response.status }}</span>
             }
 
             @if (request.durationMs) {
@@ -76,9 +88,9 @@
 
             <ng-template #details>
               <div class="space-y-1.5 min-w-[180px] max-w-xs type-callout p-1">
-                <p class="text-label-primary truncate font-mono text-xs">{{ request.url }}</p>
-                @if (request.status !== undefined) {
-                <p class="text-label-secondary">Status: <span class="font-semibold">{{ request.status }}</span></p>
+                <p class="text-label-primary truncate font-mono text-xs">{{ request.sent.url }}</p>
+                @if (request.response) {
+                <p class="text-label-secondary">Status: <span class="font-semibold">{{ request.response.status }}</span></p>
                 }
                 @if (request.durationMs) {
                 <p class="text-label-secondary">Duration: <span class="font-semibold">{{ formatDuration(request.durationMs) }}</span></p>
@@ -94,14 +106,14 @@
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
                   <div class="flex items-center gap-2">
-                    <span class="method-badge method-{{ request.method.toLowerCase() }}">{{ request.method }}</span>
-                    <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.url }}</span>
+                    <span class="method-badge method-{{ request.sent.method.toLowerCase() }}">{{ request.sent.method }}</span>
+                    <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.sent.url }}</span>
                   </div>
                   <app-icon class="section-chevron" name="keyboard_arrow_down" />
                 </mat-expansion-panel-header>
                 <div class="space-y-2 type-callout text-label-secondary">
-                  @if (request.status !== undefined) {
-                  <p>Status: <span class="font-semibold">{{ request.status }}</span></p>
+                  @if (request.response) {
+                  <p>Status: <span class="font-semibold">{{ request.response.status }}</span></p>
                   }
                   @if (request.durationMs) {
                   <p>Duration: {{ formatDuration(request.durationMs) }}</p>

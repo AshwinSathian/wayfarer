@@ -26,20 +26,42 @@ export function runUpgrade(
   if (oldVersion >= 5 && oldVersion < 7) {
     void addCollectionVariables(tx);
   }
-  // 8 (P2.6): the vault has one data key, wrapped by the passphrase. A
-  // secret encrypted under a key of its own cannot be read with it, and is
-  // removed (maintainer, 2026-10-09: no stored data exists to keep).
-  if (oldVersion >= 5 && oldVersion < 8) {
-    return removeSecrets(tx);
+  if (oldVersion < 5) {
+    return Promise.resolve(oldVersion > 0 ? "all" : []);
   }
-  return Promise.resolve(oldVersion > 0 && oldVersion < 5 ? "all" : null);
+  return removeWhatChangedShape(db, oldVersion, tx);
 }
 
-async function removeSecrets(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<RemovedData> {
-  const store = tx.objectStore("secrets");
-  const had = (await store.count()) > 0;
-  await store.clear();
-  return had ? "secrets" : null;
+/**
+ * Stores whose records an older version wrote in a shape this one does not
+ * read (maintainer, 2026-10-09: no stored data exists to keep). Resolves to
+ * the ones that held anything.
+ */
+async function removeWhatChangedShape(
+  db: IDBPDatabase<ApiSandboxDB>,
+  oldVersion: number,
+  tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
+): Promise<RemovedData> {
+  const removed: ("secrets" | "history")[] = [];
+  // 9 (P2.5): history v2. An entry of before holds what was sent as it was sent, credentials included.
+  // The store is made again: it is searched in memory and keeps one index.
+  if (oldVersion < 9) {
+    if ((await tx.objectStore("history").count()) > 0) removed.push("history");
+    db.deleteObjectStore("history");
+    createHistoryStore(db);
+  }
+  // 8 (P2.6): the vault has one data key, wrapped by the passphrase. A
+  // secret encrypted under a key of its own cannot be read with it.
+  if (oldVersion < 8) {
+    const store = tx.objectStore("secrets");
+    if ((await store.count()) > 0) removed.unshift("secrets");
+    await store.clear();
+  }
+  return removed;
+}
+
+function createHistoryStore(db: IDBPDatabase<ApiSandboxDB>): void {
+  db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
 }
 
 /** Inside the upgrade transaction: a failed write aborts it, and the database keeps its old version. */
@@ -55,10 +77,7 @@ function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {
     (db as unknown as IDBPDatabase).deleteObjectStore(name);
   }
 
-  const history = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
-  history.createIndex("by-createdAt", "createdAt");
-  history.createIndex("by-url", "url");
-  history.createIndex("by-method", "method");
+  createHistoryStore(db);
 
   const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
   collections.createIndex("by-order", "order");

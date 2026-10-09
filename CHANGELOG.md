@@ -15,6 +15,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   collections, folders, requests, environments, secrets and history from
   an earlier version are deleted, and the page says so once. Nothing is
   backed up. This was decided while the app has no users with data to keep.
+- **History saved by earlier versions is removed.** History now keeps
+  credentials masked (database version 9). An entry of before held the
+  headers as they were sent, `Authorization` included, so the first time
+  this version opens, history is deleted and the page says so once.
+- **Exports and copies mask credentials.** **Copy as cURL**, **Copy as
+  HAR** and a collection's **Export** now write `***` where a credential
+  was. Each has a "with credentials" twin beside it for when you need
+  the real values. A vault secret is masked in both.
+- **A request with a `{{variable}}` that has no value is not sent** until
+  you choose **Send anyway**. It was sent with the text `{{variable}}` in
+  it. Settings can switch this back.
 - **Secrets saved by earlier versions are removed.** The vault now
   encrypts every secret under one data key (database version 8) and
   cannot read secrets that each had a key of their own. The first time
@@ -27,6 +38,25 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   reason. Export again from this version.
 
 ### Added
+
+- **Vault secrets work in requests.** A protected variable is sent as
+  its value when the vault is unlocked. If the vault is locked, the
+  passphrase is asked for first; close that dialog and nothing is sent.
+  A secret's `{{$secret.…}}` reference is never sent. Before, a request
+  that used a protected variable was always refused (#60).
+- **Nothing stored or copied holds a secret.** Every vault secret and
+  credential of a request is masked in history, in **Copy as cURL** and
+  **Copy as HAR**, also where the server sent it back, and also when it
+  arrives percent-encoded, JSON-escaped or inside base64 (as in Basic
+  credentials). Before, history kept `Authorization` in plain text (#71)
+  and a collection export wrote auth fields as typed (#72).
+- **History keeps more, and less of it.** An entry now holds the request
+  as you composed it (variables not resolved), what was sent, and the
+  response: status, headers and a text body up to 1 MB. Opening an entry
+  shows that response again. History keeps the newest 500 entries
+  (Settings, **History size**), where it grew without limit, and
+  **Keep response bodies in history** switches the bodies off.
+- **Search history** by URL, method or status.
 
 - **Change the vault passphrase.** Secrets, **Change passphrase**. The
   old passphrase stops working at once and no secret is re-encrypted.

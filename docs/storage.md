@@ -1,12 +1,12 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **8** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **9** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
-| `history`      | `id` (auto) | `by-createdAt`, `by-url`, `by-method`               | Requests as they were sent, with status and duration.     |
+| `history`      | `id` (auto) | `by-createdAt`                                      | Exchanges: the request as composed, as sent, and the response, with credentials and vault secrets masked. See "History" below. |
 | `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, and whether their scripts are trusted. |
 | `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection.                    |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
@@ -26,6 +26,21 @@ Version 6 added the `files` store and changed nothing else: a version 5 database
 Version 7 gave collections their variables. The upgrade adds an empty list to each stored collection and removes nothing. The global variables are a new record, `globals`, in `meta`; a database without it has none.
 
 Version 8 changed how the vault encrypts (one data key, wrapped by the passphrase, where each secret had a key of its own). Secrets stored before it cannot be read with the new key and are **removed** by the upgrade; nothing else is touched. When there were any, the page says so once. An environment variable that referred to a removed secret still holds its `{{$secret.<id>}}` reference, and needs its value again. Like version 5, this was decided while the app had no users with data to keep.
+
+Version 9 changed what history keeps (below). An entry of before held the headers as they were sent, `Authorization` included, so the upgrade **removes** history; nothing else is touched. When there was any, the page says so once.
+
+## History
+
+One entry per request sent:
+
+| Field | Holds |
+|---|---|
+| `template` | The request as it was composed: `{{variables}}` not resolved. A credential typed by hand is `***`. |
+| `sent` | Method, URL and headers as they went out, masked. `bodyPreview` is the text of a text body; of a form or a file, the field names, file names and sizes, never the bytes. |
+| `response` | Status, headers and, for a text body, up to 1 MB of it, masked. A binary body is not kept: bytes cannot be searched for a secret. Absent when no response arrived. |
+| `route`, `durationMs`, `error` | `direct` or `bridge`; milliseconds; the message of a failure. |
+
+History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
 
 ## Files
 

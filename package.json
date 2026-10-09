@@ -62,7 +62,8 @@
     "rxjs": "^7.8.2"
   },
   "overrides": {
-    "dompurify": "^3.4.16"
+    "dompurify": "^3.4.16",
+    "qs": "6.16.0"
   },
   "devDependencies": {
     "@angular-eslint/builder": "22.5.0",
@@ -73,6 +74,7 @@
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.64.0",
+    "@stryker-mutator/core": "10.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.19.1",
     "@vitest/browser-playwright": "^5.0.3",

@@ -62,7 +62,9 @@ describe("Composer: variable scopes", () => {
     collectionsService.setTree([collection("c1", { two: "collection" })]);
     store.patch({ url: "https://api.test/", headers: rows([{ key: "X-Two", value: "{{two}}" }]) });
 
-    expect((await sent("https://api.test/")).headers.get("X-Two")).toBe("{{two}}");
+    // No value anywhere: the send is held back, and nothing leaves.
+    expect(await store.send()).toBe(false);
+    expect(store.unresolvedBlocked()).toEqual(["two"]);
     store.refreshVariablePreview();
     expect(store.missingVariableKeys()).toEqual(["two"]);
 

@@ -64,8 +64,8 @@ export interface GlobalsRecord {
 /** The vault: how its passphrase key is derived, and the data key wrapped under it. Absent until a passphrase is chosen. */
 export type VaultRecordDoc = VaultRecord & { key: typeof META_VAULT_KEY };
 
-/** What an upgrade removed, for the notice the shell shows once. */
-export type RemovedData = "all" | "secrets" | null;
+/** What an upgrade removed, for the notice the shell shows once: "all", or the stores it emptied that held something. */
+export type RemovedData = "all" | ("secrets" | "history")[];
 
 export interface ApiSandboxDB extends DBSchema {
   history: {
@@ -73,8 +73,6 @@ export interface ApiSandboxDB extends DBSchema {
     value: HistoryRecord;
     indexes: {
       "by-createdAt": number;
-      "by-url": string;
-      "by-method": string;
     };
   };
   collections: {
@@ -132,5 +130,5 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 8;
+export const DB_VERSION = 9;
 export const DEFAULT_SCHEMA_VERSION = 1;

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { AppShell } from './components/app-shell/app-shell';
 import { Idb } from './data/idb';
 import { PastRequest, PastRequestKey } from './models/history';
+import { RequestSettings } from './services/request-settings';
 
 @Component({
     selector: 'app-root',
@@ -13,6 +14,7 @@ import { PastRequest, PastRequestKey } from './models/history';
 })
 export class App implements OnInit {
   private readonly idbService = inject(Idb);
+  private readonly requestSettings = inject(RequestSettings);
 
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
@@ -45,7 +47,7 @@ export class App implements OnInit {
 
     this.historyLoading.set(true);
     try {
-      this.pastRequests.set(await this.idbService.getLatest());
+      this.pastRequests.set(await this.idbService.getLatest(this.requestSettings.historyCap()));
     } finally {
       this.historyLoading.set(false);
     }

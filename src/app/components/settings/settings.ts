@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
+import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { Dialog } from "../../ui/dialog";
@@ -34,7 +35,7 @@ interface KeyboardShortcut {
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, MatButton, MatFormField, MatInput, Dialog],
+  imports: [Icon, MatButton, MatCheckbox, MatFormField, MatInput, Dialog],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,41 @@
+name: Mutation testing
+
+# P2.8: the resolver decides what goes on the wire, the redactor what is kept
+# out of storage and exports, and the vault's crypto what opens a secret.
+# Their tests are themselves tested: each small change to these three files
+# (a mutant) must make a test fail. Below 85% killed, this fails.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/core/src/variables/**"
+      - "packages/core/src/redact/**"
+      - "packages/core/src/vault/**"
+      - "packages/core/stryker.config.json"
+      - "packages/core/package.json"
+      - ".github/workflows/mutation.yml"
+  schedule:
+    # Mondays, 04:17 UTC.
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    name: Mutation score (resolver, redactor, vault crypto)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - run: npm -w packages/core run mutation

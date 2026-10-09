@@ -17,6 +17,9 @@
   <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
     <app-icon name="error" class="icon-xs" />
     {{ store.endpointError() }}
+    @if (store.unresolvedBlocked().length) {
+    <button type="button" class="underline text-accent-text" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
+    }
   </p>
   }
 

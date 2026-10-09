@@ -343,7 +343,8 @@ code errors.
   `-d`).
 - Imported files are untrusted: validate every field against the values the
   app itself writes (`validateRequestContent` and `validateRows` in
-  `@wayfarer/core`). A file must carry the format's `$id`
+  `@wayfarer/core`). A method is any RFC 9110 token of at most 32
+  characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection/2`, `wayfarer/environments/2`); there is no
   converter for older files.
 - The database is version 5 and starts empty: `runUpgrade` deletes the

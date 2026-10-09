@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyAuth, emptyRequest, fileIdsOf } from "./request";
+import { FORBIDDEN_METHODS, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./request";
 import { validateRequestContent } from "./validate";
 
 describe("request model", () => {
@@ -23,6 +23,12 @@ describe("request model", () => {
         binary: { fileId: "f-2", fileName: "two.bin" },
       })
     ).toEqual(["f-1", "f-2"]);
+  });
+
+  it("knows a method by RFC 9110's token, and the three a browser will not send", () => {
+    expect(["GET", "PURGE", "M-SEARCH", "!#$%&'*+-.^_`|~09AZ"].every(isHttpMethod)).toBe(true);
+    expect(["", "get", "A B", "A/B", "A:B", "(A)", "A".repeat(33)].some(isHttpMethod)).toBe(false);
+    expect(FORBIDDEN_METHODS).toEqual(["CONNECT", "TRACE", "TRACK"]);
   });
 
   it("makes a new request each time, missing only its URL", () => {

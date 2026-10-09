@@ -3,8 +3,21 @@
  * edits, what the stores keep and what an export file holds.
  */
 
-/** The methods the composer offers and an import accepts. */
+/** The methods the composer suggests. Any HTTP method can be typed. */
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
+
+/** Methods a browser refuses to send: `fetch` throws on them. Only the Local Bridge can. */
+export const FORBIDDEN_METHODS: readonly string[] = ["CONNECT", "TRACE", "TRACK"];
+
+/**
+ * Whether `text` is an HTTP method as the app stores one: an RFC 9110 token
+ * of at most 32 characters, in upper case. The composer upper-cases what is
+ * typed; `fetch` does that only for the common verbs, so `patch` would
+ * otherwise go out as written.
+ */
+export function isHttpMethod(text: string): boolean {
+  return /^[!#$%&'*+\-.^_`|~0-9A-Z]{1,32}$/.test(text);
+}
 
 export interface Row {
   key: string;

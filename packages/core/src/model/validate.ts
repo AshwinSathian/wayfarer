@@ -1,4 +1,4 @@
-import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, HTTP_METHODS, RAW_LANGUAGES } from "./request";
+import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, RAW_LANGUAGES, isHttpMethod } from "./request";
 
 export interface ValidationIssue {
   path: string;
@@ -90,7 +90,10 @@ export function validateRequestContent(value: unknown, path: string): Validation
   const request = check.object(value, path);
   if (!request) return check.issues;
 
-  check.oneOf(request, "method", path, HTTP_METHODS);
+  const method = field(request, "method");
+  if (typeof method !== "string" || !isHttpMethod(method)) {
+    check.fail(`${path}.method`, "Value must be an HTTP method: one word of at most 32 characters, in upper case.");
+  }
   if (typeof field(request, "url") !== "string" || !(field(request, "url") as string).trim()) {
     check.fail(`${path}.url`, "Value must be a non-empty string.");
   }

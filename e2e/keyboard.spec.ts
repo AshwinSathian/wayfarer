@@ -74,8 +74,7 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await expect(page.getByLabel("Headers value, row 3")).toHaveValue("text/plain");
   await expect(page.getByRole("checkbox", { name: "Send headers row 2" })).not.toBeChecked();
 
-  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
-  await page.getByRole("option", { name: "POST", exact: true }).click();
+  await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true }).first();
   await bodyTab.focus();
   const type = page.getByRole("combobox", { name: "Body", exact: true });
@@ -111,39 +110,41 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
   await expect(page.getByRole("button", { name: "Add parameter" })).toBeVisible();
 });
 
-// Material's select follows the native one: Enter or Space opens the list,
-// and an arrow key or a letter on the closed select changes the value.
-test("method select: Enter opens it, arrows and typing move, Enter picks, Escape leaves the value alone", async ({ page }) => {
+// The method was a select of seven until P2.16. It is a text field now, so
+// any method can be typed, with the common ones in a menu beside it.
+test("method: any one can be typed and is upper-cased; the menu of common ones is driven from the keyboard", async ({ page }) => {
   await page.goto("/");
-  const method = page.getByRole("combobox", { name: /^HTTP method/ });
+  const method = page.getByRole("textbox", { name: "HTTP method" });
+  await expect(method).toHaveValue("GET");
+
   await method.focus();
-  await expect(method).toContainText("GET");
+  await page.keyboard.press("ControlOrMeta+a");
+  await page.keyboard.type("purge");
+  await expect(method).toHaveValue("PURGE");
 
+  const methods = page.getByRole("button", { name: "Common methods" });
+  await methods.focus();
   await page.keyboard.press("Enter");
-  await expect(method).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("option")).toHaveCount(7);
+  const items = page.getByRole("menuitem");
+  await expect(items).toHaveText(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+  // The menu reads its keys once its first item has focus.
+  await expect(items.first()).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
-  await expect(method).toContainText("POST");
-  await expect(method).toHaveAttribute("aria-expanded", "false");
-  await expect(method).toBeFocused();
+  await expect(method).toHaveValue("POST");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(methods).toBeFocused();
 
-  // On the closed select an arrow key changes the value without opening it.
-  await page.keyboard.press("ArrowDown");
-  await expect(method).toContainText("PUT");
-  await expect(method).toHaveAttribute("aria-expanded", "false");
-
-  // Type-ahead in the open list: "d" goes to DELETE.
-  await page.keyboard.press("Space");
-  await expect(page.getByRole("option")).toHaveCount(7);
-  await page.keyboard.press("d");
-  await expect(page.getByRole("option", { name: "DELETE", exact: true })).toHaveClass(/active/);
+  // Escape leaves the method as it was.
+  await page.keyboard.press("Enter");
+  await expect(items.first()).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("option")).toHaveCount(0);
-  await expect(method).toContainText("PUT");
-  await expect(method).toBeFocused();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(method).toHaveValue("POST");
+  await expect(methods).toBeFocused();
+  await method.fill("GET");
 
-  // The app is usable after the list closes.
+  // The app is usable after the menu closes.
   await page.locator("input.address-url").fill(`${ECHO}/echo?select=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -257,11 +258,11 @@ test("with the mouse: a second click on the Export button or on a select closes 
   await clickAgain(page, exportButton);
   await expect(page.getByRole("menu")).toHaveCount(0);
 
-  const method = page.getByRole("combobox", { name: /^HTTP method/ });
-  await method.click();
-  await expect(page.getByRole("listbox")).toBeVisible();
-  await clickAgain(page, method);
-  await expect(page.getByRole("listbox")).toHaveCount(0);
+  const methods = page.getByRole("button", { name: "Common methods" });
+  await methods.click();
+  await expect(page.getByRole("menu")).toBeVisible();
+  await clickAgain(page, methods);
+  await expect(page.getByRole("menu")).toHaveCount(0);
 });
 
 // ── Modal surfaces (WAI-ARIA dialog and alert dialog patterns) ─────────────

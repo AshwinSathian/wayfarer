@@ -15,7 +15,7 @@ Collections live in IndexedDB and travel as JSON files. A file is written the sa
 
 | Field      | Shape | Notes |
 |------------|-------|-------|
-| `method`   | one of `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` | |
+| `method`   | an HTTP method: one word of at most 32 characters (an RFC 9110 token), in upper case | `CONNECT`, `TRACE` and `TRACK` can be stored; a browser will not send them, only the Local Bridge. |
 | `url`      | text | May hold `{{variables}}`; it is never parsed and rewritten. |
 | `params`   | rows | The query parameters as the composer lists them. The URL is what is sent; the rows are read from it when a request is opened. |
 | `headers`  | rows | In order. A name may appear more than once. A row that is switched off is kept and not sent. |
@@ -95,7 +95,7 @@ An export adds nothing of its own: no new ids, no new times. Exporting, importin
 ## Import
 
 * The file must say `"$id": "wayfarer/collection/2"`. A file without it, which is what versions before 2.0 wrote, is refused; nothing converts it.
-* Every field above is checked against the values the app writes: a method outside the list, a header that is not a row, a body mode or an auth type the app does not know are each reported with their path, and nothing is imported.
+* Every field above is checked against the values the app writes: a method that is not one upper-case word, a header that is not a row, a body mode or an auth type the app does not know are each reported with their path, and nothing is imported.
 * An imported collection is marked untrusted (`scriptTrust.trusted` is false), also when it replaces a collection that was trusted.
 * Files over 10 MB are refused before they are parsed.
 

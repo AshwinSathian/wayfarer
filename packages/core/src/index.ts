@@ -1,6 +1,6 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
 export { newId } from "./id";
-export { BODY_MODES, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf } from "./model/request";
+export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {
   AssertionOperator,
   AssertionTarget,

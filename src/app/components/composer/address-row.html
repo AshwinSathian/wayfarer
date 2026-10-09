@@ -1,16 +1,29 @@
 <!-- Unified method + URL bar -->
 <div class="address-bar min-w-0 flex-[1_1_20rem]">
-  <!-- Method selector -->
-  <mat-select
-    class="select address-method method-select"
-    aria-label="HTTP method"
-    [ngModel]="store.draft().method"
-    (ngModelChange)="view.onRequestMethodChange($event)"
-  >
-    @for (option of requestMethods; track option.value) {
-    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+  <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. -->
+  <mat-form-field class="field method-field">
+    <input matInput
+      #methodInput
+      aria-label="HTTP method"
+      maxlength="32"
+      spellcheck="false"
+      autocapitalize="characters"
+      autocomplete="off"
+      [value]="store.draft().method"
+      (input)="onMethodInput(methodInput)"
+     />
+  </mat-form-field>
+  <button
+    matIconButton class="btn-plain address-method method-menu"
+    type="button"
+    aria-label="Common methods"
+    [matMenuTriggerFor]="methods"
+  ><app-icon name="keyboard_arrow_down" class="icon-sm" /></button>
+  <mat-menu #methods="matMenu">
+    @for (method of requestMethods; track method) {
+    <button mat-menu-item type="button" (click)="view.onRequestMethodChange(method)">{{ method }}</button>
     }
-  </mat-select>
+  </mat-menu>
 
   <!-- URL input -->
   <mat-form-field class="field address-field">

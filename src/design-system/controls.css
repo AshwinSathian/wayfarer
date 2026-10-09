@@ -715,16 +715,35 @@
   white-space: nowrap;
 }
 
-/* Method select: mono, upper case, joined to the URL field on its right */
-.mat-mdc-select.select.method-select {
-  min-width: 110px;
-  border-right: none;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
+/* Method field: mono, upper case, joined to the URL field on its right.
+   A text field, so any HTTP method can be typed; .method-menu beside it
+   lists the common ones. */
+.mat-mdc-form-field.field.method-field {
+  --mat-form-field-outlined-outline-color: transparent;
+  --mat-form-field-outlined-hover-outline-color: transparent;
+  --mat-form-field-outlined-focus-outline-color: transparent;
+  flex: 0 0 76px;
+  min-width: 76px;
+}
+
+.field.method-field .mat-mdc-text-field-wrapper {
+  padding: 0 0 0 14px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.field.method-field input.mat-mdc-input-element {
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.address-bar .mat-mdc-icon-button.method-menu {
+  align-self: center;
+  border-radius: 0;
 }
 
 /* Environment switcher: a pill in the toolbar */

@@ -34,13 +34,35 @@ async function recordClipboard(page: Page): Promise<() => Promise<string[]>> {
   return () => page.evaluate(() => (window as unknown as { __clipboard: string[] }).__clipboard);
 }
 
-test("@claim:C-017 the composer offers GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS, and sends the one chosen", async ({ page }) => {
+test("@claim:C-017 any HTTP method can be typed and is sent in upper case, and the seven common ones are offered", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
-  await expect(page.getByRole("option")).toHaveText(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
-  await page.getByRole("option", { name: "PATCH", exact: true }).click();
+  const method = page.getByRole("textbox", { name: "HTTP method" });
+  await page.getByRole("button", { name: "Common methods" }).click();
+  await expect(page.getByRole("menuitem")).toHaveText(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+  await page.getByRole("menuitem", { name: "PATCH", exact: true }).click();
   await page.locator("input.address-url").fill(`${ECHO}/echo?c017=1`);
   expect((await sendAndEcho(page)).method).toBe("PATCH");
+
+  // Typed in lower case: fetch upper-cases only the common verbs, the composer every one.
+  await method.fill("patch");
+  await expect(method).toHaveValue("PATCH");
+  expect((await sendAndEcho(page)).method).toBe("PATCH");
+  await method.fill("purge");
+  expect((await sendAndEcho(page)).method).toBe("PURGE");
+});
+
+test("TRACE is not sent from the browser, and the page says why", async ({ page }) => {
+  await page.goto("/");
+  const sent: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().startsWith(ECHO)) sent.push(request.method());
+  });
+  await page.getByRole("textbox", { name: "HTTP method" }).fill("trace");
+  await page.locator("input.address-url").fill(`${ECHO}/echo`);
+  await send(page);
+
+  await expect(page.getByText("Browsers do not send TRACE requests. Turn on the Local Bridge to send one.")).toBeVisible();
+  expect(sent).toEqual([]);
 });
 
 for (const [name, auth, check] of [
@@ -185,14 +207,11 @@ test("@claim:C-036 the app is installable: a web app manifest with name, start U
 test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({ page }) => {
   await page.goto("/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
-  const method = page.getByRole("combobox", { name: /^HTTP method/ });
+  const method = page.getByRole("textbox", { name: "HTTP method" });
   // A new request is a GET.
   await expect(bodyTab).toHaveCount(0);
   for (const [name, tabs] of [["HEAD", 0], ["DELETE", 1], ["OPTIONS", 1], ["PATCH", 1], ["PUT", 1], ["POST", 1]] as const) {
-    await method.click();
-    await page.getByRole("option", { name, exact: true }).click();
-    // The list is closed before the select is opened again.
-    await expect(page.getByRole("option")).toHaveCount(0);
+    await method.fill(name);
     await expect(bodyTab, name).toHaveCount(tabs);
   }
 

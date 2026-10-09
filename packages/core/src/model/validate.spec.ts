@@ -32,7 +32,7 @@ const row = fc.record({ key: fc.string(), value: fc.string(), enabled: fc.boolea
 
 /** Every request the model allows. */
 const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
-  method: fc.constantFrom(...HTTP_METHODS),
+  method: fc.oneof(fc.constantFrom(...HTTP_METHODS), fc.stringMatching(/^[!#$%&'*+\-.^_`|~0-9A-Z]{1,32}$/)),
   url: fc.string({ minLength: 1 }).filter((url) => url.trim() !== ""),
   params: fc.array(row, { maxLength: 3 }),
   headers: fc.array(row, { maxLength: 3 }),
@@ -182,6 +182,15 @@ describe("validateRequestContent", () => {
     expect(paths({ ...full(), auth: { type: "bearer" } })).toEqual(["r.auth.token"]);
     expect(paths({ ...full(), auth: { type: "basic", username: "u" } })).toEqual(["r.auth.password"]);
     expect(paths({ ...full(), auth: { type: "oauth2" } })).toEqual(["r.auth.type"]);
+  });
+
+  it("takes any HTTP method in upper case, and nothing that is not one word of at most 32 characters", () => {
+    for (const method of ["PURGE", "PROPFIND", "M-SEARCH", "X_1", "A".repeat(32), "TRACE"]) {
+      expect(paths({ ...full(), method }), method).toEqual([]);
+    }
+    for (const method of ["", "get", "Patch", "GET; rm -rf ~", "GET POST", "GET\r\nX: 1", "GÉT", "A".repeat(33), 7, null]) {
+      expect(paths({ ...full(), method }), String(method)).toEqual(["r.method"]);
+    }
   });
 
   it("reads own fields only: an inherited name is a missing field", () => {

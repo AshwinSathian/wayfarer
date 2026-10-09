@@ -3,7 +3,7 @@ import { jsonBody, requestContent, rowsOf } from "../../testing/request-fixtures
 import { CollectionsStore } from "./collections-store";
 import { Idb } from "../data/idb";
 import { Collection, Folder, Meta, RequestDoc } from "../models/collections";
-import { describe, it, beforeEach, expect } from "vitest";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function meta(id: string): Meta {
   return { id, createdAt: 1, updatedAt: 1, version: 1 };
@@ -29,6 +29,11 @@ function makeRequest(id: string, collectionId: string, order = 0): RequestDoc {
 }
 
 class IdbServiceMock {
+  /** The listener the service registers for writes made in another tab. */
+  changedElsewhere: (stores: string[]) => void = () => undefined;
+  onChangeElsewhere = (listener: (stores: string[]) => void): void => {
+    this.changedElsewhere = listener;
+  };
   collections: Collection[] = [makeCollection("c1"), makeCollection("c2")];
   folders: Record<string, Folder[]> = { c1: [], c2: [] };
   requests: Record<string, RequestDoc[]> = { c1: [], c2: [] };
@@ -120,6 +125,16 @@ describe("CollectionsStore", () => {
       providers: [CollectionsStore, { provide: Idb, useValue: idb }],
     });
     service = TestBed.inject(CollectionsStore);
+  });
+
+  it("reads the tree again when another tab writes a collection, a folder or a request, and not for other stores", async () => {
+    idb.changedElsewhere(["history", "environments", "meta"]);
+    expect(idb.listCollectionsCalls).toBe(0);
+
+    for (const store of ["collections", "folders", "requests"]) {
+      idb.changedElsewhere([store]);
+    }
+    await vi.waitFor(() => expect(idb.listCollectionsCalls).toBe(3));
   });
 
   it("refresh() loads every collection's folders and requests", async () => {

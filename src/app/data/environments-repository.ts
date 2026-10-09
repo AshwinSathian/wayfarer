@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import type { Row } from "@wayfarer/core";
+import { applyVariableChanges, type Row, type VariableChange } from "@wayfarer/core";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments";
 import { IdbCore, META_STATE_KEY } from "./idb-core";
 
@@ -61,6 +61,39 @@ export class EnvironmentsRepository {
       if (updates.vars !== undefined) {
         doc.vars = updates.vars.map((row) => ({ ...row }));
       }
+      doc.meta = this.core.touchMeta(doc.meta);
+      this.core.ensureId(doc);
+      await store.put(doc);
+      return doc;
+    });
+  }
+
+  /**
+   * Changes some variables of an environment, and its name or description
+   * when given, reading the stored document inside the transaction that
+   * writes it. Another tab's change to another variable, made since this
+   * tab last read the environment, is therefore kept (D22).
+   */
+  async changeEnvironment(
+    id: EnvironmentId,
+    changes: VariableChange[],
+    details: Partial<Pick<EnvironmentDoc, "name" | "description">> = {}
+  ): Promise<EnvironmentDoc | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["environments"]);
+    const store = tx.objectStore("environments");
+    return this.core.commitOrRollback(tx, async () => {
+      const doc = await store.get(id);
+      if (!doc) {
+        return null;
+      }
+      if (details.name !== undefined) {
+        doc.name = details.name.trim();
+      }
+      if (details.description !== undefined) {
+        doc.description = details.description.trim() || undefined;
+      }
+      doc.vars = applyVariableChanges(doc.vars, changes);
       doc.meta = this.core.touchMeta(doc.meta);
       this.core.ensureId(doc);
       await store.put(doc);

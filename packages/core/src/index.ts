@@ -15,6 +15,7 @@ export type {
   Row,
   TestAssertion,
 } from "./model/request";
+export { applyVariableChanges, variableChanges, type VariableChange } from "./model/variables";
 export { validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
 export {
   IMPORT_TOO_LARGE,

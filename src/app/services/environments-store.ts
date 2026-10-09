@@ -1,5 +1,5 @@
 import { Injectable, Signal, computed, signal, inject } from "@angular/core";
-import type { Row } from "@wayfarer/core";
+import type { Row, VariableChange } from "@wayfarer/core";
 import {
   EnvironmentDoc,
   EnvironmentId,
@@ -15,6 +15,15 @@ export class EnvironmentsStore {
   private readonly environmentsState = signal<EnvironmentDoc[]>([]);
   private readonly activeIdState = signal<EnvironmentId | null>(null);
   private readonly loadingState = signal(false);
+
+  constructor() {
+    // Another tab changed an environment, or which one is active.
+    this.idb.onChangeElsewhere((stores) => {
+      if (stores.includes("environments") || stores.includes("meta")) {
+        void this.refresh();
+      }
+    });
+  }
 
   readonly environments: Signal<EnvironmentDoc[]> = computed(() =>
     this.environmentsState()
@@ -68,6 +77,17 @@ export class EnvironmentsStore {
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     const doc = await this.idb.updateEnvironment(id, updates);
+    await this.refresh();
+    return doc;
+  }
+
+  /** Changes some variables (and the name or description) without replacing the rest: see `EnvironmentsRepository.changeEnvironment`. */
+  async changeEnvironment(
+    id: EnvironmentId,
+    changes: VariableChange[],
+    details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
+  ): Promise<EnvironmentDoc | null> {
+    const doc = await this.idb.changeEnvironment(id, changes, details);
     await this.refresh();
     return doc;
   }

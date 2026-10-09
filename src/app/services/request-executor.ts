@@ -365,14 +365,11 @@ export class RequestExecutor {
     if (!active) {
       return;
     }
-    // A set replaces every row of that name with one; an empty value removes them.
-    const vars = active.vars.filter((row) => !Object.hasOwn(mutations, row.key));
-    for (const key of keys) {
-      if (mutations[key] !== "") {
-        vars.push({ key, value: mutations[key], enabled: true });
-      }
-    }
-    await this.environmentsService.updateEnvironment(active.meta.id, { vars });
+    // An empty value removes the variable. Applied to the stored rows, not to this tab's copy of them.
+    await this.environmentsService.changeEnvironment(
+      active.meta.id,
+      keys.map((key) => ({ key, value: mutations[key] === "" ? null : mutations[key] }))
+    );
   }
 
 

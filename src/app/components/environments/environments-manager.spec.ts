@@ -65,6 +65,15 @@ class EnvironmentsServiceStub {
     return null;
   }
 
+  readonly changeCalls: { id: EnvironmentId; changes: unknown; details: unknown }[] = [];
+  /** What the stored environment is after the change, as another tab may have left it. */
+  changeResult: EnvironmentDoc | null = null;
+
+  async changeEnvironment(id: EnvironmentId, changes: unknown, details: unknown): Promise<EnvironmentDoc | null> {
+    this.changeCalls.push({ id, changes, details });
+    return this.changeResult;
+  }
+
   async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
     this.duplicateCalls.push(id);
     return null;
@@ -190,15 +199,46 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.jsonValid).toBe(false);
     });
 
-    it("save() sends a trimmed name and the rows that have a name", async () => {
+    it("save() sends a trimmed name and only what changed: an untouched variable is not written again", async () => {
       component.draft.update((d) => (d ? { ...d, name: "  Renamed  " } : d));
       component.addVariable();
 
       await component.save();
 
-      expect(envService.updateCalls).toEqual([
-        { id: "e1", updates: { name: "Renamed", description: undefined, vars: rowsOf({ A: "1" }) } },
+      // A is as it was loaded and the added row has no name: nothing to change.
+      expect(envService.changeCalls).toEqual([{ id: "e1", changes: [], details: { name: "Renamed", description: "" } }]);
+      expect(envService.updateCalls).toEqual([]);
+    });
+
+    it("save() sends a set for an edited or added variable and a removal for a deleted one, then shows what is stored", async () => {
+      const draft = component.draft()!;
+      draft.vars[0].value = "2";
+      draft.vars.push({ key: " B ", value: "new", enabled: true });
+      // Another tab saved C meanwhile; the stored document has it.
+      envService.changeResult = makeEnv("e1", { A: "2", B: "new", C: "theirs" });
+
+      await component.save();
+
+      expect(envService.changeCalls[0].changes).toEqual([
+        { key: "A", value: "2" },
+        { key: "B", value: "new" },
       ]);
+      expect(component.draft()?.vars.map((row) => row.key)).toEqual(["A", "B", "C"]);
+
+      component.removeVariable(0);
+      await component.save();
+      expect(envService.changeCalls[1].changes).toEqual([{ key: "A", value: null }]);
+    });
+
+    it("shows a change made elsewhere to the open environment, but not over edits that are not saved yet", async () => {
+      envService.setEnvironments([makeEnv("e1", { A: "1", fromElsewhere: "x" })]);
+      await fixture.whenStable();
+      expect(component.draft()?.vars.map((row) => row.key)).toEqual(["A", "fromElsewhere"]);
+
+      component.draft()!.vars[0].value = "mine";
+      envService.setEnvironments([makeEnv("e1", { A: "theirs", fromElsewhere: "x" })]);
+      await fixture.whenStable();
+      expect(component.draft()?.vars[0].value).toBe("mine");
     });
 
     it("save() is a no-op when the draft's JSON is currently invalid", async () => {

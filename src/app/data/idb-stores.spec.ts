@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { IdbCore } from "./idb-core";
 import { jsonBody, rowsOf } from "../../testing/request-fixtures";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "./idb";
 import { SecretEnvelope } from "../models/secrets";
 
@@ -301,6 +301,50 @@ describe("environments (real IndexedDB)", () => {
 
   afterEach(async () => {
     await core.resetDatabase();
+  });
+
+  // P2.10 (F37): each change reads the stored rows inside the transaction that writes them.
+  it("keeps both changes when two are made at once to different variables of one environment", async () => {
+    const env = await environments.createEnvironment({ name: "Shared", vars: rowsOf({ base: "kept" }) });
+
+    // Neither is awaited before the other starts: whole-document writes from two stale copies would lose one.
+    const [first, second] = await Promise.all([
+      environments.changeEnvironment(env.meta.id, [{ key: "fromA", value: "1" }]),
+      environments.changeEnvironment(env.meta.id, [{ key: "fromB", value: "2" }], { name: " Renamed " }),
+    ]);
+
+    const [stored] = await environments.listEnvironments();
+    expect(stored.vars).toEqual(rowsOf({ base: "kept", fromA: "1", fromB: "2" }));
+    expect(stored.name).toBe("Renamed");
+    expect(first?.vars.map((row) => row.key)).toEqual(["base", "fromA"]);
+    expect(second?.vars.map((row) => row.key)).toEqual(["base", "fromA", "fromB"]);
+
+    await environments.changeEnvironment(env.meta.id, [{ key: "base", value: null }, { key: "fromA", value: "one" }]);
+    expect((await environments.listEnvironments())[0].vars).toEqual(rowsOf({ fromA: "one", fromB: "2" }));
+    expect(await environments.changeEnvironment("missing", [{ key: "a", value: "1" }])).toBeNull();
+  });
+
+  it("tells the other tabs which stores a write touched, and not the tab that wrote", async () => {
+    const otherTab = new BroadcastChannel("wayfarer:data");
+    const heard: string[][] = [];
+    otherTab.addEventListener("message", (event: MessageEvent<{ stores: string[] }>) => heard.push(event.data.stores));
+    const heardHere: string[][] = [];
+    environments.onChangeElsewhere((stores) => heardHere.push(stores));
+    try {
+      const env = await environments.createEnvironment({ name: "Dev" });
+      await environments.setActiveEnvironment(env.meta.id);
+      await environments.add({ method: "GET", url: "https://api.test", headers: {}, createdAt: 1 });
+      await vi.waitFor(() => expect(heard).toEqual([["environments"], ["meta"], ["history"]]));
+      expect(heardHere).toEqual([]);
+
+      // A message from another tab reaches this one's listeners; anything that is not a list of names is ignored.
+      otherTab.postMessage({ stores: ["requests", 7] });
+      otherTab.postMessage({ stores: "requests" });
+      otherTab.postMessage(null);
+      await vi.waitFor(() => expect(heardHere).toEqual([["requests"]]));
+    } finally {
+      otherTab.close();
+    }
   });
 
   it("creates, updates, duplicates and reorders environments", async () => {

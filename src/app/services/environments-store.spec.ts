@@ -5,11 +5,17 @@ import { EnvironmentDoc } from "../models/environments";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
+  /** The listener the service registers for writes made in another tab. */
+  changedElsewhere: (stores: string[]) => void = () => undefined;
+  onChangeElsewhere = (listener: (stores: string[]) => void): void => {
+    this.changedElsewhere = listener;
+  };
   listEnvironments = vi.fn().mockResolvedValue([]);
   getActiveEnvironmentId = vi.fn().mockResolvedValue(null);
   setActiveEnvironment = vi.fn().mockResolvedValue(undefined);
   createEnvironment = vi.fn();
   updateEnvironment = vi.fn();
+  changeEnvironment = vi.fn();
   duplicateEnvironment = vi.fn();
   deleteEnvironment = vi.fn().mockResolvedValue(undefined);
   reorderEnvironments = vi.fn().mockResolvedValue(undefined);
@@ -27,6 +33,20 @@ function buildEnv(id: string, overrides: Partial<EnvironmentDoc> = {}): Environm
 }
 
 describe("EnvironmentsStore", () => {
+  it("reads the environments again when another tab changes one, or the active one; and after a change of variables", async () => {
+    idb.changedElsewhere(["requests", "history"]);
+    expect(idb.listEnvironments).not.toHaveBeenCalled();
+
+    idb.changedElsewhere(["environments"]);
+    idb.changedElsewhere(["meta"]);
+    await vi.waitFor(() => expect(idb.listEnvironments).toHaveBeenCalledTimes(2));
+
+    idb.changeEnvironment.mockResolvedValue(buildEnv("a"));
+    expect(await service.changeEnvironment("a", [{ key: "k", value: "v" }], { name: "A" })).toEqual(buildEnv("a"));
+    expect(idb.changeEnvironment).toHaveBeenCalledWith("a", [{ key: "k", value: "v" }], { name: "A" });
+    expect(idb.listEnvironments).toHaveBeenCalledTimes(3);
+  });
+
   let service: EnvironmentsStore;
   let idb: IdbServiceMock;
 

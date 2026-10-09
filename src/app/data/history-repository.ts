@@ -28,6 +28,7 @@ export class HistoryRepository {
       const tx = db.transaction("history", "readwrite");
       const key = await tx.store.add(item as HistoryRecord);
       await tx.done;
+      this.core.announce(["history"]);
       return key;
     } catch (error) {
       this.core.logError("add operation failed.", error);
@@ -129,6 +130,7 @@ export class HistoryRepository {
       const tx = db.transaction("history", "readwrite");
       await tx.store.delete(id);
       await tx.done;
+      this.core.announce(["history"]);
     } catch (error) {
       this.core.logError("delete operation failed.", error);
     }
@@ -150,6 +152,7 @@ export class HistoryRepository {
       const tx = db.transaction("history", "readwrite");
       await tx.store.clear();
       await tx.done;
+      this.core.announce(["history"]);
     } catch (error) {
       this.core.logError("clear operation failed.", error);
     }

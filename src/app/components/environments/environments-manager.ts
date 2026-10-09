@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, effect, signal, untracked, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -23,13 +23,15 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText, type Row } from "@wayfarer/core";
+import { readImportText, variableChanges, type Row } from "@wayfarer/core";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
   name: string;
   description?: string;
   vars: Row[];
+  /** The variables as they were when this draft was made: a save sends what changed since. */
+  loaded: Row[];
   jsonText: string;
   jsonValid: boolean;
 }
@@ -98,6 +100,15 @@ export class EnvironmentsManager implements OnInit {
       const env = this.activeEnvironment();
       if (env && !this.selectedId()) {
         this.selectEnvironment(env.meta.id);
+      }
+    });
+    // The open environment was changed elsewhere (another tab, a script):
+    // show it, unless there are edits here that a save has not sent yet.
+    effect(() => {
+      const stored = this.environments().find((env) => env.meta.id === this.selectedId());
+      const draft = untracked(this.draft);
+      if (stored && draft && !this.hasEdits(draft) && JSON.stringify(stored.vars) !== JSON.stringify(draft.loaded)) {
+        this.draft.set(this.toDraft(stored));
       }
     });
 
@@ -318,11 +329,20 @@ export class EnvironmentsManager implements OnInit {
     const vars = draft.vars
       .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
       .filter((row) => row.key);
-    await this.envService.updateEnvironment(draft.id, {
+    // Only what this editor changed is written: another tab may have saved other variables meanwhile.
+    const saved = await this.envService.changeEnvironment(draft.id, variableChanges(draft.loaded, vars), {
       name: draft.name.trim(),
-      description: draft.description?.trim(),
-      vars,
+      description: draft.description?.trim() ?? "",
     });
+    if (saved && this.selectedId() === saved.meta.id) {
+      // What is stored now, the other tab's variables included.
+      this.draft.set(this.toDraft(saved));
+    }
+  }
+
+  private hasEdits(draft: EnvironmentDraft): boolean {
+    const named = draft.vars.filter((row) => row.key.trim());
+    return !draft.jsonValid || variableChanges(draft.loaded, named).length > 0;
   }
 
   private updateDraft(draft: EnvironmentDraft): void {
@@ -354,6 +374,7 @@ export class EnvironmentsManager implements OnInit {
       name: env.name,
       description: env.description,
       vars,
+      loaded: env.vars.map((row) => ({ ...row })),
       jsonText: JSON.stringify(Object.fromEntries(vars.map((row) => [row.key, row.value])), null, 2),
       jsonValid: true,
     };

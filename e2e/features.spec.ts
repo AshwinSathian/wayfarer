@@ -139,6 +139,16 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   const arrive = page.locator(".animate-response-arrive").first();
   await expect(arrive).toBeVisible();
   expect(parseFloat(await arrive.evaluate((el) => getComputedStyle(el).animationDuration))).toBeLessThan(0.01);
+
+  // Angular Material's own motion too: a drawer's slide, a tab's sliding
+  // underline and a dialog's entrance all end at once.
+  const seconds = (selector: string, property: "transitionDuration" | "animationDuration") =>
+    page.locator(selector).first().evaluate((el, p) => Math.max(...getComputedStyle(el)[p].split(",").map(parseFloat)), property);
+  expect(await seconds("mat-sidenav.mat-drawer-end", "transitionDuration")).toBeLessThan(0.01);
+  expect(await seconds(".tab-bar .mdc-tab-indicator__content", "transitionDuration")).toBeLessThan(0.01);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+  expect(await seconds(".mat-mdc-dialog-surface", "animationDuration")).toBeLessThan(0.01);
 });
 
 test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange", async ({ page }) => {

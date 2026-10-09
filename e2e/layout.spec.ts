@@ -70,7 +70,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The composer ran 49 px past the window (no box-sizing reset), and below
   // 1024 px the toolbar was wider than the space beside the pinned sidebar.
-  for (const width of [1440, 1024, 900, 768, 767, 640, 420, 360]) {
+  for (const width of [1440, 1024, 900, 820, 768, 767, 640, 420, 360]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
@@ -81,6 +81,17 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
       const send = await page.getByRole("button", { name: "Send request" }).boundingBox();
       expect(send!.x + send!.width).toBeLessThanOrEqual(width);
+    });
+
+    // Beside the pinned sidebar, from 768 to about 1000 px, the address row had
+    // no room for the URL and its buttons on one line: the field shrank to 16 px.
+    test(`the URL field has room to type in at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      await still(page.locator("app-api-params"));
+      const url = await page.locator("input.address-url").boundingBox();
+      // The narrowest it gets by design is on a 360 px phone: about 120 px.
+      expect(url!.width).toBeGreaterThanOrEqual(100);
     });
   }
 

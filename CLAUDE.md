@@ -78,9 +78,14 @@ code errors.
   `src/design-system/controls.css`. In both themes they must come from the
   design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
 - Nothing may be wider than the window at any width from 360 px up. The
-  e2e test "nothing is wider than a N px window" checks eight widths; add a
+  e2e test "nothing is wider than a N px window" checks nine widths; add a
   width there when a breakpoint changes. A flex child that holds wide
   content needs `min-w-0`.
+- A window-width breakpoint (`sm:`, `md:`) does not know how wide a panel
+  is: beside the pinned sidebar a 1024 px window leaves the composer 592 px.
+  A row that must not crush a field wraps by its own room (`flex-wrap` and
+  a `flex-basis`), as the address row does. "the URL field has room to type
+  in at N px" checks it at the same nine widths.
 - Two widths decide the layout, both in `App.updateViewportFlags`: below
   1024 px the sidebar is a drawer over the page (`sidebarOverlay`), and
   below 768 px the composer's sections stack (`isMobile`). They are

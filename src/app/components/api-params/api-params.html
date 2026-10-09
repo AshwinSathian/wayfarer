@@ -1,9 +1,12 @@
 <div class="ds-panel p-6 w-full space-y-5">
 
   <!-- ── Address bar row ───────────────────────────────────── -->
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+  <!-- Wraps by the room it has, not by the window's width: beside the pinned
+       sidebar a 1024 px window leaves this row 544 px. The bar asks for 20rem;
+       when the buttons do not fit beside that, they go on the next line. -->
+  <div class="flex flex-wrap items-start gap-3">
     <!-- Unified method + URL bar -->
-    <div class="address-bar flex-1">
+    <div class="address-bar min-w-0 flex-[1_1_20rem]">
       <!-- Method selector -->
       <mat-select
         class="select address-method method-select"
@@ -30,7 +33,7 @@
     </div>
 
     <!-- Action buttons -->
-    <div class="flex items-center gap-2 sm:shrink-0">
+    <div class="flex shrink-0 items-center gap-2">
       <button
         matButton="outlined" class="btn-secondary btn-square"
         type="button"

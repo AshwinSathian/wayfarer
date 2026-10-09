@@ -1,7 +1,9 @@
-import { Injectable, effect, inject, signal } from "@angular/core";
+import { Injectable, computed, effect, inject, signal } from "@angular/core";
 import {
   FORBIDDEN_METHODS,
   RAW_CONTENT_TYPES,
+  VariableNestingError,
+  VariableResolver,
   emptyRequest,
   isHttpMethod,
   newId,
@@ -12,11 +14,13 @@ import {
   type RequestBody,
   type RequestContent,
   type Row,
+  type ScopeStack,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { PastRequest } from "../models/history";
 import { TestResult } from "../models/test-assertion";
 import { BridgeSettings } from "../services/bridge-settings";
+import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
 import {
@@ -26,12 +30,8 @@ import {
   RequestExecutor,
   SendBlockedError,
 } from "../services/request-executor";
-import {
-  VariableContext,
-  VariableToken,
-  collectVariableTokens,
-  resolveTemplate,
-} from "../shared/environments/env-resolution";
+import { RequestSave } from "../services/request-save";
+import { VariableToken } from "../services/variable-focus";
 import { writeToClipboard } from "../shared/http/clipboard";
 import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
 import {
@@ -120,6 +120,8 @@ export class WorkspaceStore {
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
   private readonly bridge = inject(BridgeSettings);
+  private readonly collections = inject(CollectionsStore);
+  private readonly saved = inject(RequestSave);
 
   readonly draft = signal<Draft>(emptyDraft());
 
@@ -143,17 +145,29 @@ export class WorkspaceStore {
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly lastTestResults = signal<TestResult[]>([]);
 
-  /** Request-scoped variables (distinct from environment vars). Never mutated post-construction today — a hook for a future "request variables" UI. */
-  private readonly requestVariables: Record<string, string> = {};
+  /**
+   * Where a `{{variable}}` of the draft gets its value: the active
+   * environment, then the collection the request was opened from, then the
+   * globals. A request not saved yet has no collection.
+   */
+  private readonly scopes = computed<ScopeStack>(() => {
+    const collectionId = this.saved.loadedCollectionRequest()?.collectionId;
+    return {
+      environment: this.environments.activeEnvironment()?.vars,
+      collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables,
+      global: this.environments.globals(),
+    };
+  });
   private previewFingerprint = "";
   /** Aborts the send in flight. */
   private inFlight: AbortController | null = null;
 
   constructor() {
-    // Switching the active environment goes through no method here, so the
-    // {{var}} preview needs its own trigger.
+    // A change of environment, of the open request's collection or of a
+    // variable anywhere goes through no method here, so the {{var}} preview
+    // needs its own trigger.
     effect(() => {
-      this.environments.activeEnvironment();
+      this.scopes();
       this.refreshVariablePreview();
     });
   }
@@ -298,9 +312,14 @@ export class WorkspaceStore {
       return false;
     }
 
-    const resolvedForValidation = resolveTemplate(endpointText.trim(), this.variableContext());
-    if (!validateUrl(resolvedForValidation)) {
-      this.endpointError.set("Please enter a valid URL");
+    try {
+      if (!validateUrl(new VariableResolver(this.scopes()).resolve(endpointText.trim()))) {
+        this.endpointError.set("Please enter a valid URL");
+        return false;
+      }
+    } catch (error) {
+      if (!(error instanceof VariableNestingError)) throw error;
+      this.endpointError.set(error.message);
       return false;
     }
 
@@ -319,7 +338,8 @@ export class WorkspaceStore {
       });
     } catch (error) {
       this.loadingState.set(false);
-      if (error instanceof SendBlockedError) {
+      // Variables that refer to each other in a circle: nothing is sent.
+      if (error instanceof SendBlockedError || error instanceof VariableNestingError) {
         this.endpointError.set(error.message);
         return false;
       }
@@ -358,32 +378,35 @@ export class WorkspaceStore {
     if (!endpoint) {
       return;
     }
-    // Awaited only when the body has a file to read.
-    const { method, url, headers, body } = await this.resolveRequest(endpoint);
+    let request: BuiltRequest;
+    try {
+      // Awaited only when the body has a file to read.
+      request = await this.resolveRequest(endpoint);
+    } catch (error) {
+      if (!(error instanceof VariableNestingError)) throw error;
+      this.endpointError.set(error.message);
+      return;
+    }
+    const { method, url, headers, body } = request;
     // A file or a form has no text to quote: the command is written without a body.
     await writeToClipboard(buildCurlCommand({ method, url, headers: Object.fromEntries(headers), body: textOf(body) }));
   }
 
   refreshVariablePreview(): void {
-    const activeEnv = this.environments.activeEnvironment();
+    const environmentId = this.environments.activeEnvironment()?.meta.id;
+    const scopes = this.scopes();
     const { url: endpoint, headers } = this.draft();
     const body = bodyTexts(this.draft().body);
-    const fingerprint = JSON.stringify({
-      endpoint,
-      headers,
-      body,
-      // The variables' values are part of it: editing a value in the same
-      // environment must refresh a preview computed before the edit.
-      env: activeEnv ? { id: activeEnv.meta.id, vars: activeEnv.vars } : null,
-    });
+    // The variables' values are part of it: editing a value must refresh a
+    // preview computed before the edit.
+    const fingerprint = JSON.stringify({ endpoint, headers, body, environmentId, scopes });
     if (fingerprint === this.previewFingerprint) {
       return;
     }
     this.previewFingerprint = fingerprint;
-    const tokens = collectVariableTokens(
-      { url: endpoint, headers, body },
-      { requestVars: this.requestVariables, environment: activeEnv, globals: {} }
-    );
+    const tokens = new VariableResolver(scopes)
+      .tokens({ url: endpoint, headers, body })
+      .map((token) => (token.source === "environment" ? { ...token, environmentId } : token));
     this.variableTokens.set(tokens);
     this.missingVariableKeys.set(tokens.filter((token) => token.source === "missing").map((token) => token.key));
   }
@@ -416,8 +439,8 @@ export class WorkspaceStore {
    * or exported as a runnable command. The editors keep the literal template.
    */
   private resolveRequest(endpointText: string): BuiltRequest | Promise<BuiltRequest> {
-    const context = this.variableContext();
-    const resolve = (text: string): string => resolveTemplate(text, context);
+    const resolver = new VariableResolver(this.scopes());
+    const resolve = (text: string): string => resolver.resolve(text);
     const content = this.snapshot();
     // A promise only when a file has to be read: everything else is built at once.
     const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
@@ -503,14 +526,6 @@ export class WorkspaceStore {
       throw new SendBlockedError(`The file "${ref.fileName}" is not stored in this browser. Choose it again.`);
     }
     return file;
-  }
-
-  private variableContext(): VariableContext {
-    return {
-      requestVars: this.requestVariables,
-      environment: this.environments.activeEnvironment(),
-      globals: {},
-    };
   }
 
   private applyExecutionResponse(response: RequestExecutionResponse): void {

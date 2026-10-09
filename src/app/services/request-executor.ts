@@ -13,7 +13,6 @@ import {
   AssertionResponseContext,
 } from "../shared/scripts/assertion-runner";
 import { PastRequest } from "../models/history";
-import { variablesOf } from "../shared/environments/env-resolution";
 import { TestAssertion, TestResult } from "../models/test-assertion";
 import {
   BinaryBody,
@@ -22,6 +21,7 @@ import {
   newId,
   parseJson,
   stringifyJson,
+  variablesByName,
   type ResponseEnvelope,
 } from "@wayfarer/core";
 
@@ -353,7 +353,7 @@ export class RequestExecutor {
   }
 
   private getEnvSnapshot(): Record<string, string> {
-    return variablesOf(this.environmentsService.activeEnvironment()?.vars);
+    return Object.fromEntries(variablesByName(this.environmentsService.activeEnvironment()?.vars ?? []));
   }
 
   private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {

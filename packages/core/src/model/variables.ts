@@ -34,14 +34,14 @@ export function applyVariableChanges(rows: Row[], changes: VariableChange[]): Ro
 }
 
 /** The enabled variables by name. A later row wins over an earlier one of the same name. */
-function byName(rows: Row[]): Map<string, string> {
+export function variablesByName(rows: Row[]): Map<string, string> {
   return new Map(rows.filter((row) => row.enabled && row.key).map((row) => [row.key, row.value]));
 }
 
 /** The changes that turn the variables of `before` into those of `after`: what an editor did to the rows it was given. */
 export function variableChanges(before: Row[], after: Row[]): VariableChange[] {
-  const was = byName(before);
-  const is = byName(after);
+  const was = variablesByName(before);
+  const is = variablesByName(after);
   return [
     ...[...is].filter(([key, value]) => was.get(key) !== value).map(([key, value]) => ({ key, value })),
     ...[...was.keys()].filter((key) => !is.has(key)).map((key) => ({ key, value: null })),

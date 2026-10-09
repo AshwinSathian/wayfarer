@@ -11,6 +11,7 @@ import { EnvironmentDoc } from '../app/models/environments';
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
 import { requestContent, rowsOf } from './request-fixtures';
+import type { Row } from '@wayfarer/core';
 import { vi } from "vitest";
 import { FetchMock } from './fetch-mock';
 
@@ -36,6 +37,7 @@ class EnvironmentsServiceStub {
   readonly activeEnvironment = this.activeEnvSignal.asReadonly();
   readonly environments = signal<EnvironmentDoc[]>([]).asReadonly();
   readonly loading = signal(false).asReadonly();
+  readonly globals = signal<Row[]>([]);
   ensureLoaded = vi.fn().mockReturnValue(Promise.resolve());
   updateEnvironment = vi.fn()
     .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {

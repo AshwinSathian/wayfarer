@@ -215,7 +215,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
 
   await node.click({ button: "right" });
   const items = page.getByRole("menuitem");
-  await expect(items).toHaveText(["New Folder", "New Request", "Rename", "Duplicate", "Export", "Delete"]);
+  await expect(items).toHaveText(["New Folder", "New Request", "Variables", "Rename", "Duplicate", "Export", "Delete"]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
@@ -228,6 +228,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   // Opens again, and an item chosen with the keyboard runs.
   await node.click({ button: "right" });
   await expect(items.first()).toBeFocused();
+  await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
   await expect(page.getByRole("menuitem", { name: "Rename" })).toBeFocused();

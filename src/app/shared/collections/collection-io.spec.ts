@@ -12,6 +12,11 @@ describe("collection-io", () => {
       name: "Sample",
       description: "Desc",
       order: 2,
+      variables: [
+        { key: "base", value: "https://api.test", enabled: true },
+        { key: "off", value: "x", enabled: false },
+        { key: "base", value: "second", enabled: true },
+      ],
       scriptTrust: { trusted: true },
     },
     folders: [
@@ -128,6 +133,7 @@ describe("collection-io", () => {
         meta: { id: "col-1", createdAt: 1, updatedAt: 1, version: 1 },
         name: "Valid",
         order: 1,
+        variables: [],
       },
       folders: [],
       requests: [],
@@ -139,7 +145,7 @@ describe("collection-io", () => {
   const validExport = () => ({
     $id: "wayfarer/collection/2" as const,
     meta: meta("export-1"),
-    collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1 },
+    collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [] },
     folders: [
       { id: "f-parent", meta: meta("f-parent"), collectionId: "col-1", name: "Parent", order: 1 },
       { id: "f-child", meta: meta("f-child"), collectionId: "col-1", parentFolderId: "f-parent", name: "Child", order: 2 },
@@ -169,6 +175,7 @@ describe("collection-io", () => {
       "collection.id",
       "collection.name",
       "collection.order",
+      "collection.variables",
       "folders[0].meta",
       "folders[0].collectionId",
       "requests[0].method",
@@ -183,7 +190,7 @@ describe("collection-io", () => {
     const result = validateCollection({
       $id: "wayfarer/collection/2",
       meta: meta("m"),
-      collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1 },
+      collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1, variables: [] },
       folders: [],
       requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", order: 1, ...requestContent({ url: "https://a.test" }), method: "GET; rm -rf ~" }],
     });

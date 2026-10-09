@@ -13,7 +13,7 @@
     <span class="type-caption text-label-tertiary capitalize">{{ token.source }}</span>
   </div>
   <div class="type-caption text-label-secondary mt-0.5">
-    {{ token.value ?? 'Not resolved' }}
+    {{ token.error ?? token.value ?? (token.source === 'dynamic' ? 'New value each send' : token.source === 'secret' ? 'From the vault' : 'Not resolved') }}
   </div>
 </div>
 }

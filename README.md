@@ -191,6 +191,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 
 ## Docs
 
+- [Variables](docs/variables.md)
 - [Collections schema](docs/collections-schema.md)
 - [Secrets model](docs/secrets.md)
 - [Storage layout](docs/storage.md)

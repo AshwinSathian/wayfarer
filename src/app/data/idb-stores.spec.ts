@@ -289,6 +289,23 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     });
   });
 
+  it("a collection starts with no variables; a change keeps what another change set; they go into an export and a copy (P2.4)", async () => {
+    const { collection } = await seed();
+    expect(collection.variables).toEqual([]);
+
+    await Promise.all([
+      collections.changeCollectionVariables(collection.meta.id, [{ key: "fromA", value: "1" }]),
+      collections.changeCollectionVariables(collection.meta.id, [{ key: "fromB", value: "2" }]),
+    ]);
+    expect((await collections.listCollections())[0].variables).toEqual(rowsOf({ fromA: "1", fromB: "2" }));
+    expect(await collections.changeCollectionVariables("missing", [{ key: "a", value: "1" }])).toBeNull();
+
+    const file = (await collections.getCollectionExport(collection.meta.id))!;
+    expect(file.collection.variables).toEqual(rowsOf({ fromA: "1", fromB: "2" }));
+    const copy = await collections.duplicateCollection(collection.meta.id);
+    expect(copy?.variables).toEqual(rowsOf({ fromA: "1", fromB: "2" }));
+  });
+
   it("trusts the scripts of a collection made here, and not those of an imported one", async () => {
     const { collection } = await seed();
     expect(collection.scriptTrust).toEqual({ trusted: true });
@@ -347,6 +364,27 @@ describe("environments (real IndexedDB)", () => {
     await environments.changeEnvironment(env.meta.id, [{ key: "base", value: null }, { key: "fromA", value: "one" }]);
     expect((await environments.listEnvironments())[0].vars).toEqual(rowsOf({ fromA: "one", fromB: "2" }));
     expect(await environments.changeEnvironment("missing", [{ key: "a", value: "1" }])).toBeNull();
+  });
+
+  it("keeps both changes when two are made at once to different global variables, and tells the other tabs (P2.4)", async () => {
+    const otherTab = new BroadcastChannel("wayfarer:data");
+    const heard: string[][] = [];
+    otherTab.addEventListener("message", (event: MessageEvent<{ stores: string[] }>) => heard.push(event.data.stores));
+    try {
+      expect(await environments.getGlobals()).toEqual([]);
+      // Not awaited one after the other: each reads the stored rows inside its own transaction.
+      await Promise.all([
+        environments.changeGlobals([{ key: "fromA", value: "1" }]),
+        environments.changeGlobals([{ key: "fromB", value: "2" }]),
+      ]);
+      expect(await environments.getGlobals()).toEqual(rowsOf({ fromA: "1", fromB: "2" }));
+      expect(await environments.changeGlobals([{ key: "fromA", value: null }])).toEqual(rowsOf({ fromB: "2" }));
+      await vi.waitFor(() => expect(heard).toEqual([["meta"], ["meta"], ["meta"]]));
+      // The active environment lives in the same store, in another record.
+      expect(await environments.getActiveEnvironmentId()).toBeNull();
+    } finally {
+      otherTab.close();
+    }
   });
 
   it("tells the other tabs which stores a write touched, and not the tab that wrote", async () => {

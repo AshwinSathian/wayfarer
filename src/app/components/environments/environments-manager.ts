@@ -23,7 +23,8 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
-import { applyVariableChanges, readImportText, variableChanges, type Row } from "@wayfarer/core";
+import { VariablesDialog } from "../variables/variables-dialog";
+import { applyVariableChanges, readImportText, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
 
 /** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
 function jsonOf(rows: Row[]): string {
@@ -55,6 +56,7 @@ interface EnvironmentDraft {
     Dialog,
     MatTooltip,
     JsonEditor,
+    VariablesDialog,
   ],
   templateUrl: "./environments-manager.html",
   styleUrl: "./environments-manager.css",
@@ -73,6 +75,10 @@ export class EnvironmentsManager implements OnInit {
   readonly environments = this.envService.environments;
   readonly activeEnvironment = this.envService.activeEnvironment;
   readonly loading = this.envService.loading;
+  readonly globals = this.envService.globals;
+  readonly globalsVisible = signal(false);
+  readonly globalsHint =
+    "Every request can use these as {{name}}, whichever environment is active. An environment's or a collection's variable with the same name wins.";
   readonly selectedId: WritableSignal<EnvironmentId | null> = signal(null);
   readonly draft: WritableSignal<EnvironmentDraft | null> = signal(null);
   readonly editorTab = signal<"pairs" | "json">("pairs");
@@ -205,6 +211,10 @@ export class EnvironmentsManager implements OnInit {
 
   closeEnvImportDialog(): void {
     this.envImport.close();
+  }
+
+  async saveGlobals(changes: VariableChange[]): Promise<void> {
+    await this.envService.changeGlobals(changes);
   }
 
   async duplicate(env: EnvironmentDoc): Promise<void> {

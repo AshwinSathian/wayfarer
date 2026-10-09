@@ -26,7 +26,8 @@ import {
   buildContextItems,
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "@wayfarer/core";
+import { readImportText, type VariableChange } from "@wayfarer/core";
+import { VariablesDialog } from "../variables/variables-dialog";
 
 type NodeData = CollectionNodeData;
 
@@ -46,6 +47,7 @@ export interface PaletteAction {
     MatButton,
     Dialog,
     MatSelect, MatOption,
+    VariablesDialog,
   ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
@@ -78,6 +80,13 @@ export class CollectionsSidebar implements OnInit {
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
+  readonly variablesHint =
+    "Every request of this collection can use these as {{name}}. A variable of the active environment with the same name wins.";
+  /** The collection whose variables are being edited. */
+  readonly variablesOf = signal<string | null>(null);
+  readonly variablesOfCollection = computed(
+    () => this.collectionsService.tree().find((entry) => entry.collection.meta.id === this.variablesOf())?.collection.variables ?? []
+  );
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -314,6 +323,10 @@ export class CollectionsSidebar implements OnInit {
       void this.exportCollection(node);
       return;
     }
+    if (action === "variables") {
+      this.variablesOf.set((node.data as NodeData).ref.meta.id);
+      return;
+    }
     void this.handleAction(action, node);
   }
 
@@ -389,13 +402,20 @@ export class CollectionsSidebar implements OnInit {
     this.cancelEdit();
   }
 
+  async saveCollectionVariables(changes: VariableChange[]): Promise<void> {
+    const id = this.variablesOf();
+    if (id) {
+      await this.collectionsService.changeCollectionVariables(id, changes);
+    }
+  }
+
   cancelEdit(): void {
     this.editingKey.set(null);
     this.editingValue.set("");
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export">,
+    action: Exclude<CollectionNodeAction, "export" | "variables">,
     node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;

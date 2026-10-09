@@ -94,6 +94,7 @@ export async function seedAndOpen(
         meta: meta("col-tw"),
         name: "Tripwire collection",
         order: 0,
+        variables: [],
         scriptTrust: { trusted: true },
       });
       tx.objectStore("requests").put({

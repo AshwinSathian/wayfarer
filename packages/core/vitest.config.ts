@@ -9,7 +9,8 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       exclude: ["src/**/*.spec.ts", "src/index.ts"],
       reporter: ["text-summary", "json-summary"],
-      thresholds: { lines: 90 },
+      // The resolver decides what goes on the wire: every branch of it is tested (P2.4).
+      thresholds: { lines: 90, "src/variables/resolver.ts": { branches: 100 } },
     },
   },
 });

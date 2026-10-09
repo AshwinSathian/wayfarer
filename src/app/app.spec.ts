@@ -19,6 +19,7 @@ class IdbServiceMock {
   // SecretsVault.hasAnySecrets(), both of which round-trip through Idb.
   listEnvironments = vi.fn().mockReturnValue(Promise.resolve([]));
   getActiveEnvironmentId = vi.fn().mockReturnValue(Promise.resolve(null));
+  getGlobals = vi.fn().mockReturnValue(Promise.resolve([]));
   setActiveEnvironment = vi.fn().mockReturnValue(Promise.resolve());
   peekSecretEnvelope = vi.fn().mockReturnValue(Promise.resolve(null));
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));

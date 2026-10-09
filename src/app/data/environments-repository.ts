@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { applyVariableChanges, type Row, type VariableChange } from "@wayfarer/core";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments";
 import { IdbCore, META_STATE_KEY } from "./idb-core";
+import { GlobalsRecord, META_GLOBALS_KEY, MetaState } from "./idb-schema";
 
 @Injectable({ providedIn: "root" })
 export class EnvironmentsRepository {
@@ -154,6 +155,28 @@ export class EnvironmentsRepository {
     });
   }
 
+  /** The global variables: usable by every request, under any environment. */
+  async getGlobals(): Promise<Row[]> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadonly(["meta"]);
+    const record = (await tx.objectStore("meta").get(META_GLOBALS_KEY)) as GlobalsRecord | undefined;
+    await tx.done;
+    return record?.variables ?? [];
+  }
+
+  /** Changes some global variables, reading the stored rows inside the transaction that writes them (D22). */
+  async changeGlobals(changes: VariableChange[]): Promise<Row[]> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["meta"]);
+    const store = tx.objectStore("meta");
+    return this.core.commitOrRollback(tx, async () => {
+      const record = (await store.get(META_GLOBALS_KEY)) as GlobalsRecord | undefined;
+      const variables = applyVariableChanges(record?.variables ?? [], changes);
+      await store.put({ key: META_GLOBALS_KEY, variables });
+      return variables;
+    });
+  }
+
   async getActiveEnvironmentId(): Promise<EnvironmentId | null> {
     await this.core.ensurePersistentSupport();
     const meta = await this.core.getMetaState();
@@ -165,7 +188,7 @@ export class EnvironmentsRepository {
     const tx = await this.core.txReadWrite(["meta"]);
     const store = tx.objectStore("meta");
     await this.core.commitOrRollback(tx, async () => {
-      const state = (await store.get(META_STATE_KEY)) ?? {
+      const state: MetaState = ((await store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
         key: META_STATE_KEY,
         schemaVersion: 1,
         activeEnvironmentId: null,

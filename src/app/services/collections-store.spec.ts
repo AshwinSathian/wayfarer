@@ -10,7 +10,7 @@ function meta(id: string): Meta {
 }
 
 function makeCollection(id: string, order = 0): Collection {
-  return { id, meta: meta(id), name: `Collection ${id}`, order, scriptTrust: { trusted: true } };
+  return { id, meta: meta(id), name: `Collection ${id}`, order, variables: [], scriptTrust: { trusted: true } };
 }
 
 function makeFolder(id: string, collectionId: string, order = 0): Folder {

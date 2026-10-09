@@ -1,4 +1,5 @@
 import { DBSchema } from "idb";
+import type { Row } from "@wayfarer/core";
 import {
   Collection,
   CollectionId,
@@ -45,11 +46,18 @@ export interface StoredFile {
 }
 
 export const META_STATE_KEY = "state";
+export const META_GLOBALS_KEY = "globals";
 
 export interface MetaState {
   key: typeof META_STATE_KEY;
   schemaVersion: number;
   activeEnvironmentId?: EnvironmentId | null;
+}
+
+/** The global variables: one record, so a change to them is one read and one write in one transaction. */
+export interface GlobalsRecord {
+  key: typeof META_GLOBALS_KEY;
+  variables: Row[];
 }
 
 export interface ApiSandboxDB extends DBSchema {
@@ -110,12 +118,12 @@ export interface ApiSandboxDB extends DBSchema {
     value: StoredFile;
   };
   meta: {
-    key: typeof META_STATE_KEY;
-    value: MetaState;
+    key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY;
+    value: MetaState | GlobalsRecord;
   };
 }
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 6;
+export const DB_VERSION = 7;
 export const DEFAULT_SCHEMA_VERSION = 1;

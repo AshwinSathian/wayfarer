@@ -169,4 +169,61 @@ test.describe("Accessibility (primary flows)", () => {
       await page.getByRole("button", { name: "Close history" }).click();
     }
   });
+
+// The claim tests above scan the flows C-038 names. This walks the rest of
+// the app in both themes: a colour that passes on one theme's surfaces can
+// fail on the other's (status green was 1.85:1 on the light theme's fill).
+for (const theme of ["dark", "light"] as const) {
+  test(`every view, menu and dialog is free of critical and serious violations in the ${theme} theme`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${ECHO}/content/json?sweep=1`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+
+    const found: string[] = [];
+    const scan = async (state: string) => {
+      // Off anything with a tooltip: an open one is scanned too, and belongs to no state here.
+      await page.mouse.move(640, 880);
+      const results = await analyze(page);
+      for (const violation of results.violations.filter((v) => v.impact === "serious" || v.impact === "critical")) {
+        for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")} (${node.failureSummary?.split("\n")[1]?.trim() ?? ""})`);
+      }
+    };
+    const button = (name: string) => page.getByRole("button", { name, exact: true });
+
+    await scan("composer and response");
+    await page.getByRole("combobox", { name: /^HTTP method/ }).click();
+    await scan("method list");
+    await page.keyboard.press("Escape");
+    await button("Export response").click();
+    await scan("export menu");
+    await page.keyboard.press("Escape");
+    for (const tab of ["Params", "Auth", "Scripts"]) {
+      await page.locator("app-api-params").getByRole("tab", { name: tab, exact: true }).click();
+      await scan(`composer ${tab}`);
+    }
+    for (const tab of ["Headers", "Timings", "Tests"]) {
+      await page.locator("app-response-viewer").getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
+      await scan(`response ${tab}`);
+    }
+    for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "New environment", "New collection"]) {
+      await button(opener).click();
+      await expect(page.getByRole("dialog").first()).toBeVisible();
+      await scan(opener);
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await scan("phone");
+    await button("Toggle sidebar").click();
+    await expect(page.getByRole("dialog", { name: "Navigation" })).toBeVisible();
+    await scan("phone navigation");
+
+    expect(found).toEqual([]);
+  });
+}
 });

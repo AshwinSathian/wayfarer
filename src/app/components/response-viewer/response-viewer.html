@@ -184,7 +184,8 @@
           <!-- ── Headers tab ────────────────────────────────── -->
           <div class="tab-pane" [hidden]="activeTab() !== 'headers'">
             <div class="pb-4">
-              <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden">
+              <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
+              <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden" role="region" aria-label="Response headers" tabindex="0">
                 @if (responseHeaders().length) {
                 <table class="ds-table">
                   <tbody>

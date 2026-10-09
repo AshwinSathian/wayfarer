@@ -34,6 +34,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs <!-- claim:C-019 -->
   - Body tab for `POST`, `PUT` and `PATCH` only, with a Basic (rows) or **JSON** editor mode <!-- claim:C-039 -->
   - **Copy as cURL** for any request once it has a URL <!-- claim:C-020 -->
+  - **Cancel** a request in flight; an optional request timeout under Settings (none by default) <!-- claim:C-042 -->
 
 - **Pre/Post-Request Scripts & Test Assertions**
 

@@ -1,6 +1,8 @@
 import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
@@ -45,7 +47,7 @@ interface ResponseHeader {
 
 @Component({
   selector: "app-response-viewer",
-  imports: [
+  imports: [MatFormField, MatInput, 
     JsonPipe,
     Icon,
     FormsModule,

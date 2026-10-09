@@ -289,72 +289,88 @@
 }
 
 /* ── Text input ──────────────────────────────────────────── */
-.ui-input {
-  height: 40px;
+/* Markup: <mat-form-field class="field"> around <input matInput>, outline
+   appearance (set app-wide in app.config.ts), with the label outside it.
+   Width and flex utilities go on the form field. Height, outline colours,
+   shape and type come through Material's tokens. */
+.mat-mdc-form-field.field {
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-container-vertical-padding: 10px;
+}
+
+.field .mat-mdc-text-field-wrapper {
   padding: 0 13px;
-  border: 1px solid var(--separator);
   border-radius: var(--radius-md);
   background: var(--canvas-elevated);
-  color: var(--label-primary);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: -0.003em;
   box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
-  appearance: none;
-  transition:
-    border-color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
+  transition: box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-.ui-input:hover:not(:focus) {
-  border-color: var(--fill-primary);
-}
-
-.ui-input:focus {
-  border-color: var(--accent-border);
+.field.mat-focused .mat-mdc-text-field-wrapper {
   box-shadow: var(--glow-accent);
-  outline: none;
-  border-radius: var(--radius-md);
 }
 
-.ui-input::placeholder {
-  color: var(--label-placeholder);
-  font-weight: 400;
+/* Material gives the input a 180px floor; these sit in rows and grids. */
+.field .mat-mdc-form-field-infix {
+  width: auto;
+  min-width: 0;
 }
 
-.ui-input:disabled {
-  cursor: default;
+/* The URL field: one half of the address bar, which draws the box. */
+.mat-mdc-form-field.field.address-field {
+  --mat-form-field-outlined-outline-color: transparent;
+  --mat-form-field-outlined-hover-outline-color: transparent;
+  --mat-form-field-outlined-focus-outline-color: transparent;
+  flex: 1;
+  /* Never squeezed out of sight between the method and the buttons. */
+  min-width: 44px;
+}
+
+.field.address-field .mat-mdc-text-field-wrapper {
+  padding: 0 14px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* A field inside a tree row, for renaming it in place. */
+.mat-mdc-form-field.field.field-inline {
+  --mat-form-field-container-height: 28px;
+  --mat-form-field-container-vertical-padding: 4px;
+}
+
+.field.field-inline .mat-mdc-text-field-wrapper {
+  background: transparent;
 }
 
 /* ── Checkbox ────────────────────────────────────────────── */
-/* A native checkbox drawn as a 16px box in a 20px slot. */
-.ui-checkbox {
-  flex: none;
+/* Markup: <mat-checkbox>. A 16px box in a 20px slot, as before. */
+.mat-mdc-checkbox .mdc-checkbox {
+  flex: 0 0 16px;
   width: 16px;
   height: 16px;
-  margin: 0 4px 4px 0;
-  border: 1px solid var(--separator);
+  margin: 2px;
+}
+
+.mat-mdc-checkbox .mdc-checkbox__background {
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border-width: 1px;
   border-radius: var(--radius-xs);
-  background: var(--canvas-elevated) center / 14px 14px no-repeat;
-  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
-  appearance: none;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-quick) var(--ease-standard),
-    border-color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
 }
 
-.ui-checkbox:hover {
-  border-color: var(--accent-border);
+.mat-mdc-checkbox .mdc-checkbox__native-control {
+  top: -2px;
+  left: -2px;
+  width: 20px;
+  height: 20px;
 }
 
-.ui-checkbox:checked {
-  border-color: var(--accent);
-  background-color: var(--accent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%23fff' d='M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z'/%3E%3C/svg%3E");
-  box-shadow: 0 0 0 3px var(--accent-fill);
+.mat-mdc-checkbox .mdc-checkbox__native-control:focus-visible ~ .mdc-checkbox__background {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ── Skeleton ────────────────────────────────────────────── */

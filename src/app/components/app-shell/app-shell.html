@@ -311,23 +311,25 @@
     </div>
 
     <div class="flex flex-col gap-3">
-      <input
-        type="password"
-        class="ui-input w-full"
-        [ngModel]="unlockPassphrase()"
-        (ngModelChange)="unlockPassphrase.set($event)"
-        [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
-        (keydown.enter)="unlockSecrets()"
-       />
+      <mat-form-field class="field w-full">
+        <input matInput
+          type="password"
+          [ngModel]="unlockPassphrase()"
+          (ngModelChange)="unlockPassphrase.set($event)"
+          [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+          (keydown.enter)="unlockSecrets()"
+         />
+      </mat-form-field>
       @if (isFirstVaultSetup()) {
-      <input
-        type="password"
-        class="ui-input w-full"
-        [ngModel]="confirmPassphrase()"
-        (ngModelChange)="confirmPassphrase.set($event)"
-        placeholder="Confirm passphrase"
-        (keydown.enter)="unlockSecrets()"
-       />
+      <mat-form-field class="field w-full">
+        <input matInput
+          type="password"
+          [ngModel]="confirmPassphrase()"
+          (ngModelChange)="confirmPassphrase.set($event)"
+          placeholder="Confirm passphrase"
+          (keydown.enter)="unlockSecrets()"
+         />
+      </mat-form-field>
       }
     </div>
 
@@ -372,43 +374,44 @@
       </p>
     </div>
 
-    <label for="bridge-enabled-checkbox" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label for="bridge-enabled-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Route requests through the bridge</p>
         <p class="type-caption text-label-tertiary mt-0.5">Applies to every request until you turn this off again.</p>
       </div>
-      <input
-        type="checkbox"
-        class="ui-checkbox"
+      <mat-checkbox
         id="bridge-enabled-checkbox"
+        aria-label="Route requests through the bridge"
         [ngModel]="bridgeEnabledDraft()"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="bridgeEnabledDraft.set($event)"
-       />
+      />
     </label>
 
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
         <label for="bridge-url-input" class="type-footnote text-label-secondary">Bridge URL</label>
-        <input
-          id="bridge-url-input"
-          type="text"
-          class="ui-input w-full"
-          [ngModel]="bridgeUrlDraft()"
-          (ngModelChange)="bridgeUrlDraft.set($event); bridgeTestStatus.set('idle')"
-          placeholder="http://127.0.0.1:7717"
-         />
+        <mat-form-field class="field w-full">
+          <input matInput
+            id="bridge-url-input"
+            type="text"
+            [ngModel]="bridgeUrlDraft()"
+            (ngModelChange)="bridgeUrlDraft.set($event); bridgeTestStatus.set('idle')"
+            placeholder="http://127.0.0.1:7717"
+           />
+        </mat-form-field>
       </div>
       <div class="flex flex-col gap-1.5">
         <label for="bridge-token-input" class="type-footnote text-label-secondary">Bridge token</label>
-        <input
-          id="bridge-token-input"
-          type="password"
-          class="ui-input w-full"
-          [ngModel]="bridgeTokenDraft()"
-          (ngModelChange)="bridgeTokenDraft.set($event); bridgeTestStatus.set('idle')"
-          placeholder="Printed when you start wayfarer-local-bridge"
-         />
+        <mat-form-field class="field w-full">
+          <input matInput
+            id="bridge-token-input"
+            type="password"
+            [ngModel]="bridgeTokenDraft()"
+            (ngModelChange)="bridgeTokenDraft.set($event); bridgeTestStatus.set('idle')"
+            placeholder="Printed when you start wayfarer-local-bridge"
+           />
+        </mat-form-field>
       </div>
     </div>
 

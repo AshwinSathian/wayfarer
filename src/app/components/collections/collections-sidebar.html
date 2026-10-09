@@ -51,17 +51,17 @@
     <ng-template let-node>
       <div class="flex w-full items-center gap-2 min-w-0">
         @if (editingKey() === node.key) {
-        <input
-          class="ui-input w-full bg-transparent type-body"
-          [attr.aria-label]="'Rename ' + node.label"
-          #renameField
-          [value]="editingValue()"
-          (input)="editingValue.set(renameField.value)"
-          (keydown.enter)="endRename(tree, node, $event, true)"
-          (keydown.escape)="endRename(tree, node, $event, false)"
-          (blur)="commitRename(node)"
-          style="height: 28px !important;"
-         />
+        <mat-form-field class="field field-inline w-full">
+          <input matInput
+            [attr.aria-label]="'Rename ' + node.label"
+            #renameField
+            [value]="editingValue()"
+            (input)="editingValue.set(renameField.value)"
+            (keydown.enter)="endRename(tree, node, $event, true)"
+            (keydown.escape)="endRename(tree, node, $event, false)"
+            (blur)="commitRename(node)"
+           />
+        </mat-form-field>
         } @else {
           @if (node.data.type === 'collection') {
           <app-icon name="folder_open" class="icon-sm text-label-tertiary shrink-0" />
@@ -125,19 +125,18 @@
         {{ analysis.summary?.requests || 0 }} requests
       </p>
     </div>
-    <label for="import-duplicate-checkbox" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label for="import-duplicate-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
         <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
-      <input
-        type="checkbox"
-        class="ui-checkbox"
+      <mat-checkbox
         id="import-duplicate-checkbox"
+        aria-label="Import as duplicate"
         [ngModel]="importDuplicateAsNew()"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="toggleDuplicateImport($event)"
-       />
+      />
     </label>
     @if (analysis.plan?.length) {
     <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-xl border border-separator p-2">
@@ -196,13 +195,14 @@
             : 'Request name'
       }}
     </label>
-    <input
-      id="creation-name-input"
-      [ngModel]="creationModel().name"
-      (ngModelChange)="onCreationNameChange($event)"
-      placeholder="Enter name"
-      class="ui-input w-full"
-     />
+    <mat-form-field class="field w-full">
+      <input matInput
+        id="creation-name-input"
+        [ngModel]="creationModel().name"
+        (ngModelChange)="onCreationNameChange($event)"
+        placeholder="Enter name"
+       />
+    </mat-form-field>
     @if (creationContext()?.type === 'request') {
     <div class="flex flex-col gap-1.5">
       <span id="creation-method-select-label" class="ds-form-label">Method</span>
@@ -237,14 +237,15 @@
   (hide)="closeCommandPalette()"
 >
   <div class="flex flex-col gap-3">
-    <input
-      placeholder="Type a command…"
-      class="ui-input w-full"
-      [ngModel]="commandPaletteQuery()"
-      (ngModelChange)="commandPaletteQuery.set($event)"
-      [ngModelOptions]="{ standalone: true }"
-      (keydown.enter)="executeFirstPaletteAction()"
-     />
+    <mat-form-field class="field w-full">
+      <input matInput
+        placeholder="Type a command…"
+        [ngModel]="commandPaletteQuery()"
+        (ngModelChange)="commandPaletteQuery.set($event)"
+        [ngModelOptions]="{ standalone: true }"
+        (keydown.enter)="executeFirstPaletteAction()"
+       />
+    </mat-form-field>
     <div class="max-h-64 space-y-1 overflow-y-auto">
       @if (filteredPaletteActions.length) {
       @for (action of filteredPaletteActions; track action.id) {

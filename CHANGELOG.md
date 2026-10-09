@@ -14,9 +14,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   both themes. So far: tooltips, buttons, tabs, the phone composer's and
   history's accordions, the Basic / JSON switch, every select, the Export
   and collection menus, every dialog and confirmation, the navigation and
-  history drawers, and the collections tree. A tooltip now sits about 4 px
-  further from its button. The initial download grows to 1,040.05 kB from
-  722.84 kB; the size budgets are reset to the new baseline.
+  history drawers, the collections tree, and every text field and
+  checkbox. A tooltip now sits about 4 px further from its button. The
+  initial download grows to 1,142.04 kB from 722.84 kB; the size budgets
+  are reset to the new baseline.
+- The tick box beside each query parameter is drawn like the app's other
+  checkboxes and has a name for screen readers. It was the browser's own,
+  unnamed.
 - In the collections tree a letter key jumps to the next row that starts
   with it, and `*` opens every folder beside the current row.
 - The page behind an open drawer can still be scrolled with the wheel. It

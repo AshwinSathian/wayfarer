@@ -5,11 +5,6 @@ API testing client (Angular + IndexedDB), and the goal is to keep it
 fast, simple, and trustworthy. This guide covers everything you need to go
 from `git clone` to an open pull request.
 
-> **Note:** the project's build tooling (npm scripts, linter, test runner) is
-> being actively modernized. If the commands below don't match what's in
-> `package.json` by the time you read this, trust `package.json`'s `scripts`
-> block over this document and feel free to send a docs PR to fix the drift.
-
 ## Getting Started
 
 ```bash
@@ -21,24 +16,26 @@ cd wayfarer
 npm ci
 # (or: npm install)
 
-# 3. Run the dev server
+# 3. Run the dev server, then open http://localhost:4200
 npm run start
-# falls back to: ng serve --open
-# then open http://localhost:4200
 
-# 4. Production build
+# 4. Run the linter
+npm run lint
+
+# 5. Run the unit tests once, with the coverage gate (npm run test watches)
+npm run test:ci
+
+# 6. Production build
 npm run build
 
-# 5. Run tests
-npm run test
-
-# 6. Run the linter
-npm run lint
+# 7. Run the end-to-end tests against that build
+npx playwright install   # once
+CI=1 npx playwright test --project=chromium --project=claims-chromium
 ```
 
-If `npm run start`/`test`/`lint` aren't defined yet in your checkout, use
-`ng serve`, `ng test`, and `ng lint` directly as a fallback. The underlying
-Angular CLI commands are always available once `npm ci` finishes.
+CI also runs the end-to-end tests in Firefox and WebKit. For a change to
+CSS, layout or a template, drop the `--project` flags and run all three:
+they differ in scrollbar width, focus and fonts.
 
 Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern browser.
 
@@ -110,6 +107,16 @@ When contributing:
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
   colors/spacing.
+- **Widgets are Angular Material components** (button, select, menu, dialog,
+  tabs, tree, form field, checkbox, tooltip), themed from the design tokens
+  in `src/design-system/material-theme.scss`. Do not build a widget
+  Material already has, and do not add a Material palette colour or a second
+  theme. `src/app/ui` holds only the wrappers the app needs (`ui-dialog`,
+  `Confirm`, `ui-tree`) and what Material has no component for
+  (`ui-splitter`, `uiHoverCard`). "Angular Material" in
+  [`CLAUDE.md`](CLAUDE.md) has the markup for each widget and the places
+  where Material's behaviour differs from what a test or a user expects;
+  read the entry for a widget before using it.
 
 ## Tests
 

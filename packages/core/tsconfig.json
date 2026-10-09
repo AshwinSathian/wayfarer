@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // No DOM: `document`, `window` and `indexedDB` do not compile here.
+    // `fetch`, `crypto`, `URL`, `TextEncoder`, `AbortController` and `Blob`
+    // come from the Node types; ESLint bans what only Node has.
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "paths": {}
+  },
+  "include": ["src/**/*.ts", "vitest.config.ts"]
+}

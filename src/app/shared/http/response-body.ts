@@ -1,4 +1,4 @@
-import { parseJson } from "../json/safe-json";
+import { parseJson } from "@wayfarer/core";
 
 /**
  * A response body that isn't text (image, PDF, archive, ...). Kept as raw

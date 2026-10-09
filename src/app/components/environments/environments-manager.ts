@@ -23,7 +23,7 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "../../shared/json/safe-json";
+import { readImportText } from "@wayfarer/core";
 
 interface EnvironmentDraft {
   id: EnvironmentId;

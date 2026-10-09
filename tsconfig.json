@@ -20,7 +20,10 @@
     "typeRoots": [
       "node_modules/@types"
     ],
-    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@wayfarer/core": ["./packages/core/src/index.ts"]
+    }
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,

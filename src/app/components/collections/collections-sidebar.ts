@@ -26,7 +26,7 @@ import {
   buildContextItems,
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "../../shared/json/safe-json";
+import { readImportText } from "@wayfarer/core";
 
 type NodeData = CollectionNodeData;
 

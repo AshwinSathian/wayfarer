@@ -11,7 +11,7 @@ import {
 } from "../../shared/environments/environment-io";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "../../shared/json/safe-json";
+import { readImportText } from "@wayfarer/core";
 
 interface KeyboardShortcut {
   keys: string;

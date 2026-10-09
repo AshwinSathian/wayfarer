@@ -13,6 +13,8 @@ npm run test:ci         # Vitest in headless Chromium, with the coverage gate
 npm run build           # production build + service worker
 CI=1 npx playwright test --project=chromium --project=claims-chromium   # e2e against the built app (run the build first)
 npm run bridge:test     # local-bridge (Node test runner)
+npm -w packages/core test            # packages/core: Vitest in Node, lines >= 90%
+npm -w packages/core run typecheck   # packages/core compiles without the DOM types
 npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
@@ -48,6 +50,18 @@ code errors.
   rewrite history. A change to the plan needs a row in its section 16.
 - Do not reorganise the top-level folders (`components`, `services`, `data`,
   `shared`, `ui`): Phase 2 of the plan moves code into `packages/core`.
+
+## packages/core
+
+- `@wayfarer/core` is the engine the web app and, later, the CLI share. The
+  app imports it by that name (a `paths` entry in `tsconfig.json` and
+  `tsconfig.spec.json`), never by a relative path.
+- No Angular, no RxJS, no DOM and nothing only Node has. Its `tsconfig`
+  has no DOM types, so `document` does not compile; ESLint refuses
+  `@angular/*`, `rxjs`, `node:*`, `process` and `Buffer`.
+- Code that moves there takes its tests with it. Core's gate is 90% of
+  lines; `src/app` stays at 70%.
+- Export what the app uses from `packages/core/src/index.ts`.
 
 ## Angular
 
@@ -297,7 +311,8 @@ code errors.
   `-d`).
 - Imported files are untrusted: validate every field against the values the
   app itself writes (methods, string-valued variables).
-- Ids come from `newId()` in `src/app/shared/id.ts`. No `Math.random`.
+- Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
+  No `Math.random`.
 - The endpoint field is text, not a URL: it may hold `{{variables}}`. Do not
   round-trip it through `URL`; that lower-cases and encodes placeholders.
 - A `{{$secret.*}}` placeholder must never reach the network, in any

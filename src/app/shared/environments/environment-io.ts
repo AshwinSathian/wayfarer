@@ -1,4 +1,4 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../json/safe-json";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "@wayfarer/core";
 import { EnvironmentDoc } from "../../models/environments";
 import { deepSort, sortByOrder } from "../collections/collection-io";
 

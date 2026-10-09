@@ -1,4 +1,4 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../json/safe-json";
+import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson } from "@wayfarer/core";
 import {
   Collection,
   CollectionExport,
@@ -7,7 +7,6 @@ import {
 } from "../../models/collections";
 import { HTTP_METHODS, HttpMethod } from "../../models/history";
 import { CollectionTree } from "../../services/collections-store";
-import { newId } from "../id";
 
 export interface ValidationResult {
   path: string;

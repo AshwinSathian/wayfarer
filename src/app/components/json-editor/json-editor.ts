@@ -30,7 +30,7 @@ import {
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
-import { parseJson, stringifyJson } from "../../shared/json/safe-json";
+import { parseJson, stringifyJson } from "@wayfarer/core";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
 const noop = () => {};

@@ -1,6 +1,6 @@
 import { InspectorExportEntry } from "./export";
 import { ResponseInspection } from "./response-inspector";
-import { newId } from "../id";
+import { newId } from "@wayfarer/core";
 
 /**
  * Snapshot of the just-sent request, captured by `ApiParams` right

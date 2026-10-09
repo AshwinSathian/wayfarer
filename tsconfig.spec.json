@@ -6,6 +6,9 @@
       "node"
     ],
     "paths": {
+      "@wayfarer/core": [
+        "./packages/core/src/index.ts"
+      ],
       "monaco-editor/editor": [
         "./src/testing/monaco/monaco-editor.api.stub.ts"
       ],

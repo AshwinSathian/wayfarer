@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- For contributors: the repository is an npm workspace, and the parts of
+  Wayfarer that do not need a browser page start moving into
+  `packages/core`, which a command-line runner will share later. Nothing
+  changes in the app.
+
 ## [1.4.0] - 2026-10-09
 
 Everything merged after 1.3.0: the interface moves to Angular Material, the

@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { Idb } from "../data/idb";
 import { SecretDoc, SecretEnvelope, SecretId } from "../models/secrets";
 import { SecretCrypto } from "../shared/secrets/secret-crypto";
-import { newId } from "../shared/id";
+import { newId } from "@wayfarer/core";
 
 export interface SaveSecretRequest {
   name: string;

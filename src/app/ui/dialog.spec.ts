@@ -56,7 +56,7 @@ describe("ui-dialog and ui-drawer", () => {
     expect(el.getAttribute("aria-modal")).toBe("true");
     expect(document.getElementById(el.getAttribute("aria-labelledby")!)?.textContent).toBe("Settings");
     expect(el.querySelector("#first")).not.toBeNull();
-    expect(el.querySelector(".ui-dialog-footer #save")).not.toBeNull();
+    expect(el.querySelector(".dialog-footer #save")).not.toBeNull();
     expect(el.querySelector('button[aria-label="Close"]')).not.toBeNull();
     fixture.destroy();
   });

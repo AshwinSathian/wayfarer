@@ -5,12 +5,15 @@ import {
   VariableNestingError,
   VariableResolver,
   emptyRequest,
+  isCredentialHeader,
   isHttpMethod,
   newId,
   parseJson,
   type Draft,
+  type AuthConfig,
   type FileRef,
   type MultipartPart,
+  type RedactOptions,
   type RequestBody,
   type RequestContent,
   type Row,
@@ -31,6 +34,8 @@ import {
   SendBlockedError,
 } from "../services/request-executor";
 import { RequestSave } from "../services/request-save";
+import { RequestSettings } from "../services/request-settings";
+import { SecretsVault } from "../services/secrets-vault";
 import { VariableToken } from "../services/variable-focus";
 import { writeToClipboard } from "../shared/http/clipboard";
 import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
@@ -42,7 +47,7 @@ import {
   validateUrl,
 } from "../shared/http/request-url";
 import { BinaryBody } from "@wayfarer/core";
-import { buildCurlCommand } from "../shared/inspect/export";
+import { buildCurlCommand, redactedRequest } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 
@@ -73,16 +78,25 @@ export function sentHeaders(rows: Row[]): [string, string][] {
   return rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value]);
 }
 
-/** A history entry as a request: it carries what was sent, so no auth, scripts or tests. */
-export function requestFromHistory(entry: PastRequest): RequestContent {
-  const text = typeof entry.body === "string" ? entry.body : entry.body === undefined ? undefined : JSON.stringify(entry.body, null, 2);
-  return {
-    ...emptyRequest(),
-    method: entry.method,
-    url: entry.url,
-    headers: Object.entries(entry.headers ?? {}).map(([key, value]) => ({ key, value: String(value ?? ""), enabled: true })),
-    body: text === undefined ? { mode: "none" } : { mode: "raw", raw: { language: parseJson(text).ok ? "json" : "text", text } },
-  };
+/** A request that has a `{{variable}}` with no value, held back until the user says to send it as written (plan D3). */
+export class UnresolvedVariablesError extends SendBlockedError {
+  constructor(readonly names: string[]) {
+    super(`${names.map((name) => `{{${name}}}`).join(", ")} ${names.length === 1 ? "has" : "have"} no value. The request was not sent.`);
+  }
+}
+
+/** The credentials of an Auth tab, as resolved: what a redactor must look for besides vault secrets. */
+function credentialsOf(auth: AuthConfig): string[] {
+  switch (auth.type) {
+    case "bearer":
+      return [auth.token];
+    case "basic":
+      return [auth.password];
+    case "apikey":
+      return [auth.value];
+    case "none":
+      return [];
+  }
 }
 
 /** Rows as they are saved: names trimmed, rows without a name (the editor's blank row) left out. */
@@ -122,6 +136,8 @@ export class WorkspaceStore {
   private readonly bridge = inject(BridgeSettings);
   private readonly collections = inject(CollectionsStore);
   private readonly saved = inject(RequestSave);
+  private readonly vault = inject(SecretsVault);
+  private readonly settings = inject(RequestSettings);
 
   readonly draft = signal<Draft>(emptyDraft());
 
@@ -129,6 +145,8 @@ export class WorkspaceStore {
   readonly loadingState = signal(false);
   readonly variableTokens = signal<VariableToken[]>([]);
   readonly missingVariableKeys = signal<string[]>([]);
+  /** The variables without a value that held the last send back; the composer offers "Send anyway". */
+  readonly unresolvedBlocked = signal<string[]>([]);
 
   readonly responseData = signal("");
   readonly responseError = signal("");
@@ -212,18 +230,31 @@ export class WorkspaceStore {
     this.refreshVariablePreview();
   }
 
-  /**
-   * Replaces the draft with a saved request or a history entry. A history
-   * entry carries no scripts or tests, so the composer keeps its own.
-   */
-  load(request: RequestContent, source: "collection" | "history"): void {
-    const current = this.draft();
+  /** Replaces the draft with a saved request, or with the request a history entry was sent from. */
+  load(request: RequestContent): void {
     this.draft.set({
       ...structuredClone(request),
       params: parseParamsFromUrl(request.url),
-      ...(source === "history" ? { scripts: current.scripts, tests: current.tests } : {}),
-      responseId: current.responseId,
+      responseId: this.draft().responseId,
     });
+    this.endpointError.set("");
+    this.unresolvedBlocked.set([]);
+  }
+
+  /** Shows the response a history entry recorded, as it is stored: masked, and without a body when none was kept. */
+  showRecorded(entry: PastRequest): void {
+    this.resetResponseState();
+    this.lastTestResults.set([]);
+    const response = entry.response;
+    const text = response?.body?.text ?? "";
+    const isError = !response || response.status < 200 || response.status >= 300;
+    this.responseIsError.set(isError);
+    this.responseStatusCode.set(response?.status);
+    this.responseStatusText.set(response?.statusText);
+    this.responseHeadersView.set((response?.headers ?? []).map(([name, value]) => ({ name, value })));
+    this.responseBodyIsJson.set(!!text && parseJson(text).ok);
+    this.responseData.set(isError ? "" : text);
+    this.responseError.set(isError ? text || entry.error || "" : "");
   }
 
   /** A new request. Scripts, tests and the response on screen stay. */
@@ -293,9 +324,14 @@ export class WorkspaceStore {
     this.patch({ tests: this.draft().tests.filter((_, i) => i !== index) });
   }
 
-  /** Sends the draft. Resolves to true when the exchange was recorded in history. */
-  async send(): Promise<boolean> {
+  /**
+   * Sends the draft. Resolves to true when the exchange was recorded in
+   * history. `allowUnresolved` sends a `{{variable}}` that has no value as
+   * that text: the user chose "Send anyway".
+   */
+  async send(options: { allowUnresolved?: boolean } = {}): Promise<boolean> {
     this.endpointError.set("");
+    this.unresolvedBlocked.set([]);
     this.resetResponseState();
     this.lastTestResults.set([]);
 
@@ -333,7 +369,8 @@ export class WorkspaceStore {
         preRequestScript: draft.scripts.pre,
         postRequestScript: draft.scripts.post,
         tests: draft.tests,
-        buildRequest: () => this.buildRequestForExecution(endpointText),
+        template: this.snapshot(),
+        buildRequest: () => this.buildRequestForExecution(endpointText, options.allowUnresolved ?? false),
         signal: controller.signal,
       });
     } catch (error) {
@@ -341,6 +378,7 @@ export class WorkspaceStore {
       // Variables that refer to each other in a circle: nothing is sent.
       if (error instanceof SendBlockedError || error instanceof VariableNestingError) {
         this.endpointError.set(error.message);
+        this.unresolvedBlocked.set(error instanceof UnresolvedVariablesError ? error.names : []);
         return false;
       }
       throw error;
@@ -349,7 +387,7 @@ export class WorkspaceStore {
     this.loadingState.set(false);
     this.lastTestResults.set(result.testResults);
     this.applyExecutionResponse(result.response);
-    await this.idb.add(result.history);
+    await this.idb.add(result.history, this.settings.historyCap());
     return true;
   }
 
@@ -373,7 +411,12 @@ export class WorkspaceStore {
     this.inFlight?.abort();
   }
 
-  async copyAsCurl(): Promise<void> {
+  /**
+   * Copies the draft as a cURL command. Credentials are masked unless the
+   * user asks for them. A vault secret is never read for this: its
+   * `{{$secret.…}}` reference stays as written.
+   */
+  async copyAsCurl(options: RedactOptions = {}): Promise<void> {
     const endpoint = this.draft().url;
     if (!endpoint) {
       return;
@@ -381,15 +424,16 @@ export class WorkspaceStore {
     let request: BuiltRequest;
     try {
       // Awaited only when the body has a file to read.
-      request = await this.resolveRequest(endpoint);
+      request = await this.build(endpoint, this.snapshot(), new VariableResolver(this.scopes()));
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       this.endpointError.set(error.message);
       return;
     }
-    const { method, url, headers, body } = request;
-    // A file or a form has no text to quote: the command is written without a body.
-    await writeToClipboard(buildCurlCommand({ method, url, headers: Object.fromEntries(headers), body: textOf(body) }));
+    await writeToClipboard(
+      // A file or a form has no text to quote: the command is written without a body.
+      buildCurlCommand(redactedRequest({ ...request, headers: Object.fromEntries(request.headers), body: textOf(request.body) }, options))
+    );
   }
 
   refreshVariablePreview(): void {
@@ -416,8 +460,8 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(endpointText: string): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(endpointText);
+  private buildRequestForExecution(endpointText: string, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(endpointText, allowUnresolved);
     return built instanceof Promise ? built.then((request) => this.recordForExport(request)) : this.recordForExport(built);
   }
 
@@ -429,6 +473,8 @@ export class WorkspaceStore {
       url: request.url,
       headers: Object.fromEntries(request.headers),
       body: textOf(request.body),
+      secrets: request.secrets,
+      credentials: request.credentials,
     });
     this.patch({ responseId: id });
     return request;
@@ -438,13 +484,50 @@ export class WorkspaceStore {
    * The draft with `{{var}}` placeholders substituted, as it is transmitted
    * or exported as a runnable command. The editors keep the literal template.
    */
-  private resolveRequest(endpointText: string): BuiltRequest | Promise<BuiltRequest> {
-    const resolver = new VariableResolver(this.scopes());
-    const resolve = (text: string): string => resolver.resolve(text);
+  private resolveRequest(endpointText: string, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
     const content = this.snapshot();
-    // A promise only when a file has to be read: everything else is built at once.
+    // First without the vault: this pass says which secrets the request needs.
+    const probe = new VariableResolver(this.scopes());
+    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body), ...credentialsOf(content.auth)]) {
+      probe.resolve(text);
+    }
+    const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
+      const built = this.build(endpointText, content, resolver);
+      const check = (request: BuiltRequest): BuiltRequest => {
+        if (resolver.unresolved.size && this.settings.blockUnresolved() && !allowUnresolved) {
+          throw new UnresolvedVariablesError([...resolver.unresolved]);
+        }
+        return request;
+      };
+      return built instanceof Promise ? built.then(check) : check(built);
+    };
+    // Nothing to read from the vault: the request is built at once, in the same task as the click.
+    return probe.lockedSecrets.size ? this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(this.scopes(), (id) => secrets.get(id)))) : checked(new VariableResolver(this.scopes()));
+  }
+
+  /**
+   * The plaintext of the secrets a request refers to. A locked vault asks
+   * for the passphrase first; when the user closes that dialog, nothing is
+   * sent (plan D4). A secret the vault does not have is left out: its
+   * reference then stays in the request, and the wire check refuses it.
+   */
+  private async readSecrets(ids: string[]): Promise<Map<string, string>> {
+    if (!(await this.vault.ensureUnlocked())) {
+      throw new SendBlockedError("This request uses a vault secret and the vault is locked. Unlock it to send. Nothing was sent.");
+    }
+    const secrets = new Map<string, string>();
+    for (const id of ids) {
+      const plaintext = await this.vault.readSecret(id);
+      if (plaintext !== null) secrets.set(id, plaintext);
+    }
+    return secrets;
+  }
+
+  /** A promise only when a file has to be read: everything else is built at once. */
+  private build(endpointText: string, content: RequestContent, resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> {
+    const resolve = (text: string): string => resolver.resolve(text);
     const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
-    const finish = (body: SentBody | undefined): BuiltRequest => this.assemble(endpointText, content, body, resolve);
+    const finish = (body: SentBody | undefined): BuiltRequest => this.assemble(endpointText, content, body, resolver);
     return sent instanceof Promise ? sent.then(finish) : finish(sent);
   }
 
@@ -452,8 +535,9 @@ export class WorkspaceStore {
     endpointText: string,
     content: RequestContent,
     sent: SentBody | undefined,
-    resolve: (text: string) => string
+    resolver: VariableResolver
   ): BuiltRequest {
+    const resolve = (text: string): string => resolver.resolve(text);
     const auth = resolveAuth(content.auth, resolve);
     // One value per name, whatever its case, the later one winning: the auth
     // header replaces a row of the same name. A Map keeps a name such as
@@ -474,7 +558,15 @@ export class WorkspaceStore {
     if (authParam) {
       url = appendQueryParam(url, authParam.key, authParam.value);
     }
-    return { method: content.method, url, headers, body: sent?.data };
+    return {
+      method: content.method,
+      url,
+      headers,
+      body: sent?.data,
+      secrets: [...resolver.taint],
+      // Also what a credential header carries, typed by hand or built from the Auth tab: a server may send it back.
+      credentials: [...credentialsOf(auth), ...headers.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)].filter((value) => value),
+    };
   }
 
   /**

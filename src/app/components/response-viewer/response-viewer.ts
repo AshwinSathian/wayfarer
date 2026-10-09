@@ -8,8 +8,8 @@ import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
-import { CurlExportContext, buildCurlCommand, toHar } from "../../shared/inspect/export";
-import { BinaryBody } from "@wayfarer/core";
+import { buildCurlCommand, exportRedactor, redactedRequest, toHar } from "../../shared/inspect/export";
+import { BinaryBody, type RedactOptions } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
 import {
@@ -100,6 +100,18 @@ export class ResponseViewer {
       label: "Copy as HAR",
       icon: "content_copy",
       command: () => void this.copyAsHar(),
+    },
+    { separator: true },
+    // Credentials are masked unless asked for; a vault secret is masked either way (D5).
+    {
+      label: "Copy as cURL with credentials",
+      icon: "terminal",
+      command: () => void this.copyAsCurl({ credentials: true }),
+    },
+    {
+      label: "Copy as HAR with credentials",
+      icon: "content_copy",
+      command: () => void this.copyAsHar({ credentials: true }),
     },
   ];
 
@@ -204,27 +216,38 @@ export class ResponseViewer {
     );
   }
 
-  async copyAsCurl(): Promise<void> {
+  async copyAsCurl(options: RedactOptions = {}): Promise<void> {
     const context = this.exportContext();
     if (!context) {
       return;
     }
-    const curlContext: CurlExportContext = {
-      method: context.method,
-      url: context.url,
-      headers: context.headers,
-      body: context.body,
-    };
-    const curlText = buildCurlCommand(curlContext);
-    await writeToClipboard(curlText);
+    await writeToClipboard(buildCurlCommand(redactedRequest(context, options)));
   }
 
-  async copyAsHar(): Promise<void> {
+  async copyAsHar(options: RedactOptions = {}): Promise<void> {
+    const context = this.exportContext();
     const entry = this.buildExportEntry();
-    if (!entry) {
+    if (!entry || !context) {
       return;
     }
-    await writeToClipboard(JSON.stringify(toHar(entry), null, 2));
+    // The response is masked as well: a server may send a credential back.
+    const redactor = exportRedactor(context, options);
+    const body = entry.res.body;
+    await writeToClipboard(
+      JSON.stringify(
+        toHar({
+          ...entry,
+          req: { ...entry.req, ...redactedRequest(context, options) },
+          res: {
+            ...entry.res,
+            headers: Object.fromEntries(redactor.headers(Object.entries(entry.res.headers), options)),
+            body: typeof body === "string" ? redactor.text(body) : body,
+          },
+        }),
+        null,
+        2
+      )
+    );
   }
 
   private prepareFormatting(): void {

@@ -16,12 +16,14 @@ import { PastRequest } from "../models/history";
 import { TestAssertion, TestResult } from "../models/test-assertion";
 import {
   BinaryBody,
+  Redactor,
   TransportError,
   decodeEnvelope,
   newId,
   parseJson,
   stringifyJson,
   variablesByName,
+  type RequestContent,
   type ResponseEnvelope,
 } from "@wayfarer/core";
 
@@ -32,7 +34,14 @@ export interface BuiltRequest {
   headers: [string, string][];
   /** Text, a file, or a multipart form. Absent when the request has no body. */
   body?: string | Blob | FormData;
+  /** The plaintext of every vault secret that was placed into this request. Masked wherever the request is stored or exported. */
+  secrets: string[];
+  /** The credentials of the Auth tab as they were sent. Masked too, unless the user asks for an export with credentials. */
+  credentials: string[];
 }
+
+/** How much of a body history keeps, in characters. */
+export const HISTORY_BODY_LIMIT = 1024 * 1024;
 
 /**
  * Thrown by `execute()` when a request must not reach the network. The
@@ -50,8 +59,8 @@ const NETWORK_ERROR_TEXT =
   "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
 
 const SECRET_PLACEHOLDER_BLOCKED =
-  "Protected variables are not yet applied to requests; vault resolution ships in v2.0. " +
-  "This request references one, so it was not sent.";
+  "This request refers to a vault secret that could not be read (it may have been deleted), so it was not sent. " +
+  "Give the variable a value again.";
 
 /**
  * True when a built request still carries a literal `{{$secret.<id>}}`
@@ -108,10 +117,26 @@ function decodeBasicCredentials(headerValue: string): string {
   }
 }
 
+/**
+ * A body as history describes it. Text is kept as text. Of a form or a
+ * file, the names and sizes are kept and never the bytes: a file may be the
+ * user's key or their customers' data.
+ */
+function sentBodyPreview(body: BuiltRequest["body"]): string | undefined {
+  if (body === undefined || typeof body === "string") return body;
+  const file = (blob: Blob) => `(${blob.size} bytes${blob.type ? `, ${blob.type}` : ""})`;
+  if (body instanceof FormData) {
+    return [...body].map(([name, value]) => (typeof value === "string" ? `${name}=${value}` : `${name}=@${value.name} ${file(value)}`)).join("\n");
+  }
+  return `@file ${file(body)}`;
+}
+
 export interface RequestExecutionSpec {
   preRequestScript: string;
   postRequestScript: string;
   tests: TestAssertion[];
+  /** The request as composed, `{{variables}}` not resolved: history keeps it. */
+  template: RequestContent;
   /**
    * Builds the actual method/url/headers/body to send. Invoked *after* the
    * pre-request script has run (and any pm.environment.set() mutations from
@@ -145,6 +170,10 @@ interface Shaped {
   /** The decoded body, for the post-response script and the assertions. */
   body: unknown;
   headers: Record<string, string>;
+  /** As received, in order, a repeated name once per value. */
+  headerList: [string, string][];
+  /** The body as text, when it is text. */
+  bodyText?: string;
   historyError?: string;
   response: RequestExecutionResponse;
 }
@@ -195,9 +224,9 @@ export class RequestExecutor {
     // Awaited only when it is a promise: a request with no file to read is sent in the same task as the click.
     const built = spec.buildRequest();
     const request = built instanceof Promise ? await built : built;
-    // ponytail: blocks instead of resolving; resolving here would put the
-    // plaintext into history (F14). Vault resolution plus redaction replace
-    // this in P2.4/P2.5.
+    // The last line of defence (C-007): a reference to a secret that is not in
+    // the vault, or one somewhere the resolver does not read, stays as written.
+    // It must not go on the wire as that text.
     if (containsSecretPlaceholder(request)) {
       throw new SendBlockedError(SECRET_PLACEHOLDER_BLOCKED);
     }
@@ -235,22 +264,37 @@ export class RequestExecutor {
     );
     testResults = [...testResults, ...postTestResults];
 
+    // History keeps nothing that can be used as a credential (D5): every vault
+    // secret and credential of this request is masked in what was sent and in
+    // what came back, since a server may send them back.
+    const redactor = new Redactor([...request.secrets, ...request.credentials]);
+    const keep = (text: string) => {
+      const masked = redactor.text(text);
+      return { text: masked.slice(0, HISTORY_BODY_LIMIT), truncated: masked.length > HISTORY_BODY_LIMIT };
+    };
+    const preview = sentBodyPreview(request.body);
     const history: PastRequest = {
-      method: request.method,
-      url: request.url,
-      headers: Object.fromEntries(request.headers),
       createdAt,
+      template: redactor.template(spec.template),
+      sent: {
+        method: request.method,
+        url: redactor.text(request.url),
+        headers: redactor.headers(request.headers),
+        ...(preview !== undefined && { bodyPreview: keep(preview).text }),
+      },
+      route: outcome instanceof TransportError ? this.transport.route() : outcome.route,
       durationMs,
     };
-    if (shaped.response.statusCode !== undefined) {
-      history.status = shaped.response.statusCode;
+    if (!(outcome instanceof TransportError)) {
+      history.response = {
+        status: outcome.status,
+        statusText: outcome.statusText,
+        headers: redactor.headers(shaped.headerList),
+        ...(this.settings.historyBodies() && shaped.bodyText !== undefined && { body: keep(shaped.bodyText) }),
+      };
     }
     if (shaped.historyError) {
-      history.error = shaped.historyError;
-    }
-    // History keeps a text body. A file or a form is not copied into it.
-    if (typeof request.body === "string") {
-      history.body = request.body;
+      history.error = redactor.text(shaped.historyError);
     }
 
     return { durationMs, testResults, history, response: shaped.response };
@@ -269,6 +313,8 @@ export class RequestExecutor {
     return {
       body,
       headers: Object.fromEntries(envelope.headers),
+      headerList: envelope.headers,
+      bodyText: body === undefined || body === null || body instanceof BinaryBody ? undefined : text,
       historyError: isError ? failureText : undefined,
       response: {
         isError,
@@ -298,6 +344,7 @@ export class RequestExecutor {
     return {
       body: network ? undefined : failure.message,
       headers: {},
+      headerList: [],
       historyError: network ? `Http failure response for ${url}: 0 Unknown Error` : failure.message,
       response: {
         isError: true,

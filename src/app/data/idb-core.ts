@@ -75,7 +75,7 @@ export class IdbCore {
   readonly olderThanData = signal(false);
 
   /** True when this open emptied a database an older release left: v5 does not read the shapes before it. */
-  readonly clearedOldData = signal<RemovedData>(null);
+  readonly clearedOldData = signal<RemovedData>([]);
 
   /**
    * True when IndexedDB could not be opened (blocked storage, some private
@@ -142,7 +142,7 @@ export class IdbCore {
       return;
     }
 
-    let removed: Promise<RemovedData> = Promise.resolve(null);
+    let removed: Promise<RemovedData> = Promise.resolve([]);
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
         upgrade: (db, oldVersion, _newVersion, tx) => {

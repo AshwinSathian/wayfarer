@@ -70,10 +70,15 @@
       matTooltipPosition="below"
       [matTooltipDisabled]="!store.draft().url"
       aria-label="Copy as cURL"
-      (click)="store.copyAsCurl()"
+      [matMenuTriggerFor]="curlMenu"
       class="btn-secondary btn-square curl-btn"
     ><app-icon name="terminal" /></button>
   </span>
+  <!-- Credentials are masked unless asked for; a vault secret's reference stays as written. -->
+  <mat-menu #curlMenu="matMenu">
+    <button mat-menu-item type="button" (click)="store.copyAsCurl()">Copy as cURL</button>
+    <button mat-menu-item type="button" (click)="store.copyAsCurl({ credentials: true })">Copy as cURL with credentials</button>
+  </mat-menu>
   <button
     matButton="outlined" class="btn-secondary btn-square"
     type="button"

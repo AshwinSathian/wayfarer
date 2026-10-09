@@ -9,24 +9,27 @@ export class HistoryRepository {
   private memoryStore: HistoryRecord[] = [];
   private memorySequence = 1;
 
-  async add(req: PastRequest): Promise<PastRequestKey | null> {
+  /**
+   * Records an exchange and deletes the oldest ones beyond `cap`, in one
+   * transaction: the store never holds more than `cap` entries.
+   */
+  async add(req: PastRequest, cap: number): Promise<PastRequestKey | null> {
     try {
-      const item: PastRequest = {
-        ...req,
-        createdAt: req.createdAt ?? Date.now(),
-      };
-
       if (this.core.useMemoryFallback) {
-        return this.addToMemory(item);
+        return this.addToMemory(req, cap);
       }
 
       const db = await this.core.getDatabase();
       if (!db) {
-        return this.addToMemory(item);
+        return this.addToMemory(req, cap);
       }
 
       const tx = db.transaction("history", "readwrite");
-      const key = await tx.store.add(item as HistoryRecord);
+      const key = await tx.store.add(req as HistoryRecord);
+      let excess = (await tx.store.count()) - cap;
+      for (let cursor = await tx.store.index("by-createdAt").openCursor(); cursor && excess > 0; cursor = await cursor.continue(), excess--) {
+        await cursor.delete();
+      }
       await tx.done;
       this.core.announce(["history"]);
       return key;
@@ -57,7 +60,8 @@ export class HistoryRepository {
     }
   }
 
-  async getLatest(limit = 50): Promise<PastRequest[]> {
+  /** The newest entries first. */
+  async getLatest(limit = Number.POSITIVE_INFINITY): Promise<PastRequest[]> {
     try {
       if (this.core.useMemoryFallback) {
         return this.memoryStore.slice(0, limit);
@@ -81,36 +85,6 @@ export class HistoryRepository {
     } catch (error) {
       this.core.logError("getLatest operation failed.", error);
       return this.memoryStore.slice(0, limit);
-    }
-  }
-
-  async findByUrl(url: string, limit = 20): Promise<PastRequest[]> {
-    try {
-      if (this.core.useMemoryFallback) {
-        return this.memoryStore.filter((item) => item.url === url).slice(0, limit);
-      }
-
-      const db = await this.core.getDatabase();
-      if (!db) {
-        return this.memoryStore.filter((item) => item.url === url).slice(0, limit);
-      }
-
-      const tx = db.transaction("history", "readonly");
-      const index = tx.store.index("by-url");
-      const results: PastRequest[] = [];
-      const range = IDBKeyRange.only(url);
-      let cursor = await index.openCursor(range, "prev");
-
-      while (cursor && results.length < limit) {
-        results.push(cursor.value);
-        cursor = await cursor.continue();
-      }
-
-      await tx.done;
-      return results;
-    } catch (error) {
-      this.core.logError("findByUrl operation failed.", error);
-      return this.memoryStore.filter((item) => item.url === url).slice(0, limit);
     }
   }
 
@@ -164,10 +138,11 @@ export class HistoryRepository {
     this.memorySequence = 1;
   }
 
-  private addToMemory(item: PastRequest): PastRequestKey {
+  private addToMemory(item: PastRequest, cap: number): PastRequestKey {
     const record = { ...item, id: this.memorySequence++ } as HistoryRecord;
     this.memoryStore.push(record);
     this.sortMemoryStore();
+    this.memoryStore.length = Math.min(this.memoryStore.length, cap);
     return record.id;
   }
 

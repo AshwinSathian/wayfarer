@@ -4,6 +4,7 @@ import { App } from './app';
 import { Idb } from './data/idb';
 import { PastRequest } from './models/history';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
+import { historyEntry } from '../testing/request-fixtures';
 
 class IdbServiceMock {
   /** The listener the service registers for writes made in another tab. */
@@ -28,7 +29,7 @@ class IdbServiceMock {
   readonly updatedElsewhere = signal(false).asReadonly();
   readonly upgradeBlocked = signal(false).asReadonly();
   readonly olderThanData = signal(false).asReadonly();
-  readonly clearedOldData = signal(null).asReadonly();
+  readonly clearedOldData = signal([]).asReadonly();
 }
 
 /** The window is this wide, as far as a min-width media query can tell. */
@@ -78,13 +79,7 @@ describe('App', () => {
 
   it('loads history on init', async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{
-      id: 1,
-      method: 'GET',
-      url: 'https://example.com/api',
-      headers: {},
-      createdAt: 1
-    }];
+    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: 'https://example.com/api', createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);
@@ -105,7 +100,7 @@ describe('App', () => {
 
   it('clears history via the service', async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{ id: 1, method: 'GET', url: 'https://example.com', headers: {}, createdAt: 1 }];
+    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: 'https://example.com', createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);
@@ -124,7 +119,7 @@ describe('App', () => {
 
   it('deletes history entries', async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{ id: 5, method: 'GET', url: 'https://delete.me', headers: {}, createdAt: 1 }];
+    const history: PastRequest[] = [{ id: 5, ...historyEntry({ url: 'https://delete.me', createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);

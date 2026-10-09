@@ -1,4 +1,4 @@
-import { buildCurlCommand, toHar, InspectorExportEntry } from "./export";
+import { buildCurlCommand, toHar, InspectorExportEntry, exportRedactor, redactedRequest } from "./export";
 import { describe, it, expect } from "vitest";
 
 describe("export", () => {
@@ -113,6 +113,41 @@ describe("export", () => {
     expect(harFor(big).response.content.text).toBeUndefined();
     expect(harFor(big).response.content.comment).toBe("omitted (size or type)");
     expect(harFor(small).response.content.text).toContain('"data"');
+  });
+
+  describe("redactedRequest (D5)", () => {
+    const sent = {
+      method: "POST",
+      url: "https://api.test/items?key=typed-api-key&v=vault-plaintext",
+      headers: { Authorization: "Bearer typed-bearer", "X-Vault": "vault-plaintext", Accept: "*/*" },
+      body: '{"token":"vault-plaintext"}',
+      secrets: ["vault-plaintext"],
+      credentials: ["typed-api-key"],
+    };
+
+    it("masks vault secrets and credentials by default", () => {
+      expect(redactedRequest(sent)).toEqual({
+        method: "POST",
+        url: "https://api.test/items?key=***&v=***",
+        headers: { Authorization: "***", "X-Vault": "***", Accept: "*/*" },
+        body: '{"token":"***"}',
+      });
+      expect(buildCurlCommand(redactedRequest(sent))).not.toMatch(/typed|vault-plaintext/);
+    });
+
+    it("keeps credentials when the export asks for them, and still masks vault secrets", () => {
+      expect(redactedRequest(sent, { credentials: true })).toEqual({
+        method: "POST",
+        url: "https://api.test/items?key=typed-api-key&v=***",
+        headers: { Authorization: "Bearer typed-bearer", "X-Vault": "***", Accept: "*/*" },
+        body: '{"token":"***"}',
+      });
+    });
+
+    it("leaves a body that is not text as it is", () => {
+      expect(redactedRequest({ ...sent, body: { a: 1 } }).body).toEqual({ a: 1 });
+      expect(exportRedactor(sent).text("typed-api-key vault-plaintext")).toBe("*** ***");
+    });
   });
 
   describe("buildCurlCommand", () => {

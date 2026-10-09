@@ -24,9 +24,6 @@ export interface SaveSecretRequest {
   plaintext: string;
 }
 
-/** A secret shorter than this cannot be found and masked where it is echoed back (plan R5). */
-export const SHORT_SECRET_LENGTH = 6;
-
 const IDLE_KEY = "wayfarer:vault-idle-minutes";
 const DEFAULT_IDLE_MINUTES = 15;
 const MAX_IDLE_MINUTES = 240;
@@ -55,6 +52,10 @@ export class SecretsVault {
   /** Minutes without a key press or a click before this tab locks itself; 0 never does. */
   readonly idleMinutes = signal(this.loadIdleMinutes());
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Something needs the vault open: the shell shows the unlock dialog while this is set. */
+  readonly unlockRequested = signal(false);
+  private answerUnlockRequest: ((unlocked: boolean) => void) | undefined;
 
   /** A lock in one tab locks them all. */
   private readonly channel = new BroadcastChannel(CHANNEL);
@@ -91,6 +92,28 @@ export class SecretsVault {
     if (!dek) return false;
     this.holdKey(dek);
     return true;
+  }
+
+  /**
+   * Resolves at once when the vault is unlocked. Otherwise asks the user for
+   * the passphrase, and resolves to whether they gave it: false when they
+   * closed the dialog.
+   */
+  ensureUnlocked(): Promise<boolean> {
+    if (this.isUnlocked()) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      // A second request while one is open takes its place; the first is told no.
+      this.answerUnlockRequest?.(false);
+      this.answerUnlockRequest = resolve;
+      this.unlockRequested.set(true);
+    });
+  }
+
+  /** The unlock dialog closed, with the vault unlocked or not. */
+  unlockDialogClosed(): void {
+    this.unlockRequested.set(false);
+    this.answerUnlockRequest?.(this.isUnlocked());
+    this.answerUnlockRequest = undefined;
   }
 
   /** Locks this tab and every other tab of the app. */

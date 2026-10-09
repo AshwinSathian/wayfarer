@@ -48,15 +48,24 @@ Everything else (collections, requests, environments, history) is stored
 as plain text in IndexedDB, protected only by the browser's storage
 sandboxing and the device's disk encryption. In particular:
 
-- **History stores the headers that were sent, resolved.** An
-  `Authorization` header or API key you typed or resolved from a variable
-  is saved in plain text in history
-  ([#71](https://github.com/AshwinSathian/wayfarer/issues/71)). <!-- claim:C-008 -->
-- **Collection exports include auth fields in plain text**
-  ([#72](https://github.com/AshwinSathian/wayfarer/issues/72)). <!-- claim:C-014 -->
-- **Vault secrets can't be used in requests yet.** A request that
-  references a protected variable is blocked rather than sent with the
-  placeholder ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)). <!-- claim:C-007 -->
+- **A saved request holds what you typed.** A token typed into the Auth
+  tab or a header is plain text in your collections. Put it in the vault
+  and refer to it with a variable to keep it out of them.
+- **History stores what was sent and what came back with credentials and
+  vault secrets masked.** <!-- claim:C-008 --> A credential header
+  (`Authorization`, `Cookie`, `Set-Cookie`, `X-API-Key`, and any name with
+  token, secret, key or pass in it) is stored as `***`. Every vault secret
+  and credential of the request is also looked for in the URL, the bodies
+  and the other headers, as text, percent-encoded, JSON-escaped and inside
+  base64, since servers send them back. A value shorter than 6 characters
+  cannot be looked for.
+- **Collection exports mask credentials unless you ask for them in that
+  export.** <!-- claim:C-014 --> "Export with credentials" writes them;
+  a vault secret is never in a file, only its reference.
+- **Vault secrets are sent as their plaintext when the vault is
+  unlocked.** A locked vault asks for the passphrase first, and closing
+  that dialog sends nothing. A secret's placeholder is never sent, and
+  nothing stored, exported or copied holds the plaintext. <!-- claim:C-007 -->
 
 ## Encryption in transit
 
@@ -145,10 +154,8 @@ These are open, tracked, and scheduled in
 [`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
-- Vault secrets can't be used in requests yet ([#60](https://github.com/AshwinSathian/wayfarer/issues/60)).
 - Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
-- History and collection exports hold credentials in plain text ([#71](https://github.com/AshwinSathian/wayfarer/issues/71), [#72](https://github.com/AshwinSathian/wayfarer/issues/72)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit), and there is no full-workspace backup yet ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 - The browser adds or hides some headers without telling you ([#81](https://github.com/AshwinSathian/wayfarer/issues/81)).

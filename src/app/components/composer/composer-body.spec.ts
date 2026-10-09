@@ -208,7 +208,8 @@ describe('Composer: methods and body modes', () => {
       ]) {
         store.setBody(body);
         await component.sendRequest();
-        expect(store.endpointError(), body.mode).toContain('Protected variables');
+        // The vault is open and does not have this secret: the reference stays, and is refused.
+        expect(store.endpointError(), body.mode).toContain('refers to a vault secret that could not be read');
       }
       httpMock.verify();
     });

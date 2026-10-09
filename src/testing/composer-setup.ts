@@ -7,6 +7,8 @@ import { WorkspaceStore } from '../app/state/workspace-store';
 import { Idb } from '../app/data/idb';
 import { ResponseInspector } from '../app/shared/inspect/response-inspector';
 import { EnvironmentsStore } from '../app/services/environments-store';
+import { RequestSettings } from '../app/services/request-settings';
+import { SecretsVault } from '../app/services/secrets-vault';
 import { EnvironmentDoc } from '../app/models/environments';
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
@@ -69,6 +71,21 @@ export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc 
   };
 }
 
+/** The vault as the composer uses it: open or not, and the secrets it holds by id. */
+class SecretsVaultStub {
+  readonly unlocked = signal(true);
+  readonly isUnlocked = this.unlocked.asReadonly();
+  readonly unlockRequested = signal(false);
+  readonly secrets = new Map<string, string>();
+  /** What the user does when asked for the passphrase: `true` gives it, `false` closes the dialog. */
+  answer = true;
+  ensureUnlocked = vi.fn().mockImplementation(async () => {
+    if (!this.unlocked() && this.answer) this.unlocked.set(true);
+    return this.unlocked();
+  });
+  readSecret = vi.fn().mockImplementation(async (id: string) => (this.unlocked() ? this.secrets.get(id) ?? null : null));
+}
+
 class CollectionsServiceStub {
   private readonly treeSignal = signal<CollectionTree[]>([]);
   readonly tree = this.treeSignal.asReadonly();
@@ -107,6 +124,7 @@ export async function setupComposer() {
   const responseInspector = new ResponseInspectorServiceStub();
   const environmentsService = new EnvironmentsServiceStub();
   const collectionsService = new CollectionsServiceStub();
+  const vault = new SecretsVaultStub();
   const httpMock = new FetchMock();
   await TestBed.configureTestingModule({
     imports: [Composer],
@@ -115,6 +133,7 @@ export async function setupComposer() {
       { provide: ResponseInspector, useValue: responseInspector },
       { provide: EnvironmentsStore, useValue: environmentsService },
       { provide: CollectionsStore, useValue: collectionsService },
+      { provide: SecretsVault, useValue: vault },
     ],
   }).compileComponents();
 
@@ -131,6 +150,8 @@ export async function setupComposer() {
     responseInspector,
     environmentsService,
     collectionsService,
+    vault,
+    settings: TestBed.inject(RequestSettings),
   };
 }
 

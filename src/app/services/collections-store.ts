@@ -10,7 +10,7 @@ import {
   RequestDocId,
   RequestPatch,
 } from "../models/collections";
-import type { VariableChange } from "@wayfarer/core";
+import { Redactor, type RedactOptions, type VariableChange } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { serializeDeterministic } from "../shared/collections/collection-io";
 
@@ -258,12 +258,22 @@ export class CollectionsStore {
     return this.treeState().find((entry) => entry.collection.meta.id === id);
   }
 
-  async exportCollectionJson(id: CollectionId): Promise<string | null> {
+  /**
+   * The collection as a file. A credential typed into a request's Auth tab
+   * or into a credential header is masked unless `credentials` is asked for
+   * (plan D5); one that is a `{{variable}}` is a reference and stays.
+   */
+  async exportCollectionJson(id: CollectionId, options: RedactOptions = {}): Promise<string | null> {
     const snapshot = await this.idb.getCollectionExport(id);
     if (!snapshot) {
       return null;
     }
-    return serializeDeterministic(snapshot);
+    const redactor = new Redactor([]);
+    return serializeDeterministic({
+      ...snapshot,
+      collection: { ...snapshot.collection, variables: redactor.rows(snapshot.collection.variables, options) },
+      requests: snapshot.requests.map((request) => ({ ...request, ...redactor.template(request, options) })),
+    });
   }
 
   async importCollection(

@@ -87,6 +87,7 @@ test("@claim:C-020 Copy as cURL copies a runnable command once a URL is entered"
   await expect(copy).toBeDisabled();
   await page.locator("input.address-url").fill(`${ECHO}/echo?c020=1`);
   await copy.click();
+  await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
   await expect.poll(clipboard).toHaveLength(1);
   const [curl] = await clipboard();
   expect(curl).toMatch(/^curl /);
@@ -182,7 +183,7 @@ test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange
   // The response slides in; a button that moves between press and release takes no click.
   await still(page.getByRole("button", { name: "Export response" }));
   await page.getByRole("button", { name: "Export response" }).click();
-  await page.getByRole("menuitem", { name: "Copy as HAR" }).click();
+  await page.getByRole("menuitem", { name: "Copy as HAR", exact: true }).click();
   await expect.poll(clipboard).toHaveLength(1);
   const har = JSON.parse((await clipboard())[0]) as { log: { version: string; entries: { request: { url: string }; response: { status: number } }[] } };
   expect(har.log.version).toBe("1.2");
@@ -271,10 +272,10 @@ test("folders and requests are reordered by drag and drop among their own kind, 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await createCollection(page, "Drag Col");
-  await createUnder(page, "Drag Col", 7, "New Folder", "Drag Folder A");
-  await createUnder(page, "Drag Col", 7, "New Folder", "Drag Folder B");
-  await createUnder(page, "Drag Col", 7, "New Request", "Drag Req 1");
-  await createUnder(page, "Drag Col", 7, "New Request", "Drag Req 2");
+  await createUnder(page, "Drag Col", 8, "New Folder", "Drag Folder A");
+  await createUnder(page, "Drag Col", 8, "New Folder", "Drag Folder B");
+  await createUnder(page, "Drag Col", 8, "New Request", "Drag Req 1");
+  await createUnder(page, "Drag Col", 8, "New Request", "Drag Req 2");
   const order = treeOrder(page, "Drag ");
   await expect.poll(order).toEqual(["Drag Col", "Drag Folder A", "Drag Folder B", "Drag Req 1", "Drag Req 2"]);
 
@@ -332,7 +333,7 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Export response" }).click();
-  await page.getByRole("menuitem", { name: "Copy as cURL" }).click();
+  await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
   await expect.poll(clipboard).toHaveLength(1);
   expect((await clipboard())[0]).toContain(`${ECHO}/content/json?c035curl=1`);
 });

@@ -18,6 +18,7 @@ npm -w packages/core run typecheck   # packages/core compiles without the DOM ty
 npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
+npm -w packages/core run mutation    # Stryker on the resolver, the redactor and the vault's crypto (3 minutes)
 npx knip                # no unused files, exports or dependencies
 ```
 
@@ -347,10 +348,12 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection/2`, `wayfarer/environments/2`); there is no
   converter for older files.
-- The database is version 5 and starts empty: `runUpgrade` deletes the
-  stores an older version left. No stored data exists to keep (maintainer,
-  2026-10-09), so a change of stored shape may do the same again until the
-  app has users; say so in the changelog and in `docs/storage.md`.
+- The database is version 9. `runUpgrade` empties a database from before
+  version 5, and since then removes only what changed shape (secrets at 8,
+  history at 9), saying what it removed. No stored data exists to keep
+  (maintainer, 2026-10-09), so a change of stored shape may do the same
+  again until the app has users; say so in the changelog and in
+  `docs/storage.md`.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - The endpoint field is text, not a URL: it may hold `{{variables}}`. Do not
@@ -365,6 +368,15 @@ code errors.
 - A `{{$secret.*}}` placeholder must never reach the network, in any
   encoding (claim C-007). Extend `containsSecretPlaceholder` when adding a
   place a value can go on the wire.
+- A vault secret's plaintext exists in the vault (encrypted), in memory and
+  on the wire, and nowhere else. Whatever is stored, exported or copied
+  goes through `Redactor` (`@wayfarer/core`) first: history, cURL, HAR, a
+  collection file. A new place a request or a response is written to does
+  the same, and is added to the scan in `e2e/secrets-wire.spec.ts`.
+- `BuiltRequest.secrets` and `.credentials` are what the redactor looks
+  for. A new way to put a credential into a request adds its value there.
+- A change to `resolver.ts`, `redactor.ts` or `vault-crypto.ts` keeps the
+  mutation score at 85% or more: `npm -w packages/core run mutation`.
 - The CSP lives in `security/csp.json`; run `npm run gen:csp`. No
   `unsafe-eval`, no third-party origin.
 - The vault derives keys with PBKDF2-SHA-256 at 600,000 iterations (claim

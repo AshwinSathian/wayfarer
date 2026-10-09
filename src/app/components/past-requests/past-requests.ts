@@ -1,5 +1,7 @@
 import { DatePipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, inject, OnChanges, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
@@ -8,6 +10,18 @@ import { HoverCard } from "../../ui/hover-card";
 import { PastRequest, PastRequestKey } from "../../models/history";
 import { Icon } from "../../shared/icon/icon";
 
+/** Whether every word of `query` is part of the entry's URL, or is its method or its status. Case does not matter. */
+export function matches(request: PastRequest, query: string): boolean {
+  const url = request.sent.url.toLowerCase();
+  const method = request.sent.method.toLowerCase();
+  const status = String(request.response?.status ?? "");
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => url.includes(word) || method === word || status === word);
+}
+
 export interface HistoryGroup {
   label: string;
   requests: PastRequest[];
@@ -15,7 +29,7 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [MatIconButton, 
+  imports: [MatIconButton, MatFormField, MatInput,
     DatePipe,
     Icon,
     MatButton,
@@ -27,7 +41,7 @@ export interface HistoryGroup {
   styleUrl: "./past-requests.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PastRequests implements OnChanges {
+export class PastRequests {
   readonly pastRequests = input<PastRequest[]>([]);
   readonly loading = input(false);
   readonly displayHeader = input(true);
@@ -38,11 +52,10 @@ export class PastRequests implements OnChanges {
 
   readonly skeletonPlaceholders = Array.from({ length: 4 }).map((_, i) => i);
 
-  groups: HistoryGroup[] = [];
+  /** What the search field holds. Each word must be in the URL, or be the method or the status. */
+  readonly query = signal("");
 
-  ngOnChanges(): void {
-    this.groups = this.buildGroups(this.pastRequests());
-  }
+  readonly groups = computed(() => this.buildGroups(this.pastRequests().filter((request) => matches(request, this.query()))));
 
   private buildGroups(requests: PastRequest[]): HistoryGroup[] {
     const now = Date.now();

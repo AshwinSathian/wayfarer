@@ -1,0 +1,9 @@
+{
+  "$schema": "../../node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "command",
+  "commandRunner": { "command": "npx vitest run src/variables src/redact src/vault" },
+  "mutate": ["src/variables/resolver.ts", "src/redact/redactor.ts", "src/vault/vault-crypto.ts"],
+  "reporters": ["clear-text", "progress"],
+  "thresholds": { "high": 90, "low": 85, "break": 85 },
+  "tempDirName": ".stryker-tmp"
+}

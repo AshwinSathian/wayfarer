@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { historyEntry } from "../../testing/request-fixtures";
 import { IdbCore } from "./idb-core";
 import { DB_NAME, DB_VERSION } from "./idb-schema";
 import { Idb } from "./idb";
@@ -76,7 +77,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(8);
+    expect(DB_VERSION).toBe(9);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -108,10 +109,10 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(8);
+    expect(db.version).toBe(9);
     expect([...db.objectStoreNames]).toContain("files");
     expect((await idb.listCollections()).map((c) => [c.name, c.variables, c.scriptTrust])).toEqual([["Kept", [], { trusted: true }]]);
-    expect(core.clearedOldData()).toBeNull();
+    expect(core.clearedOldData()).toEqual([]);
   });
 
   it("removes secrets encrypted the old way and says so; everything else stays (version 8)", async () => {
@@ -137,20 +138,49 @@ describe("opening a database left by another release", () => {
 
     await idb.init();
 
-    expect((await core.getDatabase())!.version).toBe(8);
+    expect((await core.getDatabase())!.version).toBe(9);
     expect(await idb.listSecrets()).toEqual([]);
     expect(await idb.readVault()).toBeNull();
-    expect(core.clearedOldData()).toBe("secrets");
+    expect(core.clearedOldData()).toEqual(["secrets"]);
     expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Kept"]);
     // The variable still names the secret that is gone; the send says so.
     expect((await idb.listEnvironments())[0].vars[0].value).toBe("{{$secret.s-1}}");
+  });
+
+  it("removes history that holds what was sent as it was sent, says so, and takes entries of the new shape (version 9)", async () => {
+    const v8 = await openRaw(8, (db) => {
+      const history = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
+      history.createIndex("by-createdAt", "createdAt");
+      history.createIndex("by-url", "url");
+      history.createIndex("by-method", "method");
+      history.add({ method: "GET", url: "https://api.test", headers: { Authorization: "Bearer old-plain-token" }, createdAt: 1 });
+      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
+      collections.createIndex("by-order", "order");
+      collections.add({ id: "c-8", meta: { id: "c-8", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, variables: [], scriptTrust: { trusted: true } });
+      for (const name of ["folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
+      db.createObjectStore("files");
+      db.createObjectStore("meta", { keyPath: "key" });
+    });
+    v8.close();
+
+    await idb.init();
+
+    const db = (await core.getDatabase())!;
+    expect(db.version).toBe(9);
+    expect(await idb.getLatest()).toEqual([]);
+    expect([...db.transaction("history").store.indexNames]).toEqual(["by-createdAt"]);
+    expect(core.clearedOldData()).toEqual(["history"]);
+    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Kept"]);
+
+    await idb.add(historyEntry({ createdAt: 5 }), 500);
+    expect((await idb.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
   });
 
   it("does not report removed data on a first run", async () => {
     await idb.init();
 
     expect((await core.getDatabase())!.version).toBe(DB_VERSION);
-    expect(core.clearedOldData()).toBeNull();
+    expect(core.clearedOldData()).toEqual([]);
   });
 
   it("waits, and says so, while a tab that will not close holds the old database; finishes when it closes", async () => {

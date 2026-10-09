@@ -37,6 +37,9 @@ async function protectVariable(page: Page, name: string, plaintext: string): Pro
 const openSettings = (page: Page) => page.getByRole("button", { name: "Settings", exact: true }).click();
 
 test("@claim:C-046 backup, Reset all data, restore: every store holds what it held, with collections untrusted", async ({ page }) => {
+  // Three page loads, a vault made and opened again (two key derivations), a download and an upload:
+  // the longest test of the suite. On a slow CI runner it met the 30 s limit.
+  test.slow();
   await seedAndOpen(page, { host: ECHO }, { method: "GET", url: "{{host}}/echo?backup=1", auth: { type: "bearer", token: "typed-token" } });
   await protectVariable(page, "API_TOKEN", SECRET);
   await page.getByRole("button", { name: "Global variables" }).click();

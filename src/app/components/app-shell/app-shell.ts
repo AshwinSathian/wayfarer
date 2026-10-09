@@ -71,7 +71,10 @@ export class AppShell implements OnInit {
   readonly pastRequests = input<PastRequest[]>([]);
   readonly historyLoading = input(false);
   readonly drawerVisible = input(true);
+  /** The composer stacks its sections (below 768 px). */
   readonly isMobile = input(false);
+  /** The sidebar is a drawer over the page, not pinned beside it (below 1024 px). */
+  readonly sidebarOverlay = input(false);
 
   readonly newRequest = output<void>();
   readonly clearHistory = output<void>();
@@ -211,7 +214,7 @@ export class AppShell implements OnInit {
   /** A click on the page behind an open drawer closes it. */
   protected closeDrawers(): void {
     if (this.historyDrawerVisible()) this.historyDrawerVisible.set(false);
-    else if (this.isMobile() && this.drawerVisible()) this.closeDrawer.emit();
+    else if (this.sidebarOverlay() && this.drawerVisible()) this.closeDrawer.emit();
   }
 
   /** Material notes where focus was only once the slide has ended, by when it is inside the drawer. */
@@ -221,7 +224,7 @@ export class AppShell implements OnInit {
   }
 
   get drawerWidth(): string {
-    return this.isMobile() ? "18rem" : "22rem";
+    return this.sidebarOverlay() ? "18rem" : "22rem";
   }
 
   handleLoadRequest(request: PastRequest): void {
@@ -229,7 +232,7 @@ export class AppShell implements OnInit {
     if (apiParams) {
       apiParams.loadPastRequest(request);
     }
-    if (this.isMobile()) {
+    if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }
   }
@@ -240,7 +243,7 @@ export class AppShell implements OnInit {
       apiParams.loadCollectionRequest(request);
       apiParams.focusUrl();
     }
-    if (this.isMobile()) {
+    if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }
   }
@@ -248,7 +251,7 @@ export class AppShell implements OnInit {
   handleNewRequest(): void {
     this.apiParams().clearComposer();
     this.apiParams().focusUrl();
-    if (this.isMobile()) {
+    if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }
   }

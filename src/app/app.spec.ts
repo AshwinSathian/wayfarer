@@ -130,4 +130,30 @@ describe('App', () => {
     component.closeHistoryDrawer();
     expect(component.drawerVisible()).toBe(false);
   });
+
+  it('pins the sidebar open from 1024 px, and keeps it a closed drawer below that; the stacked composer starts below 768 px', async () => {
+    idbService.getLatest.mockReturnValue(Promise.resolve([]));
+    const at = async (width: number) => {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+      fixture = TestBed.createComponent(App);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+      await fixture.whenStable();
+      return { drawer: component.drawerVisible(), overlay: component.sidebarOverlay(), mobile: component.isMobile() };
+    };
+
+    expect(await at(1024)).toEqual({ drawer: true, overlay: false, mobile: false });
+    // A tablet, or a small laptop window: room for the two composer panes, not for a 352 px sidebar beside them.
+    expect(await at(1023)).toEqual({ drawer: false, overlay: true, mobile: false });
+    expect(await at(768)).toEqual({ drawer: false, overlay: true, mobile: false });
+    expect(await at(767)).toEqual({ drawer: false, overlay: true, mobile: true });
+
+    // Crossing the line while open: the sidebar pins itself, and steps back out of the way.
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1200 });
+    component.onWindowResize();
+    expect(component.drawerVisible()).toBe(true);
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 900 });
+    component.onWindowResize();
+    expect(component.drawerVisible()).toBe(false);
+  });
 });

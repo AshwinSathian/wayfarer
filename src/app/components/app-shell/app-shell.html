@@ -28,14 +28,14 @@
             </span>
           </div>
         </div>
-        @if (isMobile()) {
+        @if (sidebarOverlay()) {
         <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="toggleDrawer.emit()">
           <app-icon name="side_navigation" class="icon-md" />
         </button>
         }
       </div>
 
-      @if (isMobile()) {
+      @if (sidebarOverlay()) {
       <div class="px-4 py-3">
         <button
           matButton="outlined"
@@ -57,8 +57,8 @@
     </div>
   </ng-template>
 
-  @if (isMobile()) {
-  <!-- Mobile: a true modal overlay — trapping keyboard focus inside it while open
+  @if (sidebarOverlay()) {
+  <!-- Below 1024 px: a true modal overlay — trapping keyboard focus inside it while open
        is correct here, since it covers the whole screen and there's nothing else
        to reach until it closes. -->
   <mat-sidenav
@@ -135,7 +135,7 @@
 
   <mat-sidenav-content>
     <div class="flex min-h-screen bg-canvas-app text-label-primary">
-      @if (!isMobile() && drawerVisible()) {
+      @if (!sidebarOverlay() && drawerVisible()) {
       <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
            focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
            icons and left the Send button and the response viewer unreachable by
@@ -149,7 +149,7 @@
       <div
         class="flex min-w-0 flex-1 flex-col"
         style="transition: margin-left var(--dur-enter) var(--ease-standard);"
-        [class]="!isMobile() && drawerVisible() ? 'md:ml-88' : ''"
+        [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
       >
         <!-- Top toolbar -->
         <mat-toolbar class="ds-toolbar" role="banner">

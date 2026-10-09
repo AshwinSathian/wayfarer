@@ -95,6 +95,35 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     });
   }
 
+  // The 352 px sidebar was pinned from 768 px up. At 820 px that left the
+  // composer and the response 150 px each: a header's name field was 20 px
+  // wide and the response wrapped at every character.
+  for (const width of [768, 820, 1023]) {
+    test(`at ${width} px the sidebar is a drawer, so the composer and the response have room`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      await still(page.locator("app-api-params"));
+
+      await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
+      const field = await page.getByLabel("Headers name, row 1").boundingBox();
+      // 85 px at 768 px; it was 20 px.
+      expect(field!.width).toBeGreaterThanOrEqual(80);
+
+      await page.getByRole("button", { name: "Toggle sidebar" }).click();
+      const drawer = page.getByRole("dialog", { name: "Navigation" });
+      await expect(drawer.getByRole("button", { name: "New collection" })).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(drawer).toHaveCount(0);
+    });
+  }
+
+  test("at 1024 px the sidebar is pinned beside the composer", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.goto("/");
+    await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
+  });
+
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");

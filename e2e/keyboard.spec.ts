@@ -176,6 +176,7 @@ test("export menu: opens from the keyboard, arrows move, Escape returns focus, E
   await expect(trigger).toBeFocused();
 
   await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitem", { name: "Copy as cURL" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(trigger).toBeFocused();
@@ -215,6 +216,17 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await expect(page.getByRole("tree").getByRole("textbox")).toBeVisible();
 });
 
+/**
+ * Clicks where `trigger` is while its menu or list is open. Material puts a
+ * transparent backdrop over the page, a frame after the panel, and that is
+ * what a second click in the same place lands on.
+ */
+async function clickAgain(page: Page, trigger: Locator): Promise<void> {
+  await expect(page.locator(".cdk-overlay-backdrop-showing")).toBeVisible();
+  const box = (await trigger.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+}
+
 test("with the mouse: a second click on the Export button or on a select closes it again", async ({ page }) => {
   await page.goto("/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?toggle=1`);
@@ -224,17 +236,13 @@ test("with the mouse: a second click on the Export button or on a select closes 
   const exportButton = page.getByRole("button", { name: "Export response" });
   await exportButton.click();
   await expect(page.getByRole("menu")).toBeVisible();
-  await exportButton.click();
+  await clickAgain(page, exportButton);
   await expect(page.getByRole("menu")).toHaveCount(0);
 
   const method = page.getByRole("combobox", { name: /^HTTP method/ });
   await method.click();
   await expect(page.getByRole("listbox")).toBeVisible();
-  // The open list sits over a transparent backdrop, which is what a second
-  // click in the same place lands on. The CDK shows it a frame after the list.
-  await expect(page.locator(".cdk-overlay-backdrop-showing")).toBeVisible();
-  const box = (await method.boundingBox())!;
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await clickAgain(page, method);
   await expect(page.getByRole("listbox")).toHaveCount(0);
 });
 
@@ -480,7 +488,9 @@ test("phone: Escape with a tree row's menu open closes the menu and leaves the n
   await page.getByRole("button", { name: "Create", exact: true }).click();
 
   await drawer.getByRole("treeitem", { name: "Phone Col" }).click({ button: "right" });
-  // No wait for the menu: it opens in the same event as the right-click.
+  // Material's menu reads keys from its own panel, so it has to hold focus:
+  // it takes it a moment after the right-click.
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(drawer).toBeVisible();

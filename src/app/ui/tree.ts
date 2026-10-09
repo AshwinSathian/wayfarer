@@ -42,13 +42,14 @@ interface Row<T> {
  * reordered among their siblings by drag and drop or Alt+Arrow keys.
  *
  *   <ui-tree [nodes]="nodes()" ariaLabel="Collections" [group]="kind"
- *            (selected)="…" (menu)="…" (edit)="…" (reorder)="…">
+ *            (selected)="…" (edit)="…" (reorder)="…">
  *     <ng-template let-node>{{ node.label }}</ng-template>
  *   </ui-tree>
  *
  * One row is in the tab order. Arrow keys move between visible rows, Right
  * and Left expand, collapse or step to a child or parent, Home and End jump,
- * Enter or Space selects, F2 asks to edit, Shift+F10 asks for the menu.
+ * Enter or Space selects, F2 asks to edit. A right-click selects the row and
+ * goes on up as a `contextmenu` event; Shift+F10 sends the row the same event.
  */
 @Component({
   selector: "ui-tree",
@@ -74,7 +75,7 @@ interface Row<T> {
         [class.ui-tree-row--drop-before]="dropTarget()?.key === row.node.key && dropTarget()?.before"
         [class.ui-tree-row--drop-after]="dropTarget()?.key === row.node.key && !dropTarget()?.before"
         (click)="select(row)"
-        (contextmenu)="openMenu(row, $event)"
+        (contextmenu)="select(row)"
         (focus)="activeKey.set(row.node.key)"
         (dragstart)="onDragStart(row, $event)"
         (dragover)="onDragOver(row, $event)"
@@ -100,8 +101,6 @@ export class Tree<T> {
   readonly group = input<(node: UiTreeNode<T>) => unknown>(() => null);
 
   readonly selected = output<UiTreeNode<T>>();
-  /** A context menu was asked for, with the mouse or with Shift+F10. */
-  readonly menu = output<{ node: UiTreeNode<T>; event: MouseEvent }>();
   /** F2: the user wants to edit the node. */
   readonly edit = output<UiTreeNode<T>>();
   /** `node` moved; `siblings` are the nodes of its group under the same parent, in their new order. */
@@ -155,6 +154,12 @@ export class Tree<T> {
     this.host.nativeElement.querySelector<HTMLElement>(`[data-key="${CSS.escape(key)}"]`)?.focus();
   }
 
+  /** Moves keyboard focus to the selected node's row. */
+  focusSelected(): void {
+    const key = this.selectedKey();
+    if (key) this.focusNode(key);
+  }
+
   protected select(row: Row<T>): void {
     this.selectedKey.set(row.node.key);
     this.activeKey.set(row.node.key);
@@ -164,11 +169,6 @@ export class Tree<T> {
   protected toggle(row: Row<T>): void {
     if (!row.expandable) return;
     this.toggled.update((map) => new Map(map).set(row.node.key, !row.expanded));
-  }
-
-  protected openMenu(row: Row<T>, event: MouseEvent): void {
-    this.select(row);
-    this.menu.emit({ node: row.node, event });
   }
 
   protected onKeydown(event: KeyboardEvent): void {
@@ -188,8 +188,9 @@ export class Tree<T> {
     }
     if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
       event.preventDefault();
+      // A real event, so it goes the way a right-click does: to the row, then up to whatever opens the menu.
       const rect = target.getBoundingClientRect();
-      this.openMenu(row, new MouseEvent("contextmenu", { clientX: rect.left + 24, clientY: rect.bottom }));
+      target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: rect.left + 24, clientY: rect.bottom }));
       return;
     }
     if (event.altKey || event.ctrlKey || event.metaKey) return;

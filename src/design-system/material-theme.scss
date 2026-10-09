@@ -260,3 +260,21 @@ html {
     )
   );
 }
+
+/* ── Menu ────────────────────────────────────────────────── */
+html {
+  @include mat.menu-overrides(
+    (
+      container-color: var(--glass-overlay),
+      container-shape: var(--radius-lg),
+      container-elevation-shadow: var(--shadow-overlay),
+      item-label-text-color: var(--label-primary),
+      item-label-text-size: 13px,
+      item-label-text-weight: 400,
+      item-label-text-tracking: -0.002em,
+      item-label-text-line-height: normal,
+      item-hover-state-layer-color: var(--fill-hover),
+      item-focus-state-layer-color: var(--fill-hover),
+    )
+  );
+}

@@ -9,7 +9,7 @@ const node = (key: string, data: Kind, children?: UiTreeNode<Kind>[], expanded?:
 @Component({
   imports: [Tree],
   template: `
-    <ui-tree ariaLabel="Files" [nodes]="nodes()" [group]="kind" (selected)="selected.push($event.key)" (menu)="menus.push($event)" (edit)="edits.push($event.key)" (reorder)="onReorder($event)">
+    <ui-tree ariaLabel="Files" [nodes]="nodes()" [group]="kind" (selected)="selected.push($event.key)" (contextmenu)="menus.push($event)" (edit)="edits.push($event.key)" (reorder)="onReorder($event)">
       <ng-template let-node><span class="name">{{ node.label }}</span></ng-template>
     </ui-tree>
   `,
@@ -21,7 +21,7 @@ class TestHost {
   ]);
   readonly kind = (n: UiTreeNode<Kind>) => n.data;
   readonly selected: string[] = [];
-  readonly menus: { node: UiTreeNode<Kind>; event: MouseEvent }[] = [];
+  readonly menus: MouseEvent[] = [];
   readonly edits: string[] = [];
   readonly reorders: { node: string; siblings: string[] }[] = [];
   /** Applies a reorder the way an owner would: the same nodes, in the new order. */
@@ -142,14 +142,15 @@ describe("ui-tree", () => {
     await press("F2");
     expect(host.edits).toEqual(["c.ts"]);
 
+    // Shift+F10 sends the row a contextmenu event, as a right-click would, for whatever opens the menu.
     const key = await press("F10", { shiftKey: true });
     expect(key.defaultPrevented).toBe(true);
-    expect(host.menus.map((m) => m.node.key)).toEqual(["c.ts"]);
-    const rect = row("c.ts").getBoundingClientRect();
-    expect(host.menus[0].event.clientY).toBeCloseTo(rect.bottom, 0);
+    expect(host.menus).toHaveLength(1);
+    expect(host.menus[0].target).toBe(row("c.ts"));
+    expect(host.menus[0].clientY).toBeCloseTo(row("c.ts").getBoundingClientRect().bottom, 0);
 
     row("lib").dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
-    expect(host.menus.map((m) => m.node.key)).toEqual(["c.ts", "lib"]);
+    expect(host.menus).toHaveLength(2);
     expect(host.selected.at(-1)).toBe("lib");
     fixture.destroy();
   });

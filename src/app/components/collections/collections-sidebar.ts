@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
-import { Menu, UiMenuItem } from "../../ui/menu";
+import { MatContextMenuTrigger, MatMenu, MatMenuContent, MatMenuItem } from "@angular/material/menu";
+import { UiMenuItem } from "../../ui/menu-item";
 import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
@@ -38,7 +39,7 @@ export interface PaletteAction {
     Icon,
     FormsModule,
     Tree,
-    Menu,
+    MatMenu, MatMenuContent, MatMenuItem, MatContextMenuTrigger,
     MatButton,
     Dialog,
     MatSelect, MatOption,
@@ -322,13 +323,6 @@ export class CollectionsSidebar implements OnInit {
 
   private emitLoadRequest(doc: RequestDoc): void {
     this.loadRequest.emit(doc);
-  }
-
-  /** Opens the context menu for a node, with that node's actions. */
-  openContextMenu(menu: Menu, node: UiTreeNode<NodeData>, event: MouseEvent): void {
-    this.handleNodeSelect(node);
-    // Passed directly: the menu's own input is not updated until the next render.
-    menu.show(event, this.contextItems());
   }
 
   /** Saves the new order of a node's siblings after a drag and drop or an Alt+Arrow move. */

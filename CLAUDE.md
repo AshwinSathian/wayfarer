@@ -132,6 +132,16 @@ code errors.
   [value]="null">`; Material then shows the placeholder.
 - Material's select behaves like the native one: Enter or Space opens the
   list, and an arrow key or a letter on the closed select changes the value.
+- Menu: `<mat-menu>` of `<button mat-menu-item>`, opened with
+  `[matMenuTriggerFor]`, or `[matContextMenuTriggerFor]` for one at the
+  pointer. When the items depend on what was clicked, put them in
+  `<ng-template matMenuContent>`: content outside it is rendered with the
+  page, and shows the last target's items for a frame.
+- A Material menu reads its keys from its own panel, so they work once the
+  panel holds focus. An e2e test waits for the first item to be focused
+  before it sends a key.
+- An open menu or select sits over a transparent backdrop. A test that
+  clicks its trigger a second time clicks the coordinates, not the element.
 - A token whose value is a variable set on the component (`--btn-fg`) must
   be overridden on the component's class, not on `html`: a variable is
   resolved where it is declared.

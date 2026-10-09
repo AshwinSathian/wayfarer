@@ -690,59 +690,47 @@
 }
 
 /* ── Menu ────────────────────────────────────────────────── */
-.ui-menu-panel {
+/* Markup: <mat-menu> of <button mat-menu-item>, with an optional
+   <app-icon class="menu-icon"> and <div class="menu-separator" role="separator">
+   between groups. class="menu-context" on a menu opened at the pointer.
+   Colours and type come through Material's tokens. */
+.cdk-overlay-pane .mat-mdc-menu-panel {
   min-width: 160px;
   border: 1px solid var(--glass-border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--glass-overlay);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  box-shadow: var(--shadow-overlay);
 }
 
-.ui-menu-panel--context {
+.cdk-overlay-pane .mat-mdc-menu-panel.menu-context {
   min-width: 12.5rem;
 }
 
-.ui-menu {
+.mat-mdc-menu-panel .mat-mdc-menu-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 9px;
-  outline: none;
 }
 
-.ui-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
+.mat-mdc-menu-panel .mat-mdc-menu-item {
+  min-height: 0;
   padding: 8px 12px;
-  border: 0;
   border-radius: var(--radius-sm);
-  background: none;
-  color: var(--label-primary);
-  font: inherit;
-  font-size: 13px;
-  letter-spacing: -0.002em;
-  text-align: start;
-  cursor: pointer;
   transition: background var(--dur-micro) var(--ease-standard);
 }
 
-.ui-menu-item:hover,
-.ui-menu-item:focus {
-  outline: none;
-  background: var(--fill-hover);
-  border-radius: var(--radius-sm);
+.mat-mdc-menu-panel .mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.ui-menu-icon {
+.menu-icon {
   color: var(--ctl-menu-icon);
   font-size: 18px;
 }
 
-.ui-menu-separator {
+.menu-separator {
   border-top: 1px solid var(--ctl-surface-border);
 }
 

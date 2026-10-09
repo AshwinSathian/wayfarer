@@ -1,4 +1,4 @@
-import { UiMenuItem } from "../../ui/menu";
+import { UiMenuItem } from "../../ui/menu-item";
 import { UiTreeNode } from "../../ui/tree";
 import { CollectionNodeData } from "./collection-tree-nodes";
 

@@ -137,6 +137,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   variables with the same name, and the next save stored that. Rows now
   change only where you change them; the JSON view shows the variables in
   use (#188).
+- Deleting a folder that had folders inside it (from an imported file)
+  left them attached to a folder that no longer existed, and an export
+  wrote that. They now move up one level (#190).
 
 ## [1.4.0] - 2026-10-09
 

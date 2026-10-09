@@ -171,6 +171,31 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect((await requests.listRequests(other.meta.id)).map((r) => r.meta.id)).toEqual([kept.meta.id]);
   });
 
+  it("deleting a folder moves the folders inside it up one level, with their requests (F60)", async () => {
+    const { collection } = await seed();
+    const outer = await folders.createFolder({ collectionId: collection.meta.id, name: "Outer" });
+    const middle = await folders.createFolder({ collectionId: collection.meta.id, name: "Middle", parentFolderId: outer.meta.id });
+    const inner = await folders.createFolder({ collectionId: collection.meta.id, name: "Inner", parentFolderId: middle.meta.id });
+    const kept = await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "Kept", method: "GET", url: "/k" });
+
+    await folders.deleteFolder(middle.meta.id);
+
+    const left = await folders.listFolders(collection.meta.id);
+    expect(left.map((f) => [f.name, f.parentFolderId])).toEqual([
+      ["Auth", undefined],
+      ["Outer", undefined],
+      ["Inner", outer.meta.id],
+    ]);
+    expect((await requests.listRequests(collection.meta.id)).some((r) => r.meta.id === kept.meta.id)).toBe(true);
+
+    // A folder at the top level: what was inside it is at the top level now.
+    await folders.deleteFolder(outer.meta.id);
+    expect((await folders.listFolders(collection.meta.id)).map((f) => [f.name, f.parentFolderId])).toEqual([
+      ["Auth", undefined],
+      ["Inner", undefined],
+    ]);
+  });
+
   it("exports a collection with its folders and requests, and imports it back over the existing one", async () => {
     const { collection, folder, inFolder, atRoot } = await seed();
 

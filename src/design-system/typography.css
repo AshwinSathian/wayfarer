@@ -51,20 +51,6 @@ pre,
 /* Apple-inspired scale: tighter tracking on larger sizes,
    optical weight adjustments at each step. */
 
-.type-display {
-  font-size: 28px;
-  line-height: 34px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
-
-.type-title-1 {
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 650;
-  letter-spacing: -0.018em;
-}
-
 .type-title-2 {
   font-size: 18px;
   line-height: 24px;
@@ -77,13 +63,6 @@ pre,
   line-height: 20px;
   font-weight: 590;
   letter-spacing: -0.010em;
-}
-
-.type-headline {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 520;
-  letter-spacing: -0.006em;
 }
 
 .type-body {
@@ -128,22 +107,6 @@ pre,
   line-height: 20px;
   font-weight: 400;
   letter-spacing: 0;
-}
-
-.type-mono-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-.type-mono-caption {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 15px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
 }
 
 /* ── Uppercase labels ────────────────────────────────────── */

@@ -72,7 +72,12 @@ class EnvironmentsServiceStub {
 
   async changeEnvironment(id: EnvironmentId, changes: unknown, details: unknown): Promise<EnvironmentDoc | null> {
     this.changeCalls.push({ id, changes, details });
-    return this.changeResult;
+    // As the store does: it has read the environments again by the time a change returns.
+    const result = this.changeResult;
+    if (result) {
+      this.environmentsState.update((envs) => envs.map((env) => (env.meta.id === id ? result : env)));
+    }
+    return result;
   }
 
   async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
@@ -229,6 +234,22 @@ describe("EnvironmentsManager", () => {
       component.removeVariable(0);
       await component.save();
       expect(envService.changeCalls[1].changes).toEqual([{ key: "A", value: null }]);
+    });
+
+    it("after a save shows what the store holds now, not the older document the save returned (F62)", async () => {
+      component.draft()!.vars.push({ key: "mine", value: "1", enabled: true });
+      // Another tab's save landed after this one's write and before it returned:
+      // the store has already read it, and the save still returns its own, older result.
+      envService.changeEnvironment = async () => {
+        envService.setEnvironments([makeEnv("e1", { A: "1", mine: "1", theirs: "2" })]);
+        await fixture.whenStable();
+        return makeEnv("e1", { A: "1", mine: "1" });
+      };
+
+      await component.save();
+      await fixture.whenStable();
+
+      expect(component.draft()?.vars.map((row) => row.key)).toEqual(["A", "mine", "theirs"]);
     });
 
     it("shows a change made elsewhere to the open environment, but not over edits that are not saved yet", async () => {

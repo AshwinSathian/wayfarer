@@ -25,10 +25,11 @@ export default defineConfig({
   },
   // P1.3: every spec runs in all three engines. Tests tagged @claim back a
   // public claim (docs/claims.md), so they run in their own projects with
-  // retries disabled: a claim test that fails once fails CI.
+  // retries disabled: a claim test that fails once fails CI. With no retry
+  // there is no "first retry" to trace, so these keep the trace of a failure.
   projects: BROWSERS.flatMap(({ name, device }) => [
     { name, use: { ...device }, grepInvert: /@claim\b/ },
-    { name: `claims-${name}`, use: { ...device }, grep: /@claim\b/, retries: 0 },
+    { name: `claims-${name}`, use: { ...device, trace: "retain-on-failure" as const }, grep: /@claim\b/, retries: 0 },
   ]),
   webServer: BASE_URL
     ? undefined

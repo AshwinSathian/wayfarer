@@ -1,0 +1,12 @@
+{
+  "name": "@wayfarer/core",
+  "version": "0.0.0",
+  "description": "Wayfarer's framework-agnostic engine, shared by the web app and the CLI.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

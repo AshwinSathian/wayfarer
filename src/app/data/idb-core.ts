@@ -13,7 +13,7 @@ import {
 } from "./idb-schema";
 import { runUpgrade } from "./idb-migrations";
 import { recordDiagnostic } from "../services/diagnostics";
-import { newId } from "../shared/id";
+import { newId } from "@wayfarer/core";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";

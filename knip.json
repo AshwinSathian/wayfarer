@@ -1,23 +1,36 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [
-    "src/sw.ts",
-    "src/**/*.worker.ts",
-    "src/**/*.spec.ts",
-    "src/testing/**/*.ts",
-    "e2e/**/*.{ts,mjs}",
-    "scripts/*.mjs",
-    "local-bridge/bin/*.js",
-    "local-bridge/test/*.js"
-  ],
-  "project": [
-    "src/**/*.ts",
-    "e2e/**/*.{ts,mjs}",
-    "scripts/**/*.mjs",
-    "local-bridge/**/*.js"
-  ],
-  "ignoreDependencies": [
-    "@angular/language-service"
-  ],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/sw.ts",
+        "src/**/*.worker.ts",
+        "src/**/*.spec.ts",
+        "src/testing/**/*.ts",
+        "e2e/**/*.{ts,mjs}",
+        "scripts/*.mjs",
+        "local-bridge/bin/*.js",
+        "local-bridge/test/*.js"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "e2e/**/*.{ts,mjs}",
+        "scripts/**/*.mjs",
+        "local-bridge/**/*.js"
+      ],
+      "ignoreDependencies": [
+        "@angular/language-service"
+      ]
+    },
+    "packages/core": {
+      "entry": [
+        "src/index.ts",
+        "src/**/*.spec.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    }
+  },
   "ignoreExportsUsedInFile": true
 }

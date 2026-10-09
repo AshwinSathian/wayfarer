@@ -1,4 +1,4 @@
-import { parseJson, stringifyJson } from "../json/safe-json";
+import { parseJson, stringifyJson } from "@wayfarer/core";
 
 const HAR_VERSION = "1.2";
 const HAR_CREATOR = { name: "Wayfarer", version: "1" };

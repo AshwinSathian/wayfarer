@@ -71,6 +71,30 @@ module.exports = defineConfig([
     },
   },
   {
+    // packages/core runs in the browser, in a worker and in Node (the CLI):
+    // no framework, and nothing only one of them has. Its tsconfig leaves
+    // out the DOM types; these rules leave out what only Node has.
+    files: ["packages/core/src/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@angular/*", "rxjs", "rxjs/*", "node:*"],
+              message: "packages/core is framework-agnostic and runs in the browser and in Node.",
+            },
+          ],
+        },
+      ],
+      "no-restricted-globals": [
+        "error",
+        { name: "process", message: "Node only; packages/core also runs in the browser." },
+        { name: "Buffer", message: "Node only; packages/core also runs in the browser." },
+      ],
+    },
+  },
+  {
     files: ["**/*.html"],
     extends: [
       angular.configs.templateRecommended,

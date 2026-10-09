@@ -14,7 +14,7 @@
  * handed to it. That stripping happens first, before any user code is ever evaluated.
  */
 
-import { parseJson, stringifyJson } from "../json/safe-json";
+import { parseJson, stringifyJson } from "@wayfarer/core";
 
 type WorkerGlobal = Record<string, unknown>;
 

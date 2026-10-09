@@ -7,7 +7,7 @@ import {
   RequestDoc,
 } from "../models/collections";
 import { IdbCore } from "./idb-core";
-import { newId } from "../shared/id";
+import { newId } from "@wayfarer/core";
 
 /**
  * Collection-level CRUD + import/export. Folder and request CRUD used to

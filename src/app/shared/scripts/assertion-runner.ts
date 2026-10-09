@@ -5,7 +5,7 @@ import {
   TestAssertion,
   TestResult,
 } from "../../models/test-assertion";
-import { parseJson } from "../json/safe-json";
+import { parseJson } from "@wayfarer/core";
 
 export interface AssertionResponseContext {
   statusCode: number;

@@ -16,8 +16,7 @@ import {
 import { PastRequest } from "../models/history";
 import { BinaryBody } from "../shared/http/response-body";
 import { TestAssertion, TestResult } from "../models/test-assertion";
-import { parseJson, stringifyJson } from "../shared/json/safe-json";
-import { newId } from "../shared/id";
+import { newId, parseJson, stringifyJson } from "@wayfarer/core";
 
 export interface BuiltRequest {
   method: PastRequest["method"];

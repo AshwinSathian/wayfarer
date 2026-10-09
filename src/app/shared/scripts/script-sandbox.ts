@@ -1,6 +1,6 @@
 import { Injectable, InjectionToken, isDevMode } from "@angular/core";
 import { ScriptExecutionResult } from "../../models/test-assertion";
-import { newId } from "../id";
+import { newId } from "@wayfarer/core";
 
 export interface ScriptResponseContext {
   statusCode: number;

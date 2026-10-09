@@ -90,7 +90,7 @@ import {
   operatorsFor,
 } from "../../shared/http/test-assertion-ui";
 import { Icon } from "../../shared/icon/icon";
-import { newId } from "../../shared/id";
+import { newId } from "@wayfarer/core";
 
 type EditorMode = "basic" | "json";
 type ContextType = "Body" | "Headers";

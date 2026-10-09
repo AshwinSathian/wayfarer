@@ -34,7 +34,7 @@ import {
 import { writeToClipboard } from "../../shared/http/clipboard";
 import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
-import { parseJson, stringifyJson } from "../../shared/json/safe-json";
+import { parseJson, stringifyJson } from "@wayfarer/core";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 

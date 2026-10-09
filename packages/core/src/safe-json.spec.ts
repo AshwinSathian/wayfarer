@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateCollection } from "../collections/collection-io";
-import { validateEnvironmentExport } from "../environments/environment-io";
-import { IMPORT_TOO_LARGE, MAX_IMPORT_BYTES, parseJson, readImportText, stringifyJson } from "./safe-json";
+import { MAX_IMPORT_BYTES, isOversizedImport, parseJson, readImportText, stringifyJson } from "./safe-json";
 
 describe("safe-json", () => {
   it("parseJson returns the value or the SyntaxError", () => {
@@ -19,13 +17,19 @@ describe("safe-json", () => {
     expect(stringifyJson({ a: 1 }, 2)).toBe('{\n  "a": 1\n}');
   });
 
-  it("reads at most one byte past the import limit, and both importers reject such a file by size", async () => {
+  it("stringifyJson rethrows what is not a serialization failure", () => {
+    const failing = { toJSON: () => { throw new RangeError("no"); } };
+    expect(() => stringifyJson(failing)).toThrow(RangeError);
+  });
+
+  it("reads at most one byte past the import limit, which counts as oversized", async () => {
     const huge = new Blob(["[", "x".repeat(MAX_IMPORT_BYTES + 5000)]);
 
     const text = await readImportText(huge);
 
     expect(text.length).toBe(MAX_IMPORT_BYTES + 1);
-    expect(validateCollection(text).errors).toEqual([{ path: "root", message: IMPORT_TOO_LARGE }]);
-    expect(validateEnvironmentExport(text).errors).toEqual([IMPORT_TOO_LARGE]);
+    expect(isOversizedImport(text)).toBe(true);
+    expect(isOversizedImport(text.slice(1))).toBe(false);
+    expect(isOversizedImport({ length: MAX_IMPORT_BYTES + 1 })).toBe(false);
   });
 });

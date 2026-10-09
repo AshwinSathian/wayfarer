@@ -1,4 +1,4 @@
-import { parseJson } from "../../shared/json/safe-json";
+import { parseJson } from "@wayfarer/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { ResponseViewer } from "./response-viewer";

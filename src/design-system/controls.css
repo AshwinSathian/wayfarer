@@ -9,6 +9,11 @@
   --ctl-primary: #818cf8;
   --ctl-primary-hover: #a5b4fc;
   --ctl-primary-active: #c7d2fe;
+  /* Behind white text: --ctl-primary is a text colour here (white on it is
+     2.98:1). These are the brand gradient's start and two steps around it. */
+  --ctl-primary-fill: #405dd0;
+  --ctl-primary-fill-hover: #4a5ae0;
+  --ctl-primary-fill-active: #3348c2;
   --ctl-primary-border: #4338ca;
   --ctl-primary-tint: color-mix(in srgb, #818cf8, transparent 96%);
   --ctl-primary-tint-strong: color-mix(in srgb, #818cf8, transparent 84%);
@@ -40,9 +45,13 @@
 }
 
 [data-theme="light"] {
-  --ctl-primary: #6366f1;
-  --ctl-primary-hover: #4f46e5;
-  --ctl-primary-active: #4338ca;
+  /* #6366f1 was 4.46:1 under white text and as text on white. */
+  --ctl-primary: #4f46e5;
+  --ctl-primary-hover: #4338ca;
+  --ctl-primary-active: #3730a3;
+  --ctl-primary-fill: var(--ctl-primary);
+  --ctl-primary-fill-hover: var(--ctl-primary-hover);
+  --ctl-primary-fill-active: var(--ctl-primary-active);
   --ctl-primary-border: #c7d2fe;
   --ctl-primary-tint: #eef2ff;
   --ctl-primary-tint-strong: #e0e7ff;
@@ -77,13 +86,13 @@
    through its tokens (material-theme.scss). Selectors here are doubled up
    to outrank Material's own, which load after this sheet. */
 .mat-mdc-button-base {
-  --btn-bg: var(--ctl-primary);
-  --btn-border: var(--ctl-primary);
+  --btn-bg: var(--ctl-primary-fill);
+  --btn-border: var(--ctl-primary-fill);
   --btn-fg: #ffffff;
-  --btn-bg-hover: var(--ctl-primary-hover);
-  --btn-border-hover: var(--ctl-primary-hover);
-  --btn-bg-active: var(--ctl-primary-active);
-  --btn-border-active: var(--ctl-primary-active);
+  --btn-bg-hover: var(--ctl-primary-fill-hover);
+  --btn-border-hover: var(--ctl-primary-fill-hover);
+  --btn-bg-active: var(--ctl-primary-fill-active);
+  --btn-border-active: var(--ctl-primary-fill-active);
 }
 
 .mat-mdc-button-base.mdc-button,

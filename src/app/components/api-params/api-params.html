@@ -345,7 +345,7 @@
       </div>
       @for (param of requestParams(); track param; let i = $index) {
       <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
-        <mat-checkbox [attr.aria-label]="'Send parameter ' + (i + 1)" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
+        <mat-checkbox [aria-label]="'Send parameter ' + (i + 1)" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
         <mat-form-field class="field w-full">
           <input matInput
             [(ngModel)]="param.key"

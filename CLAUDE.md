@@ -74,6 +74,12 @@ code errors.
   utilities need: `box-sizing: border-box` on everything. Do not remove it.
 - `border` draws a border (Tailwind 4 sets the style). Add it only where a
   line should show.
+- A status or method colour used as text is its `-text` token
+  (`--status-success-text`, `--method-get-text`): the plain token is for
+  fills, borders and icons, and as small text on its own tint it is as low
+  as 1.85:1. White text sits on `--ctl-primary-fill`, not `--ctl-primary`.
+  `scripts/contrast.test.mjs` computes every such pair in both themes; the
+  e2e sweep in `accessibility.spec.ts` scans every view in both themes.
 - Widget colours are the `--ctl-*` variables in
   `src/design-system/controls.css`. In both themes they must come from the
   design tokens (`--canvas-*`, `--label-*`, `--separator`), not literals.
@@ -203,7 +209,9 @@ code errors.
   test or a rule finds the input by (`address-url`) stays on the input.
 - Checkbox: `<mat-checkbox>`. Its input's id is the checkbox's id plus
   `-input`; that is what a `<label for>` outside it points at. One with no
-  text inside takes an `aria-label`.
+  text inside takes an `aria-label`, bound as `[aria-label]`: that is
+  Material's input and reaches the real checkbox. `[attr.aria-label]` names
+  the wrapper and leaves the checkbox without a name.
 - Icon button in a toolbar or a panel's header: `matIconButton
   class="btn-plain"` (34 px, grey until hovered; its icon keeps its own
   size class).

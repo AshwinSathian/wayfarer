@@ -37,9 +37,9 @@ test.describe("Transport on fetch (P2.3)", () => {
     expect(plain.has("cookie")).toBe(false);
     await expect(page.locator(".status-badge")).toHaveText("200");
 
-    await page.getByRole("button", { name: "Add Header" }).click();
-    await page.getByLabel("Headers name, row 2").fill("Accept");
-    await page.getByLabel("Headers value, row 2").fill("text/plain");
+    // A new request has one header row, empty.
+    await page.getByLabel("Headers name, row 1").fill("Accept");
+    await page.getByLabel("Headers value, row 1").fill("text/plain");
     const second = page.waitForResponse(`${ECHO}/echo`);
     await page.getByRole("button", { name: "Send request" }).click();
     const chosen = ((await (await second).json()) as Reflected).headers.filter(([name]) => name === "accept");

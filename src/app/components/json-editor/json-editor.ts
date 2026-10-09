@@ -32,6 +32,9 @@ import {
 } from "../../shared/monaco/monaco-loader";
 import { parseJson, stringifyJson } from "@wayfarer/core";
 
+/** Monaco's name for plain text is "plaintext". */
+const monacoLanguage = (language: string): string => (language === "text" ? "plaintext" : language);
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function -- ControlValueAccessor default before registerOnChange/registerOnTouched wires the real callback
 const noop = () => {};
 
@@ -96,6 +99,8 @@ export class JsonEditor
   private readonly themeService = inject(Theme);
 
   readonly readOnly = input(false);
+  /** A raw-body language. Only "json" is checked for validity. */
+  readonly language = input("json");
   readonly height = input<number>();
   readonly schemaUri = input<string>();
   readonly schema = input<unknown>();
@@ -137,6 +142,11 @@ export class JsonEditor
   ngOnChanges(changes: SimpleChanges): void {
     if ("readOnly" in changes && this.editorInstance) {
       this.editorInstance.updateOptions({ readOnly: this.readOnly() || this.disabled });
+    }
+
+    if ("language" in changes && this.model && this.monacoModule) {
+      this.monacoModule.editor.setModelLanguage(this.model, monacoLanguage(this.language()));
+      this.validateCurrentValue();
     }
 
     if (
@@ -217,7 +227,7 @@ export class JsonEditor
 
     this.model =
       this.model ??
-      monaco.editor.createModel(this.internalValue, "json", undefined);
+      monaco.editor.createModel(this.internalValue, monacoLanguage(this.language()), undefined);
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
       model: this.model,
@@ -296,7 +306,7 @@ export class JsonEditor
   }
 
   private tryParseJson(value: string): { isValid: boolean; parsed: unknown } {
-    if (!value.trim()) {
+    if (this.language() !== "json" || !value.trim()) {
       return { isValid: true, parsed: undefined };
     }
     const parsed = parseJson(value);

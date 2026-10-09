@@ -51,24 +51,42 @@ test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({
   }
 });
 
-test("editor mode: the Basic / JSON switch is a radio group driven by arrow keys", async ({ page }) => {
+// The Basic / JSON switch this test drove is gone (P2.12, Q1). What replaced it is driven the same way.
+test("headers and body: Bulk edit and the body type are driven from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  const group = page.getByRole("radiogroup", { name: "Editor mode" });
-  const basic = group.getByRole("radio", { name: "Basic" });
-  const json = group.getByRole("radio", { name: "JSON" });
-  await expect(basic).toBeChecked();
+  await page.getByLabel("Headers name, row 1").fill("Accept");
+  await page.getByLabel("Headers value, row 1").fill("*/*");
 
-  await basic.focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(json).toBeFocused();
-  await expect(json).toBeChecked();
-  await expect(basic).not.toBeChecked();
+  const bulk = page.getByRole("button", { name: "Bulk edit" });
+  await bulk.focus();
+  await page.keyboard.press("Enter");
+  const text = page.getByRole("textbox", { name: /^Headers, one/ });
+  await expect(text).toHaveValue("Accept: */*");
+  await text.focus();
+  await page.keyboard.press("End");
+  await page.keyboard.type("\n# X-Off: 1\nAccept: text/plain");
+
+  const rows = page.getByRole("button", { name: "Edit as rows" });
+  await rows.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByLabel("Headers name, row 3")).toHaveValue("Accept");
+  await expect(page.getByLabel("Headers value, row 3")).toHaveValue("text/plain");
+  await expect(page.getByRole("checkbox", { name: "Send headers row 2" })).not.toBeChecked();
+
+  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
+  await page.getByRole("option", { name: "POST", exact: true }).click();
+  const bodyTab = page.getByRole("tab", { name: "Body", exact: true }).first();
+  await bodyTab.focus();
+  const type = page.getByRole("combobox", { name: "Body", exact: true });
+  await type.focus();
+  // A closed select takes arrow keys, as the native one does.
+  await page.keyboard.press("ArrowDown");
+  await expect(type).toContainText("Raw");
   await expect(page.locator(".monaco-editor").first()).toBeVisible({ timeout: 10_000 });
-
-  await page.keyboard.press("ArrowLeft");
-  await expect(basic).toBeChecked();
-  await expect(page.getByLabel("Headers name, row 1")).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await expect(type).toContainText("Form (URL-encoded)");
+  await expect(page.getByLabel("Body name, row 1")).toBeVisible();
 });
 
 test("phone composer: Enter and Space open a section, one at a time, and a closed section is out of reach", async ({ page }) => {

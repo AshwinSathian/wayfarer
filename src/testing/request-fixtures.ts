@@ -6,7 +6,7 @@ export function rowsOf(record: Record<string, string>): Row[] {
 }
 
 /** A JSON value as a request body: the text the composer would hold for it. */
-export function jsonBody(value: unknown): RequestBody {
+export function jsonBody(value: unknown): RequestBody & { raw: { text: string } } {
   return { mode: "raw", raw: { language: "json", text: JSON.stringify(value, null, 2) } };
 }
 

@@ -85,11 +85,12 @@ code errors.
   one back, to save or send.
 - `src/app/components/composer/` holds one component per part of the
   request. `ComposerView` holds what they share that is not the request:
-  the open tab, Basic or JSON mode. A file there stays under 400 lines and a
+  the open tab, whether the password shows. A file there stays under 400 lines and a
   template under 250.
 - Row editors bind `[(ngModel)]` to a row's own fields, so rows change in
-  place. The panel then tells the store (`paramsEdited`, `bodyRowsEdited`,
-  `refreshVariablePreview`).
+  place. The panel then tells the store (`paramsEdited`, `headersEdited`,
+  `refreshVariablePreview`). What is computed from the draft's headers
+  needs `headersEdited`: it replaces the list, so the signal changes.
 - A panel's host element carries the layout classes its root `<div>` would
   (`class="block space-y-6"`): a custom element is `display: inline`.
 
@@ -302,7 +303,8 @@ code errors.
   `monaco-editor/languages/definitions/<x>/register`). Never
   `monaco-editor/esm/...`, and never the root `monaco-editor`, which bundles
   every language.
-- Only JSON and TypeScript/JavaScript are bundled. A new language needs its
+- Only JSON and TypeScript/JavaScript are bundled with their language
+  services, plus the XML and HTML grammars for raw bodies. A new language needs its
   register import, a worker wrapper if it has a service, and a path mapping
   to the stub in `tsconfig.spec.json`.
 - Its stylesheet is the separate `monaco.css` (see `styles` in
@@ -352,6 +354,13 @@ code errors.
   No `Math.random`.
 - The endpoint field is text, not a URL: it may hold `{{variables}}`. Do not
   round-trip it through `URL`; that lower-cases and encodes placeholders.
+- A file in a request body is read through `RequestFiles`
+  (`src/app/services/request-files.ts`): in memory from the pick until the
+  request is saved, then in the `files` store, written in the request's own
+  transaction. `sweepFiles` deletes a file once no saved request names it;
+  call it in any transaction that removes or rewrites requests. 50 MB a file.
+  The store holds bytes and a type, not a `Blob`: WebKit did not save one.
+  Read a `Blob` before opening the transaction, never inside it.
 - A `{{$secret.*}}` placeholder must never reach the network, in any
   encoding (claim C-007). Extend `containsSecretPlaceholder` when adding a
   place a value can go on the wire.

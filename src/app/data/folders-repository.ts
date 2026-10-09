@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { CollectionId, Folder, FolderId, RequestDoc } from "../models/collections";
 import { IdbCore } from "./idb-core";
+import { sweepFiles } from "./request-files";
 
 /**
  * Folder-level CRUD, split out of `CollectionsRepository` (which used to
@@ -108,7 +109,7 @@ export class FoldersRepository {
 
   async deleteFolder(id: FolderId): Promise<void> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["folders", "requests"]);
+    const tx = await this.core.txReadWrite(["folders", "requests", "files"]);
     const folderStore = tx.objectStore("folders");
     const requestStore = tx.objectStore("requests");
 
@@ -117,6 +118,7 @@ export class FoldersRepository {
       const requestIndex = requestStore.index("by-folderId");
       const requests = await requestIndex.getAll(id);
       await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
+      await sweepFiles(tx);
     });
   }
 

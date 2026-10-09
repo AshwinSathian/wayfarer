@@ -4,7 +4,8 @@ export interface ResolvedRequest {
   url: string;
   /** In order; a name may repeat. */
   headers: [string, string][];
-  body?: string | ArrayBuffer | Blob;
+  /** Text, bytes, or a form: `fetch` writes a form as multipart and sets its boundary. */
+  body?: string | ArrayBuffer | Blob | FormData;
 }
 
 /** What either route returns. An HTTP error status is a response, not an error. */

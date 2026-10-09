@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { IdbCore } from "./idb-core";
 import { jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Idb } from "./idb";
@@ -193,6 +194,74 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect(after.map((r) => r.name).sort()).toEqual(["Login", "Ping"]);
     expect(after.find((r) => r.meta.id === payload.requests[0].meta.id)?.folderId).toBeUndefined();
     expect(await collections.listCollections()).toHaveLength(1);
+  });
+
+  describe("files of request bodies (P2.12)", () => {
+    const fileIds = async () => {
+      const db = (await TestBed.inject(IdbCore).getDatabase())!;
+      return (await db.getAllKeys("files")).sort();
+    };
+    const blob = (text: string) => new Blob([text]);
+    const binary = (fileId: string) => ({ mode: "binary" as const, binary: { fileId, fileName: `${fileId}.bin` } });
+
+    it("stores a request's files with it, and deletes them with the request", async () => {
+      const { collection } = await seed();
+      const request = await requests.createRequest(
+        { collectionId: collection.meta.id, name: "Upload", method: "POST", url: "https://api.test/up", body: binary("f-1") },
+        new Map([["f-1", new Blob(["one"], { type: "text/x-one" })]])
+      );
+      expect(await fileIds()).toEqual(["f-1"]);
+      const read = await requests.readFile("f-1");
+      expect(await read?.text()).toBe("one");
+      expect(read?.type).toBe("text/x-one");
+      expect(await requests.readFile("missing")).toBeUndefined();
+
+      await requests.deleteRequest(request.meta.id);
+
+      expect(await fileIds()).toEqual([]);
+    });
+
+    it("keeps a file while any request names it, also in a part its mode does not send; drops it when the body lets go", async () => {
+      const { collection, inFolder } = await seed();
+      await requests.updateRequest(inFolder.meta.id, { body: binary("f-1") }, new Map([["f-1", blob("one")]]));
+      const copy = (await requests.duplicateRequest(inFolder.meta.id))!;
+
+      // The copy shares the file: deleting the original must not take it.
+      await requests.deleteRequest(inFolder.meta.id);
+      expect(await fileIds()).toEqual(["f-1"]);
+
+      // Mode none, but the binary part is kept, so its file is too.
+      await requests.updateRequest(copy.meta.id, { body: { ...binary("f-1"), mode: "none" } });
+      expect(await fileIds()).toEqual(["f-1"]);
+
+      await requests.updateRequest(copy.meta.id, { body: binary("f-2") }, new Map([["f-2", blob("two")]]));
+      expect(await fileIds()).toEqual(["f-2"]);
+      expect(collection.meta.id).toBeTruthy();
+    });
+
+    it("deletes the files of the requests that go with a folder or a collection", async () => {
+      const { collection, folder, inFolder, atRoot } = await seed();
+      await requests.updateRequest(inFolder.meta.id, { body: binary("in-folder") }, new Map([["in-folder", blob("a")]]));
+      await requests.updateRequest(atRoot.meta.id, { body: binary("at-root") }, new Map([["at-root", blob("b")]]));
+
+      await folders.deleteFolder(folder.meta.id);
+      expect(await fileIds()).toEqual(["at-root"]);
+
+      await collections.deleteCollection(collection.meta.id);
+      expect(await fileIds()).toEqual([]);
+    });
+
+    it("an import over a collection keeps the files its requests still name and drops the rest", async () => {
+      const { collection, inFolder, atRoot } = await seed();
+      await requests.updateRequest(inFolder.meta.id, { body: binary("kept") }, new Map([["kept", blob("a")]]));
+      await requests.updateRequest(atRoot.meta.id, { body: binary("dropped") }, new Map([["dropped", blob("b")]]));
+      const file = (await collections.getCollectionExport(collection.meta.id))!;
+      file.requests = file.requests.filter((request) => request.meta.id === inFolder.meta.id);
+
+      await collections.importCollectionExport(file);
+
+      expect(await fileIds()).toEqual(["kept"]);
+    });
   });
 
   it("trusts the scripts of a collection made here, and not those of an imported one", async () => {

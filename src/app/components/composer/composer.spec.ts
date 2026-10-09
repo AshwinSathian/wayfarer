@@ -91,7 +91,7 @@ describe('Composer', () => {
 
     view.onRequestMethodChange('POST');
     store.patch({ url: 'https://example.com/create' });
-    store.setBodyRows([{ key: 'isActive', value: 'true' }]);
+    store.setBody(jsonBody({ isActive: 'true' }));
     store.patch({ headers: rows([{ key: 'Content-Type', value: 'application/json' }]) });
 
     const pending = component.sendRequest();
@@ -118,7 +118,7 @@ describe('Composer', () => {
     expect(idbService.add).toHaveBeenCalledWith(expect.objectContaining({
       method: 'POST',
       url: 'https://example.com/create',
-      body: { isActive: 'true' },
+      body: jsonBody({ isActive: 'true' }).raw.text,
       status: 500,
       error: expect.any(String)
     }));
@@ -133,7 +133,7 @@ describe('Composer', () => {
 
     view.onRequestMethodChange('PUT');
     store.patch({ url: 'https://example.com/items/42' });
-    store.setBodyRows([{ key: 'name', value: 'Widget' }]);
+    store.setBody(jsonBody({ name: 'Widget' }));
     store.patch({ headers: rows([{ key: 'X-Trace', value: 'abc123' }]) });
 
     const pending = component.sendRequest();
@@ -149,7 +149,8 @@ describe('Composer', () => {
     expect(store.responseData()).toContain('updated');
     const history = idbService.add.mock.lastCall![0] as PastRequest;
     expect(history.method).toBe('PUT');
-    expect(history.body).toEqual({ name: 'Widget' });
+    // History keeps the body as the text that was sent.
+    expect(JSON.parse(history.body as string)).toEqual({ name: 'Widget' });
     expect(view.activeTab()).toBe('headers');
   });
 
@@ -194,10 +195,7 @@ describe('Composer', () => {
     expect(store.draft().url).toBe('https://example.com/update');
     expect(store.draft().headers[0].key).toBe('Authorization');
     // Values keep their JSON types, so replaying sends 3/true, not "3"/"true" (P0.6).
-    expect(store.bodyRows()).toEqual([
-      { key: 'count', value: 3 },
-      { key: 'enabled', value: true },
-    ]);
+    expect(store.draft().body).toEqual(jsonBody({ count: 3, enabled: true }));
     expect(view.activeTab()).toBe('body');
   });
 
@@ -257,7 +255,9 @@ describe('Composer', () => {
 
     expect(collectionsService.updateRequest).toHaveBeenCalledWith(
       'bound-1',
-      expect.objectContaining({ method: 'POST', url: 'https://saved.example.com/edited' })
+      expect.objectContaining({ method: 'POST', url: 'https://saved.example.com/edited' }),
+      // No file was picked, so none is stored with the request.
+      new Map()
     );
     expect(collectionsService.createRequest).not.toHaveBeenCalled();
     expect(requestSave.saveAsDialogVisible()).toBe(false);
@@ -301,7 +301,8 @@ describe('Composer', () => {
         auth: store.snapshot().auth,
         scripts: store.snapshot().scripts,
         tests: store.snapshot().tests,
-      })
+      }),
+      new Map()
     );
     expect(collectionsService.updateRequest).not.toHaveBeenCalled();
     expect(requestSave.loadedCollectionRequest()).not.toBeNull();

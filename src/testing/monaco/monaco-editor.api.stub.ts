@@ -53,6 +53,7 @@ export const editor = {
     _language?: string,
     _uri?: MonacoTypes.Uri
   ) => new StubModel(value) as unknown as MonacoTypes.editor.ITextModel,
+  setModelLanguage: (_model: MonacoTypes.editor.ITextModel, _language: string): void => {},
   setTheme: (_themeName: string): void => {},
   defineTheme: (_themeName: string, _themeData: MonacoTypes.editor.IStandaloneThemeData): void => {},
 };

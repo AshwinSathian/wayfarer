@@ -8,6 +8,7 @@ import {
   RequestDoc,
 } from "../models/collections";
 import { IdbCore } from "./idb-core";
+import { sweepFiles } from "./request-files";
 import { newId } from "@wayfarer/core";
 
 /**
@@ -148,7 +149,7 @@ export class CollectionsRepository {
 
   async deleteCollection(id: CollectionId): Promise<void> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["collections", "folders", "requests"]);
+    const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
     const collectionStore = tx.objectStore("collections");
     const folderStore = tx.objectStore("folders");
     const requestStore = tx.objectStore("requests");
@@ -161,6 +162,7 @@ export class CollectionsRepository {
       const requests = await requestIndex.getAll(id);
       await Promise.all(folders.map((folder) => folderStore.delete(folder.meta.id)));
       await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
+      await sweepFiles(tx);
     });
   }
 
@@ -211,7 +213,7 @@ export class CollectionsRepository {
     options?: { duplicateAsNew?: boolean }
   ): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["collections", "folders", "requests"]);
+    const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
     const collectionStore = tx.objectStore("collections");
     const folderStore = tx.objectStore("folders");
     const requestStore = tx.objectStore("requests");
@@ -262,6 +264,8 @@ export class CollectionsRepository {
         this.core.ensureId(request);
         await requestStore.put(request);
       }
+      // After the new requests are in: a file the replaced ones used is kept if these still name it.
+      await sweepFiles(tx);
       return collection;
     });
   }

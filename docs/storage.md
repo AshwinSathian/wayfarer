@@ -1,6 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **5** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **6** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
@@ -12,6 +12,7 @@ Wayfarer keeps everything in one IndexedDB database. The schema version is **5**
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows.                 |
 | `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext).           |
+| `files`        | the file id | —                                                   | The files of multipart and binary request bodies: bytes and type. |
 | `meta`         | `key`       | —                                                   | App state: the active environment.                        |
 
 ## Version 5 starts empty
@@ -19,6 +20,12 @@ Wayfarer keeps everything in one IndexedDB database. The schema version is **5**
 Version 5 does not read what versions 1 to 4 stored. When it opens a database an earlier version left, it deletes that database's stores and creates its own, in one upgrade transaction: either all of it happens or the database is still the old one. The page then says, once, that the earlier data was removed. There is no conversion and no backup copy. This was decided on 2026-10-09, while the app had no users with data to keep.
 
 Collection and environment files written before version 5 (they have no `$id`) are not imported either.
+
+Version 6 added the `files` store and changed nothing else: a version 5 database keeps its data.
+
+## Files
+
+A file picked for a request body is kept in memory until the request is saved. Saving writes it to `files` in the same transaction as the request. A file is deleted when no saved request names it any more: when the request is deleted (alone, or with its folder or collection), when its body lets go of the file, or when an import replaces the request. A copy of a request names the same file, and the file stays until the last of them is gone. A file can be 50 MB at most.
 
 ## When versions meet
 

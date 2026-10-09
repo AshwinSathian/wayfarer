@@ -1,3 +1,4 @@
+import { parseJson } from "@wayfarer/core";
 import { vi } from "vitest";
 
 interface Pending {
@@ -14,7 +15,9 @@ export class MockRequest {
 
   get request() {
     const { url, init } = this.pending;
-    const body = typeof init.body === "string" ? (JSON.parse(init.body) as unknown) : init.body ?? null;
+    // A text body as its JSON value, as the specs have always compared it; text that is not JSON as it is.
+    const parsed = typeof init.body === "string" ? parseJson(init.body) : null;
+    const body = parsed ? (parsed.ok ? parsed.value : init.body) : init.body ?? null;
     return { method: init.method, url, urlWithParams: url, headers: new Headers(init.headers), body, init };
   }
 

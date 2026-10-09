@@ -126,7 +126,7 @@ export function collectVariableTokens(
   payload: {
     url?: string;
     headers?: { key: string; value: string }[];
-    body?: { key: string; value: unknown }[];
+    body?: string[];
   },
   context: VariableContext
 ): VariableToken[] {
@@ -140,15 +140,8 @@ export function collectVariableTokens(
       ...extractVariables(header.value, "header", `header-${index}-value`, context)
     );
   });
-  payload.body?.forEach((item, index) => {
-    tokens.push(
-      ...extractVariables(
-        typeof item.value === "string" ? item.value : JSON.stringify(item.value),
-        "body",
-        `body-${index}`,
-        context
-      )
-    );
+  payload.body?.forEach((text, index) => {
+    tokens.push(...extractVariables(text, "body", `body-${index}`, context));
   });
   return tokens;
 }

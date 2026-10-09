@@ -32,7 +32,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` <!-- claim:C-017 -->
   - URL field with live validation <!-- claim:C-018 -->
   - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs <!-- claim:C-019 -->
-  - Body tab for `POST`, `PUT` and `PATCH` only, with a Basic (rows) or **JSON** editor mode <!-- claim:C-039 -->
+  - Body tab for every method but `GET` and `HEAD`, with the modes none, raw (JSON, text, XML, HTML, JavaScript), form (URL-encoded), multipart (text and files) and binary file <!-- claim:C-039 -->
   - **Copy as cURL** for any request once it has a URL <!-- claim:C-020 -->
 
 - **Pre/Post-Request Scripts & Test Assertions**
@@ -120,7 +120,7 @@ npm run test:ci
 
 ## How it works (in 60 seconds)
 
-- The **Request Composer** accepts a URL, method, query params, headers, auth, and (if applicable) a JSON body.
+- The **Request Composer** accepts a URL, method, query params, headers, auth, and (for every method but GET and HEAD) a body.
 - Visual assertions run after the call <!-- claim:C-021 -->. Pre- and post-request scripts are saved but don't run in the hosted app yet <!-- claim:C-006 -->.
 - The app sends the request and shows:
   - **Body** (pretty‑printed for JSON)

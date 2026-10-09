@@ -21,11 +21,11 @@ describe("TransportRouter", () => {
     localStorage.removeItem("wayfarer:bridge");
   });
 
-  it("sends straight from the page, and calls a body with no Content-Type JSON", async () => {
+  it("sends straight from the page, and adds no header of its own: the composer names the body's type", async () => {
     const pending = router.send({ method: "POST", url: "https://example.com/a", headers: [["X-A", "1"]], body: '{"a":1}' }, open());
 
     const req = fetchMock.expectOne("https://example.com/a");
-    expect(req.request.init.headers).toEqual([["X-A", "1"], ["Content-Type", "application/json"]]);
+    expect(req.request.init.headers).toEqual([["X-A", "1"]]);
     req.flush("{}", { status: 200 });
     expect((await pending).route).toBe("direct");
   });

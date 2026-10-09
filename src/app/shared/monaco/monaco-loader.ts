@@ -85,13 +85,16 @@ function loadMonacoStyles(): Promise<void> {
 export function loadMonaco(): Promise<MonacoEditorModule> {
   if (!monacoLoader) {
     monacoLoader = (async () => {
-      // Only what the two editors use: the core, the JSON service (JSON
-      // editor), and the TypeScript service plus JavaScript grammar (script editor).
+      // Only what the editors use: the core, the JSON service (JSON
+      // editor), the TypeScript service plus JavaScript grammar (script
+      // editor), and the XML and HTML grammars (raw bodies; no service, no worker).
       const [monaco, json] = await Promise.all([
         import("monaco-editor/editor"),
         import("monaco-editor/languages/features/json/register"),
         import("monaco-editor/languages/features/typescript/register"),
         import("monaco-editor/languages/definitions/javascript/register"),
+        import("monaco-editor/languages/definitions/xml/register"),
+        import("monaco-editor/languages/definitions/html/register"),
         loadMonacoStyles(),
       ]);
       jsonDefaults = json.jsonDefaults;

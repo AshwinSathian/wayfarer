@@ -49,6 +49,8 @@ export interface SeededRequest {
   url: string;
   headers?: Record<string, string>;
   body?: unknown;
+  /** The body as stored, for the modes that are not JSON text. Wins over `body`. */
+  storedBody?: unknown;
   /** As stored: `{type: "bearer", token}` and so on. */
   auth?: unknown;
   postRequestScript?: string;
@@ -105,9 +107,10 @@ export async function seedAndOpen(
         params: [],
         headers: rows(request.headers ?? {}),
         body:
-          request.body === undefined
+          request.storedBody ??
+          (request.body === undefined
             ? { mode: "none" }
-            : { mode: "raw", raw: { language: "json", text: JSON.stringify(request.body, null, 2) } },
+            : { mode: "raw", raw: { language: "json", text: JSON.stringify(request.body, null, 2) } }),
         auth: request.auth ?? { type: "none" },
         scripts: { pre: "", post: request.postRequestScript ?? "" },
         tests: request.tests ?? [],

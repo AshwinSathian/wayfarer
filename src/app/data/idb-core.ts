@@ -94,7 +94,12 @@ export class IdbCore {
   constructor() {
     this.data.addEventListener("message", (event: MessageEvent<{ stores?: unknown }>) => {
       const stores = event.data?.stores;
-      if (Array.isArray(stores)) {
+      // Only a tab that has the database open reads again. One that has not
+      // opened it has nothing to read; one that reset it is about to reload,
+      // and reading would open it again; one that closed for another tab
+      // cannot read at all (F61).
+      const open = !!this.initPromise && !this.closedByOtherTab() && !this.updatedElsewhere();
+      if (open && Array.isArray(stores)) {
         const names = stores.filter((name): name is string => typeof name === "string");
         this.changeListeners.forEach((listener) => listener(names));
       }

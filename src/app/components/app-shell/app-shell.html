@@ -2,8 +2,12 @@
      The container does not scroll: the window does, as before.
      Focus is moved in and back by the shell (focusDrawer), at the start of
      the slide. Material moves it at the end, which also took it from a
-     dialog opened from the drawer in the meantime; hence autoFocus false. -->
-<mat-sidenav-container class="shell">
+     dialog opened from the drawer in the meantime; hence autoFocus false.
+     Escape and a click on the backdrop are handled here too (disableClose):
+     Material reports a close when the slide has ended, a frame after its
+     input can be told to open again, and that late "closed" shut a drawer
+     the user had just reopened. -->
+<mat-sidenav-container class="shell" (backdropClick)="closeDrawers()">
   <!-- Collections sidebar content, shared between the mobile overlay drawer and the
        desktop pinned panel below. -->
   <ng-template #sidebarBody>
@@ -25,7 +29,7 @@
           </div>
         </div>
         @if (isMobile()) {
-        <button class="ds-icon-btn" aria-label="Close navigation" (click)="toggleDrawer.emit()">
+        <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="toggleDrawer.emit()">
           <app-icon name="side_navigation" class="icon-md" />
         </button>
         }
@@ -69,8 +73,9 @@
     [style.width]="drawerWidth"
     [opened]="drawerVisible()"
     (openedStart)="focusDrawer(navigation)"
+    disableClose
+    (keydown.escape)="closeDrawer.emit()"
     (closedStart)="restoreDrawerFocus()"
-    (openedChange)="!$event && drawerVisible() && closeDrawer.emit()"
   >
     <div #navigation class="h-full">
       <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
@@ -91,8 +96,9 @@
     style="width: 27rem"
     [opened]="historyDrawerVisible()"
     (openedStart)="focusDrawer(history)"
+    disableClose
+    (keydown.escape)="historyDrawerVisible.set(false)"
     (closedStart)="restoreDrawerFocus()"
-    (openedChange)="historyDrawerVisible.set($event)"
   >
     <div #history class="flex h-full flex-col">
       <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
@@ -110,7 +116,7 @@
             aria-label="Clear all history"
             (click)="confirmClear()"
           ><app-icon name="delete" /></button>
-          <button class="ds-icon-btn" (click)="historyDrawerVisible.set(false)" title="Close" aria-label="Close history">
+          <button type="button" matIconButton class="btn-plain" (click)="historyDrawerVisible.set(false)" title="Close" aria-label="Close history">
             <app-icon name="close" class="icon-md" />
           </button>
         </div>
@@ -146,10 +152,10 @@
         [class]="!isMobile() && drawerVisible() ? 'md:ml-88' : ''"
       >
         <!-- Top toolbar -->
-        <header class="ds-toolbar">
+        <mat-toolbar class="ds-toolbar" role="banner">
           <!-- Left: nav toggle + brand -->
           <div class="flex items-center gap-2">
-            <button class="ds-icon-btn" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
+            <button type="button" matIconButton class="btn-plain" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
               <app-icon name="side_navigation" class="icon-md" />
             </button>
             <div class="hidden lg:flex items-center gap-2">
@@ -184,8 +190,8 @@
             <!-- Below the desktop width the toolbar keeps lock, history and settings; secrets,
                  the bridge and the theme are in Settings (max-lg:hidden below). -->
             <!-- Secrets lock -->
-            <button
-              class="ds-icon-btn"
+            <button type="button"
+              matIconButton class="btn-plain"
               [class.text-status-success]="secretsUnlocked"
               (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
               [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
@@ -197,8 +203,8 @@
             <!-- Manage Secrets — a dedicated, discoverable home for the vault
                  concept, previously reachable only as flagged rows buried
                  inside the Environments editor or via the command palette. -->
-            <button
-              class="ds-icon-btn max-lg:hidden"
+            <button type="button"
+              matIconButton class="btn-plain max-lg:hidden!"
               (click)="secretsDialogVisible.set(true)"
               title="Manage secrets"
               aria-label="Manage secrets"
@@ -207,8 +213,8 @@
             </button>
 
             <!-- Local Bridge -->
-            <button
-              class="ds-icon-btn max-lg:hidden"
+            <button type="button"
+              matIconButton class="btn-plain max-lg:hidden!"
               [class.text-status-success]="bridgeService.config().enabled"
               (click)="openBridgeSettings()"
               title="Local Bridge settings"
@@ -218,8 +224,8 @@
             </button>
 
             <!-- Theme toggle -->
-            <button
-              class="ds-icon-btn max-lg:hidden"
+            <button type="button"
+              matIconButton class="btn-plain max-lg:hidden!"
               (click)="themeService.toggle()"
               [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
               [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -228,8 +234,8 @@
             </button>
 
             <!-- History -->
-            <button
-              class="ds-icon-btn"
+            <button type="button"
+              matIconButton class="btn-plain"
               [class.bg-accent-fill]="historyDrawerVisible()"
               (click)="historyDrawerVisible.set(true)"
               title="Request history"
@@ -239,8 +245,8 @@
             </button>
 
             <!-- Settings -->
-            <button
-              class="ds-icon-btn"
+            <button type="button"
+              matIconButton class="btn-plain"
               (click)="settingsDialogVisible.set(true)"
               title="Settings"
               aria-label="Settings"
@@ -248,7 +254,7 @@
               <app-icon name="settings" class="icon-md" />
             </button>
           </div>
-        </header>
+        </mat-toolbar>
 
         <!-- Page content -->
         <main class="flex-1 overflow-y-auto">

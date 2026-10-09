@@ -113,7 +113,7 @@
 
 /* Material Symbols glyphs sit inside their em box with a margin, so they
    are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
-.mat-mdc-button-base .app-icon {
+.mat-mdc-button-base:not(.btn-plain) .app-icon {
   margin: -3px;
   font-size: 22px;
 }
@@ -255,6 +255,31 @@
   --btn-fg: var(--ctl-success);
   --btn-bg-hover: var(--ctl-success-tint);
   --btn-bg-active: var(--ctl-success-tint-strong);
+}
+
+/* Plain: an icon in the toolbar or a panel's header. Smaller, grey until
+   hovered, and its icon keeps the size its own class gives it. */
+.mat-mdc-button-base.mat-mdc-icon-button.btn-plain {
+  --btn-fg: var(--label-secondary);
+  --btn-bg-hover: var(--fill-primary);
+  --btn-bg-active: var(--fill-active);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+.mat-mdc-button-base.mat-mdc-icon-button.btn-plain:not(:disabled):hover {
+  --btn-fg: var(--label-primary);
+}
+
+.mat-mdc-button-base.mat-mdc-icon-button.btn-plain:not(:disabled):active {
+  transform: scale(0.91);
+}
+
+.mat-mdc-button-base.mat-mdc-icon-button.btn-plain::after {
+  content: none;
 }
 
 /* Send — the gradient call to action */

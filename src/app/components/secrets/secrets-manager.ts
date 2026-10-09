@@ -13,6 +13,7 @@ import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { Dialog } from "../../ui/dialog";
 import { MatTooltip } from "@angular/material/tooltip";
 import { SecretDoc, SecretId } from "../../models/secrets";
@@ -45,7 +46,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
+  imports: [MatProgressSpinner, MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

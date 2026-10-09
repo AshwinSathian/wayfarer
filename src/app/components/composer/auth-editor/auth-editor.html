@@ -22,7 +22,7 @@
       <input matInput
         id="auth-bearer-token"
         placeholder="Enter bearer token"
-        [ngModel]="currentAuth.bearer?.token ?? ''"
+        [ngModel]="currentAuth.token"
         (ngModelChange)="setBearerToken($event)"
        />
     </mat-form-field>
@@ -37,7 +37,7 @@
         <input matInput
           id="auth-basic-username"
           placeholder="Username"
-          [ngModel]="currentAuth.basic?.username ?? ''"
+          [ngModel]="currentAuth.username"
           (ngModelChange)="setBasicUsername($event)"
          />
       </mat-form-field>
@@ -50,7 +50,7 @@
             id="auth-basic-password"
             [type]="showPassword() ? 'text' : 'password'"
             placeholder="Password"
-            [ngModel]="currentAuth.basic?.password ?? ''"
+            [ngModel]="currentAuth.password"
             (ngModelChange)="setBasicPassword($event)"
            />
         </mat-form-field>
@@ -65,7 +65,7 @@
   </div>
   }
 
-  @if (currentAuth.type === 'api-key') {
+  @if (currentAuth.type === 'apikey') {
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
@@ -73,7 +73,7 @@
         <input matInput
           id="auth-apikey-key"
           placeholder="Header or param name"
-          [ngModel]="currentAuth.apiKey?.key ?? ''"
+          [ngModel]="currentAuth.key"
           (ngModelChange)="setApiKeyField({ key: $event })"
          />
       </mat-form-field>
@@ -84,7 +84,7 @@
         <input matInput
           id="auth-apikey-value"
           placeholder="Key value"
-          [ngModel]="currentAuth.apiKey?.value ?? ''"
+          [ngModel]="currentAuth.value"
           (ngModelChange)="setApiKeyField({ value: $event })"
          />
       </mat-form-field>
@@ -95,8 +95,8 @@
         class="select w-40!"
         id="auth-apikey-addto"
         aria-labelledby="auth-apikey-addto-label"
-        [ngModel]="currentAuth.apiKey?.addTo ?? 'header'"
-        (ngModelChange)="setApiKeyField({ addTo: $event })"
+        [ngModel]="currentAuth.in"
+        (ngModelChange)="setApiKeyField({ in: $event })"
       >
         @for (option of apiKeyAddToOptions; track option.value) {
         <mat-option [value]="option.value">{{ option.label }}</mat-option>

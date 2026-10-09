@@ -1,5 +1,5 @@
-import { authToV4 } from '@wayfarer/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { jsonBody, rowsOf } from '../../../testing/request-fixtures';
 import { PastRequest } from '../../models/history';
 import { RequestSave } from '../../services/request-save';
 import { WorkspaceStore } from '../../state/workspace-store';
@@ -219,11 +219,10 @@ describe('Composer', () => {
     const doc = makeRequestDoc({
       method: 'POST',
       url: 'https://saved.example.com/create',
-      headers: { 'X-Test': '1' },
-      body: { count: 2 },
-      auth: { type: 'bearer', bearer: { token: 'secret-token' } },
-      preRequestScript: 'pm.environment.set("a", "1")',
-      postRequestScript: 'pm.test("ok", () => {})',
+      headers: rowsOf({ 'X-Test': '1' }),
+      body: jsonBody({ count: 2 }),
+      auth: { type: 'bearer', token: 'secret-token' },
+      scripts: { pre: 'pm.environment.set("a", "1")', post: 'pm.test("ok", () => {})' },
       tests: [],
     });
 
@@ -232,7 +231,7 @@ describe('Composer', () => {
     expect(requestSave.loadedCollectionRequest()).toBe(doc);
     expect(store.draft().method).toBe('POST');
     expect(store.draft().url).toBe('https://saved.example.com/create');
-    expect(authToV4(store.draft().auth)).toEqual({ type: 'bearer', bearer: { token: 'secret-token' } });
+    expect(store.draft().auth).toEqual({ type: 'bearer', token: 'secret-token' });
     expect(store.draft().scripts.pre).toBe('pm.environment.set("a", "1")');
     expect(store.draft().scripts.post).toBe('pm.test("ok", () => {})');
   });
@@ -276,7 +275,7 @@ describe('Composer', () => {
   it('confirmSaveAs creates a new request with the full composer state and binds the composer to it', async () => {
     collectionsService.setTree([
       {
-        collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0 },
+        collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0, scriptTrust: { trusted: true } },
         folders: [],
         requests: [],
       },
@@ -296,9 +295,15 @@ describe('Composer', () => {
         name: 'My new request',
         method: 'GET',
         url: 'https://new.example.com',
+        // The whole request goes in the one write: nothing is left for a second.
+        headers: store.snapshot().headers,
+        body: store.snapshot().body,
+        auth: store.snapshot().auth,
+        scripts: store.snapshot().scripts,
+        tests: store.snapshot().tests,
       })
     );
-    expect(collectionsService.updateRequest).toHaveBeenCalled();
+    expect(collectionsService.updateRequest).not.toHaveBeenCalled();
     expect(requestSave.loadedCollectionRequest()).not.toBeNull();
     expect(requestSave.saveAsDialogVisible()).toBe(false);
   });

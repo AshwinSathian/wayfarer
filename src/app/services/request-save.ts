@@ -1,10 +1,10 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
-import type { V4Content } from "@wayfarer/core";
+import type { RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
-export type RequestContentSnapshot = V4Content;
+export type RequestContentSnapshot = RequestContent;
 
 /**
  * Owns the "is the composer bound to a saved collection request, and how do
@@ -105,21 +105,12 @@ export class RequestSave {
     this.savingRequest.set(true);
     try {
       const doc = await this.collectionsService.createRequest({
+        ...snapshot,
         collectionId,
         folderId: this.saveAsFolderId() ?? undefined,
         name,
-        method: snapshot.method,
-        url: snapshot.url,
-        headers: snapshot.headers,
-        body: snapshot.body,
       });
-      const updated = await this.collectionsService.updateRequest(doc.meta.id, {
-        auth: snapshot.auth,
-        preRequestScript: snapshot.preRequestScript,
-        postRequestScript: snapshot.postRequestScript,
-        tests: snapshot.tests,
-      });
-      this.loadedCollectionRequest.set(updated ?? doc);
+      this.loadedCollectionRequest.set(doc);
       this.closeSaveAsDialog();
     } finally {
       this.savingRequest.set(false);

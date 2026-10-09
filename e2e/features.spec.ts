@@ -44,12 +44,12 @@ test("@claim:C-017 the composer offers GET, POST, PUT, PATCH, DELETE, HEAD and O
 });
 
 for (const [name, auth, check] of [
-  ["Bearer", { type: "bearer", bearer: { token: "c019-token" } }, (e: Echo) => expect(header(e, "authorization")).toBe("Bearer c019-token")],
-  ["Basic", { type: "basic", basic: { username: "c019-user", password: "c019-pass" } }, (e: Echo) =>
+  ["Bearer", { type: "bearer", token: "c019-token" }, (e: Echo) => expect(header(e, "authorization")).toBe("Bearer c019-token")],
+  ["Basic", { type: "basic", username: "c019-user", password: "c019-pass" }, (e: Echo) =>
     expect(header(e, "authorization")).toBe(`Basic ${Buffer.from("c019-user:c019-pass").toString("base64")}`)],
-  ["API key (header)", { type: "api-key", apiKey: { key: "X-C019-Key", value: "c019-value", addTo: "header" } }, (e: Echo) =>
+  ["API key (header)", { type: "apikey", key: "X-C019-Key", value: "c019-value", in: "header" }, (e: Echo) =>
     expect(header(e, "x-c019-key")).toBe("c019-value")],
-  ["API key (query)", { type: "api-key", apiKey: { key: "c019key", value: "c019-value", addTo: "query" } }, (e: Echo) =>
+  ["API key (query)", { type: "apikey", key: "c019key", value: "c019-value", in: "query" }, (e: Echo) =>
     expect(new URL(e.url, ECHO).searchParams.get("c019key")).toBe("c019-value")],
 ] as const) {
   test(`@claim:C-019 ${name} auth from the Auth tab reaches the server`, async ({ page }) => {

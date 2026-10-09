@@ -19,6 +19,10 @@ class IdbServiceMock {
   listCollections = vi.fn().mockReturnValue(Promise.resolve([]));
   readonly closedByOtherTab = signal(false).asReadonly();
   readonly memoryOnly = signal(false).asReadonly();
+  readonly updatedElsewhere = signal(false).asReadonly();
+  readonly upgradeBlocked = signal(false).asReadonly();
+  readonly olderThanData = signal(false).asReadonly();
+  readonly clearedOldData = signal(false).asReadonly();
 }
 
 /** The window is this wide, as far as a min-width media query can tell. */

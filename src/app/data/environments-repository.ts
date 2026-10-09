@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import type { Row } from "@wayfarer/core";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments";
 import { IdbCore, META_STATE_KEY } from "./idb-core";
 
@@ -18,7 +19,7 @@ export class EnvironmentsRepository {
   async createEnvironment(payload: {
     name: string;
     description?: string;
-    vars?: Record<string, string>;
+    vars?: Row[];
   }): Promise<EnvironmentDoc> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
@@ -30,7 +31,7 @@ export class EnvironmentsRepository {
         meta,
         name: payload.name.trim(),
         description: payload.description?.trim() || undefined,
-        vars: payload.vars ?? {},
+        vars: payload.vars ?? [],
         order: await this.core.nextOrder(store.index("by-order")),
       };
       this.core.ensureId(doc);
@@ -58,7 +59,7 @@ export class EnvironmentsRepository {
         doc.description = updates.description.trim() || undefined;
       }
       if (updates.vars !== undefined) {
-        doc.vars = { ...updates.vars };
+        doc.vars = updates.vars.map((row) => ({ ...row }));
       }
       doc.meta = this.core.touchMeta(doc.meta);
       this.core.ensureId(doc);

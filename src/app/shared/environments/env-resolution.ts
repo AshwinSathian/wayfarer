@@ -1,3 +1,4 @@
+import type { Row } from "@wayfarer/core";
 import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
 
 type VariableSource = "request" | "environment" | "global" | "missing";
@@ -25,6 +26,11 @@ function own(record: Record<string, string> | undefined, key: string): string | 
   return record && Object.hasOwn(record, key) ? record[key] : undefined;
 }
 
+/** The enabled variables by name. A later row wins over an earlier one of the same name. */
+export function variablesOf(rows: Row[] | undefined): Record<string, string> {
+  return Object.fromEntries((rows ?? []).filter((row) => row.enabled && row.key).map((row) => [row.key, row.value]));
+}
+
 function resolveVariable(
   variable: string,
   context: VariableContext
@@ -33,7 +39,7 @@ function resolveVariable(
   if (requestValue !== undefined) {
     return { value: requestValue, source: "request" };
   }
-  const envValue = own(context.environment?.vars, variable);
+  const envValue = own(variablesOf(context.environment?.vars), variable);
   if (envValue !== undefined) {
     return {
       value: envValue,

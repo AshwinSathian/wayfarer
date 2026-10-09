@@ -23,13 +23,13 @@ import {
   isSecretReference,
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "@wayfarer/core";
+import { readImportText, type Row } from "@wayfarer/core";
 
 interface EnvironmentDraft {
   id: EnvironmentId;
   name: string;
   description?: string;
-  vars: { key: string; value: string }[];
+  vars: Row[];
   jsonText: string;
   jsonValid: boolean;
 }
@@ -213,7 +213,7 @@ export class EnvironmentsManager implements OnInit {
     if (!draft) {
       return;
     }
-    draft.vars.push({ key: "", value: "" });
+    draft.vars.push({ key: "", value: "", enabled: true });
     this.updateDraft(draft);
     this.syncJsonFromPairs();
   }
@@ -303,7 +303,7 @@ export class EnvironmentsManager implements OnInit {
     draft.jsonValid = valid;
     if (valid && value && typeof value === "object") {
       const vars = Object.entries(value as Record<string, string>).map(
-        ([key, val]) => ({ key, value: String(val ?? "") })
+        ([key, val]) => ({ key, value: String(val ?? ""), enabled: true })
       );
       draft.vars = vars;
     }
@@ -315,12 +315,9 @@ export class EnvironmentsManager implements OnInit {
     if (!draft || !draft.name.trim() || !draft.jsonValid) {
       return;
     }
-    const vars = draft.vars.reduce((acc, item) => {
-      if (item.key.trim()) {
-        acc[item.key.trim()] = item.value ?? "";
-      }
-      return acc;
-    }, {} as Record<string, string>);
+    const vars = draft.vars
+      .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
+      .filter((row) => row.key);
     await this.envService.updateEnvironment(draft.id, {
       name: draft.name.trim(),
       description: draft.description?.trim(),
@@ -341,28 +338,23 @@ export class EnvironmentsManager implements OnInit {
     if (!draft) {
       return;
     }
-    const vars = draft.vars
-      .filter((item) => item.key.trim())
-      .reduce((acc, item) => {
-        acc[item.key.trim()] = item.value ?? "";
-        return acc;
-      }, {} as Record<string, string>);
-    draft.jsonText = JSON.stringify(vars, null, 2);
+    draft.jsonText = JSON.stringify(
+      Object.fromEntries(draft.vars.filter((row) => row.key.trim()).map((row) => [row.key.trim(), row.value ?? ""])),
+      null,
+      2
+    );
     draft.jsonValid = true;
     this.draft.set({ ...draft });
   }
 
   private toDraft(env: EnvironmentDoc): EnvironmentDraft {
-    const vars = Object.entries(env.vars ?? {}).map(([key, value]) => ({
-      key,
-      value: value ?? "",
-    }));
+    const vars = env.vars.map((row) => ({ ...row }));
     return {
       id: env.meta.id,
       name: env.name,
       description: env.description,
       vars,
-      jsonText: JSON.stringify(env.vars ?? {}, null, 2),
+      jsonText: JSON.stringify(Object.fromEntries(vars.map((row) => [row.key, row.value])), null, 2),
       jsonValid: true,
     };
   }

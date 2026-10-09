@@ -1,24 +1,17 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
 export { newId } from "./id";
-export {
-  V4_METHODS,
-  authFromV4,
-  bodyFromV4,
-  draftFromV4,
-  type V4Auth,
-  type V4Method,
-  type V4Request,
-} from "./model/from-v4";
+export { HTTP_METHODS, emptyAuth, emptyRequest } from "./model/request";
 export type {
   AssertionOperator,
   AssertionTarget,
   AuthConfig,
   Draft,
   RequestBody,
+  RequestContent,
   Row,
   TestAssertion,
 } from "./model/request";
-export { authToV4, bodyToV4, draftToV4, headersToV4, type V4Content } from "./model/to-v4";
+export { validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
 export {
   IMPORT_TOO_LARGE,
   MAX_IMPORT_BYTES,

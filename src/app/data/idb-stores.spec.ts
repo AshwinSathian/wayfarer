@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Idb } from "./idb";
 import { SecretEnvelope } from "../models/secrets";
@@ -30,8 +31,8 @@ describe("collections, folders and requests (real IndexedDB)", () => {
       name: " Login ",
       method: "POST",
       url: "https://api.test/login",
-      headers: { "X-Trace": "1" },
-      body: { user: "a" },
+      headers: rowsOf({ "X-Trace": "1" }),
+      body: jsonBody({ user: "a" }),
     });
     const atRoot = await requests.createRequest({
       collectionId: collection.meta.id,
@@ -52,7 +53,7 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect(second.order).toBeGreaterThan(collection.order);
     expect(folder.name).toBe("Auth");
     expect(inFolder.name).toBe("Login");
-    expect(atRoot.headers).toEqual({});
+    expect(atRoot.headers).toEqual([]);
     expect(atRoot.order).toBeGreaterThan(inFolder.order);
 
     expect((await collections.listCollections()).map((c) => c.name)).toEqual(["Billing", "Second"]);
@@ -76,12 +77,12 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     const updated = await requests.updateRequest(inFolder.meta.id, {
       method: "PUT",
       url: "https://api.test/session",
-      headers: { Accept: "application/json" },
-      body: [1, 2],
+      headers: rowsOf({ Accept: "application/json" }),
+      body: jsonBody([1, 2]),
     });
-    expect(updated).toMatchObject({ method: "PUT", url: "https://api.test/session", body: [1, 2] });
+    expect(updated).toMatchObject({ method: "PUT", url: "https://api.test/session", body: jsonBody([1, 2]) });
     const stored = (await requests.listRequests(collection.meta.id)).find((r) => r.meta.id === inFolder.meta.id);
-    expect(stored?.headers).toEqual({ Accept: "application/json" });
+    expect(stored?.headers).toEqual(rowsOf({ Accept: "application/json" }));
     expect(stored?.name).toBe("Sign in");
 
     expect(await collections.renameCollection("missing", { name: "x" })).toBeNull();
@@ -194,6 +195,22 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect(await collections.listCollections()).toHaveLength(1);
   });
 
+  it("trusts the scripts of a collection made here, and not those of an imported one", async () => {
+    const { collection } = await seed();
+    expect(collection.scriptTrust).toEqual({ trusted: true });
+
+    const file = (await collections.getCollectionExport(collection.meta.id))!;
+    expect("scriptTrust" in file.collection).toBe(false);
+
+    // Over the trusted original: the file's scripts replace the ones that were approved.
+    expect((await collections.importCollectionExport(file))?.scriptTrust.trusted).toBe(false);
+    expect((await collections.listCollections()).map((c) => c.scriptTrust.trusted)).toEqual([false]);
+
+    const copy = structuredClone(file);
+    copy.collection.id = copy.collection.meta.id = "copy-1";
+    expect((await collections.importCollectionExport(copy, { duplicateAsNew: true }))?.scriptTrust.trusted).toBe(false);
+  });
+
   it("refuses an import whose collection has no identifier, and writes nothing", async () => {
     const { collection } = await seed();
     const payload = structuredClone((await collections.getCollectionExport(collection.meta.id))!);
@@ -218,23 +235,23 @@ describe("environments (real IndexedDB)", () => {
   });
 
   it("creates, updates, duplicates and reorders environments", async () => {
-    const dev = await environments.createEnvironment({ name: " Dev ", description: " local ", vars: { host: "localhost" } });
+    const dev = await environments.createEnvironment({ name: " Dev ", description: " local ", vars: rowsOf({ host: "localhost" }) });
     const prod = await environments.createEnvironment({ name: "Prod" });
-    expect(dev).toMatchObject({ name: "Dev", description: "local", vars: { host: "localhost" } });
-    expect(prod.vars).toEqual({});
+    expect(dev).toMatchObject({ name: "Dev", description: "local", vars: rowsOf({ host: "localhost" }) });
+    expect(prod.vars).toEqual([]);
 
     const updated = await environments.updateEnvironment(dev.meta.id, {
       name: " Development ",
       description: "  ",
-      vars: { host: "127.0.0.1", port: "8080" },
+      vars: rowsOf({ host: "127.0.0.1", port: "8080" }),
     });
-    expect(updated).toMatchObject({ name: "Development", vars: { host: "127.0.0.1", port: "8080" } });
+    expect(updated).toMatchObject({ name: "Development", vars: rowsOf({ host: "127.0.0.1", port: "8080" }) });
     expect(updated?.description).toBeUndefined();
     expect(await environments.updateEnvironment("missing", { name: "x" })).toBeNull();
 
     const copy = await environments.duplicateEnvironment(dev.meta.id);
     expect(copy?.meta.id).not.toBe(dev.meta.id);
-    expect(copy?.vars).toEqual({ host: "127.0.0.1", port: "8080" });
+    expect(copy?.vars).toEqual(rowsOf({ host: "127.0.0.1", port: "8080" }));
     expect(await environments.duplicateEnvironment("missing")).toBeNull();
 
     await environments.reorderEnvironments([

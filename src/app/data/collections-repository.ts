@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import {
+  COLLECTION_FORMAT,
   Collection,
   CollectionExport,
   CollectionId,
@@ -44,6 +45,7 @@ export class CollectionsRepository {
         name: payload.name.trim(),
         description: payload.description?.trim() || undefined,
         order: await this.core.nextOrder(store.index("by-order")),
+        scriptTrust: { trusted: true },
       };
       this.core.ensureId(doc);
       await store.add(doc);
@@ -194,9 +196,11 @@ export class CollectionsRepository {
       requestIndex.getAll(id),
     ]);
     await tx.done;
+    const { scriptTrust: _trust, ...content } = this.core.ensureId(collection);
     return {
+      $id: COLLECTION_FORMAT,
       meta: collection.meta,
-      collection: this.core.ensureId(collection),
+      collection: content,
       folders: this.core.ensureIds(folders),
       requests: this.core.ensureIds(requests),
     };
@@ -236,7 +240,10 @@ export class CollectionsRepository {
         }
       }
 
-      await collectionStore.put(data.collection);
+      // A file's scripts are not the user's own until they approve them (D6),
+      // also when it replaces a collection that was trusted.
+      const collection: Collection = { ...data.collection, scriptTrust: { trusted: false } };
+      await collectionStore.put(collection);
       for (const folder of data.folders) {
         folder.collectionId = collectionId;
         this.core.ensureId(folder);
@@ -255,7 +262,7 @@ export class CollectionsRepository {
         this.core.ensureId(request);
         await requestStore.put(request);
       }
-      return data.collection;
+      return collection;
     });
   }
 }

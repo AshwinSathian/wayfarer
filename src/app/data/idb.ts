@@ -1,12 +1,15 @@
 import { Injectable, inject } from "@angular/core";
+import type { Row } from "@wayfarer/core";
 import {
   Collection,
   CollectionExport,
   CollectionId,
   Folder,
   FolderId,
+  NewRequest,
   RequestDoc,
   RequestDocId,
+  RequestPatch,
 } from "../models/collections";
 import { EnvironmentDoc, EnvironmentId } from "../models/environments";
 import { PastRequest, PastRequestKey } from "../models/history";
@@ -46,6 +49,10 @@ export class Idb {
   readonly closedByOtherTab = this.core.closedByOtherTab.asReadonly();
   /** True when the browser gives the app no storage; see IdbCore.memoryOnly. */
   readonly memoryOnly = this.core.memoryOnly.asReadonly();
+  readonly updatedElsewhere = this.core.updatedElsewhere.asReadonly();
+  readonly upgradeBlocked = this.core.upgradeBlocked.asReadonly();
+  readonly olderThanData = this.core.olderThanData.asReadonly();
+  readonly clearedOldData = this.core.clearedOldData.asReadonly();
 
   async init(): Promise<void> {
     return this.core.init();
@@ -150,16 +157,7 @@ export class Idb {
     return this.collectionRequests.listRequests(collectionId);
   }
 
-  async createRequest(payload: {
-    collectionId: CollectionId;
-    folderId?: FolderId;
-    name: string;
-    method: PastRequest["method"];
-    url: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-    order?: number;
-  }): Promise<RequestDoc> {
+  async createRequest(payload: NewRequest): Promise<RequestDoc> {
     return this.collectionRequests.createRequest(payload);
   }
 
@@ -167,26 +165,7 @@ export class Idb {
     return this.collectionRequests.renameRequest(id, name);
   }
 
-  async updateRequest(
-    id: RequestDocId,
-    patch: Partial<
-      Pick<
-        RequestDoc,
-        | "name"
-        | "folderId"
-        | "method"
-        | "url"
-        | "params"
-        | "headers"
-        | "body"
-        | "vars"
-        | "auth"
-        | "preRequestScript"
-        | "postRequestScript"
-        | "tests"
-      >
-    >
-  ): Promise<RequestDoc | null> {
+  async updateRequest(id: RequestDocId, patch: RequestPatch): Promise<RequestDoc | null> {
     return this.collectionRequests.updateRequest(id, patch);
   }
 
@@ -211,7 +190,7 @@ export class Idb {
   async createEnvironment(payload: {
     name: string;
     description?: string;
-    vars?: Record<string, string>;
+    vars?: Row[];
   }): Promise<EnvironmentDoc> {
     return this.environments.createEnvironment(payload);
   }

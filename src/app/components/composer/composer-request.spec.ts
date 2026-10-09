@@ -1,6 +1,6 @@
-import { authFromV4 } from '@wayfarer/core';
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { WorkspaceStore } from '../../state/workspace-store';
+import { WorkspaceStore, bodyValue, requestFromHistory, sentHeaders } from '../../state/workspace-store';
+import { requestContent } from '../../../testing/request-fixtures';
 import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from '../../../testing/composer-setup';
 import { Composer } from './composer';
 import { ComposerView } from './composer-view';
@@ -45,15 +45,68 @@ describe('Composer: rows, payloads and variables', () => {
       { key: '', value: 'ignore-me' }
     ]) });
     const headers = store.snapshot().headers;
-    expect(headers).toEqual({ Authorization: 'Bearer token' });
+    expect(headers).toEqual(rows([{ key: 'Authorization', value: 'Bearer token' }]));
 
     store.setBodyRows([
       { key: 'count', value: '42' },
       { key: 'enabled', value: 'false' },
       { key: '', value: 'skip' }
     ]);
-    const body = store.snapshot().body;
+    const body = bodyValue(store.snapshot().body);
     expect(body).toEqual({ count: '42', enabled: 'false' });
+  });
+
+  it('saves rows as written: a switched-off row is kept, names are trimmed, a row with no name is left out', () => {
+    store.patch({ headers: [
+      { key: ' Accept ', value: '*/*', enabled: true },
+      { key: 'X-Off', value: '1', enabled: false },
+      { key: 'Accept', value: 'text/plain', enabled: true },
+      { key: '__proto__', value: 'x', enabled: true },
+      { key: '  ', value: 'no name', enabled: true },
+    ] });
+
+    const { headers } = store.snapshot();
+
+    expect(headers).toEqual([
+      { key: 'Accept', value: '*/*', enabled: true },
+      { key: 'X-Off', value: '1', enabled: false },
+      { key: 'Accept', value: 'text/plain', enabled: true },
+      { key: '__proto__', value: 'x', enabled: true },
+    ]);
+    expect('responseId' in store.snapshot()).toBe(false);
+    // Only enabled rows are sent.
+    expect(sentHeaders(headers).map(([name]) => name)).toEqual(['Accept', 'Accept', '__proto__']);
+  });
+
+  it('keeps a body that is not an object when a request is loaded: it has no rows, and it is not rewritten', () => {
+    const array = { mode: 'raw' as const, raw: { language: 'json' as const, text: '[1, 2]' } };
+    const text = { mode: 'raw' as const, raw: { language: 'json' as const, text: '{"n": {{count}}}' } };
+
+    expect(store.load(requestContent({ method: 'POST', url: 'https://a.test', body: array }), 'collection')).toBe(false);
+    expect(store.snapshot().body).toEqual(array);
+    expect(store.bodyRows()).toEqual([{ key: '', value: '' }]);
+
+    // Not JSON until its variable is filled in.
+    store.load(requestContent({ method: 'POST', url: 'https://a.test', body: text }), 'collection');
+    expect(store.snapshot().body).toEqual(text);
+  });
+
+  it('loads a history entry as what was sent, keeping the scripts and tests being composed', () => {
+    store.patch({ scripts: { pre: 'mine', post: '' } });
+
+    store.load(
+      requestFromHistory({ method: 'POST', url: 'https://a.test/x?a=1', headers: { A: '1' }, body: { n: 1 }, createdAt: 1 }),
+      'history'
+    );
+
+    const draft = store.snapshot();
+    expect([draft.method, draft.url]).toEqual(['POST', 'https://a.test/x?a=1']);
+    expect(draft.headers).toEqual(rows([{ key: 'A', value: '1' }]));
+    expect(draft.params).toEqual(rows([{ key: 'a', value: '1' }]));
+    expect(bodyValue(draft.body)).toEqual({ n: 1 });
+    expect(draft.auth).toEqual({ type: 'none' });
+    expect(draft.scripts.pre).toBe('mine');
+    expect(requestFromHistory({ method: 'GET', url: '', headers: {}, createdAt: 1 }).body).toEqual({ mode: 'none' });
   });
 
   it('resolves {{var}} placeholders from the active environment into the actual outgoing request', async () => {
@@ -145,26 +198,26 @@ describe('Composer: rows, payloads and variables', () => {
 
     it('resolves a bearer token', async () => {
       store.patch({ url: 'https://example.com/bearer' });
-      store.patch({ auth: authFromV4({ type: 'bearer', bearer: { token: '{{v}}' } }) });
+      store.patch({ auth: { type: 'bearer', token: '{{v}}' } });
       const { headers } = await sendAndCapture('https://example.com/bearer');
       expect(headers.get('Authorization')).toBe('Bearer resolved');
     });
 
     it('resolves basic username and password before encoding', async () => {
       store.patch({ url: 'https://example.com/basic' });
-      store.patch({ auth: authFromV4({ type: 'basic', basic: { username: '{{user}}', password: '{{pass}}' } }) });
+      store.patch({ auth: { type: 'basic', username: '{{user}}', password: '{{pass}}' } });
       const { headers } = await sendAndCapture('https://example.com/basic');
       expect(headers.get('Authorization')).toBe(`Basic ${btoa('ada:pw')}`);
     });
 
     it('resolves API-key name and value, in a header and in the query', async () => {
       store.patch({ url: 'https://example.com/key' });
-      store.patch({ auth: authFromV4({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'header' } }) });
+      store.patch({ auth: { type: 'apikey', key: '{{keyName}}', value: '{{v}}', in: 'header' } });
       const header = await sendAndCapture('https://example.com/key');
       expect(header.headers.get('X-Key')).toBe('resolved');
 
       store.patch({ url: 'https://example.com/query' });
-      store.patch({ auth: authFromV4({ type: 'api-key', apiKey: { key: '{{keyName}}', value: '{{v}}', addTo: 'query' } }) });
+      store.patch({ auth: { type: 'apikey', key: '{{keyName}}', value: '{{v}}', in: 'query' } });
       const query = await sendAndCapture('https://example.com/query');
       expect(query.url).toContain('X-Key=resolved');
     });

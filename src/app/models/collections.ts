@@ -1,6 +1,4 @@
-import type { V4Auth } from "@wayfarer/core";
-import { PastRequest } from "./history";
-import { TestAssertion } from "./test-assertion";
+import type { RequestContent } from "@wayfarer/core";
 
 export type UUID = string;
 
@@ -13,9 +11,6 @@ export interface Meta {
 
 export const META_VERSION: Meta["version"] = 1;
 
-export type HttpAuthPlaceholder = V4Auth;
-export type AuthType = V4Auth["type"];
-
 interface BaseDocument {
   id: UUID;
   meta: Meta;
@@ -25,6 +20,8 @@ export interface Collection extends BaseDocument {
   name: string;
   description?: string;
   order: number;
+  /** Whether this collection's scripts may run. True for one made here; an import is untrusted until approved (D6). */
+  scriptTrust: { trusted: boolean };
 }
 
 export interface Folder extends BaseDocument {
@@ -34,30 +31,30 @@ export interface Folder extends BaseDocument {
   order: number;
 }
 
-export interface RequestDoc extends BaseDocument {
+export interface RequestDoc extends BaseDocument, RequestContent {
   collectionId: UUID;
   folderId?: UUID;
   name: string;
   order: number;
-  method: PastRequest["method"];
-  url: string;
-  params?: Record<string, string>;
-  headers: Record<string, string>;
-  body?: unknown;
-  vars?: Record<string, string>;
-  auth?: HttpAuthPlaceholder;
-  preRequestScript?: string;
-  postRequestScript?: string;
-  tests?: TestAssertion[];
 }
+
+/** What `createRequest` takes: where the request goes, and as much of its content as the caller has. */
+export type NewRequest = Pick<RequestDoc, "collectionId" | "name"> &
+  Partial<Pick<RequestDoc, "folderId" | "order"> & RequestContent>;
+
+export type RequestPatch = Partial<Pick<RequestDoc, "name" | "folderId"> & RequestContent>;
 
 export type CollectionId = UUID;
 export type FolderId = UUID;
 export type RequestDocId = UUID;
 
+export const COLLECTION_FORMAT = "wayfarer/collection/2";
+
+/** A collection file. Trust is not content: the file leaves it out and an import starts untrusted. */
 export interface CollectionExport {
+  $id: typeof COLLECTION_FORMAT;
   meta: Meta;
-  collection: Collection;
+  collection: Omit<Collection, "scriptTrust">;
   folders: Folder[];
   requests: RequestDoc[];
 }

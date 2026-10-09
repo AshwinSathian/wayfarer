@@ -1,4 +1,4 @@
-import { HttpAuthPlaceholder } from "../../models/collections";
+import type { AuthConfig } from "@wayfarer/core";
 
 /**
  * Pure translation of the composer's Auth tab state into the headers/query
@@ -7,53 +7,39 @@ import { HttpAuthPlaceholder } from "../../models/collections";
  * token or basic-auth credential on the wire) logic is unit testable on its
  * own.
  */
-export function buildAuthHeaders(auth: HttpAuthPlaceholder | undefined): Record<string, string> {
-  if (!auth || auth.type === "none") {
-    return {};
+export function buildAuthHeaders(auth: AuthConfig): Record<string, string> {
+  if (auth.type === "bearer" && auth.token) {
+    return { Authorization: `Bearer ${auth.token}` };
   }
-  if (auth.type === "bearer" && auth.bearer?.token) {
-    return { Authorization: `Bearer ${auth.bearer.token}` };
-  }
-  if (auth.type === "basic" && auth.basic?.username) {
+  if (auth.type === "basic" && auth.username) {
     // UTF-8 bytes (RFC 7617): btoa alone throws on anything outside Latin-1.
-    const bytes = new TextEncoder().encode(`${auth.basic.username}:${auth.basic.password ?? ""}`);
+    const bytes = new TextEncoder().encode(`${auth.username}:${auth.password}`);
     const encoded = btoa(String.fromCharCode(...bytes));
     return { Authorization: `Basic ${encoded}` };
   }
-  if (auth.type === "api-key" && auth.apiKey?.key && auth.apiKey?.addTo === "header") {
-    return { [auth.apiKey.key]: auth.apiKey.value ?? "" };
+  if (auth.type === "apikey" && auth.key && auth.in === "header") {
+    return Object.fromEntries([[auth.key, auth.value]]);
   }
   return {};
 }
 
-export function buildAuthQueryParam(
-  auth: HttpAuthPlaceholder | undefined
-): { key: string; value: string } | null {
-  if (auth?.type === "api-key" && auth.apiKey?.key && auth.apiKey?.addTo === "query") {
-    return { key: auth.apiKey.key, value: auth.apiKey.value ?? "" };
+export function buildAuthQueryParam(auth: AuthConfig): { key: string; value: string } | null {
+  if (auth.type === "apikey" && auth.key && auth.in === "query") {
+    return { key: auth.key, value: auth.value };
   }
   return null;
 }
 
 /** Applies `resolve` (e.g. `{{var}}` substitution) to every auth field that goes on the wire (F07). */
-export function resolveAuth(
-  auth: HttpAuthPlaceholder | undefined,
-  resolve: (text: string) => string
-): HttpAuthPlaceholder | undefined {
-  if (!auth) {
-    return auth;
+export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string): AuthConfig {
+  switch (auth.type) {
+    case "bearer":
+      return { ...auth, token: resolve(auth.token) };
+    case "basic":
+      return { ...auth, username: resolve(auth.username), password: resolve(auth.password) };
+    case "apikey":
+      return { ...auth, key: resolve(auth.key), value: resolve(auth.value) };
+    case "none":
+      return auth;
   }
-  return {
-    ...auth,
-    bearer: auth.bearer && { token: resolve(auth.bearer.token) },
-    basic: auth.basic && {
-      username: resolve(auth.basic.username),
-      password: resolve(auth.basic.password ?? ""),
-    },
-    apiKey: auth.apiKey && {
-      ...auth.apiKey,
-      key: resolve(auth.apiKey.key),
-      value: resolve(auth.apiKey.value ?? ""),
-    },
-  };
 }

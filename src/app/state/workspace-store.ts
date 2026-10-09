@@ -1,15 +1,15 @@
 import { Injectable, effect, inject, signal } from "@angular/core";
 import {
-  bodyFromV4,
-  draftFromV4,
-  draftToV4,
+  emptyRequest,
   newId,
+  parseJson,
   type Draft,
+  type RequestBody,
+  type RequestContent,
   type Row,
-  type V4Content,
-  type V4Request,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
+import { PastRequest } from "../models/history";
 import { TestResult } from "../models/test-assertion";
 import { EnvironmentsStore } from "../services/environments-store";
 import {
@@ -27,7 +27,7 @@ import {
   resolveTemplateDeep,
 } from "../shared/environments/env-resolution";
 import { writeToClipboard } from "../shared/http/clipboard";
-import { bodyObjectFromRows, bodyRowsFromObject } from "../shared/http/key-value";
+import { bodyObjectFromRows, bodyRowsFromObject, isPlainObject } from "../shared/http/key-value";
 import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
 import {
   appendQueryParam,
@@ -61,23 +61,47 @@ const blankParams = (): Row[] => [{ key: "", value: "", enabled: true }];
 const defaultHeaders = (): Row[] => [{ key: DEFAULT_HEADER_KEY, value: DEFAULT_HEADER_VALUE, enabled: true }];
 
 function emptyDraft(): Draft {
+  return { ...emptyRequest(), params: blankParams(), headers: defaultHeaders() };
+}
+
+/** A JSON value as body text. The row editor and history hold values; P2.12 leaves only the text. */
+function jsonBody(value: unknown): RequestBody {
+  const text = value === undefined ? undefined : JSON.stringify(value, null, 2);
+  return text === undefined ? { mode: "none" } : { mode: "raw", raw: { language: "json", text } };
+}
+
+/** The value a body's text stands for: its JSON, or the text itself when it is not JSON. */
+export function bodyValue(body: RequestBody): unknown {
+  if (body.mode === "none") return undefined;
+  const parsed = parseJson(body.raw.text);
+  return body.raw.language === "json" && parsed.ok ? parsed.value : body.raw.text;
+}
+
+/** The headers that are sent: enabled rows with a name, in order. */
+export function sentHeaders(rows: Row[]): [string, string][] {
+  return rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value]);
+}
+
+/** A history entry as a request: it carries what was sent, so no auth, scripts or tests. */
+export function requestFromHistory(entry: PastRequest): RequestContent {
   return {
-    method: "GET",
-    url: "",
-    params: blankParams(),
-    headers: defaultHeaders(),
-    body: { mode: "none" },
-    auth: { type: "none" },
-    scripts: { pre: "", post: "" },
-    tests: [],
-    settings: {},
+    ...emptyRequest(),
+    method: entry.method,
+    url: entry.url,
+    headers: Object.entries(entry.headers ?? {}).map(([key, value]) => ({ key, value: String(value ?? ""), enabled: true })),
+    body: jsonBody(entry.body),
   };
+}
+
+/** Rows as they are saved: names trimmed, rows without a name (the editor's blank row) left out. */
+function namedRows(rows: Row[]): Row[] {
+  return rows.map((row) => ({ ...row, key: row.key.trim() })).filter((row) => row.key);
 }
 
 /**
  * The one request being composed, as a `Draft`, and the response it last
- * received. The composer's panels edit the draft; the collection and history
- * stores still read and write v4, through the converters in `@wayfarer/core`.
+ * received. The composer's panels edit the draft; a saved request holds the
+ * same fields.
  *
  * A row editor binds `[(ngModel)]` to a row's own fields, so rows change in
  * place: the panel then calls `refreshVariablePreview` (or `bodyRowsEdited`).
@@ -145,9 +169,10 @@ export class WorkspaceStore {
     this.draft.update((draft) => ({ ...draft, ...change }));
   }
 
-  /** The draft as the v4 content the stores and the executor take: raw, with literal `{{var}}` text. */
-  snapshot(): V4Content {
-    return draftToV4(this.draft());
+  /** The draft as it is saved: raw, with literal `{{var}}` text. */
+  snapshot(): RequestContent {
+    const { responseId: _response, ...content } = this.draft();
+    return { ...content, params: namedRows(content.params), headers: namedRows(content.headers) };
   }
 
   setMethod(method: string): void {
@@ -165,7 +190,7 @@ export class WorkspaceStore {
 
   setBodyRows(rows: BodyRow[]): void {
     this.bodyRows.set(rows);
-    this.patch({ body: bodyFromV4(bodyObjectFromRows(rows)) });
+    this.patch({ body: jsonBody(bodyObjectFromRows(rows)) });
   }
 
   /** A body row was edited in place. */
@@ -179,17 +204,18 @@ export class WorkspaceStore {
    * entry carries no scripts or tests, so the composer keeps its own.
    * Returns whether the request has a body the row editor can show.
    */
-  load(request: V4Request, source: "collection" | "history"): boolean {
+  load(request: RequestContent, source: "collection" | "history"): boolean {
     const current = this.draft();
     this.draft.set({
-      ...draftFromV4(request),
+      ...structuredClone(request),
       params: parseParamsFromUrl(request.url),
       ...(source === "history" ? { scripts: current.scripts, tests: current.tests } : {}),
       responseId: current.responseId,
     });
-    const body = request.body;
-    const hasBody = !!body && typeof body === "object";
-    this.setBodyRows(hasBody ? bodyRowsFromObject(body as Record<string, unknown>) : blankBodyRows());
+    // Only an object has rows. Any other body stays in the draft as its text.
+    const body = bodyValue(request.body);
+    const hasBody = isPlainObject(body);
+    this.bodyRows.set(hasBody ? bodyRowsFromObject(body) : blankBodyRows());
     return hasBody;
   }
 
@@ -380,20 +406,19 @@ export class WorkspaceStore {
     const context = this.variableContext();
     const content = this.snapshot();
     const usesBody = isBodyMethod(content.method);
+    const template = bodyValue(content.body);
     const auth = resolveAuth(content.auth, (text) => resolveTemplate(text, context));
     // One value per name, whatever its case, the later one winning: the auth
     // header replaces a row of the same name. A Map keeps a name such as
     // "__proto__" as data (F56).
     const byName = new Map<string, [string, string]>();
-    for (const [key, value] of [...Object.entries(content.headers), ...Object.entries(buildAuthHeaders(auth))]) {
+    for (const [key, value] of [...sentHeaders(content.headers), ...Object.entries(buildAuthHeaders(auth))]) {
       const name = resolveTemplate(key, context);
       byName.set(name.toLowerCase(), [name, resolveTemplate(value, context)]);
     }
     const headers = [...byName.values()];
     const body =
-      usesBody && content.body
-        ? (resolveTemplateDeep(content.body, context) as Record<string, unknown>)
-        : undefined;
+      usesBody && template ? (resolveTemplateDeep(template, context) as Record<string, unknown>) : undefined;
     // The Params rows are already in the URL field (they mirror its query).
     let url = normalizeUrl(resolveTemplate(endpointText.trim(), context));
     const authParam = buildAuthQueryParam(auth);

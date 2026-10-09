@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { jsonBody, requestContent, rowsOf } from "../../testing/request-fixtures";
 import { CollectionsStore } from "./collections-store";
 import { Idb } from "../data/idb";
 import { Collection, Folder, Meta, RequestDoc } from "../models/collections";
@@ -9,7 +10,7 @@ function meta(id: string): Meta {
 }
 
 function makeCollection(id: string, order = 0): Collection {
-  return { id, meta: meta(id), name: `Collection ${id}`, order };
+  return { id, meta: meta(id), name: `Collection ${id}`, order, scriptTrust: { trusted: true } };
 }
 
 function makeFolder(id: string, collectionId: string, order = 0): Folder {
@@ -23,9 +24,7 @@ function makeRequest(id: string, collectionId: string, order = 0): RequestDoc {
     collectionId,
     name: `Request ${id}`,
     order,
-    method: "GET",
-    url: "https://example.com",
-    headers: {},
+    ...requestContent({ url: "https://example.com" }),
   };
 }
 
@@ -178,11 +177,10 @@ describe("CollectionsStore", () => {
     await service.updateRequest(created.id, {
       method: "POST",
       url: "https://updated.example.com",
-      headers: { Authorization: "Bearer abc" },
-      body: { hello: "world" },
-      auth: { type: "bearer", bearer: { token: "abc" } },
-      preRequestScript: "pm.environment.set('x', '1')",
-      postRequestScript: "pm.test('ok', () => {})",
+      headers: rowsOf({ Authorization: "Bearer abc" }),
+      body: jsonBody({ hello: "world" }),
+      auth: { type: "bearer", token: "abc" },
+      scripts: { pre: "pm.environment.set('x', '1')", post: "pm.test('ok', () => {})" },
       tests: [],
     });
 
@@ -191,10 +189,10 @@ describe("CollectionsStore", () => {
     const updated = service.getCollectionTree("c2")?.requests[0];
     expect(updated?.method).toBe("POST");
     expect(updated?.url).toBe("https://updated.example.com");
-    expect(updated?.headers).toEqual({ Authorization: "Bearer abc" });
-    expect(updated?.body).toEqual({ hello: "world" });
-    expect(updated?.auth).toEqual({ type: "bearer", bearer: { token: "abc" } });
-    expect(updated?.preRequestScript).toBe("pm.environment.set('x', '1')");
+    expect(updated?.headers).toEqual(rowsOf({ Authorization: "Bearer abc" }));
+    expect(updated?.body).toEqual(jsonBody({ hello: "world" }));
+    expect(updated?.auth).toEqual({ type: "bearer", token: "abc" });
+    expect(updated?.scripts.pre).toBe("pm.environment.set('x', '1')");
   });
 
   it("updateRequest returns null and does not refresh when the request no longer exists", async () => {

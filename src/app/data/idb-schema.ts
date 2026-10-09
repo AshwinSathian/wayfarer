@@ -47,7 +47,7 @@ export interface ApiSandboxDB extends DBSchema {
     indexes: {
       "by-createdAt": number;
       "by-url": string;
-      "by-method": PastRequest["method"];
+      "by-method": string;
     };
   };
   collections: {
@@ -98,10 +98,7 @@ export interface ApiSandboxDB extends DBSchema {
   };
 }
 
-// Preserved historical identifier from the project's "API Sandbox" name — never
-// shown to users, and renaming it would require a lossy copy-and-migrate of
-// every existing user's local data for zero functional benefit. Left as-is
-// intentionally; see docs/storage.md.
+// The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
 export const DEFAULT_SCHEMA_VERSION = 1;

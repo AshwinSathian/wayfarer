@@ -1,4 +1,5 @@
 import { Injectable, Signal, computed, signal, inject } from "@angular/core";
+import type { Row } from "@wayfarer/core";
 import {
   EnvironmentDoc,
   EnvironmentId,
@@ -55,7 +56,7 @@ export class EnvironmentsStore {
   async createEnvironment(payload: {
     name: string;
     description?: string;
-    vars?: Record<string, string>;
+    vars?: Row[];
   }): Promise<EnvironmentDoc> {
     const doc = await this.idb.createEnvironment(payload);
     await this.refresh();

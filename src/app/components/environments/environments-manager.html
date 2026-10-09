@@ -261,7 +261,7 @@
       <div class="flex items-center justify-between gap-2">
         <div>
           <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
-          <p class="type-caption text-label-tertiary">{{ Object.keys(entry.doc.vars).length }} variable(s)</p>
+          <p class="type-caption text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
         </div>
         @if (entry.targetId) {
         <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-caption font-semibold text-status-warning">Existing</span>

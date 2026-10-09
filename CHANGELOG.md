@@ -7,7 +7,36 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Breaking
+
+- **Data saved by earlier versions is removed.** Wayfarer now stores
+  requests, environments and collections in a new shape (database version
+  5) and does not convert the old one: the first time this version opens,
+  collections, folders, requests, environments, secrets and history from
+  an earlier version are deleted, and the page says so once. Nothing is
+  backed up. This was decided while the app has no users with data to keep.
+- **Collection and environment files from earlier versions no longer
+  import.** A file now starts with `"$id": "wayfarer/collection/2"` (or
+  `wayfarer/environments/2`), and a file without it is refused with that
+  reason. Export again from this version.
+
 ### Added
+
+- **Header rows are saved as rows.** A saved request keeps its headers in
+  the order you wrote them and keeps a name that appears twice. Before,
+  headers were saved as one value per name. Environment variables are
+  saved the same way. A file may also mark a row as switched off: it is
+  kept and not sent (the composer has no switch for it yet).
+- **The body is saved as text**, as it is written, where it used to be
+  saved as a parsed JSON value.
+- When Wayfarer is updated while it is open in another tab, that tab says
+  "Wayfarer was updated in another tab — reload" (it used to say the data
+  had been reset). When an old tab is holding the data, the new one says
+  "Close other Wayfarer tabs to finish the update" and carries on when they
+  are closed. A tab running an older Wayfarer than the stored data says
+  that, where it used to say the browser was blocking storage.
+- An imported collection is marked as not yet trusted to run scripts.
+  Scripts are still switched off in every build, so nothing changes yet.
 
 - **Cancel.** While a request is in flight, **Send** becomes **Cancel**;
   pressing it stops the request at once. There was no way to stop one.
@@ -43,6 +72,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Exporting a collection wrote each request's assertions sorted by their
+  internal id, so they came back in a different order. They keep the order
+  you gave them (#182).
+- Opening a saved request whose body is a JSON array turned the body into
+  an object with the keys `0`, `1`, …, and saving wrote that back. A body
+  that is not an object is now left as it is (#183).
 - A header named `__proto__` is sent, and appears in **Copy as cURL**. It
   was silently left out of both.
 

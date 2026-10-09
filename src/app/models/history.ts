@@ -1,11 +1,11 @@
-import { V4_METHODS } from "@wayfarer/core";
+import { HTTP_METHODS } from "@wayfarer/core";
 
-export const HTTP_METHODS = V4_METHODS;
-export type HttpMethod = (typeof HTTP_METHODS)[number];
+export { HTTP_METHODS };
 
+/** A request as it was sent. History v2 (template, redacted request and response) arrives with P2.9. */
 export interface PastRequest {
   id?: number;
-  method: HttpMethod;
+  method: string;
   url: string;
   headers: Record<string, string>;
   body?: unknown;

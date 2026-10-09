@@ -38,6 +38,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **"Update available" no longer appears on a first visit.** On a slow
+  machine the service worker could take the page over before the app heard
+  it had installed, and the app took that first install for a new version.
+
 - **Clear all history** shows its tooltip. The button named one, but the
   toolbar never loaded the code that draws it.
 

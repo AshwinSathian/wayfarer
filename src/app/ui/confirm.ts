@@ -96,6 +96,7 @@ export class Confirm {
         panelClass: "confirm-panel",
         maxWidth: "calc(100vw - 32px)",
         // As for ui-dialog: focus moves in at once, and the page is free the moment it closes.
+        delayFocusTrap: false,
         enterAnimationDuration: "0ms",
         exitAnimationDuration: "0ms",
       });

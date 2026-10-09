@@ -144,9 +144,9 @@ code errors.
   clicks its trigger a second time clicks the coordinates, not the element.
 - Dialog: `<ui-dialog>` (`src/app/ui/dialog.ts`) opens Material's dialog
   from a template and keeps it in step with `[visible]`; `Confirm` opens it
-  from code. Both set Material's enter and exit animation to 0 ms: Material
-  moves focus in only when its entrance ends, and keeps the panel over the
-  page until its exit does. The entrance is drawn in `animations.css`. Both
+  from code. Both set `delayFocusTrap: false` and Material's enter and exit
+  animation to 0 ms: Material moves focus in only when its entrance ends,
+  and keeps the panel over the page until its exit does. The entrance is drawn in `animations.css`. Both
   pass `ariaModal: true`; Material's default is false.
 - The small confirmation under a button stays on the CDK's dialog:
   Material's is placed in the window, not against an element.

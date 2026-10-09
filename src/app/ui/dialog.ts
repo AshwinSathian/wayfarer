@@ -186,8 +186,10 @@ export class Dialog implements OnDestroy {
       maxHeight: "90vh",
       // Material moves focus in when its opening animation ends, and keeps
       // the panel in place until its closing one does. A field typed into
-      // straight away lost focus, and a click after closing hit the panel.
-      // The entrance is drawn in CSS (animations.css).
+      // straight away lost its text and focus, and a click after closing
+      // hit the panel. Focus moves in at once, and the entrance is drawn in
+      // CSS (animations.css).
+      delayFocusTrap: false,
       enterAnimationDuration: "0ms",
       exitAnimationDuration: "0ms",
     });

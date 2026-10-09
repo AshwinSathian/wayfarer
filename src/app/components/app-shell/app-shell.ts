@@ -26,6 +26,7 @@ import { PastRequest, PastRequestKey } from "../../models/history";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
+import { WorkspaceBackup } from "../../services/workspace-backup";
 import { Idb } from "../../data/idb";
 import { DatabaseResetBlockedError } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
@@ -87,6 +88,7 @@ export class AppShell implements OnInit {
   private readonly confirm = inject(Confirm);
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
+  protected readonly backup = inject(WorkspaceBackup);
   private readonly idb = inject(Idb);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;

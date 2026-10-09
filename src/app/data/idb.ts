@@ -22,6 +22,7 @@ import { FoldersRepository } from "./folders-repository";
 import { CollectionRequestsRepository } from "./collection-requests-repository";
 import { EnvironmentsRepository } from "./environments-repository";
 import { SecretsRepository } from "./secrets-repository";
+import { WorkspaceRepository, type WorkspaceStores } from "./workspace-repository";
 
 /**
  * Public facade over the IndexedDB persistence layer. Every existing
@@ -45,6 +46,7 @@ export class Idb {
   private readonly collectionRequests = inject(CollectionRequestsRepository);
   private readonly environments = inject(EnvironmentsRepository);
   private readonly secrets = inject(SecretsRepository);
+  private readonly workspace = inject(WorkspaceRepository);
 
   /** True once another tab reset all data; see IdbCore.closedByOtherTab. */
   readonly closedByOtherTab = this.core.closedByOtherTab.asReadonly();
@@ -288,6 +290,14 @@ export class Idb {
   }
 
   // ── Cross-cutting ────────────────────────────────────────────────────
+
+  async readWorkspace(includeHistory: boolean): Promise<WorkspaceStores> {
+    return this.workspace.readAll(includeHistory);
+  }
+
+  async restoreWorkspace(stores: WorkspaceStores): Promise<void> {
+    return this.workspace.replaceAll(stores);
+  }
 
   async resetDatabase(): Promise<void> {
     await this.core.resetDatabase();

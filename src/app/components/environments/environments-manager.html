@@ -10,7 +10,7 @@
         <button type="button" matIconButton class="btn-plain" (click)="envImportInput.click()" title="Import" aria-label="Import environments">
           <app-icon name="upload" class="icon-sm" />
         </button>
-        <button type="button" matIconButton class="btn-plain" (click)="exportEnvironments()" title="Export" aria-label="Export environments">
+        <button type="button" matIconButton class="btn-plain" (click)="exportDialogVisible.set(true)" title="Export" aria-label="Export environments">
           <app-icon name="download" class="icon-sm" />
         </button>
         <button
@@ -326,4 +326,11 @@
   [visible]="globalsVisible()"
   (visibleChange)="globalsVisible.set($event)"
   (save)="saveGlobals($event)"
+/>
+
+<app-environment-export-dialog
+  [environments]="environments()"
+  [visible]="exportDialogVisible()"
+  (visibleChange)="exportDialogVisible.set($event)"
+  (requestUnlock)="requestUnlock.emit()"
 />

@@ -1,6 +1,7 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestFiles } from "./request-files";
+import { StoragePersistence } from "./storage-persistence";
 import type { RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 
@@ -20,6 +21,7 @@ export type RequestContentSnapshot = RequestContent;
 export class RequestSave {
   private readonly collectionsService = inject(CollectionsStore);
   private readonly files = inject(RequestFiles);
+  private readonly persistence = inject(StoragePersistence);
 
   /**
    * The collection request the composer's current contents were loaded
@@ -68,6 +70,8 @@ export class RequestSave {
       this.openSaveAsDialog();
       return;
     }
+    // Something worth keeping is being saved: ask the browser to keep it.
+    void this.persistence.request();
     this.savingRequest.set(true);
     try {
       const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot, this.files.unsaved(snapshot.body));
@@ -104,6 +108,7 @@ export class RequestSave {
     if (!collectionId || !name) {
       return;
     }
+    void this.persistence.request();
     this.savingRequest.set(true);
     try {
       const doc = await this.collectionsService.createRequest(

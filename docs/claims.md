@@ -77,3 +77,5 @@ back gets reworded until one can, or removed.
 | C-043 | The vault passphrase can be changed: the old one stops working and no secret is re-encrypted. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |
 | C-044 | The vault can be exported as a file that holds only ciphertext and opens with its passphrase, and imported into another vault. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |
 | C-045 | A request with a `{{variable}}` that has no value is held back until the user chooses to send it as written. | README.md | e2e/secrets-wire.spec.ts |
+| C-046 | The whole workspace can be backed up to one file and restored from it; the vault's secrets are in it encrypted, and a restored collection's scripts are untrusted until approved. | README.md, docs/trust-center.md | e2e/durability.spec.ts |
+| C-047 | An environments export leaves protected values out by default (no secret, no reference); it can instead carry the references with the encrypted vault, or plain text after a typed confirmation. | README.md | e2e/durability.spec.ts |

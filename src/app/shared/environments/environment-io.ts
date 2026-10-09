@@ -1,4 +1,4 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, parseJson, validateRows } from "@wayfarer/core";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson, validateRows, type VaultFile } from "@wayfarer/core";
 import { ENVIRONMENTS_FORMAT, EnvironmentDoc } from "../../models/environments";
 import { sortByOrder, sortKeys } from "../collections/collection-io";
 
@@ -8,8 +8,37 @@ export interface EnvironmentValidationResult {
   payload?: EnvironmentDoc[];
 }
 
-export function serializeEnvironmentExport(environments: EnvironmentDoc[]): string {
-  return JSON.stringify(sortKeys({ $id: ENVIRONMENTS_FORMAT, environments: prepareEnvironments(environments) }), null, 2);
+/**
+ * What an environments file holds of a protected variable (P2.11):
+ * - `strip`: nothing. The value is empty: the file has no secret and no
+ *   reference to one.
+ * - `references`: the `{{$secret.<id>}}` reference, with the vault, still
+ *   encrypted, beside it in the file.
+ * - `plain`: the secret's plaintext, given in `plaintexts` by id.
+ */
+export type ProtectedValues =
+  | { mode: "strip" }
+  | { mode: "references"; vault: VaultFile | null }
+  | { mode: "plain"; plaintexts: ReadonlyMap<string, string> };
+
+export function serializeEnvironmentExport(environments: EnvironmentDoc[], protectedValues: ProtectedValues = { mode: "strip" }): string {
+  // Each reference in a value, also one that stands inside other text.
+  const value = (text: string): string =>
+    protectedValues.mode === "references"
+      ? text
+      : text.replace(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/gi, (_reference, id: string) =>
+          protectedValues.mode === "plain" ? protectedValues.plaintexts.get(id) ?? "" : ""
+        );
+  const prepared = prepareEnvironments(environments).map((env) => ({ ...env, vars: env.vars.map((row) => ({ ...row, value: value(row.value) })) }));
+  return JSON.stringify(
+    sortKeys({
+      $id: ENVIRONMENTS_FORMAT,
+      environments: prepared,
+      ...(protectedValues.mode === "references" && protectedValues.vault && { vault: protectedValues.vault }),
+    }),
+    null,
+    2
+  );
 }
 
 export function validateEnvironmentExport(

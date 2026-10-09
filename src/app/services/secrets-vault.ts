@@ -174,9 +174,15 @@ export class SecretsVault {
   async exportFile(passphrase: string): Promise<string | null> {
     const record = await this.idb.readVault();
     if (!record || !(await unwrapDek(record, passphrase))) return null;
+    return JSON.stringify(await this.bundle(), null, 2);
+  }
+
+  /** The vault as a vault file's content, to go beside what refers to its secrets. `null` when there is no vault. */
+  async bundle(): Promise<VaultFile | null> {
+    const record = await this.idb.readVault();
+    if (!record) return null;
     const secrets = (await this.idb.listSecrets()).map(({ id, name, environmentId, envelope }) => ({ id, name, environmentId, envelope }));
-    const file: VaultFile = { $id: VAULT_FILE_FORMAT, vault: record, secrets };
-    return JSON.stringify(file, null, 2);
+    return { $id: VAULT_FILE_FORMAT, vault: record, secrets };
   }
 
   /**
@@ -188,9 +194,13 @@ export class SecretsVault {
     if (isOversizedImport(text)) return { error: IMPORT_TOO_LARGE };
     const parsed = parseJson(text);
     if (!parsed.ok) return { error: "The file is not valid JSON." };
-    const issues = validateVaultFile(parsed.value);
+    // An environments file exported "with the vault" carries the vault file inside it.
+    const content = typeof parsed.value === "object" && parsed.value !== null && Object.hasOwn(parsed.value, "vault") && !Object.hasOwn(parsed.value, "secrets")
+      ? (parsed.value as { vault: unknown }).vault
+      : parsed.value;
+    const issues = validateVaultFile(content);
     if (issues.length) return { error: `${issues[0].path}: ${issues[0].message}` };
-    const file = parsed.value as VaultFile;
+    const file = content as VaultFile;
 
     const local = this.key();
     const theirs = await unwrapDek(file.vault, filePassphrase);

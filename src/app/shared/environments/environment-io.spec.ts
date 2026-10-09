@@ -75,4 +75,39 @@ describe("environment-io", () => {
       "environments[1].vars: Value must be an array.",
     ]);
   });
+
+  describe("protected variables in an export (P2.11)", () => {
+    const env = (vars: Record<string, string>): EnvironmentDoc => ({
+      id: "e1",
+      meta: { id: "e1", createdAt: 1, updatedAt: 1, version: 1 },
+      name: "Dev",
+      order: 1,
+      vars: Object.entries(vars).map(([key, value]) => ({ key, value, enabled: true })),
+    });
+    const environments = [env({ host: "localhost", token: "{{$secret.s-1}}", header: "Bearer {{ $secret.s-2 }}" })];
+    const values = (json: string) => (JSON.parse(json) as { environments: EnvironmentDoc[] }).environments[0].vars.map((row) => row.value);
+
+    it("leaves them out unless told otherwise: no reference and no plaintext", () => {
+      const json = serializeEnvironmentExport(environments);
+      expect(json).not.toContain("$secret");
+      expect(values(json)).toEqual(["localhost", "", "Bearer "]);
+      expect(serializeEnvironmentExport(environments, { mode: "strip" })).toBe(json);
+    });
+
+    it("writes the references with the vault beside them, still encrypted", () => {
+      const vault = { $id: "wayfarer/vault/2" as const, vault: { v: 2 as const, kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
+      const json = serializeEnvironmentExport(environments, { mode: "references", vault });
+      expect(values(json)).toEqual(["localhost", "{{$secret.s-1}}", "Bearer {{ $secret.s-2 }}"]);
+      expect((JSON.parse(json) as { vault: unknown }).vault).toEqual(vault);
+      // The file still imports as environments.
+      expect(validateEnvironmentExport(json).ok).toBe(true);
+      // No vault yet: the references alone.
+      expect(Object.keys(JSON.parse(serializeEnvironmentExport(environments, { mode: "references", vault: null })) as object)).toEqual(["$id", "environments"]);
+    });
+
+    it("writes plaintext only when given it, and nothing for a secret it was not given", () => {
+      const json = serializeEnvironmentExport(environments, { mode: "plain", plaintexts: new Map([["s-2", "real-token"]]) });
+      expect(values(json)).toEqual(["localhost", "", "Bearer real-token"]);
+    });
+  });
 });

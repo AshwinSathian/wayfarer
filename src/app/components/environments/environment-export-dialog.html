@@ -1,0 +1,54 @@
+<ui-dialog header="Export environments" [visible]="visible()" (visibleChange)="$event ? null : close()" width="520px">
+  <div class="flex flex-col gap-4">
+    <div>
+      <span id="env-export-mode-label" class="ds-form-label">Protected variables</span>
+      <mat-button-toggle-group
+        class="segmented"
+        hideSingleSelectionIndicator
+        aria-labelledby="env-export-mode-label"
+        [value]="mode()"
+        (change)="mode.set($event.value); error.set('')"
+      >
+        <mat-button-toggle value="strip">Leave out</mat-button-toggle>
+        <mat-button-toggle value="references">With the vault</mat-button-toggle>
+        <mat-button-toggle value="plain">Plain text</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <p class="type-callout text-label-secondary">
+      @switch (mode()) {
+        @case ('strip') {
+          A protected variable is written with an empty value. The file holds no secret and nothing that refers to one. Other variables are written as they are.
+        }
+        @case ('references') {
+          A protected variable is written as its reference, and the vault goes into the file beside it, still encrypted. To use the file elsewhere, import it in Environments, then in Secrets, "Import vault", with this vault's passphrase.
+        }
+        @case ('plain') {
+          Every protected variable is written with its real value. Anyone who reads the file reads your secrets.
+        }
+      }
+    </p>
+
+    @if (mode() === 'plain') {
+    <div>
+      <label for="env-export-confirm" class="ds-form-label">Type {{ confirmation }} to confirm</label>
+      <mat-form-field class="field w-full">
+        <input matInput id="env-export-confirm" autocomplete="off" [ngModel]="typed()" (ngModelChange)="typed.set($event)" />
+      </mat-form-field>
+    </div>
+    }
+
+    @if (error()) {
+    <p role="alert" class="type-footnote text-status-error flex items-center gap-1.5">
+      <app-icon name="error" class="icon-xs" />
+      {{ error() }}
+    </p>
+    }
+  </div>
+  <div uiDialogFooter>
+    <div class="flex justify-end gap-2">
+      <button matButton="outlined" class="btn-secondary" type="button" (click)="close()">Cancel</button>
+      <button matButton="filled" type="button" (click)="submit()"><app-icon name="download" /> Export file</button>
+    </div>
+  </div>
+</ui-dialog>

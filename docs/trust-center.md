@@ -138,6 +138,13 @@ is not affected by the site's uptime, because the site never holds it: it's
 in your browser's IndexedDB whether or not
 `https://wayfarer.ashwinsathian.com/` is reachable.
 
+That also means the only copy is in that browser. Settings, "Workspace
+backup", writes every collection, request, environment, the global
+variables and the vault (still encrypted) to one file, and restores from
+one. A restored collection's scripts are untrusted until approved, like any
+imported file. <!-- claim:C-046 --> The page reminds you when the last
+backup is more than 14 days old.
+
 ## Data deletion
 
 You delete your own data without contacting anyone: **Settings → Reset all
@@ -156,7 +163,7 @@ These are open, tracked, and scheduled in
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 - Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
-- Browser storage can be evicted (Safari deletes site data after 7 days without a visit), and there is no full-workspace backup yet ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
+- Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 - The browser adds or hides some headers without telling you ([#81](https://github.com/AshwinSathian/wayfarer/issues/81)).
 

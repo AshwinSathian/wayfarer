@@ -85,6 +85,8 @@ The plaintext then exists in three places only: the vault (encrypted), this tab'
 
 The redactor does not track where a value came from. It looks for every secret of the request in the output: as text, percent-encoded (as a component, as a form field, and as a browser writes it into a URL), JSON-escaped, and inside base64 at each of the three positions a value can start in. `btoa("user:" + secret)` does not contain `btoa(secret)`, which is why the positions matter.
 
+An environments file exported "With the vault" carries this same content under its `vault` key, and "Import vault" reads it from there. A workspace backup holds the vault record and the envelopes as stored.
+
 ## Short secrets
 
 A value shorter than 6 characters is stored encrypted like any other, and the editor warns when you protect one: text that short cannot be found and masked where a server sends it back.

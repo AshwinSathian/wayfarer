@@ -42,6 +42,27 @@ One entry per request sent:
 
 History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
 
+## Keeping the data
+
+Everything above is in one browser profile, and a browser may delete it: when the disk runs low, or, in Safari, after seven days without a visit to a site that is not installed.
+
+- **Asking the browser to keep it.** The first time you save a request or an environment, Wayfarer calls `navigator.storage.persist()`. Settings, "Storage in this browser", says what the browser answered and how much space is used. A browser that said no is asked again at the next save. In Safari the same place explains the seven-day rule and how to install the app, which lifts it.
+- **Workspace backup.** Settings, "Back up", writes `wayfarer-workspace.json` (`"$id": "wayfarer/workspace/2"`): the `collections`, `folders`, `requests`, `environments`, `secrets` and `meta` stores as they are, and `history` when "With history" is ticked. Secrets are in it as stored, encrypted; the file opens the vault with the passphrase the vault had. The files of request bodies are not in it: a request names its file, as in a collection file.
+- **Restore** replaces all of those stores with the file's, in one transaction, after a confirmation. Every record is checked first with the validators the single-store importers use, and a file that fails is refused whole with the reasons. Restored collections are marked untrusted, like any import. History is replaced only when the file has one. Stored body files are removed, since no restored request has its file here.
+- **Reminder.** When the last backup, or the first use if there is none, is more than 14 days ago, the page says so. "Not now" puts it off for 14 days. The times are the `wayfarer:last-backup` and `wayfarer:backup-reminder-from` keys in `localStorage`.
+
+## Environments file
+
+Exporting environments asks what to write of protected variables:
+
+| Choice | A protected variable is written as | The file also holds |
+|---|---|---|
+| Leave out (default) | an empty value | nothing about secrets |
+| With the vault | its `{{$secret.<id>}}` reference | `vault`: a vault file (see [Secrets vault](secrets.md)), still encrypted |
+| Plain text | the secret itself | nothing else. Needs the vault unlocked and `EXPORT SECRETS` typed |
+
+A file "with the vault" imports as environments in the Environments panel and as a vault in Secrets, "Import vault", with the passphrase the vault had.
+
 ## Files
 
 A file picked for a request body is kept in memory until the request is saved. Saving writes it to `files` in the same transaction as the request. A file is deleted when no saved request names it any more: when the request is deleted (alone, or with its folder or collection), when its body lets go of the file, or when an import replaces the request. A copy of a request names the same file, and the file stays until the last of them is gone. A file can be 50 MB at most.

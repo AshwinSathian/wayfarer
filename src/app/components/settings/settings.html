@@ -81,6 +81,52 @@
         </p>
         }
       </div>
+      <div class="flex flex-col gap-2 rounded-xl border border-separator bg-canvas-elevated px-4 py-3.5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="type-subhead text-label-primary">Workspace backup</p>
+            <p class="type-caption text-label-tertiary mt-0.5">One file with every collection, request, environment, the global variables and the vault (still encrypted). Files of request bodies are not in it.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <mat-checkbox id="backup-history" [checked]="backupHistory()" (change)="backupHistory.set($event.checked)">With history</mat-checkbox>
+            <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Back up workspace" (click)="exportBackup()">
+              <app-icon name="download" /> Back up
+            </button>
+            <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Restore workspace" (click)="backupFile.click()">
+              <app-icon name="upload" /> Restore
+            </button>
+            <input #backupFile type="file" accept="application/json" class="hidden" aria-label="Restore workspace from file" (change)="restoreBackup($event)" />
+          </div>
+        </div>
+        @if (backupErrors().length) {
+        <div role="alert" class="type-footnote text-status-error">
+          <p>The file was not restored and nothing was changed:</p>
+          <ul class="list-disc pl-5">
+            @for (error of backupErrors(); track $index) {
+            <li>{{ error }}</li>
+            }
+          </ul>
+        </div>
+        }
+      </div>
+      <div class="rounded-xl border border-separator bg-canvas-elevated px-4 py-3.5" aria-label="Storage">
+        <p class="type-subhead text-label-primary">Storage in this browser</p>
+        <p class="type-caption text-label-tertiary mt-0.5" data-testid="storage-status">
+          @switch (persistence.persisted()) {
+            @case (true) { The browser has promised to keep this data. }
+            @case (false) { The browser has not promised to keep this data: it may delete it when the disk runs low. Wayfarer asks again the next time you save. }
+            @default { This browser does not say whether it will keep this data. }
+          }
+          @if (persistence.estimate(); as estimate) {
+          Using {{ megabytes(estimate.usage) }} MB of {{ megabytes(estimate.quota) }} MB allowed.
+          }
+        </p>
+        @if (persistence.safariNotInstalled) {
+        <p class="type-caption text-status-warning mt-2" data-testid="safari-eviction-notice">
+          Safari deletes a website's data after seven days without a visit. To keep it: in Safari, File → Add to Dock (on iPhone and iPad: Share → Add to Home Screen), and open Wayfarer from there. A backup protects you either way.
+        </p>
+        }
+      </div>
       <p class="type-caption text-label-tertiary px-1">
         Collections are exported/imported individually from the collections panel's context menu or the command palette (⌘K → "Export …").
       </p>

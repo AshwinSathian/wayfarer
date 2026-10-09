@@ -901,16 +901,17 @@
 }
 
 /* ── Tree ────────────────────────────────────────────────── */
-.ui-tree {
+/* Material's tree, drawn by <ui-tree> (src/app/ui/tree.ts): a mat-tree with
+   class ui-tree and mat-tree-node rows with class ui-tree-row. */
+.mat-tree.ui-tree {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding-top: 2px;
 }
 
-.ui-tree-row {
-  display: flex;
-  align-items: center;
+.ui-tree .mat-tree-node.ui-tree-row {
+  flex: none;
   gap: 4px;
   padding: 5px 8px;
   border-radius: var(--radius-sm);

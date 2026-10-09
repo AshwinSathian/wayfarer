@@ -310,3 +310,16 @@ html {
     )
   );
 }
+
+/* ── Tree ────────────────────────────────────────────────── */
+html {
+  @include mat.tree-overrides(
+    (
+      container-background-color: transparent,
+      node-min-height: 0,
+      node-text-color: var(--label-primary),
+      node-text-size: 13px,
+      node-text-weight: 400,
+    )
+  );
+}

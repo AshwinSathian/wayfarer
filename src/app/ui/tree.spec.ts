@@ -155,6 +155,24 @@ describe("ui-tree", () => {
     fixture.destroy();
   });
 
+  it("shows the first child a node is given, when the node says it is expanded", async () => {
+    const { fixture, host, labels, row, settle, press } = await setup();
+    // "docs" starts empty; its owner then gives it a child and marks it expanded, as a new request in an empty collection does.
+    const [src, docs] = host.nodes();
+    host.nodes.set([src, { ...docs, expanded: true, children: [node("readme.md", "file")] }]);
+    await settle();
+
+    expect(row("docs").getAttribute("aria-expanded")).toBe("true");
+    expect(labels()).toContain("readme.md");
+    expect(row("readme.md").getAttribute("aria-level")).toBe("2");
+
+    // Right on the open node steps into the child it did not have when it was first drawn.
+    row("docs").focus();
+    await press("ArrowRight");
+    expect(document.activeElement).toBe(row("readme.md"));
+    fixture.destroy();
+  });
+
   it("leaves keys typed into a field inside a row alone", async () => {
     const { fixture, host, row } = await setup();
     const field = document.createElement("input");

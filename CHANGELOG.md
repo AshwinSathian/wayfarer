@@ -59,6 +59,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   1024 px the Scripts tab was cut off and a header read "Content-" and
   "applicatio". Below 1200 px the sidebar now opens over the page from the
   toolbar button, as it does on a phone, and starts closed.
+- **Switching to the light theme no longer hides "No environment".** The
+  text in the toolbar's environment box stayed white on the light toolbar
+  for half a second after the switch.
 - **"Update available" no longer appears on a first visit.** On a slow
   machine the service worker could take the page over before the app heard
   it had installed, and the app took that first install for a new version.

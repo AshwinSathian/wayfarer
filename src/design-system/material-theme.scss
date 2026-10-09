@@ -370,3 +370,25 @@ html {
     )
   );
 }
+
+/* ── Toolbar ─────────────────────────────────────────────── */
+html {
+  @include mat.toolbar-overrides(
+    (
+      container-background-color: var(--glass-toolbar),
+      container-text-color: var(--label-primary),
+      standard-height: 56px,
+      mobile-height: 56px,
+    )
+  );
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+html {
+  @include mat.progress-spinner-overrides(
+    (
+      /* The colour of the text around it: a button's, or the panel's. */
+      active-indicator-color: currentColor,
+    )
+  );
+}

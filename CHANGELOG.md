@@ -9,14 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- **The interface moves to Angular Material**, one widget family at a time,
-  themed from Wayfarer's own design tokens so the look stays the same in
-  both themes. So far: tooltips, buttons, tabs, the phone composer's and
-  history's accordions, the Basic / JSON switch, every select, the Export
-  and collection menus, every dialog and confirmation, the navigation and
-  history drawers, the collections tree, and every text field and
-  checkbox. A tooltip now sits about 4 px further from its button. The
-  initial download grows to 1,142.04 kB from 722.84 kB; the size budgets
+- **The interface is built on Angular Material**, themed from Wayfarer's
+  own design tokens so the look stays the same in both themes: tooltips,
+  buttons, tabs, accordions, the Basic / JSON switch, selects, menus,
+  dialogs and confirmations, drawers, the collections tree, text fields,
+  checkboxes, the toolbar and the busy spinners. A tooltip now sits about
+  4 px further from its button. What Material has no component for stays
+  the app's own: the resizable split, the history details card, loading
+  skeletons, and the variable chips. The initial download grows to
+  1,155.22 kB from 722.84 kB (288 kB from 199 kB compressed); the size budgets
   are reset to the new baseline.
 - The tick box beside each query parameter is drawn like the app's other
   checkboxes and has a name for screen readers. It was the browser's own,

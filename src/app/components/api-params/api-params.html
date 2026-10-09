@@ -72,7 +72,13 @@
         [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
         [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
         (click)="saveCurrentRequest()"
-      ><app-icon [name]="savingRequest() ? 'progress_activity' : 'save'" [class.animate-spin]="savingRequest()" /></button>
+      >
+        @if (savingRequest()) {
+        <mat-spinner diameter="18" aria-hidden="true" />
+        } @else {
+        <app-icon name="save" />
+        }
+      </button>
       <button
         matButton="filled"
         type="button"
@@ -525,7 +531,7 @@
             }
           </mat-select>
           @if (needsExpected(test.operator)) {
-          <mat-form-field class="field flex-1 min-w-[120px]">
+          <mat-form-field class="field flex-1 min-w-[120px]!">
             <input matInput
               [(ngModel)]="test.expected"
               placeholder="expected value"

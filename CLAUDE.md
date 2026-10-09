@@ -94,11 +94,17 @@ code errors.
 ## Angular Material
 
 - Widgets are Angular Material components (maintainer, 2026-10-09; this
-  reverses the "custom on CDK" default of decision D14 in the plan). The
-  migration runs one widget family per PR; until it ends, `src/app/ui` still
-  holds the custom ones. What Material has no component for (the splitter,
-  the hover card, the confirmation under a button) stays there, built on
-  the CDK.
+  reverses the "custom on CDK" default of decision D14 in the plan). A new
+  widget is a Material component, themed as below. `src/app/ui` holds only:
+  - wrappers that give a Material component what this app needs from it:
+    `ui-dialog` (a dialog opened from a template), `Confirm`, `ui-tree`;
+  - what Material has no component for, built on the CDK: `ui-splitter`,
+    `uiHoverCard` (a tooltip that takes a template), and the confirmation
+    placed under a button.
+- Not Material, and why: loading skeletons (Material has none; a progress
+  bar says something else), the variable and usage chips (two-line and
+  icon-led action buttons; Material's chip is a one-line pill), status and
+  method badges, and the banners.
 - The theme is `src/design-system/material-theme.scss`, listed before
   `src/styles.css` in `angular.json`. It maps Material's `--mat-sys-*`
   variables onto the design tokens, so `[data-theme]` switches both. No
@@ -161,6 +167,11 @@ code errors.
   both when the slide ends: until then Tab walked the page, Escape did
   nothing (a drawer reads it from its own element), and the late move took
   focus from a dialog opened from the drawer.
+- The shell also closes a drawer itself (`disableClose`, with
+  `(keydown.escape)` on the sidenav and `(backdropClick)` on the
+  container). Do not set state from the sidenav's `openedChange`: it fires
+  when the slide ends, a frame after `[opened]` can be told to open again,
+  and the late "closed" shut a drawer the user had just reopened.
 - A drawer's content is in the page from the start, hidden while closed. A
   dialog's is created when it opens.
 - Tree: `<ui-tree>` (`src/app/ui/tree.ts`) is Material's `mat-tree` with
@@ -183,6 +194,13 @@ code errors.
 - Checkbox: `<mat-checkbox>`. Its input's id is the checkbox's id plus
   `-input`; that is what a `<label for>` outside it points at. One with no
   text inside takes an `aria-label`.
+- Icon button in a toolbar or a panel's header: `matIconButton
+  class="btn-plain"` (34 px, grey until hovered; its icon keeps its own
+  size class).
+- Busy: `<mat-spinner diameter="18" aria-hidden="true" />` in place of a
+  button's icon, or one with an `aria-label` on its own. It takes the
+  colour of the text around it.
+- The top bar is `<mat-toolbar class="ds-toolbar" role="banner">`.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
   to its default. Write a rule with `font: inherit` instead.
@@ -191,9 +209,11 @@ code errors.
   resolved where it is declared.
 - A Tailwind utility on a Material host loses to Material for any property
   Material sets there (height, padding, min-width, font, colour, border, and
-  width on a select). Give the utility Tailwind's important modifier
-  (`w-48!`), or change the property through a token. Margin utilities, and
-  width on a button, are safe as they are.
+  `display`, min-width on a form field, width on a select). Give the
+  utility Tailwind's important modifier (`w-48!`, `max-lg:hidden!`), or
+  change the property through a token. Margin utilities, and width on a
+  button or a form field, are safe as they are. `max-lg:hidden` without
+  the `!` put three hidden toolbar buttons back on a phone.
 - A Material tooltip is an overlay that takes Escape and stops it. A dialog
   or drawer therefore also reads Escape from its own element while a
   tooltip is showing; without that, a tooltip over a focused button keeps

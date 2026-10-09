@@ -3,10 +3,10 @@
   <div class="flex items-center justify-between gap-2">
     <span class="type-overline text-label-tertiary">Collections</span>
     <div class="flex items-center gap-0.5">
-      <button class="ds-icon-btn" (click)="openCommandPalette()" title="Command palette (⌘K)" aria-label="Open command palette">
+      <button type="button" matIconButton class="btn-plain" (click)="openCommandPalette()" title="Command palette (⌘K)" aria-label="Open command palette">
         <app-icon name="bolt" class="icon-sm" />
       </button>
-      <button class="ds-icon-btn" (click)="fileInput.click()" title="Import collection" aria-label="Import collection">
+      <button type="button" matIconButton class="btn-plain" (click)="fileInput.click()" title="Import collection" aria-label="Import collection">
         <app-icon name="upload" class="icon-sm" />
       </button>
       <button

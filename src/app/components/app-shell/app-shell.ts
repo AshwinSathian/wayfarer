@@ -17,6 +17,7 @@ import { MatInput } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatToolbar } from "@angular/material/toolbar";
 import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/material/sidenav";
 import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
@@ -42,7 +43,7 @@ import { SwUpdate } from "../../services/sw-update";
 
 @Component({
   selector: "app-shell",
-  imports: [MatFormField, MatInput, MatCheckbox, 
+  imports: [MatToolbar, MatFormField, MatInput, MatCheckbox, 
     NgTemplateOutlet,
     Icon,
     MatSidenavContainer,
@@ -205,6 +206,12 @@ export class AppShell implements OnInit {
   protected focusDrawer(panel: HTMLElement): void {
     this.drawerOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     panel.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), [tabindex='0']")?.focus();
+  }
+
+  /** A click on the page behind an open drawer closes it. */
+  protected closeDrawers(): void {
+    if (this.historyDrawerVisible()) this.historyDrawerVisible.set(false);
+    else if (this.isMobile() && this.drawerVisible()) this.closeDrawer.emit();
   }
 
   /** Material notes where focus was only once the slide has ended, by when it is inside the drawer. */

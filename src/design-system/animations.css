@@ -84,12 +84,6 @@
   }
 }
 
-/* Spin (loading indicator) */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
 /* Status badge entrance — pop in */
 @keyframes badge-pop {
   0%   { transform: scale(0.7); opacity: 0; }
@@ -124,10 +118,6 @@
 
 .animate-slide-up {
   animation: slide-up var(--dur-enter) var(--ease-spring) both;
-}
-
-.animate-spin {
-  animation: spin 0.8s linear infinite;
 }
 
 .animate-glow-pulse {

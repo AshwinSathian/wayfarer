@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatContextMenuTrigger, MatMenu, MatMenuContent, MatMenuItem } from "@angular/material/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { Confirm } from "../../ui/confirm";
@@ -38,7 +38,7 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [MatFormField, MatInput, MatCheckbox, 
+  imports: [MatIconButton, MatFormField, MatInput, MatCheckbox, 
     Icon,
     FormsModule,
     Tree,

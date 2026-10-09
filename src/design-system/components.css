@@ -155,14 +155,14 @@
 }
 
 /* ── Toolbar ─────────────────────────────────────────────── */
-.ds-toolbar {
-  display: flex;
-  align-items: center;
+/* Markup: <mat-toolbar class="ds-toolbar" role="banner">. Its colours and
+   height come through Material's tokens (material-theme.scss). */
+.mat-toolbar.ds-toolbar {
   justify-content: space-between;
   gap: 12px;
-  height: 56px;
   padding: 0 20px;
-  background: var(--glass-toolbar);
+  font: inherit;
+  letter-spacing: inherit;
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--separator);
@@ -173,39 +173,9 @@
 
 /* Below the desktop width the toolbar shares the row with the pinned sidebar, or is on a phone. */
 @media (max-width: 1023px) {
-  .ds-toolbar {
+  .mat-toolbar.ds-toolbar {
     padding: 0 12px;
   }
-}
-
-/* ── Icon button ─────────────────────────────────────────── */
-.ds-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  color: var(--label-secondary);
-  cursor: pointer;
-  transition:
-    background var(--dur-micro) var(--ease-standard),
-    color var(--dur-micro) var(--ease-standard),
-    transform var(--dur-micro) var(--ease-standard);
-  flex-shrink: 0;
-  position: relative;
-}
-
-.ds-icon-btn:hover {
-  background: var(--fill-primary);
-  color: var(--label-primary);
-}
-
-.ds-icon-btn:active {
-  transform: scale(0.91);
-  background: var(--fill-active);
 }
 
 /* ── Address bar (unified method + URL) ──────────────────── */

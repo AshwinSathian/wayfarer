@@ -163,6 +163,18 @@ code errors.
   focus from a dialog opened from the drawer.
 - A drawer's content is in the page from the start, hidden while closed. A
   dialog's is created when it opens.
+- Tree: `<ui-tree>` (`src/app/ui/tree.ts`) is Material's `mat-tree` with
+  flat `mat-tree-node` rows, plus what the collections list needs and
+  Material has not: one selected node, reorder by drag and by Alt+Arrow,
+  F2, and Shift+F10 sent on as a `contextmenu` event. Three things about
+  `mat-tree` it works around, each with a test:
+  - a row's `isExpanded` input is set while the tree renders, and a node
+    opened then is marked open without its children drawn; expansion is
+    applied after render, through `tree.expand()`;
+  - with `trackBy`, a row keeps the node object it was first drawn with;
+    the children accessor looks the node up by key;
+  - the first row in the tab order is the first one Material hears of,
+    which under an expanded node is a child; it is moved to the top row.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
   to its default. Write a rule with `font: inherit` instead.

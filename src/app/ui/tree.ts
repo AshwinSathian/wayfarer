@@ -1,20 +1,6 @@
 import { NgTemplateOutlet } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  TemplateRef,
-  afterNextRender,
-  computed,
-  contentChild,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, TemplateRef, afterNextRender, computed, contentChild, effect, inject, input, output, signal, untracked, viewChild, viewChildren } from "@angular/core";
+import { MatTree, MatTreeNode, MatTreeNodeDef } from "@angular/material/tree";
 import { Icon } from "../shared/icon/icon";
 
 export interface UiTreeNode<T = unknown> {
@@ -26,72 +12,67 @@ export interface UiTreeNode<T = unknown> {
   expanded?: boolean;
 }
 
-/** One visible node. */
+/** Where a node sits: what a drag or an Alt+Arrow move needs to know. */
 interface Row<T> {
   node: UiTreeNode<T>;
-  level: number;
   parent: UiTreeNode<T> | null;
   siblings: UiTreeNode<T>[];
-  index: number;
-  expandable: boolean;
-  expanded: boolean;
 }
 
 /**
- * A single-select tree (WAI-ARIA tree view pattern) whose nodes can be
- * reordered among their siblings by drag and drop or Alt+Arrow keys.
+ * Material's tree, with what the collections list adds to it: one selected
+ * node, and nodes that can be reordered among their siblings by drag and
+ * drop or Alt+Arrow keys.
  *
  *   <ui-tree [nodes]="nodes()" ariaLabel="Collections" [group]="kind"
  *            (selected)="…" (edit)="…" (reorder)="…">
  *     <ng-template let-node>{{ node.label }}</ng-template>
  *   </ui-tree>
  *
- * One row is in the tab order. Arrow keys move between visible rows, Right
- * and Left expand, collapse or step to a child or parent, Home and End jump,
- * Enter or Space selects, F2 asks to edit. A right-click selects the row and
- * goes on up as a `contextmenu` event; Shift+F10 sends the row the same event.
+ * Material gives the tree its roles, levels and keys: one row is in the tab
+ * order, arrow keys move between visible rows, Right and Left expand,
+ * collapse or step to a child or parent, Home and End jump, a letter jumps
+ * to the next row that starts with it, Enter or Space selects. Here: F2
+ * asks to edit; a right-click selects the row and goes on up as a
+ * `contextmenu` event, and Shift+F10 sends the row the same event.
  */
 @Component({
   selector: "ui-tree",
-  imports: [NgTemplateOutlet, Icon],
+  imports: [MatTree, MatTreeNode, MatTreeNodeDef, NgTemplateOutlet, Icon],
   template: `
-    @for (row of rows(); track row.node.key) {
-      <!-- A tree row takes its keys from the tree (see onKeydown); it is not a button. -->
-      <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
-      <div
+    <mat-tree class="ui-tree" [dataSource]="nodes()" [childrenAccessor]="children" [expansionKey]="key" [trackBy]="trackByKey" [attr.aria-label]="ariaLabel()">
+      <mat-tree-node
+        *matTreeNodeDef="let node"
+        #row="matTreeNode"
         class="ui-tree-row"
-        role="treeitem"
         draggable="true"
-        [attr.data-key]="row.node.key"
-        [attr.aria-label]="row.node.label"
-        [attr.aria-level]="row.level"
-        [attr.aria-posinset]="row.index + 1"
-        [attr.aria-setsize]="row.siblings.length"
-        [attr.aria-expanded]="row.expandable ? row.expanded : null"
-        [attr.aria-selected]="row.node.key === selectedKey()"
-        [tabindex]="row.node.key === tabStop() ? 0 : -1"
-        [style.margin-inline-start.px]="(row.level - 1) * 16"
-        [class.ui-tree-row--selected]="row.node.key === selectedKey()"
-        [class.ui-tree-row--drop-before]="dropTarget()?.key === row.node.key && dropTarget()?.before"
-        [class.ui-tree-row--drop-after]="dropTarget()?.key === row.node.key && !dropTarget()?.before"
-        (click)="select(row)"
-        (contextmenu)="select(row)"
-        (focus)="activeKey.set(row.node.key)"
-        (dragstart)="onDragStart(row, $event)"
-        (dragover)="onDragOver(row, $event)"
+        [attr.data-key]="node.key"
+        [attr.aria-label]="node.label"
+        [attr.aria-selected]="node.key === selectedKey()"
+        [isExpandable]="!!node.children?.length"
+        [style.margin-inline-start.px]="row.level * 16"
+        [class.ui-tree-row--selected]="node.key === selectedKey()"
+        [class.ui-tree-row--drop-before]="dropTarget()?.key === node.key && dropTarget()?.before"
+        [class.ui-tree-row--drop-after]="dropTarget()?.key === node.key && !dropTarget()?.before"
+        (expandedChange)="setExpanded(node, $event)"
+        (activation)="select(node)"
+        (click)="select(node)"
+        (contextmenu)="select(node)"
+        (keydown)="onKeydown(node, $event)"
+        (dragstart)="onDragStart(node, $event)"
+        (dragover)="onDragOver(node, $event)"
         (dragleave)="dropTarget.set(null)"
-        (drop)="onDrop(row, $event)"
+        (drop)="onDrop(node, $event)"
         (dragend)="endDrag()"
       >
         <!-- The arrow keys do this for keyboard users. -->
-        <span class="ui-tree-toggle" aria-hidden="true" [class.ui-tree-toggle--hidden]="!row.expandable" (click)="toggle(row); $event.stopPropagation()">
-          <app-icon [name]="row.expanded ? 'keyboard_arrow_down' : 'chevron_right'" />
+        <span class="ui-tree-toggle" aria-hidden="true" [class.ui-tree-toggle--hidden]="!node.children?.length" (click)="setExpanded(node, !isExpanded(node)); $event.stopPropagation()">
+          <app-icon [name]="isExpanded(node) ? 'keyboard_arrow_down' : 'chevron_right'" />
         </span>
-        <span class="ui-tree-label"><ng-container *ngTemplateOutlet="rowTemplate(); context: { $implicit: row.node }" /></span>
-      </div>
-    }
+        <span class="ui-tree-label"><ng-container *ngTemplateOutlet="rowTemplate(); context: { $implicit: node }" /></span>
+      </mat-tree-node>
+    </mat-tree>
   `,
-  host: { class: "ui-tree", role: "tree", "[attr.aria-label]": "ariaLabel()", "(keydown)": "onKeydown($event)" },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Tree<T> {
@@ -108,7 +89,6 @@ export class Tree<T> {
 
   protected readonly rowTemplate = contentChild.required<TemplateRef<{ $implicit: UiTreeNode<T> }>>(TemplateRef);
   protected readonly selectedKey = signal<string | null>(null);
-  protected readonly activeKey = signal<string | null>(null);
   protected readonly dropTarget = signal<{ key: string; before: boolean } | null>(null);
   /** What the user expanded or collapsed, by key; other nodes follow their `expanded` field. */
   private readonly toggled = signal<ReadonlyMap<string, boolean>>(new Map());
@@ -118,28 +98,59 @@ export class Tree<T> {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly injector = inject(Injector);
 
-  protected readonly rows = computed<Row<T>[]>(() => {
-    const toggled = this.toggled();
-    const rows: Row<T>[] = [];
-    const walk = (siblings: UiTreeNode<T>[], parent: UiTreeNode<T> | null, level: number) => {
-      siblings.forEach((node, index) => {
-        const expandable = !!node.children?.length;
-        const expanded = expandable && (toggled.get(node.key) ?? !!node.expanded);
-        rows.push({ node, level, parent, siblings, index, expandable, expanded });
-        if (expanded) walk(node.children!, node, level + 1);
-      });
+  /**
+   * A node's children, looked up by key: Material keeps the node object a
+   * row was first drawn with, which knows nothing of children added since.
+   */
+  protected readonly children = (node: UiTreeNode<T>): UiTreeNode<T>[] => this.rows().get(node.key)?.node.children ?? [];
+  protected readonly key = (node: UiTreeNode<T>): string => node.key;
+  protected readonly trackByKey = (_index: number, node: UiTreeNode<T>): string => node.key;
+
+  /** Every node's parent and siblings, by key. */
+  private readonly rows = computed<ReadonlyMap<string, Row<T>>>(() => {
+    const rows = new Map<string, Row<T>>();
+    const walk = (siblings: UiTreeNode<T>[], parent: UiTreeNode<T> | null) => {
+      for (const node of siblings) {
+        rows.set(node.key, { node, parent, siblings });
+        if (node.children) walk(node.children, node);
+      }
     };
-    walk(this.nodes(), null, 1);
+    walk(this.nodes(), null);
     return rows;
   });
 
-  /** The row in the tab order: the last one focused, else the selected one, else the first. */
-  protected readonly tabStop = computed(() => {
-    const keys = this.rows().map((row) => row.node.key);
-    return [this.activeKey(), this.selectedKey()].find((key) => key !== null && keys.includes(key)) ?? keys[0] ?? null;
-  });
+  private readonly tree = viewChild.required<MatTree<UiTreeNode<T>, string>>(MatTree);
+  private readonly rendered = viewChildren(MatTreeNode);
+  private tabStopSet = false;
 
   constructor() {
+    // Material puts the first row it hears of in the tab order, and under an
+    // expanded node that is a child. Once, when the rows first appear, the
+    // tab stop is moved to the top one.
+    effect(() => {
+      const rendered = this.rendered();
+      if (this.tabStopSet || !rendered.length) return;
+      this.tabStopSet = true;
+      rendered.forEach((row, index) => (index === 0 ? row.makeFocusable() : row.unfocus()));
+    });
+    // Which nodes are open is told to Material here, after it has rendered,
+    // not through a row's isExpanded input: that input is set while the
+    // tree is rendering, and a node opened then (one that has just been
+    // given its first child) was marked open without its children drawn.
+    effect(() => {
+      const open = [...this.rows().values()].map(({ node }) => [node, this.isExpanded(node)] as const);
+      const tree = this.tree();
+      afterNextRender(
+        () => {
+          for (const [node, expanded] of open) {
+            if (tree.isExpanded(node) === expanded) continue;
+            if (expanded) tree.expand(node);
+            else tree.collapse(node);
+          }
+        },
+        { injector: this.injector }
+      );
+    });
     effect(() => {
       this.rows();
       const key = untracked(() => this.refocus);
@@ -160,72 +171,41 @@ export class Tree<T> {
     if (key) this.focusNode(key);
   }
 
-  protected select(row: Row<T>): void {
-    this.selectedKey.set(row.node.key);
-    this.activeKey.set(row.node.key);
-    this.selected.emit(row.node);
+  protected isExpanded(node: UiTreeNode<T>): boolean {
+    return !!node.children?.length && (this.toggled().get(node.key) ?? !!node.expanded);
   }
 
-  protected toggle(row: Row<T>): void {
-    if (!row.expandable) return;
-    this.toggled.update((map) => new Map(map).set(row.node.key, !row.expanded));
+  protected setExpanded(node: UiTreeNode<T>, expanded: boolean): void {
+    if (expanded !== this.isExpanded(node)) this.toggled.update((map) => new Map(map).set(node.key, expanded));
   }
 
-  protected onKeydown(event: KeyboardEvent): void {
+  protected select(node: UiTreeNode<T>): void {
+    this.selectedKey.set(node.key);
+    this.selected.emit(node);
+  }
+
+  /** The keys Material's tree has no meaning for. It reads the rest from the same event, further up. */
+  protected onKeydown(node: UiTreeNode<T>, event: KeyboardEvent): void {
     const target = event.target as HTMLElement;
     // Keys typed into something inside a row (an inline rename) are not for the tree.
-    if (target.getAttribute("role") !== "treeitem") return;
-    const rows = this.rows();
-    const index = rows.findIndex((row) => row.node.key === target.dataset["key"]);
-    const row = rows[index];
+    if (target !== event.currentTarget) return;
+    const row = this.rows().get(node.key);
     if (!row) return;
-    const focus = (to: Row<T> | undefined) => to && this.focusNode(to.node.key);
 
     if (event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
       event.preventDefault();
+      // Material would move focus on the same key.
+      event.stopPropagation();
       this.moveByKey(row, event.key === "ArrowUp" ? -1 : 1);
-      return;
-    }
-    if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
+    } else if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
       event.preventDefault();
       // A real event, so it goes the way a right-click does: to the row, then up to whatever opens the menu.
       const rect = target.getBoundingClientRect();
       target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: rect.left + 24, clientY: rect.bottom }));
-      return;
+    } else if (event.key === "F2") {
+      event.preventDefault();
+      this.edit.emit(node);
     }
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
-    switch (event.key) {
-      case "ArrowDown":
-        focus(rows[index + 1]);
-        break;
-      case "ArrowUp":
-        focus(rows[index - 1]);
-        break;
-      case "Home":
-        focus(rows[0]);
-        break;
-      case "End":
-        focus(rows[rows.length - 1]);
-        break;
-      case "ArrowRight":
-        if (row.expanded) focus(rows[index + 1]);
-        else this.toggle(row);
-        break;
-      case "ArrowLeft":
-        if (row.expanded) this.toggle(row);
-        else focus(rows.find((candidate) => candidate.node === row.parent));
-        break;
-      case "Enter":
-      case " ":
-        this.select(row);
-        break;
-      case "F2":
-        this.edit.emit(row.node);
-        break;
-      default:
-        return;
-    }
-    event.preventDefault();
   }
 
   /** The siblings a row may be reordered among. */
@@ -245,7 +225,9 @@ export class Tree<T> {
     this.reorder.emit({ node: row.node, siblings: peers });
   }
 
-  protected onDragStart(row: Row<T>, event: DragEvent): void {
+  protected onDragStart(node: UiTreeNode<T>, event: DragEvent): void {
+    const row = this.rows().get(node.key);
+    if (!row) return;
     // Dragging from inside a text field selects text; it does not move the row.
     if ((event.target as HTMLElement).tagName === "INPUT") {
       event.preventDefault();
@@ -267,8 +249,9 @@ export class Tree<T> {
     return event.clientY < rect.top + rect.height / 2;
   }
 
-  protected onDragOver(row: Row<T>, event: DragEvent): void {
-    if (!this.accepts(row)) return;
+  protected onDragOver(node: UiTreeNode<T>, event: DragEvent): void {
+    const row = this.rows().get(node.key);
+    if (!row || !this.accepts(row)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
     const before = this.isBefore(event);
@@ -276,9 +259,10 @@ export class Tree<T> {
     if (current?.key !== row.node.key || current.before !== before) this.dropTarget.set({ key: row.node.key, before });
   }
 
-  protected onDrop(row: Row<T>, event: DragEvent): void {
+  protected onDrop(node: UiTreeNode<T>, event: DragEvent): void {
     const dragged = this.dragged;
-    if (!dragged || !this.accepts(row)) return this.endDrag();
+    const row = this.rows().get(node.key);
+    if (!dragged || !row || !this.accepts(row)) return this.endDrag();
     event.preventDefault();
     const peers = this.peers(row);
     const order = peers.filter((node) => node !== dragged.node);

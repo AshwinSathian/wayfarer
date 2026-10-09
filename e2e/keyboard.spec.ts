@@ -431,6 +431,8 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
   await expect(item("Tree Inner")).toHaveCount(0);
   await page.keyboard.press("ArrowRight");
   await expect(item("Tree Folder")).toHaveAttribute("aria-expanded", "true");
+  // Material draws the children a frame after it marks the row expanded.
+  await expect(item("Tree Inner")).toBeVisible();
   await page.keyboard.press("ArrowRight");
   await expect(item("Tree Inner")).toBeFocused();
   await expect(item("Tree Inner")).toHaveAttribute("aria-level", "3");

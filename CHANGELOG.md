@@ -22,6 +22,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Two tabs stay in step.** A collection, a request, an environment or a
+  history entry saved in one tab appears in the other within a second;
+  before, the other tab showed it only after a reload.
+
 - **Any HTTP method.** The method is a field you can type in (`PURGE`,
   `PROPFIND`, `REPORT`, …), with the seven common ones in the menu beside
   it. What you type is sent in upper case. It was a list of seven.
@@ -108,6 +112,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   identical to the previous build.
 
 ### Fixed
+
+- **Two tabs no longer overwrite each other's environment variables.**
+  Saving an environment wrote all of its variables as the tab had them, so
+  a variable another tab had added since was lost. A save now writes only
+  what you changed (#94).
 
 - A JSON body that is an array, a string or a number can be written and
   is sent as written (#65).

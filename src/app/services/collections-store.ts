@@ -28,6 +28,15 @@ export class CollectionsStore {
   private readonly treeState = signal<CollectionTree[]>([]);
   private readonly loadingState = signal(false);
 
+  constructor() {
+    // Another tab changed a collection, a folder or a request.
+    this.idb.onChangeElsewhere((stores) => {
+      if (stores.some((store) => store === "collections" || store === "folders" || store === "requests")) {
+        void this.refresh();
+      }
+    });
+  }
+
   readonly tree: Signal<CollectionTree[]> = computed(() => this.treeState());
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
 

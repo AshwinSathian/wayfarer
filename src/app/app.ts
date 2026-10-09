@@ -29,6 +29,12 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     void this.initializeHistory();
+    // Another tab sent a request, or cleared its history.
+    this.idbService.onChangeElsewhere((stores) => {
+      if (stores.includes("history")) {
+        void this.refreshPastRequests();
+      }
+    });
     this.updateViewportFlags();
   }
 

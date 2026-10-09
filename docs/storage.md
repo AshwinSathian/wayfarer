@@ -27,6 +27,12 @@ Version 6 added the `files` store and changed nothing else: a version 5 database
 
 A file picked for a request body is kept in memory until the request is saved. Saving writes it to `files` in the same transaction as the request. A file is deleted when no saved request names it any more: when the request is deleted (alone, or with its folder or collection), when its body lets go of the file, or when an import replaces the request. A copy of a request names the same file, and the file stays until the last of them is gone. A file can be 50 MB at most.
 
+## Two tabs
+
+Every tab of the app uses the one database. After a write, the tab says which stores it touched on the BroadcastChannel `wayfarer:data`, and the other tabs read those stores again: a collection, an environment or a sent request made in one tab shows in the others without a reload. The request being composed is not replaced.
+
+A change to an environment's variables is sent as the change (set this name, remove that one), and applied to the stored variables inside the transaction that writes them. So two tabs that each add a variable to the same environment both keep theirs. Replacing an environment from an import file still replaces all of its variables.
+
 ## When versions meet
 
 - **Another tab is running an older build and keeps the database open.** The update cannot start until that tab is closed. The page says "Close other Wayfarer tabs to finish the update" and finishes by itself when they are gone. Nothing is saved meanwhile.

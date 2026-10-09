@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import type { Row } from "@wayfarer/core";
+import type { Row, VariableChange } from "@wayfarer/core";
 import {
   Collection,
   CollectionExport,
@@ -53,6 +53,11 @@ export class Idb {
   readonly upgradeBlocked = this.core.upgradeBlocked.asReadonly();
   readonly olderThanData = this.core.olderThanData.asReadonly();
   readonly clearedOldData = this.core.clearedOldData.asReadonly();
+
+  /** Calls `listener` when another tab has written to the database, with the stores it touched. */
+  onChangeElsewhere(listener: (stores: string[]) => void): void {
+    this.core.onChangeElsewhere(listener);
+  }
 
   async init(): Promise<void> {
     return this.core.init();
@@ -204,6 +209,14 @@ export class Idb {
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     return this.environments.updateEnvironment(id, updates);
+  }
+
+  async changeEnvironment(
+    id: EnvironmentId,
+    changes: VariableChange[],
+    details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
+  ): Promise<EnvironmentDoc | null> {
+    return this.environments.changeEnvironment(id, changes, details);
   }
 
   async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {

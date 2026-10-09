@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
 import { rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -68,11 +69,11 @@ class ResponseInspectorServiceStub {
 class EnvironmentsServiceStub {
   private readonly activeEnvSignal = signal<EnvironmentDoc | null>(null);
   readonly activeEnvironment = this.activeEnvSignal.asReadonly();
-  updateEnvironment = vi.fn()
-    .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
+  changeEnvironment = vi.fn()
+    .mockImplementation(async (id: string, changes: VariableChange[]) => {
       const current = this.activeEnvSignal();
       if (current && current.meta.id === id) {
-        this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
+        this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
       }
     });
 
@@ -350,10 +351,9 @@ describe("RequestExecutor", () => {
       buildRequest: () => builtRequest(),
     });
 
-    expect(environmentsService.updateEnvironment).toHaveBeenCalledWith(
-      "env-1",
-      expect.objectContaining({ vars: expect.arrayContaining([{ key: "counter", value: "2", enabled: true }]) })
-    );
+    // The change alone, for the store to apply to what is stored: not this tab's copy of the variables.
+    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "counter", value: "2" }]);
+    expect(environmentsService.activeEnvironment()?.vars).toEqual([{ key: "counter", value: "2", enabled: true }]);
   });
 
   describe("with scripts disabled (P0.2, #58)", () => {

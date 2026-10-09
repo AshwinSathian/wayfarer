@@ -19,6 +19,7 @@ export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB
 export { META_STATE_KEY } from "./idb-schema";
 
 const LIFECYCLE_CHANNEL = "wayfarer:lifecycle";
+const DATA_CHANNEL = "wayfarer:data";
 const RESET_GRACE_MS = 2000;
 
 interface LifecycleMessage {
@@ -85,12 +86,36 @@ export class IdbCore {
   private readonly lifecycle =
     new BroadcastChannel(LIFECYCLE_CHANNEL);
 
+  /** Carries "these stores changed" between the tabs of this origin. */
+  private readonly data = new BroadcastChannel(DATA_CHANNEL);
+  private readonly changeListeners: ((stores: string[]) => void)[] = [];
+
   constructor() {
+    this.data.addEventListener("message", (event: MessageEvent<{ stores?: unknown }>) => {
+      const stores = event.data?.stores;
+      if (Array.isArray(stores)) {
+        const names = stores.filter((name): name is string => typeof name === "string");
+        this.changeListeners.forEach((listener) => listener(names));
+      }
+    });
     this.lifecycle.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
       if (event.data?.type === "close") {
         void this.closeForOtherTab(this.closedByOtherTab);
       }
     });
+  }
+
+  /**
+   * Tells the other tabs which stores a write touched, so they read them
+   * again. A channel does not deliver to the tab that posts.
+   */
+  announce(stores: Iterable<string>): void {
+    this.data.postMessage({ stores: [...stores] });
+  }
+
+  /** Calls `listener` when another tab has written to the database, with the stores it touched. */
+  onChangeElsewhere(listener: (stores: string[]) => void): void {
+    this.changeListeners.push(listener);
   }
 
   get useMemoryFallback(): boolean {
@@ -217,6 +242,7 @@ export class IdbCore {
     try {
       const result = await work();
       await tx.done;
+      this.announce(tx.objectStoreNames as DOMStringList);
       return result;
     } catch (error) {
       // Aborting rejects tx.done with an AbortError. The caller gets the

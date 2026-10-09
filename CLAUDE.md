@@ -381,6 +381,14 @@ code errors.
   instead of defaulting. Keep every one of these when changing it.
 - Importers read a picked file with `readImportText` and validate with the
   shared validators, which enforce the 10 MB cap.
+- A write tells the other tabs which stores it touched (`IdbCore.announce`,
+  called by `commitOrRollback`; a write that does not go through it calls
+  `announce` itself). A store that holds what it read listens with
+  `Idb.onChangeElsewhere` and reads again.
+- Variables are changed with `changeEnvironment` (a list of sets and
+  removals, applied by `applyVariableChanges` inside one transaction), not
+  by writing back a copy of the rows: the copy may be older than what
+  another tab stored.
 - When storage is unavailable or was reset elsewhere, say so in the shell's
   banners; never fall back silently.
 - Reset all data must remove everything the app stored, including every

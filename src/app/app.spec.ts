@@ -6,6 +6,11 @@ import { PastRequest } from './models/history';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
+  /** The listener the service registers for writes made in another tab. */
+  changedElsewhere: (stores: string[]) => void = () => undefined;
+  onChangeElsewhere = (listener: (stores: string[]) => void): void => {
+    this.changedElsewhere = listener;
+  };
   init = vi.fn().mockReturnValue(Promise.resolve());
   getLatest = vi.fn().mockReturnValue(Promise.resolve([] as PastRequest[]));
   clear = vi.fn().mockReturnValue(Promise.resolve());
@@ -57,6 +62,17 @@ describe('App', () => {
     fixture = TestBed.createComponent(App);
     component = fixture.componentInstance;
     expect(component).toBeTruthy();
+  });
+
+  it('reads history again when another tab sends a request, and not for other stores', async () => {
+    fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(1));
+
+    idbService.changedElsewhere(['collections', 'meta']);
+    idbService.changedElsewhere(['history']);
+
+    await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(2));
   });
 
   it('loads history on init', async () => {

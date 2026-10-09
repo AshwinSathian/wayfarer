@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, model, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, effect, inject, input, model, output, signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
@@ -16,6 +16,9 @@ import {
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
 import { SecretsVault } from "../../services/secrets-vault";
+import { StoragePersistence } from "../../services/storage-persistence";
+import { WorkspaceBackup } from "../../services/workspace-backup";
+import { Confirm } from "../../ui/confirm";
 import { readImportText } from "@wayfarer/core";
 
 interface KeyboardShortcut {
@@ -45,6 +48,12 @@ export class Settings {
   readonly bridgeService = inject(BridgeSettings);
   readonly requestSettings = inject(RequestSettings);
   readonly vault = inject(SecretsVault);
+  readonly persistence = inject(StoragePersistence);
+  private readonly backup = inject(WorkspaceBackup);
+  private readonly confirm = inject(Confirm);
+
+  readonly backupHistory = signal(false);
+  readonly backupErrors = signal<string[]>([]);
   private readonly environmentsService = inject(EnvironmentsStore);
 
   readonly visible = model(false);
@@ -123,6 +132,47 @@ export class Settings {
       candidate = `${name} (${counter})`;
     }
     return candidate;
+  }
+
+  constructor() {
+    // The storage state is read when Settings opens: it changes with what the user does elsewhere.
+    effect(() => {
+      if (this.visible()) void this.persistence.refresh();
+    });
+  }
+
+  protected megabytes(bytes: number): string {
+    return (bytes / (1024 * 1024)).toFixed(1);
+  }
+
+  async exportBackup(): Promise<void> {
+    this.backupErrors.set([]);
+    this.downloadJson(await this.backup.exportJson({ history: this.backupHistory() }), "wayfarer-workspace.json");
+  }
+
+  /** Replaces everything stored here with the file's workspace, after the user confirms. */
+  async restoreBackup(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) {
+      return;
+    }
+    const text = await readImportText(file);
+    const confirmed = await this.confirm.confirm({
+      title: "Restore this backup?",
+      message: "Everything stored in this browser (collections, requests, environments, variables and the vault) is replaced with what the file holds. This cannot be undone.",
+      acceptLabel: "Restore",
+    });
+    if (!confirmed) {
+      return;
+    }
+    const errors = await this.backup.restore(text);
+    this.backupErrors.set(errors);
+    if (!errors.length) {
+      // Every store changed under the page: start again from what is stored.
+      location.reload();
+    }
   }
 
   private downloadJson(json: string, filename: string): void {

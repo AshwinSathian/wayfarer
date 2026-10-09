@@ -53,6 +53,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
   - Deterministic collection import/export in file format 2 (a round trip is byte-identical) <!-- claim:C-026 -->
+  - **Workspace backup**: every collection, request, environment, the global variables and the vault (still encrypted) in one file, and a restore from it; a restored collection's scripts are untrusted until approved <!-- claim:C-046 -->
+  - Environment export asks what to write of protected variables: nothing (the default), their references with the encrypted vault beside them, or plain text after you type a confirmation <!-- claim:C-047 -->
 
 - **Secrets Vault**
 
@@ -173,7 +175,7 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
 - Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
-- No full-workspace backup; browser storage can be evicted ([#73](https://github.com/AshwinSathian/wayfarer/issues/73), [#74](https://github.com/AshwinSathian/wayfarer/issues/74)).
+- A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 

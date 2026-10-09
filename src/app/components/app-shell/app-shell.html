@@ -270,6 +270,13 @@
               >Reload</button>
             </div>
             }
+            @if (backup.reminderDue()) {
+            <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
+              <p class="type-callout text-label-secondary">It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.</p>
+              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="settingsDialogVisible.set(true)">Back up now</button>
+              <button matButton class="btn-secondary btn-sm" type="button" aria-label="Dismiss backup reminder" (click)="backup.dismissReminder()">Not now</button>
+            </div>
+            }
             @if (dataResetElsewhere()) {
             <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
               <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>

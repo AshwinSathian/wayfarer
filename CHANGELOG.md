@@ -39,6 +39,27 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Workspace backup and restore.** Settings, **Back up**, writes every
+  collection, request, environment, the global variables and the vault
+  (still encrypted) to one file, with history if you tick it; **Restore**
+  replaces what is stored with a file's content after checking all of it.
+  Restored collections are untrusted until approved, like any import.
+  Before, only single collections and the environments could be exported
+  (#74).
+- **A reminder to back up** when the last backup is more than 14 days
+  old, with **Not now**.
+- **Wayfarer asks the browser to keep your data** the first time you save
+  something, and Settings says what the browser answered and how much
+  space is used. In Safari, Settings also explains that Safari deletes a
+  site's data after seven days without a visit and how installing the app
+  prevents that (#73).
+- **Environment export asks about protected variables.** They are left
+  out by default: the file has no secret and no reference to one. It
+  wrote the references before, which pointed at nothing on another
+  machine. You can instead include the references with the encrypted
+  vault beside them, or write plain text after typing a confirmation
+  (#74).
+
 - **Vault secrets work in requests.** A protected variable is sent as
   its value when the vault is unlocked. If the vault is locked, the
   passphrase is asked for first; close that dialog and nothing is sent.
@@ -137,6 +158,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   response came from, beside the status.
 
 ### Changed
+
+- **Size budgets reset.** The first load is 1,194,744 B (301,290 B
+  gzipped), 67,922 B more than before the vault, masking, history and
+  backup work of this release. The limits are that measurement times 1.05
+  and 1.10 again: 1254 kB (warning) and 1314 kB (error), and 331,400 B
+  gzipped.
 
 - **The Basic / JSON switch is gone.** A JSON body is edited as text (it
   was also editable as rows, which could only hold text values: a row

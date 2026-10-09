@@ -12,7 +12,6 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { serializeEnvironmentExport } from "../../shared/environments/environment-io";
 import {
   EnvironmentImport,
 } from "../../services/environment-import";
@@ -23,6 +22,8 @@ import {
 } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
 import { VariablesDialog } from "../variables/variables-dialog";
+import { EnvironmentExportDialog } from "./environment-export-dialog";
+import { StoragePersistence } from "../../services/storage-persistence";
 import { MIN_SECRET_LENGTH, applyVariableChanges, readImportText, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
 
 /** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
@@ -56,6 +57,7 @@ interface EnvironmentDraft {
     MatTooltip,
     JsonEditor,
     VariablesDialog,
+    EnvironmentExportDialog,
   ],
   templateUrl: "./environments-manager.html",
   styleUrl: "./environments-manager.css",
@@ -66,6 +68,7 @@ export class EnvironmentsManager implements OnInit {
   private readonly secretsService = inject(SecretsVault);
   private readonly variableFocus = inject(VariableFocus);
   private readonly envImport = inject(EnvironmentImport);
+  private readonly persistence = inject(StoragePersistence);
 
   readonly requestUnlock = output<void>();
 
@@ -183,16 +186,8 @@ export class EnvironmentsManager implements OnInit {
     this.newEnvDialogVisible.set(false);
   }
 
-  exportEnvironments(): void {
-    const json = serializeEnvironmentExport(this.environments());
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "environments-export.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
+  /** The export dialog asks what the file should hold of protected variables. */
+  readonly exportDialogVisible = signal(false);
 
   async handleEnvironmentImport(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
@@ -349,6 +344,8 @@ export class EnvironmentsManager implements OnInit {
     if (!draft || !draft.name.trim() || !draft.jsonValid) {
       return;
     }
+    // Something worth keeping is being saved: ask the browser to keep it.
+    void this.persistence.request();
     const vars = draft.vars
       .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
       .filter((row) => row.key);

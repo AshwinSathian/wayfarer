@@ -3,7 +3,7 @@ import { ResponseInspection } from "./response-inspector";
 import { newId } from "@wayfarer/core";
 
 /**
- * Snapshot of the just-sent request, captured by `ApiParams` right
+ * Snapshot of the just-sent request, captured by `WorkspaceStore` right
  * before dispatch, so the response viewer's export actions (Copy as
  * cURL/HAR) have the exact method/url/headers/body that went out even
  * though the composer's own signals may have changed since (the user

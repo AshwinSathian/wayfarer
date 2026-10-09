@@ -64,7 +64,7 @@ interface ResponseHeader {
 // already moved to shared/inspect/timing-bars.ts and
 // response-export-entry.ts (both pure, both testable without this
 // component), and the clipboard fallback is now shared/http/clipboard.ts
-// (deduped with ApiParams, which had an identical copy). What's
+// (deduped with the composer, which had an identical copy). What's
 // left is the async JSON pretty-print/search pipeline (formatAndAssign/
 // prepareFormatting/onSearchQueryChange), which is inherently stateful -
 // it debounces against a Web Worker with token-based cancellation to avoid

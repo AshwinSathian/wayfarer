@@ -1,0 +1,48 @@
+@if (!scriptsEnabled) {
+<div role="status" class="flex items-start gap-2 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+  <app-icon name="warning" class="icon-sm text-status-warning" />
+  <p class="type-callout text-status-warning">
+    Scripts are temporarily disabled while the sandbox is rebuilt (tracking
+    <a class="underline" href="https://github.com/AshwinSathian/wayfarer/issues/{{ scriptsDisabledIssue }}" target="_blank" rel="noopener noreferrer">#{{ scriptsDisabledIssue }}</a>).
+    Scripts below are saved but not run. Tests-tab assertions still run.
+  </p>
+</div>
+}
+<!-- Pre-request script -->
+<div class="space-y-2">
+  <div class="flex items-center gap-2">
+    <app-icon name="play_arrow" class="icon-sm text-label-tertiary" />
+    <div class="ds-section-label">Pre-request Script</div>
+  </div>
+  <p class="type-caption text-label-tertiary">
+    Runs before the request. Use <code class="font-mono text-accent-text">pm.environment.set(key, value)</code> to set variables.
+  </p>
+  <app-script-editor
+    name="preScript"
+    [ngModel]="store.draft().scripts.pre"
+    (ngModelChange)="setScript('pre', $event)"
+    [ngModelOptions]="{ standalone: true }"
+    [height]="200"
+  ></app-script-editor>
+</div>
+
+<!-- Post-response script -->
+<div class="space-y-2">
+  <div class="flex items-center gap-2">
+    <app-icon name="replay" class="icon-sm text-label-tertiary" />
+    <div class="ds-section-label">Post-response Script</div>
+  </div>
+  <p class="type-caption text-label-tertiary">
+    Runs after the response. Use <code class="font-mono text-accent-text">pm.test(name, fn)</code> and <code class="font-mono text-accent-text">pm.expect(value)</code> for assertions.
+  </p>
+  <app-script-editor
+    name="postScript"
+    [ngModel]="store.draft().scripts.post"
+    (ngModelChange)="setScript('post', $event)"
+    [ngModelOptions]="{ standalone: true }"
+    [height]="200"
+  ></app-script-editor>
+</div>
+
+<!-- Visual test assertions -->
+<app-tests-panel class="block space-y-3" />

@@ -9,7 +9,7 @@ import { AuthType, HttpAuthPlaceholder } from "../../../models/collections";
 import { Icon } from "../../../shared/icon/icon";
 
 /**
- * The composer's Auth tab — extracted out of `ApiParams` (same
+ * The composer's Auth tab — extracted out of the composer (same
  * pattern as `ApiParamsBasic` for Params/Headers/Body) so the
  * "build a new HttpAuthPlaceholder from a field edit" logic has its own
  * testable home. The parent still owns the `showPassword` toggle state and

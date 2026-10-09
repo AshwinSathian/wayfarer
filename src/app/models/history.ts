@@ -1,4 +1,6 @@
-export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
+import { V4_METHODS } from "@wayfarer/core";
+
+export const HTTP_METHODS = V4_METHODS;
 export type HttpMethod = (typeof HTTP_METHODS)[number];
 
 export interface PastRequest {

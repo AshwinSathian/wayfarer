@@ -31,7 +31,7 @@ import { Idb } from "../../data/idb";
 import { DatabaseResetBlockedError } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
 import { BridgeSettings } from "../../services/bridge-settings";
-import { ApiParams } from "../api-params/api-params";
+import { Composer } from "../composer/composer";
 import { PastRequests } from "../past-requests/past-requests";
 import { CollectionsSidebar, PaletteAction } from "../collections/collections-sidebar";
 import { EnvironmentsManager } from "../environments/environments-manager";
@@ -54,7 +54,7 @@ import { SwUpdate } from "../../services/sw-update";
     Dialog,
     MatTooltip,
     FormsModule,
-    ApiParams,
+    Composer,
     PastRequests,
     CollectionsSidebar,
     EnvironmentsManager,
@@ -83,7 +83,7 @@ export class AppShell implements OnInit {
   readonly closeDrawer = output<void>();
   readonly toggleDrawer = output<void>();
 
-  readonly apiParams = viewChild.required(ApiParams);
+  readonly composer = viewChild.required(Composer);
 
   private readonly confirm = inject(Confirm);
   private readonly environmentsService = inject(EnvironmentsStore);
@@ -141,12 +141,12 @@ export class AppShell implements OnInit {
       {
         id: "send-request",
         label: "Send Request",
-        run: () => this.apiParams().sendRequest(),
+        run: () => this.composer().sendRequest(),
       },
       {
         id: "focus-address-bar",
         label: "Focus Address Bar",
-        run: () => this.apiParams().focusUrl(),
+        run: () => this.composer().focusUrl(),
       },
       {
         id: "toggle-theme",
@@ -228,29 +228,23 @@ export class AppShell implements OnInit {
   }
 
   handleLoadRequest(request: PastRequest): void {
-    const apiParams = this.apiParams();
-    if (apiParams) {
-      apiParams.loadPastRequest(request);
-    }
+    this.composer().loadPastRequest(request);
     if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }
   }
 
   handleLoadCollectionRequest(request: RequestDoc): void {
-    const apiParams = this.apiParams();
-    if (apiParams) {
-      apiParams.loadCollectionRequest(request);
-      apiParams.focusUrl();
-    }
+    this.composer().loadCollectionRequest(request);
+    this.composer().focusUrl();
     if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }
   }
 
   handleNewRequest(): void {
-    this.apiParams().clearComposer();
-    this.apiParams().focusUrl();
+    this.composer().clearComposer();
+    this.composer().focusUrl();
     if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }

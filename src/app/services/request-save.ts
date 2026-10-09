@@ -1,24 +1,14 @@
 import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
-import { HttpAuthPlaceholder, RequestDoc } from "../models/collections";
-import { PastRequest } from "../models/history";
-import { TestAssertion } from "../models/test-assertion";
+import type { V4Content } from "@wayfarer/core";
+import { RequestDoc } from "../models/collections";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
-export interface RequestContentSnapshot {
-  method: PastRequest["method"];
-  url: string;
-  headers: Record<string, string>;
-  body: Record<string, unknown> | undefined;
-  auth: HttpAuthPlaceholder;
-  preRequestScript: string;
-  postRequestScript: string;
-  tests: TestAssertion[];
-}
+export type RequestContentSnapshot = V4Content;
 
 /**
  * Owns the "is the composer bound to a saved collection request, and how do
- * I persist it" concern that used to live directly on `ApiParams`
+ * I persist it" concern that used to live directly on the composer component
  * (loadedCollectionRequest + the whole Save-As dialog). Extracted as its own
  * service — same pattern as `RequestExecutor` — so this logic is
  * unit-testable against a mocked `CollectionsStore` without a component

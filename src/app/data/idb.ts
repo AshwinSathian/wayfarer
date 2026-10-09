@@ -22,7 +22,7 @@ import { SecretsRepository } from "./secrets-repository";
 /**
  * Public facade over the IndexedDB persistence layer. Every existing
  * consumer (App, CollectionsStore, EnvironmentsStore,
- * SecretsVault, ApiParams, AppShell) keeps injecting
+ * SecretsVault, WorkspaceStore, AppShell) keeps injecting
  * this exact class with this exact API. The actual storage/schema/
  * migration logic and each aggregate's CRUD now live in IdbCore and
  * the *.repository.ts files (collections/folders/requests were originally

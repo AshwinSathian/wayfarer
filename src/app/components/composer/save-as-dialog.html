@@ -1,0 +1,67 @@
+<!-- Save to Collection dialog -->
+<ui-dialog
+  header="Save to Collection"
+  [visible]="requestSave.saveAsDialogVisible()"
+  (visibleChange)="requestSave.saveAsDialogVisible.set($event)"
+  dismissableMask
+  width="420px"
+>
+  <div class="flex flex-col gap-4">
+    @if (!requestSave.saveAsCollectionOptions().length) {
+    <p class="type-callout text-label-secondary">
+      No collections yet — create one from the sidebar first, then save this request into it.
+    </p>
+    } @else {
+    <div class="flex flex-col gap-1.5">
+      <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
+      <mat-form-field class="field w-full">
+        <input matInput
+          id="save-as-name"
+          type="text"
+          [ngModel]="requestSave.saveAsName()"
+          (ngModelChange)="requestSave.saveAsName.set($event)"
+          placeholder="Request name"
+         />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <span id="save-as-collection-label" class="type-footnote text-label-secondary">Collection</span>
+      <mat-select
+        class="select w-full!"
+        id="save-as-collection"
+        aria-labelledby="save-as-collection-label"
+        [ngModel]="requestSave.saveAsCollectionId()"
+        (ngModelChange)="requestSave.onSaveAsCollectionChange($event)"
+        placeholder="Choose a collection"
+      >
+        @for (option of requestSave.saveAsCollectionOptions(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    @if (requestSave.saveAsFolderOptions().length) {
+    <div class="flex flex-col gap-1.5">
+      <span id="save-as-folder-label" class="type-footnote text-label-secondary">Folder (optional)</span>
+      <mat-select
+        class="select w-full!"
+        id="save-as-folder"
+        aria-labelledby="save-as-folder-label"
+        [ngModel]="requestSave.saveAsFolderId()"
+        (ngModelChange)="requestSave.saveAsFolderId.set($event)"
+        placeholder="No folder"
+      >
+        <mat-option [value]="null">No folder</mat-option>
+        @for (option of requestSave.saveAsFolderOptions(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    }
+    }
+
+    <div class="flex justify-end gap-2">
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="requestSave.closeSaveAsDialog()">Cancel</button>
+      <button matButton="filled" aria-label="Save" [disabled]="requestSave.isSaveAsDisabled || requestSave.savingRequest()" (click)="confirm()">{{ requestSave.savingRequest() ? 'Saving…' : 'Save' }}</button>
+    </div>
+  </div>
+</ui-dialog>

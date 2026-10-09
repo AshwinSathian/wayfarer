@@ -1,3 +1,4 @@
+import type { V4Auth } from "@wayfarer/core";
 import { PastRequest } from "./history";
 import { TestAssertion } from "./test-assertion";
 
@@ -12,14 +13,8 @@ export interface Meta {
 
 export const META_VERSION: Meta["version"] = 1;
 
-export type AuthType = "none" | "bearer" | "basic" | "api-key";
-
-export interface HttpAuthPlaceholder {
-  type: AuthType;
-  bearer?: { token: string };
-  basic?: { username: string; password: string };
-  apiKey?: { key: string; value: string; addTo: "header" | "query" };
-}
+export type HttpAuthPlaceholder = V4Auth;
+export type AuthType = V4Auth["type"];
 
 interface BaseDocument {
   id: UUID;

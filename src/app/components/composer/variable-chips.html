@@ -1,0 +1,19 @@
+@for (token of store.variableTokens(); track token.field + token.key) {
+<div
+  class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="'Variable ' + token.key + ', source ' + token.source + '. Activate to locate.'"
+  (click)="handleVariableChipClick(token)"
+  (keydown.enter)="handleVariableChipClick(token)"
+  (keydown.space)="$event.preventDefault(); handleVariableChipClick(token)"
+>
+  <div class="flex items-center gap-1.5">
+    <span class="type-footnote font-semibold">{{ token.key }}</span>
+    <span class="type-caption text-label-tertiary capitalize">{{ token.source }}</span>
+  </div>
+  <div class="type-caption text-label-secondary mt-0.5">
+    {{ token.value ?? 'Not resolved' }}
+  </div>
+</div>
+}

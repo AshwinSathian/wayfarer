@@ -63,6 +63,22 @@ code errors.
   lines; `src/app` stays at 70%.
 - Export what the app uses from `packages/core/src/index.ts`.
 
+## Composer
+
+- The request being composed is one `Draft` (`@wayfarer/core`) in
+  `WorkspaceStore` (`src/app/state/workspace-store.ts`), with the response
+  it last received. The stores still read and write v4: `draftFromV4` on
+  load, `store.snapshot()` (`draftToV4`) to save or send.
+- `src/app/components/composer/` holds one component per part of the
+  request. `ComposerView` holds what they share that is not the request:
+  the open tab, Basic or JSON mode. A file there stays under 400 lines and a
+  template under 250.
+- Row editors bind `[(ngModel)]` to a row's own fields, so rows change in
+  place. The panel then tells the store (`paramsEdited`, `bodyRowsEdited`,
+  `refreshVariablePreview`).
+- A panel's host element carries the layout classes its root `<div>` would
+  (`class="block space-y-6"`): a custom element is `display: inline`.
+
 ## Angular
 
 - Zoneless and `OnPush`. Anything a template or effect reads must be a

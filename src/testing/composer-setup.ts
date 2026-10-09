@@ -1,0 +1,154 @@
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
+import { Composer } from '../app/components/composer/composer';
+import { ComposerView } from '../app/components/composer/composer-view';
+import { RequestSave } from '../app/services/request-save';
+import { WorkspaceStore } from '../app/state/workspace-store';
+import { Idb } from '../app/data/idb';
+import { ResponseInspector } from '../app/shared/inspect/response-inspector';
+import { EnvironmentsStore } from '../app/services/environments-store';
+import { EnvironmentDoc } from '../app/models/environments';
+import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
+import { Meta, RequestDoc } from '../app/models/collections';
+import { vi } from "vitest";
+
+// HttpTransport reads raw bytes (responseType 'arraybuffer'), so fixtures flush what the wire carries.
+export const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).buffer;
+export const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+class IdbServiceMock {
+  init = vi.fn().mockReturnValue(Promise.resolve());
+  add = vi.fn().mockReturnValue(Promise.resolve(1));
+}
+
+class ResponseInspectorServiceStub {
+  readonly latest = signal(null).asReadonly();
+  markRequest = vi.fn();
+  markResponse = vi.fn();
+}
+
+class EnvironmentsServiceStub {
+  private readonly activeEnvSignal = signal<EnvironmentDoc | null>(null);
+  readonly activeEnvironment = this.activeEnvSignal.asReadonly();
+  readonly environments = signal<EnvironmentDoc[]>([]).asReadonly();
+  readonly loading = signal(false).asReadonly();
+  ensureLoaded = vi.fn().mockReturnValue(Promise.resolve());
+  updateEnvironment = vi.fn()
+    .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
+      const current = this.activeEnvSignal();
+      if (current && current.meta.id === id) {
+        this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
+      }
+    });
+
+  setActiveEnvironment(env: EnvironmentDoc | null): void {
+    this.activeEnvSignal.set(env);
+  }
+}
+
+export function meta(id: string): Meta {
+  return { id, createdAt: 1, updatedAt: 1, version: 1 };
+}
+
+export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc {
+  const id = overrides.id ?? 'r1';
+  return {
+    id,
+    meta: meta(id),
+    collectionId: 'c1',
+    name: 'Saved request',
+    order: 0,
+    method: 'GET',
+    url: 'https://saved.example.com',
+    headers: { Accept: 'application/json' },
+    ...overrides,
+  };
+}
+
+class CollectionsServiceStub {
+  private readonly treeSignal = signal<CollectionTree[]>([]);
+  readonly tree = this.treeSignal.asReadonly();
+  readonly loading = signal(false).asReadonly();
+
+  createRequest = vi.fn().mockImplementation(
+    async (payload: {
+      collectionId: string;
+      folderId?: string;
+      name: string;
+      method: RequestDoc['method'];
+      url: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    }): Promise<RequestDoc> =>
+      makeRequestDoc({
+        id: 'new-id',
+        collectionId: payload.collectionId,
+        folderId: payload.folderId,
+        name: payload.name,
+        method: payload.method,
+        url: payload.url,
+        headers: payload.headers ?? {},
+        body: payload.body,
+      })
+  );
+
+  updateRequest = vi.fn().mockImplementation(
+    async (id: string, patch: Partial<RequestDoc>): Promise<RequestDoc> =>
+      makeRequestDoc({ id, ...patch })
+  );
+
+  setTree(trees: CollectionTree[]): void {
+    this.treeSignal.set(trees);
+  }
+}
+
+export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
+  return {
+    id: 'env-1',
+    meta: { id: 'env-1', createdAt: 1, updatedAt: 1, version: 1 },
+    name: 'Test env',
+    order: 1,
+    vars,
+  } as EnvironmentDoc;
+}
+
+/** Header rows as the draft holds them. */
+export const rows = (items: { key: string; value: string }[]) => items.map((item) => ({ ...item, enabled: true }));
+
+/** The composer with its stores stubbed and HTTP captured, as both composer specs use it. */
+export async function setupComposer() {
+  const idbService = new IdbServiceMock();
+  const responseInspector = new ResponseInspectorServiceStub();
+  const environmentsService = new EnvironmentsServiceStub();
+  const collectionsService = new CollectionsServiceStub();
+  await TestBed.configureTestingModule({
+    imports: [Composer],
+    providers: [
+      provideHttpClient(withXhr()),
+      provideHttpClientTesting(),
+      { provide: Idb, useValue: idbService },
+      { provide: ResponseInspector, useValue: responseInspector },
+      { provide: EnvironmentsStore, useValue: environmentsService },
+      { provide: CollectionsStore, useValue: collectionsService },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(Composer);
+  fixture.detectChanges();
+  return {
+    fixture,
+    component: fixture.componentInstance,
+    store: TestBed.inject(WorkspaceStore),
+    requestSave: TestBed.inject(RequestSave),
+    view: fixture.debugElement.injector.get(ComposerView),
+    httpMock: TestBed.inject(HttpTestingController),
+    idbService,
+    responseInspector,
+    environmentsService,
+    collectionsService,
+  };
+}
+
+export type ComposerHarness = Awaited<ReturnType<typeof setupComposer>>;

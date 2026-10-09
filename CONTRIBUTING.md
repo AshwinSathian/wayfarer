@@ -94,9 +94,10 @@ When contributing:
   error or record it with `Diagnostics.record` / `recordDiagnostic`.
 - **No `any`**, and `tsconfig.json` stays at what `ng new --strict` writes.
 - Keep files reasonably small and single-purpose. If you're adding
-  significant logic to an already-large file (e.g. `idb.ts`,
-  `api-params.ts`), consider whether it belongs in a new,
-  focused service instead.
+  significant logic to an already-large file (e.g. `idb.ts`), consider
+  whether it belongs in a new, focused service instead. Files under
+  `src/app/components/composer/` may not pass 400 lines (ESLint), and a
+  composer template stays under 250.
 - **Styling** is Tailwind CSS 4 utilities over the design system, with no
   Tailwind reset. See "Styling and layout" in [`CLAUDE.md`](CLAUDE.md) before
   touching `src/styles.css`, `--ctl-*` colours or a breakpoint. Nothing may

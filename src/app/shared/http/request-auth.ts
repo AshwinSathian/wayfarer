@@ -3,7 +3,7 @@ import { HttpAuthPlaceholder } from "../../models/collections";
 /**
  * Pure translation of the composer's Auth tab state into the headers/query
  * param it actually contributes to an outgoing request. Extracted from
- * `ApiParams` so this (security-adjacent — it's what puts a bearer
+ * the composer so this (security-adjacent — it's what puts a bearer
  * token or basic-auth credential on the wire) logic is unit testable on its
  * own.
  */

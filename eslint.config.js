@@ -95,6 +95,13 @@ module.exports = defineConfig([
     },
   },
   {
+    // P2.17: the composer stays in small files; every later task adds to it.
+    files: ["src/app/components/composer/**/*.ts"],
+    rules: {
+      "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
     files: ["**/*.html"],
     extends: [
       angular.configs.templateRecommended,

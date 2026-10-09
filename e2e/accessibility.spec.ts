@@ -195,7 +195,7 @@ for (const theme of ["dark", "light"] as const) {
     const button = (name: string) => page.getByRole("button", { name, exact: true });
 
     await scan("composer and response");
-    await page.getByRole("combobox", { name: /^HTTP method/ }).click();
+    await button("Common methods").click();
     await scan("method list");
     await page.keyboard.press("Escape");
     await button("Export response").click();

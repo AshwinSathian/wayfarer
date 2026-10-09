@@ -1,7 +1,9 @@
 import { Injectable, effect, inject, signal } from "@angular/core";
 import {
+  FORBIDDEN_METHODS,
   RAW_CONTENT_TYPES,
   emptyRequest,
+  isHttpMethod,
   newId,
   parseJson,
   type Draft,
@@ -14,6 +16,7 @@ import {
 import { Idb } from "../data/idb";
 import { PastRequest } from "../models/history";
 import { TestResult } from "../models/test-assertion";
+import { BridgeSettings } from "../services/bridge-settings";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
 import {
@@ -116,6 +119,7 @@ export class WorkspaceStore {
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
+  private readonly bridge = inject(BridgeSettings);
 
   readonly draft = signal<Draft>(emptyDraft());
 
@@ -179,7 +183,7 @@ export class WorkspaceStore {
 
   /** The body is kept when the method changes: GET and HEAD send none, and it is there again for POST. */
   setMethod(method: string): void {
-    this.patch({ method });
+    this.patch({ method: method.trim().toUpperCase() });
   }
 
   /** Changes part of the body: its mode, or the content of one mode. */
@@ -288,6 +292,12 @@ export class WorkspaceStore {
       return false;
     }
 
+    const methodError = this.methodError(draft.method);
+    if (methodError) {
+      this.endpointError.set(methodError);
+      return false;
+    }
+
     const resolvedForValidation = resolveTemplate(endpointText.trim(), this.variableContext());
     if (!validateUrl(resolvedForValidation)) {
       this.endpointError.set("Please enter a valid URL");
@@ -321,6 +331,21 @@ export class WorkspaceStore {
     this.applyExecutionResponse(result.response);
     await this.idb.add(result.history);
     return true;
+  }
+
+  /** Why this method cannot be sent, or "" when it can. */
+  private methodError(method: string): string {
+    if (!method) {
+      return "Enter a method, such as GET.";
+    }
+    if (!isHttpMethod(method)) {
+      return `"${method}" is not an HTTP method. A method is one word of at most 32 characters: letters, digits and !#$%&'*+-.^_\`|~.`;
+    }
+    const bridge = this.bridge.config();
+    if (FORBIDDEN_METHODS.includes(method) && !(bridge.enabled && bridge.url)) {
+      return `Browsers do not send ${method} requests. Turn on the Local Bridge to send one.`;
+    }
+    return "";
   }
 
   /** Gives up on the request in flight. The send then ends with "cancelled" instead of a response. */

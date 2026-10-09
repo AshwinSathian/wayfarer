@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, output, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
-import { MatOption } from "@angular/material/core";
+import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
-import { MatSelect } from "@angular/material/select";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HTTP_METHODS } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
@@ -16,7 +15,7 @@ import { ComposerView } from "./composer-view";
 /** The method and URL bar with New, Copy as cURL, Save and Send. */
 @Component({
   selector: "app-address-row",
-  imports: [FormsModule, Icon, MatButton, MatFormField, MatInput, MatOption, MatProgressSpinner, MatSelect, MatTooltip],
+  imports: [FormsModule, Icon, MatButton, MatFormField, MatInput, MatIconButton, MatMenu, MatMenuItem, MatMenuTrigger, MatProgressSpinner, MatTooltip],
   templateUrl: "./address-row.html",
   styleUrl: "./address-row.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,9 +29,21 @@ export class AddressRow {
 
   private readonly urlInput = viewChild<ElementRef<HTMLInputElement>>("urlInput");
 
-  protected readonly requestMethods = HTTP_METHODS.map((method) => ({ label: method, value: method }));
+  protected readonly requestMethods = HTTP_METHODS;
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly savingRequest = this.requestSave.savingRequest;
+
+  /**
+   * The field itself is upper-cased, with the caret kept where it was. The
+   * draft alone would not do it: typing "patch" over "PATCH" leaves the
+   * draft unchanged, so nothing would be written back to the field.
+   */
+  protected onMethodInput(input: HTMLInputElement): void {
+    const caret = input.selectionStart;
+    input.value = input.value.toUpperCase();
+    input.setSelectionRange(caret, caret);
+    this.view.onRequestMethodChange(input.value);
+  }
 
   focusUrl(): void {
     const el = this.urlInput()?.nativeElement;

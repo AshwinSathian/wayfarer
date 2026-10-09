@@ -22,6 +22,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **Any HTTP method.** The method is a field you can type in (`PURGE`,
+  `PROPFIND`, `REPORT`, …), with the seven common ones in the menu beside
+  it. What you type is sent in upper case. It was a list of seven.
+  `CONNECT`, `TRACE` and `TRACK` are not sent from the browser, which
+  refuses them, and the page says so; the Local Bridge can send them.
+  A collection file may hold any such method.
+
 - **Body types.** The Body tab now offers **None**, **Raw** (JSON, text,
   XML, HTML or JavaScript, sent exactly as typed), **Form (URL-encoded)**,
   **Multipart** (text fields and files) and **Binary file**. Before, a body

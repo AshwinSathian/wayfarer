@@ -29,7 +29,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Request Composer**
 
-  - Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` <!-- claim:C-017 -->
+  - Methods: any HTTP method, typed (`PURGE`, `PROPFIND`, …) and sent in upper case, with `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` one click away <!-- claim:C-017 -->
   - URL field with live validation <!-- claim:C-018 -->
   - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs <!-- claim:C-019 -->
   - Body tab for every method but `GET` and `HEAD`, with the modes none, raw (JSON, text, XML, HTML, JavaScript), form (URL-encoded), multipart (text and files) and binary file <!-- claim:C-039 -->

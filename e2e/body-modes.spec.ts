@@ -36,8 +36,7 @@ async function sendAndEcho(page: Page): Promise<Echo> {
 async function postWithBody(page: Page, mode: string): Promise<void> {
   await watchViolations(page);
   await page.goto("/");
-  await page.getByRole("combobox", { name: /^HTTP method/ }).click();
-  await page.getByRole("option", { name: "POST", exact: true }).click();
+  await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();
   await choose(page, "Body", mode);

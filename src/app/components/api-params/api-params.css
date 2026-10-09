@@ -1,18 +1,3 @@
-/* Address bar — unified focus state on the wrapper */
-.address-bar .ui-input:focus {
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Method select inside address bar — no outer border/radius conflict */
-.address-bar .method-select.ui-select {
-  border: none !important;
-  border-right: 1px solid var(--separator) !important;
-  background: transparent !important;
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg) !important;
-  height: 40px !important;
-}
-
 .address-bar .method-select.ui-select:hover,
 .address-bar .method-select.ui-select:focus-within {
   border-right-color: var(--separator) !important;

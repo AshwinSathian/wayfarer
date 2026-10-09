@@ -175,6 +175,14 @@ code errors.
     the children accessor looks the node up by key;
   - the first row in the tab order is the first one Material hears of,
     which under an expanded node is a child; it is moved to the top row.
+- Text input: `<mat-form-field class="field">` around `<input matInput>`.
+  The outline appearance and `subscriptSizing: "dynamic"` are set app-wide
+  (`app.config.ts`); the label is a `<label for>` outside the field. Width
+  and flex utilities go on the form field, not on the input. A class a
+  test or a rule finds the input by (`address-url`) stays on the input.
+- Checkbox: `<mat-checkbox>`. Its input's id is the checkbox's id plus
+  `-input`; that is what a `<label for>` outside it points at. One with no
+  text inside takes an `aria-label`.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
   to its default. Write a rule with `font: inherit` instead.

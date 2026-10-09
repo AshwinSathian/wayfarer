@@ -18,13 +18,14 @@
   @if (currentAuth.type === 'bearer') {
   <div class="flex items-center gap-3">
     <label class="ds-form-label min-w-[72px]" for="auth-bearer-token">Token</label>
-    <input
-      id="auth-bearer-token"
-      class="ui-input flex-1"
-      placeholder="Enter bearer token"
-      [ngModel]="currentAuth.bearer?.token ?? ''"
-      (ngModelChange)="setBearerToken($event)"
-     />
+    <mat-form-field class="field flex-1">
+      <input matInput
+        id="auth-bearer-token"
+        placeholder="Enter bearer token"
+        [ngModel]="currentAuth.bearer?.token ?? ''"
+        (ngModelChange)="setBearerToken($event)"
+       />
+    </mat-form-field>
   </div>
   }
 
@@ -32,25 +33,27 @@
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-basic-username">Username</label>
-      <input
-        id="auth-basic-username"
-        class="ui-input flex-1"
-        placeholder="Username"
-        [ngModel]="currentAuth.basic?.username ?? ''"
-        (ngModelChange)="setBasicUsername($event)"
-       />
+      <mat-form-field class="field flex-1">
+        <input matInput
+          id="auth-basic-username"
+          placeholder="Username"
+          [ngModel]="currentAuth.basic?.username ?? ''"
+          (ngModelChange)="setBasicUsername($event)"
+         />
+      </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-basic-password">Password</label>
       <div class="flex flex-1 items-center gap-2">
-        <input
-          id="auth-basic-password"
-          class="ui-input flex-1"
-          [type]="showPassword() ? 'text' : 'password'"
-          placeholder="Password"
-          [ngModel]="currentAuth.basic?.password ?? ''"
-          (ngModelChange)="setBasicPassword($event)"
-         />
+        <mat-form-field class="field flex-1">
+          <input matInput
+            id="auth-basic-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            placeholder="Password"
+            [ngModel]="currentAuth.basic?.password ?? ''"
+            (ngModelChange)="setBasicPassword($event)"
+           />
+        </mat-form-field>
         <button
           matIconButton
           type="button"
@@ -66,23 +69,25 @@
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
-      <input
-        id="auth-apikey-key"
-        class="ui-input flex-1"
-        placeholder="Header or param name"
-        [ngModel]="currentAuth.apiKey?.key ?? ''"
-        (ngModelChange)="setApiKeyField({ key: $event })"
-       />
+      <mat-form-field class="field flex-1">
+        <input matInput
+          id="auth-apikey-key"
+          placeholder="Header or param name"
+          [ngModel]="currentAuth.apiKey?.key ?? ''"
+          (ngModelChange)="setApiKeyField({ key: $event })"
+         />
+      </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" for="auth-apikey-value">Value</label>
-      <input
-        id="auth-apikey-value"
-        class="ui-input flex-1"
-        placeholder="Key value"
-        [ngModel]="currentAuth.apiKey?.value ?? ''"
-        (ngModelChange)="setApiKeyField({ value: $event })"
-       />
+      <mat-form-field class="field flex-1">
+        <input matInput
+          id="auth-apikey-value"
+          placeholder="Key value"
+          [ngModel]="currentAuth.apiKey?.value ?? ''"
+          (ngModelChange)="setApiKeyField({ value: $event })"
+         />
+      </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
       <span class="ds-form-label min-w-[72px]" id="auth-apikey-addto-label">Add to</span>

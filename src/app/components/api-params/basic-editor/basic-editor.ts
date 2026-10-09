@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Icon } from "../../../shared/icon/icon";
 
@@ -7,7 +9,7 @@ type ContextType = "Body" | "Headers";
 
 @Component({
   selector: "app-api-params-basic",
-  imports: [
+  imports: [MatFormField, MatInput, 
     Icon, FormsModule,
     MatButton, MatIconButton,
   ],

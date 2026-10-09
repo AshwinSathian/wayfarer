@@ -323,3 +323,50 @@ html {
     )
   );
 }
+
+/* ── Text input (form field) ─────────────────────────────── */
+html {
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: var(--radius-md),
+      outlined-outline-color: var(--separator),
+      outlined-hover-outline-color: var(--fill-primary),
+      outlined-focus-outline-color: var(--accent-border),
+      outlined-outline-width: 1px,
+      outlined-focus-outline-width: 1px,
+      outlined-input-text-color: var(--label-primary),
+      outlined-input-text-placeholder-color: var(--label-placeholder),
+      outlined-caret-color: var(--accent),
+      /* A disabled field reads as before: same text, same outline. */
+      outlined-disabled-input-text-color: var(--label-primary),
+      outlined-disabled-outline-color: var(--separator),
+      container-text-size: 14px,
+      container-text-weight: 400,
+      container-text-tracking: -0.003em,
+      container-text-line-height: 20px,
+    )
+  );
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+html {
+  @include mat.checkbox-overrides(
+    (
+      state-layer-size: 20px,
+      touch-target-display: none,
+      unselected-icon-color: var(--separator),
+      unselected-hover-icon-color: var(--accent-border),
+      unselected-focus-icon-color: var(--accent-border),
+      selected-icon-color: var(--accent),
+      selected-hover-icon-color: var(--accent),
+      selected-focus-icon-color: var(--accent),
+      selected-checkmark-color: #ffffff,
+      unselected-hover-state-layer-opacity: 0,
+      unselected-focus-state-layer-opacity: 0,
+      unselected-pressed-state-layer-opacity: 0,
+      selected-hover-state-layer-opacity: 0,
+      selected-focus-state-layer-opacity: 0,
+      selected-pressed-state-layer-opacity: 0,
+    )
+  );
+}

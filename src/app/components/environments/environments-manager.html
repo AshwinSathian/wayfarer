@@ -84,17 +84,20 @@
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
-        <input id="env-name-input" class="ui-input w-full" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+        <mat-form-field class="field w-full">
+          <input matInput id="env-name-input" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+        </mat-form-field>
       </div>
       <div>
         <label for="env-description-input" class="ds-form-label">Description</label>
-        <input
-          id="env-description-input"
-          class="ui-input w-full"
-          [(ngModel)]="form.description"
-          (ngModelChange)="syncDraft(form)"
-          placeholder="Optional"
-         />
+        <mat-form-field class="field w-full">
+          <input matInput
+            id="env-description-input"
+            [(ngModel)]="form.description"
+            (ngModelChange)="syncDraft(form)"
+            placeholder="Optional"
+           />
+        </mat-form-field>
       </div>
     </div>
 
@@ -112,19 +115,21 @@
                 class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all duration-150"
                 [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
               >
-                <input
-                  class="ui-input"
-                  placeholder="KEY"
-                  [(ngModel)]="form.vars[$index].key"
-                  (ngModelChange)="onPairsChange()"
-                 />
+                <mat-form-field class="field">
+                  <input matInput
+                    placeholder="KEY"
+                    [(ngModel)]="form.vars[$index].key"
+                    (ngModelChange)="onPairsChange()"
+                   />
+                </mat-form-field>
                 @if (!isSecretValue(form.vars[$index].value)) {
-                <input
-                  class="ui-input"
-                  placeholder="Value"
-                  [(ngModel)]="form.vars[$index].value"
-                  (ngModelChange)="onPairsChange()"
-                 />
+                <mat-form-field class="field">
+                  <input matInput
+                    placeholder="Value"
+                    [(ngModel)]="form.vars[$index].value"
+                    (ngModelChange)="onPairsChange()"
+                   />
+                </mat-form-field>
                 } @else {
                 <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
                   <div class="type-caption text-status-warning font-semibold">Secret stored</div>
@@ -199,23 +204,25 @@
   <div class="flex flex-col gap-3">
     <div>
       <label for="new-env-name-input" class="ds-form-label">Name</label>
-      <input
-        id="new-env-name-input"
-        class="ui-input w-full"
-        [ngModel]="newEnvForm().name"
-        (ngModelChange)="onNewEnvNameChange($event)"
-        placeholder="Environment name"
-       />
+      <mat-form-field class="field w-full">
+        <input matInput
+          id="new-env-name-input"
+          [ngModel]="newEnvForm().name"
+          (ngModelChange)="onNewEnvNameChange($event)"
+          placeholder="Environment name"
+         />
+      </mat-form-field>
     </div>
     <div>
       <label for="new-env-description-input" class="ds-form-label">Description</label>
-      <input
-        id="new-env-description-input"
-        class="ui-input w-full"
-        [ngModel]="newEnvForm().description"
-        (ngModelChange)="onNewEnvDescriptionChange($event)"
-        placeholder="Optional"
-       />
+      <mat-form-field class="field w-full">
+        <input matInput
+          id="new-env-description-input"
+          [ngModel]="newEnvForm().description"
+          (ngModelChange)="onNewEnvDescriptionChange($event)"
+          placeholder="Optional"
+         />
+      </mat-form-field>
     </div>
   </div>
   <div uiDialogFooter>

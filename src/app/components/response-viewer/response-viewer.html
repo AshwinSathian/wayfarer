@@ -104,12 +104,13 @@
             <div class="space-y-3 pb-4">
               @if (responseBodyIsJson()) {
               <div class="flex flex-wrap items-center gap-2">
-                <input
-                  class="ui-input w-48"
-                  [value]="searchQuery()"
-                  (input)="onSearchQueryChange($any($event.target).value)"
-                  placeholder="Search response…"
-                 />
+                <mat-form-field class="field w-48">
+                  <input matInput
+                    [value]="searchQuery()"
+                    (input)="onSearchQueryChange($any($event.target).value)"
+                    placeholder="Search response…"
+                   />
+                </mat-form-field>
                 <span class="type-footnote text-label-tertiary tabular-nums">
                   {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count || 0 }}
                 </span>

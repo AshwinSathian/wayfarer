@@ -9,6 +9,8 @@ import {
   signal,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
@@ -43,7 +45,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
+  imports: [MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

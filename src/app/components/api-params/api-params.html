@@ -17,15 +17,16 @@
       </mat-select>
 
       <!-- URL input -->
-      <input
-        #urlInput
-        type="url"
-        class="ui-input address-url"
-        [ngModel]="endpoint()"
-        (ngModelChange)="onEndpointChange($event)"
-        placeholder="https://api.example.com/v1/endpoint"
-        style="height: 40px; border: none !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 14px;"
-       />
+      <mat-form-field class="field address-field">
+        <input matInput
+          #urlInput
+          type="url"
+          class="address-url"
+          [ngModel]="endpoint()"
+          (ngModelChange)="onEndpointChange($event)"
+          placeholder="https://api.example.com/v1/endpoint"
+         />
+      </mat-form-field>
     </div>
 
     <!-- Action buttons -->
@@ -335,19 +336,21 @@
       </div>
       @for (param of requestParams(); track param; let i = $index) {
       <div class="flex flex-col gap-3 md:grid md:grid-cols-[auto_1fr_1fr_auto] md:items-center md:gap-3">
-        <input type="checkbox" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
-        <input
-          class="ui-input w-full"
-          [(ngModel)]="param.key"
-          (ngModelChange)="onParamChange()"
-          placeholder="key"
-         />
-        <input
-          class="ui-input w-full"
-          [(ngModel)]="param.value"
-          (ngModelChange)="onParamChange()"
-          placeholder="value"
-         />
+        <mat-checkbox [attr.aria-label]="'Send parameter ' + (i + 1)" [(ngModel)]="param.enabled" (ngModelChange)="onParamChange()" />
+        <mat-form-field class="field w-full">
+          <input matInput
+            [(ngModel)]="param.key"
+            (ngModelChange)="onParamChange()"
+            placeholder="key"
+           />
+        </mat-form-field>
+        <mat-form-field class="field w-full">
+          <input matInput
+            [(ngModel)]="param.value"
+            (ngModelChange)="onParamChange()"
+            placeholder="value"
+           />
+        </mat-form-field>
         <div class="flex justify-end md:block">
           <button
             matIconButton class="btn-danger"
@@ -505,11 +508,12 @@
             }
           </mat-select>
           @if (needsKey(test.target)) {
-          <input
-            class="ui-input w-44"
-            [(ngModel)]="test.key"
-            [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
-           />
+          <mat-form-field class="field w-44">
+            <input matInput
+              [(ngModel)]="test.key"
+              [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
+             />
+          </mat-form-field>
           }
           <mat-select
             class="select w-44!"
@@ -521,11 +525,12 @@
             }
           </mat-select>
           @if (needsExpected(test.operator)) {
-          <input
-            class="ui-input flex-1 min-w-[120px]"
-            [(ngModel)]="test.expected"
-            placeholder="expected value"
-           />
+          <mat-form-field class="field flex-1 min-w-[120px]">
+            <input matInput
+              [(ngModel)]="test.expected"
+              placeholder="expected value"
+             />
+          </mat-form-field>
           }
           <button
             matIconButton class="btn-danger"
@@ -561,14 +566,15 @@
     } @else {
     <div class="flex flex-col gap-1.5">
       <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
-      <input
-        id="save-as-name"
-        type="text"
-        class="ui-input w-full"
-        [ngModel]="saveAsName()"
-        (ngModelChange)="saveAsName.set($event)"
-        placeholder="Request name"
-       />
+      <mat-form-field class="field w-full">
+        <input matInput
+          id="save-as-name"
+          type="text"
+          [ngModel]="saveAsName()"
+          (ngModelChange)="saveAsName.set($event)"
+          placeholder="Request name"
+         />
+      </mat-form-field>
     </div>
     <div class="flex flex-col gap-1.5">
       <span id="save-as-collection-label" class="type-footnote text-label-secondary">Collection</span>

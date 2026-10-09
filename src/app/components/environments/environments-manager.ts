@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, effect, signal, WritableSignal, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatFormField } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
@@ -34,7 +36,7 @@ interface EnvironmentDraft {
 
 @Component({
   selector: "app-environments-manager",
-  imports: [
+  imports: [MatFormField, MatInput, 
     Icon,
     FormsModule,
     MatButton, MatIconButton,

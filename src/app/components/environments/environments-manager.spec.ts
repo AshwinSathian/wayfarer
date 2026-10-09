@@ -241,6 +241,45 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.vars[0].value).toBe("mine");
     });
 
+    it("keeps a new row that has no name yet while another row is edited (F59)", async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      component.addVariable();
+      component.draft()!.vars[0].value = "2";
+      component.onPairsChange();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(component.draft()?.vars).toEqual([
+        { key: "A", value: "2", enabled: true },
+        { key: "", value: "", enabled: true },
+      ]);
+    });
+
+    it("opening an environment keeps a switched-off variable and a name that is there twice (F59)", async () => {
+      const rows = [
+        { key: "off", value: "1", enabled: false },
+        { key: "twice", value: "first", enabled: true },
+        { key: "twice", value: "second", enabled: true },
+      ];
+      envService.setEnvironments([{ ...makeEnv("e2"), vars: rows }]);
+      component.selectEnvironment("e2");
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(component.draft()?.vars).toEqual(rows);
+
+      component.draft()!.vars[1].value = "edited";
+      component.onPairsChange();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await component.save();
+
+      // The switched-off row is not switched on by a save of something else.
+      expect(envService.changeCalls[0].changes).toEqual([]);
+      expect(component.draft()?.vars[0]).toEqual(rows[0]);
+    });
+
     it("save() is a no-op when the draft's JSON is currently invalid", async () => {
       component.onJsonChange("{broken", false, undefined);
 

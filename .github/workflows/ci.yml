@@ -106,7 +106,7 @@ jobs:
       # packages/core (P2.1): no DOM types, Vitest in Node, lines >= 90%.
       - run: npm -w packages/core run typecheck
       - run: npm -w packages/core test
-      # P3.10: what a real script costs in the engine, on this runner. It prints one line; nothing is gated yet.
+      # P3.10 (risk R3): what a real script costs in the engine. Fails above 300 ms (p95 of 20 runs) or a 250 ms engine load.
       - run: npm -w packages/core run bench
 
   local-bridge:

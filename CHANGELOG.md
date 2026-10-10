@@ -7,6 +7,23 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-10
+
+Scripts are back. Pre-request and post-response scripts were switched off
+in the hosted app since 1.1; they now run in every build, in a sandbox that
+is a JavaScript engine of its own, with Postman's `pm` API, the older
+`postman.*` globals and five libraries. What works is listed row by row in
+[`docs/postman-compatibility.md`](docs/postman-compatibility.md), and each
+row is a test.
+
+Nothing stored changes shape in this version. A collection saved before it
+has no list of approved scripts yet, so its scripts wait for one review.
+
+The size limits of the page were reset to what it measures now: 1,225,230 B
+(310,823 B gzip), 15,433 B more than 2.0.0, for what scripts need of the
+page itself. The engine (503 kB) and the libraries are fetched only when a
+script runs.
+
 ### Added
 
 - **Scripts run again, in every build, the hosted app included.** Pre-request and post-response scripts were switched off in production since 1.1: the old sandbox evaluated them with `new Function`, which the site's Content-Security-Policy forbids, so they failed without a word ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)). They now run in QuickJS, a JavaScript engine compiled to WebAssembly, in its own worker. The browser never evaluates a script's text. The API is the one that was documented: `pm.environment`, `pm.response`, `pm.test`, the small `pm.expect`, `console`; new are `atob`, `btoa` and `setTimeout`.

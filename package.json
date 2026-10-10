@@ -1,6 +1,6 @@
 {
   "name": "wayfarer",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A local-first, no-account API client that runs entirely in the browser: collections, environments, an encrypted secrets vault, test assertions, and a response viewer.",
   "license": "MIT",
   "private": true,
@@ -49,7 +49,7 @@
     "gen:compat": "node scripts/gen-compat-doc.mjs",
     "check:compat": "node scripts/gen-compat-doc.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=336900"
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=341900"
   },
   "dependencies": {
     "@angular/cdk": "^22.2.2",

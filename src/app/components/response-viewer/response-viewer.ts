@@ -14,6 +14,7 @@ import { buildCurlCommand, exportRedactor, redactedRequest, toHar } from "../../
 import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type RedactOptions, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
+import type { SendTimings } from "../../services/request-executor";
 import {
   JsonWorkerClient,
   WorkerSearchResult,
@@ -95,6 +96,14 @@ export class ResponseViewer {
   readonly scriptLogs = input<string[]>([]);
   /** The request had scripts that were left out because they are not approved. */
   readonly scriptsSkipped = input(false);
+  /** How long the scripts and the request took, each by itself; shown when a script ran. */
+  readonly timings = input<SendTimings | null>(null);
+  protected readonly scriptTimings = computed(() => {
+    const { preScriptMs, requestMs, postScriptMs } = this.timings() ?? {};
+    if (preScriptMs === undefined && postScriptMs === undefined) return "";
+    const parts: [string, number | undefined][] = [["Pre-request script", preScriptMs], ["Request", requestMs], ["Post-response script", postScriptMs]];
+    return parts.filter(([, ms]) => ms !== undefined).map(([name, ms]) => `${name} ${ms} ms`).join(" · ");
+  });
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
   readonly redirectedTo = input<string>();

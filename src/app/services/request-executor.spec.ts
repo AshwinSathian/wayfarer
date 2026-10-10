@@ -9,7 +9,7 @@ import {
   type TransportOptions,
 } from "@wayfarer/core";
 import { signal } from "@angular/core";
-import { RequestExecutor, BuiltRequest, SendBlockedError } from "./request-executor";
+import { RequestExecutor, BuiltRequest, PreRequestScriptError, SendBlockedError, SendDeclinedError } from "./request-executor";
 import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
@@ -451,7 +451,7 @@ describe("RequestExecutor", () => {
       error: "'notDefined' is not defined",
     });
     const result = await service.execute({ template: TEMPLATE, runScripts: true,
-      preRequestScript: "pm.test('ran first', () => {}); notDefined();",
+      preRequestScript: "",
       postRequestScript: "pm.test('ran first', () => {}); notDefined();",
       tests: [],
       buildRequest: () => builtRequest(),
@@ -459,12 +459,139 @@ describe("RequestExecutor", () => {
 
     expect(result.testResults).toEqual([
       { label: "ran first", passed: true, source: "script" },
-      { label: "Pre-request script", passed: false, error: "'notDefined' is not defined", source: "script" },
-      { label: "ran first", passed: true, source: "script" },
       { label: "Post-response script", passed: false, error: "'notDefined' is not defined", source: "script" },
     ]);
-    // As before, the request is still sent.
     expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+  });
+
+  describe("the order of a send with scripts (P3.9)", () => {
+    const NO_CHANGES = { environment: [], collection: [], global: [] };
+
+    it("a pre-request script that ends in an error stops the send: nothing is built or sent, and its rows, its console and what it set are kept", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({}));
+      scriptSandbox.setNextResult({
+        logs: ["before the error"],
+        changes: { ...NO_CHANGES, environment: [{ key: "set", value: "1" }] },
+        testResults: [{ label: "ran first", passed: true, source: "script" }],
+        error: "'notDefined' is not defined",
+      });
+      const buildRequest = vi.fn(() => builtRequest());
+      const failure: unknown = await service
+        .execute({ template: TEMPLATE, runScripts: true, preRequestScript: "pm.test('ran first', () => {}); notDefined();", postRequestScript: "after()", tests: [], buildRequest })
+        .catch((error: unknown) => error);
+
+      expect(failure).toBeInstanceOf(PreRequestScriptError);
+      expect(failure).toBeInstanceOf(SendBlockedError);
+      const stopped = failure as PreRequestScriptError;
+      expect(stopped.message).toBe("The pre-request script failed, so the request was not sent.");
+      expect(stopped.testResults).toEqual([
+        { label: "ran first", passed: true, source: "script" },
+        { label: "Pre-request script", passed: false, error: "'notDefined' is not defined", source: "script" },
+      ]);
+      expect(stopped.scriptLogs).toEqual(["before the error"]);
+      expect(stopped.timings.preScriptMs).toEqual(expect.any(Number));
+      expect(buildRequest).not.toHaveBeenCalled();
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+      // Only the pre-request script ran, and what it set before the error is stored, as in Postman.
+      expect(scriptSandbox.execute).toHaveBeenCalledTimes(1);
+      expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ set: "1" }));
+    });
+
+    it("a pre-request test that fails does not stop the send: only an error does", async () => {
+      scriptSandbox.setNextResult({ logs: [], changes: NO_CHANGES, testResults: [{ label: "expects too much", passed: false, error: "no", source: "script" }] });
+      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "pm.test(...)", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+      expect(result.testResults).toEqual([{ label: "expects too much", passed: false, error: "no", source: "script" }]);
+    });
+
+    it("reports three durations: a pre-request script that waits 200 ms does not change the request's", async () => {
+      let clock = 0;
+      vi.spyOn(performance, "now").mockImplementation(() => clock);
+      const waits = [200, 8];
+      scriptSandbox.execute.mockImplementation(async () => {
+        clock += waits.shift() ?? 0;
+        return { logs: [], changes: NO_CHANGES, testResults: [] };
+      });
+      const send = transport.send.bind(transport);
+      transport.send = (request, options) => {
+        clock += 340;
+        return send(request, options);
+      };
+      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "wait()", postRequestScript: "check()", tests: [], buildRequest: () => builtRequest() });
+      vi.restoreAllMocks();
+
+      expect(result.timings).toEqual({ preScriptMs: 200, requestMs: 340, postScriptMs: 8 });
+      expect(result.durationMs).toBe(340);
+    });
+
+    it("gives no duration for a script that did not run", async () => {
+      const result = await service.execute({ template: TEMPLATE, runScripts: false, preRequestScript: "a()", postRequestScript: "b()", tests: [], buildRequest: () => builtRequest() });
+      expect(Object.keys(result.timings)).toEqual(["requestMs"]);
+    });
+
+    it("the post-response script sees the request as it was sent, a vault secret in it masked and a credential as it is", async () => {
+      scriptSandbox.setNextResult({ logs: [], changes: NO_CHANGES, testResults: [] });
+      // The stub reads a text body as JSON; this one is a form.
+      transport.send = () => Promise.resolve(envelope(200, "OK", { ok: true }));
+      const template = requestContent({ method: "POST", url: "https://{{host}}/items?k={{API_KEY}}", headers: rowsOf({ "X-Key": "{{API_KEY}}" }), body: { mode: "urlencoded", urlencoded: [{ key: "key", value: "{{API_KEY}}", enabled: true }] } });
+      await service.execute({
+        template,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "check()",
+        tests: [],
+        buildRequest: () =>
+          builtRequest({
+            method: "POST",
+            url: "https://api.test/items?k=vault-secret-42",
+            headers: [["X-Key", "vault-secret-42"], ["Authorization", "Bearer typed-credential-1"]],
+            body: "key=vault-secret-42&plain=a+b",
+            secrets: ["vault-secret-42"],
+            credentials: ["typed-credential-1"],
+          }),
+      });
+      const given = scriptSandbox.execute.mock.calls[0][4] as { request: unknown };
+      expect(given.request).toEqual({
+        method: "POST",
+        url: "https://api.test/items?k=***",
+        headers: [["X-Key", "***"], ["Authorization", "Bearer typed-credential-1"]],
+        body: { mode: "urlencoded", urlencoded: [["key", "***"], ["plain", "a b"]] },
+      });
+      expect(JSON.stringify(scriptSandbox.execute.mock.calls)).not.toContain("vault-secret-42");
+    });
+
+    it("Q6: when the user declines a request a pre-request script sent elsewhere, what that script set is undone", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ host: "api.test", kept: "1" }));
+      environmentsService.globals.set(rowsOf({ g: "1" }));
+      const stored = new Map<string, string>([["base", "https://api.test"]]);
+      const change = vi.fn(async (changes: VariableChange[]) => changes.forEach(({ key, value }) => (value === null ? stored.delete(key) : stored.set(key, value))));
+      scriptSandbox.setNextResult({
+        logs: [],
+        changes: { environment: [{ key: "host", value: "elsewhere.test" }, { key: "fresh", value: "x" }], collection: [{ key: "base", value: "https://elsewhere.test" }], global: [{ key: "g", value: null }] },
+        testResults: [],
+      });
+      const failure: unknown = await service
+        .execute({
+          template: TEMPLATE,
+          runScripts: true,
+          preRequestScript: "redirect()",
+          postRequestScript: "",
+          tests: [],
+          collection: { variables: () => rowsOf(Object.fromEntries(stored)), change },
+          buildRequest: () => {
+            // The script's changes were stored when the request is built.
+            expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ host: "elsewhere.test", kept: "1", fresh: "x" }));
+            throw new SendDeclinedError("declined");
+          },
+        })
+        .catch((error: unknown) => error);
+
+      expect(failure).toBeInstanceOf(SendDeclinedError);
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+      expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ host: "api.test", kept: "1" }));
+      expect(environmentsService.globals()).toEqual(rowsOf({ g: "1" }));
+      expect(Object.fromEntries(stored)).toEqual({ base: "https://api.test" });
+    });
   });
 
   const form = (...parts: [string, string | File][]): FormData => {
@@ -715,8 +842,8 @@ describe("RequestExecutor", () => {
         info: { eventName: "prerequest", requestName: "Create item", requestId: "req-1" },
       });
       expect(built).toEqual([{ ...template, method: "PUT", url: "https://{{host}}/signed", headers: rowsOf({ "X-A": "1", "X-Signed": "abc" }), body: { mode: "raw", raw: { language: "text", text: "signed" } } }]);
-      // The post-response script sees the request that was sent, and history keeps the one the user composed.
-      expect(extras(1)).toMatchObject({ request: { method: "PUT", url: "https://{{host}}/signed" }, info: { eventName: "test" } });
+      // The post-response script sees the request that was sent (P3.9: as built, not as composed), and history keeps the one the user composed.
+      expect(extras(1)).toMatchObject({ request: { method: "GET", url: "https://example.com/data" }, info: { eventName: "test" } });
       expect(result.history.template).toEqual(template);
     });
 

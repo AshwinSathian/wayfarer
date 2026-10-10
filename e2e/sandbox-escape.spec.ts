@@ -297,9 +297,11 @@ test("@claim:C-052 a script leaves nothing behind: the next run has a new global
   expect(seen.errors).toEqual([]);
 });
 
-// P3.6: the limits. Each test's pre-request script runs into one limit; the
-// post-response script of the same send must then run normally, in a new
-// worker. The tests assert what the page says, never how long it took: a CI
+// P3.6: the limits. Each test's post-response script runs into one limit;
+// the pre-request script of the next send must then run normally, in a new
+// worker. (Until P3.9 the limit was met by the pre-request script and the
+// script after it was the same send's: a pre-request script that fails now
+// stops the send, which `scripts.spec.ts` tests.) The tests assert what the page says, never how long it took: a CI
 // runner may need several times a laptop's time for the same script (R6).
 test.describe("limits", () => {
   const LIMITS: [name: string, script: string, message: string][] = [
@@ -321,27 +323,28 @@ test.describe("limits", () => {
       await seedAndOpen(page, {}, {
         method: "GET",
         url: `${TARGET}/limit`,
-        preRequestScript: script,
-        postRequestScript: "pm.test('the next script ran', () => pm.expect(pm.response).to.have.status(200));",
+        preRequestScript: "pm.test('the next script ran', () => pm.expect(pm.response).to.be.null);",
+        postRequestScript: script,
       });
 
-      for (let run = 0; run < 2; run++) {
+      // Three sends: the pre-request script of the second and of the third each follow a limit.
+      for (let run = 0; run < 3; run++) {
         await send(page);
         await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 90_000 });
         await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
-        const stopped = page.locator(".test-result-fail", { hasText: "Pre-request script" });
+        const stopped = page.locator(".test-result-fail", { hasText: "Post-response script" });
         await expect(stopped).toContainText(message);
         // The script could not catch its way past the limit.
         await expect(page.locator(".script-console")).toHaveCount(0);
-        // Straight after it, in the same send: a script in a new engine.
+        // Straight after a limit (from the second send on): a script in a new engine.
         await expect(page.locator(".test-result-pass", { hasText: "the next script ran" })).toBeVisible();
         await expect(page.locator(".test-result-fail")).toHaveCount(1);
       }
 
       // The worker was ended after each limit: the engine was loaded once per script run that followed one.
       expect(engines.length).toBeGreaterThanOrEqual(3);
-      // The request itself went out both times, and nothing else did.
-      expect(hits).toHaveLength(2);
+      // The request itself went out each time, and nothing else did.
+      expect(hits).toHaveLength(3);
       expect(seen.canary).toEqual([]);
       expect(await seen.violations()).toEqual([]);
       expect(seen.errors).toEqual([]);

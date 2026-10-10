@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFile, readdir } from "node:fs/promises";
 import { TARGET, captureTarget, expectProdParity, seedAndOpen, send } from "./support/app";
+import { ECHO } from "./support/echo";
 
 // P3.1: scripts run in QuickJS (WebAssembly) in a worker, under the
 // production Content-Security-Policy. These tests need the production build
@@ -59,18 +60,69 @@ test("a script that fails says so in the Tests tab (F65), and the next one runs"
   await seedAndOpen(page, {}, {
     method: "GET",
     url: `${TARGET}/scripts-error`,
-    preRequestScript: "pm.test('before the error', () => {}); notDefined();",
-    postRequestScript: "eval('1'); new Function('return 1')(); pm.test('the engine has its own eval', () => {});",
+    // P3.9: the script that fails is the post-response one. A pre-request script that fails stops the send (the test after the next).
+    preRequestScript: "eval('1'); new Function('return 1')(); pm.test('the engine has its own eval', () => {});",
+    postRequestScript: "pm.test('before the error', () => {}); notDefined();",
   });
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
   await expect(page.locator(".test-result-pass", { hasText: "before the error" })).toBeVisible();
-  const failed = page.locator(".test-result-fail", { hasText: "Pre-request script" });
+  const failed = page.locator(".test-result-fail", { hasText: "Post-response script" });
   await expect(failed).toBeVisible();
   await expect(failed).toContainText("'notDefined' is not defined");
   // eval inside the engine is the engine's, not the browser's: it runs, and the page's policy reports nothing.
   await expect(page.locator(".test-result-pass", { hasText: "the engine has its own eval" })).toBeVisible();
+  expect(await violations()).toEqual([]);
+});
+
+test("P3.9: a pre-request script adds a header that reaches the server, and the time it waits is not the request's", async ({ page }) => {
+  const violations = await watchViolations(page);
+  await seedAndOpen(page, {}, {
+    method: "GET",
+    url: `${ECHO}/echo`,
+    preRequestScript: `(async () => {
+      pm.request.headers.add({ key: "X-Signed", value: "by-the-script" });
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    })();`,
+    postRequestScript: "pm.test('after', () => {});",
+  });
+  const answered = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  await send(page);
+  const echo = (await (await answered).json()) as { headers: [string, string][] };
+  expect(echo.headers.find(([name]) => name === "x-signed")?.[1]).toBe("by-the-script");
+
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await openTests(page);
+  const timings = page.locator(".script-timings");
+  await expect(timings).toHaveText(/^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/);
+  const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+) ms/g)].map((match) => Number(match[1]));
+  // The script waited 200 ms of its own. Whatever the machine, that time is in its number and not in the request's.
+  expect(pre).toBeGreaterThanOrEqual(200);
+  expect(request).toBeLessThan(pre);
+  expect(await violations()).toEqual([]);
+});
+
+test("P3.9: a pre-request script that fails stops the send, and the Tests tab shows what it did", async ({ page }) => {
+  const violations = await watchViolations(page);
+  const hits = await captureTarget(page);
+  await seedAndOpen(page, {}, {
+    method: "GET",
+    url: `${TARGET}/not-sent`,
+    preRequestScript: "console.log('signing'); pm.test('before the error', () => {}); notDefined();",
+    postRequestScript: "pm.test('the post-response script ran', () => {});",
+  });
+  await send(page);
+  await expect(page.getByText("The pre-request script failed, so the request was not sent.")).toBeVisible();
+  // The Tests tab is open by itself: there is no response to look at.
+  const failed = page.locator(".test-result-fail", { hasText: "Pre-request script" });
+  await expect(failed).toContainText("'notDefined' is not defined");
+  await expect(page.locator(".test-result-pass", { hasText: "before the error" })).toBeVisible();
+  await expect(page.locator(".script-console")).toContainText("signing");
+  await expect(page.locator(".script-timings")).toHaveText(/^Pre-request script \d+ ms$/);
+  await expect(page.locator(".test-result-pass", { hasText: "the post-response script ran" })).toHaveCount(0);
+  await expect(page.locator(".status-badge")).toHaveCount(0);
+  expect(hits).toEqual([]);
   expect(await violations()).toEqual([]);
 });
 
@@ -178,13 +230,14 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
       pm.test("chai", () => pm.expect(pm.response.json()).to.deep.include({ token: "t-123" }).and.to.have.property("items").that.has.lengthOf(2));
       pm.test("scopes", () => pm.expect([pm.variables.get("token"), pm.globals.get("seen"), pm.environment.name]).to.eql(["t-123", "prerequest Tripwire request", "Tripwire env"]));
       pm.test("the request as it was sent", () => pm.expect([pm.request.method, pm.request.headers.has("x-signed"), pm.request.url.getQueryString()]).to.eql(["POST", true, "signed=1"]));
+      pm.test("its variables replaced (P3.9)", () => pm.expect([pm.request.url.getHost(), pm.request.headers.get("Authorization"), pm.request.headers.get("X-Stage"), request.url]).to.eql(["tripwire.test", "Bearer t-123", "before", "https://tripwire.test/items?signed=1"]));
       pm.test("cookies are not there", () => { pm.cookies.get("session"); });
     `,
   });
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
-  for (const name of ["status", "chai", "scopes", "the request as it was sent"]) {
+  for (const name of ["status", "chai", "scopes", "the request as it was sent", "its variables replaced (P3.9)"]) {
     await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
   }
   const failed = page.locator(".test-result-fail");

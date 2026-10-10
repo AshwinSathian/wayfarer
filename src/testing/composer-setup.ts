@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import { signal, type Provider } from '@angular/core';
 import { Composer } from '../app/components/composer/composer';
 import { ComposerView } from '../app/components/composer/composer-view';
 import { RequestSave } from '../app/services/request-save';
@@ -13,7 +13,7 @@ import { EnvironmentDoc } from '../app/models/environments';
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
 import { requestContent, rowsOf } from './request-fixtures';
-import type { Row } from '@wayfarer/core';
+import { applyVariableChanges, type Row, type VariableChange } from '@wayfarer/core';
 import { vi } from "vitest";
 import { FetchMock } from './fetch-mock';
 
@@ -48,6 +48,13 @@ class EnvironmentsServiceStub {
         this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
       }
     });
+
+  /** As the store does it: the changes applied to the rows that are there. */
+  changeEnvironment = vi.fn().mockImplementation(async (id: string, changes: VariableChange[]) => {
+    const current = this.activeEnvSignal();
+    if (current && current.meta.id === id) this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
+  });
+  changeGlobals = vi.fn().mockImplementation(async (changes: VariableChange[]) => this.globals.set(applyVariableChanges(this.globals(), changes)));
 
   setActiveEnvironment(env: EnvironmentDoc | null): void {
     this.activeEnvSignal.set(env);
@@ -118,8 +125,8 @@ export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
 /** Header rows as the draft holds them. */
 export const rows = (items: { key: string; value: string }[]) => items.map((item) => ({ ...item, enabled: true }));
 
-/** The composer with its stores stubbed and `fetch` captured, as both composer specs use it. */
-export async function setupComposer() {
+/** The composer with its stores stubbed and `fetch` captured, as the composer specs use it. `extra` stubs what one spec needs stubbed besides. */
+export async function setupComposer(extra: Provider[] = []) {
   const idbService = new IdbServiceMock();
   const responseInspector = new ResponseInspectorServiceStub();
   const environmentsService = new EnvironmentsServiceStub();
@@ -134,6 +141,7 @@ export async function setupComposer() {
       { provide: EnvironmentsStore, useValue: environmentsService },
       { provide: CollectionsStore, useValue: collectionsService },
       { provide: SecretsVault, useValue: vault },
+      ...extra,
     ],
   }).compileComponents();
 

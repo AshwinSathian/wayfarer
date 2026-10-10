@@ -84,5 +84,5 @@ export {
   type ScriptSendRequest,
 } from "./scripting/host";
 export { loadLibraries } from "./scripting/libraries";
-export { scriptRequestOf, withScriptRequest } from "./scripting/request-view";
+export { scriptRequestOf, sentScriptRequest, withScriptRequest } from "./scripting/request-view";
 export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";

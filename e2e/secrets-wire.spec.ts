@@ -1,11 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { dumpIdb, seedAndOpen, send } from "./support/app";
+import { PASSPHRASE, dumpIdb, protectVariable, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.5 with P2.8 and P2.9 (plan D21): a vault secret reaches the wire, and
 // nothing that is stored, exported or copied holds it.
 
-const PASSPHRASE = "correct horse battery staple";
 /** Characters that every encoding writes differently. */
 const SECRET = 'sek"ret/+ valu&e-9f2b';
 
@@ -55,25 +54,6 @@ function found(text: string, secret: string): string[] {
     }
   }
   return [...new Set(hits)];
-}
-
-/** Adds a protected variable to the open environment, making the vault on the way. */
-async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
-  const keys = page.getByPlaceholder("KEY", { exact: true });
-  const before = await keys.count();
-  await page.getByRole("button", { name: "Add variable" }).click();
-  await expect(keys).toHaveCount(before + 1);
-  await keys.last().fill(name);
-  await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
-  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
-  await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
-  await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
-  await expect(page.getByText("Secret stored")).toBeVisible();
-  await page.getByRole("button", { name: "Save changes" }).click();
 }
 
 async function downloadText(page: Page, menuItem: string): Promise<string> {

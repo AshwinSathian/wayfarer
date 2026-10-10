@@ -49,8 +49,16 @@ three stored scopes also have `set(name, value)`, `unset(name)` and
 
 ### `pm.request`
 
-The request being sent, as composed: `{{variables}}` not replaced, and
-without the header the Auth tab adds.
+In a pre-request script: the request being sent, as composed.
+`{{variables}}` are not replaced, and the header the Auth tab adds is not
+there yet.
+
+In a post-response script: the request as it was sent. Variables are
+replaced, the Auth tab's header is among the headers, and the address is the
+one the request went to. A vault secret in it reads `***`: a script is not
+handed a secret, here as in a variable's value. A credential that is not in
+the vault (a token typed into the Auth tab or kept in a plain variable) is
+shown as it is.
 
 - `pm.request.method`, `pm.request.url` (`toString()`, `getHost()`,
   `getPath()`, `getQueryString()`), `pm.request.headers` (`get`, `has`,
@@ -89,8 +97,24 @@ script says `expect`.
 
 A script that ends in an error (it throws, has a syntax error, or is
 stopped by a limit) adds one failed row named "Pre-request script" or
-"Post-response script" with the error as its message. The request is still
-sent.
+"Post-response script" with the error as its message.
+
+**A pre-request script that ends in an error stops the send**, as in
+Postman: the request is not built and nothing goes out. The Tests tab opens
+with the rows of the tests that ran before the error, the failed row and
+the console. Variables the script set before the error are stored. A
+`pm.test` that fails is not an error: the request is sent.
+
+### How long each part took
+
+When a script ran, the Tests tab has one line under the results:
+`Pre-request script 12 ms · Request 340 ms · Post-response script 8 ms`.
+The request's time is the request alone, and is the number the status bar,
+`pm.response.responseTime` and history show: a script that waits does not
+add to it. A script's time is the time from when it was handed to the
+sandbox until its result came back, so the first script of a session also
+counts the download of the engine, and a script that calls `pm.sendRequest`
+counts those requests.
 
 ### `pm.sendRequest(request, callback?)`
 
@@ -293,10 +317,11 @@ ever handed to a script. The response is given to the script as JSON text
 and parsed inside the engine.
 
 **What a script is given.** The enabled variables of the active
-environment, of the request's collection and the globals, by name; the
-request as composed; and for a post-response script the response. A
-protected variable's value is its `{{$secret.…}}` reference, not the
-secret. A script cannot make a request itself: `pm.sendRequest` asks the
+environment, of the request's collection and the globals, by name; for a
+pre-request script the request as composed; and for a post-response script
+the request as it was sent, with every vault secret in it masked, and the
+response. A protected variable's value is its `{{$secret.…}}` reference,
+not the secret. A script cannot make a request itself: `pm.sendRequest` asks the
 app to make one (see above), and the app refuses one that holds a secret's
 reference.
 
@@ -343,9 +368,37 @@ sends it where it now points. A script that writes
 sends your key elsewhere.
 
 This is the reason a script that came from a file, a backup or history
-does not run until you have read it (next section), and the reason to read
-it. Nothing in the app can tell a script that signs a request from one
-that redirects it.
+does not run until you have read it (the section after next), and the
+reason to read it. Nothing in the app can tell a script that signs a
+request from one that redirects it.
+
+A post-response script sees the request as it was sent with its vault
+secrets masked, but it reads the response as it came: a server that sends a
+secret back gives it to the script.
+
+## When a script sends a request with a secret to another host
+
+One case the app does catch, and asks about (claim C-053). When a request
+is sent, the app works out the host it would go to twice: as you composed
+it with the variables as they were, and as its pre-request script left it,
+with the variables as they are now. If the two differ and the request uses
+a vault secret, a dialog names both hosts before the vault is read:
+
+- **Send** sends the request where the script pointed it.
+- **Don't send** sends nothing, and puts back every variable that script
+  set, so that pressing Send again asks again.
+
+"Host" is the name and the port. A script that changes the scheme, the
+path, the query or a header on the same host is not asked about.
+
+**What this does not catch.** It compares one send. A variable that a
+script set in an earlier send is, by the next send, simply the variable's
+value: if a post-response script, or the pre-request script of a request
+without a secret, stores another host in a variable, the next request built
+from that variable goes there with its secrets and no question. The
+variable chips under the address show the value a request will be sent
+with. The review of a script before it runs remains the control; this
+dialog is a second look at the most direct case, not a wall.
 
 ## Which scripts may run
 

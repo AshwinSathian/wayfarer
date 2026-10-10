@@ -360,6 +360,22 @@ code errors.
   that check as keeping secrets from scripts: an approved pre-request
   script can change the user's own request (`pm.request`, or a variable),
   which is built with its secrets. `ScriptTrust` is the control (D6, Q6).
+- A send with scripts goes in this order, in `RequestExecutor.execute`:
+  pre-request script, its variable changes stored, the request built (and
+  only then the vault read), sent, post-response script. A pre-request
+  script that ends in an error stops there (`PreRequestScriptError`):
+  nothing is built or sent. A failed `pm.test` is not an error.
+- A pre-request script sees the request as composed. A post-response script
+  sees it as sent (`sentScriptRequest`), every vault secret masked first: a
+  script is not handed a secret's plaintext by the app, in a variable or in
+  `pm.request`. Keep it so when adding to what a script is given.
+- When a pre-request script left the request going to another host and the
+  request uses a vault secret, `WorkspaceStore` asks before the vault is
+  read (plan Q6, claim C-053); a no throws `SendDeclinedError`, and the
+  executor then puts back what the script set. It compares one send and
+  the docs say what that misses: do not word it as more.
+- A script's duration is the wall time of `ScriptSandbox.execute`. The
+  request's duration never includes a script's (F11).
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,
   with a script that proves it. A new or changed part of `pm` changes its
   row in the same PR; the rows run in Node and in the app's worker.

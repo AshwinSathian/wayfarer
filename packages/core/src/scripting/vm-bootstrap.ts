@@ -121,6 +121,8 @@ export const VM_BOOTSTRAP = `(function (host, responseText) {
   var timers = new Map();
   var nextTimer = 1;
   globalThis.setTimeout = function (fn, delay) {
+    // A browser would evaluate a string given here. Nothing is evaluated: it is refused at once.
+    if (typeof fn !== "function") throw new TypeError("setTimeout: the callback is not a function");
     var id = nextTimer++;
     var rest = Array.prototype.slice.call(arguments, 2);
     timers.set(id, function () { fn.apply(undefined, rest); });

@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { ScriptSandbox } from "./script-sandbox";
-import { describe, it, beforeEach, expect } from "vitest";
+import { afterEach, describe, it, beforeEach, expect, vi } from "vitest";
 
 describe("ScriptSandbox", () => {
   let service: ScriptSandbox;
@@ -154,6 +154,82 @@ describe("ScriptSandbox", () => {
   it("times out a hung script instead of hanging the caller forever", async () => {
     const result = await service.execute(`while (true) {}`, {}, undefined, 300);
     expect(result.error).toContain("timed out");
+  });
+
+  describe("when the worker does not behave (P3.6)", () => {
+    /** A worker that says the engine is loaded and then does what the test tells it. */
+    class FakeWorker extends EventTarget {
+      static made: FakeWorker[] = [];
+      terminated = false;
+      runs: string[] = [];
+      constructor() {
+        super();
+        FakeWorker.made.push(this);
+      }
+      postMessage(message: { id: string }): void {
+        this.runs.push(message.id);
+        queueMicrotask(() => this.say({ id: message.id, type: "started" }));
+      }
+      say(data: unknown): void {
+        this.dispatchEvent(new MessageEvent("message", { data }));
+      }
+      terminate(): void {
+        this.terminated = true;
+      }
+    }
+
+    beforeEach(() => {
+      FakeWorker.made = [];
+      vi.stubGlobal("Worker", FakeWorker);
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it("ends a run itself one second after the script's deadline, ends the worker, and starts a new one for the next run", async () => {
+      let settled = false;
+      const run = service.execute("neverAnswers()", {}, undefined, 300).then((result) => {
+        settled = true;
+        return result;
+      });
+      await vi.advanceTimersByTimeAsync(1299);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(2);
+      expect(await run).toEqual({ logs: [], envMutations: {}, testResults: [], error: "Script timed out after 300 ms", limit: "timeout" });
+      expect(FakeWorker.made).toHaveLength(1);
+      expect(FakeWorker.made[0].terminated).toBe(true);
+
+      const next = service.execute("next()", {});
+      await vi.advanceTimersByTimeAsync(0);
+      expect(FakeWorker.made).toHaveLength(2);
+      FakeWorker.made[1].say({ id: FakeWorker.made[1].runs[0], type: "result", result: { logs: ["ran"], envMutations: {}, testResults: [] } });
+      expect((await next).logs).toEqual(["ran"]);
+      // A run that ended normally keeps its worker.
+      expect(FakeWorker.made[1].terminated).toBe(false);
+    });
+
+    it("ends the worker after a run that hit a limit, and every run still waiting on it", async () => {
+      const first = service.execute("hitsALimit()", {});
+      const second = service.execute("waiting()", {});
+      await vi.advanceTimersByTimeAsync(0);
+      const worker = FakeWorker.made[0];
+      expect(FakeWorker.made).toHaveLength(1);
+      worker.say({ id: worker.runs[0], type: "result", result: { logs: [], envMutations: {}, testResults: [], error: "Script exceeded memory limit (64 MB)", limit: "memory" } });
+      expect((await first).limit).toBe("memory");
+      expect(worker.terminated).toBe(true);
+      expect((await second).error).toBe("Script execution was stopped.");
+    });
+
+    it("ignores a message that names no run of its own", async () => {
+      const run = service.execute("real()", {});
+      await vi.advanceTimersByTimeAsync(0);
+      const worker = FakeWorker.made[0];
+      worker.say({ id: "forged", type: "result", result: { logs: ["forged"], envMutations: { token: "forged" }, testResults: [] } });
+      worker.say({ id: worker.runs[0], type: "result", result: { logs: ["real"], envMutations: {}, testResults: [] } });
+      expect((await run).logs).toEqual(["real"]);
+    });
   });
 
   it("resolves immediately for an empty script without spawning a worker", async () => {

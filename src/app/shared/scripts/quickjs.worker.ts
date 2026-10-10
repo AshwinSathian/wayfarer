@@ -14,7 +14,7 @@
 import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
 import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
 import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
-import { runScript, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
+import { runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
 // By its path, not by the package's "./wasm" entry: the development and
 // unit-test servers hand an import that names a package to Vite, which tries
 // to run a .wasm file as a module. A path is built with the worker, and the
@@ -41,7 +41,7 @@ let engine: Promise<QuickJSWASMModule> | undefined;
 
 async function run({ id, source, context, limits }: RunMessage): Promise<void> {
   try {
-    engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmLocation: new URL(wasmLocation, import.meta.url).href }));
+    engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmLocation: new URL(wasmLocation, import.meta.url).href, wasmMemory: new WebAssembly.Memory(scriptMemory()) }));
     const quickjs = await engine;
     // The page's own clock for this run starts here, not at the download.
     postMessage({ id, type: "started" });

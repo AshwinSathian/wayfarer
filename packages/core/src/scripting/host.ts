@@ -31,6 +31,31 @@ export const SCRIPT_LIMITS: ScriptLimits = {
   maxOutputBytes: 2 ** 20,
 };
 
+const WASM_PAGE = 65536;
+/** What the engine's module asks for at the start: 16 MB. */
+const ENGINE_INITIAL_PAGES = 256;
+
+/**
+ * The size of the memory the engine must be loaded with: the caller makes
+ * `new WebAssembly.Memory(scriptMemory())` and gives it to `newVariant` as
+ * `wasmMemory`. It cannot grow past the memory limit, and that is what
+ * makes the limit hold (F66). (A description, not the object: this package
+ * has neither the DOM's nor a worker's types, where `WebAssembly` is.)
+ *
+ * QuickJS's own `setMemoryLimit` does not: built for WebAssembly it counts 8
+ * bytes for an allocation of any size, so it refuses one allocation larger
+ * than the limit and nothing else. Under it a script held 1,840 MB of typed
+ * arrays, 8 MB at a time, and the engine's memory grew to its 2 GB maximum.
+ * With this memory, growth past the limit fails in the browser, the engine's
+ * allocator has nothing to give, and QuickJS throws "out of memory".
+ *
+ * The limit is on the whole engine, its own few hundred kilobytes included,
+ * and on every runtime in it: one script runs at a time.
+ */
+export function scriptMemory(limits: ScriptLimits = SCRIPT_LIMITS): { initial: number; maximum: number } {
+  return { initial: ENGINE_INITIAL_PAGES, maximum: Math.max(ENGINE_INITIAL_PAGES, Math.floor(limits.memoryBytes / WASM_PAGE)) };
+}
+
 /** The line that stands for the console output that was dropped. */
 export const LOG_TRUNCATED = "[console output truncated]";
 
@@ -100,7 +125,8 @@ function limitMessage(limit: NonNullable<ScriptResult["limit"]>, limits: ScriptL
  * in either direction.
  *
  * The QuickJS module is an argument, so the same code runs in the app's
- * worker and in Node.
+ * worker and in Node. Whoever loads it gives it a memory of `scriptMemory()`:
+ * the memory limit is the size that memory may reach.
  */
 export async function runScript(quickjs: QuickJSWASMModule, source: string, context: ScriptContext, limits: ScriptLimits = SCRIPT_LIMITS): Promise<ScriptResult> {
   const state: RunState = { logs: [], logged: 0, written: 0, changes: new Map(), tests: [], timers: new Map() };
@@ -155,6 +181,8 @@ async function evaluate(
       const kind = vm.typeof(error);
       if (kind === "string") return { message: vm.getString(error) };
       if (kind !== "object") return { message: "Script failed." };
+      // With no memory left QuickJS cannot make the error it wants to throw, and throws null.
+      if (vm.dump(error) === null) return { message: "", limit: "memory" };
       const name = property(vm, error, "name");
       const message = property(vm, error, "message") ?? "Script failed.";
       if (name === "InternalError" && message === "out of memory") return { message, limit: "memory" };

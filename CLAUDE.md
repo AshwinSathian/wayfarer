@@ -339,6 +339,13 @@ code errors.
 - After a run that hit a limit the engine may be unusable: the worker is
   ended and the next run starts a new one. Do not reuse a module after
   `result.limit` is set.
+- The memory limit is the maximum of the `WebAssembly.Memory` the engine
+  is loaded with (`scriptMemory()`, given to `newVariant` as `wasmMemory`).
+  QuickJS's `setMemoryLimit` does not hold in WebAssembly: it counts 8 bytes
+  for an allocation of any size (F66). Whatever loads the engine (the
+  worker, a spec, the CLI later) must pass that memory.
+- A test of a limit allocates in pieces and puts the deadline far away, so
+  that the limit under test is the one that is met first on a slow machine.
 - The stack limit (`SCRIPT_LIMITS.stackBytes`) is not what stops a deep
   recursion in Chromium and WebKit: the browser's own stack ends first, and
   `runScript` reports that as the same limit. Raising the number changes

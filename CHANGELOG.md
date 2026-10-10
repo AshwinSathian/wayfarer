@@ -28,6 +28,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   another origin shows only the headers a browser lets a page read; the
   tab now says so. A header sent twice is listed twice.
 
+- **The composer says what the browser will do to your request.** A browser
+  silently drops headers a page may not set (`Cookie`, `Host`, `Origin` and
+  others), asks the server for leave before many requests (a CORS
+  preflight), and blocks `http://` addresses from an HTTPS page. Under the
+  address bar, **What the browser does to this request** now says which of
+  these applies before you send, names each header that will not arrive,
+  and lists what the browser adds and what Wayfarer leaves out (`Referer`,
+  cookies). With the Local Bridge on it says what the bridge changes.
+  `docs/browser-limits.md` explains each item. Before, a `Cookie` header
+  you typed simply never arrived.
+
 ### Security
 
 - The Content-Security-Policy now allows `blob:` images and `blob:`

@@ -175,7 +175,7 @@ These are open, tracked, and scheduled in
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
-- The browser adds or hides some headers without telling you ([#81](https://github.com/AshwinSathian/wayfarer/issues/81)).
+- A browser drops some request headers, adds others and hides most response headers of another origin. Wayfarer cannot change that from a page; it says so for each request before you send it <!-- claim:C-049 --> and on the Headers tab, and [`browser-limits.md`](browser-limits.md) lists all of it. The Local Bridge is the way around.
 
 All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09).
 

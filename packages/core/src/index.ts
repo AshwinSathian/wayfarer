@@ -1,4 +1,5 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
+export { browserLimits, type BrowserLimits } from "./browser/browser-limits";
 export { newId } from "./id";
 export { evaluatePath } from "./view/json-path";
 export {

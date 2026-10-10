@@ -390,6 +390,11 @@
           <!-- ── Tests tab ──────────────────────────────────── -->
           <div class="tab-pane" [hidden]="activeTab() !== 'tests'">
             <div class="space-y-2 pb-4">
+              @if (scriptsSkipped()) {
+              <p role="status" class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+                This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.
+              </p>
+              }
               @if (!testResults().length) {
               <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
                 <app-icon name="rule" class="icon-md text-label-tertiary" />

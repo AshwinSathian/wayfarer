@@ -21,6 +21,6 @@ export class SaveAsDialog {
   private readonly store = inject(WorkspaceStore);
 
   protected async confirm(): Promise<void> {
-    await this.requestSave.confirmSaveAs(this.store.snapshot());
+    await this.requestSave.confirmSaveAs(this.store.snapshot(), this.store.scriptsAllowed());
   }
 }

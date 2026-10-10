@@ -292,7 +292,7 @@ describe('Composer', () => {
     expect(requestSave.saveAsCollectionId()).toBe('c1');
 
     requestSave.saveAsName.set('My new request');
-    await requestSave.confirmSaveAs(store.snapshot());
+    await requestSave.confirmSaveAs(store.snapshot(), store.scriptsAllowed());
 
     expect(collectionsService.createRequest).toHaveBeenCalledWith(
       expect.objectContaining({

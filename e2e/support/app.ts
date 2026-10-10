@@ -87,6 +87,11 @@ export async function seedAndOpen(
       const state = await new Promise((resolve) => (read.onsuccess = () => resolve(read.result)));
       const now = Date.now();
       const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
+      // The scripts of a seeded request stand for scripts written here: the collection holds their digests (P3.8).
+      const digest = async (text: string) =>
+        Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      const scripts = { pre: request.preRequestScript ?? "", post: request.postRequestScript ?? "" };
+      const approved = await Promise.all([scripts.pre, scripts.post].filter((script) => script.trim()).map(digest));
       const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
       const rows = (record: Record<string, string>) =>
         Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
@@ -98,7 +103,7 @@ export async function seedAndOpen(
         name: "Tripwire collection",
         order: 0,
         variables: [],
-        scriptTrust: { trusted: true },
+        scriptTrust: approved.length ? { trusted: true, approved } : { trusted: true },
       });
       tx.objectStore("requests").put({
         id: "req-tw",
@@ -116,7 +121,7 @@ export async function seedAndOpen(
             ? { mode: "none" }
             : { mode: "raw", raw: { language: "json", text: JSON.stringify(request.body, null, 2) } }),
         auth: request.auth ?? { type: "none" },
-        scripts: { pre: request.preRequestScript ?? "", post: request.postRequestScript ?? "" },
+        scripts,
         tests: request.tests ?? [],
         settings: {},
       });

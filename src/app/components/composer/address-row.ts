@@ -55,6 +55,6 @@ export class AddressRow {
   }
 
   protected async save(): Promise<void> {
-    await this.requestSave.save(this.store.snapshot());
+    await this.requestSave.save(this.store.snapshot(), this.store.scriptsAllowed());
   }
 }

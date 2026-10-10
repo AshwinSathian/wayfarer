@@ -109,6 +109,10 @@ export class Idb {
     return this.collections.duplicateCollection(id);
   }
 
+  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<Collection | null> {
+    return this.collections.approveScripts(id, digests, review);
+  }
+
   async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
     return this.collections.changeCollectionVariables(id, changes);
   }

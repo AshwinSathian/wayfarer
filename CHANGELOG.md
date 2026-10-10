@@ -16,6 +16,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Security
 
+- **Scripts that came from somewhere else wait for you.** The scripts of an imported collection, of one restored from a backup, and of a history entry no longer run when the request is sent. The Scripts tab says so and offers a review: every script of the collection in one read-only view, and "I trust these scripts". The collection then keeps the SHA-256 of each script you approved, and a script runs only if its own digest is there, so a later import that changes one makes it wait again. Scripts you write and save in a collection you made run as before. Saving a script you have not reviewed does not approve it ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)).
+- A collection saved before this change has no list of approved scripts yet: its scripts wait for one review. Nothing stored was removed.
 - The Content-Security-Policy gains one keyword: `script-src 'self' 'wasm-unsafe-eval'`, so that the engine can be compiled. `eval`, `new Function` and inline script stay forbidden, and a test asserts the directive is exactly that.
 
 ### Fixed

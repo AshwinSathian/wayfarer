@@ -2,7 +2,7 @@ import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestFiles } from "./request-files";
 import { StoragePersistence } from "./storage-persistence";
-import type { RequestContent } from "@wayfarer/core";
+import { scriptDigest, scriptsOf, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
@@ -63,8 +63,21 @@ export class RequestSave {
     this.loadedCollectionRequest.set(doc);
   }
 
-  /** Save: writes back in place if bound to an existing request, otherwise opens the Save-As dialog. */
-  async save(snapshot: RequestContentSnapshot): Promise<void> {
+  /**
+   * The scripts being saved are the user's own when the composer's scripts
+   * were allowed to run: they are approved in the collection they go to, if
+   * that collection is trusted. Scripts that were waiting for a review stay
+   * unapproved wherever they are saved (plan D6). Before the request is
+   * written, so that it is never stored with a script not yet approved.
+   */
+  private async approveScripts(collectionId: string, snapshot: RequestContentSnapshot, scriptsAllowed: boolean): Promise<void> {
+    const scripts = scriptsOf(snapshot);
+    if (!scriptsAllowed || !scripts.length) return;
+    await this.collectionsService.approveScripts(collectionId, await Promise.all(scripts.map(scriptDigest)), false);
+  }
+
+  /** Save: writes back in place if bound to an existing request, otherwise opens the Save-As dialog. `scriptsAllowed`: see `approveScripts`. */
+  async save(snapshot: RequestContentSnapshot, scriptsAllowed: boolean): Promise<void> {
     const bound = this.loadedCollectionRequest();
     if (!bound) {
       this.openSaveAsDialog();
@@ -74,6 +87,7 @@ export class RequestSave {
     void this.persistence.request();
     this.savingRequest.set(true);
     try {
+      await this.approveScripts(bound.collectionId, snapshot, scriptsAllowed);
       const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot, this.files.unsaved(snapshot.body));
       if (updated) {
         this.loadedCollectionRequest.set(updated);
@@ -102,7 +116,7 @@ export class RequestSave {
   }
 
   /** Creates a new collection request from the Save-As dialog's current fields, then binds the composer to it. */
-  async confirmSaveAs(snapshot: RequestContentSnapshot): Promise<void> {
+  async confirmSaveAs(snapshot: RequestContentSnapshot, scriptsAllowed: boolean): Promise<void> {
     const collectionId = this.saveAsCollectionId();
     const name = this.saveAsName().trim();
     if (!collectionId || !name) {
@@ -111,6 +125,7 @@ export class RequestSave {
     void this.persistence.request();
     this.savingRequest.set(true);
     try {
+      await this.approveScripts(collectionId, snapshot, scriptsAllowed);
       const doc = await this.collectionsService.createRequest(
         { ...snapshot, collectionId, folderId: this.saveAsFolderId() ?? undefined, name },
         this.files.unsaved(snapshot.body)

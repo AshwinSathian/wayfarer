@@ -55,6 +55,31 @@ export class CollectionsRepository {
     });
   }
 
+  /**
+   * Records script texts, by their digests, as approved for a collection.
+   * `review` is the user's "I trust these scripts": the collection becomes
+   * trusted and the list is exactly these. Otherwise the digests are of a
+   * script the user just saved here, and they are added only if the
+   * collection is trusted already: an edit does not approve an import.
+   */
+  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<Collection | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["collections"]);
+    const store = tx.objectStore("collections");
+    return this.core.commitOrRollback(tx, async () => {
+      const existing = await store.get(id);
+      if (!existing || (!review && !existing.scriptTrust?.trusted)) {
+        return null;
+      }
+      // ponytail: an edit only adds, so the list keeps the digest of every version saved (64 characters each). A review starts it again; prune here if a collection's list ever gets large.
+      const approved = review ? digests : [...new Set([...(existing.scriptTrust.approved ?? []), ...digests])];
+      existing.scriptTrust = { trusted: true, approved };
+      existing.meta = this.core.touchMeta(existing.meta);
+      await store.put(existing);
+      return existing;
+    });
+  }
+
   /** Changes some variables of a collection, reading the stored rows inside the transaction that writes them (D22). */
   async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();

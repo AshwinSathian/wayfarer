@@ -148,7 +148,7 @@ describe("RequestExecutor", () => {
   it("sends the request built by buildRequest() and shapes a successful JSON response", async () => {
     transport.setResponse(envelope(200, "OK", { hello: "world" }));
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -170,7 +170,7 @@ describe("RequestExecutor", () => {
   });
 
   it("marks request/response with the URL from buildRequest(), not a placeholder", async () => {
-    await service.execute({ template: TEMPLATE,
+    await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -188,7 +188,7 @@ describe("RequestExecutor", () => {
   });
 
   it("includes a text body in the sent request and in history", async () => {
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -206,7 +206,7 @@ describe("RequestExecutor", () => {
   });
 
   it("omits the body from the send call and history when the request has none", async () => {
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -226,7 +226,7 @@ describe("RequestExecutor", () => {
     // The browser says no more than "Failed to fetch"; the guidance text is shown instead (P0.5, #63).
     transport.setResponse(new TransportError("network", "Failed to fetch"));
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -245,7 +245,7 @@ describe("RequestExecutor", () => {
   it("shapes a JSON error body from a real HTTP error response", async () => {
     transport.setResponse(envelope(500, "Server Error", { message: "boom" }));
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -267,7 +267,7 @@ describe("RequestExecutor", () => {
     });
 
     let capturedEnvDuringBuild: string | undefined;
-    await service.execute({ template: TEMPLATE,
+    await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pm.environment.set('authToken', 'fetched-token');",
       postRequestScript: "",
       tests: [],
@@ -293,7 +293,7 @@ describe("RequestExecutor", () => {
       return { logs: [], envMutations: {}, testResults: [] };
     });
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pre script",
       postRequestScript: "",
       tests: [],
@@ -313,7 +313,7 @@ describe("RequestExecutor", () => {
       testResults: [{ label: "post check", passed: true, source: "script" as const }],
     });
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "pm.test('post check', () => true);",
       tests: [],
@@ -333,7 +333,7 @@ describe("RequestExecutor", () => {
   it("runs visual test assertions against the response and merges them into testResults", async () => {
     transport.setResponse(envelope(200, "OK", {}));
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [{ id: "t1", target: "status", operator: "equals", expected: "200" }],
@@ -352,7 +352,7 @@ describe("RequestExecutor", () => {
       testResults: [],
     });
 
-    await service.execute({ template: TEMPLATE,
+    await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "increment",
       tests: [],
@@ -366,7 +366,7 @@ describe("RequestExecutor", () => {
 
   it("runs both scripts in every build, sends, and runs Tests-tab assertions (C-006)", async () => {
     scriptSandbox.setNextResult({ logs: [], envMutations: {}, testResults: [{ label: "t", passed: true, source: "script" }] });
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pm.test('t', () => {});",
       postRequestScript: "pm.test('t', () => {});",
       tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
@@ -382,6 +382,20 @@ describe("RequestExecutor", () => {
     ]);
   });
 
+  it("skips both scripts when they are not approved, and still sends and runs the assertions (D6)", async () => {
+    const result = await service.execute({ template: TEMPLATE, runScripts: false,
+      preRequestScript: "pm.environment.set('a', '1');",
+      postRequestScript: "pm.test('t', () => {});",
+      tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
+      buildRequest: () => builtRequest(),
+    });
+
+    expect(scriptSandbox.execute).not.toHaveBeenCalled();
+    expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+    expect(result.testResults).toHaveLength(1);
+    expect(result.testResults[0]).toEqual(expect.objectContaining({ passed: true, source: "assertion" }));
+  });
+
   it("F65: a script that ends in an error is a failed row, after the tests that ran before it", async () => {
     scriptSandbox.setNextResult({
       logs: [],
@@ -389,7 +403,7 @@ describe("RequestExecutor", () => {
       testResults: [{ label: "ran first", passed: true, source: "script" }],
       error: "'notDefined' is not defined",
     });
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pm.test('ran first', () => {}); notDefined();",
       postRequestScript: "pm.test('ran first', () => {}); notDefined();",
       tests: [],
@@ -431,7 +445,7 @@ describe("RequestExecutor", () => {
     for (const [where, overrides] of cases) {
       it(`blocks the send when the ${where} still holds one`, async () => {
         await expect(
-          service.execute({ template: TEMPLATE,
+          service.execute({ template: TEMPLATE, runScripts: true,
             preRequestScript: "",
             postRequestScript: "",
             tests: [],
@@ -443,7 +457,7 @@ describe("RequestExecutor", () => {
     }
 
     it("still sends an ordinary {{var}} left unresolved", async () => {
-      await service.execute({ template: TEMPLATE,
+      await service.execute({ template: TEMPLATE, runScripts: true,
         preRequestScript: "",
         postRequestScript: "",
         tests: [],
@@ -457,7 +471,7 @@ describe("RequestExecutor", () => {
     const png = new BinaryBody(new Uint8Array([0x89, 0x50]).buffer, "image/png");
     transport.setResponse(envelope(200, "OK", png.bytes, "image/png"));
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -475,7 +489,7 @@ describe("RequestExecutor", () => {
     TestBed.inject(RequestSettings).timeoutMs.set(1500);
     const controller = new AbortController();
 
-    await service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
+    await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
 
     expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500 });
   });
@@ -493,7 +507,7 @@ describe("RequestExecutor", () => {
       return send(request, options);
     };
 
-    const result = await service.execute({ template: TEMPLATE,
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pm.environment.set('a', '1');",
       postRequestScript: "",
       tests: [],
@@ -512,7 +526,7 @@ describe("RequestExecutor", () => {
       new TransportError("aborted", "The request was cancelled."),
     ]) {
       transport.setResponse(failure);
-      const result = await service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
 
       expect(result.response).toEqual(
         expect.objectContaining({ isError: true, statusCode: undefined, errorText: failure.message, dataText: "" })
@@ -525,7 +539,7 @@ describe("RequestExecutor", () => {
   it("shows the Local Bridge's own failure with the status it answered", async () => {
     transport.setResponse(new TransportError("bridge", "invalid or missing bridge token", 401));
 
-    const result = await service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
 
     expect(result.response).toEqual(
       expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" })
@@ -534,11 +548,11 @@ describe("RequestExecutor", () => {
 
   it("reports the final URL of a redirected request, and an error status with no body by its status line", async () => {
     transport.setResponse({ ...envelope(200, "OK", { ok: true }), redirected: true, finalUrl: "https://example.com/end" });
-    const redirected = await service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const redirected = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
     expect(redirected.response.redirectedTo).toBe("https://example.com/end");
 
     transport.setResponse(envelope(404, "Not Found"));
-    const missing = await service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const missing = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
     expect(missing.response.redirectedTo).toBeUndefined();
     expect(missing.response.errorText).toBe("Http failure response for https://example.com/data: 404 Not Found");
     expect(missing.history.error).toBe("Http failure response for https://example.com/data: 404 Not Found");
@@ -546,7 +560,7 @@ describe("RequestExecutor", () => {
 
   describe("history (P2.9): what is stored of an exchange", () => {
     const run = (request: Partial<BuiltRequest>, template = TEMPLATE) =>
-      service.execute({ template, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(request) });
+      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(request) });
 
     it("masks every vault secret and credential in what was sent, in the request as composed and in the response", async () => {
       transport.setResponse({
@@ -611,7 +625,7 @@ describe("RequestExecutor", () => {
   it("rethrows what is not a transport failure", async () => {
     transport.send = () => Promise.reject(new RangeError("bug"));
     await expect(
-      service.execute({ template: TEMPLATE, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() })
+      service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() })
     ).rejects.toThrow(RangeError);
   });
 });

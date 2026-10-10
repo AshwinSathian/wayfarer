@@ -1,3 +1,15 @@
+@if (store.scriptsHeld()) {
+<div role="status" class="scripts-held flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+  <div class="flex flex-1 basis-56 min-w-0 items-start gap-2">
+    <app-icon name="warning" class="icon-sm shrink-0 mt-0.5 text-status-warning" />
+    <p class="type-callout text-status-warning">
+      These scripts do not run yet: they came from a file or from history and have not been reviewed here. Assertions still run.
+    </p>
+  </div>
+  <button type="button" matButton="outlined" class="btn-secondary btn-sm" (click)="reviewing.set(true)">Review scripts</button>
+</div>
+<app-script-review-dialog [visible]="reviewing()" (visibleChange)="reviewing.set($event)" />
+}
 <!-- Pre-request script -->
 <div class="space-y-2">
   <div class="flex items-center gap-2">

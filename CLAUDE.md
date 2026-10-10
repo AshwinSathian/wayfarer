@@ -353,6 +353,19 @@ code errors.
   server only. The built app needs neither; do not "fix" the worker for
   them.
 - An e2e that runs a script asserts 0 `securitypolicyviolation` events.
+- Which scripts may run is `ScriptTrust` (`src/app/services/script-trust.ts`,
+  plan D6): a collection's `scriptTrust.approved` lists the SHA-256 of each
+  script reviewed or written here, and a script runs only if its digest is
+  there. `send` asks `ScriptTrust.check()`; nothing else decides.
+- Only two things call `approveScripts`: the review dialog, and a save from
+  the composer whose scripts were already allowed to run. Anything else
+  that writes requests (an importer, a restore, a sync) writes them
+  unapproved, and a collection it creates or replaces gets
+  `{ trusted: false }`. Do not approve in a repository's write path.
+- A digest is computed before a transaction is opened, never inside it
+  (WebCrypto is asynchronous, like reading a `Blob`).
+- An e2e that seeds a request with scripts through `seedAndOpen` gets their
+  digests seeded too; one that imports a file gets the review.
 
 ## Dependencies and the bundle
 

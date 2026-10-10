@@ -91,6 +91,8 @@ export class ResponseViewer {
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);
   readonly testResults = input<TestResult[]>([]);
+  /** The request had scripts that were left out because they are not approved. */
+  readonly scriptsSkipped = input(false);
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
   readonly redirectedTo = input<string>();

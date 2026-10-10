@@ -70,7 +70,12 @@ function pythonCode(request: ExportRequest): string {
   return ["import requests", "", "response = requests.request(", ...args.map((arg) => `    ${arg},`), ")", "print(response.status_code)", "print(response.text)"].join("\n");
 }
 
-/** Why HTTPie cannot be given this request, as the text that is copied in the command's place. */
+/**
+ * Why HTTPie cannot be given this request, as the text that is copied in
+ * the command's place: one comment line. A name in it is written as a
+ * literal, so a line break in the name cannot end the comment and start a
+ * command of its own.
+ */
 const notHttpie = (why: string) => `# HTTPie cannot say this request: ${why}. Copy it as cURL instead.`;
 
 /**
@@ -90,11 +95,11 @@ function httpieCode(request: ExportRequest): string {
   if (!/^[A-Za-z][A-Za-z0-9!#$%&'*+.^_`|~-]*$/.test(request.method)) return notHttpie("the method does not start with a letter, and HTTPie could read it as an option");
   if (request.url.startsWith("-")) return notHttpie('the address starts with "-", which HTTPie reads as an option');
   const dashed = [...sentHeaders(request).map(([key]) => key), ...(body.mode === "multipart" ? body.parts.map((part) => part.name) : [])].find((key) => key.startsWith("-"));
-  if (dashed !== undefined) return notHttpie(`the name ${dashed} starts with "-", which HTTPie reads as an option`);
+  if (dashed !== undefined) return notHttpie(`the name ${literal(dashed)} starts with "-", which HTTPie reads as an option`);
   const flags = ["--ignore-stdin"];
   const items: string[] = [];
   for (const [key, value] of sentHeaders(request)) {
-    if (unsafe(value)) return notHttpie(`the value of the header ${key} starts with "@" or "=", which HTTPie reads as a file or as another kind of item`);
+    if (unsafe(value)) return notHttpie(`the value of the header ${literal(key)} starts with "@" or "=", which HTTPie reads as a file or as another kind of item`);
     // "Name:" would remove the header; "Name;" sends it empty.
     items.push(shellQuote(value ? `${name(key)}:${value}` : `${name(key)};`));
   }
@@ -106,7 +111,7 @@ function httpieCode(request: ExportRequest): string {
   } else if (body.mode === "multipart") {
     flags.push("--multipart");
     for (const part of body.parts) {
-      if ("value" in part && unsafe(part.value)) return notHttpie(`the value of the form part ${part.name} starts with "@" or "=", which HTTPie reads as a file or as another kind of item`);
+      if ("value" in part && unsafe(part.value)) return notHttpie(`the value of the form part ${literal(part.name)} starts with "@" or "=", which HTTPie reads as a file or as another kind of item`);
       items.push(shellQuote("value" in part ? `${name(part.name)}=${part.value}` : `${name(part.name)}@${part.fileName}`));
     }
   } else if (body.mode === "binary" && body.fileName) {

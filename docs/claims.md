@@ -58,7 +58,7 @@ back gets reworded until one can, or removed.
 | C-023 | Phase timings are withheld unless the server sends `Timing-Allow-Origin`. | README.md | e2e/features.spec.ts |
 | C-024 | Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. | README.md | e2e/features.spec.ts, e2e/collections.spec.ts |
 | C-025 | The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. | README.md | e2e/environments.spec.ts |
-| C-026 | Collection export (file format 3) and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
+| C-026 | Collection export (file format 3) and re-import is a byte-identical round trip. | README.md | packages/core/src/import/wayfarer-collection.spec.ts |
 | C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
 | C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
 | C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |
@@ -85,3 +85,4 @@ back gets reworded until one can, or removed.
 | C-051 | The scripts of a collection that came from a file or a backup do not run until you have read them and said you trust them; a script that changed since then does not run either. | README.md, docs/trust-center.md | e2e/script-trust.spec.ts, e2e/inheritance.spec.ts, src/app/services/script-trust.spec.ts |
 | C-052 | A script reaches nothing but the API it is given: it has no network, no worker scope and no storage, `require` gives five libraries that ship with the app and no other module, a script makes no request except the ones it asks the app for with `pm.sendRequest`, and nothing of one run is left for the next. | README.md, docs/trust-center.md | e2e/sandbox-escape.spec.ts, packages/core/src/scripting/host.spec.ts |
 | C-053 | When the pre-request script of a send moved the request to another host and the request uses a vault secret, the app asks before it reads the vault; answered no, it sends nothing and puts back the variables that script set. | README.md, docs/trust-center.md | e2e/script-redirect.spec.ts, src/app/components/composer/composer-scripts.spec.ts |
+| C-054 | An import shows what the file will add, and what of it could not be kept, before anything is stored; cancelled, it stores nothing. | README.md, docs/import.md | e2e/import.spec.ts |

@@ -1,3 +1,4 @@
+import { ImportDialog } from "../import/import-dialog";
 import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -52,6 +53,7 @@ import { SwUpdate } from "../../services/sw-update";
     MatButton, MatIconButton,
     MatSelect, MatOption,
     Dialog,
+    ImportDialog,
     MatTooltip,
     FormsModule,
     Composer,

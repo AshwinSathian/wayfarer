@@ -303,6 +303,11 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   await other.goto("/");
   await other.getByRole("button", { name: "Settings", exact: true }).click();
   await other.getByLabel("Import environments from file").setInputFiles(file);
+  // Since P4.1 every import shows what it will add first, also this one.
+  const report = other.getByRole("dialog", { name: "Import environments" });
+  await expect(report).toContainText("will add 1 environment");
+  await report.getByRole("button", { name: "Confirm import" }).click();
+  await expect(report).toHaveCount(0);
   await other.keyboard.press("Escape");
   await expect(other.locator(".env-item", { hasText: "Tripwire env" })).toBeVisible();
   await fresh.close();

@@ -61,6 +61,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
   - Deterministic collection import/export in file format 3 (a round trip is byte-identical) <!-- claim:C-026 -->
+  - **One import road**: every file you import is read and checked off the page's thread, and a report shows what it will add and what of it could not be kept before anything is stored; Cancel stores nothing <!-- claim:C-054 -->. See [`docs/import.md`](docs/import.md)
   - A collection and a folder have **settings**: auth for the requests set to inherit, variables, and scripts that run before and after every request in them
   - **Workspace backup**: every collection, request, environment, the global variables and the vault (still encrypted) in one file, and a restore from it; a restored collection's scripts are untrusted until approved <!-- claim:C-046 -->
   - Environment export asks what to write of protected variables: nothing (the default), their references with the encrypted vault beside them, or plain text after you type a confirmation <!-- claim:C-047 -->
@@ -203,6 +204,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 
 - [Variables](docs/variables.md)
 - [Collections schema](docs/collections-schema.md)
+- [Import](docs/import.md): the one road a file takes, and the report before anything is stored
 - [Secrets model](docs/secrets.md)
 - [Storage layout](docs/storage.md)
 - [Scripts & sandbox model](docs/scripts.md)

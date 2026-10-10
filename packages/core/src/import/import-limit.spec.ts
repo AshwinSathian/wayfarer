@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { validateCollection } from "../collections/collection-io";
-import { validateEnvironmentExport } from "../environments/environment-io";
-import { IMPORT_TOO_LARGE, MAX_IMPORT_BYTES, readImportText } from "@wayfarer/core";
+import { IMPORT_TOO_LARGE, MAX_IMPORT_BYTES, readImportText } from "../safe-json";
+import { validateCollection } from "./wayfarer-collection";
+import { validateEnvironmentExport } from "./wayfarer-environments";
 
 describe("import size limit", () => {
   it("reads at most one byte past the import limit, and both importers reject such a file by size", async () => {

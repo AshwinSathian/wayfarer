@@ -12,9 +12,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import {
-  EnvironmentImport,
-} from "../../services/environment-import";
+import { ImportPipeline } from "../../services/import-pipeline";
 import {
   buildSecretReference,
   extractSecretId,
@@ -24,7 +22,7 @@ import { Icon } from "../../shared/icon/icon";
 import { VariablesDialog } from "../variables/variables-dialog";
 import { EnvironmentExportDialog } from "./environment-export-dialog";
 import { StoragePersistence } from "../../services/storage-persistence";
-import { MIN_SECRET_LENGTH, applyVariableChanges, readImportText, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
+import { MIN_SECRET_LENGTH, applyVariableChanges, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
 
 /** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
 function jsonOf(rows: Row[]): string {
@@ -67,7 +65,8 @@ export class EnvironmentsManager implements OnInit {
   private readonly envService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   private readonly variableFocus = inject(VariableFocus);
-  private readonly envImport = inject(EnvironmentImport);
+  /** Every file picked here goes down the one import road (P4.1). */
+  protected readonly importPipeline = inject(ImportPipeline);
   private readonly persistence = inject(StoragePersistence);
 
   readonly requestUnlock = output<void>();
@@ -93,13 +92,6 @@ export class EnvironmentsManager implements OnInit {
   }
   private readonly secretPreview = signal<Record<string, string>>({});
 
-  // Import-dialog state/pipeline lives in EnvironmentImport now (see
-  // its own file) — these are direct pass-throughs so the template doesn't
-  // need to change.
-  readonly envImportDialogVisible = this.envImport.dialogVisible;
-  readonly envImportErrors = this.envImport.errors;
-  readonly pendingEnvImport = this.envImport.pendingEntries;
-  readonly envImportFileName = this.envImport.fileName;
 
   readonly newEnvDialogVisible = signal(false);
   readonly newEnvForm = signal({
@@ -188,25 +180,6 @@ export class EnvironmentsManager implements OnInit {
 
   /** The export dialog asks what the file should hold of protected variables. */
   readonly exportDialogVisible = signal(false);
-
-  async handleEnvironmentImport(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    const text = await readImportText(file);
-    this.envImport.stageFile(file.name, text, this.environments());
-    input.value = "";
-  }
-
-  async confirmEnvironmentImport(): Promise<void> {
-    await this.envImport.confirm(this.environments());
-  }
-
-  closeEnvImportDialog(): void {
-    this.envImport.close();
-  }
 
   async saveGlobals(changes: VariableChange[]): Promise<void> {
     await this.envService.changeGlobals(changes);
@@ -312,9 +285,6 @@ export class EnvironmentsManager implements OnInit {
     return this.secretsService.isUnlocked();
   }
 
-  setEnvImportAction(index: number, action: "merge" | "replace"): void {
-    this.envImport.setEntryAction(index, action);
-  }
 
   onPairsChange(): void {
     this.syncJsonFromPairs();

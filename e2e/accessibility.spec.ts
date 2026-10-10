@@ -237,6 +237,21 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.locator(".auth-inherited")).toBeVisible();
     await scan("composer Auth, inherited");
 
+    // The import report (P4.1), with a warning in it.
+    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+    const imported = {
+      $id: "wayfarer/collection/3",
+      meta: meta("file"),
+      collection: { id: "col-a11y", meta: meta("col-a11y"), name: "Swept import", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "pm.vault.get('k')", post: "" } },
+      folders: [],
+      requests: [],
+    };
+    await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({ name: "swept.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(imported)) });
+    await expect(page.getByRole("dialog", { name: "Import collection" }).locator(".import-warnings")).toBeVisible();
+    await scan("import report");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
     await page.setViewportSize({ width: 390, height: 844 });
     await scan("phone");
     await button("Toggle sidebar").click();

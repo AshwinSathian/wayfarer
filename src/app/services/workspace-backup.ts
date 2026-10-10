@@ -4,6 +4,8 @@ import {
   VAULT_FILE_FORMAT,
   isOversizedImport,
   parseJson,
+  validateCollection,
+  validateEnvironmentExport,
   validateRequestContent,
   validateRows,
   validateVaultFile,
@@ -13,8 +15,6 @@ import { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY } from "../data/idb-sc
 import { WorkspaceStores } from "../data/workspace-repository";
 import { COLLECTION_FORMAT } from "../models/collections";
 import { ENVIRONMENTS_FORMAT } from "../models/environments";
-import { validateCollection } from "../shared/collections/collection-io";
-import { validateEnvironmentExport } from "../shared/environments/environment-io";
 import { Diagnostics } from "./diagnostics";
 
 export const WORKSPACE_FORMAT = "wayfarer/workspace/3";

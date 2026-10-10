@@ -547,8 +547,24 @@ code errors.
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
   instead of defaulting. Keep every one of these when changing it.
-- Importers read a picked file with `readImportText` and validate with the
-  shared validators, which enforce the 10 MB cap.
+- A file reaches the stores by one road, `ImportPipeline`
+  (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
+  10 MB cap), the import worker, the report in `<app-import-dialog>`, and
+  only on Confirm the write, one transaction per collection. A new Import
+  button calls `ImportPipeline.pick`; nothing else writes what a file held.
+  The workspace restore is the one exception, and replaces everything.
+- An importer is a function from text to the app's model in
+  `packages/core/src/import/`, reached through `importText`. It validates
+  with the shared validators before it returns, fetches nothing, and throws
+  nothing but `ImportError`. `importText` is imported as
+  `@wayfarer/core/import` and only by `import.worker.ts`: from the
+  package's index the importers would be in the first bundle ("the worker
+  and the importers are not in the page the server sends" in
+  `e2e/import.spec.ts`).
+- The report's script warnings come from `SCRIPT_SCAN`
+  (`packages/core/src/import/script-scan.ts`), which a test holds equal to
+  the unsupported rows of the compatibility matrix. A new unsupported row
+  goes there, or into `NOT_SCANNED` with its reason.
 - A write tells the other tabs which stores it touched (`IdbCore.announce`,
   called by `commitOrRollback`; a write that does not go through it calls
   `announce` itself). A store that holds what it read listens with

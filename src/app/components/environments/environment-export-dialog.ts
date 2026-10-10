@@ -6,7 +6,7 @@ import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { EnvironmentDoc } from "../../models/environments";
 import { SecretsVault } from "../../services/secrets-vault";
-import { ProtectedValues, serializeEnvironmentExport } from "../../shared/environments/environment-io";
+import { serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
 import { extractSecretId } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
 import { Dialog } from "../../ui/dialog";

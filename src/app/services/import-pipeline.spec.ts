@@ -172,6 +172,21 @@ describe("ImportPipeline", () => {
     });
   });
 
+  it("a pasted cURL command takes the same road: the box, then the report, and nothing stored before Confirm", async () => {
+    service.openPaste();
+    expect([service.dialogVisible(), service.pasting(), service.imported()]).toEqual([true, true, null]);
+
+    await service.stage("the pasted command", "curl -k https://api.test/users -H 'Accept: */*'");
+    expect(service.pasting()).toBe(false);
+    expect(service.imported()?.report).toMatchObject({ formatName: "cURL command", counts: { collections: 1, folders: 0, requests: 1, environments: 0 } });
+    expect(service.imported()?.report.warnings).toHaveLength(1);
+    expect(collections.importCollection).not.toHaveBeenCalled();
+
+    await service.confirm();
+    expect(collections.importCollection).toHaveBeenCalledTimes(1);
+    expect(collections.importCollection.mock.calls[0][0]).toMatchObject({ collection: { name: "Imported from cURL" }, requests: [{ name: "GET api.test/users", url: "https://api.test/users" }] });
+  });
+
   it("a worker that fails is said as such, and nothing is stored", async () => {
     worker.run.mockRejectedValueOnce(new Error("worker crashed"));
     await service.stage("billing.json", collectionFile);

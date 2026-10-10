@@ -78,6 +78,8 @@ test("the scanner finds a secret in each encoding it claims to look for", () => 
 });
 
 test("@claim:C-007 a protected variable reaches the server as its plaintext, and a scan of everything stored, exported and copied finds it nowhere", async ({ page }) => {
+  // The longest claim test: one send with two scripts, nine copies and two downloads. On a slow WebKit runner it passed 30 s (#228).
+  test.slow();
   const clipboard = await recordClipboard(page);
   await seedAndOpen(page, {}, {
     method: "POST",

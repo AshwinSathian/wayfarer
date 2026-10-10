@@ -252,6 +252,13 @@ for (const theme of ["dark", "light"] as const) {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
+    // The box for a pasted cURL command (P4.5).
+    await button("Import a cURL command").click();
+    await expect(page.getByRole("dialog", { name: "Import" }).getByLabel("A cURL command")).toBeVisible();
+    await scan("import, paste a cURL command");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
     await page.setViewportSize({ width: 390, height: 844 });
     await scan("phone");
     await button("Toggle sidebar").click();

@@ -1,0 +1,77 @@
+{
+  "log": {
+    "version": "1.2",
+    "creator": { "name": "WebInspector", "version": "537.36" },
+    "pages": [{ "startedDateTime": "2026-10-10T09:00:00.000Z", "id": "page_1", "title": "https://app.example.test/", "pageTimings": {} }],
+    "entries": [
+      {
+        "startedDateTime": "2026-10-10T09:00:00.100Z",
+        "time": 42,
+        "request": {
+          "method": "GET",
+          "url": "https://api.example.test/users?page=2",
+          "httpVersion": "h2",
+          "headers": [
+            { "name": ":authority", "value": "api.example.test" },
+            { "name": ":method", "value": "GET" },
+            { "name": "accept", "value": "application/json" },
+            { "name": "cookie", "value": "session=abc123" }
+          ],
+          "queryString": [{ "name": "page", "value": "2" }],
+          "cookies": [{ "name": "session", "value": "abc123" }],
+          "headersSize": -1,
+          "bodySize": 0
+        },
+        "response": { "status": 200, "statusText": "", "httpVersion": "h2", "headers": [], "cookies": [], "content": { "size": 2, "mimeType": "application/json", "text": "[]" }, "redirectURL": "", "headersSize": -1, "bodySize": 2 },
+        "cache": {},
+        "timings": { "send": 0, "wait": 40, "receive": 2 }
+      },
+      {
+        "startedDateTime": "2026-10-10T09:00:01.000Z",
+        "time": 61,
+        "request": {
+          "method": "POST",
+          "url": "https://api.example.test/users",
+          "httpVersion": "HTTP/1.1",
+          "headers": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer eyJhbGciOi.example.sig" }
+          ],
+          "queryString": [],
+          "cookies": [],
+          "headersSize": 120,
+          "bodySize": 14,
+          "postData": { "mimeType": "application/json", "text": "{\"name\":\"Ada\"}" }
+        },
+        "response": { "status": 201, "statusText": "Created", "httpVersion": "HTTP/1.1", "headers": [], "cookies": [], "content": { "size": 0, "mimeType": "application/json" }, "redirectURL": "", "headersSize": -1, "bodySize": 0 },
+        "cache": {},
+        "timings": { "send": 1, "wait": 58, "receive": 2 }
+      },
+      {
+        "startedDateTime": "2026-10-10T09:00:02.000Z",
+        "time": 33,
+        "request": {
+          "method": "post",
+          "url": "https://app.example.test/login",
+          "httpVersion": "HTTP/1.1",
+          "headers": [{ "name": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+          "queryString": [],
+          "cookies": [],
+          "headersSize": 80,
+          "bodySize": 37,
+          "postData": {
+            "mimeType": "application/x-www-form-urlencoded",
+            "text": "user=ada%40example.test&remember=on",
+            "params": [
+              { "name": "user", "value": "ada@example.test" },
+              { "name": "remember", "value": "on" }
+            ]
+          }
+        },
+        "response": { "status": 302, "statusText": "Found", "httpVersion": "HTTP/1.1", "headers": [], "cookies": [], "content": { "size": 0, "mimeType": "text/html" }, "redirectURL": "/", "headersSize": -1, "bodySize": 0 },
+        "cache": {},
+        "timings": { "send": 1, "wait": 30, "receive": 2 }
+      }
+    ]
+  }
+}

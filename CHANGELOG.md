@@ -30,6 +30,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - A value that starts with `@` is never placed where curl or HTTPie would read it as a file. HTTPie cannot be told that such a value is text, so for such a request it copies a comment that says so instead of a command.
   - Tested by running it: the copied command, run by bash against a local server, sends what the app sends for twelve requests covering every body mode. See [`docs/export.md`](docs/export.md).
 
+- **A cURL command becomes a request, and a HAR file imports (P4.5).**
+  - **Paste a cURL command into the address field** and the composer becomes the request it describes: method, address, headers, body, and Basic auth from `-u`. Nothing is stored. Before this, the text was pasted into the address as it was.
+  - **Import a cURL command** with the new terminal button in the Collections panel: the import dialog takes the command, shows its report, and stores a collection with the one request on Import.
+  - **A HAR 1.2 file** picked with Import becomes a collection with one request per entry. The file picker now also offers `.har` files.
+  - Read: `-X`, `-H`, `-d` and its `--data-*` forms, `--data-urlencode`, `-F`, `--form-string`, `-u`, `-b`, `-A`, `-e`, `-G`, `--url`, `-I`; bash quoting (with `$'…'`) and cmd quoting (with `^`); line continuations. `--compressed` is left out with a note and `-k` with a warning; any other option is left out and said.
+  - **The command is read, never run, and no file it names is opened.** A body or a part that comes from a file is named for you to choose again.
+  - A command copied with "Copy as cURL" pastes back as the same request.
+  - See [`docs/import.md`](docs/import.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."

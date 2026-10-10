@@ -1,5 +1,21 @@
 <ui-dialog [header]="header()" [visible]="pipeline.dialogVisible()" (visibleChange)="pipeline.dialogVisible.set($event)" width="480px" (hide)="pipeline.close()">
-  @if (pipeline.refused(); as refused) {
+  @if (pipeline.pasting()) {
+  <div class="import-paste flex flex-col gap-2">
+    <label class="ds-form-label" for="import-paste-text">A cURL command</label>
+    <textarea
+      #pasted
+      id="import-paste-text"
+      class="import-paste-text w-full rounded-xl border border-separator bg-canvas-elevated p-3 font-mono type-footnote text-label-primary"
+      rows="8"
+      spellcheck="false"
+      placeholder="curl 'https://api.example.com/v1/items' -H 'Accept: application/json'"
+    ></textarea>
+    <p class="type-footnote text-label-tertiary">As a browser's "Copy as cURL" writes it, for bash or for cmd. The command is read, not run: no file it names is opened and nothing is sent.</p>
+    <div class="flex justify-end">
+      <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="pipeline.stage('the pasted command', pasted.value)">Read the command</button>
+    </div>
+  </div>
+  } @else if (pipeline.refused(); as refused) {
   <div role="alert" class="import-refused space-y-2 type-callout text-status-error">
     <p class="font-semibold">Unable to import "{{ pipeline.fileName() }}":</p>
     <p>{{ refused.message }}</p>

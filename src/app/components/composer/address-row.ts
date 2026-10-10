@@ -1,3 +1,4 @@
+import { isCurlCommand } from "@wayfarer/core";
 import { ChangeDetectionStrategy, Component, ElementRef, inject, output, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
@@ -43,6 +44,14 @@ export class AddressRow {
     input.value = input.value.toUpperCase();
     input.setSelectionRange(caret, caret);
     this.view.onRequestMethodChange(input.value);
+  }
+
+  /** A cURL command pasted into the address becomes the request it describes (P4.5). Any other text is pasted as it is. */
+  protected onPaste(event: ClipboardEvent): void {
+    const text = event.clipboardData?.getData("text/plain") ?? "";
+    if (!isCurlCommand(text)) return;
+    event.preventDefault();
+    void this.view.pasteCurl(text);
   }
 
   focusUrl(): void {

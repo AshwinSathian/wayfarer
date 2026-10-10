@@ -197,6 +197,8 @@ export class WorkspaceStore {
   readonly draft = signal<Draft>(emptyDraft());
 
   readonly endpointError = signal("");
+  /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
+  readonly pasteNotes = signal<string[]>([]);
   readonly loadingState = signal(false);
   readonly variableTokens = signal<VariableToken[]>([]);
   readonly missingVariableKeys = signal<string[]>([]);
@@ -333,6 +335,7 @@ export class WorkspaceStore {
       responseId: this.draft().responseId,
     });
     this.endpointError.set("");
+    this.pasteNotes.set([]);
     this.unresolvedBlocked.set([]);
   }
 
@@ -429,6 +432,7 @@ export class WorkspaceStore {
    */
   async send(options: { allowUnresolved?: boolean } = {}): Promise<boolean> {
     this.endpointError.set("");
+    this.pasteNotes.set([]);
     this.unresolvedBlocked.set([]);
     this.resetResponseState();
     this.lastTestResults.set([]);

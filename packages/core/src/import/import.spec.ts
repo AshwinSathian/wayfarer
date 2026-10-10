@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { CASES } from "../../test/pm-compat/cases";
 import { inCollection, inFolder, requestContent } from "../../test/request-fixtures";
 import { MAX_IMPORT_BYTES } from "../safe-json";
-import { ImportError, detectFormat, importText } from "./import";
+import { ImportError, curlToRequest, detectFormat, importText } from "./import";
 import { NOT_SCANNED, SCRIPT_SCAN, unsupportedApis } from "./script-scan";
 
 const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 as const });
@@ -61,7 +61,7 @@ describe("importText: one road from a file's text to the app's model", () => {
   it("a file of no known format is refused with a message that names the formats", () => {
     for (const text of ['{"info":{"schema":"https://example.test/unknown"}}', "[]", "42", '"text"', "null"]) {
       expect(refused(text).message).toBe(
-        'This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "wayfarer/collection/3") and a Wayfarer environments file ("$id": "wayfarer/environments/2").'
+        'This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a HAR 1.2 file, and a cURL command.'
       );
     }
     expect(refused("{not json").message).toBe("The file is not valid JSON, so it is not a file Wayfarer can import.");
@@ -89,6 +89,42 @@ describe("importText: one road from a file's text to the app's model", () => {
       { item: 'collection "Billing"', message: "Its post-response script uses pm.visualizer.set, which Wayfarer does not have. The script will end in an error there." },
       { item: 'request "Login"', message: "Its pre-request script uses pm.cookies.jar and require('xml2js'), which Wayfarer does not have. The script will end in an error there." },
     ]);
+  });
+
+  it("a cURL command is one request in a collection of its own, under new ids, with what was left out in the report", () => {
+    const imported = importText(`curl 'https://api.test/users?page=2' -k -H 'Accept: application/json' -u ada:secret`);
+
+    expect(imported.report).toEqual({
+      format: "curl",
+      formatName: "cURL command",
+      counts: { collections: 1, folders: 0, requests: 1, environments: 0 },
+      warnings: [{ item: 'request "GET api.test/users"', message: "-k (do not check the server's certificate) was left out: a browser always checks it, and the Local Bridge cannot skip the check yet." }],
+    });
+    const { payload, plan } = imported.collections[0];
+    expect(payload.collection).toMatchObject({ name: "Imported from cURL", auth: { type: "none" }, scripts: { pre: "", post: "" } });
+    expect(payload.requests).toMatchObject([{ name: "GET api.test/users", method: "GET", url: "https://api.test/users?page=2", auth: { type: "basic", username: "ada", password: "secret" }, collectionId: payload.collection.meta.id }]);
+    expect(plan.map((entry) => entry.action)).toEqual(["create", "create"]);
+    // Twice the same command: two collections, not one over the other.
+    expect(importText("curl https://api.test/").collections[0].payload.collection.meta.id).not.toBe(importText("curl https://api.test/").collections[0].payload.collection.meta.id);
+  });
+
+  it("a HAR file is one request per entry, in a collection of its own", () => {
+    const har = { log: { version: "1.2", entries: [{ request: { method: "GET", url: "https://a.test/one", headers: [] } }, { request: { method: "POST", url: "https://a.test/two", headers: [], postData: { mimeType: "image/png", text: "AAAA", encoding: "base64" } } }] } };
+    const imported = importText(JSON.stringify(har));
+
+    expect(detectFormat(har)).toBe("har");
+    expect(imported.report).toMatchObject({ format: "har", formatName: "HAR 1.2", counts: { collections: 1, folders: 0, requests: 2, environments: 0 } });
+    expect(imported.report.warnings).toEqual([{ item: 'request "POST /two"', message: "Its body is binary (base64 in the file) and was left out." }]);
+    expect(imported.collections[0].payload.requests.map((request) => [request.name, request.order])).toEqual([["GET /one", 0], ["POST /two", 1]]);
+  });
+
+  it("a command or a HAR that makes a request the app cannot hold is refused, with the field", () => {
+    expect(refused(JSON.stringify({ log: { entries: [{ request: { method: "GET IT", url: "https://a.test/" } }] } })).issues).toEqual([
+      { path: "requests[0].method", message: "Value must be an HTTP method: one word of at most 32 characters, in upper case." },
+    ]);
+    expect(refused("curl --url ''").message).toBe("The cURL command does not make a request the app can hold.");
+    // A pasted command has the cap a file has.
+    expect(() => curlToRequest(`curl https://a.test/ -d '${"x".repeat(MAX_IMPORT_BYTES)}'`)).toThrow(new ImportError("The file is larger than 10 MB."));
   });
 
   it("throws nothing but ImportError, whatever the text", () => {

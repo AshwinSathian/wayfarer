@@ -33,7 +33,8 @@
       class="address-url"
       [ngModel]="store.draft().url"
       (ngModelChange)="store.setUrl($event)"
-      placeholder="https://api.example.com/v1/endpoint"
+      (paste)="onPaste($event)"
+      placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
      />
   </mat-form-field>
 </div>

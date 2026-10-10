@@ -197,7 +197,10 @@ describe("runScript", () => {
   });
 
   it("stops a script that allocates more than the memory limit", async () => {
-    const result = await run(`const held = []; while (true) held.push("x".repeat(2 ** 20) + held.length);`);
+    // In 8 MB steps, and with a deadline far away: on a slow machine a megabyte
+    // at a time took longer than the 5 seconds a script has, and the run ended
+    // for that reason instead (a CI runner needed 18 s).
+    const result = await run(`const held = []; while (true) held.push(new Uint8Array(8 * 2 ** 20));`, {}, { timeoutMs: 120_000 });
     expect(result).toMatchObject({ error: "Script exceeded memory limit (64 MB)", limit: "memory" });
     expect((await run(`new Uint8Array(200 * 2 ** 20)`)).limit).toBe("memory");
   });

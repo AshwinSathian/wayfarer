@@ -5,6 +5,14 @@ const CI = !!process.env["CI"];
 // preview URL) and skips the local servers. Run it with `--grep @smoke`.
 const BASE_URL = process.env["BASE_URL"];
 
+// How long a claim test waits for what it expects. On GitHub's runners 15 s,
+// not Playwright's 5: a claim test has no retry, and a WebKit job there ran
+// five times slower than a laptop, so a step that derives a vault key or
+// restores a backup did not show its result in 5 s (e2e/FLAKES.md: five
+// jobs, each green on the rerun of the same commit). No test asserts a
+// duration; a longer wait changes only how long a failure takes.
+const CLAIMS_EXPECT_MS = process.env["GITHUB_ACTIONS"] ? 15_000 : 5_000;
+
 const BROWSERS = [
   { name: "chromium", device: devices["Desktop Chrome"] },
   { name: "firefox", device: devices["Desktop Firefox"] },
@@ -31,7 +39,7 @@ export default defineConfig({
   // there is no "first retry" to trace, so these keep the trace of a failure.
   projects: BROWSERS.flatMap(({ name, device }) => [
     { name, use: { ...device }, grepInvert: /@claim\b/ },
-    { name: `claims-${name}`, use: { ...device, trace: "retain-on-failure" as const }, grep: /@claim\b/, retries: 0 },
+    { name: `claims-${name}`, use: { ...device, trace: "retain-on-failure" as const }, grep: /@claim\b/, retries: 0, expect: { timeout: CLAIMS_EXPECT_MS } },
   ]),
   webServer: BASE_URL
     ? undefined

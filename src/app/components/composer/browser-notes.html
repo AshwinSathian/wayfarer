@@ -9,9 +9,13 @@
 <p class="browser-note-dropped type-footnote text-status-warning flex items-start gap-1.5" role="status">
   <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
   <span>
-    The browser will not send
+    {{ limits.route === 'bridge' ? 'The Local Bridge' : 'The browser' }} will not send
     @for (name of limits.dropped; track $index) {<code>{{ name }}</code>{{ $last ? '' : ', ' }}}:
-    a page is not allowed to set {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }}. The Local Bridge sends {{ limits.dropped.length === 1 ? 'it' : 'them' }} as written.
+    @if (limits.route === 'bridge') {
+    the Local Bridge sets {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }} itself, for the connection it makes.
+    } @else {
+    a page is not allowed to set {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }}.
+    }
   </span>
 </p>
 }
@@ -21,7 +25,7 @@
       <mat-expansion-panel-header>What the browser does to this request <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
       <div class="space-y-3 type-footnote text-label-secondary">
         @if (limits.route === 'bridge') {
-        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Every header is sent as written, no server is asked first, and an <code>http://</code> address works.</p>
+        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code> and <code>Origin</code> are sent as written, no server is asked first, and an <code>http://</code> address works.</p>
         } @else {
         <p class="browser-note-preflight">
           @if (limits.preflight.length) {

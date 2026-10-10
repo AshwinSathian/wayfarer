@@ -99,7 +99,7 @@ describe("browserLimits: headers the browser does not let a page set", () => {
 });
 
 describe("browserLimits: mixed content", () => {
-  it("an http:// target from an HTTPS page will be blocked", () => {
+  it("@claim:C-049 an http:// target from an HTTPS page will be blocked", () => {
     expect(limits({ url: "http://example.invalid/x" }).mixedContent).toBe("blocked");
   });
 
@@ -146,10 +146,11 @@ describe("browserLimits: the edges", () => {
     expect(result).toMatchObject({ crossOrigin: false, preflight: [], mixedContent: null, dropped: ["Cookie"] });
   });
 
-  it("through the Local Bridge none of it applies: Node sends the request", () => {
-    expect(limits({ method: "PUT", url: "http://example.invalid/", headers: [["Cookie", "a"]] }, PAGE, "bridge")).toEqual({
+  it("through the Local Bridge none of it applies: Node sends the request, and only the headers of its own connection are left out", () => {
+    const headers: [string, string][] = [["Cookie", "a"], ["Host", "b"], ["Content-Length", "3"], ["Origin", "https://x.example"], ["Connection", "close"]];
+    expect(limits({ method: "PUT", url: "http://example.invalid/", headers }, PAGE, "bridge")).toEqual({
       route: "bridge",
-      dropped: [],
+      dropped: ["Host", "Content-Length", "Connection"],
       crossOrigin: false,
       preflight: [],
       mixedContent: null,

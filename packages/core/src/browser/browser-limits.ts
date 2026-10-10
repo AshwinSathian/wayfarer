@@ -9,7 +9,11 @@ export interface LimitsRequest {
 /** What a browser does to a request a page sends, worked out before it is sent. */
 export interface BrowserLimits {
   route: "direct" | "bridge";
-  /** Headers of the request that a browser does not let a page set: they are not sent. */
+  /**
+   * Headers of the request that are not sent as written: the ones a browser
+   * does not let a page set, or, through the bridge, the ones the bridge
+   * sets itself.
+   */
   dropped: string[];
   /** The target is not the page's own origin. */
   crossOrigin: boolean;
@@ -96,20 +100,23 @@ function isLoopback(hostname: string): boolean {
   return hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "[::1]" || /^127(\.\d{1,3}){3}$/.test(hostname);
 }
 
-const BRIDGED: BrowserLimits = { route: "bridge", dropped: [], crossOrigin: false, preflight: [], mixedContent: null, adds: [], suppresses: [] };
+// What the Local Bridge does not pass on (`HOP_BY_HOP_HEADERS` in local-bridge/src/server.js): Node sets these for the connection it makes.
+const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "host", "content-length"]);
 
 /**
  * What the browser will do to this request when the page at `origin` sends
  * it with `fetch`: which headers it drops, whether it asks the server first,
  * whether it blocks the request as mixed content, and what it adds. Through
- * the Local Bridge none of it applies, since Node sends the request.
+ * the Local Bridge none of it applies, since Node sends the request; the
+ * bridge leaves out only the headers of its own connection.
  *
  * It reads the request as text: a URL it cannot parse (a `{{variable}}` left
  * in it) gets no statement about origins.
  */
 export function browserLimits(request: LimitsRequest, page: { origin: string; route: "direct" | "bridge" }): BrowserLimits {
   if (page.route === "bridge") {
-    return BRIDGED;
+    const dropped = request.headers.filter(([name]) => BRIDGE_SETS.has(name.toLowerCase())).map(([name]) => name);
+    return { route: "bridge", dropped, crossOrigin: false, preflight: [], mixedContent: null, adds: [], suppresses: [] };
   }
   const dropped = request.headers.filter(([name, value]) => isForbidden(name, value)).map(([name]) => name);
   const sent = request.headers.filter(([name, value]) => !isForbidden(name, value));

@@ -68,6 +68,21 @@ export {
   type Transport,
   type TransportOptions,
 } from "./transport/transport";
-export { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, scriptMemory, type ScriptContext, type ScriptLimits, type ScriptResult } from "./scripting/host";
+export {
+  LOG_TRUNCATED,
+  SCRIPT_LIMITS,
+  emptyChanges,
+  runScript,
+  scriptMemory,
+  type ScriptBody,
+  type ScriptContext,
+  type ScriptLimits,
+  type ScriptRequest,
+  type ScriptResponse,
+  type ScriptResult,
+  type ScriptScope,
+  type ScriptSendRequest,
+} from "./scripting/host";
 export { loadLibraries } from "./scripting/libraries";
+export { scriptRequestOf, withScriptRequest } from "./scripting/request-view";
 export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";

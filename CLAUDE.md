@@ -345,6 +345,23 @@ code errors.
   booleans, and checks each argument's type itself (`text`, `number`): a
   script can replace `String` or `JSON` under the bootstrap. No handle of a
   script's object is read by the host; write it out as text in the VM.
+- `pm.sendRequest` is not a network call of the script: the worker asks
+  the page (`ScriptSandbox`), and `RequestExecutor.sendForScript` sends it
+  through `TransportRouter` like the user's own request, after the same
+  `containsSecretPlaceholder` check (C-007). Nothing else may make a
+  request for a script, and the escape suite counts them. Do not describe
+  that check as keeping secrets from scripts: an approved pre-request
+  script can change the user's own request (`pm.request`, or a variable),
+  which is built with its secrets. `ScriptTrust` is the control (D6, Q6).
+- What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,
+  with a script that proves it. A new or changed part of `pm` changes its
+  row in the same PR; the rows run in Node and in the app's worker.
+- A script's variable changes come back as `ScriptResult.changes`, per
+  scope, and are stored with `changeEnvironment`, `changeGlobals` and
+  `changeCollectionVariables`. `pm.request` comes back as text the host
+  checks field by field (`scriptRequest` in `host.ts`).
+- The time a script waits for `pm.sendRequest` is not counted against its
+  deadline, in the engine or by the page's watchdog.
 - The engine and its worker are lazy: nothing imports them but
   `ScriptSandbox`'s `new Worker(...)`. They must stay out of the initial
   bundle ("the page the server sends names neither the engine nor its

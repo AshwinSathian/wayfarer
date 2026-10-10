@@ -9,7 +9,9 @@ export type VmLibrary = (typeof VM_LIBRARIES)[number];
  */
 export function librariesOf(source: string): VmLibrary[] {
   // ponytail: a name that is put together at run time ("lod" + "ash") is not found; `require` then says the name must be written out.
-  return /\brequire\b/.test(source) ? VM_LIBRARIES.filter((name) => source.includes(name)) : [];
+  const named = /\brequire\b/.test(source) ? VM_LIBRARIES.filter((name) => source.includes(name)) : [];
+  // pm.expect is chai's.
+  return /\bexpect\b/.test(source) && !named.includes("chai") ? ["chai", ...named] : named;
 }
 
 /**

@@ -15,7 +15,7 @@ import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
 import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
 import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
 import { loadLibrary } from "@wayfarer/core/library-loader";
-import { loadLibraries, runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
+import { loadLibraries, runScript, scriptMemory, type ScriptContext, type ScriptLimits, type ScriptResponse, type ScriptSendRequest } from "@wayfarer/core";
 // By its path, not by the package's "./wasm" entry: the development and
 // unit-test servers hand an import that names a package to Vite, which tries
 // to run a .wasm file as a module. A path is built with the worker, and the
@@ -27,6 +27,14 @@ interface RunMessage {
   source: string;
   context: ScriptContext;
   limits: ScriptLimits;
+}
+
+/** The page's answer to a request it made for a script (`pm.sendRequest`). */
+interface SentMessage {
+  type: "sent";
+  call: number;
+  response?: ScriptResponse;
+  error?: { name: string; message: string };
 }
 
 // The package's own variant object imports these two files on demand. Here
@@ -41,6 +49,29 @@ const variant: QuickJSSyncVariant = {
 let engine: Promise<QuickJSWASMModule> | undefined;
 /** The text of each library a script has asked for with `require`, fetched once. */
 const libraries = new Map<string, string>();
+/** Requests the page is making for the script that is running, by the number the page answers with. */
+const sent = new Map<number, { resolve: (response: ScriptResponse) => void; reject: (error: Error) => void }>();
+let nextCall = 1;
+
+/**
+ * `pm.sendRequest`: this worker makes no request. It asks the page, which
+ * sends it as it sends the user's own (`RequestExecutor`), and waits.
+ */
+function askThePage(id: string, request: ScriptSendRequest): Promise<ScriptResponse> {
+  return new Promise((resolve, reject) => {
+    const call = nextCall++;
+    sent.set(call, { resolve, reject });
+    postMessage({ id, type: "send", call, request });
+  });
+}
+
+function answered({ call, response, error }: SentMessage): void {
+  const waiting = sent.get(call);
+  sent.delete(call);
+  if (!waiting) return;
+  if (response) waiting.resolve(response);
+  else waiting.reject(Object.assign(new Error(error?.message ?? "The request failed."), { name: error?.name ?? "Error" }));
+}
 
 async function run({ id, source, context, limits }: RunMessage): Promise<void> {
   try {
@@ -49,7 +80,7 @@ async function run({ id, source, context, limits }: RunMessage): Promise<void> {
     const required = await loadLibraries(source, loadLibrary, libraries);
     // The page's own clock for this run starts here, not at the downloads.
     postMessage({ id, type: "started" });
-    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits, required) });
+    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits, { libraries: required, send: (request) => askThePage(id, request) }) });
   } catch (error) {
     postMessage({ id, type: "failed", message: error instanceof Error ? error.message : String(error) });
   }
@@ -58,4 +89,7 @@ async function run({ id, source, context, limits }: RunMessage): Promise<void> {
 // No origin check: a dedicated worker hears only the page that created it,
 // and a message to one carries no origin to compare (CodeQL's
 // js/missing-origin-check is about windows and frames).
-addEventListener("message", ({ data }: MessageEvent<RunMessage>) => void run(data));
+addEventListener("message", ({ data }: MessageEvent<RunMessage | SentMessage>) => {
+  if ("type" in data) answered(data);
+  else void run(data);
+});

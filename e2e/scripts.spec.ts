@@ -32,7 +32,7 @@ test("@claim:C-006 a pre-request and a post-response script run under the produc
     method: "GET",
     url: `${TARGET}/scripts`,
     headers: { "X-Stage": "{{stage}}" },
-    preRequestScript: 'pm.environment.set("stage", "set-by-script"); pm.test("pre ran", () => pm.expect(pm.response).to.be.null());',
+    preRequestScript: 'pm.environment.set("stage", "set-by-script"); pm.test("pre ran", () => pm.expect(pm.response).to.be.null);',
     postRequestScript: "pm.test('t', () => pm.expect(1).to.equal(1)); pm.test('status', () => pm.expect(pm.response).to.have.status(200)); pm.test('body', () => pm.expect(pm.response.json().ok).to.equal(true));",
   });
   await expectProdParity(response);
@@ -151,6 +151,56 @@ test("require gives the five libraries under the production CSP, each from a fil
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   expect(fetched.filter((url) => all.includes(url))).toHaveLength(5);
+  expect(await violations()).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test("Postman's pm in the built app: a pre-request script fetches a token with pm.sendRequest, signs the request, and the post-response script checks the answer with chai", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const violations = await watchViolations(page);
+  const hits = await captureTarget(page, { contentType: "application/json", body: '{"token":"t-123","items":[1,2]}' });
+  await seedAndOpen(page, { host: "tripwire.test", stage: "before" }, {
+    method: "POST",
+    url: "https://{{host}}/items",
+    headers: { "X-Stage": "{{stage}}" },
+    body: { name: "a" },
+    preRequestScript: `
+      const login = await pm.sendRequest({ url: "https://{{host}}/login", method: "POST", header: { "Content-Type": "application/json" }, body: { mode: "raw", raw: JSON.stringify({ user: "{{stage}}" }) } });
+      pm.environment.set("token", login.json().token);
+      pm.globals.set("seen", pm.info.eventName + " " + pm.info.requestName);
+      pm.request.headers.upsert({ key: "Authorization", value: "Bearer {{token}}" });
+      pm.request.headers.add({ key: "X-Signed", value: require("crypto-js").HmacSHA256(pm.request.body.raw, login.json().token).toString() });
+      pm.request.url = pm.request.url.toString() + "?signed=1";
+    `.replace(/^/, "(async () => {") + "})();",
+    postRequestScript: `
+      pm.test("status", () => pm.response.to.have.status(200));
+      pm.test("chai", () => pm.expect(pm.response.json()).to.deep.include({ token: "t-123" }).and.to.have.property("items").that.has.lengthOf(2));
+      pm.test("scopes", () => pm.expect([pm.variables.get("token"), pm.globals.get("seen"), pm.environment.name]).to.eql(["t-123", "prerequest Tripwire request", "Tripwire env"]));
+      pm.test("the request as it was sent", () => pm.expect([pm.request.method, pm.request.headers.has("x-signed"), pm.request.url.getQueryString()]).to.eql(["POST", true, "signed=1"]));
+      pm.test("cookies are not there", () => { pm.cookies.get("session"); });
+    `,
+  });
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await openTests(page);
+  for (const name of ["status", "chai", "scopes", "the request as it was sent"]) {
+    await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
+  }
+  const failed = page.locator(".test-result-fail");
+  await expect(failed).toHaveCount(1);
+  await expect(failed).toContainText("pm.cookies.get() is not supported — see docs/postman-compatibility.md#pm-cookies");
+  await expect(page.locator(".script-console")).toContainText("[pm.sendRequest] POST https://tripwire.test/login → 200");
+
+  // The script's own request went first, with its variables replaced; then the user's, as the script left it.
+  expect(hits.map((hit) => `${hit.method()} ${hit.url()}`)).toEqual(["POST https://tripwire.test/login", "POST https://tripwire.test/items?signed=1"]);
+  expect(hits[0].postData()).toBe('{"user":"before"}');
+  const sent = hits[1].headers();
+  expect(sent["authorization"]).toBe("Bearer t-123");
+  expect(sent["x-signed"]).toMatch(/^[0-9a-f]{64}$/);
+  expect(sent["x-stage"]).toBe("before");
+  // The composed request is what it was: the script changed what was sent, not what is saved.
+  await expect(page.locator("input.address-url")).toHaveValue("https://{{host}}/items");
   expect(await violations()).toEqual([]);
   expect(errors).toEqual([]);
 });

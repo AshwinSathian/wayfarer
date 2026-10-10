@@ -111,8 +111,13 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
       console.log("the server sent back: " + pm.response.text());
       console.error(echoed);
       pm.environment.set("LEAKED_BY_SCRIPT", echoed);
+      pm.globals.set("LEAKED_TO_GLOBALS", echoed);
       pm.test("a test named " + echoed, () => { throw new Error("it failed with " + echoed); });
-      throw new Error("the script ended with " + echoed);
+      // P3.3: the script sends the secret on. The console names the request it made.
+      pm.sendRequest("${ECHO}/echo?leak=" + encodeURIComponent(echoed), (error, response) => {
+        console.log("sent on, and it came back again: " + response.json().query.leak);
+        throw new Error("the script ended with " + echoed);
+      });
     `,
   });
   await protectVariable(page, "API_TOKEN", SECRET);
@@ -146,6 +151,8 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   // What the script wrote, as the page shows it: its console, its test row and its own error.
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
   await expect(page.locator(".script-console")).toContainText("the server sent back:");
+  await expect(page.locator(".script-console")).toContainText("[pm.sendRequest] GET http://127.0.0.1:4300/echo?leak=t%3D*** → 200");
+  await expect(page.locator(".script-console")).toContainText("sent on, and it came back again: t=***");
   await expect(page.locator(".test-result-fail")).toHaveCount(2);
   const scriptOutput = (await page.locator(".script-console, .test-result-fail").allInnerTexts()).join("\n");
 
@@ -174,6 +181,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   );
   // The script did set its variable, and the mask is what was stored of the secret.
   expect(JSON.stringify(stores["environments"])).toContain('"key":"LEAKED_BY_SCRIPT","value":"t=***"');
+  expect(JSON.stringify(stores["meta"])).toContain('"key":"LEAKED_TO_GLOBALS","value":"t=***"');
   expect(scriptOutput).toContain("a test named t=***");
   expect(scriptOutput).toContain("the script ended with t=***");
   // What history kept instead.

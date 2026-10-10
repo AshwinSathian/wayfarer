@@ -133,6 +133,17 @@ export class SecretsVault {
     return id;
   }
 
+  /**
+   * Encrypts a new value into a secret that is there, under the same id
+   * (a script set a protected variable, P3.12). False when the vault is
+   * locked or has no such secret; nothing is written then.
+   */
+  async replaceSecret(id: SecretId, plaintext: string): Promise<boolean> {
+    const dek = this.dek();
+    // Encrypted before the transaction is opened: WebCrypto is asynchronous.
+    return dek ? this.idb.replaceCipher(id, await encryptSecret(dek, id, plaintext)) : false;
+  }
+
   /** The secret's plaintext, or `null` when the vault is locked or has no such secret. */
   async readSecret(secretId: SecretId): Promise<string | null> {
     const dek = this.dek();

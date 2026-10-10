@@ -169,6 +169,35 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(copied[0]).toContain("-H 'X-Api-Key: ***'");
 });
 
+test("@claim:C-007 a script sets a protected variable: the new value goes into the vault and onto the wire, and nothing stored holds it", async ({ page }) => {
+  const ROTATED = 'rotated/by+script "51ab9e&';
+  await seedAndOpen(page, {}, {
+    method: "GET",
+    url: `${ECHO}/echo`,
+    headers: { "X-Api-Key": "{{API_TOKEN}}" },
+    // P3.12: as a script that refreshes a token does. The variable is protected, so the value must not land in the environment.
+    preRequestScript: `pm.environment.set("API_TOKEN", ${JSON.stringify(ROTATED)}); console.log("rotated to " + pm.environment.get("API_TOKEN"));`,
+  });
+  await protectVariable(page, "API_TOKEN", "the-first-value-8d3c");
+
+  const echo = await sendAndEcho(page);
+  // The request was built after the script: it carries the new value.
+  expect(echo.headers.find(([key]) => key === "x-api-key")?.[1]).toBe(ROTATED);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
+  await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
+  await expect(page.locator(".script-console")).toHaveText(/rotated to \*\*\*/);
+
+  const stores = await dumpIdb(page);
+  const web = await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }]));
+  expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
+  const searched = { ...Object.fromEntries(Object.entries(stores).map(([name, records]) => [name, JSON.stringify(records)])), web, console: await page.locator(".script-console").innerText() };
+  expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, ROTATED)]))).toEqual(Object.fromEntries(Object.keys(searched).map((place) => [place, []])));
+  // The variable is still a reference to the one secret, which is still ciphertext.
+  expect(JSON.stringify(stores["environments"])).toMatch(/"key":"API_TOKEN","value":"\{\{\$secret\.[0-9a-f-]+\}\}"/);
+  expect(stores["secrets"]).toHaveLength(1);
+});
+
 test("a request that uses a secret while the vault is locked asks for the passphrase, and cancelling sends nothing", async ({ page }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, headers: { "X-Api-Key": "{{API_TOKEN}}" } });
   await protectVariable(page, "API_TOKEN", "locked-vault-secret");

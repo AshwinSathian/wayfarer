@@ -43,6 +43,14 @@ three stored scopes also have `set(name, value)`, `unset(name)` and
   name without a value stays as written.
 - A protected variable's value is its `{{$secret.…}}` reference, never the
   secret.
+- **`set` on a protected variable writes into the vault.** The new value is
+  encrypted into the same secret, the variable keeps its reference, and the
+  value is stored nowhere as text: a script that refreshes a token can keep
+  it protected. In the same run the script reads back what it set. With the
+  vault locked the change is refused, with a line in the console, and you
+  are not asked for the passphrase in the middle of a script; the same when
+  the secret is no longer in the vault. `unset` removes the variable; the
+  secret stays in the vault until you delete it there.
 - The app stores the changes when the script has ended, each scope in one
   transaction on the stored rows. A change with nowhere to go (no active
   environment, a request in no collection) is said in the console.

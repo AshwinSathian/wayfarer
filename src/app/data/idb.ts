@@ -265,6 +265,10 @@ export class Idb {
     return this.secrets.writeCipher(params);
   }
 
+  async replaceCipher(id: SecretId, envelope: SecretEnvelope): Promise<boolean> {
+    return this.secrets.replaceCipher(id, envelope);
+  }
+
   async readCipher(id: SecretId): Promise<SecretEnvelope | null> {
     return this.secrets.readCipher(id);
   }

@@ -22,6 +22,7 @@ export interface CompatCase {
 }
 
 const TEXT = "Values are text: a number or an object that is set is read back as a string.";
+const PROTECTED = " In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console.";
 const ALL_SCOPES = "Replaces from every scope, nearest first, as `pm.variables.replaceIn` does.";
 const RUN_ONLY = "Recorded. It has an effect in a collection run only, and there is none yet.";
 
@@ -30,7 +31,7 @@ function scope(name: string, key: "environment" | "collection" | "global", has: 
   const [known, value] = has;
   return [
     { api: `${name}.get`, status: "supported", script: `same(${name}.get("${known}"), ${JSON.stringify(value)}); same(${name}.get("missing"), undefined); same(${name}.get("constructor"), undefined);` },
-    { api: `${name}.set`, status: "partial", note: TEXT, script: `${name}.set("fresh", 5); same(${name}.get("fresh"), "5"); ${name}.set("__proto__", "own"); same(${name}.get("__proto__"), "own");`, result: { changes: { [key]: [{ key: "fresh", value: "5" }, { key: "__proto__", value: "own" }] } } },
+    { api: `${name}.set`, status: "partial", note: TEXT + PROTECTED, script: `${name}.set("fresh", 5); same(${name}.get("fresh"), "5"); ${name}.set("__proto__", "own"); same(${name}.get("__proto__"), "own");`, result: { changes: { [key]: [{ key: "fresh", value: "5" }, { key: "__proto__", value: "own" }] } } },
     { api: `${name}.unset`, status: "supported", script: `${name}.unset("${known}"); same(${name}.has("${known}"), false);`, result: { changes: { [key]: [{ key: known, value: null }] } } },
     { api: `${name}.has`, status: "supported", script: `same(${name}.has("${known}"), true); same(${name}.has("missing"), false); same(${name}.has("toString"), false);` },
     { api: `${name}.toObject`, status: "supported", script: `same(${name}.toObject(), ${JSON.stringify(all)});` },

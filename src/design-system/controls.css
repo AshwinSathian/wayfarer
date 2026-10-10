@@ -511,9 +511,10 @@
 }
 
 /* A pane that becomes visible re-enters the render tree, so the animation
-   replays on every switch. */
+   replays on every switch. Opacity only: what is in a pane is pressed as
+   soon as it shows (F48). */
 .tab-pane:not([hidden]) {
-  animation: fade-up var(--dur-standard) var(--ease-standard) both;
+  animation: fade-in var(--dur-standard) var(--ease-standard) both;
 }
 
 /* ── Accordion ───────────────────────────────────────────── */

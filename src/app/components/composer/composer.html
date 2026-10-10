@@ -41,7 +41,7 @@
        the response panel. Only one of Params/Headers/Body/Auth/Scripts is
        ever expanded — and therefore mounted-and-visible — at a time, so at
        most one Monaco instance is ever live here. -->
-  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-up">
+  <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-in">
     <mat-accordion class="sections" displayMode="flat" hideToggle>
       <mat-expansion-panel
         #paramsSection
@@ -95,7 +95,7 @@
 
   @if (store.shouldShowResponsePanel) {
   <app-response-viewer
-    class="animate-fade-up"
+    class="animate-fade-in"
     [loading]="store.loadingState()"
     [responseData]="store.responseData()"
     [responseError]="store.responseError()"
@@ -179,7 +179,7 @@
       <div uiSplitterEnd class="response-pane">
         @if (store.shouldShowResponsePanel) {
         <app-response-viewer
-          class="animate-fade-up"
+          class="animate-fade-in"
           [loading]="store.loadingState()"
           [responseData]="store.responseData()"
           [responseError]="store.responseError()"

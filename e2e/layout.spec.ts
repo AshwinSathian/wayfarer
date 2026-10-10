@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { still } from "./support/settled";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
   test("shows a resizable split between the composer and the response viewer", async ({ page }) => {
@@ -29,8 +28,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
     const gutter = page.locator(".composer-response-splitter").getByRole("separator");
     const composer = page.locator(".composer-pane");
-    // The gutter moves while the panes settle; measure it once it is still.
-    await still(gutter);
     const gutterBox = await gutter.boundingBox();
     expect(gutterBox).not.toBeNull();
     const widthBefore = (await composer.boundingBox())!.width;
@@ -75,7 +72,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
       await expect(page.locator("input.address-url")).toBeVisible();
-      await still(page.locator("app-composer"));
 
       // Not wider; WebKit reports it narrower by the 5 px vertical scrollbar.
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
@@ -88,7 +84,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     test(`the URL field has room to type in at ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
-      await still(page.locator("app-composer"));
       const url = await page.locator("input.address-url").boundingBox();
       // The narrowest it gets by design is on a 360 px phone: about 120 px.
       expect(url!.width).toBeGreaterThanOrEqual(100);
@@ -104,7 +99,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     test(`at ${width} px the sidebar is a drawer, so the composer and the response have room`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/");
-      await still(page.locator("app-composer"));
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
       const field = await page.getByLabel("Headers name, row 1").boundingBox();
@@ -123,7 +117,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   test("at 1220 px the sidebar is pinned beside the composer, and the composer still has room", async ({ page }) => {
     await page.setViewportSize({ width: 1220, height: 900 });
     await page.goto("/");
-    await still(page.locator("app-composer"));
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
@@ -180,7 +173,6 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     const gutter = splitter.getByRole("separator");
     const composer = page.locator(".composer-pane");
     const response = page.locator(".response-pane");
-    await still(gutter);
     const total = (await splitter.boundingBox())!.width;
 
     const dragTo = async (x: number) => {

@@ -205,6 +205,37 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
   expect(errors).toEqual([]);
 });
 
+test("a script written for Postman's older sandbox runs as it is: postman.*, tests[...], responseBody and the rest", async ({ page }) => {
+  const violations = await watchViolations(page);
+  const hits = await captureTarget(page);
+  await seedAndOpen(page, { stage: "before" }, {
+    method: "GET",
+    url: `${TARGET}/legacy`,
+    headers: { "X-Stage": "{{stage}}" },
+    preRequestScript: 'postman.setEnvironmentVariable("stage", "set-by-legacy-script"); postman.setGlobalVariable("legacy", "yes");',
+    postRequestScript: `
+      tests["status"] = responseCode.code === 200;
+      tests["body"] = JSON.parse(responseBody).ok === true;
+      tests["header"] = postman.getResponseHeader("Content-Type") === "application/json";
+      tests["variables"] = postman.getEnvironmentVariable("stage") === "set-by-legacy-script" && globals.legacy === "yes" && environment.stage === "set-by-legacy-script";
+      tests["request"] = request.method === "GET" && request.url.indexOf("/legacy") !== -1;
+      tests["a test that fails"] = responseCode.code === 404;
+    `,
+  });
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await openTests(page);
+  for (const name of ["status", "body", "header", "variables", "request"]) {
+    await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
+  }
+  const failed = page.locator(".test-result-fail");
+  await expect(failed).toHaveCount(1);
+  await expect(failed).toContainText("a test that fails");
+  await expect(failed).toContainText("expected false to be truthy");
+  expect(hits[0].headers()["x-stage"]).toBe("set-by-legacy-script");
+  expect(await violations()).toEqual([]);
+});
+
 test("the page the server sends names neither the engine nor its worker", async () => {
   const index = await readFile("dist/wayfarer/browser/index.html", "utf8");
   expect(index).toContain("main-");

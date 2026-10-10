@@ -5,7 +5,7 @@
  *
  * `host` is reachable from this closure only: it is never put on the global,
  * so a script can call a host function only through `pm`, `console`, `atob`,
- * `btoa`, `setTimeout` and `require` below. Every host function takes and returns
+ * `btoa`, `setTimeout`, `require` and Postman's legacy globals below. Every host function takes and returns
  * strings, numbers and booleans, never an object; the host checks the types
  * itself, since a script can replace `String` or `JSON` under this code.
  *
@@ -444,6 +444,40 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
     return id;
   };
 
+  // Postman's older sandbox: what scripts used before \`pm\`. The same
+  // variables, response and request, by their old names.
+  var sent = given.response;
+  globalThis.postman = {
+    setEnvironmentVariable: pm.environment.set,
+    getEnvironmentVariable: pm.environment.get,
+    clearEnvironmentVariable: pm.environment.unset,
+    clearEnvironmentVariables: pm.environment.clear,
+    setGlobalVariable: pm.globals.set,
+    getGlobalVariable: pm.globals.get,
+    clearGlobalVariable: pm.globals.unset,
+    clearGlobalVariables: pm.globals.clear,
+    setNextRequest: pm.execution.setNextRequest,
+    getResponseHeader: function (name) { return pm.response ? pm.response.headers.get(name) : undefined; },
+  };
+  // As they were when the script started: Postman's are copies too.
+  globalThis.environment = pm.environment.toObject();
+  globalThis.globals = pm.globals.toObject();
+  globalThis.iteration = 0;
+  globalThis.request = given.request && {
+    id: given.info.requestId,
+    name: given.info.requestName,
+    method: given.request.method,
+    url: given.request.url,
+    headers: Object.fromEntries(given.request.headers),
+    data: given.request.body.mode === "raw" ? given.request.body.raw : given.request.body.mode === "urlencoded" ? Object.fromEntries(given.request.body.urlencoded) : {},
+  };
+  globalThis.responseBody = sent && sent.body;
+  globalThis.responseCode = sent && { code: sent.code, name: sent.status, detail: sent.status };
+  globalThis.responseTime = sent && sent.responseTime;
+  globalThis.responseHeaders = sent && Object.assign({}, sent.headers);
+  // tests["name"] = true or false: read when the script has ended.
+  globalThis.tests = {};
+
   return function tell(what, id, ok, text) {
     if (what === "timer") {
       var run = timers.get(id);
@@ -457,8 +491,14 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
       var outcome = ok ? responseOf(answer) : named(answer.name, answer.message);
       if (call.callback) call.callback(ok ? null : outcome, ok ? outcome : null);
       if (ok) call.resolve(outcome); else call.reject(outcome);
-    } else if (what === "end" && request && given.info.eventName === "prerequest") {
-      host.requestOut(JSON.stringify({ method: String(request.method), url: String(request.url), headers: requestHeaders, body: requestState.body }));
+    } else if (what === "end") {
+      var legacy = globalThis.tests;
+      if (legacy && typeof legacy === "object") {
+        Object.keys(legacy).forEach(function (name) { host.test(name, !!legacy[name], legacy[name] ? "" : "expected " + show(legacy[name]) + " to be truthy"); });
+      }
+      if (request && given.info.eventName === "prerequest") {
+        host.requestOut(JSON.stringify({ method: String(request.method), url: String(request.url), headers: requestHeaders, body: requestState.body }));
+      }
     }
   };
 })`;

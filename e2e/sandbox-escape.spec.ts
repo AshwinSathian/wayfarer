@@ -16,10 +16,10 @@ test.use({ serviceWorkers: "block" });
 /** A host no script may reach. Routed, so an attempt that got out would be counted, not lost in a DNS error. */
 const CANARY = "https://escape.test";
 
-/** What ECMAScript puts on a global object, as QuickJS has it, and the six names the host adds. Anything else got in. */
+/** What ECMAScript puts on a global object, as QuickJS has it, and the sixteen names the host adds (ten of them the globals of Postman's older sandbox). Anything else got in. */
 const BUILT_INS =
   "AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt undefined unescape";
-const ALLOWED = "pm console atob btoa setTimeout require";
+const ALLOWED = "pm console atob btoa setTimeout require postman tests responseBody responseCode responseTime responseHeaders request environment globals iteration";
 
 /** Names a browser, a worker or Node would offer. None may exist inside the sandbox by any road. */
 const HOST_NAMES = [

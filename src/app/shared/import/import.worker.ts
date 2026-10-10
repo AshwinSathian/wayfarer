@@ -5,22 +5,35 @@
  * stays responsive. The page reads the file and hands over its text; this
  * worker fetches nothing and stores nothing.
  */
-import { ImportError, importText, type ImportOptions } from "@wayfarer/core/import";
-import type { Imported, ValidationIssue } from "@wayfarer/core";
+import { ImportError, curlToRequest, importText, type ImportOptions } from "@wayfarer/core/import";
+import type { Imported, RequestContent, ValidationIssue } from "@wayfarer/core";
 
+/** A file's text to import, or (`curl`) a pasted command to turn into one request for the composer. */
 export interface ImportJob {
   id: string;
   text: string;
   options: ImportOptions;
+  curl?: true;
 }
 
-export type ImportAnswer = { id: string } & ({ imported: Imported } | { refused: { message: string; issues: ValidationIssue[] } });
+/** A pasted cURL command as a request, with what of it was left out. */
+export interface PastedRequest {
+  content: RequestContent;
+  warnings: string[];
+}
+
+export type ImportAnswer = { id: string } & ({ imported: Imported } | { request: PastedRequest } | { refused: { message: string; issues: ValidationIssue[] } });
 
 addEventListener("message", (event: MessageEvent<ImportJob>) => {
-  const { id, text, options } = event.data;
+  const { id, text, options, curl } = event.data;
   let answer: ImportAnswer;
   try {
-    answer = { id, imported: importText(text, options) };
+    if (curl) {
+      const { content, warnings } = curlToRequest(text);
+      answer = { id, request: { content, warnings } };
+    } else {
+      answer = { id, imported: importText(text, options) };
+    }
   } catch (error) {
     // An importer throws nothing else; anything else is a defect and is reported as the page's error.
     if (!(error instanceof ImportError)) throw error;

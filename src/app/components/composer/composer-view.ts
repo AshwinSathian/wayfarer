@@ -1,3 +1,4 @@
+import { ImportRefused, ImportWorkerClient } from "../../shared/import/import-worker-client";
 import { Injectable, inject, signal } from "@angular/core";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
@@ -17,6 +18,7 @@ export class ComposerView {
   private readonly store = inject(WorkspaceStore);
   private readonly requestSave = inject(RequestSave);
   private readonly trust = inject(ScriptTrust);
+  private readonly importWorker = inject(ImportWorkerClient);
 
   readonly activeTab = signal("headers");
   /**
@@ -64,6 +66,26 @@ export class ComposerView {
     this.activeTab.set("headers");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();
+  }
+
+  /**
+   * Fills the composer with the request a cURL command describes. It is a
+   * new request, bound to no saved one, and nothing is stored. What the
+   * command asked for that the app does not do is said under the address.
+   */
+  async pasteCurl(text: string): Promise<void> {
+    try {
+      const { content, warnings } = await this.importWorker.curl(text);
+      this.clear();
+      this.store.load(content);
+      this.store.refreshVariablePreview();
+      this.store.pasteNotes.set(warnings);
+      this.activeTab.set(content.body.mode === "none" ? "headers" : "body");
+      this.syncMobilePanelsFromActiveTab();
+    } catch (error) {
+      if (!(error instanceof ImportRefused)) throw error;
+      this.store.endpointError.set(error.message);
+    }
   }
 
   onRequestMethodChange(method: string): void {

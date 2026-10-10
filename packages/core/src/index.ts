@@ -30,6 +30,7 @@ export { buildCurl } from "./export/curl";
 export { exportBody, redactExport, type ExportBody, type ExportRequest, type ExportSource } from "./export/request";
 // The code generators are `@wayfarer/core/codegen`, loaded when code is first asked for.
 export type { CodeTarget } from "./export/codegen";
+export { isCurlCommand } from "./import/curl-command";
 // The importers themselves are `@wayfarer/core/import`, which only the import worker loads.
 export type { ImportOptions, ImportReport, ImportWarning, Imported } from "./import/import";
 export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";

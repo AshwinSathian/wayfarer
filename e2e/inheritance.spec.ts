@@ -130,7 +130,7 @@ test.describe("scripts of a collection and a folder", () => {
     const hits = await captureTarget(page);
     // An active environment for the scripts to write to, and to give `order` a value while none of them runs.
     await seedAndOpen(page, { order: "" }, { method: "GET", url: `${TARGET}/seeded` });
-    await page.locator('input[type="file"][accept="application/json"]').first().setInputFiles(FILE);
+    await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(FILE);
     const dialog = page.getByRole("dialog", { name: "Import collection" });
     await dialog.getByRole("button", { name: "Confirm import" }).click();
     await expect(dialog).toHaveCount(0);

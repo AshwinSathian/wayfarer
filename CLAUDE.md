@@ -567,6 +567,16 @@ code errors.
   package's index the importers would be in the first bundle ("the worker
   and the importers are not in the page the server sends" in
   `e2e/import.spec.ts`).
+- A cURL command is read by `parseCurl` (`packages/core/src/import/curl.ts`),
+  never run. It expands nothing (`$HOME` is text) and opens no file: a
+  body or a part that comes from a file is named, or left out with a
+  warning. A new option goes into `VALUE_OPTIONS`, `FLAGS` or
+  `SKIPPED_VALUE_OPTIONS` there: an option that takes a value and is in
+  none of them would have its value read as the address. The page decides
+  "is this a command" with `isCurlCommand` alone and gives the text to the
+  worker (`ImportWorkerClient.curl`); it does not load the parser.
+- `parse(buildCurl(request))` is the request (the fast-check property in
+  `curl.spec.ts`). A change to `buildCurl` or to the parser keeps it.
 - The report's script warnings come from `SCRIPT_SCAN`
   (`packages/core/src/import/script-scan.ts`), which a test holds equal to
   the unsupported rows of the compatibility matrix. A new unsupported row

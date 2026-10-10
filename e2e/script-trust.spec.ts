@@ -45,7 +45,7 @@ function collectionFile(post: string) {
 }
 
 async function importFile(page: Page, post: string): Promise<void> {
-  await page.locator('input[type="file"][accept="application/json"]').first().setInputFiles(collectionFile(post));
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(collectionFile(post));
   const dialog = page.getByRole("dialog", { name: "Import collection" });
   await dialog.getByRole("button", { name: "Confirm import" }).click();
   await expect(dialog).toHaveCount(0);

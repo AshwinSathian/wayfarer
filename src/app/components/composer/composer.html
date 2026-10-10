@@ -23,6 +23,17 @@
   </p>
   }
 
+  @if (store.pasteNotes().length) {
+  <div role="status" class="paste-notes type-footnote text-status-warning -mt-2">
+    <p class="flex items-center gap-1.5"><app-icon name="warning" class="icon-xs" /> From the pasted cURL command:</p>
+    <ul class="list-disc pl-6 text-label-secondary">
+      @for (note of store.pasteNotes(); track $index) {
+      <li>{{ note }}</li>
+      }
+    </ul>
+  </div>
+  }
+
   <app-browser-notes class="block space-y-2" />
 
   <!-- ── Variable tokens preview ──────────────────────────── -->

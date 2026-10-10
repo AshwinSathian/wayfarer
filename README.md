@@ -63,6 +63,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
   - Deterministic collection import/export in file format 3 (a round trip is byte-identical) <!-- claim:C-026 -->
   - **One import road**: every file you import is read and checked off the page's thread, and a report shows what it will add and what of it could not be kept before anything is stored; Cancel stores nothing <!-- claim:C-054 -->. See [`docs/import.md`](docs/import.md)
+  - **Paste a cURL command** into the address field and it becomes the request, or import it, or a **HAR 1.2** file, as a collection <!-- claim:C-056 -->
   - A collection and a folder have **settings**: auth for the requests set to inherit, variables, and scripts that run before and after every request in them
   - **Workspace backup**: every collection, request, environment, the global variables and the vault (still encrypted) in one file, and a restore from it; a restored collection's scripts are untrusted until approved <!-- claim:C-046 -->
   - Environment export asks what to write of protected variables: nothing (the default), their references with the encrypted vault beside them, or plain text after you type a confirmation <!-- claim:C-047 -->
@@ -186,7 +187,7 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 
 - Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
-- No Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
+- No Postman or OpenAPI import yet ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)). A cURL command and a HAR file import.
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 
 ---

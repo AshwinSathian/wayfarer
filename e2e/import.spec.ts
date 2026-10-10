@@ -79,7 +79,7 @@ test("a file of no known format is refused with a message that names the formats
   await pick(page, file("postman.json", { info: { name: "Not yet", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" }, item: [] }));
   const refused = dialog(page, "Import");
   await expect(refused.getByRole("alert")).toContainText('Unable to import "postman.json"');
-  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3") and a Wayfarer environments file ("$id": "wayfarer/environments/2").');
+  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a HAR 1.2 file, and a cURL command.');
   await expect(refused.getByRole("button", { name: "Confirm import" })).toBeDisabled();
   await refused.getByRole("button", { name: "Cancel import" }).click();
 

@@ -37,7 +37,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Pre/Post-Request Scripts & Test Assertions**
 
-  - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API <!-- claim:C-040 -->
+  - A Monaco script editor, and the parts of Postman's script API listed in [`docs/postman-compatibility.md`](docs/postman-compatibility.md): the `pm` object (variables in every scope, `pm.request`, `pm.response`, `pm.test`, Chai's `pm.expect`, `pm.sendRequest`), the older `postman.*` globals, and `require` for five libraries. Each row of that list is a test, and what is not supported says so by name when a script calls it <!-- claim:C-040 -->
   - Scripts run in a QuickJS sandbox (a JavaScript engine compiled to WebAssembly) in every build, the hosted app included, under its strict Content-Security-Policy <!-- claim:C-006 -->. See [`docs/scripts.md`](docs/scripts.md)
   - A script reaches nothing but `pm`, Postman's older globals (`postman`, `tests`, `responseBody` and the rest), `console`, `atob`, `btoa`, `setTimeout` and `require` (five libraries that ship with the app): no `fetch` or any other network API, no worker scope, no storage. A script makes no request itself: with `pm.sendRequest` it asks the app, which sends the request the way it sends yours and never reads the vault for it. Nothing of one run is left for the next <!-- claim:C-052 -->
   - Scripts that arrive in a collection file or a backup do not run until you have read them in the review dialog and said you trust them; a script changed by a later import does not run either <!-- claim:C-051 -->
@@ -183,7 +183,7 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 
 - Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
-- The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
+- No Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 
 ---

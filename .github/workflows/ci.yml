@@ -33,6 +33,8 @@ jobs:
         run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"
       - run: npm run test:scripts
       - run: npm run check:csp
+      # P3.11: docs/postman-compatibility.md is what the compatibility matrix gives.
+      - run: npm run check:compat
       # P1.11: no unused files, exports or dependencies.
       - run: npx knip
 

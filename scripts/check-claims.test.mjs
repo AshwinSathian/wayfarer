@@ -44,6 +44,11 @@ test("testTitles finds test/it titles in any quote style, including modifiers", 
   assert.deepEqual(testTitles(src), ["a @claim:C-001", "b", "c @claim:C-002", "d"]);
 });
 
+test("testTitles finds the title of a table-driven test, which follows the table", () => {
+  const src = 'it.each(ROWS.map((row) => [row.api, row] as const))("@claim:C-040 %s", async (_api, row) => {});\ntest.each([1, 2])(`n %d`, () => {});\nit("plain", () => { each(a)("not a title"); });';
+  assert.deepEqual(testTitles(src), ["@claim:C-040 %s", "n %d", "plain"]);
+});
+
 test("a consistent tree has no errors", () => {
   assert.deepEqual(checkClaims(fixture(GOOD)), []);
 });

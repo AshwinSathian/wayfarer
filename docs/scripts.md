@@ -19,8 +19,10 @@ sandbox, a `console`, `atob`, `btoa`, `setTimeout` and `require`. The surface is
 the engine) and `host.ts` beside it (what that code can call). Every part
 of it is a row of the compatibility matrix
 (`packages/core/test/pm-compat/cases.ts`), with a script that proves the
-row; the rows run in Node and in the app's worker. This section says what
-is there and where it differs from Postman.
+row; the rows run in Node and in the app's worker.
+[`postman-compatibility.md`](postman-compatibility.md) is that matrix as a
+table, row by row, and is generated from it. This section says what is
+there and where it differs from Postman.
 
 ### Variables
 

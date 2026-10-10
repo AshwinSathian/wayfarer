@@ -45,8 +45,41 @@ export function responseViews(body: ViewedBody): ResponseView[] {
   return [first, ...offered.filter((view) => view !== first)];
 }
 
-// A comment, a CDATA section, a tag (a quoted attribute may hold ">"), a "<" that opens none of these, or text.
-const XML_TOKEN = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<(?:[^<>"']|"[^"]*"|'[^']*')*>|<|[^<]+/g;
+// A tag (a quoted attribute may hold ">"), a "<" that opens no tag, or text. Sticky: it reads from `lastIndex` only.
+const TAG_OR_TEXT = /<(?:[^<>"']|"[^"]*"|'[^']*')*>|<|[^<]+/y;
+// What runs to its own close, whatever is in between.
+const SECTIONS = [
+  ["<!--", "-->"],
+  ["<![CDATA[", "]]>"],
+] as const;
+
+/**
+ * The text cut into comments, CDATA sections, tags and the text between
+ * them. A response is a server's to write, so this reads it once: when a
+ * section's close is not found, it is not looked for again from the next
+ * opening (a body of nothing but `<!--` took 15 s for 800 kB otherwise).
+ */
+function xmlTokens(text: string): string[] {
+  const tokens: string[] = [];
+  const unclosed = new Set<string>();
+  let at = 0;
+  while (at < text.length) {
+    let end = -1;
+    for (const [open, close] of SECTIONS) {
+      if (unclosed.has(open) || !text.startsWith(open, at)) continue;
+      const found = text.indexOf(close, at + open.length);
+      if (found === -1) unclosed.add(open);
+      else end = found + close.length;
+    }
+    if (end === -1) {
+      TAG_OR_TEXT.lastIndex = at;
+      end = at + (TAG_OR_TEXT.exec(text)?.[0].length ?? 1);
+    }
+    tokens.push(text.slice(at, end));
+    at = end;
+  }
+  return tokens;
+}
 
 /**
  * XML with one element per line, indented by depth. It works on the text:
@@ -55,7 +88,7 @@ const XML_TOKEN = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<(?:[^<>"']|"[^"]*"|
  * back as it was, line by line.
  */
 export function indentXml(text: string, indent = "  "): string {
-  const tokens = text.match(XML_TOKEN) ?? [];
+  const tokens = xmlTokens(text);
   const lines: string[] = [];
   let depth = 0;
   for (let i = 0; i < tokens.length; i++) {

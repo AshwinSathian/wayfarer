@@ -98,6 +98,7 @@ test("@claim:C-009 XML is indented, and Text shows it as it was sent", async ({ 
 
 test("@claim:C-048 the HTML preview draws the page and nothing else: no script runs, nothing is loaded, and a link goes nowhere", async ({ page }) => {
   const LEAK = "https://preview-leak.test";
+  const isLeak = (url: string) => URL.parse(url)?.origin === LEAK;
   const html = `<!doctype html><html><head>
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' data:">
     <meta http-equiv="refresh" content="0;url=${LEAK}/refresh">
@@ -126,7 +127,7 @@ test("@claim:C-048 the HTML preview draws the page and nothing else: no script r
   });
   const answered: string[] = [];
   page.on("response", (response) => {
-    if (response.url().startsWith(LEAK)) answered.push(response.url());
+    if (isLeak(response.url())) answered.push(response.url());
   });
   const popups: Page[] = [];
   page.context().on("page", (popup) => popups.push(popup));
@@ -161,7 +162,7 @@ test("@claim:C-048 the HTML preview draws the page and nothing else: no script r
   const frames = () => page.frames().map((candidate) => candidate.url());
   const preview = () => page.mainFrame().childFrames().map((candidate) => candidate.url());
   expect(preview()).toEqual([previewUrl]);
-  expect(frames().some((url) => url.startsWith(LEAK))).toBe(false);
+  expect(frames().some(isLeak)).toBe(false);
   await expect(frame.getByRole("heading", { name: "Preview heading" })).toBeVisible();
   // Nothing so far needed the app's own policy to step in.
   await expectNoViolations(page);
@@ -171,7 +172,7 @@ test("@claim:C-048 the HTML preview draws the page and nothing else: no script r
   await frame.locator("#self").click();
   await page.waitForTimeout(1_000);
   expect(leaked).toEqual([]);
-  expect(frames().some((url) => url.startsWith(LEAK))).toBe(false);
+  expect(frames().some(isLeak)).toBe(false);
   // Reported once per policy: the page has the header and the same policy as a <meta>.
   const refused = await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
   expect(refused.length).toBeGreaterThan(0);

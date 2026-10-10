@@ -70,6 +70,26 @@ describe("indentXml (P2.13, D19: no DOMParser)", () => {
   });
 });
 
+describe("indentXml reads its text once, whatever a server sends", () => {
+  // Each of these opens something that never closes, many times over. A scan
+  // that looks for the close again from every opening takes minutes on them.
+  for (const [name, piece] of [
+    ["comments", "<!--"],
+    ["CDATA sections", "<![CDATA["],
+    ["double-quoted attributes", '<a b="'],
+    ["single-quoted attributes", "<a b='"],
+    ["tags", "<a "],
+  ] as const) {
+    it(`200,000 unclosed ${name}`, () => {
+      const input = piece.repeat(200_000);
+      const started = performance.now();
+      const output = indentXml(input);
+      expect(performance.now() - started).toBeLessThan(2_000);
+      expect(output.replace(/\s+/g, "")).toBe(input.replace(/\s+/g, ""));
+    });
+  }
+});
+
 describe("hexDump (P2.13)", () => {
   it("writes offset, 16 bytes in hex and their printable characters per line", () => {
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 1, 2, 3, 0x7e, 0x7f, 0xff, 0x20, 0x41]);

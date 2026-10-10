@@ -9,5 +9,5 @@
     "types": ["node"],
     "paths": {}
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "vitest.config.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "bench/**/*.ts", "vitest.config.ts", "vitest.bench.config.ts"]
 }

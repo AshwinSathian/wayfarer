@@ -8,6 +8,7 @@
   "scripts": {
     "test": "vitest run --coverage",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "bench": "vitest run --config vitest.bench.config.ts --silent=false --reporter=verbose",
     "mutation": "stryker run"
   },
   "devDependencies": {

@@ -14,7 +14,7 @@ interface Sample {
 
 interface Recording {
   samples: Sample[];
-  /** What an animation running at the first frame changes, on or around a sampled element, other than opacity. */
+  /** What an animation running at the first frame changes, on or around a sampled element, besides how it is painted. */
   animated: string[];
 }
 
@@ -26,7 +26,8 @@ interface Recording {
  * A slow machine draws few frames (a CI runner drew 2 in 500 ms), and an
  * animation could run between two of them unseen. So at the first frame it
  * also reads the animations themselves: one that runs on a sampled element,
- * or on anything around it, may change opacity and nothing else.
+ * or on anything around it, may change how the element is painted (its
+ * opacity, a colour, a shadow) and not where it is or how big.
  */
 async function sampleAfterResponse(page: Page, status: string, duration: number): Promise<() => Promise<Recording>> {
   await page.evaluate(({ status, ms }) => {
@@ -54,7 +55,9 @@ async function sampleAfterResponse(page: Page, status: string, duration: number)
         const target = effect instanceof KeyframeEffect ? effect.target : null;
         if (!effect || !target || !sampled.some((element) => target.contains(element))) continue;
         const properties = new Set((effect as KeyframeEffect).getKeyframes().flatMap((keyframe) => Object.keys(keyframe)));
-        for (const property of ["offset", "computedOffset", "easing", "composite", "opacity"]) properties.delete(property);
+        for (const property of ["offset", "computedOffset", "easing", "composite"]) properties.delete(property);
+        // Paint only: the status badge fades between colours, and that moves nothing.
+        for (const property of [...properties]) if (/^(opacity|boxShadow|.*[cC]olor)$/.test(property)) properties.delete(property);
         for (const property of properties) animated.push(`${property} on <${target.tagName.toLowerCase()} class="${target.getAttribute("class") ?? ""}">`);
       }
     };

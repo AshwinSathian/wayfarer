@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The plan for scripts (Phase 3) is split into two sessions.** Nothing in the app changes. The first session rebuilds the sandbox: scripts on a QuickJS engine under the site's strict policy, a review step before a collection's scripts may run, limits on time and memory, and a test suite of escape attempts. The second adds the Postman-compatible script API. One finding on the way: a script's console output and its error were never shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)); it is hidden today because scripts are disabled, and is fixed with the new sandbox.
+
 ## [2.0.0] - 2026-10-10
 
 The second major version: one request model stored in a new shape, secrets

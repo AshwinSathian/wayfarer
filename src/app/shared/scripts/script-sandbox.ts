@@ -12,7 +12,7 @@ export interface ScriptResponseContext {
 }
 
 /** What a script is given besides the active environment's variables and the response: the other scopes, the request, and a way to make requests. */
-export interface ScriptRunExtras extends Pick<ScriptContext, "environmentName" | "collection" | "globals" | "request" | "info"> {
+export interface ScriptRunExtras extends Pick<ScriptContext, "environmentName" | "folder" | "collection" | "globals" | "request" | "info"> {
   /** Makes a request for `pm.sendRequest`. Without it a script that calls it is told it cannot. */
   send?: (request: ScriptSendRequest) => Promise<ScriptResponse>;
 }

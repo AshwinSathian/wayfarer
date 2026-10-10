@@ -1,14 +1,14 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **9** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **10** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
 | `history`      | `id` (auto) | `by-createdAt`                                      | Exchanges: the request as composed, as sent, and the response, with credentials and vault secrets masked. See "History" below. |
-| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, and `scriptTrust`: whether the collection is trusted and the SHA-256 of each script approved in it. A collection stored before this field had the list is read as having approved nothing, so its scripts wait for a review once; nothing was removed and the database version did not change. |
-| `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection.                    |
+| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, the auth and the scripts they hold for their requests, and `scriptTrust`: whether the collection is trusted and the SHA-256 of each script approved in it. A collection stored before this field had the list is read as having approved nothing, so its scripts wait for a review once; nothing was removed and the database version did not change. |
+| `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection. A folder holds variables, auth and scripts for the requests in it. |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows.                 |
 | `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext). See [Secrets vault](secrets.md). |
@@ -23,7 +23,7 @@ Collection and environment files written before version 5 (they have no `$id`) a
 
 Version 6 added the `files` store and changed nothing else: a version 5 database keeps its data.
 
-Version 7 gave collections their variables. The upgrade adds an empty list to each stored collection and removes nothing. The global variables are a new record, `globals`, in `meta`; a database without it has none.
+Version 7 gave collections their variables. The global variables are a new record, `globals`, in `meta`; a database without it has none.
 
 Version 8 changed how the vault encrypts (one data key, wrapped by the passphrase, where each secret had a key of its own). Secrets stored before it cannot be read with the new key and are **removed** by the upgrade; nothing else is touched. When there were any, the page says so once. An environment variable that referred to a removed secret still holds its `{{$secret.<id>}}` reference, and needs its value again. Like version 5, this was decided while the app had no users with data to keep.
 
@@ -42,12 +42,14 @@ One entry per request sent:
 
 History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
 
+Version 10 let a collection and a folder hold auth and scripts for the requests in them, a folder variables, and a request's auth be "inherit". The upgrade **removes** every collection, folder and saved request, and the body files only they named; environments, the globals, secrets and history are kept. When there was a collection, the page says so once. Collection and workspace files changed with it: they are format 3 (`wayfarer/collection/3`, `wayfarer/workspace/3`), and a format 2 file is refused; nothing converts it. Like versions 5, 8 and 9, this was decided while the app had no users with data to keep. (The step version 7 took, giving a stored collection its variables, is gone: there is no stored collection for it to act on.)
+
 ## Keeping the data
 
 Everything above is in one browser profile, and a browser may delete it: when the disk runs low, or, in Safari, after seven days without a visit to a site that is not installed.
 
 - **Asking the browser to keep it.** The first time you save a request or an environment, Wayfarer calls `navigator.storage.persist()`. Settings, "Storage in this browser", says what the browser answered and how much space is used. A browser that said no is asked again at the next save. In Safari the same place explains the seven-day rule and how to install the app, which lifts it.
-- **Workspace backup.** Settings, "Back up", writes `wayfarer-workspace.json` (`"$id": "wayfarer/workspace/2"`): the `collections`, `folders`, `requests`, `environments`, `secrets` and `meta` stores as they are, and `history` when "With history" is ticked. Secrets are in it as stored, encrypted; the file opens the vault with the passphrase the vault had. The files of request bodies are not in it: a request names its file, as in a collection file.
+- **Workspace backup.** Settings, "Back up", writes `wayfarer-workspace.json` (`"$id": "wayfarer/workspace/3"`): the `collections`, `folders`, `requests`, `environments`, `secrets` and `meta` stores as they are, and `history` when "With history" is ticked. Secrets are in it as stored, encrypted; the file opens the vault with the passphrase the vault had. The files of request bodies are not in it: a request names its file, as in a collection file.
 - **Restore** replaces all of those stores with the file's, in one transaction, after a confirmation. Every record is checked first with the validators the single-store importers use, and a file that fails is refused whole with the reasons. Restored collections are marked untrusted, like any import. History is replaced only when the file has one. Stored body files are removed, since no restored request has its file here.
 - **Reminder.** When the last backup, or the first use if there is none, is more than 14 days ago, the page says so. "Not now" puts it off for 14 days. The times are the `wayfarer:last-backup` and `wayfarer:backup-reminder-from` keys in `localStorage`.
 

@@ -1,4 +1,4 @@
-import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, RAW_LANGUAGES, isHttpMethod } from "./request";
+import { ASSERTION_OPERATORS, ASSERTION_TARGETS, AUTH_TYPES, BODY_MODES, RAW_LANGUAGES, isHttpMethod } from "./request";
 
 export interface ValidationIssue {
   path: string;
@@ -67,6 +67,31 @@ class Checker {
     });
   }
 
+  /** `inherit` is for a request and a folder: a collection has nothing above it. */
+  auth(value: unknown, path: string, inherit: boolean): void {
+    const auth = this.object(value, path);
+    if (!auth) return;
+    this.oneOf(auth, "type", path, inherit ? AUTH_TYPES : AUTH_TYPES.filter((type) => type !== "inherit"));
+    const type = field(auth, "type");
+    if (type === "bearer") {
+      this.string(auth, "token", path);
+    } else if (type === "basic") {
+      this.string(auth, "username", path);
+      this.string(auth, "password", path);
+    } else if (type === "apikey") {
+      this.string(auth, "key", path);
+      this.string(auth, "value", path);
+      this.oneOf(auth, "in", path, ["header", "query"]);
+    }
+  }
+
+  scripts(value: unknown, path: string): void {
+    const scripts = this.object(value, path);
+    if (!scripts) return;
+    this.string(scripts, "pre", path);
+    this.string(scripts, "post", path);
+  }
+
   fileRef(object: Fields, path: string): void {
     this.string(object, "fileId", path);
     this.string(object, "fileName", path);
@@ -77,6 +102,21 @@ class Checker {
 export function validateRows(value: unknown, path: string): ValidationIssue[] {
   const check = new Checker();
   check.rows(value, path);
+  return check.issues;
+}
+
+/**
+ * Checks what a collection or a folder holds for the requests in it (P4.9):
+ * its auth and its scripts, and a folder's variables. A collection's
+ * variables are checked with `validateRows`.
+ */
+export function validateInherited(value: unknown, path: string, kind: "collection" | "folder"): ValidationIssue[] {
+  const check = new Checker();
+  const node = check.object(value, path);
+  if (!node) return check.issues;
+  check.auth(field(node, "auth"), `${path}.auth`, kind === "folder");
+  check.scripts(field(node, "scripts"), `${path}.scripts`);
+  if (kind === "folder") check.rows(field(node, "variables"), `${path}.variables`);
   return check.issues;
 }
 
@@ -135,27 +175,8 @@ export function validateRequestContent(value: unknown, path: string): Validation
     }
   }
 
-  const auth = check.object(field(request, "auth"), `${path}.auth`);
-  if (auth) {
-    check.oneOf(auth, "type", `${path}.auth`, ["none", "bearer", "basic", "apikey"]);
-    const type = field(auth, "type");
-    if (type === "bearer") {
-      check.string(auth, "token", `${path}.auth`);
-    } else if (type === "basic") {
-      check.string(auth, "username", `${path}.auth`);
-      check.string(auth, "password", `${path}.auth`);
-    } else if (type === "apikey") {
-      check.string(auth, "key", `${path}.auth`);
-      check.string(auth, "value", `${path}.auth`);
-      check.oneOf(auth, "in", `${path}.auth`, ["header", "query"]);
-    }
-  }
-
-  const scripts = check.object(field(request, "scripts"), `${path}.scripts`);
-  if (scripts) {
-    check.string(scripts, "pre", `${path}.scripts`);
-    check.string(scripts, "post", `${path}.scripts`);
-  }
+  check.auth(field(request, "auth"), `${path}.auth`, true);
+  check.scripts(field(request, "scripts"), `${path}.scripts`);
 
   check.list(field(request, "tests"), `${path}.tests`, (test, testPath) => {
     check.string(test, "id", testPath);

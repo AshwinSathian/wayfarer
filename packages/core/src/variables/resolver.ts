@@ -2,8 +2,12 @@ import { newId } from "../id";
 import type { Row } from "../model/request";
 import { variablesByName } from "../model/variables";
 
-/** Where a variable's value comes from, nearest first: a nearer scope hides a farther one. */
-export const VARIABLE_SCOPES = ["local", "data", "environment", "collection", "global"] as const;
+/**
+ * Where a variable's value comes from, nearest first: a nearer scope hides a
+ * farther one. `folder` is the rows of every folder a request is in, the
+ * outermost folder's first: a later row wins, so the nearest folder does.
+ */
+export const VARIABLE_SCOPES = ["local", "data", "environment", "folder", "collection", "global"] as const;
 export type VariableScope = (typeof VARIABLE_SCOPES)[number];
 
 /** The rows of each scope that has any. */

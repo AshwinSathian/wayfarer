@@ -600,6 +600,109 @@ describe("RequestExecutor", () => {
     return data;
   };
 
+  describe("inherited scripts (P4.9): the collection's, each folder's from the outside in, the request's own", () => {
+    const NO_CHANGES = { environment: [], collection: [], global: [] };
+    const inherited = [
+      { name: 'collection "Shop"', scripts: { pre: "collectionPre()", post: "collectionPost()" } },
+      { name: 'folder "Outer"', scripts: { pre: "outerPre()", post: "" } },
+      { name: 'folder "Inner"', scripts: { pre: "", post: "innerPost()" } },
+    ];
+    /** Each script that ran, with the environment it was given. */
+    const ran = () => scriptSandbox.execute.mock.calls.map(([script, env]) => [script, env] as [string, Record<string, string>]);
+    /** Every script sets `last` to its own text, logs it, and has one test; `fail` names a script that ends in an error. */
+    const scripted = (fail?: string) =>
+      scriptSandbox.execute.mockImplementation(
+        async (script: string): Promise<ScriptResult> => ({
+          logs: [script],
+          changes: { ...NO_CHANGES, environment: [{ key: "last", value: script }, { key: script, value: "ran" }] },
+          testResults: [{ label: `test of ${script}`, passed: true, source: "script" }],
+          ...(script === fail && { error: "boom" }),
+        })
+      );
+    const spec = (buildRequest: () => BuiltRequest = () => builtRequest()) => ({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "requestPre()",
+      postRequestScript: "requestPost()",
+      tests: [],
+      inherited,
+      folderVariables: () => rowsOf({ inFolder: "f" }),
+      buildRequest,
+    });
+
+    it("run in that order around the send, each with the variables the one before left, and a blank script is not run", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({}));
+      scripted();
+      const order: string[] = [];
+      transport.sendRequest.mockImplementation(() => order.push("send"));
+      scriptSandbox.execute.mock.calls.length = 0;
+      const result = await service.execute(spec(() => (order.push("build"), builtRequest())));
+
+      expect(ran().map(([script]) => script)).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"]);
+      // Built and sent after the last pre-request script and before the first post-response script.
+      expect(order).toEqual(["build", "send"]);
+      expect(ran().map(([, env]) => env["last"])).toEqual([undefined, "collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()"]);
+      expect(result.scriptLogs).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"]);
+      expect(result.testResults.map((row) => row.label)).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"].map((script) => `test of ${script}`));
+      // A script reads the folders' variables and is told which event it is, for the request being sent.
+      const extras = scriptSandbox.execute.mock.calls.map((call) => call[4] as { folder: unknown; info: { eventName: string } });
+      expect(extras.map((given) => given.info.eventName)).toEqual(["prerequest", "prerequest", "prerequest", "test", "test", "test"]);
+      expect(extras[0].folder).toEqual([["inFolder", "f"]]);
+      expect(result.timings).toEqual({ preScriptMs: expect.any(Number) as number, requestMs: expect.any(Number) as number, postScriptMs: expect.any(Number) as number });
+    });
+
+    it("an error in a folder's pre-request script stops the send: no later script runs, nothing is built, and the row and the message name the folder", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({}));
+      scripted("outerPre()");
+      const buildRequest = vi.fn(() => builtRequest());
+      const failure: unknown = await service.execute(spec(buildRequest)).catch((error: unknown) => error);
+
+      expect(failure).toBeInstanceOf(PreRequestScriptError);
+      const stopped = failure as PreRequestScriptError;
+      expect(stopped.message).toBe('The pre-request script of folder "Outer" failed, so the request was not sent.');
+      expect(stopped.testResults).toEqual([
+        { label: "test of collectionPre()", passed: true, source: "script" },
+        { label: "test of outerPre()", passed: true, source: "script" },
+        { label: 'Pre-request script of folder "Outer"', passed: false, error: "boom", source: "script" },
+      ]);
+      expect(stopped.scriptLogs).toEqual(["collectionPre()", "outerPre()"]);
+      expect(ran().map(([script]) => script)).toEqual(["collectionPre()", "outerPre()"]);
+      expect(buildRequest).not.toHaveBeenCalled();
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+    });
+
+    it("an error in the collection's post-response script is a failed row named for it, and the scripts after it still run", async () => {
+      scripted("collectionPost()");
+      const result = await service.execute(spec());
+
+      expect(ran().map(([script]) => script).slice(3)).toEqual(["collectionPost()", "innerPost()", "requestPost()"]);
+      expect(result.testResults).toContainEqual({ label: 'Post-response script of collection "Shop"', passed: false, error: "boom", source: "script" });
+    });
+
+    it("not approved, none of them runs", async () => {
+      scripted();
+      scriptSandbox.execute.mockClear();
+      await service.execute({ ...spec(), runScripts: false });
+
+      expect(scriptSandbox.execute).not.toHaveBeenCalled();
+      expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it("Q6: when the user declines, what every pre-request script set is undone, the inherited ones' too", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ last: "before" }));
+      scripted();
+      await expect(
+        service.execute(
+          spec(() => {
+            throw new SendDeclinedError("declined");
+          })
+        )
+      ).rejects.toBeInstanceOf(SendDeclinedError);
+
+      expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ last: "before" }));
+    });
+  });
+
   describe("protected-variable placeholders (P0.3, #60)", () => {
     const secret = "{{$secret.0b6f1c2e-0000-4000-8000-000000000001}}";
     const cases: [string, Partial<BuiltRequest>][] = [

@@ -9,6 +9,7 @@ export const FIXTURE = {
     ["nested", "{{host}}/v1"],
   ],
   environmentName: "Staging",
+  folder: [["inFolder", "from the folder"]],
   collection: [
     ["base", "https://{{host}}"],
     ["shared", "from collection"],

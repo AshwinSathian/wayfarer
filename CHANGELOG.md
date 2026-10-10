@@ -7,7 +7,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **A collection and a folder can hold auth, variables and scripts for the requests in them (P4.9).** Right-click a collection or a folder and choose **Settings**. Before this, auth and scripts could only be set request by request, and only a collection had variables (under "Variables", which is now a tab of Settings).
+  - **Auth.** The Auth tab of a request has a new type, "Inherit from parent": the request is sent with the auth of the nearest folder that sets one, and otherwise with its collection's. The tab says what will be sent and where it comes from. A request made in a collection starts with it. A request set to "None" sends none, whatever is above it, and one that inherits in no collection sends none.
+  - **Variables.** A folder's variable wins over its collection's and loses to the active environment's; of two folders, the nearer one wins. A script reads it with `pm.variables.get`; no object of `pm` writes one (Postman has no folder variables).
+  - **Scripts.** A send runs the collection's pre-request script, then each folder's from the outside in, then the request's own, each with the variables the one before left; the post-response scripts run in the same order. A pre-request script that ends in an error stops the send, whichever it is, and the Tests tab names it.
+  - **The review covers them.** An imported collection's own script and its folders' wait for the review like its requests', and a request without a script of its own is held back by them. The review dialog lists all of them. The question before a vault secret goes to another host compares the request before the first of these scripts with the request after the last.
+  - **Exports mask them.** A credential typed into a collection's or a folder's auth, or into a folder variable with a credential's name, is written as `***` unless the export is "with credentials".
+
 ### Changed
+
+- **Collections saved by an earlier version are removed by this update, and collection and backup files are format 3.** A stored collection, folder and request did not hold what the settings above need, so the database goes to version 10 and empties those three stores and the body files only they named. Environments, global variables, secrets and history are kept, and the page says once that collections were removed. A collection file or a workspace backup written by 2.0 or 2.1 (`wayfarer/collection/2`, `wayfarer/workspace/2`) is refused with a message that names the format; nothing converts it. This was decided while the app has no users with data to keep (it is not deployed in any 2.x version). Export a collection again to get a format 3 file.
+- A pre-request script's failure now reads "The pre-request script of folder "Admin" failed, so the request was not sent." when the script is a folder's or the collection's.
 
 - **The plan for import, export and sign-in (Phase 4) is split into three sessions.** Nothing in the app changes. The first session lets a collection and a folder hold auth, variables and scripts that their requests inherit, builds the one road by which a file is imported (a report first, nothing stored until you agree), writes the cURL command with every kind of body, generates code, and reads a pasted cURL command and a HAR file. The second brings Postman, Insomnia and OpenAPI files in, and Postman files out. The third adds AWS signatures, OAuth 2.0 and a fuller HAR export. One finding on the way: once the app has a second page (the OAuth sign-in's return page), the offline copy of the app would be replaced by it ([#235](https://github.com/AshwinSathian/wayfarer/issues/235)); nothing is wrong today, and it is fixed before that page is added.
 

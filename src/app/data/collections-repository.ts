@@ -5,6 +5,7 @@ import {
   CollectionExport,
   CollectionId,
   Folder,
+  InheritedPatch,
   RequestDoc,
 } from "../models/collections";
 import { IdbCore } from "./idb-core";
@@ -47,6 +48,8 @@ export class CollectionsRepository {
         description: payload.description?.trim() || undefined,
         order: await this.core.nextOrder(store.index("by-order")),
         variables: [],
+        auth: { type: "none" },
+        scripts: { pre: "", post: "" },
         scriptTrust: { trusted: true },
       };
       this.core.ensureId(doc);
@@ -94,6 +97,22 @@ export class CollectionsRepository {
       existing.meta = this.core.touchMeta(existing.meta);
       await store.put(existing);
       return existing;
+    });
+  }
+
+  /** The auth and the scripts a collection holds for its requests (P4.9). Approving a script is not done here: see `approveScripts`. */
+  async setCollectionInherited(id: CollectionId, patch: InheritedPatch<Collection>): Promise<Collection | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["collections"]);
+    const store = tx.objectStore("collections");
+    return this.core.commitOrRollback(tx, async () => {
+      const existing = await store.get(id);
+      if (!existing) {
+        return null;
+      }
+      const updated: Collection = { ...existing, auth: patch.auth, scripts: patch.scripts, meta: this.core.touchMeta(existing.meta) };
+      await store.put(updated);
+      return updated;
     });
   }
 

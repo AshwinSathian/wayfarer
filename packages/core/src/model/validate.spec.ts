@@ -11,7 +11,7 @@ import {
   type RequestBody,
   type RequestContent,
 } from "./request";
-import { validateRequestContent, validateRows } from "./validate";
+import { validateInherited, validateRequestContent, validateRows } from "./validate";
 
 const full = (): RequestContent => ({
   method: "POST",
@@ -202,5 +202,34 @@ describe("validateRequestContent", () => {
       "vars[0].value",
       "vars[0].enabled",
     ]);
+  });
+});
+
+describe("validateInherited (P4.9)", () => {
+  const scripts = { pre: "", post: "" };
+
+  it("accepts what the app writes for a collection and for a folder", () => {
+    expect(validateInherited({ auth: { type: "bearer", token: "t" }, scripts }, "collection", "collection")).toEqual([]);
+    expect(validateInherited({ auth: { type: "inherit" }, scripts, variables: [{ key: "a", value: "1", enabled: true }] }, "folders[0]", "folder")).toEqual([]);
+  });
+
+  it("refuses a collection that inherits: nothing is above it", () => {
+    expect(validateInherited({ auth: { type: "inherit" }, scripts }, "collection", "collection")).toEqual([
+      { path: "collection.auth.type", message: "Value must be one of none, bearer, basic, apikey." },
+    ]);
+  });
+
+  it("names each field that is missing or of the wrong type", () => {
+    expect(validateInherited({ auth: { type: "basic", username: 1 }, scripts: { pre: "" } }, "folders[2]", "folder").map((issue) => issue.path)).toEqual([
+      "folders[2].auth.username",
+      "folders[2].auth.password",
+      "folders[2].scripts.post",
+      "folders[2].variables",
+    ]);
+    expect(validateInherited(null, "collection", "collection")).toEqual([{ path: "collection", message: "Value must be an object." }]);
+  });
+
+  it("a request's auth may be inherit", () => {
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "inherit" } }, "r")).toEqual([]);
   });
 });

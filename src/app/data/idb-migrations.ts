@@ -22,10 +22,7 @@ export function runUpgrade(
   if (oldVersion < 6) {
     db.createObjectStore("files");
   }
-  // 7 (P2.4): a collection has variables. A stored collection gets none; nothing is removed.
-  if (oldVersion >= 5 && oldVersion < 7) {
-    void addCollectionVariables(tx);
-  }
+  // 7 (P2.4) gave a stored collection its variables. Version 10 empties the collections, so that step is gone.
   if (oldVersion < 5) {
     return Promise.resolve(oldVersion > 0 ? "all" : []);
   }
@@ -42,7 +39,7 @@ async function removeWhatChangedShape(
   oldVersion: number,
   tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
 ): Promise<RemovedData> {
-  const removed: ("secrets" | "history")[] = [];
+  const removed: Exclude<RemovedData, "all"> = [];
   // 9 (P2.5): history v2. An entry of before holds what was sent as it was sent, credentials included.
   // The store is made again: it is searched in memory and keeps one index.
   if (oldVersion < 9) {
@@ -57,19 +54,18 @@ async function removeWhatChangedShape(
     if ((await store.count()) > 0) removed.unshift("secrets");
     await store.clear();
   }
+  // 10 (P4.9): a collection and a folder hold auth and scripts, a folder variables, and a request's auth may be
+  // "inherit". The three stores are emptied, and with them the files only their requests named.
+  if (oldVersion < 10) {
+    const held = await Promise.all((["collections", "folders", "requests"] as const).map((name) => tx.objectStore(name).count()));
+    if (held.some((count) => count > 0)) removed.push("collections");
+    for (const name of ["collections", "folders", "requests", "files"] as const) await tx.objectStore(name).clear();
+  }
   return removed;
 }
 
 function createHistoryStore(db: IDBPDatabase<ApiSandboxDB>): void {
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-}
-
-/** Inside the upgrade transaction: a failed write aborts it, and the database keeps its old version. */
-async function addCollectionVariables(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<void> {
-  const store = tx.objectStore("collections");
-  for (const collection of await store.getAll()) {
-    await store.put({ ...collection, variables: [] });
-  }
 }
 
 function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {

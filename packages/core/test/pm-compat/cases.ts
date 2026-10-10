@@ -49,9 +49,10 @@ export const CASES: CompatCase[] = [
   ...scope("pm.collectionVariables", "collection", ["base", "https://{{host}}"], { base: "https://{{host}}", shared: "from collection" }),
 
   { api: "pm.variables.get", status: "supported", script: `same(pm.variables.get("shared"), "from collection"); same(pm.variables.get("g"), "1"); same(pm.variables.get("missing"), undefined);` },
+  { api: "pm.variables.get (a folder's variable)", status: "partial", note: "Postman has no folder variables. Here a folder has them: `pm.variables` reads the nearest folder's value, which wins over the collection's and loses to the environment's. No scope of `pm` writes one.", script: `same(pm.variables.get("inFolder"), "from the folder"); same(pm.collectionVariables.get("inFolder"), undefined); same(pm.variables.replaceIn("{{inFolder}}"), "from the folder");` },
   { api: "pm.variables.set", status: "partial", note: TEXT, script: `pm.variables.set("shared", "local"); same(pm.variables.get("shared"), "local"); same(pm.collectionVariables.get("shared"), "from collection");`, result: { changes: { environment: [], collection: [], global: [] } } },
   { api: "pm.variables.has", status: "supported", script: `same(pm.variables.has("token"), true); same(pm.variables.has("missing"), false);` },
-  { api: "pm.variables.toObject", status: "supported", script: `same(pm.variables.toObject(), { shared: "from collection", g: "1", base: "https://{{host}}", host: "api.test", token: "abc123", nested: "{{host}}/v1" });` },
+  { api: "pm.variables.toObject", status: "supported", script: `same(pm.variables.toObject(), { shared: "from collection", g: "1", base: "https://{{host}}", inFolder: "from the folder", host: "api.test", token: "abc123", nested: "{{host}}/v1" });` },
   { api: "pm.variables.replaceIn", status: "supported", script: `same(pm.variables.replaceIn("{{base}}/{{nested}}?{{missing}}"), "https://api.test/api.test/v1?{{missing}}"); same(/^[0-9a-f-]{36}$/.test(pm.variables.replaceIn("{{$guid}}")), true); same(pm.variables.replaceIn("{{$secret.abc}}"), "{{$secret.abc}}");` },
 
   { api: "pm.iterationData.get", status: "partial", note: "Empty: there is no collection run with a data file yet.", script: `same(pm.iterationData.get("token"), undefined);` },

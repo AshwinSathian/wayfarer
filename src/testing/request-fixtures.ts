@@ -1,4 +1,4 @@
-import { emptyRequest, type RequestBody, type RequestContent, type Row } from "@wayfarer/core";
+import { emptyRequest, type Folder, type RequestBody, type RequestContent, type Row } from "@wayfarer/core";
 import type { PastRequest } from "../app/models/history";
 
 /** Name and value pairs as enabled rows, in the order written. */
@@ -31,3 +31,9 @@ export function historyEntry(
     route: "direct",
   };
 }
+
+/** What a new collection holds for its requests besides variables (P4.9): no auth and no scripts. */
+export const inCollection = { auth: { type: "none" }, scripts: { pre: "", post: "" } } as const;
+
+/** What a new folder holds for its requests: it inherits its auth, and has no variables and no scripts. */
+export const inFolder = { variables: [] as Row[], auth: { type: "inherit" }, scripts: { pre: "", post: "" } } as const satisfies Pick<Folder, "variables" | "auth" | "scripts">;

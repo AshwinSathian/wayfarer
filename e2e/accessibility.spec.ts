@@ -217,6 +217,26 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.getByRole("dialog")).toHaveCount(0);
     }
 
+    // A collection's settings (P4.9), tab by tab, and the Auth tab's line for a request that inherits.
+    await button("New collection").click();
+    await page.locator("#creation-name-input").fill("Sweep");
+    await button("Create").click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.getByText("Sweep", { exact: true }).click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Settings" }).click();
+    const settings = page.getByRole("dialog", { name: /^Collection settings/ });
+    for (const tab of ["Auth", "Variables", "Scripts"]) {
+      await settings.getByRole("tab", { name: tab }).click();
+      await scan(`collection settings ${tab}`);
+    }
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
+    await page.locator("app-composer").getByRole("combobox", { name: "Type" }).click();
+    await page.getByRole("option", { name: "Inherit from parent" }).click();
+    await expect(page.locator(".auth-inherited")).toBeVisible();
+    await scan("composer Auth, inherited");
+
     await page.setViewportSize({ width: 390, height: 844 });
     await scan("phone");
     await button("Toggle sidebar").click();

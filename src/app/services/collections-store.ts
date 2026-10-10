@@ -5,12 +5,13 @@ import {
   CollectionId,
   Folder,
   FolderId,
+  InheritedPatch,
   NewRequest,
   RequestDoc,
   RequestDocId,
   RequestPatch,
 } from "../models/collections";
-import { Redactor, type RedactOptions, type VariableChange } from "@wayfarer/core";
+import { Redactor, scriptDigest, scriptsOf, type RedactOptions, type VariableChange } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { serializeDeterministic } from "../shared/collections/collection-io";
 
@@ -141,6 +142,29 @@ export class CollectionsStore {
     return updated;
   }
 
+  /**
+   * Saves the auth and the scripts a collection or a folder holds for its
+   * requests. `scriptsAllowed`: the scripts it held before were allowed to
+   * run, so the ones saved now are the user's own and are approved, if the
+   * collection is trusted (D6; the rule of a request's save). Approved
+   * before they are written, so that none is stored not yet approved.
+   */
+  async saveInherited(target: { collectionId: CollectionId; folderId?: FolderId }, patch: InheritedPatch<Folder>, scriptsAllowed: boolean): Promise<void> {
+    const { auth } = patch;
+    if (!target.folderId && auth.type === "inherit") throw new Error("A collection has nothing to inherit its auth from.");
+    const scripts = scriptsOf(patch);
+    if (scriptsAllowed && scripts.length) await this.idb.approveScripts(target.collectionId, await Promise.all(scripts.map(scriptDigest)), false);
+    if (target.folderId) await this.idb.setFolderInherited(target.folderId, patch);
+    else if (auth.type !== "inherit") await this.idb.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts });
+    await this.refresh();
+  }
+
+  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
+    const folder = await this.idb.changeFolderVariables(id, changes);
+    if (folder) await this.refreshCollectionEntry(folder.collectionId);
+    return folder;
+  }
+
   async duplicateCollection(id: CollectionId): Promise<Collection | null> {
     const result = await this.idb.duplicateCollection(id);
     await this.refresh();
@@ -264,8 +288,8 @@ export class CollectionsStore {
   }
 
   /**
-   * The collection as a file. A credential typed into a request's Auth tab
-   * or into a credential header is masked unless `credentials` is asked for
+   * The collection as a file. A credential typed into the auth of a request,
+   * of a folder or of the collection, or into a credential header, is masked unless `credentials` is asked for
    * (plan D5); one that is a `{{variable}}` is a reference and stays.
    */
   async exportCollectionJson(id: CollectionId, options: RedactOptions = {}): Promise<string | null> {
@@ -276,7 +300,8 @@ export class CollectionsStore {
     const redactor = new Redactor([]);
     return serializeDeterministic({
       ...snapshot,
-      collection: { ...snapshot.collection, variables: redactor.rows(snapshot.collection.variables, options) },
+      collection: { ...snapshot.collection, variables: redactor.rows(snapshot.collection.variables, options), auth: redactor.auth(snapshot.collection.auth, options) },
+      folders: snapshot.folders.map((folder) => ({ ...folder, variables: redactor.rows(folder.variables, options), auth: redactor.auth(folder.auth, options) })),
       requests: snapshot.requests.map((request) => ({ ...request, ...redactor.template(request, options) })),
     });
   }

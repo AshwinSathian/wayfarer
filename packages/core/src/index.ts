@@ -10,6 +10,8 @@ export {
   responseViews,
   type ResponseView,
 } from "./view/response-view";
+export { buildAuthHeaders, buildAuthQueryParam, credentialsOf, effectiveAuth, resolveAuth } from "./auth/request-auth";
+export { COLLECTION_FORMAT, ancestorsOf, type Ancestor, type Collection, type CollectionExport, type Folder, type Meta, type RequestDoc } from "./model/collection";
 export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {
   AssertionOperator,
@@ -19,10 +21,12 @@ export type {
   Draft,
   FileRef,
   MultipartPart,
+  OwnAuth,
   RawLanguage,
   RequestBody,
   RequestContent,
   Row,
+  Scripts,
   TestAssertion,
 } from "./model/request";
 export { applyVariableChanges, variableChanges, variablesByName, type VariableChange } from "./model/variables";
@@ -49,7 +53,7 @@ export {
   type VariableSource,
   type VariableToken,
 } from "./variables/resolver";
-export { validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
+export { validateInherited, validateRequestContent, validateRows, type ValidationIssue } from "./model/validate";
 export { MASK, MIN_SECRET_LENGTH, Redactor, isCredentialHeader, type RedactOptions } from "./redact/redactor";
 export {
   IMPORT_TOO_LARGE,

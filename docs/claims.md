@@ -46,19 +46,19 @@ back gets reworded until one can, or removed.
 | C-011 | The Content-Security-Policy forbids `eval` and inline script, so injected script does not run. | docs/trust-center.md | e2e/claims.spec.ts |
 | C-012 | The production page loads with no script the app didn't ship (0 CSP violations); checked every 6 hours. | docs/runbook.md | e2e/no-edge-injection.spec.ts |
 | C-013 | Settings → Reset all data deletes the database; if another tab holds it open, that tab is told to reload. | README.md, docs/trust-center.md | e2e/reset-all-data.spec.ts |
-| C-014 | Collection exports mask credentials unless the user asks for them in that export. | README.md, docs/trust-center.md | e2e/claims.spec.ts, src/app/services/collections-store.integration.spec.ts |
+| C-014 | Collection exports mask credentials unless the user asks for them in that export: those of a request, and those of the auth and the variables a collection or a folder holds. | README.md, docs/trust-center.md | e2e/claims.spec.ts, src/app/services/collections-store.integration.spec.ts |
 | C-015 | After one visit the app loads offline; its service worker caches only the app's own files and never answers requests to other origins. | README.md, docs/trust-center.md | e2e/service-worker.spec.ts |
 | C-016 | The Content-Security-Policy requires Trusted Types for DOM script sinks; only same-origin script URLs pass the app's default policy. | docs/trust-center.md | e2e/trusted-types.spec.ts |
 | C-017 | Any HTTP method can be typed and is sent in upper case; GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS are offered. | README.md | e2e/features.spec.ts |
 | C-018 | The URL field is validated live; an unparseable URL is rejected instead of sent. | README.md | e2e/send-request.spec.ts |
-| C-019 | Bearer, Basic and API-key auth (header or query) set in the Auth tab reach the server. | README.md | e2e/features.spec.ts |
+| C-019 | Bearer, Basic and API-key auth (header or query) set in the Auth tab reach the server; so does auth set on the collection or on a folder, for a request set to inherit. | README.md | e2e/features.spec.ts, e2e/inheritance.spec.ts, src/app/components/composer/composer-inherit.spec.ts |
 | C-020 | Copy as cURL copies a command for the current request once it has a URL. | README.md | e2e/features.spec.ts |
 | C-021 | Visual assertions (10 operators; status, headers, body, duration) run after the call and report in the Tests tab. | README.md | e2e/features.spec.ts, src/app/shared/scripts/assertion-runner.spec.ts |
 | C-022 | The response viewer has Body (pretty JSON), Headers, Timings and Tests tabs. | README.md | e2e/send-request.spec.ts |
 | C-023 | Phase timings are withheld unless the server sends `Timing-Allow-Origin`. | README.md | e2e/features.spec.ts |
 | C-024 | Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. | README.md | e2e/features.spec.ts, e2e/collections.spec.ts |
 | C-025 | The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. | README.md | e2e/environments.spec.ts |
-| C-026 | Collection export (file format 2) and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
+| C-026 | Collection export (file format 3) and re-import is a byte-identical round trip. | README.md | src/app/shared/collections/collection-io.spec.ts |
 | C-027 | First use of the vault guides the user through creating a passphrase. | README.md | e2e/secrets.spec.ts |
 | C-028 | The Secrets view lists every secret with reveal, rename, locate and delete. | README.md | e2e/secrets-manager.spec.ts |
 | C-029 | History groups entries by day; an entry can be loaded back, deleted, or all history cleared. | README.md | e2e/features.spec.ts |
@@ -82,6 +82,6 @@ back gets reworded until one can, or removed.
 | C-048 | The HTML preview of a response runs none of its scripts, loads nothing from the network, and cannot leave its frame. | README.md, docs/trust-center.md | e2e/viewers.spec.ts |
 | C-049 | Before a request is sent, the composer says what the browser will do to it: the headers it will not send, whether it asks the server first and why, and whether it will block the request as mixed content. | README.md, docs/browser-limits.md, docs/trust-center.md | e2e/browser-limits.spec.ts, packages/core/src/browser/browser-limits.spec.ts |
 | C-050 | When a response arrives it fades in and nothing on the page changes position: not the response tabs, the split gutter, the status bar or the body. | README.md | e2e/no-movement.spec.ts |
-| C-051 | The scripts of a collection that came from a file or a backup do not run until you have read them and said you trust them; a script that changed since then does not run either. | README.md, docs/trust-center.md | e2e/script-trust.spec.ts, src/app/services/script-trust.spec.ts |
+| C-051 | The scripts of a collection that came from a file or a backup do not run until you have read them and said you trust them; a script that changed since then does not run either. | README.md, docs/trust-center.md | e2e/script-trust.spec.ts, e2e/inheritance.spec.ts, src/app/services/script-trust.spec.ts |
 | C-052 | A script reaches nothing but the API it is given: it has no network, no worker scope and no storage, `require` gives five libraries that ship with the app and no other module, a script makes no request except the ones it asks the app for with `pm.sendRequest`, and nothing of one run is left for the next. | README.md, docs/trust-center.md | e2e/sandbox-escape.spec.ts, packages/core/src/scripting/host.spec.ts |
 | C-053 | When the pre-request script of a send moved the request to another host and the request uses a vault secret, the app asks before it reads the vault; answered no, it sends nothing and puts back the variables that script set. | README.md, docs/trust-center.md | e2e/script-redirect.spec.ts, src/app/components/composer/composer-scripts.spec.ts |

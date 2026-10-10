@@ -67,11 +67,24 @@ export function fileIdsOf(body: RequestBody): string[] {
   return body.binary ? [...parts, body.binary.fileId] : parts;
 }
 
+/** `inherit`: what the nearest folder that does not inherit says, then the collection (P4.9). In no collection, nothing. */
 export type AuthConfig =
+  | { type: "inherit" }
   | { type: "none" }
   | { type: "bearer"; token: string }
   | { type: "basic"; username: string; password: string }
   | { type: "apikey"; key: string; value: string; in: "header" | "query" };
+
+/** An auth that says what is sent by itself. */
+export type OwnAuth = Exclude<AuthConfig, { type: "inherit" }>;
+
+export const AUTH_TYPES = ["inherit", "none", "bearer", "basic", "apikey"] as const satisfies readonly AuthConfig["type"][];
+
+/** The two scripts of a request, of a folder or of a collection. Blank: there is none. */
+export interface Scripts {
+  pre: string;
+  post: string;
+}
 
 export const ASSERTION_TARGETS = ["status", "body", "header", "duration"] as const;
 export type AssertionTarget = (typeof ASSERTION_TARGETS)[number];
@@ -111,7 +124,7 @@ export interface RequestContent {
   headers: Row[];
   body: RequestBody;
   auth: AuthConfig;
-  scripts: { pre: string; post: string };
+  scripts: Scripts;
   tests: TestAssertion[];
   settings: { timeoutMs?: number; followRedirects?: boolean; route?: "auto" | "direct" | "bridge" };
 }
@@ -126,6 +139,7 @@ export function emptyAuth(type: AuthConfig["type"]): AuthConfig {
     case "apikey":
       return { type, key: "", value: "", in: "header" };
     case "none":
+    case "inherit":
       return { type };
   }
 }

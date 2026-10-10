@@ -80,11 +80,72 @@ describe("ScriptTrust", () => {
     saved.bind(tree.requests[0]);
     trust.openedHere();
     expect(await allowed()).toBe(false);
-    expect(trust.toReview()).toEqual([{ name: "Login", pre: "pm.environment.set('host', 'evil.test');", post: "" }]);
+    expect(trust.toReview()).toEqual([{ kind: "request", name: "Login", pre: "pm.environment.set('host', 'evil.test');", post: "" }]);
 
     await trust.approve();
     expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("pm.environment.set('host', 'evil.test');")] });
     expect(await allowed()).toBe(true);
+  });
+
+  /** A collection with a script of its own and one in a folder, and a request in that folder with none. */
+  async function withInheritedScripts() {
+    const made = await collections.createCollection({ name: "Shop" });
+    const collectionId = made.meta.id;
+    await collections.saveInherited({ collectionId }, { auth: { type: "none" }, scripts: { pre: "fromCollection()", post: "" } }, true);
+    const folder = await collections.createFolder({ collectionId, name: "Admin" });
+    await collections.saveInherited({ collectionId, folderId: folder.meta.id }, { auth: { type: "inherit" }, scripts: { pre: "", post: "fromFolder()" } }, true);
+    await collections.createRequest({ ...content(""), collectionId, folderId: folder.meta.id, name: "Plain" });
+    return collections.getCollectionTree(collectionId)!;
+  }
+
+  it("a collection's and a folder's script written here are approved by their digests, and run for a request in them", async () => {
+    const tree = await withInheritedScripts();
+    expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")] });
+    saved.bind(tree.requests[0]);
+    trust.openedHere();
+    expect(await allowed()).toBe(true);
+  });
+
+  it("@claim:C-051 a collection's and a folder's script from a file hold back a request that has none of its own, until they are reviewed", async () => {
+    const made = await withInheritedScripts();
+    await collections.importCollection((await idb.getCollectionExport(made.collection.meta.id))!);
+    const tree = collections.getCollectionTree(made.collection.meta.id)!;
+    expect(tree.collection.scriptTrust).toEqual({ trusted: false });
+    saved.bind(tree.requests[0]);
+    trust.openedHere();
+    expect(await allowed()).toBe(false);
+    // A request outside the folder is held by the collection's script alone.
+    const outside = await collections.createRequest({ ...content(""), collectionId: tree.collection.meta.id, name: "Outside" });
+    saved.bind(outside);
+    expect(await allowed()).toBe(false);
+
+    saved.bind(tree.requests[0]);
+    expect(trust.toReview()).toEqual([
+      { kind: "collection", name: "Collection Shop", pre: "fromCollection()", post: "" },
+      { kind: "folder", name: "Folder Admin", pre: "", post: "fromFolder()" },
+    ]);
+    await trust.approve();
+    expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")] });
+    expect(await allowed()).toBe(true);
+  });
+
+  it("saving a folder's script in a collection that is not reviewed does not approve it; changed past the settings, it does not run", async () => {
+    const made = await withInheritedScripts();
+    await collections.importCollection((await idb.getCollectionExport(made.collection.meta.id))!);
+    const collectionId = made.collection.meta.id;
+    const folderId = made.folders[0].meta.id;
+    // The settings dialog's save, for scripts that were not allowed to run.
+    await collections.saveInherited({ collectionId, folderId }, { auth: { type: "inherit" }, scripts: { pre: "", post: "edited()" } }, false);
+    expect(trustOf(collectionId)).toEqual({ trusted: false });
+
+    saved.bind(collections.getCollectionTree(collectionId)!.requests[0]);
+    trust.openedHere();
+    await trust.approve();
+    expect(await allowed()).toBe(true);
+    // Written past the app's own save, as another program could: no digest of it is approved.
+    await idb.setFolderInherited(folderId, { auth: { type: "inherit" }, scripts: { pre: "", post: "swapped()" } });
+    await collections.refresh();
+    expect(await allowed()).toBe(false);
   });
 
   it("saving an unreviewed script does not approve it, here or in another collection", async () => {
@@ -147,7 +208,7 @@ describe("ScriptTrust", () => {
 
     trust.openedFromHistory(content("fromThen()", "after()"));
     expect(await allowed()).toBe(false);
-    expect(trust.toReview()).toEqual([{ name: "From history", pre: "fromThen()", post: "after()" }]);
+    expect(trust.toReview()).toEqual([{ kind: "request", name: "From history", pre: "fromThen()", post: "after()" }]);
     await trust.approve();
     expect(await allowed()).toBe(true);
 

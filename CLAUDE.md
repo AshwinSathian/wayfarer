@@ -366,6 +366,18 @@ code errors.
   only then the vault read), sent, post-response script. A pre-request
   script that ends in an error stops there (`PreRequestScriptError`):
   nothing is built or sent. A failed `pm.test` is not an error.
+- "Pre-request script" is several (P4.9): the collection's, each folder's
+  from the outside in, then the request's own, each a run of its own with
+  the variables the one before left; the post-response scripts in the same
+  order. `RequestExecutionSpec.inherited` holds them, and `send` gives
+  `ScriptTrust.check` that same list: what is checked is what runs. C-053's
+  question compares the request before the first with the request after the
+  last.
+- What a request inherits is `RequestSave.ancestors()` (`ancestorsOf` in
+  `@wayfarer/core`): the collection, then its folders from the outside in.
+  Auth is `effectiveAuth`; a request's own `none` is not `inherit`. A
+  folder's variables are the `folder` scope of the resolver, which a script
+  reads through `pm.variables` and cannot write.
 - A pre-request script sees the request as composed. A post-response script
   sees it as sent (`sentScriptRequest`), every vault secret masked first: a
   script is not handed a secret's plaintext by the app, in a variable or in
@@ -431,8 +443,10 @@ code errors.
   plan D6): a collection's `scriptTrust.approved` lists the SHA-256 of each
   script reviewed or written here, and a script runs only if its digest is
   there. `send` asks `ScriptTrust.check()`; nothing else decides.
-- Only two things call `approveScripts`: the review dialog, and a save from
-  the composer whose scripts were already allowed to run. Anything else
+- Only three things call `approveScripts`: the review dialog, a save from
+  the composer whose scripts were already allowed to run, and a save of a
+  collection's or a folder's settings (`CollectionsStore.saveInherited`)
+  when the scripts it held before were allowed to run. Anything else
   that writes requests (an importer, a restore, a sync) writes them
   unapproved, and a collection it creates or replaces gets
   `{ trusted: false }`. Do not approve in a repository's write path.
@@ -475,11 +489,12 @@ code errors.
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
-  (`wayfarer/collection/2`, `wayfarer/environments/2`); there is no
+  (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
   converter for older files.
-- The database is version 9. `runUpgrade` empties a database from before
+- The database is version 10. `runUpgrade` empties a database from before
   version 5, and since then removes only what changed shape (secrets at 8,
-  history at 9), saying what it removed. No stored data exists to keep
+  history at 9; collections, folders, requests and files at 10), saying
+  what it removed. No stored data exists to keep
   (maintainer, 2026-10-09), so a change of stored shape may do the same
   again until the app has users; say so in the changelog and in
   `docs/storage.md`.

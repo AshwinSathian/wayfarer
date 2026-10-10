@@ -1,3 +1,5 @@
+import type { Scripts } from "../model/request";
+
 /**
  * Whether a collection's scripts may run (plan D6). `trusted` says the
  * collection was made here or its scripts were reviewed here; `approved`
@@ -17,9 +19,9 @@ export async function scriptDigest(text: string): Promise<string> {
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** The scripts of a request that would run: the ones that are not blank. */
-export function scriptsOf(request: { scripts: { pre: string; post: string } }): string[] {
-  return [request.scripts.pre, request.scripts.post].filter((script) => script.trim());
+/** The scripts of a request, a folder or a collection that would run: the ones that are not blank. */
+export function scriptsOf(holder: { scripts: Scripts }): string[] {
+  return [holder.scripts.pre, holder.scripts.post].filter((script) => script.trim());
 }
 
 /** True when every one of `scripts` is approved. No script needs no approval. */

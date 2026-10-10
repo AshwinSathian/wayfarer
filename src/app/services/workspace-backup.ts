@@ -17,7 +17,7 @@ import { validateCollection } from "../shared/collections/collection-io";
 import { validateEnvironmentExport } from "../shared/environments/environment-io";
 import { Diagnostics } from "./diagnostics";
 
-export const WORKSPACE_FORMAT = "wayfarer/workspace/2";
+export const WORKSPACE_FORMAT = "wayfarer/workspace/3";
 
 /** A whole workspace as one file. The vault's secrets are in it encrypted, as they are stored. */
 export interface WorkspaceFile {

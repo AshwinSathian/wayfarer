@@ -50,3 +50,37 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
   expect(elsewhere[0].headers()["x-api-key"]).toBe(SECRET);
   expect(errors).toEqual([]);
 });
+
+test("@claim:C-053 the comparison starts before the first inherited script: a collection's pre-request script that moves the request is asked about too", async ({ page }) => {
+  const composed = await captureTarget(page);
+  const elsewhere = await captureTarget(page, undefined, ELSEWHERE);
+  await seedAndOpen(page, { base: TARGET }, {
+    method: "GET",
+    url: "{{base}}/items",
+    headers: { "X-Api-Key": "{{API_TOKEN}}" },
+    // The request has no script of its own. Its collection's moves it, and its folder's runs after and leaves it there.
+    collection: { scripts: { pre: `pm.environment.set("base", "${ELSEWHERE}");`, post: "" } },
+    folder: { scripts: { pre: `pm.environment.set("trace", "set-by-the-folder");`, post: "" } },
+  });
+  await protectVariable(page, "API_TOKEN", SECRET);
+  const variables = async () => JSON.stringify((await dumpIdb(page))["environments"]);
+
+  await send(page);
+  const question = page.getByRole("alertdialog", { name: "Send to a different host?" });
+  await expect(question).toContainText("from tripwire.test to elsewhere.test");
+  expect([...composed, ...elsewhere]).toEqual([]);
+
+  // No: nothing is sent, and what both inherited scripts set is put back.
+  await question.getByRole("button", { name: "Don't send", exact: true }).click();
+  await expect(page.getByText("The request was not sent, and what the pre-request script set was undone.")).toBeVisible();
+  await expect.poll(variables).toContain(`"key":"base","value":"${TARGET}"`);
+  expect(await variables()).not.toContain("set-by-the-folder");
+  expect([...composed, ...elsewhere]).toEqual([]);
+
+  await send(page);
+  await question.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  expect(composed).toEqual([]);
+  expect(elsewhere).toHaveLength(1);
+  expect(elsewhere[0].headers()["x-api-key"]).toBe(SECRET);
+});

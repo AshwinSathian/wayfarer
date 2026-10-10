@@ -57,7 +57,7 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
   await page.getByRole("checkbox", { name: "With history" }).check();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Back up workspace" }).click()]);
   const file = await text(download);
-  expect(file).toContain('"$id": "wayfarer/workspace/2"');
+  expect(file).toContain('"$id": "wayfarer/workspace/3"');
   expect(file).not.toContain(SECRET);
   expect(file).not.toContain(PASSPHRASE);
 
@@ -95,11 +95,11 @@ test("a file that is not a workspace backup is refused, with the reason, and not
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   const before = await dumpIdb(page);
   await openSettings(page);
-  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection/2"}') });
+  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection/3"}') });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
 
   await expect(page.getByText("The file was not restored and nothing was changed:")).toBeVisible();
-  await expect(page.getByText('Not a Wayfarer workspace file: "$id" must be "wayfarer/workspace/2".')).toBeVisible();
+  await expect(page.getByText('Not a Wayfarer workspace file: "$id" must be "wayfarer/workspace/3".')).toBeVisible();
   expect(await dumpIdb(page)).toEqual(before);
 });
 

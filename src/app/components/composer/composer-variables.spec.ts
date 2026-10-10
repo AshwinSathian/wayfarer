@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { WorkspaceStore } from "../../state/workspace-store";
-import { rowsOf } from "../../../testing/request-fixtures";
+import { inCollection, rowsOf } from "../../../testing/request-fixtures";
 import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, makeRequestDoc, meta, rows, setupComposer } from "../../../testing/composer-setup";
 import { Composer } from "./composer";
 
@@ -24,7 +24,7 @@ describe("Composer: variable scopes", () => {
 
   function collection(id: string, variables: Record<string, string>) {
     return {
-      collection: { id, meta: meta(id), name: id, order: 1, variables: rowsOf(variables), scriptTrust: { trusted: true } },
+      collection: { id, meta: meta(id), name: id, order: 1, variables: rowsOf(variables), ...inCollection, scriptTrust: { trusted: true } },
       folders: [],
       requests: [],
     };

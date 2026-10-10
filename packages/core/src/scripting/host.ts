@@ -1,7 +1,7 @@
 import type { QuickJSContext, QuickJSHandle, QuickJSRuntime, QuickJSWASMModule } from "quickjs-emscripten-core";
 import { isHttpMethod } from "../model/request";
 import type { VariableChange } from "../model/variables";
-import { VariableResolver, type ScopeStack, type VariableScope } from "../variables/resolver";
+import { VARIABLE_SCOPES, VariableResolver, type ScopeStack, type VariableScope } from "../variables/resolver";
 import { VM_LIBRARIES } from "./libraries";
 import { VM_BOOTSTRAP } from "./vm-bootstrap";
 import { VM_ENCODINGS, isVmHash, vmDecode, vmEncode, vmHash, vmHmac, vmRandom, type VmEncoding, type VmHash } from "./vm-crypto";
@@ -106,6 +106,8 @@ export interface ScriptContext {
   /** The variables of the active environment, by name. Nothing else of the app is visible to a script but what this context holds. */
   environment: [string, string][];
   environmentName?: string;
+  /** The variables of the folders the request is in, the nearest folder's value for a name. A script reads them through `pm.variables`; Postman has no folder scope to write to. */
+  folder?: [string, string][];
   collection?: [string, string][];
   globals?: [string, string][];
   /** Absent for a pre-request script: `pm.response` is then `null`. */
@@ -216,8 +218,8 @@ export async function runScript(
 ): Promise<ScriptResult> {
   const scope = (rows: [string, string][] = []) => new Map(rows);
   const state: RunState = {
-    values: { local: scope(), data: scope(), environment: scope(context.environment), collection: scope(context.collection), global: scope(context.globals) },
-    changes: { local: new Map(), data: new Map(), environment: new Map(), collection: new Map(), global: new Map() },
+    values: { local: scope(), data: scope(), environment: scope(context.environment), folder: scope(context.folder), collection: scope(context.collection), global: scope(context.globals) },
+    changes: { local: new Map(), data: new Map(), environment: new Map(), folder: new Map(), collection: new Map(), global: new Map() },
     sends: 0,
     inFlight: 0,
     answers: [],
@@ -563,7 +565,7 @@ async function evaluate(
 }
 
 /** Nearest first. */
-const VARIABLE_ORDER = ["local", "data", "environment", "collection", "global"] as const;
+const VARIABLE_ORDER = VARIABLE_SCOPES;
 
 const isPairs = (value: unknown): value is [string, string][] =>
   Array.isArray(value) && value.every((pair) => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string");

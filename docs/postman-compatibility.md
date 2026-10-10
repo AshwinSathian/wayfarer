@@ -8,7 +8,7 @@ the app's own worker in a browser, on every commit, and must show what the
 row says. This file is written from those rows, and CI fails when it and
 they differ. <!-- claim:C-040 -->
 
-123 rows: 79 supported, 27 partial, 17 not supported.
+124 rows: 79 supported, 28 partial, 17 not supported.
 
 - **Supported:** as in Postman.
 - **Partial:** it is there, and the note says what differs.
@@ -69,6 +69,7 @@ How scripts run, what they can reach and which may run is in
 | API | Status | Note |
 |---|---|---|
 | `pm.variables.get` | Supported |  |
+| `pm.variables.get (a folder's variable)` | Partial | Postman has no folder variables. Here a folder has them: `pm.variables` reads the nearest folder's value, which wins over the collection's and loses to the environment's. No scope of `pm` writes one. |
 | `pm.variables.set` | Partial | Values are text: a number or an object that is set is read back as a string. |
 | `pm.variables.has` | Supported |  |
 | `pm.variables.toObject` | Supported |  |

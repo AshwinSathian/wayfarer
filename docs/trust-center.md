@@ -60,7 +60,8 @@ sandboxing and the device's disk encryption. In particular:
   base64, since servers send them back. A value shorter than 6 characters
   cannot be looked for.
 - **Collection exports mask credentials unless you ask for them in that
-  export.** <!-- claim:C-014 --> "Export with credentials" writes them;
+  export.** <!-- claim:C-014 --> That covers a request's, and the auth and
+  the variables a collection or a folder holds. "Export with credentials" writes them;
   a vault secret is never in a file, only its reference.
 - **Vault secrets are sent as their plaintext when the vault is
   unlocked.** A locked vault asks for the passphrase first, and closing
@@ -125,7 +126,7 @@ where the request goes, and the request carries its secrets there. That is
 what the review below is for.
 A run is stopped at 5 seconds and at 64 MB.
 Scripts that came from somewhere else do not run on arrival: the scripts of
-an imported or restored collection, and those of a history entry, wait
+an imported or restored collection (its requests', its folders' and its own), and those of a history entry, wait
 until you have read them in the review dialog and said you trust them. The
 collection then holds the SHA-256 of each script you approved, and a script
 runs only if its own digest is there, so one that a later import changed

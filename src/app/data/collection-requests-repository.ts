@@ -39,6 +39,8 @@ export class CollectionRequestsRepository {
       const meta = this.core.createMeta();
       const doc: RequestDoc = {
         ...emptyRequest(),
+        // A request made in a collection takes its auth from there until it is given one of its own (P4.9).
+        auth: { type: "inherit" },
         ...payload,
         id: meta.id,
         meta,

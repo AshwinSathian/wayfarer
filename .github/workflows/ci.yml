@@ -80,14 +80,14 @@ jobs:
       - run: npm run build
       - run: npm run bundle:report
       # P1.7: build once. e2e and deploy.yml use exactly these files.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
           path: dist/wayfarer/browser/
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bundle-report
           path: bundle-report.json
@@ -144,7 +144,7 @@ jobs:
       - run: npx playwright test --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }}
         env:
           CI: "1"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: playwright-report-${{ matrix.browser }}

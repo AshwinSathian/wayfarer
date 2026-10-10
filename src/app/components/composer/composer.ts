@@ -9,6 +9,7 @@ import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 import { Splitter } from "../../ui/splitter";
 import { ResponseViewer } from "../response-viewer/response-viewer";
 import { AddressRow } from "./address-row";
+import { BrowserNotes } from "./browser-notes";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
 import { ComposerView } from "./composer-view";
@@ -36,6 +37,7 @@ import { VariableChips } from "./variable-chips";
     Splitter,
     ResponseViewer,
     AddressRow,
+    BrowserNotes,
     VariableChips,
     ParamsPanel,
     HeadersPanel,

@@ -48,6 +48,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - The body is shown by its type, and you can switch the view: formatted JSON (with a path filter such as `data.items[*].id`, and find with Ctrl/Cmd+F), text, indented XML, an HTML preview, an image, or a hex dump. Text can always be read as it was sent, and a binary body downloaded with its exact bytes <!-- claim:C-009 -->
   - The HTML preview is a drawing of the page and nothing more: its scripts do not run, it loads nothing from the network, and its links go nowhere <!-- claim:C-048 -->
   - Before you send, the composer says what the browser will do to the request: the headers it will not send (`Cookie`, `Host` and the rest), whether it asks the server first with a CORS preflight and why, and whether it will block an `http://` address. [`docs/browser-limits.md`](docs/browser-limits.md) explains each <!-- claim:C-049 -->
+  - A response fades in; nothing on the page moves when it arrives, so what you aim at is where you press <!-- claim:C-050 -->
   - The Headers tab says when the browser withheld headers (a response from another origin shows only the CORS-safelisted ones and those the server exposes)
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
   - An **Export** menu that copies the exchange as cURL or HAR <!-- claim:C-035 -->

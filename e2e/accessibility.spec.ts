@@ -22,7 +22,7 @@ test.describe("Accessibility (primary flows)", () => {
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
     // The status bar carries `.animate-response-arrive` (opacity 0 -> 1,
-    // fade-up, over --dur-enter). Scanning immediately after the status
+    // over --dur-enter). Scanning immediately after the status
     // badge's text appears can catch the duration/size pills mid-transition,
     // where their interpolated opacity temporarily drops effective text
     // contrast below 4.5:1 even though the token itself (#9C9CA1 on

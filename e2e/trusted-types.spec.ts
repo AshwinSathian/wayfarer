@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { settled, still } from "./support/settled";
+import { settled } from "./support/settled";
 
 // P1.9: the CSP requires Trusted Types for DOM script sinks
 // (security/csp.json), and src/app/shared/security/trusted-types.ts installs
@@ -24,7 +24,6 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
   const scriptsTab = page.getByRole("tab", { name: "Scripts", exact: true }).first();
-  await still(scriptsTab);
   await scriptsTab.click();
   await expect(page.getByText("Loading editor…")).toHaveCount(0);
   for (const name of ["Settings", "Request history", "Manage secrets", "Local Bridge settings"]) {

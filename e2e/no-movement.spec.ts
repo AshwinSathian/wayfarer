@@ -1,0 +1,142 @@
+import { test, expect, type Page } from "@playwright/test";
+import { send } from "./support/app";
+import { ECHO } from "./support/echo";
+
+// F48 (P2.18): nothing may change position once a response is on screen. A
+// test, or a person, aims at a tab and presses; if the tab moves between the
+// two, the press lands beside it. An opacity change is allowed.
+
+interface Sample {
+  frame: number;
+  ms: number;
+  boxes: Record<string, string>;
+}
+
+interface Recording {
+  samples: Sample[];
+  /** What an animation running at the first frame changes, on or around a sampled element, besides how it is painted. */
+  animated: string[];
+}
+
+/**
+ * From the frame the status badge first shows `status`, records on every
+ * animation frame for `duration` ms where the response tabs, the split
+ * gutter and what a person presses next are.
+ *
+ * A slow machine draws few frames (a CI runner drew 2 in 500 ms), and an
+ * animation could run between two of them unseen. So at the first frame it
+ * also reads the animations themselves: one that runs on a sampled element,
+ * or on anything around it, may change how the element is painted (its
+ * opacity, a colour, a shadow) and not where it is or how big.
+ */
+async function sampleAfterResponse(page: Page, status: string, duration: number): Promise<() => Promise<Recording>> {
+  await page.evaluate(({ status, ms }) => {
+    const samples: Sample[] = [];
+    const targets = (): [string, Element][] => [
+      ...[...document.querySelectorAll("app-response-viewer [role='tab']")].map((tab, index): [string, Element] => [`tab ${index} ${tab.textContent?.trim().split(/\s+/)[0]}`, tab]),
+      ...[...document.querySelectorAll(".composer-response-splitter [role='separator']")].map((gutter): [string, Element] => ["gutter", gutter]),
+      // What the open pane holds: the view select, the editor, a Download button.
+      ...[...document.querySelectorAll("app-response-viewer .tab-pane:not([hidden]) > div > *")].map((element, index): [string, Element] => [`body ${index}`, element]),
+      // What a person presses next: the composer's tabs, and what sits in the status bar.
+      ...[...document.querySelectorAll("app-composer .composer-pane [role='tab']")].map((tab, index): [string, Element] => [`composer tab ${index}`, tab]),
+      ...[...document.querySelectorAll("app-response-viewer .status-badge, app-response-viewer [aria-label='Export response']")].map(
+        (element): [string, Element] => [element.matches(".status-badge") ? "status badge" : "Export", element]
+      ),
+    ];
+    const box = (element: Element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return [x, y, width, height].map((value) => Math.round(value * 100) / 100).join(",");
+    };
+    const animated: string[] = [];
+    const readAnimations = () => {
+      const sampled = targets().map(([, element]) => element);
+      for (const animation of document.getAnimations()) {
+        const effect = animation.effect;
+        const target = effect instanceof KeyframeEffect ? effect.target : null;
+        if (!effect || !target || !sampled.some((element) => target.contains(element))) continue;
+        const properties = new Set((effect as KeyframeEffect).getKeyframes().flatMap((keyframe) => Object.keys(keyframe)));
+        for (const property of ["offset", "computedOffset", "easing", "composite"]) properties.delete(property);
+        // Paint only: the status badge fades between colours, and that moves nothing.
+        for (const property of [...properties]) if (/^(opacity|boxShadow|.*[cC]olor)$/.test(property)) properties.delete(property);
+        for (const property of properties) animated.push(`${property} on <${target.tagName.toLowerCase()} class="${target.getAttribute("class") ?? ""}">`);
+      }
+    };
+    let started = 0;
+    const tick = (now: number) => {
+      if (!started && document.querySelector("app-response-viewer .status-badge")?.textContent?.trim() === status) {
+        started = now;
+        readAnimations();
+      }
+      if (started) samples.push({ frame: samples.length, ms: Math.round(now - started), boxes: Object.fromEntries(targets().map(([name, element]) => [name, box(element)])) });
+      if (!started || now - started < ms) requestAnimationFrame(tick);
+      else (window as unknown as { __recording: Recording }).__recording = { samples, animated };
+    };
+    requestAnimationFrame(tick);
+    interface Sample {
+      frame: number;
+      ms: number;
+      boxes: Record<string, string>;
+    }
+    interface Recording {
+      samples: Sample[];
+      animated: string[];
+    }
+  }, { status, ms: duration });
+  return async () => {
+    await page.waitForFunction(() => !!(window as unknown as { __recording?: unknown }).__recording);
+    return page.evaluate(() => (window as unknown as { __recording: Recording }).__recording);
+  };
+}
+
+/** Every box that was somewhere else in a later frame than in the first one, as "name: first -> later at N ms". */
+function movements(samples: Sample[]): string[] {
+  const first = samples[0].boxes;
+  const moved = new Map<string, string>();
+  for (const sample of samples) {
+    for (const [name, box] of Object.entries(sample.boxes)) {
+      if (name in first && box !== first[name] && !moved.has(name)) moved.set(name, `${name}: ${first[name]} -> ${box} at ${sample.ms} ms`);
+    }
+    for (const name of Object.keys(first)) {
+      if (!(name in sample.boxes) && !moved.has(name)) moved.set(name, `${name}: gone at ${sample.ms} ms`);
+    }
+  }
+  return [...moved.values()];
+}
+
+for (const [name, path, status] of [
+  ["a JSON response", "/content/json", "200"],
+  ["a text response", "/content/text", "200"],
+  ["an error status", "/status/404", "404"],
+] as const) {
+  test(`@claim:C-050 nothing moves in the 500 ms after ${name} arrives`, async ({ page }) => {
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${ECHO}${path}`);
+    const samples = await sampleAfterResponse(page, status, 500);
+    await send(page);
+    const { samples: recorded, animated } = await samples();
+
+    // The sampling saw the response from its first frame, for the whole time, with the tabs and the gutter in it.
+    expect(recorded.length).toBeGreaterThanOrEqual(2);
+    expect(recorded.at(-1)?.ms).toBeGreaterThanOrEqual(500);
+    expect(Object.keys(recorded[0].boxes)).toEqual(expect.arrayContaining(["tab 0 Body", "tab 1 Headers", "tab 2 Timings", "tab 3 Tests", "gutter", "status badge", "Export"]));
+    // Soft, so that a failure shows both what moved and which animation moved it.
+    expect.soft(movements(recorded)).toEqual([]);
+    expect(animated).toEqual([]);
+  });
+}
+
+test("@claim:C-050 nothing moves when a second response replaces the first", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("input.address-url").fill(`${ECHO}/content/json`);
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await page.locator("input.address-url").fill(`${ECHO}/status/404`);
+  // Sampling starts at the frame the second response's badge is there.
+  const samples = await sampleAfterResponse(page, "404", 500);
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("404");
+  const { samples: recorded, animated } = await samples();
+  expect(recorded.length).toBeGreaterThanOrEqual(2);
+  expect.soft(movements(recorded)).toEqual([]);
+  expect(animated).toEqual([]);
+});

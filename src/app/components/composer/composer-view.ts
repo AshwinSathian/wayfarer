@@ -114,11 +114,13 @@ export class ComposerView {
     this.store.refreshVariablePreview();
   }
 
+  /**
+   * The phone's open section is the desktop's open tab (F55: it was "Body,
+   * or else Headers", so crossing the 768 px line and back lost the tab).
+   * A Body tab the method has no use for falls back to Headers.
+   */
   private syncMobilePanelsFromActiveTab(): void {
-    if (isBodyMethod(this.store.draft().method)) {
-      this.mobileActivePanels.set(this.activeTab() === "body" ? "body" : "headers");
-    } else {
-      this.mobileActivePanels.set("headers");
-    }
+    const tab = this.activeTab();
+    this.mobileActivePanels.set(tab === "body" && !isBodyMethod(this.store.draft().method) ? "headers" : tab);
   }
 }

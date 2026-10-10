@@ -17,18 +17,6 @@
   to   { opacity: 1; }
 }
 
-/* Fade in + lift (for cards, response panel) */
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* Overlay enter — scale from 0.97 */
 @keyframes overlay-appear {
   from {
@@ -53,13 +41,6 @@
   }
 }
 
-/* Status badge entrance — pop in */
-@keyframes badge-pop {
-  0%   { transform: scale(0.7); opacity: 0; }
-  60%  { transform: scale(1.08); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
 /* ── Applied animations ──────────────────────────────────── */
 
 /* Material's own dialog animation is off (see ui/dialog.ts): it holds back
@@ -77,12 +58,13 @@
 
 /* ── Utility classes ─────────────────────────────────────── */
 
-.animate-fade-up {
-  animation: fade-up var(--dur-enter) var(--ease-spring) both;
-}
-
-.animate-badge-pop {
-  animation: badge-pop var(--dur-spring) var(--ease-spring) both;
+/* What appears in the page fades in and does not move (F48). A panel that
+   slid 10 px into place, or a badge that grew, was somewhere else between a
+   press and its release: the press landed beside it, and five tests and
+   any quick hand clicked nothing. Only overlays (above) still move: they
+   are placed before they are shown and nothing is aimed at them earlier. */
+.animate-fade-in {
+  animation: fade-in var(--dur-enter) var(--ease-standard) both;
 }
 
 /* ── Transition utilities ────────────────────────────────── */
@@ -94,12 +76,10 @@
     border-color var(--dur-quick) var(--ease-standard) !important;
 }
 
-/* Response-arrival pulse — restarted imperatively (class removed and
-   re-added on a fresh response, see ResponseViewer) rather than
-   relying on a CSS-only re-trigger, since simply changing bound data does
-   not restart an already-applied CSS animation. */
+/* A response's status bar. The element is made anew for every response, so
+   the animation runs again each time. Opacity only (F48). */
 .animate-response-arrive {
-  animation: fade-up var(--dur-enter) var(--ease-spring) both;
+  animation: fade-in var(--dur-enter) var(--ease-standard) both;
 }
 
 /* ── Reduced motion ───────────────────────────────────────────

@@ -235,3 +235,51 @@ Use this if a deployed `sw.js` is broken (for example, users are stuck on an old
 2. Upload and promote it as in [`deployment.md`](deployment.md) (steps 2–4). Browsers fetch `/sw.js` on their next navigation (it is never HTTP-cached: `updateViaCache: "none"`), install the kill switch, which deletes all caches, unregisters, and reloads open tabs from the network.
 3. Check in a browser that had the app open: DevTools → Application → Service workers shows no registration after one reload, and Cache Storage is empty.
 4. Fix the worker, then deploy normally; the app registers the fixed `/sw.js` again.
+
+## The update is stuck, or the data is from a newer version
+
+Wayfarer's data lives in the browser (IndexedDB `api-sandbox`, schema version 9 in v2.0.0; see [`storage.md`](storage.md)). A new version of the app upgrades the database in one step when it first opens it. Three things can get in the way, and the page names each with a banner. Nothing on a server can be inspected: what follows is what a user does, and what the maintainer does when a release itself is the cause.
+
+### "Close other Wayfarer tabs to finish the update"
+
+Another tab or window still has the database open with older code and has not let go. Tabs running v2.0.0 or later close their connection by themselves; a tab running an older build (anything served before v2.0.0) does not.
+
+1. Close every other Wayfarer tab and window, including an installed app window. The update finishes by itself; no reload is needed.
+2. If the banner stays: quit and reopen the browser, then open Wayfarer in one tab.
+3. Until it finishes nothing is saved, and nothing is lost: the database is unchanged.
+
+### "Wayfarer was updated in another tab — reload"
+
+This tab has stepped aside so that a newer tab could upgrade. Reload it. Anything typed in this tab after the banner appeared was not saved.
+
+### "This tab is running an older Wayfarer than the one that saved your data"
+
+The page's code is older than the database: a stale cached page, or a deploy that was rolled back after users had already opened the newer version. The database is not opened and not changed.
+
+For a user:
+
+1. Reload. If the banner stays, the browser is still serving the old page from the service worker's cache: close all Wayfarer tabs, open one, and reload once more (a new worker takes over on the first navigation after the old pages are gone).
+2. Still there: the site really is serving an older version than the one that wrote the data. Wait for the fix below. Do not use **Reset all data** unless losing the data is acceptable; a [workspace backup](storage.md#keeping-the-data) cannot be made while the database is closed.
+
+For the maintainer, when a rollback caused it:
+
+1. IndexedDB cannot go back to a lower version. **Do not** ship a build with a lower `DB_VERSION`, and do not delete the database from code.
+2. Fix forward: ship a build whose `DB_VERSION` is at or above the highest version that reached production, even if the feature that raised it is switched off. `runUpgrade` (`src/app/data/idb-migrations.ts`) must accept that version as its starting point.
+3. Deploy as in [`deployment.md`](deployment.md). Users with the banner reload and continue.
+4. If the service worker is what keeps the old page alive, use the [kill switch](#service-worker-kill-switch) first.
+
+### The first open of v2.0.0
+
+v2.0.0 does not convert what earlier versions stored (decided while the app had no users with data). On the first open it removes it and says so once, with a notice that lists what went:
+
+| Database was at | What the upgrade removes |
+|---|---|
+| version 4 or lower (any 1.x build) | everything: collections, folders, requests, environments, secrets, history |
+| version 5, 6 or 7 | secrets (the vault's format changed at 8) and history (masked from 9) |
+| version 8 | history |
+
+Collection and environment files exported by 1.x have no `$id` and are refused on import. There is no way to bring 1.x data across; the release note says so.
+
+### An upgrade that fails
+
+The upgrade runs in one `versionchange` transaction. If it throws, the transaction aborts and the database stays exactly as it was, at its old version; the page then shows the storage banner and works from memory. Ask the user for the banner's text and the browser's console output, reproduce with a database of that version (`src/app/data/idb-upgrade.spec.ts` opens one for each), fix `runUpgrade`, and ship. Their data is untouched meanwhile.

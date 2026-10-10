@@ -51,4 +51,7 @@ async function run({ id, source, context, limits }: RunMessage): Promise<void> {
   }
 }
 
+// No origin check: a dedicated worker hears only the page that created it,
+// and a message to one carries no origin to compare (CodeQL's
+// js/missing-origin-check is about windows and frames).
 addEventListener("message", ({ data }: MessageEvent<RunMessage>) => void run(data));

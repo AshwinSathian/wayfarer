@@ -49,6 +49,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Nothing moves when a response arrives.** The status bar slid 10 px
+  into place and overshot, the status badge grew and shrank, and the body
+  slid up, for about a third of a second. A press on **Export** or on a
+  tab in that moment could land beside it and do nothing. A response now
+  fades in where it is; so does a tab's content when you switch tabs, and
+  the composer's sections on a phone when the page loads
+  ([#119](https://github.com/AshwinSathian/wayfarer/issues/119)).
+- **The composer keeps its tab when the window is resized.** Making the
+  window narrower than 768 px and wide again put the composer back on
+  Headers, whatever tab was open, and on a phone-sized window the section
+  that opened was Headers instead of the one you were in
+  ([#177](https://github.com/AshwinSathian/wayfarer/issues/177)).
 - A test on the response body could find things that are not in the body:
   `Body.constructor exists` passed for any JSON object. A path now reads
   only what the JSON holds

@@ -220,6 +220,28 @@ test.describe("Mobile composer (390px)", () => {
   });
 });
 
+// F55: the composer went back to Headers whenever the window crossed the
+// 768 px line and came back, because the tab was mapped onto the phone's
+// sections as "Body, or else Headers". A full-page screenshot in Chromium
+// crosses that line for an instant (the window is 1 px wide), which is how
+// it was first seen.
+test("the composer keeps its open tab when the window is made narrow and wide again", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const tab = (name: string) => page.locator(".composer-pane").getByRole("tab", { name, exact: true });
+  for (const name of ["Scripts", "Auth", "Params"]) {
+    await tab(name).click();
+    await expect(tab(name)).toHaveAttribute("aria-selected", "true");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    // On a phone the same part of the request is the open section.
+    await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute("aria-expanded", "true");
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(tab(name)).toHaveAttribute("aria-selected", "true");
+  }
+});
+
 test.describe("Disabled 'Copy as cURL' affordance", () => {
   test("is visibly disabled (not an empty box) and explains why via a tooltip", async ({ page }) => {
     await page.goto("/");

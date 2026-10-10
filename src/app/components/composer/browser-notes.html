@@ -1,0 +1,53 @@
+@let limits = store.browserLimits();
+@if (limits.mixedContent === 'blocked') {
+<p class="browser-note-mixed type-footnote text-status-warning flex items-start gap-1.5" role="status">
+  <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+  <span>The browser will block this request: this page was loaded over HTTPS, and a page like that may not call an <code>http://</code> address. Use <code>https://</code>, or send it through the Local Bridge.</span>
+</p>
+}
+@if (limits.dropped.length) {
+<p class="browser-note-dropped type-footnote text-status-warning flex items-start gap-1.5" role="status">
+  <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+  <span>
+    The browser will not send
+    @for (name of limits.dropped; track $index) {<code>{{ name }}</code>{{ $last ? '' : ', ' }}}:
+    a page is not allowed to set {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }}. The Local Bridge sends {{ limits.dropped.length === 1 ? 'it' : 'them' }} as written.
+  </span>
+</p>
+}
+<section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
+  <mat-accordion class="sections" displayMode="flat" hideToggle>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>What the browser does to this request <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+      <div class="space-y-3 type-footnote text-label-secondary">
+        @if (limits.route === 'bridge') {
+        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Every header is sent as written, no server is asked first, and an <code>http://</code> address works.</p>
+        } @else {
+        <p class="browser-note-preflight">
+          @if (limits.preflight.length) {
+          The browser asks the server first, with an <code>OPTIONS</code> request, because of
+          {{ limits.preflight.join(', ') }}. The request is sent only if the server's answer allows it.
+          } @else if (limits.crossOrigin) {
+          This request is sent without asking the server first. The response can be read only if the server allows this page's origin.
+          } @else {
+          This request is sent without asking the server first.
+          }
+        </p>
+        @if (limits.mixedContent === 'loopback') {
+        <p class="browser-note-mixed">This is an <code>http://</code> address on this machine, called from a page loaded over HTTPS: Chrome and Firefox allow that, Safari does not.</p>
+        }
+        <p class="browser-note-adds">
+          The browser adds
+          @for (name of limits.adds; track name) {<code>{{ name }}</code>{{ $last ? '.' : ', ' }}}
+        </p>
+        <p class="browser-note-suppresses">
+          Wayfarer tells it to send no
+          @for (name of limits.suppresses; track name) {<code>{{ name }}</code>{{ $last ? '' : ' and no ' }}}:
+          the request carries no address of this page and no cookies of the target's site. Cookies a response sets are not kept.
+        </p>
+        }
+        <p><a class="underline text-accent-text" [href]="docs" target="_blank" rel="noopener noreferrer">What each of these means, and what the Local Bridge changes</a></p>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</section>

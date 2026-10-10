@@ -4,6 +4,7 @@ import {
   RAW_CONTENT_TYPES,
   VariableNestingError,
   VariableResolver,
+  browserLimits,
   emptyRequest,
   isCredentialHeader,
   isHttpMethod,
@@ -11,6 +12,7 @@ import {
   parseJson,
   type Draft,
   type AuthConfig,
+  type BrowserLimits,
   type FileRef,
   type MultipartPart,
   type RedactOptions,
@@ -36,6 +38,7 @@ import {
 import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
+import { TransportRouter } from "../services/transport-router";
 import { VariableToken } from "../services/variable-focus";
 import { writeToClipboard } from "../shared/http/clipboard";
 import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
@@ -104,6 +107,22 @@ function namedRows<T extends { key: string }>(rows: T[]): T[] {
   return rows.map((row) => ({ ...row, key: row.key.trim() })).filter((row) => row.key);
 }
 
+/** The `Content-Type` a body's mode implies, without reading a file: what a preflight is decided on. */
+function bodyContentType(body: RequestBody): string | undefined {
+  switch (body.mode) {
+    case "raw":
+      return body.raw?.text ? RAW_CONTENT_TYPES[body.raw.language] : undefined;
+    case "urlencoded":
+      return "application/x-www-form-urlencoded";
+    case "multipart":
+      return "multipart/form-data";
+    case "binary":
+      return body.binary?.contentType || "application/octet-stream";
+    default:
+      return undefined;
+  }
+}
+
 /** Every text of a body that may hold a `{{variable}}`. */
 function bodyTexts(body: RequestBody): string[] {
   switch (body.mode) {
@@ -138,6 +157,7 @@ export class WorkspaceStore {
   private readonly saved = inject(RequestSave);
   private readonly vault = inject(SecretsVault);
   private readonly settings = inject(RequestSettings);
+  private readonly router = inject(TransportRouter);
 
   readonly draft = signal<Draft>(emptyDraft());
 
@@ -175,6 +195,33 @@ export class WorkspaceStore {
       collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables,
       global: this.environments.globals(),
     };
+  });
+  /**
+   * What the browser will do to the draft if it is sent now (plan P2.14):
+   * the headers it drops, whether it asks the server first, mixed content.
+   * Worked out from the draft as text: no secret is read and no file.
+   */
+  readonly browserLimits = computed<BrowserLimits>(() => {
+    const draft = this.draft();
+    const resolver = new VariableResolver(this.scopes());
+    const resolve = (text: string): string => {
+      try {
+        return resolver.resolve(text);
+      } catch (error) {
+        // Variables in a circle: the send says so. Here the text stands as written.
+        if (!(error instanceof VariableNestingError)) throw error;
+        return text;
+      }
+    };
+    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(draft.auth, resolve)))].map(
+      ([name, value]): [string, string] => [resolve(name), resolve(value)]
+    );
+    const contentType = isBodyMethod(draft.method) ? bodyContentType(draft.body) : undefined;
+    if (contentType && !headers.some(([name]) => name.toLowerCase() === "content-type")) {
+      headers.push(["Content-Type", contentType]);
+    }
+    const url = draft.url.trim();
+    return browserLimits({ method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers }, { origin: location.origin, route: this.router.route() });
   });
   private previewFingerprint = "";
   /** Aborts the send in flight. */

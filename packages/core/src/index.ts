@@ -1,4 +1,5 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
+export { browserLimits, type BrowserLimits } from "./browser/browser-limits";
 export { newId } from "./id";
 export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {

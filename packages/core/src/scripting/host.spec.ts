@@ -1,7 +1,7 @@
 import variant from "@jitl/quickjs-wasmfile-release-sync";
-import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
+import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
 import { beforeAll, describe, expect, it } from "vitest";
-import { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, type ScriptContext, type ScriptLimits } from "./host";
+import { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "./host";
 
 // What ECMAScript itself puts on a global object, as QuickJS has it. A name
 // that is not here and not in ALLOWED is something the host let in.
@@ -15,8 +15,12 @@ const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "app
 
 describe("runScript", () => {
   let quickjs: QuickJSWASMModule;
+  let memory: { buffer: ArrayBufferLike };
   beforeAll(async () => {
-    quickjs = await newQuickJSWASMModuleFromVariant(variant);
+    // As the app's worker loads the engine. This package has no types for WebAssembly (no DOM, no worker).
+    const { Memory } = (globalThis as unknown as { WebAssembly: { Memory: new (size: { initial: number; maximum: number }) => { buffer: ArrayBufferLike } } }).WebAssembly;
+    memory = new Memory(scriptMemory());
+    quickjs = await newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmMemory: memory }));
   });
 
   const run = (source: string, context: Partial<ScriptContext> = {}, limits: Partial<ScriptLimits> = {}) =>
@@ -259,6 +263,20 @@ describe("runScript", () => {
     const result = await run(`const held = []; while (true) held.push(new Uint8Array(8 * 2 ** 20));`, {}, { timeoutMs: 120_000 });
     expect(result).toMatchObject({ error: "Script exceeded memory limit (64 MB)", limit: "memory" });
     expect((await run(`new Uint8Array(200 * 2 ** 20)`)).limit).toBe("memory");
+  });
+
+  it.each([
+    ["25 typed arrays of 8 MB", `const held = []; for (let i = 0; i < 25; i++) held.push(new Uint8Array(8 * 2 ** 20));`],
+    ["text, a megabyte at a time", `const held = []; for (let i = 0; i < 200; i++) held.push("x".repeat(2 ** 20) + i);`],
+    ["arrays of numbers", `const held = []; for (let i = 0; i < 400; i++) held.push(new Array(131072).fill(i));`],
+    ["small objects without end", `const held = []; for (let i = 0; ; i++) held.push({ a: i, b: "k" + i, c: [i] });`],
+  ])("F66: stops a script that allocates 200 MB in pieces, none of them over the limit: %s", async (_name, script) => {
+    // The deadline is far away: memory must be what stops it, on any machine.
+    const result = await run(script, {}, { timeoutMs: 120_000 });
+    expect(result).toMatchObject({ error: "Script exceeded memory limit (64 MB)", limit: "memory" });
+    // The engine's memory never grew past the limit, and it runs the next script.
+    expect(memory.buffer.byteLength).toBeLessThanOrEqual(SCRIPT_LIMITS.memoryBytes);
+    expect((await run(`pm.test("next", () => {});`)).testResults).toHaveLength(1);
   });
 
   it("stops a recursion 100,000 deep, and the engine runs the next script", async () => {

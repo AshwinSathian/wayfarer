@@ -175,7 +175,10 @@ secret to every one of these places and finds it in none.
 
 **Limits.** Each run gets a new engine runtime, so no script sees another's
 state. A run is stopped after 5 seconds ("Script timed out after 5000 ms"),
-when it holds more than 64 MB ("Script exceeded memory limit (64 MB)"), and
+when the engine holds more than 64 MB ("Script exceeded memory limit (64 MB)":
+the engine is loaded with a WebAssembly memory that cannot grow past that,
+since QuickJS's own memory limit does not count what a script allocates in
+this build), and
 when it recurses too deep ("Script exceeded the stack limit": between
 about 700 and 1,500 calls, depending on the browser). A script cannot catch
 the time limit. After any of the three the worker is

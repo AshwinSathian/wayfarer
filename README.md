@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-> **v1.4.0 status:** some features are disabled or limited while an audit's findings are fixed. See [Known limitations](#known-limitations).
+> **v2.0.0 status:** Wayfarer 2 stores its data in a new shape and does **not** carry over what 1.x stored or exported: the first time it opens, earlier collections, environments, secrets and history are removed, and the page says so ([changelog](CHANGELOG.md)). Scripts are still disabled while their sandbox is rebuilt. See [Known limitations](#known-limitations).
 
 **Live demo:** https://wayfarer.ashwinsathian.com/
 
@@ -179,6 +179,7 @@ Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same stora
 A September 2026 audit found gaps between these docs and the code. Each is an open issue with label [`audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09), scheduled in [`PLAN-airtight-remediation.md`](PLAN-airtight-remediation.md). The ones you are most likely to hit:
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
+- Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).

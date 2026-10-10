@@ -7,64 +7,28 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Added
+## [2.0.0] - 2026-10-10
 
-- **The response is shown by its type.** JSON is formatted as before; XML
-  is indented; an HTML response opens as a preview of the page; an image
-  is drawn; any other binary body is a hex dump (its first 64 KB) with the
-  download beside it. A list above the body switches the view, so an HTML
-  or XML body can always be read as the text that was sent. Before, HTML
-  and XML were plain text and a binary body could only be downloaded.
-- **The HTML preview cannot do anything.** It is drawn in a frame with no
-  permissions: the page's scripts do not run, it loads nothing from the
-  network (images, styles and fonts on other sites stay blank), and
-  clicking a link or a button does nothing.
-- **Filter a JSON response by path.** Type `data.items[*].id` above the
-  body to see only that part; `[*]` takes every item of a list. Ctrl+F
-  (Cmd+F on a Mac) inside the body opens the editor's find.
-- **JSON over 5 MB opens as plain text**, with a note; choose JSON to
-  format it anyway.
-- **The Headers tab says when headers are missing.** A response from
-  another origin shows only the headers a browser lets a page read; the
-  tab now says so. A header sent twice is listed twice.
+The second major version: one request model stored in a new shape, secrets
+that reach the wire and nowhere else, a vault with one data key, history
+that masks credentials, every body type and response type, and a composer
+that says what the browser will do.
 
-- **The composer says what the browser will do to your request.** A browser
-  silently drops headers a page may not set (`Cookie`, `Host`, `Origin` and
-  others), asks the server for leave before many requests (a CORS
-  preflight), and blocks `http://` addresses from an HTTPS page. Under the
-  address bar, **What the browser does to this request** now says which of
-  these applies before you send, names each header that will not arrive,
-  and lists what the browser adds and what Wayfarer leaves out (`Referer`,
-  cookies). With the Local Bridge on it says what the bridge changes.
-  `docs/browser-limits.md` explains each item. Before, a `Cookie` header
-  you typed simply never arrived.
+**Data and files from 1.x are not carried over.** Wayfarer 2 does not
+convert what an earlier version stored; it removes it the first time it
+opens and says so once. This was decided while the app had no users with
+data to keep. What each database version removed on the way to version 9:
 
-### Security
+| Database version | Removed by its upgrade |
+|---|---|
+| 5 | Everything an earlier version stored: collections, folders, requests, environments, secrets and history |
+| 8 | Secrets (the vault now encrypts under one data key) |
+| 9 | History (an older entry held `Authorization` as it was sent) |
 
-- The Content-Security-Policy now allows `blob:` images and `blob:`
-  frames, for the image and HTML previews; a frame can show nothing else.
-  `frame-ancestors` changed from `'none'` to `'self'`: Safari applies that
-  rule to the preview's own frame, so `'none'` left the preview blank
-  there. No other site can put Wayfarer in a frame, as before.
-
-### Fixed
-
-- **Nothing moves when a response arrives.** The status bar slid 10 px
-  into place and overshot, the status badge grew and shrank, and the body
-  slid up, for about a third of a second. A press on **Export** or on a
-  tab in that moment could land beside it and do nothing. A response now
-  fades in where it is; so does a tab's content when you switch tabs, and
-  the composer's sections on a phone when the page loads
-  ([#119](https://github.com/AshwinSathian/wayfarer/issues/119)).
-- **The composer keeps its tab when the window is resized.** Making the
-  window narrower than 768 px and wide again put the composer back on
-  Headers, whatever tab was open, and on a phone-sized window the section
-  that opened was Headers instead of the one you were in
-  ([#177](https://github.com/AshwinSathian/wayfarer/issues/177)).
-- A test on the response body could find things that are not in the body:
-  `Body.constructor exists` passed for any JSON object. A path now reads
-  only what the JSON holds
-  ([#207](https://github.com/AshwinSathian/wayfarer/issues/207)).
+Versions 6 and 7 removed nothing. A collection or environment file
+exported by 1.x has no `$id` and is refused on import. Nothing is backed up
+before the upgrade; if you have data in 1.x that you need, export it there
+first and re-create it by hand.
 
 ### Breaking
 
@@ -98,6 +62,35 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The response is shown by its type.** JSON is formatted as before; XML
+  is indented; an HTML response opens as a preview of the page; an image
+  is drawn; any other binary body is a hex dump (its first 64 KB) with the
+  download beside it. A list above the body switches the view, so an HTML
+  or XML body can always be read as the text that was sent. Before, HTML
+  and XML were plain text and a binary body could only be downloaded.
+- **The HTML preview cannot do anything.** It is drawn in a frame with no
+  permissions: the page's scripts do not run, it loads nothing from the
+  network (images, styles and fonts on other sites stay blank), and
+  clicking a link or a button does nothing.
+- **Filter a JSON response by path.** Type `data.items[*].id` above the
+  body to see only that part; `[*]` takes every item of a list. Ctrl+F
+  (Cmd+F on a Mac) inside the body opens the editor's find.
+- **JSON over 5 MB opens as plain text**, with a note; choose JSON to
+  format it anyway.
+- **The Headers tab says when headers are missing.** A response from
+  another origin shows only the headers a browser lets a page read; the
+  tab now says so. A header sent twice is listed twice.
+
+- **The composer says what the browser will do to your request.** A browser
+  silently drops headers a page may not set (`Cookie`, `Host`, `Origin` and
+  others), asks the server for leave before many requests (a CORS
+  preflight), and blocks `http://` addresses from an HTTPS page. Under the
+  address bar, **What the browser does to this request** now says which of
+  these applies before you send, names each header that will not arrive,
+  and lists what the browser adds and what Wayfarer leaves out (`Referer`,
+  cookies). With the Local Bridge on it says what the bridge changes.
+  `docs/browser-limits.md` explains each item. Before, a `Cookie` header
+  you typed simply never arrived.
 - **Workspace backup and restore.** Settings, **Back up**, writes every
   collection, request, environment, the global variables and the vault
   (still encrypted) to one file, with history if you tick it; **Restore**
@@ -218,11 +211,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
-- **Size budgets reset.** The first load is 1,194,744 B (301,290 B
-  gzipped), 67,922 B more than before the vault, masking, history and
-  backup work of this release. The limits are that measurement times 1.05
-  and 1.10 again: 1254 kB (warning) and 1314 kB (error), and 331,400 B
-  gzipped.
+- **Size budgets reset.** The first load is 1,209,797 B (306,352 B
+  gzipped): 58,068 B more than 1.4.0 (1,151,729 B), for the vault,
+  masking, history, backup, the response viewers, the HTML preview and
+  the browser notes. The limits are that
+  measurement times 1.05 and 1.10: 1270 kB (warning) and 1330 kB (error),
+  and 336,900 B gzipped.
 
 - **The Basic / JSON switch is gone.** A JSON body is edited as text (it
   was also editable as rows, which could only hold text values: a row
@@ -264,6 +258,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Nothing moves when a response arrives.** The status bar slid 10 px
+  into place and overshot, the status badge grew and shrank, and the body
+  slid up, for about a third of a second. A press on **Export** or on a
+  tab in that moment could land beside it and do nothing. A response now
+  fades in where it is; so does a tab's content when you switch tabs, and
+  the composer's sections on a phone when the page loads
+  ([#119](https://github.com/AshwinSathian/wayfarer/issues/119)).
+- **The composer keeps its tab when the window is resized.** Making the
+  window narrower than 768 px and wide again put the composer back on
+  Headers, whatever tab was open, and on a phone-sized window the section
+  that opened was Headers instead of the one you were in
+  ([#177](https://github.com/AshwinSathian/wayfarer/issues/177)).
+- A test on the response body could find things that are not in the body:
+  `Body.constructor exists` passed for any JSON object. A path now reads
+  only what the JSON holds
+  ([#207](https://github.com/AshwinSathian/wayfarer/issues/207)).
 - **A wrong vault passphrase is always refused.** With no secret stored
   yet, any passphrase "unlocked" the vault, and a secret saved then was
   encrypted under whatever had been typed. The passphrase you choose is
@@ -302,6 +312,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - A tab told that its data was reset in another tab no longer tries to
   read the stores when that other tab writes again; it logged an error
   each time (#192).
+
+### Security
+
+- The Content-Security-Policy now allows `blob:` images and `blob:`
+  frames, for the image and HTML previews; a frame can show nothing else.
+  `frame-ancestors` changed from `'none'` to `'self'`: Safari applies that
+  rule to the preview's own frame, so `'none'` left the preview blank
+  there. No other site can put Wayfarer in a frame, as before.
 
 ## [1.4.0] - 2026-10-09
 

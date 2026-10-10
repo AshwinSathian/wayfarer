@@ -30,11 +30,14 @@ import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
 import {
   BuiltRequest,
+  PreRequestScriptError,
   RequestExecutionResponse,
   RequestExecutionSpec,
   RequestExecutionResult,
   RequestExecutor,
   SendBlockedError,
+  SendDeclinedError,
+  type SendTimings,
 } from "../services/request-executor";
 import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
@@ -55,6 +58,7 @@ import { ScriptTrust } from "../services/script-trust";
 import { buildCurlCommand, redactedRequest } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
+import { Confirm } from "../ui/confirm";
 
 /** GET and HEAD cannot carry a body: `fetch` refuses one. */
 export function isBodyMethod(method?: string): boolean {
@@ -102,6 +106,18 @@ function credentialsOf(auth: AuthConfig): string[] {
     case "none":
       return [];
   }
+}
+
+/** A request as it was before its pre-request script ran: its address as composed, and the variables as they were. */
+interface Composed {
+  url: string;
+  scopes: ScopeStack;
+}
+
+/** The host a request goes to: its name, and its port when that is not the scheme's own. An address that is no URL stands for itself. */
+function hostOf(url: string, scopes: ScopeStack): string {
+  const address = normalizeUrl(new VariableResolver(scopes).resolve(url.trim()));
+  return URL.parse(address)?.host ?? address;
 }
 
 /** Rows as they are saved: names trimmed, rows without a name (the editor's blank row) left out. */
@@ -161,6 +177,7 @@ export class WorkspaceStore {
   private readonly settings = inject(RequestSettings);
   private readonly router = inject(TransportRouter);
   private readonly trust = inject(ScriptTrust);
+  private readonly confirm = inject(Confirm);
 
   /** Whether the draft's scripts may run (`ScriptTrust`). */
   readonly scriptsAllowed = this.trust.allowed;
@@ -196,6 +213,8 @@ export class WorkspaceStore {
   readonly lastTestResults = signal<TestResult[]>([]);
   /** The console output of the last send's scripts. */
   readonly lastScriptLogs = signal<string[]>([]);
+  /** How long the last send's scripts and its request took, each by itself. */
+  readonly lastTimings = signal<SendTimings | null>(null);
 
   /**
    * Where a `{{variable}}` of the draft gets its value: the active
@@ -257,7 +276,9 @@ export class WorkspaceStore {
       this.responseStatusCode() !== undefined ||
       !!this.responseData() ||
       !!this.responseError() ||
-      this.responseHeadersView().length > 0
+      this.responseHeadersView().length > 0 ||
+      // A pre-request script that failed: there is no response, and there is what the script wrote.
+      this.lastTestResults().length > 0
     );
   }
 
@@ -307,6 +328,7 @@ export class WorkspaceStore {
     this.resetResponseState();
     this.lastTestResults.set([]);
     this.lastScriptLogs.set([]);
+    this.lastTimings.set(null);
     const response = entry.response;
     const text = response?.body?.text ?? "";
     const isError = !response || response.status < 200 || response.status >= 300;
@@ -398,6 +420,7 @@ export class WorkspaceStore {
     this.resetResponseState();
     this.lastTestResults.set([]);
     this.lastScriptLogs.set([]);
+    this.lastTimings.set(null);
     this.scriptsSkipped.set(false);
 
     const draft = this.draft();
@@ -432,6 +455,8 @@ export class WorkspaceStore {
     const allowed = this.trust.check();
     const runScripts = allowed instanceof Promise ? await allowed : allowed;
     this.scriptsSkipped.set(!runScripts && scriptsOf(draft).length > 0);
+    // What a pre-request script may move the request away from (plan Q6).
+    const composed: Composed | undefined = runScripts && draft.scripts.pre.trim() ? { url: endpointText, scopes: this.scopes() } : undefined;
 
     let result: RequestExecutionResult;
     try {
@@ -441,7 +466,7 @@ export class WorkspaceStore {
         postRequestScript: draft.scripts.post,
         tests: draft.tests,
         template: this.snapshot(),
-        buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false),
+        buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false, composed),
         signal: controller.signal,
         ...this.scriptBinding(),
       });
@@ -449,6 +474,13 @@ export class WorkspaceStore {
       this.loadingState.set(false);
       // Variables that refer to each other in a circle: nothing is sent.
       if (error instanceof SendBlockedError || error instanceof VariableNestingError) {
+        if (error instanceof PreRequestScriptError) {
+          // There is no response. The Tests tab has what the script did before it failed.
+          this.lastTestResults.set(error.testResults);
+          this.lastScriptLogs.set(error.scriptLogs);
+          this.lastTimings.set(error.timings);
+          this.responseTab.set("tests");
+        }
         this.endpointError.set(error.message);
         this.unresolvedBlocked.set(error instanceof UnresolvedVariablesError ? error.names : []);
         return false;
@@ -459,6 +491,7 @@ export class WorkspaceStore {
     this.loadingState.set(false);
     this.lastTestResults.set(result.testResults);
     this.lastScriptLogs.set(result.scriptLogs);
+    this.lastTimings.set(result.timings);
     this.applyExecutionResponse(result.response);
     await this.idb.add(result.history, this.settings.historyCap());
     return true;
@@ -547,8 +580,8 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(content, allowUnresolved);
+  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean, composed?: Composed): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(content, allowUnresolved, composed);
     return built instanceof Promise ? built.then((request) => this.recordForExport(request)) : this.recordForExport(built);
   }
 
@@ -571,8 +604,13 @@ export class WorkspaceStore {
    * `content` (the draft, as a pre-request script may have changed it) with
    * `{{var}}` placeholders substituted, as it is transmitted. The editors
    * keep the literal template.
+   *
+   * `composed` is the request before its pre-request script ran. When the
+   * script left it going to another host and it uses a vault secret, the
+   * user is asked before the vault is read (plan Q6). One send is compared:
+   * a variable a script set in an earlier send is not seen here.
    */
-  private resolveRequest(content: RequestContent, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
+  private resolveRequest(content: RequestContent, allowUnresolved: boolean, composed?: Composed): BuiltRequest | Promise<BuiltRequest> {
     const endpointText = content.url;
     // First without the vault: this pass says which secrets the request needs.
     const probe = new VariableResolver(this.scopes());
@@ -590,7 +628,22 @@ export class WorkspaceStore {
       return built instanceof Promise ? built.then(check) : check(built);
     };
     // Nothing to read from the vault: the request is built at once, in the same task as the click.
-    return probe.lockedSecrets.size ? this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(this.scopes(), (id) => secrets.get(id)))) : checked(new VariableResolver(this.scopes()));
+    if (!probe.lockedSecrets.size) return checked(new VariableResolver(this.scopes()));
+    const withSecrets = () => this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(this.scopes(), (id) => secrets.get(id))));
+    const from = composed && hostOf(composed.url, composed.scopes);
+    const to = hostOf(endpointText, this.scopes());
+    if (from === undefined || from === to) return withSecrets();
+    return this.confirm
+      .confirm({
+        title: "Send to a different host?",
+        message: `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
+        acceptLabel: "Send",
+        rejectLabel: "Don't send",
+      })
+      .then((accepted) => {
+        if (!accepted) throw new SendDeclinedError("The request was not sent, and what the pre-request script set was undone.");
+        return withSecrets();
+      });
   }
 
   /**

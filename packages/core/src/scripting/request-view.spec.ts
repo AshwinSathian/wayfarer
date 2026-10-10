@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyRequest, type RequestContent } from "../model/request";
-import { scriptRequestOf, withScriptRequest } from "./request-view";
+import { scriptRequestOf, sentScriptRequest, withScriptRequest } from "./request-view";
 
 const content = (changes: Partial<RequestContent>): RequestContent => ({ ...emptyRequest(), ...changes });
 
@@ -40,5 +40,17 @@ describe("the request a script sees", () => {
     expect(withScriptRequest(file, { method: "POST", url: "u", headers: [], body: { mode: "binary" } }).body).toEqual(file.body);
     // The composed request is not touched.
     expect(composed.url).toBe("https://a.test");
+  });
+
+  it("a post-response script sees the request as it was sent: its address, its headers and its body as they went out", () => {
+    const composed = content({ method: "POST", url: "https://{{host}}/items", headers: [{ key: "X-A", value: "{{a}}", enabled: true }], body: { mode: "raw", raw: { language: "json", text: '{"a":"{{a}}"}' } } });
+    const sent = { method: "POST", url: "https://api.test/items", headers: [["X-A", "1"], ["Authorization", "Bearer t"], ["Content-Type", "application/json"]] as [string, string][], body: '{"a":"1"}' };
+    expect(sentScriptRequest(composed, sent)).toEqual({ method: "POST", url: "https://api.test/items", headers: sent.headers, body: { mode: "raw", raw: '{"a":"1"}' } });
+    // Form fields are read back from the text that was sent.
+    expect(sentScriptRequest(content({ body: { mode: "urlencoded" } }), { ...sent, body: "grant+type=a%26b&__proto__=x" }).body).toEqual({ mode: "urlencoded", urlencoded: [["grant type", "a&b"], ["__proto__", "x"]] });
+    // A request sent without a body (GET) has none, whatever the composer holds; of a form or a file there is the mode, as before.
+    expect(sentScriptRequest(composed, { method: "GET", url: "u", headers: [] }).body).toEqual({ mode: "none" });
+    expect(sentScriptRequest(content({ body: { mode: "multipart" } }), { method: "POST", url: "u", headers: [] }).body).toEqual({ mode: "multipart" });
+    expect(sentScriptRequest(content({ body: { mode: "binary", binary: { fileId: "id", fileName: "key.pem" } } }), { method: "POST", url: "u", headers: [] }).body).toEqual({ mode: "binary" });
   });
 });

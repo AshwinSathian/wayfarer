@@ -439,6 +439,9 @@
                 </span>
               </div>
               }
+              @if (scriptTimings()) {
+              <p class="script-timings type-caption text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
+              }
               @if (scriptLogs().length) {
               <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
                 <h3 class="ds-section-label">Console</h3>

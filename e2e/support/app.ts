@@ -13,16 +13,17 @@ export async function expectProdParity(response: Response | null): Promise<void>
   ).toContain("script-src 'self'");
 }
 
-/** Routes TARGET to a CORS-permissive fake and records every non-preflight request that reaches it. */
+/** Routes TARGET (or another host) to a CORS-permissive fake and records every non-preflight request that reaches it. */
 export async function captureTarget(
   page: Page,
   reply: { contentType: string; body: string | Buffer } = {
     contentType: "application/json",
     body: '{"ok":true}',
-  }
+  },
+  target = TARGET
 ): Promise<Request[]> {
   const hits: Request[] = [];
-  await page.route(`${TARGET}/**`, async (route) => {
+  await page.route(`${target}/**`, async (route) => {
     const request = route.request();
     const cors = {
       "access-control-allow-origin": "*",
@@ -137,6 +138,27 @@ export async function seedAndOpen(
   await page.getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(request.url);
   return response;
+}
+
+export const PASSPHRASE = "correct horse battery staple";
+
+/** Adds a protected variable to the open environment, making the vault on the way. */
+export async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
+  const keys = page.getByPlaceholder("KEY", { exact: true });
+  const before = await keys.count();
+  await page.getByRole("button", { name: "Add variable" }).click();
+  await expect(keys).toHaveCount(before + 1);
+  await keys.last().fill(name);
+  await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
+  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
+  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
+  await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
+  await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
+  await dialog.getByRole("button", { name: "Create vault" }).click();
+  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
+  await expect(page.getByText("Secret stored")).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
 }
 
 export async function send(page: Page): Promise<void> {

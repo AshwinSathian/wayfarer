@@ -30,3 +30,23 @@ export function withScriptRequest(content: RequestContent, request: ScriptReques
         : content.body;
   return { ...content, method: request.method, url: request.url, headers: rows(request.headers), body };
 }
+
+/**
+ * The request as it went out, for a post-response script: the address and
+ * headers as sent, variables replaced and the Auth tab's header among them.
+ * A text body is the text that was sent, and form fields are read back from
+ * it; of a multipart form or a file a script still sees the mode alone.
+ * The caller masks vault secrets in `sent` first.
+ */
+export function sentScriptRequest(content: RequestContent, sent: Pick<ScriptRequest, "method" | "url" | "headers"> & { body?: string }): ScriptRequest {
+  const { mode } = content.body;
+  const body: ScriptBody =
+    mode === "multipart" || mode === "binary"
+      ? { mode }
+      : sent.body === undefined
+        ? { mode: "none" }
+        : mode === "urlencoded"
+          ? { mode, urlencoded: [...new URLSearchParams(sent.body)] }
+          : { mode: "raw", raw: sent.body };
+  return { method: sent.method, url: sent.url, headers: sent.headers, body };
+}

@@ -1,19 +1,14 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, newId, parseJson, validateInherited, validateRequestContent, validateRows } from "@wayfarer/core";
-import {
-  COLLECTION_FORMAT,
-  Collection,
-  CollectionExport,
-  Folder,
-  RequestDoc,
-} from "../../models/collections";
-import { CollectionTree } from "../../services/collections-store";
+import { newId } from "../id";
+import { COLLECTION_FORMAT, type Collection, type CollectionExport, type CollectionTree, type Folder, type RequestDoc } from "../model/collection";
+import { validateInherited, validateRequestContent, validateRows } from "../model/validate";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../safe-json";
 
 export interface ValidationResult {
   path: string;
   message: string;
 }
 
-interface CollectionImportPlanEntry {
+export interface CollectionImportPlanEntry {
   type: "collection" | "folder" | "request";
   name: string;
   id: string;

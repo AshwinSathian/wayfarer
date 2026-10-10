@@ -1,7 +1,6 @@
-import { CollectionExport } from "../../models/collections";
-import { CollectionTree } from "../../services/collections-store";
-import { inCollection, inFolder, requestContent, rowsOf } from "../../../testing/request-fixtures";
-import { importCollection, serializeDeterministic, validateCollection } from "./collection-io";
+import type { CollectionExport, CollectionTree } from "../model/collection";
+import { inCollection, inFolder, requestContent, rowsOf } from "../../test/request-fixtures";
+import { importCollection, serializeDeterministic, validateCollection } from "./wayfarer-collection";
 import { describe, it, expect } from "vitest";
 
 describe("collection-io", () => {

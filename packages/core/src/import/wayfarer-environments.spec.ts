@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { rowsOf } from "../../../testing/request-fixtures";
-import { EnvironmentDoc } from "../../models/environments";
-import { serializeEnvironmentExport, validateEnvironmentExport } from "./environment-io";
+import { rowsOf } from "../../test/request-fixtures";
+import type { EnvironmentDoc } from "../model/collection";
+import { serializeEnvironmentExport, validateEnvironmentExport } from "./wayfarer-environments";
 
 const env = (id: string, name: string, order: number, vars: Record<string, string> = {}): EnvironmentDoc => ({
   id,

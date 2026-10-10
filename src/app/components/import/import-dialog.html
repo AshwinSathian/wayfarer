@@ -1,0 +1,139 @@
+<ui-dialog [header]="header()" [visible]="pipeline.dialogVisible()" (visibleChange)="pipeline.dialogVisible.set($event)" width="480px" (hide)="pipeline.close()">
+  @if (pipeline.refused(); as refused) {
+  <div role="alert" class="import-refused space-y-2 type-callout text-status-error">
+    <p class="font-semibold">Unable to import "{{ pipeline.fileName() }}":</p>
+    <p>{{ refused.message }}</p>
+    @if (refused.issues.length) {
+    <ul class="list-disc pl-5 space-y-1">
+      @for (issue of refused.issues; track $index) {
+      <li>{{ issue.path ? issue.path + " — " : "" }}{{ issue.message }}</li>
+      }
+    </ul>
+    }
+  </div>
+  } @else if (pipeline.imported(); as imported) {
+  <div class="space-y-4 type-callout text-label-secondary">
+    <!-- The report: what the file is, what it will add, what could not be kept. -->
+    <div class="import-report">
+      <p class="ds-section-label mb-1.5">{{ imported.report.formatName }}</p>
+      <p class="type-subhead text-label-primary">"{{ pipeline.fileName() }}" will add {{ counts() }}.</p>
+      <p class="type-footnote text-label-tertiary mt-0.5">Nothing is stored until you choose Import.</p>
+    </div>
+    @if (imported.report.warnings.length) {
+    <div role="status" class="import-warnings rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+      <p class="type-subhead text-status-warning">{{ imported.report.warnings.length }} {{ imported.report.warnings.length === 1 ? "thing" : "things" }} to know before you import</p>
+      <ul class="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-footnote text-label-primary">
+        @for (warning of imported.report.warnings; track $index) {
+        <li><span class="font-semibold">{{ warning.item }}.</span> {{ warning.message }}</li>
+        }
+      </ul>
+    </div>
+    }
+
+    @for (entry of imported.collections; track entry.payload.collection.meta.id) {
+    <div>
+      <p class="ds-section-label mb-1.5">Collection</p>
+      <p class="type-title-3 text-label-primary">{{ entry.payload.collection.name }}</p>
+      <p class="type-footnote text-label-tertiary mt-0.5">
+        {{ entry.payload.folders.length }} folders ·
+        {{ entry.payload.requests.length }} requests
+      </p>
+    </div>
+    @if (imported.report.format === 'wayfarer-collection') {
+    <label for="import-duplicate-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+      <div>
+        <p class="type-subhead text-label-primary">Import as duplicate</p>
+        <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
+      </div>
+      <mat-checkbox
+        id="import-duplicate-checkbox"
+        aria-label="Import as duplicate"
+        [ngModel]="pipeline.duplicateAsNew()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="pipeline.toggleDuplicateAsNew($event)"
+      />
+    </label>
+    }
+    <!-- Every document of a small file; of a large one the counts above say it. -->
+    @if (entry.plan.length <= 200) {
+    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-xl border border-separator p-2">
+      @for (item of entry.plan; track item.id) {
+      <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
+        <div>
+          <p class="type-subhead text-label-primary capitalize">{{ item.type }} · {{ item.name }}</p>
+          <p class="type-caption text-label-tertiary">{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
+        </div>
+        <span
+          class="rounded-full px-2.5 py-0.5 type-caption uppercase font-semibold"
+          [class]="item.action === 'create'
+            ? 'bg-status-success-fill border border-status-success-border text-status-success'
+            : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
+        >{{ item.action }}</span>
+      </div>
+      }
+    </div>
+    } @else {
+    <p class="type-footnote text-label-tertiary">
+      {{ entry.plan[0].action === 'create' ? 'Every document is created new.' : 'A document here with the same id is overwritten.' }}
+    </p>
+    }
+    }
+
+    @if (pipeline.environmentEntries().length) {
+    <div class="space-y-3">
+      <p class="type-callout text-label-secondary">{{ pipeline.environmentEntries().length }} environment(s) detected.</p>
+      @for (entry of pipeline.environmentEntries(); track entry.doc.meta.id; let idx = $index) {
+      <div class="rounded-xl border border-separator bg-canvas-elevated p-4">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
+            <p class="type-caption text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
+          </div>
+          @if (entry.targetId) {
+          <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-caption font-semibold text-status-warning">Existing</span>
+          }
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
+            [class]="entry.action === 'merge'
+              ? 'border-accent-border bg-accent-fill text-accent-text'
+              : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
+            (click)="pipeline.setEntryAction(idx, 'merge')"
+          >Merge as new</button>
+          <button
+            type="button"
+            class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
+            [disabled]="!entry.targetId"
+            [class]="entry.action === 'replace' && entry.targetId
+              ? 'border-status-warning-border bg-status-warning-fill text-status-warning'
+              : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
+            [class.opacity-40]="!entry.targetId"
+            [class.cursor-not-allowed]="!entry.targetId"
+            (click)="pipeline.setEntryAction(idx, 'replace')"
+          >Replace existing</button>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="ds-empty-state py-6">
+    <mat-spinner diameter="18" aria-label="Reading the file" />
+    <p class="type-callout text-label-tertiary">Reading "{{ pipeline.fileName() }}"…</p>
+  </div>
+  }
+  <div uiDialogFooter>
+    <div class="flex justify-end gap-2">
+      <button matButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()">Cancel</button>
+      <button
+        matButton="filled"
+        aria-label="Confirm import"
+        [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
+        (click)="pipeline.confirm()"
+      >Import</button>
+    </div>
+  </div>
+</ui-dialog>

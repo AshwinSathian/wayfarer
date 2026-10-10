@@ -11,7 +11,23 @@ export {
   type ResponseView,
 } from "./view/response-view";
 export { buildAuthHeaders, buildAuthQueryParam, credentialsOf, effectiveAuth, resolveAuth } from "./auth/request-auth";
-export { COLLECTION_FORMAT, ancestorsOf, type Ancestor, type Collection, type CollectionExport, type Folder, type Meta, type RequestDoc } from "./model/collection";
+export {
+  COLLECTION_FORMAT,
+  ENVIRONMENTS_FORMAT,
+  ancestorsOf,
+  type Ancestor,
+  type Collection,
+  type CollectionExport,
+  type CollectionTree,
+  type EnvironmentDoc,
+  type Folder,
+  type Meta,
+  type RequestDoc,
+} from "./model/collection";
+export { serializeDeterministic, validateCollection } from "./import/wayfarer-collection";
+export { serializeEnvironmentExport, validateEnvironmentExport, type ProtectedValues } from "./import/wayfarer-environments";
+// The importers themselves are `@wayfarer/core/import`, which only the import worker loads.
+export type { ImportOptions, ImportReport, ImportWarning, Imported } from "./import/import";
 export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {
   AssertionOperator,

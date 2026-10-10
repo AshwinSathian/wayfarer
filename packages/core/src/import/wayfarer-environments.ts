@@ -1,6 +1,8 @@
-import { IMPORT_TOO_LARGE, isOversizedImport, parseJson, validateRows, type VaultFile } from "@wayfarer/core";
-import { ENVIRONMENTS_FORMAT, EnvironmentDoc } from "../../models/environments";
-import { sortByOrder, sortKeys } from "../collections/collection-io";
+import { ENVIRONMENTS_FORMAT, type EnvironmentDoc } from "../model/collection";
+import { validateRows } from "../model/validate";
+import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../safe-json";
+import type { VaultFile } from "../vault/vault-crypto";
+import { sortByOrder, sortKeys } from "./wayfarer-collection";
 
 export interface EnvironmentValidationResult {
   ok: boolean;

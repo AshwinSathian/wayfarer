@@ -16,8 +16,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - **The review covers them.** An imported collection's own script and its folders' wait for the review like its requests', and a request without a script of its own is held back by them. The review dialog lists all of them. The question before a vault secret goes to another host compares the request before the first of these scripts with the request after the last.
   - **Exports mask them.** A credential typed into a collection's or a folder's auth, or into a folder variable with a credential's name, is written as `***` unless the export is "with credentials".
 
+- **Every import shows a report before anything is stored (P4.1).** Whichever Import button you press, the file takes one road: it is read and checked in a worker, so the page stays responsive on a large file; a dialog then says what the file is, how many collections, folders, requests and environments it will add, and what of it could not be kept; and only **Import** stores it. Cancel stores nothing. Before this there were three roads: the Collections panel and the Environments panel each had a dialog of their own, and **Settings imported environments at once, with no preview and no way back**.
+  - The report warns about a script that uses a part of Postman's API the app does not have (`pm.cookies.jar`, `require('xml2js')` and the other rows `docs/postman-compatibility.md` lists as not supported), naming the request, folder or collection.
+  - A file of no known format is refused with a message that names the formats that are read. A workspace backup picked here is pointed to Settings.
+  - A collection file picked with the Environments panel's Import (or the other way round) is imported as what it is.
+  - Measured in Chromium on a laptop: a 5 MB file of 5,000 requests in 100 folders shows its report after 0.3 s and is stored after 1.4 s.
+  - See [`docs/import.md`](docs/import.md).
+
 ### Changed
 
+- The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."
 - **Collections saved by an earlier version are removed by this update, and collection and backup files are format 3.** A stored collection, folder and request did not hold what the settings above need, so the database goes to version 10 and empties those three stores and the body files only they named. Environments, global variables, secrets and history are kept, and the page says once that collections were removed. A collection file or a workspace backup written by 2.0 or 2.1 (`wayfarer/collection/2`, `wayfarer/workspace/2`) is refused with a message that names the format; nothing converts it. This was decided while the app has no users with data to keep (it is not deployed in any 2.x version). Export a collection again to get a format 3 file.
 - A pre-request script's failure now reads "The pre-request script of folder "Admin" failed, so the request was not sent." when the script is a folder's or the collection's.
 

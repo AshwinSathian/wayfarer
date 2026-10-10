@@ -23,7 +23,8 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {
       "@wayfarer/core": ["./packages/core/src/index.ts"],
-      "@wayfarer/core/library-loader": ["./packages/core/src/scripting/library-loader.ts"]
+      "@wayfarer/core/library-loader": ["./packages/core/src/scripting/library-loader.ts"],
+      "@wayfarer/core/import": ["./packages/core/src/import/import.ts"]
     }
   },
   "angularCompilerOptions": {

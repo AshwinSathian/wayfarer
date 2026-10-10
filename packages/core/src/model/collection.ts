@@ -86,3 +86,22 @@ export function ancestorsOf(collection: Collection, folders: Folder[], folderId:
   const named = (kind: string, { name, variables, auth, scripts }: Ancestor): Ancestor => ({ name: `${kind} "${name}"`, variables, auth, scripts });
   return [named("collection", collection), ...folderChain(folders, folderId).map((folder) => named("folder", folder))];
 }
+
+/** A collection with what is in it, as the app holds it in memory. */
+export interface CollectionTree {
+  collection: Collection;
+  folders: Folder[];
+  requests: RequestDoc[];
+}
+
+export interface EnvironmentDoc {
+  id: string;
+  meta: Meta;
+  name: string;
+  description?: string;
+  /** Ordered. A later enabled row wins over an earlier one of the same name. */
+  vars: Row[];
+  order: number;
+}
+
+export const ENVIRONMENTS_FORMAT = "wayfarer/environments/2";

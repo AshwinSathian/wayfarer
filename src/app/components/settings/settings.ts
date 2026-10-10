@@ -9,17 +9,14 @@ import { Theme } from "../../services/theme";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { RequestSettings } from "../../services/request-settings";
 import { PaletteAction } from "../collections/collections-sidebar";
-import {
-  serializeEnvironmentExport,
-  validateEnvironmentExport,
-} from "../../shared/environments/environment-io";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
 import { SecretsVault } from "../../services/secrets-vault";
 import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { Confirm } from "../../ui/confirm";
-import { readImportText } from "@wayfarer/core";
+import { readImportText, serializeEnvironmentExport } from "@wayfarer/core";
+import { ImportPipeline } from "../../services/import-pipeline";
 
 interface KeyboardShortcut {
   keys: string;
@@ -31,7 +28,7 @@ interface KeyboardShortcut {
  * toggle, data export/import, Reset All Data, a Local Bridge shortcut, and
  * a keyboard-shortcuts reference into one discoverable place. Everything
  * here is a UI wrapper around logic that already exists elsewhere:
- * Theme for the toggle, environment-io's own serialize/
+ * Theme for the toggle, core's own serialize/
  * validate for export/import, and the Reset All Data / Local Bridge flows
  * are still fully owned (and confirmed/executed) by AppShell —
  * this component only requests them via outputs.
@@ -51,6 +48,7 @@ export class Settings {
   readonly persistence = inject(StoragePersistence);
   private readonly backup = inject(WorkspaceBackup);
   private readonly confirm = inject(Confirm);
+  private readonly importPipeline = inject(ImportPipeline);
 
   readonly backupHistory = signal(false);
   readonly backupErrors = signal<string[]>([]);
@@ -64,7 +62,6 @@ export class Settings {
   readonly openBridgeSettings = output<void>();
   readonly openSecrets = output<void>();
 
-  readonly importStatus = signal<{ kind: "ok" | "error"; message: string } | null>(null);
 
   /** From package.json, so the release bump is the only place it changes. */
   readonly version = version;
@@ -82,56 +79,9 @@ export class Settings {
     this.downloadJson(json, "environments-export.json");
   }
 
+  /** The file goes down the one import road: the report opens over Settings, and nothing is stored before it is confirmed. */
   async handleEnvironmentImport(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    const text = await readImportText(file);
-    const result = validateEnvironmentExport(text);
-    if (!result.ok || !result.payload) {
-      this.importStatus.set({
-        kind: "error",
-        message: result.errors?.join(" ") ?? "Invalid environments export file.",
-      });
-      input.value = "";
-      return;
-    }
-
-    const existingNames = new Set(this.environmentsService.environments().map((env) => env.name));
-    let imported = 0;
-    for (const env of result.payload) {
-      const name = this.uniqueName(env.name, existingNames);
-      existingNames.add(name);
-      await this.environmentsService.createEnvironment({
-        name,
-        description: env.description,
-        vars: env.vars,
-      });
-      imported += 1;
-    }
-
-    this.importStatus.set({
-      kind: "ok",
-      message: `Imported ${imported} environment${imported === 1 ? "" : "s"} as new environment${
-        imported === 1 ? "" : "s"
-      }. For merge/replace control over existing environments, use Import from the Environments editor instead.`,
-    });
-    input.value = "";
-  }
-
-  private uniqueName(name: string, used: Set<string>): string {
-    if (!used.has(name)) {
-      return name;
-    }
-    let counter = 2;
-    let candidate = `${name} (${counter})`;
-    while (used.has(candidate)) {
-      counter += 1;
-      candidate = `${name} (${counter})`;
-    }
-    return candidate;
+    await this.importPipeline.pick(event);
   }
 
   constructor() {

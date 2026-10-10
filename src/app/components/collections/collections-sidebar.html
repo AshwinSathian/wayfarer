@@ -22,7 +22,7 @@
     type="file"
     accept="application/json"
     class="hidden"
-    (change)="handleImportFile($event)"
+    (change)="importPipeline.pick($event)"
   />
 
   @if (loading()) {
@@ -98,84 +98,6 @@
   </mat-menu>
 </div>
 
-<!-- Import collection dialog -->
-<ui-dialog
-  header="Import collection"
-  [visible]="importDialogVisible()"
-  (visibleChange)="importDialogVisible.set($event)"
-  width="440px"
-  (hide)="closeImportDialog()"
->
-  @if (importErrors().length) {
-  <div class="space-y-2 type-callout text-status-error">
-    <p class="font-semibold">Unable to import "{{ importFileName() }}":</p>
-    <ul class="list-disc pl-5 space-y-1">
-      @for (error of importErrors(); track error.path + error.message) {
-      <li>{{ error.path }} — {{ error.message }}</li>
-      }
-    </ul>
-  </div>
-  } @else if (importAnalysis(); as analysis) { @if (analysis.payload) {
-  <div class="space-y-4 type-callout text-label-secondary">
-    <div>
-      <p class="ds-section-label mb-1.5">Collection</p>
-      <p class="type-title-3 text-label-primary">{{ analysis.payload.collection.name }}</p>
-      <p class="type-footnote text-label-tertiary mt-0.5">
-        {{ analysis.summary?.folders || 0 }} folders ·
-        {{ analysis.summary?.requests || 0 }} requests
-      </p>
-    </div>
-    <label for="import-duplicate-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
-      <div>
-        <p class="type-subhead text-label-primary">Import as duplicate</p>
-        <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
-      </div>
-      <mat-checkbox
-        id="import-duplicate-checkbox"
-        aria-label="Import as duplicate"
-        [ngModel]="importDuplicateAsNew()"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="toggleDuplicateImport($event)"
-      />
-    </label>
-    @if (analysis.plan?.length) {
-    <div class="max-h-56 space-y-1.5 overflow-y-auto rounded-xl border border-separator p-2">
-      @for (entry of analysis.plan; track entry.id) {
-      <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
-        <div>
-          <p class="type-subhead text-label-primary capitalize">{{ entry.type }} · {{ entry.name }}</p>
-          <p class="type-caption text-label-tertiary">{{ entry.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
-        </div>
-        <span
-          class="rounded-full px-2.5 py-0.5 type-caption uppercase font-semibold"
-          [class]="entry.action === 'create'
-            ? 'bg-status-success-fill border border-status-success-border text-status-success'
-            : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
-        >{{ entry.action }}</span>
-      </div>
-      }
-    </div>
-    }
-  </div>
-  } }
-  @else {
-  <div class="ds-empty-state">
-    <app-icon name="upload_file" class="icon-lg text-label-tertiary" />
-    <p class="type-callout text-label-tertiary">Select a valid collection export file to proceed.</p>
-  </div>
-  }
-  <div uiDialogFooter>
-    <div class="flex justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="closeImportDialog()">Cancel</button>
-      <button
-        matButton="filled"
-        aria-label="Confirm import"
-        [disabled]="!importAnalysis()?.payload || importErrors().length > 0"
-        (click)="confirmImport()"
-      >Import</button>
-    </div>
-  </div>
-</ui-dialog>
 
 <!-- Create collection/folder/request dialog -->
 <ui-dialog

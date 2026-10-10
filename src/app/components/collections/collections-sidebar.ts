@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatButton, MatIconButton } from "@angular/material/button";
@@ -13,7 +12,7 @@ import { MatSelect } from "@angular/material/select";
 import { Tree, UiTreeNode } from "../../ui/tree";
 import { RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
-import { CollectionImport } from "../../services/collection-import";
+import { ImportPipeline } from "../../services/import-pipeline";
 import { HTTP_METHODS } from "../../models/history";
 import {
   CollectionNodeData,
@@ -26,7 +25,6 @@ import {
   buildContextItems,
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText } from "@wayfarer/core";
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
 
 type NodeData = CollectionNodeData;
@@ -39,7 +37,7 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [MatIconButton, MatFormField, MatInput, MatCheckbox, 
+  imports: [MatIconButton, MatFormField, MatInput, 
     Icon,
     FormsModule,
     Tree,
@@ -68,7 +66,8 @@ export class CollectionsSidebar implements OnInit {
   private readonly injector = inject(Injector);
   private readonly collectionsService = inject(CollectionsStore);
   private readonly confirm = inject(Confirm);
-  private readonly collectionImport = inject(CollectionImport);
+  /** Every file picked here goes down the one import road (P4.1). */
+  protected readonly importPipeline = inject(ImportPipeline);
 
   readonly loadRequest = output<RequestDoc>();
   /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
@@ -85,14 +84,6 @@ export class CollectionsSidebar implements OnInit {
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
-  // Import-dialog state/pipeline lives in CollectionImport now (see
-  // its own file) — these are direct pass-throughs so the template doesn't
-  // need to change.
-  readonly importDialogVisible = this.collectionImport.dialogVisible;
-  readonly importErrors = this.collectionImport.errors;
-  readonly importAnalysis = this.collectionImport.analysis;
-  readonly importDuplicateAsNew = this.collectionImport.duplicateAsNew;
-  readonly importFileName = this.collectionImport.fileName;
 
   readonly commandPaletteVisible = signal(false);
   readonly commandPaletteQuery = signal("");
@@ -116,31 +107,8 @@ export class CollectionsSidebar implements OnInit {
     this.openCreationDialog({ type: "collection" });
   }
 
-  async handleImportFile(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    const text = await readImportText(file);
-    this.collectionImport.stageFile(file.name, text);
-    input.value = "";
-  }
-
-  async confirmImport(): Promise<void> {
-    await this.collectionImport.confirm();
-  }
-
-  toggleDuplicateImport(value: boolean): void {
-    this.collectionImport.toggleDuplicateAsNew(value);
-  }
-
-  closeImportDialog(): void {
-    this.collectionImport.close();
-  }
-
   handleGlobalKeydown(event: KeyboardEvent): void {
-    if (this.importDialogVisible() || this.commandPaletteVisible()) {
+    if (this.importPipeline.dialogVisible() || this.commandPaletteVisible()) {
       return;
     }
     const target = event.target as HTMLElement | null;

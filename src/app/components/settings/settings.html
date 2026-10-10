@@ -70,16 +70,6 @@
             />
           </div>
         </div>
-        @if (importStatus(); as status) {
-        <p
-          class="type-footnote flex items-start gap-1.5"
-          [class.text-status-success]="status.kind === 'ok'"
-          [class.text-status-error]="status.kind === 'error'"
-        >
-          <app-icon [name]="status.kind === 'ok' ? 'check_circle' : 'error'" class="icon-xs mt-0.5" />
-          {{ status.message }}
-        </p>
-        }
       </div>
       <div class="flex flex-col gap-2 rounded-xl border border-separator bg-canvas-elevated px-4 py-3.5">
         <div class="flex flex-wrap items-center justify-between gap-3">

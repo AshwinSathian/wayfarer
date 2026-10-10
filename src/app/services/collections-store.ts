@@ -11,15 +11,10 @@ import {
   RequestDocId,
   RequestPatch,
 } from "../models/collections";
-import { Redactor, scriptDigest, scriptsOf, type RedactOptions, type VariableChange } from "@wayfarer/core";
+import { Redactor, scriptDigest, scriptsOf, serializeDeterministic, type CollectionTree, type RedactOptions, type VariableChange } from "@wayfarer/core";
 import { Idb } from "../data/idb";
-import { serializeDeterministic } from "../shared/collections/collection-io";
 
-export interface CollectionTree {
-  collection: Collection;
-  folders: Folder[];
-  requests: RequestDoc[];
-}
+export type { CollectionTree };
 
 @Injectable({
   providedIn: "root",

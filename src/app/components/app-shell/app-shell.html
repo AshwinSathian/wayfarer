@@ -498,6 +498,9 @@
   (requestUnlock)="openLockDialog()"
 ></app-secrets-manager>
 
+<!-- The one import dialog: opened by every Import button, through ImportPipeline -->
+<app-import-dialog />
+
 <!-- Settings dialog -->
 <app-settings
   [(visible)]="settingsDialogVisible"

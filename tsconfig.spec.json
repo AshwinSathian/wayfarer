@@ -12,6 +12,9 @@
       "@wayfarer/core/library-loader": [
         "./packages/core/src/scripting/library-loader.ts"
       ],
+      "@wayfarer/core/import": [
+        "./packages/core/src/import/import.ts"
+      ],
       "@wayfarer/core/pm-compat/*": [
         "./packages/core/test/pm-compat/*"
       ],

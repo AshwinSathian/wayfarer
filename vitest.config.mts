@@ -1,3 +1,4 @@
+import { createReadStream } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
@@ -43,22 +44,23 @@ function builtWorkers(): Plugin {
   };
 }
 
-// The QuickJS worker imports the engine's .wasm file for its address, which
-// the application builder provides (`loader` in angular.json). Here npm
-// packages are served by Vite, which would instead try to run the file as a
-// WebAssembly module with imports. This gives the worker the address.
-const QUICKJS_WASM = "@jitl/quickjs-wasmfile-release-sync/wasm";
+// The QuickJS worker fetches the engine's .wasm file from beside itself
+// (`media/emscripten-module.wasm`). Vite put the worker under the spec's
+// directory (above), where there is no such file: serve it from the package.
+const ENGINE_REQUEST = /\/media\/emscripten-module[^/]*\.wasm$/;
+const ENGINE_FILE = `${root}node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm`;
 
-function quickjsWasmAddress(): Plugin {
+function engineFile(): Plugin {
   return {
-    name: "wayfarer:quickjs-wasm",
-    enforce: "pre",
-    resolveId: (id) => (id === QUICKJS_WASM ? `\0${QUICKJS_WASM}` : undefined),
-    load: (id) =>
-      id === `\0${QUICKJS_WASM}`
-        ? 'export default "/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm";'
-        : undefined,
+    name: "wayfarer:quickjs-engine-file",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if (!ENGINE_REQUEST.test((request.url ?? "").split("?")[0])) return next();
+        response.setHeader("Content-Type", "application/wasm");
+        createReadStream(ENGINE_FILE).pipe(response);
+      });
+    },
   };
 }
 
-export default defineConfig({ plugins: [builtWorkers(), quickjsWasmAddress()] });
+export default defineConfig({ plugins: [builtWorkers(), engineFile()] });

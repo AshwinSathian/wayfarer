@@ -343,9 +343,15 @@ code errors.
   recursion in Chromium and WebKit: the browser's own stack ends first, and
   `runScript` reports that as the same limit. Raising the number changes
   nothing.
-- `vitest.config.mts` has two plugins that exist for the worker under the
-  unit-test server only (the `.wasm` file's address, and `import()` inside
-  a worker). The built app needs neither; do not "fix" the worker for them.
+- The worker imports the engine's `.wasm` file by its path under
+  `node_modules`, not by the package's `./wasm` entry: `ng serve` and the
+  unit-test server hand an import that names a package to Vite, which tries
+  to run the file as a module. By package name the production build worked
+  and scripts failed in development.
+- `vitest.config.mts` serves that file to the worker and gives worker files
+  the `import()` helper Vitest's browser mode expects, for the unit-test
+  server only. The built app needs neither; do not "fix" the worker for
+  them.
 - An e2e that runs a script asserts 0 `securitypolicyviolation` events.
 
 ## Dependencies and the bundle

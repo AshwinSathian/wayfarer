@@ -13,9 +13,13 @@
 
 import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
 import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
-import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm";
 import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
 import { runScript, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
+// By its path, not by the package's "./wasm" entry: the development and
+// unit-test servers hand an import that names a package to Vite, which tries
+// to run a .wasm file as a module. A path is built with the worker, and the
+// builder's file loader (angular.json) turns it into the file's address.
+import wasmLocation from "../../../../node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm";
 
 interface RunMessage {
   id: string;

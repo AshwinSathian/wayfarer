@@ -262,8 +262,9 @@ describe("runScript", () => {
 
   it("F68: stops a script that does not end inside a promise reaction or an async function, and says so", async () => {
     for (const script of [`Promise.resolve().then(() => { while (true) {} });`, `(async () => { await null; while (true) {} })();`, `setTimeout(() => Promise.resolve().then(() => { while (true) {} }), 1);`]) {
-      const result = await run(`pm.test("before", () => {}); ${script}`, {}, { timeoutMs: 200 });
-      expect(result).toMatchObject({ error: "Script timed out after 200 ms", limit: "timeout" });
+      // Half a second: on a slow machine the bootstrap alone must not use the script's time up.
+      const result = await run(`pm.test("before", () => {}); ${script}`, {}, { timeoutMs: 500 });
+      expect(result).toMatchObject({ error: "Script timed out after 500 ms", limit: "timeout" });
       expect(result.testResults).toHaveLength(1);
     }
   });
@@ -442,13 +443,14 @@ describe("runScript", () => {
       expect(result.logs).toEqual(["[pm.sendRequest] POST https://api.test/a → 202", "null 202 accepted"]);
     });
 
-    it("the time a request takes is not the script's: a slow answer does not end the script, and a loop after it still does", async () => {
-      const slow = () => new Promise<ReturnType<typeof answer>>((resolve) => setTimeout(() => resolve(answer(200, "late")), 700));
-      const waited = await send(`pm.sendRequest("https://api.test/slow").then((response) => console.log(response.text()));`, { send: slow }, { timeoutMs: 300 });
+    it("the time a request takes is not the script's: a slow answer does not end the script, and a loop after it still does", { timeout: 30_000 }, async () => {
+      // The answer takes twice the script's whole time. Nothing here depends on how fast the machine is.
+      const slow = () => new Promise<ReturnType<typeof answer>>((resolve) => setTimeout(() => resolve(answer(200, "late")), 1000));
+      const waited = await send(`pm.sendRequest("https://api.test/slow").then((response) => console.log(response.text()));`, { send: slow }, { timeoutMs: 500 });
       expect(waited).toMatchObject({ logs: ["[pm.sendRequest] GET https://api.test/slow → 200", "late"] });
       expect(waited.error).toBeUndefined();
-      const looped = await send(`pm.sendRequest("https://api.test/slow").then(() => { while (true) {} });`, { send: slow }, { timeoutMs: 300 });
-      expect(looped).toMatchObject({ error: "Script timed out after 300 ms", limit: "timeout" });
+      const looped = await send(`pm.sendRequest("https://api.test/slow").then(() => { while (true) {} });`, { send: slow }, { timeoutMs: 500 });
+      expect(looped).toMatchObject({ error: "Script timed out after 500 ms", limit: "timeout" });
     });
 
     it("a timer still fires while a request is in flight", async () => {

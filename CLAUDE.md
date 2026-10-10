@@ -349,7 +349,10 @@ code errors.
   the page (`ScriptSandbox`), and `RequestExecutor.sendForScript` sends it
   through `TransportRouter` like the user's own request, after the same
   `containsSecretPlaceholder` check (C-007). Nothing else may make a
-  request for a script, and the escape suite counts them.
+  request for a script, and the escape suite counts them. Do not describe
+  that check as keeping secrets from scripts: an approved pre-request
+  script can change the user's own request (`pm.request`, or a variable),
+  which is built with its secrets. `ScriptTrust` is the control (D6, Q6).
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,
   with a script that proves it. A new or changed part of `pm` changes its
   row in the same PR; the rows run in Node and in the app's worker.

@@ -464,8 +464,13 @@ export class RequestExecutor {
   /**
    * `pm.sendRequest`: a script's request goes out as the user's own does,
    * through the same transport with the same options, and under the same
-   * rule (C-007): a vault secret's reference is never sent, and a script is
-   * never given a secret to send. Nothing of it is stored.
+   * rule (C-007): a vault secret's reference is never sent as text. The
+   * vault is not read for it, so such a request is refused. Nothing of it
+   * is stored.
+   *
+   * This does not keep a secret from an approved script: a pre-request
+   * script can change the user's own request (`pm.request`), which is then
+   * built with its secrets. Approval (`ScriptTrust`) is the control for that.
    */
   private async sendForScript(request: ScriptSendRequest, signal?: AbortSignal): Promise<ScriptResponse> {
     if (containsSecretPlaceholder(request)) {

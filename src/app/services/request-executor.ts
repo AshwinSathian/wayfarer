@@ -132,6 +132,8 @@ export interface RequestExecutionSpec {
   preRequestScript: string;
   postRequestScript: string;
   tests: TestAssertion[];
+  /** False when the scripts have not been approved (`ScriptTrust`): they are skipped, and the assertions still run. */
+  runScripts: boolean;
   /** The request as composed, `{{variables}}` not resolved: history keeps it. */
   template: RequestContent;
   /**
@@ -217,7 +219,7 @@ export class RequestExecutor {
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
 
-    if (spec.preRequestScript?.trim()) {
+    if (spec.runScripts && spec.preRequestScript?.trim()) {
       const preResult = await this.scriptSandbox.execute(
         spec.preRequestScript,
         this.getEnvSnapshot()
@@ -377,7 +379,7 @@ export class RequestExecutor {
   ): Promise<TestResult[]> {
     let results: TestResult[] = [];
 
-    if (spec.postRequestScript?.trim()) {
+    if (spec.runScripts && spec.postRequestScript?.trim()) {
       const responseCtx: ScriptResponseContext = {
         statusCode,
         statusText,

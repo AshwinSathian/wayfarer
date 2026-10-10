@@ -130,6 +130,11 @@ export class CollectionsStore {
     return updated;
   }
 
+  /** See `CollectionsRepository.approveScripts`. */
+  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<void> {
+    if (await this.idb.approveScripts(id, digests, review)) await this.refresh();
+  }
+
   async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
     const updated = await this.idb.changeCollectionVariables(id, changes);
     await this.refresh();

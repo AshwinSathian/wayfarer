@@ -1,4 +1,4 @@
-import type { RequestContent, Row } from "@wayfarer/core";
+import type { RequestContent, Row, ScriptTrust } from "@wayfarer/core";
 
 export type UUID = string;
 
@@ -22,8 +22,8 @@ export interface Collection extends BaseDocument {
   order: number;
   /** Variables every request of the collection can use. An environment's variable of the same name wins. */
   variables: Row[];
-  /** Whether this collection's scripts may run. True for one made here; an import is untrusted until approved (D6). */
-  scriptTrust: { trusted: boolean };
+  /** Which of this collection's scripts may run. A collection made here is trusted; an import is not until its scripts are reviewed (D6). */
+  scriptTrust: ScriptTrust;
 }
 
 export interface Folder extends BaseDocument {

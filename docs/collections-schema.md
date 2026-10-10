@@ -98,7 +98,7 @@ An export adds nothing of its own: no new ids, no new times. Exporting, importin
 * The file must say `"$id": "wayfarer/collection/2"`. A file without it, which is what versions before 2.0 wrote, is refused; nothing converts it.
 * Every field above is checked against the values the app writes: a method that is not one upper-case word, a header that is not a row, a body mode or an auth type the app does not know are each reported with their path, and nothing is imported.
 * **Export** writes `***` in place of a credential typed into a request's Auth tab or into a credential header (`Authorization`, `Cookie`, `X-API-Key`, and any name with token, secret, key or pass in it), and in place of a collection variable with such a name. A value that holds a `{{variable}}` is a reference and is written as it is. **Export with credentials** writes everything as typed. Importing a masked file gives requests whose credentials read `***`.
-* An imported collection is marked untrusted (`scriptTrust.trusted` is false), also when it replaces a collection that was trusted.
+* An imported collection is marked untrusted (`scriptTrust` is `{ "trusted": false }`, with no approved scripts), also when it replaces a collection that was trusted. `scriptTrust` is `{ trusted, approved }`: `approved` lists the SHA-256, in hex, of each script text that was reviewed or written in this app. A script runs only when the collection is trusted and the script's digest is in the list.
 * Files over 10 MB are refused before they are parsed.
 
 ## Environments file

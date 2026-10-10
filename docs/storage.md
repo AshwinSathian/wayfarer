@@ -7,7 +7,7 @@ Wayfarer keeps everything in one IndexedDB database. The schema version is **9**
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
 | `history`      | `id` (auto) | `by-createdAt`                                      | Exchanges: the request as composed, as sent, and the response, with credentials and vault secrets masked. See "History" below. |
-| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, and whether their scripts are trusted. |
+| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, and `scriptTrust`: whether the collection is trusted and the SHA-256 of each script approved in it. A collection stored before this field had the list is read as having approved nothing, so its scripts wait for a review once; nothing was removed and the database version did not change. |
 | `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection.                    |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows.                 |

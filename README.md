@@ -39,6 +39,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API <!-- claim:C-040 -->
   - Scripts run in a QuickJS sandbox (a JavaScript engine compiled to WebAssembly) in every build, the hosted app included, under its strict Content-Security-Policy <!-- claim:C-006 -->. See [`docs/scripts.md`](docs/scripts.md)
+  - Scripts that arrive in a collection file or a backup do not run until you have read them in the review dialog and said you trust them; a script changed by a later import does not run either <!-- claim:C-051 -->
   - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
   - Results surface in a dedicated **Tests** tab in the response viewer <!-- claim:C-021 -->
 
@@ -178,7 +179,7 @@ Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same stora
 
 A September 2026 audit found gaps between these docs and the code. Each is an open issue with label [`audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09), scheduled in [`PLAN-airtight-remediation.md`](PLAN-airtight-remediation.md). The ones you are most likely to hit:
 
-- An imported collection's scripts run without a review step ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)), and a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
+- A script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
 - Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).

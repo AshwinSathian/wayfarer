@@ -4,6 +4,7 @@ import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core"
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
+import { ScriptTrust } from "../../services/script-trust";
 import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 
 /**
@@ -15,6 +16,7 @@ import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 export class ComposerView {
   private readonly store = inject(WorkspaceStore);
   private readonly requestSave = inject(RequestSave);
+  private readonly trust = inject(ScriptTrust);
 
   readonly activeTab = signal("headers");
   /**
@@ -36,6 +38,7 @@ export class ComposerView {
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
     this.requestSave.bind(null);
+    this.trust.openedFromHistory(request.template);
     this.load(request.template);
     this.store.showRecorded(request);
   }
@@ -49,12 +52,14 @@ export class ComposerView {
    */
   loadCollectionRequest(doc: RequestDoc): void {
     this.requestSave.bind(doc);
+    this.trust.openedHere();
     this.load(doc);
   }
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
   clear(): void {
     this.requestSave.bind(null);
+    this.trust.openedHere();
     this.store.reset();
     this.activeTab.set("headers");
     this.showAuthPassword.set(false);

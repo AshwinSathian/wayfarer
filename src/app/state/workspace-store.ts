@@ -49,7 +49,8 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../shared/http/request-url";
-import { BinaryBody } from "@wayfarer/core";
+import { BinaryBody, scriptsOf } from "@wayfarer/core";
+import { ScriptTrust } from "../services/script-trust";
 import { buildCurlCommand, redactedRequest } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
@@ -158,6 +159,14 @@ export class WorkspaceStore {
   private readonly vault = inject(SecretsVault);
   private readonly settings = inject(RequestSettings);
   private readonly router = inject(TransportRouter);
+  private readonly trust = inject(ScriptTrust);
+
+  /** Whether the draft's scripts may run (`ScriptTrust`). */
+  readonly scriptsAllowed = this.trust.allowed;
+  /** The draft has a script that is waiting for the user's review. */
+  readonly scriptsHeld = computed(() => !this.trust.allowed() && scriptsOf(this.draft()).length > 0);
+  /** The last send left the request's scripts out, for that reason. */
+  readonly scriptsSkipped = signal(false);
 
   readonly draft = signal<Draft>(emptyDraft());
 
@@ -384,6 +393,7 @@ export class WorkspaceStore {
     this.unresolvedBlocked.set([]);
     this.resetResponseState();
     this.lastTestResults.set([]);
+    this.scriptsSkipped.set(false);
 
     const draft = this.draft();
     const endpointText = draft.url;
@@ -413,9 +423,15 @@ export class WorkspaceStore {
     const controller = new AbortController();
     this.inFlight = controller;
 
+    // Asked of what is stored now, not of a signal that may be a moment behind.
+    const allowed = this.trust.check();
+    const runScripts = allowed instanceof Promise ? await allowed : allowed;
+    this.scriptsSkipped.set(!runScripts && scriptsOf(draft).length > 0);
+
     let result: RequestExecutionResult;
     try {
       result = await this.executor.execute({
+        runScripts,
         preRequestScript: draft.scripts.pre,
         postRequestScript: draft.scripts.post,
         tests: draft.tests,

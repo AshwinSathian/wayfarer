@@ -147,10 +147,33 @@ second after the time limit, should the engine itself not answer.
 fetched the first time a script runs, from the app's own origin, and kept
 by the service worker after that, so scripts run offline.
 
-**Not there yet:** the review step before a collection's scripts may run
-(plan P3.8); the test suite of escape attempts in three browsers (P3.7);
-the Postman-compatible API (session 3B). Until the review step lands, don't
-run scripts from collections you don't trust: a script cannot reach the
-network, but it can change a variable that a later request uses.
+## Which scripts may run
+
+A script you type runs. A script that came from somewhere else waits for
+you (plan decision D6):
+
+- **A collection made in this app is trusted.** When you save a request
+  into it, the SHA-256 of each of its scripts is added to the collection's
+  list of approved scripts.
+- **An imported collection, and one restored from a backup, is not
+  trusted.** Its requests are sent without their scripts; assertions still
+  run. The Scripts tab says so and offers **Review scripts**: a dialog with
+  every script of the collection, read-only. "I trust these scripts" marks
+  the collection trusted and stores the digest of each script shown.
+- **A script runs only if its own digest is in its collection's list.**
+  Importing the same collection again makes it untrusted again. A script
+  that reached storage any other way is not in the list and does not run.
+- **Saving does not approve what you have not reviewed.** A script that was
+  waiting stays unapproved when you save it, also into another collection.
+- **A history entry** carries the scripts of the request as it was sent.
+  Opened from history they wait for a review of their own, which lasts
+  while that entry is in the composer.
+
+The check is made on the stored text the composer was loaded from, when you
+press Send (`src/app/services/script-trust.ts`). What you then type into the
+composer is your own.
+
+**Not there yet:** the test suite of escape attempts in three browsers
+(P3.7); the Postman-compatible API (session 3B).
 
 See [SECURITY.md](../SECURITY.md) for how to report a concern.

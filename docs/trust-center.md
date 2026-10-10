@@ -110,9 +110,13 @@ compiled, and nothing else changed in it. <!-- claim:C-006 --> The engine's glob
 the JavaScript language and five names the app adds (`pm`, `console`,
 `atob`, `btoa`, `setTimeout`): there is no `fetch` or any other browser API
 inside it to take away. A run is stopped at 5 seconds and at 64 MB.
-Not there yet: the review step before an imported collection's scripts may
-run ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)), and the
-suite of escape attempts in three browsers
+Scripts that came from somewhere else do not run on arrival: the scripts of
+an imported or restored collection, and those of a history entry, wait
+until you have read them in the review dialog and said you trust them. The
+collection then holds the SHA-256 of each script you approved, and a script
+runs only if its own digest is there, so one that a later import changed
+waits again. <!-- claim:C-051 --> Not there yet: the suite of escape
+attempts in three browsers
 ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 See [`docs/scripts.md`](scripts.md).
 
@@ -176,7 +180,7 @@ because there was never a server-side copy.
 These are open, tracked, and scheduled in
 [`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
 
-- An imported collection's scripts run without a review step ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)); the script sandbox has no escape-test suite in three browsers yet ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)); a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
+- The script sandbox has no escape-test suite in three browsers yet ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)); a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).

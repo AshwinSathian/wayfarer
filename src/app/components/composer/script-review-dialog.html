@@ -1,0 +1,21 @@
+<ui-dialog header="Review scripts" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
+  <div class="flex flex-col gap-4">
+    <p class="type-callout text-label-secondary">
+      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ requests() }} {{ requests() === 1 ? "request" : "requests" }}.
+      A script runs when its request is sent. It can read and change your variables, and a changed variable can change
+      where a later request goes. Read them before you trust them.
+    </p>
+    <app-script-editor
+      name="reviewedScripts"
+      class="script-review-text"
+      [ngModel]="text()"
+      [ngModelOptions]="{ standalone: true }"
+      [readOnly]="true"
+      [height]="360"
+    ></app-script-editor>
+    <div class="flex flex-wrap justify-end gap-2">
+      <button type="button" matButton="outlined" class="btn-secondary" (click)="visibleChange.emit(false)">Not now</button>
+      <button type="button" matButton="filled" [disabled]="saving() || !count()" (click)="approve()">I trust these scripts</button>
+    </div>
+  </div>
+</ui-dialog>

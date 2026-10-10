@@ -33,10 +33,11 @@ export function parseLedger(text) {
     });
 }
 
-/** Titles of test(...), it(...) and test.<modifier>(...) calls, skipping commented-out lines. */
+/** Titles of test(...), it(...), test.<modifier>(...) and it.each(table)(...) calls, skipping commented-out lines. */
 export function testTitles(source) {
   const titles = [];
-  const call = /(?:^|[^.\w])(?:test|it)(?:\.\w+)*\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
+  // The title is the first argument, or for `.each` the first argument of the call its table is followed by, on the same line.
+  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
   for (const line of source.split(/\r?\n/)) {
     if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
     for (const match of line.matchAll(call)) titles.push(match[2]);

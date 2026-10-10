@@ -34,7 +34,7 @@ describe("Postman compatibility", () => {
     expect(await run({ api: "broken", status: "supported", script: `}); throw new Error("outside"); pm.test("x", () => {` })).toBe("the script ended in an error: outside");
   });
 
-  it.each(CASES.map((row) => [row.api, row] as const))("%s", async (_api, row) => {
+  it.each(CASES.map((row) => [row.api, row] as const))("@claim:C-040 %s", async (_api, row) => {
     const source = scriptOf(row);
     const result = await runScript(quickjs, source, contextOf(row), undefined, { libraries: await loadLibraries(source, loadLibrary, libraries), send: echo });
     expect(verdict(row, result)).toBeUndefined();

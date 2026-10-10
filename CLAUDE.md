@@ -18,6 +18,7 @@ npm -w packages/core run typecheck   # packages/core compiles without the DOM ty
 npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
+npm run check:compat    # docs/postman-compatibility.md is what the compatibility matrix gives
 npm -w packages/core run mutation    # Stryker on the resolver, the redactor and the vault's crypto (3 minutes)
 npx knip                # no unused files, exports or dependencies
 ```
@@ -384,6 +385,11 @@ code errors.
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,
   with a script that proves it. A new or changed part of `pm` changes its
   row in the same PR; the rows run in Node and in the app's worker.
+  `docs/postman-compatibility.md` is generated from the rows: run
+  `npm run gen:compat` and commit it, never edit it. An error that links to
+  a section there (`#pm-cookies`) needs that section: the anchor is `pm-`
+  and the object's name in lower case, `require`, `legacy` or `globals`
+  (`sectionOf` in `scripts/gen-compat-doc.mjs`, and a test checks it).
 - A script's variable changes come back as `ScriptResult.changes`, per
   scope, and are stored with `changeEnvironment`, `changeGlobals` and
   `changeCollectionVariables`. `pm.request` comes back as text the host

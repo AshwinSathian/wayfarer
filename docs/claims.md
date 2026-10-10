@@ -41,7 +41,7 @@ back gets reworded until one can, or removed.
 | C-006 | Scripts are disabled in the hosted app and say so with a banner; Tests-tab assertions still run. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts |
 | C-007 | A vault secret is sent as its plaintext when the vault is unlocked; a locked vault asks for the passphrase first; a secret's placeholder never reaches the network; and nothing stored, exported or copied holds the plaintext. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts, e2e/secrets-wire.spec.ts |
 | C-008 | History stores what was sent and what came back with credentials and vault secrets masked. | README.md, docs/trust-center.md | e2e/claims.spec.ts |
-| C-009 | HTML, XML and text responses render as text; binary responses are offered as a download with the exact bytes. | README.md | e2e/tripwire.spec.ts |
+| C-009 | A response body is shown by its content type: formatted JSON, text, indented XML, an HTML preview, an image, or a hex dump. Any text body can be read as it was sent, and a binary body downloaded with its exact bytes. | README.md | e2e/tripwire.spec.ts, e2e/viewers.spec.ts |
 | C-010 | Network failures show the real network error, never a synthetic `504` from a service worker. | README.md, docs/trust-center.md | e2e/tripwire.spec.ts, e2e/service-worker.spec.ts |
 | C-011 | The Content-Security-Policy forbids `eval` and inline script, so injected script does not run. | docs/trust-center.md | e2e/claims.spec.ts |
 | C-012 | The production page loads with no script the app didn't ship (0 CSP violations); checked every 6 hours. | docs/runbook.md | e2e/no-edge-injection.spec.ts |
@@ -79,3 +79,4 @@ back gets reworded until one can, or removed.
 | C-045 | A request with a `{{variable}}` that has no value is held back until the user chooses to send it as written. | README.md | e2e/secrets-wire.spec.ts |
 | C-046 | The whole workspace can be backed up to one file and restored from it; the vault's secrets are in it encrypted, and a restored collection's scripts are untrusted until approved. | README.md, docs/trust-center.md | e2e/durability.spec.ts |
 | C-047 | An environments export leaves protected values out by default (no secret, no reference); it can instead carry the references with the encrypted vault, or plain text after a typed confirmation. | README.md | e2e/durability.spec.ts |
+| C-048 | The HTML preview of a response runs none of its scripts, loads nothing from the network, and cannot leave its frame. | README.md, docs/trust-center.md | e2e/viewers.spec.ts |

@@ -89,6 +89,17 @@ It also requires Trusted Types, so strings can't reach DOM script sinks
 such as `innerHTML` or a `Worker` URL unless the app's policy approves
 them; its default policy approves only same-origin script URLs. <!-- claim:C-016 -->
 
+A response is data, never part of the app. An HTML response is previewed in
+a sandboxed frame with no permissions at all (no script, no form, no popup,
+no access to the app's origin), from a document that carries its own policy
+allowing nothing from the network: its scripts do not run, it loads nothing,
+and it cannot leave its frame. <!-- claim:C-048 --> The policy lets a frame show only a `blob:`
+document the app itself made, and lets only the app's own origin frame the
+app (`frame-ancestors 'self'`; Safari applies that rule to the preview, so
+`'none'` would leave it blank). An image is previewed only when its type is
+one of a fixed list that a browser draws without running anything; SVG is
+shown as text.
+
 ## Script sandbox isolation
 
 Pre/post-request scripts are **disabled in the hosted app** while the
@@ -161,7 +172,6 @@ These are open, tracked, and scheduled in
 [`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
-- Binary responses can be downloaded but not previewed ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).

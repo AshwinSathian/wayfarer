@@ -17,6 +17,9 @@
       ],
       "monaco-editor/languages/definitions/*/register": [
         "./src/testing/monaco/contribution.stub.ts"
+      ],
+      "monaco-editor/features/*/register": [
+        "./src/testing/monaco/contribution.stub.ts"
       ]
     }
   },

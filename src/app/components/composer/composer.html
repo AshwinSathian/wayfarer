@@ -112,6 +112,8 @@
     [testResults]="store.lastTestResults()"
     [responseBinary]="store.responseBinary()"
     [redirectedTo]="store.responseRedirectedTo()"
+    [responseContentType]="store.responseContentType()"
+    [headersLimited]="store.responseHeadersLimited()"
     [(activeTab)]="store.responseTab"
   ></app-response-viewer>
   }
@@ -194,6 +196,8 @@
           [testResults]="store.lastTestResults()"
           [responseBinary]="store.responseBinary()"
     [redirectedTo]="store.responseRedirectedTo()"
+    [responseContentType]="store.responseContentType()"
+    [headersLimited]="store.responseHeadersLimited()"
           [(activeTab)]="store.responseTab"
         ></app-response-viewer>
         } @else {

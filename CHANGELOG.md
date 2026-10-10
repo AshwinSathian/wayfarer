@@ -7,6 +7,42 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **The response is shown by its type.** JSON is formatted as before; XML
+  is indented; an HTML response opens as a preview of the page; an image
+  is drawn; any other binary body is a hex dump (its first 64 KB) with the
+  download beside it. A list above the body switches the view, so an HTML
+  or XML body can always be read as the text that was sent. Before, HTML
+  and XML were plain text and a binary body could only be downloaded.
+- **The HTML preview cannot do anything.** It is drawn in a frame with no
+  permissions: the page's scripts do not run, it loads nothing from the
+  network (images, styles and fonts on other sites stay blank), and
+  clicking a link or a button does nothing.
+- **Filter a JSON response by path.** Type `data.items[*].id` above the
+  body to see only that part; `[*]` takes every item of a list. Ctrl+F
+  (Cmd+F on a Mac) inside the body opens the editor's find.
+- **JSON over 5 MB opens as plain text**, with a note; choose JSON to
+  format it anyway.
+- **The Headers tab says when headers are missing.** A response from
+  another origin shows only the headers a browser lets a page read; the
+  tab now says so. A header sent twice is listed twice.
+
+### Security
+
+- The Content-Security-Policy now allows `blob:` images and `blob:`
+  frames, for the image and HTML previews; a frame can show nothing else.
+  `frame-ancestors` changed from `'none'` to `'self'`: Safari applies that
+  rule to the preview's own frame, so `'none'` left the preview blank
+  there. No other site can put Wayfarer in a frame, as before.
+
+### Fixed
+
+- A test on the response body could find things that are not in the body:
+  `Body.constructor exists` passed for any JSON object. A path now reads
+  only what the JSON holds
+  ([#207](https://github.com/AshwinSathian/wayfarer/issues/207)).
+
 ### Breaking
 
 - **Data saved by earlier versions is removed.** Wayfarer now stores

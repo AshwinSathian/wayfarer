@@ -163,6 +163,10 @@ export interface RequestExecutionResponse {
   binary?: BinaryBody;
   /** The URL the response came from, when the request was redirected there. */
   redirectedTo?: string;
+  /** The `Content-Type` header as received. */
+  contentType?: string;
+  /** The browser withheld headers: a direct answer from another origin shows only the CORS-safelisted ones and those the server exposes. */
+  headersLimited?: boolean;
 }
 
 /** One outcome of a send, in the shapes its three consumers take. */
@@ -329,6 +333,8 @@ export class RequestExecutor {
         contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
         binary: body instanceof BinaryBody ? body : undefined,
         redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
+        contentType: header("content-type"),
+        headersLimited: envelope.route === "direct" && URL.parse(envelope.finalUrl, location.href)?.origin !== location.origin,
       },
     };
   }

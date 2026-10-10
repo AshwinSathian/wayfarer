@@ -31,6 +31,7 @@
     "node": "^22.22.3 || >=24.15.0"
   },
   "scripts": {
+    "prepare": "node scripts/build-vm-libs.mjs",
     "start": "ng serve",
     "build": "ng build && node scripts/build-sw.mjs",
     "watch": "ng build --watch --configuration development",
@@ -58,10 +59,15 @@
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
+    "chai": "^6.3.0",
+    "crypto-js": "4.2.0",
     "idb": "^8.0.3",
+    "lodash": "^4.18.1",
+    "moment": "^2.31.0",
     "monaco-editor": "^0.57.0",
     "quickjs-emscripten-core": "^0.32.0",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "uuid": "^14.0.3"
   },
   "overrides": {
     "dompurify": "^3.4.16",
@@ -82,6 +88,7 @@
     "@vitest/browser-playwright": "^5.0.3",
     "@vitest/coverage-v8": "^5.0.3",
     "angular-eslint": "22.5.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.1",
     "knip": "^6.40.0",
     "postcss": "^8.5.6",

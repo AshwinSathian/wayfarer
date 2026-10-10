@@ -77,7 +77,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     const extra = ["monaco-editor/ThirdPartyNotices.txt", "dompurify/LICENSE", "marked/LICENSE.md"]
       .map((file) => `${"-".repeat(80)}\nBundled inside monaco-editor: ${file}\n\n${readFileSync(join("node_modules", file), "utf8")}`)
       .join("\n");
-    writeFileSync(join(root, "3rdpartylicenses.txt"), `${readFileSync(licences, "utf8")}\n${extra}`);
+    // The libraries a script may require are text the script engine runs, not
+    // modules the bundler saw: scripts/build-vm-libs.mjs lists their licences.
+    const vmLibraries = readFileSync("packages/core/src/scripting/vm-libs/licenses.txt", "utf8");
+    writeFileSync(join(root, "3rdpartylicenses.txt"), `${readFileSync(licences, "utf8")}\n${extra}\n${vmLibraries}`);
   }
   const { version, precache } = writeServiceWorker(root);
   console.log(`build-sw: sw.js version ${version}, ${precache.length} precached files`);

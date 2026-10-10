@@ -70,7 +70,7 @@ test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app
 });
 
 test("@claim:C-015 a script runs with the network disabled after one run online", async ({ page, context, browserName }) => {
-  const script = { method: "GET", url: "http://127.0.0.1:4300/content/json?c015=script", preRequestScript: "pm.test('ran in the engine', () => pm.expect(1).to.equal(1));" };
+  const script = { method: "GET", url: "http://127.0.0.1:4300/content/json?c015=script", preRequestScript: "pm.test('ran in the engine', () => pm.expect(require('lodash').chunk([1, 2, 3], 2).length).to.equal(2));" };
   await loadControlled(page);
   await seedAndOpen(page, {}, script, base);
   const tests = page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ });
@@ -78,7 +78,7 @@ test("@claim:C-015 a script runs with the network disabled after one run online"
   await send(page);
   await tests.click();
   await expect(ran).toBeVisible();
-  // The engine, its worker and the worker's chunks were fetched once and are in the worker's cache now.
+  // The engine, its worker, the worker's chunks and the library the script requires were fetched once and are in the worker's cache now.
   const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).map((r) => new URL(r.url).pathname));
   expect(cached.filter((path) => /^\/media\/emscripten-module-[A-Z0-9]{8}\.wasm$/.test(path))).toHaveLength(1);
 

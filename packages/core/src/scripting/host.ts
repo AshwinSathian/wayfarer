@@ -1,5 +1,7 @@
 import type { QuickJSContext, QuickJSHandle, QuickJSRuntime, QuickJSWASMModule } from "quickjs-emscripten-core";
+import { VM_LIBRARIES } from "./libraries";
 import { VM_BOOTSTRAP } from "./vm-bootstrap";
+import { VM_ENCODINGS, isVmHash, vmDecode, vmEncode, vmHash, vmHmac, vmRandom, type VmEncoding, type VmHash } from "./vm-crypto";
 
 /** What a run may use before it is stopped. */
 export interface ScriptLimits {
@@ -120,15 +122,25 @@ function limitMessage(limit: NonNullable<ScriptResult["limit"]>, limits: ScriptL
  *
  * The VM starts with the ECMAScript built-ins and nothing of the host: no
  * `fetch`, no `self`, no timers, no module loader. This function adds `pm`,
- * `console`, `atob`, `btoa` and `setTimeout` (see `vm-bootstrap.ts`), and
- * that is all a script can reach. Only strings, numbers and booleans cross
- * in either direction.
+ * `console`, `atob`, `btoa`, `setTimeout` and `require` (see
+ * `vm-bootstrap.ts`), and that is all a script can reach. Only strings,
+ * numbers and booleans cross in either direction.
+ *
+ * `libraries` holds the text of the libraries the script may `require`, by
+ * name (`loadLibraries`): a library is more script, run by the same engine
+ * under the same limits.
  *
  * The QuickJS module is an argument, so the same code runs in the app's
  * worker and in Node. Whoever loads it gives it a memory of `scriptMemory()`:
  * the memory limit is the size that memory may reach.
  */
-export async function runScript(quickjs: QuickJSWASMModule, source: string, context: ScriptContext, limits: ScriptLimits = SCRIPT_LIMITS): Promise<ScriptResult> {
+export async function runScript(
+  quickjs: QuickJSWASMModule,
+  source: string,
+  context: ScriptContext,
+  limits: ScriptLimits = SCRIPT_LIMITS,
+  libraries: ReadonlyMap<string, string> = new Map()
+): Promise<ScriptResult> {
   const state: RunState = { logs: [], logged: 0, written: 0, changes: new Map(), tests: [], timers: new Map() };
   const result = (error?: string, limit?: ScriptResult["limit"]): ScriptResult => ({
     logs: state.logs,
@@ -146,7 +158,7 @@ export async function runScript(quickjs: QuickJSWASMModule, source: string, cont
 
   let failure: Failure | undefined;
   try {
-    failure = await evaluate(vm, runtime, source, context, state, deadline, limits);
+    failure = await evaluate(vm, runtime, source, context, state, deadline, limits, libraries);
   } catch (error) {
     // The browser's stack ran out under QuickJS before QuickJS's own count
     // did: a RangeError in V8 and JavaScriptCore, an InternalError in
@@ -172,7 +184,8 @@ async function evaluate(
   context: ScriptContext,
   state: RunState,
   deadline: number,
-  limits: ScriptLimits
+  limits: ScriptLimits,
+  libraries: ReadonlyMap<string, string>
 ): Promise<Failure | undefined> {
   /** What a script threw, as text, and whether it was a limit. Consumes the handle. */
   const failed = (error: QuickJSHandle): Failure => {
@@ -182,7 +195,8 @@ async function evaluate(
       if (kind === "string") return { message: vm.getString(error) };
       if (kind !== "object") return { message: "Script failed." };
       // With no memory left QuickJS cannot make the error it wants to throw, and throws null.
-      if (vm.dump(error) === null) return { message: "", limit: "memory" };
+      // Asked without `vm.dump`, which allocates in the engine and has nothing to allocate with.
+      if (vm.sameValue(error, vm.null)) return { message: "", limit: "memory" };
       const name = property(vm, error, "name");
       const message = property(vm, error, "message") ?? "Script failed.";
       if (name === "InternalError" && message === "out of memory") return { message, limit: "memory" };
@@ -250,6 +264,30 @@ async function evaluate(
   });
   bind("atob", (encoded) => vm.newString(atob(text(encoded))));
   bind("btoa", (binary) => vm.newString(btoa(text(binary))));
+  // The text of a library, which the VM's `require` evaluates; undefined for a name that is no library.
+  bind("library", (name) => {
+    const id = text(name);
+    const source = libraries.get(id);
+    if (source !== undefined) return vm.newString(source);
+    if ((VM_LIBRARIES as readonly string[]).includes(id)) throw new Error(`require('${id}'): write the module's name out in the script, as require('${id}')`);
+    return undefined;
+  });
+  const hash = (handle: QuickJSHandle | undefined): VmHash => {
+    const name = text(handle);
+    if (!isVmHash(name)) throw new TypeError("Expected MD5, SHA1 or SHA256.");
+    return name;
+  };
+  const encoding = (handle: QuickJSHandle | undefined): VmEncoding => {
+    const name = text(handle);
+    const found = VM_ENCODINGS.find((known) => known === name);
+    if (!found) throw new TypeError("Expected utf8, hex or base64.");
+    return found;
+  };
+  bind("hash", (name, format, payload) => vm.newString(vmHash(hash(name), text(format), text(payload))));
+  bind("hmac", (name, keyFormat, key, format, payload) => vm.newString(vmHmac(hash(name), text(keyFormat), text(key), text(format), text(payload))));
+  bind("encode", (name, value) => vm.newString(vmEncode(encoding(name), text(value))));
+  bind("decode", (name, words) => vm.newString(vmDecode(encoding(name), text(words))));
+  bind("random", (count) => vm.newString(vmRandom(number(count))));
   bind("timer", (id, delay) => {
     state.timers.set(number(id), Date.now() + Math.max(0, number(delay)));
     return undefined;

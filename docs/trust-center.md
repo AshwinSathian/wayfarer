@@ -107,9 +107,10 @@ QuickJS: a JavaScript engine compiled to WebAssembly, in its own worker.
 The browser never evaluates a script's text, so the site's
 Content-Security-Policy still forbids `eval`; it allows WebAssembly to be
 compiled, and nothing else changed in it. <!-- claim:C-006 --> The engine's global object holds
-the JavaScript language and five names the app adds (`pm`, `console`,
-`atob`, `btoa`, `setTimeout`): there is no `fetch` or any other browser API
-inside it to take away. A suite of escape attempts runs from inside a script
+the JavaScript language and six names the app adds (`pm`, `console`,
+`atob`, `btoa`, `setTimeout`, and `require` for five libraries that ship
+with the app and run inside the engine): there is no `fetch` or any other
+browser API inside it to take away. A suite of escape attempts runs from inside a script
 in Chromium, Firefox and WebKit under the production headers: every road to
 the global object finds only those names, every network API is absent, a
 dynamic `import()` loads nothing, the browser makes no request while a

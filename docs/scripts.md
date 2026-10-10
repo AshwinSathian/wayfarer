@@ -13,8 +13,8 @@ verified against `packages/core/src/scripting/` and
 
 ## The `pm.*` API surface
 
-Scripts run with a `pm` object, a `console`, `atob`, `btoa` and
-`setTimeout`. This is the complete surface, as written in
+Scripts run with a `pm` object, a `console`, `atob`, `btoa`,
+`setTimeout` and `require`. This is the complete surface, as written in
 `packages/core/src/scripting/vm-bootstrap.ts` (the code that runs inside
 the engine) and `host.ts` beside it (what that code can call):
 
@@ -87,6 +87,39 @@ promise reaction is left, or at the time limit. A timer that would fall due
 after the limit is not waited for. There is no `clearTimeout` and no
 `setInterval`.
 
+### `require(name)`
+
+Five libraries ship with the app and can be required by name, as in
+Postman's sandbox:
+
+| Name | Library |
+|---|---|
+| `chai` | Chai 6 (`require("chai").expect`, `.assert`) |
+| `crypto-js` | CryptoJS 4.2.0, its last release |
+| `lodash` | Lodash 4 |
+| `moment` | Moment 2, without locales |
+| `uuid` | uuid 14 (`v4()`, `v7()`, `validate()` and the rest) |
+
+`require("atob")` and `require("btoa")` give the two functions. Any other
+name throws `WayfarerUnsupportedError: require('xml2js') is not supported`.
+
+A library is JavaScript text that the engine runs, like your script: it has
+the same global object and can reach nothing your script cannot. Each is a
+file of its own, fetched from the app's origin the first time a script
+names it and kept for offline use. A library is found by its name written
+in the script: `require("lod" + "ash")` is refused with a message that says
+to write the name out.
+
+In `crypto-js`, `MD5`, `SHA1`, `SHA256`, `HmacSHA1`, `HmacSHA256` and
+`enc.Utf8`, `enc.Hex` and `enc.Base64` are computed by the app
+(`@noble/hashes`), not by the engine, which is an interpreter; they return
+what crypto-js returns. The rest of crypto-js (AES, the other hashes, the
+incremental `algo.*` API) is its own code, run by the engine. Random bytes
+(`uuid.v4()`, `CryptoJS.lib.WordArray.random`, the salt of a passphrase)
+come from the browser's `crypto.getRandomValues`.
+
+All five loaded take about 2 MB of the 64 MB a script may hold.
+
 ## Visual Test Assertions (Tests tab)
 
 Alongside scripts, requests can carry a list of declarative assertions
@@ -118,9 +151,11 @@ starts with what the JavaScript language defines (`Object`, `JSON`,
 `Promise`, `Math` and so on) and nothing a browser adds: no `fetch`, no
 `XMLHttpRequest`, no `WebSocket`, no `self`, no `postMessage`, no
 `importScripts`, no storage, no module loader. `runScript`
-(`packages/core/src/scripting/host.ts`) then adds exactly five names: `pm`,
-`console`, `atob`, `btoa` and `setTimeout`. A new browser API cannot appear
-inside the engine, because the engine is not the browser.
+(`packages/core/src/scripting/host.ts`) then adds exactly six names: `pm`,
+`console`, `atob`, `btoa`, `setTimeout` and `require`. A new browser API
+cannot appear inside the engine, because the engine is not the browser.
+`require` loads nothing from anywhere: it evaluates, inside the engine, one
+of five libraries the app was built with.
 
 **How this is tested (claim C-052).** `e2e/sandbox-escape.spec.ts` runs
 escape attempts from inside a script, in Chromium, Firefox and WebKit, on
@@ -128,19 +163,20 @@ the production build with the production headers:
 
 - 35 names a browser, a worker or Node would offer (`fetch`,
   `XMLHttpRequest`, `WebSocket`, `importScripts`, `postMessage`, `self`,
-  `indexedDB`, `WebAssembly`, `require` and the rest) are looked up by eight
+  `indexedDB`, `WebAssembly`, `EventTarget` and the rest) are looked up by eight
   roads to the global object: a plain `typeof`, indirect `eval`,
   `globalThis`, `Function('return this')()`, an object's
   `constructor.constructor`, the constructor of a host function, of an async
   function and of a generator. Each must find nothing.
 - The global object is the engine's own by every road, `globalThis.constructor`
   is the engine's `Object`, and its own property names are exactly the
-  language's list plus the five.
+  language's list plus the six.
 - Ten network roads are called with a variable's value in the address
   (`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`,
-  `importScripts`, `Image`, `Worker`, `require`, a string given to
-  `setTimeout`), and a dynamic `import()` of an `https:` and a `data:`
-  address. From outside, the test counts every request the browser made: the
+  `importScripts`, `Image`, `Worker`, `require` of a module of Node, a
+  string given to `setTimeout`), and a dynamic `import()` of an `https:` and
+  a `data:` address. With all five libraries loaded the same names are
+  looked up again, also through Lodash's own `get` and `template`. From outside, the test counts every request the browser made: the
   only one that left the app's origin is the user's own request.
 - A forged result cannot be posted: there is no `postMessage` and no worker
   scope to post from.
@@ -189,7 +225,9 @@ that writes more than 1 MB of test results and variables is ended with
 
 **Loading.** The engine (about 500 kB of WebAssembly) and its worker are
 fetched the first time a script runs, from the app's own origin, and kept
-by the service worker after that, so scripts run offline.
+by the service worker after that, so scripts run offline. A library (11 to
+75 kB each) is fetched the first time a script requires it, and kept the
+same way.
 
 ## Which scripts may run
 

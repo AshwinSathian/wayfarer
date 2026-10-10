@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { TARGET, captureTarget, expectProdParity, seedAndOpen, send } from "./support/app";
 
 // P3.1: scripts run in QuickJS (WebAssembly) in a worker, under the
@@ -98,6 +98,61 @@ test("the engine is fetched on the first run, from the app's own origin, and onc
   await openTests(page);
   await expect(page.locator(".test-result-pass", { hasText: "ran" })).toBeVisible();
   expect(engine).toHaveLength(1);
+});
+
+test("require gives the five libraries under the production CSP, each from a file of its own that is fetched when a script names it", async ({ page, baseURL }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const violations = await watchViolations(page);
+  const fetched: string[] = [];
+  page.context().on("request", (request) => fetched.push(request.url()));
+  await captureTarget(page);
+  await seedAndOpen(page, {}, {
+    method: "GET",
+    url: `${TARGET}/scripts-require`,
+    preRequestScript: `
+      const _ = require("lodash"), CryptoJS = require("crypto-js");
+      pm.test("lodash", () => pm.expect(_.chunk([1, 2, 3], 2).length).to.equal(2));
+      pm.test("crypto-js, hashed by the host", () => pm.expect(CryptoJS.HmacSHA256("message", "key").toString()).to.equal("6e9ef29b75fffc5b7abae527d58fdadb2fe42e7219011976917343065f58ed4a"));
+      pm.test("crypto-js has a random source", () => pm.expect(CryptoJS.AES.decrypt(CryptoJS.AES.encrypt("text", "pass").toString(), "pass").toString(CryptoJS.enc.Utf8)).to.equal("text"));
+    `,
+    postRequestScript: `
+      const moment = require("moment"), uuid = require("uuid"), chai = require("chai");
+      pm.test("moment", () => pm.expect(moment("2026-10-10T12:00:00Z").utc().add(1, "day").format("YYYY-MM-DD")).to.equal("2026-10-11"));
+      pm.test("uuid", () => pm.expect(uuid.validate(uuid.v4())).to.equal(true));
+      pm.test("chai", () => chai.expect({ a: [1] }).to.deep.equal({ a: [1] }));
+      pm.test("atob and btoa", () => pm.expect(require("atob")(require("btoa")("a"))).to.equal("a"));
+      require("cheerio");
+    `,
+  });
+  // A library is one hashed file of the build, found by text only it holds.
+  const dist = "dist/wayfarer/browser";
+  const files = await Promise.all((await readdir(dist)).filter((name) => /^chunk-.*\.js$/.test(name)).map(async (name) => [name, await readFile(`${dist}/${name}`, "utf8")] as const));
+  const fileOf = (marker: string) => files.filter(([, text]) => text.includes(marker)).map(([name]) => `${baseURL}/${name}`);
+  const libraries = { lodash: fileOf("__lodash_hash_undefined__"), "crypto-js": fileOf("Malformed UTF-8 data"), moment: fileOf("Moment<"), uuid: fileOf("Invalid UUID"), chai: fileOf("AssertionError") };
+  for (const [name, found] of Object.entries(libraries)) expect(found, name).toHaveLength(1);
+  const all = Object.values(libraries).flat();
+  // Opening the request fetched none of them.
+  expect(fetched.filter((url) => all.includes(url))).toEqual([]);
+
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await openTests(page);
+  for (const name of ["lodash", "crypto-js, hashed by the host", "crypto-js has a random source", "moment", "uuid", "chai", "atob and btoa"]) {
+    await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
+  }
+  const failed = page.locator(".test-result-fail");
+  await expect(failed).toHaveCount(1);
+  await expect(failed).toContainText("require('cheerio') is not supported — see docs/postman-compatibility.md#require");
+  // Each library was fetched once, from the app's own origin, under a name with a content hash.
+  expect(fetched.filter((url) => all.includes(url)).sort()).toEqual([...all].sort());
+  for (const url of all) expect(url).toMatch(new RegExp(`^${baseURL}/chunk-[A-Z0-9]{8}\\.js$`));
+
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  expect(fetched.filter((url) => all.includes(url))).toHaveLength(5);
+  expect(await violations()).toEqual([]);
+  expect(errors).toEqual([]);
 });
 
 test("the page the server sends names neither the engine nor its worker", async () => {

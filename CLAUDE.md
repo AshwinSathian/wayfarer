@@ -327,6 +327,19 @@ code errors.
   `vm-bootstrap.ts`, as JavaScript that runs inside the VM. A new global
   goes there and into the list in `host.spec.ts`, which compares the VM's
   global with the language's built-ins plus that list.
+- `require` gives the libraries of `VM_LIBRARIES`
+  (`packages/core/src/scripting/libraries.ts`) and nothing else. Each is
+  built into text by `scripts/build-vm-libs.mjs` (run by `npm ci`; the
+  output in `scripting/vm-libs/` is not committed) and evaluated inside the
+  VM, so a library reaches what a script reaches. A new one needs the
+  maintainer's approval, an entry in that script and in `LOADERS`
+  (`library-loader.ts`), and its name in knip's `ignoreDependencies`; its
+  licence then ships by itself. `library-loader.ts` is imported as
+  `@wayfarer/core/library-loader` and only by what runs scripts: exported
+  from the package's index, every library became a second file in the build.
+- What a library needs of a browser is given to it as an argument of its
+  wrapper function (`self`, `crypto`, `EventTarget`, `Event`), never put on
+  the VM's global.
 - The host object is passed to the bootstrap function and never put on the
   VM's global. A host function takes and returns strings, numbers and
   booleans, and checks each argument's type itself (`text`, `number`): a

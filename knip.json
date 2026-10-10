@@ -19,7 +19,12 @@
         "local-bridge/**/*.js"
       ],
       "ignoreDependencies": [
-        "@angular/language-service"
+        "@angular/language-service",
+        "chai",
+        "crypto-js",
+        "lodash",
+        "moment",
+        "uuid"
       ]
     },
     "packages/core": {

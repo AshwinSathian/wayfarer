@@ -102,13 +102,18 @@ shown as text.
 
 ## Script sandbox isolation
 
-Pre/post-request scripts are **disabled in the hosted app** while the
-sandbox is rebuilt ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)):
-the current Web Worker sandbox needs `eval`, which the site's
-Content-Security-Policy forbids. Tests-tab assertions still run; they are
-not JavaScript. <!-- claim:C-006 --> The current worker's isolation removes known dangerous
-globals (a deny-list) rather than granting only what scripts need, and it
-is being replaced ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
+Pre/post-request scripts run in every build, the hosted app included, in
+QuickJS: a JavaScript engine compiled to WebAssembly, in its own worker.
+The browser never evaluates a script's text, so the site's
+Content-Security-Policy still forbids `eval`; it allows WebAssembly to be
+compiled, and nothing else changed in it. <!-- claim:C-006 --> The engine's global object holds
+the JavaScript language and five names the app adds (`pm`, `console`,
+`atob`, `btoa`, `setTimeout`): there is no `fetch` or any other browser API
+inside it to take away. A run is stopped at 5 seconds and at 64 MB.
+Not there yet: the review step before an imported collection's scripts may
+run ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)), and the
+suite of escape attempts in three browsers
+([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 See [`docs/scripts.md`](scripts.md).
 
 ## Telemetry
@@ -171,7 +176,7 @@ because there was never a server-side copy.
 These are open, tracked, and scheduled in
 [`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
 
-- Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); the sandbox is a deny-list ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
+- An imported collection's scripts run without a review step ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)); the script sandbox has no escape-test suite in three browsers yet ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)); a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).

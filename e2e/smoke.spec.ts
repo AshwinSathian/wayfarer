@@ -14,7 +14,7 @@ test("@smoke the app shell loads with production security headers", async ({ pag
   expect(response?.status()).toBe(200);
   const headers = response?.headers() ?? {};
   const directives = (headers["content-security-policy"] ?? "").split(";").map((d) => d.trim());
-  expect(directives).toContain("script-src 'self'");
+  expect(directives).toContain("script-src 'self' 'wasm-unsafe-eval'");
   expect(directives).toContain("require-trusted-types-for 'script'");
   expect(headers["x-content-type-options"]).toBe("nosniff");
   await expect(page.locator("input.address-url")).toBeVisible();

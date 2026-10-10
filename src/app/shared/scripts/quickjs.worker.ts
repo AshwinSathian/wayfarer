@@ -1,0 +1,50 @@
+/// <reference lib="webworker" />
+
+/**
+ * Runs pre-request and post-response scripts in QuickJS, a JavaScript engine
+ * compiled to WebAssembly (P3.1).
+ *
+ * A script is text handed to that engine. It is never evaluated by the
+ * browser, so the page's Content-Security-Policy needs no `'unsafe-eval'`,
+ * and it never sees this worker's globals: the engine's own global object
+ * holds only what `runScript` (`@wayfarer/core`) puts there. This file loads
+ * the engine once, on the first run, and passes messages.
+ */
+
+import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
+import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
+import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm";
+import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
+import { runScript, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
+
+interface RunMessage {
+  id: string;
+  source: string;
+  context: ScriptContext;
+  limits: ScriptLimits;
+}
+
+// The package's own variant object imports these two files on demand. Here
+// they are part of the worker, which is itself loaded on demand: one file,
+// one request.
+const variant: QuickJSSyncVariant = {
+  type: "sync",
+  importFFI: () => Promise.resolve(QuickJSFFI),
+  importModuleLoader: () => Promise.resolve(loadEngine),
+};
+
+let engine: Promise<QuickJSWASMModule> | undefined;
+
+async function run({ id, source, context, limits }: RunMessage): Promise<void> {
+  try {
+    engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmLocation: new URL(wasmLocation, import.meta.url).href }));
+    const quickjs = await engine;
+    // The page's own clock for this run starts here, not at the download.
+    postMessage({ id, type: "started" });
+    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits) });
+  } catch (error) {
+    postMessage({ id, type: "failed", message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+addEventListener("message", ({ data }: MessageEvent<RunMessage>) => void run(data));

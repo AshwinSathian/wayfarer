@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type ScriptResult, type VariableChange } from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -14,10 +14,9 @@ import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
-import { SCRIPTS_ENABLED, ScriptSandbox } from "../shared/scripts/script-sandbox";
+import { ScriptSandbox } from "../shared/scripts/script-sandbox";
 import { AssertionRunner } from "../shared/scripts/assertion-runner";
 import { EnvironmentDoc } from "../models/environments";
-import { ScriptExecutionResult } from "../models/test-assertion";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 const bytes = (value: unknown): ArrayBuffer =>
@@ -87,11 +86,11 @@ class EnvironmentsServiceStub {
 }
 
 class ScriptSandboxServiceStub {
-  private nextResult: ScriptExecutionResult = { logs: [], envMutations: {}, testResults: [] };
+  private nextResult: ScriptResult = { logs: [], envMutations: {}, testResults: [] };
 
   execute = vi.fn().mockImplementation(async () => this.nextResult);
 
-  setNextResult(result: ScriptExecutionResult): void {
+  setNextResult(result: ScriptResult): void {
     this.nextResult = result;
   }
 }
@@ -365,36 +364,46 @@ describe("RequestExecutor", () => {
     expect(environmentsService.activeEnvironment()?.vars).toEqual([{ key: "counter", value: "2", enabled: true }]);
   });
 
-  describe("with scripts disabled (P0.2, #58)", () => {
-    beforeEach(() => {
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        providers: [
-          RequestExecutor,
-          AssertionRunner,
-          { provide: TransportRouter, useValue: transport },
-          { provide: ResponseInspector, useValue: responseInspector },
-          { provide: EnvironmentsStore, useValue: environmentsService },
-          { provide: ScriptSandbox, useValue: scriptSandbox },
-          { provide: SCRIPTS_ENABLED, useValue: false },
-        ],
-      });
-      service = TestBed.inject(RequestExecutor);
+  it("runs both scripts in every build, sends, and runs Tests-tab assertions (C-006)", async () => {
+    scriptSandbox.setNextResult({ logs: [], envMutations: {}, testResults: [{ label: "t", passed: true, source: "script" }] });
+    const result = await service.execute({ template: TEMPLATE,
+      preRequestScript: "pm.test('t', () => {});",
+      postRequestScript: "pm.test('t', () => {});",
+      tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
+      buildRequest: () => builtRequest(),
     });
 
-    it("never calls the sandbox, but still sends and runs Tests-tab assertions", async () => {
-      const result = await service.execute({ template: TEMPLATE,
-        preRequestScript: "pm.environment.set('a', '1');",
-        postRequestScript: "pm.test('t', () => {});",
-        tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
-        buildRequest: () => builtRequest(),
-      });
+    expect(scriptSandbox.execute).toHaveBeenCalledTimes(2);
+    expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+    expect(result.testResults.map((row) => [row.label, row.passed, row.source])).toEqual([
+      ["t", true, "script"],
+      ["t", true, "script"],
+      ["Status code equals 200", true, "assertion"],
+    ]);
+  });
 
-      expect(scriptSandbox.execute).not.toHaveBeenCalled();
-      expect(transport.sendRequest).toHaveBeenCalledTimes(1);
-      expect(result.testResults).toHaveLength(1);
-      expect(result.testResults[0]).toEqual(expect.objectContaining({ passed: true, source: "assertion" }));
+  it("F65: a script that ends in an error is a failed row, after the tests that ran before it", async () => {
+    scriptSandbox.setNextResult({
+      logs: [],
+      envMutations: {},
+      testResults: [{ label: "ran first", passed: true, source: "script" }],
+      error: "'notDefined' is not defined",
     });
+    const result = await service.execute({ template: TEMPLATE,
+      preRequestScript: "pm.test('ran first', () => {}); notDefined();",
+      postRequestScript: "pm.test('ran first', () => {}); notDefined();",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+
+    expect(result.testResults).toEqual([
+      { label: "ran first", passed: true, source: "script" },
+      { label: "Pre-request script", passed: false, error: "'notDefined' is not defined", source: "script" },
+      { label: "ran first", passed: true, source: "script" },
+      { label: "Post-response script", passed: false, error: "'notDefined' is not defined", source: "script" },
+    ]);
+    // As before, the request is still sent.
+    expect(transport.sendRequest).toHaveBeenCalledTimes(1);
   });
 
   const form = (...parts: [string, string | File][]): FormData => {

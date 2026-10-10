@@ -15,6 +15,11 @@ import { defineConfig } from "vitest/config";
 const root = fileURLToPath(new URL(".", import.meta.url));
 const WORKER_REQUEST = /(?:^|\/)(worker-[A-Z0-9]+\.js)\?worker_file\b/;
 
+// Vitest's browser mode rewrites every `import()` to go through a helper it
+// installs on the page. A worker has no such helper, so a worker that
+// imports on demand (the QuickJS engine does) would fail here and only here.
+const DYNAMIC_IMPORT_IN_A_WORKER = "globalThis.__vitest_browser_runner__ ??= { wrapDynamicImport: (load) => load() };\n";
+
 function builtWorkers(): Plugin {
   let provider: Plugin | undefined;
   return {
@@ -27,13 +32,33 @@ function builtWorkers(): Plugin {
       const match = WORKER_REQUEST.exec(id);
       return match ? `${root}${match[1]}?worker_file` : undefined;
     },
-    load(id) {
+    async load(id) {
       const match = WORKER_REQUEST.exec(id);
       const load = provider?.load;
       if (!match || typeof load !== "function") return undefined;
-      return load.call(this, `${root}${match[1]}`);
+      const built: unknown = await load.call(this, `${root}${match[1]}`);
+      const code = typeof built === "string" ? built : (built as { code?: unknown } | null)?.code;
+      return typeof code === "string" ? { code: `${DYNAMIC_IMPORT_IN_A_WORKER}${code}`, map: null } : undefined;
     },
   };
 }
 
-export default defineConfig({ plugins: [builtWorkers()] });
+// The QuickJS worker imports the engine's .wasm file for its address, which
+// the application builder provides (`loader` in angular.json). Here npm
+// packages are served by Vite, which would instead try to run the file as a
+// WebAssembly module with imports. This gives the worker the address.
+const QUICKJS_WASM = "@jitl/quickjs-wasmfile-release-sync/wasm";
+
+function quickjsWasmAddress(): Plugin {
+  return {
+    name: "wayfarer:quickjs-wasm",
+    enforce: "pre",
+    resolveId: (id) => (id === QUICKJS_WASM ? `\0${QUICKJS_WASM}` : undefined),
+    load: (id) =>
+      id === `\0${QUICKJS_WASM}`
+        ? 'export default "/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm";'
+        : undefined,
+  };
+}
+
+export default defineConfig({ plugins: [builtWorkers(), quickjsWasmAddress()] });

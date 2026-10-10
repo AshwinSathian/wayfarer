@@ -1,6 +1,5 @@
-import { Injectable, InjectionToken, isDevMode } from "@angular/core";
-import { ScriptExecutionResult } from "../../models/test-assertion";
-import { newId } from "@wayfarer/core";
+import { Injectable } from "@angular/core";
+import { BinaryBody, SCRIPT_LIMITS, newId, stringifyJson, type ScriptResult } from "@wayfarer/core";
 
 export interface ScriptResponseContext {
   statusCode: number;
@@ -10,105 +9,122 @@ export interface ScriptResponseContext {
   durationMs?: number;
 }
 
-const DEFAULT_TIMEOUT_MS = 5000;
+/** What the worker says about one run. */
+type WorkerMessage = { id: string } & ({ type: "started" } | { type: "result"; result: ScriptResult } | { type: "failed"; message: string });
 
-/**
- * Whether pre/post-request scripts run at all. False in production builds:
- * the worker below evaluates scripts with `new Function`, which production's
- * CSP (`script-src 'self'`, no `'unsafe-eval'`) blocks, so every script
- * failed there without a word (F01, #58). Scripts come back with the QuickJS
- * sandbox (P3.1), which deletes this token. Dev builds keep the old worker
- * so its spec suite still runs.
- */
-export const SCRIPTS_ENABLED = new InjectionToken<boolean>("SCRIPTS_ENABLED", {
-  providedIn: "root",
-  factory: () => isDevMode(),
+interface Run {
+  settle: (result: ScriptResult) => void;
+  timeoutMs: number;
+  watchdog?: ReturnType<typeof setTimeout>;
+}
+
+/** How long after a script's own deadline the page waits for the worker before it ends the run itself. */
+const WATCHDOG_GRACE_MS = 1000;
+
+const nothing = (error?: string, limit?: ScriptResult["limit"]): ScriptResult => ({
+  logs: [],
+  envMutations: {},
+  testResults: [],
+  ...(error !== undefined && { error }),
+  ...(limit && { limit }),
 });
 
-/** GitHub issue tracking the disabled script sandbox; shown in the Scripts tab banner. */
-export const SCRIPTS_DISABLED_ISSUE = 58;
-
 /**
- * Runs user-authored pre/post-request scripts in an isolated Web Worker
- * (`script-runner.worker.ts`) rather than on the main thread.
+ * Runs user-written pre-request and post-response scripts in the QuickJS
+ * worker (`quickjs.worker.ts`).
  *
- * Why a worker and not main-thread `Function()` shadowing: a dedicated worker is a
- * separate realm that never has `window`/`document`/cookies/`localStorage`, and has no
- * reference back to this thread's memory (the secrets vault key, other requests'
- * headers, etc.) — postMessage only carries structured-clone data, never live
- * references or functions. See docs/scripts.md for the full threat model and
- * `script-sandbox.spec.ts` for the regression suite proving escape attempts
- * (Function-based global re-acquisition, DOM/window access, network access) fail.
+ * A script is run by a JavaScript engine compiled to WebAssembly, not by the
+ * browser: it has the engine's own global object, which holds the language
+ * and the few names `runScript` (`@wayfarer/core`) adds, and nothing of the
+ * worker or the page. See docs/scripts.md.
  *
- * A fresh worker is spawned per execution and terminated immediately after, so scripts
- * never share state across runs and a hung script (e.g. an infinite loop) is bounded by
- * `timeoutMs` rather than freezing anything.
+ * The worker is kept between runs, so the engine is downloaded and compiled
+ * once; each run gets a new engine runtime, so no script sees another's
+ * state. A run that hits a limit ends the worker, and the next run starts a
+ * new one.
  */
 @Injectable({ providedIn: "root" })
 export class ScriptSandbox {
-  execute(
-    script: string,
-    env: Record<string, string>,
-    response?: ScriptResponseContext,
-    timeoutMs: number = DEFAULT_TIMEOUT_MS
-  ): Promise<ScriptExecutionResult> {
+  private worker: Worker | null = null;
+  private readonly runs = new Map<string, Run>();
+
+  execute(script: string, env: Record<string, string>, response?: ScriptResponseContext, timeoutMs: number = SCRIPT_LIMITS.timeoutMs): Promise<ScriptResult> {
     if (!script?.trim()) {
-      return Promise.resolve({ logs: [], envMutations: {}, testResults: [] });
+      return Promise.resolve(nothing());
     }
-
-    return new Promise<ScriptExecutionResult>((resolve) => {
-      const runId = newId();
-      const worker = new Worker(new URL("./script-runner.worker", import.meta.url), {
-        type: "module",
+    return new Promise<ScriptResult>((settle) => {
+      const id = newId();
+      this.runs.set(id, { settle, timeoutMs });
+      this.start().postMessage({
+        id,
+        source: script,
+        context: {
+          environment: Object.entries(env),
+          ...(response && {
+            response: {
+              code: response.statusCode,
+              status: response.statusText,
+              headers: response.headers,
+              body: bodyText(response.body),
+              responseTime: response.durationMs ?? 0,
+            },
+          }),
+        },
+        limits: { ...SCRIPT_LIMITS, timeoutMs },
       });
-
-      let settled = false;
-      const finish = (result: ScriptExecutionResult) => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        clearTimeout(timer);
-        worker.removeEventListener("message", onMessage);
-        worker.removeEventListener("error", onError);
-        worker.terminate();
-        resolve(result);
-      };
-
-      const onMessage = (event: MessageEvent) => {
-        const data = event.data;
-        if (!data || data.type !== "result" || data.runId !== runId) {
-          return;
-        }
-        finish({
-          logs: data.logs ?? [],
-          envMutations: data.envMutations ?? {},
-          testResults: data.testResults ?? [],
-          error: data.error,
-        });
-      };
-
-      const onError = (event: ErrorEvent) => {
-        finish({
-          logs: [],
-          envMutations: {},
-          testResults: [],
-          error: event.message || "Script execution failed.",
-        });
-      };
-
-      const timer = setTimeout(() => {
-        finish({
-          logs: [],
-          envMutations: {},
-          testResults: [],
-          error: `Script timed out after ${timeoutMs}ms.`,
-        });
-      }, timeoutMs);
-
-      worker.addEventListener("message", onMessage);
-      worker.addEventListener("error", onError);
-      worker.postMessage({ type: "run", runId, script, env, response });
     });
   }
+
+  private start(): Worker {
+    if (this.worker) return this.worker;
+    const worker = new Worker(new URL("./quickjs.worker", import.meta.url), { type: "module" });
+    worker.addEventListener("message", ({ data }: MessageEvent<WorkerMessage>) => this.onMessage(data));
+    worker.addEventListener("error", (event) => this.discard(event.message || "Script execution failed."));
+    this.worker = worker;
+    return worker;
+  }
+
+  private onMessage(message: WorkerMessage): void {
+    const run = this.runs.get(message.id);
+    if (!run) return;
+    if (message.type === "started") {
+      // The engine stops a script at its deadline. Should the engine itself
+      // hang, the page stops waiting a second later.
+      run.watchdog = setTimeout(() => {
+        this.finish(message.id, nothing(`Script timed out after ${run.timeoutMs} ms`, "timeout"));
+        this.discard("Script execution was stopped.");
+      }, run.timeoutMs + WATCHDOG_GRACE_MS);
+      return;
+    }
+    if (message.type === "failed") {
+      this.finish(message.id, nothing(message.message));
+      this.discard("Script execution was stopped.");
+      return;
+    }
+    this.finish(message.id, message.result);
+    // After a limit the engine may be unusable: the next run gets a new worker.
+    if (message.result.limit) this.discard("Script execution was stopped.");
+  }
+
+  private finish(id: string, result: ScriptResult): void {
+    const run = this.runs.get(id);
+    if (!run) return;
+    clearTimeout(run.watchdog);
+    this.runs.delete(id);
+    run.settle(result);
+  }
+
+  /** Ends the worker. Every run still waiting on it ends with `reason`. */
+  private discard(reason: string): void {
+    this.worker?.terminate();
+    this.worker = null;
+    for (const id of [...this.runs.keys()]) this.finish(id, nothing(reason));
+  }
+}
+
+/** A response body as the text a script reads: text as it is, parsed JSON written out again, nothing for bytes. */
+function bodyText(body: unknown): string {
+  if (typeof body === "string") return body;
+  if (body === undefined || body === null || body instanceof BinaryBody) return "";
+  return stringifyJson(body) ?? "";
 }

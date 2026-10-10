@@ -21,7 +21,7 @@ test.describe("Phase 0 tripwires", () => {
   // (below) is the one tripwire that needs the worker.
   test.use({ serviceWorkers: "block" });
 
-  test("F01 @claim:C-006: a script under production CSP either runs or shows the disabled banner, never fails silently", async ({ page }) => {
+  test("F01 @claim:C-006: a script runs under the production CSP", async ({ page }) => {
     await captureTarget(page);
     const response = await seedAndOpen(page, {}, {
       method: "GET",
@@ -36,9 +36,9 @@ test.describe("Phase 0 tripwires", () => {
     const scriptsTab = page.getByRole("tab", { name: "Scripts" });
     await scriptsTab.click();
     await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
-    const ran = page.locator(".test-result-pass", { hasText: "tripwire F01 script ran" });
-    const banner = page.getByText(/Scripts are temporarily disabled/);
-    await expect(ran.or(banner).first()).toBeVisible();
+    // Since P3.1 the script runs in every build, on QuickJS: the banner that stood in for it is gone.
+    await expect(page.locator(".test-result-pass", { hasText: "tripwire F01 script ran" })).toBeVisible();
+    await expect(page.getByText(/Scripts are temporarily disabled/)).toHaveCount(0);
   });
 
   test("F03 @claim:C-007: a protected-variable placeholder is never sent on the wire", async ({ page }) => {

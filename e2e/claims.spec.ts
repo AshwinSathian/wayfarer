@@ -131,6 +131,8 @@ test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injecte
   for (const policy of [header, meta ?? undefined, asset.headers()["content-security-policy"]]) {
     expect(scriptSrc(policy)).toMatch(/^script-src /);
     expect(scriptSrc(policy)).not.toMatch(/'unsafe-eval'|'unsafe-inline'|\*|data:|blob:/);
+    // WebAssembly may be compiled (the script sandbox's engine, P3.1); that is the only keyword beside 'self'.
+    expect(scriptSrc(policy)).toBe("script-src 'self' 'wasm-unsafe-eval'");
   }
 
   const outcome = await page.evaluate(async () => {

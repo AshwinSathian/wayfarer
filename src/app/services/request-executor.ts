@@ -3,11 +3,7 @@ import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
-import {
-  SCRIPTS_ENABLED,
-  ScriptSandbox,
-  ScriptResponseContext,
-} from "../shared/scripts/script-sandbox";
+import { ScriptSandbox, ScriptResponseContext } from "../shared/scripts/script-sandbox";
 import {
   AssertionRunner,
   AssertionResponseContext,
@@ -25,6 +21,7 @@ import {
   variablesByName,
   type RequestContent,
   type ResponseEnvelope,
+  type ScriptResult,
 } from "@wayfarer/core";
 
 export interface BuiltRequest {
@@ -182,6 +179,15 @@ interface Shaped {
   response: RequestExecutionResponse;
 }
 
+/**
+ * A script's `pm.test` results, and after them a failed row when the script
+ * itself ended in an error: one that throws, or is stopped, must not look
+ * like a request that has no script (F65).
+ */
+function scriptRows(result: ScriptResult, name: string): TestResult[] {
+  return result.error === undefined ? result.testResults : [...result.testResults, { label: name, passed: false, error: result.error, source: "script" }];
+}
+
 export interface RequestExecutionResult {
   durationMs: number;
   testResults: TestResult[];
@@ -204,7 +210,6 @@ export class RequestExecutor {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly responseInspector = inject(ResponseInspector);
   private readonly scriptSandbox = inject(ScriptSandbox);
-  private readonly scriptsEnabled = inject(SCRIPTS_ENABLED);
   private readonly assertionRunner = inject(AssertionRunner);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
@@ -212,14 +217,12 @@ export class RequestExecutor {
     const createdAt = Date.now();
     let testResults: TestResult[] = [];
 
-    if (this.scriptsEnabled && spec.preRequestScript?.trim()) {
+    if (spec.preRequestScript?.trim()) {
       const preResult = await this.scriptSandbox.execute(
         spec.preRequestScript,
         this.getEnvSnapshot()
       );
-      if (preResult.testResults.length) {
-        testResults = [...preResult.testResults];
-      }
+      testResults = scriptRows(preResult, "Pre-request script");
       await this.applyEnvMutations(preResult.envMutations);
     }
 
@@ -374,7 +377,7 @@ export class RequestExecutor {
   ): Promise<TestResult[]> {
     let results: TestResult[] = [];
 
-    if (this.scriptsEnabled && spec.postRequestScript?.trim()) {
+    if (spec.postRequestScript?.trim()) {
       const responseCtx: ScriptResponseContext = {
         statusCode,
         statusText,
@@ -387,7 +390,7 @@ export class RequestExecutor {
         this.getEnvSnapshot(),
         responseCtx
       );
-      results = [...results, ...postResult.testResults];
+      results = scriptRows(postResult, "Post-response script");
       await this.applyEnvMutations(postResult.envMutations);
     }
 
@@ -410,8 +413,8 @@ export class RequestExecutor {
   }
 
   private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {
-    const keys = Object.keys(mutations);
-    if (!keys.length) {
+    const changes = Object.entries(mutations);
+    if (!changes.length) {
       return;
     }
     const active = this.environmentsService.activeEnvironment();
@@ -421,7 +424,7 @@ export class RequestExecutor {
     // An empty value removes the variable. Applied to the stored rows, not to this tab's copy of them.
     await this.environmentsService.changeEnvironment(
       active.meta.id,
-      keys.map((key) => ({ key, value: mutations[key] === "" ? null : mutations[key] }))
+      changes.map(([key, value]) => ({ key, value: value === "" ? null : value }))
     );
   }
 

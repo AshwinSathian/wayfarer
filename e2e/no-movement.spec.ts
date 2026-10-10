@@ -12,12 +12,23 @@ interface Sample {
   boxes: Record<string, string>;
 }
 
+interface Recording {
+  samples: Sample[];
+  /** What an animation running at the first frame changes, on or around a sampled element, other than opacity. */
+  animated: string[];
+}
+
 /**
  * From the frame the status badge first shows `status`, records on every
  * animation frame for `duration` ms where the response tabs, the split
  * gutter and what a person presses next are.
+ *
+ * A slow machine draws few frames (a CI runner drew 2 in 500 ms), and an
+ * animation could run between two of them unseen. So at the first frame it
+ * also reads the animations themselves: one that runs on a sampled element,
+ * or on anything around it, may change opacity and nothing else.
  */
-async function sampleAfterResponse(page: Page, status: string, duration: number): Promise<() => Promise<Sample[]>> {
+async function sampleAfterResponse(page: Page, status: string, duration: number): Promise<() => Promise<Recording>> {
   await page.evaluate(({ status, ms }) => {
     const samples: Sample[] = [];
     const targets = (): [string, Element][] => [
@@ -35,12 +46,27 @@ async function sampleAfterResponse(page: Page, status: string, duration: number)
       const { x, y, width, height } = element.getBoundingClientRect();
       return [x, y, width, height].map((value) => Math.round(value * 100) / 100).join(",");
     };
+    const animated: string[] = [];
+    const readAnimations = () => {
+      const sampled = targets().map(([, element]) => element);
+      for (const animation of document.getAnimations()) {
+        const effect = animation.effect;
+        const target = effect instanceof KeyframeEffect ? effect.target : null;
+        if (!effect || !target || !sampled.some((element) => target.contains(element))) continue;
+        const properties = new Set((effect as KeyframeEffect).getKeyframes().flatMap((keyframe) => Object.keys(keyframe)));
+        for (const property of ["offset", "computedOffset", "easing", "composite", "opacity"]) properties.delete(property);
+        for (const property of properties) animated.push(`${property} on <${target.tagName.toLowerCase()} class="${target.getAttribute("class") ?? ""}">`);
+      }
+    };
     let started = 0;
     const tick = (now: number) => {
-      if (!started && document.querySelector("app-response-viewer .status-badge")?.textContent?.trim() === status) started = now;
+      if (!started && document.querySelector("app-response-viewer .status-badge")?.textContent?.trim() === status) {
+        started = now;
+        readAnimations();
+      }
       if (started) samples.push({ frame: samples.length, ms: Math.round(now - started), boxes: Object.fromEntries(targets().map(([name, element]) => [name, box(element)])) });
       if (!started || now - started < ms) requestAnimationFrame(tick);
-      else (window as unknown as { __samples: Sample[] }).__samples = samples;
+      else (window as unknown as { __recording: Recording }).__recording = { samples, animated };
     };
     requestAnimationFrame(tick);
     interface Sample {
@@ -48,10 +74,14 @@ async function sampleAfterResponse(page: Page, status: string, duration: number)
       ms: number;
       boxes: Record<string, string>;
     }
+    interface Recording {
+      samples: Sample[];
+      animated: string[];
+    }
   }, { status, ms: duration });
   return async () => {
-    await page.waitForFunction(() => !!(window as unknown as { __samples?: unknown }).__samples);
-    return page.evaluate(() => (window as unknown as { __samples: Sample[] }).__samples);
+    await page.waitForFunction(() => !!(window as unknown as { __recording?: unknown }).__recording);
+    return page.evaluate(() => (window as unknown as { __recording: Recording }).__recording);
   };
 }
 
@@ -80,13 +110,15 @@ for (const [name, path, status] of [
     await page.locator("input.address-url").fill(`${ECHO}${path}`);
     const samples = await sampleAfterResponse(page, status, 500);
     await send(page);
-    const recorded = await samples();
+    const { samples: recorded, animated } = await samples();
 
     // The sampling saw the response from its first frame, for the whole time, with the tabs and the gutter in it.
-    expect(recorded.length).toBeGreaterThan(10);
+    expect(recorded.length).toBeGreaterThanOrEqual(2);
     expect(recorded.at(-1)?.ms).toBeGreaterThanOrEqual(500);
     expect(Object.keys(recorded[0].boxes)).toEqual(expect.arrayContaining(["tab 0 Body", "tab 1 Headers", "tab 2 Timings", "tab 3 Tests", "gutter", "status badge", "Export"]));
-    expect(movements(recorded)).toEqual([]);
+    // Soft, so that a failure shows both what moved and which animation moved it.
+    expect.soft(movements(recorded)).toEqual([]);
+    expect(animated).toEqual([]);
   });
 }
 
@@ -100,7 +132,8 @@ test("@claim:C-050 nothing moves when a second response replaces the first", asy
   const samples = await sampleAfterResponse(page, "404", 500);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("404");
-  const recorded = await samples();
-  expect(recorded.length).toBeGreaterThan(10);
-  expect(movements(recorded)).toEqual([]);
+  const { samples: recorded, animated } = await samples();
+  expect(recorded.length).toBeGreaterThanOrEqual(2);
+  expect.soft(movements(recorded)).toEqual([]);
+  expect(animated).toEqual([]);
 });

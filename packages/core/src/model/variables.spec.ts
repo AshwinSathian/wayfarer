@@ -54,4 +54,15 @@ describe("variable changes", () => {
       { numRuns: 200, seed: 20261009 }
     );
   });
+
+  it("a script's set never replaces a protected variable's reference; anyone else's does, and a removal does", () => {
+    const reference = "{{$secret.0b1c2d3e-0000-4000-8000-000000000001}}";
+    const rows = [row("token", reference), row("mixed", `Bearer ${reference}`), row("plain", "1")];
+    const fromScript = (key: string, value: string | null) => ({ key, value, keepSecret: true as const });
+    expect(applyVariableChanges(rows, [fromScript("token", "leaked"), fromScript("mixed", "m"), fromScript("plain", "2")])).toEqual([row("token", reference), row("mixed", "m"), row("plain", "2")]);
+    expect(applyVariableChanges([row("token", ` {{ $secret.ab-1 }} `, false)], [fromScript("token", "leaked")])).toEqual([row("token", ` {{ $secret.ab-1 }} `, false)]);
+    // The editor unprotects a variable by saving its text; a script may remove one.
+    expect(applyVariableChanges(rows, [{ key: "token", value: "typed" }])[0]).toEqual(row("token", "typed"));
+    expect(applyVariableChanges(rows, [fromScript("token", null)]).map((r) => r.key)).toEqual(["mixed", "plain"]);
+  });
 });

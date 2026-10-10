@@ -4,13 +4,23 @@ import type { Row } from "./request";
 export interface VariableChange {
   key: string;
   value: string | null;
+  /**
+   * A script's change. It never replaces a protected variable's reference
+   * with text: the app puts such a value into the vault instead, and this
+   * holds also when the app's own copy of the rows was a moment old.
+   */
+  keepSecret?: true;
 }
+
+/** A protected variable's value: one reference to a vault secret and nothing else. */
+const SECRET_REFERENCE = /^\s*\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}\s*$/i;
 
 /**
  * The rows with the changes applied. A set replaces every row of that name
  * with one enabled row, where the first of them stood, or adds a row at the
  * end; a removal takes every row of that name. Rows the changes do not name
- * are left exactly as they are.
+ * are left exactly as they are. A set marked `keepSecret` is left out when a
+ * row of that name holds a vault secret's reference.
  *
  * This is the one way variables are changed from a value that may be stale:
  * the environments editor saves the difference it made, and a script's
@@ -20,8 +30,9 @@ export interface VariableChange {
  */
 export function applyVariableChanges(rows: Row[], changes: VariableChange[]): Row[] {
   let next = rows;
-  for (const { key, value } of changes) {
+  for (const { key, value, keepSecret } of changes) {
     const first = next.findIndex((row) => row.key === key);
+    if (value !== null && keepSecret && next.some((row) => row.key === key && SECRET_REFERENCE.test(row.value))) continue;
     if (value === null) {
       next = next.filter((row) => row.key !== key);
     } else if (first === -1) {

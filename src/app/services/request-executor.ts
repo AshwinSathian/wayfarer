@@ -285,10 +285,13 @@ export class RequestExecutor {
       const { changes } = preResult;
       // As the script wrote them: it runs before any secret is read, and was
       // given the variables as stored, a secret as its reference.
-      await this.applyChanges(spec, changes, notes);
-      // Each name the script touched gets the value it had, or is removed again.
+      const restoreSecrets = await this.applyChanges(spec, changes, notes);
+      // Each name the script touched gets the value it had, or is removed again; a secret it replaced gets its old value.
       const was = (rows: Row[], touched: VariableChange[]): VariableChange[] => touched.map(({ key }) => ({ key, value: variablesByName(rows).get(key) ?? null }));
-      undo = () => this.applyChanges(spec, { environment: was(before.environment, changes.environment), global: was(before.global, changes.global), collection: was(before.collection, changes.collection) }, []);
+      undo = async () => {
+        await this.applyChanges(spec, { environment: was(before.environment, changes.environment), global: was(before.global, changes.global), collection: was(before.collection, changes.collection) }, []);
+        await restoreSecrets();
+      };
       // A script that ended in an error did not finish its work on the request: it is not sent (P3.9).
       if (preResult.error !== undefined) {
         // No secret was read for this send, and the script was given none: there is nothing to mask.
@@ -567,11 +570,17 @@ export class RequestExecutor {
    * A value set on a protected variable goes into the vault (`intoVault`)
    * and never into these stores. `secrets` masks vault secrets in every
    * other value: a post-response script may have read one from the response.
+   *
+   * Gives back a function that puts the old value back into each vault
+   * secret these changes replaced.
    */
-  private async applyChanges(spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[], secrets?: Redactor): Promise<void> {
+  private async applyChanges(spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[], secrets?: Redactor): Promise<() => Promise<void>> {
     const active = this.environmentsService.activeEnvironment();
+    /** The plaintext each replaced secret had, by id. Held for this send only, in memory. */
+    const replaced = new Map<string, string>();
+    // Marked as a script's: the stored rows are what counts, and a reference in them is never replaced with text (`applyVariableChanges`).
     const kept = async (api: string, rows: Row[], scope: VariableChange[]): Promise<VariableChange[]> =>
-      (await this.intoVault(api, rows, scope, notes)).map(({ key, value }) => ({ key, value: value === null || !secrets ? value : secrets.text(value) }));
+      (await this.intoVault(api, rows, scope, notes, replaced)).map(({ key, value }) => ({ key, value: value === null || !secrets ? value : secrets.text(value), keepSecret: true }));
     const environment = await kept("pm.environment", active?.vars ?? [], changes.environment);
     const global = await kept("pm.globals", this.environmentsService.globals(), changes.global);
     const collection = await kept("pm.collectionVariables", spec.collection?.variables() ?? [], changes.collection);
@@ -584,6 +593,9 @@ export class RequestExecutor {
       if (spec.collection) await spec.collection.change(collection);
       else notes.push("[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.");
     }
+    return async () => {
+      for (const [id, plaintext] of replaced) await this.vault.replaceSecret(id, plaintext);
+    };
   }
 
   /**
@@ -593,12 +605,11 @@ export class RequestExecutor {
    * asked for the passphrase in the middle of a script's work. Gives back
    * the changes that are not of this kind, to be stored as variables.
    *
-   * ponytail: "protected" is read from this tab's copy of the rows. A
-   * variable another tab protected in the last moment is written as text;
-   * to close that, `applyVariableChanges` would have to refuse to replace a
-   * reference inside its transaction.
+   * "Protected" is read from this tab's copy of the rows. Should that copy
+   * be a moment old, the value is not encrypted, and it is not stored
+   * either: the changes are marked `keepSecret`.
    */
-  private async intoVault(api: string, rows: Row[], changes: VariableChange[], notes: string[]): Promise<VariableChange[]> {
+  private async intoVault(api: string, rows: Row[], changes: VariableChange[], notes: string[], replaced: Map<string, string>): Promise<VariableChange[]> {
     const rest: VariableChange[] = [];
     for (const change of changes) {
       const reference = rows.find((row) => row.key === change.key && protectedSecretId(row.value) !== null)?.value;
@@ -608,8 +619,14 @@ export class RequestExecutor {
         // Its own reference written back, as a script that copies every variable does: nothing to do.
       } else if (change.value.trim() !== reference?.trim()) {
         const refused = (why: string) => notes.push(`[warn] ${api}.set(${JSON.stringify(change.key)}): ${why}, so its value was not changed.`);
-        if (!this.vault.isUnlocked()) refused("this variable is protected and the vault is locked");
-        else if (!(await this.vault.replaceSecret(id, change.value))) refused("the secret this variable refers to is not in the vault");
+        if (!this.vault.isUnlocked()) {
+          refused("this variable is protected and the vault is locked");
+          continue;
+        }
+        const old = await this.vault.readSecret(id);
+        if (old === null || !(await this.vault.replaceSecret(id, change.value))) refused("the secret this variable refers to is not in the vault");
+        // The first value is the one to go back to, should the script set the variable twice in one run.
+        else if (!replaced.has(id)) replaced.set(id, old);
       }
     }
     return rest;

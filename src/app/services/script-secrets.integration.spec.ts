@@ -7,7 +7,7 @@ import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
 import { buildSecretReference } from "../shared/secrets/secret-reference";
 import { EnvironmentsStore } from "./environments-store";
-import { RequestExecutor } from "./request-executor";
+import { RequestExecutor, SendDeclinedError } from "./request-executor";
 import { SecretsVault } from "./secrets-vault";
 import { TransportRouter } from "./transport-router";
 
@@ -130,6 +130,44 @@ describe("a script sets a protected variable (P3.12)", () => {
     const result = await run("pre");
     expect(result.scriptLogs).toEqual(['[warn] pm.environment.set("token"): the secret this variable refers to is not in the vault, so its value was not changed.']);
     expect(variables()["token"]).toBe(buildSecretReference(secretId));
+    expect(await everythingStored()).not.toContain(NEW);
+  });
+
+  it("the user declines the send (C-053): the secret the pre-request script replaced is the old one again", async () => {
+    script = sets({ key: "token", value: NEW }, { key: "plain", value: "after" });
+    const failure: unknown = await executor
+      .execute({
+        template: requestContent(),
+        runScripts: true,
+        preRequestScript: "set()",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: async () => {
+          // When the question is asked, the script's value is in the vault: the request would be built with it.
+          expect(await vault.readSecret(secretId)).toBe(NEW);
+          throw new SendDeclinedError("declined");
+        },
+      })
+      .catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(SendDeclinedError);
+    expect(await vault.readSecret(secretId)).toBe(OLD);
+    expect(variables()).toEqual({ token: buildSecretReference(secretId), plain: "before" });
+    const stored = await everythingStored();
+    expect(stored).not.toContain(NEW);
+    expect(stored).not.toContain(OLD);
+  });
+
+  it("a variable that became protected after this tab last read it: the script's value still does not replace the reference", async () => {
+    // Another tab protects "plain"; this tab's copy of the rows still holds the old text.
+    const other = await vault.saveSecret({ name: "plain", plaintext: OLD });
+    const id = environments.activeEnvironment()!.meta.id;
+    await idb.changeEnvironment(id, [{ key: "plain", value: buildSecretReference(other) }]);
+    expect(variables()["plain"]).toBe("before");
+
+    script = sets({ key: "plain", value: NEW });
+    await run("pre");
+
+    expect(variables()["plain"]).toBe(buildSecretReference(other));
     expect(await everythingStored()).not.toContain(NEW);
   });
 

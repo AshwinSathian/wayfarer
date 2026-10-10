@@ -43,6 +43,7 @@
     "bridge": "node local-bridge/bin/cli.js",
     "bridge:test": "node --test local-bridge/test/*.test.js",
     "test:scripts": "node --test e2e/support/*.test.mjs scripts/*.test.mjs",
+    "golden": "node scripts/golden.mjs",
     "gen:csp": "node scripts/gen-csp.mjs",
     "check:csp": "node scripts/gen-csp.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",

@@ -12,7 +12,8 @@ const BUILT_INS =
   "AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt undefined unescape".split(
     " "
   );
-const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require"];
+// The last ten are the globals of Postman's older sandbox (P3.4).
+const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require", "postman", "tests", "responseBody", "responseCode", "responseTime", "responseHeaders", "request", "environment", "globals", "iteration"];
 
 const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a"]}', responseTime: 12, responseSize: 21 };
 const NO_CHANGES = { environment: [], collection: [], global: [] };

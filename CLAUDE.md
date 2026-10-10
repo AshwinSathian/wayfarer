@@ -340,6 +340,13 @@ code errors.
 - What a library needs of a browser is given to it as an argument of its
   wrapper function (`self`, `crypto`, `EventTarget`, `Event`), never put on
   the VM's global.
+- Newman is the reference for Postman's legacy sandbox and is not a
+  dependency: its tree fails `npm audit` (18 advisories, 2026-10-10;
+  maintainer's decision). `npm run golden` fetches a pinned version with
+  `npx` and writes `packages/core/test/fixtures/postman-legacy.golden.json`,
+  which is committed; `legacy-golden.test.ts` holds Wayfarer to it. Run it
+  when the fixture collection changes. Do not add `newman`,
+  `postman-runtime` or `postman-sandbox` to a `package.json`.
 - The host object is passed to the bootstrap function and never put on the
   VM's global. A host function takes and returns strings, numbers and
   booleans, and checks each argument's type itself (`text`, `number`): a

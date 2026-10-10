@@ -1,0 +1,71 @@
+{
+  "info": {
+    "name": "Wayfarer legacy sandbox fixture",
+    "description": "Ten requests whose scripts use only the globals of Postman's older sandbox. Newman runs it to write postman-legacy.golden.json (npm run golden); Wayfarer must give the same test names and results.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Status and body",
+      "event": [{ "listen": "test", "script": { "exec": ["var body = JSON.parse(responseBody);", "tests[\"status is 200\"] = responseCode.code === 200;", "tests[\"the body is the echo\"] = body.method === \"GET\";", "tests[\"the query was sent\"] = body.query.item === \"1\";"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo?item=1" }
+    },
+    {
+      "name": "Set an environment variable",
+      "event": [
+        { "listen": "prerequest", "script": { "exec": ["postman.setEnvironmentVariable(\"token\", \"abc-\" + 123);"] } },
+        { "listen": "test", "script": { "exec": ["var sent = JSON.parse(responseBody).headers.filter(function (header) { return header[0] === \"x-token\"; })[0];", "tests[\"the variable reached the server\"] = !!sent && sent[1] === \"abc-123\";", "tests[\"getEnvironmentVariable\"] = postman.getEnvironmentVariable(\"token\") === \"abc-123\";", "tests[\"the environment object\"] = environment.token === \"abc-123\";"] } }
+      ],
+      "request": { "method": "GET", "header": [{ "key": "X-Token", "value": "{{token}}" }], "url": "{{base}}/echo" }
+    },
+    {
+      "name": "Clear an environment variable",
+      "event": [
+        { "listen": "prerequest", "script": { "exec": ["postman.clearEnvironmentVariable(\"token\");"] } },
+        { "listen": "test", "script": { "exec": ["tests[\"it has no value\"] = postman.getEnvironmentVariable(\"token\") === undefined;", "tests[\"it is not in the environment object\"] = !(\"token\" in environment);"] } }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo" }
+    },
+    {
+      "name": "Globals",
+      "event": [
+        { "listen": "prerequest", "script": { "exec": ["postman.setGlobalVariable(\"shared\", \"global value\");"] } },
+        { "listen": "test", "script": { "exec": ["tests[\"the globals object\"] = globals.shared === \"global value\";", "tests[\"getGlobalVariable\"] = postman.getGlobalVariable(\"shared\") === \"global value\";", "tests[\"the global was sent\"] = JSON.parse(responseBody).query.shared === \"global value\";", "postman.clearGlobalVariable(\"shared\");"] } }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo?shared={{shared}}" }
+    },
+    {
+      "name": "Response headers",
+      "event": [{ "listen": "test", "script": { "exec": ["tests[\"content type\"] = postman.getResponseHeader(\"Content-Type\").indexOf(\"application/json\") === 0;", "tests[\"case does not matter\"] = postman.getResponseHeader(\"content-type\") === postman.getResponseHeader(\"CONTENT-TYPE\");", "tests[\"a header that is not there\"] = postman.getResponseHeader(\"x-not-there\") === undefined;", "tests[\"responseHeaders is an object\"] = typeof responseHeaders === \"object\" && Object.keys(responseHeaders).length > 0;"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo" }
+    },
+    {
+      "name": "Time and code",
+      "event": [{ "listen": "test", "script": { "exec": ["tests[\"the time is a number\"] = typeof responseTime === \"number\" && responseTime >= 0;", "tests[\"the code has a name\"] = responseCode.name === \"OK\";", "tests[\"a test that fails\"] = responseCode.code === 404;"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo" }
+    },
+    {
+      "name": "The request object",
+      "event": [{ "listen": "test", "script": { "exec": ["tests[\"method\"] = request.method === \"POST\";", "tests[\"url\"] = request.url.indexOf(\"/echo\") !== -1;", "tests[\"data\"] = JSON.parse(request.data).a === 1;", "tests[\"the body arrived\"] = JSON.parse(JSON.parse(responseBody).body).a === 1;"] } }],
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"a\":1}" }, "url": "{{base}}/echo" }
+    },
+    {
+      "name": "Not found",
+      "event": [{ "listen": "test", "script": { "exec": ["tests[\"the status is 404\"] = responseCode.code === 404;", "tests[\"the body says so\"] = JSON.parse(responseBody).status === 404;", "tests[\"it is not 200\"] = responseCode.code === 200;"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/status/404" }
+    },
+    {
+      "name": "Iteration and the next request",
+      "event": [{ "listen": "test", "script": { "exec": ["tests[\"the first iteration is 0\"] = iteration === 0;", "postman.setNextRequest(\"Last\");", "tests[\"a text that is not empty passes\"] = \"yes\";", "tests[\"zero fails\"] = 0;"] } }],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo" }
+    },
+    {
+      "name": "Last",
+      "event": [
+        { "listen": "prerequest", "script": { "exec": ["postman.setEnvironmentVariable(\"n\", 1 + 1);"] } },
+        { "listen": "test", "script": { "exec": ["tests[\"a number became text in the address\"] = JSON.parse(responseBody).query.n === \"2\";", "tests[\"and reads back as it was sent\"] = String(postman.getEnvironmentVariable(\"n\")) === \"2\";", "postman.setNextRequest(null);"] } }
+      ],
+      "request": { "method": "GET", "header": [], "url": "{{base}}/echo?n={{n}}" }
+    }
+  ]
+}

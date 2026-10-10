@@ -1,0 +1,175 @@
+{
+  "runner": "newman@6.2.3",
+  "items": [
+    {
+      "name": "Status and body",
+      "tests": [
+        {
+          "name": "status is 200",
+          "passed": true
+        },
+        {
+          "name": "the body is the echo",
+          "passed": true
+        },
+        {
+          "name": "the query was sent",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Set an environment variable",
+      "tests": [
+        {
+          "name": "the variable reached the server",
+          "passed": true
+        },
+        {
+          "name": "getEnvironmentVariable",
+          "passed": true
+        },
+        {
+          "name": "the environment object",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Clear an environment variable",
+      "tests": [
+        {
+          "name": "it has no value",
+          "passed": true
+        },
+        {
+          "name": "it is not in the environment object",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Globals",
+      "tests": [
+        {
+          "name": "the globals object",
+          "passed": true
+        },
+        {
+          "name": "getGlobalVariable",
+          "passed": true
+        },
+        {
+          "name": "the global was sent",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Response headers",
+      "tests": [
+        {
+          "name": "content type",
+          "passed": true
+        },
+        {
+          "name": "case does not matter",
+          "passed": true
+        },
+        {
+          "name": "a header that is not there",
+          "passed": true
+        },
+        {
+          "name": "responseHeaders is an object",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Time and code",
+      "tests": [
+        {
+          "name": "the time is a number",
+          "passed": true
+        },
+        {
+          "name": "the code has a name",
+          "passed": true
+        },
+        {
+          "name": "a test that fails",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "name": "The request object",
+      "tests": [
+        {
+          "name": "method",
+          "passed": true
+        },
+        {
+          "name": "url",
+          "passed": true
+        },
+        {
+          "name": "data",
+          "passed": true
+        },
+        {
+          "name": "the body arrived",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Not found",
+      "tests": [
+        {
+          "name": "the status is 404",
+          "passed": true
+        },
+        {
+          "name": "the body says so",
+          "passed": true
+        },
+        {
+          "name": "it is not 200",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "name": "Iteration and the next request",
+      "tests": [
+        {
+          "name": "the first iteration is 0",
+          "passed": true
+        },
+        {
+          "name": "a text that is not empty passes",
+          "passed": true
+        },
+        {
+          "name": "zero fails",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "name": "Last",
+      "tests": [
+        {
+          "name": "a number became text in the address",
+          "passed": true
+        },
+        {
+          "name": "and reads back as it was sent",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

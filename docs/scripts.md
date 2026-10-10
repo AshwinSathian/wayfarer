@@ -13,8 +13,8 @@ verified against `packages/core/src/scripting/` and
 
 ## The `pm.*` API surface
 
-Scripts run with Postman's `pm` object, a `console`, `atob`, `btoa`,
-`setTimeout` and `require`. The surface is written in
+Scripts run with Postman's `pm` object, the globals of Postman's older
+sandbox, a `console`, `atob`, `btoa`, `setTimeout` and `require`. The surface is written in
 `packages/core/src/scripting/vm-bootstrap.ts` (the code that runs inside
 the engine) and `host.ts` beside it (what that code can call). Every part
 of it is a row of the compatibility matrix
@@ -131,8 +131,35 @@ recorded and have no effect: they belong to a collection run.
 `pm.cookies`, `pm.visualizer`, `pm.vault` and `pm.require` exist so that a
 script that calls them is told why: each method throws
 `WayfarerUnsupportedError` with the name of what was called.
-`clearTimeout`, `setInterval` and `clearInterval` do not exist. The legacy
-`postman.*` globals arrive with the next change.
+`clearTimeout`, `setInterval` and `clearInterval` do not exist.
+
+### Postman's older sandbox
+
+Scripts written before `pm` existed run as they are:
+
+- `postman.setEnvironmentVariable`, `getEnvironmentVariable`,
+  `clearEnvironmentVariable`, `clearEnvironmentVariables`, the same four for
+  `GlobalVariable`, `postman.setNextRequest` (recorded, as
+  `pm.execution.setNextRequest`) and `postman.getResponseHeader(name)`.
+- `tests["name"] = value`: when the script has ended, each name is a test
+  that passed if the value is truthy.
+- `responseBody` (text), `responseCode` (`code`, `name`, `detail`),
+  `responseTime`, `responseHeaders`; they are `undefined` in a pre-request
+  script.
+- `request` (`method`, `url`, `headers`, `data`, `name`, `id`),
+  `environment` and `globals` (copies, as they were when the script
+  started), `iteration` (0).
+
+The library globals of that sandbox (`_`, `CryptoJS`, `tv4`, `cheerio`,
+`xml2Json`) are not there; use `require` for the ones that ship.
+
+**How this is tested.** A collection of ten requests that use only this
+syntax (`packages/core/test/fixtures/postman-legacy.postman_collection.json`)
+was run by Newman, Postman's own runner, against the local echo server;
+the names and results of its 30 tests are the golden file beside it. A
+test runs the same collection through Wayfarer's engine against the same
+server and compares. `npm run golden` writes the golden file again; Newman
+is fetched for that run and is not a dependency of the app.
 
 ### `console`
 
@@ -213,8 +240,11 @@ starts with what the JavaScript language defines (`Object`, `JSON`,
 `Promise`, `Math` and so on) and nothing a browser adds: no `fetch`, no
 `XMLHttpRequest`, no `WebSocket`, no `self`, no `postMessage`, no
 `importScripts`, no storage, no module loader. `runScript`
-(`packages/core/src/scripting/host.ts`) then adds exactly six names: `pm`,
-`console`, `atob`, `btoa`, `setTimeout` and `require`. A new browser API
+(`packages/core/src/scripting/host.ts`) then adds exactly sixteen names:
+`pm`, `console`, `atob`, `btoa`, `setTimeout`, `require`, and the ten of
+Postman's older sandbox (`postman`, `tests`, `responseBody`, `responseCode`,
+`responseTime`, `responseHeaders`, `request`, `environment`, `globals`,
+`iteration`). A new browser API
 cannot appear inside the engine, because the engine is not the browser.
 `require` loads nothing from anywhere: it evaluates, inside the engine, one
 of five libraries the app was built with.
@@ -232,7 +262,7 @@ the production build with the production headers:
   function and of a generator. Each must find nothing.
 - The global object is the engine's own by every road, `globalThis.constructor`
   is the engine's `Object`, and its own property names are exactly the
-  language's list plus the six.
+  language's list plus the sixteen.
 - Ten network roads are called with a variable's value in the address
   (`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`,
   `importScripts`, `Image`, `Worker`, `require` of a module of Node, a

@@ -14,7 +14,8 @@
 import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
 import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
 import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
-import { runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
+import { loadLibrary } from "@wayfarer/core/library-loader";
+import { loadLibraries, runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "@wayfarer/core";
 // By its path, not by the package's "./wasm" entry: the development and
 // unit-test servers hand an import that names a package to Vite, which tries
 // to run a .wasm file as a module. A path is built with the worker, and the
@@ -38,14 +39,17 @@ const variant: QuickJSSyncVariant = {
 };
 
 let engine: Promise<QuickJSWASMModule> | undefined;
+/** The text of each library a script has asked for with `require`, fetched once. */
+const libraries = new Map<string, string>();
 
 async function run({ id, source, context, limits }: RunMessage): Promise<void> {
   try {
     engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmLocation: new URL(wasmLocation, import.meta.url).href, wasmMemory: new WebAssembly.Memory(scriptMemory()) }));
     const quickjs = await engine;
-    // The page's own clock for this run starts here, not at the download.
+    const required = await loadLibraries(source, loadLibrary, libraries);
+    // The page's own clock for this run starts here, not at the downloads.
     postMessage({ id, type: "started" });
-    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits) });
+    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits, required) });
   } catch (error) {
     postMessage({ id, type: "failed", message: error instanceof Error ? error.message : String(error) });
   }

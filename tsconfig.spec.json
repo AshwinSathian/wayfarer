@@ -9,6 +9,9 @@
       "@wayfarer/core": [
         "./packages/core/src/index.ts"
       ],
+      "@wayfarer/core/library-loader": [
+        "./packages/core/src/scripting/library-loader.ts"
+      ],
       "monaco-editor/editor": [
         "./src/testing/monaco/monaco-editor.api.stub.ts"
       ],

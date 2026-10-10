@@ -69,4 +69,5 @@ export {
   type TransportOptions,
 } from "./transport/transport";
 export { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, scriptMemory, type ScriptContext, type ScriptLimits, type ScriptResult } from "./scripting/host";
+export { loadLibraries } from "./scripting/libraries";
 export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";

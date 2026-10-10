@@ -1,7 +1,10 @@
 import variant from "@jitl/quickjs-wasmfile-release-sync";
 import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
+import fc from "fast-check";
 import { beforeAll, describe, expect, it } from "vitest";
 import { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, scriptMemory, type ScriptContext, type ScriptLimits } from "./host";
+import { VM_LIBRARIES, librariesOf, loadLibraries } from "./libraries";
+import { loadLibrary } from "./library-loader";
 
 // What ECMAScript itself puts on a global object, as QuickJS has it. A name
 // that is not here and not in ALLOWED is something the host let in.
@@ -9,7 +12,7 @@ const BUILT_INS =
   "AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt undefined unescape".split(
     " "
   );
-const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout"];
+const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require"];
 
 const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a"]}', responseTime: 12 };
 
@@ -23,8 +26,9 @@ describe("runScript", () => {
     quickjs = await newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmMemory: memory }));
   });
 
-  const run = (source: string, context: Partial<ScriptContext> = {}, limits: Partial<ScriptLimits> = {}) =>
-    runScript(quickjs, source, { environment: [], ...context }, { ...SCRIPT_LIMITS, ...limits });
+  const libraries = new Map<string, string>();
+  const run = async (source: string, context: Partial<ScriptContext> = {}, limits: Partial<ScriptLimits> = {}) =>
+    runScript(quickjs, source, { environment: [], ...context }, { ...SCRIPT_LIMITS, ...limits }, await loadLibraries(source, loadLibrary, libraries));
   /** Runs an expression and gives what it logged. */
   const value = async (expression: string, context: Partial<ScriptContext> = {}) => {
     const result = await run(`console.log(${expression})`, context);
@@ -57,7 +61,7 @@ describe("runScript", () => {
   });
 
   it("@claim:C-052 has nothing of the host: no network, no worker scope, no module loader", async () => {
-    const names = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "importScripts", "postMessage", "self", "window", "document", "navigator", "indexedDB", "localStorage", "caches", "Worker", "require", "process", "host"];
+    const names = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "importScripts", "postMessage", "self", "window", "document", "navigator", "indexedDB", "localStorage", "caches", "Worker", "process", "module", "exports", "host"];
     const result = await run(`
       console.log(JSON.stringify(${JSON.stringify(names)}.filter((name) => Function("return typeof " + name)() !== "undefined")));
       import("https://example.invalid/x.js").then(() => console.log("loaded"), (error) => console.log("refused: " + error.name));
@@ -290,5 +294,116 @@ describe("runScript", () => {
     const spent = await newQuickJSWASMModuleFromVariant(variant);
     const result = await runScript(spent, `function down(n) { return n ? down(n - 1) + 1 : 0; } down(100000);`, { environment: [] }, { ...SCRIPT_LIMITS, stackBytes: 0 });
     expect(result).toEqual({ logs: [], envMutations: {}, testResults: [], error: "Script exceeded the stack limit (too much recursion)", limit: "stack" });
+  });
+
+  describe("require", () => {
+    const hex = (bytes: ArrayBuffer) => Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+    it("gives the five libraries, atob and btoa, each the same object every time", async () => {
+      const result = await run(`
+        const _ = require("lodash"), moment = require("moment"), uuid = require("uuid"), chai = require("chai"), CryptoJS = require("crypto-js");
+        console.log(_.chunk([1, 2, 3], 2), _.get({ a: [{ b: 7 }] }, "a[0].b"), _.template("hi <%= name %>")({ name: "you" }));
+        console.log(moment("2026-10-10T12:00:00Z").utc().add(1, "day").format("YYYY-MM-DD"), moment.duration(90, "minutes").humanize());
+        console.log(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(uuid.v4()), uuid.v4() !== uuid.v4(), uuid.validate(uuid.v7()));
+        chai.expect({ a: [1, { b: 2 }] }).to.deep.equal({ a: [1, { b: 2 }] });
+        try { chai.expect(1).to.be.above(2); } catch (error) { console.log(error.name, error.message); }
+        console.log(require("atob")("YQ=="), require("btoa")("a"), require("lodash") === _, require("crypto-js") === CryptoJS);
+      `);
+      expect(result.error).toBeUndefined();
+      expect(result.logs).toEqual(['[[1,2],[3]] 7 hi you', "2026-10-11 2 hours", "true true true", "AssertionError expected 1 to be above 2", "a YQ== true true"]);
+    });
+
+    it("refuses any other module with the named error", async () => {
+      const result = await run(`
+        try { require("cheerio"); } catch (error) { console.log(error.name + ": " + error.message, error instanceof Error); }
+        require("xml2js");
+      `);
+      expect(result.logs).toEqual(["WayfarerUnsupportedError: require('cheerio') is not supported — see docs/postman-compatibility.md#require true"]);
+      expect(result.error).toBe("require('xml2js') is not supported — see docs/postman-compatibility.md#require");
+    });
+
+    it("a library is fetched only when a script names it, and a name put together at run time says what to do", async () => {
+      expect(librariesOf(`pm.test("lodash", () => {})`)).toEqual([]);
+      expect(librariesOf(`const _ = require('lodash'); const C = require("crypto-js")`)).toEqual(["crypto-js", "lodash"]);
+      expect(librariesOf(`const load = require; load(\`moment\`)`)).toEqual(["moment"]);
+      const result = await run(`require("lod" + "ash")`);
+      expect(result.error).toBe("require('lodash'): write the module's name out in the script, as require('lodash')");
+    });
+
+    it("a library sees what a script sees: nothing of the host, and no global of its own is left", async () => {
+      const names = await run(`${VM_LIBRARIES.map((name) => `require("${name}");`).join(" ")} console.log(JSON.stringify(Object.getOwnPropertyNames(globalThis)));`);
+      expect(names.error).toBeUndefined();
+      expect((JSON.parse(names.logs[0]) as string[]).sort()).toEqual([...BUILT_INS, ...ALLOWED].sort());
+    });
+
+    it("the five libraries fit in the engine's memory with room for a script's own data", async () => {
+      // All five, then 16 MB of text: under the 64 MB the engine may hold (F66).
+      const result = await run(`${VM_LIBRARIES.map((name) => `require("${name}");`).join(" ")} const held = []; for (let i = 0; i < 16; i++) held.push("x".repeat(2 ** 20) + i); console.log(held.length);`, {}, { timeoutMs: 120_000 });
+      expect(result).toMatchObject({ logs: ["16"] });
+      expect(result.error).toBeUndefined();
+    });
+
+    it("crypto-js: HMAC is the host's, and equal to Node's crypto for 100 random inputs", async () => {
+      const cases = fc.sample(fc.tuple(fc.string({ unit: "grapheme", maxLength: 200 }), fc.string({ unit: "grapheme", maxLength: 200 })), 100);
+      const result = await run(`
+        const CryptoJS = require("crypto-js");
+        for (const [key, message] of ${JSON.stringify(cases)}) console.log(CryptoJS.HmacSHA256(message, key).toString() + " " + CryptoJS.HmacSHA1(message, key).toString(CryptoJS.enc.Hex));
+      `);
+      expect(result.error).toBeUndefined();
+      expect(result.logs).toHaveLength(100);
+      const sign = async (hash: string, key: string, message: string) => {
+        // An empty key cannot be imported by WebCrypto; HMAC pads a key with zeros, so one zero byte is the same key.
+        const raw = key ? new TextEncoder().encode(key) : new Uint8Array(1);
+        return hex(await crypto.subtle.sign("HMAC", await crypto.subtle.importKey("raw", raw, { name: "HMAC", hash }, false, ["sign"]), new TextEncoder().encode(message)));
+      };
+      for (const [index, [key, message]] of cases.entries()) {
+        expect(result.logs[index]).toBe(`${await sign("SHA-256", key, message)} ${await sign("SHA-1", key, message)}`);
+      }
+    });
+
+    it("crypto-js: the host's hashes and encodings give what crypto-js's own code gives", async () => {
+      const texts = ["", "abc", "The quick brown fox jumps over the lazy dog", "€ 𝄞 ünïcödé", "x".repeat(1000), ...fc.sample(fc.string({ unit: "grapheme", maxLength: 300 }), 40)];
+      const result = await run(`
+        const C = require("crypto-js");
+        const own = (name, message) => C.algo[name].create().update(message).finalize().toString();
+        const ownHmac = (name, message, key) => C.algo.HMAC.create(C.algo[name], key).update(message).finalize().toString();
+        let checked = 0;
+        for (const text of ${JSON.stringify(texts)}) {
+          const words = C.lib.WordArray.create([0x61626364, 0x65000000], 5).concat(C.algo.SHA1.create().update(text).finalize());
+          for (const name of ["MD5", "SHA1", "SHA256"]) {
+            for (const message of [text, words]) {
+              if (C[name](message).toString() !== own(name, message)) throw new Error(name + " differs for " + JSON.stringify(text));
+              checked++;
+            }
+          }
+          for (const name of ["SHA1", "SHA256"]) {
+            if (C["Hmac" + name](words, words).toString() !== ownHmac(name, words, words)) throw new Error("Hmac" + name + " differs for a WordArray");
+            checked++;
+          }
+          const hexText = words.toString();
+          if (C.enc.Hex.stringify(words) !== hexText || C.enc.Hex.parse(hexText).toString() !== hexText) throw new Error("Hex differs");
+          const b64 = words.toString(C.enc.Base64);
+          if (C.enc.Base64.stringify(words) !== b64 || C.enc.Base64.parse(b64).toString() !== hexText || C.enc.Base64.parse(b64.replace(/=+$/, "")).toString() !== hexText) throw new Error("Base64 differs");
+          const utf8 = C.enc.Utf8.parse(text);
+          if (utf8.sigBytes !== unescape(encodeURIComponent(text)).length || C.enc.Utf8.stringify(utf8) !== text || utf8.toString(C.enc.Utf8) !== text) throw new Error("Utf8 differs for " + JSON.stringify(text));
+        }
+        console.log(checked, C.MD5("abc").toString(), C.SHA256("abc").toString(C.enc.Base64), C.SHA1("abc") instanceof C.lib.WordArray.init);
+        try { C.enc.Utf8.stringify(C.enc.Hex.parse("ff")); } catch (error) { console.log(error.message); }
+        console.log(C.AES.decrypt(C.AES.encrypt("round trip", "passphrase").toString(), "passphrase").toString(C.enc.Utf8), C.lib.WordArray.random(16).sigBytes);
+      `);
+      expect(result.error).toBeUndefined();
+      expect(result.logs).toEqual([`${texts.length * 8} 900150983cd24fb0d6963f7d28e17f72 ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0= true`, "Malformed UTF-8 data", "round trip 16"]);
+    });
+
+    it("the host's crypto functions refuse what is not a WordArray, a known hash or an encoding", async () => {
+      const result = await run(`
+        const C = require("crypto-js");
+        for (const attempt of [() => C.SHA256({ sigBytes: 4, words: ["a"] }), () => C.SHA256({ sigBytes: 4, words: { length: 1 } }), () => C.enc.Hex.stringify({ sigBytes: "x", words: [1] })]) {
+          try { attempt(); console.log("accepted"); } catch (error) { console.log(error.message); }
+        }
+      `);
+      expect(result.error).toBeUndefined();
+      expect(result.logs).toEqual(["Expected a WordArray.", "Expected a WordArray.", "Expected a WordArray."]);
+    });
   });
 });

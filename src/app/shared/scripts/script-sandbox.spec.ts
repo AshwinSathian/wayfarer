@@ -25,6 +25,16 @@ describe("ScriptSandbox", () => {
     expect(result.testResults[0].passed).toBe(true);
   });
 
+  it("require gives a library, fetched by the worker when the script names it, and refuses any other module", async () => {
+    const result = await runAssertionScript(`
+      const CryptoJS = require("crypto-js");
+      console.log(require("lodash").chunk([1, 2, 3], 2).length, CryptoJS.SHA256("abc").toString().slice(0, 8), require("uuid").validate(require("uuid").v4()));
+      require("cheerio");
+    `);
+    expect(result.logs).toEqual(["2 ba7816bf true"]);
+    expect(result.error).toBe("require('cheerio') is not supported — see docs/postman-compatibility.md#require");
+  });
+
   it("@claim:C-040 gives scripts read/write access to the environment it was handed", async () => {
     const result = await service.execute(
       `

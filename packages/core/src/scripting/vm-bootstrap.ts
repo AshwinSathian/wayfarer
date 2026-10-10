@@ -5,7 +5,7 @@
  *
  * `host` is reachable from this closure only: it is never put on the global,
  * so a script can call a host function only through `pm`, `console`, `atob`,
- * `btoa` and `setTimeout` below. Every host function takes and returns
+ * `btoa`, `setTimeout` and `require` below. Every host function takes and returns
  * strings, numbers and booleans, never an object; the host checks the types
  * itself, since a script can replace `String` or `JSON` under this code.
  *
@@ -14,6 +14,8 @@
 export const VM_BOOTSTRAP = `(function (host, responseText) {
   "use strict";
   var own = Object.prototype.hasOwnProperty;
+  // The engine's own eval, kept before a script can replace the name. It runs a library's text.
+  var evaluate = eval;
 
   function show(value) {
     if (typeof value === "string") return value;
@@ -115,6 +117,76 @@ export const VM_BOOTSTRAP = `(function (host, responseText) {
 
   globalThis.atob = function (text) { return host.atob(String(text)); };
   globalThis.btoa = function (text) { return host.btoa(String(text)); };
+
+  // What a library finds where it looks for the browser's \`crypto\`: random bytes, from the host.
+  var randomSource = {
+    getRandomValues: function (array) {
+      var bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+      var hex = host.random(bytes.length);
+      for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+      return array;
+    },
+  };
+
+  // chai announces a plugin through an EventTarget. Nothing listens here.
+  function NoEvents() {}
+  NoEvents.prototype.addEventListener = NoEvents.prototype.removeEventListener = function () {};
+  NoEvents.prototype.dispatchEvent = function () { return true; };
+  function NoEvent(type) { this.type = String(type); }
+
+  // crypto-js with its hashes, HMACs and encodings done by the host: the
+  // engine is an interpreter, and a megabyte hashed in it takes seconds.
+  // A WordArray crosses as JSON text, [sigBytes, word, word, ...].
+  function nativeCrypto(C) {
+    function words(value) {
+      if (value == null || !Array.isArray(value.words) || typeof value.sigBytes !== "number") throw new TypeError("Expected a WordArray.");
+      return JSON.stringify([value.sigBytes].concat(value.words));
+    }
+    function wordArray(json) {
+      var list = JSON.parse(json);
+      return C.lib.WordArray.create(list.slice(1), list[0]);
+    }
+    function data(value) {
+      return typeof value === "string" ? ["utf8", value] : ["words", words(value)];
+    }
+    ["MD5", "SHA1", "SHA256"].forEach(function (name) {
+      C[name] = function (message) {
+        var m = data(message);
+        return wordArray(host.hash(name, m[0], m[1]));
+      };
+    });
+    ["SHA1", "SHA256"].forEach(function (name) {
+      C["Hmac" + name] = function (message, key) {
+        var m = data(message), k = data(key);
+        return wordArray(host.hmac(name, k[0], k[1], m[0], m[1]));
+      };
+    });
+    [["Utf8", "utf8"], ["Hex", "hex"], ["Base64", "base64"]].forEach(function (pair) {
+      C.enc[pair[0]] = {
+        parse: function (text) { return wordArray(host.encode(pair[1], String(text))); },
+        stringify: function (value) { return host.decode(pair[1], words(value)); },
+      };
+    });
+    return C;
+  }
+
+  // The modules of Postman's sandbox that exist here. A library is text the
+  // host hands over, evaluated by this engine: it can reach what a script can.
+  var modules = new Map([["atob", globalThis.atob], ["btoa", globalThis.btoa]]);
+  globalThis.require = function (name) {
+    var id = String(name);
+    if (modules.has(id)) return modules.get(id);
+    var source = host.library(id);
+    if (source === undefined) {
+      var error = new Error("require('" + id + "') is not supported — see docs/postman-compatibility.md#require");
+      error.name = "WayfarerUnsupportedError";
+      throw error;
+    }
+    var module = { exports: {} };
+    var loaded = evaluate(source)(module, module.exports, { crypto: randomSource }, randomSource, NoEvents, NoEvent);
+    modules.set(id, id === "crypto-js" ? nativeCrypto(loaded) : loaded);
+    return loaded;
+  };
 
   // A timer's callback stays in the VM. The host is told a number and a
   // delay, and asks for that number to be run when the time has come.

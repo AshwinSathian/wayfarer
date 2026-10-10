@@ -39,7 +39,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API <!-- claim:C-040 -->
   - Scripts run in a QuickJS sandbox (a JavaScript engine compiled to WebAssembly) in every build, the hosted app included, under its strict Content-Security-Policy <!-- claim:C-006 -->. See [`docs/scripts.md`](docs/scripts.md)
-  - A script reaches nothing but `pm`, `console`, `atob`, `btoa` and `setTimeout`: no `fetch` or any other network API, no worker scope, no storage. Running a script makes no request, and nothing of one run is left for the next <!-- claim:C-052 -->
+  - A script reaches nothing but `pm`, `console`, `atob`, `btoa`, `setTimeout` and `require` (five libraries that ship with the app): no `fetch` or any other network API, no worker scope, no storage. Running a script makes no request, and nothing of one run is left for the next <!-- claim:C-052 -->
   - Scripts that arrive in a collection file or a backup do not run until you have read them in the review dialog and said you trust them; a script changed by a later import does not run either <!-- claim:C-051 -->
   - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
   - Results surface in a dedicated **Tests** tab in the response viewer <!-- claim:C-021 -->

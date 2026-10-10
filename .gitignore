@@ -70,3 +70,6 @@ bundle-report.json
 # Stryker (mutation testing of packages/core)
 .stryker-tmp
 /packages/*/reports
+
+# The libraries a script may require, built by scripts/build-vm-libs.mjs (npm ci runs it)
+/packages/core/src/scripting/vm-libs

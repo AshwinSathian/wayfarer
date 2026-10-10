@@ -15,6 +15,7 @@
     "fast-check": "^4.10.2"
   },
   "dependencies": {
+    "@noble/hashes": "^2.4.0",
     "quickjs-emscripten-core": "^0.32.0"
   }
 }

@@ -24,7 +24,8 @@
     "paths": {
       "@wayfarer/core": ["./packages/core/src/index.ts"],
       "@wayfarer/core/library-loader": ["./packages/core/src/scripting/library-loader.ts"],
-      "@wayfarer/core/import": ["./packages/core/src/import/import.ts"]
+      "@wayfarer/core/import": ["./packages/core/src/import/import.ts"],
+      "@wayfarer/core/codegen": ["./packages/core/src/export/codegen.ts"]
     }
   },
   "angularCompilerOptions": {

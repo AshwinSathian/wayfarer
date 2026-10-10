@@ -33,7 +33,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - URL field with live validation <!-- claim:C-018 -->
   - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs; a collection and a folder can hold auth too, and a request set to "Inherit from parent" is sent with it <!-- claim:C-019 -->
   - Body tab for every method but `GET` and `HEAD`, with the modes none, raw (JSON, text, XML, HTML, JavaScript), form (URL-encoded), multipart (text and files) and binary file <!-- claim:C-039 -->
-  - **Copy as cURL** for any request once it has a URL <!-- claim:C-020 -->
+  - **Copy as cURL** for any request once it has a URL, with its body in every mode: text, a form, a multipart form, a file by its name <!-- claim:C-020 -->
+  - **Copy as code**: the same request for JavaScript `fetch`, Python `requests` or HTTPie, masked as the cURL command is <!-- claim:C-055 -->. See [`docs/export.md`](docs/export.md)
 
 - **Pre/Post-Request Scripts & Test Assertions**
 
@@ -204,6 +205,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 
 - [Variables](docs/variables.md)
 - [Collections schema](docs/collections-schema.md)
+- [Export: cURL and code](docs/export.md)
 - [Import](docs/import.md): the one road a file takes, and the report before anything is stored
 - [Secrets model](docs/secrets.md)
 - [Storage layout](docs/storage.md)

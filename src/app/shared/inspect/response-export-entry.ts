@@ -1,6 +1,6 @@
 import { InspectorExportEntry } from "./export";
 import { ResponseInspection } from "./response-inspector";
-import { newId } from "@wayfarer/core";
+import { newId, type ExportBody } from "@wayfarer/core";
 
 /**
  * Snapshot of the just-sent request, captured by `WorkspaceStore` right
@@ -15,7 +15,10 @@ export interface ResponseExportContext {
   method: string;
   url: string;
   headers: Record<string, string>;
+  /** The body when it is text: what the HAR holds. */
   body?: unknown;
+  /** The body in every mode, a file by its name: what the cURL command says (P4.6 a). */
+  exportBody: ExportBody;
   /** The plaintext of the vault secrets placed into the request: masked in every export. */
   secrets: string[];
   /** The credentials of its Auth tab: masked unless an export asks for them. */

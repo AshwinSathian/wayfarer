@@ -15,6 +15,9 @@
       "@wayfarer/core/import": [
         "./packages/core/src/import/import.ts"
       ],
+      "@wayfarer/core/codegen": [
+        "./packages/core/src/export/codegen.ts"
+      ],
       "@wayfarer/core/pm-compat/*": [
         "./packages/core/test/pm-compat/*"
       ],

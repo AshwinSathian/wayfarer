@@ -215,4 +215,32 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     expect(copied[1]).toContain(`-H 'X-Token: ${REFERENCE}'`);
     expect(copied[1]).not.toContain(SECRET);
   });
+  it("@claim:C-055 the request as code for fetch, Python requests and HTTPie is masked as the cURL command is", async () => {
+    store.patch({
+      method: "POST",
+      url: "https://api.test/items?key=typed-api-key",
+      headers: rows([{ key: "X-Token", value: "{{token}}" }, { key: "Accept", value: "*/*" }]),
+      auth: { type: "bearer", token: "typed-bearer-token" },
+      body: { mode: "raw", raw: { language: "json", text: '{"t":"{{token}}"}' } },
+    });
+
+    for (const target of ["fetch", "python-requests", "httpie"] as const) await store.copyAsCode(target);
+
+    expect(copied).toHaveLength(3);
+    expect(copied[0]).toContain('const response = await fetch("https://api.test/items?key=typed-api-key", {');
+    expect(copied[0]).toContain('["Authorization", "***"],');
+    expect(copied[0]).toContain('["Accept", "*/*"],');
+    expect(copied[1]).toContain('"Authorization": "***"');
+    expect(copied[1]).toContain("requests.request(");
+    expect(copied[2]).toContain("'Authorization:***'");
+    expect(copied[0]).toContain('body: "{\\"t\\":\\"***\\"}",');
+    for (const code of copied) {
+      expect(code).not.toContain("typed-bearer-token");
+      expect(code).not.toContain(SECRET);
+      // The body is in it. The reference to the secret, which a credential header holds, is masked there as in the header.
+      expect(code).toContain("***");
+      expect(code).not.toContain("{{$secret.");
+    }
+    expect(vault.readSecret).not.toHaveBeenCalled();
+  });
 });

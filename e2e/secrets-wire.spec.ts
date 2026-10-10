@@ -120,11 +120,14 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     await exportMenu.click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
   }
-  for (const item of ["Copy as cURL", "Copy as cURL with credentials"]) {
+  // The composer's own: the command, and the request as code for each target (P4.6 a).
+  for (const item of ["Copy as cURL", "Copy as cURL with credentials", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"]) {
     await page.getByRole("button", { name: "Copy as cURL", exact: true }).click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
+    // The generators are fetched for the first of the three: each copy is waited for, so the order is the list's.
+    await expect.poll(async () => (await clipboard()).length).toBe(5 + ["Copy as cURL", "Copy as cURL with credentials", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"].indexOf(item));
   }
-  await expect.poll(clipboard).toHaveLength(6);
+  await expect.poll(clipboard).toHaveLength(9);
   const copied = await clipboard();
   const files = [await downloadText(page, "Export"), await downloadText(page, "Export with credentials")];
 
@@ -147,6 +150,9 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "HAR export with credentials": copied[3],
     "composer cURL": copied[4],
     "composer cURL with credentials": copied[5],
+    "composer code: fetch": copied[6],
+    "composer code: Python requests": copied[7],
+    "composer code: HTTPie": copied[8],
     "collection export": files[0],
     "collection export with credentials": files[1],
     "what the script wrote on the page": scriptOutput,
@@ -155,6 +161,9 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
   expect(copied[1]).toContain('"version": "1.2"');
   expect(copied[0]).toMatch(/^curl /);
+  expect(copied[6]).toContain("await fetch(");
+  expect(copied[7]).toContain("requests.request(");
+  expect(copied[8]).toMatch(/^http /);
   expect(files[0]).toContain('"$id": "wayfarer/collection/3"');
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
     Object.fromEntries(Object.keys(searched).map((place) => [place, []]))

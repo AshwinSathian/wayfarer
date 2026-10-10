@@ -1,4 +1,4 @@
-import { buildCurlCommand, toHar, InspectorExportEntry, exportRedactor, redactedRequest } from "./export";
+import { toHar, InspectorExportEntry, exportRedactor, redactedRequest } from "./export";
 import { describe, it, expect } from "vitest";
 
 describe("export", () => {
@@ -132,7 +132,6 @@ describe("export", () => {
         headers: { Authorization: "***", "X-Vault": "***", Accept: "*/*" },
         body: '{"token":"***"}',
       });
-      expect(buildCurlCommand(redactedRequest(sent))).not.toMatch(/typed|vault-plaintext/);
     });
 
     it("keeps credentials when the export asks for them, and still masks vault secrets", () => {
@@ -150,42 +149,4 @@ describe("export", () => {
     });
   });
 
-  describe("buildCurlCommand", () => {
-    it("writes a GET as the bare URL plus its headers, one argument per line", () => {
-      expect(buildCurlCommand({ method: "GET", url: "https://api.test/items?a=1", headers: { Accept: "application/json", "": "skipped" } })).toBe(
-        "curl \\\n  'https://api.test/items?a=1' \\\n  -H 'Accept: application/json'"
-      );
-    });
-
-    it("adds the method and a JSON body for other methods", () => {
-      expect(buildCurlCommand({ method: "POST", url: "https://api.test/items", headers: {}, body: { name: "a" } })).toBe(
-        "curl \\\n  -X POST \\\n  'https://api.test/items' \\\n  --data-raw '{\"name\":\"a\"}'"
-      );
-    });
-
-    it("escapes single quotes so a value cannot end the shell string early", () => {
-      const command = buildCurlCommand({
-        method: "PUT",
-        url: "https://api.test/o'brien",
-        headers: { "X-Note": "it's" },
-        body: "name='x'; rm -rf /",
-      });
-
-      expect(command).toContain("'https://api.test/o'\\''brien'");
-      expect(command).toContain("-H 'X-Note: it'\\''s'");
-      expect(command).toContain("--data-raw 'name='\\''x'\\''; rm -rf /'");
-    });
-
-    it("quotes a method that is not a plain token and sends an @-body as data, not a file", () => {
-      const command = buildCurlCommand({ method: "GET; touch /tmp/x", url: "https://api.test/", headers: {}, body: "@/etc/passwd" });
-
-      expect(command).toContain("-X 'GET; touch /tmp/x'");
-      expect(command).toContain("--data-raw '@/etc/passwd'");
-    });
-
-    it("leaves out an empty or absent body", () => {
-      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: "" })).not.toContain("--data-raw");
-      expect(buildCurlCommand({ method: "DELETE", url: "https://api.test/1", headers: {}, body: null })).not.toContain("--data-raw");
-    });
-  });
 });

@@ -23,6 +23,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - Measured in Chromium on a laptop: a 5 MB file of 5,000 requests in 100 folders shows its report after 0.3 s and is stored after 1.4 s.
   - See [`docs/import.md`](docs/import.md).
 
+- **Copy as cURL carries the body in every mode, and the request can be copied as code (P4.6 a, [#88](https://github.com/AshwinSathian/wayfarer/issues/88)).**
+  - **Fixed: a multipart form and a file body were left out of the copied cURL command without a word**, from the composer and from the response's Export menu. The command now has `--form-string` for a text part, `-F 'name=@"file"'` for a file part, `--data-binary '@file'` for a file body, and `--data-urlencode` per field for a form. A file is named, not embedded: run the command where the file is.
+  - **Fixed: `HEAD` was copied as `-X HEAD`**, with which curl waits for a body that never comes. It is `--head`.
+  - New in the same menu: **Copy as JavaScript (fetch)**, **Copy as Python (requests)**, **Copy as HTTPie**, with credentials masked. The generators are fetched the first time one is used.
+  - A value that starts with `@` is never placed where curl or HTTPie would read it as a file. HTTPie cannot be told that such a value is text, so for such a request it copies a comment that says so instead of a command.
+  - Tested by running it: the copied command, run by bash against a local server, sends what the app sends for twelve requests covering every body mode. See [`docs/export.md`](docs/export.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."

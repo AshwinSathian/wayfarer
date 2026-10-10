@@ -475,7 +475,9 @@ describe("runScript", () => {
     it("the host checks the request a script hands over, whatever the script did to JSON", async () => {
       const made: unknown[] = [];
       const service = { send: (request: unknown) => (made.push(request), Promise.resolve(answer(200, ""))) };
-      const attempt = async (forged: string) => (await send(`JSON.stringify = () => ${JSON.stringify(forged)}; pm.sendRequest("https://api.test/a", (error) => console.log(error && error.message));`, service)).logs;
+      // The forged text is handed over as a variable, not written into the script.
+      const attempt = async (forged: string) =>
+        (await runScript(quickjs, `const forged = pm.environment.get("forged"); JSON.stringify = () => forged; pm.sendRequest("https://api.test/a", (error) => console.log(error && error.message));`, { environment: [["forged", forged]] }, SCRIPT_LIMITS, service)).logs;
       expect(await attempt('{"method":"GET","url":"https://api.test/a","headers":[["a",{"toString":1}]]}')).toEqual(["The request's headers are not a list of names and values."]);
       expect(await attempt('{"method":"get it","url":"https://api.test/a","headers":[]}')).toEqual(["The request's method is not an HTTP method."]);
       expect(await attempt('{"method":"GET","url":" ","headers":[]}')).toEqual(["The request has no address."]);

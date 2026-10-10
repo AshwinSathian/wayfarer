@@ -6,6 +6,11 @@ export interface ScriptLimits {
   timeoutMs: number;
   memoryBytes: number;
   stackBytes: number;
+  /** How much console output is kept, in characters and in lines. More is dropped, with one line that says so. */
+  maxLogBytes: number;
+  maxLogLines: number;
+  /** How much a script may write as test results and variables together, in characters. More ends the script. */
+  maxOutputBytes: number;
 }
 
 export const SCRIPT_LIMITS: ScriptLimits = {
@@ -19,7 +24,15 @@ export const SCRIPT_LIMITS: ScriptLimits = {
   // run ends with the same message (see `runScript`). A larger number here
   // changes nothing in any of them.
   stackBytes: 256 * 2 ** 10,
+  maxLogBytes: 2 ** 20,
+  maxLogLines: 1000,
+  // The engine's memory limit does not count what the host keeps for a
+  // script: without this a loop of pm.test() calls fills the worker instead.
+  maxOutputBytes: 2 ** 20,
 };
+
+/** The line that stands for the console output that was dropped. */
+export const LOG_TRUNCATED = "[console output truncated]";
 
 export interface ScriptResponse {
   code: number;
@@ -61,6 +74,10 @@ export interface ScriptResult {
 
 interface RunState {
   logs: string[];
+  /** Characters of console output kept so far; -1 once the cap was reached. */
+  logged: number;
+  /** Characters of test results and variables kept so far. */
+  written: number;
   changes: Map<string, string>;
   tests: ScriptTestResult[];
   /** Timer id to the time it is due. */
@@ -86,7 +103,7 @@ function limitMessage(limit: NonNullable<ScriptResult["limit"]>, limits: ScriptL
  * worker and in Node.
  */
 export async function runScript(quickjs: QuickJSWASMModule, source: string, context: ScriptContext, limits: ScriptLimits = SCRIPT_LIMITS): Promise<ScriptResult> {
-  const state: RunState = { logs: [], changes: new Map(), tests: [], timers: new Map() };
+  const state: RunState = { logs: [], logged: 0, written: 0, changes: new Map(), tests: [], timers: new Map() };
   const result = (error?: string, limit?: ScriptResult["limit"]): ScriptResult => ({
     logs: state.logs,
     envMutations: Object.fromEntries(state.changes),
@@ -103,7 +120,7 @@ export async function runScript(quickjs: QuickJSWASMModule, source: string, cont
 
   let failure: Failure | undefined;
   try {
-    failure = await evaluate(vm, runtime, source, context, state, deadline);
+    failure = await evaluate(vm, runtime, source, context, state, deadline, limits);
   } catch (error) {
     // The browser's stack ran out under QuickJS before QuickJS's own count
     // did: a RangeError in V8 and JavaScriptCore, an InternalError in
@@ -122,7 +139,15 @@ interface Failure {
   limit?: ScriptResult["limit"];
 }
 
-async function evaluate(vm: QuickJSContext, runtime: QuickJSRuntime, source: string, context: ScriptContext, state: RunState, deadline: number): Promise<Failure | undefined> {
+async function evaluate(
+  vm: QuickJSContext,
+  runtime: QuickJSRuntime,
+  source: string,
+  context: ScriptContext,
+  state: RunState,
+  deadline: number,
+  limits: ScriptLimits
+): Promise<Failure | undefined> {
   /** What a script threw, as text, and whether it was a limit. Consumes the handle. */
   const failed = (error: QuickJSHandle): Failure => {
     try {
@@ -161,17 +186,38 @@ async function evaluate(vm: QuickJSContext, runtime: QuickJSRuntime, source: str
     const value = state.changes.get(name) ?? environment.get(name);
     return value === undefined ? undefined : vm.newString(value);
   });
+  /** Counts what a script makes the host keep. Thrown into the script, and thrown again at its next write. */
+  const charge = (...written: string[]) => {
+    state.written += written.reduce((sum, part) => sum + part.length, 0);
+    if (state.written > limits.maxOutputBytes) throw new RangeError("Script wrote too many test results and variables.");
+  };
+
   bind("envSet", (key, value) => {
-    state.changes.set(text(key), text(value));
+    const [name, next] = [text(key), text(value)];
+    charge(name, next);
+    state.changes.set(name, next);
     return undefined;
   });
   bind("test", (label, passed, error) => {
     const ok = passed !== undefined && vm.typeof(passed) === "boolean" && vm.dump(passed) === true;
-    state.tests.push({ label: text(label), passed: ok, ...(!ok && { error: text(error) }), source: "script" });
+    const [name, message] = [text(label), ok ? "" : text(error)];
+    charge(name, message);
+    state.tests.push({ label: name, passed: ok, ...(!ok && { error: message }), source: "script" });
     return undefined;
   });
   bind("log", (line) => {
-    state.logs.push(text(line));
+    const written = text(line);
+    if (state.logged < 0) return undefined;
+    const room = limits.maxLogBytes - state.logged;
+    if (state.logs.length >= limits.maxLogLines || written.length > room) {
+      // The last line is kept as far as there is room, and nothing after it.
+      if (state.logs.length < limits.maxLogLines && room > 0) state.logs.push(written.slice(0, room));
+      state.logs.push(LOG_TRUNCATED);
+      state.logged = -1;
+      return undefined;
+    }
+    state.logs.push(written);
+    state.logged += written.length;
     return undefined;
   });
   bind("atob", (encoded) => vm.newString(atob(text(encoded))));

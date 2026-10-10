@@ -105,6 +105,15 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     headers: { "X-Api-Key": "{{API_TOKEN}}" },
     auth: { type: "basic", username: "alice", password: "{{API_TOKEN}}" },
     storedBody: { mode: "raw", raw: { language: "text", text: "t={{API_TOKEN}}" } },
+    // P3.2: a script reads the response, in which the server sent the secret back, and writes it everywhere a script can write.
+    postRequestScript: `
+      const echoed = pm.response.json().body;
+      console.log("the server sent back: " + pm.response.text());
+      console.error(echoed);
+      pm.environment.set("LEAKED_BY_SCRIPT", echoed);
+      pm.test("a test named " + echoed, () => { throw new Error("it failed with " + echoed); });
+      throw new Error("the script ended with " + echoed);
+    `,
   });
   await protectVariable(page, "API_TOKEN", SECRET);
 
@@ -134,6 +143,12 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   const copied = await clipboard();
   const files = [await downloadText(page, "Export"), await downloadText(page, "Export with credentials")];
 
+  // What the script wrote, as the page shows it: its console, its test row and its own error.
+  await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
+  await expect(page.locator(".script-console")).toContainText("the server sent back:");
+  await expect(page.locator(".test-result-fail")).toHaveCount(2);
+  const scriptOutput = (await page.locator(".script-console, .test-result-fail").allInnerTexts()).join("\n");
+
   const stores = await dumpIdb(page);
   const web = await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }]));
   const searched: Record<string, string> = {
@@ -147,6 +162,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "composer cURL with credentials": copied[5],
     "collection export": files[0],
     "collection export with credentials": files[1],
+    "what the script wrote on the page": scriptOutput,
   };
   // All eight stores were read, and the exports are the real thing.
   expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
@@ -156,6 +172,10 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
     Object.fromEntries(Object.keys(searched).map((place) => [place, []]))
   );
+  // The script did set its variable, and the mask is what was stored of the secret.
+  expect(JSON.stringify(stores["environments"])).toContain('"key":"LEAKED_BY_SCRIPT","value":"t=***"');
+  expect(scriptOutput).toContain("a test named t=***");
+  expect(scriptOutput).toContain("the script ended with t=***");
   // What history kept instead.
   expect(JSON.stringify(stores["history"])).toContain("***");
   expect(copied[0]).toContain("-H 'X-Api-Key: ***'");

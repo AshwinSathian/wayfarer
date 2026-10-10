@@ -91,6 +91,8 @@ export class ResponseViewer {
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);
   readonly testResults = input<TestResult[]>([]);
+  /** What the request's scripts wrote with `console`. */
+  readonly scriptLogs = input<string[]>([]);
   /** The request had scripts that were left out because they are not approved. */
   readonly scriptsSkipped = input(false);
   readonly responseBinary = input<BinaryBody | null>(null);

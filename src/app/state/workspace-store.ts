@@ -193,6 +193,8 @@ export class WorkspaceStore {
   readonly responseInspection = this.responseInspector.latest;
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly lastTestResults = signal<TestResult[]>([]);
+  /** The console output of the last send's scripts. */
+  readonly lastScriptLogs = signal<string[]>([]);
 
   /**
    * Where a `{{variable}}` of the draft gets its value: the active
@@ -303,6 +305,7 @@ export class WorkspaceStore {
   showRecorded(entry: PastRequest): void {
     this.resetResponseState();
     this.lastTestResults.set([]);
+    this.lastScriptLogs.set([]);
     const response = entry.response;
     const text = response?.body?.text ?? "";
     const isError = !response || response.status < 200 || response.status >= 300;
@@ -393,6 +396,7 @@ export class WorkspaceStore {
     this.unresolvedBlocked.set([]);
     this.resetResponseState();
     this.lastTestResults.set([]);
+    this.lastScriptLogs.set([]);
     this.scriptsSkipped.set(false);
 
     const draft = this.draft();
@@ -452,6 +456,7 @@ export class WorkspaceStore {
 
     this.loadingState.set(false);
     this.lastTestResults.set(result.testResults);
+    this.lastScriptLogs.set(result.scriptLogs);
     this.applyExecutionResponse(result.response);
     await this.idb.add(result.history, this.settings.historyCap());
     return true;

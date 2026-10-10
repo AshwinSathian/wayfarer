@@ -180,7 +180,7 @@ because there was never a server-side copy.
 These are open, tracked, and scheduled in
 [`PLAN-airtight-remediation.md`](../PLAN-airtight-remediation.md):
 
-- The script sandbox has no escape-test suite in three browsers yet ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)); a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
+- The script sandbox has no escape-test suite in three browsers yet ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)).
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).

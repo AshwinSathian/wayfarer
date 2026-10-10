@@ -159,6 +159,8 @@ export class WorkspaceStore {
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
+  readonly responseContentType = signal("");
+  readonly responseHeadersLimited = signal(false);
   readonly responseInspection = this.responseInspector.latest;
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
   readonly lastTestResults = signal<TestResult[]>([]);
@@ -252,6 +254,7 @@ export class WorkspaceStore {
     this.responseStatusCode.set(response?.status);
     this.responseStatusText.set(response?.statusText);
     this.responseHeadersView.set((response?.headers ?? []).map(([name, value]) => ({ name, value })));
+    this.responseContentType.set(response?.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1] ?? "");
     this.responseBodyIsJson.set(!!text && parseJson(text).ok);
     this.responseData.set(isError ? "" : text);
     this.responseError.set(isError ? text || entry.error || "" : "");
@@ -629,6 +632,8 @@ export class WorkspaceStore {
     this.responseContentLength.set(response.contentLength);
     this.responseBinary.set(response.binary ?? null);
     this.responseRedirectedTo.set(response.redirectedTo);
+    this.responseContentType.set(response.contentType ?? "");
+    this.responseHeadersLimited.set(response.headersLimited ?? false);
     this.responseTab.set("body");
     this.responseData.set(response.dataText);
     this.responseError.set(response.errorText);
@@ -645,6 +650,8 @@ export class WorkspaceStore {
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);
+    this.responseContentType.set("");
+    this.responseHeadersLimited.set(false);
     this.responseTab.set("body");
     this.responseExportContext.set(null);
   }

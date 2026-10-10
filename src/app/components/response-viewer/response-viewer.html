@@ -108,7 +108,21 @@
           <!-- ── Body tab ───────────────────────────────────── -->
           <div class="tab-pane" [hidden]="activeTab() !== 'body'">
             <div class="space-y-3 pb-4">
-              @if (responseBodyIsJson()) {
+              @if (views().length > 1) {
+              <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
+              <mat-select
+                class="select w-32!"
+                aria-label="View the body as"
+                [value]="view()"
+                (selectionChange)="viewOverride.set($event.value)"
+              >
+                @for (option of views(); track option) {
+                <mat-option [value]="option">{{ viewLabels[option] }}</mat-option>
+                }
+              </mat-select>
+              }
+
+              @if (view() === 'json') {
               <div class="flex flex-wrap items-center gap-2">
                 <mat-form-field class="field w-48">
                   <input matInput
@@ -136,7 +150,21 @@
                     (click)="stepSearch(1)"
                   ><app-icon name="keyboard_arrow_down" /></button>
                 </div>
+                <mat-form-field class="field min-w-0 flex-1 basis-56">
+                  <input matInput
+                    class="font-mono"
+                    aria-label="Filter the JSON by path"
+                    [value]="jsonFilter()"
+                    (input)="jsonFilter.set($any($event.target).value)"
+                    placeholder="Filter by path: data.items[*].id"
+                    spellcheck="false"
+                    autocomplete="off"
+                   />
+                </mat-form-field>
               </div>
+              @if (filteredJson() === '') {
+              <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
+              }
               }
 
               @if (currentSearchExcerpt) {
@@ -148,7 +176,7 @@
               @if (responseBinary(); as binary) {
               <div class="flex flex-wrap items-center gap-3 rounded-xl bg-canvas-panel border border-separator p-4">
                 <p class="type-callout text-label-secondary">
-                  Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }}) — preview ships in v2.0
+                  Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }})
                 </p>
                 <button
                   matButton="filled" class="btn-secondary btn-sm"
@@ -157,31 +185,55 @@
                   (click)="downloadBinary()"
                 ><app-icon name="download" /> Download</button>
               </div>
-              } @else if (!isError()) {
-                @if (responseBodyIsJson()) {
-                <app-json-editor
-                  name="responseJson"
-                  [readOnly]="true"
-                  [ngModel]="formattedResponseBody"
-                  [ngModelOptions]="{ standalone: true }"
-                  [height]="300"
-                  (ngModelChange)="onReadOnlyBodyChange($event)"
-                ></app-json-editor>
-                } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-success">{{ responseData() || 'No body returned.' }}</pre>
+              }
+
+              @switch (view()) {
+                @case ('image') {
+                  @if (imageUrl(); as url) {
+                  <div class="overflow-auto rounded-xl bg-canvas-panel border border-separator p-4">
+                    <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
+                  </div>
+                  }
                 }
-              } @else {
-                @if (responseBodyIsJson()) {
-                <app-json-editor
-                  name="responseErrorJson"
-                  [readOnly]="true"
-                  [ngModel]="formattedResponseError"
-                  [ngModelOptions]="{ standalone: true }"
-                  [height]="300"
-                  (ngModelChange)="onReadOnlyErrorChange($event)"
-                ></app-json-editor>
-                } @else {
-                <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-status-error">{{ responseError() || 'No body returned.' }}</pre>
+                @case ('hex') {
+                  @if (responseBinary(); as binary) {
+                    @if (binary.byteLength > hexViewBytes) {
+                    <p class="type-footnote text-label-secondary">The first {{ hexViewBytes }} of {{ binary.byteLength }} bytes. Download the body for the rest.</p>
+                    }
+                  }
+                  <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
+                  <pre class="hex-dump max-h-[300px] overflow-auto rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary" role="region" aria-label="Response body as hex" tabindex="0">{{ hexText() }}</pre>
+                }
+                @case ('json') {
+                  <app-json-editor
+                    name="responseJson"
+                    [readOnly]="true"
+                    [ngModel]="filteredJson() || formattedResponseBody"
+                    [ngModelOptions]="{ standalone: true }"
+                    [height]="300"
+                  ></app-json-editor>
+                }
+                @case ('xml') {
+                  <app-json-editor
+                    name="responseXml"
+                    language="xml"
+                    [readOnly]="true"
+                    [ngModel]="xmlText()"
+                    [ngModelOptions]="{ standalone: true }"
+                    [height]="300"
+                  ></app-json-editor>
+                }
+                @case ('html') {
+                  <app-html-preview [html]="bodyText()" />
+                }
+                @default {
+                  @if (responseBodyIsJson()) {
+                  <p class="type-footnote text-label-secondary">This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p>
+                  }
+                  <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body"
+                    [class.text-status-success]="!isError()"
+                    [class.text-status-error]="isError()"
+                  >{{ bodyText() || 'No body returned.' }}</pre>
                 }
               }
             </div>
@@ -191,11 +243,22 @@
           <div class="tab-pane" [hidden]="activeTab() !== 'headers'">
             <div class="pb-4">
               <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
+              @if (headersLimited()) {
+              <p class="headers-note mb-3 type-footnote text-label-secondary">
+                The browser shows a page only some headers of a response from another origin: the CORS-safelisted ones
+                (<span class="font-mono">Cache-Control</span>, <span class="font-mono">Content-Language</span>,
+                <span class="font-mono">Content-Length</span>, <span class="font-mono">Content-Type</span>,
+                <span class="font-mono">Expires</span>, <span class="font-mono">Last-Modified</span>,
+                <span class="font-mono">Pragma</span>) and those the server names in
+                <span class="font-mono">Access-Control-Expose-Headers</span>. The server may have sent more.
+              </p>
+              }
               <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden" role="region" aria-label="Response headers" tabindex="0">
                 @if (responseHeaders().length) {
                 <table class="ds-table">
                   <tbody>
-                    @for (header of responseHeaders(); track header.name) {
+                    <!-- By position: a name sent twice is two rows. -->
+                    @for (header of responseHeaders(); track $index) {
                     <tr>
                       <th>{{ header.name }}</th>
                       <td class="break-all">{{ header.value || '—' }}</td>

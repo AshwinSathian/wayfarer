@@ -249,6 +249,15 @@ describe("AssertionRunner", () => {
       expect(result.actual).toBeUndefined();
     });
 
+    it("reads a body path from the body's own keys only (F63)", () => {
+      const response: AssertionResponseContext = { statusCode: 200, body: { name: "widget" }, headers: {} };
+      const results = service.run(
+        ["constructor", "toString", "__proto__"].map((key) => assertion({ target: "body", key, operator: "exists" })),
+        response
+      );
+      expect(results.map((result) => result.passed)).toEqual([false, false, false]);
+    });
+
     it("builds a human-readable label from target/operator/expected", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
       const [result] = service.run(

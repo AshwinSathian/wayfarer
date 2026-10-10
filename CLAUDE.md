@@ -301,11 +301,13 @@ code errors.
 - Imported through `src/app/shared/monaco/monaco-loader.ts` only, from the
   package's entry points (`monaco-editor/editor`,
   `monaco-editor/languages/features/<x>/register`,
-  `monaco-editor/languages/definitions/<x>/register`). Never
+  `monaco-editor/languages/definitions/<x>/register`,
+  `monaco-editor/features/<x>/register`). Never
   `monaco-editor/esm/...`, and never the root `monaco-editor`, which bundles
   every language.
 - Only JSON and TypeScript/JavaScript are bundled with their language
-  services, plus the XML and HTML grammars for raw bodies. A new language needs its
+  services, plus the XML and HTML grammars for raw bodies and responses, and
+  the find feature. A new language needs its
   register import, a worker wrapper if it has a service, and a path mapping
   to the stub in `tsconfig.spec.json`.
 - Its stylesheet is the separate `monaco.css` (see `styles` in
@@ -379,6 +381,18 @@ code errors.
   mutation score at 85% or more: `npm -w packages/core run mutation`.
 - The CSP lives in `security/csp.json`; run `npm run gen:csp`. No
   `unsafe-eval`, no third-party origin.
+- A response is shown, never run. HTML goes to `HtmlPreview`
+  (`src/app/components/response-viewer/html-preview.ts`): a `blob:` of
+  `previewDocument()` in `<iframe sandbox>` with no `allow-*` token, its
+  `src` set from code. No `srcdoc`, `innerHTML` or `DOMParser` (Trusted
+  Types sinks), and no `bypassSecurityTrust*`. A `blob:` made for the page
+  to show gets a type from the fixed list in `responseViews`
+  (`@wayfarer/core`) or `application/octet-stream`, never the server's:
+  opened on its own, a `blob:` URL is a document of the app's origin.
+  Revoke it when the response changes (`onCleanup` of the effect).
+- `frame-ancestors` is `'self'`, not `'none'` (plan D25): a `blob:`
+  document inherits the page's policy and WebKit applies that directive to
+  the preview frame. `frame-src` is `blob:` only.
 - The vault derives keys with PBKDF2-SHA-256 at 600,000 iterations (claim
   C-004) and uses the passphrase exactly as typed. The envelope format
   changes only through the plan's Vault v2 (P2.6); do not add an interim

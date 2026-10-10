@@ -44,7 +44,10 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Response Viewer**
 
-  - Pretty JSON with collapsible sections, across **Body**, **Headers**, **Timings**, and **Tests** tabs; HTML, XML and text bodies shown as text; binary bodies offered as a download <!-- claim:C-009 --> <!-- claim:C-022 -->
+  - **Body**, **Headers**, **Timings**, and **Tests** tabs, with pretty JSON in the Body <!-- claim:C-022 -->
+  - The body is shown by its type, and you can switch the view: formatted JSON (with a path filter such as `data.items[*].id`, and find with Ctrl/Cmd+F), text, indented XML, an HTML preview, an image, or a hex dump. Text can always be read as it was sent, and a binary body downloaded with its exact bytes <!-- claim:C-009 -->
+  - The HTML preview is a drawing of the page and nothing more: its scripts do not run, it loads nothing from the network, and its links go nowhere <!-- claim:C-048 -->
+  - The Headers tab says when the browser withheld headers (a response from another origin shows only the CORS-safelisted ones and those the server exposes)
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
   - An **Export** menu that copies the exchange as cURL or HAR <!-- claim:C-035 -->
 
@@ -174,7 +177,6 @@ Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same stora
 A September 2026 audit found gaps between these docs and the code. Each is an open issue with label [`audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09), scheduled in [`PLAN-airtight-remediation.md`](PLAN-airtight-remediation.md). The ones you are most likely to hit:
 
 - Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
-- Binary responses download but don't preview ([#62](https://github.com/AshwinSathian/wayfarer/issues/62)).
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).

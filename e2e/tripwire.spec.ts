@@ -85,13 +85,19 @@ test.describe("Phase 0 tripwires", () => {
     ["application/xml", "<tripwire>F04 xml</tripwire>"],
     ["text/plain; charset=utf-8", "tripwire F04 plain text"],
   ]) {
-    test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response renders as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
+    test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response can be read as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
       await captureTarget(page, { contentType, body });
       await page.goto("/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
       await send(page);
 
       await expect(page.locator(".status-badge")).toHaveText("200");
+      // HTML opens as a preview and XML indented (P2.13); Text shows either as it was sent.
+      const view = page.locator("app-response-viewer").getByRole("combobox", { name: "View the body as" });
+      if ((await view.textContent())?.trim() !== "Text") {
+        await view.click();
+        await page.getByRole("option", { name: "Text", exact: true }).click();
+      }
       // The viewer soft-wraps lines, so compare with whitespace removed.
       const viewerText = async () =>
         ((await page.locator("app-response-viewer").textContent()) ?? "").replace(/\s+/g, "");

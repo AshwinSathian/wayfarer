@@ -45,14 +45,14 @@ describe("runScript", () => {
     });
   });
 
-  it("the global object holds the ECMAScript built-ins and the allow-list, nothing else", async () => {
+  it("@claim:C-052 the global object holds the ECMAScript built-ins and the allow-list, nothing else", async () => {
     const names = JSON.parse((await value("JSON.stringify(Object.getOwnPropertyNames(globalThis))")) ?? "[]") as string[];
     expect(names.sort()).toEqual([...BUILT_INS, ...ALLOWED].sort());
     // The same object by every road to it.
     expect(await value("Function('return this')() === globalThis && (0, eval)('this') === globalThis")).toBe("true");
   });
 
-  it("has nothing of the host: no network, no worker scope, no module loader", async () => {
+  it("@claim:C-052 has nothing of the host: no network, no worker scope, no module loader", async () => {
     const names = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource", "importScripts", "postMessage", "self", "window", "document", "navigator", "indexedDB", "localStorage", "caches", "Worker", "require", "process", "host"];
     const result = await run(`
       console.log(JSON.stringify(${JSON.stringify(names)}.filter((name) => Function("return typeof " + name)() !== "undefined")));

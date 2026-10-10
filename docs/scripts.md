@@ -120,9 +120,37 @@ starts with what the JavaScript language defines (`Object`, `JSON`,
 `importScripts`, no storage, no module loader. `runScript`
 (`packages/core/src/scripting/host.ts`) then adds exactly five names: `pm`,
 `console`, `atob`, `btoa` and `setTimeout`. A new browser API cannot appear
-inside the engine, because the engine is not the browser. A unit test
-(`host.spec.ts`) lists the global object's own property names and compares
-them with the language's list plus those five.
+inside the engine, because the engine is not the browser.
+
+**How this is tested (claim C-052).** `e2e/sandbox-escape.spec.ts` runs
+escape attempts from inside a script, in Chromium, Firefox and WebKit, on
+the production build with the production headers:
+
+- 35 names a browser, a worker or Node would offer (`fetch`,
+  `XMLHttpRequest`, `WebSocket`, `importScripts`, `postMessage`, `self`,
+  `indexedDB`, `WebAssembly`, `require` and the rest) are looked up by eight
+  roads to the global object: a plain `typeof`, indirect `eval`,
+  `globalThis`, `Function('return this')()`, an object's
+  `constructor.constructor`, the constructor of a host function, of an async
+  function and of a generator. Each must find nothing.
+- The global object is the engine's own by every road, `globalThis.constructor`
+  is the engine's `Object`, and its own property names are exactly the
+  language's list plus the five.
+- Ten network roads are called with a variable's value in the address
+  (`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`,
+  `importScripts`, `Image`, `Worker`, `require`, a string given to
+  `setTimeout`), and a dynamic `import()` of an `https:` and a `data:`
+  address. From outside, the test counts every request the browser made: the
+  only one that left the app's origin is the user's own request.
+- A forged result cannot be posted: there is no `postMessage` and no worker
+  scope to post from.
+- A script that changes `Object.prototype`, `JSON` and `Array.prototype`
+  finds them whole on the next run, and the page's own are untouched.
+- 0 Content-Security-Policy and Trusted Types violation events throughout.
+
+`packages/core/src/scripting/host.spec.ts` asserts the same list of global
+names in Node, and that a host function refuses any argument that is not
+the type it takes.
 
 **What crosses the boundary.** The functions behind `pm`, `console` and the
 rest take and return strings, numbers and booleans only, and check the type
@@ -186,7 +214,6 @@ The check is made on the stored text the composer was loaded from, when you
 press Send (`src/app/services/script-trust.ts`). What you then type into the
 composer is your own.
 
-**Not there yet:** the test suite of escape attempts in three browsers
-(P3.7); the Postman-compatible API (session 3B).
+**Not there yet:** the Postman-compatible API (session 3B).
 
 See [SECURITY.md](../SECURITY.md) for how to report a concern.

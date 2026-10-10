@@ -1,0 +1,69 @@
+<ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="closed.emit()" width="720px">
+  <div class="tabs">
+    <div mat-tab-nav-bar class="tab-bar" [tabPanel]="settingsPanel" [mat-stretch-tabs]="false" disablePagination>
+      <button mat-tab-link type="button" [active]="tab() === 'auth'" (click)="tab.set('auth')" (focus)="tab.set('auth')">Auth</button>
+      <button mat-tab-link type="button" [active]="tab() === 'variables'" (click)="tab.set('variables')" (focus)="tab.set('variables')">Variables</button>
+      <button mat-tab-link type="button" [active]="tab() === 'scripts'" (click)="tab.set('scripts')" (focus)="tab.set('scripts')">Scripts</button>
+    </div>
+    <mat-tab-nav-panel #settingsPanel class="tab-panes">
+      <div class="tab-pane" [hidden]="tab() !== 'auth'">
+        <p class="type-footnote text-label-secondary mb-3">Sent with every request in this {{ kind() }} whose own auth is "Inherit from parent".</p>
+        <app-auth-editor
+          class="block"
+          idPrefix="inherited-auth"
+          [subject]="kind()"
+          [auth]="auth()"
+          [inherited]="inherited()"
+          [showPassword]="showPassword()"
+          (authTypeChange)="onAuthType($event)"
+          (authChange)="auth.set($event)"
+          (togglePasswordVisibility)="showPassword.set(!showPassword())"
+        />
+      </div>
+      <div class="tab-pane" [hidden]="tab() !== 'variables'">
+        <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
+        <app-rows-editor
+          context="Variables"
+          [items]="rows()"
+          [switches]="false"
+          addLabel="Add variable"
+          (add)="rows.set([...rows(), { key: '', value: '', enabled: true }])"
+          (remove)="removeRow($event)"
+        />
+      </div>
+      <div class="tab-pane" [hidden]="tab() !== 'scripts'">
+        <div class="flex flex-col gap-4">
+          <p class="type-footnote text-label-secondary">
+            Run for every request in this {{ kind() }}: the collection's scripts first, then each folder's from the outside in, then the request's own.
+          </p>
+          <div class="space-y-2">
+            <div class="ds-section-label">Pre-request Script</div>
+            <app-script-editor
+              name="inheritedPreScript"
+              [ngModel]="scripts().pre"
+              (ngModelChange)="setScript('pre', $event)"
+              [ngModelOptions]="{ standalone: true }"
+              [height]="150"
+            ></app-script-editor>
+          </div>
+          <div class="space-y-2">
+            <div class="ds-section-label">Post-response Script</div>
+            <app-script-editor
+              name="inheritedPostScript"
+              [ngModel]="scripts().post"
+              (ngModelChange)="setScript('post', $event)"
+              [ngModelOptions]="{ standalone: true }"
+              [height]="150"
+            ></app-script-editor>
+          </div>
+        </div>
+      </div>
+    </mat-tab-nav-panel>
+  </div>
+  <div uiDialogFooter>
+    <div class="flex justify-end gap-2">
+      <button matButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button matButton="filled" type="button" [disabled]="saving()" (click)="save()">Save settings</button>
+    </div>
+  </div>
+</ui-dialog>

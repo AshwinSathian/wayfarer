@@ -265,11 +265,7 @@
   </div>
 </ui-dialog>
 
-<app-variables-dialog
-  header="Collection variables"
-  [hint]="variablesHint"
-  [variables]="variablesOfCollection()"
-  [visible]="variablesOf() !== null"
-  (visibleChange)="variablesOf.set(null)"
-  (save)="saveCollectionVariables($event)"
+<app-inherited-settings-dialog
+  [target]="settingsOf()"
+  (closed)="settingsOf.set(null)"
 />

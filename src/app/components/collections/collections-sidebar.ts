@@ -26,8 +26,8 @@ import {
   buildContextItems,
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
-import { readImportText, type VariableChange } from "@wayfarer/core";
-import { VariablesDialog } from "../variables/variables-dialog";
+import { readImportText } from "@wayfarer/core";
+import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
 
 type NodeData = CollectionNodeData;
 
@@ -47,7 +47,7 @@ export interface PaletteAction {
     MatButton,
     Dialog,
     MatSelect, MatOption,
-    VariablesDialog,
+    InheritedSettingsDialog,
   ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
@@ -80,13 +80,8 @@ export class CollectionsSidebar implements OnInit {
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
-  readonly variablesHint =
-    "Every request of this collection can use these as {{name}}. A variable of the active environment with the same name wins.";
-  /** The collection whose variables are being edited. */
-  readonly variablesOf = signal<string | null>(null);
-  readonly variablesOfCollection = computed(
-    () => this.collectionsService.tree().find((entry) => entry.collection.meta.id === this.variablesOf())?.collection.variables ?? []
-  );
+  /** The collection or the folder whose settings are open. */
+  readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -323,8 +318,10 @@ export class CollectionsSidebar implements OnInit {
       void this.exportCollection(node, action === "export-credentials");
       return;
     }
-    if (action === "variables") {
-      this.variablesOf.set((node.data as NodeData).ref.meta.id);
+    if (action === "settings") {
+      const data = node.data as NodeData;
+      if (data.type === "collection") this.settingsOf.set({ collectionId: data.ref.meta.id });
+      else if (data.type === "folder") this.settingsOf.set({ collectionId: data.ref.collectionId, folderId: data.ref.meta.id });
       return;
     }
     void this.handleAction(action, node);
@@ -402,20 +399,13 @@ export class CollectionsSidebar implements OnInit {
     this.cancelEdit();
   }
 
-  async saveCollectionVariables(changes: VariableChange[]): Promise<void> {
-    const id = this.variablesOf();
-    if (id) {
-      await this.collectionsService.changeCollectionVariables(id, changes);
-    }
-  }
-
   cancelEdit(): void {
     this.editingKey.set(null);
     this.editingValue.set("");
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "variables">,
+    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "settings">,
     node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;

@@ -155,7 +155,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
   expect(copied[1]).toContain('"version": "1.2"');
   expect(copied[0]).toMatch(/^curl /);
-  expect(files[0]).toContain('"$id": "wayfarer/collection/2"');
+  expect(files[0]).toContain('"$id": "wayfarer/collection/3"');
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
     Object.fromEntries(Object.keys(searched).map((place) => [place, []]))
   );

@@ -31,7 +31,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Methods: any HTTP method, typed (`PURGE`, `PROPFIND`, …) and sent in upper case, with `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` one click away <!-- claim:C-017 -->
   - URL field with live validation <!-- claim:C-018 -->
-  - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs <!-- claim:C-019 -->
+  - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs; a collection and a folder can hold auth too, and a request set to "Inherit from parent" is sent with it <!-- claim:C-019 -->
   - Body tab for every method but `GET` and `HEAD`, with the modes none, raw (JSON, text, XML, HTML, JavaScript), form (URL-encoded), multipart (text and files) and binary file <!-- claim:C-039 -->
   - **Copy as cURL** for any request once it has a URL <!-- claim:C-020 -->
 
@@ -60,7 +60,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
-  - Deterministic collection import/export in file format 2 (a round trip is byte-identical) <!-- claim:C-026 -->
+  - Deterministic collection import/export in file format 3 (a round trip is byte-identical) <!-- claim:C-026 -->
+  - A collection and a folder have **settings**: auth for the requests set to inherit, variables, and scripts that run before and after every request in them
   - **Workspace backup**: every collection, request, environment, the global variables and the vault (still encrypted) in one file, and a restore from it; a restored collection's scripts are untrusted until approved <!-- claim:C-046 -->
   - Environment export asks what to write of protected variables: nothing (the default), their references with the encrypted vault beside them, or plain text after you type a confirmation <!-- claim:C-047 -->
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { historyEntry, jsonBody, rowsOf } from '../../../testing/request-fixtures';
+import { historyEntry, inCollection, jsonBody, rowsOf } from '../../../testing/request-fixtures';
 import { PastRequest } from '../../models/history';
 import { RequestSave } from '../../services/request-save';
 import { WorkspaceStore } from '../../state/workspace-store';
@@ -280,7 +280,7 @@ describe('Composer', () => {
   it('confirmSaveAs creates a new request with the full composer state and binds the composer to it', async () => {
     collectionsService.setTree([
       {
-        collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0, variables: [], scriptTrust: { trusted: true } },
+        collection: { id: 'c1', meta: meta('c1'), name: 'Collection 1', order: 0, variables: [], ...inCollection, scriptTrust: { trusted: true } },
         folders: [],
         requests: [],
       },

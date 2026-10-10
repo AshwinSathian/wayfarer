@@ -1,4 +1,4 @@
-import type { AuthConfig } from "@wayfarer/core";
+import type { AuthConfig, OwnAuth } from "../model/request";
 
 /**
  * Pure translation of the composer's Auth tab state into the headers/query
@@ -40,6 +40,36 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
     case "apikey":
       return { ...auth, key: resolve(auth.key), value: resolve(auth.value) };
     case "none":
+    case "inherit":
       return auth;
+  }
+}
+
+/**
+ * The auth a request is sent with (P4.9): its own unless it inherits, then
+ * that of the nearest folder that does not inherit, then the collection's.
+ * `chain` is the collection first and then the folders from the outside in;
+ * `from` names the one whose auth it is. Nothing to inherit from sends none.
+ */
+export function effectiveAuth(own: AuthConfig, chain: readonly { name: string; auth: AuthConfig }[]): { auth: OwnAuth; from?: string } {
+  if (own.type !== "inherit") return { auth: own };
+  for (const { name, auth } of [...chain].reverse()) {
+    if (auth.type !== "inherit") return { auth, from: name };
+  }
+  return { auth: { type: "none" } };
+}
+
+/** The credentials of an auth, as resolved: what a redactor must look for besides vault secrets. */
+export function credentialsOf(auth: AuthConfig): string[] {
+  switch (auth.type) {
+    case "bearer":
+      return [auth.token];
+    case "basic":
+      return [auth.password];
+    case "apikey":
+      return [auth.value];
+    case "none":
+    case "inherit":
+      return [];
   }
 }

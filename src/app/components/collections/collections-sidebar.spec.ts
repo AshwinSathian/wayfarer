@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { requestContent } from "../../../testing/request-fixtures";
+import { inCollection, inFolder, requestContent } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
 import { Confirm } from "../../ui/confirm";
 import { CollectionsSidebar, PaletteAction } from "./collections-sidebar";
@@ -12,11 +12,11 @@ function meta(id: string): Meta {
 }
 
 function makeCollection(id: string, name = `Collection ${id}`, order = 0): Collection {
-  return { id, meta: meta(id), name, order, variables: [], scriptTrust: { trusted: true } };
+  return { id, meta: meta(id), name, order, variables: [], ...inCollection, scriptTrust: { trusted: true } };
 }
 
 function makeFolder(id: string, collectionId: string, order = 0): Folder {
-  return { id, meta: meta(id), collectionId, name: `Folder ${id}`, order };
+  return { id, meta: meta(id), collectionId, name: `Folder ${id}`, order, ...inFolder };
 }
 
 function makeRequest(id: string, collectionId: string, folderId?: string): RequestDoc {

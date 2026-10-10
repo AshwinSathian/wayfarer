@@ -31,7 +31,7 @@ there and where it differs from Postman.
 | `pm.environment` | the active environment | yes |
 | `pm.collectionVariables` | the collection of the saved request | yes |
 | `pm.globals` | the global variables | yes |
-| `pm.variables` | every scope, nearest first: what `pm.variables.set` set in this run, then environment, collection, globals | `set` lasts for the run only |
+| `pm.variables` | every scope, nearest first: what `pm.variables.set` set in this run, then environment, the request's folders (the nearest first), collection, globals. Postman has no folder variables, and no object of `pm` writes one | `set` lasts for the run only |
 | `pm.iterationData` | a run's data file | empty: there is no collection run yet |
 
 Each has `get(name)`, `has(name)`, `toObject()` and `replaceIn(text)`; the
@@ -413,24 +413,54 @@ variable chips under the address show the value a request will be sent
 with. The review of a script before it runs remains the control; this
 dialog is a second look at the most direct case, not a wall.
 
+## Scripts of a collection and of a folder
+
+A collection and a folder have scripts of their own (right-click, **Settings**,
+**Scripts**). They run for every request in them:
+
+1. the collection's pre-request script,
+2. each folder's, from the outermost folder to the one the request is in,
+3. the request's own;
+
+then the request is built and sent, and the post-response scripts run in
+the same order. Each script is a run of its own, under the limits above,
+and is given the variables as the one before it left them, and `pm.request`
+as the one before it left it. `pm.info.eventName` says which kind it is;
+`pm.info.requestName` names the request being sent.
+
+A pre-request script that ends in an error stops the send, whichever of them
+it is: no later script runs and nothing is sent. The Tests tab names it
+("Pre-request script of folder …"). A post-response script that ends in an
+error is a failed row, and the ones after it still run.
+
+The question about another host (above) compares the request before the
+first of these scripts with the request after the last, so a collection's
+script that moves a request is asked about like the request's own. On
+"Don't send", what every one of them set is put back.
+
 ## Which scripts may run
 
 A script you type runs. A script that came from somewhere else waits for
 you (plan decision D6):
 
 - **A collection made in this app is trusted.** When you save a request
-  into it, the SHA-256 of each of its scripts is added to the collection's
-  list of approved scripts.
+  into it, or save its settings or a folder's, the SHA-256 of each script
+  saved is added to the collection's list of approved scripts.
 - **An imported collection, and one restored from a backup, is not
   trusted.** Its requests are sent without their scripts; assertions still
   run. The Scripts tab says so and offers **Review scripts**: a dialog with
-  every script of the collection, read-only. "I trust these scripts" marks
+  every script of the collection, read-only: its own, its folders' and its requests'. "I trust these scripts" marks
   the collection trusted and stores the digest of each script shown.
+- **A request's scripts run only if all of them may.** The request's own
+  and those of its collection and its folders are checked together: one
+  that is not approved holds the others back, since each works on what the
+  one before it did.
 - **A script runs only if its own digest is in its collection's list.**
   Importing the same collection again makes it untrusted again. A script
   that reached storage any other way is not in the list and does not run.
 - **Saving does not approve what you have not reviewed.** A script that was
   waiting stays unapproved when you save it, also into another collection.
+  The same holds for a collection's and a folder's settings.
 - **A history entry** carries the scripts of the request as it was sent.
   Opened from history they wait for a review of their own, which lasts
   while that entry is in the composer.

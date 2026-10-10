@@ -1,15 +1,15 @@
 @let currentAuth = auth();
 <div class="space-y-4">
   <div class="flex items-center gap-3">
-    <span class="ds-form-label min-w-[72px]" id="auth-type-select-label">Type</span>
+    <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-type-select-label'">Type</span>
     <mat-select
       class="select w-48!"
-      id="auth-type-select"
-      aria-labelledby="auth-type-select-label"
+      [id]="idPrefix() + '-type-select'"
+      [aria-labelledby]="idPrefix() + '-type-select-label'"
       [ngModel]="currentAuth.type"
       (ngModelChange)="onAuthTypeChange($event)"
     >
-      @for (option of authTypes; track option.value) {
+      @for (option of authTypes(); track option.value) {
       <mat-option [value]="option.value">{{ option.label }}</mat-option>
       }
     </mat-select>
@@ -17,10 +17,10 @@
 
   @if (currentAuth.type === 'bearer') {
   <div class="flex items-center gap-3">
-    <label class="ds-form-label min-w-[72px]" for="auth-bearer-token">Token</label>
+    <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
     <mat-form-field class="field flex-1">
       <input matInput
-        id="auth-bearer-token"
+        [id]="idPrefix() + '-bearer-token'"
         placeholder="Enter bearer token"
         [ngModel]="currentAuth.token"
         (ngModelChange)="setBearerToken($event)"
@@ -32,10 +32,10 @@
   @if (currentAuth.type === 'basic') {
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" for="auth-basic-username">Username</label>
+      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-username'">Username</label>
       <mat-form-field class="field flex-1">
         <input matInput
-          id="auth-basic-username"
+          [id]="idPrefix() + '-basic-username'"
           placeholder="Username"
           [ngModel]="currentAuth.username"
           (ngModelChange)="setBasicUsername($event)"
@@ -43,11 +43,11 @@
       </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" for="auth-basic-password">Password</label>
+      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-password'">Password</label>
       <div class="flex flex-1 items-center gap-2">
         <mat-form-field class="field flex-1">
           <input matInput
-            id="auth-basic-password"
+            [id]="idPrefix() + '-basic-password'"
             [type]="showPassword() ? 'text' : 'password'"
             placeholder="Password"
             [ngModel]="currentAuth.password"
@@ -68,10 +68,10 @@
   @if (currentAuth.type === 'apikey') {
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" for="auth-apikey-key">Key</label>
+      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
       <mat-form-field class="field flex-1">
         <input matInput
-          id="auth-apikey-key"
+          [id]="idPrefix() + '-apikey-key'"
           placeholder="Header or param name"
           [ngModel]="currentAuth.key"
           (ngModelChange)="setApiKeyField({ key: $event })"
@@ -79,10 +79,10 @@
       </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" for="auth-apikey-value">Value</label>
+      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
       <mat-form-field class="field flex-1">
         <input matInput
-          id="auth-apikey-value"
+          [id]="idPrefix() + '-apikey-value'"
           placeholder="Key value"
           [ngModel]="currentAuth.value"
           (ngModelChange)="setApiKeyField({ value: $event })"
@@ -90,11 +90,11 @@
       </mat-form-field>
     </div>
     <div class="flex items-center gap-3">
-      <span class="ds-form-label min-w-[72px]" id="auth-apikey-addto-label">Add to</span>
+      <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
       <mat-select
         class="select w-40!"
-        id="auth-apikey-addto"
-        aria-labelledby="auth-apikey-addto-label"
+        [id]="idPrefix() + '-apikey-addto'"
+        [aria-labelledby]="idPrefix() + '-apikey-addto-label'"
         [ngModel]="currentAuth.in"
         (ngModelChange)="setApiKeyField({ in: $event })"
       >
@@ -106,10 +106,17 @@
   </div>
   }
 
+  @if (currentAuth.type === 'inherit') {
+  <div class="auth-inherited flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
+    <app-icon name="info" class="icon-sm text-label-tertiary" />
+    <p class="type-callout text-label-secondary">{{ inheritedLine() }}</p>
+  </div>
+  }
+
   @if (currentAuth.type === 'none') {
   <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
-    <p class="type-callout text-label-tertiary">No authentication will be applied to this request.</p>
+    <p class="type-callout text-label-tertiary">{{ subject() === "request" ? "No authentication will be applied to this request." : "Requests that inherit from this " + subject() + " are sent with no authentication." }}</p>
   </div>
   }
 </div>

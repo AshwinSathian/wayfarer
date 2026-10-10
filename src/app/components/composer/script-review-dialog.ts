@@ -8,7 +8,7 @@ import { ScriptEditor } from "../script-editor/script-editor";
 /**
  * Shows every script that is waiting for approval, read-only, and asks the
  * user to trust them (plan D6, P3.8). One editor holds them all, each under
- * a comment line that names its request: what is on screen is the text that
+ * a comment line that names its request, its folder or the collection: what is on screen is the text that
  * will run, in the order of the list.
  */
 @Component({
@@ -25,7 +25,13 @@ export class ScriptReviewDialog {
 
   protected readonly saving = signal(false);
   protected readonly count = computed(() => this.trust.toReview().reduce((sum, request) => sum + (request.pre.trim() ? 1 : 0) + (request.post.trim() ? 1 : 0), 0));
-  protected readonly requests = computed(() => this.trust.toReview().length);
+  /** Where the scripts are: "the collection, 1 folder and 2 requests". */
+  protected readonly places = computed(() => {
+    const count = (kind: string) => this.trust.toReview().filter((entry) => entry.kind === kind).length;
+    const some = (kind: string) => (count(kind) ? [`${count(kind)} ${kind}${count(kind) === 1 ? "" : "s"}`] : []);
+    const parts = [...(count("collection") ? ["the collection"] : []), ...some("folder"), ...some("request")];
+    return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}` : (parts[0] ?? "");
+  });
   protected readonly text = computed(() =>
     this.trust
       .toReview()

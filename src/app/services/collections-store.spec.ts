@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { jsonBody, requestContent, rowsOf } from "../../testing/request-fixtures";
+import { inCollection, inFolder, jsonBody, requestContent, rowsOf } from "../../testing/request-fixtures";
 import { CollectionsStore } from "./collections-store";
 import { Idb } from "../data/idb";
 import { Collection, Folder, Meta, RequestDoc } from "../models/collections";
@@ -10,11 +10,11 @@ function meta(id: string): Meta {
 }
 
 function makeCollection(id: string, order = 0): Collection {
-  return { id, meta: meta(id), name: `Collection ${id}`, order, variables: [], scriptTrust: { trusted: true } };
+  return { id, meta: meta(id), name: `Collection ${id}`, order, variables: [], ...inCollection, scriptTrust: { trusted: true } };
 }
 
 function makeFolder(id: string, collectionId: string, order = 0): Folder {
-  return { id, meta: meta(id), collectionId, name: `Folder ${id}`, order };
+  return { id, meta: meta(id), collectionId, name: `Folder ${id}`, order, ...inFolder };
 }
 
 function makeRequest(id: string, collectionId: string, order = 0): RequestDoc {

@@ -65,7 +65,7 @@ export interface GlobalsRecord {
 export type VaultRecordDoc = VaultRecord & { key: typeof META_VAULT_KEY };
 
 /** What an upgrade removed, for the notice the shell shows once: "all", or the stores it emptied that held something. */
-export type RemovedData = "all" | ("secrets" | "history")[];
+export type RemovedData = "all" | ("secrets" | "history" | "collections")[];
 
 export interface ApiSandboxDB extends DBSchema {
   history: {
@@ -130,5 +130,5 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 9;
+export const DB_VERSION = 10;
 export const DEFAULT_SCHEMA_VERSION = 1;

@@ -17,6 +17,7 @@ import {
   Redactor,
   TransportError,
   decodeEnvelope,
+  emptyChanges,
   newId,
   parseJson,
   scriptRequestOf,
@@ -26,6 +27,7 @@ import {
   withScriptRequest,
   type RequestContent,
   type ResponseEnvelope,
+  type Scripts,
   type Row,
   type ScriptResponse,
   type ScriptRequest,
@@ -73,9 +75,11 @@ export class PreRequestScriptError extends SendBlockedError {
   constructor(
     readonly testResults: TestResult[],
     readonly scriptLogs: string[],
-    readonly timings: SendTimings
+    readonly timings: SendTimings,
+    /** Which script it was: the request's own, or one of its collection or of a folder. */
+    script = "Pre-request script"
   ) {
-    super("The pre-request script failed, so the request was not sent.");
+    super(`The ${script[0].toLowerCase()}${script.slice(1)} failed, so the request was not sent.`);
   }
 }
 
@@ -190,8 +194,31 @@ export interface RequestExecutionSpec {
   info?: { requestName: string; requestId: string };
   /** The variables of that request's collection, read when a script starts, and the way to change them. Absent for a request of no collection. */
   collection?: { variables: () => Row[]; change: (changes: VariableChange[]) => Promise<unknown> };
+  /**
+   * What the request's collection and folders hold for it (P4.9), in the
+   * order their scripts run: the collection, then the folders from the
+   * outside in. The request's own scripts run last.
+   */
+  inherited?: { name: string; scripts: Scripts }[];
+  /** The variables of the request's folders, the outermost folder's rows first, read when a script starts. A script reads them and cannot change them. */
+  folderVariables?: () => Row[];
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
+}
+
+/** One script that ran, under the name its rows and its error are shown with. */
+interface ScriptRun {
+  name: string;
+  result: ScriptResult;
+}
+
+/** The scripts of one kind a send runs, in order, the blank ones left out. An inherited script is named for where it is from. */
+function scriptsToRun(spec: RequestExecutionSpec, kind: keyof Scripts): { name: string; text: string }[] {
+  const label = kind === "pre" ? "Pre-request script" : "Post-response script";
+  return [
+    ...(spec.inherited ?? []).map(({ name, scripts }) => ({ name: `${label} of ${name}`, text: scripts[kind] })),
+    { name: label, text: kind === "pre" ? spec.preRequestScript : spec.postRequestScript },
+  ].filter((script) => script.text?.trim());
 }
 
 export interface RequestExecutionResponse {
@@ -269,37 +296,46 @@ export class RequestExecutor {
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
     const requestId = newId();
     const createdAt = Date.now();
-    let preResult: ScriptResult | undefined;
+    const preRuns: ScriptRun[] = [];
 
     /** What the app has to say about a script's run, shown with the script's own console lines. */
     const notes: string[] = [];
     const timings: SendTimings = {};
     let template = spec.template;
-    /** Puts back what the pre-request script set. */
+    /** Puts back what the pre-request scripts set. */
     let undo = (): Promise<void> => Promise.resolve();
-    if (spec.runScripts && spec.preRequestScript?.trim()) {
+    const preScripts = spec.runScripts ? scriptsToRun(spec, "pre") : [];
+    if (preScripts.length) {
       const before = { environment: this.environmentsService.activeEnvironment()?.vars ?? [], global: this.environmentsService.globals(), collection: spec.collection?.variables() ?? [] };
-      const scriptStarted = performance.now();
-      preResult = await this.scriptSandbox.execute(spec.preRequestScript, this.getEnvSnapshot(), undefined, undefined, this.scriptExtras(spec, "prerequest", scriptRequestOf(template)));
-      timings.preScriptMs = Math.round(performance.now() - scriptStarted);
-      const { changes } = preResult;
-      // As the script wrote them: it runs before any secret is read, and was
-      // given the variables as stored, a secret as its reference.
-      const restoreSecrets = await this.applyChanges(spec, changes, notes);
-      // Each name the script touched gets the value it had, or is removed again; a secret it replaced gets its old value.
-      const was = (rows: Row[], touched: VariableChange[]): VariableChange[] => touched.map(({ key }) => ({ key, value: variablesByName(rows).get(key) ?? null }));
+      const touched = emptyChanges();
+      const restoreSecrets: (() => Promise<void>)[] = [];
+      // Each name a script touched gets the value it had, or is removed again; a secret one replaced gets its old value.
+      const was = (rows: Row[], names: VariableChange[]): VariableChange[] => names.map(({ key }) => ({ key, value: variablesByName(rows).get(key) ?? null }));
       undo = async () => {
-        await this.applyChanges(spec, { environment: was(before.environment, changes.environment), global: was(before.global, changes.global), collection: was(before.collection, changes.collection) }, []);
-        await restoreSecrets();
+        await this.applyChanges(spec, { environment: was(before.environment, touched.environment), global: was(before.global, touched.global), collection: was(before.collection, touched.collection) }, []);
+        for (const restore of restoreSecrets.reverse()) await restore();
       };
-      // A script that ended in an error did not finish its work on the request: it is not sent (P3.9).
-      if (preResult.error !== undefined) {
-        // No secret was read for this send, and the script was given none: there is nothing to mask.
-        const nothing = new Redactor([]);
-        throw new PreRequestScriptError(scriptRows(preResult, "Pre-request script", nothing), [...preResult.logs, ...notes], timings);
+      timings.preScriptMs = 0;
+      // The collection's, each folder's from the outside in, the request's own (P4.9): each a run of its own, with the variables the one before left.
+      for (const { name, text } of preScripts) {
+        const scriptStarted = performance.now();
+        const result = await this.scriptSandbox.execute(text, this.getEnvSnapshot(), undefined, undefined, this.scriptExtras(spec, "prerequest", scriptRequestOf(template)));
+        timings.preScriptMs += Math.round(performance.now() - scriptStarted);
+        preRuns.push({ name, result });
+        const { changes } = result;
+        // As the script wrote them: it runs before any secret is read, and was
+        // given the variables as stored, a secret as its reference.
+        restoreSecrets.push(await this.applyChanges(spec, changes, notes));
+        for (const scope of ["environment", "global", "collection"] as const) touched[scope].push(...changes[scope]);
+        // A script that ended in an error did not finish its work on the request: it is not sent (P3.9), and no later script runs.
+        if (result.error !== undefined) {
+          // No secret was read for this send, and the script was given none: there is nothing to mask.
+          const nothing = new Redactor([]);
+          throw new PreRequestScriptError(preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)), [...preRuns.flatMap((run) => run.result.logs), ...notes], timings, name);
+        }
+        // What the script did to pm.request is sent, and is what the next script sees. The request as composed is what history keeps.
+        if (result.request) template = withScriptRequest(template, result.request);
       }
-      // What the script did to pm.request is sent. The request as composed is what history keeps.
-      if (preResult.request) template = withScriptRequest(template, preResult.request);
     }
 
     // Built only now, after the pre-script (and any environment mutations
@@ -373,12 +409,9 @@ export class RequestExecutor {
       durationMs,
       outcome instanceof TransportError ? undefined : outcome.sizes.decoded
     );
-    const testResults = [
-      ...scriptRows(preResult, "Pre-request script", redactor),
-      ...scriptRows(post.script, "Post-response script", redactor),
-      ...post.assertions,
-    ];
-    const scriptLogs = [...(preResult?.logs ?? []), ...(post.script?.logs ?? []), ...notes].map((line) => redactor.text(line));
+    const runs = [...preRuns, ...post.scripts];
+    const testResults = [...runs.flatMap((run) => scriptRows(run.result, run.name, redactor)), ...post.assertions];
+    const scriptLogs = [...runs.flatMap((run) => run.result.logs), ...notes].map((line) => redactor.text(line));
 
     // History keeps nothing that can be used as a credential (D5): every vault
     // secret and credential of this request is masked in what was sent and in
@@ -487,22 +520,16 @@ export class RequestExecutor {
     headers: Record<string, string>,
     durationMs: number,
     sizeBytes: number | undefined
-  ): Promise<{ script?: ScriptResult; assertions: TestResult[] }> {
-    let script: ScriptResult | undefined;
-
-    if (spec.runScripts && spec.postRequestScript?.trim()) {
-      const responseCtx: ScriptResponseContext = {
-        statusCode,
-        statusText,
-        body,
-        headers,
-        durationMs,
-        sizeBytes,
-      };
+  ): Promise<{ scripts: ScriptRun[]; assertions: TestResult[] }> {
+    const scripts: ScriptRun[] = [];
+    const responseCtx: ScriptResponseContext = { statusCode, statusText, body, headers, durationMs, sizeBytes };
+    // In the order of the pre-request scripts. One that ends in an error is a failed row, and the next still runs: the response is here either way.
+    for (const { name, text } of spec.runScripts ? scriptsToRun(spec, "post") : []) {
       const scriptStarted = performance.now();
-      script = await this.scriptSandbox.execute(spec.postRequestScript, this.getEnvSnapshot(), responseCtx, undefined, this.scriptExtras(spec, "test", sent));
-      timings.postScriptMs = Math.round(performance.now() - scriptStarted);
-      await this.applyChanges(spec, script.changes, notes, variables);
+      const result = await this.scriptSandbox.execute(text, this.getEnvSnapshot(), responseCtx, undefined, this.scriptExtras(spec, "test", sent));
+      timings.postScriptMs = (timings.postScriptMs ?? 0) + Math.round(performance.now() - scriptStarted);
+      scripts.push({ name, result });
+      await this.applyChanges(spec, result.changes, notes, variables);
     }
 
     if (spec.tests.length) {
@@ -512,10 +539,10 @@ export class RequestExecutor {
         headers,
         durationMs,
       };
-      return { script, assertions: this.assertionRunner.run(spec.tests, assertionCtx) };
+      return { scripts, assertions: this.assertionRunner.run(spec.tests, assertionCtx) };
     }
 
-    return { script, assertions: [] };
+    return { scripts, assertions: [] };
   }
 
   private getEnvSnapshot(): Record<string, string> {
@@ -527,6 +554,7 @@ export class RequestExecutor {
     return {
       environmentName: this.environmentsService.activeEnvironment()?.name ?? "",
       globals: [...variablesByName(this.environmentsService.globals())],
+      folder: [...variablesByName(spec.folderVariables?.() ?? [])],
       collection: [...variablesByName(spec.collection?.variables() ?? [])],
       request,
       info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "" },

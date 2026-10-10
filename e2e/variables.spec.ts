@@ -17,7 +17,7 @@ async function sendAndEcho(page: Page): Promise<Echo> {
 }
 
 /** Adds the variables in the dialog that is open, and saves. */
-async function addVariables(page: Page, dialogName: string, variables: Record<string, string>): Promise<void> {
+async function addVariables(page: Page, dialogName: string | RegExp, variables: Record<string, string>, save = "Save variables"): Promise<void> {
   const dialog = page.getByRole("dialog", { name: dialogName });
   let rows = 0;
   for (const [name, value] of Object.entries(variables)) {
@@ -28,7 +28,7 @@ async function addVariables(page: Page, dialogName: string, variables: Record<st
     await dialog.getByPlaceholder("name").last().fill(name);
     await dialog.getByPlaceholder("value").last().fill(value);
   }
-  await dialog.getByRole("button", { name: "Save variables" }).click();
+  await dialog.getByRole("button", { name: save }).click();
   await expect(dialog).toBeHidden();
 }
 
@@ -47,8 +47,10 @@ test("a collection variable and a global reach the server, an environment's valu
   await addVariables(page, "Global variables", { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
 
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
-  await page.getByRole("menuitem", { name: "Variables" }).click();
-  await addVariables(page, "Collection variables", { fromCollection: "c-1", winner: "from-collection", second: "from-collection" });
+  // A collection's variables are in its settings since P4.9, with its auth and its scripts.
+  await page.getByRole("menuitem", { name: "Settings" }).click();
+  await page.getByRole("dialog", { name: /^Collection settings/ }).getByRole("tab", { name: "Variables" }).click();
+  await addVariables(page, /^Collection settings/, { fromCollection: "c-1", winner: "from-collection", second: "from-collection" }, "Save settings");
 
   // The chips name where each value comes from.
   const chips = page.locator("app-variable-chips");

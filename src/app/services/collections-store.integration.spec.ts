@@ -126,15 +126,23 @@ describe("CollectionsStore with real storage", () => {
       auth: { type: "basic", username: "alice", password: "{{password}}" },
     });
 
+    // What the collection and a folder hold for their requests (P4.9).
+    await service.saveInherited({ collectionId: collection.meta.id }, { auth: { type: "apikey", key: "X-Shop", value: "typed-collection-auth", in: "header" }, scripts: { pre: "", post: "" } }, true);
+    const folder = await service.createFolder({ collectionId: collection.meta.id, name: "Admin" });
+    await service.saveInherited({ collectionId: collection.meta.id, folderId: folder.meta.id }, { auth: { type: "basic", username: "admin", password: "typed-folder-password" }, scripts: { pre: "", post: "" } }, true);
+    await service.changeFolderVariables(folder.meta.id, [{ key: "admin_token", value: "typed-folder-variable" }, { key: "region", value: "eu" }]);
+
     const masked = (await service.exportCollectionJson(collection.meta.id))!;
-    expect(masked).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token/);
+    expect(masked).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/);
+    expect(masked).toContain('"username": "admin"');
+    expect(masked).toContain('"value": "eu"');
     expect(masked).toContain('"token": "***"');
     expect(masked).toContain('"password": "{{password}}"');
     expect(masked).toContain('"value": "https://api.test"');
     expect(masked).toContain('"value": "*/*"');
 
     const whole = (await service.exportCollectionJson(collection.meta.id, { credentials: true }))!;
-    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token"]) {
+    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token", "typed-collection-auth", "typed-folder-password", "typed-folder-variable"]) {
       expect(whole).toContain(credential);
     }
     // What is stored is not changed by an export.

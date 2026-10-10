@@ -1,44 +1,10 @@
-import type { RequestContent, Row, ScriptTrust } from "@wayfarer/core";
+import type { Collection, Folder, Meta, RequestContent, RequestDoc } from "@wayfarer/core";
+
+export { COLLECTION_FORMAT, type Collection, type CollectionExport, type Folder, type Meta, type RequestDoc } from "@wayfarer/core";
 
 export type UUID = string;
 
-export interface Meta {
-  id: UUID;
-  createdAt: number;
-  updatedAt: number;
-  version: 1;
-}
-
 export const META_VERSION: Meta["version"] = 1;
-
-interface BaseDocument {
-  id: UUID;
-  meta: Meta;
-}
-
-export interface Collection extends BaseDocument {
-  name: string;
-  description?: string;
-  order: number;
-  /** Variables every request of the collection can use. An environment's variable of the same name wins. */
-  variables: Row[];
-  /** Which of this collection's scripts may run. A collection made here is trusted; an import is not until its scripts are reviewed (D6). */
-  scriptTrust: ScriptTrust;
-}
-
-export interface Folder extends BaseDocument {
-  collectionId: UUID;
-  parentFolderId?: UUID;
-  name: string;
-  order: number;
-}
-
-export interface RequestDoc extends BaseDocument, RequestContent {
-  collectionId: UUID;
-  folderId?: UUID;
-  name: string;
-  order: number;
-}
 
 /** What `createRequest` takes: where the request goes, and as much of its content as the caller has. */
 export type NewRequest = Pick<RequestDoc, "collectionId" | "name"> &
@@ -46,17 +12,9 @@ export type NewRequest = Pick<RequestDoc, "collectionId" | "name"> &
 
 export type RequestPatch = Partial<Pick<RequestDoc, "name" | "folderId"> & RequestContent>;
 
+/** What a collection or a folder holds for the requests in it, besides its variables (P4.9). */
+export type InheritedPatch<T extends Collection | Folder> = Pick<T, "auth" | "scripts">;
+
 export type CollectionId = UUID;
 export type FolderId = UUID;
 export type RequestDocId = UUID;
-
-export const COLLECTION_FORMAT = "wayfarer/collection/2";
-
-/** A collection file. Trust is not content: the file leaves it out and an import starts untrusted. */
-export interface CollectionExport {
-  $id: typeof COLLECTION_FORMAT;
-  meta: Meta;
-  collection: Omit<Collection, "scriptTrust">;
-  folders: Folder[];
-  requests: RequestDoc[];
-}

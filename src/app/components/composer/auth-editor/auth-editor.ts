@@ -1,14 +1,21 @@
-import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatIconButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import type { AuthConfig } from "@wayfarer/core";
+import type { AuthConfig, OwnAuth } from "@wayfarer/core";
 import { Icon } from "../../../shared/icon/icon";
 
 type AuthType = AuthConfig["type"];
+const AUTH_TYPES: { label: string; value: AuthType }[] = [
+  { label: "Inherit from parent", value: "inherit" },
+  { label: "None", value: "none" },
+  { label: "Bearer Token", value: "bearer" },
+  { label: "Basic Auth", value: "basic" },
+  { label: "API Key", value: "apikey" },
+];
 const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as const;
 
 /**
@@ -33,12 +40,22 @@ export class AuthEditor {
   readonly authChange = output<AuthConfig>();
   readonly togglePasswordVisibility = output<void>();
 
-  readonly authTypes: { label: string; value: AuthType }[] = [
-    { label: "None", value: "none" },
-    { label: "Bearer Token", value: "bearer" },
-    { label: "Basic Auth", value: "basic" },
-    { label: "API Key", value: "apikey" },
-  ];
+  /** What the auth is of: a request, or a folder or a collection in their settings. */
+  readonly subject = input<"request" | "folder" | "collection">("request");
+  /** What `inherit` gives here, and from where. A collection has nothing above it and is not offered the choice. */
+  readonly inherited = input<{ auth: OwnAuth; from?: string }>({ auth: { type: "none" } });
+  /** Starts the ids of the fields: two editors may be on the page, one in a dialog. */
+  readonly idPrefix = input("auth");
+
+  readonly authTypes = computed(() => AUTH_TYPES.filter((type) => type.value !== "inherit" || this.subject() !== "collection"));
+
+  /** What a request (or a folder's requests) will be sent with while this is set to inherit. */
+  protected readonly inheritedLine = computed(() => {
+    const { auth, from } = this.inherited();
+    if (!from) return `This ${this.subject()} is in no collection, so there is nothing to inherit. No authentication is sent.`;
+    if (auth.type === "none") return `No authentication is sent: ${from} sets none.`;
+    return `${AUTH_TYPES.find((type) => type.value === auth.type)?.label} is sent, from ${from}.`;
+  });
 
   readonly apiKeyAddToOptions: { label: string; value: "header" | "query" }[] = [
     { label: "Header", value: "header" },

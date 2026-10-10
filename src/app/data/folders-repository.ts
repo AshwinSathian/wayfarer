@@ -1,5 +1,6 @@
 import { Injectable, inject } from "@angular/core";
-import { CollectionId, Folder, FolderId, RequestDoc } from "../models/collections";
+import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
+import { CollectionId, Folder, FolderId, InheritedPatch, RequestDoc } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
 
@@ -42,10 +43,38 @@ export class FoldersRepository {
         parentFolderId: payload.parentFolderId,
         name: payload.name.trim(),
         order: payload.order ?? (await this.core.nextOrder(store.index("by-order"))),
+        variables: [],
+        auth: { type: "inherit" },
+        scripts: { pre: "", post: "" },
       };
       this.core.ensureId(doc);
       await store.add(doc);
       return doc;
+    });
+  }
+
+  /** The auth and the scripts a folder holds for the requests in it (P4.9). */
+  async setFolderInherited(id: FolderId, patch: InheritedPatch<Folder>): Promise<Folder | null> {
+    return this.change(id, (folder) => ({ ...folder, auth: patch.auth, scripts: patch.scripts }));
+  }
+
+  /** Changes some variables of a folder, reading the stored rows inside the transaction that writes them (D22). */
+  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
+    return this.change(id, (folder) => ({ ...folder, variables: applyVariableChanges(folder.variables, changes) }));
+  }
+
+  private async change(id: FolderId, next: (folder: Folder) => Folder): Promise<Folder | null> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["folders"]);
+    const store = tx.objectStore("folders");
+    return this.core.commitOrRollback(tx, async () => {
+      const doc = await store.get(id);
+      if (!doc) {
+        return null;
+      }
+      const updated = { ...next(doc), meta: this.core.touchMeta(doc.meta) };
+      await store.put(updated);
+      return updated;
     });
   }
 

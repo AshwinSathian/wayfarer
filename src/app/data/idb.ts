@@ -6,6 +6,7 @@ import {
   CollectionId,
   Folder,
   FolderId,
+  InheritedPatch,
   NewRequest,
   RequestDoc,
   RequestDocId,
@@ -103,6 +104,18 @@ export class Idb {
     updates: { name?: string; description?: string }
   ): Promise<Collection | null> {
     return this.collections.renameCollection(id, updates);
+  }
+
+  async setCollectionInherited(id: CollectionId, patch: InheritedPatch<Collection>): Promise<Collection | null> {
+    return this.collections.setCollectionInherited(id, patch);
+  }
+
+  async setFolderInherited(id: FolderId, patch: InheritedPatch<Folder>): Promise<Folder | null> {
+    return this.folders.setFolderInherited(id, patch);
+  }
+
+  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
+    return this.folders.changeFolderVariables(id, changes);
   }
 
   async duplicateCollection(id: CollectionId): Promise<Collection | null> {

@@ -221,3 +221,22 @@ describe("VariableResolver", () => {
     });
   });
 });
+
+describe("folder variables (P4.9)", () => {
+  const stack: ScopeStack = {
+    environment: [row("who", "environment")],
+    // The folders' rows, outermost first: the nearest folder's row is the later one.
+    folder: [row("who", "outer folder"), row("where", "outer folder"), row("where", "inner folder"), row("what", "folder")],
+    collection: [row("who", "collection"), row("where", "collection"), row("what", "collection"), row("why", "collection")],
+  };
+
+  it("win over the collection's and lose to the environment's, the nearest folder first", () => {
+    const resolver = new VariableResolver(stack);
+    expect(resolver.resolve("{{who}} / {{where}} / {{what}} / {{why}}")).toBe("environment / inner folder / folder / collection");
+    expect(resolver.tokens({ url: "{{where}}" })[0]).toMatchObject({ source: "folder", value: "inner folder" });
+  });
+
+  it("the scopes, nearest first", () => {
+    expect(VARIABLE_SCOPES).toEqual(["local", "data", "environment", "folder", "collection", "global"]);
+  });
+});

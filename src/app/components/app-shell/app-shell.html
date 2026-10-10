@@ -316,6 +316,9 @@
                   @if (clearedOldData().includes('history')) {
                   History now keeps credentials masked. History saved by an earlier version held them as they were sent and was removed.
                   }
+                  @if (clearedOldData().includes('collections')) {
+                  Collections and folders now hold auth and scripts for the requests in them. Collections saved by an earlier version were removed. Environments, secrets and history were kept.
+                  }
                 }
               </p>
               <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="clearedNoticeDismissed.set(true)">Dismiss</button>

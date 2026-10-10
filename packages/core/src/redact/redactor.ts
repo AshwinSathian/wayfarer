@@ -114,6 +114,7 @@ export class Redactor {
     return rows.map((row) => ({ ...row, value: isCredentialHeader(row.key) ? this.credential(row.value, options) : this.text(row.value) }));
   }
 
+  auth<T extends AuthConfig>(auth: T, options?: RedactOptions): T;
   auth(auth: AuthConfig, options: RedactOptions = {}): AuthConfig {
     switch (auth.type) {
       case "bearer":
@@ -123,6 +124,7 @@ export class Redactor {
       case "apikey":
         return { ...auth, value: this.credential(auth.value, options) };
       case "none":
+      case "inherit":
         return auth;
     }
   }

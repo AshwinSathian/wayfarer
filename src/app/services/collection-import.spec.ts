@@ -1,15 +1,15 @@
 import { TestBed } from "@angular/core/testing";
-import { requestContent } from "../../testing/request-fixtures";
+import { inCollection, inFolder, requestContent } from "../../testing/request-fixtures";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CollectionImport } from "./collection-import";
 import { CollectionsStore } from "./collections-store";
 
 const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
 const file = JSON.stringify({
-  $id: "wayfarer/collection/2",
+  $id: "wayfarer/collection/3",
   meta: meta("export-1"),
-  collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [] },
-  folders: [{ id: "f-1", meta: meta("f-1"), collectionId: "col-1", name: "Auth", order: 1 }],
+  collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [], ...inCollection },
+  folders: [{ id: "f-1", meta: meta("f-1"), collectionId: "col-1", name: "Auth", order: 1, ...inFolder }],
   requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", folderId: "f-1", name: "Login", order: 1, ...requestContent({ method: "POST", url: "https://api.test/login" }) }],
 });
 

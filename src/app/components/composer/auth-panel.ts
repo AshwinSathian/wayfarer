@@ -10,6 +10,7 @@ import { ComposerView } from "./composer-view";
   template: `
     <app-auth-editor
       [auth]="store.draft().auth"
+      [inherited]="store.inheritedAuth()"
       [showPassword]="view.showAuthPassword()"
       (authTypeChange)="view.onAuthTypeChange($event)"
       (authChange)="store.patch({ auth: $event })"

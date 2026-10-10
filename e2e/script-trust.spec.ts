@@ -17,9 +17,9 @@ function collectionFile(post: string) {
     mimeType: "application/json",
     buffer: Buffer.from(
       JSON.stringify({
-        $id: "wayfarer/collection/2",
+        $id: "wayfarer/collection/3",
         meta: meta("file"),
-        collection: { id: "col-shared", meta: meta("col-shared"), name: "Shared collection", order: 0, variables: [] },
+        collection: { id: "col-shared", meta: meta("col-shared"), name: "Shared collection", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } },
         folders: [],
         requests: [
           {
@@ -130,7 +130,7 @@ test("a script written here runs without a review, also after it is saved into a
     });
     const now = Date.now();
     const tx = db.transaction(["collections"], "readwrite");
-    tx.objectStore("collections").put({ id: "col-mine", meta: { id: "col-mine", createdAt: now, updatedAt: now, version: 1 }, name: "Mine", order: 0, variables: [], scriptTrust: { trusted: true } });
+    tx.objectStore("collections").put({ id: "col-mine", meta: { id: "col-mine", createdAt: now, updatedAt: now, version: 1 }, name: "Mine", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true } });
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     db.close();
   });

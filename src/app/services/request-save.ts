@@ -2,7 +2,7 @@ import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestFiles } from "./request-files";
 import { StoragePersistence } from "./storage-persistence";
-import { scriptDigest, scriptsOf, type RequestContent } from "@wayfarer/core";
+import { ancestorsOf, scriptDigest, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
@@ -30,6 +30,16 @@ export class RequestSave {
    * that request in place or opens "Save to Collection" to create a new one.
    */
   readonly loadedCollectionRequest = signal<RequestDoc | null>(null);
+  /**
+   * What the bound request inherits from, as stored now (P4.9): its
+   * collection, then its folders from the outside in. Empty for a request
+   * of no collection.
+   */
+  readonly ancestors: Signal<Ancestor[]> = computed(() => {
+    const bound = this.loadedCollectionRequest();
+    const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
+  });
   readonly savingRequest = signal(false);
   readonly saveAsDialogVisible = signal(false);
   readonly saveAsName = signal("");

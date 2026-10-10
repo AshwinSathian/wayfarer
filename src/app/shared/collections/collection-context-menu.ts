@@ -3,7 +3,7 @@ import { UiTreeNode } from "../../ui/tree";
 import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
-export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "variables";
+export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "settings";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
@@ -21,7 +21,7 @@ export function buildContextItems(
     return [
       { label: "New Folder", icon: "folder", command: () => dispatch("new-folder", node) },
       { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
-      { label: "Variables", icon: "dns", command: () => dispatch("variables", node) },
+      { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
       { separator: true },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
@@ -34,6 +34,7 @@ export function buildContextItems(
   if (data.type === "folder") {
     return [
       { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
+      { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },

@@ -5,11 +5,17 @@ import {
   VariableNestingError,
   VariableResolver,
   browserLimits,
+  buildAuthHeaders,
+  buildAuthQueryParam,
+  credentialsOf,
+  effectiveAuth,
   emptyRequest,
   isCredentialHeader,
   isHttpMethod,
   newId,
   parseJson,
+  resolveAuth,
+  type Ancestor,
   type Draft,
   type AuthConfig,
   type BrowserLimits,
@@ -45,7 +51,6 @@ import { SecretsVault } from "../services/secrets-vault";
 import { TransportRouter } from "../services/transport-router";
 import { VariableToken } from "../services/variable-focus";
 import { writeToClipboard } from "../shared/http/clipboard";
-import { buildAuthHeaders, buildAuthQueryParam, resolveAuth } from "../shared/http/request-auth";
 import {
   appendQueryParam,
   buildUrlFromParams,
@@ -91,20 +96,6 @@ export function sentHeaders(rows: Row[]): [string, string][] {
 export class UnresolvedVariablesError extends SendBlockedError {
   constructor(readonly names: string[]) {
     super(`${names.map((name) => `{{${name}}}`).join(", ")} ${names.length === 1 ? "has" : "have"} no value. The request was not sent.`);
-  }
-}
-
-/** The credentials of an Auth tab, as resolved: what a redactor must look for besides vault secrets. */
-function credentialsOf(auth: AuthConfig): string[] {
-  switch (auth.type) {
-    case "bearer":
-      return [auth.token];
-    case "basic":
-      return [auth.password];
-    case "apikey":
-      return [auth.value];
-    case "none":
-      return [];
   }
 }
 
@@ -182,7 +173,7 @@ export class WorkspaceStore {
   /** Whether the draft's scripts may run (`ScriptTrust`). */
   readonly scriptsAllowed = this.trust.allowed;
   /** The draft has a script that is waiting for the user's review. */
-  readonly scriptsHeld = computed(() => !this.trust.allowed() && scriptsOf(this.draft()).length > 0);
+  readonly scriptsHeld = computed(() => !this.trust.allowed() && this.hasScripts(this.saved.ancestors()));
   /** The last send left the request's scripts out, for that reason. */
   readonly scriptsSkipped = signal(false);
 
@@ -218,17 +209,22 @@ export class WorkspaceStore {
 
   /**
    * Where a `{{variable}}` of the draft gets its value: the active
-   * environment, then the collection the request was opened from, then the
-   * globals. A request not saved yet has no collection.
+   * environment, then the folders the request was opened from (the nearest
+   * first), then its collection, then the globals. A request not saved yet
+   * has no collection.
    */
   private readonly scopes = computed<ScopeStack>(() => {
-    const collectionId = this.saved.loadedCollectionRequest()?.collectionId;
+    const [collection, ...folders] = this.saved.ancestors();
     return {
       environment: this.environments.activeEnvironment()?.vars,
-      collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables,
+      // The outermost folder's rows first: a later row wins, so the nearest folder does.
+      folder: folders.flatMap((folder) => folder.variables),
+      collection: collection?.variables,
       global: this.environments.globals(),
     };
   });
+  /** What the draft's auth is when it inherits, and from where (P4.9). */
+  readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
   /**
    * What the browser will do to the draft if it is sent now (plan P2.14):
    * the headers it drops, whether it asks the server first, mixed content.
@@ -246,7 +242,7 @@ export class WorkspaceStore {
         return text;
       }
     };
-    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(draft.auth, resolve)))].map(
+    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(this.sentAuth(draft.auth), resolve)))].map(
       ([name, value]): [string, string] => [resolve(name), resolve(value)]
     );
     const contentType = isBodyMethod(draft.method) ? bodyContentType(draft.body) : undefined;
@@ -451,12 +447,14 @@ export class WorkspaceStore {
     const controller = new AbortController();
     this.inFlight = controller;
 
+    // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
+    const inherited = this.saved.ancestors();
     // Asked of what is stored now, not of a signal that may be a moment behind.
-    const allowed = this.trust.check();
+    const allowed = this.trust.check(inherited);
     const runScripts = allowed instanceof Promise ? await allowed : allowed;
-    this.scriptsSkipped.set(!runScripts && scriptsOf(draft).length > 0);
-    // What a pre-request script may move the request away from (plan Q6).
-    const composed: Composed | undefined = runScripts && draft.scripts.pre.trim() ? { url: endpointText, scopes: this.scopes() } : undefined;
+    this.scriptsSkipped.set(!runScripts && this.hasScripts(inherited));
+    // What a pre-request script may move the request away from (plan Q6): the request before the first of them, an inherited one included.
+    const composed: Composed | undefined = runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim()) ? { url: endpointText, scopes: this.scopes() } : undefined;
 
     let result: RequestExecutionResult;
     try {
@@ -468,6 +466,8 @@ export class WorkspaceStore {
         template: this.snapshot(),
         buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false, composed),
         signal: controller.signal,
+        inherited,
+        folderVariables: () => this.scopes().folder ?? [],
         ...this.scriptBinding(),
       });
     } catch (error) {
@@ -509,6 +509,16 @@ export class WorkspaceStore {
         change: (changes) => this.collections.changeCollectionVariables(collectionId, changes),
       },
     };
+  }
+
+  /** The draft, or something it inherits from, has a script. */
+  private hasScripts(inherited: Ancestor[]): boolean {
+    return [...inherited, this.draft()].some((holder) => scriptsOf(holder).length > 0);
+  }
+
+  /** The auth that is sent for `auth`: itself, or what it inherits. */
+  private sentAuth(auth: AuthConfig): AuthConfig {
+    return effectiveAuth(auth, this.saved.ancestors()).auth;
   }
 
   /** Why this method cannot be sent, or "" when it can. */
@@ -614,7 +624,7 @@ export class WorkspaceStore {
     const endpointText = content.url;
     // First without the vault: this pass says which secrets the request needs.
     const probe = new VariableResolver(this.scopes());
-    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body), ...credentialsOf(content.auth)]) {
+    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body), ...credentialsOf(this.sentAuth(content.auth))]) {
       probe.resolve(text);
     }
     const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
@@ -679,7 +689,7 @@ export class WorkspaceStore {
     resolver: VariableResolver
   ): BuiltRequest {
     const resolve = (text: string): string => resolver.resolve(text);
-    const auth = resolveAuth(content.auth, resolve);
+    const auth = resolveAuth(this.sentAuth(content.auth), resolve);
     // One value per name, whatever its case, the later one winning: the auth
     // header replaces a row of the same name. A Map keeps a name such as
     // "__proto__" as data (F56).

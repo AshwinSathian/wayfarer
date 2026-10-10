@@ -57,6 +57,10 @@ export interface SeededRequest {
   preRequestScript?: string;
   postRequestScript?: string;
   tests?: unknown[];
+  /** What the request's collection holds for it (P4.9), as stored. Its scripts count as written here, like the request's. */
+  collection?: { auth?: unknown; scripts?: { pre: string; post: string }; variables?: Record<string, string> };
+  /** Puts the request in a folder that holds this. */
+  folder?: { auth?: unknown; scripts?: { pre: string; post: string }; variables?: Record<string, string> };
 }
 
 /**
@@ -92,8 +96,10 @@ export async function seedAndOpen(
       const digest = async (text: string) =>
         Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
       const scripts = { pre: request.preRequestScript ?? "", post: request.postRequestScript ?? "" };
-      const approved = await Promise.all([scripts.pre, scripts.post].filter((script) => script.trim()).map(digest));
-      const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
+      const none = { pre: "", post: "" };
+      const inherited = [request.collection?.scripts ?? none, request.folder?.scripts ?? none];
+      const approved = await Promise.all([scripts, ...inherited].flatMap((held) => [held.pre, held.post]).filter((script) => script.trim()).map(digest));
+      const tx = db.transaction(["environments", "collections", "folders", "requests", "meta"], "readwrite");
       const rows = (record: Record<string, string>) =>
         Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
       tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars: rows(vars), order: 0 });
@@ -103,13 +109,28 @@ export async function seedAndOpen(
         meta: meta("col-tw"),
         name: "Tripwire collection",
         order: 0,
-        variables: [],
+        variables: rows(request.collection?.variables ?? {}),
+        auth: request.collection?.auth ?? { type: "none" },
+        scripts: inherited[0],
         scriptTrust: approved.length ? { trusted: true, approved } : { trusted: true },
       });
+      if (request.folder) {
+        tx.objectStore("folders").put({
+          id: "fol-tw",
+          meta: meta("fol-tw"),
+          collectionId: "col-tw",
+          name: "Tripwire folder",
+          order: 0,
+          variables: rows(request.folder.variables ?? {}),
+          auth: request.folder.auth ?? { type: "inherit" },
+          scripts: inherited[1],
+        });
+      }
       tx.objectStore("requests").put({
         id: "req-tw",
         meta: meta("req-tw"),
         collectionId: "col-tw",
+        ...(request.folder && { folderId: "fol-tw" }),
         name: "Tripwire request",
         order: 0,
         method: request.method,
@@ -135,9 +156,16 @@ export async function seedAndOpen(
     { vars, request }
   );
   const response = await page.reload();
+  if (request.folder) await openFolder(page, "Tripwire folder");
   await page.getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(request.url);
   return response;
+}
+
+/** A folder starts closed: opens it from the keyboard, as a user would with the row selected. */
+export async function openFolder(page: Page, name: string): Promise<void> {
+  await page.getByText(name, { exact: true }).click();
+  await page.keyboard.press("ArrowRight");
 }
 
 export const PASSPHRASE = "correct horse battery staple";

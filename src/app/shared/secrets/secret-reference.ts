@@ -22,6 +22,11 @@ export function extractSecretId(value: string | undefined): SecretId | null {
   return match ? match[1] : null;
 }
 
+/** The secret a protected variable stands for: its value is one reference and nothing else. `null` for any other value. */
+export function protectedSecretId(value: string | undefined): SecretId | null {
+  return value?.trim().match(new RegExp(`^${SECRET_REFERENCE_PATTERN.source}$`, "i"))?.[1] ?? null;
+}
+
 export function buildSecretReference(id: SecretId): string {
   return `{{$secret.${id}}}`;
 }

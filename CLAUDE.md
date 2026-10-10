@@ -374,6 +374,11 @@ code errors.
   read (plan Q6, claim C-053); a no throws `SendDeclinedError`, and the
   executor then puts back what the script set. It compares one send and
   the docs say what that misses: do not word it as more.
+- A script's `set` on a protected variable (its value is one
+  `{{$secret.<id>}}` reference) is encrypted into that secret by
+  `RequestExecutor.intoVault` and is left out of the changes that are
+  stored. A locked vault refuses with a console line; it does not prompt.
+  A new way for a script to write a value goes through `applyChanges`.
 - A script's duration is the wall time of `ScriptSandbox.execute`. The
   request's duration never includes a script's (F11).
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,

@@ -2,6 +2,8 @@ import { Injectable, inject } from "@angular/core";
 import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
+import { SecretsVault } from "./secrets-vault";
+import { protectedSecretId } from "../shared/secrets/secret-reference";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox, scriptResponse, type ScriptResponseContext, type ScriptRunExtras } from "../shared/scripts/script-sandbox";
 import {
@@ -262,6 +264,7 @@ export class RequestExecutor {
   private readonly responseInspector = inject(ResponseInspector);
   private readonly scriptSandbox = inject(ScriptSandbox);
   private readonly assertionRunner = inject(AssertionRunner);
+  private readonly vault = inject(SecretsVault);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
     const requestId = newId();
@@ -496,8 +499,7 @@ export class RequestExecutor {
       const scriptStarted = performance.now();
       script = await this.scriptSandbox.execute(spec.postRequestScript, this.getEnvSnapshot(), responseCtx, undefined, this.scriptExtras(spec, "test", sent));
       timings.postScriptMs = Math.round(performance.now() - scriptStarted);
-      const masked = (changes: VariableChange[]) => changes.map(({ key, value }) => ({ key, value: value === null ? null : variables.text(value) }));
-      await this.applyChanges(spec, { environment: masked(script.changes.environment), collection: masked(script.changes.collection), global: masked(script.changes.global) }, notes);
+      await this.applyChanges(spec, script.changes, notes, variables);
     }
 
     if (spec.tests.length) {
@@ -561,18 +563,56 @@ export class RequestExecutor {
    * Stores what a script set and removed, scope by scope. Applied to the
    * stored rows, not to this tab's copy of them. A change that has nowhere
    * to go is said in the console, not dropped without a word.
+   *
+   * A value set on a protected variable goes into the vault (`intoVault`)
+   * and never into these stores. `secrets` masks vault secrets in every
+   * other value: a post-response script may have read one from the response.
    */
-  private async applyChanges(spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[]): Promise<void> {
-    if (changes.environment.length) {
-      const active = this.environmentsService.activeEnvironment();
-      if (active) await this.environmentsService.changeEnvironment(active.meta.id, changes.environment);
+  private async applyChanges(spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[], secrets?: Redactor): Promise<void> {
+    const active = this.environmentsService.activeEnvironment();
+    const kept = async (api: string, rows: Row[], scope: VariableChange[]): Promise<VariableChange[]> =>
+      (await this.intoVault(api, rows, scope, notes)).map(({ key, value }) => ({ key, value: value === null || !secrets ? value : secrets.text(value) }));
+    const environment = await kept("pm.environment", active?.vars ?? [], changes.environment);
+    const global = await kept("pm.globals", this.environmentsService.globals(), changes.global);
+    const collection = await kept("pm.collectionVariables", spec.collection?.variables() ?? [], changes.collection);
+    if (environment.length) {
+      if (active) await this.environmentsService.changeEnvironment(active.meta.id, environment);
       else notes.push("[warn] pm.environment: no environment is active, so what the script set was not kept.");
     }
-    if (changes.global.length) await this.environmentsService.changeGlobals(changes.global);
-    if (changes.collection.length) {
-      if (spec.collection) await spec.collection.change(changes.collection);
+    if (global.length) await this.environmentsService.changeGlobals(global);
+    if (collection.length) {
+      if (spec.collection) await spec.collection.change(collection);
       else notes.push("[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.");
     }
+  }
+
+  /**
+   * A script set a protected variable (P3.12): the value is encrypted into
+   * the secret the variable refers to, and the variable keeps its reference.
+   * A locked vault refuses, with a line in the console; the user is not
+   * asked for the passphrase in the middle of a script's work. Gives back
+   * the changes that are not of this kind, to be stored as variables.
+   *
+   * ponytail: "protected" is read from this tab's copy of the rows. A
+   * variable another tab protected in the last moment is written as text;
+   * to close that, `applyVariableChanges` would have to refuse to replace a
+   * reference inside its transaction.
+   */
+  private async intoVault(api: string, rows: Row[], changes: VariableChange[], notes: string[]): Promise<VariableChange[]> {
+    const rest: VariableChange[] = [];
+    for (const change of changes) {
+      const reference = rows.find((row) => row.key === change.key && protectedSecretId(row.value) !== null)?.value;
+      const id = protectedSecretId(reference);
+      if (change.value === null || id === null) {
+        rest.push(change);
+        // Its own reference written back, as a script that copies every variable does: nothing to do.
+      } else if (change.value.trim() !== reference?.trim()) {
+        const refused = (why: string) => notes.push(`[warn] ${api}.set(${JSON.stringify(change.key)}): ${why}, so its value was not changed.`);
+        if (!this.vault.isUnlocked()) refused("this variable is protected and the vault is locked");
+        else if (!(await this.vault.replaceSecret(id, change.value))) refused("the secret this variable refers to is not in the vault");
+      }
+    }
+    return rest;
   }
 
   private isJsonPayload(payload: unknown): boolean {

@@ -32,6 +32,19 @@ export class SecretsRepository {
     });
   }
 
+  /** Gives a secret that is there a new ciphertext, under its id and name. False when the vault has no such secret. */
+  async replaceCipher(id: SecretId, envelope: SecretEnvelope): Promise<boolean> {
+    await this.core.ensurePersistentSupport();
+    const tx = await this.core.txReadWrite(["secrets"]);
+    const store = tx.objectStore("secrets");
+    return this.core.commitOrRollback(tx, async () => {
+      const doc = await store.get(id);
+      if (!doc) return false;
+      await store.put({ ...doc, envelope });
+      return true;
+    });
+  }
+
   async readCipher(id: SecretId): Promise<SecretEnvelope | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadonly(["secrets"]);

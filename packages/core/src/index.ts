@@ -1,5 +1,14 @@
 export { BinaryBody, decodeEnvelope } from "./http/response-body";
 export { newId } from "./id";
+export { evaluatePath } from "./view/json-path";
+export {
+  HEX_VIEW_BYTES,
+  hexDump,
+  indentXml,
+  previewDocument,
+  responseViews,
+  type ResponseView,
+} from "./view/response-view";
 export { BODY_MODES, FORBIDDEN_METHODS, HTTP_METHODS, RAW_CONTENT_TYPES, RAW_LANGUAGES, emptyAuth, emptyRequest, fileIdsOf, isHttpMethod } from "./model/request";
 export type {
   AssertionOperator,

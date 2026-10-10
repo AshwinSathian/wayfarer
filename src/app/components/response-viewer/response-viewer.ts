@@ -1,15 +1,17 @@
 import { JsonPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Signal, effect, signal, inject, input, model } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Signal, computed, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { buildCurlCommand, exportRedactor, redactedRequest, toHar } from "../../shared/inspect/export";
-import { BinaryBody, type RedactOptions } from "@wayfarer/core";
+import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type RedactOptions, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
 import {
@@ -17,6 +19,7 @@ import {
   WorkerSearchResult,
 } from "../../shared/json-worker/json-worker-client";
 import { JsonEditor } from "../json-editor/json-editor";
+import { HtmlPreview } from "./html-preview";
 import {
   ResponseExportContext,
   buildExportEntry,
@@ -54,7 +57,9 @@ interface ResponseHeader {
     MatTabNav, MatTabLink, MatTabNavPanel,
     MatTooltip,
     JsonEditor,
+    HtmlPreview,
     MatButton, MatIconButton,
+    MatSelect, MatOption,
     MatMenu, MatMenuItem, MatMenuTrigger,
   ],
   templateUrl: "./response-viewer.html",
@@ -89,6 +94,10 @@ export class ResponseViewer {
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
   readonly redirectedTo = input<string>();
+  /** The `Content-Type` header as received: it chooses the view. */
+  readonly responseContentType = input("");
+  /** The browser withheld some response headers (a direct answer from another origin). */
+  readonly headersLimited = input(false);
 
   readonly exportItems: UiMenuItem[] = [
     {
@@ -139,6 +148,43 @@ export class ResponseViewer {
   private previousResponseData: string | null = null;
   private previousResponseError: string | null = null;
 
+  readonly viewLabels: Record<ResponseView, string> = { json: "JSON", text: "Text", xml: "XML", html: "Preview", image: "Image", hex: "Hex" };
+  readonly hexViewBytes = HEX_VIEW_BYTES;
+  /** The body as text: of an error status too, since a 404 page is as much HTML as a 200 one. */
+  readonly bodyText = computed(() => (this.isError() ? this.responseError() : this.responseData()));
+  /** The views this body can be shown in; the first is the one its content type asks for. */
+  readonly views = computed(() => {
+    const binary = this.responseBinary();
+    return responseViews({
+      contentType: binary?.contentType ?? this.responseContentType(),
+      binary: !!binary,
+      json: this.responseBodyIsJson(),
+      length: binary?.byteLength ?? this.bodyText().length,
+    });
+  });
+  /** The user's choice of view for this response. */
+  readonly viewOverride = signal<ResponseView | null>(null);
+  readonly view = computed(() => {
+    const chosen = this.viewOverride();
+    return chosen && this.views().includes(chosen) ? chosen : this.views()[0];
+  });
+  readonly xmlText = computed(() => (this.view() === "xml" ? indentXml(this.bodyText()) : ""));
+  /** A dot path into the JSON body, such as `data.items[*].id`. */
+  readonly jsonFilter = signal("");
+  /** What the path finds, formatted; "" when it finds nothing; null when there is no path. */
+  readonly filteredJson = computed(() => {
+    const path = this.jsonFilter().trim();
+    const parsed = path ? parseJson(this.bodyText()) : null;
+    if (!parsed?.ok) {
+      return null;
+    }
+    const found = evaluatePath(parsed.value, path);
+    return found === undefined ? "" : (stringifyJson(found, 4) ?? "");
+  });
+  /** A `blob:` URL of the image on screen. It is revoked when the response or the view changes. */
+  readonly imageUrl = signal<string | null>(null);
+  readonly hexText = signal("");
+
   constructor() {
     // Signal-driven replacement for ngOnChanges: this component's response
     // data/formatting/search state can change either because a new @Input
@@ -161,6 +207,8 @@ export class ResponseViewer {
         this.previousResponseData = data;
         this.previousResponseError = error;
         this.resetSearchState();
+        this.viewOverride.set(null);
+        this.jsonFilter.set("");
       }
 
       if (!isJson) {
@@ -169,6 +217,35 @@ export class ResponseViewer {
       }
 
       this.prepareFormatting();
+    });
+
+    effect((onCleanup) => {
+      const binary = this.responseBinary();
+      if (this.view() !== "image" || !binary) {
+        this.imageUrl.set(null);
+        return;
+      }
+      // The type is one of the image types `responseViews` allows, never the server's free choice.
+      const url = URL.createObjectURL(new Blob([binary.bytes], { type: binary.contentType }));
+      this.imageUrl.set(url);
+      onCleanup(() => URL.revokeObjectURL(url));
+    });
+
+    effect(() => {
+      const binary = this.responseBinary();
+      if (this.view() !== "hex" || !binary) {
+        this.hexText.set("");
+        return;
+      }
+      const head = binary.bytes.slice(0, HEX_VIEW_BYTES);
+      if (head instanceof Blob) {
+        // A body over the display cap was never held as one buffer: read its start only.
+        void head.arrayBuffer().then((buffer) => {
+          if (this.responseBinary() === binary) this.hexText.set(hexDump(new Uint8Array(buffer)));
+        });
+      } else {
+        this.hexText.set(hexDump(new Uint8Array(head)));
+      }
     });
   }
 
@@ -191,7 +268,7 @@ export class ResponseViewer {
     return this.testResults().filter((r) => !r.passed).length;
   }
 
-  /** Saves a binary body with its exact bytes (F05); preview ships in v2.0 (P2.13). */
+  /** Saves a binary body with its exact bytes (F05). */
   downloadBinary(): void {
     const binary = this.responseBinary();
     if (!binary) {
@@ -263,7 +340,8 @@ export class ResponseViewer {
       return;
     }
 
-    if (this.activeTab() !== "body") {
+    // Formatted only for the JSON view: JSON over 5 MB opens as plain text.
+    if (this.activeTab() !== "body" || this.view() !== "json") {
       return;
     }
 
@@ -428,14 +506,6 @@ export class ResponseViewer {
     this.searchActiveIndex.set(0);
     this.searchPending.set(false);
     this.searchToken++;
-  }
-
-  onReadOnlyBodyChange(value: string): void {
-    this.formattedBody.set(value);
-  }
-
-  onReadOnlyErrorChange(value: string): void {
-    this.formattedError.set(value);
   }
 
   onTabChange(value: ResponseTab | string | number | undefined): void {

@@ -5,7 +5,7 @@ import {
   TestAssertion,
   TestResult,
 } from "../../models/test-assertion";
-import { parseJson } from "@wayfarer/core";
+import { evaluatePath, parseJson } from "@wayfarer/core";
 
 export interface AssertionResponseContext {
   statusCode: number;
@@ -73,7 +73,7 @@ export class AssertionRunner {
         if (!key?.trim()) {
           return parsed;
         }
-        return this.resolvePath(parsed, key);
+        return evaluatePath(parsed, key);
       }
     }
   }
@@ -87,21 +87,6 @@ export class AssertionRunner {
       return parsed.ok ? parsed.value : body;
     }
     return body;
-  }
-
-  private resolvePath(obj: unknown, path: string): unknown {
-    const segments = path
-      .replace(/\[(\d+)\]/g, ".$1")
-      .split(".")
-      .filter(Boolean);
-    let current: unknown = obj;
-    for (const seg of segments) {
-      if (current === null || current === undefined) {
-        return undefined;
-      }
-      current = (current as Record<string, unknown>)[seg];
-    }
-    return current;
   }
 
   private applyOperator(

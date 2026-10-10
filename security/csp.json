@@ -5,7 +5,10 @@
     "connect-src is open because sending requests to arbitrary user-specified hosts is the app's core feature.",
     "worker-src covers Monaco's workers and the script sandbox worker, both same-origin bundles.",
     "style-src keeps 'unsafe-inline' (plan P1.5.16, tested 2026-10-07 without it in Chromium, Firefox and WebKit): Monaco writes style attributes (top/height/width of every line) and a codicon <style> element; Angular adds its component styles as <style> elements and 13 template lines have a static style attribute; the CDK adds its overlay and dialog styles as <style> elements. Monaco alone rules it out, and a static site has no per-response nonce.",
-    "Fonts are self-hosted and icons are inline SVG, so no third-party origin appears here."
+    "Fonts are self-hosted and icons are inline SVG, so no third-party origin appears here.",
+    "img-src blob: is the image preview of a response (P2.13): the bytes are in the page already, and the blob's type is one of a fixed list of image types.",
+    "frame-src blob: is the HTML preview of a response (P2.13, plan D19): a sandboxed frame with no allow-* token, whose document carries its own policy (default-src 'none'). blob: only, so the frame cannot be navigated to any other address.",
+    "frame-ancestors is 'self', not 'none' (plan D25, maintainer, 2026-10-10): a blob: document inherits this policy, and WebKit applies the inherited frame-ancestors to the preview frame itself, so 'none' left the preview blank in Safari. No other origin can frame the app; e2e/viewers.spec.ts asserts both."
   ],
   "directives": {
     "default-src": [
@@ -20,7 +23,8 @@
     ],
     "img-src": [
       "'self'",
-      "data:"
+      "data:",
+      "blob:"
     ],
     "font-src": [
       "'self'",
@@ -43,10 +47,10 @@
       "'self'"
     ],
     "frame-ancestors": [
-      "'none'"
+      "'self'"
     ],
     "frame-src": [
-      "'none'"
+      "blob:"
     ],
     "manifest-src": [
       "'self'"

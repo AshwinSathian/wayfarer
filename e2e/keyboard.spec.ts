@@ -1,6 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { still } from "./support/settled";
 
 // Keyboard-only use of the app's own widgets (docs: WAI-ARIA Authoring
 // Practices patterns). One test per widget, in all three engines.
@@ -358,7 +357,6 @@ test("history drawer: asked for again as the last close is reported, it opens an
   await expect(drawer).toBeVisible();
   await page.getByRole("button", { name: "Close history" }).click();
   await expect(drawer).toHaveCount(0);
-  await still(page.locator("mat-sidenav.mat-drawer-end"));
 
   // In one task: the click that asks for the drawer, then the event Material
   // ends a slide on, before Angular has told Material about the click.
@@ -368,7 +366,6 @@ test("history drawer: asked for again as the last close is reported, it opens an
   });
 
   await expect(drawer).toBeVisible();
-  await still(page.locator("mat-sidenav.mat-drawer-end"));
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("button", { name: "Close history" })).toBeVisible();
 });
@@ -421,7 +418,6 @@ test("composer and response split: the gutter is a focusable separator moved by 
   await page.goto("/");
   const gutter = page.getByRole("separator", { name: "Resize the composer and the response" });
   const composer = page.locator(".composer-pane");
-  await still(gutter);
   const total = (await page.locator(".composer-response-splitter").boundingBox())!.width;
   const width = async () => (await composer.boundingBox())!.width;
 

@@ -1,0 +1,495 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: DELETE without a body 1`] = `
+"curl \\
+  -X DELETE \\
+  'http://api.test/echo'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: GET with a query and headers 1`] = `
+"curl \\
+  'http://api.test/echo?a=1&b=two%20words' \\
+  -H 'Accept: application/json' \\
+  -H 'X-Trace: t-1'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: HEAD 1`] = `
+"curl \\
+  --head \\
+  'http://api.test/echo?head=1' \\
+  -H 'X-Trace: t-2'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: PATCH with a method of its own kind 1`] = `
+"curl \\
+  -X PURGE \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: application/xml' \\
+  --data-raw '<a>1</a>'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST JSON 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: application/json' \\
+  --data-raw '{"name":"héllo","n":1}'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST form 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: application/x-www-form-urlencoded' \\
+  --data-urlencode 'q=a b&c=d' \\
+  --data-urlencode 'na+me=é' \\
+  --data-urlencode 'at=@/etc/passwd' \\
+  --data-urlencode 'empty='"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST form with one field 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: application/x-www-form-urlencoded' \\
+  --data-urlencode 'only=1'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST multipart text 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  -H 'X-Trace: t-10' \\
+  --form-string 'note=héllo' \\
+  --form-string 'second=two words; type=x'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST multipart with a file 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  --form-string 'note=with a file' \\
+  -F 'upload=@"upload file.bin"'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: POST text that starts with @ 1`] = `
+"curl \\
+  -X POST \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: text/plain' \\
+  --data-raw '@/etc/passwd'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: PUT a file 1`] = `
+"curl \\
+  -X PUT \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: image/png' \\
+  --data-binary '@pixel.png'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > curl: PUT text that tries to leave its quotes 1`] = `
+"curl \\
+  -X PUT \\
+  'http://api.test/echo' \\
+  -H 'Content-Type: text/plain' \\
+  -H 'X-Note: it'\\''s' \\
+  --data-raw 'it'\\''s "quoted" \\ $(touch pwned) \`id\`
+</script>'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: DELETE without a body 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "DELETE",
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: GET with a query and headers 1`] = `
+"const response = await fetch("http://api.test/echo?a=1&b=two%20words", {
+  method: "GET",
+  headers: [
+    ["Accept", "application/json"],
+    ["X-Trace", "t-1"],
+  ],
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: HEAD 1`] = `
+"const response = await fetch("http://api.test/echo?head=1", {
+  method: "HEAD",
+  headers: [
+    ["X-Trace", "t-2"],
+  ],
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: PATCH with a method of its own kind 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "PURGE",
+  headers: [
+    ["Content-Type", "application/xml"],
+  ],
+  body: "<a>1</a>",
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST JSON 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  headers: [
+    ["Content-Type", "application/json"],
+  ],
+  body: "{\\"name\\":\\"héllo\\",\\"n\\":1}",
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST form 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  headers: [
+    ["Content-Type", "application/x-www-form-urlencoded"],
+  ],
+  body: new URLSearchParams([["q", "a b&c=d"], ["na me", "é"], ["at", "@/etc/passwd"], ["empty", ""]]),
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST form with one field 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  headers: [
+    ["Content-Type", "application/x-www-form-urlencoded"],
+  ],
+  body: new URLSearchParams([["only", "1"]]),
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST multipart text 1`] = `
+"const form = new FormData();
+form.append("note", "héllo");
+form.append("second", "two words; type=x");
+const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  headers: [
+    ["X-Trace", "t-10"],
+  ],
+  body: form,
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST multipart with a file 1`] = `
+"import { openAsBlob } from "node:fs";
+
+const form = new FormData();
+form.append("note", "with a file");
+form.append("upload", await openAsBlob("upload file.bin"), "upload file.bin");
+const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  body: form,
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: POST text that starts with @ 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "POST",
+  headers: [
+    ["Content-Type", "text/plain"],
+  ],
+  body: "@/etc/passwd",
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: PUT a file 1`] = `
+"import { openAsBlob } from "node:fs";
+
+const response = await fetch("http://api.test/echo", {
+  method: "PUT",
+  headers: [
+    ["Content-Type", "image/png"],
+  ],
+  body: await openAsBlob("pixel.png"),
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > fetch: PUT text that tries to leave its quotes 1`] = `
+"const response = await fetch("http://api.test/echo", {
+  method: "PUT",
+  headers: [
+    ["Content-Type", "text/plain"],
+    ["X-Note", "it's"],
+  ],
+  body: "it's \\"quoted\\" \\\\ $(touch pwned) \`id\`\\n</script>",
+});
+console.log(response.status, await response.text());"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: DELETE without a body 1`] = `
+"http \\
+  --ignore-stdin \\
+  'DELETE' \\
+  'http://api.test/echo'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: GET with a query and headers 1`] = `
+"http \\
+  --ignore-stdin \\
+  'GET' \\
+  'http://api.test/echo?a=1&b=two%20words' \\
+  'Accept:application/json' \\
+  'X-Trace:t-1'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: HEAD 1`] = `
+"http \\
+  --ignore-stdin \\
+  'HEAD' \\
+  'http://api.test/echo?head=1' \\
+  'X-Trace:t-2'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: PATCH with a method of its own kind 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw '<a>1</a>' \\
+  'PURGE' \\
+  'http://api.test/echo' \\
+  'Content-Type:application/xml'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST JSON 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw '{"name":"héllo","n":1}' \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'Content-Type:application/json'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST form 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw 'q=a+b%26c%3Dd&na+me=%C3%A9&at=%40%2Fetc%2Fpasswd&empty=' \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'Content-Type:application/x-www-form-urlencoded'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST form with one field 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw 'only=1' \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'Content-Type:application/x-www-form-urlencoded'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST multipart text 1`] = `
+"http \\
+  --ignore-stdin \\
+  --multipart \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'X-Trace:t-10' \\
+  'note=héllo' \\
+  'second=two words; type=x'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST multipart with a file 1`] = `
+"http \\
+  --ignore-stdin \\
+  --multipart \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'note=with a file' \\
+  'upload@upload file.bin'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: POST text that starts with @ 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw '@/etc/passwd' \\
+  'POST' \\
+  'http://api.test/echo' \\
+  'Content-Type:text/plain'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: PUT a file 1`] = `
+"http \\
+  --ignore-stdin \\
+  'PUT' \\
+  'http://api.test/echo' \\
+  'Content-Type:image/png' \\
+  '@pixel.png'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > httpie: PUT text that tries to leave its quotes 1`] = `
+"http \\
+  --ignore-stdin \\
+  --raw 'it'\\''s "quoted" \\ $(touch pwned) \`id\`
+</script>' \\
+  'PUT' \\
+  'http://api.test/echo' \\
+  'Content-Type:text/plain' \\
+  'X-Note:it'\\''s'"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: DELETE without a body 1`] = `
+"import requests
+
+response = requests.request(
+    "DELETE",
+    "http://api.test/echo",
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: GET with a query and headers 1`] = `
+"import requests
+
+response = requests.request(
+    "GET",
+    "http://api.test/echo?a=1&b=two%20words",
+    headers={"Accept": "application/json", "X-Trace": "t-1"},
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: HEAD 1`] = `
+"import requests
+
+response = requests.request(
+    "HEAD",
+    "http://api.test/echo?head=1",
+    headers={"X-Trace": "t-2"},
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: PATCH with a method of its own kind 1`] = `
+"import requests
+
+response = requests.request(
+    "PURGE",
+    "http://api.test/echo",
+    headers={"Content-Type": "application/xml"},
+    data="<a>1</a>".encode("utf-8"),
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST JSON 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    headers={"Content-Type": "application/json"},
+    data="{\\"name\\":\\"héllo\\",\\"n\\":1}".encode("utf-8"),
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST form 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    headers={"Content-Type": "application/x-www-form-urlencoded"},
+    data=[("q", "a b&c=d"), ("na me", "é"), ("at", "@/etc/passwd"), ("empty", "")],
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST form with one field 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    headers={"Content-Type": "application/x-www-form-urlencoded"},
+    data=[("only", "1")],
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST multipart text 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    headers={"X-Trace": "t-10"},
+    files=[("note", (None, "héllo")), ("second", (None, "two words; type=x"))],
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST multipart with a file 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    files=[("note", (None, "with a file")), ("upload", ("upload file.bin", open("upload file.bin", "rb")))],
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: POST text that starts with @ 1`] = `
+"import requests
+
+response = requests.request(
+    "POST",
+    "http://api.test/echo",
+    headers={"Content-Type": "text/plain"},
+    data="@/etc/passwd".encode("utf-8"),
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: PUT a file 1`] = `
+"import requests
+
+response = requests.request(
+    "PUT",
+    "http://api.test/echo",
+    headers={"Content-Type": "image/png"},
+    data=open("pixel.png", "rb"),
+)
+print(response.status_code)
+print(response.text)"
+`;
+
+exports[`generated code (P4.6 a) > is held to its snapshots, for every target and every body mode > python-requests: PUT text that tries to leave its quotes 1`] = `
+"import requests
+
+response = requests.request(
+    "PUT",
+    "http://api.test/echo",
+    headers={"Content-Type": "text/plain", "X-Note": "it's"},
+    data="it's \\"quoted\\" \\\\ $(touch pwned) \`id\`\\n</script>".encode("utf-8"),
+)
+print(response.status_code)
+print(response.text)"
+`;

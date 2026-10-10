@@ -1,3 +1,4 @@
+import { buildCurl, redactExport } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, Signal, computed, effect, signal, inject, input, model } from "@angular/core";
 import { FormsModule } from "@angular/forms";
@@ -10,7 +11,7 @@ import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
-import { buildCurlCommand, exportRedactor, redactedRequest, toHar } from "../../shared/inspect/export";
+import { exportRedactor, redactedRequest, toHar } from "../../shared/inspect/export";
 import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type RedactOptions, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
@@ -311,7 +312,7 @@ export class ResponseViewer {
     if (!context) {
       return;
     }
-    await writeToClipboard(buildCurlCommand(redactedRequest(context, options)));
+    await writeToClipboard(buildCurl(redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options)));
   }
 
   async copyAsHar(options: RedactOptions = {}): Promise<void> {

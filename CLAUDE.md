@@ -484,7 +484,13 @@ code errors.
   `constructor`; `obj["__proto__"] = x` sets a prototype.
 - Text the user copies into a shell (cURL export) is quoted, and is never
   placed where the tool reads it as an option or a file (`--data-raw`, not
-  `-d`).
+  `-d`; `--form-string`, not `-F`, for a multipart text part). The builders
+  are `packages/core/src/export/`: `buildCurl`, and `generateCode`
+  (`@wayfarer/core/codegen`, loaded by a dynamic `import()` when code is
+  first asked for). Each takes an `ExportRequest` that went through
+  `redactExport`, and names a file instead of reading it. A new target
+  writes every value through `literal` or `shellQuote`; where a tool cannot
+  be told "this is text" (HTTPie and a leading `@`), it writes no command.
 - Imported files are untrusted: validate every field against the values the
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32

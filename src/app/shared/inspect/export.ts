@@ -40,43 +40,6 @@ export function redactedRequest(request: SentRequest, options: RedactOptions = {
   };
 }
 
-export function buildCurlCommand(context: CurlExportContext): string {
-  const parts: string[] = ["curl"];
-
-  if (context.method !== "GET") {
-    // An imported collection can carry any string as its method; only a plain token goes unquoted.
-    parts.push(`-X ${/^[A-Za-z]+$/.test(context.method) ? context.method : `'${escapeSingleQuotes(context.method)}'`}`);
-  }
-
-  parts.push(`'${escapeSingleQuotes(context.url)}'`);
-
-  for (const [key, value] of Object.entries(context.headers ?? {})) {
-    if (!key) {
-      continue;
-    }
-    parts.push(`-H '${escapeSingleQuotes(key)}: ${escapeSingleQuotes(value ?? "")}'`);
-  }
-
-  if (context.body !== undefined && context.body !== null) {
-    let bodyStr: string;
-    if (typeof context.body === "string") {
-      bodyStr = context.body;
-    } else {
-      bodyStr = stringifyJson(context.body) ?? String(context.body);
-    }
-    if (bodyStr) {
-      // --data-raw: plain -d reads a body starting with "@" from a local file.
-      parts.push(`--data-raw '${escapeSingleQuotes(bodyStr)}'`);
-    }
-  }
-
-  return parts.join(" \\\n  ");
-}
-
-function escapeSingleQuotes(value: string): string {
-  return value.replace(/'/g, "'\\''");
-}
-
 export interface InspectorExportEntry {
   id: string;
   startedDateTime: string;

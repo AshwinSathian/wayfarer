@@ -3,7 +3,7 @@ import { buildExportEntry, BuildExportEntryInput } from "./response-export-entry
 import { ResponseInspection } from "./response-inspector";
 
 const base: BuildExportEntryInput = {
-  context: { id: "ctx-1", method: "POST", url: "https://api.test/items", headers: { Accept: "*/*", "": "dropped" }, body: { a: 1 }, secrets: [], credentials: [] },
+  context: { id: "ctx-1", method: "POST", url: "https://api.test/items", headers: { Accept: "*/*", "": "dropped" }, body: { a: 1 }, exportBody: { mode: "none" }, secrets: [], credentials: [] },
   inspection: null,
   statusCode: 201,
   statusText: "Created",

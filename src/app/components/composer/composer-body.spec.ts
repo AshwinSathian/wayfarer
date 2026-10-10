@@ -226,4 +226,55 @@ describe('Composer: methods and body modes', () => {
       expect(store.variableTokens().map((token) => token.key)).toEqual(['rawOnly']);
     });
   });
+  // F31: a multipart form and a file were left out of the command without a word.
+  describe('Copy as cURL carries the body in every mode, and HEAD (P4.6 a)', () => {
+    let copied: string[];
+    beforeEach(() => {
+      copied = [];
+      vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(async (text: string) => void copied.push(text));
+      environmentsService.setActiveEnvironment(buildEnvironment({ who: 'world' }));
+      store.patch({ method: 'POST', url: 'https://a.test/upload', headers: [] });
+    });
+    afterEach(() => vi.restoreAllMocks());
+    const lines = async () => {
+      await store.copyAsCurl();
+      return copied.at(-1)!.split(' \\\n  ');
+    };
+
+    it('a form: one --data-urlencode per field that is switched on, variables replaced', async () => {
+      store.setBody({ mode: 'urlencoded', urlencoded: [{ key: 'hello', value: '{{who}} & co', enabled: true }, { key: 'off', value: 'x', enabled: false }] });
+
+      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: application/x-www-form-urlencoded'", "--data-urlencode 'hello=world & co'"]);
+    });
+
+    it('@claim:C-020 a multipart form: text as --form-string, a file as -F with its name, and no Content-Type of the app\'s own', async () => {
+      store.setBody({
+        mode: 'multipart',
+        multipart: [
+          { kind: 'text', key: 'note', value: '@{{who}}', enabled: true },
+          { kind: 'file', key: 'upload', fileId: 'file-1', fileName: 'report.pdf', enabled: true },
+        ],
+      });
+      const files = TestBed.inject(RequestFiles);
+      const read = vi.spyOn(files, 'read');
+
+      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "--form-string 'note=@world'", `-F 'upload=@"report.pdf"'`]);
+      // The file is named, not read.
+      expect(read).not.toHaveBeenCalled();
+    });
+
+    it('a file: --data-binary with its name and its type', async () => {
+      store.setBody({ mode: 'binary', binary: { fileId: 'file-2', fileName: 'pixel.png', contentType: 'image/png' } });
+
+      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: image/png'", "--data-binary '@pixel.png'"]);
+    });
+
+    it('HEAD is --head, and GET and HEAD carry no body', async () => {
+      store.setBody({ mode: 'raw', raw: { language: 'text', text: 'kept for POST' } });
+      store.setMethod('HEAD');
+      expect(await lines()).toEqual(['curl', '--head', "'https://a.test/upload'"]);
+      store.setMethod('GET');
+      expect(await lines()).toEqual(['curl', "'https://a.test/upload'"]);
+    });
+  });
 });

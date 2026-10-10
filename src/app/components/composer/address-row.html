@@ -78,6 +78,10 @@
   <mat-menu #curlMenu="matMenu">
     <button mat-menu-item type="button" (click)="store.copyAsCurl()">Copy as cURL</button>
     <button mat-menu-item type="button" (click)="store.copyAsCurl({ credentials: true })">Copy as cURL with credentials</button>
+    <!-- The same request as code, masked as the first cURL item is (P4.6 a). -->
+    <button mat-menu-item type="button" (click)="store.copyAsCode('fetch')">Copy as JavaScript (fetch)</button>
+    <button mat-menu-item type="button" (click)="store.copyAsCode('python-requests')">Copy as Python (requests)</button>
+    <button mat-menu-item type="button" (click)="store.copyAsCode('httpie')">Copy as HTTPie</button>
   </mat-menu>
   <button
     matButton="outlined" class="btn-secondary btn-square"

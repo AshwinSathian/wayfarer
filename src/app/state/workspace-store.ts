@@ -6,19 +6,25 @@ import {
   VariableResolver,
   browserLimits,
   buildAuthHeaders,
+  buildCurl,
   buildAuthQueryParam,
   credentialsOf,
   effectiveAuth,
   emptyRequest,
+  exportBody,
   isCredentialHeader,
   isHttpMethod,
   newId,
   parseJson,
+  redactExport,
   resolveAuth,
   type Ancestor,
   type Draft,
   type AuthConfig,
   type BrowserLimits,
+  type CodeTarget,
+  type ExportBody,
+  type ExportSource,
   type FileRef,
   type MultipartPart,
   type RedactOptions,
@@ -60,7 +66,6 @@ import {
 } from "../shared/http/request-url";
 import { BinaryBody, scriptsOf } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
-import { buildCurlCommand, redactedRequest } from "../shared/inspect/export";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { Confirm } from "../ui/confirm";
@@ -79,6 +84,18 @@ interface SentBody {
 /** A body as text, for the places that show or copy one. A file or a form has none. */
 function textOf(body: BuiltRequest["body"]): string | undefined {
   return typeof body === "string" ? body : undefined;
+}
+
+/**
+ * A body as it was sent, in the form an export writes: text and fields as
+ * they went out (a vault secret in them is masked by the export), a file by
+ * the name it was picked under.
+ */
+function sentExportBody(sent: BuiltRequest["body"], composed: RequestBody): ExportBody {
+  if (sent === undefined) return { mode: "none" };
+  if (typeof sent === "string") return composed.mode === "urlencoded" ? { mode: "urlencoded", fields: [...new URLSearchParams(sent)] } : { mode: "raw", text: sent };
+  if (sent instanceof FormData) return { mode: "multipart", parts: [...sent].map(([name, value]) => (typeof value === "string" ? { name, value } : { name, fileName: value.name })) };
+  return { mode: "binary", fileName: composed.binary?.fileName ?? "" };
 }
 
 const blankRow = (): Row => ({ key: "", value: "", enabled: true });
@@ -542,28 +559,44 @@ export class WorkspaceStore {
   }
 
   /**
-   * Copies the draft as a cURL command. Credentials are masked unless the
-   * user asks for them. A vault secret is never read for this: its
-   * `{{$secret.…}}` reference stays as written.
+   * Copies the draft as a cURL command, with its body in every mode: a
+   * file is named, not read. Credentials are masked unless the user asks
+   * for them. A vault secret is never read for this: its `{{$secret.…}}`
+   * reference stays as written.
    */
   async copyAsCurl(options: RedactOptions = {}): Promise<void> {
+    const source = this.exportSource();
+    if (source) await writeToClipboard(buildCurl(redactExport(source, options)));
+  }
+
+  /**
+   * Copies the draft as code for `target`, masked as the cURL command is.
+   * The generators are fetched the first time code is asked for.
+   */
+  async copyAsCode(target: CodeTarget): Promise<void> {
+    const source = this.exportSource();
+    if (!source) return;
+    const { generateCode } = await import("@wayfarer/core/codegen");
+    await writeToClipboard(generateCode(target, redactExport(source)));
+  }
+
+  /** The draft as it would be built now, for an export: nothing is read from the vault or from a file. */
+  private exportSource(): ExportSource | null {
     const endpoint = this.draft().url;
-    if (!endpoint) {
-      return;
-    }
-    let request: BuiltRequest;
+    if (!endpoint) return null;
+    const content = this.snapshot();
+    const resolver = new VariableResolver(this.scopes());
     try {
-      // Awaited only when the body has a file to read.
-      request = await this.build(endpoint, this.snapshot(), new VariableResolver(this.scopes()));
+      const body = exportBody(content.body, content.method, (text) => resolver.resolve(text));
+      // The type the body's mode implies, as a send adds it. A multipart form has none: its sender writes the boundary.
+      const contentType = body.mode === "none" || body.mode === "multipart" || (body.mode === "raw" && !body.text) ? undefined : bodyContentType(content.body);
+      const built = this.assemble(endpoint, content, contentType ? { data: "", contentType } : undefined, resolver);
+      return { method: built.method, url: built.url, headers: built.headers, body, secrets: built.secrets, credentials: built.credentials };
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       this.endpointError.set(error.message);
-      return;
+      return null;
     }
-    await writeToClipboard(
-      // A file or a form has no text to quote: the command is written without a body.
-      buildCurlCommand(redactedRequest({ ...request, headers: Object.fromEntries(request.headers), body: textOf(request.body) }, options))
-    );
   }
 
   refreshVariablePreview(): void {
@@ -592,10 +625,10 @@ export class WorkspaceStore {
    */
   private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean, composed?: Composed): BuiltRequest | Promise<BuiltRequest> {
     const built = this.resolveRequest(content, allowUnresolved, composed);
-    return built instanceof Promise ? built.then((request) => this.recordForExport(request)) : this.recordForExport(built);
+    return built instanceof Promise ? built.then((request) => this.recordForExport(request, content)) : this.recordForExport(built, content);
   }
 
-  private recordForExport(request: BuiltRequest): BuiltRequest {
+  private recordForExport(request: BuiltRequest, content: RequestContent): BuiltRequest {
     const id = newId();
     this.responseExportContext.set({
       id,
@@ -603,6 +636,7 @@ export class WorkspaceStore {
       url: request.url,
       headers: Object.fromEntries(request.headers),
       body: textOf(request.body),
+      exportBody: sentExportBody(request.body, content.body),
       secrets: request.secrets,
       credentials: request.credentials,
     });

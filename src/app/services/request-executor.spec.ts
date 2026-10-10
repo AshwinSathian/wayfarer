@@ -382,6 +382,48 @@ describe("RequestExecutor", () => {
     ]);
   });
 
+  it("F65: the console lines of both scripts come back, the pre-request script's first", async () => {
+    scriptSandbox.execute.mockImplementation(async (_script: string, _env: unknown, response?: unknown) => ({
+      logs: response ? ["after"] : ["before", "[warn] careful"],
+      envMutations: {},
+      testResults: [],
+    }));
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+      preRequestScript: "console.log('before'); console.warn('careful')",
+      postRequestScript: "console.log('after')",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+    expect(result.scriptLogs).toEqual(["before", "[warn] careful", "after"]);
+  });
+
+  it("masks a vault secret and a credential in everything a script wrote; a stored variable loses the secret and keeps the credential", async () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ token: "typed-credential-1" }));
+    scriptSandbox.setNextResult({
+      logs: ["echoed vault-secret-42 and typed-credential-1"],
+      envMutations: { leaked: "prefix vault-secret-42", token: "typed-credential-1" },
+      testResults: [{ label: "saw vault-secret-42", passed: false, error: "got typed-credential-1", source: "script" }],
+      error: "threw vault-secret-42",
+    });
+    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "leak()",
+      tests: [],
+      buildRequest: () => builtRequest({ secrets: ["vault-secret-42"], credentials: ["typed-credential-1"] }),
+    });
+
+    expect(result.scriptLogs).toEqual(["echoed *** and ***"]);
+    expect(result.testResults).toEqual([
+      { label: "saw ***", passed: false, error: "got ***", source: "script" },
+      { label: "Post-response script", passed: false, error: "threw ***", source: "script" },
+    ]);
+    // The secret must not be stored outside the vault. The credential was typed into this environment and stays what it was.
+    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [
+      { key: "leaked", value: "prefix ***" },
+      { key: "token", value: "typed-credential-1" },
+    ]);
+  });
+
   it("skips both scripts when they are not approved, and still sends and runs the assertions (D6)", async () => {
     const result = await service.execute({ template: TEMPLATE, runScripts: false,
       preRequestScript: "pm.environment.set('a', '1');",

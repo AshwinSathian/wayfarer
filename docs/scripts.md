@@ -74,9 +74,10 @@ on failure, which `pm.test()` catches):
 ### `console`
 
 `console.log`, `console.info`, `console.warn` (prefixed `[warn]`), and
-`console.error` (prefixed `[error]`) append formatted strings to a list:
-text as it is, anything else as JSON. **The app does not show these lines
-yet** ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
+`console.error` (prefixed `[error]`) write lines: text as it is, anything
+else as JSON. The **Tests** tab shows them under "Console", the pre-request
+script's lines first. 1,000 lines and 1 MB are kept; more is dropped, and
+the last line says `[console output truncated]`.
 
 ### `atob`, `btoa`, `setTimeout`
 
@@ -134,6 +135,16 @@ by name, and for a post-response script the response. A protected variable's
 value is its `{{$secret.…}}` reference, not the secret. A script cannot make
 a request.
 
+**What a script writes is masked.** Console lines, test names and messages,
+and a script's own error pass through the same redactor as history
+(`Redactor`, `@wayfarer/core`) before they are shown: a vault secret or a
+credential of the request reads `***`, also when the server sent it back
+and the script read it from the response. A variable a post-response script
+sets is stored, so a vault secret in its value is masked too; a credential
+that is not a vault secret is kept as it is, since it came from your
+environment. `e2e/secrets-wire.spec.ts` runs a script that writes an echoed
+secret to every one of these places and finds it in none.
+
 **Limits.** Each run gets a new engine runtime, so no script sees another's
 state. A run is stopped after 5 seconds ("Script timed out after 5000 ms"),
 when it holds more than 64 MB ("Script exceeded memory limit (64 MB)"), and
@@ -141,7 +152,9 @@ when it recurses too deep ("Script exceeded the stack limit": between
 about 700 and 1,500 calls, depending on the browser). A script cannot catch
 the time limit. After any of the three the worker is
 ended and the next run starts a new one. The page also stops waiting one
-second after the time limit, should the engine itself not answer.
+second after the time limit, should the engine itself not answer. A script
+that writes more than 1 MB of test results and variables is ended with
+"Script wrote too many test results and variables."
 
 **Loading.** The engine (about 500 kB of WebAssembly) and its worker are
 fetched the first time a script runs, from the app's own origin, and kept

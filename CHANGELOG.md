@@ -17,12 +17,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Security
 
 - **Scripts that came from somewhere else wait for you.** The scripts of an imported collection, of one restored from a backup, and of a history entry no longer run when the request is sent. The Scripts tab says so and offers a review: every script of the collection in one read-only view, and "I trust these scripts". The collection then keeps the SHA-256 of each script you approved, and a script runs only if its own digest is there, so a later import that changes one makes it wait again. Scripts you write and save in a collection you made run as before. Saving a script you have not reviewed does not approve it ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)).
+- **What a script writes is masked like history is.** A vault secret or a credential of the request reads `***` in a script's console output, test names, messages and errors, also when the server sent it back and the script read it from the response. A variable a script sets after the response cannot take a vault secret out of the vault: the secret is masked in the value that is stored.
 - A collection saved before this change has no list of approved scripts yet: its scripts wait for one review. Nothing stored was removed.
 - The Content-Security-Policy gains one keyword: `script-src 'self' 'wasm-unsafe-eval'`, so that the engine can be compiled. `eval`, `new Function` and inline script stay forbidden, and a test asserts the directive is exactly that.
 
 ### Fixed
 
-- A script that failed left no trace: a syntax error, a name that does not exist or a timeout, and the request went out as if it had no script ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)). The Tests tab now shows a failed row with the error. A script's `console` output is still not shown; that follows.
+- A script that failed left no trace: a syntax error, a name that does not exist or a timeout, and the request went out as if it had no script ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)). The Tests tab now shows a failed row with the error.
+- A script's `console` output went nowhere, though the docs said the Tests tab showed it. It does now, under "Console": up to 1,000 lines and 1 MB.
 
 ### Changed
 

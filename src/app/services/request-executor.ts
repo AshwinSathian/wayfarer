@@ -186,13 +186,17 @@ interface Shaped {
  * itself ended in an error: one that throws, or is stopped, must not look
  * like a request that has no script (F65).
  */
-function scriptRows(result: ScriptResult, name: string): TestResult[] {
-  return result.error === undefined ? result.testResults : [...result.testResults, { label: name, passed: false, error: result.error, source: "script" }];
+function scriptRows(result: ScriptResult | undefined, name: string, redactor: Redactor): TestResult[] {
+  if (!result) return [];
+  const rows: TestResult[] = result.error === undefined ? result.testResults : [...result.testResults, { label: name, passed: false, error: result.error, source: "script" }];
+  return rows.map((row) => ({ ...row, label: redactor.text(row.label), ...(row.error !== undefined && { error: redactor.text(row.error) }) }));
 }
 
 export interface RequestExecutionResult {
   durationMs: number;
   testResults: TestResult[];
+  /** What the scripts wrote with `console`, the pre-request script's lines first, masked like the test rows. */
+  scriptLogs: string[];
   response: RequestExecutionResponse;
   history: PastRequest;
 }
@@ -217,14 +221,15 @@ export class RequestExecutor {
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
     const requestId = newId();
     const createdAt = Date.now();
-    let testResults: TestResult[] = [];
+    let preResult: ScriptResult | undefined;
 
     if (spec.runScripts && spec.preRequestScript?.trim()) {
-      const preResult = await this.scriptSandbox.execute(
+      preResult = await this.scriptSandbox.execute(
         spec.preRequestScript,
         this.getEnvSnapshot()
       );
-      testResults = scriptRows(preResult, "Pre-request script");
+      // As the script wrote them: it runs before any secret is read, and was
+      // given the variables as stored, a secret as its reference.
       await this.applyEnvMutations(preResult.envMutations);
     }
 
@@ -263,20 +268,32 @@ export class RequestExecutor {
     this.responseInspector.markResponse(requestId, request.url);
 
     const shaped = outcome instanceof TransportError ? this.shapeFailure(outcome, request.url) : this.shapeResponse(outcome, request.url);
-    const postTestResults = await this.runPostScriptAndAssertions(
+    // What a script writes is masked like everything else the app shows or
+    // keeps of this exchange (D5): a post-response script reads the response,
+    // and a server may send a secret back.
+    const redactor = new Redactor([...request.secrets, ...request.credentials]);
+    const post = await this.runPostScriptAndAssertions(
       spec,
+      // A variable is stored: a vault secret must not get into one. A
+      // credential that is no secret is in the environment already, and a
+      // script that copies it must not turn it into a mask.
+      new Redactor(request.secrets),
       shaped.response.statusCode ?? 0,
       shaped.response.statusText ?? "",
       shaped.body,
       shaped.headers,
       durationMs
     );
-    testResults = [...testResults, ...postTestResults];
+    const testResults = [
+      ...scriptRows(preResult, "Pre-request script", redactor),
+      ...scriptRows(post.script, "Post-response script", redactor),
+      ...post.assertions,
+    ];
+    const scriptLogs = [...(preResult?.logs ?? []), ...(post.script?.logs ?? [])].map((line) => redactor.text(line));
 
     // History keeps nothing that can be used as a credential (D5): every vault
     // secret and credential of this request is masked in what was sent and in
     // what came back, since a server may send them back.
-    const redactor = new Redactor([...request.secrets, ...request.credentials]);
     const keep = (text: string) => {
       const masked = redactor.text(text);
       return { text: masked.slice(0, HISTORY_BODY_LIMIT), truncated: masked.length > HISTORY_BODY_LIMIT };
@@ -306,7 +323,7 @@ export class RequestExecutor {
       history.error = redactor.text(shaped.historyError);
     }
 
-    return { durationMs, testResults, history, response: shaped.response };
+    return { durationMs, testResults, scriptLogs, history, response: shaped.response };
   }
 
   /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */
@@ -371,13 +388,14 @@ export class RequestExecutor {
 
   private async runPostScriptAndAssertions(
     spec: RequestExecutionSpec,
+    variables: Redactor,
     statusCode: number,
     statusText: string,
     body: unknown,
     headers: Record<string, string>,
     durationMs: number
-  ): Promise<TestResult[]> {
-    let results: TestResult[] = [];
+  ): Promise<{ script?: ScriptResult; assertions: TestResult[] }> {
+    let script: ScriptResult | undefined;
 
     if (spec.runScripts && spec.postRequestScript?.trim()) {
       const responseCtx: ScriptResponseContext = {
@@ -387,13 +405,12 @@ export class RequestExecutor {
         headers,
         durationMs,
       };
-      const postResult = await this.scriptSandbox.execute(
+      script = await this.scriptSandbox.execute(
         spec.postRequestScript,
         this.getEnvSnapshot(),
         responseCtx
       );
-      results = scriptRows(postResult, "Post-response script");
-      await this.applyEnvMutations(postResult.envMutations);
+      await this.applyEnvMutations(Object.fromEntries(Object.entries(script.envMutations).map(([key, value]) => [key, variables.text(value)])));
     }
 
     if (spec.tests.length) {
@@ -403,11 +420,10 @@ export class RequestExecutor {
         headers,
         durationMs,
       };
-      const assertionResults = this.assertionRunner.run(spec.tests, assertionCtx);
-      results = [...results, ...assertionResults];
+      return { script, assertions: this.assertionRunner.run(spec.tests, assertionCtx) };
     }
 
-    return results;
+    return { script, assertions: [] };
   }
 
   private getEnvSnapshot(): Record<string, string> {

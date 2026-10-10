@@ -439,6 +439,12 @@
                 </span>
               </div>
               }
+              @if (scriptLogs().length) {
+              <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
+                <h3 class="ds-section-label">Console</h3>
+                <pre class="type-caption font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words">{{ scriptLogs().join("\n") }}</pre>
+              </section>
+              }
             </div>
           </div>
         </mat-tab-nav-panel>

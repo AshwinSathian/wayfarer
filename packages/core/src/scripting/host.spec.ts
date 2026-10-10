@@ -1,7 +1,7 @@
 import variant from "@jitl/quickjs-wasmfile-release-sync";
 import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
 import { beforeAll, describe, expect, it } from "vitest";
-import { SCRIPT_LIMITS, runScript, type ScriptContext, type ScriptLimits } from "./host";
+import { LOG_TRUNCATED, SCRIPT_LIMITS, runScript, type ScriptContext, type ScriptLimits } from "./host";
 
 // What ECMAScript itself puts on a global object, as QuickJS has it. A name
 // that is not here and not in ALLOWED is something the host let in.
@@ -164,6 +164,62 @@ describe("runScript", () => {
     expect(result.envMutations).toEqual({});
     const timer = await run(`Number = function () { return "soon"; }; setTimeout(function () {}, 5);`);
     expect(timer.error).toBe("Expected a number.");
+  });
+
+  it("the host receives plain text, whatever a script hands over: a getter, a prototype, a function", async () => {
+    const result = await run(`
+      let read = 0;
+      const tricky = Object.create({ inherited: "from the prototype" }, {
+        secret: { enumerable: true, get() { read++; return "from a getter"; } },
+        method: { enumerable: true, value: function () { return "called"; } },
+      });
+      console.log(tricky, function named() {}, Symbol("s"));
+      pm.environment.set("object", tricky);
+      pm.environment.set(tricky, "key was an object");
+      pm.test(tricky, () => { throw tricky; });
+      pm.test("a thrown function", () => { throw function thrown() {}; });
+      console.log("getter read " + read + " times, inside the engine");
+    `);
+    expect(result.error).toBeUndefined();
+    // Every value is a string or a boolean the host made itself: nothing of the VM's is in the result.
+    const flat = JSON.parse(JSON.stringify(result)) as typeof result;
+    expect(flat).toEqual(result);
+    expect(result.logs).toEqual(['{"secret":"from a getter"} function named() {} Symbol(s)', "getter read 1 times, inside the engine"]);
+    expect(Object.entries(result.envMutations)).toEqual([
+      ["object", "[object Object]"],
+      ["[object Object]", "key was an object"],
+    ]);
+    expect(result.testResults).toEqual([
+      { label: "[object Object]", passed: false, error: "[object Object]", source: "script" },
+      { label: "a thrown function", passed: false, error: "function thrown() {}", source: "script" },
+    ]);
+    for (const value of [...result.logs, ...Object.values(result.envMutations), ...result.testResults.flatMap((row) => [row.label, row.error ?? ""])]) {
+      expect(typeof value).toBe("string");
+    }
+  });
+
+  it("keeps 1,000 lines of console output and says that more was dropped", async () => {
+    const result = await run(`for (let i = 0; i < 5000; i++) console.log("line " + i); pm.test("still running", () => {});`);
+    expect(result.error).toBeUndefined();
+    expect(result.logs).toHaveLength(1001);
+    expect(result.logs[999]).toBe("line 999");
+    expect(result.logs[1000]).toBe(LOG_TRUNCATED);
+    expect(result.testResults).toHaveLength(1);
+  });
+
+  it("keeps 1 MB of console output: the line that passes it is cut, and nothing follows", async () => {
+    const result = await run(`const chunk = "x".repeat(400000); for (let i = 0; i < 5; i++) console.log(chunk); console.log("after");`);
+    expect(result.logs.map((line) => line.length)).toEqual([400000, 400000, 2 ** 20 - 800000, LOG_TRUNCATED.length]);
+    expect(result.logs.at(-1)).toBe(LOG_TRUNCATED);
+  });
+
+  it("ends a script that writes more than 1 MB of test results and variables, also when it catches", async () => {
+    const tests = await run(`const name = "t".repeat(1000); for (;;) { try { pm.test(name, () => {}); } catch (error) {} }`, {}, { timeoutMs: 2000 });
+    expect(tests.testResults.length).toBe(1048);
+    expect(tests.limit).toBe("timeout");
+    const variables = await run(`for (let i = 0; ; i++) pm.environment.set("k" + i, "v".repeat(100000));`);
+    expect(variables.error).toBe("Script wrote too many test results and variables.");
+    expect(Object.keys(variables.envMutations)).toHaveLength(10);
   });
 
   it("setTimeout runs its callback later, in order of time, with its arguments", async () => {

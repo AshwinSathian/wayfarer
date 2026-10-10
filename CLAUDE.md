@@ -379,7 +379,10 @@ code errors.
   `{{$secret.<id>}}` reference) is encrypted into that secret by
   `RequestExecutor.intoVault` and is left out of the changes that are
   stored. A locked vault refuses with a console line; it does not prompt.
-  A new way for a script to write a value goes through `applyChanges`.
+  A new way for a script to write a value goes through `applyChanges`,
+  which marks every change `keepSecret`: `applyVariableChanges` then never
+  replaces a stored reference with a script's text, whatever this tab's
+  copy of the rows said. The editor's changes are not marked.
 - A script's duration is the wall time of `ScriptSandbox.execute`. The
   request's duration never includes a script's (F11).
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,

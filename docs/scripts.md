@@ -52,7 +52,9 @@ three stored scopes also have `set(name, value)`, `unset(name)` and
   vault locked the change is refused, with a line in the console, and you
   are not asked for the passphrase in the middle of a script; the same when
   the secret is no longer in the vault. `unset` removes the variable; the
-  secret stays in the vault until you delete it there.
+  secret stays in the vault until you delete it there. Whatever happens, a
+  script's value is never stored in place of a protected variable's
+  reference: the stored rows are checked when the change is written.
 - The app stores the changes when the script has ended, each scope in one
   transaction on the stored rows. A change with nowhere to go (no active
   environment, a request in no collection) is said in the console.
@@ -396,7 +398,8 @@ a vault secret, a dialog names both hosts before the vault is read:
 
 - **Send** sends the request where the script pointed it.
 - **Don't send** sends nothing, and puts back every variable that script
-  set, so that pressing Send again asks again.
+  set, and the old value of a vault secret it replaced, so that pressing
+  Send again asks again.
 
 "Host" is the name and the port. A script that changes the scheme, the
 path, the query or a header on the same host is not asked about.

@@ -365,7 +365,7 @@ describe("RequestExecutor", () => {
     });
 
     // The change alone, for the store to apply to what is stored: not this tab's copy of the variables.
-    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "counter", value: "2" }]);
+    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "counter", value: "2", keepSecret: true }]);
     expect(environmentsService.activeEnvironment()?.vars).toEqual([{ key: "counter", value: "2", enabled: true }]);
   });
 
@@ -424,8 +424,8 @@ describe("RequestExecutor", () => {
     ]);
     // The secret must not be stored outside the vault. The credential was typed into this environment and stays what it was.
     expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [
-      { key: "leaked", value: "prefix ***" },
-      { key: "token", value: "typed-credential-1" },
+      { key: "leaked", value: "prefix ***", keepSecret: true },
+      { key: "token", value: "typed-credential-1", keepSecret: true },
     ]);
   });
 
@@ -858,10 +858,10 @@ describe("RequestExecutor", () => {
       const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "set()", postRequestScript: "", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest() });
 
       // An empty value is a value (it removed the variable before P3.3).
-      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "token", value: "" }, { key: "old", value: null }]);
+      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "token", value: "", keepSecret: true }, { key: "old", value: null, keepSecret: true }]);
       expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ token: "" }));
-      expect(environmentsService.changeGlobals).toHaveBeenCalledWith([{ key: "g", value: "2" }]);
-      expect(change).toHaveBeenCalledWith([{ key: "base", value: "https://b.test" }]);
+      expect(environmentsService.changeGlobals).toHaveBeenCalledWith([{ key: "g", value: "2", keepSecret: true }]);
+      expect(change).toHaveBeenCalledWith([{ key: "base", value: "https://b.test", keepSecret: true }]);
       expect(result.scriptLogs).toEqual([]);
     });
 
@@ -882,7 +882,7 @@ describe("RequestExecutor", () => {
       const leaked = [{ key: "leaked", value: "got vault-secret-42" }, { key: "gone", value: null }];
       scriptSandbox.setNextResult({ logs: [], changes: { environment: leaked, collection: leaked, global: leaked }, testResults: [] });
       await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "leak()", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest({ secrets: ["vault-secret-42"] }) });
-      const masked = [{ key: "leaked", value: "got ***" }, { key: "gone", value: null }];
+      const masked = [{ key: "leaked", value: "got ***", keepSecret: true }, { key: "gone", value: null, keepSecret: true }];
       expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", masked);
       expect(environmentsService.changeGlobals).toHaveBeenCalledWith(masked);
       expect(change).toHaveBeenCalledWith(masked);

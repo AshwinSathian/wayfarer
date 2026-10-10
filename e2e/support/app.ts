@@ -53,6 +53,7 @@ export interface SeededRequest {
   storedBody?: unknown;
   /** As stored: `{type: "bearer", token}` and so on. */
   auth?: unknown;
+  preRequestScript?: string;
   postRequestScript?: string;
   tests?: unknown[];
 }
@@ -66,9 +67,11 @@ export interface SeededRequest {
 export async function seedAndOpen(
   page: Page,
   vars: Record<string, string>,
-  request: SeededRequest
+  request: SeededRequest,
+  /** The app's address when it is not the configured one (a spec that runs its own server). */
+  base = ""
 ): Promise<Response | null> {
-  await page.goto("/");
+  await page.goto(`${base}/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
     (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5)
@@ -113,7 +116,7 @@ export async function seedAndOpen(
             ? { mode: "none" }
             : { mode: "raw", raw: { language: "json", text: JSON.stringify(request.body, null, 2) } }),
         auth: request.auth ?? { type: "none" },
-        scripts: { pre: "", post: request.postRequestScript ?? "" },
+        scripts: { pre: request.preRequestScript ?? "", post: request.postRequestScript ?? "" },
         tests: request.tests ?? [],
         settings: {},
       });

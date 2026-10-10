@@ -1,57 +1,42 @@
 # Pre/Post-Request Scripts & Assertions
 
-> **Status (v1.1.0): scripts are disabled in production builds**, including
-> the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
-> The worker below evaluates script text with `new Function`, and the
-> site's Content-Security-Policy (`script-src 'self'`, no `'unsafe-eval'`)
-> forbids that, so every script used to fail without a visible error. The
-> Scripts tab now shows a banner, scripts are saved but not run, and
-> Tests-tab assertions keep working. Scripts return on a QuickJS (WASM)
-> sandbox that grants only an allow-listed API
-> ([#59](https://github.com/AshwinSathian/wayfarer/issues/59)). The rest of
-> this document describes the current worker, which still runs in local
-> development builds.
-
 Wayfarer lets you attach a pre-request script, a post-response script, and
 a set of visual test assertions to any request. This document describes the
-`pm.*` API surface those scripts see and, separately and honestly, the
-current isolation model, verified against `src/app/shared/scripts/` at the
-time of writing.
+`pm.*` API surface those scripts see and, separately, the isolation model,
+verified against `packages/core/src/scripting/` and
+`src/app/shared/scripts/` at the time of writing.
 
 > **This document is spot-checked against source, the same way
 > [`docs/secrets.md`](secrets.md) is.** If the sandbox implementation
-> changes (see the "Isolation model" section below), this file needs to be
-> re-verified line-by-line against `src/app/shared/scripts/` before it's
-> trusted again. Don't assume it stays accurate across refactors.
+> changes, this file needs to be re-verified line by line against
+> `packages/core/src/scripting/` before it's trusted again.
 
 ## The `pm.*` API surface
 
-Scripts run with a single injected `pm` object and a shimmed `console`.
-This is the complete surface, as implemented in `buildPmApi()` inside
-`src/app/shared/scripts/script-runner.worker.ts` (the code that actually
-evaluates script text; `script-sandbox.ts` on the main thread only
-sends the script in and receives structured-clone results back):
+Scripts run with a `pm` object, a `console`, `atob`, `btoa` and
+`setTimeout`. This is the complete surface, as written in
+`packages/core/src/scripting/vm-bootstrap.ts` (the code that runs inside
+the engine) and `host.ts` beside it (what that code can call):
 
 ### `pm.environment`
 
 | Method | Behavior |
 |---|---|
-| `pm.environment.get(key)` | Returns the variable's value, or `null` if unset. If the same script already called `pm.environment.set(key, ...)` earlier in this run, the mutated value is returned (mutations are visible to later calls within the same script execution). |
-| `pm.environment.set(key, value)` | Records a mutation (value is coerced to a string) and is immediately visible to subsequent `pm.environment.get()` calls in the same run. Mutations are only persisted to the actual environment by the host after the whole script finishes; a script can't reach into IndexedDB or any other real state itself. |
-| `pm.environment.unset(key)` | Records the variable as cleared (internally, sets it to an empty string in the mutation set). |
+| `pm.environment.get(key)` | Returns the variable's value, or `null` if unset. If the same script already called `pm.environment.set(key, ...)` earlier in this run, the new value is returned. |
+| `pm.environment.set(key, value)` | Records a change (the value is turned into a string), visible at once to later `pm.environment.get()` calls in the same run. The app applies the changes to the active environment after the whole script has finished; a script can't reach IndexedDB or any other real state itself. |
+| `pm.environment.unset(key)` | Records the variable as removed. Setting a variable to an empty string removes it too. |
 
 ### `pm.response` (post-response scripts only)
 
-Available only when a response exists (i.e. not in pre-request scripts).
 `pm.response` is `null` in a pre-request script.
 
 | Property/Method | Behavior |
 |---|---|
 | `pm.response.code` | HTTP status code (number). |
 | `pm.response.status` | HTTP status text. |
-| `pm.response.json()` | Parses the body as JSON if it's a string; returns it as-is if already an object; returns `null` on parse failure. |
-| `pm.response.text()` | Returns the body as a string (stringifies if it isn't one already). |
-| `pm.response.headers.get(name)` | Case-insensitively looks up a response header; returns `null` if absent. |
+| `pm.response.json()` | Parses the body as JSON; returns `null` on parse failure. |
+| `pm.response.text()` | Returns the body as a string. A binary body is an empty string. |
+| `pm.response.headers.get(name)` | Looks a response header up by the name as written, then in lower case; returns `null` if absent. |
 | `pm.response.responseTime` | Response duration in milliseconds (`0` if unavailable). |
 
 ### `pm.test(label, fn)`
@@ -61,6 +46,11 @@ thrown message; otherwise it's recorded as passed. Results appear in the
 response viewer's **Tests** tab alongside assertion-builder results, tagged
 with `source: "script"` so they're distinguishable from the visual builder's
 `source: "assertion"` rows.
+
+A script that ends in an error (it throws, has a syntax error, or is
+stopped by a limit) adds one failed row named "Pre-request script" or
+"Post-response script" with the error as its message. The request is still
+sent.
 
 ### `pm.expect(actual)`
 
@@ -84,9 +74,17 @@ on failure, which `pm.test()` catches):
 ### `console`
 
 `console.log`, `console.info`, `console.warn` (prefixed `[warn]`), and
-`console.error` (prefixed `[error]`) are shimmed to append formatted strings
-to a `logs` array, which the app surfaces in the Tests tab rather than the
-browser devtools console.
+`console.error` (prefixed `[error]`) append formatted strings to a list:
+text as it is, anything else as JSON. **The app does not show these lines
+yet** ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
+
+### `atob`, `btoa`, `setTimeout`
+
+`atob(text)` and `btoa(text)` are the browser's. `setTimeout(fn, ms, ...args)`
+runs `fn` later, inside the same run: the run ends when no timer and no
+promise reaction is left, or at the time limit. A timer that would fall due
+after the limit is not waited for. There is no `clearTimeout` and no
+`setInterval`.
 
 ## Visual Test Assertions (Tests tab)
 
@@ -105,99 +103,54 @@ These are pure data evaluated in TypeScript, with no `pm` API and no dynamic
 code execution, so they carry none of the isolation considerations below and
 are the safer option when a script isn't strictly needed.
 
-## Isolation model: what's actually true today
+## Isolation model
 
-Scripts execute in a **dedicated Web Worker**
-(`src/app/shared/scripts/script-runner.worker.ts`), not on the main thread.
-`ScriptSandbox.execute()` (`script-sandbox.ts`) spawns a
-brand-new worker for every single script run, sends it the script text plus
-plain-data `env`/`response` context via `postMessage`, waits for a `result`
-message (or a timeout, default **5000ms**, configurable via the `execute()`
-call), and unconditionally `terminate()`s the worker afterward. A worker is
-never reused across runs, so nothing persists between one script execution
-and the next.
+A script is run by **QuickJS**, a JavaScript engine compiled to WebAssembly
+(`quickjs-emscripten`), inside a dedicated Web Worker
+(`src/app/shared/scripts/quickjs.worker.ts`). The browser never evaluates
+the script's text: no `eval`, no `new Function`. That is why scripts run
+under the site's Content-Security-Policy, which allows WebAssembly to be
+compiled (`'wasm-unsafe-eval'`) and still forbids `eval` and inline script.
 
-**What the worker boundary gives you:** a dedicated Worker is a
-separate JS realm. It structurally has no `window`, no `document`, no
-cookies, no `localStorage`, and no reference back to the main thread's
-memory (where the secrets vault's derived key and other requests' data
-live). That isolation is a browser guarantee inherent to what a Worker
-*is*, not something the app has to implement or maintain correctly.
-Communication with the host is `postMessage` only, which structured-clones
-data across the boundary: functions and live object references can't
-cross it, only serializable data (script logs, env mutations, test
-results).
+**The sandbox is an allow-list.** The engine has its own global object. It
+starts with what the JavaScript language defines (`Object`, `JSON`,
+`Promise`, `Math` and so on) and nothing a browser adds: no `fetch`, no
+`XMLHttpRequest`, no `WebSocket`, no `self`, no `postMessage`, no
+`importScripts`, no storage, no module loader. `runScript`
+(`packages/core/src/scripting/host.ts`) then adds exactly five names: `pm`,
+`console`, `atob`, `btoa` and `setTimeout`. A new browser API cannot appear
+inside the engine, because the engine is not the browser. A unit test
+(`host.spec.ts`) lists the global object's own property names and compares
+them with the language's list plus those five.
 
-A worker realm is not empty by default, though. It still has some
-network/storage-capable globals of its own (`fetch`, `XMLHttpRequest`,
-`indexedDB`, etc., which exist in the `webworker` lib independently of
-`window`). `script-runner.worker.ts` strips these explicitly, before any
-user script is evaluated, via `stripDangerousGlobals()`:
+**What crosses the boundary.** The functions behind `pm`, `console` and the
+rest take and return strings, numbers and booleans only, and check the type
+of each argument themselves. No object of the app, the worker or the page is
+ever handed to a script. The response is given to the script as JSON text
+and parsed inside the engine.
 
-```
-fetch, XMLHttpRequest, WebSocket, EventSource, importScripts, Worker,
-SharedWorker, indexedDB, caches, navigator, RTCPeerConnection,
-BroadcastChannel, SharedArrayBuffer, eval
-```
+**What a script is given.** The enabled variables of the active environment
+by name, and for a post-response script the response. A protected variable's
+value is its `{{$secret.…}}` reference, not the secret. A script cannot make
+a request.
 
-Note this stripping reassigns each property to `undefined` rather than
-`delete`-ing it: in Chrome, these globals are writable but *non-configurable*
-own properties of the worker global object, so `delete self.fetch` silently
-no-ops (verified by the regression suite, which originally caught this as a
-real bug during development) while reassignment actually clears them.
+**Limits.** Each run gets a new engine runtime, so no script sees another's
+state. A run is stopped after 5 seconds ("Script timed out after 5000 ms"),
+when it holds more than 64 MB ("Script exceeded memory limit (64 MB)"), and
+when it recurses too deep ("Script exceeded the stack limit": between
+about 700 and 1,500 calls, depending on the browser). A script cannot catch
+the time limit. After any of the three the worker is
+ended and the next run starts a new one. The page also stops waiting one
+second after the time limit, should the engine itself not answer.
 
-On top of that, the script body still runs inside a
-`new Function("pm", "console", wrappedCode)` call with the same kind of
-local-scope shadowing the previous main-thread implementation used
-(`window`, `self`, `globalThis`, `document`, `fetch`, `eval`, etc. bound to
-`undefined` as function parameters). **This shadowing layer is explicitly
-documented in the source as not being real protection on its own.** A
-`Function`-based global re-acquisition (e.g. `Function('return fetch')()`)
-resolves free variables through the realm's global object, not through this
-closure, so shadowing alone wouldn't have stopped the escape found during
-this project's security audit. What actually stops it now is that, inside
-this worker's global object, there is no `window`/`document` to re-acquire
-in the first place, and `fetch`/`XMLHttpRequest`/etc. have already been
-deleted before the script runs. The shadowing is kept as defense-in-depth on
-top of that, not as the primary guarantee.
+**Loading.** The engine (about 500 kB of WebAssembly) and its worker are
+fetched the first time a script runs, from the app's own origin, and kept
+by the service worker after that, so scripts run offline.
 
-**Net effect:** a script cannot reach the DOM, cookies, `localStorage`, or
-the main thread's memory (including the secrets vault's in-memory key);
-the worker realm doesn't have them. Network access is a different story:
-it is blocked only by the deny-list above, so any network-capable global
-that isn't on the list (for example a newer API such as `WebTransport`)
-would still be reachable, and a script can also post its own messages to
-the host. That is a deny-list, not an allow-list, and it is why the
-sandbox is being replaced
-([#59](https://github.com/AshwinSathian/wayfarer/issues/59)). Don't run
-scripts from collections you don't trust.
+**Not there yet:** the review step before a collection's scripts may run
+(plan P3.8); the test suite of escape attempts in three browsers (P3.7);
+the Postman-compatible API (session 3B). Until the review step lands, don't
+run scripts from collections you don't trust: a script cannot reach the
+network, but it can change a variable that a later request uses.
 
-**Caveats worth knowing:**
-
-- This isolation model is covered by a regression suite,
-  `script-sandbox.spec.ts`, that asserts, among other things, that
-  `window`/`self`/`globalThis.window`/`document`/`localStorage` are all
-  `typeof "undefined"` from inside a script, and specifically that
-  `Function("return typeof fetch")()` (the exact re-acquisition technique
-  from the original main-thread vulnerability) yields `"undefined"` rather
-  than a usable reference. The original escape is a named, passing
-  regression test, not just a design claim in this document.
-- A hung or slow script is bounded by the timeout (default 5s, overridable
-  per call); after that the worker is force-terminated and the run reports
-  a timeout error. This is also covered by a test.
-- The env context handed to a script is only the key/value pairs the host
-  explicitly passes in. A script cannot see any environment variable it
-  wasn't given, which is also asserted by the regression suite.
-- If `Worker` isn't available at all in the host environment, scripts don't
-  run and the app reports that explicitly rather than falling back to an
-  unsandboxed execution path.
-
-See [SECURITY.md](../SECURITY.md) for how to report a concern. The scripts
-used to run via `new Function()` directly on the main thread, where a
-script could re-acquire `fetch`/`document`/etc. as a language primitive
-regardless of name-shadowing; moving execution into a Worker (above) is
-what closed that gap.
-
-**Re-verify this section against `src/app/shared/scripts/` before relying on
-it.** Every other section of this document should be spot-checked against
-source the same way, not trusted from memory.
+See [SECURITY.md](../SECURITY.md) for how to report a concern.

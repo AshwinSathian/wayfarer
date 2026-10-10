@@ -42,7 +42,8 @@
             "scripts": [],
             "browser": "src/main.ts",
             "loader": {
-              ".ttf": "file"
+              ".ttf": "file",
+              ".wasm": "file"
             },
             "webWorkerTsConfig": "tsconfig.worker.json"
           },

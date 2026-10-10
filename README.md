@@ -38,7 +38,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 - **Pre/Post-Request Scripts & Test Assertions**
 
   - Monaco-backed script editor with a small `pm.environment` / `pm.response` / `pm.test` / `pm.expect` subset of Postman's script API <!-- claim:C-040 -->
-  - **Scripts are disabled in the hosted app** while the sandbox is rebuilt ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)); scripts you write are saved but not run. <!-- claim:C-006 --> See [`docs/scripts.md`](docs/scripts.md)
+  - Scripts run in a QuickJS sandbox (a JavaScript engine compiled to WebAssembly) in every build, the hosted app included, under its strict Content-Security-Policy <!-- claim:C-006 -->. See [`docs/scripts.md`](docs/scripts.md)
   - A visual, no-code test assertion builder (10 operators across status/body/headers/duration) as a friendlier alternative to scripting
   - Results surface in a dedicated **Tests** tab in the response viewer <!-- claim:C-021 -->
 
@@ -131,7 +131,7 @@ npm run test:ci
 ## How it works (in 60 seconds)
 
 - The **Request Composer** accepts a URL, method, query params, headers, auth, and (for every method but GET and HEAD) a body.
-- Visual assertions run after the call <!-- claim:C-021 -->. Pre- and post-request scripts are saved but don't run in the hosted app yet <!-- claim:C-006 -->.
+- Visual assertions run after the call <!-- claim:C-021 -->. Pre- and post-request scripts run before and after it <!-- claim:C-006 -->.
 - The app sends the request and shows:
   - **Body** (pretty‑printed for JSON)
   - **Headers**
@@ -178,7 +178,7 @@ Yes, this project was renamed from API Sandbox to Wayfarer. Same app, same stora
 
 A September 2026 audit found gaps between these docs and the code. Each is an open issue with label [`audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09), scheduled in [`PLAN-airtight-remediation.md`](PLAN-airtight-remediation.md). The ones you are most likely to hit:
 
-- Scripts are disabled in the hosted app ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)).
+- An imported collection's scripts run without a review step ([#98](https://github.com/AshwinSathian/wayfarer/issues/98)), and a script's console output is not shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)).
 - Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
 - The script API covers a small part of Postman's `pm.*` ([#77](https://github.com/AshwinSathian/wayfarer/issues/77)); no Postman/OpenAPI/cURL import ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)).

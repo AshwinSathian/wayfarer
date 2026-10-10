@@ -9,10 +9,3 @@ export interface TestResult {
   /** "assertion" = visual builder row; "script" = pm.test() call from a script */
   source: "assertion" | "script";
 }
-
-export interface ScriptExecutionResult {
-  logs: string[];
-  envMutations: Record<string, string>;
-  testResults: TestResult[];
-  error?: string;
-}

@@ -314,6 +314,46 @@ code errors.
   `angular.json`), linked by the loader when the first editor mounts. Do not
   import it from `src/styles.css`: that puts 390 kB on first load.
 
+## Scripts
+
+- A user's script is run by QuickJS (WebAssembly), never by the browser:
+  no `eval`, no `new Function`, no worker that evaluates text. The CSP has
+  `'wasm-unsafe-eval'` for the engine and must gain nothing else for it.
+- `runScript` (`packages/core/src/scripting/host.ts`) is the engine's one
+  entry: it takes the QuickJS module as an argument, so it runs in Node.
+  `src/app/shared/scripts/quickjs.worker.ts` loads the engine and passes
+  messages; `ScriptSandbox` owns the worker.
+- The sandbox is an allow-list. What a script sees is written in
+  `vm-bootstrap.ts`, as JavaScript that runs inside the VM. A new global
+  goes there and into the list in `host.spec.ts`, which compares the VM's
+  global with the language's built-ins plus that list.
+- The host object is passed to the bootstrap function and never put on the
+  VM's global. A host function takes and returns strings, numbers and
+  booleans, and checks each argument's type itself (`text`, `number`): a
+  script can replace `String` or `JSON` under the bootstrap. No handle of a
+  script's object is read by the host; write it out as text in the VM.
+- The engine and its worker are lazy: nothing imports them but
+  `ScriptSandbox`'s `new Worker(...)`. They must stay out of the initial
+  bundle ("the page the server sends names neither the engine nor its
+  worker" in `e2e/scripts.spec.ts`).
+- After a run that hit a limit the engine may be unusable: the worker is
+  ended and the next run starts a new one. Do not reuse a module after
+  `result.limit` is set.
+- The stack limit (`SCRIPT_LIMITS.stackBytes`) is not what stops a deep
+  recursion in Chromium and WebKit: the browser's own stack ends first, and
+  `runScript` reports that as the same limit. Raising the number changes
+  nothing.
+- The worker imports the engine's `.wasm` file by its path under
+  `node_modules`, not by the package's `./wasm` entry: `ng serve` and the
+  unit-test server hand an import that names a package to Vite, which tries
+  to run the file as a module. By package name the production build worked
+  and scripts failed in development.
+- `vitest.config.mts` serves that file to the worker and gives worker files
+  the `import()` helper Vitest's browser mode expects, for the unit-test
+  server only. The built app needs neither; do not "fix" the worker for
+  them.
+- An e2e that runs a script asserts 0 `securitypolicyviolation` events.
+
 ## Dependencies and the bundle
 
 - `npm audit` reports 0 and must stay there. Fix the dependency (or its

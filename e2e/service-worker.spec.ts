@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { seedAndOpen, send } from "./support/app";
 
 const DIST = "dist/wayfarer/browser";
 
@@ -66,6 +67,31 @@ test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app
   if (browserName !== "webkit") await context.setOffline(true);
   await page.goto(`${base}/`);
   await expect(page.locator("input.address-url")).toBeVisible();
+});
+
+test("@claim:C-015 a script runs with the network disabled after one run online", async ({ page, context, browserName }) => {
+  const script = { method: "GET", url: "http://127.0.0.1:4300/content/json?c015=script", preRequestScript: "pm.test('ran in the engine', () => pm.expect(1).to.equal(1));" };
+  await loadControlled(page);
+  await seedAndOpen(page, {}, script, base);
+  const tests = page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ });
+  const ran = page.locator(".test-result-pass", { hasText: "ran in the engine" });
+  await send(page);
+  await tests.click();
+  await expect(ran).toBeVisible();
+  // The engine, its worker and the worker's chunks were fetched once and are in the worker's cache now.
+  const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).map((r) => new URL(r.url).pathname));
+  expect(cached.filter((path) => /^\/media\/emscripten-module-[A-Z0-9]{8}\.wasm$/.test(path))).toHaveLength(1);
+
+  server.kill();
+  await new Promise((resolve) => server.once("exit", resolve));
+  if (browserName !== "webkit") await context.setOffline(true);
+  await page.reload();
+  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await expect(page.locator("input.address-url")).toHaveValue(script.url);
+  await expect(ran).toHaveCount(0);
+  await send(page);
+  await tests.click();
+  await expect(ran).toBeVisible();
 });
 
 test("@claim:C-010 with the service worker in control, a DNS failure shows the real network error, not a 504", async ({ page }) => {

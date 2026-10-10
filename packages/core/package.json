@@ -11,6 +11,10 @@
     "mutation": "stryker run"
   },
   "devDependencies": {
+    "@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
     "fast-check": "^4.10.2"
+  },
+  "dependencies": {
+    "quickjs-emscripten-core": "^0.32.0"
   }
 }

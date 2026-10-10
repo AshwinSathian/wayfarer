@@ -7,6 +7,21 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **Scripts run again, in every build, the hosted app included.** Pre-request and post-response scripts were switched off in production since 1.1: the old sandbox evaluated them with `new Function`, which the site's Content-Security-Policy forbids, so they failed without a word ([#58](https://github.com/AshwinSathian/wayfarer/issues/58)). They now run in QuickJS, a JavaScript engine compiled to WebAssembly, in its own worker. The browser never evaluates a script's text. The API is the one that was documented: `pm.environment`, `pm.response`, `pm.test`, the small `pm.expect`, `console`; new are `atob`, `btoa` and `setTimeout`.
+- **The sandbox is an allow-list.** The engine's global object holds the JavaScript language and those names. There is no `fetch`, no `XMLHttpRequest`, no `WebSocket` and no worker scope inside it to remove, and a new browser API cannot appear there.
+- **Limits.** A script is stopped after 5 seconds, at 64 MB, and when it recurses too deep (about 700 to 1,500 calls, depending on the browser), each with its own message; the next script runs in a new engine.
+- The engine (about 500 kB) is fetched the first time a script runs, not with the page, and is kept for offline use after that.
+
+### Security
+
+- The Content-Security-Policy gains one keyword: `script-src 'self' 'wasm-unsafe-eval'`, so that the engine can be compiled. `eval`, `new Function` and inline script stay forbidden, and a test asserts the directive is exactly that.
+
+### Fixed
+
+- A script that failed left no trace: a syntax error, a name that does not exist or a timeout, and the request went out as if it had no script ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)). The Tests tab now shows a failed row with the error. A script's `console` output is still not shown; that follows.
+
 ### Changed
 
 - **The plan for scripts (Phase 3) is split into two sessions.** Nothing in the app changes. The first session rebuilds the sandbox: scripts on a QuickJS engine under the site's strict policy, a review step before a collection's scripts may run, limits on time and memory, and a test suite of escape attempts. The second adds the Postman-compatible script API. One finding on the way: a script's console output and its error were never shown ([#213](https://github.com/AshwinSathian/wayfarer/issues/213)); it is hidden today because scripts are disabled, and is fixed with the new sandbox.

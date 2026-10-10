@@ -68,3 +68,4 @@ export {
   type Transport,
   type TransportOptions,
 } from "./transport/transport";
+export { SCRIPT_LIMITS, runScript, type ScriptContext, type ScriptLimits, type ScriptResult } from "./scripting/host";

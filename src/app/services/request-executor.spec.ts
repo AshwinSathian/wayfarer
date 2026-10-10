@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { applyVariableChanges, type ScriptResult, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -72,6 +72,8 @@ class ResponseInspectorServiceStub {
 class EnvironmentsServiceStub {
   private readonly activeEnvSignal = signal<EnvironmentDoc | null>(null);
   readonly activeEnvironment = this.activeEnvSignal.asReadonly();
+  readonly globals = signal<Row[]>([]);
+  changeGlobals = vi.fn().mockImplementation(async (changes: VariableChange[]) => this.globals.set(applyVariableChanges(this.globals(), changes)));
   changeEnvironment = vi.fn()
     .mockImplementation(async (id: string, changes: VariableChange[]) => {
       const current = this.activeEnvSignal();
@@ -86,7 +88,7 @@ class EnvironmentsServiceStub {
 }
 
 class ScriptSandboxServiceStub {
-  private nextResult: ScriptResult = { logs: [], envMutations: {}, testResults: [] };
+  private nextResult: ScriptResult = { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
 
   execute = vi.fn().mockImplementation(async () => this.nextResult);
 
@@ -262,7 +264,7 @@ describe("RequestExecutor", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({}));
     scriptSandbox.setNextResult({
       logs: [],
-      envMutations: { authToken: "fetched-token" },
+      changes: { environment: [{ key: "authToken", value: "fetched-token" }], collection: [], global: [] },
       testResults: [],
     });
 
@@ -286,11 +288,11 @@ describe("RequestExecutor", () => {
       if (script.includes("pre")) {
         return {
           logs: [],
-          envMutations: {},
+          changes: { environment: [], collection: [], global: [] },
           testResults: [{ label: "pre check", passed: true, source: "script" as const }],
         };
       }
-      return { logs: [], envMutations: {}, testResults: [] };
+      return { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
     });
 
     const result = await service.execute({ template: TEMPLATE, runScripts: true,
@@ -309,7 +311,7 @@ describe("RequestExecutor", () => {
     transport.setResponse(envelope(201, "Created", { id: 1 }));
     scriptSandbox.setNextResult({
       logs: [],
-      envMutations: {},
+      changes: { environment: [], collection: [], global: [] },
       testResults: [{ label: "post check", passed: true, source: "script" as const }],
     });
 
@@ -324,6 +326,9 @@ describe("RequestExecutor", () => {
       "pm.test('post check', () => true);",
       expect.any(Object),
       expect.objectContaining({ statusCode: 201 }),
+      // Since P3.3: the default time limit, and what else a script is given.
+      undefined,
+      expect.objectContaining({ info: expect.objectContaining({ eventName: "test" }) }),
     );
     expect(result.testResults).toEqual([
       expect.objectContaining({ label: "post check", passed: true }),
@@ -348,7 +353,7 @@ describe("RequestExecutor", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ counter: "1" }));
     scriptSandbox.setNextResult({
       logs: [],
-      envMutations: { counter: "2" },
+      changes: { environment: [{ key: "counter", value: "2" }], collection: [], global: [] },
       testResults: [],
     });
 
@@ -365,7 +370,7 @@ describe("RequestExecutor", () => {
   });
 
   it("runs both scripts in every build, sends, and runs Tests-tab assertions (C-006)", async () => {
-    scriptSandbox.setNextResult({ logs: [], envMutations: {}, testResults: [{ label: "t", passed: true, source: "script" }] });
+    scriptSandbox.setNextResult({ logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [{ label: "t", passed: true, source: "script" }] });
     const result = await service.execute({ template: TEMPLATE, runScripts: true,
       preRequestScript: "pm.test('t', () => {});",
       postRequestScript: "pm.test('t', () => {});",
@@ -385,7 +390,7 @@ describe("RequestExecutor", () => {
   it("F65: the console lines of both scripts come back, the pre-request script's first", async () => {
     scriptSandbox.execute.mockImplementation(async (_script: string, _env: unknown, response?: unknown) => ({
       logs: response ? ["after"] : ["before", "[warn] careful"],
-      envMutations: {},
+      changes: { environment: [], collection: [], global: [] },
       testResults: [],
     }));
     const result = await service.execute({ template: TEMPLATE, runScripts: true,
@@ -401,7 +406,7 @@ describe("RequestExecutor", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ token: "typed-credential-1" }));
     scriptSandbox.setNextResult({
       logs: ["echoed vault-secret-42 and typed-credential-1"],
-      envMutations: { leaked: "prefix vault-secret-42", token: "typed-credential-1" },
+      changes: { environment: [{ key: "leaked", value: "prefix vault-secret-42" }, { key: "token", value: "typed-credential-1" }], collection: [], global: [] },
       testResults: [{ label: "saw vault-secret-42", passed: false, error: "got typed-credential-1", source: "script" }],
       error: "threw vault-secret-42",
     });
@@ -441,7 +446,7 @@ describe("RequestExecutor", () => {
   it("F65: a script that ends in an error is a failed row, after the tests that ran before it", async () => {
     scriptSandbox.setNextResult({
       logs: [],
-      envMutations: {},
+      changes: { environment: [], collection: [], global: [] },
       testResults: [{ label: "ran first", passed: true, source: "script" }],
       error: "'notDefined' is not defined",
     });
@@ -541,7 +546,7 @@ describe("RequestExecutor", () => {
     vi.spyOn(performance, "now").mockImplementation(() => clock);
     scriptSandbox.execute.mockImplementation(async () => {
       clock += 5000;
-      return { logs: [], envMutations: {}, testResults: [] };
+      return { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
     });
     const send = transport.send.bind(transport);
     transport.send = (request, options) => {
@@ -670,4 +675,135 @@ describe("RequestExecutor", () => {
       service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() })
     ).rejects.toThrow(RangeError);
   });
+
+  describe("scripts: the request, the scopes and pm.sendRequest (P3.3)", () => {
+    const NO_CHANGES = { environment: [], collection: [], global: [] };
+    type Extras = NonNullable<Parameters<ScriptSandbox["execute"]>[4]>;
+    /** What the sandbox was given for the run numbered `call`. */
+    const extras = (call = 0) => scriptSandbox.execute.mock.calls[call][4] as Extras;
+
+    it("gives a script the request as composed, the three scopes and the saved request's name; what a pre-request script left of the request is what is built", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ host: "api.test" }));
+      environmentsService.globals.set(rowsOf({ g: "1" }));
+      const template = requestContent({ method: "POST", url: "https://{{host}}/items", headers: rowsOf({ "X-A": "1" }) });
+      scriptSandbox.setNextResult({
+        logs: [],
+        changes: NO_CHANGES,
+        testResults: [],
+        request: { method: "PUT", url: "https://{{host}}/signed", headers: [["X-A", "1"], ["X-Signed", "abc"]], body: { mode: "raw", raw: "signed" } },
+      });
+      const built: unknown[] = [];
+      const result = await service.execute({
+        template,
+        runScripts: true,
+        preRequestScript: "sign()",
+        postRequestScript: "check()",
+        tests: [],
+        info: { requestName: "Create item", requestId: "req-1" },
+        collection: { variables: () => rowsOf({ base: "https://{{host}}" }), change: vi.fn() },
+        buildRequest: (request) => {
+          built.push(request);
+          return builtRequest();
+        },
+      });
+
+      expect(extras(0)).toMatchObject({
+        environmentName: "Test env",
+        globals: [["g", "1"]],
+        collection: [["base", "https://{{host}}"]],
+        request: { method: "POST", url: "https://{{host}}/items", headers: [["X-A", "1"]], body: { mode: "none" } },
+        info: { eventName: "prerequest", requestName: "Create item", requestId: "req-1" },
+      });
+      expect(built).toEqual([{ ...template, method: "PUT", url: "https://{{host}}/signed", headers: rowsOf({ "X-A": "1", "X-Signed": "abc" }), body: { mode: "raw", raw: { language: "text", text: "signed" } } }]);
+      // The post-response script sees the request that was sent, and history keeps the one the user composed.
+      expect(extras(1)).toMatchObject({ request: { method: "PUT", url: "https://{{host}}/signed" }, info: { eventName: "test" } });
+      expect(result.history.template).toEqual(template);
+    });
+
+    it("stores what a script changed in each scope, a removal as a removal", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ old: "1" }));
+      const change = vi.fn().mockResolvedValue(null);
+      scriptSandbox.setNextResult({
+        logs: [],
+        changes: { environment: [{ key: "token", value: "" }, { key: "old", value: null }], collection: [{ key: "base", value: "https://b.test" }], global: [{ key: "g", value: "2" }] },
+        testResults: [],
+      });
+      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "set()", postRequestScript: "", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest() });
+
+      // An empty value is a value (it removed the variable before P3.3).
+      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "token", value: "" }, { key: "old", value: null }]);
+      expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ token: "" }));
+      expect(environmentsService.changeGlobals).toHaveBeenCalledWith([{ key: "g", value: "2" }]);
+      expect(change).toHaveBeenCalledWith([{ key: "base", value: "https://b.test" }]);
+      expect(result.scriptLogs).toEqual([]);
+    });
+
+    it("says so in the console when what a script set has nowhere to be kept", async () => {
+      scriptSandbox.setNextResult({ logs: ["from the script"], changes: { environment: [{ key: "a", value: "1" }], collection: [{ key: "b", value: "2" }], global: [] }, testResults: [] });
+      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "set()", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      expect(environmentsService.changeEnvironment).not.toHaveBeenCalled();
+      expect(result.scriptLogs).toEqual([
+        "from the script",
+        "[warn] pm.environment: no environment is active, so what the script set was not kept.",
+        "[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.",
+      ]);
+    });
+
+    it("a vault secret is masked in a variable a post-response script sets, in every scope", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({}));
+      const change = vi.fn().mockResolvedValue(null);
+      const leaked = [{ key: "leaked", value: "got vault-secret-42" }, { key: "gone", value: null }];
+      scriptSandbox.setNextResult({ logs: [], changes: { environment: leaked, collection: leaked, global: leaked }, testResults: [] });
+      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "leak()", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest({ secrets: ["vault-secret-42"] }) });
+      const masked = [{ key: "leaked", value: "got ***" }, { key: "gone", value: null }];
+      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", masked);
+      expect(environmentsService.changeGlobals).toHaveBeenCalledWith(masked);
+      expect(change).toHaveBeenCalledWith(masked);
+    });
+
+    /** Runs a send whose post-response script makes `request` with pm.sendRequest, and gives what the script got. */
+    async function scriptSends(request: Parameters<NonNullable<Extras["send"]>>[0], signal?: AbortSignal): Promise<unknown> {
+      let outcome: unknown;
+      scriptSandbox.execute.mockImplementation(async (_script: string, _env: unknown, _response: unknown, _timeout: unknown, given: Extras) => {
+        transport.sendRequest.mockClear();
+        outcome = await given.send?.(request).catch((error: unknown) => error);
+        return { logs: [], changes: NO_CHANGES, testResults: [] };
+      });
+      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "send()", tests: [], buildRequest: () => builtRequest(), signal });
+      return outcome;
+    }
+
+    it("pm.sendRequest goes out through the transport, with the user's timeout and the send's own signal, and the script gets the response", async () => {
+      TestBed.inject(RequestSettings).timeoutMs.set(1500);
+      transport.setResponse(envelope(201, "Created", { token: "t-1" }));
+      const controller = new AbortController();
+      const outcome = await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [["X-A", "1"]], body: '{"grant":"x"}' }, controller.signal);
+
+      expect(transport.sendRequest).toHaveBeenCalledExactlyOnceWith("POST", "https://auth.test/token", { "X-A": "1" }, { grant: "x" });
+      expect(transport.options?.timeoutMs).toBe(1500);
+      expect(transport.options?.signal).toBe(controller.signal);
+      expect(outcome).toMatchObject({ code: 201, status: "Created", headers: { "content-type": "application/json" }, body: '{"token":"t-1"}', responseSize: 15 });
+    });
+
+    it("pm.sendRequest: a request that gets no response reaches the script as its error", async () => {
+      transport.setResponse(new TransportError("timeout", "Timed out after 1500 ms"));
+      const outcome = await scriptSends({ method: "GET", url: "https://auth.test/slow", headers: [] });
+      expect(outcome).toBeInstanceOf(TransportError);
+      expect((outcome as Error).message).toBe("Timed out after 1500 ms");
+    });
+
+    it.each([
+      ["the address", { url: "https://auth.test/?k={{$secret.abc}}" }],
+      ["the address, percent-encoded", { url: "https://auth.test/?k=%7B%7B%24secret.abc%7D%7D" }],
+      ["a header", { headers: [["X-Key", "{{ $secret.abc }}"]] as [string, string][] }],
+      ["a Basic header, inside the base64", { headers: [["Authorization", `Basic ${btoa("user:{{$secret.abc}}")}`]] as [string, string][] }],
+      ["the body", { body: '{"key":"{{$secret.abc}}"}' }],
+      ["a form body, encoded", { body: "key=%7B%7B%24secret.abc%7D%7D" }],
+    ])("@claim:C-007 pm.sendRequest sends nothing when %s holds a secret's placeholder, and names the error", async (_where, part) => {
+      const outcome = await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [], ...part });
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+      expect(outcome).toMatchObject({ name: "WayfarerUnsupportedError", message: "pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest" });
+    });
+  });
 });
+

@@ -3,7 +3,7 @@ import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
-import { ScriptSandbox, ScriptResponseContext } from "../shared/scripts/script-sandbox";
+import { ScriptSandbox, scriptResponse, type ScriptResponseContext, type ScriptRunExtras } from "../shared/scripts/script-sandbox";
 import {
   AssertionRunner,
   AssertionResponseContext,
@@ -17,11 +17,17 @@ import {
   decodeEnvelope,
   newId,
   parseJson,
+  scriptRequestOf,
   stringifyJson,
   variablesByName,
+  withScriptRequest,
   type RequestContent,
   type ResponseEnvelope,
+  type Row,
+  type ScriptResponse,
   type ScriptResult,
+  type ScriptSendRequest,
+  type VariableChange,
 } from "@wayfarer/core";
 
 export interface BuiltRequest {
@@ -65,7 +71,7 @@ const SECRET_PLACEHOLDER_BLOCKED =
  * percent-decoded, since URL normalisation may have encoded the braces, and
  * Basic credentials base64-decoded.
  */
-function containsSecretPlaceholder(request: BuiltRequest): boolean {
+function containsSecretPlaceholder(request: Pick<BuiltRequest, "url" | "headers" | "body">): boolean {
   const wire = [
     request.url,
     percentDecoded(request.url),
@@ -143,8 +149,15 @@ export interface RequestExecutionSpec {
    * variable this same request's own headers/body/URL reference (e.g. an
    * auth token fetched by a prior call) is reflected in what actually gets
    * sent, matching the ordering `pre-script -> build -> send` implies.
+   *
+   * It is given the request to build: `template`, as the pre-request script
+   * left it (`pm.request`).
    */
-  buildRequest: () => BuiltRequest | Promise<BuiltRequest>;
+  buildRequest: (request: RequestContent) => BuiltRequest | Promise<BuiltRequest>;
+  /** The saved request the composer is bound to, for `pm.info`. */
+  info?: { requestName: string; requestId: string };
+  /** The variables of that request's collection, read when a script starts, and the way to change them. Absent for a request of no collection. */
+  collection?: { variables: () => Row[]; change: (changes: VariableChange[]) => Promise<unknown> };
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
 }
@@ -223,20 +236,22 @@ export class RequestExecutor {
     const createdAt = Date.now();
     let preResult: ScriptResult | undefined;
 
+    /** What the app has to say about a script's run, shown with the script's own console lines. */
+    const notes: string[] = [];
+    let template = spec.template;
     if (spec.runScripts && spec.preRequestScript?.trim()) {
-      preResult = await this.scriptSandbox.execute(
-        spec.preRequestScript,
-        this.getEnvSnapshot()
-      );
+      preResult = await this.scriptSandbox.execute(spec.preRequestScript, this.getEnvSnapshot(), undefined, undefined, this.scriptExtras(spec, "prerequest", template));
       // As the script wrote them: it runs before any secret is read, and was
       // given the variables as stored, a secret as its reference.
-      await this.applyEnvMutations(preResult.envMutations);
+      await this.applyChanges(spec, preResult.changes, notes);
+      // What the script did to pm.request is sent. The request as composed is what history keeps.
+      if (preResult.request) template = withScriptRequest(template, preResult.request);
     }
 
     // Built only now, after the pre-script (and any environment mutations
     // it made) has already landed — see BuiltRequest / buildRequest's doc.
     // Awaited only when it is a promise: a request with no file to read is sent in the same task as the click.
-    const built = spec.buildRequest();
+    const built = spec.buildRequest(template);
     const request = built instanceof Promise ? await built : built;
     // The last line of defence (C-007): a reference to a secret that is not in
     // the vault, or one somewhere the resolver does not read, stays as written.
@@ -274,6 +289,8 @@ export class RequestExecutor {
     const redactor = new Redactor([...request.secrets, ...request.credentials]);
     const post = await this.runPostScriptAndAssertions(
       spec,
+      template,
+      notes,
       // A variable is stored: a vault secret must not get into one. A
       // credential that is no secret is in the environment already, and a
       // script that copies it must not turn it into a mask.
@@ -282,14 +299,15 @@ export class RequestExecutor {
       shaped.response.statusText ?? "",
       shaped.body,
       shaped.headers,
-      durationMs
+      durationMs,
+      outcome instanceof TransportError ? undefined : outcome.sizes.decoded
     );
     const testResults = [
       ...scriptRows(preResult, "Pre-request script", redactor),
       ...scriptRows(post.script, "Post-response script", redactor),
       ...post.assertions,
     ];
-    const scriptLogs = [...(preResult?.logs ?? []), ...(post.script?.logs ?? [])].map((line) => redactor.text(line));
+    const scriptLogs = [...(preResult?.logs ?? []), ...(post.script?.logs ?? []), ...notes].map((line) => redactor.text(line));
 
     // History keeps nothing that can be used as a credential (D5): every vault
     // secret and credential of this request is masked in what was sent and in
@@ -388,12 +406,15 @@ export class RequestExecutor {
 
   private async runPostScriptAndAssertions(
     spec: RequestExecutionSpec,
+    template: RequestContent,
+    notes: string[],
     variables: Redactor,
     statusCode: number,
     statusText: string,
     body: unknown,
     headers: Record<string, string>,
-    durationMs: number
+    durationMs: number,
+    sizeBytes: number | undefined
   ): Promise<{ script?: ScriptResult; assertions: TestResult[] }> {
     let script: ScriptResult | undefined;
 
@@ -404,13 +425,11 @@ export class RequestExecutor {
         body,
         headers,
         durationMs,
+        sizeBytes,
       };
-      script = await this.scriptSandbox.execute(
-        spec.postRequestScript,
-        this.getEnvSnapshot(),
-        responseCtx
-      );
-      await this.applyEnvMutations(Object.fromEntries(Object.entries(script.envMutations).map(([key, value]) => [key, variables.text(value)])));
+      script = await this.scriptSandbox.execute(spec.postRequestScript, this.getEnvSnapshot(), responseCtx, undefined, this.scriptExtras(spec, "test", template));
+      const masked = (changes: VariableChange[]) => changes.map(({ key, value }) => ({ key, value: value === null ? null : variables.text(value) }));
+      await this.applyChanges(spec, { environment: masked(script.changes.environment), collection: masked(script.changes.collection), global: masked(script.changes.global) }, notes);
     }
 
     if (spec.tests.length) {
@@ -430,22 +449,58 @@ export class RequestExecutor {
     return Object.fromEntries(variablesByName(this.environmentsService.activeEnvironment()?.vars ?? []));
   }
 
-  private async applyEnvMutations(mutations: Record<string, string>): Promise<void> {
-    const changes = Object.entries(mutations);
-    if (!changes.length) {
-      return;
-    }
-    const active = this.environmentsService.activeEnvironment();
-    if (!active) {
-      return;
-    }
-    // An empty value removes the variable. Applied to the stored rows, not to this tab's copy of them.
-    await this.environmentsService.changeEnvironment(
-      active.meta.id,
-      changes.map(([key, value]) => ({ key, value: value === "" ? null : value }))
-    );
+  /** What a script is given besides the active environment's variables: the other scopes, the request, and `pm.sendRequest`. */
+  private scriptExtras(spec: RequestExecutionSpec, eventName: "prerequest" | "test", template: RequestContent): ScriptRunExtras {
+    return {
+      environmentName: this.environmentsService.activeEnvironment()?.name ?? "",
+      globals: [...variablesByName(this.environmentsService.globals())],
+      collection: [...variablesByName(spec.collection?.variables() ?? [])],
+      request: scriptRequestOf(template),
+      info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "" },
+      send: (request) => this.sendForScript(request, spec.signal),
+    };
   }
 
+  /**
+   * `pm.sendRequest`: a script's request goes out as the user's own does,
+   * through the same transport with the same options, and under the same
+   * rule (C-007): a vault secret's reference is never sent, and a script is
+   * never given a secret to send. Nothing of it is stored.
+   */
+  private async sendForScript(request: ScriptSendRequest, signal?: AbortSignal): Promise<ScriptResponse> {
+    if (containsSecretPlaceholder(request)) {
+      throw Object.assign(new Error("pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest"), { name: "WayfarerUnsupportedError" });
+    }
+    const startedAt = performance.now();
+    const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() });
+    const shaped = this.shapeResponse(envelope, request.url);
+    return scriptResponse({
+      statusCode: envelope.status,
+      statusText: envelope.statusText,
+      body: shaped.body,
+      headers: shaped.headers,
+      durationMs: Math.round(performance.now() - startedAt),
+      sizeBytes: envelope.sizes.decoded,
+    });
+  }
+
+  /**
+   * Stores what a script set and removed, scope by scope. Applied to the
+   * stored rows, not to this tab's copy of them. A change that has nowhere
+   * to go is said in the console, not dropped without a word.
+   */
+  private async applyChanges(spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[]): Promise<void> {
+    if (changes.environment.length) {
+      const active = this.environmentsService.activeEnvironment();
+      if (active) await this.environmentsService.changeEnvironment(active.meta.id, changes.environment);
+      else notes.push("[warn] pm.environment: no environment is active, so what the script set was not kept.");
+    }
+    if (changes.global.length) await this.environmentsService.changeGlobals(changes.global);
+    if (changes.collection.length) {
+      if (spec.collection) await spec.collection.change(changes.collection);
+      else notes.push("[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.");
+    }
+  }
 
   private isJsonPayload(payload: unknown): boolean {
     if (payload === null || payload === undefined) {

@@ -14,7 +14,8 @@ const BUILT_INS =
   );
 const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require"];
 
-const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a"]}', responseTime: 12 };
+const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a"]}', responseTime: 12, responseSize: 21 };
+const NO_CHANGES = { environment: [], collection: [], global: [] };
 
 describe("runScript", () => {
   let quickjs: QuickJSWASMModule;
@@ -28,7 +29,7 @@ describe("runScript", () => {
 
   const libraries = new Map<string, string>();
   const run = async (source: string, context: Partial<ScriptContext> = {}, limits: Partial<ScriptLimits> = {}) =>
-    runScript(quickjs, source, { environment: [], ...context }, { ...SCRIPT_LIMITS, ...limits }, await loadLibraries(source, loadLibrary, libraries));
+    runScript(quickjs, source, { environment: [], ...context }, { ...SCRIPT_LIMITS, ...limits }, { libraries: await loadLibraries(source, loadLibrary, libraries) });
   /** Runs an expression and gives what it logged. */
   const value = async (expression: string, context: Partial<ScriptContext> = {}) => {
     const result = await run(`console.log(${expression})`, context);
@@ -44,10 +45,10 @@ describe("runScript", () => {
     `);
     expect(result).toEqual({
       logs: [],
-      envMutations: {},
+      changes: NO_CHANGES,
       testResults: [
         { label: "t", passed: true, source: "script" },
-        { label: "fails", passed: false, error: "Expected 1 to equal 2", source: "script" },
+        { label: "fails", passed: false, error: "expected 1 to equal 2", source: "script" },
         { label: "", passed: false, error: "text", source: "script" },
       ],
     });
@@ -82,13 +83,17 @@ describe("runScript", () => {
     `,
       { environment: [["API_KEY", "abc123"]] }
     );
-    expect(result.logs).toEqual(["abc123 null null", "minted  own"]);
-    expect(Object.entries(result.envMutations)).toEqual([
-      ["TOKEN", "minted"],
-      ["count", "3"],
-      ["__proto__", "own"],
-      ["API_KEY", ""],
-    ]);
+    // As in Postman: a name with no value is undefined, and a removed one is gone.
+    expect(result.logs).toEqual(["abc123 undefined undefined", "minted undefined own"]);
+    expect(result.changes).toEqual({
+      ...NO_CHANGES,
+      environment: [
+        { key: "TOKEN", value: "minted" },
+        { key: "count", value: "3" },
+        { key: "__proto__", value: "own" },
+        { key: "API_KEY", value: null },
+      ],
+    });
   });
 
   it("pm.response is null before the request and holds the response after it", async () => {
@@ -99,42 +104,46 @@ describe("runScript", () => {
        pm.test("status", () => pm.expect(pm.response).to.have.status(201));`,
       { response: RESPONSE }
     );
-    expect(result.logs).toEqual(['201 Created 12 {"id":7,"tags":["a"]} a', "application/json 7 null"]);
+    expect(result.logs).toEqual(['201 Created 12 {"id":7,"tags":["a"]} a', "application/json 7 undefined"]);
     expect(result.testResults[0].passed).toBe(true);
-    expect(await value("pm.response.json()", { response: { ...RESPONSE, body: "<html>" } })).toBe("null");
+    // As in Postman: a body that is not JSON throws.
+    expect((await run("pm.response.json()", { response: { ...RESPONSE, body: "<html>" } })).error).toMatch(/JSON|unexpected token/i);
   });
 
+  // pm.expect is chai's since P3.3: the assertions of the small expect it replaced, as chai writes and reports them.
   it.each([
     ["pm.expect({a:1}).to.eql({a:1})", undefined],
-    ["pm.expect({a:1}).to.eql({a:2})", 'Expected {"a":1} to deep-equal {"a":2}'],
+    ["pm.expect({a:1}).to.eql({a:2})", "expected { a: 1 } to deeply equal { a: 2 }"],
     ["pm.expect('abc').to.include('b')", undefined],
-    ["pm.expect('abc').to.include('x')", 'Expected "abc" to include "x"'],
+    ["pm.expect('abc').to.include('x')", "expected 'abc' to include 'x'"],
     ["pm.expect([1,2]).to.include(2)", undefined],
-    ["pm.expect([1,2]).to.include(3)", "Expected array to include 3"],
-    ["pm.expect(5).to.include(5)", "Expected value to include 5"],
-    ["pm.expect(1).to.be.ok()", undefined],
-    ["pm.expect(0).to.be.ok()", "Expected 0 to be truthy"],
-    ["pm.expect(null).to.be.null()", undefined],
-    ["pm.expect(1).to.be.null()", "Expected 1 to be null"],
-    ["pm.expect(undefined).to.be.undefined()", undefined],
-    ["pm.expect(1).to.be.undefined()", "Expected value to be undefined"],
+    ["pm.expect([1,2]).to.include(3)", "expected [ 1, 2 ] to include 3"],
+    ["pm.expect(5).to.include(5)", "the given combination of arguments (number and number) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a number"],
+    ["pm.expect(1).to.be.ok", undefined],
+    ["pm.expect(0).to.be.ok", "expected +0 to be truthy"],
+    ["pm.expect(null).to.be.null", undefined],
+    ["pm.expect(1).to.be.null", "expected 1 to be null"],
+    ["pm.expect(undefined).to.be.undefined", undefined],
+    ["pm.expect(1).to.be.undefined", "expected 1 to be undefined"],
     ["pm.expect('s').to.be.a('string')", undefined],
-    ["pm.expect(1).to.be.a('string')", "Expected 1 to be a string"],
+    ["pm.expect(1).to.be.a('string')", "expected 1 to be a string"],
     ["pm.expect({}).to.be.an('object')", undefined],
-    ["pm.expect(1).to.be.an('object')", "Expected 1 to be an object"],
+    ["pm.expect(1).to.be.an('object')", "expected 1 to be an object"],
     ["pm.expect(1).to.be.below(2)", undefined],
-    ["pm.expect(3).to.be.below(2)", "Expected 3 to be below 2"],
+    ["pm.expect(3).to.be.below(2)", "expected 3 to be below 2"],
     ["pm.expect(3).to.be.above(2)", undefined],
-    ["pm.expect(1).to.be.above(2)", "Expected 1 to be above 2"],
-    ["pm.expect({code:200}).to.have.status(200)", undefined],
-    ["pm.expect(null).to.have.status(200)", "Expected status undefined to equal 200"],
+    ["pm.expect(1).to.be.above(2)", "expected 1 to be above 2"],
+    // A status is asserted of a response (pm.expect(pm.response)), not of any object with a code.
+    ["pm.expect({code:200}).to.have.status(200)", "expected a response, as in pm.expect(pm.response)"],
+    ["pm.expect(null).to.have.status(200)", "expected a response, as in pm.expect(pm.response)"],
     ["pm.expect({a:1}).to.have.property('a')", undefined],
-    ["pm.expect({a:1}).to.have.property('b')", 'Expected object to have property "b"'],
+    ["pm.expect({a:1}).to.have.property('b')", "expected { a: 1 } to have property 'b'"],
     ["pm.expect(1).to.not.equal(2)", undefined],
-    ["pm.expect(1).to.not.equal(1)", "Expected 1 to not equal 1"],
+    ["pm.expect(1).to.not.equal(1)", "expected 1 to not equal 1"],
     ["pm.expect('abc').to.not.include('x')", undefined],
-    ["pm.expect('abc').to.not.include('b')", 'Expected "abc" to not include "b"'],
-    ["pm.expect([1]).to.not.include(1)", undefined],
+    ["pm.expect('abc').to.not.include('b')", "expected 'abc' to not include 'b'"],
+    // The small expect let this pass: it looked into strings only.
+    ["pm.expect([1]).to.not.include(1)", "expected [ 1 ] to not include 1"],
   ])("%s", async (assertion, message) => {
     const result = await run(`pm.test("t", () => { ${assertion}; });`);
     expect(result.testResults[0]).toEqual({ label: "t", passed: message === undefined, ...(message !== undefined && { error: message }), source: "script" });
@@ -160,7 +169,7 @@ describe("runScript", () => {
     expect((await run(`notDefined()`)).error).toBe("'notDefined' is not defined");
     // What ran before the error is kept.
     const partial = await run(`console.log("before"); pm.environment.set("a", "1"); throw new Error("after");`);
-    expect(partial).toMatchObject({ logs: ["before"], envMutations: { a: "1" }, error: "after" });
+    expect(partial).toMatchObject({ logs: ["before"], changes: { environment: [{ key: "a", value: "1" }] }, error: "after" });
   });
 
   it("a host function refuses anything but the type it takes, whatever the script did to String", async () => {
@@ -169,7 +178,7 @@ describe("runScript", () => {
       pm.environment.set("key", "value");
     `);
     expect(result.error).toBe("Expected a string.");
-    expect(result.envMutations).toEqual({});
+    expect(result.changes).toEqual(NO_CHANGES);
     const timer = await run(`Number = function () { return "soon"; }; setTimeout(function () {}, 5);`);
     expect(timer.error).toBe("Expected a number.");
   });
@@ -193,15 +202,15 @@ describe("runScript", () => {
     const flat = JSON.parse(JSON.stringify(result)) as typeof result;
     expect(flat).toEqual(result);
     expect(result.logs).toEqual(['{"secret":"from a getter"} function named() {} Symbol(s)', "getter read 1 times, inside the engine"]);
-    expect(Object.entries(result.envMutations)).toEqual([
-      ["object", "[object Object]"],
-      ["[object Object]", "key was an object"],
+    expect(result.changes.environment).toEqual([
+      { key: "object", value: "[object Object]" },
+      { key: "[object Object]", value: "key was an object" },
     ]);
     expect(result.testResults).toEqual([
       { label: "[object Object]", passed: false, error: "[object Object]", source: "script" },
       { label: "a thrown function", passed: false, error: "function thrown() {}", source: "script" },
     ]);
-    for (const value of [...result.logs, ...Object.values(result.envMutations), ...result.testResults.flatMap((row) => [row.label, row.error ?? ""])]) {
+    for (const value of [...result.logs, ...result.changes.environment.flatMap((change) => [change.key, change.value]), ...result.testResults.flatMap((row) => [row.label, row.error ?? ""])]) {
       expect(typeof value).toBe("string");
     }
   });
@@ -227,7 +236,7 @@ describe("runScript", () => {
     expect(tests.limit).toBe("timeout");
     const variables = await run(`for (let i = 0; ; i++) pm.environment.set("k" + i, "v".repeat(100000));`);
     expect(variables.error).toBe("Script wrote too many test results and variables.");
-    expect(Object.keys(variables.envMutations)).toHaveLength(10);
+    expect(variables.changes.environment).toHaveLength(10);
   });
 
   it("setTimeout runs its callback later, in order of time, with its arguments", async () => {
@@ -248,7 +257,15 @@ describe("runScript", () => {
 
   it("stops a script that does not end at the deadline, also when it catches", async () => {
     const result = await run(`pm.environment.set("a", "1"); try { while (true) {} } catch (error) {} console.log("survived");`, {}, { timeoutMs: 200 });
-    expect(result).toEqual({ logs: [], envMutations: { a: "1" }, testResults: [], error: "Script timed out after 200 ms", limit: "timeout" });
+    expect(result).toEqual({ logs: [], changes: { ...NO_CHANGES, environment: [{ key: "a", value: "1" }] }, testResults: [], error: "Script timed out after 200 ms", limit: "timeout" });
+  });
+
+  it("F68: stops a script that does not end inside a promise reaction or an async function, and says so", async () => {
+    for (const script of [`Promise.resolve().then(() => { while (true) {} });`, `(async () => { await null; while (true) {} })();`, `setTimeout(() => Promise.resolve().then(() => { while (true) {} }), 1);`]) {
+      const result = await run(`pm.test("before", () => {}); ${script}`, {}, { timeoutMs: 200 });
+      expect(result).toMatchObject({ error: "Script timed out after 200 ms", limit: "timeout" });
+      expect(result.testResults).toHaveLength(1);
+    }
   });
 
   it("does not wait for a timer that is due after the deadline", async () => {
@@ -293,7 +310,7 @@ describe("runScript", () => {
     // With no limit of its own QuickJS recurses until the host's stack ends. This engine is not used again.
     const spent = await newQuickJSWASMModuleFromVariant(variant);
     const result = await runScript(spent, `function down(n) { return n ? down(n - 1) + 1 : 0; } down(100000);`, { environment: [] }, { ...SCRIPT_LIMITS, stackBytes: 0 });
-    expect(result).toEqual({ logs: [], envMutations: {}, testResults: [], error: "Script exceeded the stack limit (too much recursion)", limit: "stack" });
+    expect(result).toEqual({ logs: [], changes: NO_CHANGES, testResults: [], error: "Script exceeded the stack limit (too much recursion)", limit: "stack" });
   });
 
   describe("require", () => {
@@ -406,4 +423,76 @@ describe("runScript", () => {
       expect(result.logs).toEqual(["Expected a WordArray.", "Expected a WordArray.", "Expected a WordArray."]);
     });
   });
+
+  describe("pm.sendRequest", () => {
+    const answer = (code: number, body: string) => ({ code, status: "OK", headers: {}, body, responseTime: 1, responseSize: body.length });
+    const send = (source: string, service: Parameters<typeof runScript>[4] = {}, limits: Partial<ScriptLimits> = {}) =>
+      runScript(quickjs, source, { environment: [["host", "api.test"]] }, { ...SCRIPT_LIMITS, ...limits }, service);
+
+    it("the host makes the request and the script gets the answer; the console names the request", async () => {
+      const seen: unknown[] = [];
+      const result = await send(`pm.sendRequest({ url: "https://{{host}}/a", method: "post", header: { "X-A": "1" }, body: "text" }, (error, response) => console.log(error, response.code, response.text()));`, {
+        send: (request) => {
+          seen.push(request);
+          return Promise.resolve(answer(202, "accepted"));
+        },
+      });
+      expect(result.error).toBeUndefined();
+      expect(seen).toEqual([{ method: "POST", url: "https://api.test/a", headers: [["X-A", "1"]], body: "text" }]);
+      expect(result.logs).toEqual(["[pm.sendRequest] POST https://api.test/a → 202", "null 202 accepted"]);
+    });
+
+    it("the time a request takes is not the script's: a slow answer does not end the script, and a loop after it still does", async () => {
+      const slow = () => new Promise<ReturnType<typeof answer>>((resolve) => setTimeout(() => resolve(answer(200, "late")), 700));
+      const waited = await send(`pm.sendRequest("https://api.test/slow").then((response) => console.log(response.text()));`, { send: slow }, { timeoutMs: 300 });
+      expect(waited).toMatchObject({ logs: ["[pm.sendRequest] GET https://api.test/slow → 200", "late"] });
+      expect(waited.error).toBeUndefined();
+      const looped = await send(`pm.sendRequest("https://api.test/slow").then(() => { while (true) {} });`, { send: slow }, { timeoutMs: 300 });
+      expect(looped).toMatchObject({ error: "Script timed out after 300 ms", limit: "timeout" });
+    });
+
+    it("a timer still fires while a request is in flight", async () => {
+      const result = await send(`setTimeout(() => console.log("timer"), 20); pm.sendRequest("https://api.test/slow", () => console.log("answer"));`, {
+        send: () => new Promise((resolve) => setTimeout(() => resolve(answer(200, "")), 300)),
+      });
+      expect(result.logs).toEqual(["timer", "[pm.sendRequest] GET https://api.test/slow → 200", "answer"]);
+    });
+
+    it("where no one makes requests for it, the script is told so", async () => {
+      const result = await send(`pm.sendRequest("https://api.test/a", (error, response) => console.log(error.message, response));`);
+      expect(result.logs).toEqual(["pm.sendRequest is not available here. null"]);
+    });
+
+    it("an error the callback throws ends the script; a failed request reaches it as an error with its name", async () => {
+      const refused = Object.assign(new Error("not this one"), { name: "WayfarerUnsupportedError" });
+      const result = await send(`pm.sendRequest("https://api.test/a", (error) => { console.log(error.name, error instanceof Error); throw new Error("from the callback"); });`, { send: () => Promise.reject(refused) });
+      expect(result.logs).toEqual(["[pm.sendRequest] GET https://api.test/a → not this one", "WayfarerUnsupportedError true"]);
+      expect(result.error).toBe("from the callback");
+    });
+
+    it("the host checks the request a script hands over, whatever the script did to JSON", async () => {
+      const made: unknown[] = [];
+      const service = { send: (request: unknown) => (made.push(request), Promise.resolve(answer(200, ""))) };
+      const attempt = async (forged: string) => (await send(`JSON.stringify = () => ${JSON.stringify(forged)}; pm.sendRequest("https://api.test/a", (error) => console.log(error && error.message));`, service)).logs;
+      expect(await attempt('{"method":"GET","url":"https://api.test/a","headers":[["a",{"toString":1}]]}')).toEqual(["The request's headers are not a list of names and values."]);
+      expect(await attempt('{"method":"get it","url":"https://api.test/a","headers":[]}')).toEqual(["The request's method is not an HTTP method."]);
+      expect(await attempt('{"method":"GET","url":" ","headers":[]}')).toEqual(["The request has no address."]);
+      expect(await attempt('{"method":"GET","url":"https://api.test/a","headers":[],"body":{"mode":"raw"}}')).toEqual(["The request's body is not text."]);
+      expect(await attempt("[]")).toEqual(["Expected a request."]);
+      expect(made).toEqual([]);
+    });
+
+    it("the request a pre-request script leaves is checked the same way, and a post-response script's is not read", async () => {
+      const request = { method: "GET", url: "https://api.test/a", headers: [] as [string, string][], body: { mode: "none" as const } };
+      const context = (eventName: "prerequest" | "test") => ({ environment: [], request, info: { eventName, requestName: "r", requestId: "1" } });
+      const pre = await runScript(quickjs, `pm.request.headers.add({ key: "X-A", value: "1" });`, context("prerequest"));
+      expect(pre.request).toEqual({ ...request, headers: [["X-A", "1"]] });
+      const post = await runScript(quickjs, `pm.request.headers.add({ key: "X-A", value: "1" });`, context("test"));
+      expect(post.request).toBeUndefined();
+      const forged = await runScript(quickjs, `JSON.stringify = () => '{"method":"GET","url":"u","headers":[],"body":{"mode":"file","path":"/etc/passwd"}}';`, context("prerequest"));
+      expect(forged).toMatchObject({ error: "The request's body is not one a script can set." });
+      expect(forged.request).toBeUndefined();
+    });
+  });
 });
+

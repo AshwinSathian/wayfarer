@@ -113,8 +113,11 @@ with the app and run inside the engine): there is no `fetch` or any other
 browser API inside it to take away. A suite of escape attempts runs from inside a script
 in Chromium, Firefox and WebKit under the production headers: every road to
 the global object finds only those names, every network API is absent, a
-dynamic `import()` loads nothing, the browser makes no request while a
-script runs, and nothing of one run is left for the next. <!-- claim:C-052 -->
+dynamic `import()` loads nothing, and nothing of one run is left for the
+next. The only requests a script makes are the ones it asks the app for
+with `pm.sendRequest`: the app sends them as it sends yours (no cookies, no
+`Referer`, at most 10 a run) and refuses one that holds a vault secret's
+reference; the suite counts the requests that leave. <!-- claim:C-052 -->
 A run is stopped at 5 seconds and at 64 MB.
 Scripts that came from somewhere else do not run on arrival: the scripts of
 an imported or restored collection, and those of a history entry, wait

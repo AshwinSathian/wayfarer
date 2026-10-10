@@ -31,6 +31,7 @@ import { RequestFiles } from "../services/request-files";
 import {
   BuiltRequest,
   RequestExecutionResponse,
+  RequestExecutionSpec,
   RequestExecutionResult,
   RequestExecutor,
   SendBlockedError,
@@ -440,8 +441,9 @@ export class WorkspaceStore {
         postRequestScript: draft.scripts.post,
         tests: draft.tests,
         template: this.snapshot(),
-        buildRequest: () => this.buildRequestForExecution(endpointText, options.allowUnresolved ?? false),
+        buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false),
         signal: controller.signal,
+        ...this.scriptBinding(),
       });
     } catch (error) {
       this.loadingState.set(false);
@@ -460,6 +462,20 @@ export class WorkspaceStore {
     this.applyExecutionResponse(result.response);
     await this.idb.add(result.history, this.settings.historyCap());
     return true;
+  }
+
+  /** What a script is told of the saved request in the composer, and the collection whose variables it may read and change. */
+  private scriptBinding(): Partial<Pick<RequestExecutionSpec, "info" | "collection">> {
+    const bound = this.saved.loadedCollectionRequest();
+    if (!bound) return {};
+    const { collectionId } = bound;
+    return {
+      info: { requestName: bound.name, requestId: bound.meta.id },
+      collection: {
+        variables: () => this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables ?? [],
+        change: (changes) => this.collections.changeCollectionVariables(collectionId, changes),
+      },
+    };
   }
 
   /** Why this method cannot be sent, or "" when it can. */
@@ -531,8 +547,8 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(endpointText: string, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(endpointText, allowUnresolved);
+  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(content, allowUnresolved);
     return built instanceof Promise ? built.then((request) => this.recordForExport(request)) : this.recordForExport(built);
   }
 
@@ -552,11 +568,12 @@ export class WorkspaceStore {
   }
 
   /**
-   * The draft with `{{var}}` placeholders substituted, as it is transmitted
-   * or exported as a runnable command. The editors keep the literal template.
+   * `content` (the draft, as a pre-request script may have changed it) with
+   * `{{var}}` placeholders substituted, as it is transmitted. The editors
+   * keep the literal template.
    */
-  private resolveRequest(endpointText: string, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
-    const content = this.snapshot();
+  private resolveRequest(content: RequestContent, allowUnresolved: boolean): BuiltRequest | Promise<BuiltRequest> {
+    const endpointText = content.url;
     // First without the vault: this pass says which secrets the request needs.
     const probe = new VariableResolver(this.scopes());
     for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body), ...credentialsOf(content.auth)]) {

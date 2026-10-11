@@ -123,6 +123,8 @@ export class Redactor {
         return { ...auth, password: this.credential(auth.password, options) };
       case "apikey":
         return { ...auth, value: this.credential(auth.value, options) };
+      case "awsv4":
+        return { ...auth, secretKey: this.credential(auth.secretKey, options), sessionToken: this.credential(auth.sessionToken, options) };
       case "none":
       case "inherit":
         return auth;

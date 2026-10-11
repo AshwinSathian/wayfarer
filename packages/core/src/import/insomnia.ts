@@ -101,6 +101,8 @@ function auth(value: unknown, said: (value: unknown) => string): { auth?: Loose 
       if (place && place !== "header" && place !== "queryParams") return { auth: { type: `an API key in a ${place}` } };
       return { auth: { type, apikey: { key: read("key"), value: read("value"), in: place === "queryParams" ? "query" : "header" } } };
     }
+    case "iam":
+      return { auth: { type: "awsv4", awsv4: { accessKey: read("accessKeyId"), secretKey: read("secretAccessKey"), sessionToken: read("sessionToken"), region: read("region"), service: read("service") } } };
     default:
       return { auth: { type } };
   }

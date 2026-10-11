@@ -18,6 +18,7 @@ import {
   parseJson,
   redactExport,
   resolveAuth,
+  signV4,
   type Ancestor,
   type Draft,
   type AuthConfig,
@@ -716,8 +717,36 @@ export class WorkspaceStore {
   private build(endpointText: string, content: RequestContent, resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> {
     const resolve = (text: string): string => resolver.resolve(text);
     const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
-    const finish = (body: SentBody | undefined): BuiltRequest => this.assemble(endpointText, content, body, resolver);
+    const finish = (body: SentBody | undefined): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(endpointText, content, body, resolver), resolveAuth(this.sentAuth(content.auth), resolve));
     return sent instanceof Promise ? sent.then(finish) : finish(sent);
+  }
+
+  /**
+   * AWS Signature Version 4 (P4.8), last of all: it signs the address, the
+   * headers and the body as they will be sent. Signed besides `Host` and the
+   * signer's own headers: `Content-Type` and any `x-amz-` header the request
+   * sets. The hashes are WebCrypto's, which a page has only when it is
+   * served over https or from localhost.
+   */
+  private sign(built: BuiltRequest, auth: AuthConfig): BuiltRequest | Promise<BuiltRequest> {
+    if (auth.type !== "awsv4" || !URL.canParse(built.url)) return built;
+    if (built.body instanceof FormData) {
+      throw new SendBlockedError("AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign. Send a file as a File body, or the fields as a URL-encoded form. Nothing was sent.");
+    }
+    if (!globalThis.crypto?.subtle) throw new SendBlockedError("AWS Signature needs the browser's cryptography, which a page has only over https or from localhost. Nothing was sent.");
+    const add = async (body: string | Uint8Array | undefined): Promise<BuiltRequest> => {
+      const own = built.headers.filter(([name]) => /^(content-type$|x-amz-)/i.test(name));
+      const { headers: signature } = await signV4({ method: built.method, url: built.url, headers: own, body }, auth, new Date());
+      const replaced = new Set(signature.map(([name]) => name.toLowerCase()));
+      return {
+        ...built,
+        headers: [...built.headers.filter(([name]) => !replaced.has(name.toLowerCase())), ...signature],
+        // The signature's header too: a server may send it back.
+        credentials: [...built.credentials, ...signature.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)],
+      };
+    };
+    if (built.body instanceof Blob) return built.body.arrayBuffer().then((bytes) => add(new Uint8Array(bytes)));
+    return add(built.body);
   }
 
   private assemble(

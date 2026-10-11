@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceStore, sentHeaders } from '../../state/workspace-store';
 import { headerLines } from '../../shared/http/header-lines';
 import { historyEntry, jsonBody, requestContent } from '../../../testing/request-fixtures';
@@ -239,6 +239,20 @@ describe('Composer: rows, payloads and variables', () => {
       store.patch({ auth: { type: 'basic', username: '{{user}}', password: '{{pass}}' } });
       const { headers } = await sendAndCapture('https://example.com/basic');
       expect(headers.get('Authorization')).toBe(`Basic ${btoa('ada:pw')}`);
+    });
+
+    it('signs with AWS Signature once the request is built: its own headers, the variables resolved, the typed date replaced (P4.8)', async () => {
+      store.patch({ url: 'https://example.com/aws?b=2&a=1', headers: [{ key: 'X-Amz-Date', value: 'typed', enabled: true }] });
+      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: '{{v}}', sessionToken: 'token-1', region: 'us-east-1', service: 'execute-api' } });
+      // The signature is made with WebCrypto, so the request leaves a moment after Send.
+      const pending = component.sendRequest();
+      const req = await vi.waitFor(() => httpMock.expectOne('https://example.com/aws?b=2&a=1'));
+      const { headers } = req.request;
+      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      await pending;
+      expect(headers.get('Authorization')).toMatch(/^AWS4-HMAC-SHA256 Credential=AKID\/\d{8}\/us-east-1\/execute-api\/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=[0-9a-f]{64}$/);
+      expect(headers.get('X-Amz-Date')).toMatch(/^\d{8}T\d{6}Z$/);
+      expect(headers.get('X-Amz-Security-Token')).toBe('token-1');
     });
 
     it('resolves API-key name and value, in a header and in the query', async () => {

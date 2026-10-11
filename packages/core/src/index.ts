@@ -11,6 +11,7 @@ export {
   type ResponseView,
 } from "./view/response-view";
 export { buildAuthHeaders, buildAuthQueryParam, credentialsOf, effectiveAuth, resolveAuth } from "./auth/request-auth";
+export { signV4 } from "./auth/sigv4";
 export {
   COLLECTION_FORMAT,
   ENVIRONMENTS_FORMAT,

@@ -104,7 +104,7 @@ API clients read.
 | The collection's name and description | `info` |
 | Its variables | `variable`; one that is switched off is `disabled` |
 | A folder, in a folder | an item that holds items |
-| Auth of the collection, a folder or a request | `auth`: `bearer`, `basic`, `apikey`. "No auth" is `noauth`. "Inherit from parent" is no `auth` at all, which is how Postman says it |
+| Auth of the collection, a folder or a request | `auth`: `bearer`, `basic`, `apikey`, `awsv4`. "No auth" is `noauth`. "Inherit from parent" is no `auth` at all, which is how Postman says it |
 | A pre-request and a post-response script, at each of the three levels | `event`: `prerequest` and `test` |
 | The address | `url`, as typed and in the parts Postman sends by. A `{{variable}}` stays as typed. The query is the one in the address; a Params row that is switched off is there too, `disabled` |
 | Headers | `header`; a row that is switched off is `disabled` |

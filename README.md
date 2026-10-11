@@ -31,7 +31,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Methods: any HTTP method, typed (`PURGE`, `PROPFIND`, …) and sent in upper case, with `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` one click away <!-- claim:C-017 -->
   - URL field with live validation <!-- claim:C-018 -->
-  - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query), and Scripts tabs; a collection and a folder can hold auth too, and a request set to "Inherit from parent" is sent with it <!-- claim:C-019 -->
+  - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query / AWS Signature), and Scripts tabs; a collection and a folder can hold auth too, and a request set to "Inherit from parent" is sent with it <!-- claim:C-019 -->
+  - **AWS Signature Version 4**: the request is signed as it is sent, with the access key, secret key, region and service you give, and a session token for temporary credentials. Held to AWS's own test suite. A multipart form cannot be signed, and the app says so <!-- claim:C-061 -->. See [`docs/auth.md`](docs/auth.md)
   - Body tab for every method but `GET` and `HEAD`, with the modes none, raw (JSON, text, XML, HTML, JavaScript), form (URL-encoded), multipart (text and files) and binary file <!-- claim:C-039 -->
   - **Copy as cURL** for any request once it has a URL, with its body in every mode: text, a form, a multipart form, a file by its name <!-- claim:C-020 -->
   - **Copy as code**: the same request for JavaScript `fetch`, Python `requests` or HTTPie, masked as the cURL command is <!-- claim:C-055 -->. See [`docs/export.md`](docs/export.md)

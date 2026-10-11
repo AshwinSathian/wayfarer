@@ -242,6 +242,10 @@ describe("Redactor", () => {
       expect(redactor.auth({ type: "basic", username: "alice", password: "typed" })).toEqual({ type: "basic", username: "alice", password: MASK });
       expect(redactor.auth({ type: "basic", username: "alice", password: "" })).toEqual({ type: "basic", username: "alice", password: "" });
       expect(redactor.auth({ type: "apikey", key: "X-Key", value: "typed", in: "query" })).toEqual({ type: "apikey", key: "X-Key", value: MASK, in: "query" });
+      const aws = { type: "awsv4", accessKey: "AKID", secretKey: "typed-secret", sessionToken: "typed-token", region: "us-east-1", service: "s3" } as const;
+      expect(redactor.auth(aws)).toEqual({ ...aws, secretKey: MASK, sessionToken: MASK });
+      expect(redactor.auth({ ...aws, secretKey: "{{secret}}", sessionToken: "" })).toEqual({ ...aws, secretKey: "{{secret}}", sessionToken: "" });
+      expect(redactor.auth(aws, { credentials: true })).toEqual(aws);
       expect(redactor.auth({ type: "none" })).toEqual({ type: "none" });
       expect(redactor.auth({ type: "bearer", token: "typed-token" }, { credentials: true })).toEqual({ type: "bearer", token: "typed-token" });
 

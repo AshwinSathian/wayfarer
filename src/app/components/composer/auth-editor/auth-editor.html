@@ -106,6 +106,45 @@
   </div>
   }
 
+  @if (currentAuth.type === 'awsv4') {
+  <div class="flex flex-col gap-3">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-access-key'">Access key</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-aws-access-key'" placeholder="Access key ID" [ngModel]="currentAuth.accessKey" (ngModelChange)="setAwsField({ accessKey: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-secret-key'">Secret key</label>
+      <div class="flex flex-1 basis-48 items-center gap-2">
+        <mat-form-field class="field flex-1">
+          <input matInput [id]="idPrefix() + '-aws-secret-key'" [type]="showPassword() ? 'text' : 'password'" placeholder="Secret access key" [ngModel]="currentAuth.secretKey" (ngModelChange)="setAwsField({ secretKey: $event })" />
+        </mat-form-field>
+        <button matIconButton type="button" [attr.aria-label]="showPassword() ? 'Hide secret key' : 'Show secret key'" (click)="onTogglePasswordVisibility()"><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" /></button>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-session-token'">Session token</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-aws-session-token'" [type]="showPassword() ? 'text' : 'password'" placeholder="Only with temporary credentials" [ngModel]="currentAuth.sessionToken" (ngModelChange)="setAwsField({ sessionToken: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-region'">Region</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-aws-region'" placeholder="us-east-1" [ngModel]="currentAuth.region" (ngModelChange)="setAwsField({ region: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-service'">Service</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-aws-service'" placeholder="s3, execute-api, …" [ngModel]="currentAuth.service" (ngModelChange)="setAwsField({ service: $event })" />
+      </mat-form-field>
+    </div>
+    <p class="type-callout text-label-tertiary">The request is signed as it is sent: the address, the body and the date. A multipart form cannot be signed.</p>
+  </div>
+  }
+
   @if (currentAuth.type === 'inherit') {
   <div class="auth-inherited flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />

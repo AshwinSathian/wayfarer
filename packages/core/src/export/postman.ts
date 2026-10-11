@@ -30,6 +30,8 @@ function auth(config: AuthConfig): { auth?: Entry } {
       return { auth: { type: "basic", basic: [field("username", config.username), field("password", config.password)] } };
     case "apikey":
       return { auth: { type: "apikey", apikey: [field("key", config.key), field("value", config.value), field("in", config.in)] } };
+    case "awsv4":
+      return { auth: { type: "awsv4", awsv4: [field("accessKey", config.accessKey), field("secretKey", config.secretKey), field("sessionToken", config.sessionToken), field("region", config.region), field("service", config.service)] } };
   }
 }
 

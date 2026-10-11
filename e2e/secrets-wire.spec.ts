@@ -275,19 +275,22 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   // The vault is made and left unlocked; the client's secret is in it.
   await protectVariable(page, "CLIENT_SECRET", "client-secret-in-vault");
   await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
-  // The answer is read as it arrives: read later, a browser may have let go of the body.
-  const [[asked, { access_token: token, refresh_token: refresh }]] = await Promise.all([
-    page
-      .waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST")
-      .then(async (response) => [response.request().headers()["authorization"] ?? "", (await response.json()) as { access_token: string; refresh_token: string }] as const),
+  const [asked] = await Promise.all([
+    page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST"),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
   // The client's secret came out of the vault for the token request.
-  expect(Buffer.from(asked.slice("Basic ".length), "base64").toString("utf8")).toBe("wayfarer-e2e:client-secret-in-vault");
+  expect(Buffer.from(((await asked.allHeaders())["authorization"] ?? "").slice("Basic ".length), "base64").toString("utf8")).toBe("wayfarer-e2e:client-secret-in-vault");
   await expect(page.locator(".oauth-token-status")).toContainText("It is kept in the vault.");
 
+  // The token is the one the request arrives with; its refresh token is asked of the identity provider itself.
+  // (Not read from the token answer in the browser: on a CI runner Chromium had no body to give for it.)
   const echo = await sendAndEcho(page);
-  expect(echo.headers.find(([key]) => key === "authorization")?.[1]).toBe(`Bearer ${token}`);
+  const token = (echo.headers.find(([key]) => key === "authorization")?.[1] ?? "").replace(/^Bearer /, "");
+  const issued = await page.request.get(`${ECHO}/oauth/issued?token=${token}`);
+  expect(issued.ok()).toBe(true);
+  const { refresh_token: refresh } = (await issued.json()) as { refresh_token: string };
+  expect(refresh).toBeTruthy();
   await expect(page.locator(".status-badge")).toHaveText("200");
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
 

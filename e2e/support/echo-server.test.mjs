@@ -131,6 +131,11 @@ test("/oauth: a short expires_in, a client in a Basic header, a state that was n
   assert.equal((await resource(short.access_token)).status, 200);
   assert.equal((await resource("at-never-issued")).status, 401);
   assert.equal((await get("/oauth/resource")).status, 401);
+  // A test asks what was issued with a token, by the token or by its refresh token.
+  assert.deepEqual(await (await get(`/oauth/issued?token=${short.access_token}`)).json(), short);
+  assert.deepEqual(await (await get(`/oauth/issued?refresh_token=${short.refresh_token}`)).json(), short);
+  assert.equal((await get("/oauth/issued?token=at-never-issued")).status, 404);
+  assert.equal((await get("/oauth/issued")).status, 404);
   await get("/oauth/revoke", { method: "POST", body: new URLSearchParams({ token: short.access_token }) });
   assert.equal((await resource(short.access_token)).status, 401, "a revoked token is refused");
 

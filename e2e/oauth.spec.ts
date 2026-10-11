@@ -47,15 +47,19 @@ interface TokenAnswer {
   access_token: string;
   refresh_token: string;
   expires_in: number;
+  scope: string;
 }
 
 /**
- * The token endpoint's next answer, read as it arrives. Read later, after
- * other requests, Chromium on a CI runner had let go of the body
- * ("No data found for resource with given identifier").
+ * What the mock identity provider issued with an access token, or with a
+ * refresh token: asked of the server itself. A test does not read a token
+ * answer's body through the browser: on a CI runner Chromium had none to
+ * give ("No data found for resource with given identifier"), read late or
+ * read at once.
  */
-function tokenAnswer(page: Page): Promise<TokenAnswer> {
-  return page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST").then((response) => response.json() as Promise<TokenAnswer>);
+async function issuedWith(page: Page, by: { token: string } | { refresh_token: string }): Promise<TokenAnswer | null> {
+  const response = await page.request.get(`${ECHO}/oauth/issued?${new URLSearchParams(by)}`);
+  return response.ok() ? ((await response.json()) as TokenAnswer) : null;
 }
 
 async function openAuth(page: Page): Promise<void> {
@@ -69,6 +73,8 @@ async function sendAndEcho(page: Page, path = "/echo"): Promise<Echo> {
 }
 
 const bearer = (echo: Echo) => echo.headers.find(([name]) => name === "authorization")?.[1] ?? "";
+/** The token a request arrived with. */
+const tokenOf = (echo: Echo) => bearer(echo).replace(/^Bearer /, "");
 const status = (page: Page) => page.locator(".oauth-token-status");
 
 test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over a channel, the code is exchanged with its verifier, and the token reaches the server", async ({ page, context }) => {
@@ -88,12 +94,7 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   await expect(status(page)).toContainText("No token yet.");
 
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));
-  const [popup, issued] = await Promise.all([
-    context.waitForEvent("page"),
-    tokenAnswer(page),
-    page.getByRole("button", { name: "Get token", exact: true }).click(),
-  ]);
-  const { access_token: token } = issued;
+  const [popup] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
   await expect(status(page)).toContainText("There is a token, good until");
   // The window had no opener to post to (COOP), said what it did, and the code is gone from its address.
   const asked = new URL((await authorize).url()).searchParams;
@@ -111,8 +112,11 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   expect(tokens[0]).toMatchObject({ grant_type: "authorization_code", redirect_uri: "http://localhost:4200/oauth/callback", client_id: "wayfarer-e2e" });
   expect(tokens[0]["code_verifier"]).toMatch(/^[A-Za-z0-9._~-]{43,128}$/);
 
+  // The request arrives with a token, and it is the one the identity provider issued for that code and scope.
   const echo = await sendAndEcho(page);
+  const token = tokenOf(echo);
   expect(bearer(echo)).toBe(`Bearer ${token}`);
+  expect(await issuedWith(page, { token })).toMatchObject({ access_token: token, scope: "read", expires_in: 3600 });
   await expect(page.locator(".status-badge")).toHaveText("200");
   expect(tokens).toHaveLength(1);
 
@@ -141,10 +145,11 @@ for (const [grant, auth, sentAs] of [
     await openAuth(page);
     await expect(status(page)).toContainText("No token yet. One is asked for when the request is sent.");
 
-    const issued = tokenAnswer(page);
     const echo = await sendAndEcho(page);
-    const { access_token: token } = await issued;
+    const token = tokenOf(echo);
     expect(bearer(echo)).toBe(`Bearer ${token}`);
+    // It is a token the identity provider issued, for the scope asked.
+    expect(await issuedWith(page, { token })).toMatchObject({ access_token: token, scope: "read" });
     await expect(page.locator(".status-badge")).toHaveText("200");
     expect(tokens).toEqual([sentAs.form]);
     expect(headers.map((value) => value && Buffer.from(value.slice("Basic ".length), "base64").toString("utf8"))).toEqual([sentAs.basic]);
@@ -197,25 +202,22 @@ test("@claim:C-062 a token that has expired is renewed once, with its refresh to
   const tokens = tokenRequests(page);
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ tokenUrl: `${ECHO}/oauth/token?expires_in=1` }) });
   await openAuth(page);
-  const [, first] = await Promise.all([
-    page.context().waitForEvent("page"),
-    tokenAnswer(page),
-    page.getByRole("button", { name: "Get token", exact: true }).click(),
-  ]);
-  const got = first;
-  expect(got.expires_in).toBe(1);
+  await Promise.all([page.context().waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
   // The server's second passes; the panel says so by itself.
   await expect(status(page)).toContainText("The token expired at");
   await expect(status(page)).toContainText("A new one is asked for when the request is sent.");
 
-  const renewed = tokenAnswer(page);
   const echo = await sendAndEcho(page);
-  const next = await renewed;
-  expect(bearer(echo)).toBe(`Bearer ${next.access_token}`);
-  expect(next.access_token).not.toBe(got.access_token);
   expect(tokens.map((form) => form["grant_type"])).toEqual(["authorization_code", "refresh_token"]);
-  // The refresh token the first answer gave; the public client is named in the form.
-  expect(tokens[1]).toEqual({ grant_type: "refresh_token", refresh_token: got.refresh_token, client_id: "wayfarer-e2e" });
+  // One renewal, with the public client named in the form.
+  expect(Object.keys(tokens[1]).sort()).toEqual(["client_id", "grant_type", "refresh_token"]);
+  // The refresh token it was made with is the one the first answer gave, and the request arrived with the token of the second.
+  const first = await issuedWith(page, { refresh_token: tokens[1]["refresh_token"] });
+  const next = await issuedWith(page, { token: tokenOf(echo) });
+  expect(first?.expires_in).toBe(1);
+  expect(next?.access_token).toBe(tokenOf(echo));
+  expect(next?.access_token).not.toBe(first?.access_token);
+  expect(next?.refresh_token).not.toBe(first?.refresh_token);
 });
 
 test("@claim:C-062 a 401 gets one more send with a renewed token when the auth asks for it, and is the response when it does not", async ({ page }) => {
@@ -226,12 +228,11 @@ test("@claim:C-062 a 401 gets one more send with a renewed token when the auth a
   });
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/oauth/resource`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) });
   await openAuth(page);
-  const [issued] = await Promise.all([
-    tokenAnswer(page),
-    page.getByRole("button", { name: "Get token", exact: true }).click(),
-  ]);
-  const { access_token: token } = issued;
-  await send(page);
+  await page.getByRole("button", { name: "Get token", exact: true }).click();
+  await expect(status(page)).toContainText("There is a token, good until");
+  const [sent] = await Promise.all([page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/resource`) && request.method() === "GET"), send(page)]);
+  const token = ((await sent.allHeaders())["authorization"] ?? "").replace(/^Bearer /, "");
+  expect(await issuedWith(page, { token })).not.toBeNull();
   await expect(page.locator(".status-badge")).toHaveText("200");
 
   // The server stops taking the token, while the app still holds it as good.
@@ -313,12 +314,9 @@ test("a request that inherits OAuth 2.0 from its collection gets its token in it
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: { type: "inherit" }, collection: { auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) } });
   await openAuth(page);
   await expect(page.locator(".auth-inherited")).toHaveText('OAuth 2.0 is sent, from collection "Tripwire collection".');
-  const [issued] = await Promise.all([
-    tokenAnswer(page),
-    page.getByRole("button", { name: "Get token", exact: true }).click(),
-  ]);
-  const { access_token: token } = issued;
-  expect(bearer(await sendAndEcho(page))).toBe(`Bearer ${token}`);
+  await page.getByRole("button", { name: "Get token", exact: true }).click();
+  await expect(status(page)).toContainText("There is a token, good until");
+  expect(await issuedWith(page, { token: tokenOf(await sendAndEcho(page)) })).not.toBeNull();
   expect(tokens).toHaveLength(1);
 });
 

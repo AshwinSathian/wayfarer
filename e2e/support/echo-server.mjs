@@ -22,6 +22,8 @@
 //   /oauth/token-no-cors           the same token endpoint, with no CORS header at all
 //   /oauth/resource                200 for a Bearer token that was issued and has not expired or been revoked, else 401
 //   /oauth/revoke                  POST token=…: that access token is no longer taken
+//   /oauth/issued?token=… | ?refresh_token=…   what was issued with that token, for a test to read:
+//                                  a browser does not always hand a test the body of a token answer
 //   /big/:mb                       mb MiB of bytes, streamed
 // Postman Echo–compatible routes (Newman's fixtures) are served on their own
 // origin, 127.0.0.1:4302, with Postman's paths unchanged (see rewritePostmanEcho).
@@ -101,6 +103,7 @@ const CONTENT = {
 const authCodes = new Map(); // code -> { clientId, redirectUri, challenge, scope }
 const refreshTokens = new Map(); // token -> { clientId, scope }
 const accessTokens = new Map(); // token -> the time it expires, in ms
+const issued = []; // every token answer, as it was sent
 
 function corsHeaders(req) {
   const origin = req.headers.origin;
@@ -212,6 +215,10 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     const until = accessTokens.get(/^Bearer (.+)$/.exec(req.headers.authorization ?? "")?.[1]);
     return until > Date.now() ? json(res, 200, { ok: true }, cors) : json(res, 401, { error: "invalid_token" }, cors);
   }
+  if (path === "/oauth/issued") {
+    const answer = issued.find((entry) => entry.access_token === url.searchParams.get("token") || entry.refresh_token === url.searchParams.get("refresh_token"));
+    return answer ? json(res, 200, answer, cors) : json(res, 404, { error: "not issued" }, cors);
+  }
   if (path === "/oauth/revoke") {
     accessTokens.delete(parseForm(body).token);
     return json(res, 200, {}, cors);
@@ -295,7 +302,9 @@ function issueToken(res, cors, clientId, scope, expiresIn) {
   refreshTokens.set(refresh, { clientId, scope });
   const access = `at-${b64url(randomBytes(12))}`;
   accessTokens.set(access, Date.now() + expiresIn * 1000);
-  return json(res, 200, { access_token: access, token_type: "Bearer", expires_in: expiresIn, refresh_token: refresh, scope }, { ...cors, "cache-control": "no-store" });
+  const answer = { access_token: access, token_type: "Bearer", expires_in: expiresIn, refresh_token: refresh, scope };
+  issued.push(answer);
+  return json(res, 200, answer, { ...cors, "cache-control": "no-store" });
 }
 
 function token(req, res, url, body, cors) {

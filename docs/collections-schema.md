@@ -110,4 +110,4 @@ How any file is imported, and the report shown first, is in [Import](import.md).
 
 ## Environments file
 
-`"$id": "wayfarer/environments/2"` with `environments`, a list of `{ meta, id, name, order, optional description, vars }`. `vars` is a list of rows, in order; when a name appears twice, the later enabled row is the one used.
+`"$id": "wayfarer/environments/2"` with `environments`, a list of `{ meta, id, name, order, optional description, vars }`. `vars` is a list of rows, in order; when a name appears twice, the later enabled row is the one used. A variable's row may also hold `"json": true`: a script set the variable to something that is not text, and `value` is its JSON. A file with that mark on a value that is not JSON is refused.

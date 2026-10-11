@@ -39,7 +39,17 @@ three stored scopes also have `set(name, value)`, `unset(name)` and
 `clear()`, and `pm.environment.name` is the environment's name.
 
 - `get` of a name that has no value is `undefined`.
-- A value is text: `set("n", 5)` is read back as `"5"`.
+- **A value keeps its type.** `set("n", 5)` is read back as `5`, by this
+  script, by the next one and in a later send, and so are a boolean,
+  `null`, an object and a list. `undefined`, a function and `NaN` are read
+  back as `null`. The value is stored as its JSON with a mark that says so;
+  the Variables editor shows that text, and a value you edit there is text
+  again. Where a request holds `{{n}}` the value is put in as its text:
+  `5`, `false`, `null`, and an object as its JSON, where Postman writes
+  `[object Object]`.
+- `postman.setEnvironmentVariable` and `postman.setGlobalVariable` do as
+  Postman's: a value becomes text unless it is falsy, so `1` is read back
+  as `"1"` and `0` as `0`.
 - `replaceIn` replaces `{{names}}` from every scope, nearest first, on any
   of the objects, and the dynamic variables (`{{$guid}}` and the rest). A
   name without a value stays as written.

@@ -8,7 +8,7 @@ the app's own worker in a browser, on every commit, and must show what the
 row says. This file is written from those rows, and CI fails when it and
 they differ. <!-- claim:C-040 -->
 
-126 rows: 79 supported, 28 partial, 19 not supported.
+126 rows: 81 supported, 26 partial, 19 not supported.
 
 - **Supported:** as in Postman.
 - **Partial:** it is there, and the note says what differs.
@@ -27,7 +27,7 @@ How scripts run, what they can reach and which may run is in
 |---|---|---|
 | `pm.environment.name` | Supported |  |
 | `pm.environment.get` | Supported |  |
-| `pm.environment.set` | Partial | Values are text: a number or an object that is set is read back as a string. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
+| `pm.environment.set` | Partial | A value that is not text keeps its type: a number, a boolean, `null`, an object or a list is read back as it was set, by this script and by the next. `undefined`, a function and `NaN` are `null`. In an address, a header or a body an object is its JSON text, where Postman writes `[object Object]`. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
 | `pm.environment.unset` | Supported |  |
 | `pm.environment.has` | Supported |  |
 | `pm.environment.toObject` | Supported |  |
@@ -41,7 +41,7 @@ How scripts run, what they can reach and which may run is in
 | API | Status | Note |
 |---|---|---|
 | `pm.globals.get` | Supported |  |
-| `pm.globals.set` | Partial | Values are text: a number or an object that is set is read back as a string. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
+| `pm.globals.set` | Partial | A value that is not text keeps its type: a number, a boolean, `null`, an object or a list is read back as it was set, by this script and by the next. `undefined`, a function and `NaN` are `null`. In an address, a header or a body an object is its JSON text, where Postman writes `[object Object]`. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
 | `pm.globals.unset` | Supported |  |
 | `pm.globals.has` | Supported |  |
 | `pm.globals.toObject` | Supported |  |
@@ -55,7 +55,7 @@ How scripts run, what they can reach and which may run is in
 | API | Status | Note |
 |---|---|---|
 | `pm.collectionVariables.get` | Supported |  |
-| `pm.collectionVariables.set` | Partial | Values are text: a number or an object that is set is read back as a string. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
+| `pm.collectionVariables.set` | Partial | A value that is not text keeps its type: a number, a boolean, `null`, an object or a list is read back as it was set, by this script and by the next. `undefined`, a function and `NaN` are `null`. In an address, a header or a body an object is its JSON text, where Postman writes `[object Object]`. In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console. |
 | `pm.collectionVariables.unset` | Supported |  |
 | `pm.collectionVariables.has` | Supported |  |
 | `pm.collectionVariables.toObject` | Supported |  |
@@ -70,7 +70,7 @@ How scripts run, what they can reach and which may run is in
 |---|---|---|
 | `pm.variables.get` | Supported |  |
 | `pm.variables.get (a folder's variable)` | Partial | Postman has no folder variables. Here a folder has them: `pm.variables` reads the nearest folder's value, which wins over the collection's and loses to the environment's. No scope of `pm` writes one. |
-| `pm.variables.set` | Partial | Values are text: a number or an object that is set is read back as a string. |
+| `pm.variables.set` | Partial | A value that is not text keeps its type: a number, a boolean, `null`, an object or a list is read back as it was set, by this script and by the next. `undefined`, a function and `NaN` are `null`. In an address, a header or a body an object is its JSON text, where Postman writes `[object Object]`. |
 | `pm.variables.has` | Supported |  |
 | `pm.variables.toObject` | Supported |  |
 | `pm.variables.replaceIn` | Supported |  |
@@ -223,11 +223,11 @@ How scripts run, what they can reach and which may run is in
 
 | API | Status | Note |
 |---|---|---|
-| `postman.setEnvironmentVariable` | Partial | Values are text: a number or an object that is set is read back as a string. |
+| `postman.setEnvironmentVariable` | Supported | As Postman's: a value becomes text unless it is falsy, so `1` is read back as `"1"` and `0` as `0`. |
 | `postman.getEnvironmentVariable` | Supported |  |
 | `postman.clearEnvironmentVariable` | Supported |  |
 | `postman.clearEnvironmentVariables` | Supported |  |
-| `postman.setGlobalVariable` | Partial | Values are text: a number or an object that is set is read back as a string. |
+| `postman.setGlobalVariable` | Supported | As Postman's: a value becomes text unless it is falsy, so `1` is read back as `"1"` and `0` as `0`. |
 | `postman.getGlobalVariable` | Supported |  |
 | `postman.clearGlobalVariable` | Supported |  |
 | `postman.clearGlobalVariables` | Supported |  |

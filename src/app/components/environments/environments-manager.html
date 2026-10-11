@@ -1,4 +1,4 @@
-<div class="env-manager grid gap-4 lg:grid-cols-[260px_1fr]">
+<div class="env-manager grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
   <!-- ── Environment list ──────────────────────────────────── -->
   <div class="ds-panel p-4">
     <div class="mb-3 flex items-center justify-between gap-2">
@@ -39,14 +39,9 @@
     @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
-      <button
-        type="button"
-        class="env-item"
-        [class.active]="selectedId() === env.meta.id"
-        [class.current]="activeEnvId === env.meta.id"
-        (click)="selectEnvironment(env.meta.id)"
-      >
-        <div class="flex flex-col items-start min-w-0">
+      <!-- A row is not a button: it holds one that selects it, stretched over the row, and the row's own buttons beside it. -->
+      <div class="env-item" [class.active]="selectedId() === env.meta.id" [class.current]="activeEnvId === env.meta.id">
+        <button type="button" class="env-item-select" [attr.aria-current]="selectedId() === env.meta.id ? 'true' : null" (click)="selectEnvironment(env.meta.id)">
           <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
           @if (activeEnvId === env.meta.id) {
           <span class="env-active-tag mt-1">
@@ -54,12 +49,12 @@
             In use
           </span>
           }
-        </div>
-        <div class="flex items-center gap-0.5 shrink-0">
+        </button>
+        <div class="env-item-actions flex items-center gap-0.5 shrink-0">
           <button
             matIconButton class="btn-success btn-sm"
             [disabled]="activeEnvId === env.meta.id"
-            (click)="setActive(env); $event.stopPropagation()"
+            (click)="setActive(env)"
             matTooltip="Use for requests"
             matTooltipPosition="above"
             aria-label="Use for requests"
@@ -67,15 +62,15 @@
           <button
             matIconButton class="btn-sm"
             [attr.aria-label]="'Duplicate ' + env.name"
-            (click)="duplicate(env); $event.stopPropagation()"
+            (click)="duplicate(env)"
           ><app-icon name="content_copy" /></button>
           <button
             matIconButton class="btn-danger btn-sm"
             [attr.aria-label]="'Delete ' + env.name"
-            (click)="remove(env); $event.stopPropagation()"
+            (click)="remove(env)"
           ><app-icon name="delete" /></button>
         </div>
-      </button>
+      </div>
       }
     </div>
     }

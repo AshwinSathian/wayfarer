@@ -398,6 +398,13 @@ code errors.
   which marks every change `keepSecret`: `applyVariableChanges` then never
   replaces a stored reference with a script's text, whatever this tab's
   copy of the rows said. The editor's changes are not marked.
+- A value a script sets that is not text is stored as its JSON, with
+  `json: true` on the variable's row (F76). `value` stays text, and the
+  resolver puts it in as it is. The host believes the mark only on a value
+  that parses; an importer never writes it; an edit of the value drops it.
+- A script is run as a program. Only one the engine refuses for a `return`
+  at the top is run again as a function's body (F77): wrapping every script
+  would make a `var` at the top local for all of them.
 - A script's duration is the wall time of `ScriptSandbox.execute`. The
   request's duration never includes a script's (F11).
 - What `pm` offers is a row of `packages/core/test/pm-compat/cases.ts`,
@@ -509,6 +516,9 @@ code errors.
   `docs/storage.md`.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
+- A variable's name may hold any character but a brace (F74). A name that
+  is not letters, digits, `_`, `.` and `-` is a variable only when one has
+  that name; with no value it is text, and nothing asks for it.
 - The endpoint field is text, not a URL: it may hold `{{variables}}`. Do not
   round-trip it through `URL`; that lower-cases and encodes placeholders.
 - A file in a request body is read through `RequestFiles`
@@ -580,6 +590,15 @@ code errors.
   worker (`ImportWorkerClient.curl`); it does not load the parser.
 - `parse(buildCurl(request))` is the request (the fast-check property in
   `curl.spec.ts`). A change to `buildCurl` or to the parser keeps it.
+- A file that is not JSON is read as YAML by `parseYaml`
+  (`packages/core/src/import/yaml.ts`), up to 1 MB (`MAX_YAML_CHARS`): the
+  reader keeps every token as an object, and a megabyte written to be dense
+  took a gigabyte. Do not raise the limit without measuring. Its
+  `uniqueKeys: false` and `prettyErrors: false` stay: both defaults are
+  quadratic. `maxAliasCount` is 100 (claim C-059).
+- The Insomnia importer writes Postman's shape and `postmanCollection`
+  makes the model from it: one mapping to the model. A new format that is
+  requests in folders can take the same road.
 - The report's script warnings come from `SCRIPT_SCAN`
   (`packages/core/src/import/script-scan.ts`), which a test holds equal to
   the unsupported rows of the compatibility matrix. A new unsupported row

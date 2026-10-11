@@ -96,17 +96,14 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));
   const [popup] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
   await expect(status(page)).toContainText("There is a token, good until");
-  // The window had no opener to post to (COOP), said what it did, and the code is gone from its address.
+  // The window was told its answer had arrived, and closed itself.
+  if (!popup.isClosed()) await popup.waitForEvent("close");
   const asked = new URL((await authorize).url()).searchParams;
   expect(asked.get("response_type")).toBe("code");
   expect(asked.get("redirect_uri")).toBe("http://localhost:4200/oauth/callback");
   expect(asked.get("code_challenge_method")).toBe("S256");
   expect(asked.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(asked.get("state")).toMatch(/^[0-9a-f-]{36}$/);
-  if (!popup.isClosed()) {
-    await expect(popup.getByText("Signed in. You can close this window.")).toBeVisible();
-    expect(await popup.evaluate(() => [window.opener === null, location.search])).toEqual([true, ""]);
-  }
   // One exchange: the code with the verifier, the client named in the form (it has no secret).
   expect(tokens).toHaveLength(1);
   expect(tokens[0]).toMatchObject({ grant_type: "authorization_code", redirect_uri: "http://localhost:4200/oauth/callback", client_id: "wayfarer-e2e" });
@@ -180,6 +177,8 @@ test("@claim:C-062 an answer with a state the app did not issue is not taken: no
   await expect(page.locator(".oauth-token-notice")).toHaveText("An answer came back with a state this app did not issue, and was ignored.");
   // The window was told nothing, and says so. The app still waits.
   await expect(popup.getByText("Wayfarer has not answered.")).toBeVisible();
+  // It had no opener to post to (COOP): the channel is the only way back. And the code is gone from its address.
+  expect(await popup.evaluate(() => [window.opener === null, location.search])).toEqual([true, ""]);
   await expect(page.getByText("Waiting for the sign-in window.")).toBeVisible();
   await expect(status(page)).toContainText("No token yet.");
 

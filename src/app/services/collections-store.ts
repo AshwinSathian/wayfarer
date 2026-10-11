@@ -11,7 +11,7 @@ import {
   RequestDocId,
   RequestPatch,
 } from "../models/collections";
-import { Redactor, scriptDigest, scriptsOf, serializeDeterministic, type CollectionTree, type RedactOptions, type VariableChange } from "@wayfarer/core";
+import { Redactor, scriptDigest, scriptsOf, serializeDeterministic, type CollectionTree, type ExportNote, type RedactOptions, type VariableChange } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 
 export type { CollectionTree };
@@ -288,17 +288,32 @@ export class CollectionsStore {
    * (plan D5); one that is a `{{variable}}` is a reference and stays.
    */
   async exportCollectionJson(id: CollectionId, options: RedactOptions = {}): Promise<string | null> {
+    const snapshot = await this.redacted(id, options);
+    return snapshot && serializeDeterministic(snapshot);
+  }
+
+  /** The collection as a Postman Collection v2.1 file, masked as the app's own file is, with what Postman's format has no place for. */
+  async exportCollectionPostman(id: CollectionId, options: RedactOptions = {}): Promise<{ json: string; notes: ExportNote[] } | null> {
+    const snapshot = await this.redacted(id, options);
+    if (!snapshot) return null;
+    const { postmanCollection } = await import("@wayfarer/core/postman");
+    const { file, notes } = postmanCollection(snapshot);
+    return { json: JSON.stringify(file, null, 2), notes };
+  }
+
+  /** The collection as stored, through the redactor: what any export of it is written from. */
+  private async redacted(id: CollectionId, options: RedactOptions): Promise<CollectionExport | null> {
     const snapshot = await this.idb.getCollectionExport(id);
     if (!snapshot) {
       return null;
     }
     const redactor = new Redactor([]);
-    return serializeDeterministic({
+    return {
       ...snapshot,
       collection: { ...snapshot.collection, variables: redactor.rows(snapshot.collection.variables, options), auth: redactor.auth(snapshot.collection.auth, options) },
       folders: snapshot.folders.map((folder) => ({ ...folder, variables: redactor.rows(folder.variables, options), auth: redactor.auth(folder.auth, options) })),
       requests: snapshot.requests.map((request) => ({ ...request, ...redactor.template(request, options) })),
-    });
+    };
   }
 
   async importCollection(

@@ -26,6 +26,8 @@ import {
 } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
+import { PostmanExportDialog } from "./postman-export-dialog";
+import { saveJsonFile } from "../../shared/save-file";
 
 type NodeData = CollectionNodeData;
 
@@ -46,6 +48,7 @@ export interface PaletteAction {
     Dialog,
     MatSelect, MatOption,
     InheritedSettingsDialog,
+    PostmanExportDialog,
   ],
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
@@ -81,6 +84,8 @@ export class CollectionsSidebar implements OnInit {
   readonly contextItems = signal<UiMenuItem[]>([]);
   /** The collection or the folder whose settings are open. */
   readonly settingsOf = signal<InheritedSettingsTarget | null>(null);
+  /** The collection whose Postman export dialog is open. */
+  readonly postmanExportOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
 
@@ -286,6 +291,11 @@ export class CollectionsSidebar implements OnInit {
       void this.exportCollection(node, action === "export-credentials");
       return;
     }
+    if (action === "export-postman") {
+      const data = node.data as NodeData;
+      if (data.type === "collection") this.postmanExportOf.set({ id: data.ref.meta.id, name: data.ref.name });
+      return;
+    }
     if (action === "settings") {
       const data = node.data as NodeData;
       if (data.type === "collection") this.settingsOf.set({ collectionId: data.ref.meta.id });
@@ -373,7 +383,7 @@ export class CollectionsSidebar implements OnInit {
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "settings">,
+    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "export-postman" | "settings">,
     node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;
@@ -447,14 +457,7 @@ export class CollectionsSidebar implements OnInit {
     if (!json) {
       return;
     }
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    const safeName = data.ref.name.replace(/\s+/g, "-").toLowerCase();
-    anchor.download = `${safeName}-collection.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    saveJsonFile(`${data.ref.name.replace(/\s+/g, "-").toLowerCase()}-collection.json`, json);
   }
 
   get creationTitle(): string {

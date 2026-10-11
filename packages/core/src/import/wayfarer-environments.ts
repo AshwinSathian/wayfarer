@@ -23,14 +23,18 @@ export type ProtectedValues =
   | { mode: "references"; vault: VaultFile | null }
   | { mode: "plain"; plaintexts: ReadonlyMap<string, string> };
 
-export function serializeEnvironmentExport(environments: EnvironmentDoc[], protectedValues: ProtectedValues = { mode: "strip" }): string {
-  // Each reference in a value, also one that stands inside other text.
-  const value = (text: string): string =>
+/** What a file holds of a variable's value: each reference to a vault secret in it, also one inside other text, as `protectedValues` says. */
+export function exportedValue(protectedValues: ProtectedValues): (text: string) => string {
+  return (text) =>
     protectedValues.mode === "references"
       ? text
       : text.replace(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/gi, (_reference, id: string) =>
           protectedValues.mode === "plain" ? protectedValues.plaintexts.get(id) ?? "" : ""
         );
+}
+
+export function serializeEnvironmentExport(environments: EnvironmentDoc[], protectedValues: ProtectedValues = { mode: "strip" }): string {
+  const value = exportedValue(protectedValues);
   const prepared = prepareEnvironments(environments).map((env) => ({ ...env, vars: env.vars.map((row) => ({ ...row, value: value(row.value) })) }));
   return JSON.stringify(
     sortKeys({

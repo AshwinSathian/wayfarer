@@ -18,6 +18,9 @@
       "@wayfarer/core/codegen": [
         "./packages/core/src/export/codegen.ts"
       ],
+      "@wayfarer/core/postman": [
+        "./packages/core/src/export/postman.ts"
+      ],
       "@wayfarer/core/pm-compat/*": [
         "./packages/core/test/pm-compat/*"
       ],

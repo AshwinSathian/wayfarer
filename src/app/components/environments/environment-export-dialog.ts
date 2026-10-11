@@ -4,11 +4,14 @@ import { MatButton } from "@angular/material/button";
 import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { EnvironmentDoc } from "../../models/environments";
 import { SecretsVault } from "../../services/secrets-vault";
-import { serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
+import { exportedValue, serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
 import { extractSecretId } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
+import { saveJsonFile } from "../../shared/save-file";
 import { Dialog } from "../../ui/dialog";
 
 type Mode = ProtectedValues["mode"];
@@ -19,7 +22,7 @@ export const PLAIN_TEXT_CONFIRMATION = "EXPORT SECRETS";
 /** Exports the environments, asking first what the file should hold of protected variables (P2.11). */
 @Component({
   selector: "app-environment-export-dialog",
-  imports: [Dialog, FormsModule, Icon, MatButton, MatButtonToggle, MatButtonToggleGroup, MatFormField, MatInput],
+  imports: [Dialog, FormsModule, Icon, MatButton, MatButtonToggle, MatButtonToggleGroup, MatFormField, MatInput, MatOption, MatSelect],
   templateUrl: "./environment-export-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,11 +35,24 @@ export class EnvironmentExportDialog {
   readonly requestUnlock = output<void>();
 
   protected readonly confirmation = PLAIN_TEXT_CONFIRMATION;
+  /** The app's own file holds every environment; a Postman environment file holds one. */
+  protected readonly format = signal<"wayfarer" | "postman">("wayfarer");
+  /** The id of the environment a Postman file is written from. Blank: the first. */
+  protected readonly chosen = signal("");
   protected readonly mode = signal<Mode>("strip");
   protected readonly typed = signal("");
   protected readonly error = signal("");
 
+  /** A Postman file has no place for the vault: "With the vault" is not offered for it. */
+  protected setFormat(format: "wayfarer" | "postman"): void {
+    this.format.set(format);
+    if (format === "postman" && this.mode() === "references") this.mode.set("strip");
+    this.error.set("");
+  }
+
   protected close(): void {
+    this.format.set("wayfarer");
+    this.chosen.set("");
     this.mode.set("strip");
     this.typed.set("");
     this.error.set("");
@@ -47,12 +63,15 @@ export class EnvironmentExportDialog {
     this.error.set("");
     const protectedValues = await this.protectedValues();
     if (!protectedValues) return;
-    const url = URL.createObjectURL(new Blob([serializeEnvironmentExport(this.environments(), protectedValues)], { type: "application/json" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "environments-export.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
+    if (this.format() === "postman") {
+      const environment = this.environments().find((entry) => entry.meta.id === this.chosen()) ?? this.environments()[0];
+      if (!environment) return;
+      const { postmanEnvironment } = await import("@wayfarer/core/postman");
+      const file = postmanEnvironment(environment, exportedValue(protectedValues));
+      saveJsonFile(`${environment.name.replace(/\s+/g, "-").toLowerCase()}.postman_environment.json`, JSON.stringify(file, null, 2));
+    } else {
+      saveJsonFile("environments-export.json", serializeEnvironmentExport(this.environments(), protectedValues));
+    }
     this.close();
   }
 

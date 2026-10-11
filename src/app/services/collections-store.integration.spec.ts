@@ -145,6 +145,17 @@ describe("CollectionsStore with real storage", () => {
     for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token", "typed-collection-auth", "typed-folder-password", "typed-folder-variable"]) {
       expect(whole).toContain(credential);
     }
+    // The Postman file is written from the same masked collection (P4.6 b).
+    const postman = (await service.exportCollectionPostman(collection.meta.id))!;
+    expect(postman.json).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
+    expect(postman.json).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/);
+    expect(postman.json).toContain('"value": "{{password}}"');
+    expect(postman.notes).toEqual([{ item: 'folder "Admin"', message: "Its variables are written, but Postman does not read a folder's variables: move them to the collection or to an environment there." }]);
+    const wholePostman = (await service.exportCollectionPostman(collection.meta.id, { credentials: true }))!;
+    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token", "typed-collection-auth", "typed-folder-password", "typed-folder-variable"]) {
+      expect(wholePostman.json).toContain(credential);
+    }
+    expect(await service.exportCollectionPostman("missing")).toBeNull();
     // What is stored is not changed by an export.
     expect(tree(collection.meta.id).requests.find((request) => request.name === "Typed")?.auth).toEqual({ type: "bearer", token: "typed-bearer-token" });
   });

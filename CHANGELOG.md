@@ -40,6 +40,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - A command copied with "Copy as cURL" pastes back as the same request.
   - See [`docs/import.md`](docs/import.md).
 
+- **A collection and an environment export as Postman files (P4.6 b).**
+  - **A collection:** right-click it and choose **Export for Postman…**. The file is a Postman Collection v2.1 file with the collection's folders, variables, auth and scripts at every level, and each request with its address, headers and body in every mode. A request set to "Inherit from parent" has no auth of its own in the file, which is how Postman says it.
+  - **The dialog says first what Postman's format has no place for**: the assertions of the Tests tab (Postman has tests only as scripts), a folder's variables (written, but Postman's runner does not read them), and files, which are named and not included.
+  - **Credentials are masked** as in the app's own collection file, unless you tick "Include credentials". A vault secret is never written.
+  - **An environment:** in "Export environments", choose "File for: Postman" and the environment. A protected variable is of Postman's type `secret`, with no value unless you ask for plain text.
+  - **Tested by running it:** a collection with every body mode, and auth and scripts at three levels, is exported and run by Newman, Postman's own runner; its 26 test results are the ones the app's engine gives for the collection.
+  - The collection's menu has one more entry. The exporter is fetched the first time a Postman file is asked for. See [`docs/export.md`](docs/export.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."

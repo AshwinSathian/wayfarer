@@ -214,10 +214,12 @@ test("collection context menu: arrow keys reach every action and Escape closes i
 
   await node.click({ button: "right" });
   const items = page.getByRole("menuitem");
-  await expect(items).toHaveText(["New Folder", "New Request", "Settings", "Rename", "Duplicate", "Export", "Export with credentials", "Delete"]);
+  await expect(items).toHaveText(["New Folder", "New Request", "Settings", "Rename", "Duplicate", "Export", "Export with credentials", "Export for Postman…", "Delete"]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(page.getByRole("menuitem", { name: "Export for Postman…" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
   await expect(page.getByRole("menuitem", { name: "Export with credentials" })).toBeFocused();
 

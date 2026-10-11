@@ -25,11 +25,13 @@ export {
   type RequestDoc,
 } from "./model/collection";
 export { serializeDeterministic, validateCollection } from "./import/wayfarer-collection";
-export { serializeEnvironmentExport, validateEnvironmentExport, type ProtectedValues } from "./import/wayfarer-environments";
+export { exportedValue, serializeEnvironmentExport, validateEnvironmentExport, type ProtectedValues } from "./import/wayfarer-environments";
 export { buildCurl } from "./export/curl";
 export { exportBody, redactExport, type ExportBody, type ExportRequest, type ExportSource } from "./export/request";
 // The code generators are `@wayfarer/core/codegen`, loaded when code is first asked for.
 export type { CodeTarget } from "./export/codegen";
+// The Postman exporter is `@wayfarer/core/postman`, loaded when a Postman file is first asked for.
+export type { ExportNote } from "./export/postman";
 export { isCurlCommand } from "./import/curl-command";
 // The importers themselves are `@wayfarer/core/import`, which only the import worker loads.
 export type { ImportOptions, ImportReport, ImportWarning, Imported } from "./import/import";

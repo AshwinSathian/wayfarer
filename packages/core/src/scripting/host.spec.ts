@@ -38,6 +38,25 @@ describe("runScript", () => {
     return result.logs[0];
   };
 
+  it("F77: a script with return at the top is run as a function's body, as Postman runs every script", async () => {
+    const result = await run(`tests["before"] = true; if (pm.environment.get("stop") !== "no") return 0; tests["after"] = true;`);
+    expect(result.error).toBeUndefined();
+    expect(result.testResults.map((test) => [test.label, test.passed])).toEqual([["before", true]]);
+
+    // What such a script declares, sets and waits for works as in any script; an error in it is its own error.
+    const more = await run(`var kept = "v"; function later() { pm.environment.set("late", kept); } setTimeout(later, 5); pm.test("this is the global", () => pm.expect(this === globalThis).to.equal(true)); return; never();`);
+    expect(more.error).toBeUndefined();
+    expect(more.testResults.map((test) => test.passed)).toEqual([true]);
+    expect(more.changes.environment).toEqual([{ key: "late", value: "v" }]);
+    expect((await run(`return missing.name;`)).error).toBe("'missing' is not defined");
+
+    // A script without one is a program, as before: what it declares with var is a global.
+    expect((await run(`var declared = 1; pm.test("global", () => pm.expect(globalThis.declared).to.equal(1));`)).testResults.map((test) => test.passed)).toEqual([true]);
+    // Another thing the engine cannot read stays what it was, with or without a return.
+    expect((await run(`return 1; let let = 2;`)).error).toMatch(/SyntaxError|invalid|unexpected|let/i);
+    expect((await run(`const = 2;`)).error).toBeDefined();
+  });
+
   it("runs pm.test with pm.expect and reports each result", async () => {
     const result = await run(`
       pm.test("t", () => pm.expect(1).to.equal(1));

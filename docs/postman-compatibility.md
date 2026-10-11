@@ -8,7 +8,7 @@ the app's own worker in a browser, on every commit, and must show what the
 row says. This file is written from those rows, and CI fails when it and
 they differ. <!-- claim:C-040 -->
 
-124 rows: 79 supported, 28 partial, 17 not supported.
+126 rows: 79 supported, 28 partial, 19 not supported.
 
 - **Supported:** as in Postman.
 - **Partial:** it is there, and the note says what differs.
@@ -233,16 +233,18 @@ How scripts run, what they can reach and which may run is in
 | `postman.clearGlobalVariables` | Supported |  |
 | `postman.setNextRequest` | Partial | Recorded. It has an effect in a collection run only, and there is none yet. |
 | `postman.getResponseHeader` | Supported |  |
+| `postman.getResponseCookie` | Not supported | Throws `WayfarerUnsupportedError`, which names what was called. |
 | `tests[name] = boolean` | Supported |  |
 | `responseBody` | Supported |  |
 | `responseCode` | Supported |  |
 | `responseTime` | Supported |  |
 | `responseHeaders` | Partial | Names are as the browser gives them: in lower case for a request sent from the page. |
 | `request (legacy global)` | Partial | As `pm.request`: as composed in a pre-request script, as sent in a post-response script, a vault secret as `***`. `data` is the text of a raw body or the fields of a form. |
-| `environment (legacy global)` | Supported |  |
-| `globals (legacy global)` | Supported |  |
+| `environment (legacy global)` | Supported | A copy made when the script starts. `postman.setEnvironmentVariable` and the two that clear keep it in step; `pm.environment.set` does not show in it, as in Postman. |
+| `globals (legacy global)` | Supported | A copy made when the script starts, kept in step by `postman.setGlobalVariable` and the two that clear. |
 | `iteration` | Partial | Always 0: there is no collection run yet. |
 | `response globals in a pre-request script` | Supported |  |
+| `legacy additions to built-in objects ([].none, (56).hex, fn.once and the rest of Sugar)` | Not supported | TypeError: the method is not there. Postman's older sandbox loaded the Sugar library, which adds methods to `Array`, `Number`, `String`, `Function`, `Object` and `Date`. |
 | `legacy library globals (_, CryptoJS, tv4, cheerio, xml2Json, Backbone)` | Not supported | ReferenceError: the names do not exist. Use `require` for the libraries that are there. |
 
 <a id="globals"></a>

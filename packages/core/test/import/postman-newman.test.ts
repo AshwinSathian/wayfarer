@@ -32,6 +32,8 @@ const LEGACY_GLOBAL = /(?<![\w$.])(?:_\.|CryptoJS\b)/;
 const OUTSIDE_BY_DESIGN: Record<string, string> = {
   "request-name-in-script.postman_collection.json":
     "its scripts read `request.name` and `request.description` of the legacy `request` (matrix: partial), and its pre-request script then ends in an error: Postman sends anyway, the app stops the send (P3.9)",
+  // The report cannot warn of these: a method's name does not say what it is called on (`NOT_SCANNED`).
+  "prototype-check.postman_collection.json": "its script calls the older sandbox's additions to the built-in objects, `['a'].none('d')` and `(56).hex()` (matrix: legacy additions to built-in objects, unsupported)",
 };
 
 /**
@@ -42,11 +44,7 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
 const GAPS: Record<string, string> = {
   "bom-and-encoding/bom-in-environment-file.postman_collection.json": "F74 (#248): a variable whose name holds a slash (`{{fo/o}}`) is not replaced",
   "slashed-variable-names/slashed-variable-names.postman_collection.json": "F74 (#248): a variable whose name holds a slash or a backslash is not replaced",
-  "clear-vars-sandbox.postman_collection.json": "F75 (#248): the legacy `environment` and `globals` objects do not show a value the same script has just set",
   "multi-level-folders-v2.postman_collection.json": "F76 (#248): a variable a script set to the number 0 reads back as the text \"0\" in the same run",
-  "redirect-test/redirect-test.postman_collection.json": "F77 (#248): a script with `return` outside a function ends in an error; Postman runs a script as a function's body",
-  "prototype-check.postman_collection.json": "F78 (#248): the older sandbox's additions to `Array.prototype` and the like (`[].none`, `(56).hex`) are not there, and the matrix has no row for them",
-  "cookie-jar.postman_collection.json": "F78 (#248): `postman.getResponseCookie` is not there, and the matrix has no row for it",
 };
 
 describe("Newman's integration collections, imported, against Newman", () => {
@@ -116,11 +114,13 @@ describe("Newman's integration collections, imported, against Newman", () => {
       "bom-and-encoding/bom-in-collection-file.postman_collection.json",
       "bom-and-encoding/utf16-le-encoding-in-env.postman_collection.json",
       "case-insen-header-sandbox.postman_collection.json",
+      "clear-vars-sandbox.postman_collection.json",
       "disabled-and-duplicate-variables/disabled-and-duplicates.postman_collection.json",
       "distinct-random-int.postman_collection.json",
       "esc-formdata/esc-formdata.postman_collection.json",
       "multiple-form-values.postman_collection.json",
       "newman-gzip-test.postman_collection.json",
+      "redirect-test/redirect-test.postman_collection.json",
       "request-chaining-test.postman_collection.json",
       "semicolon-tests.postman_collection.json",
       "timeout/timeout.postman_collection.json",

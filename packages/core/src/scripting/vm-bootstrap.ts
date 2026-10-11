@@ -447,21 +447,39 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
   // Postman's older sandbox: what scripts used before \`pm\`. The same
   // variables, response and request, by their old names.
   var sent = given.response;
+  // The older objects are copies made when the script starts. Only the older setters keep them in
+  // step: \`pm.environment.set\` does not show in \`environment\`, and neither does it in Postman.
+  var legacyEnvironment = pm.environment.toObject();
+  var legacyGlobals = pm.globals.toObject();
+  function legacy(scope, copy) {
+    return {
+      // Postman's older setter makes text of a value unless the value is falsy: 1 is "1", and 0 is what the scope makes of 0.
+      set: function (key, value) {
+        scope.set(key, value ? String(value) : value);
+        Object.defineProperty(copy, String(key), { value: scope.get(key), writable: true, enumerable: true, configurable: true });
+      },
+      unset: function (key) { scope.unset(key); delete copy[String(key)]; },
+      clear: function () { scope.clear(); Object.keys(copy).forEach(function (name) { delete copy[name]; }); },
+    };
+  }
+  var legacyEnvironmentScope = legacy(pm.environment, legacyEnvironment);
+  var legacyGlobalScope = legacy(pm.globals, legacyGlobals);
   globalThis.postman = {
-    setEnvironmentVariable: pm.environment.set,
+    setEnvironmentVariable: legacyEnvironmentScope.set,
     getEnvironmentVariable: pm.environment.get,
-    clearEnvironmentVariable: pm.environment.unset,
-    clearEnvironmentVariables: pm.environment.clear,
-    setGlobalVariable: pm.globals.set,
+    clearEnvironmentVariable: legacyEnvironmentScope.unset,
+    clearEnvironmentVariables: legacyEnvironmentScope.clear,
+    setGlobalVariable: legacyGlobalScope.set,
     getGlobalVariable: pm.globals.get,
-    clearGlobalVariable: pm.globals.unset,
-    clearGlobalVariables: pm.globals.clear,
+    clearGlobalVariable: legacyGlobalScope.unset,
+    clearGlobalVariables: legacyGlobalScope.clear,
     setNextRequest: pm.execution.setNextRequest,
     getResponseHeader: function (name) { return pm.response ? pm.response.headers.get(name) : undefined; },
+    // A page is not shown a response's cookies: the browser keeps "Set-Cookie" to itself.
+    getResponseCookie: function () { throw unsupported("postman.getResponseCookie()", "legacy"); },
   };
-  // As they were when the script started: Postman's are copies too.
-  globalThis.environment = pm.environment.toObject();
-  globalThis.globals = pm.globals.toObject();
+  globalThis.environment = legacyEnvironment;
+  globalThis.globals = legacyGlobals;
   globalThis.iteration = 0;
   globalThis.request = given.request && {
     id: given.info.requestId,

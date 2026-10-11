@@ -78,6 +78,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Three faults of Postman's older script sandbox, found by running Newman's own collections ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).**
+  - **Fixed: the older `environment` and `globals` objects did not show a value the same script had just set** with `postman.setEnvironmentVariable` or `postman.setGlobalVariable`, or had cleared. They do now, as in Postman. (`pm.environment.set` does not show in them, in Postman either.)
+  - **Fixed: a script with `return` outside a function ended in "return not in a function".** Postman runs a script as the body of a function, so `return` ends it. It does here too.
+  - **Fixed: two parts of the older sandbox that the app does not have were not said anywhere.** `postman.getResponseCookie` now ends in an error that names the compatibility page (a page is not shown a response's cookies), and an import warns of a script that uses it. The methods the older sandbox added to arrays, numbers and functions (`['a'].none('d')`, `(56).hex()`) are listed as not supported.
+  - Two more of Newman's collections now give Newman's results in the app's engine: 14, from 12.
+
 - **The environments list can be used with a screen reader and on a phone ([#251](https://github.com/AshwinSathian/wayfarer/issues/251)).**
   - **Fixed: a row of the list was a button that held three more buttons** (Use for requests, Duplicate, Delete). That is not valid HTML, and a screen reader is not reliably told of buttons inside a button. A row now holds one button that selects the environment and the three beside it; a click anywhere on the row still selects it, and it looks the same.
   - **Fixed: an environment with a long name pushed the view past the window on a phone.** Below 1024 px the list was as wide as its longest name, so at 390 px its buttons, Import, Export and Save were off screen with no way to scroll to them. The name is now cut with an ellipsis.

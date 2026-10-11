@@ -2,9 +2,8 @@
 
 exports[`Newman's integration collections, imported, against Newman > @claim:C-058 every collection inside the matrix gives Newman's test names, passes and failures 1`] = `
 {
-  "clear-vars-sandbox.postman_collection.json": "F75 (#248): the legacy \`environment\` and \`globals\` objects do not show a value the same script has just set",
   "comma-test-csv/comma-test-csv.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
-  "cookie-jar.postman_collection.json": "F78 (#248): \`postman.getResponseCookie\` is not there, and the matrix has no row for it",
+  "cookie-jar.postman_collection.json": "request "Verify cookie": Its post-response script uses postman.getResponseCookie, which Wayfarer does not have. The script will end in an error there.",
   "crypto-md5.postman_collection.json": "a script uses the legacy global CryptoJS (matrix: legacy library globals, unsupported)",
   "csv-with-bom/csv-with-bom.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
   "custom-http-method/custom-http-method.postman_collection.json": "Newman did not run it here: it calls localhost:4041: a server these fixtures do not have",
@@ -21,8 +20,7 @@ exports[`Newman's integration collections, imported, against Newman > @claim:C-0
   "multi-value-data.postman_collection.json": "a script uses the legacy global _ (matrix: legacy library globals, unsupported)",
   "oauth1-var-in-url-params.postman_collection.json": "request "https://postman-echo.com/oauth1?a={{vala}}": Its auth is of a type the app does not have (oauth1) and is left out: it is sent with no auth.",
   "protocol-profile-behavior.postman_collection.json": "Newman did not run it here: it calls localhost:4042: a server these fixtures do not have",
-  "prototype-check.postman_collection.json": "F78 (#248): the older sandbox's additions to \`Array.prototype\` and the like (\`[].none\`, \`(56).hex\`) are not there, and the matrix has no row for them",
-  "redirect-test/redirect-test.postman_collection.json": "F77 (#248): a script with \`return\` outside a function ends in an error; Postman runs a script as a function's body",
+  "prototype-check.postman_collection.json": "its script calls the older sandbox's additions to the built-in objects, \`['a'].none('d')\` and \`(56).hex()\` (matrix: legacy additions to built-in objects, unsupported)",
   "redirect-test/redirect-with-body.postman_collection.json": "Newman did not run it here: it calls localhost:4042: a server these fixtures do not have",
   "request-body-with-get.postman_collection.json": "Newman did not run it here: it calls localhost:4041: a server these fixtures do not have",
   "request-name-in-script.postman_collection.json": "its scripts read \`request.name\` and \`request.description\` of the legacy \`request\` (matrix: partial), and its pre-request script then ends in an error: Postman sends anyway, the app stops the send (P3.9)",

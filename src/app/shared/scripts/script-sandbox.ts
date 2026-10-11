@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { DestroyRef, Injectable, inject } from "@angular/core";
 import { BinaryBody, SCRIPT_LIMITS, emptyChanges, newId, stringifyJson, type ScriptContext, type ScriptResponse, type ScriptResult, type ScriptSendRequest } from "@wayfarer/core";
 
 export interface ScriptResponseContext {
@@ -63,6 +63,12 @@ const nothing = (error?: string, limit?: ScriptResult["limit"]): ScriptResult =>
 export class ScriptSandbox {
   private worker: Worker | null = null;
   private readonly runs = new Map<string, Run>();
+
+  constructor() {
+    // In the app this service lives as long as the page. A unit test makes one per test: each left its worker running
+    // with the engine's memory, and an engine past the hundred-and-twentieth found none ("WebAssembly.Memory(): could not allocate memory").
+    inject(DestroyRef).onDestroy(() => this.worker?.terminate());
+  }
 
   execute(
     script: string,

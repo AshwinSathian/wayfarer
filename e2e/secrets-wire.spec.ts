@@ -255,6 +255,8 @@ test("a request that uses a secret while the vault is locked asks for the passph
 // P4.7: an OAuth 2.0 token is a new thing the app keeps. With the vault
 // unlocked it is a vault secret; it is masked wherever a vault secret is.
 test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a scan of everything stored, exported and copied finds neither it nor its refresh token", async ({ page }) => {
+  // As long as the scan above it: a vault made, a send with a script, nine copies, two downloads and a reload. On the WebKit runner it was at 30 s with the reload still to do (#228).
+  test.slow();
   const clipboard = await recordClipboard(page);
   let tokenRequests = 0;
   page.on("request", (request) => {

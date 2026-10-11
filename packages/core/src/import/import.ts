@@ -7,10 +7,12 @@ import { curlRequest, parseCurl } from "./curl";
 import { isCurlCommand } from "./curl-command";
 import { isHar, parseHar } from "./har";
 import { ImportError } from "./import-error";
+import { insomniaExport, isInsomnia } from "./insomnia";
 import { isPostmanCollection, isPostmanEnvironment, isPostmanV1, postmanCollection, postmanEnvironment } from "./postman";
 import { unsupportedApis } from "./script-scan";
 import { importCollection, type CollectionImportPlanEntry } from "./wayfarer-collection";
 import { validateEnvironmentExport } from "./wayfarer-environments";
+import { NOT_READABLE, parseYaml } from "./yaml";
 
 export { ImportError };
 
@@ -22,6 +24,7 @@ export const IMPORT_FORMATS = {
   har: "HAR 1.2",
   "postman-collection": "Postman collection",
   "postman-environment": "Postman environment",
+  insomnia: "Insomnia export",
 } as const;
 export type ImportFormat = keyof typeof IMPORT_FORMATS;
 
@@ -57,7 +60,7 @@ export interface ImportOptions {
   duplicateAsNew?: boolean;
 }
 
-const UNKNOWN = `This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "${COLLECTION_FORMAT}"), a Wayfarer environments file ("$id": "${ENVIRONMENTS_FORMAT}"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, a HAR 1.2 file, and a cURL command.`;
+const UNKNOWN = `This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "${COLLECTION_FORMAT}"), a Wayfarer environments file ("$id": "${ENVIRONMENTS_FORMAT}"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), a HAR 1.2 file, and a cURL command.`;
 
 function idOf(value: unknown): string {
   if (typeof value !== "object" || value === null || Array.isArray(value) || !Object.hasOwn(value, "$id")) return "";
@@ -76,6 +79,8 @@ export function detectFormat(value: unknown): ImportFormat | null {
   if (id.startsWith("wayfarer/collection/")) return "wayfarer-collection";
   if (id.startsWith("wayfarer/environments/")) return "wayfarer-environments";
   if (isHar(value)) return "har";
+  // Before Postman's: an Insomnia file says what it is, and a Postman file is known by a list it holds.
+  if (isInsomnia(value)) return "insomnia";
   if (isPostmanCollection(value)) return "postman-collection";
   if (isPostmanEnvironment(value)) return "postman-environment";
   return null;
@@ -168,12 +173,14 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
     const { name, content, warnings } = curlToRequest(text);
     return built("curl", "Imported from cURL", [{ name, content, warnings }]);
   }
-  const parsed = parseJson(text);
-  if (!parsed.ok) throw new ImportError("The file is not valid JSON, so it is not a file Wayfarer can import.");
-  const format = detectFormat(parsed.value);
+  const json = parseJson(text);
+  // What is not JSON may be YAML. Almost any text is YAML for one value or another: only a file that holds a map or a list is read on.
+  const value = json.ok ? json.value : parseYaml(text);
+  if (!json.ok && (typeof value !== "object" || value === null)) throw new ImportError(NOT_READABLE);
+  const format = detectFormat(value);
   if (!format) {
-    if (idOf(parsed.value).startsWith("wayfarer/workspace/")) throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
-    if (isPostmanV1(parsed.value)) throw new ImportError("This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.");
+    if (idOf(value).startsWith("wayfarer/workspace/")) throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
+    if (isPostmanV1(value)) throw new ImportError("This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.");
     throw new ImportError(UNKNOWN);
   }
   const report = (counts: Partial<ImportReport["counts"]>, warnings: ImportWarning[]): ImportReport => ({
@@ -184,11 +191,11 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
   });
 
   if (format === "har") {
-    const requests = parseHar(parsed.value).map(({ name, request, warnings }) => ({ name, ...curlRequest({ request, warnings }) }));
+    const requests = parseHar(value).map(({ name, request, warnings }) => ({ name, ...curlRequest({ request, warnings }) }));
     return built("har", "Imported from HAR", requests);
   }
   if (format === "postman-collection") {
-    const { payload, warnings } = postmanCollection(parsed.value);
+    const { payload, warnings } = postmanCollection(value);
     const collection = added(payload);
     return {
       report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, [...warnings, ...inheritedScriptWarnings(collection.payload)]),
@@ -196,19 +203,35 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
       environments: [],
     };
   }
+  if (format === "insomnia") {
+    const { collections: made, environments, warnings } = insomniaExport(value);
+    const read = made.map((collection) => postmanCollection(collection));
+    const collections = read.map(({ payload }) => added(payload));
+    const issues = environments.flatMap((environment) => validateRows(environment.vars, "data"));
+    if (issues.length) throw new ImportError("The file's environments are not ones the app can hold.", issues);
+    const count = (of: (payload: CollectionExport) => unknown[]): number => collections.reduce((sum, { payload }) => sum + of(payload).length, 0);
+    return {
+      report: report({ collections: collections.length, folders: count((payload) => payload.folders), requests: count((payload) => payload.requests), environments: environments.length }, [
+        ...warnings,
+        ...read.flatMap((collection) => collection.warnings),
+      ]),
+      collections,
+      environments,
+    };
+  }
   if (format === "postman-environment") {
-    const { environment, warnings } = postmanEnvironment(parsed.value);
+    const { environment, warnings } = postmanEnvironment(value);
     const issues = validateRows(environment.vars, "values");
     if (issues.length) throw new ImportError("The file is not a Postman environment the app can hold.", issues);
     return { report: report({ environments: 1 }, warnings), collections: [], environments: [environment] };
   }
   if (format === "wayfarer-environments") {
-    const result = validateEnvironmentExport(parsed.value as object);
+    const result = validateEnvironmentExport(value as object);
     if (!result.payload) throw new ImportError("The file is not a valid Wayfarer environments file.", (result.errors ?? []).map((message) => ({ path: "", message })));
     return { report: report({ environments: result.payload.length }, []), collections: [], environments: result.payload };
   }
 
-  const { payload, plan, errors } = importCollection(parsed.value as object, options);
+  const { payload, plan, errors } = importCollection(value as object, options);
   if (!payload || !plan) throw new ImportError("The file is not a valid Wayfarer collection.", errors ?? []);
   return { report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, inheritedScriptWarnings(payload)), collections: [{ payload, plan }], environments: [] };
 }

@@ -133,16 +133,24 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
   globalThis.require = load;
 
   // Variables. The host keeps every scope and what the script changed in it;
-  // a value is text. "any" reads the nearest scope that has the name.
+  // a value is text, or the JSON of what is not text. "any" reads the nearest scope that has the name.
   function variables(scope, writable) {
     var api = {
-      get: function (key) { return host.varGet(scope, String(key)); },
+      get: function (key) {
+        var value = host.varGet(scope, String(key));
+        return value !== undefined && host.varJson(scope, String(key)) ? JSON.parse(value) : value;
+      },
       has: function (key) { return host.varHas(scope, String(key)); },
       toObject: function () { return Object.fromEntries(JSON.parse(host.varAll(scope))); },
       replaceIn: function (text) { return typeof text === "string" ? host.replaceIn(text) : text; },
     };
     if (writable) {
-      api.set = function (key, value) { host.varSet(scope, String(key), String(value == null ? "" : value)); };
+      // What is not text keeps its type, as JSON. What JSON has no word for (undefined, a function, NaN) is null: what Postman gives the next script.
+      api.set = function (key, value) {
+        if (typeof value === "string") return host.varSet(scope, String(key), value, false);
+        var json = JSON.stringify(value);
+        host.varSet(scope, String(key), json === undefined ? "null" : json, true);
+      };
       api.unset = function (key) { host.varUnset(scope, String(key)); };
       api.clear = function () { host.varClear(scope); };
     }
@@ -385,7 +393,7 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
     require: function (name) { throw unsupported("pm.require('" + name + "')", "pm-require"); },
   };
   pm.environment.name = given.environmentName;
-  pm.variables.set = function (key, value) { host.varSet("local", String(key), String(value == null ? "" : value)); };
+  pm.variables.set = variables("local", true).set;
   pm.test.skip = function (label) { host.test(String(label == null ? "" : label) + " (skipped)", true, ""); };
   // Chai's expect, loaded when a script first asks for it, with Postman's
   // additions: pm.expect(pm.response).to.have.status(200) and the rest.

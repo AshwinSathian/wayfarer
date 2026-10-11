@@ -1,3 +1,4 @@
+import { isJsonText } from "../safe-json";
 import { ASSERTION_OPERATORS, ASSERTION_TARGETS, AUTH_TYPES, BODY_MODES, RAW_LANGUAGES, isHttpMethod } from "./request";
 
 export interface ValidationIssue {
@@ -64,6 +65,8 @@ class Checker {
       this.string(row, "key", rowPath);
       this.string(row, "value", rowPath);
       this.enabled(row, rowPath);
+      // Only what the app itself writes: the mark of a value a script set, on a value that is JSON.
+      if (Object.hasOwn(row, "json") && (field(row, "json") !== true || !isJsonText(field(row, "value")))) this.fail(`${rowPath}.json`, "Value must be true, on a value that is JSON.");
     });
   }
 

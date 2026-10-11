@@ -23,6 +23,13 @@ export interface Row {
   key: string;
   value: string;
   enabled: boolean;
+  /**
+   * A variable a script set to something that is not text: `value` is its
+   * JSON, and a script reads it back as the number, boolean, null, object
+   * or list it was. Where a request holds `{{name}}` the value is put in
+   * as the text it is. A row someone edits is text again.
+   */
+  json?: true;
 }
 
 export const RAW_LANGUAGES = ["json", "text", "xml", "html", "javascript"] as const;

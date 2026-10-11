@@ -41,9 +41,8 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
  * says so: findings of this comparison, each with its issue. The test holds
  * that each still differs, so a fix removes its line here.
  */
-const GAPS: Record<string, string> = {
-  "multi-level-folders-v2.postman_collection.json": "F76 (#248): a variable a script set to the number 0 reads back as the text \"0\" in the same run",
-};
+// None is open: F74 to F78 (#248) were the first, and are fixed.
+const GAPS: Record<string, string> = {};
 
 describe("Newman's integration collections, imported, against Newman", () => {
   let quickjs: QuickJSWASMModule;
@@ -117,6 +116,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
       "disabled-and-duplicate-variables/disabled-and-duplicates.postman_collection.json",
       "distinct-random-int.postman_collection.json",
       "esc-formdata/esc-formdata.postman_collection.json",
+      "multi-level-folders-v2.postman_collection.json",
       "multiple-form-values.postman_collection.json",
       "newman-gzip-test.postman_collection.json",
       "redirect-test/redirect-test.postman_collection.json",

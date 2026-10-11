@@ -13,6 +13,11 @@ export function parseJson(text: string): JsonParseResult {
   }
 }
 
+/** Whether a value is text that is JSON. */
+export function isJsonText(value: unknown): value is string {
+  return typeof value === "string" && parseJson(value).ok;
+}
+
 /** JSON.stringify, or undefined when the value can't be serialized (a cycle, a BigInt). */
 export function stringifyJson(value: unknown, space?: number): string | undefined {
   try {

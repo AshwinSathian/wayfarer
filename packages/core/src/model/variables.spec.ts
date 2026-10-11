@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { Row } from "./request";
-import { applyVariableChanges, variableChanges } from "./variables";
+import { applyVariableChanges, scriptVariables, variableChanges } from "./variables";
 
 const row = (key: string, value: string, enabled = true): Row => ({ key, value, enabled });
 const names = (rows: Row[]) => Object.fromEntries(rows.filter((r) => r.enabled).map((r) => [r.key, r.value]));
@@ -17,6 +17,18 @@ describe("variable changes", () => {
     expect(applyVariableChanges(rows, [{ key: "off", value: "y" }])[1]).toEqual(row("off", "y"));
     expect(applyVariableChanges(rows, [])).toBe(rows);
     expect(applyVariableChanges(rows, [{ key: "__proto__", value: "p" }]).at(-1)).toEqual(row("__proto__", "p"));
+  });
+
+  it("F76: a script's value that is not text is stored as its JSON with the mark; an edit of the value makes it text again", () => {
+    const stored = applyVariableChanges([row("count", "old"), row("name", "n")], [{ key: "count", value: "0", json: true }, { key: "user", value: '{"id":7}', json: true }]);
+    expect(stored).toEqual([{ key: "count", value: "0", enabled: true, json: true }, row("name", "n"), { key: "user", value: '{"id":7}', enabled: true, json: true }]);
+    // What a script is given of them: the mark with the value, the later of two rows of one name, nothing that is switched off.
+    expect(scriptVariables([...stored, row("name", "later"), row("off", "x", false), row("", "nameless")])).toEqual([["count", "0", true], ["name", "later"], ["user", '{"id":7}', true]]);
+    // The editor saves the difference it made. A row it left alone keeps its mark; one whose value it changed is a new row, without it.
+    const edited = stored.map((entry) => (entry.key === "user" ? { ...entry, value: "ada" } : entry));
+    expect(applyVariableChanges(stored, variableChanges(stored, edited))).toEqual([{ key: "count", value: "0", enabled: true, json: true }, row("name", "n"), row("user", "ada")]);
+    // Text set over it by a script is text too.
+    expect(applyVariableChanges(stored, [{ key: "count", value: "seven" }])[0]).toEqual(row("count", "seven"));
   });
 
   it("finds what an editor did: values set or changed, names removed, and nothing for rows it left alone", () => {

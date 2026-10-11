@@ -197,6 +197,11 @@ describe("validateRequestContent", () => {
     // Every object has a `constructor`; none of these has its own.
     expect(paths({ ...full(), scripts: Object.create({ pre: "", post: "" }) as object })).toEqual(["r.scripts.pre", "r.scripts.post"]);
     expect(validateRows([{ key: "__proto__", value: "x", enabled: true }], "vars")).toEqual([]);
+    // F76: the mark of a value a script set is `true` and nothing else, and only on a value that is JSON.
+    expect(validateRows([{ key: "n", value: "0", enabled: true, json: true }, { key: "o", value: '{"a":[1]}', enabled: true, json: true }], "vars")).toEqual([]);
+    expect(validateRows([{ key: "n", value: "{not json", enabled: true, json: true }, { key: "m", value: "0", enabled: true, json: "yes" }, { key: "f", value: "0", enabled: true, json: false }], "vars")).toEqual(
+      [0, 1, 2].map((index) => ({ path: `vars[${index}].json`, message: "Value must be true, on a value that is JSON." }))
+    );
     expect(validateRows([Object.create({ key: "k", value: "v", enabled: true })], "vars").map((issue) => issue.path)).toEqual([
       "vars[0].key",
       "vars[0].value",

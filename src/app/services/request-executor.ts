@@ -23,7 +23,7 @@ import {
   scriptRequestOf,
   sentScriptRequest,
   stringifyJson,
-  variablesByName,
+  scriptVariables,
   withScriptRequest,
   type RequestContent,
   type ResponseEnvelope,
@@ -32,6 +32,7 @@ import {
   type ScriptResponse,
   type ScriptRequest,
   type ScriptResult,
+  type ScriptVariable,
   type ScriptSendRequest,
   type VariableChange,
 } from "@wayfarer/core";
@@ -310,7 +311,11 @@ export class RequestExecutor {
       const touched = emptyChanges();
       const restoreSecrets: (() => Promise<void>)[] = [];
       // Each name a script touched gets the value it had, or is removed again; a secret one replaced gets its old value.
-      const was = (rows: Row[], names: VariableChange[]): VariableChange[] => names.map(({ key }) => ({ key, value: variablesByName(rows).get(key) ?? null }));
+      const was = (rows: Row[], names: VariableChange[]): VariableChange[] =>
+        names.map(({ key }) => {
+          const [, value = null, json] = scriptVariables(rows).find(([name]) => name === key) ?? [];
+          return { key, value, ...(json && { json }) };
+        });
       undo = async () => {
         await this.applyChanges(spec, { environment: was(before.environment, touched.environment), global: was(before.global, touched.global), collection: was(before.collection, touched.collection) }, []);
         for (const restore of restoreSecrets.reverse()) await restore();
@@ -545,17 +550,17 @@ export class RequestExecutor {
     return { scripts, assertions: [] };
   }
 
-  private getEnvSnapshot(): Record<string, string> {
-    return Object.fromEntries(variablesByName(this.environmentsService.activeEnvironment()?.vars ?? []));
+  private getEnvSnapshot(): ScriptVariable[] {
+    return scriptVariables(this.environmentsService.activeEnvironment()?.vars ?? []);
   }
 
   /** What a script is given besides the active environment's variables: the other scopes, the request, and `pm.sendRequest`. */
   private scriptExtras(spec: RequestExecutionSpec, eventName: "prerequest" | "test", request: ScriptRequest): ScriptRunExtras {
     return {
       environmentName: this.environmentsService.activeEnvironment()?.name ?? "",
-      globals: [...variablesByName(this.environmentsService.globals())],
-      folder: [...variablesByName(spec.folderVariables?.() ?? [])],
-      collection: [...variablesByName(spec.collection?.variables() ?? [])],
+      globals: scriptVariables(this.environmentsService.globals()),
+      folder: scriptVariables(spec.folderVariables?.() ?? []),
+      collection: scriptVariables(spec.collection?.variables() ?? []),
       request,
       info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "" },
       send: (request) => this.sendForScript(request, spec.signal),
@@ -608,7 +613,7 @@ export class RequestExecutor {
     const replaced = new Map<string, string>();
     // Marked as a script's: the stored rows are what counts, and a reference in them is never replaced with text (`applyVariableChanges`).
     const kept = async (api: string, rows: Row[], scope: VariableChange[]): Promise<VariableChange[]> =>
-      (await this.intoVault(api, rows, scope, notes, replaced)).map(({ key, value }) => ({ key, value: value === null || !secrets ? value : secrets.text(value), keepSecret: true }));
+      (await this.intoVault(api, rows, scope, notes, replaced)).map(({ key, value, json }) => ({ key, value: value === null || !secrets ? value : secrets.text(value), keepSecret: true, ...(json && { json }) }));
     const environment = await kept("pm.environment", active?.vars ?? [], changes.environment);
     const global = await kept("pm.globals", this.environmentsService.globals(), changes.global);
     const collection = await kept("pm.collectionVariables", spec.collection?.variables() ?? [], changes.collection);

@@ -16,7 +16,6 @@ exports[`Newman's integration collections, imported, against Newman > @claim:C-0
   "helper.postman_collection.json": "request "OAuth": Its auth is of a type the app does not have (oauth1) and is left out: it is sent with no auth.",
   "inherited-entities/inherited-entities.postman_collection.json": "folder "Folder level stuff": Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth.",
   "multi-level-folders-v1.postman_collection.json": "Newman did not run it here: it is a Postman Collection v1",
-  "multi-level-folders-v2.postman_collection.json": "F76 (#248): a variable a script set to the number 0 reads back as the text "0" in the same run",
   "multi-value-data.postman_collection.json": "a script uses the legacy global _ (matrix: legacy library globals, unsupported)",
   "oauth1-var-in-url-params.postman_collection.json": "request "https://postman-echo.com/oauth1?a={{vala}}": Its auth is of a type the app does not have (oauth1) and is left out: it is sent with no auth.",
   "protocol-profile-behavior.postman_collection.json": "Newman did not run it here: it calls localhost:4042: a server these fixtures do not have",

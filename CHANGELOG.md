@@ -7,6 +7,33 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-12
+
+Bring your work in, and take it out. Wayfarer reads Postman collections and
+environments, Insomnia exports, OpenAPI and Swagger descriptions, cURL
+commands and HAR files, each with a report of what it could not keep before
+anything is stored, and writes cURL, code for three targets, Postman files
+and HAR. A collection and a folder can hold auth, variables and scripts for
+the requests in them. Two auth types are new: AWS Signature Version 4 and
+OAuth 2.0.
+
+**Collections saved by 2.0 or 2.1 are removed the first time this version
+opens**, and the page says so: a stored collection, folder and request did
+not hold what inheritance needs. Environments, secrets and history are
+kept. Collection and backup files are format 3; older files are refused.
+See "Changed" below. Nothing else stored changes shape.
+
+The size limits of the page were reset to what it measures now: 1,279,928 B
+(325,687 B gzip), 54,698 B more than 2.1.0, for the import and export
+dialogs, inheritance, and the two auth types. The importers (157 kB, with
+the YAML reader), the code generators, the Postman exporter and the HAR
+builder are fetched only when they are used.
+
+Not checked on a deployed site, since no 2.x release has been deployed
+yet: the OAuth 2.0 callback page as Cloudflare serves it, and the sign-in
+window in Safari itself. `docs/runbook.md` says what to look at after the
+first deploy.
+
 ### Added
 
 - **A collection and a folder can hold auth, variables and scripts for the requests in them (P4.9).** Right-click a collection or a folder and choose **Settings**. Before this, auth and scripts could only be set request by request, and only a collection had variables (under "Variables", which is now a tab of Settings).

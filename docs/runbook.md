@@ -221,6 +221,34 @@ These are the P0.13 checks: `npm view … maintainers` lists the maintainer acco
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
 
+### After the first deploy of v2.2.0: the OAuth 2.0 callback page
+
+v2.2.0 adds a second HTML page, `oauth/callback.html`, which an identity
+provider sends the OAuth 2.0 sign-in window back to. Three things about it
+could not be checked before a deploy (nothing of 2.x is deployed yet), so
+check them once after one:
+
+1. **Cloudflare serves the page at the address the app registers.** Open
+   `https://<host>/oauth/callback?code=x&state=y`. It must show "Wayfarer
+   has not answered…" (the callback page), not the app. The app tells users
+   to register `/oauth/callback`, without `.html`: Workers static assets
+   serve a page without its extension. If the app loads instead, the
+   `html_handling` of the assets is not the default.
+2. **The page has the production headers.** `curl -sI
+   https://<host>/oauth/callback` shows the same `Content-Security-Policy`
+   and `Cross-Origin-Opener-Policy: same-origin` as `/`.
+3. **The service worker leaves it alone.** After opening the callback page,
+   switch the network off and reload `/`: the app loads, not the callback
+   page (F69; `e2e/service-worker.spec.ts` holds it on a local server).
+
+And once in **Safari itself**, with any OAuth 2.0 provider: Auth tab, OAuth
+2.0, Authorization Code, **Get token**. The sign-in window must open. It is
+opened after the PKCE challenge is computed, a moment after the click, and
+Safari may block a window that does not open in the click itself; the tests
+run in Playwright's WebKit, which does not block it. If Safari blocks it,
+the Auth tab says "The browser blocked the sign-in window": record it as a
+finding.
+
 ### Service worker kill switch
 
 Use this if a deployed `sw.js` is broken (for example, users are stuck on an old version or requests misbehave only with the worker active). Rolling back alone may not help, because browsers keep the installed worker.

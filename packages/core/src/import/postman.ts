@@ -5,23 +5,23 @@ import { addressParts } from "../export/postman";
 import { ImportError } from "./import-error";
 
 /** Something of the file the app could not keep. `item` says where: `request "Login"`. */
-interface Warning {
+export interface Warning {
   item: string;
   message: string;
 }
 
-type Loose = Record<string, unknown>;
+export type Loose = Record<string, unknown>;
 
-const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
+export const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
 /** An own field: a file's "constructor" key must not read `Object.prototype.constructor`. */
-const field = (object: Loose, key: string): unknown => (Object.hasOwn(object, key) ? object[key] : undefined);
+export const field = (object: Loose, key: string): unknown => (Object.hasOwn(object, key) ? object[key] : undefined);
 const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
-const objects = (value: unknown): Loose[] => list(value).filter(isObject);
+export const objects = (value: unknown): Loose[] => list(value).filter(isObject);
 /** A value as text: Postman writes numbers and booleans as values too, and `null` for none. */
-const text = (value: unknown): string => (typeof value === "string" ? value : value === null || value === undefined ? "" : typeof value === "object" ? JSON.stringify(value) : String(value as number | boolean));
+export const text = (value: unknown): string => (typeof value === "string" ? value : value === null || value === undefined ? "" : typeof value === "object" ? JSON.stringify(value) : String(value as number | boolean));
 
 /** Folders in folders: a file nested deeper than this is not a collection anyone made. */
-const MAX_DEPTH = 64;
+export const MAX_DEPTH = 64;
 
 /** A Postman Collection v2.0 or v2.1: it has items. Newman reads a file with no `info`, so this does too. */
 export function isPostmanCollection(value: unknown): boolean {

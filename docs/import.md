@@ -4,7 +4,8 @@ Every file reaches the app by one road, whichever Import button you press
 (the Collections panel, the Environments panel, or Settings):
 
 1. **Read.** The page reads the file, at most 10 MB of it. A larger file is
-   refused before it is parsed.
+   refused before it is parsed. A file may be JSON or YAML; a YAML file may
+   be 1 MB (see "A YAML file" below).
 2. **Map and check.** The text goes to a worker, which works out the
    format from the file's content, turns it into the app's own model, and
    checks every field against what the app itself writes. The page stays
@@ -47,6 +48,7 @@ or a body mode the app does not have, a field that is dropped).
 | Wayfarer environments | `"$id": "wayfarer/environments/2"` | Each environment is added, or replaces the environment of the same name: the report lets you choose per environment. |
 | Postman collection, v2.0 or v2.1 | it has `item`: the list of requests and folders | See below. A Collection v1 file is refused with a message that says to export v2.1 from Postman. |
 | Postman environment or globals | `values`, each with a `key`; or the bare list of them an older Postman wrote for globals | One environment. See below. |
+| Insomnia export, format 4 or 5 | `"_type": "export"` (format 4, JSON or YAML), or `type: collection.insomnia.rest/5.0` (format 5, YAML) | See below. |
 | HAR 1.2 | `log.entries` | One request per entry, in the file's order, in a new collection "Imported from HAR". See below. |
 | cURL command | the text starts with `curl` | One request, in a new collection "Imported from cURL". See below. |
 
@@ -173,6 +175,83 @@ missing feature ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)):
 a variable whose name holds a slash, and a number kept as a number between
 requests.
 
+## An Insomnia export
+
+<!-- claim:C-059 -->
+
+Insomnia's export in format 4 (one JSON or YAML file of "resources", which
+older versions of Insomnia write) and in format 5 (a YAML file per
+collection, `type: collection.insomnia.rest/5.0`, which current versions
+write) both import.
+
+| In the file | Becomes |
+|---|---|
+| a workspace (format 4), the file (format 5) | a collection, with its name and description. A format 4 file with several workspaces gives several collections |
+| a folder, in a folder | a folder, with its description |
+| a request | a request: method, address, headers, body |
+| the query's rows (`parameters`) | part of the address, after what the address already had. One that is switched off is kept as Postman's is |
+| a path parameter (`/users/:id`) | its value, or `{{id}}` when it has none, as for a Postman file |
+| `{{ _.name }}`, `{{ name }}`, `{{ _['name'] }}` | `{{name}}` |
+| the base environment | **the collection's variables.** Both are what every request has, and an environment's value wins over them |
+| an environment under the base environment | an environment. Choose it as the active one to get what choosing it in Insomnia gave |
+| an object in an environment (`{"paging": {"size": 20}}`) | one variable per value, named by its path: `paging.size`, which is what `{{ _.paging.size }}` became |
+| a folder's environment | the folder's variables |
+| `authentication` | Basic, Bearer and API key (in a header or the query). **None given, or one switched off, is "Inherit from parent"**: Insomnia then sends the nearest folder's. A Bearer token with a prefix other than `Bearer` is an API key header named `Authorization`, which sends the same text |
+| a body | text with its language from the media type, a form's fields, a multipart form's parts, a file. A GraphQL body is the JSON text it is sent as |
+
+What the report says could not be kept:
+
+- **Scripts.** A pre-request or after-response script is left out. Insomnia's
+  scripts call its own `insomnia` object, which the app's engine does not
+  have (it has Postman's `pm`): kept, each would end in an error, and a
+  pre-request script that ends in an error stops the send.
+- **Template tags** (`{% response 'body', … %}`, `{% uuid %}`) and filters
+  (`{{ name | upper }}`). The text is kept as written, and is sent as written.
+- **A folder's headers.** Insomnia sends them with every request in the
+  folder; the app has no headers on a folder. Add them to its requests.
+- **A folder's variable that an environment also has.** Insomnia uses the
+  folder's value. The app uses the environment's while that environment is
+  active: a folder's variable wins over a collection's only.
+- **An auth type the app does not have** (OAuth 1.0 and 2.0, AWS IAM,
+  Digest, NTLM, Hawk, ASAP, Netrc, an API key in a cookie): left out, and
+  the request is sent with no auth, as for a Postman file.
+- **gRPC, WebSocket and Socket.IO requests**, cookies, certificates, unit
+  tests, an API specification and a mock server: left out.
+- **Files**: named, not included.
+- **A request with no address**, or with a method that is not an HTTP method.
+
+Not read, and not in the report: a request's own settings (redirects,
+cookies, URL encoding) and the order Insomnia shows an environment's
+values in.
+
+A file of environments alone (`type: environment.insomnia.rest/5.0`) gives
+its base environment and each environment under it, each with the base's
+values under its own, since there is no collection to hold them.
+
+An export in format 3 or older is refused with a message: export again
+from a current Insomnia.
+
+**It is tested with files other people wrote**: 64 files from Insomnia's
+own repository, at a pinned commit. The 58 that are exports import (6 in
+format 4, 52 in format 5), and each gives the number of folders, requests
+and environments that a count of the file itself gives.
+
+## A YAML file
+
+A file that is not JSON is read as YAML (version 1.2, its core schema):
+an Insomnia export today. Three things are different from JSON:
+
+- **A YAML file may be 1 MB**, not 10 MB. A YAML reader keeps far more in
+  memory per byte than a JSON reader: a megabyte written to be dense took
+  a gigabyte when measured. A larger file is refused before it is read,
+  and the message says to convert it to JSON.
+- **A file that repeats itself through aliases 100 times or more is
+  refused.** YAML lets a file name a part and use it again; a file can be
+  written so that it grows without end as it is read (a "billion laughs").
+  The reader counts, and stops.
+- **A tag makes nothing but text, numbers, lists and maps**, and `<<`
+  merges nothing. A key that is there twice keeps its last value, as in JSON.
+
 ## A Postman environment or globals file
 
 <!-- claim:C-058 -->
@@ -186,7 +265,8 @@ or copy what you need.
 A file that starts with a byte order mark is read, and so is one in
 UTF-16, which Postman on Windows has written.
 
-A file of any other format is refused with a message that names these. A
+A file of any other format, or one that is neither JSON nor YAML, is
+refused with a message that names these. A
 workspace backup (`wayfarer/workspace/3`) is not imported here: it replaces
 everything, and is restored in Settings.
 

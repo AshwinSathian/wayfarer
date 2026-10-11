@@ -1,0 +1,65 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: client-certs
+meta:
+  id: wrk_a0d33d74a42e4a79b1acfd75f71da360
+  created: 1736278353659
+  modified: 1736278353659
+collection:
+  - url: https://localhost:4011/protected/pets/2
+    name: pet 2
+    meta:
+      id: req_04330028217d4607ae9d49caf9130a5f
+      created: 1733930967254
+      modified: 1733953779068
+      isPrivate: false
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/10.2.1-beta.1
+    scripts:
+      preRequest: console.log('yippee')
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{_.srvr}}/protected/pets/2"
+    name: pet 2 with url var
+    meta:
+      id: req_6e9a52841ee94aa0b27566598f54a68b
+      created: 1733953597632
+      modified: 1733953775398
+      isPrivate: false
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/10.2.1-beta.1
+    scripts:
+      preRequest: console.log("yeehaw")
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_f85320af59ae43d98840e75d213e9ec9
+    created: 1733930502552
+    modified: 1733953690813
+environments:
+  name: Base Environment
+  meta:
+    id: env_1730ef46a4e546cf962b99b8cdc05d08
+    created: 1733930502551
+    modified: 1733953690814
+    isPrivate: false
+  data:
+    srvr: https://localhost:4011

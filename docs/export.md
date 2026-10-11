@@ -90,6 +90,49 @@ The generated code is text. The app runs none of it. The Python and HTTPie
 output is checked against stored snapshots; the `fetch` code and the cURL
 command are run in the tests.
 
+## An exchange, or several, as a HAR file
+
+<!-- claim:C-035 -->
+
+A HAR 1.2 file holds requests as they were sent and the responses that came
+back. Two places make one:
+
+- **A response's Export menu.** "Copy as HAR" copies the exchange on
+  screen. "Export as HAR…" shows the file first, and then copies it or
+  saves it as `wayfarer-response.har`.
+- **History.** Tick the entries you want, or "Select all" for the ones the
+  search shows, and choose "Export … as HAR…". The file has them oldest
+  first and is saved as `wayfarer-history.har`.
+
+The dialog shows the file it will write: the first 20,000 characters of
+it, and how many more there are. What it shows is what is copied or saved.
+
+| In the file | What it is |
+|---|---|
+| `request` | the method, the address, the headers and the query as sent |
+| `postData` | a text body as text; a form and a multipart form as `params`; a file by its name, in a comment. The file itself is not included |
+| `response.content` | the body as it was received, when it is text of any type: JSON, XML, HTML, CSV, plain text. Not reformatted |
+| `timings` | what the browser said of the request's phases; `-1` for what it did not say |
+| `cookies` | always empty: a cookie that was sent is in the `Cookie` header |
+
+Left out, with a comment that says so: a body that is not text (an image, a
+download); a body longer than 256 KB; and for a history entry, the body of
+a multipart form or a file, which history does not keep. An entry that got
+no response has status `0` and the reason as its comment.
+
+**Masking.** A vault secret is `***`, always. From a response's menu a
+credential is `***` unless you tick "Include credentials". History is
+stored already masked, so a file made from it has credentials as `***` and
+cannot be made with them.
+
+**It imports again.** A HAR written here, picked with Import, gives the
+same requests: method, address, headers and body ([`import.md`](import.md)).
+A request whose body was a file comes back without a body, since the HAR
+names the file and does not hold it. The responses are not imported.
+
+The file has every field HAR 1.2 requires; a test lists them. A whole
+run of a collection as one HAR comes with the runner (plan P5.2).
+
 ## A collection or an environment for Postman
 
 <!-- claim:C-057 -->

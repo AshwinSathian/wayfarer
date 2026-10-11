@@ -26,7 +26,8 @@
       "@wayfarer/core/library-loader": ["./packages/core/src/scripting/library-loader.ts"],
       "@wayfarer/core/import": ["./packages/core/src/import/import.ts"],
       "@wayfarer/core/codegen": ["./packages/core/src/export/codegen.ts"],
-      "@wayfarer/core/postman": ["./packages/core/src/export/postman.ts"]
+      "@wayfarer/core/postman": ["./packages/core/src/export/postman.ts"],
+      "@wayfarer/core/har": ["./packages/core/src/export/har.ts"]
     }
   },
   "angularCompilerOptions": {

@@ -99,6 +99,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The HAR export keeps every text body, shows the file first, and takes several history entries (P4.6 c).**
+  - **Fixed: a response that was text and not JSON was left out of the HAR** with the comment "omitted (size or type)": XML, HTML, CSV and plain text are in it now, as received. A JSON body is no longer re-indented either: the file has the text the server sent. A body that is not text, or is longer than 256 KB, is still left out, and the comment says which.
+  - **Fixed: the file lacked two fields HAR 1.2 requires** (`cookies` on the request and the response, `redirectURL` on the response), which a strict reader refuses. A test now lists every required field.
+  - **Fixed: a form, a multipart form and a file body were left out of the HAR.** A form and a multipart form are written as fields; a file is named.
+  - New in a response's Export menu: **Export as HAR…**, which shows the file, with "Include credentials" to choose, before you copy or save it.
+  - New in History: a box on each entry, **Select all** for what the search shows, and **Export … as HAR…** for the ticked ones in one file, oldest first. History is stored masked, so that file has credentials as `***`.
+  - A HAR written here imports again as the same requests.
+  - The builder is fetched the first time a HAR is asked for, and is no longer in the first load.
+  - See [`docs/export.md`](docs/export.md).
+
+
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."
 - **Collections saved by an earlier version are removed by this update, and collection and backup files are format 3.** A stored collection, folder and request did not hold what the settings above need, so the database goes to version 10 and empties those three stores and the body files only they named. Environments, global variables, secrets and history are kept, and the page says once that collections were removed. A collection file or a workspace backup written by 2.0 or 2.1 (`wayfarer/collection/2`, `wayfarer/workspace/2`) is refused with a message that names the format; nothing converts it. This was decided while the app has no users with data to keep (it is not deployed in any 2.x version). Export a collection again to get a format 3 file.
 - A pre-request script's failure now reads "The pre-request script of folder "Admin" failed, so the request was not sent." when the script is a folder's or the collection's.
@@ -106,6 +117,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The plan for import, export and sign-in (Phase 4) is split into three sessions.** Nothing in the app changes. The first session lets a collection and a folder hold auth, variables and scripts that their requests inherit, builds the one road by which a file is imported (a report first, nothing stored until you agree), writes the cURL command with every kind of body, generates code, and reads a pasted cURL command and a HAR file. The second brings Postman, Insomnia and OpenAPI files in, and Postman files out. The third adds AWS signatures, OAuth 2.0 and a fuller HAR export. One finding on the way: once the app has a second page (the OAuth sign-in's return page), the offline copy of the app would be replaced by it ([#235](https://github.com/AshwinSathian/wayfarer/issues/235)); nothing is wrong today, and it is fixed before that page is added.
 
 ### Fixed
+
+- **On a phone, a history entry with a long address shows that it opens ([#264](https://github.com/AshwinSathian/wayfarer/issues/264)).** Below 768 px a history entry is a row that opens, with an arrow at its end. The address was not cut short there, so a long one pushed the arrow far outside the window (to x = 1355 in a 390 px window), and the address ended without an ellipsis. It is cut short now and the arrow stays in the row.
 
 - **The offline app can no longer be replaced by another page of the site ([#235](https://github.com/AshwinSathian/wayfarer/issues/235)).** The service worker stored the last HTML page a navigation loaded as "the app", to show when offline. The app had one HTML page, so that was right. OAuth 2.0 brings a second, the page the sign-in window comes back to, and after one sign-in the offline app would have been that page. The service worker now leaves that page alone. Found before the page existed; nothing released was affected.
 

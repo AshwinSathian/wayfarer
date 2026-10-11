@@ -19,7 +19,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 - Your work stays on your device. There's no account or server, so no update, acquisition, or pricing page can gate access to data you already have. <!-- claim:C-001 --> <!-- claim:C-002 --> Browser storage can still be cleared or evicted (Safari removes site data after 7 days without a visit), so export what you can't lose.
 - Zero clutter, just the essentials. Compose a request and see a clean, structured response.
 - Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
-- Shareable results. Export a request/response as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
+- Shareable results. Export a request and its response, or several entries of history at once, as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
 - No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
 - Dark‑first UI, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-030 -->
 
@@ -57,7 +57,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - A response fades in; nothing on the page moves when it arrives, so what you aim at is where you press <!-- claim:C-050 -->
   - The Headers tab says when the browser withheld headers (a response from another origin shows only the CORS-safelisted ones and those the server exposes)
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
-  - An **Export** menu that copies the exchange as cURL or HAR <!-- claim:C-035 -->
+  - An **Export** menu that copies the exchange as cURL or HAR, or shows the HAR file before you copy or save it <!-- claim:C-035 -->
 
 - **Collections & Environments**
 
@@ -99,8 +99,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
 - **Exports**
 
-  - **HAR 1.2** – Standard archive for HTTP requests/responses (great for bug reports)
-  - Bodies over 256 KB, and bodies that aren't JSON, are left out of the HAR with a comment, to keep files small <!-- claim:C-035 -->
+  - **HAR 1.2** – Standard archive for HTTP requests/responses (great for bug reports): one response from its Export menu, or the history entries you tick, in one file. The file is shown before it is written, and imports again as the same requests
+  - A body of text is in the HAR whatever its type. A body that is not text, or is longer than 256 KB, is left out with a comment, to keep files small <!-- claim:C-035 -->. See [`docs/export.md`](docs/export.md)
 
 - **PWA**
 

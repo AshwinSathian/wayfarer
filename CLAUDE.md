@@ -501,6 +501,13 @@ code errors.
   `redactExport`, and names a file instead of reading it. A new target
   writes every value through `literal` or `shellQuote`; where a tool cannot
   be told "this is text" (HTTPie and a leading `@`), it writes no command.
+- A HAR is built by `buildHar` (`packages/core/src/export/har.ts`), imported
+  as `@wayfarer/core/har` by `harText` alone and fetched when a HAR is first
+  asked for. It takes exchanges that are already masked: a response's
+  through `redactExport` and `exportRedactor`, a history entry's as stored.
+  It reads no `location` and no file, and reformats no body. A change to it
+  keeps `parseHar(buildHar(x))` the same requests (`har.spec.ts`), and the
+  list of fields HAR 1.2 requires in that spec.
 - Imported files are untrusted: validate every field against the values the
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32

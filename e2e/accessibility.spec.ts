@@ -202,7 +202,12 @@ for (const theme of ["dark", "light"] as const) {
     await page.keyboard.press("Escape");
     await button("Export response").click();
     await scan("export menu");
+    // The HAR file, shown before it is written (P4.6 c).
+    await page.getByRole("menuitem", { name: "Export as HAR…", exact: true }).click();
+    await expect(page.locator(".har-export-preview")).toContainText('"version": "1.2"');
+    await scan("export as HAR");
     await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     for (const tab of ["Params", "Auth", "Scripts"]) {
       await page.locator("app-composer").getByRole("tab", { name: tab, exact: true }).click();
       await scan(`composer ${tab}`);

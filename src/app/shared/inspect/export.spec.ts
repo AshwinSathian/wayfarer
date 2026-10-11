@@ -1,152 +1,70 @@
-import { toHar, InspectorExportEntry, exportRedactor, redactedRequest } from "./export";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { PastRequest } from "../../models/history";
+import { requestContent } from "../../../testing/request-fixtures";
+import { exportRedactor } from "./export";
+import { harText, historyExchange } from "./har-export";
 
-describe("export", () => {
-  function createEntry(partial?: Partial<InspectorExportEntry>): InspectorExportEntry {
-    return {
-      id: "req-1",
-      startedDateTime: "2024-01-01T00:00:00.000Z",
-      time: 120,
-      req: {
-        method: "GET",
-        url: "https://example.com/resource",
-        headers: {},
-        ...partial?.req,
-      },
-      res: {
-        status: 200,
-        statusText: "OK",
-        headers: {},
-        ...partial?.res,
-      },
-      phases: partial?.phases,
-      ...partial,
-    };
-  }
+// The HAR builder and its tests are in core since P4.6 (c):
+// `packages/core/src/export/har.spec.ts`, which has the C-035 tests.
 
-  it("@claim:C-035 builds a minimal HAR 1.2 entry with JSON bodies", () => {
-    const entry = createEntry({
-      req: {
-        method: "POST",
-        url: "https://example.com/api?foo=bar&baz=2",
-        headers: { "Content-Type": "application/json", "X-Custom": "value" },
-        body: { message: "hello" },
-      },
-      res: {
-        status: 201,
-        statusText: "Created",
-        headers: { "Content-Type": "application/json" },
-        body: { ok: true },
-        sizes: {
-          transferSize: 1024,
-          encodedBodySize: 512,
-          decodedBodySize: 2048,
-        },
-      },
-      phases: {
-        dns: 5,
-        tcp: 10,
-        tls: 15,
-        request: 20,
-        ttfb: 25,
-        content: 30,
-      },
+describe("exportRedactor (D5)", () => {
+  const sent = { secrets: ["vault-plaintext"], credentials: ["typed-api-key"] };
+
+  it("masks vault secrets and credentials by default, and keeps credentials when the export asks for them", () => {
+    expect(exportRedactor(sent).text("typed-api-key vault-plaintext")).toBe("*** ***");
+    expect(exportRedactor(sent, { credentials: true }).text("typed-api-key vault-plaintext")).toBe("typed-api-key ***");
+  });
+});
+
+describe("a history entry as a HAR exchange (P4.6 c)", () => {
+  const entry = (patch: Partial<PastRequest> = {}): PastRequest => ({
+    id: 1,
+    createdAt: Date.UTC(2026, 9, 11, 10, 0, 0),
+    template: requestContent({ method: "POST", url: "{{base}}/pets", body: { mode: "raw", raw: { language: "json", text: '{"name":"{{name}}"}' } } }),
+    sent: { method: "POST", url: "https://api.test/pets", headers: [["Authorization", "***"], ["Content-Type", "application/json"]], bodyPreview: '{"name":"Rex"}' },
+    response: { status: 201, statusText: "Created", headers: [["content-type", "application/json"]], body: { text: '{"id":7}', truncated: false } },
+    durationMs: 42,
+    route: "direct",
+    ...patch,
+  });
+
+  it("is the request as it was sent, not as it was composed, with the response and the time it took", () => {
+    expect(historyExchange(entry())).toEqual({
+      startedAt: "2026-10-11T10:00:00.000Z",
+      timeMs: 42,
+      request: { method: "POST", url: "https://api.test/pets", headers: [["Authorization", "***"], ["Content-Type", "application/json"]], body: { mode: "raw", text: '{"name":"Rex"}' } },
+      response: { status: 201, statusText: "Created", headers: [["content-type", "application/json"]], text: '{"id":7}' },
     });
+  });
 
-    const har = toHar(entry);
+  it("a form's text is kept; a multipart form and a file are not in history, and the entry says so", () => {
+    const form = entry({ template: requestContent({ body: { mode: "urlencoded", urlencoded: [{ key: "q", value: "1", enabled: true }] } }), sent: { method: "POST", url: "https://api.test/", headers: [], bodyPreview: "q=1" } });
+    expect(historyExchange(form).request.body).toEqual({ mode: "raw", text: "q=1" });
+    const multipart = entry({ template: requestContent({ body: { mode: "multipart", multipart: [] } }), sent: { method: "POST", url: "https://api.test/", headers: [], bodyPreview: "note (text), upload: a.bin (12 B)" } });
+    expect(historyExchange(multipart).request.body).toEqual({ mode: "none" });
+    expect(historyExchange(multipart).comment).toBe("The request's body (a multipart form) is not in history and is left out.");
+    const file = entry({ template: requestContent({ body: { mode: "binary", binary: { fileId: "f", fileName: "a.bin" } } }) });
+    expect(historyExchange(file).comment).toBe("The request's body (a file) is not in history and is left out.");
+    expect(historyExchange(entry({ template: requestContent({ method: "GET" }), sent: { method: "GET", url: "https://api.test/", headers: [] } })).request.body).toEqual({ mode: "none" });
+  });
+
+  it("an entry with no response says why, and one whose body was not kept has none", () => {
+    const failed = historyExchange(entry({ response: undefined, durationMs: undefined, error: "The request timed out." }));
+    expect(failed.response).toBeUndefined();
+    expect([failed.timeMs, failed.comment]).toEqual([-1, "No response: The request timed out."]);
+    expect(historyExchange(entry({ response: undefined })).comment).toBe("No response.");
+    const binary = historyExchange(entry({ response: { status: 200, statusText: "OK", headers: [["content-type", "image/png"]] } }));
+    expect(binary.response?.text).toBeUndefined();
+  });
+
+  it("the file is a HAR 1.2 log made by this version of the app, an entry per exchange in the order given", async () => {
+    const har = JSON.parse(await harText([historyExchange(entry()), historyExchange(entry({ sent: { method: "GET", url: "https://api.test/second", headers: [] }, template: requestContent({ method: "GET" }) }))])) as {
+      log: { version: string; creator: { name: string; version: string }; entries: { request: { url: string; postData?: { text: string } } }[] };
+    };
     expect(har.log.version).toBe("1.2");
-    expect(har.log.entries.length).toBe(1);
-
-    const harEntry = har.log.entries[0];
-    expect(harEntry.request.method).toBe("POST");
-    expect(harEntry.request.url).toBe("https://example.com/api?foo=bar&baz=2");
-    expect(harEntry.request.postData?.mimeType).toBe("application/json");
-    expect(harEntry.request.postData?.text).toContain('"message": "hello"');
-    expect(harEntry.request.queryString).toEqual([
-      { name: "foo", value: "bar" },
-      { name: "baz", value: "2" },
-    ]);
-
-    expect(harEntry.response.status).toBe(201);
-    expect(harEntry.response.content.mimeType).toBe("application/json");
-    expect(harEntry.response.content.text).toContain('"ok": true');
-    expect(harEntry.response.bodySize).toBe(512);
-
-    expect(harEntry.timings.dns).toBe(5);
-    expect(harEntry.timings.connect).toBe(10);
-    expect(harEntry.timings.ssl).toBe(15);
-    expect(harEntry.timings.wait).toBe(25);
-    expect(harEntry.timings.receive).toBe(30);
+    expect(har.log.creator.name).toBe("Wayfarer");
+    expect(har.log.creator.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(har.log.entries.map((exchange) => exchange.request.url)).toEqual(["https://api.test/pets", "https://api.test/second"]);
+    expect(har.log.entries[0].request.postData?.text).toBe('{"name":"Rex"}');
   });
-
-  it("@claim:C-035 omits non-JSON bodies and annotates with a comment", () => {
-    const entry = createEntry({
-      req: {
-        method: "PUT",
-        url: "https://example.com/upload",
-        headers: { "Content-Type": "text/plain" },
-        body: "plain text payload",
-      },
-      res: {
-        status: 204,
-        statusText: "No Content",
-        headers: { "Content-Type": "text/plain" },
-        body: "plain response",
-      },
-    });
-
-    const har = toHar(entry);
-    const harEntry = har.log.entries[0];
-
-    expect(harEntry.request.postData).toBeUndefined();
-    expect(harEntry.request.comment).toBe("omitted (size or type)");
-    expect(harEntry.response.content.text).toBeUndefined();
-    expect(harEntry.response.content.comment).toBe("omitted (size or type)");
-  });
-
-  it("@claim:C-035 omits a JSON body over 256 KB instead of inlining it", () => {
-    const big = { data: "x".repeat(300 * 1024) };
-    const small = { data: "x".repeat(1024) };
-    const harFor = (body: unknown) =>
-      toHar(createEntry({ res: { status: 200, statusText: "OK", headers: { "Content-Type": "application/json" }, body } })).log.entries[0];
-
-    expect(harFor(big).response.content.text).toBeUndefined();
-    expect(harFor(big).response.content.comment).toBe("omitted (size or type)");
-    expect(harFor(small).response.content.text).toContain('"data"');
-  });
-
-  describe("redactedRequest (D5)", () => {
-    const sent = {
-      method: "POST",
-      url: "https://api.test/items?key=typed-api-key&v=vault-plaintext",
-      headers: { Authorization: "Bearer typed-bearer", "X-Vault": "vault-plaintext", Accept: "*/*" },
-      body: '{"token":"vault-plaintext"}',
-      secrets: ["vault-plaintext"],
-      credentials: ["typed-api-key"],
-    };
-
-    it("masks vault secrets and credentials by default", () => {
-      expect(redactedRequest(sent)).toEqual({
-        method: "POST",
-        url: "https://api.test/items?key=***&v=***",
-        headers: { Authorization: "***", "X-Vault": "***", Accept: "*/*" },
-        body: '{"token":"***"}',
-      });
-    });
-
-    it("keeps credentials when the export asks for them, and still masks vault secrets", () => {
-      expect(redactedRequest(sent, { credentials: true })).toEqual({
-        method: "POST",
-        url: "https://api.test/items?key=typed-api-key&v=***",
-        headers: { Authorization: "Bearer typed-bearer", "X-Vault": "***", Accept: "*/*" },
-        body: '{"token":"***"}',
-      });
-    });
-
-    it("leaves a body that is not text as it is", () => {
-      expect(redactedRequest({ ...sent, body: { a: 1 } }).body).toEqual({ a: 1 });
-      expect(exportRedactor(sent).text("typed-api-key vault-plaintext")).toBe("*** ***");
-    });
-  });
-
 });

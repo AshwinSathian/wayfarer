@@ -152,6 +152,26 @@ code errors.
   15 px. An e2e test of a layout "from N px" therefore uses N + 20.
 - Below 1024 px the toolbar shows only what Settings does not also offer.
   A new toolbar action needs `max-lg:hidden` and a home in Settings.
+- Settings (`src/app/components/settings/`) is a dialog with a list of
+  sections and one section's pane, drawn only while it is the open one
+  (`@switch`). A new setting goes into the pane it belongs to, as a
+  `settings-row` of a `settings-group`; a new section is an entry of
+  `SECTIONS` and a `@case`. Below 768 px the list is the dialog and a pane
+  opens in its place (`settings-pane-open`), with "All settings" to go back.
+  The shell opens it at a section (`openSettings("bridge")`). An e2e reaches
+  a control with `openSettings(page, "Vault")` (`e2e/support/app.ts`).
+- Its stylesheet is not encapsulated, since a pane may be a component of
+  its own (`BridgePane`): every rule starts at `.settings`.
+- The theme is `Theme.choice`: `system`, `light` or `dark`. With no choice
+  stored the app follows the system, which differs between the test
+  browsers (and Playwright's Firefox gives a page its emulated scheme only
+  after a context's first load): a test that needs a theme stores the
+  choice (`wayfarer:theme`) before the page loads, or calls
+  `page.emulateMedia` after it.
+- A list of rows that is made again from other data (the params from the
+  address) is tracked by `$index`, not by the row: by the row, every edit
+  destroyed and rebuilt all of them, and Angular says so in the dev
+  console (NG0956). Two entries of one list never share an id (NG0955).
 - For any change that could move pixels (a CSS framework or dependency
   upgrade, tokens, a reset), compare before and after: a throwaway
   Playwright spec with `toHaveScreenshot` at 390, 820 and 1440 px in both

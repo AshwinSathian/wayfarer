@@ -7,6 +7,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **Settings is a list of sections with one section's pane beside it.** It was one narrow column that scrolled: fifteen cards under each other in a 540 px dialog, with history size, the vault's idle lock and the unresolved-variable switch all filed under "Network". Now: General, Requests, History, Data and storage, Vault, Local Bridge, Shortcuts, About, and a Danger zone of its own at the foot of the list. The dialog keeps one size from pane to pane. On a phone the list is the dialog, a section opens in its place, and "All settings" goes back. Up, Down, Home and End walk the list.
+  - **The Local Bridge is a pane of Settings**, not a second dialog that closed the first. The toolbar's bridge button opens Settings there. Nothing is stored until **Save**, which is offered only when something changed; **Discard** puts back what is stored; a bridge switched on with no address is refused with the reason; and a failed **Test connection** says what to check. The token has a show and hide button, and the pane says where the token is kept.
+  - **Theme: System, Light or Dark.** System follows your device and changes when it does. **A browser that never chose a theme now follows the system; it was always dark.** A theme you chose before stays chosen.
+  - Number settings say their unit (ms, requests, minutes). Storage is shown as a bar with sizes a person reads ("3.6 MB used of 10 GB"); it said "3.6 MB of 10243.6 MB".
+  - New: **Clear history** in the History pane (it was only in the history drawer), and **About** links to the changelog, the trust center, the source and the licences.
+  - **Fixed in Settings, found by scanning each pane:** the shortcut keys were 4.2:1 on their background and are the primary text colour now; the small grey text and the red button of the danger zone were under 4.5:1 on its red tint, which is a red border now.
+
+### Fixed
+
+- **Two warnings Angular wrote to the console in development are gone, with what caused them.** The Params rows were destroyed and rebuilt at every keystroke in the address, and the header rows whenever their list was replaced; both are updated in place now (NG0956). And the command palette held two actions with one id ("New Request", and "New Request in" a selected collection), which Angular warns about (NG0955): each has its own.
+
 ## [2.2.0] - 2026-10-12
 
 Bring your work in, and take it out. Wayfarer reads Postman collections and

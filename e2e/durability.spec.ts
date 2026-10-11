@@ -1,5 +1,5 @@
 import { expect, test, type Download, type Page } from "@playwright/test";
-import { dumpIdb, seedAndOpen, send } from "./support/app";
+import { dumpIdb, openSettings, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.11: the workspace lives in one browser. A backup and a restore, what
@@ -34,7 +34,7 @@ async function protectVariable(page: Page, name: string, plaintext: string): Pro
   await page.getByRole("button", { name: "Save changes" }).click();
 }
 
-const openSettings = (page: Page) => page.getByRole("button", { name: "Settings", exact: true }).click();
+const openData = (page: Page) => openSettings(page, "Data and storage");
 
 test("@claim:C-046 backup, Reset all data, restore: every store holds what it held, with collections untrusted", async ({ page }) => {
   // Three page loads, a vault made and opened again (two key derivations), a download and an upload:
@@ -53,7 +53,7 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
   const before = await dumpIdb(page);
 
-  await openSettings(page);
+  await openData(page);
   await page.getByRole("checkbox", { name: "With history" }).check();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Back up workspace" }).click()]);
   const file = await text(download);
@@ -61,12 +61,13 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
   expect(file).not.toContain(SECRET);
   expect(file).not.toContain(PASSPHRASE);
 
+  await page.getByRole("navigation", { name: "Settings sections" }).getByRole("button", { name: "Danger zone", exact: true }).click();
   await page.getByRole("button", { name: "Reset all data" }).click();
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toHaveCount(0);
   await expect.poll(async () => Object.values(await dumpIdb(page)).flat().filter((record) => (record as { key?: string }).key !== "state").length).toBe(0);
 
-  await openSettings(page);
+  await openData(page);
   await page.getByLabel("Restore workspace from file").setInputFiles({ name: "wayfarer-workspace.json", mimeType: "application/json", buffer: Buffer.from(file) });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toBeVisible();
@@ -94,7 +95,7 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
 test("a file that is not a workspace backup is refused, with the reason, and nothing changes", async ({ page }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   const before = await dumpIdb(page);
-  await openSettings(page);
+  await openData(page);
   await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection/3"}') });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
 
@@ -156,8 +157,9 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
 
 test("Settings says whether the browser keeps the data, and shows Safari's seven-day rule only in Safari", async ({ page, browserName }) => {
   await page.goto("/");
-  await openSettings(page);
+  await openData(page);
   await expect(page.getByTestId("storage-status")).toContainText(/promised to keep this data|does not say whether/);
-  await expect(page.getByTestId("storage-status")).toContainText(/Using \d+\.\d MB of \d+\.\d MB allowed\./);
+  // How much is used, of how much the browser allows, each in a unit a person reads.
+  await expect(page.getByRole("img", { name: /^[\d.]+ (B|kB|MB|GB) used of [\d.]+ (MB|GB|TB)$/ })).toBeVisible();
   await expect(page.getByTestId("safari-eviction-notice")).toHaveCount(browserName === "webkit" ? 1 : 0);
 });

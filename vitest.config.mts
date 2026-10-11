@@ -63,4 +63,18 @@ function engineFile(): Plugin {
   };
 }
 
-export default defineConfig({ plugins: [builtWorkers(), engineFile()] });
+// Vite's dev server also follows the worker's import of the engine's .wasm file and tries to read
+// it as a WebAssembly module with imports to resolve ("Pre-transform error: Failed to resolve
+// import "a""), in every run's output. Nothing asks for that module: the worker fetches the file
+// as bytes (above). It is given an empty one.
+function engineModule(): Plugin {
+  return {
+    name: "wayfarer:quickjs-engine-module",
+    enforce: "pre",
+    load(id) {
+      return id.split("?")[0].endsWith("/emscripten-module.wasm") ? { code: "export default undefined;", map: null } : undefined;
+    },
+  };
+}
+
+export default defineConfig({ plugins: [builtWorkers(), engineFile(), engineModule()] });

@@ -12,7 +12,6 @@ import {
   output
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -37,15 +36,14 @@ import { PastRequests } from "../past-requests/past-requests";
 import { CollectionsSidebar, PaletteAction } from "../collections/collections-sidebar";
 import { EnvironmentsManager } from "../environments/environments-manager";
 import { SecretsManager } from "../secrets/secrets-manager";
-import { Settings } from "../settings/settings";
+import { Settings, type SettingsSection } from "../settings/settings";
 import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 
 @Component({
   selector: "app-shell",
-  imports: [MatToolbar, MatFormField, MatInput, MatCheckbox, 
-    NgTemplateOutlet,
+  imports: [MatToolbar, MatFormField, MatInput, NgTemplateOutlet,
     Icon,
     MatSidenavContainer,
     MatSidenav,
@@ -132,11 +130,8 @@ export class AppShell implements OnInit {
   readonly secretsDialogVisible = signal(false);
   readonly settingsDialogVisible = signal(false);
 
-  readonly bridgeDialogVisible = signal(false);
-  readonly bridgeUrlDraft = signal("");
-  readonly bridgeTokenDraft = signal("");
-  readonly bridgeEnabledDraft = signal(false);
-  readonly bridgeTestStatus = signal<"idle" | "testing" | "ok" | "fail">("idle");
+  /** The pane Settings opens at. */
+  readonly settingsSection = signal<SettingsSection>("general");
 
   /**
    * Cross-cutting app commands the command palette (hosted inside
@@ -199,7 +194,7 @@ export class AppShell implements OnInit {
       {
         id: "open-settings",
         label: "Settings",
-        run: () => this.settingsDialogVisible.set(true),
+        run: () => this.openSettings(),
       },
     ];
   }
@@ -347,32 +342,15 @@ export class AppShell implements OnInit {
     return this.secretsService.isUnlocked();
   }
 
+  /** Opens Settings at a section: the list's first, or the one a button is about. */
+  openSettings(section: SettingsSection = "general"): void {
+    this.settingsSection.set(section);
+    this.settingsDialogVisible.set(true);
+  }
+
+  /** The bridge's settings are a pane of Settings. */
   openBridgeSettings(): void {
-    const current = this.bridgeService.config();
-    this.bridgeUrlDraft.set(current.url);
-    this.bridgeTokenDraft.set(current.token);
-    this.bridgeEnabledDraft.set(current.enabled);
-    this.bridgeTestStatus.set("idle");
-    this.bridgeDialogVisible.set(true);
-  }
-
-  closeBridgeSettings(): void {
-    this.bridgeDialogVisible.set(false);
-  }
-
-  async testBridgeConnection(): Promise<void> {
-    this.bridgeTestStatus.set("testing");
-    const ok = await this.bridgeService.checkHealth(this.bridgeUrlDraft().trim());
-    this.bridgeTestStatus.set(ok ? "ok" : "fail");
-  }
-
-  saveBridgeSettings(): void {
-    this.bridgeService.update({
-      enabled: this.bridgeEnabledDraft(),
-      url: this.bridgeUrlDraft().trim(),
-      token: this.bridgeTokenDraft().trim(),
-    });
-    this.closeBridgeSettings();
+    this.openSettings("bridge");
   }
 
   /** Reloads only after the data is really gone; otherwise says why (F37). */

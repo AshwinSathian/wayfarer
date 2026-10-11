@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openSettings } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.3: requests go out through fetch, with cancel and timeout. Every test
@@ -64,7 +65,7 @@ test.describe("Transport on fetch (P2.3)", () => {
 
   test("a request that outlasts the timeout set in Settings says so", async ({ page }) => {
     await open(page);
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await openSettings(page, "Requests");
     const timeout = page.getByLabel("Request timeout");
     await expect(timeout).toHaveValue("0");
     await timeout.fill("1000");

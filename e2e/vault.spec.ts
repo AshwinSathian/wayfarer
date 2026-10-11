@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { openSettings } from "./support/app";
 
 // P2.6, vault v2 (F09): one data key wrapped by the passphrase. Each test
 // also holds the page to its CSP and Trusted Types policy (plan risk R15):
@@ -82,7 +83,7 @@ test("locking the vault in one tab locks it in the other within a second", async
 test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, it is locked 61 seconds later", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Vault");
   const idle = page.getByLabel("Lock the vault when idle");
   await expect(idle).toHaveValue("15");
   await idle.fill("1");

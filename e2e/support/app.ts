@@ -1,4 +1,4 @@
-import { expect, type Page, type Request, type Response } from "@playwright/test";
+import { expect, type Locator, type Page, type Request, type Response } from "@playwright/test";
 
 // Shared e2e helpers: a Playwright-routed fake target, IndexedDB seeding, and
 // IndexedDB inspection. Moved from e2e/tripwire.spec.ts (P1.4) so claim tests
@@ -166,6 +166,21 @@ export async function seedAndOpen(
 export async function openFolder(page: Page, name: string): Promise<void> {
   await page.getByText(name, { exact: true }).click();
   await page.keyboard.press("ArrowRight");
+}
+
+/**
+ * Opens Settings from the toolbar and, when one is named, the section's pane
+ * from the list, as a user does at any width. Gives back the dialog.
+ */
+export async function openSettings(page: Page, section?: string): Promise<Locator> {
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
+  await expect(dialog).toBeVisible();
+  if (section) {
+    await dialog.getByRole("navigation", { name: "Settings sections" }).getByRole("button", { name: section, exact: true }).click();
+    await expect(dialog.getByRole("heading", { name: section, exact: true })).toBeVisible();
+  }
+  return dialog;
 }
 
 export const PASSPHRASE = "correct horse battery staple";

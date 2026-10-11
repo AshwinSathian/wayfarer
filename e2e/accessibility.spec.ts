@@ -224,6 +224,17 @@ for (const theme of ["dark", "light"] as const) {
       await expect(page.getByRole("dialog")).toHaveCount(0);
     }
 
+    // Settings, pane by pane: its list, and each section's own controls.
+    await button("Settings").click();
+    const appSettings = page.getByRole("dialog", { name: "Settings", exact: true });
+    for (const section of ["Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "About", "Danger zone"]) {
+      await appSettings.getByRole("navigation").getByRole("button", { name: section, exact: true }).click();
+      await expect(appSettings.getByRole("heading", { name: section, exact: true })).toBeVisible();
+      await scan(`settings ${section}`);
+    }
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
     // A collection's settings (P4.9), tab by tab, and the Auth tab's line for a request that inherits.
     await button("New collection").click();
     await page.locator("#creation-name-input").fill("Sweep");

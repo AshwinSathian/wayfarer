@@ -1,32 +1,320 @@
-.shortcut-kbd {
+/* Settings: a list of sections beside one section's pane. Not encapsulated:
+   the Local Bridge pane is a component of its own inside `.settings`, and
+   every rule here starts there. */
+.settings {
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr);
+  /* A height of its own, so the dialog does not change size from one pane to the next. */
+  height: min(640px, calc(90vh - 110px));
+}
+
+/* To the dialog's edges: the list's rule runs the whole height. Material's own rule for the padding is as specific, and comes later. */
+.dialog-panel .mat-mdc-dialog-container .mat-mdc-dialog-content:has(> .settings) {
+  padding: 0;
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 10px;
+  overflow-y: auto;
+  border-right: 1px solid var(--separator);
+  background: var(--canvas-panel);
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--label-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard);
+}
+
+.settings-nav-item:hover {
+  background: var(--fill-hover);
+  color: var(--label-primary);
+}
+
+.settings-nav-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.settings-nav-item[aria-current="page"] {
+  background: var(--accent-fill);
+  color: var(--label-primary);
+  font-weight: 600;
+}
+
+.settings-nav-item[aria-current="page"] .app-icon:first-child {
+  color: var(--accent-text);
+}
+
+/* The last one stands apart, and says what it is by its colour. */
+.settings-nav-danger {
+  margin-top: auto;
+  color: var(--status-error-text);
+}
+
+.settings-nav-danger:hover,
+.settings-nav-danger[aria-current="page"] {
+  background: var(--status-error-fill);
+  color: var(--status-error-text);
+}
+
+.settings-nav-danger[aria-current="page"] .app-icon:first-child {
+  color: inherit;
+}
+
+/* A way in on a phone, where the list is all there is. */
+.settings-nav-chevron,
+.settings-back.mat-mdc-button-base {
+  display: none;
+}
+
+.settings-pane:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.settings-pane {
+  min-width: 0;
+  padding: 22px 28px 28px;
+  overflow-y: auto;
+}
+
+.settings-pane-header {
+  margin-bottom: 18px;
+}
+
+.settings-group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--canvas-elevated);
+}
+
+/* One card, its rows parted by a line: not a card for each row. */
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 14px 16px;
+}
+
+.settings-row + .settings-row,
+.settings-list > li + li {
+  border-top: 1px solid var(--separator);
+}
+
+/* A row's two lines of words sit the same way whether the first is a label or a paragraph. */
+.settings-row p {
+  margin: 0;
+}
+
+.settings-row .type-subhead {
+  display: block;
+}
+
+.settings-row .type-subhead + .type-caption {
+  margin-top: 3px;
+}
+
+/* A row whose control is a box to tick: the box stays beside the words at any width. */
+.settings-row-switch {
+  flex-wrap: nowrap;
+}
+
+.settings-row-switch > .min-w-0 {
+  flex: 1 1 0;
+}
+
+/* The words take what room there is and wrap; the control keeps its size and drops under them when there is none beside. */
+.settings-row > .min-w-0 {
+  flex: 1 1 240px;
+}
+
+.settings-row-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.settings-row-link {
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-quick) var(--ease-standard);
+}
+
+.settings-row-link:hover {
+  background: var(--fill-hover);
+}
+
+.settings-row-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.settings-actions,
+.settings-number {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The theme's three choices never push the card wider than the pane. */
+.settings .mat-button-toggle-group.segmented {
+  max-width: 100%;
+}
+
+.settings .segmented .mat-button-toggle-label-content {
+  gap: 6px;
+}
+
+.settings-list > li {
+  padding: 9px 16px;
+}
+
+.settings-subhead {
+  margin: 24px 0 10px;
+  color: var(--label-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.settings-note {
+  margin-top: 12px;
+  color: var(--label-tertiary);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.settings-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Marked by its border, not by a tint: small grey text and the red button are both under 4.5:1 on the error fill. */
+.settings-group-danger {
+  border-color: var(--status-error-border);
+}
+
+.settings-meter {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--fill-secondary);
+}
+
+.settings-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.settings .shortcut-kbd {
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
+  border: 1px solid var(--separator);
   border-radius: var(--radius-sm);
   background: var(--fill-secondary);
-  border: 1px solid var(--separator);
-  color: var(--label-secondary);
+  /* The primary label: the secondary one is 4.2:1 on this fill at 11 px. */
+  color: var(--label-primary);
   font-family: var(--font-mono);
   font-size: 11px;
   white-space: nowrap;
 }
 
-details > summary {
-  list-style: none;
-}
+/* A phone: the list is the dialog, and a section opens in its place. */
+@media (max-width: 767.98px) {
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+    height: min(640px, calc(90vh - 100px));
+  }
 
-details > summary::-webkit-details-marker {
-  display: none;
-}
+  .settings-nav {
+    border-right: 0;
+    background: transparent;
+  }
 
-details > summary::before {
-  content: "▸";
-  display: inline-block;
-  margin-right: 6px;
-  color: var(--label-tertiary);
-  transition: transform var(--dur-quick) var(--ease-standard);
-}
+  .settings-nav-item {
+    padding: 12px 10px;
+    font-size: 15px;
+  }
 
-details[open] > summary::before {
-  transform: rotate(90deg);
+  .settings-nav-chevron {
+    display: inline-flex;
+    color: var(--label-tertiary);
+  }
+
+  /* On a phone no section is "the open one" while the list shows. */
+  .settings-nav-item[aria-current="page"] {
+    background: transparent;
+    font-weight: inherit;
+  }
+
+  .settings-nav-item[aria-current="page"]:not(.settings-nav-danger) {
+    color: var(--label-secondary);
+  }
+
+  .settings-nav-item[aria-current="page"] .app-icon:first-child {
+    color: inherit;
+  }
+
+  .settings .mat-button-toggle-group.segmented {
+    width: 100%;
+  }
+
+  .settings .segmented .mat-button-toggle {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .settings .segmented .mat-button-toggle-button {
+    padding: 5px 2px;
+  }
+
+  .settings .segmented .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
+    padding: 0.25rem 0.25rem;
+  }
+
+  .settings-pane,
+  .settings-pane-open .settings-nav {
+    display: none;
+  }
+
+  .settings-pane-open .settings-pane {
+    display: block;
+    padding: 12px 18px 22px;
+  }
+
+  .settings-back.mat-mdc-button-base {
+    display: inline-flex;
+    margin: 0 0 10px -10px;
+  }
 }

@@ -247,7 +247,7 @@
             <!-- Settings -->
             <button type="button"
               matIconButton class="btn-plain"
-              (click)="settingsDialogVisible.set(true)"
+              (click)="openSettings()"
               title="Settings"
               aria-label="Settings"
             >
@@ -273,7 +273,7 @@
             @if (backup.reminderDue()) {
             <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
               <p class="type-callout text-label-secondary">It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.</p>
-              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="settingsDialogVisible.set(true)">Back up now</button>
+              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="openSettings('data')">Back up now</button>
               <button matButton class="btn-secondary btn-sm" type="button" aria-label="Dismiss backup reminder" (click)="backup.dismissReminder()">Not now</button>
             </div>
             }
@@ -401,97 +401,6 @@
   </div>
 </ui-dialog>
 
-<!-- Local Bridge settings dialog -->
-<ui-dialog
-  header="Local Bridge"
-  [visible]="bridgeDialogVisible()"
-  (visibleChange)="bridgeDialogVisible.set($event)"
-  dismissableMask
-  width="440px"
->
-  <div class="flex flex-col gap-4">
-    <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <app-icon name="router" class="icon-md text-label-tertiary mt-0.5 shrink-0" />
-      <p class="type-callout text-label-secondary leading-relaxed">
-        Optional relay for CORS-restrictive or intranet-only APIs. Runs on your own machine — nothing is sent anywhere unless you enable it here.
-        <a
-          href="https://github.com/AshwinSathian/wayfarer/blob/main/local-bridge/README.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-accent-text underline"
-        >Setup &amp; security model</a>.
-      </p>
-    </div>
-
-    <label for="bridge-enabled-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
-      <div>
-        <p class="type-subhead text-label-primary">Route requests through the bridge</p>
-        <p class="type-caption text-label-tertiary mt-0.5">Applies to every request until you turn this off again.</p>
-      </div>
-      <mat-checkbox
-        id="bridge-enabled-checkbox"
-        aria-label="Route requests through the bridge"
-        [ngModel]="bridgeEnabledDraft()"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="bridgeEnabledDraft.set($event)"
-      />
-    </label>
-
-    <div class="flex flex-col gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label for="bridge-url-input" class="type-footnote text-label-secondary">Bridge URL</label>
-        <mat-form-field class="field w-full">
-          <input matInput
-            id="bridge-url-input"
-            type="text"
-            [ngModel]="bridgeUrlDraft()"
-            (ngModelChange)="bridgeUrlDraft.set($event); bridgeTestStatus.set('idle')"
-            placeholder="http://127.0.0.1:7717"
-           />
-        </mat-form-field>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label for="bridge-token-input" class="type-footnote text-label-secondary">Bridge token</label>
-        <mat-form-field class="field w-full">
-          <input matInput
-            id="bridge-token-input"
-            type="password"
-            [ngModel]="bridgeTokenDraft()"
-            (ngModelChange)="bridgeTokenDraft.set($event); bridgeTestStatus.set('idle')"
-            placeholder="Printed when you start wayfarer-local-bridge"
-           />
-        </mat-form-field>
-      </div>
-    </div>
-
-    <div class="flex items-center justify-between">
-      <button
-        matButton="outlined" class="btn-secondary btn-sm"
-        type="button"
-        aria-label="Test connection"
-        [disabled]="!bridgeUrlDraft() || bridgeTestStatus() === 'testing'"
-        (click)="testBridgeConnection()"
-      >Test connection</button>
-      @if (bridgeTestStatus() === 'testing') {
-      <span class="type-footnote text-label-tertiary">Checking…</span>
-      } @else if (bridgeTestStatus() === 'ok') {
-      <span class="type-footnote text-status-success flex items-center gap-1">
-        <app-icon name="check_circle" class="icon-xs" /> Reachable
-      </span>
-      } @else if (bridgeTestStatus() === 'fail') {
-      <span class="type-footnote text-status-error flex items-center gap-1">
-        <app-icon name="error" class="icon-xs" /> Not reachable
-      </span>
-      }
-    </div>
-
-    <div class="flex justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeBridgeSettings()">Cancel</button>
-      <button matButton="filled" aria-label="Save" (click)="saveBridgeSettings()">Save</button>
-    </div>
-  </div>
-</ui-dialog>
-
 <!-- Secrets management dialog -->
 <app-secrets-manager
   [(visible)]="secretsDialogVisible"
@@ -504,8 +413,9 @@
 <!-- Settings dialog -->
 <app-settings
   [(visible)]="settingsDialogVisible"
+  [(section)]="settingsSection"
+  (clearHistory)="confirmClear()"
   [paletteActions]="sidebarPaletteActions"
   (openSecrets)="secretsDialogVisible.set(true)"
-  (openBridgeSettings)="openBridgeSettings()"
   (resetAllData)="confirmResetAllData()"
 ></app-settings>

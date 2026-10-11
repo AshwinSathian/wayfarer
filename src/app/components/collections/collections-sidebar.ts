@@ -202,7 +202,8 @@ export class CollectionsSidebar implements OnInit {
           run: () => this.createFolderPrompt(data.ref.meta.id),
         },
         {
-          id: "new-request",
+          // Not "new-request": that is the shell's own action, in the same list, and two rows of one id are drawn as one (NG0955).
+          id: "new-request-collection",
           label: `New Request in ${data.ref.name}`,
           run: () => this.createRequestPrompt(data.ref.meta.id),
         },

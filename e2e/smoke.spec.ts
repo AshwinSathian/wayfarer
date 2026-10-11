@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { openSettings } from "./support/app";
 
 // @smoke: checks that run against a deployed site as well as the local
 // build: a version preview URL before promotion and production afterwards
@@ -21,7 +22,7 @@ test("@smoke the app shell loads with production security headers", async ({ pag
 
   const expected = process.env["EXPECTED_VERSION"];
   if (expected) {
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await openSettings(page, "About");
     await expect(page.getByTestId("app-version")).toHaveText(expected);
   }
 });

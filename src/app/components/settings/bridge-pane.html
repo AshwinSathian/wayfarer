@@ -1,0 +1,56 @@
+<div class="settings-group">
+  <label for="bridge-enabled-checkbox-input" class="settings-row settings-row-switch cursor-pointer">
+    <div class="min-w-0">
+      <p class="type-subhead text-label-primary">Route requests through the bridge</p>
+      <p class="type-caption text-label-tertiary">Every request leaves from the bridge on this machine instead of from the page, until you switch this off. CORS and mixed content do not apply to it.</p>
+    </div>
+    <mat-checkbox id="bridge-enabled-checkbox" aria-label="Route requests through the bridge" [ngModel]="enabled()" (ngModelChange)="enabled.set($event); edited()" />
+  </label>
+  <div class="settings-row settings-row-stacked">
+    <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
+    <p class="type-caption text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
+    <mat-form-field class="field w-full">
+      <input matInput id="bridge-url-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" [ngModel]="url()" (ngModelChange)="url.set($event); edited()" placeholder="http://127.0.0.1:7717" />
+    </mat-form-field>
+  </div>
+  <div class="settings-row settings-row-stacked">
+    <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
+    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-local-bridge</span>. It is kept as plain text in this browser, not in the vault.</p>
+    <div class="flex items-center gap-2">
+      <mat-form-field class="field min-w-0 flex-1">
+        <input matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
+      </mat-form-field>
+      <button matIconButton type="button" [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'" (click)="showToken.set(!showToken())"><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'" /></button>
+    </div>
+  </div>
+</div>
+
+@if (problem()) {
+<p class="type-footnote text-status-error mt-3" role="alert">{{ problem() }}</p>
+}
+
+<div class="mt-4 flex flex-wrap items-center gap-2">
+  <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Test connection" [disabled]="!url().trim() || test() === 'testing'" (click)="testConnection()">
+    @if (test() === 'testing') { <mat-spinner diameter="18" aria-hidden="true" /> } Test connection
+  </button>
+  <span class="bridge-test type-footnote flex items-center gap-1" role="status">
+    @switch (test()) {
+      @case ('testing') { <span class="text-label-tertiary">Checking…</span> }
+      @case ('ok') { <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="text-status-success">Reachable</span> }
+      @case ('fail') { <app-icon name="error" class="icon-xs text-status-error" /> <span class="text-status-error">Not reachable. Is the bridge running, and is this page's origin one it allows?</span> }
+    }
+  </span>
+  <span class="flex-1"></span>
+  @if (saved() && !dirty()) {
+  <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" role="status"><app-icon name="check" class="icon-xs" /> Saved</span>
+  }
+  @if (dirty()) {
+  <button matButton class="btn-sm" type="button" (click)="discard()">Discard</button>
+  }
+  <button matButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
+</div>
+
+<p class="type-caption text-label-tertiary mt-4">
+  The bridge is a small program you run yourself; nothing is sent to it unless you switch it on here.
+  <a href="https://github.com/AshwinSathian/wayfarer/blob/main/local-bridge/README.md" target="_blank" rel="noopener noreferrer" class="text-accent-text underline">Setup and security model</a>.
+</p>

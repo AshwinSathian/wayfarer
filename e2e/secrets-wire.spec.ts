@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PASSPHRASE, dumpIdb, protectVariable, seedAndOpen, send } from "./support/app";
+import { PASSPHRASE, dumpIdb, openSettings, protectVariable, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.5 with P2.8 and P2.9 (plan D21): a vault secret reaches the wire, and
@@ -436,7 +436,7 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
 
 test("history keeps as many entries as Settings says: with the size at 5, 7 requests leave the newest 5", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "History");
   const size = page.getByLabel("History size");
   await expect(size).toHaveValue("500");
   await size.fill("5");

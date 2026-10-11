@@ -66,6 +66,12 @@ Every value is written so that the shell and the tool take it as text:
   and its items by position, so when one of them starts with `-` no HTTPie
   command is copied.
 
+- **The comment that stands for a command runs nothing.** It is one line
+  that starts with `#`, and the name it quotes is in single quotes. bash
+  reads the line as a comment. zsh at a prompt does not: it looks for a
+  command called `#`, finds none, and has expanded nothing on the way,
+  since a `$(…)` or a backtick in single quotes is text.
+
 This matters most for a request that came from someone else's file: its
 names and values are theirs, and the command is run on your machine.
 

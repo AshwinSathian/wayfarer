@@ -28,6 +28,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - **Fixed: `HEAD` was copied as `-X HEAD`**, with which curl waits for a body that never comes. It is `--head`.
   - New in the same menu: **Copy as JavaScript (fetch)**, **Copy as Python (requests)**, **Copy as HTTPie**, with credentials masked. The generators are fetched the first time one is used.
   - A value that starts with `@` is never placed where curl or HTTPie would read it as a file. HTTPie cannot be told that such a value is text, so for such a request it copies a comment that says so instead of a command.
+  - **Fixed before any release: the comment copied in place of a command could run code in zsh (F70, [#241](https://github.com/AshwinSathian/wayfarer/issues/241)).** For a request that curl or HTTPie cannot be given safely, a comment line is copied that names the form part or the header. The name was in double quotes. bash reads the line as a comment; zsh at a prompt, the default shell of macOS, runs `#` as a command and expands `$(…)` and backticks in its arguments first, so a part named `a=$(…)` in a request from someone else's file ran when the line was pasted. The name is now in single quotes, which no shell expands.
   - Tested by running it: the copied command, run by bash against a local server, sends what the app sends for twelve requests covering every body mode. See [`docs/export.md`](docs/export.md).
 
 - **A cURL command becomes a request, and a HAR file imports (P4.5).**

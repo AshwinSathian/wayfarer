@@ -191,6 +191,9 @@ test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker 
       throw error;
     });
   };
-  await expect.poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
-  await expect.poll(() => settled(() => caches.keys())).toEqual([]);
+  // The browser looks for a new worker on its own schedule after a navigation: about 3 s on a laptop, 4 s since the
+  // Settings rework (why is not known: no request or resource was added), longer on a CI runner. The outcome is what
+  // is asserted, not the time (plan R6), so the wait is long.
+  await expect.poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length), { timeout: 30_000 }).toBe(0);
+  await expect.poll(() => settled(() => caches.keys()), { timeout: 30_000 }).toEqual([]);
 });

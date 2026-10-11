@@ -24,6 +24,12 @@ Self-hosted from `@fontsource/jetbrains-mono`. Copyright 2020 The JetBrains Mono
 
 `packages/core/test/fixtures/insomnia/` holds Insomnia export files from Insomnia's own repository (https://github.com/Kong/insomnia), unchanged, for the tests of the Insomnia importer, at the commit named in `packages/core/test/fixtures/insomnia/SOURCES.md`. Copyright Kong Inc. Licensed under the Apache License, Version 2.0 (`packages/core/test/fixtures/insomnia/LICENSE`).
 
+`packages/core/test/fixtures/openapi/` holds OpenAPI and Swagger descriptions that other people wrote, unchanged, for the tests of the OpenAPI importer. Each set is at a pinned commit, named in `packages/core/test/fixtures/openapi/SOURCES.md`, with its licence beside it:
+
+- `swagger-petstore/`: the Petstore as OpenAPI 3.0 and 3.1, from Swagger Petstore (https://github.com/swagger-api/swagger-petstore). Copyright SmartBear Software. Licensed under the Apache License, Version 2.0 (`swagger-petstore/LICENSE`).
+- `swagger-codegen/`: the Petstore as Swagger 2.0, from Swagger Codegen (https://github.com/swagger-api/swagger-codegen). Copyright SmartBear Software. Licensed under the Apache License, Version 2.0 (`swagger-codegen/LICENSE`).
+- `oai/`: ten examples of the OpenAPI Specification (https://github.com/OAI/OpenAPI-Specification). Copyright The Linux Foundation. Licensed under the Apache License, Version 2.0 (`oai/LICENSE`).
+
 ## Apache License, Version 2.0 (full text)
 
 ```

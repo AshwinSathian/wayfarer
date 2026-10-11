@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OpenAPI descriptions other people wrote (P4.3) > the whole set: what is imported, and the kinds of warning 1`] = `
+{
+  "collections": 12,
+  "environments": 0,
+  "folders": 15,
+  "requests": 77,
+}
+`;
+
+exports[`OpenAPI descriptions other people wrote (P4.3) > the whole set: what is imported, and the kinds of warning 2`] = `
+{
+  "A file of its body is named, not included: choose it again in the Body tab.": 2,
+  "It refers to another file or an address (…). An import fetches nothing: what it describes is left out.": 2,
+  "Its auth is of a type the app does not have (…) and is left out: it is sent with no auth.": 19,
+  "Its body is described in N media types (…): the request has the application/json one.": 7,
+  "The file gives no full address for its server (…): give the collection's variable baseUrl the server's address before you send.": 3,
+}
+`;

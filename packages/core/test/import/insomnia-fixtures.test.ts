@@ -30,11 +30,11 @@ const REFUSED: Record<string, string> = {
   "inso/insomnia-v4/malformed.yaml": "This is not a file Wayfarer can import",
   "inso/insomnia-v4/no-export-format.yaml": "This is not a file Wayfarer can import",
   "inso/insomnia-v4/v3-export-format.yaml": "This is an Insomnia export of format 3",
-  // An OpenAPI description, which P4.3 reads.
-  "roundtrip/security.yaml": "This is not a file Wayfarer can import",
   "smoke/mock-server.yaml": "This Insomnia file (mock.insomnia.rest/5.0) holds no requests and no environments",
 };
-const exports = files.filter((file) => !Object.hasOwn(REFUSED, file));
+/** An OpenAPI description among Insomnia's files: not an export, and read as what it is since P4.3. */
+const OPENAPI = "roundtrip/security.yaml";
+const exports = files.filter((file) => !Object.hasOwn(REFUSED, file) && file !== OPENAPI);
 
 type Loose = Record<string, unknown>;
 const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -107,6 +107,12 @@ describe("Insomnia files other people wrote (P4.4)", () => {
     }
     expect(total).toMatchSnapshot();
     expect(Object.fromEntries([...kinds].sort(([a], [b]) => a.localeCompare(b)))).toMatchSnapshot();
+  });
+
+  it("the OpenAPI description among them imports as one: a request for each of its three operations", () => {
+    const { report } = importText(read(OPENAPI));
+    expect(report.formatName).toBe("OpenAPI description");
+    expect(report.counts).toEqual({ collections: 1, folders: 2, requests: 3, environments: 0 });
   });
 
   it.each(Object.entries(REFUSED))("%s is refused, and says why", (file, message) => {

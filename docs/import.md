@@ -49,6 +49,7 @@ or a body mode the app does not have, a field that is dropped).
 | Postman collection, v2.0 or v2.1 | it has `item`: the list of requests and folders | See below. A Collection v1 file is refused with a message that says to export v2.1 from Postman. |
 | Postman environment or globals | `values`, each with a `key`; or the bare list of them an older Postman wrote for globals | One environment. See below. |
 | Insomnia export, format 4 or 5 | `"_type": "export"` (format 4, JSON or YAML), or `type: collection.insomnia.rest/5.0` (format 5, YAML) | See below. |
+| OpenAPI 3.0 or 3.1, Swagger 2.0 | `openapi` or `swagger` at the top, with the version (JSON or YAML) | A request per operation. See below. |
 | HAR 1.2 | `log.entries` | One request per entry, in the file's order, in a new collection "Imported from HAR". See below. |
 | cURL command | the text starts with `curl` | One request, in a new collection "Imported from cURL". See below. |
 
@@ -233,10 +234,89 @@ own repository, at a pinned commit. The 58 that are exports import (6 in
 format 4, 52 in format 5), and each gives the number of folders, requests
 and environments that a count of the file itself gives.
 
+## An OpenAPI description
+
+<!-- claim:C-060 -->
+
+An OpenAPI 3.0 or 3.1 description, or a Swagger 2.0 one, in JSON or YAML,
+becomes one collection with a request for each operation: each method of
+each path. Nothing is validated against the specification: what the app
+can read of the file is read.
+
+| In the file | Becomes |
+|---|---|
+| `info.title`, `info.description` | the collection's name and description |
+| the first of `servers`; in Swagger 2.0 the first of `schemes`, `host` and `basePath` | **the collection's variable `baseUrl`**, and every request's address starts with `{{baseUrl}}`. A server's own `{variables}` get their defaults; one with no default is `{{name}}` |
+| `servers` of a path or of an operation | that request's address starts with it instead |
+| an operation | a request, named by its `summary`, else its `operationId`, else its method and path, with its `description` |
+| a tag | a folder: the tags the file lists first, in its order. An operation is in the folder of its first tag; one with no tag is beside the folders |
+| a path parameter (`/pets/{petId}`) | the variable `{{petId}}` in the address, which the composer asks you for before it sends |
+| a query parameter | part of the address, with the value the file gives: its `example`, the first of its `examples`, its schema's `default`, or the first of its `enum`. With none of these it is there with no value |
+| a header parameter | a header row with the same value. One that is not required and has no value is switched off. `Accept`, `Content-Type` and `Authorization` are left out, as the specification says |
+| a cookie parameter | one `Cookie` header row, which the composer's note says a browser will not send |
+| a JSON body | the file's `example`, else the first of its `examples`, else **a value written from the schema**: each property with its example, default or first enum value, and under that `"string"`, `0`, `true` by its type (a date, a date and time, a UUID, an email and a URI in their forms). A property that is `readOnly` is left out |
+| a form, a multipart form | the schema's properties as fields or parts; one with `format: binary` (Swagger: `type: file`) is a file part |
+| a body of another type | text, when the file gives an example that is text; a file body for `application/octet-stream` or a binary schema. A `Content-Type` header is added when the type is not the one the app sends for that kind of text |
+| Swagger 2.0's `body` and `formData` parameters, and `consumes` | the same bodies |
+| `security` of the file | the collection's auth; of an operation, the request's. **None on an operation is "Inherit from parent"**, and an empty one (`[]`, or `{}` first) is no auth |
+| a security scheme | an API key in a header or the query, HTTP Bearer, HTTP Basic. The file names a scheme and holds no credential: the value is a variable to fill in (`{{apiKey}}`, `{{bearerToken}}`, `{{authUsername}}` and `{{authPassword}}`) |
+
+**A reference (`$ref`) is followed only when it points inside the file**
+(`#/components/schemas/Pet`). A reference to another file or to an address
+(`./pet.yaml`, `https://example.com/schemas.json#/Pet`) is **never
+fetched**: the importer has no code that could. What it would have
+described is left out (a parameter is not there, a property of a body is
+`null`), and the report names each such reference, per request. A reference
+that goes round (a schema that holds itself, a ring of references) ends
+where it would repeat.
+
+What the report says could not be kept:
+
+- **A reference that is not followed**, as above, and one to a part of the
+  file that is not there. In OpenAPI 3.1 a schema can also be referred to by
+  its `$id` or `$anchor`: the app follows a reference by its place in the
+  file only, and reports the others as it reports a file's name.
+- **A security scheme the app does not have**: OAuth 2.0 until it is built,
+  OpenID Connect, mutual TLS, HTTP Digest, an API key in a cookie. The
+  request is sent with no auth, as for a Postman file.
+- **An operation that needs two schemes together**: the first is set.
+- **A body described in several media types**: the JSON one is the
+  request's, or the first when none is JSON.
+- **A body with no example the app can write out** (XML or text described
+  by a schema only): the body is empty.
+- **More than one server**, and a server that is not a full address (`/v1`,
+  which is relative to where the description was served): `baseUrl` is
+  there to be given the address.
+- **An operation with several tags**: it is in the folder of the first.
+- **Files**: a file part or a file body names no file. Choose one in the
+  Body tab.
+- **A version above 3.1**: read as 3.1.
+
+Not read, and not in the report: responses and their examples, callbacks,
+webhooks, links, where a file lists a second way to authenticate
+(`security` with several entries: the first is used), how an array or an
+object parameter is to be written out (`style`, `explode`: a list is its
+values with commas), and a multipart part's own `encoding`.
+
+A description with no operation under `paths` is refused, and so is a
+Swagger 1.x file or a version the app does not know, each with a message.
+
+**A description in YAML may be 1 MB**, like every YAML file (below); a
+larger one is refused with a message that says to convert it to JSON,
+which may be 10 MB. The sample written from one schema stops at 1,000
+values.
+
+**It is tested with files other people wrote**: the Petstore as Swagger
+2.0, OpenAPI 3.0 and OpenAPI 3.1, and ten of the OpenAPI Specification's
+own examples, at pinned commits. The twelve that have operations import,
+each with exactly as many requests as a count of the file's paths and
+methods gives.
+
 ## A YAML file
 
 A file that is not JSON is read as YAML (version 1.2, its core schema):
-an Insomnia export today. Three things are different from JSON:
+an Insomnia export or an OpenAPI description. Three things are different
+from JSON:
 
 - **A YAML file may be 1 MB**, not 10 MB. A YAML reader keeps far more in
   memory per byte than a JSON reader: a megabyte written to be dense took

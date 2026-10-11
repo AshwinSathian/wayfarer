@@ -61,7 +61,7 @@ describe("importText: one road from a file's text to the app's model", () => {
   it("a file of no known format is refused with a message that names the formats", () => {
     for (const text of ['{"info":{"schema":"https://example.test/unknown"}}', "[]", "42", '"text"', "null"]) {
       expect(refused(text).message).toBe(
-        'This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), a HAR 1.2 file, and a cURL command.'
+        'This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.'
       );
     }
     expect(refused("{not json").message).toBe("The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.");

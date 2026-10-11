@@ -76,10 +76,10 @@ test("a file of no known format is refused with a message that names the formats
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
-  await pick(page, file("unknown.json", { swagger: "1.2", apis: [] }));
+  await pick(page, file("unknown.json", { raml: "1.0", title: "Not a format the app reads" }));
   const refused = dialog(page, "Import");
   await expect(refused.getByRole("alert")).toContainText('Unable to import "unknown.json"');
-  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), a HAR 1.2 file, and a cURL command.');
+  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.');
   await expect(refused.getByRole("button", { name: "Confirm import" })).toBeDisabled();
   await refused.getByRole("button", { name: "Cancel import" }).click();
 

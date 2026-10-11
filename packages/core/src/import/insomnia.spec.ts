@@ -462,7 +462,8 @@ describe("a YAML file (P4.4)", () => {
     expect(parseYaml("a: 1\na: 2")).toEqual({ a: 2 });
     // Not a measure of speed: with the reader's own settings these took 15 and 16 seconds on a laptop, and under one second as set here.
     expect(Date.now() - started).toBeLessThan(10_000);
-  });
+    // The test's own time limit is above that ceiling, so the ceiling decides: on a CI runner this takes 5 seconds, which is where Vitest's default ends a test (#259).
+  }, 30_000);
 
   it("a tag makes no object, a merge key merges nothing, and a key named like a prototype's is a key", () => {
     expect(parseYaml("when: 2026-10-11\nn: 012\nyes: yes")).toEqual({ when: "2026-10-11", n: 12, yes: "yes" });

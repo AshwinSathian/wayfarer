@@ -163,16 +163,14 @@ scripts of any imported collection.
 integration collections, six of Adyen's API collections and Microsoft
 Graph's, 51 collections and 12 environments. Each imports. Each
 collection, exported as a Postman file ([`export.md`](export.md)) and
-imported again, is the same collection. And sixteen of Newman's collections
-are run, as imported, by the app's engine against a local server, and give
-exactly the test results Newman gives for the files themselves. The others
-are listed with the reason each is not compared: 15 that Newman cannot run
-without another server, a data file or a file to upload; 13 that use what
-the app does not have (an auth type, a library, a response's cookies, the
-methods Postman's older sandbox added to arrays and numbers); and 1 where
-the app's engine differs from Newman in a way that is a known fault, not a
-missing feature ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)):
-a number kept as a number between requests.
+imported again, is the same collection. And seventeen of Newman's
+collections are run, as imported, by the app's engine against a local
+server, and give exactly the test results Newman gives for the files
+themselves. The others are listed with the reason each is not compared: 15
+that Newman cannot run without another server, a data file or a file to
+upload, and 13 that use what the app does not have (an auth type, a
+library, a response's cookies, the methods Postman's older sandbox added
+to arrays and numbers). None differs for a fault of the app's engine.
 
 ## An Insomnia export
 

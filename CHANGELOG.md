@@ -78,6 +78,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A value a script sets keeps its type ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).** **Fixed: `pm.environment.set("count", 0)` was read back as the text `"0"`**, by the same script, by the next one and in the next send, so `count + 1` gave `"01"` and a test that compared with `0` failed. A number, a boolean, `null`, an object and a list are now read back as what was set, from `pm.environment`, `pm.globals`, `pm.collectionVariables` and `pm.variables`, as in Postman.
+  - The value is stored as its JSON with a mark that says so (`"json": true` on the variable's row, also in an exported file). The Variables editor shows that text; a value you edit there is text again.
+  - Where a request holds `{{count}}` the value goes in as its text: `0`, `false`, `null`. An object goes in as its JSON, where Postman writes `[object Object]`.
+  - `null` set by a script used to be stored as empty text; it is `null` now, and `{{name}}` of it is `null`, as in Postman.
+  - `postman.setEnvironmentVariable` and `postman.setGlobalVariable` do as Postman's: a value becomes text unless it is falsy.
+  - All of Newman's collections that use only what the app has now give Newman's results: 17 of 17. #248 is closed.
+
 - **A variable's name may hold any character but a brace ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).** **Fixed: `{{api/key}}`, `{{first name}}` and any other name with more than letters, digits, `_`, `.` and `-` was not replaced**, though the Variables editor let you give it a value: the request went out with the braces in it. Postman takes any name, and a collection imported from Postman may use one. What stands between braces and is not such a plain name is a variable only when you defined one with that name: a body with another language's templates (`{{ user.name | upper }}`) is sent as written, and the composer does not ask about it.
 
 - **Three faults of Postman's older script sandbox, found by running Newman's own collections ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).**

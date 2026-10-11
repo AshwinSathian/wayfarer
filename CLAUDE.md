@@ -681,6 +681,16 @@ code errors.
   `@claim:C-NNN` test in the same PR.
 - Before replacing one Angular construct with another, check the behaviour
   with a throwaway test when the docs leave it open.
+- An e2e does not read, through the browser, the body of a response the
+  server sent with `Cache-Control: no-store` (`response.json()` of a token
+  endpoint's answer): on a CI runner Chromium had none to give, read late
+  or read at once, and a laptop's always had it. Read the request that
+  carries the value, or ask the server (`/oauth/issued` in the echo
+  server).
+- A claim test has no retry and 30 s. One that does as much as the two
+  scans of `e2e/secrets-wire.spec.ts` (a vault, a send with a script,
+  copies, downloads, a reload) calls `test.slow()`: the WebKit runner is
+  several times slower than a laptop (#228).
 
 ## Pull requests
 

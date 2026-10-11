@@ -207,6 +207,8 @@ These are open, tracked, and scheduled in
 - The Local Bridge is a global on/off switch, isn't on npm, and merges `Set-Cookie` headers ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 - A browser drops some request headers, adds others and hides most response headers of another origin. Wayfarer cannot change that from a page; it says so for each request before you send it <!-- claim:C-049 --> and on the Headers tab, and [`browser-limits.md`](browser-limits.md) lists all of it. The Local Bridge is the way around.
 
+- The Local Bridge's token, which you paste into its settings, is kept as plain text in this browser's `localStorage`, not in the vault ([#266](https://github.com/AshwinSathian/wayfarer/issues/266)).
+- OAuth 2.0 sign-in is tested in Chromium, Firefox and a test build of WebKit, not yet in Safari itself, and a token endpoint that does not allow the app's origin can only be reached through the Local Bridge ([`browser-limits.md`](browser-limits.md#oauth)). The implicit and device grants are not built.
 - In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent although the server's answer refused it ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
 - Data and files from Wayfarer 1.x are not read by version 2: the first open removes them and says so.
 

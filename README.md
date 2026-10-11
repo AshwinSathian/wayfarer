@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-> **v2.1.0 status:** pre-request and post-response scripts run again, in every build, in a sandbox, with the parts of Postman's script API listed in [`docs/postman-compatibility.md`](docs/postman-compatibility.md) ([changelog](CHANGELOG.md)). Wayfarer 2 stores its data in a new shape and does **not** carry over what 1.x stored or exported: the first time it opens, earlier collections, environments, secrets and history are removed, and the page says so. See [Known limitations](#known-limitations).
+> **v2.2.0 status:** Wayfarer imports Postman, Insomnia, OpenAPI, cURL and HAR, each with a report before anything is stored, and exports cURL, code, Postman files and HAR; a collection and a folder hold auth, variables and scripts for their requests; AWS Signature and OAuth 2.0 are new auth types ([changelog](CHANGELOG.md)). Scripts run in a sandbox, with the parts of Postman's script API listed in [`docs/postman-compatibility.md`](docs/postman-compatibility.md). **Collections saved by 2.0 or 2.1 are removed the first time 2.2 opens**, and the page says so; environments, secrets and history are kept. Wayfarer 2 does **not** carry over what 1.x stored or exported. See [Known limitations](#known-limitations).
 
 **Live demo:** https://wayfarer.ashwinsathian.com/
 

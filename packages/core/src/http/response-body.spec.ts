@@ -68,6 +68,13 @@ describe("decodeResponseBody (P0.4, F04/F05)", () => {
     }
   });
 
+  it("F72: a type as long as a server cares to send is told apart at once", () => {
+    // A megabyte of what a pattern with two open ends tries again from every position. With one, the time
+    // grew with the square of the length: 31 ms at 20,000 characters, 124 ms at 40,000.
+    expect(decodeResponseBody(bytes("<a/>"), `a/${"+xml-".repeat(200_000)}\n`)).toBeInstanceOf(BinaryBody);
+    expect(decodeResponseBody(bytes("<a/>"), `a/${"+xml-".repeat(200_000)}+xml`)).toBe("<a/>");
+  });
+
   it("sniffs a body with no content-type: valid UTF-8 is text, anything else is binary", () => {
     expect(decodeResponseBody(bytes("plain"), null)).toBe("plain");
     expect(decodeResponseBody(new Uint8Array([0xff, 0xfe, 0x00, 0x81]).buffer, null)).toBeInstanceOf(BinaryBody);

@@ -265,12 +265,19 @@ test("through the Local Bridge the same token endpoint answers, and the token re
         if (String(chunk).includes("listening on")) resolve();
       });
     });
-    await page.addInitScript(([url, secret]) => localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url, token: secret })), [`http://127.0.0.1:${port}`, token]);
     const direct: string[] = [];
     page.on("request", (request) => {
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }) });
+    // Switched on as a user does: in the bridge's own dialog.
+    await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
+    const settings = page.getByRole("dialog", { name: "Local Bridge" });
+    await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
+    await settings.locator("#bridge-url-input").fill(`http://127.0.0.1:${port}`);
+    await settings.locator("#bridge-token-input").fill(token);
+    await settings.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(settings).toHaveCount(0);
     await openAuth(page);
     await page.getByRole("button", { name: "Get token", exact: true }).click();
     await expect(status(page)).toContainText("There is a token, good until");

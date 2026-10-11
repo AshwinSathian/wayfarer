@@ -13,9 +13,10 @@ its collection's; the tab says what will be sent and where it comes from.
 | API Key | a header or a query parameter with the name and the value you give |
 | AWS Signature | the request signed with AWS Signature Version 4. See below |
 
-Every field may hold `{{variables}}`. A credential may be a vault secret
-([`secrets.md`](secrets.md)): the token, the password, the key's value, the
-AWS secret key and the session token.
+Every field may hold `{{variables}}`, and any of them may be a vault secret
+([`secrets.md`](secrets.md)): a username or an access key as well as the
+token, the password, the key's value, the AWS secret key and the session
+token.
 
 ## AWS Signature
 

@@ -663,9 +663,11 @@ export class WorkspaceStore {
     const endpointText = content.url;
     // First without the vault: this pass says which secrets the request needs.
     const probe = new VariableResolver(this.scopes());
-    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body), ...credentialsOf(this.sentAuth(content.auth))]) {
+    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body)]) {
       probe.resolve(text);
     }
+    // Every field of the auth that is sent, not its credentials alone: a username or an access key may be a secret too (F81).
+    resolveAuth(this.sentAuth(content.auth), (text) => probe.resolve(text));
     const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
       const built = this.build(endpointText, content, resolver);
       const check = (request: BuiltRequest): BuiltRequest => {

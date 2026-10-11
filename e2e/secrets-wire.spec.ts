@@ -252,6 +252,26 @@ test("a request that uses a secret while the vault is locked asks for the passph
   expect(echo.headers.find(([key]) => key === "x-api-key")?.[1]).toBe("locked-vault-secret");
 });
 
+// F81: the pass that says which secrets a request needs read only an auth's
+// credentials (the password, the secret key), so a secret in another field
+// of the auth was never read from the vault.
+for (const [field, auth, arrived] of [
+  ["Basic's username", { type: "basic", username: "{{API_USER}}", password: "pw" }, (authorization: string) => Buffer.from(authorization.slice("Basic ".length), "base64").toString("utf8") === "user-in-vault-f81:pw"],
+  ["the AWS access key", { type: "awsv4", accessKey: "{{API_USER}}", secretKey: "k", sessionToken: "", region: "eu-west-1", service: "s3" }, (authorization: string) => authorization.includes("Credential=user-in-vault-f81/")],
+] as const) {
+  test(`a vault secret in an auth field that is not its credential is read and sent: ${field}`, async ({ page }) => {
+    await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth });
+    await protectVariable(page, "API_USER", "user-in-vault-f81");
+
+    const echo = await sendAndEcho(page);
+    expect(arrived(echo.headers.find(([key]) => key === "authorization")?.[1] ?? "")).toBe(true);
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    // It is a vault secret like any other: the server sent it back, and history holds it in no encoding.
+    await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
+    expect(found(JSON.stringify(await dumpIdb(page)), "user-in-vault-f81")).toEqual([]);
+  });
+}
+
 test("@claim:C-045 a variable without a value holds the request back; Send anyway sends it as written, but never a secret's reference", async ({ page }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, headers: { "X-Plain": "{{nowhere}}" } });
   let requests = 0;

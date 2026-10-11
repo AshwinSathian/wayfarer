@@ -96,6 +96,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A vault secret works in every field of the Auth tab ([#261](https://github.com/AshwinSathian/wayfarer/issues/261)).** **Fixed: a request whose Basic username, API key name, or AWS access key, region or service was a protected variable was not sent**, with the message that its vault secret "could not be read (it may have been deleted)". The secret was there: the app looked for secrets in the password, the token and the key's value only, and never read the vault for the other fields. Nothing was sent wrong; the request was refused. Since 2.0.0.
+
 - **A value a script sets keeps its type ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).** **Fixed: `pm.environment.set("count", 0)` was read back as the text `"0"`**, by the same script, by the next one and in the next send, so `count + 1` gave `"01"` and a test that compared with `0` failed. A number, a boolean, `null`, an object and a list are now read back as what was set, from `pm.environment`, `pm.globals`, `pm.collectionVariables` and `pm.variables`, as in Postman.
   - The value is stored as its JSON with a mark that says so (`"json": true` on the variable's row, also in an exported file). The Variables editor shows that text; a value you edit there is text again.
   - Where a request holds `{{count}}` the value goes in as its text: `0`, `false`, `null`. An object goes in as its JSON, where Postman writes `[object Object]`.

@@ -39,6 +39,8 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
       return { ...auth, username: resolve(auth.username), password: resolve(auth.password) };
     case "apikey":
       return { ...auth, key: resolve(auth.key), value: resolve(auth.value) };
+    case "awsv4":
+      return { ...auth, accessKey: resolve(auth.accessKey), secretKey: resolve(auth.secretKey), sessionToken: resolve(auth.sessionToken), region: resolve(auth.region), service: resolve(auth.service) };
     case "none":
     case "inherit":
       return auth;
@@ -68,6 +70,8 @@ export function credentialsOf(auth: AuthConfig): string[] {
       return [auth.password];
     case "apikey":
       return [auth.value];
+    case "awsv4":
+      return [auth.secretKey, auth.sessionToken];
     case "none":
     case "inherit":
       return [];

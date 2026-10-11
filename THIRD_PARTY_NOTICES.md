@@ -30,6 +30,8 @@ Self-hosted from `@fontsource/jetbrains-mono`. Copyright 2020 The JetBrains Mono
 - `swagger-codegen/`: the Petstore as Swagger 2.0, from Swagger Codegen (https://github.com/swagger-api/swagger-codegen). Copyright SmartBear Software. Licensed under the Apache License, Version 2.0 (`swagger-codegen/LICENSE`).
 - `oai/`: ten examples of the OpenAPI Specification (https://github.com/OAI/OpenAPI-Specification). Copyright The Linux Foundation. Licensed under the Apache License, Version 2.0 (`oai/LICENSE`).
 
+`packages/core/test/fixtures/aws-sigv4/` holds twenty cases of AWS's Signature Version 4 test suite, unchanged, for the tests of the signer, from the AWS C Auth library (https://github.com/awslabs/aws-c-auth) at the commit named in `packages/core/test/fixtures/aws-sigv4/SOURCES.md`. Copyright Amazon.com, Inc. or its affiliates. Licensed under the Apache License, Version 2.0 (`packages/core/test/fixtures/aws-sigv4/LICENSE`, with its `NOTICE`).
+
 ## Apache License, Version 2.0 (full text)
 
 ```

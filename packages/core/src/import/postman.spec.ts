@@ -65,7 +65,7 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
   });
 
   it("an auth type the app does not have is left out with a warning, and sends none: it does not start inheriting", () => {
-    const { payload, warnings } = postmanCollection(collection([{ name: "F", auth: { type: "digest" }, item: [] }, request({ auth: { type: "oauth2", oauth2: [{ key: "accessToken", value: "x" }] } }, "Signed")], { auth: { type: "awsv4" } }));
+    const { payload, warnings } = postmanCollection(collection([{ name: "F", auth: { type: "digest" }, item: [] }, request({ auth: { type: "oauth2", oauth2: [{ key: "accessToken", value: "x" }] } }, "Signed")], { auth: { type: "hawk" } }));
 
     expect(payload.requests[0].auth).toEqual({ type: "none" });
     expect(payload.folders[0].auth).toEqual({ type: "none" });
@@ -73,9 +73,22 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     expect(warnings).toEqual([
       { item: 'folder "F"', message: "Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth." },
       { item: 'request "Signed"', message: "Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth." },
-      { item: 'collection "Shop"', message: "Its auth is of a type the app does not have (awsv4) and is left out: it is sent with no auth." },
+      { item: 'collection "Shop"', message: "Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth." },
     ]);
     expect(JSON.stringify(payload)).not.toContain("accessToken");
+  });
+
+  it("AWS Signature is imported with its five fields, and exported again as Postman writes it (P4.8)", () => {
+    const awsv4 = [{ key: "accessKey", value: "AKID" }, { key: "secretKey", value: "{{secret}}" }, { key: "sessionToken", value: "t" }, { key: "region", value: "eu-west-1" }, { key: "service", value: "s3" }, { key: "addAuthDataToQuery", value: false }];
+    const { payload, warnings } = postmanCollection(collection([request({ auth: { type: "awsv4", awsv4 } }, "Signed"), request({ auth: { type: "awsv4", awsv4: { accessKey: "AKID" } } }, "Sparse")]));
+    expect(payload.requests.map((doc) => doc.auth)).toEqual([
+      { type: "awsv4", accessKey: "AKID", secretKey: "{{secret}}", sessionToken: "t", region: "eu-west-1", service: "s3" },
+      { type: "awsv4", accessKey: "AKID", secretKey: "", sessionToken: "", region: "", service: "" },
+    ]);
+    expect(warnings).toEqual([]);
+    const again = exported(payload).file as { item: { request: { auth: unknown } }[] };
+    expect(again.item[0].request.auth).toEqual({ type: "awsv4", awsv4: awsv4.slice(0, 5).map((entry) => ({ ...entry, type: "string" })) });
+    expect(postmanCollection(again).payload.requests.map((doc) => doc.auth)).toEqual(payload.requests.map((doc) => doc.auth));
   });
 
   it("scripts at three levels: prerequest and test, as lines or as one text; a switched-off event and another kind are not run", () => {

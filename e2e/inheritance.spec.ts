@@ -53,7 +53,7 @@ test("a request made in a collection starts with inherit; a collection's setting
   const settings = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
   // A collection has nothing above it to inherit from.
   await settings.getByRole("combobox", { name: "Type" }).click();
-  await expect(page.getByRole("option")).toHaveText(["None", "Bearer Token", "Basic Auth", "API Key"]);
+  await expect(page.getByRole("option")).toHaveText(["None", "Bearer Token", "Basic Auth", "API Key", "AWS Signature"]);
   await page.getByRole("option", { name: "Bearer Token" }).click();
   await settings.getByLabel("Token", { exact: true }).fill("{{shopToken}}");
   await settings.getByRole("tab", { name: "Variables" }).click();

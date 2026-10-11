@@ -15,7 +15,10 @@ const AUTH_TYPES: { label: string; value: AuthType }[] = [
   { label: "Bearer Token", value: "bearer" },
   { label: "Basic Auth", value: "basic" },
   { label: "API Key", value: "apikey" },
+  { label: "AWS Signature", value: "awsv4" },
 ];
+const emptyAws = { type: "awsv4", accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" } as const;
+type AwsAuth = Extract<AuthConfig, { type: "awsv4" }>;
 const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as const;
 
 /**
@@ -86,6 +89,10 @@ export class AuthEditor {
     this.authChange.emit({ ...(auth.type === "apikey" ? auth : emptyApiKey), ...patch });
   }
 
+  setAwsField(patch: Partial<Omit<AwsAuth, "type">>): void {
+    const auth = this.auth();
+    this.authChange.emit({ ...(auth.type === "awsv4" ? auth : emptyAws), ...patch });
+  }
   onTogglePasswordVisibility(): void {
     this.togglePasswordVisibility.emit();
   }

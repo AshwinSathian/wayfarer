@@ -220,8 +220,14 @@ describe("validateInherited (P4.9)", () => {
 
   it("refuses a collection that inherits: nothing is above it", () => {
     expect(validateInherited({ auth: { type: "inherit" }, scripts }, "collection", "collection")).toEqual([
-      { path: "collection.auth.type", message: "Value must be one of none, bearer, basic, apikey." },
+      { path: "collection.auth.type", message: "Value must be one of none, bearer, basic, apikey, awsv4." },
     ]);
+  });
+
+  it("AWS Signature holds five texts, each of which must be one (P4.8)", () => {
+    const aws = { type: "awsv4", accessKey: "AKID", secretKey: "{{secret}}", sessionToken: "", region: "us-east-1", service: "s3" };
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: aws }, "r")).toEqual([]);
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...aws, secretKey: 1, sessionToken: undefined, region: null } }, "r").map((issue) => issue.path)).toEqual(["r.auth.secretKey", "r.auth.sessionToken", "r.auth.region"]);
   });
 
   it("names each field that is missing or of the wrong type", () => {

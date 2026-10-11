@@ -8,6 +8,7 @@ describe("request model", () => {
     expect(emptyAuth("bearer")).toEqual({ type: "bearer", token: "" });
     expect(emptyAuth("basic")).toEqual({ type: "basic", username: "", password: "" });
     expect(emptyAuth("apikey")).toEqual({ type: "apikey", key: "", value: "", in: "header" });
+    expect(emptyAuth("awsv4")).toEqual({ type: "awsv4", accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" });
   });
 
   it("lists the files of every part of a body, not only the part its mode sends", () => {

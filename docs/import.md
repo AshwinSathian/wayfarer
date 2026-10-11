@@ -125,7 +125,7 @@ A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
 | `info.name`, `info.description` | the collection's name and description |
 | `variable` | the collection's variables; one that is `disabled` is switched off |
 | a folder, in a folder | a folder. A folder's `variable` is its variables |
-| `auth` of the collection, a folder or a request | the auth, for `bearer`, `basic`, `apikey` and `noauth`. **No `auth` at all is "Inherit from parent"**, as in Postman |
+| `auth` of the collection, a folder or a request | the auth, for `bearer`, `basic`, `apikey`, `awsv4` (AWS Signature, [`auth.md`](auth.md)) and `noauth`. **No `auth` at all is "Inherit from parent"**, as in Postman |
 | `event` | the scripts: `prerequest` and `test`, at each of the three levels |
 | `url` | the address, put together from the parts Postman sends by (`raw` when the file has no parts). The query is in the address |
 | `header` | header rows; v2.0's headers as one text are read line by line |
@@ -134,8 +134,8 @@ A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
 
 What the report says could not be kept:
 
-- **An auth type the app does not have**: OAuth 2.0 and AWS Signature
-  until they are built, and Digest, NTLM, Hawk and OAuth 1.0. It is left
+- **An auth type the app does not have**: OAuth 2.0 until it is built, and
+  Digest, NTLM, Hawk and OAuth 1.0. It is left
   out and the request is sent with no auth. It does not start to inherit:
   that would send another level's credentials where the file had its own.
 - **A path variable** (`/users/:id`). The app has `{{variables}}` only. One
@@ -194,7 +194,7 @@ write) both import.
 | an environment under the base environment | an environment. Choose it as the active one to get what choosing it in Insomnia gave |
 | an object in an environment (`{"paging": {"size": 20}}`) | one variable per value, named by its path: `paging.size`, which is what `{{ _.paging.size }}` became |
 | a folder's environment | the folder's variables |
-| `authentication` | Basic, Bearer and API key (in a header or the query). **None given, or one switched off, is "Inherit from parent"**: Insomnia then sends the nearest folder's. A Bearer token with a prefix other than `Bearer` is an API key header named `Authorization`, which sends the same text |
+| `authentication` | Basic, Bearer, API key (in a header or the query) and AWS IAM (as AWS Signature). **None given, or one switched off, is "Inherit from parent"**: Insomnia then sends the nearest folder's. A Bearer token with a prefix other than `Bearer` is an API key header named `Authorization`, which sends the same text |
 | a body | text with its language from the media type, a form's fields, a multipart form's parts, a file. A GraphQL body is the JSON text it is sent as |
 
 What the report says could not be kept:
@@ -210,7 +210,7 @@ What the report says could not be kept:
 - **A folder's variable that an environment also has.** Insomnia uses the
   folder's value. The app uses the environment's while that environment is
   active: a folder's variable wins over a collection's only.
-- **An auth type the app does not have** (OAuth 1.0 and 2.0, AWS IAM,
+- **An auth type the app does not have** (OAuth 1.0 and 2.0,
   Digest, NTLM, Hawk, ASAP, Netrc, an API key in a cookie): left out, and
   the request is sent with no auth, as for a Postman file.
 - **gRPC, WebSocket and Socket.IO requests**, cookies, certificates, unit

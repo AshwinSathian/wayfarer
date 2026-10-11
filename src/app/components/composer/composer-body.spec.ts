@@ -188,6 +188,21 @@ describe('Composer: methods and body modes', () => {
       expect(contentType(await sendWithFile('https://a.test/body'))).toBe('application/pdf');
     });
 
+    it('AWS Signature signs a file body by its bytes, with its type, and refuses a multipart form (P4.8)', async () => {
+      const picked = TestBed.inject(RequestFiles).pick(new File(['%PDF-'], 'doc.pdf', { type: 'application/pdf' }));
+      if (typeof picked === 'string') throw new Error(picked);
+      store.setBody({ mode: 'binary', binary: picked });
+      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: 'secret', sessionToken: '', region: 'us-east-1', service: 's3' } });
+
+      const init = await sendWithFile('https://a.test/body');
+
+      const sent = new Headers(init.headers);
+      // S3 is given the body's hash as a header: SHA-256 of "%PDF-".
+      expect(sent.get('X-Amz-Content-Sha256')).toBe('38523c087796e5d5dd1cf9bad1fb026781a838dd9dd2cf8af58b9f6502a46778');
+      expect(sent.get('Authorization')).toContain('SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date,');
+      expect(await (init.body as Blob).text()).toBe('%PDF-');
+    });
+
     it('does not send when a body names a file this browser does not have, or a binary body has no file', async () => {
       store.setBody({ mode: 'binary' });
       expect(await component.sendRequest()).toBeUndefined();
@@ -261,6 +276,13 @@ describe('Composer: methods and body modes', () => {
       expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "--form-string 'note=@world'", `-F 'upload=@"report.pdf"'`]);
       // The file is named, not read.
       expect(read).not.toHaveBeenCalled();
+    });
+
+    it('AWS Signature: the command carries no signature and no key, since a signature is of one moment (P4.8)', async () => {
+      store.setBody({ mode: 'raw', raw: { language: 'json', text: '{}' } });
+      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: 'typed-secret', sessionToken: 'typed-token', region: 'us-east-1', service: 's3' } });
+
+      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: application/json'", "--data-raw '{}'"]);
     });
 
     it('a file: --data-binary with its name and its type', async () => {

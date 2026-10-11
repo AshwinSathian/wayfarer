@@ -47,8 +47,16 @@ describe("what each auth type puts on a request", () => {
     expect(resolveAuth(bearer, upper)).toEqual({ type: "bearer", token: "{{T}}" });
     expect(resolveAuth(basic, upper)).toEqual({ type: "basic", username: "{{U}}", password: "{{P}}" });
     expect(resolveAuth(header, upper)).toEqual({ type: "apikey", key: "{{K}}", value: "{{V}}", in: "header" });
+    expect(resolveAuth({ type: "awsv4", accessKey: "{{a}}", secretKey: "{{s}}", sessionToken: "{{t}}", region: "{{r}}", service: "{{v}}" }, upper)).toEqual({ type: "awsv4", accessKey: "{{A}}", secretKey: "{{S}}", sessionToken: "{{T}}", region: "{{R}}", service: "{{V}}" });
     expect(resolveAuth({ type: "none" }, upper)).toEqual({ type: "none" });
     expect(resolveAuth({ type: "inherit" }, upper)).toEqual({ type: "inherit" });
+  });
+
+  it("AWS Signature writes no header by itself: the request is signed once it is built, and its secret key and session token are the credentials", () => {
+    const aws: AuthConfig = { type: "awsv4", accessKey: "AKID", secretKey: "secret", sessionToken: "token", region: "us-east-1", service: "s3" };
+    expect(buildAuthHeaders(aws)).toEqual({});
+    expect(buildAuthQueryParam(aws)).toBeNull();
+    expect(credentialsOf(aws)).toEqual(["secret", "token"]);
   });
 
   it("credentialsOf names what a redactor must look for: the token, the password, the key's value", () => {

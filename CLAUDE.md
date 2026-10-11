@@ -538,6 +538,15 @@ code errors.
   the same, and is added to the scan in `e2e/secrets-wire.spec.ts`.
 - `BuiltRequest.secrets` and `.credentials` are what the redactor looks
   for. A new way to put a credential into a request adds its value there.
+- AWS Signature (`signV4`, `packages/core/src/auth/sigv4.ts`) is applied
+  last, in `WorkspaceStore.sign`: it signs the address, the headers and the
+  body's bytes as they will be sent. Nothing may change the request after
+  it. It signs `Host`, its own headers, `Content-Type` and `x-amz-*` only:
+  a browser adds headers the app does not write. A multipart form is
+  refused, since `fetch` writes its boundary (claim C-061). Its hashes are
+  WebCrypto's: with `@noble/hashes` the first bundle gained 11.5 kB, also
+  when the signer was a lazy file, since the core's index reaches that
+  package.
 - A change to `resolver.ts`, `redactor.ts` or `vault-crypto.ts` keeps the
   mutation score at 85% or more: `npm -w packages/core run mutation`.
 - The CSP lives in `security/csp.json`; run `npm run gen:csp`. No

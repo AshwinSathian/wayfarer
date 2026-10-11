@@ -85,6 +85,8 @@ class Checker {
       this.string(auth, "key", path);
       this.string(auth, "value", path);
       this.oneOf(auth, "in", path, ["header", "query"]);
+    } else if (type === "awsv4") {
+      for (const key of ["accessKey", "secretKey", "sessionToken", "region", "service"]) this.string(auth, key, path);
     }
   }
 

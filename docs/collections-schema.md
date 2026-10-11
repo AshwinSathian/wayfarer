@@ -20,7 +20,7 @@ Collections live in IndexedDB and travel as JSON files. A file is written the sa
 | `params`   | rows | The query parameters as the composer lists them. The URL is what is sent; the rows are read from it when a request is opened. |
 | `headers`  | rows | In order. A name may appear more than once. A row that is switched off is kept and not sent. |
 | `body`     | `{ "mode", optional "raw", optional "urlencoded", optional "multipart", optional "binary" }` | See "Body" below. |
-| `auth`     | `{ "type": "inherit" }` (what the nearest folder that does not inherit says, then the collection; a request made in a collection starts with it), `{ "type": "none" }`, `{ "type": "bearer", "token" }`, `{ "type": "basic", "username", "password" }` or `{ "type": "apikey", "key", "value", "in": "header" \| "query" }` | Plain text, also in a file. |
+| `auth`     | `{ "type": "inherit" }` (what the nearest folder that does not inherit says, then the collection; a request made in a collection starts with it), `{ "type": "none" }`, `{ "type": "bearer", "token" }`, `{ "type": "basic", "username", "password" }`, `{ "type": "apikey", "key", "value", "in": "header" \| "query" }` or `{ "type": "awsv4", "accessKey", "secretKey", "sessionToken", "region", "service" }` (AWS Signature, [`auth.md`](auth.md)) | Plain text, also in a file. |
 | `scripts`  | `{ "pre", "post" }` | Both are text; empty when there is none. |
 | `tests`    | list of `{ "id", "target", "operator", optional "key", optional "expected" }` | In the order they were added. |
 | `settings` | `{ optional "timeoutMs", optional "followRedirects", optional "route" }` | Empty today: the composer sets none of them yet. |

@@ -209,7 +209,8 @@ describe("an Insomnia export (P4.4)", () => {
             request("key", { type: "apikey", key: "X-Key", value: "v", addTo: "header" }),
             request("key in query", { type: "apikey", key: "key", value: "v", addTo: "queryParams" }),
             request("key in cookie", { type: "apikey", key: "key", value: "v", addTo: "cookie" }),
-            request("signed", { type: "iam", accessKeyId: "a" }),
+            request("signed", { type: "iam", accessKeyId: "a", secretAccessKey: "{{ _.secret }}", sessionToken: "t", region: "eu-west-1", service: "s3" }),
+            request("digest", { type: "digest", username: "u" }),
           ],
         },
         { name: "G", authentication: { type: "oauth2", grantType: "client_credentials" }, children: [] },
@@ -235,11 +236,12 @@ describe("an Insomnia export (P4.4)", () => {
       ["key", { type: "apikey", key: "X-Key", value: "v", in: "header" }],
       ["key in query", { type: "apikey", key: "key", value: "v", in: "query" }],
       ["key in cookie", { type: "none" }],
-      ["signed", { type: "none" }],
+      ["signed", { type: "awsv4", accessKey: "a", secretKey: "{{secret}}", sessionToken: "t", region: "eu-west-1", service: "s3" }],
+      ["digest", { type: "none" }],
     ]);
     expect(warnings).toEqual([
       { item: 'request "key in cookie"', message: "Its auth is of a type the app does not have (an API key in a cookie) and is left out: it is sent with no auth." },
-      { item: 'request "signed"', message: "Its auth is of a type the app does not have (iam) and is left out: it is sent with no auth." },
+      { item: 'request "digest"', message: "Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth." },
       { item: 'folder "G"', message: "Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth." },
     ]);
   });

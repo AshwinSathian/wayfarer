@@ -78,6 +78,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - Tested with files other people wrote, at pinned commits: the Petstore as Swagger 2.0 (20 operations), OpenAPI 3.0 (19) and OpenAPI 3.1 (6), and ten of the OpenAPI Specification's own examples. Each of the twelve with operations imports with exactly as many requests as a count of its paths and methods gives.
   - The README's limitation "No OpenAPI import yet" is gone. See [`docs/import.md`](docs/import.md).
 
+- **AWS Signature Version 4 (P4.8).** The Auth tab, and the Settings of a collection or a folder, have a new type, **AWS Signature**: an access key, a secret key, a region, a service, and a session token for temporary credentials. Before this a request to an AWS API, or to anything else that checks Signature Version 4, could not be signed here.
+  - **The request is signed as it is sent**, after variables are replaced, scripts have run and the body is made. The app adds `X-Amz-Date`, `Authorization`, `X-Amz-Security-Token` when there is a token, and for S3 the body's hash. It signs the address, `Host`, those headers, `Content-Type`, your `x-amz-` headers and the body's bytes, a file's included.
+  - **A multipart form cannot be signed**: the browser writes its boundary as it sends. The send is refused with a message that says so, and nothing is sent.
+  - The secret key and the session token are masked in history and in an exported collection like any credential. "Copy as cURL" and the request as code carry no signature: a copied one would be refused minutes later.
+  - A Postman file's `awsv4` auth and an Insomnia export's AWS IAM auth are imported as this type (both were left out with a warning before), and the Postman export writes it.
+  - Held to AWS's own test suite: twenty of its cases, at a pinned commit, give the suite's canonical request, string to sign and signature. In the built app, in three browsers, the signature that arrives at a local server is computed again by other code from the request that arrived.
+  - See [`docs/auth.md`](docs/auth.md), which is new and also says what the other auth types send.
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."

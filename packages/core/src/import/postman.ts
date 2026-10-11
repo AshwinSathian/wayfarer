@@ -82,6 +82,8 @@ function auth(value: unknown, item: string, warnings: Warning[], top: boolean): 
       return { type, username: read("username"), password: read("password") };
     case "apikey":
       return { type, key: read("key"), value: read("value"), in: read("in") === "query" ? "query" : "header" };
+    case "awsv4":
+      return { type, accessKey: read("accessKey"), secretKey: read("secretKey"), sessionToken: read("sessionToken"), region: read("region"), service: read("service") };
     default:
       warnings.push({ item, message: `Its auth is of a type the app does not have (${type || "no type"}) and is left out: it is sent with no auth.` });
       return { type: "none" };

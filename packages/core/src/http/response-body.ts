@@ -19,7 +19,9 @@ export class BinaryBody {
 }
 
 const JSON_TYPE = /json|\+json/i;
-const TEXT_TYPE = /^text\/|xml|javascript|ecmascript|x-www-form-urlencoded|graphql|yaml|csv/i;
+// XML is a subtype named xml or ending in +xml (RFC 7303), not any name with those letters in it:
+// a .docx is application/vnd.openxmlformats-officedocument…, and is a zip (F72).
+const TEXT_TYPE = /^(?:text\/.*|.*[/+]xml(?:-.*)?|.*(?:javascript|ecmascript|x-www-form-urlencoded|graphql|yaml|csv).*)$/i;
 
 /**
  * Turns raw response bytes into what the viewer shows: parsed JSON, text

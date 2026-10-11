@@ -233,6 +233,28 @@ for (const theme of ["dark", "light"] as const) {
     }
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    // The Postman export of a collection (P4.6 b).
+    await page.getByText("Sweep", { exact: true }).click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
+    await expect(page.getByRole("dialog", { name: "Export for Postman" }).getByRole("button", { name: "Export file" })).toBeVisible();
+    await scan("export for Postman");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    // The environments export, with the file for Postman chosen: it then asks which environment.
+    await button("New environment").click();
+    await page.locator("#new-env-name-input").fill("Swept env");
+    await button("Create environment").click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await button("Export environments").click();
+    const environments = page.getByRole("dialog", { name: "Export environments" });
+    await environments.getByRole("radio", { name: "Postman" }).click();
+    await expect(environments.getByRole("combobox", { name: "Environment" })).toContainText("Swept env");
+    await scan("export environments, file for Postman");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
     await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
     await page.locator("app-composer").getByRole("combobox", { name: "Type" }).click();
     await page.getByRole("option", { name: "Inherit from parent" }).click();

@@ -58,6 +58,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - A folder and a request can hold a description. It is kept from a file that had one and written back by an export; the app does not show it yet. Nothing stored changes shape.
   - See [`docs/import.md`](docs/import.md).
 
+- **Insomnia exports import (P4.4).** An export in format 4 (JSON or YAML, which older versions of Insomnia write) or format 5 (YAML, `type: collection.insomnia.rest/5.0`) takes the road of every import: a report first, then Import.
+  - Kept: folders in folders, requests with their method, address, query, headers and body (text, a form, a multipart form, a file, GraphQL as its JSON), descriptions, and Basic, Bearer and API key auth. A request with no auth of its own inherits its folder's, as Insomnia sends it.
+  - `{{ _.name }}` and Insomnia's other ways to write a variable become `{{name}}`. The base environment becomes the collection's variables, each environment under it an environment, a folder's environment the folder's variables.
+  - Not kept, and said in the report: Insomnia's scripts (they call its own `insomnia` object, which the app's engine does not have), template tags (`{% response … %}`) and filters, a folder's headers, auth types the app does not have, and gRPC, WebSocket and Socket.IO requests.
+  - Tested with 64 files from Insomnia's own repository: the 58 that are exports import, each with the folders, requests and environments a count of the file gives.
+  - **A YAML file is read**, with three limits a JSON file does not have: it may be 1 MB (a YAML reader needs far more memory per byte; a file written to be dense took a gigabyte per megabyte when measured), a file that repeats itself through aliases 100 times or more is refused (a "billion laughs"), and a tag makes nothing but text, numbers, lists and maps. The Import buttons now offer `.yaml` and `.yml` files.
+  - The message for a file that is not JSON now says "neither JSON nor YAML that can be read", and the message that names the formats names Insomnia's.
+  - The YAML reader (`yaml` 2.9.1, ISC) is in the import worker, which is fetched when a file is picked or a cURL command pasted: the worker is 144,444 B (46,734 B gzip), from 36,094 B. The page's first load is 45 B larger.
+  - See [`docs/import.md`](docs/import.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."
@@ -67,6 +77,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The plan for import, export and sign-in (Phase 4) is split into three sessions.** Nothing in the app changes. The first session lets a collection and a folder hold auth, variables and scripts that their requests inherit, builds the one road by which a file is imported (a report first, nothing stored until you agree), writes the cURL command with every kind of body, generates code, and reads a pasted cURL command and a HAR file. The second brings Postman, Insomnia and OpenAPI files in, and Postman files out. The third adds AWS signatures, OAuth 2.0 and a fuller HAR export. One finding on the way: once the app has a second page (the OAuth sign-in's return page), the offline copy of the app would be replaced by it ([#235](https://github.com/AshwinSathian/wayfarer/issues/235)); nothing is wrong today, and it is fixed before that page is added.
 
 ### Fixed
+
+- **The environments list can be used with a screen reader and on a phone ([#251](https://github.com/AshwinSathian/wayfarer/issues/251)).**
+  - **Fixed: a row of the list was a button that held three more buttons** (Use for requests, Duplicate, Delete). That is not valid HTML, and a screen reader is not reliably told of buttons inside a button. A row now holds one button that selects the environment and the three beside it; a click anywhere on the row still selects it, and it looks the same.
+  - **Fixed: an environment with a long name pushed the view past the window on a phone.** Below 1024 px the list was as wide as its longest name, so at 390 px its buttons, Import, Export and Save were off screen with no way to scroll to them. The name is now cut with an ellipsis.
 
 - **The editor threw an error into the console some seconds after it appeared (F71, [#242](https://github.com/AshwinSathian/wayfarer/issues/242)).** `[createInstance] … depends on UNKNOWN service ICodeLensCache`, and after it the same for `IInlayHintsCache`. Monaco's JSON and TypeScript services bring every editor feature with them when they start, which is after the first editor exists, and a feature that arrives then cannot find the service it registers for itself. The editor worked; the error was in the console in every browser, and in Safari on every load. Every feature is now registered before the first editor. Nothing more is downloaded: the features were in the editor's files already.
 - **A Word, Excel or PowerPoint file in a response was shown as text (F72, [#244](https://github.com/AshwinSathian/wayfarer/issues/244)).** A response whose type had "xml" anywhere in its name was decoded as text, and `application/vnd.openxmlformats-officedocument…` (a .docx, .xlsx or .pptx, which is a zip) has it in "openxmlformats". Such a response now gets the hex view and the download of its exact bytes, like any other binary. XML itself (`text/xml`, `application/xml`, anything ending in `+xml`) is text as before.

@@ -90,6 +90,23 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     });
   }
 
+  // F80: the environments view was one grid column as wide as its widest text, so a long
+  // name made the list 621 px wide in a 390 px window and its buttons could not be reached.
+  test("a long environment name is cut short, and its row's buttons stay inside a 390 px window", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "New environment" }).click();
+    await page.locator("#new-env-name-input").fill("A much longer environment name that has to be cut somewhere");
+    await page.getByRole("button", { name: "Create environment" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    await page.setViewportSize({ width: 390, height: 900 });
+    for (const name of ["Delete A much longer environment name that has to be cut somewhere", "Import environments", "Save changes"]) {
+      // Polled: the page is laid out again a frame or two after the window changes.
+      await expect.poll(async () => page.getByRole("button", { name, exact: true }).evaluate((button) => button.getBoundingClientRect().right), { message: name }).toBeLessThanOrEqual(390);
+    }
+  });
+
   // The 352 px sidebar was pinned from 768 px up. At 820 px that left the
   // composer and the response 150 px each: a header's name field was 20 px
   // wide and the response wrapped at every character. At 1024 px it left the

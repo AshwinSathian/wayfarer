@@ -85,10 +85,18 @@ function loadMonacoStyles(): Promise<void> {
 export function loadMonaco(): Promise<MonacoEditorModule> {
   if (!monacoLoader) {
     monacoLoader = (async () => {
-      // Only what the editors use: the core, the JSON service (JSON
-      // editor), the TypeScript service plus JavaScript grammar (script
-      // editor), the XML and HTML grammars (raw bodies and responses; no service,
-      // no worker), and find (Ctrl or Cmd+F in an editor: the response viewer's search).
+      // The core, the JSON service (JSON editor), the TypeScript service plus
+      // JavaScript grammar (script editor), the XML and HTML grammars (raw
+      // bodies and responses; no service, no worker), and every editor feature.
+      //
+      // Every feature, because Monaco brings them all anyway: a language
+      // service's worker manager imports each contribution, when a model of
+      // that language first needs it. That is after the first editor exists,
+      // and a service registered then is never added, so a contribution that
+      // asks for its own service threw "depends on UNKNOWN service" on a timer
+      // (F71: code lens first, inlay hints after it). Registered here, before
+      // the first editor, each finds its service. Find (Ctrl or Cmd+F, the
+      // response viewer's search) is one of them.
       const [monaco, json] = await Promise.all([
         import("monaco-editor/editor"),
         import("monaco-editor/languages/features/json/register"),
@@ -96,7 +104,7 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
         import("monaco-editor/languages/definitions/javascript/register"),
         import("monaco-editor/languages/definitions/xml/register"),
         import("monaco-editor/languages/definitions/html/register"),
-        import("monaco-editor/features/find/register"),
+        import("monaco-editor/features/register.all"),
         loadMonacoStyles(),
       ]);
       jsonDefaults = json.jsonDefaults;

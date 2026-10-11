@@ -58,7 +58,7 @@ describe("Redactor", () => {
     expect(component).not.toBe(form);
     expect(redactor.text(`https://h/?k=${component}`)).toBe(`https://h/?k=${MASK}`);
     expect(redactor.text(`k=${form}&x=1`)).toBe(`k=${MASK}&x=1`);
-    expect(redactor.text(component.toLowerCase().replace("p%40ss", "p%40ss"))).not.toContain("word");
+    expect(redactor.text(component.toLowerCase())).not.toContain("word");
     expect(redactor.text(component.replace(/%[0-9A-F]{2}/g, (hex) => hex.toLowerCase()))).toBe(MASK);
   });
 

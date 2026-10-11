@@ -29,6 +29,13 @@
     </mat-form-field>
     @if (!groups().length) {
     <p class="type-footnote text-label-tertiary px-2">No request in history matches.</p>
+    } @else {
+    <div class="history-export flex flex-wrap items-center gap-2 px-2">
+      <button matButton type="button" class="btn-sm" (click)="chooseShown()">{{ allShownChosen() ? "Select none" : "Select all" }}</button>
+      <button matButton="outlined" type="button" class="btn-secondary btn-sm" [disabled]="!chosen().length" (click)="exportChosen()">
+        <app-icon name="download" /> Export {{ chosen().length || "" }} as HAR…
+      </button>
+    </div>
     }
     @for (group of groups(); track group.label) {
     <div>
@@ -43,6 +50,7 @@
 
           <!-- Desktop row -->
           <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
+            <mat-checkbox class="shrink-0" [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'" [checked]="isChosen(request)" (change)="choose(request, $event.checked)" />
             <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0">
               {{ request.sent.method }}
             </span>
@@ -101,13 +109,15 @@
           </div>
 
           <!-- Mobile accordion -->
-          <div class="md:hidden">
-            <mat-accordion class="sections" displayMode="flat" hideToggle>
+          <div class="md:hidden flex items-start">
+            <mat-checkbox class="shrink-0 mt-1" [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'" [checked]="isChosen(request)" (change)="choose(request, $event.checked)" />
+            <mat-accordion class="sections min-w-0 flex-1" displayMode="flat" hideToggle>
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
-                  <div class="flex items-center gap-2">
-                    <span class="method-badge method-{{ request.sent.method.toLowerCase() }}">{{ request.sent.method }}</span>
-                    <span class="type-mono-body text-label-secondary truncate line-clamp-1">{{ request.sent.url }}</span>
+                  <!-- min-w-0: a flex child is as wide as its text unless told it may be narrower, and a URL is one long word. -->
+                  <div class="flex min-w-0 flex-1 items-center gap-2">
+                    <span class="method-badge shrink-0 method-{{ request.sent.method.toLowerCase() }}">{{ request.sent.method }}</span>
+                    <span class="type-mono-body text-label-secondary min-w-0 truncate">{{ request.sent.url }}</span>
                   </div>
                   <app-icon class="section-chevron" name="keyboard_arrow_down" />
                 </mat-expansion-panel-header>
@@ -146,3 +156,5 @@
   </div>
   }
 </section>
+
+<app-har-export-dialog [source]="harSource()" (closed)="harSource.set(null)" />

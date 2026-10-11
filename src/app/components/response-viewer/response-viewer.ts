@@ -11,8 +11,10 @@ import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
-import { exportRedactor, redactedRequest, toHar } from "../../shared/inspect/export";
-import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type RedactOptions, type ResponseView } from "@wayfarer/core";
+import { exportRedactor } from "../../shared/inspect/export";
+import { harText, type HarSource } from "../../shared/inspect/har-export";
+import { HarExportDialog } from "../har-export/har-export-dialog";
+import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type HarExchange, type RedactOptions, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
 import type { SendTimings } from "../../services/request-executor";
@@ -53,6 +55,7 @@ interface ResponseHeader {
 @Component({
   selector: "app-response-viewer",
   imports: [MatFormField, MatInput, 
+    HarExportDialog,
     JsonPipe,
     Icon,
     FormsModule,
@@ -136,7 +139,17 @@ export class ResponseViewer {
       icon: "content_copy",
       command: () => void this.copyAsHar({ credentials: true }),
     },
+    { separator: true },
+    // The file, shown before it is copied or saved (P4.6 c).
+    {
+      label: "Export as HAR…",
+      icon: "download",
+      command: () => this.harSource.set({ name: "wayfarer-response", credentials: true, exchanges: (options) => this.harExchanges(options) }),
+    },
   ];
+
+  /** What the HAR dialog exports. Null while it is closed. */
+  protected readonly harSource = signal<HarSource | null>(null);
 
   readonly activeTab = model<ResponseTab>("body");
 
@@ -316,29 +329,37 @@ export class ResponseViewer {
   }
 
   async copyAsHar(options: RedactOptions = {}): Promise<void> {
+    const exchanges = this.harExchanges(options);
+    if (exchanges.length) await writeToClipboard(await harText(exchanges));
+  }
+
+  /**
+   * The exchange on screen for a HAR, masked: the request as it was sent,
+   * with its body in every mode, and the response when it is text. The
+   * response is masked as well: a server may send a credential back.
+   */
+  private harExchanges(options: RedactOptions): HarExchange[] {
     const context = this.exportContext();
     const entry = this.buildExportEntry();
-    if (!entry || !context) {
-      return;
-    }
-    // The response is masked as well: a server may send a credential back.
+    if (!entry || !context) return [];
     const redactor = exportRedactor(context, options);
     const body = entry.res.body;
-    await writeToClipboard(
-      JSON.stringify(
-        toHar({
-          ...entry,
-          req: { ...entry.req, ...redactedRequest(context, options) },
-          res: {
-            ...entry.res,
-            headers: Object.fromEntries(redactor.headers(Object.entries(entry.res.headers), options)),
-            body: typeof body === "string" ? redactor.text(body) : body,
-          },
-        }),
-        null,
-        2
-      )
-    );
+    const { dns, tcp, tls, request, ttfb, content } = entry.phases ?? {};
+    return [
+      {
+        startedAt: entry.startedDateTime,
+        timeMs: entry.time,
+        request: redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options),
+        response: {
+          status: entry.res.status,
+          statusText: entry.res.statusText,
+          headers: redactor.headers(Object.entries(entry.res.headers), options),
+          ...(typeof body === "string" && !this.responseBinary() && { text: redactor.text(body) }),
+          size: entry.res.sizes?.encodedBodySize,
+        },
+        timings: { dns, connect: tcp, ssl: tls, send: request, wait: ttfb, receive: content },
+      },
+    ];
   }
 
   private prepareFormatting(): void {

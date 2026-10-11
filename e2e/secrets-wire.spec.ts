@@ -76,6 +76,33 @@ async function postmanText(page: Page, credentials: boolean): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+/** The HAR file the export dialog saves (P4.6 c): of the response on screen, or of every entry of history. */
+async function harText(page: Page, from: "response" | "history", credentials = false): Promise<string> {
+  if (from === "response") {
+    await page.getByRole("button", { name: "Export response" }).click();
+    await page.getByRole("menuitem", { name: "Export as HAR…", exact: true }).click();
+  } else {
+    await page.getByRole("button", { name: "Request history", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Request history" });
+    await drawer.getByRole("button", { name: "Select all", exact: true }).click();
+    await drawer.getByRole("button", { name: /Export .*as HAR…/ }).click();
+  }
+  const dialog = page.getByRole("dialog", { name: "Export as HAR" });
+  if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
+  await expect(dialog.locator(".har-export-preview")).toContainText('"version": "1.2"');
+  const shown = (await dialog.locator(".har-export-preview").textContent()) ?? "";
+  const [download] = await Promise.all([page.waitForEvent("download"), dialog.getByRole("button", { name: "Save file" }).click()]);
+  const chunks: Buffer[] = [];
+  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
+  await expect(dialog).toHaveCount(0);
+  if (from === "history") {
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Request history" })).toBeHidden();
+  }
+  // What the dialog showed is searched too.
+  return `${Buffer.concat(chunks).toString("utf8")}\n${shown}`;
+}
+
 test("the scanner finds a secret in each encoding it claims to look for", () => {
   expect(found(`x ${SECRET} y`, SECRET)).toEqual(["plain"]);
   expect(found(`k=${encodeURIComponent(SECRET)}`, SECRET)).toEqual(["percent"]);
@@ -145,6 +172,8 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   const copied = await clipboard();
   const files = [await downloadText(page, "Export"), await downloadText(page, "Export with credentials")];
   const postman = [await postmanText(page, false), await postmanText(page, true)];
+  // P4.6 (c): the HAR dialog's file and what it showed, for the response (with credentials too) and for history.
+  const har = [await harText(page, "response"), await harText(page, "response", true), await harText(page, "history")];
 
   // What the script wrote, as the page shows it: its console, its test row and its own error.
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
@@ -172,6 +201,9 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "collection export with credentials": files[1],
     "Postman collection export": postman[0],
     "Postman collection export with credentials": postman[1],
+    "HAR file of the response": har[0],
+    "HAR file of the response with credentials": har[1],
+    "HAR file of history": har[2],
     "what the script wrote on the page": scriptOutput,
   };
   // All eight stores were read, and the exports are the real thing.
@@ -184,6 +216,9 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(files[0]).toContain('"$id": "wayfarer/collection/3"');
   expect(postman[0]).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
   expect(postman[1]).toContain('"key": "username"');
+  for (const file of har) expect(file).toContain('"version": "1.2"');
+  // "With credentials" is the real thing: Basic's own header, with the secret in it masked.
+  expect(har[1]).toContain('"name": "X-Api-Key"');
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
     Object.fromEntries(Object.keys(searched).map((place) => [place, []]))
   );

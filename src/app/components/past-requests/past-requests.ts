@@ -5,6 +5,9 @@ import { MatInput } from "@angular/material/input";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
+import { HarExportDialog } from "../har-export/har-export-dialog";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HoverCard } from "../../ui/hover-card";
 import { PastRequest, PastRequestKey } from "../../models/history";
@@ -36,6 +39,8 @@ export interface HistoryGroup {
     MatTooltip,
     HoverCard,
     MatAccordion, MatExpansionPanel, MatExpansionPanelHeader,
+    MatCheckbox,
+    HarExportDialog,
   ],
   templateUrl: "./past-requests.html",
   styleUrl: "./past-requests.css",
@@ -55,7 +60,46 @@ export class PastRequests {
   /** What the search field holds. Each word must be in the URL, or be the method or the status. */
   readonly query = signal("");
 
-  readonly groups = computed(() => this.buildGroups(this.pastRequests().filter((request) => matches(request, this.query()))));
+  /** The entries the search leaves, newest first as they are given. */
+  private readonly shown = computed(() => this.pastRequests().filter((request) => matches(request, this.query())));
+  readonly groups = computed(() => this.buildGroups(this.shown()));
+
+  /** The entries ticked for an export (P4.6 c), by id. One that was deleted since is not among `chosen`. */
+  private readonly ticked = signal<ReadonlySet<PastRequestKey>>(new Set());
+  protected readonly chosen = computed(() => this.pastRequests().filter((request) => request.id !== undefined && this.ticked().has(request.id)));
+  protected readonly allShownChosen = computed(() => this.shown().length > 0 && this.shown().every((request) => request.id !== undefined && this.ticked().has(request.id)));
+  /** What the HAR dialog exports. Null while it is closed. */
+  protected readonly harSource = signal<HarSource | null>(null);
+
+  protected isChosen(request: PastRequest): boolean {
+    return request.id !== undefined && this.ticked().has(request.id);
+  }
+
+  protected choose(request: PastRequest, on: boolean): void {
+    if (request.id === undefined) return;
+    const next = new Set(this.ticked());
+    if (on) next.add(request.id);
+    else next.delete(request.id);
+    this.ticked.set(next);
+  }
+
+  /** Ticks every entry the search shows, or unticks them when all are ticked. */
+  protected chooseShown(): void {
+    const next = new Set(this.ticked());
+    const on = !this.allShownChosen();
+    for (const request of this.shown()) {
+      if (request.id === undefined) continue;
+      if (on) next.add(request.id);
+      else next.delete(request.id);
+    }
+    this.ticked.set(next);
+  }
+
+  /** The ticked entries as a HAR, oldest first: the order a reader of a log expects. */
+  protected exportChosen(): void {
+    const exchanges = [...this.chosen()].sort((a, b) => a.createdAt - b.createdAt).map(historyExchange);
+    this.harSource.set({ name: "wayfarer-history", credentials: false, exchanges: () => exchanges });
+  }
 
   private buildGroups(requests: PastRequest[]): HistoryGroup[] {
     const now = Date.now();

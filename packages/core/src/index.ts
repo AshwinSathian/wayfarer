@@ -32,6 +32,8 @@ export { exportedValue, serializeEnvironmentExport, validateEnvironmentExport, t
 export { buildCurl } from "./export/curl";
 export { exportBody, redactExport, type ExportBody, type ExportRequest, type ExportSource } from "./export/request";
 // The code generators are `@wayfarer/core/codegen`, loaded when code is first asked for.
+// The HAR builder is `@wayfarer/core/har`, loaded when a HAR is first asked for.
+export type { HarExchange } from "./export/har";
 export type { CodeTarget } from "./export/codegen";
 // The Postman exporter is `@wayfarer/core/postman`, loaded when a Postman file is first asked for.
 export type { ExportNote } from "./export/postman";

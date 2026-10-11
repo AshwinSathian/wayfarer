@@ -67,7 +67,7 @@ back gets reworded until one can, or removed.
 | C-032 | On mobile the composer shows one section at a time, with labels. | README.md | e2e/layout.spec.ts |
 | C-033 | Settings covers theme, environment export and import, Reset all data, Local Bridge and a shortcuts reference. | README.md | e2e/settings.spec.ts, e2e/features.spec.ts |
 | C-034 | Animations respect `prefers-reduced-motion`. | README.md | e2e/features.spec.ts |
-| C-035 | Responses export as HAR 1.2 (or cURL) from the Export menu; bodies over 256 KB or not JSON are left out with a comment. | README.md | e2e/features.spec.ts, src/app/shared/inspect/export.spec.ts |
+| C-035 | An exchange exports as a HAR 1.2 file with every field the format requires, from the response's Export menu or for several history entries at once, and the file is shown before it is written. A body of text is kept whatever its type; one that is not text, or is longer than 256 KB, is left out with a comment. The file imports again as the same requests. | README.md, docs/export.md | e2e/features.spec.ts, e2e/export-har.spec.ts, packages/core/src/export/har.spec.ts |
 | C-036 | The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. | README.md | e2e/features.spec.ts |
 | C-037 | Dark and light themes both ship, switchable in Settings. | README.md | e2e/settings.spec.ts |
 | C-038 | The primary views have no critical or serious axe accessibility violations. | README.md | e2e/accessibility.spec.ts |

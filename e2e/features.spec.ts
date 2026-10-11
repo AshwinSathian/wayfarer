@@ -172,19 +172,31 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   expect(await seconds(".mat-mdc-dialog-surface", "animationDuration")).toBeLessThan(0.01);
 });
 
-test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange", async ({ page }) => {
+test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange, with a body of text whatever its type", async ({ page }) => {
   const clipboard = await recordClipboard(page);
   await page.goto("/");
-  await page.locator("input.address-url").fill(`${ECHO}/content/json?c035=1`);
-  await send(page);
-  await expect(page.locator(".status-badge")).toHaveText("200");
-  await page.getByRole("button", { name: "Export response" }).click();
-  await page.getByRole("menuitem", { name: "Copy as HAR", exact: true }).click();
-  await expect.poll(clipboard).toHaveLength(1);
-  const har = JSON.parse((await clipboard())[0]) as { log: { version: string; entries: { request: { url: string }; response: { status: number } }[] } };
-  expect(har.log.version).toBe("1.2");
-  expect(har.log.entries[0].request.url).toBe(`${ECHO}/content/json?c035=1`);
-  expect(har.log.entries[0].response.status).toBe(200);
+  interface Har {
+    log: { version: string; entries: { request: { url: string; cookies: unknown[] }; response: { status: number; redirectURL: string; content: { mimeType: string; text?: string } } }[] };
+  }
+  // P4.6 (c): JSON, and three bodies that are text and not JSON, which were left out with a comment before.
+  for (const [index, type] of ["json", "xml", "csv", "text"].entries()) {
+    await page.locator("input.address-url").fill(`${ECHO}/content/${type}?c035=${index}`);
+    const answered = page.waitForResponse((response) => response.url() === `${ECHO}/content/${type}?c035=${index}`);
+    await send(page);
+    const body = await (await answered).text();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await page.getByRole("button", { name: "Export response" }).click();
+    await page.getByRole("menuitem", { name: "Copy as HAR", exact: true }).click();
+    await expect.poll(clipboard).toHaveLength(index + 1);
+    const har = JSON.parse((await clipboard())[index]) as Har;
+    expect(har.log.version).toBe("1.2");
+    expect(har.log.entries).toHaveLength(1);
+    expect(har.log.entries[0].request.url).toBe(`${ECHO}/content/${type}?c035=${index}`);
+    expect(har.log.entries[0].request.cookies).toEqual([]);
+    expect(har.log.entries[0].response.status).toBe(200);
+    expect(har.log.entries[0].response.redirectURL).toBe("");
+    expect(har.log.entries[0].response.content.text, type).toBe(body);
+  }
 });
 
 test("@claim:C-036 the app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons", async ({ page, request }) => {
@@ -384,9 +396,10 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // not open the card. Safari tabs to non-inputs with Option+Tab.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
   const entry = page.getByRole("button", { name: /^Load request .*details=1 into composer$/ });
-  // The drawer takes focus when it opens; walk on from there.
+  // The drawer takes focus when it opens; walk on from there. Since P4.6 (c) two more stops come
+  // before the entry: "Select all" and the entry's own box.
   const tabToEntry = async () => {
-    for (let i = 0; i < 4 && !(await entry.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+    for (let i = 0; i < 6 && !(await entry.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
     await expect(entry).toBeFocused();
   };
   await tabToEntry();

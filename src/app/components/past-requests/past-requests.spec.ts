@@ -85,4 +85,61 @@ describe('PastRequests', () => {
     expect(shown()).toEqual([]);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('No request in history matches.');
   });
+  describe('choosing entries for a HAR (P4.6 c)', () => {
+    const entries: PastRequest[] = [
+      { id: 3, ...historyEntry({ url: 'https://api.test/c', createdAt: 3000, status: 200 }) },
+      { id: 2, ...historyEntry({ url: 'https://api.test/b', createdAt: 2000, status: 500 }) },
+      { id: 1, ...historyEntry({ url: 'https://other.test/a', createdAt: 1000, status: 200 }) },
+    ];
+    const boxes = () => [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>('.md\\:flex input[type="checkbox"]')];
+    const button = (text: RegExp) => [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((candidate) => text.test(candidate.textContent ?? '')) as HTMLButtonElement;
+    const source = () => (component as unknown as { harSource: () => { name: string; credentials: boolean; exchanges: (options: object) => { request: { url: string } }[] } | null }).harSource();
+
+    beforeEach(() => {
+      fixture.componentRef.setInput('pastRequests', entries);
+      fixture.detectChanges();
+    });
+
+    it('nothing is chosen at first, and the export waits for a choice', () => {
+      expect(boxes().map((box) => box.checked)).toEqual([false, false, false]);
+      expect(button(/as HAR/).disabled).toBe(true);
+    });
+
+    it('ticked entries are exported oldest first, masked as history holds them, under a name of their own', () => {
+      boxes()[0].click();
+      boxes()[2].click();
+      fixture.detectChanges();
+      expect(button(/as HAR/).textContent).toContain('Export 2 as HAR…');
+      button(/as HAR/).click();
+      expect(source()?.name).toBe('wayfarer-history');
+      expect(source()?.credentials).toBe(false);
+      expect(source()?.exchanges({}).map((exchange) => exchange.request.url)).toEqual(['https://other.test/a', 'https://api.test/c']);
+    });
+
+    it('"Select all" takes what the search shows, and "Select none" lets go of the same', () => {
+      component.query.set('api.test');
+      fixture.detectChanges();
+      button(/Select all/).click();
+      fixture.detectChanges();
+      expect(boxes().map((box) => box.checked)).toEqual([true, true]);
+      expect(button(/as HAR/).textContent).toContain('Export 2 as HAR…');
+      // The entry the search hid was not taken.
+      component.query.set('');
+      fixture.detectChanges();
+      expect(boxes().map((box) => box.checked)).toEqual([true, true, false]);
+      boxes()[2].click();
+      fixture.detectChanges();
+      button(/Select none/).click();
+      fixture.detectChanges();
+      expect(boxes().map((box) => box.checked)).toEqual([false, false, false]);
+    });
+
+    it('an entry deleted since it was ticked is not exported', () => {
+      boxes()[0].click();
+      boxes()[1].click();
+      fixture.componentRef.setInput('pastRequests', entries.slice(1));
+      fixture.detectChanges();
+      expect(button(/as HAR/).textContent).toContain('Export 1 as HAR…');
+    });
+  });
 });

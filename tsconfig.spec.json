@@ -21,6 +21,9 @@
       "@wayfarer/core/postman": [
         "./packages/core/src/export/postman.ts"
       ],
+      "@wayfarer/core/har": [
+        "./packages/core/src/export/har.ts"
+      ],
       "@wayfarer/core/pm-compat/*": [
         "./packages/core/test/pm-compat/*"
       ],

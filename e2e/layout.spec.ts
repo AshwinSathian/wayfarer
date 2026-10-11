@@ -107,6 +107,21 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     }
   });
 
+  // F82: on a phone a history row is a panel's header, and its URL was not cut short there:
+  // a long one pushed the header's chevron to x = 1355 in a 390 px window, out of sight.
+  test("a long URL in a phone's history row is cut short, and the row's chevron stays inside a 390 px window", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.goto("/");
+    await page.locator("input.address-url").fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await page.getByRole("button", { name: "Request history", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Request history" });
+    const chevron = drawer.locator("app-past-requests .section-chevron").last();
+    await expect(chevron).toBeVisible();
+    await expect.poll(async () => chevron.evaluate((icon) => icon.getBoundingClientRect().right)).toBeLessThanOrEqual(390);
+  });
+
   // The 352 px sidebar was pinned from 768 px up. At 820 px that left the
   // composer and the response 150 px each: a header's name field was 20 px
   // wide and the response wrapped at every character. At 1024 px it left the

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { openSettings } from "./support/app";
 
 // P0.7 (F37, #94): Reset All Data used to report success while another tab
 // kept the database open, and the data survived.
@@ -11,7 +12,7 @@ async function createCollection(page: Page, name: string): Promise<void> {
 }
 
 async function resetAllData(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Danger zone");
   await page.getByRole("button", { name: "Reset all data" }).click();
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
 }

@@ -1,5 +1,6 @@
 <div class="flex flex-col gap-2">
-  @for (item of items(); track item; let index = $index) {
+  <!-- By place, not by object: a list that is replaced (a request is opened) would otherwise destroy and rebuild every row (NG0956). -->
+  @for (item of items(); track $index; let index = $index) {
   <!-- Wraps by its own room, not by the window's width: beside the pinned sidebar the composer is 391 px. -->
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     @if (switches()) {

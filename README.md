@@ -21,7 +21,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 - Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
 - Shareable results. Export a request and its response, or several entries of history at once, as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
 - No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
-- Dark‑first UI, with a fully designed light theme. Minimal, accessible, and keyboard‑friendly. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-030 -->
+- A dark and a light theme, each fully designed: the app follows your system until you choose one in Settings. Minimal, accessible, and keyboard‑friendly. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-030 -->
 
 ---
 
@@ -94,7 +94,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Resizable split between the composer and response viewer on desktop, with the chosen ratio remembered across reloads <!-- claim:C-031 -->
   - A rebuilt mobile composer: one section open at a time, instead of every tab stacked and unlabeled <!-- claim:C-032 -->
-  - A dedicated **Settings** view for theme, environments export/import, Reset All Data, Local Bridge configuration, and a keyboard-shortcuts reference <!-- claim:C-033 -->
+  - **Settings**, a list of sections beside the section you chose (on a phone: the list, then the section): theme, request and history settings, backup and environments export/import, the vault, Local Bridge configuration, a keyboard-shortcuts reference, and Reset All Data in a danger zone of its own <!-- claim:C-033 -->
   - Deliberate, reduced-motion-aware animation on tab switches, response arrival, and dialogs <!-- claim:C-034 -->
 
 - **Exports**
@@ -177,7 +177,7 @@ It's widely accepted by browsers, proxies, and observability tools, and is great
 Current focus is JSON APIs. Form/file helpers may land later.
 
 **Will there be a light theme?**  
-Yes, dark and light themes both ship today, each intentionally designed. <!-- claim:C-037 -->
+Yes, dark and light themes both ship today, each intentionally designed. The app follows your system until you choose one in Settings. <!-- claim:C-037 -->
 
 **Are my secrets/API keys safe?**  
 Values in the secrets vault are encrypted at rest with AES‑GCM‑256 under a data key, which is stored only wrapped by a PBKDF2‑derived passphrase key; unwrapped, it only exists in memory. <!-- claim:C-004 --> <!-- claim:C-005 --> Keys typed directly into headers or the Auth tab are not: they are stored in plain text in your collections. History masks them, <!-- claim:C-008 --> and a collection export masks them unless you ask for that export to carry them. <!-- claim:C-014 --> See [`docs/secrets.md`](docs/secrets.md) for the full model.

@@ -14,6 +14,7 @@
       ],
       "project": [
         "src/**/*.ts",
+        "src/design-system/**/*.css",
         "e2e/**/*.{ts,mjs}",
         "scripts/**/*.mjs",
         "local-bridge/**/*.js"

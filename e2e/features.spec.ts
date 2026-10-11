@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { seedAndOpen, send } from "./support/app";
+import { openSettings, seedAndOpen, send } from "./support/app";
 
 // Claim tests for the README's feature list (docs/claims.md, C-017 onward),
 // against the local echo-server in all three engines.
@@ -303,7 +303,7 @@ test("folders and requests are reordered by drag and drop among their own kind, 
 
 test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({ page, browser }) => {
   await seedAndOpen(page, { c033: "value-c033" }, { method: "GET", url: `${ECHO}/echo` });
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(page, "Data and storage");
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("dialog").getByRole("button", { name: "Export environments" }).click(),
@@ -313,7 +313,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   const fresh = await browser.newContext({ serviceWorkers: "block" });
   const other = await fresh.newPage();
   await other.goto("/");
-  await other.getByRole("button", { name: "Settings", exact: true }).click();
+  await openSettings(other, "Data and storage");
   await other.getByLabel("Import environments from file").setInputFiles(file);
   // Since P4.1 every import shows what it will add first, also this one.
   const report = other.getByRole("dialog", { name: "Import environments" });
@@ -425,6 +425,8 @@ test("a history entry shows its details on keyboard focus and hides them on blur
 // After a switch to the light theme "No environment" stayed white on the
 // light toolbar for that long.
 test("switching the theme recolours the environment select at once", async ({ page }) => {
+  // From the dark theme, chosen: with no choice the app follows the system, which differs from one engine's test browser to the next.
+  await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "dark"));
   await page.goto("/");
   const select = page.getByRole("banner").getByRole("combobox", { name: "Environment", exact: true });
   await expect(select).toHaveText("No environment");

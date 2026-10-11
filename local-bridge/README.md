@@ -26,8 +26,8 @@ npm run bridge
 ```
 
 This prints a **port** (default `7717`) and a **bridge token**. Open
-Wayfarer, go to the Local Bridge settings (toolbar → bridge icon), enable
-it, and enter both. While it is enabled, **every** request goes through the
+Wayfarer, go to Settings → Local Bridge (the toolbar's bridge icon opens it
+there), switch it on, enter both, and Save. While it is enabled, **every** request goes through the
 bridge; there is no per-request choice and no automatic fallback from a
 failed direct request ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 Turn it off in the same settings to go back to direct requests.

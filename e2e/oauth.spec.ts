@@ -285,13 +285,16 @@ test("through the Local Bridge the same token endpoint answers, and the token re
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }) });
-    // Switched on as a user does: in the bridge's own dialog.
+    // Switched on as a user does: the toolbar's bridge button opens Settings at the bridge's pane.
     await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
-    const settings = page.getByRole("dialog", { name: "Local Bridge" });
+    const settings = page.getByRole("dialog", { name: "Settings", exact: true });
+    await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
     await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
     await settings.locator("#bridge-url-input").fill(`http://127.0.0.1:${port}`);
     await settings.locator("#bridge-token-input").fill(token);
     await settings.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(settings.locator(".bridge-saved")).toBeVisible();
+    await page.keyboard.press("Escape");
     await expect(settings).toHaveCount(0);
     await openAuth(page);
     await page.getByRole("button", { name: "Get token", exact: true }).click();

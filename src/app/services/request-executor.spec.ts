@@ -608,7 +608,8 @@ describe("RequestExecutor", () => {
       { name: 'folder "Inner"', scripts: { pre: "", post: "innerPost()" } },
     ];
     /** Each script that ran, with the environment it was given. */
-    const ran = () => scriptSandbox.execute.mock.calls.map(([script, env]) => [script, env] as [string, Record<string, string>]);
+    // The sandbox is given the environment as a script is: name, value, and the mark of a value that is JSON (F76).
+    const ran = () => scriptSandbox.execute.mock.calls.map(([script, env]) => [script, Object.fromEntries(env as [string, string][])] as [string, Record<string, string>]);
     /** Every script sets `last` to its own text, logs it, and has one test; `fail` names a script that ends in an error. */
     const scripted = (fail?: string) =>
       scriptSandbox.execute.mockImplementation(

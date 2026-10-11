@@ -29,14 +29,14 @@ export interface RunResult {
 export async function runCollection(
   quickjs: QuickJSWASMModule,
   source: CollectionExport,
-  options: { environment: Row[]; files?: Record<string, Uint8Array> }
+  options: { environment: Row[]; globals?: Row[]; files?: Record<string, Uint8Array> }
 ): Promise<RunResult[]> {
   const byOrder = <T extends { order: number; id: string }>(list: T[]) => [...list].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
   const inOrder = (parent: string | undefined): RequestDoc[] => [
     ...byOrder(source.folders.filter((folder) => folder.parentFolderId === parent)).flatMap((folder) => inOrder(folder.id)),
     ...byOrder(source.requests.filter((doc) => doc.folderId === parent)),
   ];
-  const scopes = { environment: options.environment, collection: source.collection.variables, global: [] as Row[] };
+  const scopes = { environment: options.environment, collection: source.collection.variables, global: options.globals ?? [] };
   const results: RunResult[] = [];
   const libraries = new Map<string, string>();
 

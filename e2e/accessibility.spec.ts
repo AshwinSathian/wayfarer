@@ -175,7 +175,9 @@ test.describe("Accessibility (primary flows)", () => {
 // fail on the other's (status green was 1.85:1 on the light theme's fill).
 for (const theme of ["dark", "light"] as const) {
   test(`every view, menu and dialog is free of critical and serious violations in the ${theme} theme`, async ({ page }) => {
-    test.setTimeout(90_000);
+    // The longest test there is: every view, menu and dialog, each scanned. On the WebKit runner of GitHub it takes
+    // 66 to 96 s (#228), and 90 s was its limit: it failed for want of time, not for a violation.
+    test.setTimeout(240_000);
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");

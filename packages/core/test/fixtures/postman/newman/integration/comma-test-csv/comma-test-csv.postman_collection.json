@@ -1,0 +1,74 @@
+{
+	"info": {
+		"_postman_id": "ac876a75-22ac-40cf-8abe-27ad079b6a5d",
+		"name": "CSV parsing test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "r1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "00c12c73-e93f-4ba8-815c-20f6e4b5d137",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "8292797c-b676-4a41-966b-c2b92d607425",
+						"exec": [
+							"pm.test(\"CSV parsing tests\", function () {",
+							"    pm.expect(data.nameWithComma).to.eql('Abhijit, Kane');",
+							"    pm.expect(data.nameWithDoubleQuotes).to.eql('Abhijit \"KDOS\" Kane');",
+							"    pm.expect(data.numberWithQuotes).to.eql('00123');",
+							"    pm.expect(data.numberWithoutQuotes).to.eql(7890);",
+							"    pm.expect(data.negativeNumberWithoutQuotes).to.eql(-7890);",
+							"    pm.expect(data.nullValue).to.eql('');",
+							"    pm.expect(data.longNumber).to.eql('89111702272002019559');",
+							"    pm.expect(data.spaceAfterComma).to.eql('foo');",
+							"    pm.expect(data.spaceBeforeComma).to.eql('bar');",
+							"    pm.expect(data.nameWithUnescapedQuotes).to.eql('Abhijit \"KDOS\" Kane');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"nameWithComma\": \"{{nameWithComma}}\",\n\t\"nameWithoutComma\": \"{{nameWithoutComma}}\",\n\t\"numberWithQuotes\": \"{{numberWithQuotes}}\",\n\t\"numberWithoutQuotes\": \"{{numberWithoutQuotes}}\",\n\t\"longNumber\": \"{{longNumber}}\",\n\t\"spaceAfterComma\": \"{{spaceAfterComma}}\",\n\t\"spaceBeforeComma\": \"{{spaceBeforeComma}}\"\n}"
+				},
+				"url": {
+					"raw": "postman-echo.com/get",
+					"host": [
+						"postman-echo",
+						"com"
+					],
+					"path": [
+						"get"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,6 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { test, expect, type Page } from "@playwright/test";
-import { dumpIdb } from "./support/app";
+import { dumpIdb, openFolder, send } from "./support/app";
 
 // P4.1: the one road by which a file reaches the stores. Read, map and
 // check (in a worker), report, confirm, write. Run with CI=1 (the built app).
@@ -76,10 +76,10 @@ test("a file of no known format is refused with a message that names the formats
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
-  await pick(page, file("postman.json", { info: { name: "Not yet", schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" }, item: [] }));
+  await pick(page, file("unknown.json", { swagger: "1.2", apis: [] }));
   const refused = dialog(page, "Import");
-  await expect(refused.getByRole("alert")).toContainText('Unable to import "postman.json"');
-  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a HAR 1.2 file, and a cURL command.');
+  await expect(refused.getByRole("alert")).toContainText('Unable to import "unknown.json"');
+  await expect(refused.getByRole("alert")).toContainText('It reads a Wayfarer collection ("$id": "wayfarer/collection/3"), a Wayfarer environments file ("$id": "wayfarer/environments/2"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, a HAR 1.2 file, and a cURL command.');
   await expect(refused.getByRole("button", { name: "Confirm import" })).toBeDisabled();
   await refused.getByRole("button", { name: "Cancel import" }).click();
 
@@ -179,4 +179,78 @@ test("5,000 requests in one file import, and the page says how long it took", as
   const timing = `import of 5,000 requests (${big.buffer.byteLength} B): report after ${reported - started} ms, stored after ${done - started} ms`;
   testInfo.annotations.push({ type: "timing", description: timing });
   console.log(timing);
+});
+
+// P4.2: a Postman file takes the same road.
+const POSTMAN = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
+
+test("@claim:C-058 a Postman collection imports with a report of what could not be kept; its auth is inherited, and its scripts wait for a review", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  const before = await stored(page);
+  const shop = {
+    info: { name: "Shop API", description: "From Postman", schema: POSTMAN },
+    auth: { type: "apikey", apikey: [{ key: "key", value: "X-Shop-Key", type: "string" }, { key: "value", value: "k-1", type: "string" }, { key: "in", value: "header", type: "string" }] },
+    variable: [{ key: "base", value: "http://127.0.0.1:4300" }],
+    item: [
+      {
+        name: "Admin",
+        item: [
+          { name: "List", request: { method: "GET", header: [], url: { raw: "{{base}}/echo?x=1", host: ["{{base}}"], path: ["echo"], query: [{ key: "x", value: "1" }] } }, response: [{ name: "An example" }] },
+          {
+            name: "Signed",
+            event: [{ listen: "test", script: { type: "text/javascript", exec: ["pm.test('from Postman', () => {});"] } }],
+            request: { method: "POST", header: [], auth: { type: "oauth2", oauth2: [{ key: "accessToken", value: "not-kept", type: "string" }] }, body: { mode: "raw", raw: "{}", options: { raw: { language: "json" } } }, url: "{{base}}/echo" },
+          },
+        ],
+      },
+    ],
+  };
+
+  await pick(page, file("shop.postman_collection.json", shop));
+  const report = dialog(page);
+  await expect(report.locator(".import-report")).toContainText("Postman collection");
+  await expect(report.locator(".import-report")).toContainText('"shop.postman_collection.json" will add 1 collection, 1 folder and 2 requests.');
+  await expect(report.locator(".import-warnings")).toContainText('request "Signed". Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth.');
+  await expect(report.locator(".import-warnings")).toContainText('collection "Shop API". 1 saved response is left out');
+  expect(await stored(page)).toBe(before);
+
+  await report.getByRole("button", { name: "Confirm import" }).click();
+  await expect(report).toHaveCount(0);
+  const after = await dumpIdb(page);
+  expect(after["collections"]).toMatchObject([{ name: "Shop API", description: "From Postman", auth: { type: "apikey", key: "X-Shop-Key", value: "k-1", in: "header" }, variables: [{ key: "base", value: "http://127.0.0.1:4300", enabled: true }], scriptTrust: { trusted: false } }]);
+  expect(after["folders"]).toMatchObject([{ name: "Admin", auth: { type: "inherit" } }]);
+  const requests = after["requests"] as { name: string; auth: unknown; scripts: { post: string }; url: string }[];
+  expect(requests.find((doc) => doc.name === "List")).toMatchObject({ url: "{{base}}/echo?x=1", auth: { type: "inherit" } });
+  expect(requests.find((doc) => doc.name === "Signed")).toMatchObject({ auth: { type: "none" }, scripts: { pre: "", post: "pm.test('from Postman', () => {});" } });
+  expect(JSON.stringify(after)).not.toContain("not-kept");
+
+  // The request that inherits is sent with the collection's key.
+  await page.getByRole("tree").getByText("Shop API", { exact: true }).click();
+  await page.keyboard.press("ArrowRight");
+  await openFolder(page, "Admin");
+  await page.getByText("List", { exact: true }).dblclick();
+  await expect(page.locator("input.address-url")).toHaveValue("{{base}}/echo?x=1");
+  const [sent] = await Promise.all([page.waitForRequest((candidate) => candidate.url() === "http://127.0.0.1:4300/echo?x=1" && candidate.method() === "GET"), send(page)]);
+  expect(sent.headers()["x-shop-key"]).toBe("k-1");
+});
+
+test("@claim:C-058 a Postman environment imports as an environment, and Postman's globals as one that says so", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+
+  await pick(page, file("staging.postman_environment.json", { name: "Staging", values: [{ key: "host", value: "staging.test", enabled: true }, { key: "old", value: "x", enabled: false }], _postman_variable_scope: "environment" }));
+  const report = dialog(page, "Import environments");
+  await expect(report.locator(".import-report")).toContainText("Postman environment");
+  await report.getByRole("button", { name: "Confirm import" }).click();
+  await expect(report).toHaveCount(0);
+
+  await pick(page, file("workspace.postman_globals.json", [{ key: "g", value: "1", enabled: true }]));
+  await expect(report.locator(".import-warnings")).toContainText("Postman's globals are imported as an environment");
+  await report.getByRole("button", { name: "Confirm import" }).click();
+  await expect(report).toHaveCount(0);
+
+  const environments = (await dumpIdb(page))["environments"] as { name: string; vars: unknown[] }[];
+  expect(environments.map((environment) => environment.name).sort()).toEqual(["Postman globals", "Staging"]);
+  expect(environments.find((environment) => environment.name === "Staging")?.vars).toEqual([{ key: "host", value: "staging.test", enabled: true }, { key: "old", value: "x", enabled: false }]);
 });

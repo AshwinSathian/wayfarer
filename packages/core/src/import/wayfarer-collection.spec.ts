@@ -239,6 +239,27 @@ describe("collection-io", () => {
     ]);
   });
 
+  it("F73: a copy keeps a folder in its parent when the folder comes before the parent in the file's order", () => {
+    // A child at place 0 in its parent, and the parent at place 1 at the top: the child is read first.
+    const source = validExport();
+    const parent = source.folders.find((folder) => folder.name !== "Child")!;
+    const child = source.folders.find((folder) => folder.name === "Child")!;
+    parent.order = 1;
+    child.order = 0;
+    const payload = importCollection(source, { duplicateAsNew: true }).payload!;
+
+    const copied = payload.folders.find((folder) => folder.name === "Child")!;
+    expect(copied.parentFolderId).toBe(payload.folders.find((folder) => folder.name === parent.name)!.id);
+    expect(payload.folders.map((folder) => folder.id)).toContain(copied.parentFolderId);
+  });
+
+  it("a copy leaves a parent the file does not hold as the text it is, whatever it spells", () => {
+    const source = validExport();
+    source.folders.find((folder) => folder.name === "Child")!.parentFolderId = "constructor";
+
+    expect(importCollection(source, { duplicateAsNew: true }).payload!.folders.find((folder) => folder.name === "Child")!.parentFolderId).toBe("constructor");
+  });
+
   it("gives everything a new id when importing as a copy, and keeps the tree connected", () => {
     const source = validExport();
     const result = importCollection(source, { duplicateAsNew: true });

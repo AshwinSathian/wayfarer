@@ -1,0 +1,103 @@
+{
+  "variables": [],
+  "info": {
+    "name": "globals+env+data tests",
+    "_postman_id": "dcc7e181-766f-e7ef-4b94-efbfe57189a9",
+    "description": "A set of tests for global and data variable operations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Content-Type is present\", () => {",
+              "    pm.expect(pm.response.headers.has(\"content-type\")).true;",
+              "})",
+              "var data1 = pm.response.json();",
+              "pm.test(\"testGlobalSetFromPRScript\", () => {",
+              "    pm.expect(data1.args.prsG).equal('prsG');",
+              "})",
+              "pm.test(\"Read global var correctly\", () => {",
+              "    pm.expect(pm.globals.get(\"prsG\")).equal('prsG');",
+              "})",
+              "pm.test(\"testEnvSetFromPRScript\", () => {",
+              "    pm.expect(data1.args.prsE).equal('prsE');",
+              "})",
+              "pm.test(\"Read env var correctly\", () => {",
+              "    pm.expect(pm.environment.get(\"prsE\")).equal('prsE');",
+              "})",
+              "pm.test(\"Read data var correctly\", () => {",
+              "    pm.expect(pm.variables.get(\"prsE\")).equal('prsE');",
+              "})",
+              "pm.globals.set(\"prsG\", \"prsG\");",
+              "pm.environment.set(\"prsE\", \"prsE\");"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.globals.set(\"prsG\", \"prsG\");",
+              "pm.globals.set(\"prsE\", \"prsEaRDDDROR\");",
+              "pm.environment.set(\"prsE\", \"prsE\");",
+              ""
+            ]
+          }
+        }
+      ],
+      "request": {
+        "url": "{{url}}/get?global={{global}}&env={{env}}&data={{data}}&prsE={{prsE}}&prsG={{prsG}}",
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": []
+        },
+        "description": "Similar to postman-echo.com/get. Return GET data."
+      },
+      "response": []
+    },
+    {
+      "name": "GET copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var data1 = pm.response.json();",
+              "",
+              "pm.test(\"Read global var correctly\", () => {",
+              "    pm.expect(pm.globals.get(\"prsG\")).equal('prsG');",
+              "})",
+              "pm.test(\"Read env var correctly\", () => {",
+              "    pm.expect(pm.environment.get(\"prsE\")).equal('prsE');",
+              "})",
+              "pm.test(\"Read data var correctly\", () => {",
+              "    pm.expect(pm.variables.get(\"prsE\")).equal('prsE');",
+              "})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "url": "{{url}}/get?global={{global}}&env={{env}}&data={{data}}",
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": []
+        },
+        "description": "Similar to postman-echo.com/get. Return GET data."
+      },
+      "response": []
+    }
+  ]
+}

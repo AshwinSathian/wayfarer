@@ -14,6 +14,14 @@ Self-hosted from `@fontsource-variable/inter`. Copyright 2016 The Inter Project 
 
 Self-hosted from `@fontsource/jetbrains-mono`. Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono). Licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
 
+## Test fixtures (not in the production build)
+
+`packages/core/test/fixtures/postman/` holds Postman files that other people wrote, unchanged, for the tests of the Postman importer and exporter. They are in the repository and not in the app that is built. Each set is at a pinned commit, named in `packages/core/test/fixtures/postman/SOURCES.md`, with its licence beside it:
+
+- `newman/integration/`: the integration collections of Newman (https://github.com/postmanlabs/newman). Copyright Postman, Inc. Licensed under the Apache License, Version 2.0 (`newman/LICENSE.md`).
+- `adyen/`: six collections of Adyen's Postman repository (https://github.com/Adyen/adyen-postman). Copyright (c) 2023 Adyen. MIT (`adyen/LICENSE`).
+- `msgraph/`: the Microsoft Graph Postman collection and its environments (https://github.com/microsoftgraph/microsoftgraph-postman-collections). Copyright (c) 2019 Microsoft Graph. MIT (`msgraph/LICENSE`).
+
 ## Apache License, Version 2.0 (full text)
 
 ```

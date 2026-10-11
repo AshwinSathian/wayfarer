@@ -53,6 +53,27 @@ export function rewritePostmanEcho(url, base = `http://127.0.0.1:${POSTMAN_ECHO_
   return url.replace(/^https?:\/\/postman-echo\.com(?::\d+)?(?=[/?#]|$)/i, base);
 }
 
+/**
+ * A Postman file (a collection, an environment, globals) with every address
+ * that names postman-echo.com pointed at `base`: request addresses, as text
+ * and as parts, and the values of variables. Scripts are left as they are:
+ * what a test expects is not an address to change.
+ */
+export function rewritePostmanFile(value, base = `http://127.0.0.1:${POSTMAN_ECHO_PORT}`) {
+  const { hostname, port } = new URL(base);
+  const walk = (node, key) => {
+    // With its scheme, or as the bare host some of the collections write.
+    if (typeof node === "string") return ["raw", "url", "value", "request"].includes(key) ? rewritePostmanEcho(node, base).replace(/^postman-echo\.com(?=[/?#]|$)/i, base) : node;
+    if (Array.isArray(node)) return node.map((entry) => walk(entry, key));
+    if (!node || typeof node !== "object" || key === "script") return node;
+    const out = Object.fromEntries(Object.entries(node).map(([name, inner]) => [name, walk(inner, name)]));
+    const host = Array.isArray(out.host) ? out.host.join(".") : out.host;
+    if (typeof host === "string" && host.toLowerCase() === "postman-echo.com") Object.assign(out, { protocol: "http", host: hostname.split("."), port });
+    return out;
+  };
+  return walk(value, "");
+}
+
 // A 1×1 transparent PNG.
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",

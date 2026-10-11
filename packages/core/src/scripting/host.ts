@@ -521,7 +521,15 @@ async function evaluate(
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, Math.max(0, ms)));
 
   try {
-    const ran = vm.evalCode(source, "script.js");
+    let ran = vm.evalCode(source, "script.js");
+    // Postman runs a script as the body of a function, so `return` ends one. Here a script is a program,
+    // whose `var` at the top is a global as scripts written here may expect: only a script the engine
+    // refuses to read for its `return`, and so has run nothing of, is run again as a function's body.
+    // ponytail: known by the engine's own words for it. A new engine with other words fails the test of it.
+    if (ran.error && property(vm, ran.error, "name") === "SyntaxError" && property(vm, ran.error, "message") === "return not in a function") {
+      ran.error.dispose();
+      ran = vm.evalCode(`(function () {${source}\n}).call(globalThis);`, "script.js");
+    }
     if (ran.error) return failed(ran.error);
     ran.value.dispose();
 

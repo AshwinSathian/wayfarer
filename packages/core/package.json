@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@noble/hashes": "^2.4.0",
-    "quickjs-emscripten-core": "^0.32.0"
+    "quickjs-emscripten-core": "^0.32.0",
+    "yaml": "^2.9.1"
   }
 }

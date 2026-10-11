@@ -1,0 +1,49 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: grpc
+meta:
+  id: wrk_a72883345e264d6696ef9294857f29c7
+  created: 1736278598088
+  modified: 1736278598088
+collection:
+  - url: grpcs://localhost:50052
+    name: grpcs
+    meta:
+      id: greq_a3ec27d741fa45728b30187251feb93f
+      created: 1732118004917
+      modified: 1733429659428
+      isPrivate: false
+      sortKey: -1732118004917
+    body:
+      text: |-
+        {
+        	"lo": {
+        		"latitude": "400000000",
+        		"longitude": "-750000000"
+        	},
+        	"hi": {
+        		"latitude": "420000000",
+        		"longitude": "-730000000"
+        	},
+        	"latitude": "409146138",
+        	"longitude": "-746188906"
+        }
+    protoMethodName: /routeguide.RouteGuide/GetFeature
+    reflectionApi:
+      enabled: false
+      url: https://buf.build
+      apiKey: ""
+      module: buf.build/connectrpc/eliza
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_d8d132d589374b6faed4e890b42b2341
+    created: 1732118001113
+    modified: 1732118001113
+environments:
+  name: Base Environment
+  meta:
+    id: env_92ac2df77f4542ee9390bd4cf30e3a3c
+    created: 1732118001112
+    modified: 1732118001112
+    isPrivate: false

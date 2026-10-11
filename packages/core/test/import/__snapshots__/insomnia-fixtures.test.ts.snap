@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Insomnia files other people wrote (P4.4) > the whole set: what is imported, and the kinds of warning 1`] = `
+{
+  "collections": 50,
+  "environments": 32,
+  "folders": 35,
+  "requests": 251,
+}
+`;
+
+exports[`Insomnia files other people wrote (P4.4) > the whole set: what is imported, and the kinds of warning 2`] = `
+{
+  "A query parameter that is switched off (…) is kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.": 4,
+  "It is not an HTTP request (…) and is left out.": 17,
+  "It uses a template of Insomnia's (…), which the app does not have: the text is kept as written.": 35,
+  "Its API specification is left out: the app imports requests, folders and environments.": 6,
+  "Its after-response script is left out: an Insomnia script calls Insomnia's own "…" object, which the app does not have.": 61,
+  "Its auth is of a type the app does not have (…) and is left out: it is sent with no auth.": 10,
+  "Its cookies are left out: the app imports requests, folders and environments.": 6,
+  "Its cookies, unit tests and API specification are left out: the app imports requests, folders and environments.": 1,
+  "Its pre-request and after-response scripts are left out: an Insomnia script calls Insomnia's own "…" object, which the app does not have.": 16,
+  "Its pre-request script is left out: an Insomnia script calls Insomnia's own "…" object, which the app does not have.": 48,
+  "Its unit tests are left out: the app imports requests, folders and environments.": 1,
+  "Its variable cascadeVar is also in the environment "…". Insomnia uses the folder's value; the app uses the environment's when that environment is active.": 1,
+  "N query parameters that are switched off are kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.": 9,
+  "What the file holds that is not a request, a folder or an environment is left out (…).": 2,
+  "Where a folder holds requests before folders, the folders now come first: the app lists a folder's folders before its requests.": 3,
+}
+`;

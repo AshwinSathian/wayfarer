@@ -275,13 +275,15 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   // The vault is made and left unlocked; the client's secret is in it.
   await protectVariable(page, "CLIENT_SECRET", "client-secret-in-vault");
   await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
-  const [issued] = await Promise.all([
-    page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST"),
+  // The answer is read as it arrives: read later, a browser may have let go of the body.
+  const [[asked, { access_token: token, refresh_token: refresh }]] = await Promise.all([
+    page
+      .waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST")
+      .then(async (response) => [response.request().headers()["authorization"] ?? "", (await response.json()) as { access_token: string; refresh_token: string }] as const),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
   // The client's secret came out of the vault for the token request.
-  expect(Buffer.from((issued.request().headers()["authorization"] ?? "").slice("Basic ".length), "base64").toString("utf8")).toBe("wayfarer-e2e:client-secret-in-vault");
-  const { access_token: token, refresh_token: refresh } = (await issued.json()) as { access_token: string; refresh_token: string };
+  expect(Buffer.from(asked.slice("Basic ".length), "base64").toString("utf8")).toBe("wayfarer-e2e:client-secret-in-vault");
   await expect(page.locator(".oauth-token-status")).toContainText("It is kept in the vault.");
 
   const echo = await sendAndEcho(page);

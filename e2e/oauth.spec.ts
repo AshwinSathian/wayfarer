@@ -43,6 +43,21 @@ function tokenRequests(page: Page): Record<string, string>[] {
   return forms;
 }
 
+interface TokenAnswer {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+/**
+ * The token endpoint's next answer, read as it arrives. Read later, after
+ * other requests, Chromium on a CI runner had let go of the body
+ * ("No data found for resource with given identifier").
+ */
+function tokenAnswer(page: Page): Promise<TokenAnswer> {
+  return page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST").then((response) => response.json() as Promise<TokenAnswer>);
+}
+
 async function openAuth(page: Page): Promise<void> {
   await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
 }
@@ -75,10 +90,10 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));
   const [popup, issued] = await Promise.all([
     context.waitForEvent("page"),
-    page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST"),
+    tokenAnswer(page),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
-  const { access_token: token } = (await issued.json()) as { access_token: string };
+  const { access_token: token } = issued;
   await expect(status(page)).toContainText("There is a token, good until");
   // The window had no opener to post to (COOP), said what it did, and the code is gone from its address.
   const asked = new URL((await authorize).url()).searchParams;
@@ -126,9 +141,9 @@ for (const [grant, auth, sentAs] of [
     await openAuth(page);
     await expect(status(page)).toContainText("No token yet. One is asked for when the request is sent.");
 
-    const issued = page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST");
+    const issued = tokenAnswer(page);
     const echo = await sendAndEcho(page);
-    const { access_token: token } = (await (await issued).json()) as { access_token: string };
+    const { access_token: token } = await issued;
     expect(bearer(echo)).toBe(`Bearer ${token}`);
     await expect(page.locator(".status-badge")).toHaveText("200");
     expect(tokens).toEqual([sentAs.form]);
@@ -184,18 +199,18 @@ test("@claim:C-062 a token that has expired is renewed once, with its refresh to
   await openAuth(page);
   const [, first] = await Promise.all([
     page.context().waitForEvent("page"),
-    page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST"),
+    tokenAnswer(page),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
-  const got = (await first.json()) as { access_token: string; refresh_token: string; expires_in: number };
+  const got = first;
   expect(got.expires_in).toBe(1);
   // The server's second passes; the panel says so by itself.
   await expect(status(page)).toContainText("The token expired at");
   await expect(status(page)).toContainText("A new one is asked for when the request is sent.");
 
-  const renewed = page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST");
+  const renewed = tokenAnswer(page);
   const echo = await sendAndEcho(page);
-  const next = (await (await renewed).json()) as { access_token: string };
+  const next = await renewed;
   expect(bearer(echo)).toBe(`Bearer ${next.access_token}`);
   expect(next.access_token).not.toBe(got.access_token);
   expect(tokens.map((form) => form["grant_type"])).toEqual(["authorization_code", "refresh_token"]);
@@ -212,10 +227,10 @@ test("@claim:C-062 a 401 gets one more send with a renewed token when the auth a
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/oauth/resource`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) });
   await openAuth(page);
   const [issued] = await Promise.all([
-    page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST"),
+    tokenAnswer(page),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
-  const { access_token: token } = (await issued.json()) as { access_token: string };
+  const { access_token: token } = issued;
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
 
@@ -299,10 +314,10 @@ test("a request that inherits OAuth 2.0 from its collection gets its token in it
   await openAuth(page);
   await expect(page.locator(".auth-inherited")).toHaveText('OAuth 2.0 is sent, from collection "Tripwire collection".');
   const [issued] = await Promise.all([
-    page.waitForResponse((response) => response.url().startsWith(`${ECHO}/oauth/token`) && response.request().method() === "POST"),
+    tokenAnswer(page),
     page.getByRole("button", { name: "Get token", exact: true }).click(),
   ]);
-  const { access_token: token } = (await issued.json()) as { access_token: string };
+  const { access_token: token } = issued;
   expect(bearer(await sendAndEcho(page))).toBe(`Bearer ${token}`);
   expect(tokens).toHaveLength(1);
 });

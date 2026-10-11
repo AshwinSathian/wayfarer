@@ -2,7 +2,6 @@
 
 exports[`Newman's integration collections, imported, against Newman > @claim:C-058 every collection inside the matrix gives Newman's test names, passes and failures 1`] = `
 {
-  "bom-and-encoding/bom-in-environment-file.postman_collection.json": "F74 (#248): a variable whose name holds a slash (\`{{fo/o}}\`) is not replaced",
   "comma-test-csv/comma-test-csv.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
   "cookie-jar.postman_collection.json": "request "Verify cookie": Its post-response script uses postman.getResponseCookie, which Wayfarer does not have. The script will end in an error there.",
   "crypto-md5.postman_collection.json": "a script uses the legacy global CryptoJS (matrix: legacy library globals, unsupported)",
@@ -27,7 +26,6 @@ exports[`Newman's integration collections, imported, against Newman > @claim:C-0
   "request-name-in-script.postman_collection.json": "its scripts read \`request.name\` and \`request.description\` of the legacy \`request\` (matrix: partial), and its pre-request script then ends in an error: Postman sends anyway, the app stops the send (P3.9)",
   "sandbox-libraries.postman_collection.json": "request "AJV": Its post-response script uses require('ajv'), which Wayfarer does not have. The script will end in an error there.",
   "set-next-request.postman_collection.json": "Newman did not run it here: its scripts choose the next request (setNextRequest): a run is P5.2",
-  "slashed-variable-names/slashed-variable-names.postman_collection.json": "F74 (#248): a variable whose name holds a slash or a backslash is not replaced",
   "steph/steph.postman_collection.json": "Newman did not run it here: it is run with a data file, once per row: a run is P5.2",
   "super-sandbox-test.postman_collection.json": "request "DigestAuth": Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth.",
   "tc4/tc4.postman_collection.json": "Newman did not run it here: it uploads a file, which a collection of the app names and does not hold",

@@ -78,6 +78,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A variable's name may hold any character but a brace ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).** **Fixed: `{{api/key}}`, `{{first name}}` and any other name with more than letters, digits, `_`, `.` and `-` was not replaced**, though the Variables editor let you give it a value: the request went out with the braces in it. Postman takes any name, and a collection imported from Postman may use one. What stands between braces and is not such a plain name is a variable only when you defined one with that name: a body with another language's templates (`{{ user.name | upper }}`) is sent as written, and the composer does not ask about it.
+
 - **Three faults of Postman's older script sandbox, found by running Newman's own collections ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)).**
   - **Fixed: the older `environment` and `globals` objects did not show a value the same script had just set** with `postman.setEnvironmentVariable` or `postman.setGlobalVariable`, or had cleared. They do now, as in Postman. (`pm.environment.set` does not show in them, in Postman either.)
   - **Fixed: a script with `return` outside a function ended in "return not in a function".** Postman runs a script as the body of a function, so `return` ends it. It does here too.

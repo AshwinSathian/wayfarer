@@ -1,5 +1,5 @@
 import { isJsonText } from "../safe-json";
-import { ASSERTION_OPERATORS, ASSERTION_TARGETS, AUTH_TYPES, BODY_MODES, RAW_LANGUAGES, isHttpMethod } from "./request";
+import { ASSERTION_OPERATORS, ASSERTION_TARGETS, AUTH_TYPES, BODY_MODES, OAUTH_GRANTS, RAW_LANGUAGES, isHttpMethod } from "./request";
 
 export interface ValidationIssue {
   path: string;
@@ -87,6 +87,11 @@ class Checker {
       this.oneOf(auth, "in", path, ["header", "query"]);
     } else if (type === "awsv4") {
       for (const key of ["accessKey", "secretKey", "sessionToken", "region", "service"]) this.string(auth, key, path);
+    } else if (type === "oauth2") {
+      this.oneOf(auth, "grant", path, OAUTH_GRANTS);
+      for (const key of ["authUrl", "tokenUrl", "clientId", "clientSecret", "scope", "username", "password"]) this.string(auth, key, path);
+      this.oneOf(auth, "clientAuth", path, ["header", "body"]);
+      if (typeof field(auth, "retryOn401") !== "boolean") this.fail(`${path}.retryOn401`, "Value must be true or false.");
     }
   }
 

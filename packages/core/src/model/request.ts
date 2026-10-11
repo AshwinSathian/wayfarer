@@ -82,12 +82,35 @@ export type AuthConfig =
   | { type: "basic"; username: string; password: string }
   | { type: "apikey"; key: string; value: string; in: "header" | "query" }
   /** AWS Signature Version 4 (P4.8). A session token is empty when there is none. */
-  | { type: "awsv4"; accessKey: string; secretKey: string; sessionToken: string; region: string; service: string };
+  | { type: "awsv4"; accessKey: string; secretKey: string; sessionToken: string; region: string; service: string }
+  /**
+   * OAuth 2.0 (P4.7). The token is not here: it is kept under a name made
+   * from these fields (`oauthTokenKey`), in the vault or in memory. A field
+   * a grant does not use is empty.
+   */
+  | {
+      type: "oauth2";
+      grant: OAuthGrant;
+      authUrl: string;
+      tokenUrl: string;
+      clientId: string;
+      clientSecret: string;
+      scope: string;
+      username: string;
+      password: string;
+      /** Where the token request names the client: a Basic header, or the form. */
+      clientAuth: "header" | "body";
+      /** A 401 gets one more send, with a new token. */
+      retryOn401: boolean;
+    };
+
+export const OAUTH_GRANTS = ["authorization_code", "client_credentials", "password"] as const;
+export type OAuthGrant = (typeof OAUTH_GRANTS)[number];
 
 /** An auth that says what is sent by itself. */
 export type OwnAuth = Exclude<AuthConfig, { type: "inherit" }>;
 
-export const AUTH_TYPES = ["inherit", "none", "bearer", "basic", "apikey", "awsv4"] as const satisfies readonly AuthConfig["type"][];
+export const AUTH_TYPES = ["inherit", "none", "bearer", "basic", "apikey", "awsv4", "oauth2"] as const satisfies readonly AuthConfig["type"][];
 
 /** The two scripts of a request, of a folder or of a collection. Blank: there is none. */
 export interface Scripts {
@@ -149,6 +172,8 @@ export function emptyAuth(type: AuthConfig["type"]): AuthConfig {
       return { type, key: "", value: "", in: "header" };
     case "awsv4":
       return { type, accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" };
+    case "oauth2":
+      return { type, grant: "authorization_code", authUrl: "", tokenUrl: "", clientId: "", clientSecret: "", scope: "", username: "", password: "", clientAuth: "header", retryOn401: false };
     case "none":
     case "inherit":
       return { type };

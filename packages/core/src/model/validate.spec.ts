@@ -1,16 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import {
-  ASSERTION_OPERATORS,
-  ASSERTION_TARGETS,
-  BODY_MODES,
-  HTTP_METHODS,
-  RAW_LANGUAGES,
-  emptyRequest,
-  type AuthConfig,
-  type RequestBody,
-  type RequestContent,
-} from "./request";
+import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, HTTP_METHODS, RAW_LANGUAGES, emptyAuth, emptyRequest, type AuthConfig, type RequestBody, type RequestContent } from "./request";
 import { validateInherited, validateRequestContent, validateRows } from "./validate";
 
 const full = (): RequestContent => ({
@@ -181,7 +171,7 @@ describe("validateRequestContent", () => {
     ]);
     expect(paths({ ...full(), auth: { type: "bearer" } })).toEqual(["r.auth.token"]);
     expect(paths({ ...full(), auth: { type: "basic", username: "u" } })).toEqual(["r.auth.password"]);
-    expect(paths({ ...full(), auth: { type: "oauth2" } })).toEqual(["r.auth.type"]);
+    expect(paths({ ...full(), auth: { type: "digest" } })).toEqual(["r.auth.type"]);
   });
 
   it("takes any HTTP method in upper case, and nothing that is not one word of at most 32 characters", () => {
@@ -220,7 +210,7 @@ describe("validateInherited (P4.9)", () => {
 
   it("refuses a collection that inherits: nothing is above it", () => {
     expect(validateInherited({ auth: { type: "inherit" }, scripts }, "collection", "collection")).toEqual([
-      { path: "collection.auth.type", message: "Value must be one of none, bearer, basic, apikey, awsv4." },
+      { path: "collection.auth.type", message: "Value must be one of none, bearer, basic, apikey, awsv4, oauth2." },
     ]);
   });
 
@@ -228,6 +218,20 @@ describe("validateInherited (P4.9)", () => {
     const aws = { type: "awsv4", accessKey: "AKID", secretKey: "{{secret}}", sessionToken: "", region: "us-east-1", service: "s3" };
     expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: aws }, "r")).toEqual([]);
     expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...aws, secretKey: 1, sessionToken: undefined, region: null } }, "r").map((issue) => issue.path)).toEqual(["r.auth.secretKey", "r.auth.sessionToken", "r.auth.region"]);
+  });
+
+  it("OAuth 2.0 holds a grant the app has, seven texts, where the client is named, and the switch for a 401 (P4.7)", () => {
+    const oauth = emptyAuth("oauth2");
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: oauth }, "r")).toEqual([]);
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...oauth, grant: "password", clientAuth: "body", retryOn401: true } }, "r")).toEqual([]);
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...oauth, grant: "implicit", tokenUrl: 1, clientSecret: undefined, clientAuth: "query", retryOn401: "yes" } }, "r").map((issue) => issue.path)).toEqual([
+      "r.auth.grant",
+      "r.auth.tokenUrl",
+      "r.auth.clientSecret",
+      "r.auth.clientAuth",
+      "r.auth.retryOn401",
+    ]);
+    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "oauth2" } }, "r")).toHaveLength(10);
   });
 
   it("names each field that is missing or of the wrong type", () => {

@@ -260,6 +260,13 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByRole("option", { name: "Inherit from parent" }).click();
     await expect(page.locator(".auth-inherited")).toBeVisible();
     await scan("composer Auth, inherited");
+    // OAuth 2.0 (P4.7): the fields of the password grant, which has the most, and the token's panel.
+    await page.locator("app-composer").getByRole("combobox", { name: "Type" }).click();
+    await page.getByRole("option", { name: "OAuth 2.0", exact: true }).click();
+    await page.locator("app-composer").getByRole("combobox", { name: "Grant" }).click();
+    await page.getByRole("option", { name: "Password (legacy)" }).click();
+    await expect(page.locator(".oauth-token-status")).toBeVisible();
+    await scan("composer Auth, OAuth 2.0");
 
     // The import report (P4.1), with a warning in it.
     const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });

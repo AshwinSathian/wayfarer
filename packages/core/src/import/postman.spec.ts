@@ -65,17 +65,65 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
   });
 
   it("an auth type the app does not have is left out with a warning, and sends none: it does not start inheriting", () => {
-    const { payload, warnings } = postmanCollection(collection([{ name: "F", auth: { type: "digest" }, item: [] }, request({ auth: { type: "oauth2", oauth2: [{ key: "accessToken", value: "x" }] } }, "Signed")], { auth: { type: "hawk" } }));
+    const { payload, warnings } = postmanCollection(collection([{ name: "F", auth: { type: "digest" }, item: [] }, request({ auth: { type: "ntlm", ntlm: [{ key: "accessToken", value: "x" }] } }, "Signed")], { auth: { type: "hawk" } }));
 
     expect(payload.requests[0].auth).toEqual({ type: "none" });
     expect(payload.folders[0].auth).toEqual({ type: "none" });
     expect(payload.collection.auth).toEqual({ type: "none" });
     expect(warnings).toEqual([
       { item: 'folder "F"', message: "Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth." },
-      { item: 'request "Signed"', message: "Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth." },
+      { item: 'request "Signed"', message: "Its auth is of a type the app does not have (ntlm) and is left out: it is sent with no auth." },
       { item: 'collection "Shop"', message: "Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth." },
     ]);
     expect(JSON.stringify(payload)).not.toContain("accessToken");
+  });
+
+  it("OAuth 2.0 is imported by its grant, and exported again as Postman writes it; a token in the file is not kept (P4.7)", () => {
+    const fields = (grant: string, more: Record<string, string> = {}) => Object.entries({ grant_type: grant, authUrl: "https://idp.test/authorize", accessTokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "{{secret}}", scope: "read write", ...more }).map(([key, value]) => ({ key, value }));
+    const { payload, warnings } = postmanCollection(
+      collection([
+        request({ auth: { type: "oauth2", oauth2: fields("authorization_code_with_pkce", { accessToken: "token-in-the-file", addTokenTo: "queryParams", redirect_uri: "https://oauth.pstmn.io/v1/callback" }) } }, "Code"),
+        request({ auth: { type: "oauth2", oauth2: fields("authorization_code") } }, "Code, no PKCE said"),
+        request({ auth: { type: "oauth2", oauth2: fields("client_credentials", { client_authentication: "body" }) } }, "Client"),
+        request({ auth: { type: "oauth2", oauth2: fields("password_credentials", { username: "alice", password: "{{pw}}" }) } }, "Password"),
+        // v2.0 holds the fields as an object, and Postman asks for a code when no grant is said.
+        request({ auth: { type: "oauth2", oauth2: { accessToken: "only-a-token" } } }, "Token only"),
+        request({ auth: { type: "oauth2", oauth2: fields("implicit") } }, "Implicit"),
+      ]),
+    );
+    const base = { type: "oauth2", authUrl: "https://idp.test/authorize", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "{{secret}}", scope: "read write", username: "", password: "", clientAuth: "header", retryOn401: false };
+    expect(payload.requests.map((doc) => doc.auth)).toEqual([
+      { ...base, grant: "authorization_code" },
+      { ...base, grant: "authorization_code" },
+      { ...base, grant: "client_credentials", clientAuth: "body" },
+      { ...base, grant: "password", username: "alice", password: "{{pw}}" },
+      { ...base, grant: "authorization_code", authUrl: "", tokenUrl: "", clientId: "", clientSecret: "", scope: "" },
+      { type: "none" },
+    ]);
+    expect(warnings).toEqual([
+      { item: 'request "Code"', message: "The OAuth 2.0 token in the file is not kept: get one in the Auth tab." },
+      { item: 'request "Code"', message: "Its OAuth 2.0 token was added to the address: the app sends it in the Authorization header." },
+      { item: 'request "Token only"', message: "The OAuth 2.0 token in the file is not kept: get one in the Auth tab." },
+      { item: 'request "Implicit"', message: "Its auth is OAuth 2.0 with a grant the app does not have (implicit) and is left out: it is sent with no auth." },
+    ]);
+    expect(JSON.stringify(payload)).not.toContain("token-in-the-file");
+    expect(JSON.stringify(payload)).not.toContain("only-a-token");
+
+    const again = exported(payload).file as { item: { request: { auth: { oauth2: { key: string; value: string }[] } } }[] };
+    expect(Object.fromEntries(again.item[3].request.auth.oauth2.map((entry) => [entry.key, entry.value]))).toEqual({
+      grant_type: "password_credentials",
+      authUrl: "https://idp.test/authorize",
+      accessTokenUrl: "https://idp.test/token",
+      clientId: "client",
+      clientSecret: "{{secret}}",
+      scope: "read write",
+      username: "alice",
+      password: "{{pw}}",
+      client_authentication: "header",
+      addTokenTo: "header",
+    });
+    expect(again.item[0].request.auth.oauth2[0]).toEqual({ key: "grant_type", value: "authorization_code_with_pkce", type: "string" });
+    expect(postmanCollection(again).payload.requests.map((doc) => doc.auth)).toEqual(payload.requests.map((doc) => doc.auth));
   });
 
   it("AWS Signature is imported with its five fields, and exported again as Postman writes it (P4.8)", () => {

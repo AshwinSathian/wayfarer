@@ -81,7 +81,7 @@ test("@claim:C-060 @claim:C-001 an OpenAPI 3.1 description in YAML imports with 
   await expect(report.locator(".import-report")).toContainText("OpenAPI description");
   await expect(report.locator(".import-report")).toContainText('"shop.yaml" will add 1 collection, 1 folder and 2 requests.');
   await expect(report.locator(".import-warnings")).toContainText('request "Add a pet". It refers to 2 other files or addresses (http://127.0.0.1:4300/echo?fetched=parameter#/limit, http://127.0.0.1:4300/echo?fetched=schema). An import fetches nothing: what they describe is left out.');
-  await expect(report.locator(".import-warnings")).toContainText('request "getPet". Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth.');
+  await expect(report.locator(".import-warnings")).toContainText('request "getPet". Its auth is OAuth 2.0 with a grant the app does not have (none said) and is left out: it is sent with no auth.');
   expect(await stored(page)).toBe(before);
 
   await report.getByRole("button", { name: "Confirm import" }).click();

@@ -108,7 +108,8 @@ async function resolveFile(root, pathname) {
   }
   const candidate = normalize(join(root, decoded));
   if (candidate !== root && !candidate.startsWith(root + sep)) return null;
-  for (const file of [candidate, join(candidate, "index.html")]) {
+  // `/oauth/callback` is `oauth/callback.html`: Workers static assets serve a page without its extension (`html_handling`, the default).
+  for (const file of [candidate, join(candidate, "index.html"), `${candidate}.html`]) {
     const info = await stat(file).catch((error) => (error.code === "ENOENT" || error.code === "ENOTDIR" ? null : Promise.reject(error)));
     if (info?.isFile()) return file;
   }

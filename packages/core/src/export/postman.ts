@@ -32,6 +32,25 @@ function auth(config: AuthConfig): { auth?: Entry } {
       return { auth: { type: "apikey", apikey: [field("key", config.key), field("value", config.value), field("in", config.in)] } };
     case "awsv4":
       return { auth: { type: "awsv4", awsv4: [field("accessKey", config.accessKey), field("secretKey", config.secretKey), field("sessionToken", config.sessionToken), field("region", config.region), field("service", config.service)] } };
+    case "oauth2":
+      // The code grant is always sent with PKCE. A token is not part of the auth, and "retry on 401" has no place in the format.
+      return {
+        auth: {
+          type: "oauth2",
+          oauth2: [
+            field("grant_type", config.grant === "authorization_code" ? "authorization_code_with_pkce" : config.grant === "password" ? "password_credentials" : config.grant),
+            field("authUrl", config.authUrl),
+            field("accessTokenUrl", config.tokenUrl),
+            field("clientId", config.clientId),
+            field("clientSecret", config.clientSecret),
+            field("scope", config.scope),
+            field("username", config.username),
+            field("password", config.password),
+            field("client_authentication", config.clientAuth),
+            field("addTokenTo", "header"),
+          ],
+        },
+      };
   }
 }
 

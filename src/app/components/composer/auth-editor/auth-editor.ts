@@ -3,9 +3,12 @@ import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatIconButton } from "@angular/material/button";
+import { MatCheckbox } from "@angular/material/checkbox";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import type { AuthConfig, OwnAuth } from "@wayfarer/core";
+import { emptyAuth, type AuthConfig, type OwnAuth } from "@wayfarer/core";
+import { oauthRedirectUri } from "../../../services/oauth-tokens";
+import { OAuthTokenPanel } from "../oauth-token/oauth-token";
 import { Icon } from "../../../shared/icon/icon";
 
 type AuthType = AuthConfig["type"];
@@ -16,9 +19,11 @@ const AUTH_TYPES: { label: string; value: AuthType }[] = [
   { label: "Basic Auth", value: "basic" },
   { label: "API Key", value: "apikey" },
   { label: "AWS Signature", value: "awsv4" },
+  { label: "OAuth 2.0", value: "oauth2" },
 ];
 const emptyAws = { type: "awsv4", accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" } as const;
 type AwsAuth = Extract<AuthConfig, { type: "awsv4" }>;
+type OAuthAuth = Extract<AuthConfig, { type: "oauth2" }>;
 const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as const;
 
 /**
@@ -31,7 +36,7 @@ const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as cons
  */
 @Component({
   selector: "app-auth-editor",
-  imports: [MatFormField, MatInput, Icon, FormsModule, MatIconButton, MatSelect, MatOption],
+  imports: [MatFormField, MatInput, Icon, FormsModule, MatIconButton, MatSelect, MatOption, MatCheckbox, OAuthTokenPanel],
   templateUrl: "./auth-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -93,6 +98,24 @@ export class AuthEditor {
     const auth = this.auth();
     this.authChange.emit({ ...(auth.type === "awsv4" ? auth : emptyAws), ...patch });
   }
+
+  readonly oauthGrants: { label: string; value: OAuthAuth["grant"] }[] = [
+    { label: "Authorization Code (PKCE)", value: "authorization_code" },
+    { label: "Client Credentials", value: "client_credentials" },
+    { label: "Password (legacy)", value: "password" },
+  ];
+  readonly oauthClientAuth: { label: string; value: OAuthAuth["clientAuth"] }[] = [
+    { label: "Basic header", value: "header" },
+    { label: "Request body", value: "body" },
+  ];
+  /** What a client registers with its identity provider. */
+  protected readonly redirectUri = oauthRedirectUri();
+
+  setOAuthField(patch: Partial<Omit<OAuthAuth, "type">>): void {
+    const auth = this.auth();
+    this.authChange.emit({ ...(auth.type === "oauth2" ? auth : (emptyAuth("oauth2") as OAuthAuth)), ...patch });
+  }
+
   onTogglePasswordVisibility(): void {
     this.togglePasswordVisibility.emit();
   }

@@ -547,6 +547,42 @@ code errors.
   WebCrypto's: with `@noble/hashes` the first bundle gained 11.5 kB, also
   when the signer was a lazy file, since the core's index reaches that
   package.
+- OAuth 2.0 (P4.7): `OAuthTokens` (`src/app/services/oauth-tokens.ts`) gets,
+  renews and keeps a token; what is pure is `packages/core/src/auth/oauth2.ts`.
+  The token is not in `AuthConfig`. It is kept under `oauthTokenKey` of the
+  auth, which is made with the variables replaced and the vault not read,
+  so the name holds no secret: as a vault secret when the vault is
+  unlocked, otherwise in that tab's memory. Nothing else stores one.
+- A token is fetched by a send or by Get token, never by a copy or an
+  export. It goes into the request after the variables are replaced (a
+  token is not a template) and into `BuiltRequest.secrets`, not
+  `credentials`: it is masked wherever a vault secret is, "with
+  credentials" too, and a script is shown the mask.
+- A token request goes out through `TransportRouter` after
+  `containsSecretPlaceholder`, and is not history. A client's secret in a
+  Basic header is form-encoded first (RFC 6749): that check reads Basic
+  credentials percent-decoded as well.
+- The sign-in window answers on the `BroadcastChannel` `wayfarer:oauth`
+  from `public/oauth/callback.html` (plan D20); only an answer with the
+  `state` made for that sign-in is taken. No `window.opener`, and COOP
+  stays `same-origin`. The callback page is not the app: its script and
+  style are files of its own (the CSP allows no inline one) and it imports
+  nothing of the app.
+- The redirect URI is `/oauth/callback`, without `.html`: Workers static
+  assets serve the page there, and answer the name with its extension
+  with a 307 whose query nobody promises to keep. `prod-server.mjs` serves
+  it the same way; `ng serve` does not, so `e2e/oauth.spec.ts` needs `CI=1`.
+- The service worker leaves every path under `/oauth/` to the network
+  (F69): an HTML page that is not the app goes there, or gets the same
+  rule. Any other HTML answer to a navigation is stored as the app's shell.
+- `OAuthTokens.tokenFor` reads the vault itself and waits for it. Do not
+  leave that to the effect that follows an unlock: a send that had just
+  unlocked the vault asked for a new token instead.
+- A new auth type goes into `AuthConfig`, `AUTH_TYPES`, `emptyAuth`, the
+  validator, `resolveAuth`, `credentialsOf`, the redactor, the Auth editor,
+  the Postman importer and exporter and the Insomnia and OpenAPI
+  importers. `resolveAuth` is also what finds the vault secrets a request
+  needs (F81): a field left out of it is never read from the vault.
 - A change to `resolver.ts`, `redactor.ts` or `vault-crypto.ts` keeps the
   mutation score at 85% or more: `npm -w packages/core run mutation`.
 - The CSP lives in `security/csp.json`; run `npm run gen:csp`. No

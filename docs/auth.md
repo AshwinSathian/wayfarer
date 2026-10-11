@@ -12,11 +12,12 @@ its collection's; the tab says what will be sent and where it comes from.
 | Basic Auth | `Authorization: Basic <base64 of username:password>`, the text as UTF-8 |
 | API Key | a header or a query parameter with the name and the value you give |
 | AWS Signature | the request signed with AWS Signature Version 4. See below |
+| OAuth 2.0 | `Authorization: Bearer <token>`, with a token the app gets from the identity provider and renews. See below |
 
 Every field may hold `{{variables}}`, and any of them may be a vault secret
 ([`secrets.md`](secrets.md)): a username or an access key as well as the
 token, the password, the key's value, the AWS secret key and the session
-token.
+token, an OAuth 2.0 client's secret.
 
 ## AWS Signature
 
@@ -88,3 +89,89 @@ Imported and exported: a Postman file's `awsv4` auth and an Insomnia
 export's AWS IAM auth become this type, and the Postman export writes it
 back ([`import.md`](import.md), [`export.md`](export.md)). An OpenAPI
 description has no scheme for it.
+
+## OAuth 2.0
+
+<!-- claim:C-062 -->
+
+The app gets an access token from your identity provider, sends it as
+`Authorization: Bearer <token>`, and renews it. Three grants:
+
+| Grant | What you give | How the token is got |
+|---|---|---|
+| Authorization Code (PKCE) | the authorization URL, the token URL, the client ID, a scope | **Get token** opens the provider's sign-in in a window. You sign in there; the app exchanges the code that comes back |
+| Client Credentials | the token URL, the client ID and secret, a scope | asked for when the request is sent, or with **Get token** |
+| Password (legacy) | the token URL, the client ID, the user's name and password | the same. OAuth 2.1 leaves this grant out: it hands the user's password to the client. Use it only where nothing else is offered |
+
+The implicit grant is not offered. The code grant is always sent with PKCE
+(`S256`), with a client secret or without one.
+
+**Register the redirect URI.** For the code grant the provider must know
+where to send the sign-in window back: the Auth tab shows the address,
+`<the app's origin>/oauth/callback`. Register exactly that with your
+client.
+
+**The sign-in window.** The provider sends the window back to a small page
+of the app, which hands the code to the tab that asked and closes. That
+page loads nothing but its own script and style, and stores nothing. The
+app takes an answer only when it carries the `state` value the app made
+for this sign-in; anything else is ignored, and the Auth tab says that
+something was. The app cannot see the window close: **Cancel sign-in**
+ends the wait, and so do five minutes. If the browser blocks the window,
+allow pop-ups for the app and choose Get token again.
+
+**The client secret** goes to the token endpoint in a Basic header, which
+every provider must accept, or in the request's body if you choose
+"Request body". A client with no secret (a public client) is named in the
+body.
+
+**Where the token is kept.** With the vault unlocked, the token and its
+refresh token are a vault secret, encrypted like any other and listed
+under Manage secrets as "OAuth 2.0 token" with the grant, the token URL,
+the client ID and the scope: that name is how the app finds it again, and
+it holds no secret. With the vault locked, or with no vault, the token is
+in this tab's memory only and is gone when the tab closes or reloads.
+Nothing else stores it: history holds `Bearer ***`, and so does every
+export and copy, "with credentials" included. A script is shown the mask
+too. **Forget token** removes it from memory and from the vault.
+
+One token serves every request whose auth has the same grant, token URL,
+client ID and scope (and user, for the password grant), in a collection's
+settings or in a request's own Auth tab. A request that inherits OAuth 2.0
+from its collection or folder gets and shows the token in its own Auth
+tab.
+
+**Renewal.** A token whose time is up is renewed when the request is
+sent: with its refresh token if it has one, otherwise by asking again
+(Client Credentials and Password). A provider that gives a new refresh
+token with each renewal has the old one replaced. When a token of the code
+grant cannot be renewed, the send is refused with a message and you sign
+in again. **"On a 401, get a new token and send once more"** does that
+when the server refuses a token the app still thought good; the response
+you see is the second one.
+
+**Token requests are sent like your own requests**: from the page, or
+through the Local Bridge when it is on, with the request timeout from
+Settings. They are not written to history. Sent from the page, a token
+endpoint must allow the app's origin (CORS); many do not. See
+[`browser-limits.md`](browser-limits.md#oauth).
+
+**The page must be served over https, or from localhost**, for the code
+grant: PKCE uses the browser's own cryptography.
+
+**A copied command carries no token.** "Copy as cURL" and the request as
+code write the request without an `Authorization` header: the token is
+fetched when a request is sent, and it is kept like a vault secret. The
+response's own Export menu writes the request as it was sent, with
+`Bearer ***`.
+
+**Not built:** the implicit and device grants, a token sent in the query,
+a header prefix other than `Bearer`, `audience` and `resource` parameters,
+and the provider's discovery document. Not checked by hand in Safari
+itself: the tests run in Playwright's WebKit.
+
+Imported and exported: a Postman file's `oauth2` auth, an Insomnia
+export's OAuth 2 auth and an OpenAPI description's `oauth2` security scheme
+become this type, each by its grant, and the Postman export writes it back
+([`import.md`](import.md), [`export.md`](export.md)). A token held in such
+a file is not imported.

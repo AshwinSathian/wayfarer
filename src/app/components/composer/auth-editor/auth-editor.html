@@ -145,11 +145,96 @@
   </div>
   }
 
+  @if (currentAuth.type === 'oauth2') {
+  <div class="flex flex-col gap-3">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
+      <mat-select class="select w-64! max-w-full!" [id]="idPrefix() + '-oauth-grant'" [aria-labelledby]="idPrefix() + '-oauth-grant-label'" [ngModel]="currentAuth.grant" (ngModelChange)="setOAuthField({ grant: $event })">
+        @for (option of oauthGrants; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    @if (currentAuth.grant === 'authorization_code') {
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Auth URL</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-auth-url'" placeholder="https://idp.example/authorize" [ngModel]="currentAuth.authUrl" (ngModelChange)="setOAuthField({ authUrl: $event })" />
+      </mat-form-field>
+    </div>
+    }
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token URL</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-token-url'" placeholder="https://idp.example/token" [ngModel]="currentAuth.tokenUrl" (ngModelChange)="setOAuthField({ tokenUrl: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-client-id'" placeholder="Client ID" [ngModel]="currentAuth.clientId" (ngModelChange)="setOAuthField({ clientId: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
+      <div class="flex flex-1 basis-48 items-center gap-2">
+        <mat-form-field class="field flex-1">
+          <input matInput [id]="idPrefix() + '-oauth-client-secret'" [type]="showPassword() ? 'text' : 'password'" placeholder="None for a public client" [ngModel]="currentAuth.clientSecret" (ngModelChange)="setOAuthField({ clientSecret: $event })" />
+        </mat-form-field>
+        <button matIconButton type="button" [attr.aria-label]="showPassword() ? 'Hide client secret' : 'Show client secret'" (click)="onTogglePasswordVisibility()"><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" /></button>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-scope'" placeholder="Separated by spaces" [ngModel]="currentAuth.scope" (ngModelChange)="setOAuthField({ scope: $event })" />
+      </mat-form-field>
+    </div>
+    @if (currentAuth.grant === 'password') {
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-username'" placeholder="Username" [ngModel]="currentAuth.username" (ngModelChange)="setOAuthField({ username: $event })" />
+      </mat-form-field>
+    </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
+      <mat-form-field class="field flex-1 basis-48">
+        <input matInput [id]="idPrefix() + '-oauth-password'" [type]="showPassword() ? 'text' : 'password'" placeholder="Password" [ngModel]="currentAuth.password" (ngModelChange)="setOAuthField({ password: $event })" />
+      </mat-form-field>
+    </div>
+    }
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
+      <mat-select class="select w-56! max-w-full!" [id]="idPrefix() + '-oauth-client-auth'" [aria-labelledby]="idPrefix() + '-oauth-client-auth-label'" [ngModel]="currentAuth.clientAuth" (ngModelChange)="setOAuthField({ clientAuth: $event })">
+        @for (option of oauthClientAuth; track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </div>
+    <mat-checkbox [id]="idPrefix() + '-oauth-retry'" [checked]="currentAuth.retryOn401" (change)="setOAuthField({ retryOn401: $event.checked })">On a 401, get a new token and send once more</mat-checkbox>
+    @if (currentAuth.grant === 'authorization_code') {
+    <p class="type-callout text-label-tertiary">Register this redirect URI with the identity provider: <span class="oauth-redirect-uri font-mono break-all text-label-secondary">{{ redirectUri }}</span></p>
+    }
+    @if (currentAuth.grant === 'password') {
+    <p class="type-callout text-label-tertiary">The password grant hands the user's password to the client. OAuth 2.1 leaves it out: use it only where nothing else is offered.</p>
+    }
+    @if (subject() === 'request') {
+    <app-oauth-token />
+    } @else {
+    <p class="type-callout text-label-tertiary">A request that inherits this gets its token in its own Auth tab.</p>
+    }
+  </div>
+  }
+
   @if (currentAuth.type === 'inherit') {
   <div class="auth-inherited flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
     <p class="type-callout text-label-secondary">{{ inheritedLine() }}</p>
   </div>
+  @if (subject() === 'request' && inherited().auth.type === 'oauth2') {
+  <app-oauth-token />
+  }
   }
 
   @if (currentAuth.type === 'none') {

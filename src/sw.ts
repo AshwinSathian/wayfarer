@@ -8,7 +8,8 @@
 // - Cross-origin requests are never intercepted: the user's API calls go
 //   straight to the network, and their failures reach the app unchanged.
 // - Navigations are network-first, falling back to the cached app shell, so
-//   the app loads offline after one visit.
+//   the app loads offline after one visit. Not those under /oauth/: that is
+//   the OAuth callback page, which is not the app.
 // - Hashed same-origin assets are cache-first (their names change when their
 //   content does). The initial ones are precached at install; lazy chunks are
 //   cached the first time they load.
@@ -22,6 +23,7 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_PREFIX = "wayfarer-";
 const CACHE = `${CACHE_PREFIX}${WAYFARER_SW.version}`;
 const SHELL = "/";
+const NOT_THE_APP = "/oauth/";
 // esbuild's output hashes: main-XU6HGUMA.js, media/inter-latin-…-B6TL4M5W.woff2
 const HASHED = /-[A-Z0-9]{8}\.[a-z0-9]+$/;
 
@@ -59,6 +61,10 @@ sw.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (url.origin !== sw.location.origin || request.method !== "GET") return;
+  // The OAuth callback page (`public/oauth/`) is a page of its own, not the
+  // app: it is left to the network, so it is never stored as the shell (F69)
+  // and the shell is never served in its place.
+  if (url.pathname.startsWith(NOT_THE_APP)) return;
   if (request.mode === "navigate") {
     event.respondWith(networkFirstShell(request));
   } else if (HASHED.test(url.pathname) || WAYFARER_SW.precache.includes(url.pathname)) {

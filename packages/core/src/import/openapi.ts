@@ -226,6 +226,35 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
       if (place !== "header" && place !== "query") return { auth: { type: `an API key in a ${place.slice(0, 20) || "place the file does not say"}` } };
       return { auth: { type: "apikey", apikey: { key: text(field(scheme, "name")), value: "{{apiKey}}", in: place } } };
     }
+    if (type === "oauth2") {
+      // OpenAPI 3 lists flows, Swagger 2.0 names one on the scheme itself. The first the app has; a client and its user are variables to fill in.
+      const flows = field(scheme, "flows");
+      const flow = (name: string, old: string): unknown => (swagger ? (field(scheme, "flow") === old ? scheme : undefined) : isObject(flows) ? resolve(field(flows, name)) : undefined);
+      const code = flow("authorizationCode", "accessCode");
+      const client = flow("clientCredentials", "application");
+      const password = flow("password", "password");
+      const chosen = code ?? client ?? password;
+      // Only a flow the app does not have (implicit), or none: the Postman importer says it is left out, by this name.
+      if (!isObject(chosen)) return { auth: { type, oauth2: { grant_type: (swagger ? text(field(scheme, "flow")) : Object.keys(isObject(flows) ? flows : {})[0]) || "none said" } } };
+      const asked = field(requirements.find(isObject) ?? {}, names[0]);
+      const scopes = field(chosen, "scopes");
+      const scope = (Array.isArray(asked) && asked.length ? asked.map(text) : isObject(scopes) ? Object.keys(scopes) : []).join(" ");
+      return {
+        auth: {
+          type,
+          oauth2: {
+            grant_type: chosen === code ? "authorization_code_with_pkce" : chosen === client ? "client_credentials" : "password_credentials",
+            authUrl: text(field(chosen, "authorizationUrl")),
+            accessTokenUrl: text(field(chosen, "tokenUrl")),
+            clientId: "{{clientId}}",
+            clientSecret: chosen === client ? "{{clientSecret}}" : "",
+            scope,
+            username: chosen === password ? "{{authUsername}}" : "",
+            password: chosen === password ? "{{authPassword}}" : "",
+          },
+        },
+      };
+    }
     return { auth: { type: (type === "http" ? `http ${how}` : type).slice(0, 60) } };
   };
 

@@ -211,7 +211,7 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
   const report = dialog(page);
   await expect(report.locator(".import-report")).toContainText("Postman collection");
   await expect(report.locator(".import-report")).toContainText('"shop.postman_collection.json" will add 1 collection, 1 folder and 2 requests.');
-  await expect(report.locator(".import-warnings")).toContainText('request "Signed". Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth.');
+  await expect(report.locator(".import-warnings")).toContainText('request "Signed". The OAuth 2.0 token in the file is not kept: get one in the Auth tab.');
   await expect(report.locator(".import-warnings")).toContainText('collection "Shop API". 1 saved response is left out');
   expect(await stored(page)).toBe(before);
 
@@ -222,7 +222,8 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
   expect(after["folders"]).toMatchObject([{ name: "Admin", auth: { type: "inherit" } }]);
   const requests = after["requests"] as { name: string; auth: unknown; scripts: { post: string }; url: string }[];
   expect(requests.find((doc) => doc.name === "List")).toMatchObject({ url: "{{base}}/echo?x=1", auth: { type: "inherit" } });
-  expect(requests.find((doc) => doc.name === "Signed")).toMatchObject({ auth: { type: "none" }, scripts: { pre: "", post: "pm.test('from Postman', () => {});" } });
+  // OAuth 2.0 as the file had it (P4.7): the type, with no grant said, and no token.
+  expect(requests.find((doc) => doc.name === "Signed")).toMatchObject({ auth: { type: "oauth2", grant: "authorization_code", tokenUrl: "" }, scripts: { pre: "", post: "pm.test('from Postman', () => {});" } });
   expect(JSON.stringify(after)).not.toContain("not-kept");
 
   // The request that inherits is sent with the collection's key.

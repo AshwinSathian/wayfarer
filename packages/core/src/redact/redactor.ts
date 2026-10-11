@@ -125,6 +125,8 @@ export class Redactor {
         return { ...auth, value: this.credential(auth.value, options) };
       case "awsv4":
         return { ...auth, secretKey: this.credential(auth.secretKey, options), sessionToken: this.credential(auth.sessionToken, options) };
+      case "oauth2":
+        return { ...auth, clientSecret: this.credential(auth.clientSecret, options), password: this.credential(auth.password, options) };
       case "none":
       case "inherit":
         return auth;

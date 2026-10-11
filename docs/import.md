@@ -125,7 +125,7 @@ A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
 | `info.name`, `info.description` | the collection's name and description |
 | `variable` | the collection's variables; one that is `disabled` is switched off |
 | a folder, in a folder | a folder. A folder's `variable` is its variables |
-| `auth` of the collection, a folder or a request | the auth, for `bearer`, `basic`, `apikey`, `awsv4` (AWS Signature, [`auth.md`](auth.md)) and `noauth`. **No `auth` at all is "Inherit from parent"**, as in Postman |
+| `auth` of the collection, a folder or a request | the auth, for `bearer`, `basic`, `apikey`, `awsv4` (AWS Signature, [`auth.md`](auth.md)), `oauth2` and `noauth`. Of OAuth 2.0: the grant (`authorization_code` with or without PKCE, `client_credentials`, `password_credentials`; none said is the code grant, as in Postman), the two addresses, the client, the scope, the user, and whether the client goes in a header or the body. **No `auth` at all is "Inherit from parent"**, as in Postman |
 | `event` | the scripts: `prerequest` and `test`, at each of the three levels |
 | `url` | the address, put together from the parts Postman sends by (`raw` when the file has no parts). The query is in the address |
 | `header` | header rows; v2.0's headers as one text are read line by line |
@@ -134,8 +134,11 @@ A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
 
 What the report says could not be kept:
 
-- **An auth type the app does not have**: OAuth 2.0 until it is built, and
-  Digest, NTLM, Hawk and OAuth 1.0. It is left
+- **An OAuth 2.0 token held in the file** is not kept: the report says so,
+  and you get one in the Auth tab. A token that Postman added to the
+  address is sent in the `Authorization` header here.
+- **An auth type the app does not have**: Digest, NTLM, Hawk, OAuth 1.0,
+  and OAuth 2.0 with the implicit grant. It is left
   out and the request is sent with no auth. It does not start to inherit:
   that would send another level's credentials where the file had its own.
 - **A path variable** (`/users/:id`). The app has `{{variables}}` only. One
@@ -194,7 +197,7 @@ write) both import.
 | an environment under the base environment | an environment. Choose it as the active one to get what choosing it in Insomnia gave |
 | an object in an environment (`{"paging": {"size": 20}}`) | one variable per value, named by its path: `paging.size`, which is what `{{ _.paging.size }}` became |
 | a folder's environment | the folder's variables |
-| `authentication` | Basic, Bearer, API key (in a header or the query) and AWS IAM (as AWS Signature). **None given, or one switched off, is "Inherit from parent"**: Insomnia then sends the nearest folder's. A Bearer token with a prefix other than `Bearer` is an API key header named `Authorization`, which sends the same text |
+| `authentication` | Basic, Bearer, API key (in a header or the query), AWS IAM (as AWS Signature) and OAuth 2 with the code, client credentials or password grant. **None given, or one switched off, is "Inherit from parent"**: Insomnia then sends the nearest folder's. A Bearer token with a prefix other than `Bearer` is an API key header named `Authorization`, which sends the same text |
 | a body | text with its language from the media type, a form's fields, a multipart form's parts, a file. A GraphQL body is the JSON text it is sent as |
 
 What the report says could not be kept:
@@ -210,8 +213,8 @@ What the report says could not be kept:
 - **A folder's variable that an environment also has.** Insomnia uses the
   folder's value. The app uses the environment's while that environment is
   active: a folder's variable wins over a collection's only.
-- **An auth type the app does not have** (OAuth 1.0 and 2.0,
-  Digest, NTLM, Hawk, ASAP, Netrc, an API key in a cookie): left out, and
+- **An auth type the app does not have** (OAuth 1.0, OAuth 2 with the
+  implicit grant, Digest, NTLM, Hawk, ASAP, Netrc, an API key in a cookie): left out, and
   the request is sent with no auth, as for a Postman file.
 - **gRPC, WebSocket and Socket.IO requests**, cookies, certificates, unit
   tests, an API specification and a mock server: left out.
@@ -259,7 +262,8 @@ can read of the file is read.
 | a body of another type | text, when the file gives an example that is text; a file body for `application/octet-stream` or a binary schema. A `Content-Type` header is added when the type is not the one the app sends for that kind of text |
 | Swagger 2.0's `body` and `formData` parameters, and `consumes` | the same bodies |
 | `security` of the file | the collection's auth; of an operation, the request's. **None on an operation is "Inherit from parent"**, and an empty one (`[]`, or `{}` first) is no auth |
-| a security scheme | an API key in a header or the query, HTTP Bearer, HTTP Basic. The file names a scheme and holds no credential: the value is a variable to fill in (`{{apiKey}}`, `{{bearerToken}}`, `{{authUsername}}` and `{{authPassword}}`) |
+| a security scheme | an API key in a header or the query, HTTP Bearer, HTTP Basic, OAuth 2.0. The file names a scheme and holds no credential: the value is a variable to fill in (`{{apiKey}}`, `{{bearerToken}}`, `{{authUsername}}` and `{{authPassword}}`) |
+| an `oauth2` scheme | OAuth 2.0 ([`auth.md`](auth.md)) by the first flow the app has: `authorizationCode`, then `clientCredentials`, then `password` (Swagger 2.0: `accessCode`, `application`, `password`), with the flow's addresses, the scopes the operation asks for (none asked: the flow's own), and the client as `{{clientId}}` and `{{clientSecret}}` |
 
 **A reference (`$ref`) is followed only when it points inside the file**
 (`#/components/schemas/Pet`). A reference to another file or to an address
@@ -276,8 +280,8 @@ What the report says could not be kept:
   file that is not there. In OpenAPI 3.1 a schema can also be referred to by
   its `$id` or `$anchor`: the app follows a reference by its place in the
   file only, and reports the others as it reports a file's name.
-- **A security scheme the app does not have**: OAuth 2.0 until it is built,
-  OpenID Connect, mutual TLS, HTTP Digest, an API key in a cookie. The
+- **A security scheme the app does not have**: OAuth 2.0 with only the
+  implicit flow, OpenID Connect, mutual TLS, HTTP Digest, an API key in a cookie. The
   request is sent with no auth, as for a Postman file.
 - **An operation that needs two schemes together**: the first is set.
 - **A body described in several media types**: the JSON one is the

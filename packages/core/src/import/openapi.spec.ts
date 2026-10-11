@@ -332,6 +332,51 @@ describe("an OpenAPI description (P4.3)", () => {
     expect(made({ parameters: [...form, { name: "photo", in: "formData", type: "file" }] }).body.multipart?.at(-1)).toEqual({ key: "photo", enabled: true, kind: "file", fileId: "", fileName: "" });
   });
 
+  it("an oauth2 scheme becomes OAuth 2.0 by the first flow the app has, with the addresses and the scopes the file gives and a client to fill in (P4.7)", () => {
+    const flows = {
+      implicit: { authorizationUrl: "https://idp.test/authorize", scopes: { read: "Read" } },
+      password: { tokenUrl: "https://idp.test/token", scopes: { read: "Read" } },
+      clientCredentials: { tokenUrl: "https://idp.test/token", scopes: { read: "Read", write: "Write" } },
+      authorizationCode: { authorizationUrl: "https://idp.test/authorize", tokenUrl: "https://idp.test/token", scopes: { read: "Read", write: "Write" } },
+    };
+    const securitySchemes = {
+      all: { type: "oauth2", flows },
+      machine: { type: "oauth2", flows: { clientCredentials: flows.clientCredentials } },
+      user: { type: "oauth2", flows: { password: flows.password } },
+      old: { type: "oauth2", flows: { implicit: flows.implicit } },
+    };
+    const operation = (name: string, security: unknown) => ({ get: { summary: name, security, ...ok } });
+    const { requests, warnings } = only(
+      v3({ "/all": operation("all", [{ all: ["read"] }]), "/machine": operation("machine", [{ machine: [] }]), "/user": operation("user", [{ user: [] }]), "/old": operation("old", [{ old: ["read"] }]) }, { components: { securitySchemes } }),
+    );
+    const base = { type: "oauth2", authUrl: "", tokenUrl: "https://idp.test/token", clientId: "{{clientId}}", clientSecret: "", scope: "read", username: "", password: "", clientAuth: "header", retryOn401: false };
+    expect(Object.fromEntries(requests.map((request) => [request.name, request.auth]))).toEqual({
+      // The scopes the operation asks for, not every scope of the flow.
+      all: { ...base, grant: "authorization_code", authUrl: "https://idp.test/authorize" },
+      // None asked for: the flow's own.
+      machine: { ...base, grant: "client_credentials", clientSecret: "{{clientSecret}}", scope: "read write" },
+      user: { ...base, grant: "password", username: "{{authUsername}}", password: "{{authPassword}}" },
+      old: { type: "none" },
+    });
+    expect(warnings).toEqual([{ item: 'request "old"', message: "Its auth is OAuth 2.0 with a grant the app does not have (implicit) and is left out: it is sent with no auth." }]);
+  });
+
+  it("Swagger 2.0 names one flow on the scheme: accessCode is the code grant, application the client's", () => {
+    const securityDefinitions = {
+      code: { type: "oauth2", flow: "accessCode", authorizationUrl: "https://idp.test/authorize", tokenUrl: "https://idp.test/token", scopes: { read: "Read" } },
+      app: { type: "oauth2", flow: "application", tokenUrl: "https://idp.test/token", scopes: {} },
+      old: { type: "oauth2", flow: "implicit", authorizationUrl: "https://idp.test/authorize", scopes: {} },
+    };
+    const operation = (name: string, security: unknown) => ({ get: { summary: name, security, ...ok } });
+    const { requests, warnings } = only(v2({ "/code": operation("code", [{ code: [] }]), "/app": operation("app", [{ app: [] }]), "/old": operation("old", [{ old: [] }]) }, { securityDefinitions }));
+    expect(requests.map((request) => [request.name, request.auth.type, "grant" in request.auth && request.auth.grant, "scope" in request.auth && request.auth.scope])).toEqual([
+      ["code", "oauth2", "authorization_code", "read"],
+      ["app", "oauth2", "client_credentials", ""],
+      ["old", "none", false, false],
+    ]);
+    expect(warnings.map((warning) => warning.message)).toEqual(["Its auth is OAuth 2.0 with a grant the app does not have (implicit) and is left out: it is sent with no auth."]);
+  });
+
   it("security: the file's is the collection's auth, an operation's is its own, none said inherits and an empty one is no auth; a value is a variable to fill in", () => {
     const securitySchemes = {
       key: { type: "apiKey", in: "header", name: "X-API-Key" },
@@ -384,7 +429,7 @@ describe("an OpenAPI description (P4.3)", () => {
       { item: 'request "both"', message: "It needs 2 security schemes together (key, token): only the first is set." },
       { item: 'request "cookie"', message: left("an API key in a cookie") },
       { item: 'request "digest"', message: left("http digest") },
-      { item: 'request "oauth"', message: left("oauth2") },
+      { item: 'request "oauth"', message: "Its auth is OAuth 2.0 with a grant the app does not have (none said) and is left out: it is sent with no auth." },
       { item: 'request "oidc"', message: left("openIdConnect") },
       { item: 'request "unknown"', message: left("nowhere, which the file does not describe") },
     ]);

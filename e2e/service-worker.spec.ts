@@ -69,6 +69,19 @@ test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app
   await expect(page.locator("input.address-url")).toBeVisible();
 });
 
+// F69: every HTML answer to a navigation was stored as the app's shell. The
+// OAuth callback page (P4.7) is the app's second HTML page.
+test("@claim:C-015 after an OAuth sign-in came back to the callback page, the offline app is still the app", async ({ page, context, browserName }) => {
+  await loadControlled(page);
+  await page.goto(`${base}/oauth/callback?code=c-1&state=s-1`);
+  await expect(page.getByText("Wayfarer has not answered.")).toBeVisible();
+  server.kill();
+  await new Promise((resolve) => server.once("exit", resolve));
+  if (browserName !== "webkit") await context.setOffline(true);
+  await page.goto(`${base}/`);
+  await expect(page.locator("input.address-url")).toBeVisible();
+});
+
 test("@claim:C-015 a script runs with the network disabled after one run online", async ({ page, context, browserName }) => {
   const script = { method: "GET", url: "http://127.0.0.1:4300/content/json?c015=script", preRequestScript: "pm.test('ran in the engine', () => pm.expect(require('lodash').chunk([1, 2, 3], 2).length).to.equal(2));" };
   await loadControlled(page);

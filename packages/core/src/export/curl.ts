@@ -34,6 +34,13 @@ function bodyArguments(body: ExportBody): string[] {
 }
 
 /**
+ * A name of the user's inside the comment line that stands for a command that is not written. As a JSON
+ * literal it holds no line break, which would end the comment. In single quotes it is text to a shell that
+ * does not read "#" as a comment: zsh at a prompt runs the line as a command, and expands `$(…)` first (F70).
+ */
+export const commentName = (name: string) => shellQuote(JSON.stringify(name));
+
+/**
  * The request as a cURL command for a POSIX shell, one argument per line.
  * A file of the body is named, not embedded: run the command where the
  * file is.
@@ -43,7 +50,7 @@ export function buildCurl(request: ExportRequest): string {
   // named `x=@/etc/passwd;` would send that file. Such a name cannot be said, so no command is written.
   const unsayable = request.body.mode === "multipart" ? request.body.parts.find((part) => /[=;"\r\n]/.test(part.name)) : undefined;
   if (unsayable) {
-    return `# curl cannot say this request: the name of the form part ${JSON.stringify(unsayable.name)} holds "=", ";", a quote or a line break, which curl reads as the end of the name.`;
+    return `# curl cannot say this request: the name of the form part ${commentName(unsayable.name)} holds "=", ";", a quote or a line break, which curl reads as the end of the name.`;
   }
   const parts: string[] = ["curl"];
   if (request.method === "HEAD") {

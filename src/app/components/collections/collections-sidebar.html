@@ -194,3 +194,8 @@
   [target]="settingsOf()"
   (closed)="settingsOf.set(null)"
 />
+
+<app-postman-export-dialog
+  [collection]="postmanExportOf()"
+  (closed)="postmanExportOf.set(null)"
+/>

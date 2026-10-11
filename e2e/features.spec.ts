@@ -268,10 +268,10 @@ test("folders and requests are reordered by drag and drop among their own kind, 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await createCollection(page, "Drag Col");
-  await createUnder(page, "Drag Col", 8, "New Folder", "Drag Folder A");
-  await createUnder(page, "Drag Col", 8, "New Folder", "Drag Folder B");
-  await createUnder(page, "Drag Col", 8, "New Request", "Drag Req 1");
-  await createUnder(page, "Drag Col", 8, "New Request", "Drag Req 2");
+  await createUnder(page, "Drag Col", 9, "New Folder", "Drag Folder A");
+  await createUnder(page, "Drag Col", 9, "New Folder", "Drag Folder B");
+  await createUnder(page, "Drag Col", 9, "New Request", "Drag Req 1");
+  await createUnder(page, "Drag Col", 9, "New Request", "Drag Req 2");
   const order = treeOrder(page, "Drag ");
   await expect.poll(order).toEqual(["Drag Col", "Drag Folder A", "Drag Folder B", "Drag Req 1", "Drag Req 2"]);
 

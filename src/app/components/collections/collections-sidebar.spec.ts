@@ -242,6 +242,7 @@ describe("CollectionsSidebar", () => {
       expect(labels).toContain("New Folder");
       expect(labels).toContain("New Request");
       expect(labels).toContain("Export");
+      expect(labels).toContain("Export for Postman…");
       expect(labels).toContain("Delete");
     });
 

@@ -13,7 +13,7 @@ export interface VariableChange {
 }
 
 /** A protected variable's value: one reference to a vault secret and nothing else. */
-const SECRET_REFERENCE = /^\s*\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}\s*$/i;
+export const SECRET_REFERENCE = /^\s*\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}\s*$/i;
 
 /**
  * The rows with the changes applied. A set replaces every row of that name

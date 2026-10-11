@@ -64,6 +64,18 @@ async function downloadText(page: Page, menuItem: string): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+/** The collection as a Postman file (P4.6 b), through its dialog. */
+async function postmanText(page: Page, credentials: boolean): Promise<string> {
+  await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
+  const dialog = page.getByRole("dialog", { name: "Export for Postman" });
+  if (credentials) await dialog.getByRole("checkbox", { name: "Include credentials" }).check();
+  const [download] = await Promise.all([page.waitForEvent("download"), dialog.getByRole("button", { name: "Export file" }).click()]);
+  const chunks: Buffer[] = [];
+  for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
 test("the scanner finds a secret in each encoding it claims to look for", () => {
   expect(found(`x ${SECRET} y`, SECRET)).toEqual(["plain"]);
   expect(found(`k=${encodeURIComponent(SECRET)}`, SECRET)).toEqual(["percent"]);
@@ -132,6 +144,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   await expect.poll(clipboard).toHaveLength(9);
   const copied = await clipboard();
   const files = [await downloadText(page, "Export"), await downloadText(page, "Export with credentials")];
+  const postman = [await postmanText(page, false), await postmanText(page, true)];
 
   // What the script wrote, as the page shows it: its console, its test row and its own error.
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
@@ -157,6 +170,8 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "composer code: HTTPie": copied[8],
     "collection export": files[0],
     "collection export with credentials": files[1],
+    "Postman collection export": postman[0],
+    "Postman collection export with credentials": postman[1],
     "what the script wrote on the page": scriptOutput,
   };
   // All eight stores were read, and the exports are the real thing.
@@ -167,6 +182,8 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(copied[7]).toContain("requests.request(");
   expect(copied[8]).toMatch(/^http /);
   expect(files[0]).toContain('"$id": "wayfarer/collection/3"');
+  expect(postman[0]).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
+  expect(postman[1]).toContain('"key": "username"');
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, SECRET)]))).toEqual(
     Object.fromEntries(Object.keys(searched).map((place) => [place, []]))
   );

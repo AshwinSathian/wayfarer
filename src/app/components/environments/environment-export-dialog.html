@@ -1,6 +1,26 @@
 <ui-dialog header="Export environments" [visible]="visible()" (visibleChange)="$event ? null : close()" width="520px">
   <div class="flex flex-col gap-4">
     <div>
+      <span id="env-export-format-label" class="ds-form-label">File for</span>
+      <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator aria-labelledby="env-export-format-label" [value]="format()" (change)="setFormat($event.value)">
+        <mat-button-toggle value="wayfarer">Wayfarer</mat-button-toggle>
+        <mat-button-toggle value="postman">Postman</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    @if (format() === 'postman') {
+    <div class="flex flex-col gap-1.5">
+      <span id="env-export-environment-label" class="ds-form-label">Environment</span>
+      <mat-select class="select w-full!" aria-labelledby="env-export-environment-label" [ngModel]="chosen() || environments()[0]?.meta?.id" (ngModelChange)="chosen.set($event)">
+        @for (environment of environments(); track environment.meta.id) {
+        <mat-option [value]="environment.meta.id">{{ environment.name }}</mat-option>
+        }
+      </mat-select>
+      <p class="type-caption text-label-tertiary">A Postman environment file holds one environment.</p>
+    </div>
+    }
+
+    <div>
       <span id="env-export-mode-label" class="ds-form-label">Protected variables</span>
       <mat-button-toggle-group
         class="segmented"
@@ -10,7 +30,9 @@
         (change)="mode.set($event.value); error.set('')"
       >
         <mat-button-toggle value="strip">Leave out</mat-button-toggle>
+        @if (format() === 'wayfarer') {
         <mat-button-toggle value="references">With the vault</mat-button-toggle>
+        }
         <mat-button-toggle value="plain">Plain text</mat-button-toggle>
       </mat-button-toggle-group>
     </div>

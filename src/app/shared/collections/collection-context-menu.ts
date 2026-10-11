@@ -3,7 +3,7 @@ import { UiTreeNode } from "../../ui/tree";
 import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
-export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "settings";
+export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "export-postman" | "settings";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
@@ -27,6 +27,7 @@ export function buildContextItems(
       { label: "Duplicate", icon: "content_copy", command: () => dispatch("duplicate", node) },
       { label: "Export", icon: "download", command: () => dispatch("export", node) },
       { label: "Export with credentials", icon: "key", command: () => dispatch("export-credentials", node) },
+      { label: "Export for Postman…", icon: "download", command: () => dispatch("export-postman", node) },
       { label: "Delete", icon: "delete", command: () => dispatch("delete", node) },
     ];
   }

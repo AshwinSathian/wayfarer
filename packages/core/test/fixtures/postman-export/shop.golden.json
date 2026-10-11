@@ -1,0 +1,139 @@
+{
+  "runner": "newman@6.2.3",
+  "items": [
+    {
+      "name": "Form",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "folder Admin: its basic auth arrived",
+          "passed": true
+        },
+        {
+          "name": "Form: the scripts ran from the collection inward",
+          "passed": true
+        },
+        {
+          "name": "Form: the fields that are switched on arrived",
+          "passed": true
+        },
+        {
+          "name": "Form: it is a form",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "JSON",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "folder Admin: its basic auth arrived",
+          "passed": true
+        },
+        {
+          "name": "JSON: a request without a script of its own still ran the others",
+          "passed": true
+        },
+        {
+          "name": "JSON: the body arrived with its variable replaced",
+          "passed": true
+        },
+        {
+          "name": "JSON: its language is its type",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Multipart",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "Multipart: its own key replaced the collection's bearer",
+          "passed": true
+        },
+        {
+          "name": "Multipart: it is a multipart form",
+          "passed": true
+        },
+        {
+          "name": "Multipart: the text part and the file arrived, the part switched off did not",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "File",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "File: no auth was sent",
+          "passed": true
+        },
+        {
+          "name": "File: the file's bytes arrived under its type",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "XML",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "XML: the key went into the query",
+          "passed": true
+        },
+        {
+          "name": "XML: the body arrived as XML",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "Inherit bearer",
+      "tests": [
+        {
+          "name": "collection: the server answered 200",
+          "passed": true
+        },
+        {
+          "name": "Inherit bearer: the collection's token arrived",
+          "passed": true
+        },
+        {
+          "name": "Inherit bearer: the query arrived as typed, without the row switched off",
+          "passed": true
+        },
+        {
+          "name": "Inherit bearer: the header switched off was not sent",
+          "passed": true
+        },
+        {
+          "name": "Inherit bearer: only the collection's script and its own ran",
+          "passed": true
+        },
+        {
+          "name": "Inherit bearer: fails on purpose, the answer is not 404",
+          "passed": false
+        }
+      ]
+    }
+  ]
+}

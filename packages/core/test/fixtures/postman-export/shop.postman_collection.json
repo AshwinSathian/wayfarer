@@ -1,0 +1,516 @@
+{
+  "info": {
+    "_postman_id": "shop",
+    "name": "Shop",
+    "description": "Every body mode, and auth and scripts at three levels.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin",
+      "id": "admin",
+      "auth": {
+        "type": "basic",
+        "basic": [
+          {
+            "key": "username",
+            "value": "admin",
+            "type": "string"
+          },
+          {
+            "key": "password",
+            "value": "p@ss",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"order\", pm.collectionVariables.get(\"order\") + \"f\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+              "pm.test(\"folder Admin: its basic auth arrived\", () => pm.expect(header(\"authorization\")).to.eql(\"Basic YWRtaW46cEBzcw==\"));"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Deep",
+          "id": "deep",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"order\", pm.collectionVariables.get(\"order\") + \"d\");"
+                ]
+              }
+            }
+          ],
+          "item": [
+            {
+              "name": "Form",
+              "id": "form",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set(\"order\", pm.collectionVariables.get(\"order\") + \"r\");"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+                      "pm.test(\"Form: the scripts ran from the collection inward\", () => pm.expect(header(\"x-order\")).to.eql(\"cfdr\"));",
+                      "pm.test(\"Form: the fields that are switched on arrived\", () => pm.expect(echo.body.replace(/\\+/g, \"%20\")).to.eql(\"q=a%20b%26c&greeting=hello\"));",
+                      "pm.test(\"Form: it is a form\", () => pm.expect(header(\"content-type\")).to.include(\"application/x-www-form-urlencoded\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "X-Order",
+                    "value": "{{order}}"
+                  }
+                ],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "q",
+                      "value": "a b&c",
+                      "type": "text"
+                    },
+                    {
+                      "key": "greeting",
+                      "value": "{{greeting}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "off",
+                      "value": "1",
+                      "type": "text",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base}}/echo",
+                  "host": [
+                    "{{base}}"
+                  ],
+                  "path": [
+                    "echo"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "JSON",
+          "id": "json",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+                  "pm.test(\"JSON: a request without a script of its own still ran the others\", () => pm.expect(header(\"x-order\")).to.eql(\"cf\"));",
+                  "pm.test(\"JSON: the body arrived with its variable replaced\", () => pm.expect(echo.body).to.eql('{\"name\":\"hello\"}'));",
+                  "pm.test(\"JSON: its language is its type\", () => pm.expect(header(\"content-type\")).to.include(\"application/json\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Order",
+                "value": "{{order}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"{{greeting}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/echo",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "echo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bodies",
+      "id": "bodies",
+      "item": [
+        {
+          "name": "Multipart",
+          "id": "multipart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+                  "pm.test(\"Multipart: its own key replaced the collection's bearer\", () => { pm.expect(header(\"x-key\")).to.eql(\"k-1\"); pm.expect(header(\"authorization\")).to.eql(undefined); });",
+                  "pm.test(\"Multipart: it is a multipart form\", () => pm.expect(header(\"content-type\")).to.match(/^multipart\\/form-data; boundary=/));",
+                  "pm.test(\"Multipart: the text part and the file arrived, the part switched off did not\", () => {",
+                  "  pm.expect(echo.body).to.include('name=\"note\"');",
+                  "  pm.expect(echo.body).to.include(\"with a file\");",
+                  "  pm.expect(echo.body).to.include('filename=\"pixel.png\"');",
+                  "  pm.expect(echo.body).to.not.include('name=\"left\"');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Order",
+                "value": "{{order}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "note",
+                  "value": "with a file",
+                  "type": "text"
+                },
+                {
+                  "key": "upload",
+                  "type": "file",
+                  "src": "pixel.png"
+                },
+                {
+                  "key": "left",
+                  "value": "out",
+                  "type": "text",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base}}/echo",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "echo"
+              ]
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-Key",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "k-1",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "header",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "File",
+          "id": "file",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+                  "pm.test(\"File: no auth was sent\", () => pm.expect(header(\"authorization\")).to.eql(undefined));",
+                  "pm.test(\"File: the file's bytes arrived under its type\", () => {",
+                  "  pm.expect(echo.body.length).to.eql(64);",
+                  "  pm.expect(echo.body.charCodeAt(63)).to.eql(63);",
+                  "  pm.expect(header(\"content-type\")).to.eql(\"image/png\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Order",
+                "value": "{{order}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "image/png"
+              }
+            ],
+            "body": {
+              "mode": "file",
+              "file": {
+                "src": "pixel.png"
+              }
+            },
+            "url": {
+              "raw": "{{base}}/echo",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "echo"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "XML",
+          "id": "xml",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+                  "pm.test(\"XML: the key went into the query\", () => pm.expect(echo.url).to.eql(\"/echo?kind=xml&api_key=k-2\"));",
+                  "pm.test(\"XML: the body arrived as XML\", () => { pm.expect(echo.body).to.eql(\"<a>hello</a>\"); pm.expect(header(\"content-type\")).to.include(\"application/xml\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Order",
+                "value": "{{order}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<a>{{greeting}}</a>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/echo?kind=xml",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "echo"
+              ],
+              "query": [
+                {
+                  "key": "kind",
+                  "value": "xml"
+                }
+              ]
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "api_key",
+                  "type": "string"
+                },
+                {
+                  "key": "value",
+                  "value": "k-2",
+                  "type": "string"
+                },
+                {
+                  "key": "in",
+                  "value": "query",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inherit bearer",
+      "id": "inherit",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"order\", pm.collectionVariables.get(\"order\") + \"r\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];",
+              "pm.test(\"Inherit bearer: the collection's token arrived\", () => pm.expect(header(\"authorization\")).to.eql(\"Bearer col-token\"));",
+              "pm.test(\"Inherit bearer: the query arrived as typed, without the row switched off\", () => pm.expect(echo.url).to.eql(\"/echo?a=1&b=two%20words\"));",
+              "pm.test(\"Inherit bearer: the header switched off was not sent\", () => pm.expect(header(\"x-off\")).to.eql(undefined));",
+              "pm.test(\"Inherit bearer: only the collection's script and its own ran\", () => pm.expect(header(\"x-order\")).to.eql(\"cr\"));",
+              "pm.test(\"Inherit bearer: fails on purpose, the answer is not 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Order",
+            "value": "{{order}}"
+          },
+          {
+            "key": "X-Off",
+            "value": "1",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/echo?a=1&b=two%20words",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "echo"
+          ],
+          "query": [
+            {
+              "key": "a",
+              "value": "1"
+            },
+            {
+              "key": "c",
+              "value": "3",
+              "disabled": true
+            },
+            {
+              "key": "b",
+              "value": "two%20words"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.collectionVariables.set(\"order\", \"c\");"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"collection: the server answered 200\", () => pm.response.to.have.status(200));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "greeting",
+      "value": "hello",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "col-token",
+      "type": "string"
+    },
+    {
+      "key": "order",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "unused",
+      "value": "off",
+      "type": "string",
+      "disabled": true
+    }
+  ]
+}

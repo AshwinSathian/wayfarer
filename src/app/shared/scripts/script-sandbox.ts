@@ -66,7 +66,7 @@ export class ScriptSandbox {
 
   constructor() {
     // In the app this service lives as long as the page. A unit test makes one per test: each left its worker running
-    // with the engine's memory, and the 124th engine found none ("WebAssembly.Memory(): could not allocate memory").
+    // with the engine's memory, and an engine past the hundred-and-twentieth found none ("WebAssembly.Memory(): could not allocate memory").
     inject(DestroyRef).onDestroy(() => this.worker?.terminate());
   }
 

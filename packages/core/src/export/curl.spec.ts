@@ -147,7 +147,7 @@ describe("buildCurl: nothing the request holds is read as an option or as a file
   it("a form part whose name would end at an = of its own is not written: curl would read the rest by its own rules", () => {
     const steal = request({ method: "POST", body: { mode: "multipart", parts: [{ name: "x=@/etc/passwd;", fileName: "real.txt" }] } });
 
-    expect(buildCurl(steal)).toBe('# curl cannot say this request: the name of the form part "x=@/etc/passwd;" holds "=", ";", a quote or a line break, which curl reads as the end of the name.');
+    expect(buildCurl(steal)).toBe('# curl cannot say this request: the name of the form part \'"x=@/etc/passwd;"\' holds "=", ";", a quote or a line break, which curl reads as the end of the name.');
     for (const name of ["a=b", "a;type=text/plain", 'a"b', "a\nb"]) {
       expect(buildCurl(request({ method: "POST", body: { mode: "multipart", parts: [{ name, value: "text" }] } })), name).toMatch(/^# curl cannot say this request/);
     }

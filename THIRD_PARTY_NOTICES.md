@@ -22,6 +22,8 @@ Self-hosted from `@fontsource/jetbrains-mono`. Copyright 2020 The JetBrains Mono
 - `adyen/`: six collections of Adyen's Postman repository (https://github.com/Adyen/adyen-postman). Copyright (c) 2023 Adyen. MIT (`adyen/LICENSE`).
 - `msgraph/`: the Microsoft Graph Postman collection and its environments (https://github.com/microsoftgraph/microsoftgraph-postman-collections). Copyright (c) 2019 Microsoft Graph. MIT (`msgraph/LICENSE`).
 
+`packages/core/test/fixtures/insomnia/` holds Insomnia export files from Insomnia's own repository (https://github.com/Kong/insomnia), unchanged, for the tests of the Insomnia importer, at the commit named in `packages/core/test/fixtures/insomnia/SOURCES.md`. Copyright Kong Inc. Licensed under the Apache License, Version 2.0 (`packages/core/test/fixtures/insomnia/LICENSE`).
+
 ## Apache License, Version 2.0 (full text)
 
 ```

@@ -413,7 +413,7 @@ describe("a YAML file (P4.4)", () => {
     const imported = importText(stringify(v5([{ name: "Ping", method: "GET", url: "https://api.test/ping", meta: { id: "req_1" } }])));
     expect(imported.report).toMatchObject({ format: "insomnia", counts: { collections: 1, requests: 1 } });
     // A byte order mark in front is not part of the text.
-    expect(importText(`﻿${stringify(v5([]))}`).report.format).toBe("insomnia");
+    expect(importText(`\uFEFF${stringify(v5([]))}`).report.format).toBe("insomnia");
   });
 
   it("a file that uses aliases to grow as it is read is refused with a message, in no time", () => {

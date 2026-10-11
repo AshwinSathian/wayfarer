@@ -82,7 +82,7 @@ describe("Insomnia files other people wrote (P4.4)", () => {
     expect([versions.filter((version) => version === 4).length, versions.filter((version) => version === 5).length]).toEqual([6, 52]);
   });
 
-  it.each(exports)("%s imports, with the counts the file itself gives", (file) => {
+  it.each(exports)("@claim:C-059 %s imports, with the counts the file itself gives", (file) => {
     let imported: Imported;
     try {
       imported = importText(read(file));

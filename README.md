@@ -65,6 +65,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - **One import road**: every file you import is read and checked off the page's thread, and a report shows what it will add and what of it could not be kept before anything is stored; Cancel stores nothing <!-- claim:C-054 -->. See [`docs/import.md`](docs/import.md)
   - **Export for Postman**: a collection as a Postman Collection v2.1 file, with its folders, variables, auth and scripts at every level and each request's body, credentials masked unless asked for; an environment as a Postman environment file. Newman runs the exported collection and gives the results the app gives <!-- claim:C-057 -->. See [`docs/export.md`](docs/export.md)
   - **Import from Postman**: Collection v2.0 and v2.1 files, with folders, variables, auth and scripts at every level, and environment and globals files. The report says what could not be kept, and scripts wait for your review <!-- claim:C-058 -->. See [`docs/import.md`](docs/import.md)
+  - **Import from Insomnia**: an export in format 4 (JSON or YAML) or format 5 (YAML), with its folders, requests, auth, bodies and environments. Insomnia's scripts and template tags are not kept, and the report says so <!-- claim:C-059 -->
   - **Paste a cURL command** into the address field and it becomes the request, or import it, or a **HAR 1.2** file, as a collection <!-- claim:C-056 -->
   - A collection and a folder have **settings**: auth for the requests set to inherit, variables, and scripts that run before and after every request in them
   - **Workspace backup**: every collection, request, environment, the global variables and the vault (still encrypted) in one file, and a restore from it; a restored collection's scripts are untrusted until approved <!-- claim:C-046 -->
@@ -189,7 +190,7 @@ A September 2026 audit found gaps between these docs and the code. Each is an op
 
 - Data and files from Wayfarer 1.x are not read: version 2 starts empty, and a 1.x collection or environment file is refused on import.
 - A browser can still delete a site's data (Safari does after seven days without a visit, unless the app is installed). Wayfarer asks the browser to keep it and reminds you to back up; it cannot make the browser promise.
-- No OpenAPI or Insomnia import yet ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)). Postman files, a cURL command and a HAR file import.
+- No OpenAPI import yet ([#78](https://github.com/AshwinSathian/wayfarer/issues/78)). Postman and Insomnia files, a cURL command and a HAR file import.
 - The Local Bridge is a global switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 
 ---

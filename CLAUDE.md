@@ -596,8 +596,14 @@ code errors.
   took a gigabyte. Do not raise the limit without measuring. Its
   `uniqueKeys: false` and `prettyErrors: false` stay: both defaults are
   quadratic. `maxAliasCount` is 100 (claim C-059).
+- The OpenAPI importer (`packages/core/src/import/openapi.ts`) uses no
+  parser library (maintainer, 2026-10-11) and follows a `$ref` only when it
+  points inside the file (`#/…`): it has no code that could fetch one, and
+  must gain none (claim C-060, C-001). A sample written from a schema ends
+  at a schema inside itself and at `SAMPLE_VALUES` values; keep both.
 - The Insomnia importer writes Postman's shape and `postmanCollection`
-  makes the model from it: one mapping to the model. A new format that is
+  makes the model from it, and the OpenAPI importer does the same: one
+  mapping to the model. A new format that is
   requests in folders can take the same road.
 - The report's script warnings come from `SCRIPT_SCAN`
   (`packages/core/src/import/script-scan.ts`), which a test holds equal to

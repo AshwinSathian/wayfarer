@@ -8,6 +8,7 @@ import { isCurlCommand } from "./curl-command";
 import { isHar, parseHar } from "./har";
 import { ImportError } from "./import-error";
 import { insomniaExport, isInsomnia } from "./insomnia";
+import { isOpenApi, openApiCollection } from "./openapi";
 import { isPostmanCollection, isPostmanEnvironment, isPostmanV1, postmanCollection, postmanEnvironment } from "./postman";
 import { unsupportedApis } from "./script-scan";
 import { importCollection, type CollectionImportPlanEntry } from "./wayfarer-collection";
@@ -25,6 +26,7 @@ export const IMPORT_FORMATS = {
   "postman-collection": "Postman collection",
   "postman-environment": "Postman environment",
   insomnia: "Insomnia export",
+  openapi: "OpenAPI description",
 } as const;
 export type ImportFormat = keyof typeof IMPORT_FORMATS;
 
@@ -60,7 +62,7 @@ export interface ImportOptions {
   duplicateAsNew?: boolean;
 }
 
-const UNKNOWN = `This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "${COLLECTION_FORMAT}"), a Wayfarer environments file ("$id": "${ENVIRONMENTS_FORMAT}"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), a HAR 1.2 file, and a cURL command.`;
+const UNKNOWN = `This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "${COLLECTION_FORMAT}"), a Wayfarer environments file ("$id": "${ENVIRONMENTS_FORMAT}"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.`;
 
 function idOf(value: unknown): string {
   if (typeof value !== "object" || value === null || Array.isArray(value) || !Object.hasOwn(value, "$id")) return "";
@@ -79,8 +81,9 @@ export function detectFormat(value: unknown): ImportFormat | null {
   if (id.startsWith("wayfarer/collection/")) return "wayfarer-collection";
   if (id.startsWith("wayfarer/environments/")) return "wayfarer-environments";
   if (isHar(value)) return "har";
-  // Before Postman's: an Insomnia file says what it is, and a Postman file is known by a list it holds.
+  // Before Postman's: an Insomnia file and an OpenAPI description say what they are, and a Postman file is known by a list it holds.
   if (isInsomnia(value)) return "insomnia";
+  if (isOpenApi(value)) return "openapi";
   if (isPostmanCollection(value)) return "postman-collection";
   if (isPostmanEnvironment(value)) return "postman-environment";
   return null;
@@ -194,11 +197,13 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
     const requests = parseHar(value).map(({ name, request, warnings }) => ({ name, ...curlRequest({ request, warnings }) }));
     return built("har", "Imported from HAR", requests);
   }
-  if (format === "postman-collection") {
-    const { payload, warnings } = postmanCollection(value);
+  if (format === "postman-collection" || format === "openapi") {
+    // An OpenAPI description is written out as a Postman collection first: one mapping to the app's model.
+    const source = format === "openapi" ? openApiCollection(value) : { collection: value, warnings: [] };
+    const { payload, warnings } = postmanCollection(source.collection);
     const collection = added(payload);
     return {
-      report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, [...warnings, ...inheritedScriptWarnings(collection.payload)]),
+      report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, [...source.warnings, ...warnings, ...inheritedScriptWarnings(collection.payload)]),
       collections: [collection],
       environments: [],
     };

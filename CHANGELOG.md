@@ -68,6 +68,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - The YAML reader (`yaml` 2.9.1, ISC) is in the import worker, which is fetched when a file is picked or a cURL command pasted: the worker is 144,444 B (46,734 B gzip), from 36,094 B. The page's first load is 45 B larger.
   - See [`docs/import.md`](docs/import.md).
 
+- **OpenAPI and Swagger descriptions import (P4.3, [#78](https://github.com/AshwinSathian/wayfarer/issues/78)).** An OpenAPI 3.0 or 3.1 description, or a Swagger 2.0 one, in JSON or YAML, picked with any Import button becomes a collection with a request for each operation. Before this such a file was refused as "not a file Wayfarer can import". With it, every importer the plan names is there: Wayfarer's own files, Postman, Insomnia, OpenAPI, cURL and HAR.
+  - **A request per operation, in a folder per tag.** The first server is the collection's variable `baseUrl`, and every address starts with `{{baseUrl}}`; a path parameter (`/pets/{petId}`) is the variable `{{petId}}`. Query and header parameters carry the value the file gives (an example, a default, the first of an enum).
+  - **A body is written for you.** A JSON body is the file's example, or a value written from the schema: each property with its example or default, and under that a value of its type. A form and a multipart form get their fields from the schema, a file part where the schema says binary.
+  - **Auth from the security schemes**: an API key in a header or the query, HTTP Bearer and Basic, on the collection for the file's own `security` and on a request for an operation's. The file holds no credential, so the value is a variable to fill in (`{{apiKey}}`, `{{bearerToken}}`). OAuth 2.0, OpenID Connect and the others the app does not have are left out and said.
+  - **Nothing is fetched.** A `$ref` is followed only when it points inside the file. One to another file or to an address is never requested: the importer has no code that could. What it would have described is left out, and the report names each such reference. A schema that holds itself ends there.
+  - **No parser library was added** (three were measured; the plan's section 16 has the numbers): the importer is 9,591 B of the app's own code in the import worker (154,248 B with it), fetched when a file is picked, and `npm audit` still reports 0.
+  - A description in YAML may be 1 MB, like every YAML file; a larger one is refused with a message that says to convert it to JSON, which may be 10 MB. A Swagger 1.x file, and a description with no operation, are refused with a message.
+  - Tested with files other people wrote, at pinned commits: the Petstore as Swagger 2.0 (20 operations), OpenAPI 3.0 (19) and OpenAPI 3.1 (6), and ten of the OpenAPI Specification's own examples. Each of the twelve with operations imports with exactly as many requests as a count of its paths and methods gives.
+  - The README's limitation "No OpenAPI import yet" is gone. See [`docs/import.md`](docs/import.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."

@@ -45,6 +45,8 @@ or a body mode the app does not have, a field that is dropped).
 |---|---|---|
 | Wayfarer collection | `"$id": "wayfarer/collection/3"` | See [`collections-schema.md`](collections-schema.md). "Import as duplicate" stores it under new ids beside the collection it came from; otherwise a collection, folder or request here with the same id is replaced. |
 | Wayfarer environments | `"$id": "wayfarer/environments/2"` | Each environment is added, or replaces the environment of the same name: the report lets you choose per environment. |
+| Postman collection, v2.0 or v2.1 | it has `item`: the list of requests and folders | See below. A Collection v1 file is refused with a message that says to export v2.1 from Postman. |
+| Postman environment or globals | `values`, each with a `key`; or the bare list of them an older Postman wrote for globals | One environment. See below. |
 | HAR 1.2 | `log.entries` | One request per entry, in the file's order, in a new collection "Imported from HAR". See below. |
 | cURL command | the text starts with `curl` | One request, in a new collection "Imported from cURL". See below. |
 
@@ -108,6 +110,81 @@ header), and the body: a form's fields, a multipart form's parts, or text.
 The responses and the timings are not imported. A binary body (base64 in
 the file) is left out, and a multipart body that the file holds only as
 text is kept as that text; the report says so for each.
+
+## A Postman collection
+
+<!-- claim:C-058 -->
+
+A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
+
+| In the file | Becomes |
+|---|---|
+| `info.name`, `info.description` | the collection's name and description |
+| `variable` | the collection's variables; one that is `disabled` is switched off |
+| a folder, in a folder | a folder. A folder's `variable` is its variables |
+| `auth` of the collection, a folder or a request | the auth, for `bearer`, `basic`, `apikey` and `noauth`. **No `auth` at all is "Inherit from parent"**, as in Postman |
+| `event` | the scripts: `prerequest` and `test`, at each of the three levels |
+| `url` | the address, put together from the parts Postman sends by (`raw` when the file has no parts). The query is in the address |
+| `header` | header rows; v2.0's headers as one text are read line by line |
+| `body` | `raw` with its language, `urlencoded`, `formdata`, `file`. Every part the file holds is kept, and `mode` says which is sent |
+| a description of a folder or a request | kept, and written back by an export. The app does not show it yet |
+
+What the report says could not be kept:
+
+- **An auth type the app does not have**: OAuth 2.0 and AWS Signature
+  until they are built, and Digest, NTLM, Hawk and OAuth 1.0. It is left
+  out and the request is sent with no auth. It does not start to inherit:
+  that would send another level's credentials where the file had its own.
+- **A path variable** (`/users/:id`). The app has `{{variables}}` only. One
+  with a value in the file is replaced by the value; one without becomes
+  `{{id}}`, which the composer asks you for before it sends.
+- **A query parameter that is switched off.** It is kept and an export
+  writes it back, but the composer has no switch for a parameter: it does
+  not show one, and saving the request there drops it.
+- **A GraphQL body.** It is kept as the JSON text it is sent as.
+- **Files.** A file is named, not included: choose it again in the Body tab.
+- **Saved responses** (examples). The app keeps responses in its history.
+- **A request with no address**, or with a method that is not an HTTP
+  method. It is left out.
+- **The order of a folder's contents**, where requests stand before
+  folders: the app lists a folder's folders first.
+- **A script that uses what the app does not have**, as for every import.
+
+Not read, and not in the report: a request's own settings in Postman
+(`protocolProfileBehavior`: redirects, certificate checks), the type of a
+single form part, and a script that is given by a file's name (`src`).
+
+**Scripts are imported, not approved.** They wait for your review like the
+scripts of any imported collection.
+
+**It is tested with files other people wrote**: all of Newman's own
+integration collections, six of Adyen's API collections and Microsoft
+Graph's, 51 collections and 12 environments. Each imports. Each
+collection, exported as a Postman file ([`export.md`](export.md)) and
+imported again, is the same collection. And twelve of Newman's collections
+are run, as imported, by the app's engine against a local server, and give
+exactly the test results Newman gives for the files themselves. The others
+are listed with the reason each is not compared: 15 that Newman cannot run
+without another server, a data file or a file to upload; 11 that use what
+the app does not have (an auth type, a library); and 7 where the app's
+engine differs from Newman in a way that is a known fault, not a missing
+feature ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)): a
+variable whose name holds a slash, `return` outside a function, a number
+kept as a number between requests, and three parts of Postman's older
+sandbox.
+
+## A Postman environment or globals file
+
+<!-- claim:C-058 -->
+
+Becomes one environment: its `values`, one that is switched off as a row
+that is switched off. **Postman's globals become an environment too**,
+named "Postman globals", and the report says so: an import adds, and does
+not write over the app's own globals. Choose it as the active environment,
+or copy what you need.
+
+A file that starts with a byte order mark is read, and so is one in
+UTF-16, which Postman on Windows has written.
 
 A file of any other format is refused with a message that names these. A
 workspace backup (`wayfarer/workspace/3`) is not imported here: it replaces

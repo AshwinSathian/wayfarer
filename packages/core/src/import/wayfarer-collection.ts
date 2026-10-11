@@ -193,7 +193,8 @@ function remapIdentifiers(
   payload: CollectionExport
 ): { payload: CollectionExport; idRemap: Record<string, string> } {
   const clone = structuredClone(payload);
-  const idMap: Record<string, string> = {};
+  // Keyed by ids the file gave: without a prototype, "constructor" is an id like any other.
+  const idMap = Object.create(null) as Record<string, string>;
 
   const newCollectionId = newId();
   const originalCollectionId = clone.collection.id ?? clone.collection.meta.id;
@@ -202,11 +203,11 @@ function remapIdentifiers(
   clone.collection.meta.id = newCollectionId;
   clone.collection.meta = touchMeta(clone.collection.meta);
 
+  // Every folder gets its new id before any parent is looked up: a folder may come before its parent (F73).
+  for (const folder of clone.folders) idMap[folder.id ?? folder.meta.id] = newId();
   clone.folders = clone.folders.map((folder) => {
     const updated = structuredClone(folder);
-    const mappedId = newId();
-    const originalId = folder.id ?? folder.meta.id;
-    idMap[originalId] = mappedId;
+    const mappedId = idMap[folder.id ?? folder.meta.id];
     updated.id = mappedId;
     updated.meta.id = mappedId;
     updated.collectionId = newCollectionId;
@@ -269,6 +270,7 @@ function validateCollectionDoc(
   validateMeta(doc?.meta, `${path}.meta`, errors);
   validateRequiredString(doc?.id ?? doc?.meta?.id, `${path}.id`, errors);
   validateRequiredString(doc?.name, `${path}.name`, errors);
+  validateDescription(doc?.description, `${path}.description`, errors);
   validateNumber(doc?.order, `${path}.order`, errors);
   errors.push(...validateRows(doc?.variables, `${path}.variables`), ...validateInherited(doc, path, "collection"));
 }
@@ -282,6 +284,7 @@ function validateFolderDoc(
   validateRequiredString(folder?.id ?? folder?.meta?.id, `${path}.id`, errors);
   validateRequiredString(folder?.collectionId, `${path}.collectionId`, errors);
   validateRequiredString(folder?.name, `${path}.name`, errors);
+  validateDescription(folder?.description, `${path}.description`, errors);
   validateNumber(folder?.order, `${path}.order`, errors);
   errors.push(...validateInherited(folder, path, "folder"));
 }
@@ -295,6 +298,7 @@ function validateRequestDoc(
   validateRequiredString(request?.id ?? request?.meta?.id, `${path}.id`, errors);
   validateRequiredString(request?.collectionId, `${path}.collectionId`, errors);
   validateRequiredString(request?.name, `${path}.name`, errors);
+  validateDescription(request?.description, `${path}.description`, errors);
   errors.push(...validateRequestContent(request, path));
 }
 
@@ -323,6 +327,12 @@ function validateRequiredString(
 ): void {
   if (typeof value !== "string" || !value.trim()) {
     errors.push({ path, message: "Value must be a non-empty string." });
+  }
+}
+
+function validateDescription(value: unknown, path: string, errors: ValidationResult[]): void {
+  if (value !== undefined && typeof value !== "string") {
+    errors.push({ path, message: "Value must be a string." });
   }
 }
 

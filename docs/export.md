@@ -138,6 +138,12 @@ are the ones the app's engine gives for the collection itself. The tests
 assert what the server received, so the same results mean the same
 requests were sent.
 
+**It comes back as it went.** Every one of the 51 Postman collections the
+importer is tested with ([`import.md`](import.md)) is imported, exported
+as a Postman file and imported again, and is the same collection. A
+collection made in the app comes back the same but for what the list above
+names, and for a file body's type, which comes back as a header row.
+
 **An environment.** In the Environments panel, **Export environments**,
 then "File for: Postman". A Postman environment file holds one
 environment, so the dialog asks which. A protected variable is of

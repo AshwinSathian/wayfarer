@@ -42,15 +42,16 @@ function events(scripts: Scripts): { event?: Entry[] } {
 }
 
 /**
- * The address in parts. Postman sends what the parts say and ignores `raw`,
- * so they are cut from the text the way Postman cuts them: as text, with
- * every `{{variable}}` left as typed.
- *
- * The query that is sent is the one in the text. The Params rows add what
- * the text does not have: a row that is switched off, in its place.
+ * The parts of an address, cut from its text the way Postman cuts them:
+ * as text, and never inside a `{{variable}}`, whose name may hold any of
+ * the characters an address is cut at.
  */
-function url(raw: string, params: Row[]): Entry {
-  let rest = raw;
+export function addressParts(raw: string): { protocol?: string; auth?: { user: string; password?: string }; host: string[]; port?: string; path?: string[]; query?: { key: string; value: string | null }[]; hash?: string } {
+  // Each variable is held aside as one character that no address is cut at. ponytail: an address that already holds that character is cut as it stands.
+  const held: string[] = [];
+  const HOLD = "\uE000";
+  let rest = raw.includes(HOLD) ? raw : raw.replace(/\{\{[^{}]*\}\}/g, (variable) => HOLD + String.fromCharCode(0xe001 + held.push(variable) - 1));
+  const back = (part: string): string => (held.length ? part.replace(/\uE000([\uE001-\uF8FF])/g, (_match, index: string) => held[index.charCodeAt(0) - 0xe001]) : part);
   const cut = (mark: string): string | undefined => {
     const at = rest.indexOf(mark);
     if (at === -1) return undefined;
@@ -73,28 +74,42 @@ function url(raw: string, params: Row[]): Entry {
   const colon = authority.startsWith("[") ? authority.indexOf("]:") + 1 || -1 : authority.lastIndexOf(":");
   const port = colon === -1 ? undefined : authority.slice(colon + 1);
   const host = colon === -1 ? authority : authority.slice(0, colon);
+  return {
+    ...(protocol !== undefined && { protocol: back(protocol) }),
+    ...(user !== undefined && { auth: { user: back(user.split(":")[0]), ...(user.includes(":") && { password: back(user.slice(user.indexOf(":") + 1)) }) } }),
+    host: host.startsWith("[") ? [back(host)] : host.split(".").map(back),
+    ...(port !== undefined && { port: back(port) }),
+    ...(path !== undefined && { path: path.split("/").map(back) }),
+    ...(queryText !== undefined && {
+      query: queryText.split("&").map((pair) => {
+        const equals = pair.indexOf("=");
+        return equals === -1 ? { key: back(pair), value: null } : { key: back(pair.slice(0, equals)), value: back(pair.slice(equals + 1)) };
+      }),
+    }),
+    ...(hash !== undefined && { hash: back(hash) }),
+  };
+}
 
-  const sent = (queryText === undefined ? [] : queryText.split("&")).map((pair): Entry => {
-    const equals = pair.indexOf("=");
-    return equals === -1 ? { key: pair, value: null } : { key: pair.slice(0, equals), value: pair.slice(equals + 1) };
-  });
+/**
+ * Postman's `url`. Postman sends what the parts say and ignores `raw`.
+ *
+ * The query that is sent is the one in the text. The Params rows add what
+ * the text does not have: a row that is switched off, in its place.
+ */
+function url(raw: string, params: Row[]): Entry {
+  const { query: sent = [], ...parts } = addressParts(raw);
   const query: Entry[] = [];
   for (const row of params) {
-    if (!row.enabled) query.push({ key: row.key, value: row.value, disabled: true });
-    else if (row.key && sent.length) query.push(sent.shift()!);
+    if (!row.enabled) {
+      query.push({ key: row.key, value: row.value, disabled: true });
+      continue;
+    }
+    const next = sent.shift();
+    if (next) query.push(next);
   }
   query.push(...sent);
-
-  return {
-    raw,
-    ...(protocol !== undefined && { protocol }),
-    ...(user !== undefined && { auth: { user: user.split(":")[0], password: user.includes(":") ? user.slice(user.indexOf(":") + 1) : "" } }),
-    host: host.startsWith("[") ? [host] : host.split("."),
-    ...(port !== undefined && { port }),
-    ...(path !== undefined && { path: path.split("/") }),
-    ...(query.length && { query }),
-    ...(hash !== undefined && { hash }),
-  };
+  const { hash, ...before } = parts;
+  return { raw, ...before, ...(query.length && { query }), ...(hash !== undefined && { hash }) };
 }
 
 /** Postman's `body`. Every part the request keeps is written, as the app keeps it; `mode` says which is sent, and without one nothing is. */
@@ -126,7 +141,7 @@ function request(doc: RequestDoc, notes: ExportNote[]): Entry {
     name: doc.name,
     id: doc.id,
     ...events(doc.scripts),
-    request: { method: doc.method, header: rows(header), ...body(doc.body), url: url(doc.url, doc.params), ...auth(doc.auth) },
+    request: { method: doc.method, header: rows(header), ...body(doc.body), url: url(doc.url, doc.params), ...auth(doc.auth), ...(doc.description && { description: doc.description }) },
     response: [],
   };
 }
@@ -148,7 +163,7 @@ export function postmanCollection(source: CollectionExport): { file: Entry; note
   const group = (folder: Folder): Entry => {
     written.add(folder);
     if (folder.variables.length) notes.push({ item: `folder "${folder.name}"`, message: "Its variables are written, but Postman does not read a folder's variables: move them to the collection or to an environment there." });
-    return { name: folder.name, id: folder.id, ...(folder.variables.length && { variable: rows(folder.variables, "string") }), ...auth(folder.auth), ...events(folder.scripts), item: items(folder.id) };
+    return { name: folder.name, id: folder.id, ...(folder.description && { description: folder.description }), ...(folder.variables.length && { variable: rows(folder.variables, "string") }), ...auth(folder.auth), ...events(folder.scripts), item: items(folder.id) };
   };
   const { collection } = source;
   const top = items(undefined);

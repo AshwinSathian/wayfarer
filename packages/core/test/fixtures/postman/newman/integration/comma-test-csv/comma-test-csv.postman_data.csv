@@ -1,0 +1,2 @@
+nameWithComma,nameWithDoubleQuotes,numberWithQuotes,numberWithoutQuotes,negativeNumberWithoutQuotes,nullValue,longNumber, spaceAfterComma ,spaceBeforeComma, nameWithUnescapedQuotes
+"Abhijit, Kane","Abhijit ""KDOS"" Kane","00123",7890,-7890,,"89111702272002019559", "foo" ,"bar", Abhijit "KDOS" Kane

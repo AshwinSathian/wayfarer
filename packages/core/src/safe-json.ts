@@ -31,8 +31,18 @@ export const IMPORT_TOO_LARGE = "The file is larger than 10 MB.";
  * The text of a picked file, reading no more than one byte past the limit so
  * a huge file cannot exhaust memory. `isOversizedImport` then rejects it.
  */
-export function readImportText(file: Blob): Promise<string> {
-  return file.slice(0, MAX_IMPORT_BYTES + 1).text();
+export async function readImportText(file: Blob): Promise<string> {
+  return importTextOf(new Uint8Array(await file.slice(0, MAX_IMPORT_BYTES + 1).arrayBuffer()));
+}
+
+/**
+ * A file's bytes as text: UTF-8, or UTF-16 when the file starts with its
+ * byte order mark (Postman on Windows wrote such files). The mark itself is
+ * not part of the text.
+ */
+export function importTextOf(bytes: Uint8Array): string {
+  const utf16 = bytes[0] === 0xff && bytes[1] === 0xfe ? "utf-16le" : bytes[0] === 0xfe && bytes[1] === 0xff ? "utf-16be" : null;
+  return new TextDecoder(utf16 ?? "utf-8").decode(bytes);
 }
 
 // ponytail: counts UTF-16 units, not bytes. A file over the limit that is

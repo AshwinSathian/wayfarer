@@ -31,6 +31,8 @@ export interface Folder extends BaseDocument {
   collectionId: string;
   parentFolderId?: string;
   name: string;
+  /** Kept from a file that had one, and written back to it. The app does not show it yet. */
+  description?: string;
   order: number;
   /** Variables the requests in this folder can use. They win over the collection's and lose to the environment's. */
   variables: Row[];
@@ -43,6 +45,8 @@ export interface RequestDoc extends BaseDocument, RequestContent {
   collectionId: string;
   folderId?: string;
   name: string;
+  /** As a folder's. */
+  description?: string;
   order: number;
 }
 

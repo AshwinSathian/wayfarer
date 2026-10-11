@@ -1,0 +1,1332 @@
+{
+  "runner": "newman@6.2.3",
+  "collections": {
+    "bom-and-encoding/bom-in-collection-file.postman_collection.json": {
+      "items": [
+        {
+          "name": "A simple GET request",
+          "tests": [
+            {
+              "name": "expect response be 200",
+              "passed": true
+            },
+            {
+              "name": "expect response json contain args",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "A simple POST request",
+          "tests": []
+        },
+        {
+          "name": "A simple POST request with JSON body",
+          "tests": []
+        }
+      ],
+      "errors": []
+    },
+    "bom-and-encoding/bom-in-environment-file.postman_collection.json": {
+      "items": [
+        {
+          "name": "A simple GET request",
+          "tests": [
+            {
+              "name": "expect response be 200",
+              "passed": true
+            },
+            {
+              "name": "Response Body",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "bom-and-encoding/utf16-le-encoding-in-env.postman_collection.json": {
+      "items": [
+        {
+          "name": "A simple GET request",
+          "tests": [
+            {
+              "name": "expect response be 200",
+              "passed": true
+            },
+            {
+              "name": "Response Body",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "case-insen-header-sandbox.postman_collection.json": {
+      "items": [
+        {
+          "name": "Get json response",
+          "tests": [
+            {
+              "name": "Case-insensitive header checking",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "clear-vars-sandbox.postman_collection.json": {
+      "items": [
+        {
+          "name": "Before clearing",
+          "tests": [
+            {
+              "name": "Variable substitution from env",
+              "passed": true
+            },
+            {
+              "name": "Variable substitution from global",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "After clearing",
+          "tests": [
+            {
+              "name": "Variable substitution from env not working after clearing",
+              "passed": true
+            },
+            {
+              "name": "Variable substitution from global not working after clearing",
+              "passed": true
+            },
+            {
+              "name": "Recreated vars",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "After clearing",
+          "tests": [
+            {
+              "name": "Variable substitution from env not working after clearing individually",
+              "passed": true
+            },
+            {
+              "name": "Variable substitution from global not working after clearing individually",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "comma-test-csv/comma-test-csv.postman_collection.json": {
+      "notRun": "it is run with a data file, once per row: a run is P5.2"
+    },
+    "cookie-jar.postman_collection.json": {
+      "items": [
+        {
+          "name": "Set Cookie",
+          "tests": []
+        },
+        {
+          "name": "Verify cookie",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Cookie `foo` exists and has the value bar",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "crypto-md5.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": [
+            {
+              "name": "Your test name",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "csv-with-bom/csv-with-bom.postman_collection.json": {
+      "notRun": "it is run with a data file, once per row: a run is P5.2"
+    },
+    "custom-http-method/custom-http-method.postman_collection.json": {
+      "notRun": "it calls localhost:4041: a server these fixtures do not have"
+    },
+    "data-file-var-replacement/data-file-var-replacement.postman_collection.json": {
+      "notRun": "it is run with a data file, once per row: a run is P5.2"
+    },
+    "disabled-and-duplicate-variables/disabled-and-duplicates.postman_collection.json": {
+      "items": [
+        {
+          "name": "https://postman-echo.com/get",
+          "tests": [
+            {
+              "name": "Disabled variable",
+              "passed": true
+            },
+            {
+              "name": "1 Enabled and 1 Disabled variable",
+              "passed": true
+            },
+            {
+              "name": "Duplicate variable",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "distinct-random-int.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": []
+        },
+        {
+          "name": "r2",
+          "tests": [
+            {
+              "name": "different randoms",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "dynamic-var-replacement.postman_collection.json": {
+      "items": [
+        {
+          "name": "POST Request copy",
+          "tests": [
+            {
+              "name": "FriendlyName should be a GUID",
+              "passed": true
+            },
+            {
+              "name": "RandomId should be an integer",
+              "passed": true
+            },
+            {
+              "name": "TimeCreated should be an integer",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "echo-v2.postman_collection.json": {
+      "items": [
+        {
+          "name": "DigestAuth Request",
+          "tests": [
+            {
+              "name": "response code is 401",
+              "passed": false
+            },
+            {
+              "name": "response has WWW-Authenticate header",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "DigestAuth Success",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": false
+            },
+            {
+              "name": "body contains authenticated",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Basic Auth",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains authenticated",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "OAuth1.0 Verify Signature",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": false
+            },
+            {
+              "name": "Body contains status pass",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Set Cookies",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains cookies",
+              "passed": true
+            },
+            {
+              "name": "Body contains cookie foo1",
+              "passed": true
+            },
+            {
+              "name": "Body contains cookie foo2",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Get Cookies",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains cookies",
+              "passed": true
+            },
+            {
+              "name": "Body contains cookie foo2",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Delete Cookies",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains key cookies",
+              "passed": true
+            },
+            {
+              "name": "Body does not contain cookie foo2",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Request Headers",
+          "tests": [
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Header contains host",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Response Headers",
+          "tests": [
+            {
+              "name": "Body contains Content-Type",
+              "passed": true
+            },
+            {
+              "name": "Body contains Server",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "GET Request ",
+          "tests": [
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains args",
+              "passed": true
+            },
+            {
+              "name": "Body contains url",
+              "passed": true
+            },
+            {
+              "name": "Args key contains argument passed as url parameter",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "POST Request",
+          "tests": [
+            {
+              "name": "response has data",
+              "passed": true
+            },
+            {
+              "name": "content-type equals text/plain",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "PUT Request",
+          "tests": [
+            {
+              "name": "Body contains files",
+              "passed": true
+            },
+            {
+              "name": "Body contains args",
+              "passed": true
+            },
+            {
+              "name": "Body contains form",
+              "passed": true
+            },
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains url",
+              "passed": true
+            },
+            {
+              "name": "Data has been passed",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "PATCH Request",
+          "tests": [
+            {
+              "name": "Body contains files",
+              "passed": true
+            },
+            {
+              "name": "Body contains args",
+              "passed": true
+            },
+            {
+              "name": "Body contains form",
+              "passed": true
+            },
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains url",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "DELETE Request",
+          "tests": [
+            {
+              "name": "Body contains files",
+              "passed": true
+            },
+            {
+              "name": "Body contains args",
+              "passed": true
+            },
+            {
+              "name": "Body contains form",
+              "passed": true
+            },
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains url",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Response Status Code",
+          "tests": [
+            {
+              "name": "Body contains status",
+              "passed": true
+            },
+            {
+              "name": "Status equals 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Streamed Response",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Delay Response",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": true
+            },
+            {
+              "name": "response body has key delay",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Get UTF8 Encoded Response",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "GZip Compressed Response",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains gzipped",
+              "passed": true
+            },
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains method",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Deflate Compressed Response",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": true
+            },
+            {
+              "name": "Body contains deflated",
+              "passed": true
+            },
+            {
+              "name": "Body contains headers",
+              "passed": true
+            },
+            {
+              "name": "Body contains method",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "OAuth2.0 Get Access Token",
+          "tests": [
+            {
+              "name": "response code is 200",
+              "passed": false
+            },
+            {
+              "name": "body has access token",
+              "passed": false
+            },
+            {
+              "name": "body has bearer type",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "OAuth2.0 Get Resource",
+          "tests": [
+            {
+              "name": "response code is 401",
+              "passed": false
+            },
+            {
+              "name": "body has user_id",
+              "passed": false
+            },
+            {
+              "name": "body has name",
+              "passed": false
+            }
+          ]
+        }
+      ],
+      "errors": [
+        "DigestAuth Request: Cannot read properties of undefined (reading 'indexOf')"
+      ]
+    },
+    "esc-formdata/esc-formdata.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": [
+            {
+              "name": "Form Key Replaced",
+              "passed": true
+            },
+            {
+              "name": "Form val replaced from env",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "globals-env-data-files/globals-env-data-files.postman_collection.json": {
+      "notRun": "it is run with a data file, once per row: a run is P5.2"
+    },
+    "hawk-auth-test.postman_collection.json": {
+      "items": [
+        {
+          "name": "test hawk auth success",
+          "tests": [
+            {
+              "name": "should authenticate correctly",
+              "passed": false
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "head-requests.postman_collection.json": {
+      "notRun": "it calls google.com, github.com, localhost:4041: a server these fixtures do not have"
+    },
+    "helper.postman_collection.json": {
+      "items": [
+        {
+          "name": "OAuth",
+          "tests": [
+            {
+              "name": "should authorize correctly",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "basicAuth",
+          "tests": [
+            {
+              "name": "Should authorize correctly",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "DigestAuth",
+          "tests": [
+            {
+              "name": "should authorize correctly",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "inherited-entities/inherited-entities.postman_collection.json": {
+      "items": [
+        {
+          "name": "Variables",
+          "tests": [
+            {
+              "name": "request should get collection level variables",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Auth",
+          "tests": [
+            {
+              "name": "request can be authenticated with collection level auth",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Events",
+          "tests": [
+            {
+              "name": "request should have run collection level prerequest script",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Auth",
+          "tests": [
+            {
+              "name": "request should use folder level auth, over collection level auth",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Event",
+          "tests": [
+            {
+              "name": "request should have run folder level prerequest script",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Auth",
+          "tests": []
+        },
+        {
+          "name": "Auth override",
+          "tests": [
+            {
+              "name": "request should be able disable collection auth by setting noauth",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Environment override",
+          "tests": [
+            {
+              "name": "environment variables should override collection variables",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "multi-level-folders-v1.postman_collection.json": {
+      "notRun": "it is a Postman Collection v1"
+    },
+    "multi-level-folders-v2.postman_collection.json": {
+      "items": [
+        {
+          "name": "F1.R1",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "F1.R2",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "F1.R3",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "F2.F3.R1",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "F2.R1",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "R1",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Request executed in correct order",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "multi-value-data.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": [
+            {
+              "name": "request data array correct",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "multiple-form-values.postman_collection.json": {
+      "items": [
+        {
+          "name": "multiformvalues",
+          "tests": [
+            {
+              "name": "multiple values for form variable",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "multiformvalues",
+          "tests": [
+            {
+              "name": "Can send empty urlencoded data",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "multiformvalues",
+          "tests": [
+            {
+              "name": "Can send empty params data",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "newman-gzip-test.postman_collection.json": {
+      "items": [
+        {
+          "name": "https://postman-echo.com/gzip",
+          "tests": [
+            {
+              "name": "newman handles gzip properly",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "oauth1-var-in-url-params.postman_collection.json": {
+      "items": [
+        {
+          "name": "https://postman-echo.com/oauth1?a={{vala}}",
+          "tests": []
+        }
+      ],
+      "errors": []
+    },
+    "protocol-profile-behavior.postman_collection.json": {
+      "notRun": "it calls localhost:4042: a server these fixtures do not have"
+    },
+    "prototype-check.postman_collection.json": {
+      "items": [
+        {
+          "name": "objectPrototype",
+          "tests": [
+            {
+              "name": "Array prototype none",
+              "passed": true
+            },
+            {
+              "name": "Array prototype any",
+              "passed": true
+            },
+            {
+              "name": "Array prototype average",
+              "passed": true
+            },
+            {
+              "name": "Date prototype getTime",
+              "passed": true
+            },
+            {
+              "name": "Function prototype once",
+              "passed": true
+            },
+            {
+              "name": "Number prototype hex",
+              "passed": true
+            },
+            {
+              "name": "Number prototype isEven",
+              "passed": true
+            },
+            {
+              "name": "Number prototype ordinalize",
+              "passed": true
+            },
+            {
+              "name": "Number prototype format",
+              "passed": true
+            },
+            {
+              "name": "String prototype endsWith",
+              "passed": true
+            },
+            {
+              "name": "String prototype negated endsWith",
+              "passed": true
+            },
+            {
+              "name": "String prototype camelize",
+              "passed": true
+            },
+            {
+              "name": "String prototype repeat",
+              "passed": true
+            },
+            {
+              "name": "String prototype shift",
+              "passed": true
+            },
+            {
+              "name": "String prototype spacify",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "redirect-test/redirect-test.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": []
+        }
+      ],
+      "errors": []
+    },
+    "redirect-test/redirect-with-body.postman_collection.json": {
+      "notRun": "it calls localhost:4042: a server these fixtures do not have"
+    },
+    "request-body-with-get.postman_collection.json": {
+      "notRun": "it calls localhost:4041: a server these fixtures do not have"
+    },
+    "request-chaining-test.postman_collection.json": {
+      "items": [
+        {
+          "name": "Preliminary request",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "FOO doesn't exist",
+              "passed": true
+            },
+            {
+              "name": "BAR doesn't exist",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "Secondary request",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "FOO exists",
+              "passed": true
+            },
+            {
+              "name": "BAR exists",
+              "passed": true
+            },
+            {
+              "name": "val1 query param was sent correctly",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "request-name-in-script.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": [
+            {
+              "name": "correct request name and description",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "sandbox-libraries.postman_collection.json": {
+      "items": [
+        {
+          "name": "AJV",
+          "tests": [
+            {
+              "name": "ajv.validate",
+              "passed": true
+            },
+            {
+              "name": "ajv.compile",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "chai-postman",
+          "tests": [
+            {
+              "name": "0: valid schema",
+              "passed": true
+            },
+            {
+              "name": "1: negated assertions",
+              "passed": true
+            },
+            {
+              "name": "2: incorrect assertions",
+              "passed": true
+            },
+            {
+              "name": "3: incorrect negated assertions",
+              "passed": true
+            },
+            {
+              "name": "4: pm.response.to",
+              "passed": true
+            },
+            {
+              "name": "5: pm.response.to.not",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "pm api",
+          "tests": [
+            {
+              "name": "pre-assert request",
+              "passed": true
+            },
+            {
+              "name": "pre-assert response",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "semicolon-tests.postman_collection.json": {
+      "items": [
+        {
+          "name": "Gets a header with a semicolon",
+          "tests": [
+            {
+              "name": "Test1: Content-Type is 'application/json;  charset=utf-8'",
+              "passed": false
+            },
+            {
+              "name": "Test2: Content-Type is 'application/json; charset=utf-8'",
+              "passed": false
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "set-next-request.postman_collection.json": {
+      "notRun": "its scripts choose the next request (setNextRequest): a run is P5.2"
+    },
+    "slashed-variable-names/slashed-variable-names.postman_collection.json": {
+      "items": [
+        {
+          "name": "Slashed variable names test",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            },
+            {
+              "name": "Forward slash was handled correctly",
+              "passed": true
+            },
+            {
+              "name": "Backslash was handled correctly",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "steph/steph.postman_collection.json": {
+      "notRun": "it is run with a data file, once per row: a run is P5.2"
+    },
+    "super-sandbox-test.postman_collection.json": {
+      "items": [
+        {
+          "name": "r1",
+          "tests": [
+            {
+              "name": "xml2Json",
+              "passed": false
+            },
+            {
+              "name": "GetResponseHeader",
+              "passed": true
+            },
+            {
+              "name": "GetResponseCookie",
+              "passed": true
+            },
+            {
+              "name": "Correct global",
+              "passed": true
+            },
+            {
+              "name": "Lodash working",
+              "passed": true
+            },
+            {
+              "name": "SugarJS working",
+              "passed": true
+            },
+            {
+              "name": "tv4 present",
+              "passed": true
+            },
+            {
+              "name": "CryptoJS md5",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "r2",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "r3",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "r4",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": false
+            },
+            {
+              "name": "Body is correct",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "options",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": false
+            },
+            {
+              "name": "Body is correct",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "r2 copy",
+          "tests": [
+            {
+              "name": "Status code is 200",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "BasicAuth",
+          "tests": [
+            {
+              "name": "Correct auth header",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "name": "DigestAuth",
+          "tests": [
+            {
+              "name": "Authenticated",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "name": "Recursive Res",
+          "tests": []
+        }
+      ],
+      "errors": [
+        "r2: Cannot read properties of undefined (reading 'length')"
+      ]
+    },
+    "tc4/tc4.postman_collection.json": {
+      "notRun": "it uploads a file, which a collection of the app names and does not hold"
+    },
+    "timeout/timeout.postman_collection.json": {
+      "items": [
+        {
+          "tests": []
+        }
+      ],
+      "errors": []
+    },
+    "v2-regression-tests/v2-regression-tests.postman_collection.json": {
+      "notRun": "it calls expired.badssl.com: a server these fixtures do not have"
+    },
+    "var-replacement.postman_collection.json": {
+      "items": [
+        {
+          "name": "Valid and invalid variables",
+          "tests": [
+            {
+              "name": "Variable substitution",
+              "passed": true
+            },
+            {
+              "name": "No blank variable substitution",
+              "passed": true
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "whatwg-url.postman_collection.json": {
+      "notRun": "it calls   , https:\\\\postman-echo.com, us@r:p@ssword@postman-echo.com, 127.1:4041, localhost:4041, httpbin.org: a server these fixtures do not have"
+    }
+  }
+}

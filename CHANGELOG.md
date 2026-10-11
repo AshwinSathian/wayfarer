@@ -48,6 +48,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - **Tested by running it:** a collection with every body mode, and auth and scripts at three levels, is exported and run by Newman, Postman's own runner; its 26 test results are the ones the app's engine gives for the collection.
   - The collection's menu has one more entry. The exporter is fetched the first time a Postman file is asked for. See [`docs/export.md`](docs/export.md).
 
+- **Postman collections and environments import (P4.2).**
+  - **A Postman Collection v2.0 or v2.1 file** picked with Import becomes a collection: its folders, variables, auth and scripts at every level, and each request's address, headers and body. A request with no auth of its own inherits, as in Postman.
+  - **A Postman environment file** becomes an environment. **Postman's globals** become an environment named "Postman globals", and the report says so: an import does not write over your own globals.
+  - **The report says what could not be kept**: an auth type the app does not have (it is left out and sends none; it does not start to inherit another level's credentials), path variables (`/users/:id` becomes the value the file gives, or `{{id}}`), a query parameter that is switched off, a GraphQL body (kept as its JSON text), files, saved responses, a request with no address, and scripts that use what the app does not have.
+  - **Scripts are imported, not approved**: they wait for your review.
+  - A Collection v1 file is refused with a message that says to export v2.1 from Postman. A file that starts with a byte order mark, or is in UTF-16, is read.
+  - **Tested with files other people wrote:** Newman's own integration collections, six of Adyen's API collections and Microsoft Graph's (51 collections, 12 environments) all import; each collection, exported as a Postman file and imported again, is the same collection; and twelve of Newman's collections, run as imported, give exactly the test results Newman gives. The 33 others are listed with the reason each is not compared. Seven of those reasons are faults of the app's script engine that this comparison found ([#248](https://github.com/AshwinSathian/wayfarer/issues/248)); they are not fixed here.
+  - A folder and a request can hold a description. It is kept from a file that had one and written back by an export; the app does not show it yet. Nothing stored changes shape.
+  - See [`docs/import.md`](docs/import.md).
+
 ### Changed
 
 - The message for a file that is not JSON is now "The file is not valid JSON, so it is not a file Wayfarer can import." for every kind of file; the Environments panel said "File does not contain a valid JSON payload."
@@ -60,6 +70,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The editor threw an error into the console some seconds after it appeared (F71, [#242](https://github.com/AshwinSathian/wayfarer/issues/242)).** `[createInstance] … depends on UNKNOWN service ICodeLensCache`, and after it the same for `IInlayHintsCache`. Monaco's JSON and TypeScript services bring every editor feature with them when they start, which is after the first editor exists, and a feature that arrives then cannot find the service it registers for itself. The editor worked; the error was in the console in every browser, and in Safari on every load. Every feature is now registered before the first editor. Nothing more is downloaded: the features were in the editor's files already.
 - **A Word, Excel or PowerPoint file in a response was shown as text (F72, [#244](https://github.com/AshwinSathian/wayfarer/issues/244)).** A response whose type had "xml" anywhere in its name was decoded as text, and `application/vnd.openxmlformats-officedocument…` (a .docx, .xlsx or .pptx, which is a zip) has it in "openxmlformats". Such a response now gets the hex view and the download of its exact bytes, like any other binary. XML itself (`text/xml`, `application/xml`, anything ending in `+xml`) is text as before.
+- **"Import as duplicate" could lift a folder out of its parent (F73, [#249](https://github.com/AshwinSathian/wayfarer/issues/249)).** A folder inside another lost its place, and landed at the top of the copy, whenever it stood before its parent in the file's order: a folder at place 0 inside a folder at place 1. Every importer makes its collection the same way, so a Postman file did the same.
 
 ## [2.1.0] - 2026-10-10
 

@@ -51,6 +51,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Fixed
 
 - **The editor threw an error into the console some seconds after it appeared (F71, [#242](https://github.com/AshwinSathian/wayfarer/issues/242)).** `[createInstance] … depends on UNKNOWN service ICodeLensCache`, and after it the same for `IInlayHintsCache`. Monaco's JSON and TypeScript services bring every editor feature with them when they start, which is after the first editor exists, and a feature that arrives then cannot find the service it registers for itself. The editor worked; the error was in the console in every browser, and in Safari on every load. Every feature is now registered before the first editor. Nothing more is downloaded: the features were in the editor's files already.
+- **A Word, Excel or PowerPoint file in a response was shown as text (F72, [#244](https://github.com/AshwinSathian/wayfarer/issues/244)).** A response whose type had "xml" anywhere in its name was decoded as text, and `application/vnd.openxmlformats-officedocument…` (a .docx, .xlsx or .pptx, which is a zip) has it in "openxmlformats". Such a response now gets the hex view and the download of its exact bytes, like any other binary. XML itself (`text/xml`, `application/xml`, anything ending in `+xml`) is text as before.
 
 ## [2.1.0] - 2026-10-10
 

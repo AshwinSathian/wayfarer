@@ -19,7 +19,20 @@ export class BinaryBody {
 }
 
 const JSON_TYPE = /json|\+json/i;
-const TEXT_TYPE = /^text\/|xml|javascript|ecmascript|x-www-form-urlencoded|graphql|yaml|csv/i;
+const TEXT_WORDS = ["javascript", "ecmascript", "x-www-form-urlencoded", "graphql", "yaml", "csv"];
+
+/**
+ * Whether a media type is text. XML is a subtype named xml (or xml-dtd and
+ * its kind) or ending in +xml (RFC 7303), not any name with those letters
+ * in it: a .docx is application/vnd.openxmlformats-officedocument…, and is
+ * a zip (F72). Written without a pattern: the type is the server's text,
+ * and a pattern with two open ends takes time that grows with its square.
+ */
+function isTextType(mediaType: string): boolean {
+  const type = mediaType.toLowerCase();
+  const subtype = type.slice(type.indexOf("/") + 1);
+  return type.startsWith("text/") || subtype === "xml" || subtype.startsWith("xml-") || subtype.endsWith("+xml") || TEXT_WORDS.some((word) => type.includes(word));
+}
 
 /**
  * Turns raw response bytes into what the viewer shows: parsed JSON, text
@@ -50,7 +63,7 @@ export function decodeResponseBody(
       if (!(error instanceof TypeError)) throw error;
       return new BinaryBody(bytes, "");
     }
-  } else if (JSON_TYPE.test(mediaType) || TEXT_TYPE.test(mediaType)) {
+  } else if (JSON_TYPE.test(mediaType) || isTextType(mediaType)) {
     text = decodeText(bytes, charsetOf(type));
   } else {
     return new BinaryBody(bytes, mediaType);

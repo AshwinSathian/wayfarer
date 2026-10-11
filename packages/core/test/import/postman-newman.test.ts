@@ -40,8 +40,6 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
  * that each still differs, so a fix removes its line here.
  */
 const GAPS: Record<string, string> = {
-  "bom-and-encoding/bom-in-environment-file.postman_collection.json": "F74 (#248): a variable whose name holds a slash (`{{fo/o}}`) is not replaced",
-  "slashed-variable-names/slashed-variable-names.postman_collection.json": "F74 (#248): a variable whose name holds a slash or a backslash is not replaced",
   "clear-vars-sandbox.postman_collection.json": "F75 (#248): the legacy `environment` and `globals` objects do not show a value the same script has just set",
   "multi-level-folders-v2.postman_collection.json": "F76 (#248): a variable a script set to the number 0 reads back as the text \"0\" in the same run",
   "redirect-test/redirect-test.postman_collection.json": "F77 (#248): a script with `return` outside a function ends in an error; Postman runs a script as a function's body",
@@ -114,6 +112,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
     // The count is in the plan's Appendix A. A collection that leaves this list needs a reason in `left`.
     expect(compared).toEqual([
       "bom-and-encoding/bom-in-collection-file.postman_collection.json",
+      "bom-and-encoding/bom-in-environment-file.postman_collection.json",
       "bom-and-encoding/utf16-le-encoding-in-env.postman_collection.json",
       "case-insen-header-sandbox.postman_collection.json",
       "disabled-and-duplicate-variables/disabled-and-duplicates.postman_collection.json",
@@ -123,6 +122,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
       "newman-gzip-test.postman_collection.json",
       "request-chaining-test.postman_collection.json",
       "semicolon-tests.postman_collection.json",
+      "slashed-variable-names/slashed-variable-names.postman_collection.json",
       "timeout/timeout.postman_collection.json",
       "var-replacement.postman_collection.json",
     ]);

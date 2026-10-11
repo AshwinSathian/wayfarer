@@ -16,7 +16,21 @@ export type ScopeStack = Partial<Record<VariableScope, Row[]>>;
 /** How many variables a value may pass through before it is text. */
 export const MAX_VARIABLE_DEPTH = 10;
 
-const PLACEHOLDER = /{{\s*(\$?[\w.-]+)\s*}}/g;
+/**
+ * Two braces, anything but a brace, two braces: Postman takes any name
+ * (`{{fo/o}}`, `{{a b}}`). The spaces around a name are not part of it.
+ * Nothing after the class can match what the class matches, so a text of
+ * many braces is read in one pass.
+ */
+const PLACEHOLDER = /{{([^{}]*)}}/g;
+/**
+ * A name of letters, digits, `_`, `.` and `-`: what the app has always read
+ * as a variable. Such a name with no value is missing, and the composer
+ * asks for it. Anything else between braces is a variable only when one has
+ * that name: a body may hold another language's templates
+ * (`{{ user.name | upper }}`), and nothing should ask for those.
+ */
+const PLAIN_NAME = /^\$?[\w.-]+$/;
 const SECRET_PREFIX = "$secret.";
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -78,7 +92,7 @@ export interface VariableToken {
  *
  * - A name is looked up in the scopes nearest first; within a scope a later
  *   enabled row wins. Only names the rows hold are found: `{{constructor}}`
- *   is not a variable.
+ *   is not a variable. A name may hold any character but a brace.
  * - A value may itself hold `{{names}}`; they are resolved too.
  * - `{{$guid}}` and the other dynamic variables give a new value each use.
  * - `{{$secret.<id>}}` is asked of `secret`. Its plaintext is recorded in
@@ -122,8 +136,8 @@ export class VariableResolver {
   }
 
   private tokensOf(text: string, location: VariableToken["location"], field: string): VariableToken[] {
-    const names = new Set([...text.matchAll(PLACEHOLDER)].map((match) => match[1]));
-    return [...names].map((key) => ({ key, ...this.describe(key), location, field }));
+    const names = new Set([...text.matchAll(PLACEHOLDER)].map((match) => match[1].trim()));
+    return [...names].filter((key) => PLAIN_NAME.test(key) || this.find(key)).map((key) => ({ key, ...this.describe(key), location, field }));
   }
 
   private describe(name: string): Pick<VariableToken, "value" | "source" | "error"> {
@@ -149,7 +163,8 @@ export class VariableResolver {
 
   /** `chain` is the variables whose values led to this text. */
   private expand(text: string, chain: string[]): string {
-    return text.replace(PLACEHOLDER, (written: string, name: string) => {
+    return text.replace(PLACEHOLDER, (written: string, inside: string) => {
+      const name = inside.trim();
       if (name.startsWith(SECRET_PREFIX)) {
         const id = name.slice(SECRET_PREFIX.length);
         const plaintext = this.secret(id);
@@ -164,7 +179,7 @@ export class VariableResolver {
       if (dynamic) return dynamic();
       const found = this.find(name);
       if (!found) {
-        this.unresolved.add(name);
+        if (PLAIN_NAME.test(name)) this.unresolved.add(name);
         return written;
       }
       if (chain.includes(name) || chain.length >= MAX_VARIABLE_DEPTH) {

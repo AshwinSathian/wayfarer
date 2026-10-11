@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFile, readdir } from "node:fs/promises";
-import { TARGET, captureTarget, expectProdParity, seedAndOpen, send } from "./support/app";
+import { TARGET, captureTarget, dumpIdb, expectProdParity, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P3.1: scripts run in QuickJS (WebAssembly) in a worker, under the
@@ -52,6 +52,38 @@ test("@claim:C-006 a pre-request and a post-response script run under the produc
 
   expect(await violations()).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test("F76: a number and an object a script sets are a number and an object to the next script and in what is stored, and in the address they are their text", async ({ page }) => {
+  const violations = await watchViolations(page);
+  const hits = await captureTarget(page);
+  await seedAndOpen(page, { count: "old" }, {
+    method: "GET",
+    url: `${TARGET}/typed?count={{count}}&user={{user}}`,
+    preRequestScript: 'pm.environment.set("count", 0); pm.environment.set("user", { id: 7 }); pm.environment.set("text", "0");',
+    postRequestScript:
+      'pm.test("a number", () => pm.expect(pm.environment.get("count")).to.equal(0)); pm.test("an object", () => pm.expect(pm.environment.get("user")).to.eql({ id: 7 })); pm.test("text stays text", () => pm.expect(pm.environment.get("text")).to.equal("0")); pm.environment.set("count", pm.environment.get("count") + 1);',
+  });
+
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await openTests(page);
+  for (const name of ["a number", "an object", "text stays text"]) await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
+  await expect(page.locator(".test-result-fail")).toHaveCount(0);
+  // In the address a value is its text: the number as written, the object as JSON.
+  expect(hits).toHaveLength(1);
+  expect(new URL(hits[0].url()).searchParams.get("count")).toBe("0");
+  expect(new URL(hits[0].url()).searchParams.get("user")).toBe('{"id":7}');
+
+  // Stored as its JSON, marked: the post-response script added one to a number, not a "1" to a "0".
+  const vars = () => dumpIdb(page).then((stores) => (stores["environments"] as { vars: unknown[] }[])[0].vars);
+  await expect.poll(vars).toEqual([
+    { key: "count", value: "1", enabled: true, json: true },
+    { key: "user", value: '{"id":7}', enabled: true, json: true },
+    { key: "text", value: "0", enabled: true },
+  ]);
+
+  expect(await violations()).toEqual([]);
 });
 
 test("a script that fails says so in the Tests tab (F65), and the next one runs", async ({ page }) => {

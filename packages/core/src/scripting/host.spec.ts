@@ -91,6 +91,30 @@ describe("runScript", () => {
     expect(result.logs).toEqual(["[]", "refused: ReferenceError"]);
   });
 
+  it("F76: a value that is not text keeps its type from one script to the next, and the mark is believed only on JSON", async () => {
+    const first = await run(`pm.environment.set("count", 0); pm.environment.set("user", { id: 7 }); pm.environment.set("name", "0");`);
+    expect(first.changes.environment).toEqual([
+      { key: "count", value: "0", json: true },
+      { key: "user", value: '{"id":7}', json: true },
+      { key: "name", value: "0" },
+    ]);
+    // The next script is given what the first one left, as the app stores it.
+    const next = await run(`console.log(JSON.stringify([pm.environment.get("count"), pm.environment.get("user"), pm.environment.get("name"), pm.variables.get("count"), pm.environment.toObject()]));`, {
+      environment: [["count", "0", true], ["user", '{"id":7}', true], ["name", "0"]],
+    });
+    expect(next.logs).toEqual(['[0,{"id":7},"0",0,{"count":0,"user":{"id":7},"name":"0"}]']);
+    // A mark on text that is not JSON (a row someone edited, a file someone wrote) is not believed: the value is its text.
+    const edited = await run(`console.log(JSON.stringify([pm.environment.get("count"), pm.environment.toObject()]));`, { environment: [["count", "{not json", true]] });
+    expect(edited.error).toBeUndefined();
+    expect(edited.logs).toEqual(['["{not json",{"count":"{not json"}]']);
+    // Text set over a typed value is text; a value removed loses its mark with it.
+    const over = await run(`pm.environment.set("count", "seven"); pm.environment.unset("user"); pm.environment.set("user", "u"); console.log(pm.environment.get("count"), pm.environment.get("user"));`, { environment: [["count", "0", true], ["user", '{"id":7}', true]] });
+    expect(over.logs).toEqual(["seven u"]);
+    expect(over.changes.environment).toEqual([{ key: "count", value: "seven" }, { key: "user", value: "u" }]);
+    // What a script calls JSON is checked by the host: with JSON.stringify replaced, the set is refused.
+    expect((await run(`JSON.stringify = () => "{not json"; pm.environment.set("n", 1);`)).error).toBe("Expected JSON.");
+  });
+
   it("reads the variables it was given, and sees its own changes", async () => {
     const result = await run(
       `
@@ -109,7 +133,8 @@ describe("runScript", () => {
       ...NO_CHANGES,
       environment: [
         { key: "TOKEN", value: "minted" },
-        { key: "count", value: "3" },
+        // A number is kept as one: its JSON, marked.
+        { key: "count", value: "3", json: true },
         { key: "__proto__", value: "own" },
         { key: "API_KEY", value: null },
       ],
@@ -221,9 +246,9 @@ describe("runScript", () => {
     // Every value is a string or a boolean the host made itself: nothing of the VM's is in the result.
     const flat = JSON.parse(JSON.stringify(result)) as typeof result;
     expect(flat).toEqual(result);
-    expect(result.logs).toEqual(['{"secret":"from a getter"} function named() {} Symbol(s)', "getter read 1 times, inside the engine"]);
+    expect(result.logs).toEqual(['{"secret":"from a getter"} function named() {} Symbol(s)', "getter read 2 times, inside the engine"]);
     expect(result.changes.environment).toEqual([
-      { key: "object", value: "[object Object]" },
+      { key: "object", value: '{"secret":"from a getter"}', json: true },
       { key: "[object Object]", value: "key was an object" },
     ]);
     expect(result.testResults).toEqual([

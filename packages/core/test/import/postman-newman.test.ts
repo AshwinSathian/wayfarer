@@ -44,7 +44,6 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
 const GAPS: Record<string, string> = {
   "bom-and-encoding/bom-in-environment-file.postman_collection.json": "F74 (#248): a variable whose name holds a slash (`{{fo/o}}`) is not replaced",
   "slashed-variable-names/slashed-variable-names.postman_collection.json": "F74 (#248): a variable whose name holds a slash or a backslash is not replaced",
-  "multi-level-folders-v2.postman_collection.json": "F76 (#248): a variable a script set to the number 0 reads back as the text \"0\" in the same run",
 };
 
 describe("Newman's integration collections, imported, against Newman", () => {
@@ -118,6 +117,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
       "disabled-and-duplicate-variables/disabled-and-duplicates.postman_collection.json",
       "distinct-random-int.postman_collection.json",
       "esc-formdata/esc-formdata.postman_collection.json",
+      "multi-level-folders-v2.postman_collection.json",
       "multiple-form-values.postman_collection.json",
       "newman-gzip-test.postman_collection.json",
       "redirect-test/redirect-test.postman_collection.json",

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { BinaryBody, SCRIPT_LIMITS, emptyChanges, newId, stringifyJson, type ScriptContext, type ScriptResponse, type ScriptResult, type ScriptSendRequest } from "@wayfarer/core";
+import { BinaryBody, SCRIPT_LIMITS, emptyChanges, newId, stringifyJson, type ScriptContext, type ScriptResponse, type ScriptResult, type ScriptSendRequest, type ScriptVariable } from "@wayfarer/core";
 
 export interface ScriptResponseContext {
   statusCode: number;
@@ -66,7 +66,7 @@ export class ScriptSandbox {
 
   execute(
     script: string,
-    env: Record<string, string>,
+    env: Record<string, string> | ScriptVariable[],
     response?: ScriptResponseContext,
     timeoutMs: number = SCRIPT_LIMITS.timeoutMs,
     { send, ...extras }: ScriptRunExtras = {}
@@ -77,7 +77,7 @@ export class ScriptSandbox {
     return new Promise<ScriptResult>((settle) => {
       const id = newId();
       this.runs.set(id, { settle, timeoutMs, send, inFlight: 0 });
-      const context: ScriptContext = { ...extras, environment: Object.entries(env), ...(response && { response: scriptResponse(response) }) };
+      const context: ScriptContext = { ...extras, environment: Array.isArray(env) ? env : Object.entries(env), ...(response && { response: scriptResponse(response) }) };
       this.start().postMessage({ id, source: script, context, limits: { ...SCRIPT_LIMITS, timeoutMs } });
     });
   }

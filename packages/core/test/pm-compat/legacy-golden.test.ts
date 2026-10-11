@@ -1,7 +1,7 @@
 import variant from "@jitl/quickjs-wasmfile-release-sync";
 import { newQuickJSWASMModuleFromVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { applyVariableChanges, variablesByName } from "../../src/model/variables";
+import { applyVariableChanges, scriptVariables } from "../../src/model/variables";
 import type { Row } from "../../src/model/request";
 import { runScript, type ScriptRequest, type ScriptResult } from "../../src/scripting/host";
 import { FetchTransport } from "../../src/transport/fetch";
@@ -57,8 +57,8 @@ describe("Postman's legacy sandbox, against Newman", () => {
       };
       const run = async (source: string, eventName: "prerequest" | "test", response?: Parameters<typeof runScript>[2]["response"]): Promise<ScriptResult> => {
         const result = await runScript(quickjs, source, {
-          environment: [...variablesByName(environment)],
-          globals: [...variablesByName(globals)],
+          environment: scriptVariables(environment),
+          globals: scriptVariables(globals),
           request,
           response,
           info: { eventName, requestName: item.name, requestId: item.name },

@@ -2,7 +2,7 @@ import type { QuickJSWASMModule } from "quickjs-emscripten-core";
 import { buildAuthHeaders, buildAuthQueryParam, effectiveAuth, resolveAuth } from "../../src/auth/request-auth";
 import { folderChain, type CollectionExport, type Folder, type RequestDoc } from "../../src/model/collection";
 import { RAW_CONTENT_TYPES, type RequestContent, type Row } from "../../src/model/request";
-import { applyVariableChanges, variablesByName } from "../../src/model/variables";
+import { applyVariableChanges, scriptVariables } from "../../src/model/variables";
 import { runScript, type ScriptResponse } from "../../src/scripting/host";
 import { loadLibraries } from "../../src/scripting/libraries";
 import { loadLibrary } from "../../src/scripting/library-loader";
@@ -49,10 +49,10 @@ export async function runCollection(
 
     const run = async (script: string, eventName: "prerequest" | "test", request: Parameters<typeof runScript>[2]["request"], response?: ScriptResponse) => {
       const context = {
-        environment: [...variablesByName(scopes.environment)],
-        collection: [...variablesByName(scopes.collection)],
-        folder: [...variablesByName(folder)],
-        globals: [...variablesByName(scopes.global)],
+        environment: scriptVariables(scopes.environment),
+        collection: scriptVariables(scopes.collection),
+        folder: scriptVariables(folder),
+        globals: scriptVariables(scopes.global),
         request,
         response,
         info: { eventName, requestName: doc.name, requestId: doc.id },

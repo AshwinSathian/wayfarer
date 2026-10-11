@@ -52,7 +52,7 @@ export type {
   Scripts,
   TestAssertion,
 } from "./model/request";
-export { applyVariableChanges, variableChanges, variablesByName, type VariableChange } from "./model/variables";
+export { applyVariableChanges, scriptVariables, variableChanges, variablesByName, type ScriptVariable, type VariableChange } from "./model/variables";
 export {
   KDF_ITERATIONS,
   VAULT_FILE_FORMAT,

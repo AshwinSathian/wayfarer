@@ -1,6 +1,7 @@
 import type { QuickJSContext, QuickJSHandle, QuickJSRuntime, QuickJSWASMModule } from "quickjs-emscripten-core";
 import { isHttpMethod } from "../model/request";
-import type { VariableChange } from "../model/variables";
+import type { ScriptVariable, VariableChange } from "../model/variables";
+import { isJsonText } from "../safe-json";
 import { VARIABLE_SCOPES, VariableResolver, type ScopeStack, type VariableScope } from "../variables/resolver";
 import { VM_LIBRARIES } from "./libraries";
 import { VM_BOOTSTRAP } from "./vm-bootstrap";
@@ -104,12 +105,12 @@ export type ScriptScope = "environment" | "collection" | "global";
 
 export interface ScriptContext {
   /** The variables of the active environment, by name. Nothing else of the app is visible to a script but what this context holds. */
-  environment: [string, string][];
+  environment: ScriptVariable[];
   environmentName?: string;
   /** The variables of the folders the request is in, the nearest folder's value for a name. A script reads them through `pm.variables`; Postman has no folder scope to write to. */
-  folder?: [string, string][];
-  collection?: [string, string][];
-  globals?: [string, string][];
+  folder?: ScriptVariable[];
+  collection?: ScriptVariable[];
+  globals?: ScriptVariable[];
   /** Absent for a pre-request script: `pm.response` is then `null`. */
   response?: ScriptResponse;
   /** The request being sent. Absent: `pm.request` is `null`. */
@@ -163,6 +164,8 @@ type Scope = VariableScope;
 interface RunState {
   /** Every scope as the script sees it now, nearest first when a name is looked up in all of them. */
   values: Record<Scope, Map<string, string>>;
+  /** The names in each scope whose value is the JSON of something that is not text. */
+  json: Record<Scope, Set<string>>;
   /** What was changed in each scope: a value, or null for a removal. */
   changes: Record<Scope, Map<string, string | null>>;
   request?: ScriptRequest;
@@ -216,9 +219,12 @@ export async function runScript(
   limits: ScriptLimits = SCRIPT_LIMITS,
   services: ScriptServices = {}
 ): Promise<ScriptResult> {
-  const scope = (rows: [string, string][] = []) => new Map(rows);
+  const scope = (rows: ScriptVariable[] = []) => new Map(rows.map(([name, value]): [string, string] => [name, value]));
+  // The mark is believed only on a value that is JSON: a script is never handed text to parse that will not parse.
+  const marked = (rows: ScriptVariable[] = []) => new Set(rows.filter(([, value, json]) => json === true && isJsonText(value)).map(([name]) => name));
   const state: RunState = {
     values: { local: scope(), data: scope(), environment: scope(context.environment), folder: scope(context.folder), collection: scope(context.collection), global: scope(context.globals) },
+    json: { local: marked(), data: marked(), environment: marked(context.environment), folder: marked(context.folder), collection: marked(context.collection), global: marked(context.globals) },
     changes: { local: new Map(), data: new Map(), environment: new Map(), folder: new Map(), collection: new Map(), global: new Map() },
     sends: 0,
     inFlight: 0,
@@ -229,7 +235,7 @@ export async function runScript(
     tests: [],
     timers: new Map(),
   };
-  const changed = (name: ScriptScope): VariableChange[] => [...state.changes[name]].map(([key, value]) => ({ key, value }));
+  const changed = (name: ScriptScope): VariableChange[] => [...state.changes[name]].map(([key, value]) => ({ key, value, ...(value !== null && state.json[name].has(key) && { json: true as const }) }));
   const result = (error?: string, limit?: ScriptResult["limit"]): ScriptResult => ({
     logs: state.logs,
     changes: { environment: changed("environment"), collection: changed("collection"), global: changed("global") },
@@ -328,30 +334,37 @@ async function evaluate(
     if (!Object.hasOwn(state.values, name)) throw new TypeError("Expected a variable scope.");
     return name as Scope;
   };
-  /** The value of a name: in one scope, or in the nearest that has it ("any"). */
+  const any = (where: QuickJSHandle | undefined): boolean => where !== undefined && vm.typeof(where) === "string" && vm.getString(where) === "any";
+  /** The scope a name is read from: the one asked for, or the nearest that has it ("any"). */
+  const holder = (where: QuickJSHandle | undefined, key: string): Scope | undefined => (any(where) ? VARIABLE_ORDER.find((name) => state.values[name].has(key)) : scopeOf(where));
   const lookUp = (where: QuickJSHandle | undefined, key: string): string | undefined => {
-    if (where && vm.typeof(where) === "string" && vm.getString(where) === "any") {
-      for (const name of VARIABLE_ORDER) {
-        const value = state.values[name].get(key);
-        if (value !== undefined) return value;
-      }
-      return undefined;
-    }
-    return state.values[scopeOf(where)].get(key);
+    const scope = holder(where, key);
+    return scope && state.values[scope].get(key);
   };
   bind("varGet", (where, key) => {
     const value = lookUp(where, text(key));
     return value === undefined ? undefined : vm.newString(value);
   });
+  // Whether the value is the JSON of something that is not text: the VM then gives the script that, not the text.
+  bind("varJson", (where, key) => {
+    const scope = holder(where, text(key));
+    return scope && state.json[scope].has(text(key)) ? vm.true : vm.false;
+  });
   bind("varHas", (where, key) => (lookUp(where, text(key)) === undefined ? vm.false : vm.true));
   bind("varAll", (where) => {
-    const entries = where && vm.typeof(where) === "string" && vm.getString(where) === "any" ? [...VARIABLE_ORDER].reverse().flatMap((name) => [...state.values[name]]) : [...state.values[scopeOf(where)]];
-    return vm.newString(JSON.stringify(entries));
+    // Each as JSON: a value that is JSON already stands as it is, so the script reads its type.
+    const of = (name: Scope): string[] => [...state.values[name]].map(([key, value]) => `[${JSON.stringify(key)},${state.json[name].has(key) ? value : JSON.stringify(value)}]`);
+    const entries = any(where) ? [...VARIABLE_ORDER].reverse().flatMap(of) : of(scopeOf(where));
+    return vm.newString(`[${entries.join(",")}]`);
   });
-  bind("varSet", (where, key, value) => {
+  bind("varSet", (where, key, value, json) => {
     const [scope, name, next] = [scopeOf(where), text(key), text(value)];
+    // A script can replace `JSON` under the bootstrap: what it calls JSON is checked here.
+    if (flag(json) && !isJsonText(next)) throw new TypeError("Expected JSON.");
     charge(name, next);
     state.values[scope].set(name, next);
+    if (flag(json)) state.json[scope].add(name);
+    else state.json[scope].delete(name);
     state.changes[scope].set(name, next);
     return undefined;
   });
@@ -359,6 +372,7 @@ async function evaluate(
     const [scope, name] = [scopeOf(where), text(key)];
     charge(name);
     state.values[scope].delete(name);
+    state.json[scope].delete(name);
     state.changes[scope].set(name, null);
     return undefined;
   });
@@ -369,6 +383,7 @@ async function evaluate(
       state.changes[scope].set(name, null);
     }
     state.values[scope].clear();
+    state.json[scope].clear();
     return undefined;
   });
   // `{{names}}` replaced from the scopes as they are now. A vault secret's reference stays as written: a script is never given a secret.

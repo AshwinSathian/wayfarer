@@ -21,7 +21,8 @@ export interface CompatCase {
   result?: Record<string, unknown>;
 }
 
-const TEXT = "Values are text: a number or an object that is set is read back as a string.";
+const TYPED = "A value that is not text keeps its type: a number, a boolean, `null`, an object or a list is read back as it was set, by this script and by the next. `undefined`, a function and `NaN` are `null`. In an address, a header or a body an object is its JSON text, where Postman writes `[object Object]`.";
+const LEGACY_SET = "As Postman's: a value becomes text unless it is falsy, so `1` is read back as `\"1\"` and `0` as `0`.";
 const PROTECTED = " In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console.";
 const ALL_SCOPES = "Replaces from every scope, nearest first, as `pm.variables.replaceIn` does.";
 const RUN_ONLY = "Recorded. It has an effect in a collection run only, and there is none yet.";
@@ -31,7 +32,13 @@ function scope(name: string, key: "environment" | "collection" | "global", has: 
   const [known, value] = has;
   return [
     { api: `${name}.get`, status: "supported", script: `same(${name}.get("${known}"), ${JSON.stringify(value)}); same(${name}.get("missing"), undefined); same(${name}.get("constructor"), undefined);` },
-    { api: `${name}.set`, status: "partial", note: TEXT + PROTECTED, script: `${name}.set("fresh", 5); same(${name}.get("fresh"), "5"); ${name}.set("__proto__", "own"); same(${name}.get("__proto__"), "own");`, result: { changes: { [key]: [{ key: "fresh", value: "5" }, { key: "__proto__", value: "own" }] } } },
+    {
+      api: `${name}.set`,
+      status: "partial",
+      note: TYPED + PROTECTED,
+      script: `${name}.set("fresh", 5); same(${name}.get("fresh"), 5); ${name}.set("__proto__", "own"); same(${name}.get("__proto__"), "own"); ${name}.set("list", [1, { a: null }]); ${name}.set("off", false); ${name}.set("none", null); ${name}.set("gone", undefined); ${name}.set("text", "5"); same([${name}.get("list"), ${name}.get("off"), ${name}.get("none"), ${name}.get("gone"), ${name}.has("gone"), ${name}.get("text")], [[1, { a: null }], false, null, null, true, "5"]); same(typeof ${name}.toObject().fresh, "number"); same(pm.variables.replaceIn("{{fresh}}|{{off}}|{{none}}|{{list}}"), '5|false|null|[1,{"a":null}]');`,
+      result: { changes: { [key]: [{ key: "fresh", value: "5", json: true }, { key: "__proto__", value: "own" }, { key: "list", value: '[1,{"a":null}]', json: true }, { key: "off", value: "false", json: true }, { key: "none", value: "null", json: true }, { key: "gone", value: "null", json: true }, { key: "text", value: "5" }] } },
+    },
     { api: `${name}.unset`, status: "supported", script: `${name}.unset("${known}"); same(${name}.has("${known}"), false);`, result: { changes: { [key]: [{ key: known, value: null }] } } },
     { api: `${name}.has`, status: "supported", script: `same(${name}.has("${known}"), true); same(${name}.has("missing"), false); same(${name}.has("toString"), false);` },
     { api: `${name}.toObject`, status: "supported", script: `same(${name}.toObject(), ${JSON.stringify(all)});` },
@@ -50,7 +57,7 @@ export const CASES: CompatCase[] = [
 
   { api: "pm.variables.get", status: "supported", script: `same(pm.variables.get("shared"), "from collection"); same(pm.variables.get("g"), "1"); same(pm.variables.get("missing"), undefined);` },
   { api: "pm.variables.get (a folder's variable)", status: "partial", note: "Postman has no folder variables. Here a folder has them: `pm.variables` reads the nearest folder's value, which wins over the collection's and loses to the environment's. No scope of `pm` writes one.", script: `same(pm.variables.get("inFolder"), "from the folder"); same(pm.collectionVariables.get("inFolder"), undefined); same(pm.variables.replaceIn("{{inFolder}}"), "from the folder");` },
-  { api: "pm.variables.set", status: "partial", note: TEXT, script: `pm.variables.set("shared", "local"); same(pm.variables.get("shared"), "local"); same(pm.collectionVariables.get("shared"), "from collection");`, result: { changes: { environment: [], collection: [], global: [] } } },
+  { api: "pm.variables.set", status: "partial", note: TYPED, script: `pm.variables.set("count", 0); same(pm.variables.get("count"), 0); pm.variables.set("shared", "local"); same(pm.variables.get("shared"), "local"); same(pm.collectionVariables.get("shared"), "from collection");`, result: { changes: { environment: [], collection: [], global: [] } } },
   { api: "pm.variables.has", status: "supported", script: `same(pm.variables.has("token"), true); same(pm.variables.has("missing"), false);` },
   { api: "pm.variables.toObject", status: "supported", script: `same(pm.variables.toObject(), { shared: "from collection", g: "1", base: "https://{{host}}", inFolder: "from the folder", host: "api.test", token: "abc123", nested: "{{host}}/v1" });` },
   { api: "pm.variables.replaceIn", status: "supported", script: `same(pm.variables.replaceIn("{{base}}/{{nested}}?{{missing}}"), "https://api.test/api.test/v1?{{missing}}"); same(/^[0-9a-f-]{36}$/.test(pm.variables.replaceIn("{{$guid}}")), true); same(pm.variables.replaceIn("{{$secret.abc}}"), "{{$secret.abc}}");` },
@@ -122,11 +129,11 @@ export const CASES: CompatCase[] = [
   unsupported("pm.require", `pm.require("npm:lodash")`),
 
   // Postman's older sandbox (P3.4). `e2e`-level proof against Newman: test/pm-compat/legacy-golden.test.ts.
-  { api: "postman.setEnvironmentVariable", status: "partial", note: TEXT, script: `postman.setEnvironmentVariable("fresh", 5); same(pm.environment.get("fresh"), "5");`, result: { changes: { environment: [{ key: "fresh", value: "5" }] } } },
+  { api: "postman.setEnvironmentVariable", status: "supported", note: LEGACY_SET, script: `postman.setEnvironmentVariable("fresh", 5); same(pm.environment.get("fresh"), "5"); postman.setEnvironmentVariable("count", 0); same([postman.getEnvironmentVariable("count"), environment.count], [0, 0]);`, result: { changes: { environment: [{ key: "fresh", value: "5" }, { key: "count", value: "0", json: true }] } } },
   { api: "postman.getEnvironmentVariable", status: "supported", script: `same([postman.getEnvironmentVariable("token"), postman.getEnvironmentVariable("missing")], ["abc123", undefined]);` },
   { api: "postman.clearEnvironmentVariable", status: "supported", script: `postman.clearEnvironmentVariable("token"); same(postman.getEnvironmentVariable("token"), undefined);`, result: { changes: { environment: [{ key: "token", value: null }] } } },
   { api: "postman.clearEnvironmentVariables", status: "supported", script: `postman.clearEnvironmentVariables(); same(pm.environment.toObject(), {});` },
-  { api: "postman.setGlobalVariable", status: "partial", note: TEXT, script: `postman.setGlobalVariable("fresh", true); same(postman.getGlobalVariable("fresh"), "true");`, result: { changes: { global: [{ key: "fresh", value: "true" }] } } },
+  { api: "postman.setGlobalVariable", status: "supported", note: LEGACY_SET, script: `postman.setGlobalVariable("fresh", true); same(postman.getGlobalVariable("fresh"), "true"); postman.setGlobalVariable("off", false); same(postman.getGlobalVariable("off"), false);`, result: { changes: { global: [{ key: "fresh", value: "true" }, { key: "off", value: "false", json: true }] } } },
   { api: "postman.getGlobalVariable", status: "supported", script: `same(postman.getGlobalVariable("g"), "1");` },
   { api: "postman.clearGlobalVariable", status: "supported", script: `postman.clearGlobalVariable("g"); same(pm.globals.has("g"), false);`, result: { changes: { global: [{ key: "g", value: null }] } } },
   { api: "postman.clearGlobalVariables", status: "supported", script: `postman.clearGlobalVariables(); same(pm.globals.toObject(), {});` },

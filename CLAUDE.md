@@ -303,12 +303,15 @@ code errors.
   package's entry points (`monaco-editor/editor`,
   `monaco-editor/languages/features/<x>/register`,
   `monaco-editor/languages/definitions/<x>/register`,
-  `monaco-editor/features/<x>/register`). Never
+  `monaco-editor/features/register.all`). Never
   `monaco-editor/esm/...`, and never the root `monaco-editor`, which bundles
   every language.
 - Only JSON and TypeScript/JavaScript are bundled with their language
-  services, plus the XML and HTML grammars for raw bodies and responses, and
-  the find feature. A new language needs its
+  services, plus the XML and HTML grammars for raw bodies and responses.
+  Every editor feature is registered, with `features/register.all`, before
+  the first editor: a language service imports them all when it starts, and
+  one registered after an editor exists throws for want of its own service
+  (F71, `e2e/monaco.spec.ts`). Do not go back to single features. A new language needs its
   register import, a worker wrapper if it has a service, and a path mapping
   to the stub in `tsconfig.spec.json`.
 - Its stylesheet is the separate `monaco.css` (see `styles` in

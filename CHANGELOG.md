@@ -48,6 +48,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **The plan for import, export and sign-in (Phase 4) is split into three sessions.** Nothing in the app changes. The first session lets a collection and a folder hold auth, variables and scripts that their requests inherit, builds the one road by which a file is imported (a report first, nothing stored until you agree), writes the cURL command with every kind of body, generates code, and reads a pasted cURL command and a HAR file. The second brings Postman, Insomnia and OpenAPI files in, and Postman files out. The third adds AWS signatures, OAuth 2.0 and a fuller HAR export. One finding on the way: once the app has a second page (the OAuth sign-in's return page), the offline copy of the app would be replaced by it ([#235](https://github.com/AshwinSathian/wayfarer/issues/235)); nothing is wrong today, and it is fixed before that page is added.
 
+### Fixed
+
+- **The editor threw an error into the console some seconds after it appeared (F71, [#242](https://github.com/AshwinSathian/wayfarer/issues/242)).** `[createInstance] … depends on UNKNOWN service ICodeLensCache`, and after it the same for `IInlayHintsCache`. Monaco's JSON and TypeScript services bring every editor feature with them when they start, which is after the first editor exists, and a feature that arrives then cannot find the service it registers for itself. The editor worked; the error was in the console in every browser, and in Safari on every load. Every feature is now registered before the first editor. Nothing more is downloaded: the features were in the editor's files already.
+
 ## [2.1.0] - 2026-10-10
 
 Scripts are back. Pre-request and post-response scripts were switched off

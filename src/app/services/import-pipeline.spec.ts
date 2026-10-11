@@ -136,7 +136,7 @@ describe("ImportPipeline", () => {
 
     it("shows why a bad file is refused and imports nothing on confirm", async () => {
       await service.stage("bad.json", "{nope");
-      expect(service.refused()).toEqual({ message: "The file is not valid JSON, so it is not a file Wayfarer can import.", issues: [] });
+      expect(service.refused()).toEqual({ message: "The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.", issues: [] });
       expect(service.environmentEntries()).toEqual([]);
 
       await service.confirm();

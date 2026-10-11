@@ -74,6 +74,25 @@ test("a collection variable and a global reach the server, an environment's valu
   check(await sendAndEcho(page));
 });
 
+test("F74: a variable whose name holds a slash or a space reaches the server, and another language's template in a header is sent as written, unasked", async ({ page }) => {
+  await seedAndOpen(
+    page,
+    { "api/key": "k-1", "first name": "Ada" },
+    { method: "GET", url: `${ECHO}/echo?name={{first name}}`, headers: { "X-Key": "{{api/key}}", "X-Template": "{{ user.name | upper }}" } }
+  );
+  const chips = page.locator("app-variable-chips");
+  await expect(chips.getByRole("button", { name: "Variable api/key, source environment" })).toContainText("k-1");
+  await expect(chips.getByRole("button", { name: "Variable first name, source environment" })).toContainText("Ada");
+  // What is between braces and is no plain name is not a missing variable: nothing asks for it.
+  await expect(page.getByText(/Missing:/)).toHaveCount(0);
+
+  const [response] = await Promise.all([page.waitForResponse((candidate) => candidate.url().startsWith(`${ECHO}/echo`)), send(page)]);
+  const echo = (await response.json()) as Echo;
+  expect(echo.query).toEqual({ name: "Ada" });
+  expect(echo.headers).toContainEqual(["x-key", "k-1"]);
+  expect(echo.headers).toContainEqual(["x-template", "{{ user.name | upper }}"]);
+});
+
 test("variables that refer to each other are not sent: the composer says which", async ({ page }) => {
   await seedAndOpen(page, { a: "{{b}}", b: "{{a}}" }, { method: "GET", url: `${ECHO}/echo`, headers: { "X-A": "{{a}}" } });
   let requests = 0;

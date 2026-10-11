@@ -41,10 +41,8 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
  * says so: findings of this comparison, each with its issue. The test holds
  * that each still differs, so a fix removes its line here.
  */
-const GAPS: Record<string, string> = {
-  "bom-and-encoding/bom-in-environment-file.postman_collection.json": "F74 (#248): a variable whose name holds a slash (`{{fo/o}}`) is not replaced",
-  "slashed-variable-names/slashed-variable-names.postman_collection.json": "F74 (#248): a variable whose name holds a slash or a backslash is not replaced",
-};
+// None is open: F74 to F78 (#248) were the first, and are fixed.
+const GAPS: Record<string, string> = {};
 
 describe("Newman's integration collections, imported, against Newman", () => {
   let quickjs: QuickJSWASMModule;
@@ -111,6 +109,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
     // The count is in the plan's Appendix A. A collection that leaves this list needs a reason in `left`.
     expect(compared).toEqual([
       "bom-and-encoding/bom-in-collection-file.postman_collection.json",
+      "bom-and-encoding/bom-in-environment-file.postman_collection.json",
       "bom-and-encoding/utf16-le-encoding-in-env.postman_collection.json",
       "case-insen-header-sandbox.postman_collection.json",
       "clear-vars-sandbox.postman_collection.json",
@@ -123,6 +122,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
       "redirect-test/redirect-test.postman_collection.json",
       "request-chaining-test.postman_collection.json",
       "semicolon-tests.postman_collection.json",
+      "slashed-variable-names/slashed-variable-names.postman_collection.json",
       "timeout/timeout.postman_collection.json",
       "var-replacement.postman_collection.json",
     ]);

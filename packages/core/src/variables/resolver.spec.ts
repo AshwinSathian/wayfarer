@@ -123,6 +123,37 @@ describe("VariableResolver", () => {
     expect([...resolver.unresolved]).toEqual(["nowhere"]);
   });
 
+  it("F74: a name may hold any character but a brace, as in Postman: a slash, a backslash, a space", () => {
+    const resolver = new VariableResolver({ environment: rowsOf({ "fo/o": "slash", "b\\ar": "backslash", "a b": "space", "user.name | upper": "piped", "": "empty", "k:v": "colon" }) });
+    expect(resolver.resolve("{{fo/o}} {{b\\ar}} {{a b}} {{ a b }} {{user.name | upper}} {{k:v}}")).toBe("slash backslash space space piped colon");
+    expect([...resolver.unresolved]).toEqual([]);
+  });
+
+  it("F74: what stands between braces and is no plain name is a variable only when one has that name; otherwise it is text, and nothing asks for it", () => {
+    const resolver = new VariableResolver({ environment: rowsOf({ host: "api.test" }) });
+    // A template of another language in a body, an object written tight, an empty pair: text. A plain name with no value is still asked for.
+    const text = '{{ user.name | upper }} {{#each items}} {{"a":1}} {{}} {{  }} {{fo/o}} {{missing}} {{host}}';
+    expect(resolver.resolve(text)).toBe('{{ user.name | upper }} {{#each items}} {{"a":1}} {{}} {{  }} {{fo/o}} {{missing}} api.test');
+    expect([...resolver.unresolved]).toEqual(["missing"]);
+    expect(resolver.tokens({ url: text }).map((token) => [token.key, token.source])).toEqual([
+      ["missing", "missing"],
+      ["host", "environment"],
+    ]);
+    // With a variable of that name, it is one, and is shown as one.
+    const named = new VariableResolver({ collection: rowsOf({ "fo/o": "{{host}}/x", host: "api.test" }) });
+    expect(named.tokens({ url: "{{fo/o}}" })).toEqual([{ key: "fo/o", source: "collection", value: "api.test/x", location: "url", field: "endpoint" }]);
+  });
+
+  it("F74: a brace inside is not part of a name, and text with many braces is read in one pass", () => {
+    const resolver = new VariableResolver({ environment: rowsOf({ a: "1" }) });
+    expect(resolver.resolve("{{{a}}} {{a}{{a}} {{a}}}")).toBe("{1} {{a}1 1}");
+    const started = Date.now();
+    resolver.resolve(`${"{{a ".repeat(200_000)}${"{{".repeat(200_000)}${"{{ ".repeat(100_000)}${" ".repeat(400_000)}`);
+    // Not a measure of speed: a pattern that tried every start against every end would not finish.
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+
+
   it("refuses an eleventh, naming the chain", () => {
     const chain = Array.from({ length: MAX_VARIABLE_DEPTH + 1 }, (_, i) => row(`v${i}`, `{{v${i + 1}}}`));
     const attempt = () => new VariableResolver({ environment: chain }).resolve("{{v0}}");

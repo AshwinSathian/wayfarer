@@ -1,6 +1,6 @@
 import { newId } from "../id";
 import { COLLECTION_FORMAT, type CollectionExport, type EnvironmentDoc, type Folder, type Meta, type RequestDoc } from "../model/collection";
-import { RAW_LANGUAGES, isHttpMethod, type AuthConfig, type MultipartPart, type OwnAuth, type RawLanguage, type RequestBody, type Row, type Scripts } from "../model/request";
+import { RAW_LANGUAGES, isHttpMethod, type AuthConfig, type MultipartPart, type OAuthGrant, type OwnAuth, type RawLanguage, type RequestBody, type Row, type Scripts } from "../model/request";
 import { addressParts } from "../export/postman";
 import { ImportError } from "./import-error";
 
@@ -84,11 +84,42 @@ function auth(value: unknown, item: string, warnings: Warning[], top: boolean): 
       return { type, key: read("key"), value: read("value"), in: read("in") === "query" ? "query" : "header" };
     case "awsv4":
       return { type, accessKey: read("accessKey"), secretKey: read("secretKey"), sessionToken: read("sessionToken"), region: read("region"), service: read("service") };
+    case "oauth2": {
+      // Postman's names for the three grants the app has. With none said, Postman asks for a code.
+      const grant = OAUTH_GRANTS_OF.get(read("grant_type"));
+      if (!grant) {
+        warnings.push({ item, message: `Its auth is OAuth 2.0 with a grant the app does not have (${read("grant_type").slice(0, 40)}) and is left out: it is sent with no auth.` });
+        return { type: "none" };
+      }
+      if (read("accessToken")) warnings.push({ item, message: "The OAuth 2.0 token in the file is not kept: get one in the Auth tab." });
+      if (read("addTokenTo") === "queryParams") warnings.push({ item, message: "Its OAuth 2.0 token was added to the address: the app sends it in the Authorization header." });
+      return {
+        type,
+        grant,
+        authUrl: read("authUrl"),
+        tokenUrl: read("accessTokenUrl"),
+        clientId: read("clientId"),
+        clientSecret: read("clientSecret"),
+        scope: read("scope"),
+        username: read("username"),
+        password: read("password"),
+        clientAuth: read("client_authentication") === "body" ? "body" : "header",
+        retryOn401: false,
+      };
+    }
     default:
       warnings.push({ item, message: `Its auth is of a type the app does not have (${type || "no type"}) and is left out: it is sent with no auth.` });
       return { type: "none" };
   }
 }
+
+const OAUTH_GRANTS_OF = new Map<string, OAuthGrant>([
+  ["", "authorization_code"],
+  ["authorization_code", "authorization_code"],
+  ["authorization_code_with_pkce", "authorization_code"],
+  ["client_credentials", "client_credentials"],
+  ["password_credentials", "password"],
+]);
 
 /** Postman's `event`: `prerequest` and `test`. A script is a list of lines, or one text. */
 function scripts(value: unknown, item: string, warnings: Warning[]): Scripts {

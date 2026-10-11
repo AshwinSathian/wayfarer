@@ -45,9 +45,8 @@ collection:
           mimeType: application/json
           text: '{"id": "{% uuid ''v4'' %}"}'
         authentication:
-          type: oauth2
-          grantType: client_credentials
-          accessToken: not-kept
+          type: hawk
+          id: not-kept
 environments:
   name: Base Environment
   meta:
@@ -77,7 +76,7 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
   await expect(report.locator(".import-report")).toContainText('"shop.yaml" will add 1 collection, 1 folder, 2 requests and 1 environment.');
   await expect(report.locator(".import-warnings")).toContainText('request "List". Its after-response script is left out: an Insomnia script calls Insomnia\'s own "insomnia" object, which the app does not have.');
   await expect(report.locator(".import-warnings")).toContainText("request \"Signed\". It uses a template of Insomnia's ({% uuid 'v4' %}), which the app does not have: the text is kept as written.");
-  await expect(report.locator(".import-warnings")).toContainText('request "Signed". Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth.');
+  await expect(report.locator(".import-warnings")).toContainText('request "Signed". Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth.');
   expect(await stored(page)).toBe(before);
 
   await report.getByRole("button", { name: "Confirm import" }).click();

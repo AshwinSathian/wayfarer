@@ -25,7 +25,9 @@ using. <!-- claim:C-002 --> Nothing is uploaded to any server we operate. See
 the app itself from its static host, the only network traffic Wayfarer's
 code generates is the request *you* compose, sent directly from your
 browser to the API target *you* specify (or through the Local Bridge, if
-you turn it on). <!-- claim:C-001 -->
+you turn it on). A request whose auth is OAuth 2.0 adds two things, both to
+addresses you typed: the token request, and the identity provider's
+sign-in, opened in a window of its own. <!-- claim:C-001 -->
 
 ## Encryption at rest
 

@@ -103,6 +103,26 @@ function auth(value: unknown, said: (value: unknown) => string): { auth?: Loose 
     }
     case "iam":
       return { auth: { type: "awsv4", awsv4: { accessKey: read("accessKeyId"), secretKey: read("secretAccessKey"), sessionToken: read("sessionToken"), region: read("region"), service: read("service") } } };
+    case "oauth2": {
+      const grant = read("grantType");
+      if (grant !== "authorization_code" && grant !== "client_credentials" && grant !== "password") return { auth: { type, oauth2: { grant_type: grant || "none said" } } };
+      return {
+        auth: {
+          type,
+          oauth2: {
+            grant_type: grant === "password" ? "password_credentials" : grant,
+            authUrl: read("authorizationUrl"),
+            accessTokenUrl: read("accessTokenUrl"),
+            clientId: read("clientId"),
+            clientSecret: read("clientSecret"),
+            scope: read("scope"),
+            username: read("username"),
+            password: read("password"),
+            client_authentication: field(value, "credentialsInBody") === true ? "body" : "header",
+          },
+        },
+      };
+    }
     default:
       return { auth: { type } };
   }

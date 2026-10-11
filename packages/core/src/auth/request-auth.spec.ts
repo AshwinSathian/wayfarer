@@ -48,6 +48,19 @@ describe("what each auth type puts on a request", () => {
     expect(resolveAuth(basic, upper)).toEqual({ type: "basic", username: "{{U}}", password: "{{P}}" });
     expect(resolveAuth(header, upper)).toEqual({ type: "apikey", key: "{{K}}", value: "{{V}}", in: "header" });
     expect(resolveAuth({ type: "awsv4", accessKey: "{{a}}", secretKey: "{{s}}", sessionToken: "{{t}}", region: "{{r}}", service: "{{v}}" }, upper)).toEqual({ type: "awsv4", accessKey: "{{A}}", secretKey: "{{S}}", sessionToken: "{{T}}", region: "{{R}}", service: "{{V}}" });
+    expect(resolveAuth({ type: "oauth2", grant: "password", authUrl: "{{a}}", tokenUrl: "{{t}}", clientId: "{{c}}", clientSecret: "{{s}}", scope: "{{o}}", username: "{{u}}", password: "{{p}}", clientAuth: "body", retryOn401: true }, upper)).toEqual({
+      type: "oauth2",
+      grant: "password",
+      authUrl: "{{A}}",
+      tokenUrl: "{{T}}",
+      clientId: "{{C}}",
+      clientSecret: "{{S}}",
+      scope: "{{O}}",
+      username: "{{U}}",
+      password: "{{P}}",
+      clientAuth: "body",
+      retryOn401: true,
+    });
     expect(resolveAuth({ type: "none" }, upper)).toEqual({ type: "none" });
     expect(resolveAuth({ type: "inherit" }, upper)).toEqual({ type: "inherit" });
   });
@@ -57,6 +70,13 @@ describe("what each auth type puts on a request", () => {
     expect(buildAuthHeaders(aws)).toEqual({});
     expect(buildAuthQueryParam(aws)).toBeNull();
     expect(credentialsOf(aws)).toEqual(["secret", "token"]);
+  });
+
+  it("OAuth 2.0 writes no header by itself: its token is fetched for the send, and the client's secret and the user's password are the credentials (P4.7)", () => {
+    const oauth: AuthConfig = { type: "oauth2", grant: "password", authUrl: "", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "secret", scope: "", username: "alice", password: "pw", clientAuth: "header", retryOn401: false };
+    expect(buildAuthHeaders(oauth)).toEqual({});
+    expect(buildAuthQueryParam(oauth)).toBeNull();
+    expect(credentialsOf(oauth)).toEqual(["secret", "pw"]);
   });
 
   it("credentialsOf names what a redactor must look for: the token, the password, the key's value", () => {

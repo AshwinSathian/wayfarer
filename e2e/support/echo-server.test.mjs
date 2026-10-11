@@ -121,6 +121,40 @@ test("/oauth: wrong PKCE verifier, client_credentials and password grants", asyn
   assert.equal(pw.status, 200);
 });
 
+test("/oauth: a short expires_in, a client in a Basic header, a state that was not given, and a token the resource takes until it is revoked", async () => {
+  const basic = { authorization: `Basic ${Buffer.from("c%20id:s%3Acret").toString("base64")}` };
+  const short = await (await get("/oauth/token?expires_in=2", { method: "POST", headers: basic, body: new URLSearchParams({ grant_type: "client_credentials" }) })).json();
+  assert.equal(short.expires_in, 2);
+  assert.equal((await (await get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" }) })).json()).expires_in, 3600);
+
+  const resource = (token) => get("/oauth/resource", { headers: { authorization: `Bearer ${token}` } });
+  assert.equal((await resource(short.access_token)).status, 200);
+  assert.equal((await resource("at-never-issued")).status, 401);
+  assert.equal((await get("/oauth/resource")).status, 401);
+  // A test asks what was issued with a token, by the token or by its refresh token.
+  assert.deepEqual(await (await get(`/oauth/issued?token=${short.access_token}`)).json(), short);
+  assert.deepEqual(await (await get(`/oauth/issued?refresh_token=${short.refresh_token}`)).json(), short);
+  assert.equal((await get("/oauth/issued?token=at-never-issued")).status, 404);
+  assert.equal((await get("/oauth/issued")).status, 404);
+  await get("/oauth/revoke", { method: "POST", body: new URLSearchParams({ token: short.access_token }) });
+  assert.equal((await resource(short.access_token)).status, 401, "a revoked token is refused");
+
+  const q = new URLSearchParams({ response_type: "code", client_id: "c", redirect_uri: "http://x.test/cb", state: "s1", mock_wrong_state: "1" });
+  assert.equal(new URL((await get(`/oauth/authorize?${q}`, { redirect: "manual" })).headers.get("location")).searchParams.get("state"), "not-s1");
+});
+
+test("/oauth/token-no-cors answers like the token endpoint, with no CORS header", async () => {
+  const origin = { origin: "http://localhost:4200" };
+  const body = new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" });
+  const plain = await get("/oauth/token-no-cors", { method: "POST", headers: origin, body });
+  assert.equal(plain.status, 200);
+  assert.match((await plain.json()).access_token, /^at-/);
+  assert.equal(plain.headers.get("access-control-allow-origin"), null);
+  const preflight = await get("/oauth/token-no-cors", { method: "OPTIONS", headers: origin });
+  assert.equal(preflight.headers.get("access-control-allow-origin"), null);
+  assert.equal((await get("/oauth/token", { method: "POST", headers: origin, body })).headers.get("access-control-allow-origin"), "http://localhost:4200");
+});
+
 test("/big/:mb streams exactly that many MiB", async () => {
   const buf = await (await get("/big/2")).arrayBuffer();
   assert.equal(buf.byteLength, 2 << 20);

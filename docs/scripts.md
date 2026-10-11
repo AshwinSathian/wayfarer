@@ -77,7 +77,7 @@ there yet.
 
 In a post-response script: the request as it was sent. Variables are
 replaced, the Auth tab's header is among the headers, and the address is the
-one the request went to. A vault secret in it reads `***`: a script is not
+one the request went to. A vault secret in it reads `***`, and so does an OAuth 2.0 token the app fetched for the send: a script is not
 handed a secret, here as in a variable's value. A credential that is not in
 the vault (a token typed into the Auth tab or kept in a plain variable) is
 shown as it is.

@@ -9,6 +9,8 @@ describe("request model", () => {
     expect(emptyAuth("basic")).toEqual({ type: "basic", username: "", password: "" });
     expect(emptyAuth("apikey")).toEqual({ type: "apikey", key: "", value: "", in: "header" });
     expect(emptyAuth("awsv4")).toEqual({ type: "awsv4", accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" });
+    // The code grant, and a client named as RFC 6749 says a server must take it.
+    expect(emptyAuth("oauth2")).toEqual({ type: "oauth2", grant: "authorization_code", authUrl: "", tokenUrl: "", clientId: "", clientSecret: "", scope: "", username: "", password: "", clientAuth: "header", retryOn401: false });
   });
 
   it("lists the files of every part of a body, not only the part its mode sends", () => {

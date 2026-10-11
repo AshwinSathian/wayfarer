@@ -213,7 +213,7 @@ describe("an Insomnia export (P4.4)", () => {
             request("digest", { type: "digest", username: "u" }),
           ],
         },
-        { name: "G", authentication: { type: "oauth2", grantType: "client_credentials" }, children: [] },
+        { name: "G", authentication: { type: "hawk", id: "i" }, children: [] },
         { name: "H", authentication: { type: "basic", username: "u", password: "p", disabled: true }, children: [] },
       ]),
     );
@@ -242,7 +242,30 @@ describe("an Insomnia export (P4.4)", () => {
     expect(warnings).toEqual([
       { item: 'request "key in cookie"', message: "Its auth is of a type the app does not have (an API key in a cookie) and is left out: it is sent with no auth." },
       { item: 'request "digest"', message: "Its auth is of a type the app does not have (digest) and is left out: it is sent with no auth." },
-      { item: 'folder "G"', message: "Its auth is of a type the app does not have (oauth2) and is left out: it is sent with no auth." },
+      { item: 'folder "G"', message: "Its auth is of a type the app does not have (hawk) and is left out: it is sent with no auth." },
+    ]);
+  });
+
+  it("OAuth 2.0 is imported by its grant, the client named in the header unless Insomnia put it in the body; the implicit grant is left out and said (P4.7)", () => {
+    const request = (name: string, authentication: unknown) => ({ name, method: "GET", url: "https://api.test/", authentication });
+    const oauth = (grantType: string, more: Loose = {}) => ({ type: "oauth2", grantType, authorizationUrl: "https://idp.test/authorize", accessTokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "{{ _.secret }}", scope: "read", usePkce: true, ...more });
+    const { requests } = only(
+      v5([
+        request("code", oauth("authorization_code")),
+        request("client", oauth("client_credentials", { credentialsInBody: true })),
+        request("password", oauth("password", { username: "alice", password: "pw" })),
+        request("implicit", oauth("implicit")),
+      ]),
+    );
+    const base = { type: "oauth2", authUrl: "https://idp.test/authorize", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "{{secret}}", scope: "read", username: "", password: "", clientAuth: "header", retryOn401: false };
+    expect(requests.map((entry) => [entry.name, entry.auth])).toEqual([
+      ["code", { ...base, grant: "authorization_code" }],
+      ["client", { ...base, grant: "client_credentials", clientAuth: "body" }],
+      ["password", { ...base, grant: "password", username: "alice", password: "pw" }],
+      ["implicit", { type: "none" }],
+    ]);
+    expect(messages(v5([request("implicit", oauth("implicit"))]))).toEqual([
+      { item: 'request "implicit"', message: "Its auth is OAuth 2.0 with a grant the app does not have (implicit) and is left out: it is sent with no auth." },
     ]);
   });
 

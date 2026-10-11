@@ -26,6 +26,8 @@ class IdbServiceMock {
   add = vi.fn().mockReturnValue(Promise.resolve(1));
   readonly memoryOnly = signal(false).asReadonly();
   readFile = vi.fn().mockReturnValue(Promise.resolve(undefined));
+  /** No other tab in a unit test. */
+  onChangeElsewhere = vi.fn();
 }
 
 class ResponseInspectorServiceStub {
@@ -91,6 +93,8 @@ class SecretsVaultStub {
     return this.unlocked();
   });
   readSecret = vi.fn().mockImplementation(async (id: string) => (this.unlocked() ? this.secrets.get(id) ?? null : null));
+  /** What `OAuthTokens` looks through for a kept token: none here. */
+  listSecrets = async () => [];
 }
 
 class CollectionsServiceStub {

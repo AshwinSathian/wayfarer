@@ -246,6 +246,10 @@ describe("Redactor", () => {
       expect(redactor.auth(aws)).toEqual({ ...aws, secretKey: MASK, sessionToken: MASK });
       expect(redactor.auth({ ...aws, secretKey: "{{secret}}", sessionToken: "" })).toEqual({ ...aws, secretKey: "{{secret}}", sessionToken: "" });
       expect(redactor.auth(aws, { credentials: true })).toEqual(aws);
+      const oauth = { type: "oauth2", grant: "password", authUrl: "", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "typed-secret", scope: "read", username: "alice", password: "typed", clientAuth: "header", retryOn401: false } as const;
+      expect(redactor.auth(oauth)).toEqual({ ...oauth, clientSecret: MASK, password: MASK });
+      expect(redactor.auth({ ...oauth, clientSecret: "{{secret}}", password: "" })).toEqual({ ...oauth, clientSecret: "{{secret}}", password: "" });
+      expect(redactor.auth(oauth, { credentials: true })).toEqual(oauth);
       expect(redactor.auth({ type: "none" })).toEqual({ type: "none" });
       expect(redactor.auth({ type: "bearer", token: "typed-token" }, { credentials: true })).toEqual({ type: "bearer", token: "typed-token" });
 

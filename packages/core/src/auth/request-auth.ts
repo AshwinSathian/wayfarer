@@ -31,6 +31,7 @@ export function buildAuthQueryParam(auth: AuthConfig): { key: string; value: str
 }
 
 /** Applies `resolve` (e.g. `{{var}}` substitution) to every auth field that goes on the wire (F07). */
+export function resolveAuth<T extends AuthConfig>(auth: T, resolve: (text: string) => string): T;
 export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string): AuthConfig {
   switch (auth.type) {
     case "bearer":
@@ -41,6 +42,17 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
       return { ...auth, key: resolve(auth.key), value: resolve(auth.value) };
     case "awsv4":
       return { ...auth, accessKey: resolve(auth.accessKey), secretKey: resolve(auth.secretKey), sessionToken: resolve(auth.sessionToken), region: resolve(auth.region), service: resolve(auth.service) };
+    case "oauth2":
+      return {
+        ...auth,
+        authUrl: resolve(auth.authUrl),
+        tokenUrl: resolve(auth.tokenUrl),
+        clientId: resolve(auth.clientId),
+        clientSecret: resolve(auth.clientSecret),
+        scope: resolve(auth.scope),
+        username: resolve(auth.username),
+        password: resolve(auth.password),
+      };
     case "none":
     case "inherit":
       return auth;
@@ -72,6 +84,9 @@ export function credentialsOf(auth: AuthConfig): string[] {
       return [auth.value];
     case "awsv4":
       return [auth.secretKey, auth.sessionToken];
+    case "oauth2":
+      // The token is not in the auth: the send that fetched it masks it as it masks a vault secret.
+      return [auth.clientSecret, auth.password];
     case "none":
     case "inherit":
       return [];

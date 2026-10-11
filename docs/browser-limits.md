@@ -77,6 +77,39 @@ WebKit, once the app's service worker controls the page, a request whose
 preflight the server refused was sent anyway. Whether Safari itself does
 this is not confirmed.
 
+<a id="oauth"></a>
+
+## OAuth 2.0 token endpoints
+
+A token request ([`auth.md`](auth.md), "OAuth 2.0") is a `POST` from the
+page to your identity provider. To the browser it is a request to another
+origin like any other, so the provider's token endpoint must answer with
+`Access-Control-Allow-Origin` for the app's origin, and must answer the
+preflight when the client's secret goes in an `Authorization` header.
+
+Many token endpoints do not: they were made to be called by servers. The
+browser then gives the page no answer at all, and the app cannot tell this
+from a host that is down. It says:
+
+> The token request got no answer the page could read. A token endpoint
+> that does not send Access-Control-Allow-Origin for this page cannot be
+> called from a browser: switch on the Local Bridge, which has no such
+> limit.
+
+What you can do:
+
+- **Switch on the Local Bridge.** The token request then leaves from the
+  bridge, where CORS does not apply, and so does your own request.
+- **Register the client as a browser (single-page) application** with the
+  provider, where it has such a kind: providers that do then allow the
+  origins you list.
+- For a client secret, try **Client sent in: Request body**: without the
+  `Authorization` header the request needs no preflight, which some
+  endpoints never answer. The answer still needs the header above.
+
+The sign-in window of the Authorization Code grant is not such a request:
+it is a page the browser opens, and CORS does not apply to it.
+
 ## Response headers the browser hides
 
 Of a response from another origin, a page can read only `Cache-Control`,

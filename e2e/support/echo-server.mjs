@@ -15,7 +15,15 @@
 //   /sse?count=5                   text/event-stream, honours Last-Event-ID
 //   /ws                            WebSocket echo (text and binary)
 //   /oauth/authorize, /oauth/token mock IdP: auth code + PKCE (S256),
-//                                  client_credentials, password, refresh_token
+//                                  client_credentials, password, refresh_token.
+//                                  The client is named in the form or in a Basic header.
+//                                  /oauth/token?expires_in=2 issues a token that lasts 2 s;
+//                                  /oauth/authorize?mock_wrong_state=1 answers with a state it was not given
+//   /oauth/token-no-cors           the same token endpoint, with no CORS header at all
+//   /oauth/resource                200 for a Bearer token that was issued and has not expired or been revoked, else 401
+//   /oauth/revoke                  POST token=…: that access token is no longer taken
+//   /oauth/issued?token=… | ?refresh_token=…   what was issued with that token, for a test to read:
+//                                  a browser does not always hand a test the body of a token answer
 //   /big/:mb                       mb MiB of bytes, streamed
 // Postman Echo–compatible routes (Newman's fixtures) are served on their own
 // origin, 127.0.0.1:4302, with Postman's paths unchanged (see rewritePostmanEcho).
@@ -94,6 +102,8 @@ const CONTENT = {
 // Mock IdP state. Per process; tests use unique client ids / states.
 const authCodes = new Map(); // code -> { clientId, redirectUri, challenge, scope }
 const refreshTokens = new Map(); // token -> { clientId, scope }
+const accessTokens = new Map(); // token -> the time it expires, in ms
+const issued = []; // every token answer, as it was sent
 
 function corsHeaders(req) {
   const origin = req.headers.origin;
@@ -165,6 +175,8 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     return req.method === "OPTIONS" ? send(res, 204, cors) : postmanEcho(req, res, url, body, cors);
   }
   if (path.startsWith("/cors/")) return corsRoute(req, res, path.slice(6));
+  // A token endpoint as most are: it answers, and says nothing a browser needs to let a page read it.
+  if (path === "/oauth/token-no-cors") return req.method === "OPTIONS" ? send(res, 204, {}) : token(req, res, url, body, {});
   const cors = corsHeaders(req);
   if (req.method === "OPTIONS") return send(res, 204, cors);
 
@@ -198,7 +210,19 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
   if ((m = /^\/status\/(\d{3})$/.exec(path))) return json(res, Number(m[1]), { status: Number(m[1]) }, cors);
   if (path === "/sse") return sse(req, res, url, cors);
   if (path === "/oauth/authorize") return authorize(res, url, cors);
-  if (path === "/oauth/token") return token(res, body, cors);
+  if (path === "/oauth/token") return token(req, res, url, body, cors);
+  if (path === "/oauth/resource") {
+    const until = accessTokens.get(/^Bearer (.+)$/.exec(req.headers.authorization ?? "")?.[1]);
+    return until > Date.now() ? json(res, 200, { ok: true }, cors) : json(res, 401, { error: "invalid_token" }, cors);
+  }
+  if (path === "/oauth/issued") {
+    const answer = issued.find((entry) => entry.access_token === url.searchParams.get("token") || entry.refresh_token === url.searchParams.get("refresh_token"));
+    return answer ? json(res, 200, answer, cors) : json(res, 404, { error: "not issued" }, cors);
+  }
+  if (path === "/oauth/revoke") {
+    accessTokens.delete(parseForm(body).token);
+    return json(res, 200, {}, cors);
+  }
   if ((m = /^\/big\/(\d+)$/.exec(path))) return big(res, clampInt(m[1], 0, MAX_BIG_MB, 0), cors);
   return json(res, 404, { error: "not found", path }, cors);
 }
@@ -269,23 +293,27 @@ function authorize(res, url, cors) {
   });
   const target = new URL(redirectUri);
   target.searchParams.set("code", code);
-  if (q.has("state")) target.searchParams.set("state", q.get("state"));
+  if (q.has("state")) target.searchParams.set("state", q.has("mock_wrong_state") ? `not-${q.get("state")}` : q.get("state"));
   return send(res, 302, { ...cors, location: target.href });
 }
 
-function issue(res, cors, clientId, scope) {
+function issueToken(res, cors, clientId, scope, expiresIn) {
   const refresh = b64url(randomBytes(16));
   refreshTokens.set(refresh, { clientId, scope });
-  return json(
-    res,
-    200,
-    { access_token: `at-${b64url(randomBytes(12))}`, token_type: "Bearer", expires_in: 3600, refresh_token: refresh, scope },
-    { ...cors, "cache-control": "no-store" }
-  );
+  const access = `at-${b64url(randomBytes(12))}`;
+  accessTokens.set(access, Date.now() + expiresIn * 1000);
+  const answer = { access_token: access, token_type: "Bearer", expires_in: expiresIn, refresh_token: refresh, scope };
+  issued.push(answer);
+  return json(res, 200, answer, { ...cors, "cache-control": "no-store" });
 }
 
-function token(res, body, cors) {
-  const form = parseForm(body);
+function token(req, res, url, body, cors) {
+  // The client in a Basic header (RFC 6749, 2.3.1) counts as the same two fields of the form.
+  const basic = /^Basic (.+)$/.exec(req.headers.authorization ?? "");
+  const [id, secret] = basic ? Buffer.from(basic[1], "base64").toString("utf8").split(":").map((part) => new URLSearchParams(`k=${part}`).get("k")) : [];
+  const form = { ...(basic && { client_id: id, client_secret: secret }), ...parseForm(body) };
+  const expiresIn = clampInt(url.searchParams.get("expires_in"), 1, 86_400, 3600);
+  const issue = (res, cors, clientId, scope) => issueToken(res, cors, clientId, scope, expiresIn);
   const fail = (error) => json(res, 400, { error }, cors);
   switch (form.grant_type) {
     case "authorization_code": {

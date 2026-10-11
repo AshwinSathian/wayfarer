@@ -106,14 +106,16 @@ const SECRET_PLACEHOLDER_BLOCKED =
  * True when a built request still carries a literal `{{$secret.<id>}}`
  * placeholder anywhere it would go on the wire (F03). The URL is also checked
  * percent-decoded, since URL normalisation may have encoded the braces, and
- * Basic credentials base64-decoded.
+ * Basic credentials base64-decoded, and those percent-decoded too.
  */
-function containsSecretPlaceholder(request: Pick<BuiltRequest, "url" | "headers" | "body">): boolean {
+export function containsSecretPlaceholder(request: Pick<BuiltRequest, "url" | "headers" | "body">): boolean {
   const wire = [
     request.url,
     percentDecoded(request.url),
     JSON.stringify(request.headers),
     ...request.headers.map(([, value]) => decodeBasicCredentials(value)),
+    // An OAuth 2.0 token request names its client in Basic credentials that are form-encoded first (RFC 6749, 2.3.1).
+    ...request.headers.map(([, value]) => percentDecoded(decodeBasicCredentials(value))),
     ...bodyTexts(request.body),
   ];
   return wire.some((text) => SECRET_PLACEHOLDER.test(text));
@@ -191,6 +193,11 @@ export interface RequestExecutionSpec {
    * left it (`pm.request`).
    */
   buildRequest: (request: RequestContent) => BuiltRequest | Promise<BuiltRequest>;
+  /**
+   * Asked when the response is a 401 (P4.7): the request built again with a
+   * renewed token, to send once more, or `null` to keep the 401.
+   */
+  retryUnauthorized?: (request: RequestContent) => Promise<BuiltRequest | null>;
   /** The saved request the composer is bound to, for `pm.info`. */
   info?: { requestName: string; requestId: string };
   /** The variables of that request's collection, read when a script starts, and the way to change them. Absent for a request of no collection. */
@@ -364,21 +371,32 @@ export class RequestExecutor {
     this.responseInspector.markRequest(requestId, request.url);
 
     // The duration is the transport call alone: no script time (F11).
-    const startedAt = performance.now();
-    let outcome: ResponseEnvelope | TransportError;
-    try {
-      outcome = await this.transport.send(
-        {
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-          body: request.body,
-        },
-        { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }
-      );
-    } catch (error) {
-      if (!(error instanceof TransportError)) throw error;
-      outcome = error;
+    let startedAt = 0;
+    const transmit = async (): Promise<ResponseEnvelope | TransportError> => {
+      startedAt = performance.now();
+      try {
+        return await this.transport.send(
+          {
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+            body: request.body,
+          },
+          { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }
+        );
+      } catch (error) {
+        if (!(error instanceof TransportError)) throw error;
+        return error;
+      }
+    };
+    let outcome = await transmit();
+    // OAuth 2.0 (P4.7): a 401 gets one more send, with a renewed token, when the auth asks for it. What is shown and kept is the second exchange.
+    if (!(outcome instanceof TransportError) && outcome.status === 401 && spec.retryUnauthorized) {
+      const again = await spec.retryUnauthorized(template);
+      if (again && !containsSecretPlaceholder(again)) {
+        request = again;
+        outcome = await transmit();
+      }
     }
     const durationMs = Math.round(performance.now() - startedAt);
     timings.requestMs = durationMs;

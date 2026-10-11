@@ -12,6 +12,8 @@ export {
 } from "./view/response-view";
 export { buildAuthHeaders, buildAuthQueryParam, credentialsOf, effectiveAuth, resolveAuth } from "./auth/request-auth";
 export { signV4 } from "./auth/sigv4";
+export { OAUTH_CHANNEL, OAuthError, authorizationUrl, oauthTokenKey, parseStoredToken, pkcePair, readTokenResponse, tokenExpired, tokenRequest } from "./auth/oauth2";
+export type { OAuth2Auth, OAuthExchange, OAuthToken } from "./auth/oauth2";
 export {
   COLLECTION_FORMAT,
   ENVIRONMENTS_FORMAT,

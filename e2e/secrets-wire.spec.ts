@@ -252,6 +252,100 @@ test("a request that uses a secret while the vault is locked asks for the passph
   expect(echo.headers.find(([key]) => key === "x-api-key")?.[1]).toBe("locked-vault-secret");
 });
 
+// P4.7: an OAuth 2.0 token is a new thing the app keeps. With the vault
+// unlocked it is a vault secret; it is masked wherever a vault secret is.
+test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a scan of everything stored, exported and copied finds neither it nor its refresh token", async ({ page }) => {
+  // As long as the scan above it: a vault made, a send with a script, nine copies, two downloads and a reload. On the WebKit runner it was at 30 s with the reload still to do (#228).
+  test.slow();
+  const clipboard = await recordClipboard(page);
+  let tokenRequests = 0;
+  page.on("request", (request) => {
+    if (request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST") tokenRequests += 1;
+  });
+  await seedAndOpen(page, {}, {
+    method: "POST",
+    url: `${ECHO}/echo`,
+    auth: { type: "oauth2", grant: "client_credentials", authUrl: "", tokenUrl: `${ECHO}/oauth/token`, clientId: "wayfarer-e2e", clientSecret: "{{CLIENT_SECRET}}", scope: "", username: "", password: "", clientAuth: "header", retryOn401: false },
+    storedBody: { mode: "raw", raw: { language: "text", text: "hello" } },
+    // The server sends the Authorization header back, and a script writes it where a script can.
+    postRequestScript: `
+      const sent = pm.response.json().headers.find(([name]) => name === "authorization")[1];
+      console.log("the server saw " + sent + " and the request says " + pm.request.headers.get("Authorization"));
+      pm.environment.set("LEAKED_BY_SCRIPT", sent);
+    `,
+  });
+  // The vault is made and left unlocked; the client's secret is in it.
+  await protectVariable(page, "CLIENT_SECRET", "client-secret-in-vault");
+  await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
+  const [asked] = await Promise.all([
+    page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST"),
+    page.getByRole("button", { name: "Get token", exact: true }).click(),
+  ]);
+  // The client's secret came out of the vault for the token request.
+  expect(Buffer.from(((await asked.allHeaders())["authorization"] ?? "").slice("Basic ".length), "base64").toString("utf8")).toBe("wayfarer-e2e:client-secret-in-vault");
+  await expect(page.locator(".oauth-token-status")).toContainText("It is kept in the vault.");
+
+  // The token is the one the request arrives with; its refresh token is asked of the identity provider itself.
+  // (Not read from the token answer in the browser: on a CI runner Chromium had no body to give for it.)
+  const echo = await sendAndEcho(page);
+  const token = (echo.headers.find(([key]) => key === "authorization")?.[1] ?? "").replace(/^Bearer /, "");
+  const issued = await page.request.get(`${ECHO}/oauth/issued?token=${token}`);
+  expect(issued.ok()).toBe(true);
+  const { refresh_token: refresh } = (await issued.json()) as { refresh_token: string };
+  expect(refresh).toBeTruthy();
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
+
+  const exportMenu = page.getByRole("button", { name: "Export response" });
+  for (const item of ["Copy as cURL", "Copy as HAR", "Copy as cURL with credentials", "Copy as HAR with credentials"]) {
+    await exportMenu.click();
+    await page.getByRole("menuitem", { name: item, exact: true }).click();
+  }
+  const composer = ["Copy as cURL", "Copy as cURL with credentials", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"];
+  for (const item of composer) {
+    await page.getByRole("button", { name: "Copy as cURL", exact: true }).click();
+    await page.getByRole("menuitem", { name: item, exact: true }).click();
+    await expect.poll(async () => (await clipboard()).length).toBe(5 + composer.indexOf(item));
+  }
+  const copied = await clipboard();
+  await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
+  await expect(page.locator(".script-console")).toContainText("the server saw *** and the request says Bearer ***");
+
+  const stores = await dumpIdb(page);
+  const searched: Record<string, string> = {
+    ...Object.fromEntries(Object.entries(stores).map(([name, records]) => [`IndexedDB ${name}`, JSON.stringify(records)])),
+    "localStorage and sessionStorage": await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }])),
+    ...Object.fromEntries(copied.map((text, index) => [`copy ${index + 1}`, text])),
+    "collection export": await downloadText(page, "Export"),
+    "collection export with credentials": await downloadText(page, "Export with credentials"),
+    "what the script wrote on the page": await page.locator(".script-console").innerText(),
+  };
+  expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
+  expect(copied).toHaveLength(9);
+  for (const secret of [token, refresh, "client-secret-in-vault"]) {
+    expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, secret)])), secret).toEqual(Object.fromEntries(Object.keys(searched).map((place) => [place, []])));
+  }
+  // The vault holds two secrets, as ciphertext: the client's, and the token under a name that says whose it is and holds no secret.
+  const names = (stores["secrets"] as { name: string }[]).map((secret) => secret.name).sort();
+  expect(names).toEqual(["CLIENT_SECRET", `OAuth 2.0 token ["client_credentials","${ECHO}/oauth/token","wayfarer-e2e","",""]`]);
+  // The command as sent has the header, masked even "with credentials"; the composer's own, built without a send, has none.
+  expect(copied[2]).toContain("-H 'Authorization: Bearer ***'");
+  expect(copied[5]).not.toContain("Authorization");
+  expect(JSON.stringify(stores["environments"])).toContain('"key":"LEAKED_BY_SCRIPT","value":"Bearer ***"');
+
+  // After a reload the tab holds nothing. The send asks for the passphrase and takes the token from the vault: no new one is asked for.
+  await page.reload();
+  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
+  const again = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  await send(page);
+  const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
+  await dialog.locator("input[type='password']").fill(PASSPHRASE);
+  await dialog.getByRole("button", { name: "Unlock secrets" }).click();
+  expect(((await (await again).json()) as Echo).headers.find(([key]) => key === "authorization")?.[1]).toBe(`Bearer ${token}`);
+  expect(tokenRequests).toBe(1);
+});
+
 // F81: the pass that says which secrets a request needs read only an auth's
 // credentials (the password, the secret key), so a secret in another field
 // of the auth was never read from the vault.

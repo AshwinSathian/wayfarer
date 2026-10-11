@@ -52,6 +52,7 @@ import {
   SendDeclinedError,
   type SendTimings,
 } from "../services/request-executor";
+import { OAuthTokens } from "../services/oauth-tokens";
 import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
@@ -65,7 +66,7 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../shared/http/request-url";
-import { BinaryBody, scriptsOf } from "@wayfarer/core";
+import { BinaryBody, OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
@@ -187,6 +188,7 @@ export class WorkspaceStore {
   private readonly router = inject(TransportRouter);
   private readonly trust = inject(ScriptTrust);
   private readonly confirm = inject(Confirm);
+  private readonly oauthTokens = inject(OAuthTokens);
 
   /** Whether the draft's scripts may run (`ScriptTrust`). */
   readonly scriptsAllowed = this.trust.allowed;
@@ -487,6 +489,7 @@ export class WorkspaceStore {
         tests: draft.tests,
         template: this.snapshot(),
         buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false, composed),
+        retryUnauthorized: (request) => this.withRenewedToken(request, options.allowUnresolved ?? false),
         signal: controller.signal,
         inherited,
         folderVariables: () => this.scopes().folder ?? [],
@@ -541,6 +544,44 @@ export class WorkspaceStore {
   /** The auth that is sent for `auth`: itself, or what it inherits. */
   private sentAuth(auth: AuthConfig): AuthConfig {
     return effectiveAuth(auth, this.saved.ancestors()).auth;
+  }
+
+  /**
+   * The OAuth 2.0 auth the draft is sent with, its own or inherited, and the
+   * name its token is kept under (`oauthTokenKey`): made with the variables
+   * replaced and no vault secret read, so the name holds none.
+   */
+  readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() => this.oauthOf(this.draft().auth));
+
+  private oauthOf(own: AuthConfig): { auth: OAuth2Auth; key: string } | null {
+    const auth = this.sentAuth(own);
+    if (auth.type !== "oauth2") return null;
+    const probe = new VariableResolver(this.scopes());
+    try {
+      return { auth, key: oauthTokenKey(resolveAuth(auth, (text) => probe.resolve(text))) };
+    } catch (error) {
+      // Variables that refer to each other: the send says so. Such an auth has no token.
+      if (!(error instanceof VariableNestingError)) throw error;
+      return null;
+    }
+  }
+
+  /**
+   * Gets a token for the draft's OAuth 2.0 auth because the user asked
+   * (P4.7): the auth's variables and vault secrets are read as a send reads
+   * them, and a variable without a value stops it. Throws an `OAuthError` or
+   * a `SendBlockedError` whose message says why there is no token.
+   */
+  async getOAuthToken(): Promise<void> {
+    const oauth = this.oauth();
+    if (!oauth) return;
+    const probe = new VariableResolver(this.scopes());
+    resolveAuth(oauth.auth, (text) => probe.resolve(text));
+    const secrets = probe.lockedSecrets.size ? await this.readSecrets([...probe.lockedSecrets]) : new Map<string, string>();
+    const resolver = new VariableResolver(this.scopes(), (id) => secrets.get(id));
+    const auth = resolveAuth(oauth.auth, (text) => resolver.resolve(text));
+    if (resolver.unresolved.size) throw new OAuthError(`${[...resolver.unresolved].map((name) => `{{${name}}}`).join(", ")} ${resolver.unresolved.size === 1 ? "has" : "have"} no value. No token was asked for.`);
+    await this.oauthTokens.get(auth, oauth.key);
   }
 
   /** Why this method cannot be sent, or "" when it can. */
@@ -628,9 +669,25 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean, composed?: Composed): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(content, allowUnresolved, composed);
+  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(content, allowUnresolved, composed, renewToken);
     return built instanceof Promise ? built.then((request) => this.recordForExport(request, content)) : this.recordForExport(built, content);
+  }
+
+  /**
+   * The request built again with a renewed OAuth 2.0 token, for the one more
+   * send a 401 gets when the auth asks for it. `null` when the auth does not,
+   * or when no token could be had: the 401 is then the response.
+   */
+  private async withRenewedToken(content: RequestContent, allowUnresolved: boolean): Promise<BuiltRequest | null> {
+    const auth = this.sentAuth(content.auth);
+    if (auth.type !== "oauth2" || !auth.retryOn401) return null;
+    try {
+      return await this.buildRequestForExecution(content, allowUnresolved, undefined, true);
+    } catch (error) {
+      if (!(error instanceof SendBlockedError)) throw error;
+      return null;
+    }
   }
 
   private recordForExport(request: BuiltRequest, content: RequestContent): BuiltRequest {
@@ -659,7 +716,7 @@ export class WorkspaceStore {
    * user is asked before the vault is read (plan Q6). One send is compared:
    * a variable a script set in an earlier send is not seen here.
    */
-  private resolveRequest(content: RequestContent, allowUnresolved: boolean, composed?: Composed): BuiltRequest | Promise<BuiltRequest> {
+  private resolveRequest(content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
     const endpointText = content.url;
     // First without the vault: this pass says which secrets the request needs.
     const probe = new VariableResolver(this.scopes());
@@ -669,7 +726,7 @@ export class WorkspaceStore {
     // Every field of the auth that is sent, not its credentials alone: a username or an access key may be a secret too (F81).
     resolveAuth(this.sentAuth(content.auth), (text) => probe.resolve(text));
     const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
-      const built = this.build(endpointText, content, resolver);
+      const built = this.build(endpointText, content, resolver, renewToken);
       const check = (request: BuiltRequest): BuiltRequest => {
         if (resolver.unresolved.size && this.settings.blockUnresolved() && !allowUnresolved) {
           throw new UnresolvedVariablesError([...resolver.unresolved]);
@@ -716,11 +773,24 @@ export class WorkspaceStore {
   }
 
   /** A promise only when a file has to be read: everything else is built at once. */
-  private build(endpointText: string, content: RequestContent, resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> {
+  private build(endpointText: string, content: RequestContent, resolver: VariableResolver, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
     const resolve = (text: string): string => resolver.resolve(text);
+    const auth = resolveAuth(this.sentAuth(content.auth), resolve);
+    // Read before anything else is resolved: these are the auth's own.
+    const withoutValue = [...resolver.unresolved];
     const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
-    const finish = (body: SentBody | undefined): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(endpointText, content, body, resolver), resolveAuth(this.sentAuth(content.auth), resolve));
-    return sent instanceof Promise ? sent.then(finish) : finish(sent);
+    const finish = (body: SentBody | undefined, token?: string): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(endpointText, content, body, resolver, token), auth);
+    const oauth = auth.type === "oauth2" ? this.oauthOf(content.auth) : null;
+    if (auth.type !== "oauth2" || !oauth) return sent instanceof Promise ? sent.then((body) => finish(body)) : finish(sent);
+    // A token is not asked for with a variable's name where its value should be, whatever "Send anyway" says of the request itself.
+    if (withoutValue.length) {
+      throw new SendBlockedError(`The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`);
+    }
+    // OAuth 2.0 (P4.7): the token held, or a renewed one. Fetched before the request is put together, and never by a copy or an export.
+    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: this.inFlight?.signal }).catch((error: unknown) => {
+      throw error instanceof OAuthError ? new SendBlockedError(`${error.message} Nothing was sent.`) : error;
+    });
+    return Promise.all([sent, token]).then(([body, value]) => finish(body, value));
   }
 
   /**
@@ -755,7 +825,9 @@ export class WorkspaceStore {
     endpointText: string,
     content: RequestContent,
     sent: SentBody | undefined,
-    resolver: VariableResolver
+    resolver: VariableResolver,
+    /** An OAuth 2.0 token fetched for this send. It goes in as it is: a token is not a template. */
+    token?: string
   ): BuiltRequest {
     const resolve = (text: string): string => resolver.resolve(text);
     const auth = resolveAuth(this.sentAuth(content.auth), resolve);
@@ -767,6 +839,7 @@ export class WorkspaceStore {
       const name = resolve(key);
       byName.set(name.toLowerCase(), [name, resolve(value)]);
     }
+    if (token) byName.set("authorization", ["Authorization", `Bearer ${token}`]);
     // The body's own type, unless the request names one.
     if (sent?.contentType && !byName.has("content-type")) {
       byName.set("content-type", ["Content-Type", sent.contentType]);
@@ -783,7 +856,8 @@ export class WorkspaceStore {
       url,
       headers,
       body: sent?.data,
-      secrets: [...resolver.taint],
+      // An OAuth 2.0 token is kept like a vault secret and masked like one: in history, in every export, and in what a script is shown.
+      secrets: [...resolver.taint, ...(token ? [token] : [])],
       // Also what a credential header carries, typed by hand or built from the Auth tab: a server may send it back.
       credentials: [...credentialsOf(auth), ...headers.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)].filter((value) => value),
     };

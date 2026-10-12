@@ -5,6 +5,31 @@ import { openSettings } from "./support/app";
 test.describe("Settings surface", () => {
   const drawn = (page: import("@playwright/test").Page) => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
 
+  for (const theme of ["light", "dark"] as const) {
+    test(`with ${theme} chosen, the page is ${theme} from the moment it has a body: it is never drawn in the other theme first (F85)`, async ({ page }) => {
+      // Stored, not emulated: see the note on Firefox below. The theme is read when the body appears, which is
+      // before anything is drawn, and at every change of the attribute after that.
+      await page.addInitScript((choice) => {
+        localStorage.setItem("wayfarer:theme", choice);
+        const seen: (string | null)[] = [];
+        (window as unknown as { themesSeen: typeof seen }).themesSeen = seen;
+        const record = () => seen.push(document.documentElement.getAttribute("data-theme"));
+        const waitForBody = new MutationObserver(() => {
+          if (!document.body) return;
+          waitForBody.disconnect();
+          record();
+          new MutationObserver(record).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+        });
+        waitForBody.observe(document, { childList: true, subtree: true });
+      }, theme);
+      await page.goto("/");
+      await expect(page.locator("input.address-url")).toBeVisible();
+      const seen = await page.evaluate(() => (window as unknown as { themesSeen: (string | null)[] }).themesSeen);
+      expect(seen.length).toBeGreaterThan(0);
+      expect(seen.filter((value) => value !== theme)).toEqual([]);
+    });
+  }
+
   test("@claim:C-033 @claim:C-037 opens from the toolbar, and the theme is Light, Dark or the system's, kept over a reload", async ({ page }) => {
     await page.goto("/");
     // No choice yet: the system's. (Set once the page is there: Playwright's Firefox does not give a

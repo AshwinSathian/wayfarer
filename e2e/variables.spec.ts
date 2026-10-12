@@ -69,7 +69,7 @@ test("a collection variable and a global reach the server, an environment's valu
   check(await sendAndEcho(page));
 
   await page.reload();
-  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo?c={{fromCollection}}`);
   check(await sendAndEcho(page));
 });

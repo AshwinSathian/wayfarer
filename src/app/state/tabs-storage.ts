@@ -1,4 +1,4 @@
-import { Injectable, Injector, effect, inject, untracked } from "@angular/core";
+import { Injectable, effect, inject, signal, untracked } from "@angular/core";
 import { scriptDigest, scriptsOf } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { StoredTab } from "../data/idb-schema";
@@ -36,13 +36,38 @@ export class TabsStorage {
   private readonly idb = inject(Idb);
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);
-  private readonly injector = inject(Injector);
 
   /** Each tab as it is in the store, by id: what this browser tab last wrote or read. */
   private readonly stored = new Map<string, string>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   /** Writes go one after another. */
   private writing: Promise<void> = Promise.resolve();
+
+  /** The stored tabs were read: from here on a change of a tab is written. */
+  private readonly ready = signal(false);
+
+  constructor() {
+    // Made here and held back until the first read is done: an effect cannot be made after an `await`, when its injector may be gone.
+    effect(() => {
+      if (!this.ready()) return;
+      // Every tab is read, each time: an effect follows only what its last run read, and a
+      // run that stopped at the first changed tab never heard of an edit in a later one.
+      const now = this.tabs.tabs().map((tab, order) => [tab.id, JSON.stringify(this.record(tab, order))]);
+      const changed = now.some(([id, text]) => text !== this.stored.get(id));
+      const closed = [...this.stored.keys()].some((id) => !now.some(([open]) => open === id));
+      if (changed || closed) untracked(() => this.schedule());
+    });
+    effect(() => {
+      // Not before the first read: that is what reads which tab was open.
+      if (!this.ready()) return;
+      const id = this.tabs.active().id;
+      try {
+        sessionStorage.setItem(OPEN_TAB_KEY, id);
+      } catch (error) {
+        recordDiagnostic(error, "tabs: could not note the open tab");
+      }
+    });
+  }
 
   /** Reads the stored tabs, then keeps the store in step with the tabs. Called once, when the page starts. */
   async start(): Promise<void> {
@@ -52,28 +77,7 @@ export class TabsStorage {
       // Storage that cannot be read: the shell's banner says so. The tabs live in the page.
       recordDiagnostic(error, "tabs: could not read the stored tabs");
     }
-    effect(
-      () => {
-        // Every tab is read, each time: an effect follows only what its last run read, and a
-        // run that stopped at the first changed tab never heard of an edit in a later one.
-        const now = this.tabs.tabs().map((tab, order) => [tab.id, JSON.stringify(this.record(tab, order))]);
-        const changed = now.some(([id, text]) => text !== this.stored.get(id));
-        const closed = [...this.stored.keys()].some((id) => !now.some(([open]) => open === id));
-        if (changed || closed) untracked(() => this.schedule());
-      },
-      { injector: this.injector }
-    );
-    effect(
-      () => {
-        const id = this.tabs.active().id;
-        try {
-          sessionStorage.setItem(OPEN_TAB_KEY, id);
-        } catch (error) {
-          recordDiagnostic(error, "tabs: could not note the open tab");
-        }
-      },
-      { injector: this.injector }
-    );
+    this.ready.set(true);
     this.idb.onChangeElsewhere((stores) => {
       if (stores.includes("tabs")) void this.changedElsewhere();
     });

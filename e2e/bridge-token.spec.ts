@@ -37,7 +37,7 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
   expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ enabled: true, url: "http://127.0.0.1:7799" });
 
   await page.reload();
-  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   await send(page);
   await expect(page.getByText("The Local Bridge is on, and its token is not in this tab.", { exact: false })).toBeVisible();
@@ -75,7 +75,7 @@ test("with the vault unlocked the token is a vault secret: after a reload a send
     expect(await everythingStored(page)).not.toContain(TOKEN);
 
     await page.reload();
-    await page.getByText("Tripwire request", { exact: true }).dblclick();
+    await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
     await page.getByRole("button", { name: "Send request" }).click();
     const unlock = page.getByRole("dialog", { name: "Unlock secrets", exact: true });

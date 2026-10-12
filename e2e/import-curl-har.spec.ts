@@ -36,7 +36,7 @@ async function pasteIntoAddress(page: Page, text: string): Promise<void> {
   await page.keyboard.press("ControlOrMeta+V");
 }
 
-test("@claim:C-056 a cURL command pasted into the address field fills the composer, stores nothing, and is sent as the command says", async ({ page }) => {
+test("@claim:C-056 a cURL command pasted into the address field fills the open tab, saves nothing to a collection or to history, and is sent as the command says", async ({ page }) => {
   const violations: string[] = [];
   await page.exposeFunction("__violation", (text: string) => violations.push(text));
   await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => void (window as unknown as { __violation: (text: string) => void }).__violation(`${e.effectiveDirective} ${e.blockedURI}`)));
@@ -50,8 +50,11 @@ test("@claim:C-056 a cURL command pasted into the address field fills the compos
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo?page=2`);
   await expect(page.getByRole("textbox", { name: "HTTP method" })).toHaveValue("PUT");
   await expect(page.locator(".paste-notes")).toContainText("-k (do not check the server's certificate) was left out");
-  // The composer holds it; no store does.
-  expect(await stored(page)).toBe(before);
+  // The tab holds it, and the tab is kept like any other (P5.1). Nothing else was written: no collection, no request, no history.
+  await expect.poll(async () => ((await dumpIdb(page))["tabs"] ?? []).length).toBe(1);
+  const after = await dumpIdb(page);
+  expect((after["tabs"] as { draft: { url: string; method: string } }[])[0].draft).toMatchObject({ url: `${ECHO}/echo?page=2`, method: "PUT" });
+  expect(JSON.stringify({ ...after, tabs: [] })).toBe(before);
 
   const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
   await send(page);

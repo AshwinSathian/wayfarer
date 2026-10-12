@@ -41,7 +41,7 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
   which is stored wrapped by a key derived via PBKDF2-SHA-256 (600,000
   iterations) from a user-chosen passphrase. Full
   spec: [`docs/secrets.md`](secrets.md). Everything else (collections,
-  environments, history) is stored as plain text in IndexedDB, protected by
+  environments, history, the composer's open tabs) is stored as plain text in IndexedDB, protected by
   the browser's storage sandbox and the device's own disk encryption, not
   an app-level cipher. History stores what was sent and what came back
   with credentials and vault secrets masked; a credential typed into a

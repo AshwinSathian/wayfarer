@@ -157,7 +157,7 @@ export async function seedAndOpen(
   );
   const response = await page.reload();
   if (request.folder) await openFolder(page, "Tripwire folder");
-  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(request.url);
   return response;
 }

@@ -61,8 +61,12 @@ Two ways in:
 
 - **Paste it into the address field.** The composer becomes the request
   the command describes: method, address, headers, body, and Basic auth
-  from `-u`. Nothing is stored; it is a new request, and a saved request
-  that was open is no longer what Save writes to. What the command asked
+  from `-u`. It is a new request, and a saved request that was open is no
+  longer what Save writes to. Nothing is saved to a collection or to
+  history. The request is in the open tab, and a tab is kept in this
+  browser until you close it ([Storage](storage.md), "Tabs"): a credential
+  in the command is kept with it, as text, as it would be in a saved
+  request. What the command asked
   for that the app does not do is listed under the address until you send.
   Text that does not start with `curl` is pasted as text.
 - **Import it.** The terminal button in the Collections panel opens the

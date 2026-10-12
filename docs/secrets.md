@@ -93,7 +93,7 @@ A value shorter than 6 characters is stored encrypted like any other, and the ed
 
 ## Known limitations
 
-- **A secret typed outside the vault is not a secret.** Only a value protected in the Environments editor is in the vault. A token typed into a header or the Auth tab is plain text in the saved request.
+- **A secret typed outside the vault is not a secret.** Only a value protected in the Environments editor is in the vault. A token typed into a header or the Auth tab is plain text in the saved request, and in the open tab as it is stored ([Storage](storage.md), "Tabs").
 - **Masking finds the encodings it knows.** A secret is looked for as text, percent-encoded, JSON-escaped and inside base64. A server that sends it back hashed, reversed or in an encoding of its own is not recognised.
 - **A forgotten passphrase is unrecoverable.** There is no escrow; the only way out is Reset all data.
 - **PBKDF2 is not memory-hard.** A weak passphrase can be guessed offline by someone who has the vault record. Choose a long one.

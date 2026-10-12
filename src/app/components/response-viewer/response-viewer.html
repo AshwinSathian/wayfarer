@@ -1,5 +1,8 @@
 <div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
-  @if (loading()) {
+  @if (loading() && events().length) {
+  <!-- An event stream that is open (P5.6): its events as they arrive. The rest of the response is here when it ends. -->
+  <app-event-list class="block space-y-3 p-6" [events]="events()" [count]="eventCount()" [live]="true" (stop)="stopStream.emit()" />
+  } @else if (loading()) {
   <div class="space-y-3 p-6">
     <span class="ui-skeleton h-9 w-full" aria-hidden="true"></span>
     <span class="ui-skeleton h-6 w-[60%]" aria-hidden="true"></span>
@@ -89,6 +92,9 @@
           <button mat-tab-link type="button" [active]="activeTab() === 'body'" (click)="onTabChange('body')" (focus)="onTabChange('body')">Body</button>
           <button mat-tab-link type="button" [active]="activeTab() === 'headers'" (click)="onTabChange('headers')" (focus)="onTabChange('headers')">Headers</button>
           <button mat-tab-link type="button" [active]="activeTab() === 'timings'" (click)="onTabChange('timings')" (focus)="onTabChange('timings')">Timings</button>
+          @if (eventCount()) {
+          <button mat-tab-link type="button" [active]="activeTab() === 'events'" (click)="onTabChange('events')" (focus)="onTabChange('events')">Events</button>
+          }
           <button mat-tab-link type="button" [active]="activeTab() === 'tests'" (click)="onTabChange('tests')" (focus)="onTabChange('tests')">
             Tests
             @if (testResults().length) {
@@ -388,6 +394,11 @@
           </div>
 
           <!-- ── Tests tab ──────────────────────────────────── -->
+          @if (eventCount()) {
+          <div class="tab-pane" [hidden]="activeTab() !== 'events'">
+            <app-event-list class="block space-y-3 p-4" [events]="events()" [count]="eventCount()" [note]="eventsNote()" (reconnect)="reconnectStream.emit()" />
+          </div>
+          }
           <div class="tab-pane" [hidden]="activeTab() !== 'tests'">
             <div class="space-y-2 pb-4">
               @if (scriptsSkipped()) {

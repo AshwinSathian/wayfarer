@@ -1,6 +1,8 @@
 import { buildCurl, redactExport } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Signal, computed, effect, signal, inject, input, model } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Signal, computed, effect, signal, inject, input, model, output } from "@angular/core";
+import type { ShownEvent } from "../../state/tab-state";
+import { EventList } from "./event-list";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -45,7 +47,7 @@ import { parseJson, stringifyJson } from "@wayfarer/core";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 
-type ResponseTab = "body" | "headers" | "timings" | "tests";
+type ResponseTab = "body" | "headers" | "timings" | "tests" | "events";
 
 interface ResponseHeader {
   name: string;
@@ -55,6 +57,7 @@ interface ResponseHeader {
 @Component({
   selector: "app-response-viewer",
   imports: [MatFormField, MatInput, 
+    EventList,
     HarExportDialog,
     JsonPipe,
     Icon,
@@ -115,6 +118,12 @@ export class ResponseViewer {
   readonly responseContentType = input("");
   /** The browser withheld some response headers (a direct answer from another origin). */
   readonly headersLimited = input(false);
+  /** The events of a response that is an event stream (P5.6), how many it gave in all, and what there is to say of it. */
+  readonly events = input<ShownEvent[]>([]);
+  readonly eventCount = input(0);
+  readonly eventsNote = input("");
+  readonly stopStream = output<void>();
+  readonly reconnectStream = output<void>();
 
   readonly exportItems: UiMenuItem[] = [
     {

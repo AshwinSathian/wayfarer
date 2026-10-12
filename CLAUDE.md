@@ -70,6 +70,17 @@ code errors.
   `TransportRouter` picks. No `HttpClient` and no `@angular/common/http`
   anywhere. A user's request is sent with `cache: "no-store"`,
   `credentials: "omit"` and `referrerPolicy: "no-referrer"`; keep all three.
+- An event stream (P5.6) is read by the same `FetchTransport.send`, when
+  the caller gives `onEvent` and the response is `text/event-stream`:
+  `readEventStream` gives each event as it comes and keeps the first
+  megabyte as the body. The timeout ends at the headers (`arrived`), and an
+  abort after them is a stop: a response, not a `TransportError`. The
+  bridge cannot stream; its whole body is parsed with `parseEventStream`.
+- What a server sent is never a template. `Last-Event-ID` on a reconnect is
+  `TabState.lastEventId`, put in by `assemble` as it is: through the
+  resolver a server could name `{{token}}` or a vault secret and be sent
+  its value. The same holds for anything else of a response that goes into
+  a later request.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the

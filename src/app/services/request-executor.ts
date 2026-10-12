@@ -28,6 +28,7 @@ import {
   type RequestContent,
   type ResponseEnvelope,
   type RunIteration,
+  type StreamEvent,
   type Scripts,
   type Row,
   type ScriptResponse,
@@ -228,6 +229,8 @@ export interface RequestExecutionSpec {
   folderVariables?: () => Row[];
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
+  /** Asks for an event stream to be read as it arrives (P5.6): each event, as it comes. The send then ends when the stream does, or is stopped. */
+  onEvent?: (event: StreamEvent) => void;
   /**
    * The send is a request of a collection run (P5.2): its scripts read the
    * iteration and the data file's row, and `pm.execution.skipRequest()` in a
@@ -273,6 +276,8 @@ export interface RequestExecutionResponse {
   contentType?: string;
   /** The browser withheld headers: a direct answer from another origin shows only the CORS-safelisted ones and those the server exposes. */
   headersLimited?: boolean;
+  /** The body was an event stream read as it arrived (P5.6): whether the user stopped it, and whether the body shown is only its start. */
+  stream?: { stopped: boolean; truncated?: true };
 }
 
 /** One outcome of a send, in the shapes its three consumers take. */
@@ -418,7 +423,7 @@ export class RequestExecutor {
             headers: request.headers,
             body: request.body,
           },
-          { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }
+          { signal: spec.signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs(), ...(spec.onEvent && { onEvent: spec.onEvent }) }
         );
       } catch (error) {
         if (!(error instanceof TransportError)) throw error;
@@ -539,6 +544,7 @@ export class RequestExecutor {
         redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
         contentType: header("content-type"),
         headersLimited: envelope.route === "direct" && URL.parse(envelope.finalUrl, location.href)?.origin !== location.origin,
+        ...(envelope.stream && { stream: envelope.stream }),
       },
     };
   }

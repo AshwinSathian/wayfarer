@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } from "@angular/core";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
@@ -48,6 +49,7 @@ import { VariableChips } from "./variable-chips";
     BodyPanel,
     AuthPanel,
     ScriptsPanel,
+    NgTemplateOutlet,
     SaveAsDialog,
     TabStrip,
     RunView,
@@ -120,6 +122,11 @@ export class Composer {
     if (await this.store.send()) {
       this.newRequest.emit();
     }
+  }
+
+  /** Reconnect of an event stream: a send like any other, with the last event's id. */
+  async reconnect(): Promise<void> {
+    if (await this.store.reconnect()) this.newRequest.emit();
   }
 
   async saveCurrentRequest(): Promise<void> {

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
+import { settled } from "./support/settled";
 
 // P5.2: a collection run in the app. The order of a run is core's and is held to Newman there
 // (packages/core/test/run); the first test here runs the same collection and data file in the app.
@@ -246,6 +247,8 @@ for (const theme of ["dark", "light"] as const) {
     const view = await openRun(page);
     const scan = async (state: string) => {
       await page.mouse.move(640, 880);
+      // Once the page has stopped animating: a colour half way through a fade is not the colour.
+      await settled(page);
       const results = await new AxeBuilder({ page }).analyze();
       expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
     };

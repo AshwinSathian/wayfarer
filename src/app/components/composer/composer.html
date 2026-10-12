@@ -117,29 +117,7 @@
   </section>
 
   @if (store.shouldShowResponsePanel) {
-  <app-response-viewer
-    class="animate-fade-in"
-    [loading]="store.loadingState()"
-    [responseData]="store.responseData()"
-    [responseError]="store.responseError()"
-    [responseBodyIsJson]="store.responseBodyIsJson()"
-    [responseHeaders]="store.responseHeadersView()"
-    [responseStatusCode]="store.responseStatusCode()"
-    [responseStatusText]="store.responseStatusText()"
-    [isError]="store.responseIsError()"
-    [inspection]="store.responseInspection"
-    [responseContentLength]="store.responseContentLength()"
-    [exportContext]="store.responseExportContext()"
-    [testResults]="store.lastTestResults()"
-    [scriptsSkipped]="store.scriptsSkipped()"
-    [scriptLogs]="store.lastScriptLogs()"
-    [timings]="store.lastTimings()"
-    [responseBinary]="store.responseBinary()"
-    [redirectedTo]="store.responseRedirectedTo()"
-    [responseContentType]="store.responseContentType()"
-    [headersLimited]="store.responseHeadersLimited()"
-    [activeTab]="store.responseTab()" (activeTabChange)="store.responseTab.set($event)"
-  ></app-response-viewer>
+  <ng-container [ngTemplateOutlet]="response" />
   }
   } @else {
   <!-- Desktop: a real resizable split between the composer and the response
@@ -204,29 +182,7 @@
       </div>
       <div uiSplitterEnd class="response-pane">
         @if (store.shouldShowResponsePanel) {
-        <app-response-viewer
-          class="animate-fade-in"
-          [loading]="store.loadingState()"
-          [responseData]="store.responseData()"
-          [responseError]="store.responseError()"
-          [responseBodyIsJson]="store.responseBodyIsJson()"
-          [responseHeaders]="store.responseHeadersView()"
-          [responseStatusCode]="store.responseStatusCode()"
-          [responseStatusText]="store.responseStatusText()"
-          [isError]="store.responseIsError()"
-          [inspection]="store.responseInspection"
-          [responseContentLength]="store.responseContentLength()"
-          [exportContext]="store.responseExportContext()"
-          [testResults]="store.lastTestResults()"
-    [scriptsSkipped]="store.scriptsSkipped()"
-    [scriptLogs]="store.lastScriptLogs()"
-    [timings]="store.lastTimings()"
-          [responseBinary]="store.responseBinary()"
-    [redirectedTo]="store.responseRedirectedTo()"
-    [responseContentType]="store.responseContentType()"
-    [headersLimited]="store.responseHeadersLimited()"
-          [activeTab]="store.responseTab()" (activeTabChange)="store.responseTab.set($event)"
-        ></app-response-viewer>
+        <ng-container [ngTemplateOutlet]="response" />
         } @else {
         <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6">
           <app-icon name="bolt" class="icon-lg text-label-tertiary" />
@@ -239,5 +195,37 @@
 
   }
 </mat-tab-nav-panel>
+
+<!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
+<ng-template #response>
+  <app-response-viewer
+    class="animate-fade-in"
+    [loading]="store.loadingState()"
+    [responseData]="store.responseData()"
+    [responseError]="store.responseError()"
+    [responseBodyIsJson]="store.responseBodyIsJson()"
+    [responseHeaders]="store.responseHeadersView()"
+    [responseStatusCode]="store.responseStatusCode()"
+    [responseStatusText]="store.responseStatusText()"
+    [isError]="store.responseIsError()"
+    [inspection]="store.responseInspection"
+    [responseContentLength]="store.responseContentLength()"
+    [exportContext]="store.responseExportContext()"
+    [testResults]="store.lastTestResults()"
+    [scriptsSkipped]="store.scriptsSkipped()"
+    [scriptLogs]="store.lastScriptLogs()"
+    [timings]="store.lastTimings()"
+    [responseBinary]="store.responseBinary()"
+    [redirectedTo]="store.responseRedirectedTo()"
+    [responseContentType]="store.responseContentType()"
+    [headersLimited]="store.responseHeadersLimited()"
+    [events]="store.streamEvents()"
+    [eventCount]="store.streamCount()"
+    [eventsNote]="store.streamNote()"
+    (stopStream)="store.cancel()"
+    (reconnectStream)="reconnect()"
+    [activeTab]="store.responseTab()" (activeTabChange)="store.responseTab.set($event)"
+  ></app-response-viewer>
+</ng-template>
 
 <app-save-as-dialog />

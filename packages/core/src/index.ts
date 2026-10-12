@@ -94,10 +94,12 @@ export {
 } from "./safe-json";
 export { BridgeTransport } from "./transport/bridge";
 export { FetchTransport } from "./transport/fetch";
+export { parseEventStream } from "./transport/sse";
 export {
   TransportError,
   type ResolvedRequest,
   type ResponseEnvelope,
+  type StreamEvent,
   type Transport,
   type TransportOptions,
 } from "./transport/transport";

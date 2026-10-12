@@ -106,4 +106,18 @@ describe("Composer: variable scopes", () => {
     await store.copyAsCurl();
     expect(store.endpointError()).toContain("in a circle");
   });
+
+  // Found in session 5B by running a data file past Newman: `fetch` takes tabs and line breaks out of an address, so the value arrived as "twolines".
+  it("a line break or a tab in a variable's value is sent in the address as Postman sends it, percent-encoded, and not dropped", async () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ note: "two\r\nlines\tend", host: "api.test" }));
+    store.setUrl("https://{{host}}/items?note={{note}}");
+    await sent("https://api.test/items?note=two%0D%0Alines%09end");
+  });
+
+  it("a line break in the part of the address that names the host is not a host: nothing is sent", async () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ host: "api\n.test" }));
+    store.setUrl("https://{{host}}/items");
+    await component.sendRequest();
+    expect(store.endpointError()).toBe("Please enter a valid URL");
+  });
 });

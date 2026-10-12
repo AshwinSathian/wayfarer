@@ -22,9 +22,13 @@ function hasExplicitScheme(text: string): boolean {
  * "not-a-url" is a *relative* URL as far as the browser is concerned, and
  * `fetch` silently resolves it against the app's own origin — fetching
  * the app's own index.html and reporting it back as a misleading "200 OK".
+ * The text is otherwise sent as written.
  */
 export function normalizeUrl(text: string): string {
-  return hasExplicitScheme(text) ? text : `https://${text}`;
+  // A URL parser takes tabs and line breaks out of an address without a word (a variable's value may hold one).
+  // Percent-encoded, as Postman sends them, they stay what they are: data in a path or a query, and no host.
+  const address = text.replace(/[\t\n\r]/g, encodeURIComponent);
+  return hasExplicitScheme(address) ? address : `https://${address}`;
 }
 
 export function validateUrl(text: string): boolean {

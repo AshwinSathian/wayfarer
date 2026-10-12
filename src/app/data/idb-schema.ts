@@ -1,5 +1,5 @@
 import { DBSchema } from "idb";
-import type { Row, VaultRecord } from "@wayfarer/core";
+import type { RequestContent, Row, VaultRecord } from "@wayfarer/core";
 import {
   Collection,
   CollectionId,
@@ -30,6 +30,7 @@ export type StoreName =
   | "environments"
   | "secrets"
   | "files"
+  | "tabs"
   | "meta";
 
 export type StoreCollection = ArrayLike<StoreName>;
@@ -43,6 +44,26 @@ export type StoreCollection = ArrayLike<StoreName>;
 export interface StoredFile {
   bytes: ArrayBuffer;
   type: string;
+}
+
+/**
+ * A tab of the composer as it is stored (P5.1): what a saved request holds,
+ * so a typed credential is text and a vault secret is its reference. No
+ * response is here: `historyKey` names the history entry that has it, masked.
+ */
+export interface StoredTab {
+  id: string;
+  /** Its place in the strip. */
+  order: number;
+  draft: RequestContent;
+  /** The draft as it was when the tab was opened, loaded or saved, as JSON: a tab whose draft differs is unsaved. */
+  baseline: string;
+  /** The saved request the tab is bound to. */
+  requestId?: RequestDocId;
+  /** The history entry of the tab's last send, or the one it was opened from. */
+  historyKey?: PastRequestKey;
+  /** The SHA-256 of each script of the draft that was allowed to run when the tab was stored (plan D6). */
+  scripts: string[];
 }
 
 export const META_STATE_KEY = "state";
@@ -122,6 +143,11 @@ export interface ApiSandboxDB extends DBSchema {
     key: string;
     value: StoredFile;
   };
+  /** The composer's tabs, by the tab's id. */
+  tabs: {
+    key: string;
+    value: StoredTab;
+  };
   meta: {
     key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY | typeof META_VAULT_KEY;
     value: MetaState | GlobalsRecord | VaultRecordDoc;
@@ -130,5 +156,5 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 10;
+export const DB_VERSION = 11;
 export const DEFAULT_SCHEMA_VERSION = 1;

@@ -164,7 +164,7 @@ test("collections saved before version 10 are removed, the page says so once, an
   }
   expect((stores["environments"] as { name: string }[]).map((environment) => environment.name)).toEqual(["Version 9 environment"]);
   expect(stores["history"]).toHaveLength(1);
-  expect(await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version)).toBe(10);
+  expect(await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version)).toBe(11);
 
   // A collection made now holds what version 10 added, and the notice is about that one upgrade.
   await createCollection(page, "After version 10");

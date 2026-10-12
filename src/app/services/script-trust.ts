@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal } from "@angular/core";
 import { scriptDigest, scriptsApproved, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestSave } from "./request-save";
+import type { TabState } from "../state/tab-state";
 import { Tabs, forwarded } from "../state/tabs";
 
 /** The scripts of one request, folder or collection, as the review lists them. */
@@ -81,13 +82,17 @@ export class ScriptTrust {
    * task as the click.
    *
    * `inherited` is what the request's collection and folders hold for it:
-   * `send` gives the very scripts it is about to run.
+   * `send` gives the very scripts it is about to run. `tab` is the open
+   * tab unless another is asked about.
    */
-  check(inherited: Ancestor[] = this.saved.ancestors()): boolean | Promise<boolean> {
-    const bound = this.saved.loadedCollectionRequest();
-    if (!bound) return this.fromHistory() === null;
-    const scripts = [...inherited, bound].flatMap(scriptsOf);
-    return scripts.length ? scriptsApproved(this.collection()?.collection.scriptTrust, scripts) : true;
+  check(inherited?: Ancestor[], tab: TabState = this.tabs.active()): boolean | Promise<boolean> {
+    // Held by the tab itself: a history entry's scripts, or a stored tab's that were not allowed when it was stored (P5.1).
+    if (tab.heldScripts() !== null) return false;
+    const bound = tab.bound();
+    if (!bound) return true;
+    const scripts = [...(inherited ?? this.saved.ancestorsFor(bound)), bound].flatMap(scriptsOf);
+    const collection = this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    return scripts.length ? scriptsApproved(collection?.collection.scriptTrust, scripts) : true;
   }
 
   /** A history entry was opened: its scripts wait for a review. */

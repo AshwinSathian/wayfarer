@@ -1,6 +1,7 @@
 import { computed, signal } from "@angular/core";
-import { emptyRequest, newId, type BinaryBody, type Draft, type RequestContent, type Row } from "@wayfarer/core";
+import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
+import { PastRequest, PastRequestKey } from "../models/history";
 import { TestResult } from "../models/test-assertion";
 import type { SendTimings } from "../services/request-executor";
 import { VariableToken } from "../services/variable-focus";
@@ -26,6 +27,9 @@ export function contentOf(draft: Draft): RequestContent {
   return { ...content, params: namedRows(content.params), headers: namedRows(content.headers), body };
 }
 
+/** Scripts that wait for a review, and what the review calls them when they are not a history entry's. */
+export type HeldScripts = RequestContent["scripts"] & { name?: string };
+
 /**
  * One tab of the composer (P5.1): the request being composed in it, what it
  * was opened from, and the response it last received. `WorkspaceStore`,
@@ -36,10 +40,12 @@ export class TabState {
   /** The saved request this tab was opened from or last saved to. Save writes back to it. */
   readonly bound = signal<RequestDoc | null>(null);
   /** Scripts that came from somewhere else (a history entry) and wait for a review (`ScriptTrust`). */
-  readonly heldScripts = signal<RequestContent["scripts"] | null>(null);
+  readonly heldScripts = signal<HeldScripts | null>(null);
+  /** The history entry of the tab's last send, or the one it was opened from: where its response is kept (P5.1). */
+  readonly historyKey = signal<PastRequestKey | undefined>(undefined);
 
   /** The draft as it was when the tab was opened, loaded or saved. */
-  private readonly baseline = signal("");
+  readonly baseline = signal("");
   /** The draft differs from what it was opened from or last saved as. */
   readonly dirty = computed(() => JSON.stringify(contentOf(this.draft())) !== this.baseline());
 
@@ -85,6 +91,42 @@ export class TabState {
   /** The draft as it is now is what the tab holds unchanged: it was just opened, loaded or saved. */
   markClean(): void {
     this.baseline.set(JSON.stringify(contentOf(this.draft())));
+  }
+
+  /** Shows the response a history entry recorded, as it is stored: masked, and without a body when none was kept. */
+  showRecorded(entry: PastRequest): void {
+    this.resetResponse();
+    this.lastTestResults.set([]);
+    this.lastScriptLogs.set([]);
+    this.lastTimings.set(null);
+    const response = entry.response;
+    const text = response?.body?.text ?? "";
+    const isError = !response || response.status < 200 || response.status >= 300;
+    this.responseIsError.set(isError);
+    this.responseStatusCode.set(response?.status);
+    this.responseStatusText.set(response?.statusText);
+    this.responseHeadersView.set((response?.headers ?? []).map(([name, value]) => ({ name, value })));
+    this.responseContentType.set(response?.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1] ?? "");
+    this.responseBodyIsJson.set(!!text && parseJson(text).ok);
+    this.responseData.set(isError ? "" : text);
+    this.responseError.set(isError ? text || entry.error || "" : "");
+  }
+
+  resetResponse(): void {
+    this.responseData.set("");
+    this.responseError.set("");
+    this.responseBodyIsJson.set(false);
+    this.responseHeadersView.set([]);
+    this.responseStatusCode.set(undefined);
+    this.responseStatusText.set(undefined);
+    this.responseIsError.set(false);
+    this.responseContentLength.set(undefined);
+    this.responseBinary.set(null);
+    this.responseRedirectedTo.set(undefined);
+    this.responseContentType.set("");
+    this.responseHeadersLimited.set(false);
+    this.responseTab.set("body");
+    this.responseExportContext.set(null);
   }
 
   /** `saved` is what was written: an edit made while the write was under way is still unsaved. */

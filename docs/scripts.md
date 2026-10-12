@@ -474,6 +474,19 @@ you (plan decision D6):
 - **A history entry** carries the scripts of the request as it was sent.
   Opened from history they wait for a review of their own, which lasts
   while that entry is in the composer.
+- **A tab that a reload brought back** keeps what it had. Stored with each
+  tab are the SHA-256 digests of the scripts in it that were allowed to run
+  at that moment: ones you typed, or ones approved in the tab's collection.
+  After a reload a script runs only if its digest is in that list. Any other
+  text waits for a review of its own ("This tab, as it was stored"), as a
+  history entry's does. Scripts the tab did not change are its saved
+  request's, and the collection's list decides about those as before. The
+  list is in the same database as a collection's list of approved scripts
+  and is worth what that is: it tells a script you had here from one that
+  got into the stored tab some other way, not from one put there by
+  something that can write the whole database.
+- **A duplicate of a tab** stands where its original stands: the same saved
+  request, the same scripts waiting.
 
 The check is made on the stored text the composer was loaded from, when you
 press Send (`src/app/services/script-trust.ts`). What you then type into the

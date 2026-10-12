@@ -23,7 +23,7 @@ function deleteDatabase(): Promise<void> {
   });
 }
 
-const STORES = ["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"];
+const STORES = ["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"];
 
 /** A v4 database with a document in every store, and the store v1 left behind. */
 function buildV4(db: IDBDatabase): void {
@@ -77,7 +77,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(10);
+    expect(DB_VERSION).toBe(11);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -109,7 +109,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(10);
+    expect(db.version).toBe(11);
     expect([...db.objectStoreNames]).toContain("files");
     // A collection of before version 10 holds no auth and no scripts for its requests: it is not read (D24).
     expect(await idb.listCollections()).toEqual([]);
@@ -139,7 +139,7 @@ describe("opening a database left by another release", () => {
 
     await idb.init();
 
-    expect((await core.getDatabase())!.version).toBe(10);
+    expect((await core.getDatabase())!.version).toBe(11);
     expect(await idb.listSecrets()).toEqual([]);
     expect(await idb.readVault()).toBeNull();
     // The collection goes too, since version 10.
@@ -168,7 +168,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(10);
+    expect(db.version).toBe(11);
     expect(await idb.getLatest()).toEqual([]);
     expect([...db.transaction("history").store.indexNames]).toEqual(["by-createdAt"]);
     // The collection goes too, since version 10.
@@ -212,7 +212,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(10);
+    expect(db.version).toBe(11);
     for (const name of ["collections", "folders", "requests", "files"] as const) {
       expect(await db.count(name), name).toBe(0);
     }
@@ -227,8 +227,31 @@ describe("opening a database left by another release", () => {
 
     await idb.init();
 
-    expect((await core.getDatabase())!.version).toBe(10);
+    expect((await core.getDatabase())!.version).toBe(11);
     expect(core.clearedOldData()).toEqual([]);
+  });
+
+  it("adds the tabs store to a version 10 database and removes nothing (version 11)", async () => {
+    // Version 10 held the stores of version 9: nothing was added or taken away between them.
+    const v10 = await openRaw(10, (db) => {
+      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
+      for (const name of ["collections", "folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
+      db.createObjectStore("files");
+      db.createObjectStore("meta", { keyPath: "key" });
+    });
+    const tx = v10.transaction("environments", "readwrite");
+    tx.objectStore("environments").put({ id: "e-1", meta: { id: "e-1", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", vars: [], order: 1 });
+    await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
+    v10.close();
+
+    await idb.init();
+
+    const db = (await core.getDatabase())!;
+    expect(db.version).toBe(11);
+    expect([...db.objectStoreNames].sort()).toEqual(STORES);
+    expect(await db.getAll("tabs")).toEqual([]);
+    expect(core.clearedOldData()).toEqual([]);
+    expect(await db.count("environments")).toBe(1);
   });
 
   it("does not report removed data on a first run", async () => {

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { openSettings } from "./support/app";
+import { dumpIdb, openSettings } from "./support/app";
 
 // P0.7 (F37, #94): Reset All Data used to report success while another tab
 // kept the database open, and the data survived.
@@ -48,4 +48,21 @@ test("Reset All Data also clears the bridge token and the other wayfarer: prefer
 
   expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem("elsewhere"))).toBe("kept");
+});
+
+test("Reset All Data removes the composer's tabs: the page starts again with one empty tab", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("input.address-url").fill("https://api.example.test/gone-after-reset");
+  await page.getByRole("button", { name: "New tab" }).click();
+  await page.locator("input.address-url").fill("https://api.example.test/also-gone");
+  await expect.poll(async () => ((await dumpIdb(page))["tabs"] ?? []).length).toBe(2);
+  expect(await page.evaluate(() => sessionStorage.getItem("wayfarer:open-tab"))).not.toBeNull();
+
+  const reloaded = page.waitForEvent("load");
+  await resetAllData(page);
+  await reloaded;
+
+  await expect(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab")).toHaveCount(1);
+  await expect(page.locator("input.address-url")).toHaveValue("");
+  expect((await dumpIdb(page))["tabs"]).toEqual([]);
 });

@@ -22,6 +22,10 @@ export function runUpgrade(
   if (oldVersion < 6) {
     db.createObjectStore("files");
   }
+  // 11 (P5.1): the composer's tabs. Nothing stored changes shape, and no draft was stored before.
+  if (oldVersion < 11) {
+    db.createObjectStore("tabs", { keyPath: "id" });
+  }
   // 7 (P2.4) gave a stored collection its variables. Version 10 empties the collections, so that step is gone.
   if (oldVersion < 5) {
     return Promise.resolve(oldVersion > 0 ? "all" : []);

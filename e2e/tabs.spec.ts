@@ -1,8 +1,21 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { seedAndOpen } from "./support/app";
+import { dumpIdb, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P5.1: the composer's tabs. What a reload keeps of them is in the second half of this file.
+
+interface StoredTab {
+  id: string;
+  draft: { url: string; scripts: { pre: string; post: string } };
+  scripts: string[];
+  requestId?: string;
+}
+
+/** The `tabs` store, once it holds what `settled` asks for: a tab is written a moment after it changed. */
+async function storedTabs(page: Page, settled: (tabs: StoredTab[]) => boolean): Promise<StoredTab[]> {
+  await expect.poll(async () => settled(((await dumpIdb(page))["tabs"] ?? []) as StoredTab[])).toBe(true);
+  return (await dumpIdb(page))["tabs"] as StoredTab[];
+}
 
 const strip = (page: Page): Locator => page.getByRole("tablist", { name: "Open requests" });
 const tabs = (page: Page): Locator => strip(page).getByRole("tab");
@@ -153,4 +166,134 @@ test("the open tab is in view when the strip holds more tabs than fit", async ({
   }
   await expect(tabs(page).nth(6)).toBeInViewport({ ratio: 1 });
   await expect(tabs(page).nth(0)).not.toBeInViewport();
+});
+
+// ── What is stored (the `tabs` store, database version 11) ─────────────────
+
+test("five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({ page }) => {
+  await page.goto("/");
+  for (let opened = 1; opened < 5; opened++) await page.getByRole("button", { name: "New tab" }).click();
+  await expect(tabs(page)).toHaveCount(5);
+  await tabs(page).nth(1).click();
+  await address(page).fill("https://api.example.test/second");
+  await tabs(page).nth(3).click();
+  await address(page).fill("https://api.example.test/fourth?page=2");
+  await page.getByRole("tab", { name: "Headers", exact: true }).click();
+  await page.locator("app-headers-panel").getByPlaceholder("name", { exact: true }).first().fill("X-Kept");
+  await page.locator("app-headers-panel").getByPlaceholder("value", { exact: true }).first().fill("over a reload");
+  await storedTabs(page, (stored) => stored.length === 5 && JSON.stringify(stored).includes("over a reload"));
+
+  await page.reload();
+
+  await expect(tabs(page)).toHaveCount(5);
+  for (const [index, edited] of [false, true, false, true, false].entries()) {
+    await expect(unsaved(tabs(page).nth(index)), `tab ${index + 1}`).toHaveCount(edited ? 1 : 0);
+  }
+  await expect(tabs(page).nth(3)).toHaveAttribute("aria-selected", "true");
+  await expect(address(page)).toHaveValue("https://api.example.test/fourth?page=2");
+  await expect(page.locator("app-headers-panel").getByPlaceholder("name", { exact: true }).first()).toHaveValue("X-Kept");
+  await expect(page.locator("app-headers-panel").getByPlaceholder("value", { exact: true }).first()).toHaveValue("over a reload");
+  await tabs(page).nth(1).click();
+  await expect(address(page)).toHaveValue("https://api.example.test/second");
+  await tabs(page).nth(0).click();
+  await expect(address(page)).toHaveValue("");
+});
+
+test("a restored tab shows the response of its last send, as history kept it, and the saved request it belongs to", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json?keys=2` });
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await storedTabs(page, (stored) => stored.length === 1 && stored[0].requestId === "req-tw" && JSON.stringify(stored[0]).includes("historyKey"));
+
+  await page.reload();
+
+  await expect(tabs(page)).toHaveCount(1);
+  await expect(tabs(page).first()).toContainText("Tripwire request");
+  await expect(page.getByRole("navigation", { name: "Saved request" })).toContainText("Tripwire collection");
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await expect(unsaved(tabs(page).first())).toHaveCount(0);
+  // Save still writes back to the request: the tab is bound, not a copy.
+  await address(page).fill(`${ECHO}/content/json?keys=3`);
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect.poll(async () => ((await dumpIdb(page))["requests"] as { url: string }[])[0].url).toBe(`${ECHO}/content/json?keys=3`);
+});
+
+test("a script of a restored tab runs when it was allowed as the tab was stored, and waits for a review when the stored tab holds another", async ({ page }) => {
+  const violations: string[] = [];
+  await page.exposeFunction("cspViolation", (directive: string) => violations.push(directive));
+  await page.addInitScript(() => addEventListener("securitypolicyviolation", (event) => void (window as unknown as { cspViolation(d: string): void }).cspViolation(event.violatedDirective)));
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/content/json?keys=1`, postRequestScript: 'pm.test("ran as stored", () => {});' });
+  // Changed in the tab, so the tab is what is restored, not the saved request.
+  await address(page).fill(`${ECHO}/content/json?keys=2`);
+  const [stored] = await storedTabs(page, (all) => all.length === 1 && all[0].draft.url.endsWith("keys=2") && all[0].scripts.length === 1);
+  expect(stored.scripts[0]).toMatch(/^[0-9a-f]{64}$/);
+
+  await page.reload();
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await page.locator("app-response-viewer").getByRole("tab", { name: /^Tests/ }).click();
+  await expect(page.locator("app-response-viewer")).toContainText("ran as stored");
+
+  // The send is stored with the tab (where its response is kept) before anything else writes to the record.
+  await storedTabs(page, (all) => JSON.stringify(all[0]).includes("historyKey"));
+  // Something else writes another script into the stored tab. Its digest is not the one stored with the tab.
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open("api-sandbox");
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const store = db.transaction("tabs", "readwrite").objectStore("tabs");
+    const all = await new Promise<{ draft: { scripts: { post: string } } }[]>((resolve) => {
+      const read = store.getAll();
+      read.onsuccess = () => resolve(read.result);
+    });
+    all[0].draft.scripts.post = 'pm.test("put there from outside", () => {});';
+    await new Promise<void>((resolve, reject) => {
+      const write = store.put(all[0]);
+      write.onsuccess = () => resolve();
+      write.onerror = () => reject(write.error);
+    });
+    db.close();
+  });
+  await page.reload();
+  await expect(address(page)).toHaveValue(`${ECHO}/content/json?keys=2`);
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await page.locator("app-response-viewer").getByRole("tab", { name: /^Tests/ }).click();
+  await expect(page.locator("app-response-viewer")).not.toContainText("put there from outside");
+  await page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Review scripts" })).toBeVisible();
+  expect(violations).toEqual([]);
+});
+
+test("two browser tabs share the composer's tabs: one opened or closed in one is opened or closed in the other, and each keeps its own open tab", async ({ context }) => {
+  const one = await context.newPage();
+  const two = await context.newPage();
+  await one.goto("/");
+  await two.goto("/");
+  await expect(tabs(two)).toHaveCount(1);
+
+  await address(one).fill("https://api.example.test/from-one");
+  await one.getByRole("button", { name: "New tab" }).click();
+  await address(one).fill("https://api.example.test/second-from-one");
+
+  await expect(tabs(two)).toHaveCount(2);
+  await expect(tabs(two).nth(0)).toContainText("api.example.test/from-one");
+  await expect(tabs(two).nth(1)).toContainText("api.example.test/second-from-one");
+  // Each browser tab is where it was: the second composer tab in one, the first in two.
+  await expect(tabs(one).nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(tabs(two).nth(0)).toHaveAttribute("aria-selected", "true");
+  await expect(address(two)).toHaveValue("https://api.example.test/from-one");
+
+  // An edit in two reaches one.
+  await address(two).fill("https://api.example.test/changed-in-two");
+  await expect(tabs(one).nth(0)).toContainText("api.example.test/changed-in-two");
+
+  // Closed in two, with its question answered: gone in one.
+  await two.getByRole("button", { name: "Close tab" }).click();
+  await two.getByRole("alertdialog", { name: "Close this tab?" }).getByRole("button", { name: "Close tab" }).click();
+  await expect(tabs(two)).toHaveCount(1);
+  await expect(tabs(one)).toHaveCount(1);
+  await expect(address(one)).toHaveValue("https://api.example.test/second-from-one");
 });

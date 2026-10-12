@@ -102,6 +102,22 @@ code errors.
 - A second tab of a request is `TabState.copy()`: it keeps the binding and
   the held scripts, so its scripts are trusted as the original's are. Do
   not make a tab from a draft alone: unbound, its scripts would run.
+- `TabsStorage` (`src/app/state/tabs-storage.ts`) keeps the tabs in the
+  `tabs` store: what a saved request holds, never a response, and with each
+  tab the digests of its scripts that `ScriptTrust.check` allowed when it
+  was written. Read back, a script whose digest is not there is held
+  (`TabState.heldScripts`). Do not store "the scripts were allowed" as a
+  flag, and do not let a tab read from the store run a script on the
+  strength of being there: an unbound tab is otherwise "typed here".
+- What is new in `TabState` and should survive a reload goes into
+  `StoredTab` and `TabsStorage.record`. An effect follows only what its
+  last run read: the one that notices a changed tab reads every tab every
+  time (no `some` that stops early), or an edit in a later tab is never
+  written.
+- A test that reloads after an edit waits for the write first (`storedTabs`
+  in `e2e/tabs.spec.ts`): a tab is written 250 ms after it last changed.
+  After a reload the open request's name is on the page twice, in the tree
+  and in its tab: find it in `getByRole("tree")`.
 - Row editors bind `[(ngModel)]` to a row's own fields, so rows change in
   place. The panel then tells the store (`paramsEdited`, `headersEdited`,
   `edited`). What is computed from the draft, a tab's unsaved mark among
@@ -550,10 +566,10 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
   converter for older files.
-- The database is version 10. `runUpgrade` empties a database from before
+- The database is version 11. `runUpgrade` empties a database from before
   version 5, and since then removes only what changed shape (secrets at 8,
   history at 9; collections, folders, requests and files at 10), saying
-  what it removed. No stored data exists to keep
+  what it removed. Version 11 added the `tabs` store and removed nothing. No stored data exists to keep
   (maintainer, 2026-10-09), so a change of stored shape may do the same
   again until the app has users; say so in the changelog and in
   `docs/storage.md`.

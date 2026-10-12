@@ -114,6 +114,8 @@ class CollectionsServiceStub {
   setTree(trees: CollectionTree[]): void {
     this.treeSignal.set(trees);
   }
+
+  ensureLoaded = async (): Promise<void> => undefined;
 }
 
 export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {

@@ -328,3 +328,32 @@ test("two browser tabs share the composer's tabs: one opened or closed in one is
   await expect(tabs(one)).toHaveCount(1);
   await expect(address(one)).toHaveValue("https://api.example.test/second-from-one");
 });
+
+// "What session 5A left for 5B", item 5, fixed in 5C: a tab's saved request was a copy of it.
+test("a request renamed in the tree is renamed in its tab at once, and one deleted there leaves its tab a request that is not saved", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo?kept=1` });
+  const tree = page.getByRole("tree");
+  await expect(strip(page).getByRole("tab", { selected: true })).toContainText("Tripwire request");
+
+  await tree.getByText("Tripwire request", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Rename" }).click();
+  await tree.getByRole("textbox").fill("Renamed in the tree");
+  await tree.getByRole("textbox").press("Enter");
+  // Without a reload: the tab's name, and the line that says where the request is kept.
+  await expect(strip(page).getByRole("tab", { selected: true })).toContainText("Renamed in the tree");
+  await expect(page.locator("app-composer")).toContainText("Tripwire collection / Renamed in the tree");
+  // A rename is not an edit of the request.
+  await expect(strip(page).getByRole("tab", { selected: true })).not.toContainText("unsaved");
+
+  await tree.getByText("Renamed in the tree", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await page.getByRole("alertdialog", { name: "Delete item?" }).getByRole("button", { name: "Proceed", exact: true }).click();
+  await expect(tree.getByText("Renamed in the tree", { exact: true })).toHaveCount(0);
+  // The tab keeps what it held, as a request of no collection: its name is its address again.
+  await expect(address(page)).toHaveValue(`${ECHO}/echo?kept=1`);
+  await expect(strip(page).getByRole("tab", { selected: true })).toContainText("127.0.0.1:4300/echo?kept=1");
+  await expect(page.locator("app-composer")).not.toContainText("Tripwire collection /");
+  // And it is sent like one.
+  await send(page);
+  await expect(page.locator(".status-badge").first()).toHaveText("200");
+});

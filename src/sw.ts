@@ -24,8 +24,9 @@ const CACHE_PREFIX = "wayfarer-";
 const CACHE = `${CACHE_PREFIX}${WAYFARER_SW.version}`;
 const SHELL = "/";
 const NOT_THE_APP = "/oauth/";
-// esbuild's output hashes: main-XU6HGUMA.js, media/inter-latin-…-B6TL4M5W.woff2
-const HASHED = /-[A-Z0-9]{8}\.[a-z0-9]+$/;
+// The build's output hashes: main-XU6HGUMA.js, media/inter-latin-…-B6TL4M5W.woff2, and for a lazy chunk
+// chunk-iAuoh2-d.js. Upper case alone left 20 of 28 lazy chunks out of the cache (F84).
+const HASHED = /-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
 
 sw.addEventListener("install", (event) => {
   event.waitUntil(
@@ -55,7 +56,20 @@ sw.addEventListener("activate", (event) => {
 
 sw.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") void sw.skipWaiting();
+  else if (Array.isArray((event.data as { loaded?: unknown } | null)?.loaded)) event.waitUntil(keep((event.data as { loaded: unknown[] }).loaded));
 });
+
+/**
+ * Keeps the files a page loaded before this worker controlled it (its first visit), as the fetch handler would
+ * have: same-origin and hashed only. They come from the browser's own cache, or from the network again.
+ */
+async function keep(loaded: unknown[]): Promise<void> {
+  const paths = loaded.flatMap((entry) => {
+    const url = typeof entry === "string" && URL.canParse(entry) ? new URL(entry) : null;
+    return url && url.origin === sw.location.origin && HASHED.test(url.pathname) ? [url.pathname] : [];
+  });
+  await Promise.allSettled([...new Set(paths)].map((path) => cacheFirst(new Request(path))));
+}
 
 sw.addEventListener("fetch", (event) => {
   const request = event.request;

@@ -16,6 +16,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   - New: **Clear history** in the History pane (it was only in the history drawer), and **About** links to the changelog, the trust center, the source and the licences.
   - **Fixed in Settings, found by scanning each pane:** the shortcut keys were 4.2:1 on their background and are the primary text colour now; the small grey text and the red button of the danger zone were under 4.5:1 on its red tint, which is a red border now.
 
+### Security
+
+- **The Local Bridge's token is no longer kept as plain text (F83, #266).** It was in this browser's `localStorage`, where anything that can read the app's storage could read it. It is a vault secret now, "Local Bridge token", when the vault is unlocked; with the vault locked or with no vault it is kept in the tab's memory and you enter it again after a reload. A send through the bridge asks for the vault's passphrase when the token is in the vault and the tab does not have it. **A token stored by an earlier version is removed, not moved: enter it once more in Settings, Local Bridge.**
+
 ### Fixed
 
 - **Offline, the editor opens again (F84, #269).** After one visit the app loaded with the network off, but 20 of its 28 lazily loaded files were never kept for offline use, the editor among them: the service worker recognised a file by an upper-case hash in its name, and the build gives most lazy files a mixed-case one. The body editor did not open offline. The worker keeps them now, including the ones a first visit loads before the worker has taken over the page. What is still not there offline is a part of the app this device never loaded; the Trust Center's known limitations say so.

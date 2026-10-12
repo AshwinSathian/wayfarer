@@ -32,6 +32,14 @@ bridge; there is no per-request choice and no automatic fallback from a
 failed direct request ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 Turn it off in the same settings to go back to direct requests.
 
+**Where the app keeps the token.** In the vault, as the secret "Local Bridge
+token", when the vault is unlocked as you save it or later in that tab. A
+send through the bridge then asks for the vault's passphrase when the tab
+does not hold the token yet. With no vault, or with it locked, the token is
+in that tab's memory and you enter it again after a reload. It is not
+written to `localStorage`; a token an earlier version left there is removed
+the next time the app starts.
+
 The bridge isn't published to npm yet; run it from a clone of this
 repository.
 

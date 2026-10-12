@@ -138,7 +138,8 @@ test.describe("Settings surface", () => {
     expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
     await save.click();
     await expect(dialog.locator(".bridge-saved")).toHaveText(/Saved/);
-    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ enabled: false, url: "http://127.0.0.1:7717", token: "a-token-typed-here" });
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ enabled: false, url: "http://127.0.0.1:7717" });
+    // The token is not stored there (F83): `e2e/bridge-token.spec.ts` has where it is.
     // Nothing listens there in this test: the pane says so, and why it may be.
     await dialog.getByRole("button", { name: "Test connection" }).click();
     await expect(dialog.locator(".bridge-test")).toContainText("Not reachable. Is the bridge running");

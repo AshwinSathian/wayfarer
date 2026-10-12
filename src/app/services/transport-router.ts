@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import {
   BridgeTransport,
   FetchTransport,
+  TransportError,
   type ResolvedRequest,
   type ResponseEnvelope,
   type Transport,
@@ -24,10 +25,16 @@ export class TransportRouter implements Transport {
     return bridge.enabled && bridge.url ? "bridge" : "direct";
   }
 
-  send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
-    const bridge = this.bridge.config();
-    const transport =
-      this.route() === "bridge" ? new BridgeTransport({ url: bridge.url, token: bridge.token }) : new FetchTransport();
-    return transport.send(request, options);
+  async send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
+    if (this.route() !== "bridge") return new FetchTransport().send(request, options);
+    // Held in this tab: sent at once. Otherwise it may be in the vault, and the vault may have to be unlocked.
+    const token = this.bridge.config().token || (await this.bridge.tokenForSend());
+    if (!token) {
+      throw new TransportError(
+        "bridge",
+        "The Local Bridge is on, and its token is not in this tab. It is kept in the vault while the vault is unlocked, and otherwise only until the tab reloads. Unlock the vault, or enter the token again in Settings, Local Bridge."
+      );
+    }
+    return new BridgeTransport({ url: this.bridge.config().url, token }).send(request, options);
   }
 }

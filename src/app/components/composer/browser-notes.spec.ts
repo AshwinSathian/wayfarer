@@ -41,7 +41,7 @@ describe("BrowserNotes (P2.14)", () => {
     settings.set({ followRedirects: false });
     const bridge = show({ url: "https://api.example/" }, "bridge");
     expect(bridge.querySelector<HTMLInputElement>(".follow-redirects input[type=checkbox]")?.checked).toBe(false);
-    expect(text(bridge, ".follow-redirects")).toContain("The Local Bridge lists each one it follows");
+    expect(text(bridge, ".follow-redirects")).toContain("Through the Local Bridge each one is listed");
   });
 
   it("says before the send that an http:// address will be blocked from an HTTPS page", () => {

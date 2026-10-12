@@ -114,7 +114,7 @@ export class ResponseViewer {
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
   readonly redirectedTo = input<string>();
-  /** The redirects the Local Bridge followed (P5.4), and why it followed no further. */
+  /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
   readonly redirects = input<ResponseEnvelope["redirects"]>();
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
@@ -125,7 +125,9 @@ export class ResponseViewer {
       case "location":
         return "Not followed: its Location is not an http or https address.";
       case "limit":
-        return redirects.chain.length >= MAX_REDIRECTS ? `Not followed: the Local Bridge follows ${MAX_REDIRECTS} redirects at most.` : "Not followed: Follow redirects is off for this request.";
+        return `Not followed: ${MAX_REDIRECTS} redirects are followed at most.`;
+      case "off":
+        return "Not followed: Follow redirects is off for this request.";
       default:
         return "";
     }

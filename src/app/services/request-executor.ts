@@ -272,7 +272,7 @@ export interface RequestExecutionResponse {
   binary?: BinaryBody;
   /** The URL the response came from, when the request was redirected there. */
   redirectedTo?: string;
-  /** The redirects the route followed and said so (the Local Bridge, P5.4), and why it followed no further. */
+  /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
   redirects?: ResponseEnvelope["redirects"];
   /** The `Content-Type` header as received. */
   contentType?: string;
@@ -429,7 +429,7 @@ export class RequestExecutor {
             signal: spec.signal ?? new AbortController().signal,
             timeoutMs: this.settings.timeoutMs(),
             ...(spec.onEvent && { onEvent: spec.onEvent }),
-            // P5.4, for the route that follows redirects itself (the Local Bridge). A request built with a vault secret is not
+            // P5.4, for the route that can see a redirect (the Local Bridge). A request built with a vault secret is not
             // followed to another host (C-063): a redirect is the server's word, and the secret was written for this host.
             redirects: { follow: template.settings.followRedirects !== false, stayOnHost: request.secrets.length > 0 },
           }

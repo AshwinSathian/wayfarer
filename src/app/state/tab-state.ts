@@ -79,7 +79,7 @@ export class TabState {
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
-  /** The redirects the Local Bridge followed for the last response (P5.4), and why it followed no further. Not stored. */
+  /** The redirects followed for the last response through the Local Bridge (P5.4), and why no more were. Not stored. */
   readonly responseRedirects = signal<ResponseEnvelope["redirects"]>(undefined);
   readonly responseContentType = signal("");
   readonly responseHeadersLimited = signal(false);

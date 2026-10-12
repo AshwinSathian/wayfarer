@@ -5,7 +5,7 @@ import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
 
-// P5.4: through the Local Bridge a redirect is followed by the bridge, which says each hop it made.
+// P5.4: through the Local Bridge each hop of a redirect is a relay of its own, and the response lists them.
 // The bridge is a Node process: what it does is the same from any browser. Phase 6 runs it in three.
 test.skip(({ browserName }) => browserName !== "chromium", "the Local Bridge is started for Chromium only (plan P5.4)");
 
@@ -26,13 +26,13 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
     });
     await page.goto("/");
     await routeThroughBridge(page, bridge);
-    await expect(page.locator(".follow-redirects")).toContainText("The Local Bridge lists each one it follows");
+    await expect(page.locator(".follow-redirects")).toContainText("Through the Local Bridge each one is listed");
     await address(page).fill(`${ECHO}/redirect/3`);
     await send(page);
 
     await expect(page.locator(".status-badge").first()).toHaveText("200");
     expect(await hops(page)).toEqual([`302 ${ECHO}/redirect/3 to /redirect/2`, `302 ${ECHO}/redirect/2 to /redirect/1`, `302 ${ECHO}/redirect/1 to /echo`]);
-    await expect(chain(page)).toContainText("The Local Bridge followed 3 redirects:");
+    await expect(chain(page)).toContainText("Followed 3 redirects through the Local Bridge:");
     await expect(viewer(page).locator(".redirect-note")).toContainText(`Redirected to ${ECHO}/echo`);
     await expect(chain(page).getByRole("status")).toHaveCount(0);
     expect(direct).toEqual([]);
@@ -82,7 +82,7 @@ test("@claim:C-063 a request with a vault secret is not followed to another host
     await expect(page.locator(".status-badge").first()).toHaveText("307");
     await expect(chain(page).getByRole("status")).toContainText("Not followed: this redirect leaves the host, and the request holds a vault secret");
     expect(await hops(page)).toEqual([]);
-    // What is shown is the first host's 307, not the other host's echo of a request (the bridge's own C-063 test counts that host's requests: none).
+    // What is shown is the first host's 307, not the other host's echo of a request (core's C-063 test counts the relays: one).
     await viewer(page).getByRole("tab", { name: "Headers" }).click();
     await expect(viewer(page)).toContainText(`${OTHER}/echo?arrived=1`);
     expect(await viewer(page).innerText()).not.toContain(SECRET);

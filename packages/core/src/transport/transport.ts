@@ -34,10 +34,10 @@ export interface ResponseEnvelope {
    */
   stream?: { stopped: boolean; truncated?: true };
   /**
-   * Set by a route that follows redirects itself and says so (the Local
-   * Bridge, P5.4): each hop it made, and why it made no more when the
-   * response is itself a redirect. A direct request has none: the browser
-   * follows and tells a page only `redirected` and `finalUrl`.
+   * Set by a route that makes each hop of a redirect itself and so can say
+   * them (the Local Bridge, P5.4): each one followed, and why no more were
+   * when the response is itself a redirect. A direct request has none: the
+   * browser follows and tells a page only `redirected` and `finalUrl`.
    */
   redirects?: { chain: RedirectHop[]; stopped?: RedirectStop };
 }
@@ -49,10 +49,14 @@ export interface RedirectHop {
   location: string;
 }
 
-/** Why a redirect was not followed: the limit of hops, a `Location` that is no http or https address, or a hop to another host that was not to be made. */
-export type RedirectStop = "limit" | "location" | "other-host";
+/**
+ * Why a redirect was not followed: the request said not to (`off`), the
+ * limit of hops, a `Location` that is no http or https address, or a hop
+ * to another host that was not to be made.
+ */
+export type RedirectStop = "off" | "limit" | "location" | "other-host";
 
-/** The most redirects a route follows for one request. */
+/** The most redirects that are followed for one request. */
 export const MAX_REDIRECTS = 20;
 
 /** An event of a stream, and when it arrived: milliseconds after the response's headers. */
@@ -74,10 +78,11 @@ export interface TransportOptions {
    */
   onEvent?: (event: StreamEvent) => void;
   /**
-   * For a route that follows redirects itself (the Local Bridge, P5.4):
-   * whether to follow, and whether to stop at a hop that leaves the host.
-   * A direct request ignores it: the browser always follows, and a page
-   * cannot see a redirect it was told not to follow.
+   * For the route that can see a redirect (the Local Bridge, P5.4): whether
+   * to follow, and whether to stop at a hop that leaves the host. Absent,
+   * nothing is followed and a 3xx is the response. A direct request ignores
+   * it: the browser always follows, and a page cannot read a redirect it
+   * was told not to follow.
    */
   redirects?: { follow: boolean; stayOnHost: boolean };
 }

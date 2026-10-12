@@ -22,7 +22,7 @@
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
   <mat-checkbox [checked]="store.draft().settings.followRedirects !== false" (change)="store.setFollowRedirects($event.checked)">Follow redirects</mat-checkbox>
   @if (limits.route === 'bridge') {
-  <span class="min-w-0">The Local Bridge lists each one it follows, 20 at most.</span>
+  <span class="min-w-0">Through the Local Bridge each one is listed, 20 at most.</span>
   } @else {
   <span class="min-w-0">Sent directly, a request is always followed: the browser shows a page only where it ended. The Local Bridge can list each redirect, or not follow.</span>
   }

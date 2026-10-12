@@ -130,10 +130,11 @@ app can show depends on the route.
 - **Sent directly**, a request is always followed, whatever **Follow
   redirects** says. The response is the last one, and the status bar says
   "Redirected to" with its address. The hops between are not known.
-- **Through the Local Bridge**, the bridge follows, 20 redirects at most,
-  and the response lists each one: its status, the address that answered
-  with it, and its `Location` as the server wrote it. A `Location` is
-  followed as it was sent: nothing in it is read as a `{{variable}}`.
+- **Through the Local Bridge**, the app makes each hop as a request of its
+  own, 20 redirects at most, and the response lists each one: its status,
+  the address that answered with it, and its `Location` as the server wrote
+  it. A `Location` is followed as it was sent: nothing in it is read as a
+  `{{variable}}`. Any version of the bridge will do.
 - **Follow redirects** is a setting of the request, on unless you switch it
   off. Off, through the bridge, the first 3xx is the response as it came.
 - **What is sent on.** 301 and 302 turn a POST into a GET without its body,
@@ -141,20 +142,18 @@ app can show depends on the route.
   308 repeat the request. A hop to another origin goes without
   `Authorization` and `Cookie`. Every other header goes along.
 - **A request that holds a vault secret is not followed to another host.**
-  The bridge stops at that redirect, and it is the response, with a line
+  The app stops at that redirect, and it is the response, with a line
   that says why. Another host is another name or port, or the same host
   without TLS; `http` to `https` on one host is followed. To send the
-  request there, put that address into it. <!-- claim:C-063 --> The bridge
-  cannot tell which header or part of a body is the secret, so it sends
-  nothing of such a request elsewhere. What this does not see: a secret you
+  request there, put that address into it. <!-- claim:C-063 --> Nothing of such a
+  request is sent elsewhere: not only the header or the part of the body
+  that holds the secret. What this does not see: a secret you
   typed into the request as plain text is not a vault secret, and goes
   along with every header but the two above.
 - **A `Location` that is not an `http` or `https` address** is not
   followed.
 - A request a script makes with `pm.sendRequest`, and an OAuth 2.0 token
   request, are not followed through the bridge: a 3xx is their answer.
-- **A Local Bridge from before this** follows nothing and lists nothing:
-  the 3xx is the response, as it always was. Update it to see the hops.
 
 ## Event streams
 

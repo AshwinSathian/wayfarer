@@ -331,7 +331,7 @@ export class WorkspaceStore {
     this.refreshVariablePreview();
   }
 
-  /** Whether the route that follows redirects itself (the Local Bridge) follows this request's (P5.4). Following is the default and is not written down. */
+  /** Whether this request's redirects are followed through the Local Bridge (P5.4): a browser follows a direct request's whatever this says. Following is the default and is not written down. */
   setFollowRedirects(follow: boolean): void {
     const { followRedirects: _was, ...settings } = this.draft().settings;
     this.patch({ settings: follow ? settings : { ...settings, followRedirects: false } });

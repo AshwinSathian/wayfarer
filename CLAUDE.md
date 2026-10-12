@@ -92,14 +92,18 @@ code errors.
 - WebKit ends a WebSocket to a port it refuses with an `error` event alone:
   no `close`, and `readyState` still 0 when the event fires. `SocketClient`
   looks at the socket again 500 ms after an error. Do not rely on `close`.
-- Redirects (P5.4): the Local Bridge follows them when the request asks
-  (`TransportOptions.redirects`, at most `MAX_REDIRECTS`) and says each hop
-  in `ResponseEnvelope.redirects`; a direct request is followed by the
-  browser unseen. `RequestExecutor` sets `stayOnHost` for a request with
-  anything in `BuiltRequest.secrets` (claim C-063): keep it for every send
-  that is built with the vault. A `Location` is followed by the bridge as
-  the server wrote it, and never goes through the resolver. The chain is
-  the tab's (`TabState.responseRedirects`) and is not stored.
+- Redirects (P5.4): a browser follows a direct request's unseen. Through
+  the Local Bridge, which follows none, `BridgeTransport` makes each hop a
+  relay of its own when the caller asks (`TransportOptions.redirects`, at
+  most `MAX_REDIRECTS`) and lists them in `ResponseEnvelope.redirects`;
+  `nextHop` (`packages/core/src/transport/redirect.ts`) is the rule for a
+  hop. `RequestExecutor` sets `stayOnHost` for a request with anything in
+  `BuiltRequest.secrets` (claim C-063): keep it for every send that is
+  built with the vault. A `Location` is read as an address, as the server
+  wrote it, and never goes through the resolver. Do not move the following
+  into the bridge: the page decides where a request may go, and the page
+  holds what the next hop needs (P5.3's cookies). The chain is the tab's
+  (`TabState.responseRedirects`) and is not stored.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the
@@ -725,9 +729,7 @@ code errors.
 - Local Bridge (`local-bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
-  instead of defaulting; checks each redirect's address as it checks the
-  first, follows 20 at most, and sends no `Authorization` or `Cookie` to
-  another origin. Keep every one of these when changing it.
+  instead of defaulting. Keep every one of these when changing it.
 - A file reaches the stores by one road, `ImportPipeline`
   (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
   10 MB cap), the import worker, the report in `<app-import-dialog>`, and

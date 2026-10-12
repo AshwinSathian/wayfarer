@@ -1,0 +1,83 @@
+{
+  "info": {
+    "name": "Run with a data file",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sign in",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/echo",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user\":\"{{user}}\",\"role\":\"{{role}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sent = JSON.parse(pm.response.json().body);",
+              "pm.test(\"signs in as \" + pm.iterationData.get(\"user\"), () => pm.expect(sent.user).to.equal(pm.iterationData.get(\"user\")));",
+              "pm.test(\"iteration \" + (pm.info.iteration + 1) + \" of \" + pm.info.iterationCount, () => pm.expect(pm.info.iterationCount).to.equal(5));",
+              "pm.environment.set(\"lastUser\", sent.user);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?user={{user}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const args = pm.response.json().query;",
+              "pm.test(\"the address has the row's value\", () => pm.expect(args.user).to.equal(pm.iterationData.get(\"user\")));",
+              "// The name holds the value as the data file was read: quotes, a comma, a line break, an empty field.",
+              "pm.test(\"note is \" + JSON.stringify(pm.iterationData.get(\"note\")), () => pm.expect(pm.iterationData.has(\"note\")).to.equal(true));",
+              "pm.test(\"a data value wins over the environment's\", () => pm.expect(pm.variables.get(\"role\")).to.equal(pm.iterationData.get(\"role\")));",
+              "pm.test(\"what the request before stored is here\", () => pm.expect(pm.environment.get(\"lastUser\")).to.equal(args.user));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admins only",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/status/{{status}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(pm.iterationData.get(\"user\") + \" gets \" + pm.iterationData.get(\"status\"), () => pm.response.to.have.status(Number(pm.iterationData.get(\"status\"))));",
+              "pm.test(\"only an admin is let in\", () => pm.expect(pm.iterationData.get(\"role\") === \"admin\").to.equal(pm.response.code === 200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

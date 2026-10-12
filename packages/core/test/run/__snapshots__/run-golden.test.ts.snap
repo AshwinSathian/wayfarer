@@ -1,0 +1,292 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`a collection run, against Newman > three requests and a data file of five rows give fifteen results, the ones Newman gives 1`] = `
+{
+  "ended": "completed",
+  "iterations": 5,
+  "results": [
+    {
+      "iteration": 0,
+      "name": "Sign in",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "signs in as ann",
+          "passed": true,
+        },
+        {
+          "name": "iteration 1 of 5",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 0,
+      "name": "Read",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true,
+        },
+        {
+          "name": "note is "plain"",
+          "passed": true,
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true,
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 0,
+      "name": "Admins only",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "ann gets 200",
+          "passed": true,
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 1,
+      "name": "Sign in",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "signs in as bob",
+          "passed": true,
+        },
+        {
+          "name": "iteration 2 of 5",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 1,
+      "name": "Read",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true,
+        },
+        {
+          "name": "note is "a \\"quoted\\", comma"",
+          "passed": true,
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true,
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 1,
+      "name": "Admins only",
+      "status": 403,
+      "statusText": "Forbidden",
+      "tests": [
+        {
+          "name": "bob gets 403",
+          "passed": true,
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 2,
+      "name": "Sign in",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "signs in as cy",
+          "passed": true,
+        },
+        {
+          "name": "iteration 3 of 5",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 2,
+      "name": "Read",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true,
+        },
+        {
+          "name": "note is """,
+          "passed": true,
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true,
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 2,
+      "name": "Admins only",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "cy gets 200",
+          "passed": true,
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 3,
+      "name": "Sign in",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "signs in as dee",
+          "passed": true,
+        },
+        {
+          "name": "iteration 4 of 5",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 3,
+      "name": "Read",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true,
+        },
+        {
+          "name": "note is "two\\nlines"",
+          "passed": true,
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true,
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 3,
+      "name": "Admins only",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "dee gets 200",
+          "passed": true,
+        },
+        {
+          "error": "expected false to equal true",
+          "name": "only an admin is let in",
+          "passed": false,
+        },
+      ],
+    },
+    {
+      "iteration": 4,
+      "name": "Sign in",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "signs in as eve",
+          "passed": true,
+        },
+        {
+          "name": "iteration 5 of 5",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 4,
+      "name": "Read",
+      "status": 200,
+      "statusText": "OK",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true,
+        },
+        {
+          "name": "note is "käse & co"",
+          "passed": true,
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true,
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true,
+        },
+      ],
+    },
+    {
+      "iteration": 4,
+      "name": "Admins only",
+      "status": 403,
+      "statusText": "Forbidden",
+      "tests": [
+        {
+          "name": "eve gets 403",
+          "passed": true,
+        },
+        {
+          "error": "expected true to equal false",
+          "name": "only an admin is let in",
+          "passed": false,
+        },
+      ],
+    },
+  ],
+}
+`;

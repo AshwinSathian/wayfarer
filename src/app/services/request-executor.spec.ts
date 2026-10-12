@@ -66,7 +66,7 @@ class TransportStub {
 
 class ResponseInspectorServiceStub {
   markRequest = vi.fn();
-  markResponse = vi.fn();
+  markResponse = vi.fn().mockImplementation((id: string, url: string) => ({ id, url, startTime: 0, startEpoch: 0, endTime: 1, duration: 1 }));
 }
 
 class EnvironmentsServiceStub {

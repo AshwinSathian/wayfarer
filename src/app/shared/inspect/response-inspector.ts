@@ -1,4 +1,4 @@
-import { Injectable, Signal, signal } from "@angular/core";
+import { Injectable } from "@angular/core";
 
 /** How far a Resource Timing entry's responseEnd may drift from this
  * request's own measured response time and still be trusted as a match. */
@@ -44,19 +44,14 @@ interface PendingRequest {
 })
 export class ResponseInspector {
   private readonly requests = new Map<string, PendingRequest>();
-  private readonly inspectionSignal = signal<ResponseInspection | null>(null);
-
-  get latest(): Signal<ResponseInspection | null> {
-    return this.inspectionSignal.asReadonly();
-  }
-
   markRequest(id: string, url: string): void {
     const startTime = performance.now();
     const startEpoch = performance.timeOrigin + startTime;
     this.requests.set(id, { id, url, startTime, startEpoch });
   }
 
-  markResponse(id: string, url: string): void {
+  /** The timings of the exchange that just ended. Whoever sent it keeps them: with tabs there is no "latest" (P5.1). */
+  markResponse(id: string, url: string): ResponseInspection {
     const endTime = performance.now();
     const pending = this.requests.get(id) ?? {
       id,
@@ -108,7 +103,7 @@ export class ResponseInspector {
     }
 
     this.requests.delete(id);
-    this.inspectionSignal.set(inspection);
+    return inspection;
   }
 
   private findTimingEntry(

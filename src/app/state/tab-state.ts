@@ -6,6 +6,7 @@ import { TestResult } from "../models/test-assertion";
 import type { SendTimings } from "../services/request-executor";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
+import { ResponseInspection } from "../shared/inspect/response-inspector";
 
 export const blankRow = (): Row => ({ key: "", value: "", enabled: true });
 
@@ -79,6 +80,8 @@ export class TabState {
   readonly lastScriptLogs = signal<string[]>([]);
   /** How long the last send's scripts and its request took, each by itself. */
   readonly lastTimings = signal<SendTimings | null>(null);
+  /** The phases and sizes of the last send's request, as the browser measured them. */
+  readonly inspection = signal<ResponseInspection | null>(null);
 
   previewFingerprint = "";
   /** Aborts the send in flight. */
@@ -127,6 +130,7 @@ export class TabState {
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");
     this.responseExportContext.set(null);
+    this.inspection.set(null);
   }
 
   /** `saved` is what was written: an edit made while the write was under way is still unsaved. */

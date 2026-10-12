@@ -4,7 +4,7 @@ import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { SecretsVault } from "./secrets-vault";
 import { protectedSecretId } from "../shared/secrets/secret-reference";
-import { ResponseInspector } from "../shared/inspect/response-inspector";
+import { ResponseInspection, ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox, scriptResponse, type ScriptResponseContext, type ScriptRunExtras } from "../shared/scripts/script-sandbox";
 import {
   AssertionRunner,
@@ -276,6 +276,8 @@ export interface RequestExecutionResult {
   /** The request alone: no script's time is in it (F11). */
   durationMs: number;
   timings: SendTimings;
+  /** The request's phases and sizes, where the browser gives them. */
+  inspection: ResponseInspection;
   testResults: TestResult[];
   /** What the scripts wrote with `console`, the pre-request script's lines first, masked like the test rows. */
   scriptLogs: string[];
@@ -400,7 +402,7 @@ export class RequestExecutor {
     }
     const durationMs = Math.round(performance.now() - startedAt);
     timings.requestMs = durationMs;
-    this.responseInspector.markResponse(requestId, request.url);
+    const inspection = this.responseInspector.markResponse(requestId, request.url);
 
     const shaped = outcome instanceof TransportError ? this.shapeFailure(outcome, request.url) : this.shapeResponse(outcome, request.url);
     // What a script writes is masked like everything else the app shows or
@@ -468,7 +470,7 @@ export class RequestExecutor {
       history.error = redactor.text(shaped.historyError);
     }
 
-    return { durationMs, timings, testResults, scriptLogs, history, response: shaped.response };
+    return { durationMs, timings, inspection, testResults, scriptLogs, history, response: shaped.response };
   }
 
   /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */

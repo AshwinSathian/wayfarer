@@ -206,6 +206,26 @@ describe("Tabs", () => {
     expect(second.responseStatusCode()).toBe(204);
   });
 
+  it("the timings shown are those of the open tab's last send, not of whichever tab sent last", async () => {
+    const first = tabs.active();
+    store.setUrl("https://one.test/a");
+    const one = store.send();
+    await vi.waitFor(() => httpMock.expectOne("https://one.test/a").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    await one;
+    expect(store.responseInspection()?.url).toBe("https://one.test/a");
+
+    tabs.open();
+    expect(store.responseInspection()).toBeNull();
+    store.setUrl("https://two.test/b");
+    const two = store.send();
+    await vi.waitFor(() => httpMock.expectOne("https://two.test/b").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    await two;
+    expect(store.responseInspection()?.url).toBe("https://two.test/b");
+
+    tabs.activate(first.id);
+    expect(store.responseInspection()?.url).toBe("https://one.test/a");
+  });
+
   it("closing a tab gives up on the request it has on its way", async () => {
     const first = tabs.active();
     store.setUrl("https://one.test/slow");

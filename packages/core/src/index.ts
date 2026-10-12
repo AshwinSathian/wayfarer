@@ -119,3 +119,4 @@ export {
 export { loadLibraries } from "./scripting/libraries";
 export { scriptRequestOf, sentScriptRequest, withScriptRequest } from "./scripting/request-view";
 export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";
+export { requestsInOrder, runFailed, runRequests, type RunIteration, type RunOptions, type RunOutcome, type RunReport, type RunRequest, type RunResult } from "./run/runner";

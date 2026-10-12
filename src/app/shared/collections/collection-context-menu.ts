@@ -3,7 +3,7 @@ import { UiTreeNode } from "../../ui/tree";
 import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
-export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "export-postman" | "settings";
+export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "export-postman" | "settings" | "run";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
@@ -19,6 +19,7 @@ export function buildContextItems(
 
   if (data.type === "collection") {
     return [
+      { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
       { label: "New Folder", icon: "folder", command: () => dispatch("new-folder", node) },
       { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
@@ -34,6 +35,7 @@ export function buildContextItems(
 
   if (data.type === "folder") {
     return [
+      { label: "Run…", icon: "play_arrow", command: () => dispatch("run", node) },
       { label: "New Request", icon: "add", command: () => dispatch("new-request", node) },
       { label: "Settings", icon: "settings", command: () => dispatch("settings", node) },
       { label: "Rename", icon: "edit", command: () => dispatch("rename", node) },

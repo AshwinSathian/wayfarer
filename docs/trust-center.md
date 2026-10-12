@@ -141,7 +141,10 @@ dialog names both hosts before the vault is read. Answered "Don't send",
 nothing is sent and the variables that script set are put back.
 <!-- claim:C-053 --> This compares one send. A host that an earlier
 script stored in a variable is, by the next send, the variable's value, and
-is not asked about; the review is the control for that.
+is not asked about; the review is the control for that. A collection run
+compares each of its requests with the variables as they were when the run
+started, so a host that a script of an earlier request of that run set is
+asked about, once for each host; what an earlier run or send stored is not.
 See [`docs/scripts.md`](scripts.md).
 
 ## Telemetry

@@ -102,6 +102,26 @@ code errors.
   reads and writes it: never `tabs.active()`, a forwarded signal,
   `scopes()` or `saved.ancestors()`, which are the open tab's and may be
   another's by then. `Tabs.close` aborts the tab's `inFlight`.
+- A collection run (P5.2) is a tab whose `TabState.run` is a `RunState`
+  (`src/app/state/run-state.ts`); the composer shows `<app-run-view>` for
+  it. Such a tab is not stored (`TabsStorage.storable`), and nothing that
+  loads a request may load one into it (`ComposerView.keepUnsaved`).
+- The order of a run is `runRequests` in `packages/core/src/run/`, which
+  sends nothing and is held to Newman by the golden files of
+  `packages/core/test/fixtures/run` (`npm run golden`). A change to what
+  `setNextRequest`, `skipRequest`, a data file or an iteration does starts
+  with a probe of Newman and ends in those files. `CollectionRunner` hands
+  it `WorkspaceStore.sendForRun`: one request from a `TabState` that is in
+  no strip, through `exchange`, the same function a send goes through. Do
+  not give a run a sender of its own: the trust gate, the vault, the wire
+  check and C-053's question are in that one road.
+- A run writes nothing to history; its HAR is the masked entries the
+  executor already returns (`RunState.exchanges`). The reports and the data
+  file parser are `@wayfarer/core/run-report` and `@wayfarer/core/data-file`,
+  each fetched by a dynamic `import()` when first asked for.
+- C-053 in a run compares each request with the variables as they were when
+  the run started (`WorkspaceStore.startRun`), and a yes holds for that host
+  until the run ends. It compares one run: do not word it as more.
 - A second tab of a request is `TabState.copy()`: it keeps the binding and
   the held scripts, so its scripts are trusted as the original's are. Do
   not make a tab from a draft alone: unbound, its scripts would run.

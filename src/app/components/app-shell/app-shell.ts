@@ -40,6 +40,7 @@ import { Settings, type SettingsSection } from "../settings/settings";
 import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
+import type { RunTarget } from "../../state/run-state";
 
 @Component({
   selector: "app-shell",
@@ -260,6 +261,13 @@ export class AppShell implements OnInit {
   handleLoadCollectionRequest(request: RequestDoc): void {
     this.composer().loadCollectionRequest(request);
     this.composer().focusUrl();
+    if (this.sidebarOverlay()) {
+      this.closeDrawer.emit();
+    }
+  }
+
+  handleRun(target: RunTarget): void {
+    this.composer().openRun(target);
     if (this.sidebarOverlay()) {
       this.closeDrawer.emit();
     }

@@ -30,10 +30,14 @@ import {
   type RequestBody,
   type RequestContent,
   type Row,
+  type RunIteration,
+  type RunOutcome,
   type ScopeStack,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
+import { RequestDoc } from "../models/collections";
 import { PastRequest } from "../models/history";
+import { TestResult } from "../models/test-assertion";
 import { BridgeSettings } from "../services/bridge-settings";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
@@ -45,6 +49,7 @@ import {
   RequestExecutionSpec,
   RequestExecutionResult,
   RequestExecutor,
+  RequestSkipped,
   SendBlockedError,
   SendDeclinedError,
 } from "../services/request-executor";
@@ -64,7 +69,7 @@ import {
 import { OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
-import { blankRow, contentOf, emptyDraft, type TabState } from "./tab-state";
+import { TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
 
 /** GET and HEAD cannot carry a body: `fetch` refuses one. */
@@ -111,6 +116,14 @@ export class UnresolvedVariablesError extends SendBlockedError {
 interface Composed {
   url: string;
   scopes: ScopeStack;
+  /** In a run: the hosts the user has said yes to. A host is asked about once in a run. */
+  accepted?: Set<string>;
+}
+
+/** What a run's requests share (P5.2): the variables as they were when the run started, and the hosts the user has said yes to. */
+export interface RunSend {
+  baseline: ScopeStack;
+  acceptedHosts: Set<string>;
 }
 
 /** The host a request goes to: its name, and its port when that is not the scheme's own. An address that is no URL stands for itself. */
@@ -235,6 +248,8 @@ export class WorkspaceStore {
       folder: folders.flatMap((folder) => folder.variables),
       collection: collection?.variables,
       global: this.environments.globals(),
+      // A request of a run: the row of the run's data file (P5.2).
+      ...(tab.iteration && { data: tab.iteration.data }),
     };
   }
   /** What the draft's auth is when it inherits, and from where (P4.9). */
@@ -428,27 +443,9 @@ export class WorkspaceStore {
     tab.lastTimings.set(null);
     tab.scriptsSkipped.set(false);
 
-    const draft = tab.draft();
-    const endpointText = draft.url;
-    if (!endpointText) {
-      tab.endpointError.set("Endpoint is a Required value");
-      return false;
-    }
-
-    const methodError = this.methodError(draft.method);
-    if (methodError) {
-      tab.endpointError.set(methodError);
-      return false;
-    }
-
-    try {
-      if (!validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(endpointText.trim()))) {
-        tab.endpointError.set("Please enter a valid URL");
-        return false;
-      }
-    } catch (error) {
-      if (!(error instanceof VariableNestingError)) throw error;
-      tab.endpointError.set(error.message);
+    const refusal = this.refusal(tab);
+    if (refusal) {
+      tab.endpointError.set(refusal);
       return false;
     }
 
@@ -456,30 +453,9 @@ export class WorkspaceStore {
     const controller = new AbortController();
     tab.inFlight = controller;
 
-    // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
-    const inherited = this.saved.ancestorsFor(tab.bound());
-    // Asked of what is stored now, not of a signal that may be a moment behind.
-    const allowed = this.trust.check(inherited, tab);
-    const runScripts = allowed instanceof Promise ? await allowed : allowed;
-    tab.scriptsSkipped.set(!runScripts && this.hasScripts(inherited, draft));
-    // What a pre-request script may move the request away from (plan Q6): the request before the first of them, an inherited one included.
-    const composed: Composed | undefined = runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim()) ? { url: endpointText, scopes: this.scopesOf(tab) } : undefined;
-
     let result: RequestExecutionResult;
     try {
-      result = await this.executor.execute({
-        runScripts,
-        preRequestScript: draft.scripts.pre,
-        postRequestScript: draft.scripts.post,
-        tests: draft.tests,
-        template: contentOf(tab.draft()),
-        buildRequest: (request) => this.buildRequestForExecution(tab, request, options.allowUnresolved ?? false, composed),
-        retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved ?? false),
-        signal: controller.signal,
-        inherited,
-        folderVariables: () => this.scopesOf(tab).folder ?? [],
-        ...this.scriptBinding(tab),
-      });
+      result = await this.exchange(tab, { allowUnresolved: options.allowUnresolved ?? false, signal: controller.signal });
     } catch (error) {
       tab.loadingState.set(false);
       // Variables that refer to each other in a circle: nothing is sent.
@@ -507,6 +483,113 @@ export class WorkspaceStore {
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
+  }
+
+  /** Why `tab`'s request cannot be sent as it is written, or "" when it can: no address, no method, an address that is no URL. */
+  private refusal(tab: TabState): string {
+    const { url, method } = tab.draft();
+    if (!url) return "Endpoint is a Required value";
+    const methodError = this.methodError(method);
+    if (methodError) return methodError;
+    try {
+      return validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(url.trim())) ? "" : "Please enter a valid URL";
+    } catch (error) {
+      if (!(error instanceof VariableNestingError)) throw error;
+      return error.message;
+    }
+  }
+
+  /**
+   * One exchange for `tab`: its scripts checked and run, its request built
+   * and sent. A send and a request of a run are both this. Throws what
+   * `RequestExecutor.execute` throws.
+   */
+  private async exchange(tab: TabState, options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend }): Promise<RequestExecutionResult> {
+    const draft = tab.draft();
+    // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
+    const inherited = this.saved.ancestorsFor(tab.bound());
+    // Asked of what is stored now, not of a signal that may be a moment behind.
+    const allowed = this.trust.check(inherited, tab);
+    const runScripts = allowed instanceof Promise ? await allowed : allowed;
+    tab.scriptsSkipped.set(!runScripts && this.hasScripts(inherited, draft));
+    // What a pre-request script may move the request away from (plan Q6): the request before the first of them, an inherited one included.
+    // In a run it is the request under the variables the run started with: a script of an earlier request may have set the host of this one (C-053).
+    const composed: Composed | undefined = options.run
+      ? { url: draft.url, scopes: { ...options.run.baseline, folder: this.scopesOf(tab).folder, data: tab.iteration?.data }, accepted: options.run.acceptedHosts }
+      : runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim())
+        ? { url: draft.url, scopes: this.scopesOf(tab) }
+        : undefined;
+    return this.executor.execute({
+      runScripts,
+      preRequestScript: draft.scripts.pre,
+      postRequestScript: draft.scripts.post,
+      tests: draft.tests,
+      template: contentOf(tab.draft()),
+      buildRequest: (request) => this.buildRequestForExecution(tab, request, options.allowUnresolved, composed),
+      retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved),
+      signal: options.signal,
+      inherited,
+      folderVariables: () => this.scopesOf(tab).folder ?? [],
+      ...(tab.iteration && { iteration: tab.iteration }),
+      ...this.scriptBinding(tab),
+    });
+  }
+
+  /** The variables as they stand now, for a run of `collectionId` that is about to start, and the hosts the user has said yes to in it: none yet. */
+  startRun(collectionId: string): RunSend {
+    return {
+      baseline: {
+        environment: this.environments.activeEnvironment()?.vars,
+        collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables,
+        global: this.environments.globals(),
+      },
+      acceptedHosts: new Set(),
+    };
+  }
+
+  /**
+   * Sends one saved request as a request of a collection run (P5.2), from a
+   * tab of its own that is in no strip: with the scripts, the trust gate,
+   * the vault and the wire check of a send, and nothing written to history.
+   * Says how it went in the run's words, with the exchange as history would
+   * have kept it (masked), for the run's HAR.
+   */
+  async sendForRun(doc: RequestDoc, iteration: RunIteration, signal: AbortSignal, run: RunSend): Promise<{ outcome: RunOutcome; exchange?: PastRequest; scriptsSkipped: boolean }> {
+    const tab = new TabState();
+    tab.draft.set({ ...structuredClone(doc), params: parseParamsFromUrl(doc.url) });
+    tab.bound.set(doc);
+    tab.iteration = iteration;
+    const controller = new AbortController();
+    signal.addEventListener("abort", () => controller.abort());
+    tab.inFlight = controller;
+    const tests = (rows: TestResult[]): RunOutcome["tests"] => rows.map((row) => ({ name: row.label, passed: row.passed, ...(row.error !== undefined && { error: row.error }) }));
+    const said = (outcome: RunOutcome, exchange?: PastRequest) => ({ outcome, exchange, scriptsSkipped: tab.scriptsSkipped() });
+
+    const refusal = this.refusal(tab);
+    if (refusal) return said({ error: refusal, tests: [] });
+    try {
+      const result = await this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run });
+      const { response } = result;
+      // No status, or the browser's 0: no response arrived, and the text says why.
+      const failed = !response.statusCode;
+      return said(
+        {
+          ...(response.statusCode !== undefined && { status: response.statusCode }),
+          ...(response.statusText && { statusText: response.statusText }),
+          durationMs: result.durationMs,
+          ...(failed && { error: response.errorText }),
+          tests: tests(result.testResults),
+          ...(result.nextRequest !== undefined && { nextRequest: result.nextRequest }),
+        },
+        result.history
+      );
+    } catch (error) {
+      if (error instanceof RequestSkipped) return said({ skipped: true, tests: tests(error.testResults), ...(error.nextRequest !== undefined && { nextRequest: error.nextRequest }) });
+      if (error instanceof SendDeclinedError) return said({ error: error.message, tests: [], end: "You chose not to send a request with a vault secret to a host a script had changed." });
+      if (error instanceof PreRequestScriptError) return said({ error: error.message, tests: tests(error.testResults) });
+      if (error instanceof SendBlockedError || error instanceof VariableNestingError) return said({ error: error.message, tests: [] });
+      throw error;
+    }
   }
 
   /** What a script is told of the saved request in the composer, and the collection whose variables it may read and change. */
@@ -730,16 +813,19 @@ export class WorkspaceStore {
     const withSecrets = () => this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
     const from = composed && hostOf(composed.url, composed.scopes);
     const to = hostOf(endpointText, scopes());
-    if (from === undefined || from === to) return withSecrets();
+    if (from === undefined || from === to || composed?.accepted?.has(to)) return withSecrets();
     return this.confirm
       .confirm({
         title: "Send to a different host?",
-        message: `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
+        message: composed?.accepted
+          ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Yes holds for ${to} until the run ends.`
+          : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
         acceptLabel: "Send",
         rejectLabel: "Don't send",
       })
       .then((accepted) => {
         if (!accepted) throw new SendDeclinedError("The request was not sent, and what the pre-request script set was undone.");
+        composed?.accepted?.add(to);
         return withSecrets();
       });
   }

@@ -6,6 +6,8 @@ import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
+import { RunState, type RunTarget } from "../../state/run-state";
+import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 
@@ -76,11 +78,25 @@ export class ComposerView {
 
   /** A request about to be loaded goes into a tab of its own when the open tab holds changes that are not saved (P5.1). */
   private keepUnsaved(): void {
-    if (this.tabs.active().dirty()) this.tabs.open();
+    if (this.tabs.active().dirty() || this.tabs.active().run) this.tabs.open();
+  }
+
+  /** Opens the tab of a run of `target` (P5.2): the one that is open already, or a new one. Nothing is sent until Run. */
+  openRun(target: RunTarget): void {
+    const open = this.tabs.tabs().find((tab) => tab.run?.target.collectionId === target.collectionId && tab.run.target.folderId === target.folderId);
+    if (open) {
+      this.tabs.activate(open.id);
+      return;
+    }
+    const tab = new TabState();
+    tab.run = new RunState(target);
+    this.tabs.open(tab);
   }
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
   clear(): void {
+    // A run's tab holds no request: a new one goes into a tab of its own.
+    if (this.tabs.active().run) this.tabs.open();
     this.requestSave.bind(null);
     this.trust.openedHere();
     this.store.reset();

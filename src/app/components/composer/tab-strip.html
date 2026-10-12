@@ -7,7 +7,7 @@
     (click)="tabs.activate(tab.id)"
     (focus)="tabs.activate(tab.id)"
   >
-    <span class="request-tab-method">{{ tab.draft().method }}</span>
+    <span class="request-tab-method">{{ tab.run ? "RUN" : tab.draft().method }}</span>
     <span class="request-tab-name">{{ label(tab) }}</span>
     @if (tab.dirty()) {
     <span class="request-tab-unsaved" role="img" aria-label="Unsaved changes"></span>

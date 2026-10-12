@@ -9,7 +9,7 @@ import {
   type TransportOptions,
 } from "@wayfarer/core";
 import { signal } from "@angular/core";
-import { RequestExecutor, BuiltRequest, PreRequestScriptError, SendBlockedError, SendDeclinedError } from "./request-executor";
+import { RequestExecutor, BuiltRequest, PreRequestScriptError, RequestSkipped, SendBlockedError, SendDeclinedError } from "./request-executor";
 import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
@@ -1036,5 +1036,52 @@ describe("RequestExecutor", () => {
       expect(outcome).toMatchObject({ name: "WayfarerUnsupportedError", message: "pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest" });
     });
   });
-});
 
+  // P5.2: a request of a collection run.
+  describe("as a request of a run", () => {
+    const empty = { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
+    const iteration = { index: 2, count: 5, data: [{ key: "user", value: "ann", enabled: true }, { key: "n", value: "3", enabled: true, json: true as const }] };
+    const spec = { template: TEMPLATE, runScripts: true, preRequestScript: "x()", postRequestScript: "y()", tests: [], buildRequest: () => builtRequest() };
+
+    it("gives each script the iteration and the data file's row", async () => {
+      await service.execute({ ...spec, iteration });
+      const extras = scriptSandbox.execute.mock.calls.map((call) => call[4] as { data: unknown; info: unknown });
+      expect(extras).toHaveLength(2);
+      expect(extras[0].data).toEqual([["user", "ann"], ["n", "3", true]]);
+      expect(extras[1].info).toMatchObject({ eventName: "test", iteration: 2, iterationCount: 5 });
+    });
+
+    it("a single send gives a script no data and no iteration", async () => {
+      await service.execute(spec);
+      const extras = scriptSandbox.execute.mock.calls[0][4] as { data?: unknown; info: Record<string, unknown> };
+      expect(extras.data).toBeUndefined();
+      expect(Object.hasOwn(extras.info, "iteration")).toBe(false);
+    });
+
+    it("skipRequest in a pre-request script holds the request back, and says what the scripts did and where the run goes next", async () => {
+      scriptSandbox.setNextResult({ ...empty, logs: ["skipping"], testResults: [{ label: "before", passed: true, source: "script" }], skipRequest: true, nextRequest: "Later" });
+      const outcome = await service.execute({ ...spec, iteration }).catch((error: unknown) => error);
+      expect(outcome).toBeInstanceOf(RequestSkipped);
+      expect(outcome).toMatchObject({ nextRequest: "Later", scriptLogs: ["skipping"], testResults: [{ label: "before", passed: true }] });
+      expect(transport.sendRequest).not.toHaveBeenCalled();
+      // Only the pre-request script ran.
+      expect(scriptSandbox.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("in a single send skipRequest is recorded and the request is sent", async () => {
+      scriptSandbox.setNextResult({ ...empty, skipRequest: true });
+      const result = await service.execute(spec);
+      expect(result.response.statusCode).toBe(200);
+      expect(transport.sendRequest).toHaveBeenCalledTimes(1);
+    });
+
+    it("says what the scripts gave setNextRequest: the last of them that called it, null included", async () => {
+      scriptSandbox.execute.mockResolvedValueOnce({ ...empty, nextRequest: "From the pre-request script" }).mockResolvedValueOnce(empty);
+      expect((await service.execute({ ...spec, iteration })).nextRequest).toBe("From the pre-request script");
+      scriptSandbox.execute.mockResolvedValueOnce({ ...empty, nextRequest: "First" }).mockResolvedValueOnce({ ...empty, nextRequest: null });
+      expect((await service.execute({ ...spec, iteration })).nextRequest).toBeNull();
+      scriptSandbox.execute.mockResolvedValue(empty);
+      expect(Object.hasOwn(await service.execute({ ...spec, iteration }), "nextRequest")).toBe(false);
+    });
+  });
+});

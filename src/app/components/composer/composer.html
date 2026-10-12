@@ -2,6 +2,10 @@
 
 <mat-tab-nav-panel #requestPanel class="ds-panel block p-6 w-full space-y-5">
 
+  @if (tabs.active().run; as run) {
+  <app-run-view class="block space-y-5" [run]="run" />
+  } @else {
+
   <!-- Wraps by the room it has, not by the window's width: beside the pinned
        sidebar a 1024 px window leaves this row 544 px. The bar asks for 20rem;
        when the buttons do not fit beside that, they go on the next line. -->
@@ -233,6 +237,7 @@
   </ui-splitter>
   }
 
+  }
 </mat-tab-nav-panel>
 
 <app-save-as-dialog />

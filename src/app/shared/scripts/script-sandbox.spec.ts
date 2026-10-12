@@ -258,16 +258,39 @@ describe("ScriptSandbox", () => {
       expect(FakeWorker.made[1].terminated).toBe(false);
     });
 
-    it("ends the worker after a run that hit a limit, and every run still waiting on it", async () => {
+    it("two scripts at once have a worker each: one that hits a limit ends its own worker, and the other runs on to its result", async () => {
       const first = service.execute("hitsALimit()", {});
-      const second = service.execute("waiting()", {});
+      const second = service.execute("stillRunning()", {});
       await vi.advanceTimersByTimeAsync(0);
-      const worker = FakeWorker.made[0];
-      expect(FakeWorker.made).toHaveLength(1);
-      worker.say({ id: worker.runs[0], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [], error: "Script exceeded memory limit (64 MB)", limit: "memory" } });
+      expect(FakeWorker.made).toHaveLength(2);
+      const [one, two] = FakeWorker.made;
+      one.say({ id: one.runs[0], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [], error: "Script exceeded memory limit (64 MB)", limit: "memory" } });
       expect((await first).limit).toBe("memory");
-      expect(worker.terminated).toBe(true);
-      expect((await second).error).toBe("Script execution was stopped.");
+      expect(one.terminated).toBe(true);
+      // The other tab's script is not stopped with it.
+      expect(two.terminated).toBe(false);
+      two.say({ id: two.runs[0], type: "result", result: { logs: ["ran on"], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      expect((await second).logs).toEqual(["ran on"]);
+    });
+
+    it("a worker whose run has ended is used again, and no more than one waits idle", async () => {
+      const result = { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
+      const first = service.execute("a()", {});
+      const second = service.execute("b()", {});
+      await vi.advanceTimersByTimeAsync(0);
+      const [one, two] = FakeWorker.made;
+      one.say({ id: one.runs[0], type: "result", result });
+      two.say({ id: two.runs[0], type: "result", result });
+      await Promise.all([first, second]);
+      // One is kept for the next script, with the engine it has compiled; the other is ended.
+      expect([one.terminated, two.terminated]).toEqual([false, true]);
+
+      const third = service.execute("c()", {});
+      await vi.advanceTimersByTimeAsync(0);
+      expect(FakeWorker.made).toHaveLength(2);
+      expect(one.runs).toHaveLength(2);
+      one.say({ id: one.runs[1], type: "result", result });
+      await third;
     });
 
     it("pm.sendRequest: the page makes the request the worker asks for and answers it; while it is in flight the script is not timed", async () => {

@@ -66,6 +66,8 @@ A tab is written about a quarter of a second after it last changed, and when the
 
 **Two browser tabs share the composer's tabs.** A tab opened, closed or edited in one appears so in the other. Each browser tab keeps which tab is open for itself (`wayfarer:open-tab` in `sessionStorage`). When both edit the same tab, the later write is what is stored, and the browser tab that is not in the middle of an edit takes the other's text.
 
+A tab of a collection run is not stored, and neither is anything of the run: its requests are not written to history, its data file is read into the page and kept nowhere, and a reload does not bring the tab back.
+
 The tabs are not in a workspace backup, and a restore leaves them as they are: a tab whose saved request the restore removed stays, as a request that is not saved. Reset all data removes them.
 
 ## Keeping the data

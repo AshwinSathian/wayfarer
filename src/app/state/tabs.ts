@@ -45,7 +45,7 @@ export class Tabs {
   }
 
   /**
-   * Closes a tab, and gives up on the request it has on its way. The one after
+   * Closes a tab, and gives up on the request, or the run, it has on its way. The one after
    * it becomes the open one, or the one before; the last tab is replaced by an empty one.
    */
   close(id: string): void {
@@ -53,6 +53,7 @@ export class Tabs {
     const at = tabs.findIndex((tab) => tab.id === id);
     if (at < 0) return;
     tabs[at].inFlight?.abort();
+    tabs[at].run?.controller?.abort();
     const rest = tabs.filter((tab) => tab.id !== id);
     if (!rest.length) rest.push(new TabState());
     this.list.set(rest);

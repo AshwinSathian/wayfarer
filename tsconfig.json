@@ -27,7 +27,9 @@
       "@wayfarer/core/import": ["./packages/core/src/import/import.ts"],
       "@wayfarer/core/codegen": ["./packages/core/src/export/codegen.ts"],
       "@wayfarer/core/postman": ["./packages/core/src/export/postman.ts"],
-      "@wayfarer/core/har": ["./packages/core/src/export/har.ts"]
+      "@wayfarer/core/har": ["./packages/core/src/export/har.ts"],
+      "@wayfarer/core/run-report": ["./packages/core/src/run/report.ts"],
+      "@wayfarer/core/data-file": ["./packages/core/src/run/data-file.ts"]
     }
   },
   "angularCompilerOptions": {

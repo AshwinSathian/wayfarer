@@ -6,7 +6,10 @@ import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
+import type { RunTarget } from "../../state/run-state";
+import { Tabs } from "../../state/tabs";
 import { Splitter } from "../../ui/splitter";
+import { RunView } from "../runner/run-view";
 import { ResponseViewer } from "../response-viewer/response-viewer";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
@@ -47,6 +50,7 @@ import { VariableChips } from "./variable-chips";
     ScriptsPanel,
     SaveAsDialog,
     TabStrip,
+    RunView,
   ],
   providers: [ComposerView],
   templateUrl: "./composer.html",
@@ -67,7 +71,9 @@ export class Composer {
    */
   readonly isMobile = input(false);
 
-  private readonly addressRow = viewChild.required(AddressRow);
+  /** Not there while the open tab is a run's. */
+  private readonly addressRow = viewChild(AddressRow);
+  protected readonly tabs = inject(Tabs);
   private readonly tabStrip = viewChild.required(TabStrip);
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
@@ -77,7 +83,7 @@ export class Composer {
   }
 
   focusUrl(): void {
-    this.addressRow().focusUrl();
+    this.addressRow()?.focusUrl();
   }
 
   loadPastRequest(request: PastRequest): void {
@@ -86,6 +92,10 @@ export class Composer {
 
   loadCollectionRequest(doc: RequestDoc): void {
     this.view.loadCollectionRequest(doc);
+  }
+
+  openRun(target: RunTarget): void {
+    this.view.openRun(target);
   }
 
   clearComposer(): void {
@@ -105,12 +115,15 @@ export class Composer {
   }
 
   async sendRequest(): Promise<void> {
+    // A run's tab has no request to send or to save: the palette's commands do nothing there.
+    if (this.tabs.active().run) return;
     if (await this.store.send()) {
       this.newRequest.emit();
     }
   }
 
   async saveCurrentRequest(): Promise<void> {
+    if (this.tabs.active().run) return;
     await this.requestSave.save(this.store.snapshot(), this.store.scriptsAllowed());
   }
 }

@@ -131,7 +131,8 @@ A request whose body was a file comes back without a body, since the HAR
 names the file and does not hold it. The responses are not imported.
 
 The file has every field HAR 1.2 requires; a test lists them. A whole
-run of a collection as one HAR comes with the runner (plan P5.2).
+run of a collection is saved as one HAR from the run's tab, once the run
+has ended: every exchange of it, masked as history is.
 
 ## A collection or an environment for Postman
 

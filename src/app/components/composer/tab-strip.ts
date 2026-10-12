@@ -45,6 +45,7 @@ export class TabStrip {
 
   /** The saved request's name, or else the address, or else that it is new. */
   protected label(tab: TabState): string {
+    if (tab.run) return tab.run.target.name;
     return tab.bound()?.name ?? (tab.draft().url.trim().replace(/^https?:\/\//, "") || "New request");
   }
 
@@ -60,11 +61,12 @@ export class TabStrip {
   /** Closes the open tab. One with changes that are not saved, or with a request on its way, asks first. */
   async close(): Promise<void> {
     const tab = this.tabs.active();
-    const sending = tab.loadingState();
+    const running = tab.run?.running() ?? false;
+    const sending = tab.loadingState() || running;
     if (tab.dirty() || sending) {
       const dirty = tab.dirty();
-      const why = [...(dirty ? ["has changes that are not saved"] : []), ...(sending ? ["is waiting for a response"] : [])].join(" and ");
-      const then = dirty && sending ? "discards the changes and cancels the request" : dirty ? "discards them" : "cancels the request";
+      const why = [...(dirty ? ["has changes that are not saved"] : []), ...(sending ? [running ? "is running" : "is waiting for a response"] : [])].join(" and ");
+      const then = dirty && sending ? "discards the changes and cancels the request" : dirty ? "discards them" : running ? "cancels the run" : "cancels the request";
       const close = await this.confirm.confirm({
         title: "Close this tab?",
         message: `${this.label(tab)} ${why}. Closing the tab ${then}.`,

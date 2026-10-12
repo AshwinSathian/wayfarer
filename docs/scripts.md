@@ -32,7 +32,7 @@ there and where it differs from Postman.
 | `pm.collectionVariables` | the collection of the saved request | yes |
 | `pm.globals` | the global variables | yes |
 | `pm.variables` | every scope, nearest first: what `pm.variables.set` set in this run, then environment, the request's folders (the nearest first), collection, globals. Postman has no folder variables, and no object of `pm` writes one | `set` lasts for the run only |
-| `pm.iterationData` | a run's data file | empty: there is no collection run yet |
+| `pm.iterationData` | the row of a run's data file for this iteration (see "Collection runs") | no; empty in a single send |
 
 Each has `get(name)`, `has(name)`, `toObject()` and `replaceIn(text)`; the
 three stored scopes also have `set(name, value)`, `unset(name)` and
@@ -168,9 +168,11 @@ replaced. The response has what `pm.response` has.
 
 `pm.info.eventName` (`"prerequest"` or `"test"`), `requestName` and
 `requestId` (of the saved request; empty for one that is not saved),
-`iteration` (0) and `iterationCount` (1).
-`pm.execution.setNextRequest(name)` and `pm.execution.skipRequest()` are
-recorded and have no effect: they belong to a collection run.
+`iteration` and `iterationCount` (in a single send 0 and 1; in a run the
+iteration from 0, and how many there are).
+`pm.execution.setNextRequest(name)` and `pm.execution.skipRequest()` move a
+collection run (see "Collection runs"). In a single send they are recorded
+and have no effect.
 
 ### What is not there
 
@@ -423,6 +425,65 @@ from that variable goes there with its secrets and no question. The
 variable chips under the address show the value a request will be sent
 with. The review of a script before it runs remains the control; this
 dialog is a second look at the most direct case, not a wall.
+
+**In a collection run** the comparison is wider, since a run is where a
+script of one request sets the host of the next. When the run starts, the
+app keeps the variables as they are. Each request's host is worked out
+under those, with the row of the data file, and again as the request is
+built. If the two differ and the request uses a vault secret, the run
+pauses with the same question, naming the request. **Send** holds for that
+host until the run ends: the next request to it is not asked about. **Don't
+send** sends nothing and ends the run. A request without a vault secret is
+not asked about, and a host that came from the data file is not a change.
+The next run starts from the variables as they are by then: what an earlier
+run stored is that run's baseline.
+
+## Collection runs
+
+**Run…** in the menu of a collection or of a folder opens a tab for a run
+of its requests, in the order of the list: in each folder its folders
+first, then its requests. Nothing is sent until **Run**.
+
+- **Each request is sent as Send would send it**: its pre-request scripts
+  from the collection inward, the request built with the variables they
+  left, its post-response scripts, its assertions; the trust gate, the
+  vault and the secret check of a send. A request whose scripts wait for a
+  review is sent without them, and the run says so. A request that cannot
+  be sent (no address, a variable without a value) is a failed result, and
+  the run goes on.
+- **Iterations** run the requests again from the first. What one iteration
+  stored in a variable is there for the next.
+- **A data file** gives each iteration a row: CSV (RFC 4180) with the
+  names in its first line, or a JSON list of objects; 10 MB at most. A row's
+  values are `pm.iterationData`, and they win over the environment's in
+  `pm.variables` and in `{{…}}`. A JSON value that is not text keeps its
+  type; a CSV value is text. With no number of iterations the run goes once
+  for each row; with fewer the rest are not used, and with more the last
+  row is used again. The file is read into the page and is not stored.
+- **`pm.execution.setNextRequest(name)`** names the request that follows,
+  by name or by id, the last of that name when several have it. `null`, or
+  a name no request of the run has, ends the iteration, not the run. The
+  last call of a request's scripts counts. **`pm.execution.skipRequest()`**
+  in a pre-request script holds the request back: it is listed as skipped.
+  Each of these was asked of Newman 6.2.3, and two collections run by
+  Newman hold the engine to it (`packages/core/test/run`).
+- **Stop on the first failure** ends the run at a failed test, or at a
+  request that got no response. A status such as 500 with no test about it
+  is a response.
+- **Cancel run** stops within one request: the one on its way is
+  cancelled, and no other is sent. Nothing but Cancel stops a run whose
+  scripts send it in a circle.
+- **A run is not history.** Its requests are not written there, and a
+  run's tab is not stored: a reload does not bring it back. You may open
+  another tab while a run goes on.
+- **Reports**, once a run has ended: JSON (`"$id": "wayfarer/run/1"`),
+  JUnit XML as CI servers read it (validated against Jenkins' JUnit schema
+  in the tests), and a HAR 1.2 file of every exchange, masked as history
+  is: a vault secret and a credential read `***`.
+
+The order differs from Postman's in one case: a Postman file may hold a
+request before a folder, and Newman runs them in the file's order. Here a
+folder's folders come before its requests, as the list shows them.
 
 ## Scripts of a collection and of a folder
 

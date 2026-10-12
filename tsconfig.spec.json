@@ -24,6 +24,12 @@
       "@wayfarer/core/har": [
         "./packages/core/src/export/har.ts"
       ],
+      "@wayfarer/core/run-report": [
+        "./packages/core/src/run/report.ts"
+      ],
+      "@wayfarer/core/data-file": [
+        "./packages/core/src/run/data-file.ts"
+      ],
       "@wayfarer/core/pm-compat/*": [
         "./packages/core/test/pm-compat/*"
       ],

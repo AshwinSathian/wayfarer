@@ -27,6 +27,7 @@ import {
   withScriptRequest,
   type RequestContent,
   type ResponseEnvelope,
+  type RunIteration,
   type Scripts,
   type Row,
   type ScriptResponse,
@@ -90,6 +91,21 @@ export class PreRequestScriptError extends SendBlockedError {
  * `execute()` then undoes what that script set.
  */
 export class SendDeclinedError extends SendBlockedError {}
+
+/**
+ * A pre-request script of a run called `pm.execution.skipRequest()`: the
+ * request is not sent, as in Postman, and that is no failure. What the
+ * scripts did until then is here.
+ */
+export class RequestSkipped extends SendBlockedError {
+  constructor(
+    readonly testResults: TestResult[],
+    readonly scriptLogs: string[],
+    readonly nextRequest: string | null | undefined
+  ) {
+    super("A pre-request script skipped this request: it was not sent.");
+  }
+}
 
 const SECRET_PLACEHOLDER = /\{\{\s*\$secret\./;
 
@@ -212,12 +228,23 @@ export interface RequestExecutionSpec {
   folderVariables?: () => Row[];
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
+  /**
+   * The send is a request of a collection run (P5.2): its scripts read the
+   * iteration and the data file's row, and `pm.execution.skipRequest()` in a
+   * pre-request script holds the request back. Absent in a single send.
+   */
+  iteration?: RunIteration;
 }
 
 /** One script that ran, under the name its rows and its error are shown with. */
 interface ScriptRun {
   name: string;
   result: ScriptResult;
+}
+
+/** What the scripts that ran gave `pm.execution.setNextRequest`: the last of them that called it. */
+function lastNext(runs: ScriptRun[]): string | null | undefined {
+  return runs.reduce<string | null | undefined>((last, run) => (run.result.nextRequest !== undefined ? run.result.nextRequest : last), undefined);
 }
 
 /** The scripts of one kind a send runs, in order, the blank ones left out. An inherited script is named for where it is from. */
@@ -281,6 +308,8 @@ export interface RequestExecutionResult {
   scriptLogs: string[];
   response: RequestExecutionResponse;
   history: PastRequest;
+  /** What the scripts gave `pm.execution.setNextRequest`, the last call of them. A run reads it. */
+  nextRequest?: string | null;
 }
 
 /**
@@ -347,6 +376,11 @@ export class RequestExecutor {
         }
         // What the script did to pm.request is sent, and is what the next script sees. The request as composed is what history keeps.
         if (result.request) template = withScriptRequest(template, result.request);
+      }
+      // In a run, as in Postman: the request is not sent and its post-response scripts do not run. What the scripts set stays.
+      if (spec.iteration && preRuns.some((run) => run.result.skipRequest)) {
+        const nothing = new Redactor([]);
+        throw new RequestSkipped(preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)), [...preRuns.flatMap((run) => run.result.logs), ...notes], lastNext(preRuns));
       }
     }
 
@@ -468,7 +502,8 @@ export class RequestExecutor {
       history.error = redactor.text(shaped.historyError);
     }
 
-    return { durationMs, timings, testResults, scriptLogs, history, response: shaped.response };
+    const nextRequest = lastNext(runs);
+    return { durationMs, timings, testResults, scriptLogs, history, response: shaped.response, ...(nextRequest !== undefined && { nextRequest }) };
   }
 
   /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */
@@ -578,9 +613,10 @@ export class RequestExecutor {
       environmentName: this.environmentsService.activeEnvironment()?.name ?? "",
       globals: scriptVariables(this.environmentsService.globals()),
       folder: scriptVariables(spec.folderVariables?.() ?? []),
+      ...(spec.iteration && { data: scriptVariables(spec.iteration.data) }),
       collection: scriptVariables(spec.collection?.variables() ?? []),
       request,
-      info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "" },
+      info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "", ...(spec.iteration && { iteration: spec.iteration.index, iterationCount: spec.iteration.count }) },
       send: (request) => this.sendForScript(request, spec.signal),
     };
   }

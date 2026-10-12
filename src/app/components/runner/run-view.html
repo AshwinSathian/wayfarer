@@ -1,0 +1,117 @@
+@let state = run();
+@let results = state.results();
+<div class="flex flex-wrap items-center gap-3">
+  <h2 class="type-headline min-w-0 break-words">Run {{ state.target.name }}</h2>
+  <span class="type-footnote text-label-tertiary">{{ requests().length }} {{ requests().length === 1 ? "request" : "requests" }}, in the order of the list</span>
+  <span class="flex-1"></span>
+  @if (state.running()) {
+  <button matButton="filled" class="btn-danger" type="button" (click)="cancel()">Cancel run</button>
+  } @else {
+  <button matButton="filled" type="button" [disabled]="!requests().length" (click)="start()">{{ state.report() ? "Run again" : "Run" }}</button>
+  }
+</div>
+
+<div class="flex flex-wrap items-end gap-x-6 gap-y-3">
+  <div class="flex flex-col gap-1">
+    <label for="run-iterations" class="type-footnote text-label-secondary">Iterations</label>
+    <mat-form-field class="field w-36">
+      <input
+        matInput
+        id="run-iterations"
+        type="number"
+        min="1"
+        max="10000"
+        step="1"
+        inputmode="numeric"
+        [placeholder]="state.dataFile() ? 'One per row' : '1'"
+        [value]="state.iterations() ?? ''"
+        [disabled]="state.running()"
+        (change)="setIterations($any($event.target).value)"
+      />
+    </mat-form-field>
+  </div>
+  <div class="flex flex-col gap-1">
+    <label for="run-delay" class="type-footnote text-label-secondary">Delay between requests (ms)</label>
+    <mat-form-field class="field w-36">
+      <input matInput id="run-delay" type="number" min="0" max="600000" step="100" inputmode="numeric" [value]="state.delayMs()" [disabled]="state.running()" (change)="setDelay($any($event.target).value)" />
+    </mat-form-field>
+  </div>
+  <mat-checkbox [checked]="state.stopOnFailure()" [disabled]="state.running()" (change)="state.stopOnFailure.set($event.checked)">Stop on the first failure</mat-checkbox>
+  <div class="flex min-w-0 flex-wrap items-center gap-3">
+    <button matButton="outlined" class="btn-secondary" type="button" [disabled]="state.running()" (click)="dataFile.click()">Data file…</button>
+    @if (state.dataFile(); as data) {
+    <span class="type-callout text-label-secondary min-w-0 break-all">{{ data.name }}: {{ data.rows.length }} {{ data.rows.length === 1 ? "row" : "rows" }}</span>
+    <button matButton class="btn-sm" type="button" [disabled]="state.running()" (click)="removeData()">Remove</button>
+    } @else {
+    <span class="type-footnote text-label-tertiary">CSV with a header line, or a JSON list of objects</span>
+    }
+    <input #dataFile type="file" accept=".csv,.json,text/csv,application/json" class="hidden" aria-label="Data file for the run" (change)="pickData(dataFile)" />
+  </div>
+</div>
+
+@if (state.dataError()) {
+<p class="type-footnote text-status-error flex items-center gap-1.5"><app-icon name="error" class="icon-xs" /> {{ state.dataError() }}</p>
+}
+@if (state.scriptsSkipped()) {
+<p class="type-footnote text-status-warning flex items-center gap-1.5">
+  <app-icon name="warning" class="icon-xs" /> Scripts of this collection wait for a review, so requests were sent without them. Open a request and choose Review scripts.
+</p>
+}
+
+<div role="status" class="type-callout text-label-secondary flex flex-wrap items-center gap-2">
+  @if (state.running()) {
+  <mat-spinner diameter="18" aria-hidden="true" />
+  <span>Running: {{ results.length }} {{ results.length === 1 ? "request" : "requests" }} done.</span>
+  } @else if (state.report(); as report) {
+  <span>{{ ending() }}</span>
+  <span>{{ results.length }} {{ results.length === 1 ? "result" : "results" }} in {{ report.iterations }} {{ report.iterations === 1 ? "iteration" : "iterations" }}; {{ failed() }} failed; {{ tests().length - failedTests() }} of {{ tests().length }} tests passed.</span>
+  } @else {
+  <span>Nothing is sent until you choose Run. Each request is sent as Send would send it, with its scripts.</span>
+  }
+</div>
+
+@if (results.length) {
+<div class="overflow-x-auto rounded-xl border border-separator" role="region" aria-label="Run results" tabindex="0">
+  <table class="ds-table run-results">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Iteration</th>
+        <th scope="col">Request</th>
+        <th scope="col">Status</th>
+        <th scope="col">Time</th>
+        <th scope="col">Tests</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- By position: a request may be sent more than once in a run. -->
+      @for (result of results; track $index) {
+      <tr [class.run-result-failed]="failedOf(result)">
+        <td>{{ $index + 1 }}</td>
+        <td>{{ result.iteration + 1 }}</td>
+        <td class="break-words">
+          {{ result.name }}
+          @for (problem of problems(result); track $index) {
+          <p class="type-footnote text-status-error break-words">{{ problem }}</p>
+          }
+        </td>
+        <td>{{ result.skipped ? "Skipped" : result.status ? result.status + (result.statusText ? " " + result.statusText : "") : "No response" }}</td>
+        <td>{{ result.durationMs === undefined ? "—" : result.durationMs + " ms" }}</td>
+        <td>{{ testsOf(result) }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+}
+
+@if (state.report() && !state.running()) {
+<div class="flex flex-wrap items-center gap-3">
+  <span class="type-footnote text-label-secondary">Save the report:</span>
+  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('json')">JSON</button>
+  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('junit')">JUnit XML</button>
+  <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="!state.exchanges.length" (click)="saveHar()">HAR…</button>
+</div>
+}
+
+<app-har-export-dialog [source]="harSource()" (closed)="harSource.set(null)" />

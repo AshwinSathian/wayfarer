@@ -28,6 +28,8 @@ import { Icon } from "../../shared/icon/icon";
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
 import { PostmanExportDialog } from "./postman-export-dialog";
 import { saveJsonFile } from "../../shared/save-file";
+import type { RunTarget } from "../../state/run-state";
+import { folderChain } from "@wayfarer/core";
 
 type NodeData = CollectionNodeData;
 
@@ -73,6 +75,8 @@ export class CollectionsSidebar implements OnInit {
   protected readonly importPipeline = inject(ImportPipeline);
 
   readonly loadRequest = output<RequestDoc>();
+  /** "Run…" was chosen for a collection or a folder (P5.2): the composer opens the run's tab. */
+  readonly run = output<RunTarget>();
   /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
   readonly externalActions = input<PaletteAction[]>([]);
 
@@ -297,6 +301,15 @@ export class CollectionsSidebar implements OnInit {
       if (data.type === "collection") this.postmanExportOf.set({ id: data.ref.meta.id, name: data.ref.name });
       return;
     }
+    if (action === "run") {
+      const data = node.data as NodeData;
+      const tree = data.type === "request" ? undefined : this.collectionsService.tree().find((entry) => entry.collection.meta.id === (data.type === "collection" ? data.ref.meta.id : data.ref.collectionId));
+      if (!tree) return;
+      // A folder's run is named with the folders it is in, as a request's breadcrumb is.
+      if (data.type === "folder") this.run.emit({ collectionId: tree.collection.meta.id, folderId: data.ref.meta.id, name: [tree.collection.name, ...folderChain(tree.folders, data.ref.meta.id).map((folder) => folder.name)].join(" / ") });
+      else this.run.emit({ collectionId: tree.collection.meta.id, name: tree.collection.name });
+      return;
+    }
     if (action === "settings") {
       const data = node.data as NodeData;
       if (data.type === "collection") this.settingsOf.set({ collectionId: data.ref.meta.id });
@@ -384,7 +397,7 @@ export class CollectionsSidebar implements OnInit {
   }
 
   async handleAction(
-    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "export-postman" | "settings">,
+    action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "export-postman" | "settings" | "run">,
     node: UiTreeNode<NodeData>
   ): Promise<void> {
     const data = node.data as NodeData;

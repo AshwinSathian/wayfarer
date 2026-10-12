@@ -52,7 +52,7 @@ export class TabsStorage {
       if (!this.ready()) return;
       // Every tab is read, each time: an effect follows only what its last run read, and a
       // run that stopped at the first changed tab never heard of an edit in a later one.
-      const now = this.tabs.tabs().map((tab, order) => [tab.id, JSON.stringify(this.record(tab, order))]);
+      const now = this.storable().map((tab, order) => [tab.id, JSON.stringify(this.record(tab, order))]);
       const changed = now.some(([id, text]) => text !== this.stored.get(id));
       const closed = [...this.stored.keys()].some((id) => !now.some(([open]) => open === id));
       if (changed || closed) untracked(() => this.schedule());
@@ -109,6 +109,11 @@ export class TabsStorage {
     this.timer = setTimeout(() => void this.flush(), WRITE_AFTER_MS);
   }
 
+  /** The tabs that are stored: a tab of a collection run lives in the page only (P5.2). */
+  private storable(): TabState[] {
+    return this.tabs.tabs().filter((tab) => !tab.run);
+  }
+
   private record(tab: TabState, order: number): Stored {
     return {
       id: tab.id,
@@ -123,7 +128,7 @@ export class TabsStorage {
   }
 
   private async write(): Promise<void> {
-    const tabs = this.tabs.tabs();
+    const tabs = this.storable();
     const put: StoredTab[] = [];
     const written = new Map<string, string>();
     for (const [order, tab] of tabs.entries()) {
@@ -174,7 +179,7 @@ export class TabsStorage {
     // What is here and not in the store: a tab not written yet stays; one that was stored was closed elsewhere.
     for (const { tab } of here.values()) {
       // The one empty tab a page starts with gives way to the stored ones, at the start and when another browser tab stores the first.
-      const pristine = here.size === 1 && this.tabs.tabs().length === 1 && !tab.dirty() && !tab.bound() && !tab.loadingState() && tab.responseStatusCode() === undefined;
+      const pristine = here.size === 1 && this.tabs.tabs().length === 1 && !tab.run && !tab.dirty() && !tab.bound() && !tab.loadingState() && tab.responseStatusCode() === undefined;
       if (this.stored.has(tab.id) && !tab.loadingState()) this.stored.delete(tab.id);
       else if (!pristine) next.push(tab);
     }

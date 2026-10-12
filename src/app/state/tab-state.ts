@@ -1,11 +1,12 @@
 import { computed, signal } from "@angular/core";
-import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row } from "@wayfarer/core";
+import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row, type RunIteration } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { PastRequest, PastRequestKey } from "../models/history";
 import { TestResult } from "../models/test-assertion";
 import type { SendTimings } from "../services/request-executor";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
+import { RunState } from "./run-state";
 
 export const blankRow = (): Row => ({ key: "", value: "", enabled: true });
 
@@ -80,6 +81,10 @@ export class TabState {
   /** How long the last send's scripts and its request took, each by itself. */
   readonly lastTimings = signal<SendTimings | null>(null);
 
+  /** A tab that holds a collection run instead of a request (P5.2). It is one from the moment it is opened, and it is not stored. */
+  run: RunState | null = null;
+  /** Set on the tab a request of a collection run is sent from (P5.2): which iteration, and the data file's row. Such a tab is in no strip. */
+  iteration?: RunIteration;
   previewFingerprint = "";
   /** Aborts the send in flight. */
   inFlight: AbortController | null = null;
@@ -141,6 +146,8 @@ export class TabState {
     copy.bound.set(this.bound());
     copy.heldScripts.set(this.heldScripts());
     copy.baseline.set(this.baseline());
+    // A second tab of a run is a run of the same requests, not yet started.
+    if (this.run) copy.run = new RunState(this.run.target);
     return copy;
   }
 }

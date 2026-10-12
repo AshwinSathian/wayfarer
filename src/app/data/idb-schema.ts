@@ -1,5 +1,5 @@
 import { DBSchema } from "idb";
-import type { RequestContent, Row, VaultRecord } from "@wayfarer/core";
+import type { Cookie, RequestContent, Row, VaultRecord } from "@wayfarer/core";
 import {
   Collection,
   CollectionId,
@@ -31,6 +31,7 @@ export type StoreName =
   | "secrets"
   | "files"
   | "tabs"
+  | "cookies"
   | "meta";
 
 export type StoreCollection = ArrayLike<StoreName>;
@@ -65,6 +66,13 @@ export interface StoredTab {
   /** The SHA-256 of each script of the draft that was allowed to run when the tab was stored (plan D6). */
   scripts: string[];
 }
+
+/**
+ * A cookie of the app's jar as it is stored (P5.3): the cookie, with its
+ * value as the server sent it, under its name, domain and path. A cookie
+ * whose value holds a vault secret is never written here.
+ */
+export type StoredCookie = Cookie & { key: string };
 
 export const META_STATE_KEY = "state";
 export const META_GLOBALS_KEY = "globals";
@@ -148,6 +156,11 @@ export interface ApiSandboxDB extends DBSchema {
     key: string;
     value: StoredTab;
   };
+  /** The cookie jar, by `domain|path|name`. */
+  cookies: {
+    key: string;
+    value: StoredCookie;
+  };
   meta: {
     key: typeof META_STATE_KEY | typeof META_GLOBALS_KEY | typeof META_VAULT_KEY;
     value: MetaState | GlobalsRecord | VaultRecordDoc;
@@ -156,5 +169,5 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 11;
+export const DB_VERSION = 12;
 export const DEFAULT_SCHEMA_VERSION = 1;

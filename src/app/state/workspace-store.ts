@@ -506,6 +506,8 @@ export class WorkspaceStore {
     tab.inspection.set(result.inspection);
     this.applyExecutionResponse(tab, result.response);
     this.applyStream(tab, result);
+    // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
+    if (result.cookieValues.length) tab.responseExportContext.update((context) => context && { ...context, credentials: [...context.credentials, ...result.cookieValues] });
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;

@@ -9,6 +9,7 @@
 //   /redirect/:n                   302 chain of n hops, then /echo
 //   /redirect-to?url=&status=      one redirect to `url` as given (another origin, say), 302 unless `status` says otherwise
 //   /cookies/set?name=value        Set-Cookie per query param (one header each)
+//   /cookies/login                 a sign-in that answers with a redirect: 302 to /echo with Set-Cookie session=signed-in
 //   /gzip, /deflate                compressed JSON
 //   /delay/:ms                     responds after ms milliseconds
 //   /status/:code                  that status, JSON body
@@ -194,6 +195,9 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
   }
   if (path === "/redirect-to") {
     return send(res, Number(url.searchParams.get("status")) || 302, { ...cors, location: url.searchParams.get("url") ?? "/echo" });
+  }
+  if (path === "/cookies/login") {
+    return send(res, 302, { ...cors, location: "/echo", "set-cookie": ["session=signed-in; Path=/; HttpOnly", "seen=Wed, 14 Oct; Path=/"] });
   }
   if (path === "/cookies/set") {
     const cookies = [...url.searchParams].map(([k, v]) => `${k}=${v}; Path=/; SameSite=Lax`);

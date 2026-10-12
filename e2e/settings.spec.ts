@@ -56,7 +56,7 @@ test.describe("Settings surface", () => {
     await page.goto("/");
     const dialog = await openSettings(page);
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
-    await expect(list.getByRole("button")).toHaveText([/General/, /Requests/, /History/, /Data and storage/, /Vault/, /Local Bridge/, /Shortcuts/, /About/, /Danger zone/]);
+    await expect(list.getByRole("button")).toHaveText([/General/, /Requests/, /History/, /Data and storage/, /Vault/, /Local Bridge/, /Cookies/, /Shortcuts/, /About/, /Danger zone/]);
     for (const [section, control] of [
       ["Requests", "Request timeout"],
       ["History", "History size"],

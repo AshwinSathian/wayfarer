@@ -97,6 +97,15 @@ function flattenHeaders(nodeHeaders) {
   return out;
 }
 
+/** Node's flat `rawHeaders` (name, value, name, value) as pairs. */
+function pairHeaders(rawHeaders) {
+  const out = [];
+  for (let i = 0; i + 1 < rawHeaders.length; i += 2) {
+    out.push([rawHeaders[i], rawHeaders[i + 1]]);
+  }
+  return out;
+}
+
 function sanitizeOutgoingHeaders(headers) {
   const out = {};
   if (!headers || typeof headers !== 'object') {
@@ -161,6 +170,8 @@ function relay(payload, res) {
           status: upstreamRes.statusCode,
           statusText: upstreamRes.statusMessage ?? '',
           headers: flattenHeaders(upstreamRes.headers),
+          // The headers as received, one entry each (an addition to protocol 1): joined, two Set-Cookie headers cannot be told apart again.
+          headerList: pairHeaders(upstreamRes.rawHeaders),
           body: text,
           bodyEncoding: encoding,
         });

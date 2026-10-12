@@ -137,4 +137,23 @@ describe("buildHar: a HAR 1.2 log", () => {
     }
     expect(fixtures.filter(({ request }) => request.body.mode === "binary").map(({ name }) => name)).toEqual(["PUT a file"]);
   });
+  it("lists the cookies of the Cookie and Set-Cookie headers, and none of a header that was masked (P5.3)", () => {
+    const exchange = (cookie: string, set: string[]): HarExchange => ({
+      startedAt: "2026-10-13T00:00:00.000Z",
+      timeMs: 1,
+      request: { method: "GET", url: "https://api.test/", headers: [["Cookie", cookie]], body: { mode: "none" } },
+      response: { status: 200, statusText: "OK", headers: set.map((value): [string, string] => ["set-cookie", value]) },
+    });
+    const cookiesOf = (cookie: string, set: string[]) => {
+      const [entry] = entries([exchange(cookie, set)]);
+      return [entry["request"]["cookies"], entry["response"]["cookies"]];
+    };
+
+    expect(cookiesOf("sid=abc; theme=a=b", ["sid=new; Path=/app; Domain=api.test; Expires=Wed, 14 Oct 2026 00:00:00 GMT; HttpOnly; Secure", "plain=1"])).toEqual([
+      [{ name: "sid", value: "abc" }, { name: "theme", value: "a=b" }],
+      [{ name: "sid", value: "new", path: "/app", domain: "api.test", expires: "2026-10-14T00:00:00.000Z", httpOnly: true, secure: true }, { name: "plain", value: "1" }],
+    ]);
+    // History and an export without credentials hold the mask in place of each header: its cookies are not known.
+    expect(cookiesOf("***", ["***"])).toEqual([[], []]);
+  });
 });

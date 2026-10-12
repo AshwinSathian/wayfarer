@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BinaryBody, decodeEnvelope } from "../http/response-body";
+import { cookiesFor, parseSetCookie, storeCookie, type Cookie } from "../cookies/jar";
 import { BridgeTransport } from "./bridge";
 import { fakeFetch, never } from "./fake-fetch";
 import { TransportError } from "./transport";
@@ -233,6 +234,67 @@ describe("BridgeTransport", () => {
       });
       const sent = new BridgeTransport(BRIDGE, fetch).send(request, { signal: new AbortController().signal, timeoutMs: 20, redirects: { follow: true, stayOnHost: false } });
       await expect(sent).rejects.toMatchObject({ kind: "timeout" });
+    });
+  });
+  describe("cookies (P5.3)", () => {
+    const NOW = Date.UTC(2026, 9, 13);
+    /** A jar as the app holds one, and a bridge in front of a target that signs in with a redirect: `/login` sets `sid` and sends on to `/home`. */
+    const signIn = (headerList = true) => {
+      let jar: Cookie[] = [];
+      const relayed: { url: string; headers: Record<string, string> }[] = [];
+      const { fetch } = fakeFetch(({ init }) => {
+        const payload = JSON.parse(init.body as string) as { url: string; headers: Record<string, string> };
+        relayed.push(payload);
+        const path = new URL(payload.url).pathname;
+        const answer = (status: number, list: [string, string][]) =>
+          new Response(JSON.stringify({ status, statusText: "", headers: Object.fromEntries(list.map(([name, value]) => [name.toLowerCase(), value])), ...(headerList && { headerList: list }), body: path, bodyEncoding: "utf8" }));
+        if (path === "/login") return answer(302, [["Location", "/home"], ["Set-Cookie", "sid=abc; Path=/; Expires=Wed, 14 Oct 2026 00:00:00 GMT"], ["Set-Cookie", "theme=dark; Path=/"]]);
+        return answer(200, [["Content-Type", "text/plain"]]);
+      });
+      const cookies = {
+        for: (url: string) => cookiesFor(jar, url, NOW),
+        store: (url: string, headers: string[]) => {
+          for (const header of headers) {
+            const cookie = parseSetCookie(header, url, NOW);
+            if (cookie) jar = storeCookie(jar, cookie, NOW);
+          }
+        },
+      };
+      return { transport: new BridgeTransport(BRIDGE, fetch), relayed, cookies, jar: () => jar };
+    };
+    const request = { method: "POST", url: "https://api.test/login", headers: [] as [string, string][], body: "user=a" };
+
+    it("gives the response's headers one by one when the bridge lists them", async () => {
+      const { transport } = signIn();
+      const response = await transport.send(request, open());
+      // Names in lower case, as the joined form had them and as a direct response has them.
+      expect(response.headers).toEqual([["location", "/home"], ["set-cookie", "sid=abc; Path=/; Expires=Wed, 14 Oct 2026 00:00:00 GMT"], ["set-cookie", "theme=dark; Path=/"]]);
+    });
+
+    it("a cookie that one hop sets goes out with the next, and both are in the jar afterwards", async () => {
+      const { transport, relayed, cookies, jar } = signIn();
+      const response = await transport.send(request, { ...open(), redirects: { follow: true, stayOnHost: false }, cookies });
+      expect(response.status).toBe(200);
+      expect(relayed.map((hop) => [hop.url, hop.headers["Cookie"]])).toEqual([["https://api.test/login", undefined], ["https://api.test/home", "sid=abc; theme=dark"]]);
+      expect(jar().map((cookie) => cookie.name)).toEqual(["sid", "theme"]);
+
+      // And with the request after that.
+      await transport.send({ method: "GET", url: "https://api.test/me", headers: [["Cookie", "mine=1"]] }, { ...open(), cookies });
+      expect(relayed[2].headers).toEqual({ Cookie: "mine=1; sid=abc; theme=dark" });
+    });
+
+    it("without a jar nothing is added and nothing is kept", async () => {
+      const { transport, relayed, jar } = signIn();
+      await transport.send(request, { ...open(), redirects: { follow: true, stayOnHost: false } });
+      expect(relayed[1].headers["Cookie"]).toBeUndefined();
+      expect(jar()).toEqual([]);
+    });
+
+    it("a bridge from before the list joins Set-Cookie headers into one line: nothing of it is kept", async () => {
+      const { transport, relayed, cookies, jar } = signIn(false);
+      await transport.send(request, { ...open(), redirects: { follow: true, stayOnHost: false }, cookies });
+      expect(jar()).toEqual([]);
+      expect(relayed[1].headers["Cookie"]).toBeUndefined();
     });
   });
 });

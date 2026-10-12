@@ -1,0 +1,35 @@
+<p class="cookies-route type-footnote text-label-secondary mb-3" role="note">
+  @if (bridgeOn()) {
+  The Local Bridge is on: a cookie a response sets is kept here and sent with later requests to its domain and path, as a browser would.
+  } @else {
+  The jar is for requests sent through the Local Bridge, which is off. Sent directly, a request carries no cookie and the browser keeps none of a response for the app: a page cannot read or fill the browser's own jar.
+  }
+</p>
+
+@if (cookies().length) {
+<ul class="settings-group cookies-list" aria-label="Cookies">
+  @for (cookie of cookies(); track cookie.domain + '|' + cookie.path + '|' + cookie.name; let i = $index) {
+  <li class="settings-row settings-row-stacked cookie">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <label [for]="'cookie-value-' + i" class="type-subhead text-label-primary font-mono break-all">{{ cookie.name }}</label>
+        <p class="type-caption text-label-tertiary break-all"><span class="font-mono">{{ cookie.domain }}{{ cookie.path }}</span> · {{ about(cookie) }}</p>
+      </div>
+      <button matIconButton type="button" class="btn-plain shrink-0" [attr.aria-label]="'Delete cookie ' + cookie.name + ' of ' + cookie.domain" (click)="jar.remove(cookie)"><app-icon name="delete" /></button>
+    </div>
+    <mat-form-field class="field w-full">
+      <input matInput [id]="'cookie-value-' + i" type="text" autocomplete="off" spellcheck="false" class="font-mono" [value]="cookie.value" (change)="jar.setValue(cookie, $any($event.target).value)" />
+    </mat-form-field>
+    <p class="type-caption text-label-tertiary">
+      @if (cookie.expires === undefined) { Kept until you delete it: the server gave it no end. } @else { Until {{ until(cookie.expires) }}. }
+      @if (jar.inMemoryOnly(cookie)) { <span class="cookie-unstored">Not stored: its value holds a vault secret, so it is in this tab's memory only.</span> }
+    </p>
+  </li>
+  }
+</ul>
+<div class="mt-3 flex justify-end">
+  <button matButton class="btn-danger btn-sm" type="button" (click)="clear()">Delete all…</button>
+</div>
+} @else {
+<p class="cookies-empty type-footnote text-label-secondary">The jar is empty.</p>
+}

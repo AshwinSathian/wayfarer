@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { applyVariableChanges, type RequestContent, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type Cookie, type RequestContent, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -10,6 +10,7 @@ import {
 } from "@wayfarer/core";
 import { signal } from "@angular/core";
 import { RequestExecutor, BuiltRequest, PreRequestScriptError, RequestSkipped, SendBlockedError, SendDeclinedError } from "./request-executor";
+import { CookieJar } from "./cookie-jar";
 import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
@@ -43,9 +44,12 @@ class TransportStub {
   /** The call as the specs have always asserted it: method, URL, headers, body. */
   sendRequest = vi.fn();
   options: TransportOptions | undefined;
+  /** What the route does with the options while it sends: a spec plays the Local Bridge with it. */
+  during: ((options: TransportOptions) => void) | undefined;
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
     this.options = options;
+    this.during?.(options);
     this.sendRequest(
       request.method,
       request.url,
@@ -122,6 +126,7 @@ function builtRequest(overrides: Partial<BuiltRequest> = {}): BuiltRequest {
 const TEMPLATE = requestContent();
 
 describe("RequestExecutor", () => {
+  const cookieJar = { for: vi.fn((_url: string): Cookie[] => []), store: vi.fn() };
   let service: RequestExecutor;
   let transport: TransportStub;
   let responseInspector: ResponseInspectorServiceStub;
@@ -129,6 +134,8 @@ describe("RequestExecutor", () => {
   let scriptSandbox: ScriptSandboxServiceStub;
 
   beforeEach(() => {
+    cookieJar.for.mockReset().mockReturnValue([]);
+    cookieJar.store.mockReset();
     transport = new TransportStub();
     responseInspector = new ResponseInspectorServiceStub();
     environmentsService = new EnvironmentsServiceStub();
@@ -142,9 +149,58 @@ describe("RequestExecutor", () => {
         { provide: ResponseInspector, useValue: responseInspector },
         { provide: EnvironmentsStore, useValue: environmentsService },
         { provide: ScriptSandbox, useValue: scriptSandbox },
+        { provide: CookieJar, useValue: cookieJar },
       ],
     });
     service = TestBed.inject(RequestExecutor);
+  });
+
+  describe("the cookie jar (P5.3)", () => {
+    const cookie = (name: string, value: string): Cookie => ({ name, value, domain: "example.com", hostOnly: true, path: "/", secure: false, httpOnly: false, created: 1 });
+    const run = (built: Partial<BuiltRequest> = {}) =>
+      service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(built) });
+
+    it("hands the route the jar: its cookies for an address, and what a response set, with the request's vault secrets", async () => {
+      cookieJar.for.mockReturnValue([cookie("sid", "jar-value-1")]);
+      let given: Cookie[] | undefined;
+      transport.during = (options) => {
+        given = options.cookies?.for("https://example.com/data");
+        options.cookies?.store("https://example.com/data", ["new=1"]);
+      };
+      await run({ secrets: ["vault-plaintext"] });
+      expect(given?.map((held) => held.name)).toEqual(["sid"]);
+      expect(cookieJar.for).toHaveBeenCalledWith("https://example.com/data");
+      expect(cookieJar.store).toHaveBeenCalledWith("https://example.com/data", ["new=1"], ["vault-plaintext"]);
+    });
+
+    it("a cookie the jar sent is a credential: history has the Cookie header masked, and the value masked where the server sent it back", async () => {
+      cookieJar.for.mockImplementation((url: string) => (url.endsWith("/data") ? [cookie("sid", "jar-value-1")] : [cookie("later", "jar-value-2")]));
+      transport.during = (options) => {
+        options.cookies?.for("https://example.com/data");
+        // A later hop of a redirect.
+        options.cookies?.for("https://example.com/next");
+      };
+      transport.setResponse(envelope(200, "OK", { echoed: "sid=jar-value-1; later=jar-value-2" }));
+      const result = await run({ headers: [["Accept", "*/*"]] });
+      expect(result.history.sent.headers).toEqual([["Accept", "*/*"], ["Cookie", "***"]]);
+      expect(result.history.response?.body?.text).toBe('{"echoed":"sid=***; later=***"}');
+      expect(result.cookieValues).toEqual(["jar-value-1", "jar-value-2"]);
+    });
+
+    it("history names no Cookie header when the jar gave none", async () => {
+      transport.during = (options) => void options.cookies?.for("https://example.com/data");
+      const result = await run({ headers: [["Accept", "*/*"]] });
+      expect(result.history.sent.headers).toEqual([["Accept", "*/*"]]);
+      expect(result.cookieValues).toEqual([]);
+    });
+
+    it("@claim:C-007 a cookie that holds a vault secret's reference is not sent: a cookie is never a template", async () => {
+      cookieJar.for.mockReturnValue([cookie("a", "{{$secret.id-1}}"), cookie("{{ $secret.id-2 }}", "b"), cookie("ok", "1")]);
+      let given: Cookie[] | undefined;
+      transport.during = (options) => void (given = options.cookies?.for("https://example.com/data"));
+      await run();
+      expect(given?.map((held) => held.name)).toEqual(["ok"]);
+    });
   });
 
   it("sends the request built by buildRequest() and shapes a successful JSON response", async () => {
@@ -769,7 +825,7 @@ describe("RequestExecutor", () => {
 
     await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
 
-    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500, redirects: { follow: true, stayOnHost: false } });
+    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500, redirects: { follow: true, stayOnHost: false }, cookies: { for: expect.any(Function), store: expect.any(Function) } });
   });
 
   it("measures the duration around the transport call only, not the pre-request script (F11)", async () => {

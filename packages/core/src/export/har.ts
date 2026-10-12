@@ -39,6 +39,37 @@ const pairs = (entries: [string, string][]): Pair[] => entries.map(([name, value
 const headerOf = (headers: [string, string][], name: string): string | undefined => headers.find(([key]) => key.toLowerCase() === name)?.[1];
 const known = (value: number | undefined): number => (typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : -1);
 
+/** The cookies of a request's `Cookie` headers, as HAR lists them. A header that was masked holds no pair and gives none. */
+function sentCookies(headers: [string, string][]): Pair[] {
+  return headers
+    .filter(([name]) => name.toLowerCase() === "cookie")
+    .flatMap(([, value]) => value.split(";"))
+    .map((pair) => pair.trim())
+    .filter((pair) => pair.indexOf("=") > 0)
+    .map((pair) => ({ name: pair.slice(0, pair.indexOf("=")).trim(), value: pair.slice(pair.indexOf("=") + 1).trim() }));
+}
+
+/** The cookies of a response's `Set-Cookie` headers, each with the attributes HAR has a field for. */
+function setCookies(headers: [string, string][]): Record<string, unknown>[] {
+  return headers
+    .filter(([name, value]) => name.toLowerCase() === "set-cookie" && value.split(";")[0].indexOf("=") > 0)
+    .map(([, value]) => {
+      const [pair, ...attributes] = value.split(";").map((part) => part.trim());
+      const attribute = (name: string) => attributes.find((text) => text.toLowerCase().startsWith(`${name}=`))?.slice(name.length + 1);
+      const flag = (name: string) => attributes.some((text) => text.toLowerCase() === name);
+      const expires = Date.parse(attribute("expires") ?? "");
+      return {
+        name: pair.slice(0, pair.indexOf("=")),
+        value: pair.slice(pair.indexOf("=") + 1),
+        ...(attribute("path") && { path: attribute("path") }),
+        ...(attribute("domain") && { domain: attribute("domain") }),
+        ...(Number.isFinite(expires) && { expires: new Date(expires).toISOString() }),
+        ...(flag("httponly") && { httpOnly: true }),
+        ...(flag("secure") && { secure: true }),
+      };
+    });
+}
+
 /** The query of an address as HAR lists it. An address that is not a URL has none to list. */
 function queryOf(url: string): Pair[] {
   return URL.canParse(url) ? [...new URL(url).searchParams].map(([name, value]) => ({ name, value })) : [];
@@ -90,7 +121,7 @@ export function buildHar(exchanges: HarExchange[], creator: { name: string; vers
             method: request.method,
             url: request.url,
             httpVersion: "HTTP/1.1",
-            cookies: [],
+            cookies: sentCookies(request.headers),
             headers: pairs(request.headers),
             queryString: queryOf(request.url),
             ...(body && { postData: body }),
@@ -101,7 +132,7 @@ export function buildHar(exchanges: HarExchange[], creator: { name: string; vers
             status: response?.status ?? 0,
             statusText: response?.statusText ?? "",
             httpVersion: "HTTP/1.1",
-            cookies: [],
+            cookies: setCookies(response?.headers ?? []),
             headers: pairs(response?.headers ?? []),
             content: {
               size: known(response?.size),

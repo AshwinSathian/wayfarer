@@ -47,6 +47,8 @@ Version 10 let a collection and a folder hold auth and scripts for the requests 
 
 Version 11 added the `tabs` store and changed nothing else: a version 10 database keeps its data.
 
+Version 12 added the `cookies` store and changed nothing else: a version 11 database keeps its data.
+
 ## Tabs
 
 The composer's tabs are stored, so a reload brings them back. One record per tab:
@@ -108,6 +110,12 @@ A change to an environment's variables is sent as the change (set this name, rem
 - **The database is from a newer version than this tab's code** (a stale cached page, a rollback). The database is not opened and not changed. The page says "This tab is running an older Wayfarer … reload".
 
 ## Transactions and helpers
+
+## Cookies
+
+The cookie jar of requests sent through the Local Bridge ([Browser limits](browser-limits.md#cookies)) is the `cookies` store: one record per cookie, under its domain, path and name, with its value as the server sent it, its flags, and when it ends. A value is text here, as a credential typed into a request is; history and exports hold it masked. A cookie whose value holds a vault secret of the request that got it is not written: it stays in the tab's memory until the tab reloads.
+
+Two browser tabs share the jar: a cookie one stores, the other reads. The jar is not in a workspace backup, and a restore leaves it as it is. Reset all data removes it.
 
 `Idb` is the one entry to the stores; each kind of document has its own repository behind it.
 

@@ -104,6 +104,19 @@ code errors.
   into the bridge: the page decides where a request may go, and the page
   holds what the next hop needs (P5.3's cookies). The chain is the tab's
   (`TabState.responseRedirects`) and is not stored.
+- Cookies (P5.3): the jar is `CookieJar` (`src/app/services/cookie-jar.ts`)
+  over the rules of `packages/core/src/cookies/jar.ts` (RFC 6265, no public
+  suffix list), kept in the `cookies` store. It is for the Local Bridge
+  only: `BridgeTransport` asks it before each hop and tells it after
+  (`TransportOptions.cookies`), reading `Set-Cookie` from the bridge's
+  `headerList` and never from a joined line. `CookieJar.store` has the
+  cookies in the page before it returns: the next hop asks at once.
+  `RequestExecutor` is the one that hands the jar to a transport: each
+  value that went out is a credential to the redactor (`cookieValues`), a
+  cookie that names a secret's reference is left out (C-007), and a cookie
+  whose value holds a vault secret of the request is never written to the
+  store. A cookie's value is never a template. `pm.cookies` stays
+  unsupported (maintainer, 2026-10-13): a script is not given the jar.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the
@@ -623,10 +636,10 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
   converter for older files.
-- The database is version 11. `runUpgrade` empties a database from before
+- The database is version 12. `runUpgrade` empties a database from before
   version 5, and since then removes only what changed shape (secrets at 8,
   history at 9; collections, folders, requests and files at 10), saying
-  what it removed. Version 11 added the `tabs` store and removed nothing. No stored data exists to keep
+  what it removed. Version 11 added the `tabs` store and version 12 the `cookies` store; neither removed anything. No stored data exists to keep
   (maintainer, 2026-10-09), so a change of stored shape may do the same
   again until the app has users; say so in the changelog and in
   `docs/storage.md`.
@@ -729,7 +742,9 @@ code errors.
 - Local Bridge (`local-bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
-  instead of defaulting. Keep every one of these when changing it.
+  instead of defaulting. Keep every one of these when changing it. Its
+  answer is protocol 1 with one addition, `headerList`; anything more is
+  protocol 2 (P6.1).
 - A file reaches the stores by one road, `ImportPipeline`
   (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
   10 MB cap), the import worker, the report in `<app-import-dialog>`, and

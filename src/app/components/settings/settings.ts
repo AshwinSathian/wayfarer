@@ -10,6 +10,7 @@ import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme, type ThemeChoice } from "../../services/theme";
 import { BridgePane } from "./bridge-pane";
 import { BridgeSettings } from "../../services/bridge-settings";
+import { CookiesPane } from "./cookies-pane";
 import { RequestSettings } from "../../services/request-settings";
 import { PaletteAction } from "../collections/collections-sidebar";
 import { version } from "../../../../package.json";
@@ -28,7 +29,7 @@ interface KeyboardShortcut {
 }
 
 /** The panes of Settings, by the id a caller opens one with. */
-export type SettingsSection = "general" | "requests" | "history" | "data" | "vault" | "bridge" | "shortcuts" | "about" | "danger";
+export type SettingsSection = "general" | "requests" | "history" | "data" | "vault" | "bridge" | "cookies" | "shortcuts" | "about" | "danger";
 
 interface SectionEntry {
   id: SettingsSection;
@@ -45,6 +46,7 @@ const SECTIONS: SectionEntry[] = [
   { id: "data", label: "Data and storage", icon: "save", about: "Take your work out, bring it back, and see where it is kept." },
   { id: "vault", label: "Vault", icon: "shield_lock", about: "The secrets vault and when it locks." },
   { id: "bridge", label: "Local Bridge", icon: "router", about: "An optional relay on your own machine, for APIs a browser cannot reach." },
+  { id: "cookies", label: "Cookies", icon: "dns", about: "What responses set through the Local Bridge, and what later requests carry." },
   { id: "shortcuts", label: "Shortcuts", icon: "terminal", about: "Keys, and everything the command palette can do." },
   { id: "about", label: "About", icon: "info", about: "This version, and where to read more." },
   { id: "danger", label: "Danger zone", icon: "warning", about: "What cannot be undone." },
@@ -65,7 +67,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, FormsModule, MatButton, MatButtonToggle, MatButtonToggleGroup, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane],
+  imports: [Icon, FormsModule, MatButton, MatButtonToggle, MatButtonToggleGroup, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   // The rules reach the Local Bridge pane, a component of its own; each starts at `.settings`.

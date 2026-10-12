@@ -1,6 +1,6 @@
 {
   "name": "wayfarer-local-bridge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Optional local relay that lets Wayfarer reach CORS-restrictive or intranet-only APIs. Runs entirely on your own machine, with no cloud component and zero runtime dependencies.",
   "license": "MIT",
   "private": true,

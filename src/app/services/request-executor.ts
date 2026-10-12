@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { CookieJar } from "./cookie-jar";
 import { RequestSettings } from "./request-settings";
 import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
@@ -24,7 +25,9 @@ import {
   sentScriptRequest,
   stringifyJson,
   scriptVariables,
+  withJarCookies,
   withScriptRequest,
+  type Cookie,
   type RequestContent,
   type ResponseEnvelope,
   type RunIteration,
@@ -36,6 +39,7 @@ import {
   type ScriptResult,
   type ScriptVariable,
   type ScriptSendRequest,
+  type TransportOptions,
   type VariableChange,
 } from "@wayfarer/core";
 
@@ -319,6 +323,8 @@ export interface RequestExecutionResult {
   history: PastRequest;
   /** What the scripts gave `pm.execution.setNextRequest`, the last call of them. A run reads it. */
   nextRequest?: string | null;
+  /** The values of the jar's cookies that went out with the request or with a hop of its redirects (P5.3): credentials, to whatever exports the exchange. */
+  cookieValues: string[];
 }
 
 /**
@@ -338,6 +344,7 @@ export class RequestExecutor {
   private readonly scriptSandbox = inject(ScriptSandbox);
   private readonly assertionRunner = inject(AssertionRunner);
   private readonly vault = inject(SecretsVault);
+  private readonly cookieJar = inject(CookieJar);
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {
     const requestId = newId();
@@ -415,8 +422,23 @@ export class RequestExecutor {
 
     // The duration is the transport call alone: no script time (F11).
     let startedAt = 0;
+    // The cookie jar (P5.3), for the route that sends what it is given (the Local Bridge). Each value that went out is a
+    // credential to the redactor; `sentCookies` are those of the request itself, for what history says was sent.
+    const cookieValues = new Set<string>();
+    let sentCookies: Cookie[] | undefined;
+    const cookies: NonNullable<TransportOptions["cookies"]> = {
+      for: (url) => {
+        // A cookie is the server's text and never a template. One that holds a secret's reference would go out as that text (C-007): it is left out.
+        const found = this.cookieJar.for(url).filter((cookie) => !containsSecretPlaceholder({ url: "", headers: [["Cookie", `${cookie.name}=${cookie.value}`]] }));
+        sentCookies ??= found;
+        for (const cookie of found) cookieValues.add(cookie.value);
+        return found;
+      },
+      store: (url, setCookies) => void this.cookieJar.store(url, setCookies, request.secrets),
+    };
     const transmit = async (): Promise<ResponseEnvelope | TransportError> => {
       startedAt = performance.now();
+      sentCookies = undefined;
       try {
         return await this.transport.send(
           {
@@ -432,6 +454,7 @@ export class RequestExecutor {
             // P5.4, for the route that can see a redirect (the Local Bridge). A request built with a vault secret is not
             // followed to another host (C-063): a redirect is the server's word, and the secret was written for this host.
             redirects: { follow: template.settings.followRedirects !== false, stayOnHost: request.secrets.length > 0 },
+            cookies,
           }
         );
       } catch (error) {
@@ -456,7 +479,7 @@ export class RequestExecutor {
     // What a script writes is masked like everything else the app shows or
     // keeps of this exchange (D5): a post-response script reads the response,
     // and a server may send a secret back.
-    const redactor = new Redactor([...request.secrets, ...request.credentials]);
+    const redactor = new Redactor([...request.secrets, ...request.credentials, ...cookieValues]);
     // A variable is stored: a vault secret must not get into one. A
     // credential that is no secret is in the environment already, and a
     // script that copies it must not turn it into a mask.
@@ -500,7 +523,7 @@ export class RequestExecutor {
       sent: {
         method: request.method,
         url: redactor.text(request.url),
-        headers: redactor.headers(request.headers),
+        headers: redactor.headers(withJarCookies(request.headers, sentCookies ?? [])),
         ...(preview !== undefined && { bodyPreview: keep(preview).text }),
       },
       route: outcome instanceof TransportError ? this.transport.route() : outcome.route,
@@ -519,7 +542,7 @@ export class RequestExecutor {
     }
 
     const nextRequest = lastNext(runs);
-    return { durationMs, timings, inspection, testResults, scriptLogs, history, response: shaped.response, ...(nextRequest !== undefined && { nextRequest }) };
+    return { durationMs, timings, inspection, testResults, scriptLogs, history, response: shaped.response, cookieValues: [...cookieValues], ...(nextRequest !== undefined && { nextRequest }) };
   }
 
   /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */

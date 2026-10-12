@@ -190,6 +190,10 @@
         <app-bridge-pane />
         }
 
+        @case ('cookies') {
+        <app-cookies-pane />
+        }
+
         @case ('shortcuts') {
         <div class="settings-group">
           @for (shortcut of fixedShortcuts; track shortcut.keys) {

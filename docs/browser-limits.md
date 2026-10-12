@@ -44,8 +44,10 @@ Node sets `Host` and `Connection` for its own connection.
 Wayfarer sends your request with no `Referer` and no cookies
 (`referrerPolicy: "no-referrer"`, `credentials: "omit"`): an API client
 should not add its own address or your browser's cookies for the target
-site to a request. A `Set-Cookie` in a response is not stored. A cookie jar
-arrives with the bridge (plan P5.3).
+site to a request. Sent directly, a `Set-Cookie` in a response is not
+stored: the browser keeps none of it for the app, and a page cannot read it.
+Through the Local Bridge the app has a cookie jar of its own: see
+"Cookies" below.
 
 ## When the browser asks the server first (CORS preflight)
 
@@ -117,8 +119,51 @@ Of a response from another origin, a page can read only `Cache-Control`,
 `Last-Modified` and `Pragma`, plus the headers the server names in
 `Access-Control-Expose-Headers`. `Set-Cookie` is never readable. The
 Headers tab says so above the list. Through the bridge every header is
-shown (the bridge still joins repeated `Set-Cookie` headers into one line,
-[#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
+shown, each as it was received: two `Set-Cookie` headers are two lines. (A
+Local Bridge before 1.1.0 joins them into one.)
+
+## Cookies
+
+A browser has a cookie jar, and a page can neither read it nor fill it for
+another site. Wayfarer sends a direct request with `credentials: "omit"`,
+so it carries none of the browser's cookies, and what a response sets is
+kept nowhere.
+
+**Through the Local Bridge the app keeps a jar of its own**, as a desktop
+client does. Settings, **Cookies** lists it.
+
+- **What a response sets is kept**, and sent with later requests through
+  the bridge to the cookie's domain and path, by the rules browsers follow
+  (RFC 6265): a cookie without `Domain` goes to that host alone, one with
+  `Domain` to the domain and what is under it; a cookie goes to its `Path`
+  and below; a `Secure` cookie only over `https`, and one set over `http`
+  is refused; `Max-Age` wins over `Expires`; a cookie that has expired is
+  dropped, and a server ends one by setting it expired. The `__Secure-` and
+  `__Host-` prefixes hold. `SameSite` is shown and applied to nothing: a
+  request from an API client has no site of its own.
+- **On a redirect**, a cookie one hop sets goes out with the next.
+- **Your own `Cookie` header** is sent as written, and the jar's cookies
+  are added to it; a name you wrote yourself wins over the jar's.
+- **A cookie is never a template.** Its value goes out as the server sent
+  it: a `{{variable}}` in it is not replaced, and a cookie that names a
+  vault secret's reference is not sent at all.
+- **Edit and delete** in Settings, Cookies: change a value, delete one
+  cookie, or delete all. A cookie the server gave no end is kept until you
+  delete it: the app has no "session" that closes.
+- **Where it is kept:** in this browser's storage, as text, like a
+  credential you type into a request. History and every export have a
+  cookie's value masked. A cookie whose value holds a vault secret of the
+  request that got it is kept in the tab's memory only, and the list says so.
+- **Not in the jar's rules:** there is no list of public suffixes. A
+  `Domain` with no dot in it (`com`) is refused; `Domain=co.uk` is taken
+  as a domain. Send requests to hosts you trust with the jar, or delete
+  what such a host set.
+- **Scripts** are not given the jar: `pm.cookies` stays unsupported. A
+  script reads a response's `Set-Cookie` headers like its other headers.
+- **Needs Local Bridge 1.1.0 or later** (the one of v2.3.0). An older one joins
+  repeated `Set-Cookie` headers into one line, which cannot be split again
+  (a date holds a comma): nothing of it is kept.
+- The jar is not in a workspace backup. Reset all data removes it.
 
 ## Redirects
 

@@ -278,3 +278,39 @@ test('a request whose Host is not a loopback name is refused (DNS rebinding)', a
     await close(bridge);
   }
 });
+
+test('the answer lists the headers as received, one entry for each, so that two Set-Cookie headers stay two', async () => {
+  const target = await startTarget((req, res) => {
+    res.writeHead(200, [
+      ['Set-Cookie', 'a=1; Expires=Wed, 14 Oct 2026 00:00:00 GMT; Path=/'],
+      ['Set-Cookie', 'b=2; HttpOnly'],
+      ['X-Twice', 'one'],
+      ['X-Twice', 'two'],
+      ['Content-Type', 'text/plain'],
+    ]);
+    res.end('ok');
+  });
+  const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
+  const port = await listen(bridge);
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
+      method: 'POST',
+      headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
+      body: JSON.stringify({ method: 'GET', url: target.url }),
+    });
+    const envelope = await res.json();
+    const listed = envelope.headerList.filter(([name]) => /^(set-cookie|x-twice|content-type)$/i.test(name));
+    assert.deepEqual(listed, [
+      ['Set-Cookie', 'a=1; Expires=Wed, 14 Oct 2026 00:00:00 GMT; Path=/'],
+      ['Set-Cookie', 'b=2; HttpOnly'],
+      ['X-Twice', 'one'],
+      ['X-Twice', 'two'],
+      ['Content-Type', 'text/plain'],
+    ]);
+    // What a page from before the list reads is unchanged.
+    assert.equal(envelope.headers['set-cookie'], 'a=1; Expires=Wed, 14 Oct 2026 00:00:00 GMT; Path=/, b=2; HttpOnly');
+  } finally {
+    await close(bridge);
+    await close(target.server);
+  }
+});

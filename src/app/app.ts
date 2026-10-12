@@ -4,6 +4,7 @@ import { Idb } from './data/idb';
 import { PastRequest, PastRequestKey } from './models/history';
 import { RequestSettings } from './services/request-settings';
 import { TabsStorage } from './state/tabs-storage';
+import { CookieJar } from "./services/cookie-jar";
 
 @Component({
     selector: 'app-root',
@@ -17,6 +18,7 @@ export class App implements OnInit {
   private readonly idbService = inject(Idb);
   private readonly requestSettings = inject(RequestSettings);
   private readonly tabsStorage = inject(TabsStorage);
+  private readonly cookieJar = inject(CookieJar);
 
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
@@ -35,6 +37,8 @@ export class App implements OnInit {
     void this.initializeHistory();
     // The tabs a reload or another browser tab left (P5.1).
     void this.tabsStorage.start();
+    // The cookie jar (P5.3), for requests that leave through the Local Bridge.
+    void this.cookieJar.start();
     // Another tab sent a request, or cleared its history.
     this.idbService.onChangeElsewhere((stores) => {
       if (stores.includes("history")) {

@@ -26,6 +26,10 @@ export function runUpgrade(
   if (oldVersion < 11) {
     db.createObjectStore("tabs", { keyPath: "id" });
   }
+  // 12 (P5.3): the cookie jar. Nothing stored changes shape.
+  if (oldVersion < 12) {
+    db.createObjectStore("cookies", { keyPath: "key" });
+  }
   // 7 (P2.4) gave a stored collection its variables. Version 10 empties the collections, so that step is gone.
   if (oldVersion < 5) {
     return Promise.resolve(oldVersion > 0 ? "all" : []);

@@ -148,6 +148,43 @@ method, its headers, its auth and its body.
   directly when the server allows it (CORS), or let it end.
 - **In a collection run** a stream is read to its end like any body.
 
+## WebSockets
+
+An address that starts with `ws://` or `wss://`, as written or through a
+variable, is a WebSocket's: the Send button is **Connect**, and the tab
+shows the connection in place of a request's panels and its response.
+
+- **No headers, no auth.** A browser makes the handshake itself and lets a
+  page add nothing to it but subprotocols: no `Authorization`, no cookie of
+  the app's, no custom header. The request's Headers and Auth tabs do not
+  apply. A server that needs a token takes it in the address, in a
+  subprotocol, or in the first message. The Local Bridge does not carry a
+  WebSocket; a proxy for it is not built.
+- **Subprotocols** are names parted by commas. The log says which one the
+  server chose. A name that is not a token is refused by the browser, and
+  the tab shows the browser's reason.
+- **Messages** are text. `{{variables}}` are replaced in the address and in
+  a message. "Must be JSON" holds back a message that does not parse.
+  A binary message that arrives is logged with its size, not its bytes;
+  none can be sent.
+- **A vault secret cannot be sent.** The vault is not read for a WebSocket,
+  so a secret's reference would go out as that text; an address or a
+  message that holds one is refused, and nothing is sent.
+- **The log** holds the newest 500 lines: each message with its direction,
+  its time and its size in bytes, and what the connection did. When it
+  ends, the log has the close code, what the code means, and the server's
+  reason. A browser does not say why a connection failed: a server that is
+  not there, a refused handshake and a lost network all end with 1006.
+  WebKit, Safari's engine, gives no close code at all for a port it will
+  not connect to; the log then says so.
+- **Nothing is stored.** The log and the connection are in the page's
+  memory: not in history, not with the tab. A reload ends the connection.
+  The connection stays open while another tab is open, and closing its tab
+  closes it, after a question.
+- **From an https page**, `ws://` is mixed content, which browsers refuse;
+  whether `ws://` to this computer is let through differs by browser, and
+  was not measured here. `wss://` works.
+
 ## Mixed content
 
 The hosted app is loaded over HTTPS, and a page loaded over HTTPS may not

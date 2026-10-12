@@ -58,7 +58,9 @@
   }
 
   <!-- ── Request config + response ────────────────────────── -->
-  @if (isMobile()) {
+  @if (socket.isSocket()) {
+  <app-socket-view class="block space-y-5" />
+  } @else if (isMobile()) {
   <!-- Mobile: single-tab-at-a-time accordion (deliberately non-multiple —
        see mobileActivePanels' doc comment in ComposerView), stacked above
        the response panel. Only one of Params/Headers/Body/Auth/Scripts is

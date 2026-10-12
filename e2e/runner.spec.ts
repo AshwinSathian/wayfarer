@@ -267,8 +267,8 @@ for (const theme of ["dark", "light"] as const) {
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `at ${width} px` }).toBeLessThanOrEqual(0);
       // The table scrolls inside its own region when it must; the buttons stay in the window.
       for (const name of ["Run again", "JSON", "JUnit XML", "HAR…", "Data file…"]) {
-        const box = await view.getByRole("button", { name, exact: true }).boundingBox();
-        expect(box && box.x >= 0 && box.x + box.width <= width, `${name} at ${width} px`).toBe(true);
+        // Polled, like the width: the drawer's change of layout takes a moment.
+        await expect.poll(async () => { const box = await view.getByRole("button", { name, exact: true }).boundingBox(); return !!box && box.x >= 0 && box.x + box.width <= width; }, { message: `${name} at ${width} px` }).toBe(true);
       }
     }
   });

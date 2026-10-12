@@ -81,6 +81,17 @@ code errors.
   resolver a server could name `{{token}}` or a vault secret and be sent
   its value. The same holds for anything else of a response that goes into
   a later request.
+- A WebSocket (P5.7) is `SocketClient` (`src/app/services/socket-client.ts`)
+  over the browser's own `WebSocket`, for a tab whose address resolves to
+  `ws:` or `wss:`; its state is `TabState.socket`, in memory only. It is
+  not a `Transport`: there is no request to build. The vault is never read
+  for it, and `containsSecretPlaceholder` refuses an address or a message
+  with a secret's reference (C-007): keep that check in front of every
+  `send` and every `new WebSocket`. `connect-src *` admits `ws:` and `wss:`
+  in three engines (measured, and asserted in `e2e/websocket.spec.ts`).
+- WebKit ends a WebSocket to a port it refuses with an `error` event alone:
+  no `close`, and `readyState` still 0 when the event fires. `SocketClient`
+  looks at the socket again 500 ms after an error. Do not rely on `close`.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the

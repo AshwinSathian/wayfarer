@@ -98,7 +98,14 @@
     <app-icon name="save" />
     }
   </button>
-  @if (store.loadingState()) {
+  @if (socket.isSocket()) {
+  <!-- An address of a WebSocket (P5.7): it is connected to, not sent. -->
+  @if (socketStatus() === 'closed') {
+  <button matButton="filled" type="button" class="send-btn" (click)="socket.connect()">Connect</button>
+  } @else {
+  <button matButton="filled" type="button" class="send-btn" (click)="socket.disconnect()">Disconnect</button>
+  }
+  } @else if (store.loadingState()) {
   <button
     matButton="filled"
     type="button"

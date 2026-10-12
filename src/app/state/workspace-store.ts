@@ -504,6 +504,11 @@ export class WorkspaceStore {
     return true;
   }
 
+  /** `text` with `tab`'s variables replaced. The vault is not read: a secret's reference stays as written. Throws `VariableNestingError`. */
+  resolvePlain(tab: TabState, text: string): string {
+    return new VariableResolver(this.scopesOf(tab)).resolve(text);
+  }
+
   /** Why `tab`'s request cannot be sent as it is written, or "" when it can: no address, no method, an address that is no URL. */
   private refusal(tab: TabState): string {
     const { url, method } = tab.draft();

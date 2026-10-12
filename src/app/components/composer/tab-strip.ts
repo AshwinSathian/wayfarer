@@ -49,6 +49,11 @@ export class TabStrip {
     return tab.bound()?.name ?? (tab.draft().url.trim().replace(/^https?:\/\//, "") || "New request");
   }
 
+  /** The tab's address is a WebSocket's, as written. */
+  protected isSocket(tab: TabState): boolean {
+    return /^wss?:/i.test(tab.draft().url.trim());
+  }
+
   open(): void {
     this.tabs.open();
     this.opened.emit();
@@ -61,12 +66,18 @@ export class TabStrip {
   /** Closes the open tab. One with changes that are not saved, or with a request on its way, asks first. */
   async close(): Promise<void> {
     const tab = this.tabs.active();
-    const running = tab.run?.running() ?? false;
-    const sending = tab.loadingState() || running;
-    if (tab.dirty() || sending) {
-      const dirty = tab.dirty();
-      const why = [...(dirty ? ["has changes that are not saved"] : []), ...(sending ? [running ? "is running" : "is waiting for a response"] : [])].join(" and ");
-      const then = dirty && sending ? "discards the changes and cancels the request" : dirty ? "discards them" : running ? "cancels the run" : "cancels the request";
+    const dirty = tab.dirty();
+    // What the tab has going, and what closing it does to that.
+    const going: [string, string] | null = tab.run?.running()
+      ? ["is running", "cancels the run"]
+      : tab.loadingState()
+        ? ["is waiting for a response", "cancels the request"]
+        : tab.socket.status() !== "closed"
+          ? ["has a WebSocket open", "closes the connection"]
+          : null;
+    if (dirty || going) {
+      const why = [...(dirty ? ["has changes that are not saved"] : []), ...(going ? [going[0]] : [])].join(" and ");
+      const then = dirty && going ? `discards the changes and ${going[1]}` : dirty ? "discards them" : (going?.[1] ?? "");
       const close = await this.confirm.confirm({
         title: "Close this tab?",
         message: `${this.label(tab)} ${why}. Closing the tab ${then}.`,

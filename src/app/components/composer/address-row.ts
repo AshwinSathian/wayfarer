@@ -1,5 +1,5 @@
 import { isCurlCommand } from "@wayfarer/core";
-import { ChangeDetectionStrategy, Component, ElementRef, inject, output, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatFormField } from "@angular/material/form-field";
@@ -9,6 +9,8 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HTTP_METHODS } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
+import { SocketClient } from "../../services/socket-client";
+import { Tabs } from "../../state/tabs";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { ComposerView } from "./composer-view";
@@ -24,6 +26,9 @@ import { ComposerView } from "./composer-view";
 export class AddressRow {
   protected readonly store = inject(WorkspaceStore);
   protected readonly view = inject(ComposerView);
+  protected readonly socket = inject(SocketClient);
+  private readonly tabs = inject(Tabs);
+  protected readonly socketStatus = computed(() => this.tabs.active().socket.status());
   private readonly requestSave = inject(RequestSave);
 
   readonly send = output<void>();

@@ -162,6 +162,8 @@ code errors.
   a control with `openSettings(page, "Vault")` (`e2e/support/app.ts`).
 - Its stylesheet is not encapsulated, since a pane may be a component of
   its own (`BridgePane`): every rule starts at `.settings`.
+- `public/theme.js`, a script of its own in `<head>`, sets `data-theme` before the page has a body (F85): set
+  later, a light page was drawn dark first at every load. Its rule is `Theme`'s; change both together.
 - The theme is `Theme.choice`: `system`, `light` or `dark`. With no choice
   stored the app follows the system, which differs between the test
   browsers (and Playwright's Firefox gives a page its emulated scheme only

@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, signal } from "@angular/core";
+import { Injectable, computed, effect, inject, type WritableSignal } from "@angular/core";
 import {
   FORBIDDEN_METHODS,
   RAW_CONTENT_TYPES,
@@ -10,7 +10,6 @@ import {
   buildAuthQueryParam,
   credentialsOf,
   effectiveAuth,
-  emptyRequest,
   exportBody,
   isCredentialHeader,
   isHttpMethod,
@@ -20,10 +19,10 @@ import {
   resolveAuth,
   signV4,
   type Ancestor,
-  type Draft,
   type AuthConfig,
   type BrowserLimits,
   type CodeTarget,
+  type Draft,
   type ExportBody,
   type ExportSource,
   type FileRef,
@@ -36,7 +35,6 @@ import {
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { PastRequest } from "../models/history";
-import { TestResult } from "../models/test-assertion";
 import { BridgeSettings } from "../services/bridge-settings";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
@@ -50,14 +48,12 @@ import {
   RequestExecutor,
   SendBlockedError,
   SendDeclinedError,
-  type SendTimings,
 } from "../services/request-executor";
 import { OAuthTokens } from "../services/oauth-tokens";
 import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
 import { TransportRouter } from "../services/transport-router";
-import { VariableToken } from "../services/variable-focus";
 import { writeToClipboard } from "../shared/http/clipboard";
 import {
   appendQueryParam,
@@ -66,11 +62,12 @@ import {
   parseParamsFromUrl,
   validateUrl,
 } from "../shared/http/request-url";
-import { BinaryBody, OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
+import { OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
-import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { Confirm } from "../ui/confirm";
+import { blankRow, contentOf, emptyDraft, type TabState } from "./tab-state";
+import { Tabs, forwarded, type Forwarded } from "./tabs";
 
 /** GET and HEAD cannot carry a body: `fetch` refuses one. */
 export function isBodyMethod(method?: string): boolean {
@@ -100,12 +97,6 @@ function sentExportBody(sent: BuiltRequest["body"], composed: RequestBody): Expo
   return { mode: "binary", fileName: composed.binary?.fileName ?? "" };
 }
 
-const blankRow = (): Row => ({ key: "", value: "", enabled: true });
-
-function emptyDraft(): Draft {
-  return { ...emptyRequest(), params: [blankRow()], headers: [blankRow()] };
-}
-
 /** The headers that are sent: enabled rows with a name, in order. */
 export function sentHeaders(rows: Row[]): [string, string][] {
   return rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value]);
@@ -128,11 +119,6 @@ interface Composed {
 function hostOf(url: string, scopes: ScopeStack): string {
   const address = normalizeUrl(new VariableResolver(scopes).resolve(url.trim()));
   return URL.parse(address)?.host ?? address;
-}
-
-/** Rows as they are saved: names trimmed, rows without a name (the editor's blank row) left out. */
-function namedRows<T extends { key: string }>(rows: T[]): T[] {
-  return rows.map((row) => ({ ...row, key: row.key.trim() })).filter((row) => row.key);
 }
 
 /** The `Content-Type` a body's mode implies, without reading a file: what a preflight is decided on. */
@@ -189,45 +175,51 @@ export class WorkspaceStore {
   private readonly trust = inject(ScriptTrust);
   private readonly confirm = inject(Confirm);
   private readonly oauthTokens = inject(OAuthTokens);
+  private readonly tabs = inject(Tabs);
+
+  /** A signal of the tab that is open (P5.1): every field below that is made with it is that tab's own. */
+  private ofTab<T>(pick: (tab: TabState) => WritableSignal<T>): Forwarded<T> {
+    return forwarded(() => pick(this.tabs.active()));
+  }
 
   /** Whether the draft's scripts may run (`ScriptTrust`). */
   readonly scriptsAllowed = this.trust.allowed;
   /** The draft has a script that is waiting for the user's review. */
   readonly scriptsHeld = computed(() => !this.trust.allowed() && this.hasScripts(this.saved.ancestors()));
   /** The last send left the request's scripts out, for that reason. */
-  readonly scriptsSkipped = signal(false);
+  readonly scriptsSkipped = this.ofTab((tab) => tab.scriptsSkipped);
 
-  readonly draft = signal<Draft>(emptyDraft());
+  readonly draft = this.ofTab((tab) => tab.draft);
 
-  readonly endpointError = signal("");
+  readonly endpointError = this.ofTab((tab) => tab.endpointError);
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
-  readonly pasteNotes = signal<string[]>([]);
-  readonly loadingState = signal(false);
-  readonly variableTokens = signal<VariableToken[]>([]);
-  readonly missingVariableKeys = signal<string[]>([]);
+  readonly pasteNotes = this.ofTab((tab) => tab.pasteNotes);
+  readonly loadingState = this.ofTab((tab) => tab.loadingState);
+  readonly variableTokens = this.ofTab((tab) => tab.variableTokens);
+  readonly missingVariableKeys = this.ofTab((tab) => tab.missingVariableKeys);
   /** The variables without a value that held the last send back; the composer offers "Send anyway". */
-  readonly unresolvedBlocked = signal<string[]>([]);
+  readonly unresolvedBlocked = this.ofTab((tab) => tab.unresolvedBlocked);
 
-  readonly responseData = signal("");
-  readonly responseError = signal("");
-  readonly responseBodyIsJson = signal(false);
-  readonly responseHeadersView = signal<{ name: string; value: string }[]>([]);
-  readonly responseStatusCode = signal<number | undefined>(undefined);
-  readonly responseStatusText = signal<string | undefined>(undefined);
-  readonly responseIsError = signal(false);
-  readonly responseTab = signal<"body" | "headers" | "timings" | "tests">("body");
-  readonly responseContentLength = signal<number | undefined>(undefined);
-  readonly responseBinary = signal<BinaryBody | null>(null);
-  readonly responseRedirectedTo = signal<string | undefined>(undefined);
-  readonly responseContentType = signal("");
-  readonly responseHeadersLimited = signal(false);
+  readonly responseData = this.ofTab((tab) => tab.responseData);
+  readonly responseError = this.ofTab((tab) => tab.responseError);
+  readonly responseBodyIsJson = this.ofTab((tab) => tab.responseBodyIsJson);
+  readonly responseHeadersView = this.ofTab((tab) => tab.responseHeadersView);
+  readonly responseStatusCode = this.ofTab((tab) => tab.responseStatusCode);
+  readonly responseStatusText = this.ofTab((tab) => tab.responseStatusText);
+  readonly responseIsError = this.ofTab((tab) => tab.responseIsError);
+  readonly responseTab = this.ofTab((tab) => tab.responseTab);
+  readonly responseContentLength = this.ofTab((tab) => tab.responseContentLength);
+  readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
+  readonly responseRedirectedTo = this.ofTab((tab) => tab.responseRedirectedTo);
+  readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
+  readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
   readonly responseInspection = this.responseInspector.latest;
-  readonly responseExportContext = signal<ResponseExportContext | null>(null);
-  readonly lastTestResults = signal<TestResult[]>([]);
+  readonly responseExportContext = this.ofTab((tab) => tab.responseExportContext);
+  readonly lastTestResults = this.ofTab((tab) => tab.lastTestResults);
   /** The console output of the last send's scripts. */
-  readonly lastScriptLogs = signal<string[]>([]);
+  readonly lastScriptLogs = this.ofTab((tab) => tab.lastScriptLogs);
   /** How long the last send's scripts and its request took, each by itself. */
-  readonly lastTimings = signal<SendTimings | null>(null);
+  readonly lastTimings = this.ofTab((tab) => tab.lastTimings);
 
   /**
    * Where a `{{variable}}` of the draft gets its value: the active
@@ -274,9 +266,6 @@ export class WorkspaceStore {
     const url = draft.url.trim();
     return browserLimits({ method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers }, { origin: location.origin, route: this.router.route() });
   });
-  private previewFingerprint = "";
-  /** Aborts the send in flight. */
-  private inFlight: AbortController | null = null;
 
   constructor() {
     // A change of environment, of the open request's collection or of a
@@ -306,11 +295,17 @@ export class WorkspaceStore {
 
   /** The draft as it is saved: raw, with literal `{{var}}` text. */
   snapshot(): RequestContent {
-    const { responseId: _response, ...content } = this.draft();
-    const body = { ...content.body };
-    if (body.urlencoded) body.urlencoded = namedRows(body.urlencoded);
-    if (body.multipart) body.multipart = namedRows(body.multipart);
-    return { ...content, params: namedRows(content.params), headers: namedRows(content.headers), body };
+    return contentOf(this.draft());
+  }
+
+  /**
+   * A row of the draft was edited in place (a form field, a part, an
+   * assertion). The draft is replaced (its rows are not), so that what
+   * follows the draft, the tab's unsaved mark among it, sees the change.
+   */
+  edited(): void {
+    this.patch({});
+    this.refreshVariablePreview();
   }
 
   /** The body is kept when the method changes: GET and HEAD send none, and it is there again for POST. */
@@ -469,7 +464,7 @@ export class WorkspaceStore {
 
     this.loadingState.set(true);
     const controller = new AbortController();
-    this.inFlight = controller;
+    this.tabs.active().inFlight = controller;
 
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
     const inherited = this.saved.ancestors();
@@ -601,7 +596,7 @@ export class WorkspaceStore {
 
   /** Gives up on the request in flight. The send then ends with "cancelled" instead of a response. */
   cancel(): void {
-    this.inFlight?.abort();
+    this.tabs.active().inFlight?.abort();
   }
 
   /**
@@ -653,10 +648,11 @@ export class WorkspaceStore {
     // The variables' values are part of it: editing a value must refresh a
     // preview computed before the edit.
     const fingerprint = JSON.stringify({ endpoint, headers, body, environmentId, scopes });
-    if (fingerprint === this.previewFingerprint) {
+    const tab = this.tabs.active();
+    if (fingerprint === tab.previewFingerprint) {
       return;
     }
-    this.previewFingerprint = fingerprint;
+    tab.previewFingerprint = fingerprint;
     const tokens = new VariableResolver(scopes)
       .tokens({ url: endpoint, headers, body })
       .map((token) => (token.source === "environment" ? { ...token, environmentId } : token));
@@ -787,7 +783,7 @@ export class WorkspaceStore {
       throw new SendBlockedError(`The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`);
     }
     // OAuth 2.0 (P4.7): the token held, or a renewed one. Fetched before the request is put together, and never by a copy or an export.
-    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: this.inFlight?.signal }).catch((error: unknown) => {
+    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: this.tabs.active().inFlight?.signal }).catch((error: unknown) => {
       throw error instanceof OAuthError ? new SendBlockedError(`${error.message} Nothing was sent.`) : error;
     });
     return Promise.all([sent, token]).then(([body, value]) => finish(body, value));

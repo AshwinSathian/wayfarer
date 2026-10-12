@@ -8,6 +8,7 @@
     class="select w-36!"
     aria-label="Assert on"
     [(ngModel)]="test.target"
+    (ngModelChange)="store.edited()"
   >
     @for (option of assertionTargetOptions; track option.value) {
     <mat-option [value]="option.value">{{ option.label }}</mat-option>
@@ -17,6 +18,7 @@
   <mat-form-field class="field w-44">
     <input matInput
       [(ngModel)]="test.key"
+      (ngModelChange)="store.edited()"
       [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
      />
   </mat-form-field>
@@ -25,6 +27,7 @@
     class="select w-44!"
     aria-label="Operator"
     [(ngModel)]="test.operator"
+    (ngModelChange)="store.edited()"
   >
     @for (option of operatorsFor(test.target); track option.value) {
     <mat-option [value]="option.value">{{ option.label }}</mat-option>
@@ -34,6 +37,7 @@
   <mat-form-field class="field flex-1 min-w-[120px]!">
     <input matInput
       [(ngModel)]="test.expected"
+      (ngModelChange)="store.edited()"
       placeholder="expected value"
      />
   </mat-form-field>

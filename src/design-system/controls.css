@@ -496,6 +496,48 @@
   outline-offset: -2px;
 }
 
+/* The composer's own tabs (P5.1): a request each, above the composer. The
+   bar takes the room the three buttons beside it leave and scrolls. */
+.request-tab-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.request-tab-strip .request-tabs {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.request-tabs .mat-mdc-tab-link .mdc-tab__text-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.request-tab-method {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--label-secondary);
+}
+
+.request-tab-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-tab-unsaved {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .tab-panes {
   display: block;
   padding: 18px 0 0;

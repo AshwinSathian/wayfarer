@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, signal } from "@angular/core";
 import { scriptDigest, scriptsApproved, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestSave } from "./request-save";
+import { Tabs, forwarded } from "../state/tabs";
 
 /** The scripts of one request, folder or collection, as the review lists them. */
 export interface ReviewedScripts {
@@ -11,8 +12,6 @@ export interface ReviewedScripts {
   pre: string;
   post: string;
 }
-
-type Scripts = RequestContent["scripts"];
 
 /**
  * Decides whether the composer's scripts may run (plan D6, P3.8).
@@ -32,9 +31,10 @@ type Scripts = RequestContent["scripts"];
 export class ScriptTrust {
   private readonly saved = inject(RequestSave);
   private readonly collections = inject(CollectionsStore);
+  private readonly tabs = inject(Tabs);
 
-  /** The scripts of the history entry in the composer, until they are reviewed. */
-  private readonly fromHistory = signal<Scripts | null>(null);
+  /** The scripts of the history entry in the open tab, until they are reviewed. */
+  private readonly fromHistory = forwarded(() => this.tabs.active().heldScripts);
   private readonly allowedState = signal(true);
   /** Whether the composer's scripts may run. Follows the bound request and its collection. */
   readonly allowed = this.allowedState.asReadonly();

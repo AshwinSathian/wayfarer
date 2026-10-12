@@ -147,6 +147,21 @@ export class AppShell implements OnInit {
         run: () => this.handleNewRequest(),
       },
       {
+        id: "new-tab",
+        label: "New Tab (Alt+T)",
+        run: () => this.composer().newTab(),
+      },
+      {
+        id: "duplicate-tab",
+        label: "Duplicate Tab",
+        run: () => this.composer().duplicateTab(),
+      },
+      {
+        id: "close-tab",
+        label: "Close Tab (Alt+W)",
+        run: () => this.composer().closeTab(),
+      },
+      {
         id: "send-request",
         label: "Send Request",
         run: () => this.composer().sendRequest(),

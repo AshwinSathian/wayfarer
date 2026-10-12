@@ -18,6 +18,7 @@ export {
   COLLECTION_FORMAT,
   ENVIRONMENTS_FORMAT,
   ancestorsOf,
+  folderChain,
   type Ancestor,
   type Collection,
   type CollectionExport,

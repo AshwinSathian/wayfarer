@@ -116,6 +116,27 @@ describe('Composer: methods and body modes', () => {
       expect(own.headers).toEqual([['content-type', 'application/vnd.api+json']]);
     });
 
+    it('sends a GraphQL body as one JSON object, its variables replaced before it is made JSON, as application/json (P5.5)', async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ who: 'Ada "the first"', petId: '7' }));
+      store.setBody({ mode: 'graphql', graphql: { query: 'query Q($id: ID!) { hello(name: "{{who}}") pet(id: $id) { name } }', variables: '{ "id": "{{petId}}" }' } });
+      const init = await send('https://a.test/body');
+      expect(JSON.parse(init.body as string)).toEqual({ query: 'query Q($id: ID!) { hello(name: "Ada "the first"") pet(id: $id) { name } }', variables: { id: '7' } });
+      expect(contentType(init)).toBe('application/json');
+
+      store.setBody({ graphql: { query: '{ hello }', variables: '' } });
+      expect((await send('https://a.test/body')).body).toBe('{"query":"{ hello }"}');
+    });
+
+    it('does not send a GraphQL body whose variables are no JSON object, and says so', async () => {
+      store.setBody({ mode: 'graphql', graphql: { query: '{ hello }', variables: '{ id: 7 }' } });
+      await component.sendRequest();
+      expect(store.endpointError()).toBe('The GraphQL variables are not JSON.');
+      store.setBody({ graphql: { query: '{ hello }', variables: '[1]' } });
+      await component.sendRequest();
+      expect(store.endpointError()).toBe('The GraphQL variables must be a JSON object.');
+      httpMock.verify();
+    });
+
     it('sends no body and no Content-Type for mode none, for empty raw text, and for GET and HEAD whatever the body', async () => {
       store.setBody({ mode: 'none', raw: { language: 'json', text: '{"kept":true}' } });
       expect(await send('https://a.test/body')).toMatchObject({ body: undefined, headers: [] });

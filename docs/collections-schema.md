@@ -29,7 +29,7 @@ A row is `{ "key": text, "value": text, "enabled": true | false }`.
 
 ### Body
 
-`mode` is `none`, `raw`, `urlencoded`, `multipart` or `binary` and says which part is sent. The other parts are kept, so changing the mode and changing it back loses nothing. `GET` and `HEAD` send no body whatever the mode.
+`mode` is `none`, `raw`, `urlencoded`, `multipart`, `binary` or `graphql` and says which part is sent. The other parts are kept, so changing the mode and changing it back loses nothing. `GET` and `HEAD` send no body whatever the mode.
 
 | Part         | Shape | Sent as |
 |--------------|-------|---------|
@@ -37,6 +37,7 @@ A row is `{ "key": text, "value": text, "enabled": true | false }`.
 | `urlencoded` | rows | `name=value&…`, percent-encoded, enabled rows in order. `Content-Type: application/x-www-form-urlencoded` unless a header row sets one. |
 | `multipart`  | list of `{ "key", "enabled", "kind": "text", "value" }` or `{ "key", "enabled", "kind": "file", "fileId", "fileName" }` | `multipart/form-data`. The browser writes the `Content-Type` with the boundary; a header row that sets one is flagged in the Body tab, because it replaces the boundary. |
 | `binary`     | `{ "fileId", "fileName", optional "contentType" }` | The file's bytes. `Content-Type` is `contentType`, else the file's own type, else `application/octet-stream`, unless a header row sets one. |
+| `graphql`    | `{ "query", "variables" }`, both text; `variables` is a JSON object as text, or empty | One JSON object, `{"query": …, "variables": …}`, with `variables` left out when the text is empty. `{{variables}}` are filled in, in the query and in the variables' text, before the JSON is made. `Content-Type: application/json` unless a header row sets one. A request whose variables are not a JSON object is not sent. |
 
 A file is not in a collection file: only its `fileId` and `fileName` are. The bytes stay in the `files` store of the browser that picked them (50 MB a file at most). A request imported elsewhere names a file that browser does not have, and says so when it is sent: "The file … is not stored in this browser. Choose it again."
 

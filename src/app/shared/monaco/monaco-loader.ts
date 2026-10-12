@@ -104,6 +104,8 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
         import("monaco-editor/languages/definitions/javascript/register"),
         import("monaco-editor/languages/definitions/xml/register"),
         import("monaco-editor/languages/definitions/html/register"),
+        // GraphQL's grammar (P5.5). Its completion and validation are the app's own (`graphql-tools.ts`), fetched with a schema.
+        import("monaco-editor/languages/definitions/graphql/register"),
         import("monaco-editor/features/register.all"),
         loadMonacoStyles(),
       ]);

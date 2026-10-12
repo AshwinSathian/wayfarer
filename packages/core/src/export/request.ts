@@ -1,3 +1,4 @@
+import { graphqlText } from "../http/graphql";
 import type { RequestBody } from "../model/request";
 import { Redactor, type RedactOptions } from "../redact/redactor";
 
@@ -54,6 +55,9 @@ export function exportBody(body: RequestBody, method: string, resolve: (text: st
       };
     case "binary":
       return { mode: "binary", fileName: body.binary?.fileName ?? "" };
+    case "graphql":
+      // As it is sent: one JSON text. A command or a file needs no word for GraphQL.
+      return { mode: "raw", text: graphqlText(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? "")) };
   }
 }
 

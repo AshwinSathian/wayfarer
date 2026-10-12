@@ -1,6 +1,7 @@
 import type { QuickJSWASMModule } from "quickjs-emscripten-core";
 import { buildAuthHeaders, buildAuthQueryParam, effectiveAuth, resolveAuth } from "../../src/auth/request-auth";
 import { folderChain, type CollectionExport, type Folder } from "../../src/model/collection";
+import { graphqlPayload } from "../../src/http/graphql";
 import { RAW_CONTENT_TYPES, type RequestContent, type Row } from "../../src/model/request";
 import { applyVariableChanges, scriptVariables } from "../../src/model/variables";
 import { requestsInOrder, runRequests, type RunIteration, type RunOptions, type RunOutcome, type RunReport, type RunRequest } from "../../src/run/runner";
@@ -130,6 +131,11 @@ function sentBody(content: RequestContent, resolve: (text: string) => string, fi
     case "raw": {
       const text = resolve(body.raw?.text ?? "");
       return text ? { data: text, contentType: RAW_CONTENT_TYPES[body.raw?.language ?? "text"] } : undefined;
+    }
+    case "graphql": {
+      const payload = graphqlPayload(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? ""));
+      if ("error" in payload) throw new Error(payload.error);
+      return { data: payload.text, contentType: "application/json" };
     }
     case "urlencoded":
       return { data: new URLSearchParams((body.urlencoded ?? []).filter((row) => row.enabled).map((row): [string, string] => [resolve(row.key), resolve(row.value)])).toString(), contentType: "application/x-www-form-urlencoded" };

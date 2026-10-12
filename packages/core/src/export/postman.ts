@@ -136,7 +136,7 @@ function url(raw: string, params: Row[]): Entry {
 /** Postman's `body`. Every part the request keeps is written, as the app keeps it; `mode` says which is sent, and without one nothing is. */
 function body(content: RequestBody): { body?: Entry } {
   const out: Entry = {
-    ...(content.mode !== "none" && { mode: ({ raw: "raw", urlencoded: "urlencoded", multipart: "formdata", binary: "file" } as const)[content.mode] }),
+    ...(content.mode !== "none" && { mode: ({ raw: "raw", urlencoded: "urlencoded", multipart: "formdata", binary: "file", graphql: "graphql" } as const)[content.mode] }),
     ...(content.raw && { raw: content.raw.text, options: { raw: { language: content.raw.language } } }),
     ...(content.urlencoded && { urlencoded: rows(content.urlencoded, "text") }),
     ...(content.multipart && {
@@ -147,6 +147,7 @@ function body(content: RequestBody): { body?: Entry } {
       })),
     }),
     ...(content.binary && { file: { src: content.binary.fileName } }),
+    ...(content.graphql && { graphql: { query: content.graphql.query, variables: content.graphql.variables } }),
   };
   return Object.keys(out).length ? { body: out } : {};
 }

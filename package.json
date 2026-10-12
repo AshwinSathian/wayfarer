@@ -64,6 +64,8 @@
     "@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
     "chai": "^6.3.0",
     "crypto-js": "4.2.0",
+    "graphql": "17.0.2",
+    "graphql-language-service": "5.7.0",
     "idb": "^8.0.3",
     "lodash": "^4.18.1",
     "moment": "^2.31.0",

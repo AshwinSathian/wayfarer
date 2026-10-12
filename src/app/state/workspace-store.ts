@@ -68,7 +68,6 @@ import {
 } from "../shared/http/request-url";
 import { OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
-import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { Confirm } from "../ui/confirm";
 import { TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
@@ -174,7 +173,6 @@ function bodyTexts(body: RequestBody): string[] {
 @Injectable({ providedIn: "root" })
 export class WorkspaceStore {
   private readonly idb = inject(Idb);
-  private readonly responseInspector = inject(ResponseInspector);
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
@@ -225,7 +223,7 @@ export class WorkspaceStore {
   readonly responseRedirectedTo = this.ofTab((tab) => tab.responseRedirectedTo);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
-  readonly responseInspection = this.responseInspector.latest;
+  readonly responseInspection = this.ofTab((tab) => tab.inspection);
   readonly responseExportContext = this.ofTab((tab) => tab.responseExportContext);
   readonly lastTestResults = this.ofTab((tab) => tab.lastTestResults);
   /** The console output of the last send's scripts. */
@@ -480,6 +478,7 @@ export class WorkspaceStore {
     tab.lastTestResults.set(result.testResults);
     tab.lastScriptLogs.set(result.scriptLogs);
     tab.lastTimings.set(result.timings);
+    tab.inspection.set(result.inspection);
     this.applyExecutionResponse(tab, result.response);
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);

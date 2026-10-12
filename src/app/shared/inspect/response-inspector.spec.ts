@@ -1,7 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import {
   ResponseInspector,
-  ResponseInspection,
 } from "./response-inspector";
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
@@ -48,10 +47,6 @@ describe("ResponseInspector", () => {
       originalPerformance;
   });
 
-  function readInspection(): ResponseInspection | null {
-    return service.latest();
-  }
-
   it("records duration when resource timing entries are unavailable", () => {
     const url = "https://example.com/api";
 
@@ -59,9 +54,7 @@ describe("ResponseInspector", () => {
     service.markRequest("req-1", url);
 
     nowValue = 160;
-    service.markResponse("req-1", url);
-
-    const inspection = readInspection();
+    const inspection = service.markResponse("req-1", url);
     expect(inspection).toBeTruthy();
     expect(inspection?.url).toBe(url);
     expect(inspection?.duration).toBeCloseTo(60, 5);
@@ -99,9 +92,7 @@ describe("ResponseInspector", () => {
     service.markRequest("req-2", url);
 
     nowValue = 80;
-    service.markResponse("req-2", url);
-
-    const inspection = readInspection();
+    const inspection = service.markResponse("req-2", url);
     expect(inspection).toBeTruthy();
     // The headline duration always comes from this request's own
     // performance.now() measurement (nowValue 5 -> 80 below), never from the
@@ -160,9 +151,7 @@ describe("ResponseInspector", () => {
     service.markRequest("req-3", url);
 
     nowValue = 5075;
-    service.markResponse("req-3", url);
-
-    const inspection = readInspection();
+    const inspection = service.markResponse("req-3", url);
     expect(inspection).toBeTruthy();
     // Directly-measured duration is always trusted regardless of matching.
     expect(inspection?.duration).toBeCloseTo(75, 5);
@@ -178,9 +167,7 @@ describe("ResponseInspector", () => {
     const url = "https://example.com/late";
     nowValue = 200;
 
-    service.markResponse("missing", url);
-
-    const inspection = readInspection();
+    const inspection = service.markResponse("missing", url);
     expect(inspection).toBeTruthy();
     expect(inspection?.id).toBe("missing");
     expect(inspection?.duration).toBe(0);

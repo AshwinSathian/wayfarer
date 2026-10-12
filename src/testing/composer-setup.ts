@@ -5,7 +5,7 @@ import { ComposerView } from '../app/components/composer/composer-view';
 import { RequestSave } from '../app/services/request-save';
 import { WorkspaceStore } from '../app/state/workspace-store';
 import { Idb } from '../app/data/idb';
-import { ResponseInspector } from '../app/shared/inspect/response-inspector';
+import { ResponseInspection, ResponseInspector } from '../app/shared/inspect/response-inspector';
 import { EnvironmentsStore } from '../app/services/environments-store';
 import { RequestSettings } from '../app/services/request-settings';
 import { SecretsVault } from '../app/services/secrets-vault';
@@ -31,9 +31,9 @@ class IdbServiceMock {
 }
 
 class ResponseInspectorServiceStub {
-  readonly latest = signal(null).asReadonly();
   markRequest = vi.fn();
-  markResponse = vi.fn();
+  /** As the service: the timings of the exchange that just ended. */
+  markResponse = vi.fn().mockImplementation((id: string, url: string): ResponseInspection => ({ id, url, startTime: 0, startEpoch: 0, endTime: 1, duration: 1 }));
 }
 
 class EnvironmentsServiceStub {

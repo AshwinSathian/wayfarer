@@ -99,6 +99,30 @@ describe("TabsStorage", () => {
     expect((await repository.readAll())[0].scripts).toEqual([]);
   });
 
+  it("where the page has no WebCrypto (plain http), a tab with a script is still stored, with no digest: its script waits for a review after a reload", async () => {
+    const digest = vi.spyOn(crypto.subtle, "digest").mockRejectedValue(new Error("no WebCrypto here"));
+    try {
+      await storage.start();
+      store.patch({ url: "https://one.test", scripts: { pre: "typed()", post: "" } });
+      tabs.open();
+      store.setUrl("https://two.test");
+      await storage.flush();
+
+      const stored = await repository.readAll();
+      expect(stored.map((tab) => tab.draft.url)).toEqual(["https://one.test", "https://two.test"]);
+      expect(stored[0].scripts).toEqual([]);
+
+      // Read again by a page that has none either: the script is held, not run and not lost.
+      const [first] = tabs.tabs();
+      repository.records.set(first.id, { ...stored[0], draft: { ...stored[0].draft, url: "https://one.test/changed-elsewhere" } });
+      await storage.changedElsewhere();
+      expect(first.draft().url).toBe("https://one.test/changed-elsewhere");
+      expect(first.heldScripts()).toMatchObject({ pre: "typed()" });
+    } finally {
+      digest.mockRestore();
+    }
+  });
+
   it("restores the tabs in their order, unsaved ones as unsaved, in place of the empty tab the page started with", async () => {
     const clean = record("one");
     const edited = record("two", { order: 1 });

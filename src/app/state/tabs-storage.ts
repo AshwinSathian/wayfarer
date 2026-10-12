@@ -133,9 +133,7 @@ export class TabsStorage {
       // An empty tab that was never stored is not worth a record: every page starts with one.
       if (!this.stored.has(tab.id) && tabs.length === 1 && !tab.dirty() && !tab.bound() && tab.historyKey() === undefined) continue;
       // Digests before the transaction is opened: WebCrypto is asynchronous.
-      const allowed = await this.trust.check(undefined, tab);
-      const scripts = allowed ? await Promise.all(scriptsOf(record.draft).map(scriptDigest)) : [];
-      put.push({ ...record, scripts });
+      put.push({ ...record, scripts: (await this.digests(record.draft, tab)) ?? [] });
       written.set(tab.id, text);
     }
     const remove = [...this.stored.keys()].filter((id) => !tabs.some((tab) => tab.id === id));
@@ -206,6 +204,22 @@ export class TabsStorage {
   }
 
   /**
+   * The digests of a draft's scripts: all of them, or of `tab`'s only when
+   * its scripts may run. `null` where they cannot be computed: a page
+   * served over plain http has no WebCrypto. The tab is then stored without
+   * any, and read back its scripts wait for a review: held, not lost.
+   */
+  private async digests(draft: StoredTab["draft"], tab?: TabState): Promise<string[] | null> {
+    try {
+      if (tab && !(await this.trust.check(undefined, tab))) return [];
+      return await Promise.all(scriptsOf(draft).map(scriptDigest));
+    } catch (error) {
+      recordDiagnostic(error, "tabs: could not compute a script's digest");
+      return null;
+    }
+  }
+
+  /**
    * Whether a stored tab's scripts are let past the tab itself. Scripts the
    * tab did not change are its saved request's, and the collection's list
    * decides about those. Any other must have its digest stored with the tab.
@@ -213,8 +227,8 @@ export class TabsStorage {
   private async allowed(record: StoredTab, bound: RequestDoc | null): Promise<boolean> {
     const { pre, post } = record.draft.scripts;
     if (bound && bound.scripts.pre === pre && bound.scripts.post === post) return true;
-    const digests = await Promise.all(scriptsOf(record.draft).map(scriptDigest));
-    return digests.every((digest) => record.scripts.includes(digest));
+    const digests = await this.digests(record.draft);
+    return digests !== null && digests.every((digest) => record.scripts.includes(digest));
   }
 
   private requestOf(id: string | undefined): RequestDoc | null {

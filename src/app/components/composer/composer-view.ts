@@ -1,11 +1,12 @@
 import { ImportRefused, ImportWorkerClient } from "../../shared/import/import-worker-client";
-import { Injectable, inject, signal } from "@angular/core";
+import { Injectable, effect, inject, signal } from "@angular/core";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "../../models/history";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
+import { Tabs } from "../../state/tabs";
 import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
 
 /**
@@ -19,6 +20,7 @@ export class ComposerView {
   private readonly requestSave = inject(RequestSave);
   private readonly trust = inject(ScriptTrust);
   private readonly importWorker = inject(ImportWorkerClient);
+  private readonly tabs = inject(Tabs);
 
   readonly activeTab = signal("headers");
   /**
@@ -32,6 +34,11 @@ export class ComposerView {
 
   constructor() {
     this.syncMobilePanelsFromActiveTab();
+    // A password shown in one tab is not shown in the next.
+    effect(() => {
+      this.tabs.active();
+      this.showAuthPassword.set(false);
+    });
   }
 
   loadPastRequest(request: PastRequest): void {
@@ -39,6 +46,7 @@ export class ComposerView {
     // if the composer was previously bound, replaying an older history
     // entry shouldn't silently overwrite whatever's saved in the
     // collection with different (possibly stale) content.
+    this.keepUnsaved();
     this.requestSave.bind(null);
     this.trust.openedFromHistory(request.template);
     this.load(request.template);
@@ -53,9 +61,21 @@ export class ComposerView {
    * scripts, and tests.
    */
   loadCollectionRequest(doc: RequestDoc): void {
+    // The request is already open in a tab: that tab, with what was changed in it.
+    const open = this.tabs.tabs().find((tab) => tab.bound()?.meta.id === doc.meta.id);
+    if (open) {
+      this.tabs.activate(open.id);
+      return;
+    }
+    this.keepUnsaved();
     this.requestSave.bind(doc);
     this.trust.openedHere();
     this.load(doc);
+  }
+
+  /** A request about to be loaded goes into a tab of its own when the open tab holds changes that are not saved (P5.1). */
+  private keepUnsaved(): void {
+    if (this.tabs.active().dirty()) this.tabs.open();
   }
 
   /** Explicit "start a new request" action — the only thing that clears the composer now that a successful Send no longer does. */
@@ -63,6 +83,7 @@ export class ComposerView {
     this.requestSave.bind(null);
     this.trust.openedHere();
     this.store.reset();
+    this.tabs.active().markClean();
     this.activeTab.set("headers");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();
@@ -135,6 +156,7 @@ export class ComposerView {
 
   private load(request: RequestContent): void {
     this.store.load(request);
+    this.tabs.active().markClean();
     this.activeTab.set(request.body.mode !== "none" && isBodyMethod(request.method) ? "body" : "headers");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();

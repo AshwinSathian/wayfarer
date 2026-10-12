@@ -52,7 +52,7 @@
     context="Body"
     [items]="current.urlencoded ?? []"
     addLabel="Add Field"
-    (itemChange)="store.refreshVariablePreview()"
+    (itemChange)="store.edited()"
     (add)="addField()"
     (remove)="removeField($event)"
   ></app-rows-editor>
@@ -60,7 +60,7 @@
   @case ('multipart') {
   <app-multipart-editor
     [parts]="current.multipart ?? []"
-    (partChange)="store.refreshVariablePreview()"
+    (partChange)="store.edited()"
     (add)="addPart()"
     (remove)="removePart($event)"
     (kindChange)="setPartKind($event.index, $event.kind)"

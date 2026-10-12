@@ -89,10 +89,24 @@ code errors.
   request. `ComposerView` holds what they share that is not the request:
   the open tab, whether the password shows. A file there stays under 400 lines and a
   template under 250.
+- The composer has tabs (P5.1). `Tabs` (`src/app/state/tabs.ts`) holds one
+  `TabState` per tab and which is open. `WorkspaceStore`'s draft and
+  response, `RequestSave.loadedCollectionRequest` and the scripts
+  `ScriptTrust` holds back are the open tab's: each is `forwarded` to that
+  tab's signal. What belongs to one request goes into `TabState` and is
+  forwarded; a signal of a root service is shared by every tab. A forwarded
+  signal is not bound two ways in a template (`[(x)]`): bind and listen.
+- A send reads the open tab from its first step to its last, so
+  `Tabs.locked` keeps the open tab open while one is on its way. Lift that
+  only with a send that holds its own tab.
+- A second tab of a request is `TabState.copy()`: it keeps the binding and
+  the held scripts, so its scripts are trusted as the original's are. Do
+  not make a tab from a draft alone: unbound, its scripts would run.
 - Row editors bind `[(ngModel)]` to a row's own fields, so rows change in
   place. The panel then tells the store (`paramsEdited`, `headersEdited`,
-  `refreshVariablePreview`). What is computed from the draft's headers
-  needs `headersEdited`: it replaces the list, so the signal changes.
+  `edited`). What is computed from the draft, a tab's unsaved mark among
+  it, needs the draft's signal to change: `headersEdited` replaces the
+  list, `edited` the draft.
 - A panel's host element carries the layout classes its root `<div>` would
   (`class="block space-y-6"`): a custom element is `display: inline`.
 

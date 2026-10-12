@@ -2,8 +2,9 @@ import { Injectable, Signal, computed, inject, signal } from "@angular/core";
 import { CollectionsStore } from "./collections-store";
 import { RequestFiles } from "./request-files";
 import { StoragePersistence } from "./storage-persistence";
-import { ancestorsOf, scriptDigest, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
+import { ancestorsOf, folderChain, scriptDigest, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
+import { Tabs, forwarded } from "../state/tabs";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
 export type RequestContentSnapshot = RequestContent;
@@ -22,6 +23,7 @@ export class RequestSave {
   private readonly collectionsService = inject(CollectionsStore);
   private readonly files = inject(RequestFiles);
   private readonly persistence = inject(StoragePersistence);
+  private readonly tabs = inject(Tabs);
 
   /**
    * The collection request the composer's current contents were loaded
@@ -29,7 +31,7 @@ export class RequestSave {
    * blank, or reloaded from History). Drives whether "Save" writes back to
    * that request in place or opens "Save to Collection" to create a new one.
    */
-  readonly loadedCollectionRequest = signal<RequestDoc | null>(null);
+  readonly loadedCollectionRequest = forwarded(() => this.tabs.active().bound);
   /**
    * What the bound request inherits from, as stored now (P4.9): its
    * collection, then its folders from the outside in. Empty for a request
@@ -39,6 +41,12 @@ export class RequestSave {
     const bound = this.loadedCollectionRequest();
     const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
     return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
+  });
+  /** Where the bound request is kept: its collection's name, then its folders' from the outside in. */
+  readonly breadcrumb: Signal<string[]> = computed(() => {
+    const bound = this.loadedCollectionRequest();
+    const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    return tree ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)] : [];
   });
   readonly savingRequest = signal(false);
   readonly saveAsDialogVisible = signal(false);
@@ -96,11 +104,14 @@ export class RequestSave {
     // Something worth keeping is being saved: ask the browser to keep it.
     void this.persistence.request();
     this.savingRequest.set(true);
+    // The tab the save was asked for in: it may not be the open one when the write ends.
+    const tab = this.tabs.active();
     try {
       await this.approveScripts(bound.collectionId, snapshot, scriptsAllowed);
       const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot, this.files.unsaved(snapshot.body));
       if (updated) {
-        this.loadedCollectionRequest.set(updated);
+        tab.bound.set(updated);
+        tab.markSaved(snapshot);
       }
     } finally {
       this.savingRequest.set(false);
@@ -134,13 +145,15 @@ export class RequestSave {
     }
     void this.persistence.request();
     this.savingRequest.set(true);
+    const tab = this.tabs.active();
     try {
       await this.approveScripts(collectionId, snapshot, scriptsAllowed);
       const doc = await this.collectionsService.createRequest(
         { ...snapshot, collectionId, folderId: this.saveAsFolderId() ?? undefined, name },
         this.files.unsaved(snapshot.body)
       );
-      this.loadedCollectionRequest.set(doc);
+      tab.bound.set(doc);
+      tab.markSaved(snapshot);
       this.closeSaveAsDialog();
     } finally {
       this.savingRequest.set(false);

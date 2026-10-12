@@ -17,6 +17,7 @@ import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
 import { SaveAsDialog } from "./save-as-dialog";
 import { ScriptsPanel } from "./scripts-panel";
+import { TabStrip } from "./tab-strip";
 import { VariableChips } from "./variable-chips";
 
 /**
@@ -45,6 +46,7 @@ import { VariableChips } from "./variable-chips";
     AuthPanel,
     ScriptsPanel,
     SaveAsDialog,
+    TabStrip,
   ],
   providers: [ComposerView],
   templateUrl: "./composer.html",
@@ -66,8 +68,10 @@ export class Composer {
   readonly isMobile = input(false);
 
   private readonly addressRow = viewChild.required(AddressRow);
+  private readonly tabStrip = viewChild.required(TabStrip);
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
+  protected readonly breadcrumb = this.requestSave.breadcrumb;
   protected get hasBody(): boolean {
     return isBodyMethod(this.store.draft().method);
   }
@@ -86,6 +90,18 @@ export class Composer {
 
   clearComposer(): void {
     this.view.clear();
+  }
+
+  newTab(): void {
+    this.tabStrip().open();
+  }
+
+  duplicateTab(): void {
+    this.tabStrip().duplicate();
+  }
+
+  closeTab(): Promise<void> {
+    return this.tabStrip().close();
   }
 
   async sendRequest(): Promise<void> {

@@ -119,6 +119,8 @@ export class Settings {
 
   readonly fixedShortcuts: KeyboardShortcut[] = [
     { keys: "⌘K / Ctrl+K", description: "Open the command palette" },
+    { keys: "Alt+T / ⌥T", description: "New tab" },
+    { keys: "Alt+W / ⌥W", description: "Close the open tab" },
     { keys: "C", description: "New collection (collections panel focused, no field editing)" },
     { keys: "N", description: "New request in the selected collection/folder" },
     { keys: "Delete", description: "Delete the selected collections-panel item" },

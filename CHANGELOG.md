@@ -7,6 +7,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **Tabs in the composer.** There was one request at a time: opening a saved request or a history entry replaced what you were working on, changes and response with it. Now a strip above the composer holds a tab per request, each with its own request and the response it last received. **New tab** (Alt+T, Option+T on a Mac), **Duplicate tab** and **Close tab** (Alt+W) are beside the strip and in the command palette; the browser keeps Ctrl/Cmd+T and W for its own tabs, so the app does not use them. A tab shows the method and the saved request's name, or else the address, and a dot when it holds changes that are not saved; closing such a tab asks first. A saved request that is already open goes to its tab, with your edits; a request opened while the open tab has unsaved changes gets a tab of its own. A tab of a saved request says where the request is kept (collection / folder / request). While a request is on its way, the open tab stays the open one until the response arrives or you cancel. **Tabs are not kept over a reload yet**: that is the next change.
+
 ### Changed
 
 - **Settings is a list of sections with one section's pane beside it.** It was one narrow column that scrolled: fifteen cards under each other in a 540 px dialog, with history size, the vault's idle lock and the unresolved-variable switch all filed under "Network". Now: General, Requests, History, Data and storage, Vault, Local Bridge, Shortcuts, About, and a Danger zone of its own at the foot of the list. The dialog keeps one size from pane to pane. On a phone the list is the dialog, a section opens in its place, and "All settings" goes back. Up, Down, Home and End walk the list.

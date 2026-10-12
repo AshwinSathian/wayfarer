@@ -60,7 +60,8 @@ test.describe("Send request → view response", () => {
     await urlInput.fill("not a valid url at all");
     await page.getByRole("button", { name: "Send request" }).click();
 
-    await expect(page.getByText(/valid URL/i)).toBeVisible();
+    // The message, not the tab above it, which shows the address that was typed.
+    await expect(page.getByText("Please enter a valid URL")).toBeVisible();
     // No status badge should ever appear for a request that was never sent.
     await expect(page.locator(".status-badge")).toHaveCount(0);
   });

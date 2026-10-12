@@ -1,4 +1,6 @@
-<div class="ds-panel p-6 w-full space-y-5">
+<app-tab-strip class="request-tab-strip" [panel]="requestPanel" (opened)="focusUrl()" />
+
+<mat-tab-nav-panel #requestPanel class="ds-panel block p-6 w-full space-y-5">
 
   <!-- Wraps by the room it has, not by the window's width: beside the pinned
        sidebar a 1024 px window leaves this row 544 px. The bar asks for 20rem;
@@ -6,11 +8,15 @@
   <app-address-row class="flex flex-wrap items-start gap-3" (send)="sendRequest()" />
 
   @if (loadedCollectionRequest(); as bound) {
-  <p class="type-footnote text-label-tertiary flex items-center gap-1.5 -mt-2">
+  <div class="type-footnote text-label-tertiary flex flex-wrap items-center gap-1.5 -mt-2">
     <app-icon name="folder" class="icon-xs" />
-    Editing <span class="text-label-secondary">{{ bound.name }}</span> — Save writes back to this request.
+    Editing
+    <nav aria-label="Saved request" class="text-label-secondary min-w-0 break-words">
+      @for (holder of breadcrumb(); track $index) {{{ holder }} / }{{ bound.name }}
+    </nav>
+    — Save writes back to this request.
     <button type="button" class="underline" (click)="clearComposer()">Start a new request instead</button>
-  </p>
+  </div>
   }
 
   @if (store.endpointError() !== '') {
@@ -128,7 +134,7 @@
     [redirectedTo]="store.responseRedirectedTo()"
     [responseContentType]="store.responseContentType()"
     [headersLimited]="store.responseHeadersLimited()"
-    [(activeTab)]="store.responseTab"
+    [activeTab]="store.responseTab()" (activeTabChange)="store.responseTab.set($event)"
   ></app-response-viewer>
   }
   } @else {
@@ -215,7 +221,7 @@
     [redirectedTo]="store.responseRedirectedTo()"
     [responseContentType]="store.responseContentType()"
     [headersLimited]="store.responseHeadersLimited()"
-          [(activeTab)]="store.responseTab"
+          [activeTab]="store.responseTab()" (activeTabChange)="store.responseTab.set($event)"
         ></app-response-viewer>
         } @else {
         <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6">
@@ -227,6 +233,6 @@
   </ui-splitter>
   }
 
-</div>
+</mat-tab-nav-panel>
 
 <app-save-as-dialog />

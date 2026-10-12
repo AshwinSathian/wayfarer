@@ -149,6 +149,32 @@ describe("IdbCore", () => {
     expect(db).not.toBeNull();
   });
 
+  it("after Reset all data nothing opens the database again until the page reloads: a write that ends then is refused", async () => {
+    await service.init();
+    await service.resetDatabase({ untilReload: true });
+
+    // A send that was on its way ends now and wants to write its history entry; a tab's timer fires.
+    await expect(service.getDatabase()).rejects.toThrow("All data was reset; this tab is reloading.");
+    await expect(service.txReadWrite(["history"])).rejects.toThrow("All data was reset; this tab is reloading.");
+    // The database was deleted, and nothing made it again.
+    expect((await indexedDB.databases()).some((db) => db.name === DB_NAME)).toBe(false);
+  });
+
+  it("a reset that did not delete the database leaves it open for use: the data is still there", async () => {
+    await service.init();
+    const other = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      await expect(service.resetDatabase({ untilReload: true })).rejects.toThrow("Close other Wayfarer tabs and try again.");
+    } finally {
+      other.close();
+    }
+    expect(await service.getDatabase()).not.toBeNull();
+  });
+
   describe("honest reset (P0.7, #94)", () => {
     it("opens one connection no matter how many callers init() concurrently", async () => {
       const open = vi.spyOn(indexedDB, "open");

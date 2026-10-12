@@ -384,7 +384,8 @@ export class AppShell implements OnInit {
     this.resettingAll = true;
     this.resetError.set("");
     try {
-      await this.idb.resetDatabase();
+      // Until the reload: a send that ends in the meantime, or a tab's timer, must not open the database again.
+      await this.idb.resetDatabase({ untilReload: true });
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(

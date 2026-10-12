@@ -1,6 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **10** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **11** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
@@ -13,6 +13,7 @@ Wayfarer keeps everything in one IndexedDB database. The schema version is **10*
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows. A row a script set to something that is not text holds its JSON, with `json: true`. |
 | `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext). See [Secrets vault](secrets.md). An OAuth 2.0 token got while the vault was unlocked is one of them, named "OAuth 2.0 token" and what it is for ([Auth](auth.md)). The Local Bridge's token, saved while the vault was unlocked, is another, named "Local Bridge token"; `localStorage`'s `wayfarer:bridge` holds whether the bridge is on and its address, never the token. |
 | `files`        | the file id | —                                                   | The files of multipart and binary request bodies: bytes and type. |
+| `tabs`         | `id`        | —                                                   | The composer's tabs: for each, the request being composed in it, as a saved request is stored, and where it belongs. See "Tabs" below. |
 | `meta`         | `key`       | —                                                   | Three records: `state` (the active environment), `globals` (the global variables) and `vault` (how the passphrase key is derived, and the wrapped data key). |
 
 ## Version 5 starts empty
@@ -43,6 +44,29 @@ One entry per request sent:
 History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
 
 Version 10 let a collection and a folder hold auth and scripts for the requests in them, a folder variables, and a request's auth be "inherit". The upgrade **removes** every collection, folder and saved request, and the body files only they named; environments, the globals, secrets and history are kept. When there was a collection, the page says so once. Collection and workspace files changed with it: they are format 3 (`wayfarer/collection/3`, `wayfarer/workspace/3`), and a format 2 file is refused; nothing converts it. Like versions 5, 8 and 9, this was decided while the app had no users with data to keep. (The step version 7 took, giving a stored collection its variables, is gone: there is no stored collection for it to act on.)
+
+Version 11 added the `tabs` store and changed nothing else: a version 10 database keeps its data.
+
+## Tabs
+
+The composer's tabs are stored, so a reload brings them back. One record per tab:
+
+| Field | Holds |
+|---|---|
+| `draft` | The request as it is in the tab, in the fields a saved request has. A `{{variable}}` is its name; a vault secret is its `{{$secret.<id>}}` reference; a credential typed into a field is that text, as in a saved request. |
+| `baseline` | The request as it was when the tab was opened, loaded or last saved. A tab whose `draft` differs is shown as unsaved. |
+| `requestId` | The saved request the tab belongs to, if any. Save writes back to it. |
+| `historyKey` | The history entry of the tab's last send, or the entry it was opened from. |
+| `scripts` | The SHA-256 of each script in `draft` that was allowed to run when the tab was stored. See [Scripts](scripts.md), "Which scripts may run". |
+| `order` | The tab's place in the strip. |
+
+**No response is stored with a tab.** After a reload a tab shows the response of its last send as history kept it: masked, and without a body when "Keep response bodies in history" is off or the entry is gone. A file chosen for a body and never saved with a request is in the page's memory only; after a reload the tab still names it, and a send says to choose it again.
+
+A tab is written about a quarter of a second after it last changed, and when the page is hidden. A reload sooner than that after a keystroke can lose that keystroke.
+
+**Two browser tabs share the composer's tabs.** A tab opened, closed or edited in one appears so in the other. Each browser tab keeps which tab is open for itself (`wayfarer:open-tab` in `sessionStorage`). When both edit the same tab, the later write is what is stored, and the browser tab that is not in the middle of an edit takes the other's text.
+
+The tabs are not in a workspace backup, and a restore leaves them as they are: a tab whose saved request the restore removed stays, as a request that is not saved. Reset all data removes them.
 
 ## Keeping the data
 

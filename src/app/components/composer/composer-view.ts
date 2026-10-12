@@ -51,6 +51,7 @@ export class ComposerView {
     this.trust.openedFromHistory(request.template);
     this.load(request.template);
     this.store.showRecorded(request);
+    this.tabs.active().historyKey.set(request.id);
   }
 
   /**
@@ -157,6 +158,8 @@ export class ComposerView {
   private load(request: RequestContent): void {
     this.store.load(request);
     this.tabs.active().markClean();
+    // The response on screen is another request's now: a reload does not show it for this one.
+    this.tabs.active().historyKey.set(undefined);
     this.activeTab.set(request.body.mode !== "none" && isBodyMethod(request.method) ? "body" : "headers");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();

@@ -36,7 +36,7 @@ async function protectVariable(page: Page, name: string, plaintext: string): Pro
 
 const openData = (page: Page) => openSettings(page, "Data and storage");
 
-test("@claim:C-046 backup, Reset all data, restore: every store holds what it held, with collections untrusted", async ({ page }) => {
+test("@claim:C-046 backup, Reset all data, restore: every store of the backup holds what it held, with collections untrusted; the composer's tabs are not in it", async ({ page }) => {
   // Three page loads, a vault made and opened again (two key derivations), a download and an upload:
   // the longest test of the suite. On a slow CI runner it met the 30 s limit.
   test.slow();
@@ -51,7 +51,8 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
-  const before = await dumpIdb(page);
+  await expect.poll(async () => (await dumpIdb(page))["tabs"]?.length ?? 0).toBe(1);
+  const { tabs: tabsBefore, ...before } = await dumpIdb(page);
 
   await openData(page);
   await page.getByRole("checkbox", { name: "With history" }).check();
@@ -72,7 +73,11 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toBeVisible();
 
-  const after = await dumpIdb(page);
+  // The composer's tabs are working state, not what was saved: a backup does not hold them (docs/storage.md).
+  // The reset removed the one there was, and the restore brought none.
+  const { tabs: tabsAfter, ...after } = await dumpIdb(page);
+  expect(tabsBefore).toHaveLength(1);
+  expect(tabsAfter).toEqual([]);
   // A file's scripts are not trusted until approved (D6): that is the one difference.
   const untrusted = (stores: Record<string, unknown[]>) => ({
     ...stores,
@@ -94,6 +99,8 @@ test("@claim:C-046 backup, Reset all data, restore: every store holds what it he
 
 test("a file that is not a workspace backup is refused, with the reason, and nothing changes", async ({ page }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  // The open tab is written a moment after it was opened: what is compared is the database at rest.
+  await expect.poll(async () => (await dumpIdb(page))["tabs"]?.length ?? 0).toBe(1);
   const before = await dumpIdb(page);
   await openData(page);
   await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection/3"}') });

@@ -14,7 +14,6 @@ import {
   isCredentialHeader,
   isHttpMethod,
   newId,
-  parseJson,
   redactExport,
   resolveAuth,
   signV4,
@@ -337,23 +336,9 @@ export class WorkspaceStore {
     this.unresolvedBlocked.set([]);
   }
 
-  /** Shows the response a history entry recorded, as it is stored: masked, and without a body when none was kept. */
+  /** Shows the response a history entry recorded, in the open tab. */
   showRecorded(entry: PastRequest): void {
-    this.resetResponseState();
-    this.lastTestResults.set([]);
-    this.lastScriptLogs.set([]);
-    this.lastTimings.set(null);
-    const response = entry.response;
-    const text = response?.body?.text ?? "";
-    const isError = !response || response.status < 200 || response.status >= 300;
-    this.responseIsError.set(isError);
-    this.responseStatusCode.set(response?.status);
-    this.responseStatusText.set(response?.statusText);
-    this.responseHeadersView.set((response?.headers ?? []).map(([name, value]) => ({ name, value })));
-    this.responseContentType.set(response?.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1] ?? "");
-    this.responseBodyIsJson.set(!!text && parseJson(text).ok);
-    this.responseData.set(isError ? "" : text);
-    this.responseError.set(isError ? text || entry.error || "" : "");
+    this.tabs.active().showRecorded(entry);
   }
 
   /** A new request. Scripts, tests and the response on screen stay. */
@@ -438,6 +423,8 @@ export class WorkspaceStore {
     this.lastTimings.set(null);
     this.scriptsSkipped.set(false);
 
+    // The tab stays the open one until the send ends (`Tabs.locked`).
+    const tab = this.tabs.active();
     const draft = this.draft();
     const endpointText = draft.url;
     if (!endpointText) {
@@ -513,7 +500,8 @@ export class WorkspaceStore {
     this.lastScriptLogs.set(result.scriptLogs);
     this.lastTimings.set(result.timings);
     this.applyExecutionResponse(result.response);
-    await this.idb.add(result.history, this.settings.historyCap());
+    // Where the response is kept: a reload shows it again from there (P5.1).
+    tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
   }
 
@@ -927,19 +915,6 @@ export class WorkspaceStore {
   }
 
   private resetResponseState(): void {
-    this.responseData.set("");
-    this.responseError.set("");
-    this.responseBodyIsJson.set(false);
-    this.responseHeadersView.set([]);
-    this.responseStatusCode.set(undefined);
-    this.responseStatusText.set(undefined);
-    this.responseIsError.set(false);
-    this.responseContentLength.set(undefined);
-    this.responseBinary.set(null);
-    this.responseRedirectedTo.set(undefined);
-    this.responseContentType.set("");
-    this.responseHeadersLimited.set(false);
-    this.responseTab.set("body");
-    this.responseExportContext.set(null);
+    this.tabs.active().resetResponse();
   }
 }

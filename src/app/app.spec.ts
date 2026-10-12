@@ -7,10 +7,11 @@ import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 import { historyEntry } from '../testing/request-fixtures';
 
 class IdbServiceMock {
-  /** The listener the service registers for writes made in another tab. */
-  changedElsewhere: (stores: string[]) => void = () => undefined;
+  /** The listeners registered for writes made in another tab: the app's for history, the tabs' for theirs. */
+  private readonly listeners: ((stores: string[]) => void)[] = [];
+  changedElsewhere = (stores: string[]): void => this.listeners.forEach((listener) => listener(stores));
   onChangeElsewhere = (listener: (stores: string[]) => void): void => {
-    this.changedElsewhere = listener;
+    this.listeners.push(listener);
   };
   init = vi.fn().mockReturnValue(Promise.resolve());
   getLatest = vi.fn().mockReturnValue(Promise.resolve([] as PastRequest[]));

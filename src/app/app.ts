@@ -3,6 +3,7 @@ import { AppShell } from './components/app-shell/app-shell';
 import { Idb } from './data/idb';
 import { PastRequest, PastRequestKey } from './models/history';
 import { RequestSettings } from './services/request-settings';
+import { TabsStorage } from './state/tabs-storage';
 
 @Component({
     selector: 'app-root',
@@ -15,6 +16,7 @@ import { RequestSettings } from './services/request-settings';
 export class App implements OnInit {
   private readonly idbService = inject(Idb);
   private readonly requestSettings = inject(RequestSettings);
+  private readonly tabsStorage = inject(TabsStorage);
 
   readonly pastRequests = signal<PastRequest[]>([]);
   readonly historyLoading = signal(false);
@@ -31,6 +33,8 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     void this.initializeHistory();
+    // The tabs a reload or another browser tab left (P5.1).
+    void this.tabsStorage.start();
     // Another tab sent a request, or cleared its history.
     this.idbService.onChangeElsewhere((stores) => {
       if (stores.includes("history")) {

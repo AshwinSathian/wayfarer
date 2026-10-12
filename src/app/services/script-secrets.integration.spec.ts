@@ -82,7 +82,7 @@ describe("a script sets a protected variable (P3.12)", () => {
       names.map((name) => new Promise<unknown[]>((resolve) => (db.transaction(name).objectStore(name).getAll().onsuccess = (event) => resolve((event.target as IDBRequest<unknown[]>).result))))
     );
     db.close();
-    expect(names.sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets"]);
+    expect(names.sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
     return JSON.stringify(stores);
   }
 

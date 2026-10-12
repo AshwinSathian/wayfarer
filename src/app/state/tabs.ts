@@ -43,6 +43,16 @@ export class Tabs {
     if (!this.locked()) this.activeId.set(id);
   }
 
+  /**
+   * The tabs as they are stored (P5.1), in place of the ones here. `open`
+   * stays the open tab when it is among them; otherwise the first is.
+   */
+  replace(tabs: TabState[], open = this.activeId()): void {
+    if (!tabs.length) return;
+    this.list.set(tabs);
+    this.activeId.set(tabs.some((tab) => tab.id === open) ? open : tabs[0].id);
+  }
+
   /** Closes a tab. The one after it becomes the open one, or the one before; the last tab is replaced by an empty one. */
   close(id: string): void {
     if (this.locked()) return;

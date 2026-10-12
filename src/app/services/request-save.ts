@@ -37,11 +37,13 @@ export class RequestSave {
    * collection, then its folders from the outside in. Empty for a request
    * of no collection.
    */
-  readonly ancestors: Signal<Ancestor[]> = computed(() => {
-    const bound = this.loadedCollectionRequest();
+  readonly ancestors: Signal<Ancestor[]> = computed(() => this.ancestorsFor(this.loadedCollectionRequest()));
+
+  /** What a saved request inherits from, as stored now. */
+  ancestorsFor(bound: RequestDoc | null): Ancestor[] {
     const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
     return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
-  });
+  }
   /** Where the bound request is kept: its collection's name, then its folders' from the outside in. */
   readonly breadcrumb: Signal<string[]> = computed(() => {
     const bound = this.loadedCollectionRequest();

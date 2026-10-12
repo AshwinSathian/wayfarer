@@ -50,9 +50,11 @@ Everything else (collections, requests, environments, history) is stored
 as plain text in IndexedDB, protected only by the browser's storage
 sandboxing and the device's disk encryption. In particular:
 
-- **A saved request holds what you typed.** A token typed into the Auth
-  tab or a header is plain text in your collections. Put it in the vault
-  and refer to it with a variable to keep it out of them.
+- **A saved request holds what you typed, and so does an open tab.** A
+  token typed into the Auth tab or a header is plain text in your
+  collections once saved, and in the stored tab from a moment after you
+  type it, saved or not, until the tab is closed. Put it in the vault and
+  refer to it with a variable to keep it out of both.
 - **History stores what was sent and what came back with credentials and
   vault secrets masked.** <!-- claim:C-008 --> A credential header
   (`Authorization`, `Cookie`, `Set-Cookie`, `X-API-Key`, and any name with

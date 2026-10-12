@@ -129,7 +129,7 @@ test("@claim:C-015 a script runs with the network disabled after one run online"
   await new Promise((resolve) => server.once("exit", resolve));
   if (browserName !== "webkit") await context.setOffline(true);
   await page.reload();
-  await page.getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
   await expect(page.locator("input.address-url")).toHaveValue(script.url);
   await expect(ran).toHaveCount(0);
   await send(page);

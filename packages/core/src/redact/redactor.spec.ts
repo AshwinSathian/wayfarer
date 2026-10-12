@@ -62,6 +62,15 @@ describe("Redactor", () => {
     expect(redactor.text(component.replace(/%[0-9A-F]{2}/g, (hex) => hex.toLowerCase()))).toBe(MASK);
   });
 
+  it("masks a value with a caret in a path whichever way the URL parser wrote it: as it is, or as %5E", () => {
+    // The URL standard added "^" to what a path escapes (2023): a parser from before leaves it, one from after writes %5E.
+    // The property below asks the parser of the machine it runs on, and met only one of the two.
+    const redactor = new Redactor(["s3cr^t-val$e"]);
+    expect(redactor.text('"path": "/s3cr^t-val$e"')).toBe(`"path": "/${MASK}"`);
+    expect(redactor.text('"path": "/s3cr%5Et-val$e"')).toBe(`"path": "/${MASK}"`);
+    expect(redactor.text('"path": "/a/s3cr%5Et-val$e/b"')).toBe(`"path": "/a/${MASK}/b"`);
+  });
+
   it("masks a value as a browser writes it into a URL, in the query and in the path (property)", () => {
     fc.assert(
       fc.property(secret, (value) => {

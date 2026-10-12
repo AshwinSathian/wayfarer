@@ -51,7 +51,15 @@ export class SwUpdate {
     // does, and keeps the ones it would have kept, so the next visit has them offline (F84). Every later load
     // goes through the worker.
     if (!container.controller) {
-      const handOver = () => container.controller?.postMessage({ loaded: performance.getEntriesByType("resource").map((entry) => entry.name) });
+      const handOver = () => {
+        // A file that was asked for before this moment and is still on its way is listed when it arrives: the
+        // observer gives what is there already and what comes.
+        const controlledAt = performance.now();
+        new PerformanceObserver((list) => {
+          const loaded = list.getEntries().filter((entry) => entry.startTime < controlledAt).map((entry) => entry.name);
+          if (loaded.length) container.controller?.postMessage({ loaded });
+        }).observe({ type: "resource", buffered: true });
+      };
       container.addEventListener("controllerchange", handOver, { once: true });
     }
   }

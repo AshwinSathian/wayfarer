@@ -18,6 +18,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Offline, the editor opens again (F84, #269).** After one visit the app loaded with the network off, but 20 of its 28 lazily loaded files were never kept for offline use, the editor among them: the service worker recognised a file by an upper-case hash in its name, and the build gives most lazy files a mixed-case one. The body editor and the response viewer stayed empty offline. The worker keeps them now, including the ones a first visit loads before the worker has taken over the page. What is still not there offline is a part of the app this device never loaded; the Trust Center's known limitations say so.
 - **Two warnings Angular wrote to the console in development are gone, with what caused them.** The Params rows were destroyed and rebuilt at every keystroke in the address, and the header rows whenever their list was replaced; both are updated in place now (NG0956). And the command palette held two actions with one id ("New Request", and "New Request in" a selected collection), which Angular warns about (NG0955): each has its own.
 
 ## [2.2.0] - 2026-10-12

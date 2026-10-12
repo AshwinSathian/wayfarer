@@ -1,3 +1,5 @@
+import { SseParser, type SseEvent } from "./sse";
+
 /** A request with every variable resolved, as it goes on the wire. */
 export interface ResolvedRequest {
   method: string;
@@ -25,13 +27,32 @@ export interface ResponseEnvelope {
    * applies. Gone with protocol 2 (P6.1), which relays the bytes.
    */
   charset?: "utf-8";
+  /**
+   * Set when the body was an event stream read as it arrived (P5.6).
+   * `stopped`: the caller ended it, and `body` is what had arrived.
+   * `truncated`: the stream was longer than `STREAM_BODY_BYTES`, and `body` is its start.
+   */
+  stream?: { stopped: boolean; truncated?: true };
 }
+
+/** An event of a stream, and when it arrived: milliseconds after the response's headers. */
+export type StreamEvent = SseEvent & { timeMs: number };
+
+/** How much of an event stream is kept as the response's body. A stream may never end; its events are given to the caller as they come. */
+export const STREAM_BODY_BYTES = 1024 * 1024;
 
 export interface TransportOptions {
   /** Aborted when the user cancels. */
   signal: AbortSignal;
   /** 0 means no timeout. */
   timeoutMs: number;
+  /**
+   * Asks for a `text/event-stream` response to be read as it arrives (P5.6):
+   * called with each event. The timeout then ends with the response's
+   * headers, and an abort after them ends the stream as a response.
+   * A route that cannot stream (the Local Bridge) reads the body whole.
+   */
+  onEvent?: (event: StreamEvent) => void;
 }
 
 export interface Transport {
@@ -66,7 +87,7 @@ export type FetchFn = (input: string, init: RequestInit) => Promise<Response>;
  * AbortSignal.timeout(ms)])`: in WebKit a signal made by `any` that only
  * `fetch` refers to never aborted, so a timeout never ended the request.
  */
-export async function withDeadline<T>(options: TransportOptions, run: (signal: AbortSignal) => Promise<T>): Promise<T> {
+export async function withDeadline<T>(options: TransportOptions, run: (signal: AbortSignal, arrived: () => void) => Promise<T>): Promise<T> {
   const controller = new AbortController();
   let timedOut = false;
   const cancel = () => controller.abort();
@@ -80,7 +101,8 @@ export async function withDeadline<T>(options: TransportOptions, run: (signal: A
         }, options.timeoutMs)
       : undefined;
   try {
-    return await run(controller.signal);
+    // `arrived`: the answer has begun, and the timeout has nothing more to say (a stream).
+    return await run(controller.signal, () => clearTimeout(timer));
   } catch (cause) {
     if (cause instanceof TransportError) throw cause;
     if (timedOut) throw new TransportError("timeout", `Timed out after ${options.timeoutMs} ms`);
@@ -125,3 +147,35 @@ export async function readBody(response: Response, cap = DISPLAY_CAP_BYTES): Pro
 }
 
 const FOLD_BYTES = 8 * 1024 * 1024;
+
+/**
+ * Reads an event stream as it arrives: each event to `onEvent`, and the first
+ * `STREAM_BODY_BYTES` of it as the body. Ends when the server ends it, or
+ * when `signal` aborts: that is the caller's stop, and what had arrived is
+ * the response. Any other failure is thrown.
+ */
+export async function readEventStream(response: Response, signal: AbortSignal, onEvent: (event: StreamEvent) => void): Promise<{ body: ArrayBuffer; stream: NonNullable<ResponseEnvelope["stream"]> }> {
+  const started = Date.now();
+  const parser = new SseParser();
+  const decoder = new TextDecoder();
+  const kept = new Uint8Array(STREAM_BODY_BYTES);
+  let size = 0;
+  let truncated = false;
+  let stopped = false;
+  const reader = response.body?.getReader();
+  try {
+    for (;;) {
+      const chunk = await reader?.read();
+      if (!chunk || chunk.done) break;
+      const room = STREAM_BODY_BYTES - size;
+      kept.set(chunk.value.subarray(0, room), size);
+      size += Math.min(room, chunk.value.byteLength);
+      if (chunk.value.byteLength > room) truncated = true;
+      for (const event of parser.push(decoder.decode(chunk.value, { stream: true }))) onEvent({ ...event, timeMs: Date.now() - started });
+    }
+  } catch (error) {
+    if (!signal.aborted) throw error;
+    stopped = true;
+  }
+  return { body: kept.slice(0, size).buffer, stream: { stopped, ...(truncated && { truncated }) } };
+}

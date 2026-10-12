@@ -57,6 +57,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - A response fades in; nothing on the page moves when it arrives, so what you aim at is where you press <!-- claim:C-050 -->
   - The Headers tab says when the browser withheld headers (a response from another origin shows only the CORS-safelisted ones and those the server exposes)
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
+  - **Event streams (SSE)**: a response of type `text/event-stream` is listed event by event as it arrives (id, event, data, time), with any header the request has, since it is read with `fetch` and not with `EventSource`. **Stop** ends it; **Reconnect** sends the last id as `Last-Event-ID`. Through the Local Bridge a stream is shown when it has ended. See [`docs/browser-limits.md`](docs/browser-limits.md), "Event streams"
   - An **Export** menu that copies the exchange as cURL or HAR, or shows the HAR file before you copy or save it <!-- claim:C-035 -->
 
 - **Collections & Environments**

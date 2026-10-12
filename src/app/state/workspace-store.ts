@@ -14,6 +14,7 @@ import {
   isCredentialHeader,
   isHttpMethod,
   newId,
+  parseEventStream,
   redactExport,
   resolveAuth,
   signV4,
@@ -33,6 +34,7 @@ import {
   type RunIteration,
   type RunOutcome,
   type ScopeStack,
+  type StreamEvent,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { RequestDoc } from "../models/collections";
@@ -69,7 +71,7 @@ import {
 import { OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
-import { TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
+import { SHOWN_EVENTS, TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
 
 /** GET and HEAD cannot carry a body: `fetch` refuses one. */
@@ -230,6 +232,10 @@ export class WorkspaceStore {
   readonly lastScriptLogs = this.ofTab((tab) => tab.lastScriptLogs);
   /** How long the last send's scripts and its request took, each by itself. */
   readonly lastTimings = this.ofTab((tab) => tab.lastTimings);
+  /** The events of the open tab's response, when it is an event stream (P5.6). */
+  readonly streamEvents = this.ofTab((tab) => tab.streamEvents);
+  readonly streamCount = this.ofTab((tab) => tab.streamCount);
+  readonly streamNote = this.ofTab((tab) => tab.streamNote);
 
   /**
    * Where a `{{variable}}` of the draft gets its value: the active
@@ -295,6 +301,7 @@ export class WorkspaceStore {
   get shouldShowResponsePanel(): boolean {
     return (
       this.loadingState() ||
+      this.streamEvents().length > 0 ||
       this.responseStatusCode() !== undefined ||
       !!this.responseData() ||
       !!this.responseError() ||
@@ -432,7 +439,7 @@ export class WorkspaceStore {
    * The send holds its tab (session 5B): from here to its last step it reads
    * and writes `tab`, never "the open tab", which may be another by then.
    */
-  async send(options: { allowUnresolved?: boolean } = {}): Promise<boolean> {
+  async send(options: { allowUnresolved?: boolean; /** Reconnects an event stream: sent as `Last-Event-ID` (P5.6). */ lastEventId?: string } = {}): Promise<boolean> {
     const tab = this.tabs.active();
     tab.endpointError.set("");
     tab.pasteNotes.set([]);
@@ -453,9 +460,20 @@ export class WorkspaceStore {
     const controller = new AbortController();
     tab.inFlight = controller;
 
+    // A reconnect names the last event it has, as a browser's EventSource does. `assemble` puts it in as it is.
+    tab.lastEventId = options.lastEventId;
     let result: RequestExecutionResult;
     try {
-      result = await this.exchange(tab, { allowUnresolved: options.allowUnresolved ?? false, signal: controller.signal });
+      result = await this.exchange(tab, {
+        allowUnresolved: options.allowUnresolved ?? false,
+        signal: controller.signal,
+        // An event stream is shown as it arrives (P5.6). The tab's list is the newest events; the count is all of them.
+        onEvent: (event) => {
+          tab.streamEvents.update((events) => [...events.slice(1 - SHOWN_EVENTS), event]);
+          tab.streamCount.update((count) => count + 1);
+          tab.responseTab.set("events");
+        },
+      });
     } catch (error) {
       tab.loadingState.set(false);
       // Variables that refer to each other in a circle: nothing is sent.
@@ -480,6 +498,7 @@ export class WorkspaceStore {
     tab.lastTimings.set(result.timings);
     tab.inspection.set(result.inspection);
     this.applyExecutionResponse(tab, result.response);
+    this.applyStream(tab, result);
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
@@ -504,7 +523,7 @@ export class WorkspaceStore {
    * and sent. A send and a request of a run are both this. Throws what
    * `RequestExecutor.execute` throws.
    */
-  private async exchange(tab: TabState, options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend }): Promise<RequestExecutionResult> {
+  private async exchange(tab: TabState, options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend; onEvent?: (event: StreamEvent) => void }): Promise<RequestExecutionResult> {
     const draft = tab.draft();
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
     const inherited = this.saved.ancestorsFor(tab.bound());
@@ -526,6 +545,7 @@ export class WorkspaceStore {
       tests: draft.tests,
       template: contentOf(tab.draft()),
       buildRequest: (request) => this.buildRequestForExecution(tab, request, options.allowUnresolved, composed),
+      ...(options.onEvent && { onEvent: options.onEvent }),
       retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved),
       signal: options.signal,
       inherited,
@@ -667,6 +687,12 @@ export class WorkspaceStore {
       return `Browsers do not send ${method} requests. Turn on the Local Bridge to send one.`;
     }
     return "";
+  }
+
+  /** Sends the open tab's request again as a reconnect of its event stream: with the last id the stream gave, as `Last-Event-ID`. */
+  reconnect(): Promise<boolean> {
+    const lastEventId = [...this.tabs.active().streamEvents()].reverse().find((event) => event.id)?.id;
+    return this.send(lastEventId === undefined ? {} : { lastEventId });
   }
 
   /** Gives up on the request in flight. The send then ends with "cancelled" instead of a response. */
@@ -917,6 +943,8 @@ export class WorkspaceStore {
       byName.set(name.toLowerCase(), [name, resolve(value)]);
     }
     if (token) byName.set("authorization", ["Authorization", `Bearer ${token}`]);
+    // The id of an event is the server's text, not a template: a `{{variable}}` in it is not replaced, or a server could name one and be sent its value.
+    if (tab.lastEventId !== undefined) byName.set("last-event-id", ["Last-Event-ID", tab.lastEventId]);
     // The body's own type, unless the request names one.
     if (sent?.contentType && !byName.has("content-type")) {
       byName.set("content-type", ["Content-Type", sent.contentType]);
@@ -989,6 +1017,25 @@ export class WorkspaceStore {
       throw new SendBlockedError(`The file "${ref.fileName}" is not stored in this browser. Choose it again.`);
     }
     return file;
+  }
+
+  /** What the Events tab shows of a response that was an event stream (P5.6), and what there is to say of it. */
+  private applyStream(tab: TabState, result: RequestExecutionResult): void {
+    const { response } = result;
+    if (!/^text\/event-stream\b/i.test(response.contentType ?? "")) return;
+    const notes: string[] = [];
+    if (!response.stream) {
+      // The route gave the body whole (the Local Bridge relays a response when it has ended): its events are read from it now.
+      const events = parseEventStream(response.dataText || response.errorText);
+      tab.streamEvents.set(events.slice(-SHOWN_EVENTS));
+      tab.streamCount.set(events.length);
+      if (result.history.route === "bridge") notes.push("Sent through the Local Bridge, which relays a response when it has ended: these events arrived together, and a stream that does not end is not shown.");
+    }
+    if (response.stream?.stopped) notes.push("You stopped the stream.");
+    if (response.stream?.truncated) notes.push("The Body tab holds the first megabyte of the stream.");
+    if (tab.streamCount() > tab.streamEvents().length) notes.push(`The list holds the newest ${tab.streamEvents().length} of ${tab.streamCount()} events.`);
+    tab.streamNote.set(notes.join(" "));
+    if (tab.streamCount()) tab.responseTab.set("events");
   }
 
   private applyExecutionResponse(tab: TabState, response: RequestExecutionResponse): void {

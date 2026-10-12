@@ -1,6 +1,7 @@
 import {
   withDeadline,
   readBody,
+  readEventStream,
   type FetchFn,
   type ResolvedRequest,
   type ResponseEnvelope,
@@ -19,7 +20,7 @@ export class FetchTransport implements Transport {
   ) {}
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
-    return withDeadline(options, async (signal) => {
+    return withDeadline(options, async (signal, arrived) => {
       const response = await this.fetchFn(request.url, {
         method: request.method,
         headers: request.headers,
@@ -30,7 +31,10 @@ export class FetchTransport implements Transport {
         redirect: "follow",
         signal,
       });
-      const body = await readBody(response, this.displayCap);
+      // An event stream the caller wants as it comes (P5.6): from here the timeout is over, and a cancel is a stop.
+      const { onEvent } = options;
+      const events = onEvent && /^text\/event-stream\b/i.test(response.headers.get("content-type") ?? "") ? (arrived(), await readEventStream(response, signal, onEvent)) : undefined;
+      const body = events?.body ?? (await readBody(response, this.displayCap));
       return {
         status: response.status,
         statusText: response.statusText,
@@ -40,6 +44,7 @@ export class FetchTransport implements Transport {
         finalUrl: response.url || request.url,
         route: "direct",
         sizes: { decoded: body instanceof Blob ? body.size : body.byteLength },
+        ...(events && { stream: events.stream }),
       };
     });
   }

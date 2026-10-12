@@ -1,5 +1,5 @@
 import { computed, signal } from "@angular/core";
-import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row, type RunIteration } from "@wayfarer/core";
+import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row, type RunIteration, type StreamEvent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { PastRequest, PastRequestKey } from "../models/history";
 import { TestResult } from "../models/test-assertion";
@@ -8,6 +8,11 @@ import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
 import { RunState } from "./run-state";
+
+/** An event of a stream as the list shows it. */
+export type ShownEvent = Omit<StreamEvent, "timeMs"> & { timeMs?: number };
+// ponytail: the list is the newest 500 events, each arrival copying the list. A table of every event of a long stream needs a virtual list.
+export const SHOWN_EVENTS = 500;
 
 export const blankRow = (): Row => ({ key: "", value: "", enabled: true });
 
@@ -69,7 +74,7 @@ export class TabState {
   readonly responseStatusCode = signal<number | undefined>(undefined);
   readonly responseStatusText = signal<string | undefined>(undefined);
   readonly responseIsError = signal(false);
-  readonly responseTab = signal<"body" | "headers" | "timings" | "tests">("body");
+  readonly responseTab = signal<"body" | "headers" | "timings" | "tests" | "events">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
@@ -81,6 +86,16 @@ export class TabState {
   readonly lastScriptLogs = signal<string[]>([]);
   /** How long the last send's scripts and its request took, each by itself. */
   readonly lastTimings = signal<SendTimings | null>(null);
+  /**
+   * The events of the last response when it was an event stream (P5.6), the
+   * newest `SHOWN_EVENTS` of them: as they arrived, or read from the body
+   * when the route gave it whole (the Local Bridge; they then have no time).
+   */
+  readonly streamEvents = signal<ShownEvent[]>([]);
+  /** How many events the stream gave in all. */
+  readonly streamCount = signal(0);
+  /** What there is to say of the stream: it was stopped, it arrived whole, its body is cut. */
+  readonly streamNote = signal("");
   /** The phases and sizes of the last send's request, as the browser measured them. */
   readonly inspection = signal<ResponseInspection | null>(null);
 
@@ -88,6 +103,8 @@ export class TabState {
   run: RunState | null = null;
   /** Set on the tab a request of a collection run is sent from (P5.2): which iteration, and the data file's row. Such a tab is in no strip. */
   iteration?: RunIteration;
+  /** Set for a send that reconnects an event stream (P5.6): the last id the stream gave, sent as `Last-Event-ID` as the server wrote it. */
+  lastEventId?: string;
   previewFingerprint = "";
   /** Aborts the send in flight. */
   inFlight: AbortController | null = null;
@@ -136,6 +153,9 @@ export class TabState {
     this.responseTab.set("body");
     this.responseExportContext.set(null);
     this.inspection.set(null);
+    this.streamEvents.set([]);
+    this.streamCount.set(0);
+    this.streamNote.set("");
   }
 
   /** `saved` is what was written: an edit made while the write was under way is still unsaved. */

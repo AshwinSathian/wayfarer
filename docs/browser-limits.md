@@ -120,6 +120,34 @@ Headers tab says so above the list. Through the bridge every header is
 shown (the bridge still joins repeated `Set-Cookie` headers into one line,
 [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 
+## Event streams
+
+A response whose `Content-Type` is `text/event-stream` is read as it
+arrives. There is nothing to switch on: send the request, and the response
+panel lists each event with its id, its name (`message` when it has none),
+its data and the time since the response began. The stream is read with
+`fetch`, not with the browser's `EventSource`, so the request keeps its
+method, its headers, its auth and its body.
+
+- **The timeout is for the first byte.** A stream that has begun is not
+  ended by the request timeout of Settings.
+- **Stop** ends the stream. What had arrived is the response: its status,
+  its headers, the events, and the body so far. Post-response scripts and
+  assertions run then, and history gets the exchange, masked as always.
+- **Reconnect** sends the request again with `Last-Event-ID`, the last id
+  the stream gave, as a browser does. The id goes out as the server wrote
+  it: a `{{variable}}` in it is not replaced, and one that looks like a
+  vault secret's reference is refused like any other. The app does not
+  reconnect by itself, and does not follow a stream's `retry`.
+- **The list holds the newest 500 events** and says how many there were;
+  the Body tab holds the first megabyte of the stream. Events are read as
+  the HTML standard says: an event without a `data` line is none.
+- **Through the Local Bridge** a response is relayed when it has ended, so
+  a stream's events arrive together, without times, and a stream that never
+  ends is not shown: the request runs into the timeout. Send a stream
+  directly when the server allows it (CORS), or let it end.
+- **In a collection run** a stream is read to its end like any body.
+
 ## Mixed content
 
 The hosted app is loaded over HTTPS, and a page loaded over HTTPS may not

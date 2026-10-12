@@ -96,9 +96,12 @@ code errors.
   tab's signal. What belongs to one request goes into `TabState` and is
   forwarded; a signal of a root service is shared by every tab. A forwarded
   signal is not bound two ways in a template (`[(x)]`): bind and listen.
-- A send reads the open tab from its first step to its last, so
-  `Tabs.locked` keeps the open tab open while one is on its way. Lift that
-  only with a send that holds its own tab.
+- A send holds the tab it was started in (`WorkspaceStore.send`, session
+  5B): the user may open another while it is on its way. Whatever a send
+  calls, from its first step to its last, is given that `TabState` and
+  reads and writes it: never `tabs.active()`, a forwarded signal,
+  `scopes()` or `saved.ancestors()`, which are the open tab's and may be
+  another's by then. `Tabs.close` aborts the tab's `inFlight`.
 - A second tab of a request is `TabState.copy()`: it keeps the binding and
   the held scripts, so its scripts are trusted as the original's are. Do
   not make a tab from a draft alone: unbound, its scripts would run.

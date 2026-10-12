@@ -49,7 +49,6 @@ export class TabStrip {
   }
 
   open(): void {
-    if (this.tabs.locked()) return;
     this.tabs.open();
     this.opened.emit();
   }
@@ -58,14 +57,17 @@ export class TabStrip {
     this.tabs.open(this.tabs.active().copy());
   }
 
-  /** Closes the open tab. One with changes that are not saved asks first. */
+  /** Closes the open tab. One with changes that are not saved, or with a request on its way, asks first. */
   async close(): Promise<void> {
     const tab = this.tabs.active();
-    if (this.tabs.locked()) return;
-    if (tab.dirty()) {
+    const sending = tab.loadingState();
+    if (tab.dirty() || sending) {
+      const dirty = tab.dirty();
+      const why = [...(dirty ? ["has changes that are not saved"] : []), ...(sending ? ["is waiting for a response"] : [])].join(" and ");
+      const then = dirty && sending ? "discards the changes and cancels the request" : dirty ? "discards them" : "cancels the request";
       const close = await this.confirm.confirm({
         title: "Close this tab?",
-        message: `${this.label(tab)} has changes that are not saved. Closing the tab discards them.`,
+        message: `${this.label(tab)} ${why}. Closing the tab ${then}.`,
         acceptLabel: "Close tab",
         rejectLabel: "Keep it open",
       });

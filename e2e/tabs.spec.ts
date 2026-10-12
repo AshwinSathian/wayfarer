@@ -145,16 +145,47 @@ test("keyboard: Alt+T opens a tab and Alt+W closes it, in the app and not in the
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("while a request is on its way the open tab stays open", async ({ page }) => {
+// A send holds the tab it was started in (session 5B; the maintainer's answer, plan v1.2.41). Until then the open tab could not be changed while a request was on its way.
+test("a tab may be left while its request is on its way, and its response is there on the way back", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "New tab" }).click();
   await address(page).fill(`${ECHO}/delay/3000`);
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.getByRole("button", { name: "New tab" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Close tab" })).toBeDisabled();
-  await expect(tabs(page).nth(0)).toBeDisabled();
-  await page.getByRole("button", { name: "Cancel request" }).click();
-  await expect(tabs(page).nth(0)).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+
+  await page.getByRole("button", { name: "New tab" }).click();
+  await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("button", { name: "Cancel request" })).toHaveCount(0);
+  await address(page).fill(`${ECHO}/status/204`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".status-badge")).toHaveText("204", { timeout: 15_000 });
+
+  await tabs(page).nth(0).click();
+  await expect(address(page)).toHaveValue(`${ECHO}/delay/3000`);
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+  await tabs(page).nth(1).click();
+  await expect(page.locator(".status-badge")).toHaveText("204");
+});
+
+test("closing a tab whose request is on its way asks first, and cancels the request", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "New tab" }).click();
+  // Longer than the test may take: only a cancel ends this request in time.
+  await address(page).fill(`${ECHO}/delay/60000`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Close tab" }).click();
+  const dialog = page.getByRole("alertdialog", { name: "Close this tab?" });
+  await expect(dialog).toContainText("is waiting for a response");
+  await dialog.getByRole("button", { name: "Keep it open" }).click();
+  await expect(tabs(page)).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Close tab" }).click();
+  await dialog.getByRole("button", { name: "Close tab" }).click();
+  await expect(tabs(page)).toHaveCount(1);
+  // The send ended as a cancelled one: history has it. (WebKit on Linux reports no "requestfailed" for an aborted fetch.)
+  await expect.poll(async () => ((await dumpIdb(page))["history"] as { error?: string }[]).map((entry) => entry.error)).toEqual(["The request was cancelled."]);
 });
 
 test("the open tab is in view when the strip holds more tabs than fit", async ({ page }) => {

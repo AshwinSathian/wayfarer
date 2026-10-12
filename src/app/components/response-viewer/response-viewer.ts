@@ -16,7 +16,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { exportRedactor } from "../../shared/inspect/export";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
-import { BinaryBody, HEX_VIEW_BYTES, evaluatePath, hexDump, indentXml, responseViews, type HarExchange, type RedactOptions, type ResponseView } from "@wayfarer/core";
+import { BinaryBody, HEX_VIEW_BYTES, MAX_REDIRECTS, evaluatePath, hexDump, indentXml, responseViews, type HarExchange, type RedactOptions, type ResponseEnvelope, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "../../models/test-assertion";
 import type { SendTimings } from "../../services/request-executor";
@@ -114,6 +114,24 @@ export class ResponseViewer {
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
   readonly redirectedTo = input<string>();
+  /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
+  readonly redirects = input<ResponseEnvelope["redirects"]>();
+  /** Why the response is a redirect that was not followed, in words. */
+  protected readonly redirectNote = computed(() => {
+    const redirects = this.redirects();
+    switch (redirects?.stopped) {
+      case "other-host":
+        return "Not followed: this redirect leaves the host, and the request holds a vault secret that was written for this one. To send the request there, put that address into it.";
+      case "location":
+        return "Not followed: its Location is not an http or https address.";
+      case "limit":
+        return `Not followed: ${MAX_REDIRECTS} redirects are followed at most.`;
+      case "off":
+        return "Not followed: Follow redirects is off for this request.";
+      default:
+        return "";
+    }
+  });
   /** The `Content-Type` header as received: it chooses the view. */
   readonly responseContentType = input("");
   /** The browser withheld some response headers (a direct answer from another origin). */

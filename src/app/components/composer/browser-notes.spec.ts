@@ -1,7 +1,7 @@
 import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { browserLimits, type BrowserLimits } from "@wayfarer/core";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { BrowserNotes } from "./browser-notes";
 
@@ -18,8 +18,30 @@ describe("BrowserNotes (P2.14)", () => {
   };
   const text = (element: HTMLElement, selector: string) => element.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim();
 
+  const settings = signal<{ followRedirects?: boolean }>({});
+  const setFollowRedirects = vi.fn();
+
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [BrowserNotes], providers: [{ provide: WorkspaceStore, useValue: { browserLimits: limits } }] });
+    settings.set({});
+    setFollowRedirects.mockClear();
+    TestBed.configureTestingModule({
+      imports: [BrowserNotes],
+      providers: [{ provide: WorkspaceStore, useValue: { browserLimits: limits, draft: () => ({ settings: settings() }), setFollowRedirects } }],
+    });
+  });
+
+  it("offers Follow redirects, on unless the request says no, and says what each route does with it (P5.4)", () => {
+    const direct = show({ url: "https://api.example/" });
+    const box = direct.querySelector<HTMLInputElement>(".follow-redirects input[type=checkbox]");
+    expect(box?.checked).toBe(true);
+    expect(text(direct, ".follow-redirects")).toContain("Sent directly, a request is always followed");
+    box?.click();
+    expect(setFollowRedirects).toHaveBeenCalledWith(false);
+
+    settings.set({ followRedirects: false });
+    const bridge = show({ url: "https://api.example/" }, "bridge");
+    expect(bridge.querySelector<HTMLInputElement>(".follow-redirects input[type=checkbox]")?.checked).toBe(false);
+    expect(text(bridge, ".follow-redirects")).toContain("Through the Local Bridge each one is listed");
   });
 
   it("says before the send that an http:// address will be blocked from an HTTPS page", () => {

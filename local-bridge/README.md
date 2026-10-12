@@ -122,8 +122,9 @@ the rest of this project gives its security-relevant surfaces.
 - No streaming: the full response is buffered in memory before being
   wrapped and returned, capped at 25MB.
 - No redirect following: redirects come back as an ordinary 3xx response.
-  A direct browser request, by contrast, follows redirects and shows only
-  the final response.
+  Wayfarer follows them itself, each hop as a relay of its own, and lists
+  them. A direct browser request, by contrast, is followed by the browser
+  and shows only the final response.
 - Multiple `Set-Cookie` headers are joined into one comma-separated value,
   which breaks cookies whose `Expires` contains a comma, and compressed
   responses are not decompressed

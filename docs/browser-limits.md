@@ -120,6 +120,41 @@ Headers tab says so above the list. Through the bridge every header is
 shown (the bridge still joins repeated `Set-Cookie` headers into one line,
 [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 
+## Redirects
+
+A browser follows a redirect itself and tells a page only where the request
+ended. A page cannot ask it not to follow and still read the answer: a
+redirect that was not followed is hidden from it altogether. So what the
+app can show depends on the route.
+
+- **Sent directly**, a request is always followed, whatever **Follow
+  redirects** says. The response is the last one, and the status bar says
+  "Redirected to" with its address. The hops between are not known.
+- **Through the Local Bridge**, the app makes each hop as a request of its
+  own, 20 redirects at most, and the response lists each one: its status,
+  the address that answered with it, and its `Location` as the server wrote
+  it. A `Location` is followed as it was sent: nothing in it is read as a
+  `{{variable}}`. Any version of the bridge will do.
+- **Follow redirects** is a setting of the request, on unless you switch it
+  off. Off, through the bridge, the first 3xx is the response as it came.
+- **What is sent on.** 301 and 302 turn a POST into a GET without its body,
+  and 303 does so for every method but GET and HEAD, as browsers do; 307 and
+  308 repeat the request. A hop to another origin goes without
+  `Authorization` and `Cookie`. Every other header goes along.
+- **A request that holds a vault secret is not followed to another host.**
+  The app stops at that redirect, and it is the response, with a line
+  that says why. Another host is another name or port, or the same host
+  without TLS; `http` to `https` on one host is followed. To send the
+  request there, put that address into it. <!-- claim:C-063 --> Nothing of such a
+  request is sent elsewhere: not only the header or the part of the body
+  that holds the secret. What this does not see: a secret you
+  typed into the request as plain text is not a vault secret, and goes
+  along with every header but the two above.
+- **A `Location` that is not an `http` or `https` address** is not
+  followed.
+- A request a script makes with `pm.sendRequest`, and an OAuth 2.0 token
+  request, are not followed through the bridge: a 3xx is their answer.
+
 ## Event streams
 
 A response whose `Content-Type` is `text/event-stream` is read as it

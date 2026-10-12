@@ -92,6 +92,18 @@ code errors.
 - WebKit ends a WebSocket to a port it refuses with an `error` event alone:
   no `close`, and `readyState` still 0 when the event fires. `SocketClient`
   looks at the socket again 500 ms after an error. Do not rely on `close`.
+- Redirects (P5.4): a browser follows a direct request's unseen. Through
+  the Local Bridge, which follows none, `BridgeTransport` makes each hop a
+  relay of its own when the caller asks (`TransportOptions.redirects`, at
+  most `MAX_REDIRECTS`) and lists them in `ResponseEnvelope.redirects`;
+  `nextHop` (`packages/core/src/transport/redirect.ts`) is the rule for a
+  hop. `RequestExecutor` sets `stayOnHost` for a request with anything in
+  `BuiltRequest.secrets` (claim C-063): keep it for every send that is
+  built with the vault. A `Location` is read as an address, as the server
+  wrote it, and never goes through the resolver. Do not move the following
+  into the bridge: the page decides where a request may go, and the page
+  holds what the next hop needs (P5.3's cookies). The chain is the tab's
+  (`TabState.responseRedirects`) and is not stored.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the

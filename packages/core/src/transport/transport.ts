@@ -33,7 +33,31 @@ export interface ResponseEnvelope {
    * `truncated`: the stream was longer than `STREAM_BODY_BYTES`, and `body` is its start.
    */
   stream?: { stopped: boolean; truncated?: true };
+  /**
+   * Set by a route that makes each hop of a redirect itself and so can say
+   * them (the Local Bridge, P5.4): each one followed, and why no more were
+   * when the response is itself a redirect. A direct request has none: the
+   * browser follows and tells a page only `redirected` and `finalUrl`.
+   */
+  redirects?: { chain: RedirectHop[]; stopped?: RedirectStop };
 }
+
+/** One redirect that was followed: the status, the address that answered with it, and its `Location` as the server wrote it. */
+export interface RedirectHop {
+  status: number;
+  url: string;
+  location: string;
+}
+
+/**
+ * Why a redirect was not followed: the request said not to (`off`), the
+ * limit of hops, a `Location` that is no http or https address, or a hop
+ * to another host that was not to be made.
+ */
+export type RedirectStop = "off" | "limit" | "location" | "other-host";
+
+/** The most redirects that are followed for one request. */
+export const MAX_REDIRECTS = 20;
 
 /** An event of a stream, and when it arrived: milliseconds after the response's headers. */
 export type StreamEvent = SseEvent & { timeMs: number };
@@ -53,6 +77,14 @@ export interface TransportOptions {
    * A route that cannot stream (the Local Bridge) reads the body whole.
    */
   onEvent?: (event: StreamEvent) => void;
+  /**
+   * For the route that can see a redirect (the Local Bridge, P5.4): whether
+   * to follow, and whether to stop at a hop that leaves the host. Absent,
+   * nothing is followed and a 3xx is the response. A direct request ignores
+   * it: the browser always follows, and a page cannot read a redirect it
+   * was told not to follow.
+   */
+  redirects?: { follow: boolean; stayOnHost: boolean };
 }
 
 export interface Transport {

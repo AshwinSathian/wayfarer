@@ -1,7 +1,11 @@
+import { nextHop } from "./redirect";
 import {
+  MAX_REDIRECTS,
   TransportError,
   withDeadline,
   type FetchFn,
+  type RedirectHop,
+  type RedirectStop,
   type ResolvedRequest,
   type ResponseEnvelope,
   type Transport,
@@ -25,6 +29,11 @@ interface RelayErrorBody {
  * `/relay`, answered with 200 and the target's response whenever the target
  * was reached, whatever its status. Any other answer is the bridge's own
  * failure (bad token, unreachable target) and becomes a `TransportError`.
+ *
+ * The bridge follows no redirect. When the caller asks for them to be
+ * followed (P5.4), each hop is a relay of its own, made here: the page
+ * decides where a request may go (C-063), and any version of the bridge
+ * can relay a hop. One timeout holds for the whole chain.
  */
 export class BridgeTransport implements Transport {
   constructor(
@@ -34,30 +43,49 @@ export class BridgeTransport implements Transport {
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
     return withDeadline(options, async (signal) => {
-      // Protocol 1 carries the body as text inside JSON. Bytes and forms need protocol 2 (P6.1).
-      if (request.body !== undefined && typeof request.body !== "string") {
-        throw new TransportError("bridge", "The Local Bridge cannot relay a file or multipart body yet. Turn the bridge off to send this request.");
+      const { redirects } = options;
+      const chain: RedirectHop[] = [];
+      for (let hop = request; ; ) {
+        const envelope = await this.relay(hop, signal);
+        if (!redirects) return envelope;
+        const ended = (stopped?: RedirectStop): ResponseEnvelope => ({ ...envelope, redirected: chain.length > 0, redirects: { chain, ...(stopped && { stopped }) } });
+        const location = envelope.headers.find(([name]) => name.toLowerCase() === "location")?.[1];
+        if (location === undefined) return ended();
+        const next = nextHop(hop, envelope.status, location, redirects.stayOnHost);
+        if (!next) return ended();
+        if (!redirects.follow) return ended("off");
+        if ("stopped" in next) return ended(next.stopped);
+        if (chain.length >= MAX_REDIRECTS) return ended("limit");
+        chain.push({ status: envelope.status, url: hop.url, location });
+        hop = next.request;
       }
-      const response = await this.fetchFn(`${this.bridge.url.replace(/\/+$/, "")}/relay`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": this.bridge.token },
-        body: JSON.stringify({
-          method: request.method,
-          url: request.url,
-          headers: Object.fromEntries(request.headers),
-          body: request.body,
-        }),
-        cache: "no-store",
-        credentials: "omit",
-        referrerPolicy: "no-referrer",
-        signal,
-      });
-      const text = await response.text();
-      if (!response.ok) {
-        throw new TransportError("bridge", describeError(text) ?? `The bridge answered ${response.status}.`, response.status);
-      }
-      return toEnvelope(JSON.parse(text) as RelayEnvelope, request.url);
     });
+  }
+
+  private async relay(request: ResolvedRequest, signal: AbortSignal): Promise<ResponseEnvelope> {
+    // Protocol 1 carries the body as text inside JSON. Bytes and forms need protocol 2 (P6.1).
+    if (request.body !== undefined && typeof request.body !== "string") {
+      throw new TransportError("bridge", "The Local Bridge cannot relay a file or multipart body yet. Turn the bridge off to send this request.");
+    }
+    const response = await this.fetchFn(`${this.bridge.url.replace(/\/+$/, "")}/relay`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": this.bridge.token },
+      body: JSON.stringify({
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers),
+        body: request.body,
+      }),
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      signal,
+    });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new TransportError("bridge", describeError(text) ?? `The bridge answered ${response.status}.`, response.status);
+    }
+    return toEnvelope(JSON.parse(text) as RelayEnvelope, request.url);
   }
 }
 

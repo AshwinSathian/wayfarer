@@ -45,6 +45,13 @@ test("/redirect/:n follows n hops to /echo", async () => {
   assert.equal(manual.headers.get("location"), "/redirect/2");
 });
 
+test("/redirect-to answers with the status and the Location it is given", async () => {
+  const there = await get(`/redirect-to?status=307&url=${encodeURIComponent("http://127.0.0.1:4301/echo")}`, { redirect: "manual" });
+  assert.equal(there.status, 307);
+  assert.equal(there.headers.get("location"), "http://127.0.0.1:4301/echo");
+  assert.equal((await get("/redirect-to", { redirect: "manual" })).status, 302);
+});
+
 test("/cookies/set sends one Set-Cookie header per cookie", async () => {
   const res = await get("/cookies/set?a=1&b=2");
   assert.deepEqual(res.headers.getSetCookie().map((c) => c.split(";")[0]), ["a=1", "b=2"]);

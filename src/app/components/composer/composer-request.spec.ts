@@ -313,6 +313,14 @@ describe('Composer: rows, payloads and variables', () => {
     expect(store.shouldShowResponsePanel).toBe(true);
   });
 
+  it('Follow redirects is on unless the request says no, and "on" is not written into the request (P5.4)', () => {
+    expect(store.snapshot().settings).toEqual({});
+    store.setFollowRedirects(false);
+    expect(store.snapshot().settings).toEqual({ followRedirects: false });
+    store.setFollowRedirects(true);
+    expect(store.snapshot().settings).toEqual({});
+  });
+
   it('shows where a redirected response came from, and forgets it on the next send', async () => {
     store.patch({ url: 'https://example.com/start' });
     const pending = component.sendRequest();

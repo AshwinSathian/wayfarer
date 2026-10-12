@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { MatCheckbox } from "@angular/material/checkbox";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
@@ -10,7 +11,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
  */
 @Component({
   selector: "app-browser-notes",
-  imports: [Icon, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader],
+  imports: [Icon, MatAccordion, MatCheckbox, MatExpansionPanel, MatExpansionPanelHeader],
   templateUrl: "./browser-notes.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

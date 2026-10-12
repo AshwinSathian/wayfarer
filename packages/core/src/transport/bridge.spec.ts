@@ -148,4 +148,91 @@ describe("BridgeTransport", () => {
       await hang.send({ method: "GET", url: "https://x.test/", headers: [] }, { signal: AbortSignal.abort(), timeoutMs: 0 }).catch((e: unknown) => e)
     ).toMatchObject({ kind: "aborted" });
   });
+  describe("redirects (P5.4)", () => {
+    const request = { method: "GET", url: "https://api.test/hop/3", headers: [["X-Probe", "kept"]] as [string, string][] };
+    /** A bridge in front of a target that answers `/hop/n` with a 302 to `/hop/n-1`, `/away` with a 307 to another host, and anything else with 200. */
+    const hops = () => {
+      const relayed: { method: string; url: string; headers: Record<string, string> }[] = [];
+      const { fetch } = fakeFetch(({ init }) => {
+        const payload = JSON.parse(init.body as string) as { method: string; url: string; headers: Record<string, string> };
+        relayed.push(payload);
+        const path = new URL(payload.url).pathname;
+        const n = Number(/^\/hop\/(\d+)$/.exec(path)?.[1]);
+        const answer = (status: number, headers: Record<string, string> = {}) => new Response(JSON.stringify({ status, statusText: "", headers, body: path, bodyEncoding: "utf8" }));
+        if (n > 0) return answer(302, { location: `/hop/${n - 1}` });
+        if (path === "/away") return answer(307, { location: "https://other.test/landing" });
+        if (path === "/loop") return answer(302, { location: "/loop" });
+        return answer(200);
+      });
+      return { transport: new BridgeTransport(BRIDGE, fetch), relayed };
+    };
+
+    it("follows nothing, and says nothing of redirects, when the caller says nothing of them", async () => {
+      const { transport, relayed } = hops();
+      const response = await transport.send(request, open());
+      expect(response.status).toBe(302);
+      expect(response.redirects).toBeUndefined();
+      expect(response.redirected).toBe(false);
+      expect(relayed).toHaveLength(1);
+      // The bridge is asked for nothing it did not know before: any version of it relays a hop.
+      expect(Object.keys(relayed[0]).sort()).toEqual(["headers", "method", "url"]);
+    });
+
+    it("makes each hop a relay of its own and lists it: status, the address that answered, Location as received", async () => {
+      const { transport, relayed } = hops();
+      const response = await transport.send(request, { ...open(), redirects: { follow: true, stayOnHost: false } });
+      expect(response.status).toBe(200);
+      expect(response.redirects).toEqual({
+        chain: [
+          { status: 302, url: "https://api.test/hop/3", location: "/hop/2" },
+          { status: 302, url: "https://api.test/hop/2", location: "/hop/1" },
+          { status: 302, url: "https://api.test/hop/1", location: "/hop/0" },
+        ],
+      });
+      expect(response.redirected).toBe(true);
+      expect(response.finalUrl).toBe("https://api.test/hop/0");
+      expect(relayed.map((hop) => hop.url)).toEqual(["https://api.test/hop/3", "https://api.test/hop/2", "https://api.test/hop/1", "https://api.test/hop/0"]);
+      expect(relayed[3].headers).toEqual({ "X-Probe": "kept" });
+    });
+
+    it("with follow off the redirect is the response, and the answer says so", async () => {
+      const { transport, relayed } = hops();
+      const response = await transport.send(request, { ...open(), redirects: { follow: false, stayOnHost: false } });
+      expect(response.status).toBe(302);
+      expect(response.redirects).toEqual({ chain: [], stopped: "off" });
+      expect(response.finalUrl).toBe("https://api.test/hop/3");
+      expect(relayed).toHaveLength(1);
+    });
+
+    it("follows 20 redirects and no more", async () => {
+      const { transport, relayed } = hops();
+      const response = await transport.send({ ...request, url: "https://api.test/loop" }, { ...open(), redirects: { follow: true, stayOnHost: false } });
+      expect(response.status).toBe(302);
+      expect(response.redirects?.chain).toHaveLength(20);
+      expect(response.redirects?.stopped).toBe("limit");
+      expect(relayed).toHaveLength(21);
+    });
+
+    it("@claim:C-063 a request that is to stay on its host is not relayed to another: the redirect is the response", async () => {
+      const { transport, relayed } = hops();
+      const secret = { ...request, url: "https://api.test/away", headers: [["X-Api-Key", "s3cret"]] as [string, string][] };
+      const response = await transport.send(secret, { ...open(), redirects: { follow: true, stayOnHost: true } });
+      expect(response.status).toBe(307);
+      expect(response.redirects).toEqual({ chain: [], stopped: "other-host" });
+      expect(relayed.map((hop) => hop.url)).toEqual(["https://api.test/away"]);
+
+      // Without the secret it is followed.
+      const plain = await transport.send({ ...request, url: "https://api.test/away" }, { ...open(), redirects: { follow: true, stayOnHost: false } });
+      expect(plain.finalUrl).toBe("https://other.test/landing");
+    });
+
+    it("one timeout holds for the whole chain", async () => {
+      const { fetch } = fakeFetch(({ init }) => {
+        const payload = JSON.parse(init.body as string) as { url: string };
+        return payload.url.endsWith("/hop/1") ? never() : new Response(JSON.stringify({ status: 302, statusText: "", headers: { location: "/hop/1" }, body: "", bodyEncoding: "utf8" }));
+      });
+      const sent = new BridgeTransport(BRIDGE, fetch).send(request, { signal: new AbortController().signal, timeoutMs: 20, redirects: { follow: true, stayOnHost: false } });
+      await expect(sent).rejects.toMatchObject({ kind: "timeout" });
+    });
+  });
 });

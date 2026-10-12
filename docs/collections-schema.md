@@ -23,7 +23,7 @@ Collections live in IndexedDB and travel as JSON files. A file is written the sa
 | `auth`     | `{ "type": "inherit" }` (what the nearest folder that does not inherit says, then the collection; a request made in a collection starts with it), `{ "type": "none" }`, `{ "type": "bearer", "token" }`, `{ "type": "basic", "username", "password" }`, `{ "type": "apikey", "key", "value", "in": "header" \| "query" }` or `{ "type": "awsv4", "accessKey", "secretKey", "sessionToken", "region", "service" }` (AWS Signature, [`auth.md`](auth.md)) | Plain text, also in a file. |
 | `scripts`  | `{ "pre", "post" }` | Both are text; empty when there is none. |
 | `tests`    | list of `{ "id", "target", "operator", optional "key", optional "expected" }` | In the order they were added. |
-| `settings` | `{ optional "timeoutMs", optional "followRedirects", optional "route" }` | Empty today: the composer sets none of them yet. |
+| `settings` | `{ optional "timeoutMs", optional "followRedirects", optional "route" }` | `followRedirects` is written as `false` when the request's **Follow redirects** is off, and is absent otherwise; it holds for a request sent through the Local Bridge (a direct request is always followed). The composer sets neither of the other two yet. |
 
 A row is `{ "key": text, "value": text, "enabled": true | false }`.
 

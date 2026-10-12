@@ -1,0 +1,165 @@
+{
+  "runner": "newman@6.2.3",
+  "items": [
+    {
+      "iteration": 0,
+      "name": "Start",
+      "tests": [
+        {
+          "name": "start, iteration 0",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Report",
+      "tests": [
+        {
+          "name": "report, iteration 0",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Again",
+      "tests": [
+        {
+          "name": "again, time 1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Again",
+      "tests": [
+        {
+          "name": "again, time 2",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Again",
+      "tests": [
+        {
+          "name": "again, time 3",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Twice named",
+      "tests": [
+        {
+          "name": "the first of two requests of one name",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Last",
+      "tests": [
+        {
+          "name": "last, iteration 0, and a name no request has ends the iteration",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Start",
+      "tests": [
+        {
+          "name": "start, iteration 1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Not in the first iteration",
+      "tests": [
+        {
+          "name": "second, iteration 1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Report",
+      "tests": [
+        {
+          "name": "report, iteration 1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Start",
+      "tests": [
+        {
+          "name": "start, iteration 2",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Not in the first iteration",
+      "tests": [
+        {
+          "name": "second, iteration 2",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Report",
+      "tests": [
+        {
+          "name": "report, iteration 2",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Again",
+      "tests": [
+        {
+          "name": "again, time 4",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Twice named",
+      "tests": [
+        {
+          "name": "the first of two requests of one name",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Last",
+      "tests": [
+        {
+          "name": "last, iteration 2, and a name no request has ends the iteration",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

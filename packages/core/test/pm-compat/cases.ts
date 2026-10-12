@@ -25,7 +25,8 @@ const TYPED = "A value that is not text keeps its type: a number, a boolean, `nu
 const LEGACY_SET = "As Postman's: a value becomes text unless it is falsy, so `1` is read back as `\"1\"` and `0` as `0`.";
 const PROTECTED = " In the app, a value set on a protected variable is encrypted into its vault secret; with the vault locked it is refused with a line in the console.";
 const ALL_SCOPES = "Replaces from every scope, nearest first, as `pm.variables.replaceIn` does.";
-const RUN_ONLY = "Recorded. It has an effect in a collection run only, and there is none yet.";
+const RUN_ONLY = "It has an effect in a collection run. A single send records it and does nothing with it.";
+const NO_RUN = " In a single send there is no data file: it is empty.";
 
 /** get, set, unset, has, toObject, replaceIn and clear of one stored scope. */
 function scope(name: string, key: "environment" | "collection" | "global", has: [string, string], all: Record<string, string>): CompatCase[] {
@@ -59,12 +60,13 @@ export const CASES: CompatCase[] = [
   { api: "pm.variables.get (a folder's variable)", status: "partial", note: "Postman has no folder variables. Here a folder has them: `pm.variables` reads the nearest folder's value, which wins over the collection's and loses to the environment's. No scope of `pm` writes one.", script: `same(pm.variables.get("inFolder"), "from the folder"); same(pm.collectionVariables.get("inFolder"), undefined); same(pm.variables.replaceIn("{{inFolder}}"), "from the folder");` },
   { api: "pm.variables.set", status: "partial", note: TYPED, script: `pm.variables.set("count", 0); same(pm.variables.get("count"), 0); pm.variables.set("shared", "local"); same(pm.variables.get("shared"), "local"); same(pm.collectionVariables.get("shared"), "from collection");`, result: { changes: { environment: [], collection: [], global: [] } } },
   { api: "pm.variables.has", status: "supported", script: `same(pm.variables.has("token"), true); same(pm.variables.has("missing"), false);` },
-  { api: "pm.variables.toObject", status: "supported", script: `same(pm.variables.toObject(), { shared: "from collection", g: "1", base: "https://{{host}}", inFolder: "from the folder", host: "api.test", token: "abc123", nested: "{{host}}/v1" });` },
+  { api: "pm.variables.toObject", status: "supported", script: `same(pm.variables.toObject(), { shared: "from collection", g: "1", base: "https://{{host}}", inFolder: "from the folder", host: "api.test", token: "abc123", nested: "{{host}}/v1", user: "ann", count: 3, token2: "from the data file" });` },
   { api: "pm.variables.replaceIn", status: "supported", script: `same(pm.variables.replaceIn("{{base}}/{{nested}}?{{missing}}"), "https://api.test/api.test/v1?{{missing}}"); same(/^[0-9a-f-]{36}$/.test(pm.variables.replaceIn("{{$guid}}")), true); same(pm.variables.replaceIn("{{$secret.abc}}"), "{{$secret.abc}}");` },
 
-  { api: "pm.iterationData.get", status: "partial", note: "Empty: there is no collection run with a data file yet.", script: `same(pm.iterationData.get("token"), undefined);` },
-  { api: "pm.iterationData.has", status: "partial", note: "Empty: there is no collection run with a data file yet.", script: `same(pm.iterationData.has("token"), false);` },
-  { api: "pm.iterationData.toObject", status: "partial", note: "Empty: there is no collection run with a data file yet.", script: `same(pm.iterationData.toObject(), {});` },
+  { api: "pm.iterationData.get", status: "supported", note: "The row of the run's data file for this iteration. A value of a JSON file keeps its type; a CSV file's are text." + NO_RUN, script: `same(pm.iterationData.get("user"), "ann"); same(pm.iterationData.get("count"), 3); same(pm.iterationData.get("missing"), undefined); same(pm.iterationData.set, undefined);` },
+  { api: "pm.iterationData.has", status: "supported", note: NO_RUN.trim(), script: `same(pm.iterationData.has("user"), true); same(pm.iterationData.has("token"), false);` },
+  { api: "pm.iterationData.toObject", status: "supported", note: NO_RUN.trim(), script: `same(pm.iterationData.toObject(), { user: "ann", count: 3, token2: "from the data file" });` },
+  { api: "pm.variables.get (a data file's value)", status: "supported", note: "A data file's value wins over the environment's, the collection's and the global one, in a script and in `{{…}}`.", script: `same(pm.variables.get("token2"), "from the data file"); same(pm.variables.replaceIn("{{user}}@{{host}}"), "ann@api.test");` },
 
   { api: "pm.request.url.toString", status: "supported", event: "prerequest", script: `same(pm.request.url.toString(), "https://{{host}}/items?page=2#top"); same(String(pm.request.url), "https://{{host}}/items?page=2#top");` },
   { api: "pm.request.url.getHost / getPath / getQueryString", status: "partial", note: "Read from the address as written, `{{variables}}` not replaced. The parts as lists (`protocol`, `host`, `path`, `query`) are not there.", event: "prerequest", script: `same([pm.request.url.getHost(), pm.request.url.getPath(), pm.request.url.getQueryString()], ["{{host}}", "/items", "page=2"]);` },
@@ -105,8 +107,8 @@ export const CASES: CompatCase[] = [
   { api: "pm.expect(pm.response)", status: "supported", script: `pm.expect(pm.response).to.have.status(201); pm.expect(pm.response).to.have.header("X-Id", "7"); pm.expect(pm.response).to.have.jsonBody({ id: 7, tags: ["a", "b"] }); pm.expect(pm.response).to.be.success; pm.expect(pm.response).to.not.be.ok; pm.expect(pm.response).to.not.have.status(200); pm.expect(1).to.be.ok; let message = ""; try { pm.expect(pm.response).to.be.ok; } catch (error) { message = error.message; } same(message, "expected response to have status code 200 but got 201");` },
   { api: "pm.info.eventName", status: "supported", script: `same(pm.info.eventName, "test");` },
   { api: "pm.info.eventName (pre-request)", status: "supported", event: "prerequest", script: `same(pm.info.eventName, "prerequest");` },
-  { api: "pm.info.iteration", status: "partial", note: "Always 0: there is no collection run yet.", script: `same(pm.info.iteration, 0);` },
-  { api: "pm.info.iterationCount", status: "partial", note: "Always 1: there is no collection run yet.", script: `same(pm.info.iterationCount, 1);` },
+  { api: "pm.info.iteration", status: "supported", note: "The iteration of the run, from 0. In a single send it is 0.", script: `same(pm.info.iteration, 2);` },
+  { api: "pm.info.iterationCount", status: "supported", note: "How many iterations the run has. In a single send it is 1.", script: `same(pm.info.iterationCount, 5);` },
   { api: "pm.info.requestName", status: "supported", script: `same(pm.info.requestName, "Create item");` },
   { api: "pm.info.requestId", status: "supported", script: `same(pm.info.requestId, "req-1");` },
 
@@ -117,8 +119,8 @@ export const CASES: CompatCase[] = [
   { api: "pm.sendRequest (limit)", status: "partial", note: "A script may make 10 requests in one run. The next is answered with an error.", script: `for (let i = 0; i < 10; i++) await pm.sendRequest("https://api.test/" + i); let caught = ""; try { await pm.sendRequest("https://api.test/eleventh"); } catch (error) { caught = error.message; } same(caught, "pm.sendRequest: a script may make 10 requests, and this is one more.");` },
   { api: "pm.sendRequest (formdata, file or graphql body)", status: "unsupported", script: `let error; try { await pm.sendRequest({ url: "https://api.test/upload", method: "POST", body: { mode: "formdata", formdata: [] } }); } catch (thrown) { error = thrown; } refused(() => { throw error; });` },
 
-  { api: "pm.execution.setNextRequest", status: "partial", note: RUN_ONLY, script: `pm.execution.setNextRequest("Login");`, result: { nextRequest: "Login" } },
-  { api: "pm.execution.skipRequest", status: "partial", note: RUN_ONLY, event: "prerequest", script: `pm.execution.skipRequest();`, result: { skipRequest: true } },
+  { api: "pm.execution.setNextRequest", status: "supported", note: RUN_ONLY + " As in Postman: a name or an id of a request of the run, the last request of that name when several have it; `null`, or a name no request has, ends the iteration; the last call of a request's scripts counts.", script: `pm.execution.setNextRequest("Login");`, result: { nextRequest: "Login" } },
+  { api: "pm.execution.skipRequest", status: "supported", note: RUN_ONLY + " In a run the request is not sent and its post-response scripts do not run.", event: "prerequest", script: `pm.execution.skipRequest();`, result: { skipRequest: true } },
 
   unsupported("pm.cookies.get", `pm.cookies.get("session")`),
   unsupported("pm.cookies.has", `pm.cookies.has("session")`),
@@ -137,7 +139,7 @@ export const CASES: CompatCase[] = [
   { api: "postman.getGlobalVariable", status: "supported", script: `same(postman.getGlobalVariable("g"), "1");` },
   { api: "postman.clearGlobalVariable", status: "supported", script: `postman.clearGlobalVariable("g"); same(pm.globals.has("g"), false);`, result: { changes: { global: [{ key: "g", value: null }] } } },
   { api: "postman.clearGlobalVariables", status: "supported", script: `postman.clearGlobalVariables(); same(pm.globals.toObject(), {});` },
-  { api: "postman.setNextRequest", status: "partial", note: RUN_ONLY, script: `postman.setNextRequest("Login");`, result: { nextRequest: "Login" } },
+  { api: "postman.setNextRequest", status: "supported", note: RUN_ONLY, script: `postman.setNextRequest("Login");`, result: { nextRequest: "Login" } },
   { api: "postman.getResponseHeader", status: "supported", script: `same([postman.getResponseHeader("x-id"), postman.getResponseHeader("X-ID"), postman.getResponseHeader("missing")], ["7", "7", undefined]);` },
   unsupported("postman.getResponseCookie", `postman.getResponseCookie("sid")`),
   { api: "tests[name] = boolean", status: "supported", script: `tests["legacy passes"] = responseCode.code === 201; tests["legacy fails"] = 0;`, result: { testResults: [{ passed: true }, { label: "legacy passes", passed: true }, { label: "legacy fails", passed: false, error: "expected 0 to be truthy" }] } },
@@ -158,7 +160,8 @@ export const CASES: CompatCase[] = [
     note: "A copy made when the script starts, kept in step by `postman.setGlobalVariable` and the two that clear.",
     script: `same(globals, { shared: "from globals", g: "1" }); postman.setGlobalVariable("fresh", "2"); postman.clearGlobalVariable("g"); same(globals, { shared: "from globals", fresh: "2" }); postman.clearGlobalVariables(); same(globals, {});`,
   },
-  { api: "iteration", status: "partial", note: "Always 0: there is no collection run yet.", script: `same(iteration, 0);` },
+  { api: "iteration", status: "supported", note: "As `pm.info.iteration`.", script: `same(iteration, 2);` },
+  { api: "data (legacy global)", status: "supported", note: "As `pm.iterationData.toObject()`.", script: `same(data, { user: "ann", count: 3, token2: "from the data file" });` },
   { api: "response globals in a pre-request script", status: "supported", event: "prerequest", script: `same([typeof responseBody, typeof responseCode, typeof responseTime, typeof responseHeaders, postman.getResponseHeader("x-id")], ["undefined", "undefined", "undefined", "undefined", undefined]);` },
   {
     api: "legacy additions to built-in objects ([].none, (56).hex, fn.once and the rest of Sugar)",

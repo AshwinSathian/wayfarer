@@ -1,0 +1,7 @@
+user,role,status,note
+ann,admin,200,plain
+bob,reader,403,"a ""quoted"", comma"
+cy,admin,200,
+dee,reader,200,"two
+lines"
+eve,admin,403,käse & co

@@ -194,7 +194,8 @@ Scripts written before `pm` existed run as they are:
   script.
 - `request` (`method`, `url`, `headers`, `data`, `name`, `id`),
   `environment` and `globals` (copies, as they were when the script
-  started), `iteration` (0).
+  started), `iteration` (0) and `data` (the row of a run's data file, as
+  `pm.iterationData.toObject()`; empty in a single send).
 
 The library globals of that sandbox (`_`, `CryptoJS`, `tv4`, `cheerio`,
 `xml2Json`) are not there; use `require` for the ones that ship.
@@ -286,11 +287,11 @@ starts with what the JavaScript language defines (`Object`, `JSON`,
 `Promise`, `Math` and so on) and nothing a browser adds: no `fetch`, no
 `XMLHttpRequest`, no `WebSocket`, no `self`, no `postMessage`, no
 `importScripts`, no storage, no module loader. `runScript`
-(`packages/core/src/scripting/host.ts`) then adds exactly sixteen names:
-`pm`, `console`, `atob`, `btoa`, `setTimeout`, `require`, and the ten of
+(`packages/core/src/scripting/host.ts`) then adds exactly seventeen names:
+`pm`, `console`, `atob`, `btoa`, `setTimeout`, `require`, and the eleven of
 Postman's older sandbox (`postman`, `tests`, `responseBody`, `responseCode`,
 `responseTime`, `responseHeaders`, `request`, `environment`, `globals`,
-`iteration`). A new browser API
+`iteration`, `data`). A new browser API
 cannot appear inside the engine, because the engine is not the browser.
 `require` loads nothing from anywhere: it evaluates, inside the engine, one
 of five libraries the app was built with.
@@ -308,7 +309,7 @@ the production build with the production headers:
   function and of a generator. Each must find nothing.
 - The global object is the engine's own by every road, `globalThis.constructor`
   is the engine's `Object`, and its own property names are exactly the
-  language's list plus the sixteen.
+  language's list plus the seventeen.
 - Ten network roads are called with a variable's value in the address
   (`fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`, `sendBeacon`,
   `importScripts`, `Image`, `Worker`, `require` of a module of Node, a

@@ -1,0 +1,197 @@
+{
+  "info": {
+    "name": "Run with jumps",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Start",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=start"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"start, iteration \" + pm.info.iteration, () => pm.response.to.have.status(200));",
+                  "// The first iteration jumps over two requests, into a folder.",
+                  "if (pm.info.iteration === 0) pm.execution.setNextRequest(\"Report\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Not in the first iteration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=second"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"second, iteration \" + pm.info.iteration, () => pm.expect(pm.info.iteration).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Never sent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/status/500"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.execution.skipRequest();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"a skipped request has no response\", () => { throw new Error(\"its post-response script ran\"); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=report"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"report, iteration \" + pm.info.iteration, () => pm.response.to.have.status(200));",
+                  "// The second iteration ends here: null ends an iteration, not the run.",
+                  "if (pm.info.iteration === 1) pm.execution.setNextRequest(null);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Again",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=again"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const times = Number(pm.environment.get(\"times\") || 0) + 1;",
+                  "pm.environment.set(\"times\", String(times));",
+                  "pm.test(\"again, time \" + times, () => pm.response.to.have.status(200));",
+                  "// A request may name itself: twice more, then on.",
+                  "if (times < 3) pm.execution.setNextRequest(\"Again\");"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Twice named",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=first-of-two"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"the first of two requests of one name\", () => pm.response.to.have.status(200));",
+              "pm.execution.setNextRequest(\"Start\"); pm.execution.setNextRequest(\"Last\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=last"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.execution.setNextRequest(\"Nobody\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"last, iteration \" + pm.info.iteration + \", and a name no request has ends the iteration\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "After the end",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=after"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"not reached\", () => { throw new Error(\"reached\"); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

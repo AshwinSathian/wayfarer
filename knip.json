@@ -38,6 +38,9 @@
       ],
       "ignoreDependencies": [
         "@stryker-mutator/command-runner"
+      ],
+      "ignoreBinaries": [
+        "xmllint"
       ]
     }
   },

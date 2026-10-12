@@ -111,12 +111,14 @@ export interface ScriptContext {
   folder?: ScriptVariable[];
   collection?: ScriptVariable[];
   globals?: ScriptVariable[];
+  /** The row of a run's data file for this iteration (P5.2): `pm.iterationData`, and the nearest scope of `pm.variables` after the script's own. Absent in a single send. */
+  data?: ScriptVariable[];
   /** Absent for a pre-request script: `pm.response` is then `null`. */
   response?: ScriptResponse;
   /** The request being sent. Absent: `pm.request` is `null`. */
   request?: ScriptRequest;
   /** Which script this is, and of which request. A script without it is a post-response script of no request. */
-  info?: { eventName: "prerequest" | "test"; requestName: string; requestId: string };
+  info?: { eventName: "prerequest" | "test"; requestName: string; requestId: string; /** In a run: which iteration this is, from 0, and of how many. */ iteration?: number; iterationCount?: number };
 }
 
 /** What the host of a run provides besides the context. */
@@ -223,8 +225,8 @@ export async function runScript(
   // The mark is believed only on a value that is JSON: a script is never handed text to parse that will not parse.
   const marked = (rows: ScriptVariable[] = []) => new Set(rows.filter(([, value, json]) => json === true && isJsonText(value)).map(([name]) => name));
   const state: RunState = {
-    values: { local: scope(), data: scope(), environment: scope(context.environment), folder: scope(context.folder), collection: scope(context.collection), global: scope(context.globals) },
-    json: { local: marked(), data: marked(), environment: marked(context.environment), folder: marked(context.folder), collection: marked(context.collection), global: marked(context.globals) },
+    values: { local: scope(), data: scope(context.data), environment: scope(context.environment), folder: scope(context.folder), collection: scope(context.collection), global: scope(context.globals) },
+    json: { local: marked(), data: marked(context.data), environment: marked(context.environment), folder: marked(context.folder), collection: marked(context.collection), global: marked(context.globals) },
     changes: { local: new Map(), data: new Map(), environment: new Map(), folder: new Map(), collection: new Map(), global: new Map() },
     sends: 0,
     inFlight: 0,

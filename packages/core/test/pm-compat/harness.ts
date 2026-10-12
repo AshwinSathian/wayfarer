@@ -9,6 +9,12 @@ export const FIXTURE = {
     ["nested", "{{host}}/v1"],
   ],
   environmentName: "Staging",
+  // A row of a run's data file: it wins over every stored scope.
+  data: [
+    ["user", "ann"],
+    ["count", "3", true],
+    ["token2", "from the data file"],
+  ],
   folder: [["inFolder", "from the folder"]],
   collection: [
     ["base", "https://{{host}}"],
@@ -52,7 +58,7 @@ export function scriptOf(row: CompatCase): string {
 /** The context of a row: a pre-request script has no response. */
 export function contextOf(row: CompatCase): ScriptContext {
   const { response, ...rest } = FIXTURE;
-  const info = { eventName: row.event ?? ("test" as const), requestName: "Create item", requestId: "req-1" };
+  const info = { eventName: row.event ?? ("test" as const), requestName: "Create item", requestId: "req-1", iteration: 2, iterationCount: 5 };
   return structuredClone(row.event === "prerequest" ? { ...rest, info } : { ...rest, response, info });
 }
 

@@ -1,0 +1,255 @@
+{
+  "runner": "newman@6.2.3",
+  "items": [
+    {
+      "iteration": 0,
+      "name": "Sign in",
+      "tests": [
+        {
+          "name": "signs in as ann",
+          "passed": true
+        },
+        {
+          "name": "iteration 1 of 5",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Read",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true
+        },
+        {
+          "name": "note is \"plain\"",
+          "passed": true
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Admins only",
+      "tests": [
+        {
+          "name": "ann gets 200",
+          "passed": true
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Sign in",
+      "tests": [
+        {
+          "name": "signs in as bob",
+          "passed": true
+        },
+        {
+          "name": "iteration 2 of 5",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Read",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true
+        },
+        {
+          "name": "note is \"a \\\"quoted\\\", comma\"",
+          "passed": true
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 1,
+      "name": "Admins only",
+      "tests": [
+        {
+          "name": "bob gets 403",
+          "passed": true
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Sign in",
+      "tests": [
+        {
+          "name": "signs in as cy",
+          "passed": true
+        },
+        {
+          "name": "iteration 3 of 5",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Read",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true
+        },
+        {
+          "name": "note is \"\"",
+          "passed": true
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 2,
+      "name": "Admins only",
+      "tests": [
+        {
+          "name": "cy gets 200",
+          "passed": true
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "name": "Sign in",
+      "tests": [
+        {
+          "name": "signs in as dee",
+          "passed": true
+        },
+        {
+          "name": "iteration 4 of 5",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "name": "Read",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true
+        },
+        {
+          "name": "note is \"two\\nlines\"",
+          "passed": true
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 3,
+      "name": "Admins only",
+      "tests": [
+        {
+          "name": "dee gets 200",
+          "passed": true
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "name": "Sign in",
+      "tests": [
+        {
+          "name": "signs in as eve",
+          "passed": true
+        },
+        {
+          "name": "iteration 5 of 5",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "name": "Read",
+      "tests": [
+        {
+          "name": "the address has the row's value",
+          "passed": true
+        },
+        {
+          "name": "note is \"käse & co\"",
+          "passed": true
+        },
+        {
+          "name": "a data value wins over the environment's",
+          "passed": true
+        },
+        {
+          "name": "what the request before stored is here",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 4,
+      "name": "Admins only",
+      "tests": [
+        {
+          "name": "eve gets 403",
+          "passed": true
+        },
+        {
+          "name": "only an admin is let in",
+          "passed": false
+        }
+      ]
+    }
+  ]
+}

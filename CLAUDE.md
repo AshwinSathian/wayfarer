@@ -634,6 +634,9 @@ code errors.
 - Response headers live in `public/_headers`: CSP (generated), HSTS for this
   host only (no `includeSubDomains`, no `preload`), COOP and CORP
   `same-origin`. The smoke e2e asserts them.
+- The Local Bridge's token is never in `localStorage` (F83): `BridgeSettings` keeps it as the vault secret
+  "Local Bridge token" while the vault is unlocked and in memory otherwise, and `TransportRouter` asks for it
+  with `tokenForSend`, which may ask the user to unlock the vault. Vault work there goes one after another.
 - Local Bridge (`local-bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument

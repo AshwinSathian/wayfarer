@@ -58,4 +58,13 @@ describe("TransportRouter", () => {
     req.flush(JSON.stringify({ status: 200, statusText: "OK", headers: {}, body: "", bodyEncoding: "utf8" }), { status: 200 });
     expect((await pending).route).toBe("bridge");
   });
+
+  it("with the bridge on and no token in the tab or the vault, nothing is sent and the error says where the token is kept (F83)", async () => {
+    TestBed.inject(BridgeSettings).update({ enabled: true, url: "http://127.0.0.1:7717", token: "" });
+
+    await expect(router.send({ method: "GET", url: "https://internal.example.com/data", headers: [] }, open())).rejects.toThrow(
+      "The Local Bridge is on, and its token is not in this tab."
+    );
+    fetchMock.verify();
+  });
 });

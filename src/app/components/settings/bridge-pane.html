@@ -15,7 +15,7 @@
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
-    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-local-bridge</span>. It is kept as plain text in this browser, not in the vault.</p>
+    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-local-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
     <div class="flex items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1">
         <input matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />

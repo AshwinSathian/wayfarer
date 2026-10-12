@@ -184,7 +184,7 @@ export class WorkspaceStore {
   /** Whether the draft's scripts may run (`ScriptTrust`). */
   readonly scriptsAllowed = this.trust.allowed;
   /** The draft has a script that is waiting for the user's review. */
-  readonly scriptsHeld = computed(() => !this.trust.allowed() && this.hasScripts(this.saved.ancestors()));
+  readonly scriptsHeld = computed(() => !this.trust.allowed() && this.hasScripts(this.saved.ancestors(), this.draft()));
   /** The last send left the request's scripts out, for that reason. */
   readonly scriptsSkipped = this.ofTab((tab) => tab.scriptsSkipped);
 
@@ -226,8 +226,11 @@ export class WorkspaceStore {
    * first), then its collection, then the globals. A request not saved yet
    * has no collection.
    */
-  private readonly scopes = computed<ScopeStack>(() => {
-    const [collection, ...folders] = this.saved.ancestors();
+  private readonly scopes = computed<ScopeStack>(() => this.scopesOf(this.tabs.active()));
+
+  /** The same for `tab`, open or not: a send reads its own tab's (session 5B). */
+  private scopesOf(tab: TabState): ScopeStack {
+    const [collection, ...folders] = this.saved.ancestorsFor(tab.bound());
     return {
       environment: this.environments.activeEnvironment()?.vars,
       // The outermost folder's rows first: a later row wins, so the nearest folder does.
@@ -235,7 +238,7 @@ export class WorkspaceStore {
       collection: collection?.variables,
       global: this.environments.globals(),
     };
-  });
+  }
   /** What the draft's auth is when it inherits, and from where (P4.9). */
   readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
   /**
@@ -255,7 +258,7 @@ export class WorkspaceStore {
         return text;
       }
     };
-    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(this.sentAuth(draft.auth), resolve)))].map(
+    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(this.sentAuth(draft.auth, this.tabs.active()), resolve)))].map(
       ([name, value]): [string, string] => [resolve(name), resolve(value)]
     );
     const contentType = isBodyMethod(draft.method) ? bodyContentType(draft.body) : undefined;
@@ -409,58 +412,60 @@ export class WorkspaceStore {
   }
 
   /**
-   * Sends the draft. Resolves to true when the exchange was recorded in
-   * history. `allowUnresolved` sends a `{{variable}}` that has no value as
-   * that text: the user chose "Send anyway".
+   * Sends the open tab's draft. Resolves to true when the exchange was
+   * recorded in history. `allowUnresolved` sends a `{{variable}}` that has no
+   * value as that text: the user chose "Send anyway".
+   *
+   * The send holds its tab (session 5B): from here to its last step it reads
+   * and writes `tab`, never "the open tab", which may be another by then.
    */
   async send(options: { allowUnresolved?: boolean } = {}): Promise<boolean> {
-    this.endpointError.set("");
-    this.pasteNotes.set([]);
-    this.unresolvedBlocked.set([]);
-    this.resetResponseState();
-    this.lastTestResults.set([]);
-    this.lastScriptLogs.set([]);
-    this.lastTimings.set(null);
-    this.scriptsSkipped.set(false);
-
-    // The tab stays the open one until the send ends (`Tabs.locked`).
     const tab = this.tabs.active();
-    const draft = this.draft();
+    tab.endpointError.set("");
+    tab.pasteNotes.set([]);
+    tab.unresolvedBlocked.set([]);
+    tab.resetResponse();
+    tab.lastTestResults.set([]);
+    tab.lastScriptLogs.set([]);
+    tab.lastTimings.set(null);
+    tab.scriptsSkipped.set(false);
+
+    const draft = tab.draft();
     const endpointText = draft.url;
     if (!endpointText) {
-      this.endpointError.set("Endpoint is a Required value");
+      tab.endpointError.set("Endpoint is a Required value");
       return false;
     }
 
     const methodError = this.methodError(draft.method);
     if (methodError) {
-      this.endpointError.set(methodError);
+      tab.endpointError.set(methodError);
       return false;
     }
 
     try {
-      if (!validateUrl(new VariableResolver(this.scopes()).resolve(endpointText.trim()))) {
-        this.endpointError.set("Please enter a valid URL");
+      if (!validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(endpointText.trim()))) {
+        tab.endpointError.set("Please enter a valid URL");
         return false;
       }
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
-      this.endpointError.set(error.message);
+      tab.endpointError.set(error.message);
       return false;
     }
 
-    this.loadingState.set(true);
+    tab.loadingState.set(true);
     const controller = new AbortController();
-    this.tabs.active().inFlight = controller;
+    tab.inFlight = controller;
 
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
-    const inherited = this.saved.ancestors();
+    const inherited = this.saved.ancestorsFor(tab.bound());
     // Asked of what is stored now, not of a signal that may be a moment behind.
-    const allowed = this.trust.check(inherited);
+    const allowed = this.trust.check(inherited, tab);
     const runScripts = allowed instanceof Promise ? await allowed : allowed;
-    this.scriptsSkipped.set(!runScripts && this.hasScripts(inherited));
+    tab.scriptsSkipped.set(!runScripts && this.hasScripts(inherited, draft));
     // What a pre-request script may move the request away from (plan Q6): the request before the first of them, an inherited one included.
-    const composed: Composed | undefined = runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim()) ? { url: endpointText, scopes: this.scopes() } : undefined;
+    const composed: Composed | undefined = runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim()) ? { url: endpointText, scopes: this.scopesOf(tab) } : undefined;
 
     let result: RequestExecutionResult;
     try {
@@ -469,45 +474,45 @@ export class WorkspaceStore {
         preRequestScript: draft.scripts.pre,
         postRequestScript: draft.scripts.post,
         tests: draft.tests,
-        template: this.snapshot(),
-        buildRequest: (request) => this.buildRequestForExecution(request, options.allowUnresolved ?? false, composed),
-        retryUnauthorized: (request) => this.withRenewedToken(request, options.allowUnresolved ?? false),
+        template: contentOf(tab.draft()),
+        buildRequest: (request) => this.buildRequestForExecution(tab, request, options.allowUnresolved ?? false, composed),
+        retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved ?? false),
         signal: controller.signal,
         inherited,
-        folderVariables: () => this.scopes().folder ?? [],
-        ...this.scriptBinding(),
+        folderVariables: () => this.scopesOf(tab).folder ?? [],
+        ...this.scriptBinding(tab),
       });
     } catch (error) {
-      this.loadingState.set(false);
+      tab.loadingState.set(false);
       // Variables that refer to each other in a circle: nothing is sent.
       if (error instanceof SendBlockedError || error instanceof VariableNestingError) {
         if (error instanceof PreRequestScriptError) {
           // There is no response. The Tests tab has what the script did before it failed.
-          this.lastTestResults.set(error.testResults);
-          this.lastScriptLogs.set(error.scriptLogs);
-          this.lastTimings.set(error.timings);
-          this.responseTab.set("tests");
+          tab.lastTestResults.set(error.testResults);
+          tab.lastScriptLogs.set(error.scriptLogs);
+          tab.lastTimings.set(error.timings);
+          tab.responseTab.set("tests");
         }
-        this.endpointError.set(error.message);
-        this.unresolvedBlocked.set(error instanceof UnresolvedVariablesError ? error.names : []);
+        tab.endpointError.set(error.message);
+        tab.unresolvedBlocked.set(error instanceof UnresolvedVariablesError ? error.names : []);
         return false;
       }
       throw error;
     }
 
-    this.loadingState.set(false);
-    this.lastTestResults.set(result.testResults);
-    this.lastScriptLogs.set(result.scriptLogs);
-    this.lastTimings.set(result.timings);
-    this.applyExecutionResponse(result.response);
+    tab.loadingState.set(false);
+    tab.lastTestResults.set(result.testResults);
+    tab.lastScriptLogs.set(result.scriptLogs);
+    tab.lastTimings.set(result.timings);
+    this.applyExecutionResponse(tab, result.response);
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
   }
 
   /** What a script is told of the saved request in the composer, and the collection whose variables it may read and change. */
-  private scriptBinding(): Partial<Pick<RequestExecutionSpec, "info" | "collection">> {
-    const bound = this.saved.loadedCollectionRequest();
+  private scriptBinding(tab: TabState): Partial<Pick<RequestExecutionSpec, "info" | "collection">> {
+    const bound = tab.bound();
     if (!bound) return {};
     const { collectionId } = bound;
     return {
@@ -519,14 +524,14 @@ export class WorkspaceStore {
     };
   }
 
-  /** The draft, or something it inherits from, has a script. */
-  private hasScripts(inherited: Ancestor[]): boolean {
-    return [...inherited, this.draft()].some((holder) => scriptsOf(holder).length > 0);
+  /** `draft`, or something it inherits from, has a script. */
+  private hasScripts(inherited: Ancestor[], draft: Draft): boolean {
+    return [...inherited, draft].some((holder) => scriptsOf(holder).length > 0);
   }
 
-  /** The auth that is sent for `auth`: itself, or what it inherits. */
-  private sentAuth(auth: AuthConfig): AuthConfig {
-    return effectiveAuth(auth, this.saved.ancestors()).auth;
+  /** The auth that is sent for `auth` from `tab`: itself, or what the tab's saved request inherits. */
+  private sentAuth(auth: AuthConfig, tab: TabState): AuthConfig {
+    return effectiveAuth(auth, this.saved.ancestorsFor(tab.bound())).auth;
   }
 
   /**
@@ -534,12 +539,12 @@ export class WorkspaceStore {
    * name its token is kept under (`oauthTokenKey`): made with the variables
    * replaced and no vault secret read, so the name holds none.
    */
-  readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() => this.oauthOf(this.draft().auth));
+  readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() => this.oauthOf(this.draft().auth, this.tabs.active()));
 
-  private oauthOf(own: AuthConfig): { auth: OAuth2Auth; key: string } | null {
-    const auth = this.sentAuth(own);
+  private oauthOf(own: AuthConfig, tab: TabState): { auth: OAuth2Auth; key: string } | null {
+    const auth = this.sentAuth(own, tab);
     if (auth.type !== "oauth2") return null;
-    const probe = new VariableResolver(this.scopes());
+    const probe = new VariableResolver(this.scopesOf(tab));
     try {
       return { auth, key: oauthTokenKey(resolveAuth(auth, (text) => probe.resolve(text))) };
     } catch (error) {
@@ -619,7 +624,7 @@ export class WorkspaceStore {
       const body = exportBody(content.body, content.method, (text) => resolver.resolve(text));
       // The type the body's mode implies, as a send adds it. A multipart form has none: its sender writes the boundary.
       const contentType = body.mode === "none" || body.mode === "multipart" || (body.mode === "raw" && !body.text) ? undefined : bodyContentType(content.body);
-      const built = this.assemble(endpoint, content, contentType ? { data: "", contentType } : undefined, resolver);
+      const built = this.assemble(this.tabs.active(), endpoint, content, contentType ? { data: "", contentType } : undefined, resolver);
       return { method: built.method, url: built.url, headers: built.headers, body, secrets: built.secrets, credentials: built.credentials };
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
@@ -653,9 +658,9 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(content, allowUnresolved, composed, renewToken);
-    return built instanceof Promise ? built.then((request) => this.recordForExport(request, content)) : this.recordForExport(built, content);
+  private buildRequestForExecution(tab: TabState, content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
+    const built = this.resolveRequest(tab, content, allowUnresolved, composed, renewToken);
+    return built instanceof Promise ? built.then((request) => this.recordForExport(tab, request, content)) : this.recordForExport(tab, built, content);
   }
 
   /**
@@ -663,20 +668,20 @@ export class WorkspaceStore {
    * send a 401 gets when the auth asks for it. `null` when the auth does not,
    * or when no token could be had: the 401 is then the response.
    */
-  private async withRenewedToken(content: RequestContent, allowUnresolved: boolean): Promise<BuiltRequest | null> {
-    const auth = this.sentAuth(content.auth);
+  private async withRenewedToken(tab: TabState, content: RequestContent, allowUnresolved: boolean): Promise<BuiltRequest | null> {
+    const auth = this.sentAuth(content.auth, tab);
     if (auth.type !== "oauth2" || !auth.retryOn401) return null;
     try {
-      return await this.buildRequestForExecution(content, allowUnresolved, undefined, true);
+      return await this.buildRequestForExecution(tab, content, allowUnresolved, undefined, true);
     } catch (error) {
       if (!(error instanceof SendBlockedError)) throw error;
       return null;
     }
   }
 
-  private recordForExport(request: BuiltRequest, content: RequestContent): BuiltRequest {
+  private recordForExport(tab: TabState, request: BuiltRequest, content: RequestContent): BuiltRequest {
     const id = newId();
-    this.responseExportContext.set({
+    tab.responseExportContext.set({
       id,
       method: request.method,
       url: request.url,
@@ -686,7 +691,7 @@ export class WorkspaceStore {
       secrets: request.secrets,
       credentials: request.credentials,
     });
-    this.patch({ responseId: id });
+    tab.draft.update((draft) => ({ ...draft, responseId: id }));
     return request;
   }
 
@@ -700,17 +705,19 @@ export class WorkspaceStore {
    * user is asked before the vault is read (plan Q6). One send is compared:
    * a variable a script set in an earlier send is not seen here.
    */
-  private resolveRequest(content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
+  private resolveRequest(tab: TabState, content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
     const endpointText = content.url;
+    // Read at each use: a pre-request script, or a vault unlock, may have come between.
+    const scopes = () => this.scopesOf(tab);
     // First without the vault: this pass says which secrets the request needs.
-    const probe = new VariableResolver(this.scopes());
+    const probe = new VariableResolver(scopes());
     for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body)]) {
       probe.resolve(text);
     }
     // Every field of the auth that is sent, not its credentials alone: a username or an access key may be a secret too (F81).
-    resolveAuth(this.sentAuth(content.auth), (text) => probe.resolve(text));
+    resolveAuth(this.sentAuth(content.auth, tab), (text) => probe.resolve(text));
     const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
-      const built = this.build(endpointText, content, resolver, renewToken);
+      const built = this.build(tab, endpointText, content, resolver, renewToken);
       const check = (request: BuiltRequest): BuiltRequest => {
         if (resolver.unresolved.size && this.settings.blockUnresolved() && !allowUnresolved) {
           throw new UnresolvedVariablesError([...resolver.unresolved]);
@@ -720,10 +727,10 @@ export class WorkspaceStore {
       return built instanceof Promise ? built.then(check) : check(built);
     };
     // Nothing to read from the vault: the request is built at once, in the same task as the click.
-    if (!probe.lockedSecrets.size) return checked(new VariableResolver(this.scopes()));
-    const withSecrets = () => this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(this.scopes(), (id) => secrets.get(id))));
+    if (!probe.lockedSecrets.size) return checked(new VariableResolver(scopes()));
+    const withSecrets = () => this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
     const from = composed && hostOf(composed.url, composed.scopes);
-    const to = hostOf(endpointText, this.scopes());
+    const to = hostOf(endpointText, scopes());
     if (from === undefined || from === to) return withSecrets();
     return this.confirm
       .confirm({
@@ -757,21 +764,21 @@ export class WorkspaceStore {
   }
 
   /** A promise only when a file has to be read: everything else is built at once. */
-  private build(endpointText: string, content: RequestContent, resolver: VariableResolver, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
+  private build(tab: TabState, endpointText: string, content: RequestContent, resolver: VariableResolver, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
     const resolve = (text: string): string => resolver.resolve(text);
-    const auth = resolveAuth(this.sentAuth(content.auth), resolve);
+    const auth = resolveAuth(this.sentAuth(content.auth, tab), resolve);
     // Read before anything else is resolved: these are the auth's own.
     const withoutValue = [...resolver.unresolved];
     const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
-    const finish = (body: SentBody | undefined, token?: string): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(endpointText, content, body, resolver, token), auth);
-    const oauth = auth.type === "oauth2" ? this.oauthOf(content.auth) : null;
+    const finish = (body: SentBody | undefined, token?: string): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(tab, endpointText, content, body, resolver, token), auth);
+    const oauth = auth.type === "oauth2" ? this.oauthOf(content.auth, tab) : null;
     if (auth.type !== "oauth2" || !oauth) return sent instanceof Promise ? sent.then((body) => finish(body)) : finish(sent);
     // A token is not asked for with a variable's name where its value should be, whatever "Send anyway" says of the request itself.
     if (withoutValue.length) {
       throw new SendBlockedError(`The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`);
     }
     // OAuth 2.0 (P4.7): the token held, or a renewed one. Fetched before the request is put together, and never by a copy or an export.
-    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: this.tabs.active().inFlight?.signal }).catch((error: unknown) => {
+    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: tab.inFlight?.signal }).catch((error: unknown) => {
       throw error instanceof OAuthError ? new SendBlockedError(`${error.message} Nothing was sent.`) : error;
     });
     return Promise.all([sent, token]).then(([body, value]) => finish(body, value));
@@ -806,6 +813,7 @@ export class WorkspaceStore {
   }
 
   private assemble(
+    tab: TabState,
     endpointText: string,
     content: RequestContent,
     sent: SentBody | undefined,
@@ -814,7 +822,7 @@ export class WorkspaceStore {
     token?: string
   ): BuiltRequest {
     const resolve = (text: string): string => resolver.resolve(text);
-    const auth = resolveAuth(this.sentAuth(content.auth), resolve);
+    const auth = resolveAuth(this.sentAuth(content.auth, tab), resolve);
     // One value per name, whatever its case, the later one winning: the auth
     // header replaces a row of the same name. A Map keeps a name such as
     // "__proto__" as data (F56).
@@ -898,23 +906,19 @@ export class WorkspaceStore {
     return file;
   }
 
-  private applyExecutionResponse(response: RequestExecutionResponse): void {
-    this.responseIsError.set(response.isError);
-    this.responseStatusCode.set(response.statusCode);
-    this.responseStatusText.set(response.statusText);
-    this.responseBodyIsJson.set(response.bodyIsJson);
-    this.responseHeadersView.set(response.headersView);
-    this.responseContentLength.set(response.contentLength);
-    this.responseBinary.set(response.binary ?? null);
-    this.responseRedirectedTo.set(response.redirectedTo);
-    this.responseContentType.set(response.contentType ?? "");
-    this.responseHeadersLimited.set(response.headersLimited ?? false);
-    this.responseTab.set("body");
-    this.responseData.set(response.dataText);
-    this.responseError.set(response.errorText);
-  }
-
-  private resetResponseState(): void {
-    this.tabs.active().resetResponse();
+  private applyExecutionResponse(tab: TabState, response: RequestExecutionResponse): void {
+    tab.responseIsError.set(response.isError);
+    tab.responseStatusCode.set(response.statusCode);
+    tab.responseStatusText.set(response.statusText);
+    tab.responseBodyIsJson.set(response.bodyIsJson);
+    tab.responseHeadersView.set(response.headersView);
+    tab.responseContentLength.set(response.contentLength);
+    tab.responseBinary.set(response.binary ?? null);
+    tab.responseRedirectedTo.set(response.redirectedTo);
+    tab.responseContentType.set(response.contentType ?? "");
+    tab.responseHeadersLimited.set(response.headersLimited ?? false);
+    tab.responseTab.set("body");
+    tab.responseData.set(response.dataText);
+    tab.responseError.set(response.errorText);
   }
 }

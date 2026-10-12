@@ -365,7 +365,7 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
     iterationData: variables("data", false),
     request: request,
     response: given.response ? responseOf(given.response) : null,
-    info: { eventName: given.info.eventName, iteration: 0, iterationCount: 1, requestName: given.info.requestName, requestId: given.info.requestId },
+    info: { eventName: given.info.eventName, iteration: given.info.iteration || 0, iterationCount: given.info.iterationCount || 1, requestName: given.info.requestName, requestId: given.info.requestId },
     test: function (label, fn) {
       var name = String(label == null ? "" : label);
       var outcome;
@@ -488,7 +488,8 @@ export const VM_BOOTSTRAP = `(function (host, contextText) {
   };
   globalThis.environment = legacyEnvironment;
   globalThis.globals = legacyGlobals;
-  globalThis.iteration = 0;
+  globalThis.iteration = pm.info.iteration;
+  globalThis.data = pm.iterationData.toObject();
   globalThis.request = given.request && {
     id: given.info.requestId,
     name: given.info.requestName,

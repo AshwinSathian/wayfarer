@@ -1,8 +1,9 @@
 import type { QuickJSWASMModule } from "quickjs-emscripten-core";
 import { buildAuthHeaders, buildAuthQueryParam, effectiveAuth, resolveAuth } from "../../src/auth/request-auth";
-import { folderChain, type CollectionExport, type Folder, type RequestDoc } from "../../src/model/collection";
+import { folderChain, type CollectionExport, type Folder } from "../../src/model/collection";
 import { RAW_CONTENT_TYPES, type RequestContent, type Row } from "../../src/model/request";
 import { applyVariableChanges, scriptVariables } from "../../src/model/variables";
+import { requestsInOrder, runRequests, type RunIteration, type RunOptions, type RunOutcome, type RunReport, type RunRequest } from "../../src/run/runner";
 import { runScript, type ScriptResponse } from "../../src/scripting/host";
 import { loadLibraries } from "../../src/scripting/libraries";
 import { loadLibrary } from "../../src/scripting/library-loader";
@@ -16,35 +17,32 @@ export interface RunResult {
 }
 
 /**
- * A collection's requests, one after another, as a run would send them:
- * the harness that stands for a runner until there is one (P5.2). It is
- * made of the pieces a send in the app is made of, in the order
- * `RequestExecutor.execute` has: each pre-request script from the
- * collection inward, the request built with the variables they left and
- * the auth it inherits, sent, each post-response script.
+ * Sends one request of a collection for a run (`runRequests`), in Node: what
+ * the app's `RequestExecutor` is to a run in the app, without a vault and
+ * without the trust gate. It is made of the pieces a send in the app is
+ * made of, in the order `RequestExecutor.execute` has: each pre-request
+ * script from the collection inward, the request built with the variables
+ * they left and the auth it inherits, sent, each post-response script.
  *
- * The order of the requests is the order of a Postman file: in each
- * folder, its folders first and then its requests.
+ * A script that ends in an error throws, unless `tolerant`: the golden
+ * files hold no such script.
  */
-export async function runCollection(
+export function collectionSender(
   quickjs: QuickJSWASMModule,
   source: CollectionExport,
-  options: { environment: Row[]; globals?: Row[]; files?: Record<string, Uint8Array> }
-): Promise<RunResult[]> {
-  const byOrder = <T extends { order: number; id: string }>(list: T[]) => [...list].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-  const inOrder = (parent: string | undefined): RequestDoc[] => [
-    ...byOrder(source.folders.filter((folder) => folder.parentFolderId === parent)).flatMap((folder) => inOrder(folder.id)),
-    ...byOrder(source.requests.filter((doc) => doc.folderId === parent)),
-  ];
+  options: { environment: Row[]; globals?: Row[]; files?: Record<string, Uint8Array>; tolerant?: boolean }
+): { requests: RunRequest[]; send: (request: RunRequest, iteration?: RunIteration) => Promise<RunOutcome> } {
   const scopes = { environment: options.environment, collection: source.collection.variables, global: options.globals ?? [] };
-  const results: RunResult[] = [];
   const libraries = new Map<string, string>();
+  const docs = requestsInOrder(source);
 
-  for (const doc of inOrder(undefined)) {
+  const send = async ({ id }: RunRequest, iteration: RunIteration = { index: 0, count: 1, data: [] }): Promise<RunOutcome> => {
+    const doc = docs.find((entry) => entry.id === id);
+    if (!doc) throw new Error(`The collection has no request ${id}.`);
     const folders: Folder[] = folderChain(source.folders, doc.folderId);
     const holders = [source.collection, ...folders, doc];
     const folder = folders.flatMap((entry) => entry.variables);
-    const tests: RunResult["tests"] = [];
+    const outcome: RunOutcome = { tests: [] };
     let content: RequestContent = doc;
 
     const run = async (script: string, eventName: "prerequest" | "test", request: Parameters<typeof runScript>[2]["request"], response?: ScriptResponse) => {
@@ -53,26 +51,33 @@ export async function runCollection(
         collection: scriptVariables(scopes.collection),
         folder: scriptVariables(folder),
         globals: scriptVariables(scopes.global),
+        data: scriptVariables(iteration.data),
         request,
         response,
-        info: { eventName, requestName: doc.name, requestId: doc.id },
+        info: { eventName, requestName: doc.name, requestId: doc.id, iteration: iteration.index, iterationCount: iteration.count },
       };
       const result = await runScript(quickjs, script, context, undefined, { libraries: await loadLibraries(script, loadLibrary, libraries) });
-      if (result.error) throw new Error(`${doc.name} (${eventName}): ${result.error}`);
+      if (result.error && !options.tolerant) throw new Error(`${doc.name} (${eventName}): ${result.error}`);
+      if (result.error) outcome.error = result.error;
       scopes.environment = applyVariableChanges(scopes.environment, result.changes.environment);
       scopes.collection = applyVariableChanges(scopes.collection, result.changes.collection);
       scopes.global = applyVariableChanges(scopes.global, result.changes.global);
-      tests.push(...result.testResults.map((test) => ({ name: test.label, passed: test.passed })));
+      outcome.tests.push(...result.testResults.map((test) => ({ name: test.label, passed: test.passed, ...(test.error !== undefined && { error: test.error }) })));
+      if (result.nextRequest !== undefined) outcome.nextRequest = result.nextRequest;
+      if (result.skipRequest) outcome.skipped = true;
       return result;
     };
 
     for (const { scripts } of holders) {
       if (!scripts.pre.trim()) continue;
       const { request } = await run(scripts.pre, "prerequest", scriptRequestOf(content));
+      // As the app: a pre-request script that ended in an error did not finish its work on the request, and it is not sent.
+      if (outcome.error !== undefined) return outcome;
       if (request) content = withScriptRequest(content, request);
     }
+    if (outcome.skipped) return outcome;
 
-    const resolver = new VariableResolver({ ...scopes, folder });
+    const resolver = new VariableResolver({ ...scopes, folder, data: iteration.data });
     const resolve = (text: string) => resolver.resolve(text);
     const auth = resolveAuth(effectiveAuth(content.auth, [source.collection, ...folders]).auth, resolve);
     const sent = sentBody(content, resolve, options.files ?? {});
@@ -94,9 +99,21 @@ export async function runCollection(
     for (const { scripts } of holders) {
       if (scripts.post.trim()) await run(scripts.post, "test", seen, response);
     }
-    results.push({ name: doc.name, tests });
-  }
-  return results;
+    return { ...outcome, status: envelope.status, statusText: envelope.statusText };
+  };
+  return { requests: docs.map((doc) => ({ id: doc.id, name: doc.name })), send };
+}
+
+/** A whole run of a collection in Node: `runRequests` with `collectionSender`. */
+export async function runCollectionReport(quickjs: QuickJSWASMModule, source: CollectionExport, options: Parameters<typeof collectionSender>[2], run: RunOptions = {}): Promise<RunReport> {
+  const { requests, send } = collectionSender(quickjs, source, options);
+  return runRequests(requests, send, run);
+}
+
+/** A collection's requests, once, in order: the test names and results a golden file of Newman's holds. */
+export async function runCollection(quickjs: QuickJSWASMModule, source: CollectionExport, options: { environment: Row[]; globals?: Row[]; files?: Record<string, Uint8Array> }): Promise<RunResult[]> {
+  const { results } = await runCollectionReport(quickjs, source, options);
+  return results.map((result) => ({ name: result.name, tests: result.tests.map(({ name, passed }) => ({ name, passed })) }));
 }
 
 /** The body as `WorkspaceStore.resolveBody` builds it, with the `Content-Type` it implies. */

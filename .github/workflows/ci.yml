@@ -105,6 +105,8 @@ jobs:
           node-version-file: .nvmrc
           cache: "npm"
       - run: npm ci
+      # P5.2: a run's JUnit report is validated against the JUnit schema with xmllint, which this runner does not have.
+      - run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends libxml2-utils
       # packages/core (P2.1): no DOM types, Vitest in Node, lines >= 90%.
       - run: npm -w packages/core run typecheck
       - run: npm -w packages/core test

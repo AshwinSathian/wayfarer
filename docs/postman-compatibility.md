@@ -8,7 +8,7 @@ the app's own worker in a browser, on every commit, and must show what the
 row says. This file is written from those rows, and CI fails when it and
 they differ. <!-- claim:C-040 -->
 
-126 rows: 81 supported, 26 partial, 19 not supported.
+128 rows: 92 supported, 17 partial, 19 not supported.
 
 - **Supported:** as in Postman.
 - **Partial:** it is there, and the note says what differs.
@@ -74,6 +74,7 @@ How scripts run, what they can reach and which may run is in
 | `pm.variables.has` | Supported |  |
 | `pm.variables.toObject` | Supported |  |
 | `pm.variables.replaceIn` | Supported |  |
+| `pm.variables.get (a data file's value)` | Supported | A data file's value wins over the environment's, the collection's and the global one, in a script and in `{{…}}`. |
 
 <a id="pm-iterationdata"></a>
 
@@ -81,9 +82,9 @@ How scripts run, what they can reach and which may run is in
 
 | API | Status | Note |
 |---|---|---|
-| `pm.iterationData.get` | Partial | Empty: there is no collection run with a data file yet. |
-| `pm.iterationData.has` | Partial | Empty: there is no collection run with a data file yet. |
-| `pm.iterationData.toObject` | Partial | Empty: there is no collection run with a data file yet. |
+| `pm.iterationData.get` | Supported | The row of the run's data file for this iteration. A value of a JSON file keeps its type; a CSV file's are text. In a single send there is no data file: it is empty. |
+| `pm.iterationData.has` | Supported | In a single send there is no data file: it is empty. |
+| `pm.iterationData.toObject` | Supported | In a single send there is no data file: it is empty. |
 
 <a id="pm-request"></a>
 
@@ -155,8 +156,8 @@ How scripts run, what they can reach and which may run is in
 |---|---|---|
 | `pm.info.eventName` | Supported |  |
 | `pm.info.eventName (pre-request)` | Supported |  |
-| `pm.info.iteration` | Partial | Always 0: there is no collection run yet. |
-| `pm.info.iterationCount` | Partial | Always 1: there is no collection run yet. |
+| `pm.info.iteration` | Supported | The iteration of the run, from 0. In a single send it is 0. |
+| `pm.info.iterationCount` | Supported | How many iterations the run has. In a single send it is 1. |
 | `pm.info.requestName` | Supported |  |
 | `pm.info.requestId` | Supported |  |
 
@@ -179,8 +180,8 @@ How scripts run, what they can reach and which may run is in
 
 | API | Status | Note |
 |---|---|---|
-| `pm.execution.setNextRequest` | Partial | Recorded. It has an effect in a collection run only, and there is none yet. |
-| `pm.execution.skipRequest` | Partial | Recorded. It has an effect in a collection run only, and there is none yet. |
+| `pm.execution.setNextRequest` | Supported | It has an effect in a collection run. A single send records it and does nothing with it. As in Postman: a name or an id of a request of the run, the last request of that name when several have it; `null`, or a name no request has, ends the iteration; the last call of a request's scripts counts. |
+| `pm.execution.skipRequest` | Supported | It has an effect in a collection run. A single send records it and does nothing with it. In a run the request is not sent and its post-response scripts do not run. |
 
 <a id="pm-cookies"></a>
 
@@ -231,7 +232,7 @@ How scripts run, what they can reach and which may run is in
 | `postman.getGlobalVariable` | Supported |  |
 | `postman.clearGlobalVariable` | Supported |  |
 | `postman.clearGlobalVariables` | Supported |  |
-| `postman.setNextRequest` | Partial | Recorded. It has an effect in a collection run only, and there is none yet. |
+| `postman.setNextRequest` | Supported | It has an effect in a collection run. A single send records it and does nothing with it. |
 | `postman.getResponseHeader` | Supported |  |
 | `postman.getResponseCookie` | Not supported | Throws `WayfarerUnsupportedError`, which names what was called. |
 | `tests[name] = boolean` | Supported |  |
@@ -242,7 +243,7 @@ How scripts run, what they can reach and which may run is in
 | `request (legacy global)` | Partial | As `pm.request`: as composed in a pre-request script, as sent in a post-response script, a vault secret as `***`. `data` is the text of a raw body or the fields of a form. |
 | `environment (legacy global)` | Supported | A copy made when the script starts. `postman.setEnvironmentVariable` and the two that clear keep it in step; `pm.environment.set` does not show in it, as in Postman. |
 | `globals (legacy global)` | Supported | A copy made when the script starts, kept in step by `postman.setGlobalVariable` and the two that clear. |
-| `iteration` | Partial | Always 0: there is no collection run yet. |
+| `iteration` | Supported | As `pm.info.iteration`. |
 | `response globals in a pre-request script` | Supported |  |
 | `legacy additions to built-in objects ([].none, (56).hex, fn.once and the rest of Sugar)` | Not supported | TypeError: the method is not there. Postman's older sandbox loaded the Sugar library, which adds methods to `Array`, `Number`, `String`, `Function`, `Object` and `Date`. |
 | `legacy library globals (_, CryptoJS, tv4, cheerio, xml2Json, Backbone)` | Not supported | ReferenceError: the names do not exist. Use `require` for the libraries that are there. |
@@ -253,6 +254,7 @@ How scripts run, what they can reach and which may run is in
 
 | API | Status | Note |
 |---|---|---|
+| `data (legacy global)` | Supported | As `pm.iterationData.toObject()`. |
 | `console.log / info / warn / error` | Supported |  |
 | `setTimeout` | Supported |  |
 | `clearTimeout, setInterval, clearInterval` | Not supported | ReferenceError: the names do not exist. |

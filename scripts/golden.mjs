@@ -10,6 +10,10 @@
 //   test holds it equal to what the exporter writes
 //   (packages/core/test/export/postman.test.ts).
 //
+// - run (P5.2): two collections run as a run: one with a data file of five
+//   rows, one whose scripts choose the next request
+//   (packages/core/test/run/run-golden.test.ts).
+//
 // - postman/newman-integration (P4.2): Newman's own integration collections,
 //   each as it is in packages/core/test/fixtures/postman/newman/integration
 //   with only its postman-echo.com addresses pointed at the local server, and
@@ -32,6 +36,9 @@ const FIXTURES = resolve("packages/core/test/fixtures");
 const JOBS = [
   { collection: "postman-legacy.postman_collection.json", golden: "postman-legacy.golden.json" },
   { collection: "postman-export/shop.postman_collection.json", golden: "postman-export/shop.golden.json" },
+  // P5.2: a run. Newman's order of requests, iteration by iteration, is what `runRequests` must give.
+  { collection: "run/data.postman_collection.json", golden: "run/data.golden.json", run: ["--iteration-data", join(FIXTURES, "run/data.csv")] },
+  { collection: "run/flow.postman_collection.json", golden: "run/flow.golden.json", run: ["--iteration-count", "3"] },
 ];
 
 const server = await startEchoServer(0);
@@ -44,7 +51,7 @@ const report = join(work, "report.json");
 writeFileSync(join(work, "pixel.png"), Uint8Array.from({ length: 64 }, (_, index) => index));
 try {
   for (const job of JOBS) {
-    const args = ["--yes", `newman@${NEWMAN}`, "run", join(FIXTURES, job.collection), "--env-var", `base=http://127.0.0.1:${server.address().port}`, "--working-dir", work, "--reporters", "json", "--reporter-json-export", report];
+    const args = ["--yes", `newman@${NEWMAN}`, "run", join(FIXTURES, job.collection), "--env-var", `base=http://127.0.0.1:${server.address().port}`, ...(job.run ?? []), "--working-dir", work, "--reporters", "json", "--reporter-json-export", report];
     try {
       // From its own folder, so that npx takes nothing from this repository's
       // node_modules. Not the synchronous call: the echo server is in this
@@ -56,6 +63,7 @@ try {
     }
     const { run } = JSON.parse(readFileSync(report, "utf8"));
     const items = run.executions.map((execution) => ({
+      ...(job.run && { iteration: execution.cursor.iteration }),
       name: execution.item.name,
       tests: (execution.assertions ?? []).map((assertion) => ({ name: assertion.assertion, passed: !assertion.error })),
     }));

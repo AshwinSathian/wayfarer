@@ -13,7 +13,7 @@ const BUILT_INS =
     " "
   );
 // The last ten are the globals of Postman's older sandbox (P3.4).
-const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require", "postman", "tests", "responseBody", "responseCode", "responseTime", "responseHeaders", "request", "environment", "globals", "iteration"];
+const ALLOWED = ["pm", "console", "atob", "btoa", "setTimeout", "require", "postman", "tests", "responseBody", "responseCode", "responseTime", "responseHeaders", "request", "environment", "globals", "iteration", "data"];
 
 const RESPONSE = { code: 201, status: "Created", headers: { "content-type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a"]}', responseTime: 12, responseSize: 21 };
 const NO_CHANGES = { environment: [], collection: [], global: [] };

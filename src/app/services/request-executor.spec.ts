@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { applyVariableChanges, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type RequestContent, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -769,7 +769,7 @@ describe("RequestExecutor", () => {
 
     await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
 
-    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500 });
+    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500, redirects: { follow: true, stayOnHost: false } });
   });
 
   it("measures the duration around the transport call only, not the pre-request script (F11)", async () => {
@@ -822,6 +822,31 @@ describe("RequestExecutor", () => {
     expect(result.response).toEqual(
       expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" })
     );
+  });
+
+  describe("redirects (P5.4)", () => {
+    const run = (template: RequestContent, built: Partial<BuiltRequest> = {}) =>
+      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(built) });
+
+    it("asks the route to follow redirects unless the request's settings say not to", async () => {
+      await run(TEMPLATE);
+      expect(transport.options?.redirects).toEqual({ follow: true, stayOnHost: false });
+
+      await run({ ...TEMPLATE, settings: { followRedirects: false } });
+      expect(transport.options?.redirects).toEqual({ follow: false, stayOnHost: false });
+    });
+
+    it("@claim:C-063 a request that holds a vault secret is not followed to another host", async () => {
+      await run(TEMPLATE, { headers: [["X-Key", "s3cret-value"]], secrets: ["s3cret-value"] });
+      expect(transport.options?.redirects).toEqual({ follow: true, stayOnHost: true });
+    });
+
+    it("gives the chain the route followed, and why it stopped", async () => {
+      const redirects = { chain: [{ status: 302, url: "https://example.com/data", location: "/next" }], stopped: "other-host" as const };
+      transport.setResponse({ ...envelope(307, "Temporary Redirect"), redirected: true, finalUrl: "https://example.com/next", redirects });
+      const result = await run(TEMPLATE);
+      expect(result.response.redirects).toEqual(redirects);
+    });
   });
 
   it("reports the final URL of a redirected request, and an error status with no body by its status line", async () => {

@@ -1,5 +1,5 @@
 import { computed, signal } from "@angular/core";
-import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type Row, type RunIteration, type StreamEvent } from "@wayfarer/core";
+import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type ResponseEnvelope, type Row, type RunIteration, type StreamEvent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { PastRequest, PastRequestKey } from "../models/history";
 import { TestResult } from "../models/test-assertion";
@@ -79,6 +79,8 @@ export class TabState {
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
+  /** The redirects the Local Bridge followed for the last response (P5.4), and why it followed no further. Not stored. */
+  readonly responseRedirects = signal<ResponseEnvelope["redirects"]>(undefined);
   readonly responseContentType = signal("");
   readonly responseHeadersLimited = signal(false);
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
@@ -151,6 +153,7 @@ export class TabState {
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);
+    this.responseRedirects.set(undefined);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");

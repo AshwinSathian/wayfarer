@@ -223,6 +223,7 @@ export class WorkspaceStore {
   readonly responseContentLength = this.ofTab((tab) => tab.responseContentLength);
   readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
   readonly responseRedirectedTo = this.ofTab((tab) => tab.responseRedirectedTo);
+  readonly responseRedirects = this.ofTab((tab) => tab.responseRedirects);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
   readonly responseInspection = this.ofTab((tab) => tab.inspection);
@@ -328,6 +329,12 @@ export class WorkspaceStore {
   edited(): void {
     this.patch({});
     this.refreshVariablePreview();
+  }
+
+  /** Whether the route that follows redirects itself (the Local Bridge) follows this request's (P5.4). Following is the default and is not written down. */
+  setFollowRedirects(follow: boolean): void {
+    const { followRedirects: _was, ...settings } = this.draft().settings;
+    this.patch({ settings: follow ? settings : { ...settings, followRedirects: false } });
   }
 
   /** The body is kept when the method changes: GET and HEAD send none, and it is there again for POST. */
@@ -1052,6 +1059,7 @@ export class WorkspaceStore {
     tab.responseContentLength.set(response.contentLength);
     tab.responseBinary.set(response.binary ?? null);
     tab.responseRedirectedTo.set(response.redirectedTo);
+    tab.responseRedirects.set(response.redirects);
     tab.responseContentType.set(response.contentType ?? "");
     tab.responseHeadersLimited.set(response.headersLimited ?? false);
     tab.responseTab.set("body");

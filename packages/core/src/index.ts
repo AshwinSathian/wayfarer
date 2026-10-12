@@ -96,6 +96,7 @@ export { BridgeTransport } from "./transport/bridge";
 export { FetchTransport } from "./transport/fetch";
 export { parseEventStream } from "./transport/sse";
 export {
+  MAX_REDIRECTS,
   TransportError,
   type ResolvedRequest,
   type ResponseEnvelope,

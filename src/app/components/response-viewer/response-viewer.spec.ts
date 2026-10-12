@@ -37,6 +37,36 @@ describe("ResponseViewer", () => {
     component = fixture.componentInstance;
   });
 
+  describe("redirects (P5.4)", () => {
+    const shown = (redirects: unknown) => {
+      fixture.componentRef.setInput("responseStatusCode", 302);
+      fixture.componentRef.setInput("redirects", redirects);
+      fixture.detectChanges();
+      const element = fixture.nativeElement as HTMLElement;
+      const text = (node: Element | null) => node?.textContent?.replace(/\s+/g, " ").trim();
+      return { hops: [...element.querySelectorAll(".redirect-hop")].map(text), note: text(element.querySelector(".redirect-stopped")), section: element.querySelector(".redirect-chain") };
+    };
+    const hop = (n: number) => ({ status: 302, url: `https://a.test/${n}`, location: `/${n + 1}` });
+
+    it("lists each hop the Local Bridge followed: status, address, Location as the server wrote it", () => {
+      const { hops, note } = shown({ chain: [hop(1), { status: 307, url: "https://a.test/2", location: "https://a.test/{{token}}" }] });
+      expect(hops).toEqual(["302 https://a.test/1 to /2", "307 https://a.test/2 to https://a.test/{{token}}"]);
+      expect(note).toBeUndefined();
+    });
+
+    it("says why a redirect was not followed", () => {
+      expect(shown({ chain: [hop(1)], stopped: "other-host" }).note).toContain("leaves the host, and the request holds a vault secret");
+      expect(shown({ chain: [], stopped: "location" }).note).toContain("not an http or https address");
+      expect(shown({ chain: [], stopped: "limit" }).note).toContain("Follow redirects is off");
+      expect(shown({ chain: Array.from({ length: 20 }, (_, n) => hop(n)), stopped: "limit" }).note).toContain("20 redirects at most");
+    });
+
+    it("shows nothing for a response without a redirect, by either route", () => {
+      expect(shown(undefined).section).toBeNull();
+      expect(shown({ chain: [] }).section).toBeNull();
+    });
+  });
+
   it("updates the active tab model signal", () => {
     component.onTabChange("headers");
 

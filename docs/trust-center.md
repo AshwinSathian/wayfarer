@@ -83,7 +83,11 @@ touch, weaken, or intercept that connection. <!-- claim:C-015 --> If you use the
 intranet-only API, see that component's own security model: the bridge
 relays your request from a process running on your own machine, and only
 for an allowed origin that presents its token. <!-- claim:C-041 --> The
-request never leaves your network unless your target host does.
+request never leaves your network unless your target host does. The bridge
+follows redirects when the app asks it to, and a request that holds a vault
+secret is not followed to another host: that redirect is shown as the
+response. <!-- claim:C-063 --> See
+[`docs/browser-limits.md`](browser-limits.md#redirects).
 
 ## Content-Security-Policy
 

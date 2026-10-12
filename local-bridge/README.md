@@ -64,6 +64,29 @@ continuously, and per the security model below, it shouldn't.
 The bridge never talks to any Wayfarer-operated server; the only two
 parties in this flow are your browser and the target you specified.
 
+## Redirects
+
+The `/relay` envelope may carry two more fields, an addition to protocol 1
+that an older page does not send and an older bridge ignores:
+
+- `follow`: a whole number from 0 to 20, the redirects (301, 302, 303, 307,
+  308) the bridge follows for this request. Without it nothing is followed
+  and the answer is as it always was.
+- `stayOnHost`: `true` to stop at a redirect that leaves the host (another
+  name or port, or the same host without TLS). Wayfarer sets it for a
+  request that holds a vault secret.
+
+The answer then has `chain`, a list of `{ status, url, location }` for each
+redirect that was followed, and `url`, the address the response came from.
+When the response is itself a redirect that was not followed, `stopped` says
+why: `limit`, `location` (no `http` or `https` address) or `other-host`.
+
+Each hop's address is checked as the first one is. 301 and 302 turn a POST
+into a GET without its body, 303 any method but GET and HEAD; 307 and 308
+repeat the request. A hop to another origin is made without `Authorization`
+and `Cookie`. A `follow` or `stayOnHost` of the wrong type is refused with
+400.
+
 ## Security model
 
 This is the part worth reading before you run it against anything you care
@@ -121,9 +144,9 @@ the rest of this project gives its security-relevant surfaces.
   may not expect.
 - No streaming: the full response is buffered in memory before being
   wrapped and returned, capped at 25MB.
-- No redirect following: redirects come back as an ordinary 3xx response.
-  A direct browser request, by contrast, follows redirects and shows only
-  the final response.
+- Redirects are followed only when the page asks (see "Redirects" below).
+  A direct browser request always follows them and shows only the final
+  response.
 - Multiple `Set-Cookie` headers are joined into one comma-separated value,
   which breaks cookies whose `Expires` contains a comma, and compressed
   responses are not decompressed

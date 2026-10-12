@@ -114,71 +114,143 @@ function sanitizeOutgoingHeaders(headers) {
   return out;
 }
 
-/** Forwards one relay request to its target and writes the wrapped envelope to `res`. */
+/** The most hops the bridge follows for one relay, whatever the page asks for. */
+const MAX_FOLLOW = 20;
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+// Not sent on to another origin: the page wrote them for the first one.
+const OTHER_ORIGIN_DROPPED = new Set(['authorization', 'cookie']);
+// Gone with the body when a redirect turns the request into a GET.
+const BODY_HEADERS = new Set(['content-type', 'content-encoding', 'content-language', 'content-location']);
+
+/** A hop from `from` to `to` leaves the host: another name or port, or the same one without TLS. */
+function leavesHost(from, to) {
+  return from.host !== to.host || (from.protocol === 'https:' && to.protocol === 'http:');
+}
+
+function withoutHeaders(headers, dropped) {
+  return Object.fromEntries(Object.entries(headers).filter(([key]) => !dropped.has(key.toLowerCase())));
+}
+
+/**
+ * Forwards one relay request to its target and writes the wrapped envelope to `res`.
+ *
+ * With `follow` in the payload (0 to 20) the bridge follows that many
+ * redirects and lists each in `chain`; `url` is the address the response
+ * came from. A redirect it does not follow is the response, and `stopped`
+ * says why: `limit`, `location` (no http or https address) or `other-host`
+ * (asked for with `stayOnHost`). Without `follow` nothing is followed and
+ * the answer has none of the three, as before the addition.
+ */
 function relay(payload, res) {
-  let target;
+  let first;
   try {
-    target = new URL(String(payload?.url ?? ''));
+    first = new URL(String(payload?.url ?? ''));
   } catch {
     sendJson(res, 400, { error: 'invalid or missing target url' });
     return;
   }
-  if (target.protocol !== 'http:' && target.protocol !== 'https:') {
-    sendJson(res, 400, { error: `unsupported protocol: ${target.protocol}` });
+  if (first.protocol !== 'http:' && first.protocol !== 'https:') {
+    sendJson(res, 400, { error: `unsupported protocol: ${first.protocol}` });
+    return;
+  }
+  const following = payload.follow !== undefined;
+  if (following && !(Number.isInteger(payload.follow) && payload.follow >= 0 && payload.follow <= MAX_FOLLOW)) {
+    sendJson(res, 400, { error: `follow must be a whole number from 0 to ${MAX_FOLLOW}` });
+    return;
+  }
+  if (payload.stayOnHost !== undefined && typeof payload.stayOnHost !== 'boolean') {
+    sendJson(res, 400, { error: 'stayOnHost must be true or false' });
     return;
   }
 
-  const method =
+  const firstMethod =
     typeof payload.method === 'string' && payload.method ? payload.method.toUpperCase() : 'GET';
-  const outgoingHeaders = sanitizeOutgoingHeaders(payload.headers);
-  const lib = target.protocol === 'https:' ? https : http;
-
-  let requestBody;
+  let firstBody;
   if (payload.body !== undefined && payload.body !== null) {
-    requestBody = typeof payload.body === 'string' ? payload.body : JSON.stringify(payload.body);
-    outgoingHeaders['Content-Length'] = String(Buffer.byteLength(requestBody));
+    firstBody = typeof payload.body === 'string' ? payload.body : JSON.stringify(payload.body);
   }
+  const chain = [];
 
-  const outgoing = lib.request(
-    target,
-    { method, headers: outgoingHeaders, timeout: RELAY_TIMEOUT_MS },
-    (upstreamRes) => {
-      const chunks = [];
-      let bytes = 0;
-      upstreamRes.on('data', (chunk) => {
-        bytes += chunk.length;
-        if (bytes > MAX_BODY_BYTES) {
-          // Buffering an unbounded response would exhaust this process's memory.
-          outgoing.destroy(Object.assign(new Error('response body too large'), { code: 'RELAY_RESPONSE_TOO_LARGE' }));
-          return;
-        }
-        chunks.push(chunk);
-      });
-      upstreamRes.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        const { text, encoding } = decodeBody(buffer, upstreamRes.headers['content-type']);
-        sendJson(res, 200, {
-          status: upstreamRes.statusCode,
-          statusText: upstreamRes.statusMessage ?? '',
-          headers: flattenHeaders(upstreamRes.headers),
-          body: text,
-          bodyEncoding: encoding,
-        });
-      });
-      upstreamRes.on('error', (err) => {
-        sendJson(res, 502, { error: { message: err.message, code: err.code ?? 'RELAY_READ_ERROR' } });
-      });
+  const hop = (target, method, headers, requestBody) => {
+    const lib = target.protocol === 'https:' ? https : http;
+    const outgoingHeaders = { ...headers };
+    if (requestBody !== undefined) {
+      outgoingHeaders['Content-Length'] = String(Buffer.byteLength(requestBody));
     }
-  );
+    const outgoing = lib.request(
+      target,
+      { method, headers: outgoingHeaders, timeout: RELAY_TIMEOUT_MS },
+      (upstreamRes) => {
+        const chunks = [];
+        let bytes = 0;
+        upstreamRes.on('data', (chunk) => {
+          bytes += chunk.length;
+          if (bytes > MAX_BODY_BYTES) {
+            // Buffering an unbounded response would exhaust this process's memory.
+            outgoing.destroy(Object.assign(new Error('response body too large'), { code: 'RELAY_RESPONSE_TOO_LARGE' }));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        upstreamRes.on('end', () => {
+          const answer = (stopped) => {
+            const { text, encoding } = decodeBody(Buffer.concat(chunks), upstreamRes.headers['content-type']);
+            sendJson(res, 200, {
+              status: upstreamRes.statusCode,
+              statusText: upstreamRes.statusMessage ?? '',
+              headers: flattenHeaders(upstreamRes.headers),
+              body: text,
+              bodyEncoding: encoding,
+              ...(following && { chain, url: target.href }),
+              ...(stopped && { stopped }),
+            });
+          };
+          const location = upstreamRes.headers.location;
+          if (!following || !REDIRECT_STATUSES.has(upstreamRes.statusCode) || location === undefined) {
+            answer();
+            return;
+          }
+          if (chain.length >= payload.follow) {
+            answer('limit');
+            return;
+          }
+          // Each hop's address is checked as the first one is.
+          const next = URL.canParse(location, target) ? new URL(location, target) : undefined;
+          if (!next || (next.protocol !== 'http:' && next.protocol !== 'https:')) {
+            answer('location');
+            return;
+          }
+          if (payload.stayOnHost && leavesHost(target, next)) {
+            answer('other-host');
+            return;
+          }
+          chain.push({ status: upstreamRes.statusCode, url: target.href, location });
+          // As a browser does: 303 makes a GET of anything but a HEAD, 301 and 302 of a POST; 307 and 308 repeat the request.
+          const status = upstreamRes.statusCode;
+          const toGet = (status === 303 && method !== 'GET' && method !== 'HEAD') || ((status === 301 || status === 302) && method === 'POST');
+          let nextHeaders = toGet ? withoutHeaders(headers, BODY_HEADERS) : headers;
+          if (next.origin !== target.origin) {
+            nextHeaders = withoutHeaders(nextHeaders, OTHER_ORIGIN_DROPPED);
+          }
+          hop(next, toGet ? 'GET' : method, nextHeaders, toGet ? undefined : requestBody);
+        });
+        upstreamRes.on('error', (err) => {
+          sendJson(res, 502, { error: { message: err.message, code: err.code ?? 'RELAY_READ_ERROR' } });
+        });
+      }
+    );
 
-  outgoing.on('timeout', () => {
-    outgoing.destroy(new Error('relay request timed out'));
-  });
-  outgoing.on('error', (err) => {
-    sendJson(res, 502, { error: { message: err.message, code: err.code ?? 'RELAY_ERROR' } });
-  });
+    outgoing.on('timeout', () => {
+      outgoing.destroy(new Error('relay request timed out'));
+    });
+    outgoing.on('error', (err) => {
+      sendJson(res, 502, { error: { message: err.message, code: err.code ?? 'RELAY_ERROR' } });
+    });
 
-  outgoing.end(requestBody);
+    outgoing.end(requestBody);
+  };
+
+  hop(first, firstMethod, sanitizeOutgoingHeaders(payload.headers), firstBody);
 }
 
 /**
@@ -260,6 +332,7 @@ function createServer({ token, allowedOrigins }) {
 module.exports = {
   createServer,
   isLoopbackHost,
+  leavesHost,
   sanitizeOutgoingHeaders,
   timingSafeEqualStrings,
 };

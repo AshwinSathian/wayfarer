@@ -46,7 +46,7 @@ export function junitXml(report: RunReport, info: RunInfo): string {
   const suites = report.results.map((result) => {
     const classname = xml(result.name);
     const cases = result.tests.map((test) =>
-      test.passed ? `    <testcase name="${xml(test.name)}" classname="${classname}"/>` : `    <testcase name="${xml(test.name)}" classname="${classname}">\n      <failure type="AssertionError" message="${xml(test.error ?? "")}"/>\n    </testcase>`
+      test.passed ? `    <testcase name="${xml(test.name)}" classname="${classname}"/>` : `    <testcase name="${xml(test.name)}" classname="${classname}">\n      <failure type="AssertionFailure" message="${xml(test.error ?? "")}"/>\n    </testcase>`
     );
     if (result.error !== undefined) cases.push(`    <testcase name="${classname}" classname="${classname}">\n      <error type="Error" message="${xml(result.error)}"/>\n    </testcase>`);
     if (result.skipped) cases.push(`    <testcase name="${classname}" classname="${classname}">\n      <skipped message="pm.execution.skipRequest()"/>\n    </testcase>`);

@@ -21,6 +21,8 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src *; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src blob:; manifest-src 'self'; require-trusted-types-for 'script'"
     />
+    <!-- The theme, before anything is drawn (F85). Not a module and not deferred: it must run before the body. -->
+    <script src="theme.js"></script>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png" />
     <link rel="manifest" href="manifest.webmanifest" />

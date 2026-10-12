@@ -57,7 +57,37 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
   await expect(page.getByRole("button", { name: "Send request" })).toBeVisible();
 });
 
-test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell", async ({ page, context, browserName }) => {
+test("@claim:C-015 offline after one visit, every script that visit loaded is there, the lazy ones too: the editor opens (F84)", async ({ page, context, browserName }) => {
+  await loadControlled(page);
+  // The editor's files are not in index.html: the page asks for them after it starts,
+  // for the body editor that the composer holds in a tab that is not open yet. Firefox mounts it 5 s in.
+  const editor = page.locator(".monaco-editor").first();
+  await expect(editor).toBeAttached({ timeout: 15_000 });
+  // On a first visit they were loaded before the worker took control, and the page hands them to it afterwards.
+  const scripts = () =>
+    page.evaluate(async () => {
+      const loaded = performance.getEntriesByType("resource").map((entry) => new URL(entry.name));
+      // Every script but the worker's own file, which a browser never takes from a worker's cache.
+      const paths = loaded.filter((url) => url.origin === location.origin && url.pathname.endsWith(".js") && url.pathname !== "/sw.js").map((url) => url.pathname);
+      const kept = await Promise.all(paths.map((path) => caches.match(path)));
+      return { loaded: paths, notKept: paths.filter((_, index) => !kept[index]) };
+    });
+  await expect.poll(async () => (await scripts()).notKept).toEqual([]);
+  const { loaded } = await scripts();
+  expect(loaded.filter((path) => path.startsWith("/chunk-")).length).toBeGreaterThan(5);
+  server.kill();
+  await new Promise((resolve) => server.once("exit", resolve));
+  if (browserName !== "webkit") await context.setOffline(true);
+  const failed: string[] = [];
+  page.on("requestfailed", (request) => failed.push(new URL(request.url()).pathname));
+  await page.reload();
+  await expect(editor).toBeAttached({ timeout: 15_000 });
+  // A file the page had not asked for before the network went (a language's worker, fetched when the editor is
+  // first idle) is not kept, and fails now. What the visit did load must not.
+  expect(failed.filter((path) => loaded.includes(path))).toEqual([]);
+});
+
+test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell",async ({ page, context, browserName }) => {
   await loadControlled(page);
   // Served same-origin as text/markdown and text/plain: never the app shell.
   await page.goto(`${base}/THIRD_PARTY_NOTICES.md`);

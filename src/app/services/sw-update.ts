@@ -47,6 +47,13 @@ export class SwUpdate {
     if (registration.installing) track(registration.installing);
     registration.addEventListener("updatefound", () => registration.installing && track(registration.installing));
     container.addEventListener("controllerchange", () => this.reloading && location.reload());
+    // A first visit loads its first files before the worker controls the page. It is told their names once it
+    // does, and keeps the ones it would have kept, so the next visit has them offline (F84). Every later load
+    // goes through the worker.
+    if (!container.controller) {
+      const handOver = () => container.controller?.postMessage({ loaded: performance.getEntriesByType("resource").map((entry) => entry.name) });
+      container.addEventListener("controllerchange", handOver, { once: true });
+    }
   }
 
   /** Activates the waiting version; the page reloads once it takes control. */

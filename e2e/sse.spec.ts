@@ -101,8 +101,8 @@ for (const theme of ["dark", "light"] as const) {
       await page.setViewportSize({ width, height: 900 });
       await expect(viewer(page).getByRole("button", { name: "Reconnect" })).toBeVisible();
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `at ${width} px` }).toBeLessThanOrEqual(0);
-      const box = await viewer(page).getByRole("button", { name: "Reconnect" }).boundingBox();
-      expect(box && box.x >= 0 && box.x + box.width <= width, `Reconnect at ${width} px`).toBe(true);
+      // Polled, like the width: the drawer's change of layout takes a moment.
+      await expect.poll(async () => { const box = await viewer(page).getByRole("button", { name: "Reconnect" }).boundingBox(); return !!box && box.x >= 0 && box.x + box.width <= width; }, { message: `Reconnect at ${width} px` }).toBe(true);
     }
   });
 }

@@ -45,7 +45,7 @@ export class Tabs {
   }
 
   /**
-   * Closes a tab, and gives up on the request, or the run, it has on its way. The one after
+   * Closes a tab, and gives up on the request, or the run, it has on its way, and closes its WebSocket. The one after
    * it becomes the open one, or the one before; the last tab is replaced by an empty one.
    */
   close(id: string): void {
@@ -54,6 +54,7 @@ export class Tabs {
     if (at < 0) return;
     tabs[at].inFlight?.abort();
     tabs[at].run?.controller?.abort();
+    tabs[at].socket.connection?.close(1000);
     const rest = tabs.filter((tab) => tab.id !== id);
     if (!rest.length) rest.push(new TabState());
     this.list.set(rest);

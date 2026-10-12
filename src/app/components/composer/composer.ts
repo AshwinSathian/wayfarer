@@ -11,6 +11,8 @@ import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
 import { Splitter } from "../../ui/splitter";
 import { RunView } from "../runner/run-view";
+import { SocketView } from "../socket/socket-view";
+import { SocketClient } from "../../services/socket-client";
 import { ResponseViewer } from "../response-viewer/response-viewer";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
@@ -53,6 +55,7 @@ import { VariableChips } from "./variable-chips";
     SaveAsDialog,
     TabStrip,
     RunView,
+    SocketView,
   ],
   providers: [ComposerView],
   templateUrl: "./composer.html",
@@ -76,6 +79,7 @@ export class Composer {
   /** Not there while the open tab is a run's. */
   private readonly addressRow = viewChild(AddressRow);
   protected readonly tabs = inject(Tabs);
+  protected readonly socket = inject(SocketClient);
   private readonly tabStrip = viewChild.required(TabStrip);
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
@@ -119,6 +123,8 @@ export class Composer {
   async sendRequest(): Promise<void> {
     // A run's tab has no request to send or to save: the palette's commands do nothing there.
     if (this.tabs.active().run) return;
+    // An address of a WebSocket is connected to, not sent (P5.7).
+    if (this.socket.isSocket()) return this.socket.connect();
     if (await this.store.send()) {
       this.newRequest.emit();
     }

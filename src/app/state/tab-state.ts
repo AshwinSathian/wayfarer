@@ -8,6 +8,7 @@ import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
 import { RunState } from "./run-state";
+import { SocketState } from "./socket-state";
 
 /** An event of a stream as the list shows it. */
 export type ShownEvent = Omit<StreamEvent, "timeMs"> & { timeMs?: number };
@@ -99,6 +100,8 @@ export class TabState {
   /** The phases and sizes of the last send's request, as the browser measured them. */
   readonly inspection = signal<ResponseInspection | null>(null);
 
+  /** The tab's WebSocket (P5.7), for an address that starts with `ws:` or `wss:`. */
+  readonly socket = new SocketState();
   /** A tab that holds a collection run instead of a request (P5.2). It is one from the moment it is opened, and it is not stored. */
   run: RunState | null = null;
   /** Set on the tab a request of a collection run is sent from (P5.2): which iteration, and the data file's row. Such a tab is in no strip. */

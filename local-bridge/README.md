@@ -125,9 +125,11 @@ the rest of this project gives its security-relevant surfaces.
   Wayfarer follows them itself, each hop as a relay of its own, and lists
   them. A direct browser request, by contrast, is followed by the browser
   and shows only the final response.
-- Multiple `Set-Cookie` headers are joined into one comma-separated value,
-  which breaks cookies whose `Expires` contains a comma, and compressed
-  responses are not decompressed
+- The answer's `headers` joins a repeated header into one comma-separated
+  value, which cannot be split again for `Set-Cookie` (an `Expires` holds a
+  comma). Since 1.1.0 the answer also has `headerList`, every header as
+  received, one `[name, value]` entry each; Wayfarer reads that and keeps
+  cookies from it. Compressed responses are not decompressed
   ([#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
 - Whether browsers let the hosted HTTPS app reach `http://127.0.0.1` is not
   yet verified in every browser (Chrome's Local Network Access prompt,

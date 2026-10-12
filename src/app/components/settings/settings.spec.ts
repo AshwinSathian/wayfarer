@@ -28,8 +28,8 @@ describe("Settings", () => {
     await settle();
   });
 
-  it("lists nine sections, the danger zone last, and opens at General", () => {
-    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual(["General", "Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "About", "Danger zone"]);
+  it("lists ten sections, the danger zone last, and opens at General", () => {
+    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual(["General", "Requests", "History", "Data and storage", "Vault", "Local Bridge", "Cookies", "Shortcuts", "About", "Danger zone"]);
     expect(heading()).toBe("General");
     expect(item("General").getAttribute("aria-current")).toBe("page");
     expect(item("Requests").getAttribute("aria-current")).toBeNull();

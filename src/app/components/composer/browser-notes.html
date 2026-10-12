@@ -33,7 +33,7 @@
       <mat-expansion-panel-header>What the browser does to this request <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
       <div class="space-y-3 type-footnote text-label-secondary">
         @if (limits.route === 'bridge') {
-        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code> and <code>Origin</code> are sent as written, no server is asked first, and an <code>http://</code> address works.</p>
+        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code> and <code>Origin</code> are sent as written, no server is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar (Settings, Cookies) and sent with later requests to its domain and path.</p>
         } @else {
         <p class="browser-note-preflight">
           @if (limits.preflight.length) {

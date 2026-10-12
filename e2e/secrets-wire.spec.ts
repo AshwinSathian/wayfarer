@@ -207,7 +207,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
     "what the script wrote on the page": scriptOutput,
   };
   // All nine stores were read, the composer's tabs among them (P5.1), and the exports are the real thing.
-  expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+  expect(Object.keys(stores).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
   // The open tab is stored as the saved request is: the variable by its name, nothing of its value.
   expect(JSON.stringify(stores["tabs"])).toContain("t={{API_TOKEN}}");
   expect(copied[1]).toContain('"version": "1.2"');
@@ -255,7 +255,7 @@ test("@claim:C-007 a script sets a protected variable: the new value goes into t
 
   const stores = await dumpIdb(page);
   const web = await page.evaluate(() => JSON.stringify([{ ...localStorage }, { ...sessionStorage }]));
-  expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+  expect(Object.keys(stores).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
   const searched = { ...Object.fromEntries(Object.entries(stores).map(([name, records]) => [name, JSON.stringify(records)])), web, console: await page.locator(".script-console").innerText() };
   expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, ROTATED)]))).toEqual(Object.fromEntries(Object.keys(searched).map((place) => [place, []])));
   // The variable is still a reference to the one secret, which is still ciphertext.
@@ -357,7 +357,7 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
     "collection export with credentials": await downloadText(page, "Export with credentials"),
     "what the script wrote on the page": await page.locator(".script-console").innerText(),
   };
-  expect(Object.keys(stores).sort()).toEqual(["collections", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+  expect(Object.keys(stores).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
   expect(copied).toHaveLength(9);
   for (const secret of [token, refresh, "client-secret-in-vault"]) {
     expect(Object.fromEntries(Object.entries(searched).map(([place, text]) => [place, found(text, secret)])), secret).toEqual(Object.fromEntries(Object.keys(searched).map((place) => [place, []])));

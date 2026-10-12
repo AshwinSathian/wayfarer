@@ -1,3 +1,4 @@
+import type { Cookie } from "../cookies/jar";
 import { SseParser, type SseEvent } from "./sse";
 
 /** A request with every variable resolved, as it goes on the wire. */
@@ -85,6 +86,14 @@ export interface TransportOptions {
    * was told not to follow.
    */
   redirects?: { follow: boolean; stayOnHost: boolean };
+  /**
+   * The caller's cookie jar (P5.3), for the route that sends what it is
+   * given (the Local Bridge): asked before each hop for the cookies that
+   * go to its address, and told after it what the response set. A direct
+   * request ignores it: the browser has a jar of its own, which a page
+   * neither reads nor fills (`credentials: "omit"`).
+   */
+  cookies?: { for(url: string): Cookie[]; store(url: string, setCookies: string[]): void };
 }
 
 export interface Transport {

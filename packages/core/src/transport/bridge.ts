@@ -1,3 +1,4 @@
+import { withJarCookies } from "../cookies/jar";
 import { nextHop } from "./redirect";
 import {
   MAX_REDIRECTS,
@@ -18,6 +19,8 @@ interface RelayEnvelope {
   headers: Record<string, string>;
   body: string;
   bodyEncoding: "utf8" | "base64";
+  /** The headers as received, one entry each (P5.3). A bridge from before it has only `headers`, where a repeated name is one joined line. */
+  headerList?: unknown;
 }
 
 interface RelayErrorBody {
@@ -46,7 +49,10 @@ export class BridgeTransport implements Transport {
       const { redirects } = options;
       const chain: RedirectHop[] = [];
       for (let hop = request; ; ) {
-        const envelope = await this.relay(hop, signal);
+        // The jar's cookies are added to what is relayed, not to `hop`: the next hop asks the jar again.
+        const { envelope, listed } = await this.relay(options.cookies ? { ...hop, headers: withJarCookies(hop.headers, options.cookies.for(hop.url)) } : hop, signal);
+        // Joined into one line, two cookies cannot be told apart again (a date holds a comma): only a list is read.
+        if (listed) options.cookies?.store(hop.url, envelope.headers.filter(([name]) => name === "set-cookie").map(([, value]) => value));
         if (!redirects) return envelope;
         const ended = (stopped?: RedirectStop): ResponseEnvelope => ({ ...envelope, redirected: chain.length > 0, redirects: { chain, ...(stopped && { stopped }) } });
         const location = envelope.headers.find(([name]) => name.toLowerCase() === "location")?.[1];
@@ -62,7 +68,7 @@ export class BridgeTransport implements Transport {
     });
   }
 
-  private async relay(request: ResolvedRequest, signal: AbortSignal): Promise<ResponseEnvelope> {
+  private async relay(request: ResolvedRequest, signal: AbortSignal): Promise<{ envelope: ResponseEnvelope; listed: boolean }> {
     // Protocol 1 carries the body as text inside JSON. Bytes and forms need protocol 2 (P6.1).
     if (request.body !== undefined && typeof request.body !== "string") {
       throw new TransportError("bridge", "The Local Bridge cannot relay a file or multipart body yet. Turn the bridge off to send this request.");
@@ -85,18 +91,26 @@ export class BridgeTransport implements Transport {
     if (!response.ok) {
       throw new TransportError("bridge", describeError(text) ?? `The bridge answered ${response.status}.`, response.status);
     }
-    return toEnvelope(JSON.parse(text) as RelayEnvelope, request.url);
+    const relay = JSON.parse(text) as RelayEnvelope;
+    const listed = headerPairs(relay.headerList);
+    return { envelope: toEnvelope(relay, request.url, listed), listed: !!listed };
   }
 }
 
-function toEnvelope(relay: RelayEnvelope, url: string): ResponseEnvelope {
+/** The bridge's list of headers when it is one, names in lower case as its joined form has them. */
+function headerPairs(list: unknown): [string, string][] | undefined {
+  if (!Array.isArray(list) || !list.every((pair): pair is [string, string] => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string")) return undefined;
+  return list.map(([name, value]) => [name.toLowerCase(), value]);
+}
+
+function toEnvelope(relay: RelayEnvelope, url: string, listed?: [string, string][]): ResponseEnvelope {
   const raw = relay.body ?? "";
   const base64 = relay.bodyEncoding === "base64";
   const bytes = (base64 ? fromBase64(raw) : undefined) ?? new TextEncoder().encode(raw);
   return {
     status: relay.status,
     statusText: relay.statusText,
-    headers: Object.entries(relay.headers ?? {}),
+    headers: listed ?? Object.entries(relay.headers ?? {}),
     body: bytes.buffer as ArrayBuffer,
     redirected: false,
     finalUrl: url,

@@ -52,6 +52,13 @@ test("/redirect-to answers with the status and the Location it is given", async 
   assert.equal((await get("/redirect-to", { redirect: "manual" })).status, 302);
 });
 
+test("/cookies/login redirects to /echo and sets two cookies, one with a comma in its value", async () => {
+  const res = await get("/cookies/login", { redirect: "manual" });
+  assert.equal(res.status, 302);
+  assert.equal(res.headers.get("location"), "/echo");
+  assert.deepEqual(res.headers.getSetCookie(), ["session=signed-in; Path=/; HttpOnly", "seen=Wed, 14 Oct; Path=/"]);
+});
+
 test("/cookies/set sends one Set-Cookie header per cookie", async () => {
   const res = await get("/cookies/set?a=1&b=2");
   assert.deepEqual(res.headers.getSetCookie().map((c) => c.split(";")[0]), ["a=1", "b=2"]);

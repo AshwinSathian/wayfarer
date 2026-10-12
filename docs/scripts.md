@@ -180,6 +180,9 @@ and have no effect.
 script that calls them is told why: each method throws
 `WayfarerUnsupportedError` with the name of what was called.
 `clearTimeout`, `setInterval` and `clearInterval` do not exist.
+The app's cookie jar (requests through the Local Bridge) is not given to a
+script: a cookie's value is a credential. A script reads a response's
+`Set-Cookie` headers like its other headers.
 
 ### Postman's older sandbox
 

@@ -113,7 +113,7 @@ it, and how many more there are. What it shows is what is copied or saved.
 | `postData` | a text body as text; a form and a multipart form as `params`; a file by its name, in a comment. The file itself is not included |
 | `response.content` | the body as it was received, when it is text of any type: JSON, XML, HTML, CSV, plain text. Not reformatted |
 | `timings` | what the browser said of the request's phases; `-1` for what it did not say |
-| `cookies` | always empty: a cookie that was sent is in the `Cookie` header |
+| `cookies` | the cookies of the `Cookie` header and of each `Set-Cookie` header, when the file holds those headers unmasked (an export with credentials). Masked, a header's cookies are not known and the list is empty |
 
 Left out, with a comment that says so: a body that is not text (an image, a
 download); a body longer than 256 KB; and for a history entry, the body of

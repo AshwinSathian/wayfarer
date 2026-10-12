@@ -1,22 +1,26 @@
 import { TestBed } from "@angular/core/testing";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RequestSave } from "../services/request-save";
 import { ScriptTrust } from "../services/script-trust";
-import { TabState } from "./tab-state";
 import { Tabs } from "./tabs";
 import { WorkspaceStore } from "./workspace-store";
-import { ComposerHarness, makeRequestDoc, setupComposer } from "../../testing/composer-setup";
+import { ComposerHarness, JSON_HEADERS, jsonBytes, makeRequestDoc, meta, setupComposer } from "../../testing/composer-setup";
+import { inCollection, rowsOf } from "../../testing/request-fixtures";
 
 // P5.1: the composer's tabs, before anything of them is stored.
 describe("Tabs", () => {
   let tabs: Tabs;
   let store: WorkspaceStore;
   let component: ComposerHarness["component"];
+  let httpMock: ComposerHarness["httpMock"];
+  let collectionsService: ComposerHarness["collectionsService"];
 
   beforeEach(async () => {
-    ({ store, component } = await setupComposer());
+    ({ store, component, httpMock, collectionsService } = await setupComposer());
     tabs = TestBed.inject(Tabs);
   });
+
+  afterEach(() => httpMock.verify());
 
   it("starts with one empty tab that is not dirty", () => {
     expect(tabs.tabs()).toHaveLength(1);
@@ -138,18 +142,80 @@ describe("Tabs", () => {
     expect(store.draft().url).toBe("");
   });
 
-  it("while a send is in flight the open tab stays the open one", () => {
+  // A send holds the tab it was started in (session 5B): the open tab may change while it is on its way.
+  it("a response goes to the tab that sent the request, whichever tab is open when it arrives", async () => {
     const first = tabs.active();
-    const second = new TabState();
-    tabs.open(second);
-    tabs.activate(first.id);
-    first.loadingState.set(true);
+    store.setUrl("https://one.test/items");
+    const sent = store.send();
+    await vi.waitFor(() => httpMock.expectOne("https://one.test/items"));
 
-    tabs.activate(second.id);
     tabs.open();
+    const second = tabs.active();
+    expect(second).not.toBe(first);
+    expect(first.loadingState()).toBe(true);
+    expect(store.loadingState()).toBe(false);
+
+    httpMock.expectOne("https://one.test/items").flush(jsonBytes({ from: "one" }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    expect(await sent).toBe(true);
+
+    expect(first.loadingState()).toBe(false);
+    expect(first.responseStatusCode()).toBe(200);
+    expect(first.responseData()).toContain('"from"');
+    expect(first.historyKey()).toBe(1);
+    expect(second.responseStatusCode()).toBeUndefined();
+    expect(second.responseData()).toBe("");
+    expect(second.draft().responseId).toBeUndefined();
+  });
+
+  it("a request is built with the variables of the tab that sent it, when another tab is open by then", async () => {
+    // A script that waits for a review: the send asks for its digest first, so the request is built a moment after the click.
+    const doc = makeRequestDoc({ id: "one", url: "{{host}}/items", headers: [], scripts: { pre: "x()", post: "" } });
+    collectionsService.setTree([
+      { collection: { id: "c1", meta: meta("c1"), name: "c1", order: 1, variables: rowsOf({ host: "https://one.test" }), ...inCollection, scriptTrust: { trusted: false } }, folders: [], requests: [doc] },
+    ]);
+    component.loadCollectionRequest(doc);
+    const first = tabs.active();
+
+    const sent = store.send();
+    tabs.open();
+    await vi.waitFor(() => httpMock.expectOne("https://one.test/items").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    expect(await sent).toBe(true);
+
+    expect(first.scriptsSkipped()).toBe(true);
+    expect(first.responseStatusCode()).toBe(200);
+    expect(tabs.active().endpointError()).toBe("");
+  });
+
+  it("two tabs send at once and each gets its own response", async () => {
+    const first = tabs.active();
+    store.setUrl("https://one.test/a");
+    const one = store.send();
+    tabs.open();
+    const second = tabs.active();
+    store.setUrl("https://two.test/b");
+    const two = store.send();
+
+    await vi.waitFor(() => httpMock.expectOne("https://two.test/b").flush(null, { status: 204, statusText: "No Content" }));
+    expect(await two).toBe(true);
+    expect(second.responseStatusCode()).toBe(204);
+    expect(first.loadingState()).toBe(true);
+
+    httpMock.expectOne("https://one.test/a").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    expect(await one).toBe(true);
+    expect(first.responseStatusCode()).toBe(200);
+    expect(second.responseStatusCode()).toBe(204);
+  });
+
+  it("closing a tab gives up on the request it has on its way", async () => {
+    const first = tabs.active();
+    store.setUrl("https://one.test/slow");
+    const sent = store.send();
+    await vi.waitFor(() => httpMock.expectOne("https://one.test/slow"));
+
     tabs.close(first.id);
 
-    expect(tabs.active()).toBe(first);
-    expect(tabs.tabs()).toHaveLength(2);
+    expect(await sent).toBe(true);
+    expect(first.responseError()).toMatch(/cancel/i);
+    expect(tabs.tabs()).not.toContain(first);
   });
 });

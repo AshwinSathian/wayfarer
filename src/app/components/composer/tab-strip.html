@@ -4,7 +4,6 @@
     mat-tab-link
     type="button"
     [active]="tab === tabs.active()"
-    [disabled]="tabs.locked() && tab !== tabs.active()"
     (click)="tabs.activate(tab.id)"
     (focus)="tabs.activate(tab.id)"
   >
@@ -17,7 +16,7 @@
   }
 </div>
 <div class="flex items-center">
-  <button matIconButton class="btn-plain" type="button" aria-label="New tab" matTooltip="New tab (Alt+T)" [disabled]="tabs.locked()" (click)="open()"><app-icon name="add" /></button>
-  <button matIconButton class="btn-plain" type="button" aria-label="Duplicate tab" matTooltip="Duplicate tab" [disabled]="tabs.locked()" (click)="duplicate()"><app-icon name="content_copy" /></button>
-  <button matIconButton class="btn-plain" type="button" aria-label="Close tab" matTooltip="Close tab (Alt+W)" [disabled]="tabs.locked()" (click)="close()"><app-icon name="close" /></button>
+  <button matIconButton class="btn-plain" type="button" aria-label="New tab" matTooltip="New tab (Alt+T)" (click)="open()"><app-icon name="add" /></button>
+  <button matIconButton class="btn-plain" type="button" aria-label="Duplicate tab" matTooltip="Duplicate tab" (click)="duplicate()"><app-icon name="content_copy" /></button>
+  <button matIconButton class="btn-plain" type="button" aria-label="Close tab" matTooltip="Close tab (Alt+W)" (click)="close()"><app-icon name="close" /></button>
 </div>

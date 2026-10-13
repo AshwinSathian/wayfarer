@@ -137,7 +137,7 @@
                     } @else if (getSecretPreview(form.vars[$index].value)) {
                     {{ getSecretPreview(form.vars[$index].value) }}
                     } @else {
-                    <button type="button" class="underline text-accent-text" (click)="revealSecret($index)">Reveal</button>
+                    <button type="button" class="underline text-accent-text bg-transparent" (click)="revealSecret($index)">Reveal</button>
                     }
                   </div>
                 </div>

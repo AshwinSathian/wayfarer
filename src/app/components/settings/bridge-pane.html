@@ -15,7 +15,7 @@
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
-    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-local-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
+    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
     <div class="flex items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1">
         <input matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
@@ -34,10 +34,12 @@
     @if (test() === 'testing') { <mat-spinner diameter="18" aria-hidden="true" /> } Test connection
   </button>
   <span class="bridge-test type-footnote flex items-center gap-1" role="status">
-    @switch (test()) {
-      @case ('testing') { <span class="text-label-tertiary">Checking…</span> }
-      @case ('ok') { <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="text-status-success">Reachable</span> }
-      @case ('fail') { <app-icon name="error" class="icon-xs text-status-error" /> <span class="text-status-error">Not reachable. Is the bridge running, and is this page's origin one it allows?</span> }
+    @if (testProblem()) {
+      <app-icon name="error" class="icon-xs text-status-error" /> <span class="text-status-error">{{ testProblem() }}</span>
+    } @else if (test() === 'testing') {
+      <span class="text-label-tertiary">Checking…</span>
+    } @else if (test() === 'ok') {
+      <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="text-status-success">Reachable</span>
     }
   </span>
   <span class="flex-1"></span>
@@ -52,5 +54,5 @@
 
 <p class="type-caption text-label-tertiary mt-4">
   The bridge is a small program you run yourself; nothing is sent to it unless you switch it on here.
-  <a href="https://github.com/AshwinSathian/wayfarer/blob/main/local-bridge/README.md" target="_blank" rel="noopener noreferrer" class="text-accent-text underline">Setup and security model</a>.
+  <a href="https://github.com/AshwinSathian/wayfarer/blob/main/packages/bridge/README.md" target="_blank" rel="noopener noreferrer" class="text-accent-text underline">Setup and security model</a>.
 </p>

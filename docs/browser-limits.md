@@ -5,7 +5,7 @@ request a page sends. This page says what it does, and what the Local
 Bridge changes. The composer shows the same for the request you are writing,
 under **What the browser does to this request**, before you send it. <!-- claim:C-049 -->
 
-With the [Local Bridge](../local-bridge/README.md) switched on, the request
+With the [Local Bridge](../packages/bridge/README.md) switched on, the request
 leaves from a Node process on your machine instead, and nothing on this page
 applies to it, except where the bridge's own row says so.
 
@@ -27,8 +27,10 @@ sent. Through the bridge they are sent as written, except the ones that
 belong to the connection the bridge itself makes, which it sets:
 `Connection`, `Content-Length`, `Host`, `Keep-Alive`, `Proxy-Authenticate`,
 `Proxy-Authorization`, `TE`, `Trailer`, `Transfer-Encoding` and `Upgrade`.
-The composer names those when the bridge is on. The bridge also sends a
-header name once: of two rows with one name, the later value goes.
+The composer names those when the bridge is on. Two rows with one name are
+sent as two headers. When the request names no `Accept-Encoding`, the
+bridge asks for `gzip, deflate, br`, as a browser does, and decodes what
+comes; the composer does not list that one.
 
 ## Headers the browser adds
 
@@ -119,8 +121,7 @@ Of a response from another origin, a page can read only `Cache-Control`,
 `Last-Modified` and `Pragma`, plus the headers the server names in
 `Access-Control-Expose-Headers`. `Set-Cookie` is never readable. The
 Headers tab says so above the list. Through the bridge every header is
-shown, each as it was received: two `Set-Cookie` headers are two lines. (A
-Local Bridge before 1.1.0 joins them into one.)
+shown, each as it was received: two `Set-Cookie` headers are two lines.
 
 ## Cookies
 
@@ -160,9 +161,9 @@ client does. Settings, **Cookies** lists it.
   what such a host set.
 - **Scripts** are not given the jar: `pm.cookies` stays unsupported. A
   script reads a response's `Set-Cookie` headers like its other headers.
-- **Needs Local Bridge 1.1.0 or later** (the one of v2.3.0). An older one joins
-  repeated `Set-Cookie` headers into one line, which cannot be split again
-  (a date holds a comma): nothing of it is kept.
+- **Needs the Local Bridge of this version of the app** (2.0.0, protocol
+  2), as every request through the bridge does: with an older one a request
+  fails and says so.
 - The jar is not in a workspace backup. Reset all data removes it.
 
 ## Redirects
@@ -179,7 +180,7 @@ app can show depends on the route.
   own, 20 redirects at most, and the response lists each one: its status,
   the address that answered with it, and its `Location` as the server wrote
   it. A `Location` is followed as it was sent: nothing in it is read as a
-  `{{variable}}`. Any version of the bridge will do.
+  `{{variable}}`.
 - **Follow redirects** is a setting of the request, on unless you switch it
   off. Off, through the bridge, the first 3xx is the response as it came.
 - **What is sent on.** 301 and 302 turn a POST into a GET without its body,
@@ -279,7 +280,7 @@ the bridge itself is reachable.
 Can the hosted app (`https://wayfarer.ashwinsathian.com`) reach a Local
 Bridge on `http://127.0.0.1:7717`? Measured on 2026-09-28 (plan task P1.10,
 risk R4) from the production page, with the bridge started as
-`node local-bridge/bin/cli.js --allow-origin https://wayfarer.ashwinsathian.com`.
+`node packages/bridge/bin/cli.js --allow-origin https://wayfarer.ashwinsathian.com`.
 Each browser ran four `fetch` calls: `GET /health`, the same with
 `targetAddressSpace: "loopback"`, a preflighted `POST /relay` (JSON body plus
 the token header), and `GET http://localhost:7717/health`.

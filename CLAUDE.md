@@ -12,7 +12,7 @@ npm run lint            # ESLint, type-aware
 npm run test:ci         # Vitest in headless Chromium, with the coverage gate
 npm run build           # production build + service worker
 CI=1 npx playwright test --project=chromium --project=claims-chromium   # e2e against the built app (run the build first)
-npm run bridge:test     # local-bridge (Node test runner)
+npm run bridge:test     # packages/bridge (Node test runner)
 npm -w packages/core test            # packages/core: Vitest in Node, lines >= 90%
 npm -w packages/core run typecheck   # packages/core compiles without the DOM types
 npm run test:scripts    # scripts/ and e2e/support
@@ -109,7 +109,7 @@ code errors.
   suffix list), kept in the `cookies` store. It is for the Local Bridge
   only: `BridgeTransport` asks it before each hop and tells it after
   (`TransportOptions.cookies`), reading `Set-Cookie` from the bridge's
-  `headerList` and never from a joined line. `CookieJar.store` has the
+  list of headers, one entry each. `CookieJar.store` has the
   cookies in the page before it returns: the next hop asks at once.
   `RequestExecutor` is the one that hands the jar to a transport: each
   value that went out is a credential to the redactor (`cookieValues`), a
@@ -782,12 +782,18 @@ code errors.
 - The Local Bridge's token is never in `localStorage` (F83): `BridgeSettings` keeps it as the vault secret
   "Local Bridge token" while the vault is unlocked and in memory otherwise, and `TransportRouter` asks for it
   with `tokenForSend`, which may ask the user to unlock the vault. Vault work there goes one after another.
-- Local Bridge (`local-bridge/`): zero dependencies; binds to 127.0.0.1;
+- Local Bridge (`packages/bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
   instead of defaulting. Keep every one of these when changing it. Its
-  answer is protocol 1 with one addition, `headerList`; anything more is
-  protocol 2 (P6.1).
+  protocol is 2 (P6.1), and its number is in the relay's path (`/v2/relay`):
+  a page and a bridge of different protocols must not read each other's
+  messages as their own. `readPayload` checks every field and refuses one
+  it does not know; `parseEnvelope` (`BridgeTransport`) does the same for
+  the answer. A change either side would read wrongly is protocol 3 and a
+  new path. A body is bytes both ways (`bodyB64`), never text. The limit of
+  25 MB holds for a response as received and as decoded. The token's folder
+  is `~/.wayfarer-local-bridge`, the package's old name: keep it.
 - A file reaches the stores by one road, `ImportPipeline`
   (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
   10 MB cap), the import worker, the report in `<app-import-dialog>`, and

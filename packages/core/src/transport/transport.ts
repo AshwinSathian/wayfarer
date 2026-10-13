@@ -23,12 +23,6 @@ export interface ResponseEnvelope {
   route: "direct" | "bridge";
   sizes: { encoded?: number; decoded: number };
   /**
-   * Set when the route already decoded the text and `body` is its UTF-8
-   * bytes (bridge protocol 1): the Content-Type's own charset no longer
-   * applies. Gone with protocol 2 (P6.1), which relays the bytes.
-   */
-  charset?: "utf-8";
-  /**
    * Set when the body was an event stream read as it arrived (P5.6).
    * `stopped`: the caller ended it, and `body` is what had arrived.
    * `truncated`: the stream was longer than `STREAM_BODY_BYTES`, and `body` is its start.

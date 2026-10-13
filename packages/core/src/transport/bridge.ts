@@ -13,30 +13,58 @@ import {
   type TransportOptions,
 } from "./transport";
 
+/** What the bridge answers a relay with (protocol 2). */
 interface RelayEnvelope {
   status: number;
   statusText: string;
-  headers: Record<string, string>;
-  body: string;
-  bodyEncoding: "utf8" | "base64";
-  /** The headers as received, one entry each (P5.3). A bridge from before it has only `headers`, where a repeated name is one joined line. */
-  headerList?: unknown;
+  /** As received, one entry each: two `Set-Cookie` headers are two. */
+  headers: [string, string][];
+  /** The body's bytes, decoded when the response had a `Content-Encoding`. */
+  bodyB64: string;
+  /** The body as it came over the wire, and as it is: they differ for a compressed one. */
+  encodedSize: number;
+  decodedSize: number;
 }
 
 interface RelayErrorBody {
   error?: string | { message: string; code?: string };
 }
 
+/** The protocol this page speaks to the Local Bridge. The bridge says its own in `/health`, and the relay's path carries it. */
+export const BRIDGE_PROTOCOL = 2;
+
 /**
- * Sends the request through the Local Bridge (protocol 1): one POST to
- * `/relay`, answered with 200 and the target's response whenever the target
- * was reached, whatever its status. Any other answer is the bridge's own
+ * What is wrong with the bridge whose `/health` answered `health`, as a
+ * sentence for the user, or undefined when the page can use it (P6.3).
+ * A bridge from before protocol 2 names no protocol: it speaks 1.
+ */
+export function bridgeHealthProblem(health: unknown): string | undefined {
+  if (health === null || typeof health !== "object" || Array.isArray(health) || (health as { ok?: unknown }).ok !== true) return "What answered at this address is not a Local Bridge.";
+  const { version, protocol } = health as { version?: unknown; protocol?: unknown };
+  const speaks = typeof protocol === "number" && Number.isInteger(protocol) && protocol > 0 ? protocol : 1;
+  if (speaks === BRIDGE_PROTOCOL) return undefined;
+  const named = typeof version === "string" && /^\d+\.\d+\.\d+[\w.+-]*$/.test(version) ? version : "(version not given)";
+  return speaks < BRIDGE_PROTOCOL
+    ? `Local Bridge ${named} is too old for this page: it speaks protocol ${speaks}, and the page speaks protocol ${BRIDGE_PROTOCOL}. Update the Local Bridge and start it again.`
+    : `Local Bridge ${named} is newer than this page: it speaks protocol ${speaks}, and the page speaks protocol ${BRIDGE_PROTOCOL}. Reload Wayfarer to get its current version.`;
+}
+
+/** The bridge is not one of protocol 2: an older one does not know the path, and its answer is not read as anything. */
+export const BRIDGE_PROTOCOL_MISMATCH = "The Local Bridge that answered does not speak protocol 2, which this page speaks: it is an older version. Update the Local Bridge and start it again.";
+
+/**
+ * Sends the request through the Local Bridge (protocol 2): one POST to
+ * `/v2/relay`, with the request's headers as a list and its body as bytes,
+ * answered with 200 and the target's response whenever the target was
+ * reached, whatever its status. Any other answer is the bridge's own
  * failure (bad token, unreachable target) and becomes a `TransportError`.
+ * The path carries the protocol: a bridge of protocol 1 has no such path,
+ * so it sends nothing for a request it would have read wrongly.
  *
  * The bridge follows no redirect. When the caller asks for them to be
  * followed (P5.4), each hop is a relay of its own, made here: the page
- * decides where a request may go (C-063), and any version of the bridge
- * can relay a hop. One timeout holds for the whole chain.
+ * decides where a request may go (C-063). One timeout holds for the whole
+ * chain.
  */
 export class BridgeTransport implements Transport {
   constructor(
@@ -50,9 +78,8 @@ export class BridgeTransport implements Transport {
       const chain: RedirectHop[] = [];
       for (let hop = request; ; ) {
         // The jar's cookies are added to what is relayed, not to `hop`: the next hop asks the jar again.
-        const { envelope, listed } = await this.relay(options.cookies ? { ...hop, headers: withJarCookies(hop.headers, options.cookies.for(hop.url)) } : hop, signal);
-        // Joined into one line, two cookies cannot be told apart again (a date holds a comma): only a list is read.
-        if (listed) options.cookies?.store(hop.url, envelope.headers.filter(([name]) => name === "set-cookie").map(([, value]) => value));
+        const envelope = await this.relay(options.cookies ? { ...hop, headers: withJarCookies(hop.headers, options.cookies.for(hop.url)) } : hop, signal, options.timeoutMs);
+        options.cookies?.store(hop.url, envelope.headers.filter(([name]) => name === "set-cookie").map(([, value]) => value));
         if (!redirects) return envelope;
         const ended = (stopped?: RedirectStop): ResponseEnvelope => ({ ...envelope, redirected: chain.length > 0, redirects: { chain, ...(stopped && { stopped }) } });
         const location = envelope.headers.find(([name]) => name.toLowerCase() === "location")?.[1];
@@ -68,60 +95,87 @@ export class BridgeTransport implements Transport {
     });
   }
 
-  private async relay(request: ResolvedRequest, signal: AbortSignal): Promise<{ envelope: ResponseEnvelope; listed: boolean }> {
-    // Protocol 1 carries the body as text inside JSON. Bytes and forms need protocol 2 (P6.1).
-    if (request.body !== undefined && typeof request.body !== "string") {
-      throw new TransportError("bridge", "The Local Bridge cannot relay a file or multipart body yet. Turn the bridge off to send this request.");
-    }
-    const response = await this.fetchFn(`${this.bridge.url.replace(/\/+$/, "")}/relay`, {
+  private async relay(request: ResolvedRequest, signal: AbortSignal, timeoutMs: number): Promise<ResponseEnvelope> {
+    const { headers, bytes } = await wireBody(request);
+    const response = await this.fetchFn(`${this.bridge.url.replace(/\/+$/, "")}/v${BRIDGE_PROTOCOL}/relay`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": this.bridge.token },
-      body: JSON.stringify({
-        method: request.method,
-        url: request.url,
-        headers: Object.fromEntries(request.headers),
-        body: request.body,
-      }),
+      // Only the fields of the protocol: the bridge refuses one it does not know.
+      body: JSON.stringify({ method: request.method, url: request.url, headers, ...(bytes && { bodyB64: toBase64(bytes) }), ...(timeoutMs > 0 && { timeoutMs }) }),
       cache: "no-store",
       credentials: "omit",
       referrerPolicy: "no-referrer",
       signal,
     });
     const text = await response.text();
+    // Local Bridge 1.x answers a path it does not have with 404.
+    if (response.status === 404) throw new TransportError("bridge", BRIDGE_PROTOCOL_MISMATCH, 404);
     if (!response.ok) {
       throw new TransportError("bridge", describeError(text) ?? `The bridge answered ${response.status}.`, response.status);
     }
-    const relay = JSON.parse(text) as RelayEnvelope;
-    const listed = headerPairs(relay.headerList);
-    return { envelope: toEnvelope(relay, request.url, listed), listed: !!listed };
+    const relay = parseEnvelope(text);
+    if (!relay) throw new TransportError("bridge", BRIDGE_PROTOCOL_MISMATCH);
+    return toEnvelope(relay, request.url);
   }
 }
 
-/** The bridge's list of headers when it is one, names in lower case as its joined form has them. */
-function headerPairs(list: unknown): [string, string][] | undefined {
-  if (!Array.isArray(list) || !list.every((pair): pair is [string, string] => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string")) return undefined;
-  return list.map(([name, value]) => [name.toLowerCase(), value]);
+/**
+ * The request's body as the bytes that go on the wire, and its headers with
+ * them. A form is written as `fetch` writes one, and its `Content-Type`,
+ * which names the boundary, replaces any the request had.
+ */
+async function wireBody(request: ResolvedRequest): Promise<{ headers: [string, string][]; bytes?: Uint8Array }> {
+  const { body, headers } = request;
+  if (body === undefined) return { headers };
+  if (typeof body === "string") return { headers, bytes: new TextEncoder().encode(body) };
+  if (body instanceof ArrayBuffer) return { headers, bytes: new Uint8Array(body) };
+  const written = new Response(body);
+  const bytes = new Uint8Array(await written.arrayBuffer());
+  const type = written.headers.get("content-type");
+  if (!(body instanceof FormData) || type === null) return { headers, bytes };
+  return { headers: [...headers.filter(([name]) => name.toLowerCase() !== "content-type"), ["Content-Type", type]], bytes };
 }
 
-function toEnvelope(relay: RelayEnvelope, url: string, listed?: [string, string][]): ResponseEnvelope {
-  const raw = relay.body ?? "";
-  const base64 = relay.bodyEncoding === "base64";
-  const bytes = (base64 ? fromBase64(raw) : undefined) ?? new TextEncoder().encode(raw);
+function toBase64(bytes: Uint8Array): string {
+  let binary = "";
+  // In pieces: a call takes only so many arguments.
+  for (let at = 0; at < bytes.length; at += 0x8000) binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
+  return btoa(binary);
+}
+
+/** The bridge's answer when it is one of protocol 2, every field checked: an answer of another shape is not read as a response. */
+function parseEnvelope(text: string): RelayEnvelope | undefined {
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    return undefined;
+  }
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const { status, statusText, headers, bodyB64, encodedSize, decodedSize } = value as Record<string, unknown>;
+  const pairs = Array.isArray(headers) && headers.every((pair): pair is [string, string] => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string");
+  if (typeof status !== "number" || typeof statusText !== "string" || !pairs || typeof bodyB64 !== "string" || typeof encodedSize !== "number" || typeof decodedSize !== "number") return undefined;
+  return { status, statusText, headers, bodyB64, encodedSize, decodedSize };
+}
+
+function toEnvelope(relay: RelayEnvelope, url: string): ResponseEnvelope {
+  const bytes = fromBase64(relay.bodyB64);
+  if (!bytes || bytes.byteLength !== relay.decodedSize) throw new TransportError("bridge", BRIDGE_PROTOCOL_MISMATCH);
   return {
     status: relay.status,
     statusText: relay.statusText,
-    headers: listed ?? Object.entries(relay.headers ?? {}),
+    // Names in lower case, as a direct response has them.
+    headers: relay.headers.map(([name, value]) => [name.toLowerCase(), value]),
     body: bytes.buffer as ArrayBuffer,
     redirected: false,
     finalUrl: url,
     route: "bridge",
-    sizes: { decoded: bytes.byteLength },
-    // The bridge decoded a text body to a string; it is UTF-8 again here.
-    ...(base64 ? {} : { charset: "utf-8" as const }),
+    sizes: { encoded: relay.encodedSize, decoded: bytes.byteLength },
   };
 }
 
-/** The bytes of a base64 string, or undefined when it is not base64 (shown as the text the bridge sent). */
+/** The bytes of a base64 string, or undefined when it is not base64. */
 function fromBase64(text: string): Uint8Array | undefined {
   try {
     return Uint8Array.from(atob(text), (char) => char.charCodeAt(0));

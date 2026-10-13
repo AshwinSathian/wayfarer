@@ -66,9 +66,9 @@ describe('Composer: methods and body modes', () => {
       TestBed.inject(BridgeSettings).config.set({ enabled: true, url: 'http://127.0.0.1:7717', token: 't'.repeat(16) });
       view.onRequestMethodChange('TRACE');
       const pending = component.sendRequest();
-      const relay = await vi.waitFor(() => httpMock.expectOne('http://127.0.0.1:7717/relay'));
+      const relay = await vi.waitFor(() => httpMock.expectOne('http://127.0.0.1:7717/v2/relay'));
       expect(relay.request.body).toMatchObject({ method: 'TRACE', url: 'https://a.test/x' });
-      relay.flush(JSON.stringify({ status: 200, statusText: 'OK', headers: {}, body: '', bodyEncoding: 'utf8' }), { status: 200 });
+      relay.flush(JSON.stringify({ status: 200, statusText: 'OK', headers: [], bodyB64: '', encodedSize: 0, decodedSize: 0 }), { status: 200 });
       await pending;
       expect(store.endpointError()).toBe('');
     });

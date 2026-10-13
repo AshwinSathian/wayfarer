@@ -13,7 +13,7 @@ import { BridgeSettings } from "./bridge-settings";
 /**
  * Sends a request by the route the device is set to: straight from the page,
  * or through the Local Bridge when it is switched on (see
- * `local-bridge/README.md`).
+ * `packages/bridge/README.md`).
  */
 @Injectable({ providedIn: "root" })
 export class TransportRouter implements Transport {

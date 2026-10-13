@@ -7,6 +7,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed (Local Bridge 2.0.0, protocol 2)
+
+- **The Local Bridge relays bytes.** A file, a multipart form and a binary
+  body can be sent through it; before, the app refused them ("cannot relay
+  a file or multipart body yet"). A response comes back as the bytes the
+  server sent: before, the bridge read every body as UTF-8 unless its type
+  looked binary, so text in another charset and binary data under a text
+  type were damaged.
+- **A compressed response through the bridge is decoded** (gzip, deflate,
+  Brotli) and shown with both sizes. Before, it was passed on compressed and
+  read as text. The 25 MB limit holds for the decoded body too.
+- **The request's timeout holds through the bridge.** Before, the bridge
+  waited its own 30 seconds whatever the request said.
+- **The page and the bridge must be of the same protocol, and say so when
+  they are not.** This version of the app needs Local Bridge 2.0.0: with an
+  older one a request fails with "does not speak protocol 2", and Settings →
+  Local Bridge → Test connection names the bridge's version and says which
+  of the two to update. Nothing is sent to a target in that case. Update the
+  bridge with the app (`git pull`, then `npm run bridge`).
+- The bridge's folder is `packages/bridge` and its package and command are
+  `wayfarer-bridge` (before: `local-bridge`, `wayfarer-local-bridge`). Its
+  token file stays where it was, `~/.wayfarer-local-bridge/token`.
+
 ### Changed
 
 - **A collection runs in the order of its list, and the list is in the order

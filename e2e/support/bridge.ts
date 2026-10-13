@@ -8,11 +8,11 @@ export interface TestBridge {
   stop: () => void;
 }
 
-/** Starts `local-bridge/bin/cli.js` and resolves when it listens. Call `stop` in a `finally`. */
+/** Starts `packages/bridge/bin/cli.js` and resolves when it listens. Call `stop` in a `finally`. */
 export async function startBridge(): Promise<TestBridge> {
   const port = 7720 + test.info().parallelIndex;
   const token = "bridge-token-for-an-e2e-0123456789abcdef";
-  const bridge = spawn(process.execPath, ["local-bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
+  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
   await new Promise<void>((resolve, reject) => {
     bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));
     bridge.stdout.on("data", (chunk: Buffer) => {

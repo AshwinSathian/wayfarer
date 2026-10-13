@@ -100,7 +100,7 @@ function isLoopback(hostname: string): boolean {
   return hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "[::1]" || /^127(\.\d{1,3}){3}$/.test(hostname);
 }
 
-// What the Local Bridge does not pass on (`HOP_BY_HOP_HEADERS` in local-bridge/src/server.js): Node sets these for the connection it makes.
+// What the Local Bridge does not pass on (`HOP_BY_HOP_HEADERS` in packages/bridge/src/server.js): Node sets these for the connection it makes.
 const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "host", "content-length"]);
 
 /**

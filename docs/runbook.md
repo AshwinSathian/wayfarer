@@ -225,7 +225,7 @@ The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` 
 
 Nothing of 2.x is deployed yet, so these could not be checked on the host:
 
-1. **The Local Bridge from the hosted page.** Start `wayfarer-local-bridge`
+1. **The Local Bridge from the hosted page.** Start `wayfarer-bridge`
    1.1.0 with `--allow-origin https://<host>`, switch it on in Settings, and
    send `/redirect/3` and `/cookies/set` of any echo service: the response
    lists the hops, and Settings, Cookies lists the cookie. Whether a browser

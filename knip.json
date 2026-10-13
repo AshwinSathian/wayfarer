@@ -8,16 +8,13 @@
         "src/**/*.spec.ts",
         "src/testing/**/*.ts",
         "e2e/**/*.{ts,mjs}",
-        "scripts/*.mjs",
-        "local-bridge/bin/*.js",
-        "local-bridge/test/*.js"
+        "scripts/*.mjs"
       ],
       "project": [
         "src/**/*.ts",
         "src/design-system/**/*.css",
         "e2e/**/*.{ts,mjs}",
-        "scripts/**/*.mjs",
-        "local-bridge/**/*.js"
+        "scripts/**/*.mjs"
       ],
       "ignoreDependencies": [
         "@angular/language-service",
@@ -26,6 +23,15 @@
         "lodash",
         "moment",
         "uuid"
+      ]
+    },
+    "packages/bridge": {
+      "entry": [
+        "bin/*.js",
+        "test/*.js"
+      ],
+      "project": [
+        "**/*.js"
       ]
     },
     "packages/core": {

@@ -79,7 +79,7 @@ Outbound traffic is the request you build, sent directly to the host you
 specify. If that host is `https://`, the connection is TLS-protected by the
 browser exactly as it would be for any other web request; Wayfarer doesn't
 touch, weaken, or intercept that connection. <!-- claim:C-015 --> If you use the optional
-[Local Bridge](../local-bridge/README.md) to reach a CORS-restrictive or
+[Local Bridge](../packages/bridge/README.md) to reach a CORS-restrictive or
 intranet-only API, see that component's own security model: the bridge
 relays your request from a process running on your own machine, and only
 for an allowed origin that presents its token. <!-- claim:C-041 --> The
@@ -214,7 +214,7 @@ These are open, tracked, and scheduled in
 - Cross-origin phase timings are usually unavailable to the browser ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)).
 - Offline, the app has the parts it has loaded once: the page, the editor, and whatever you used. A part that was never loaded on this device (the script engine before a script ever ran, the importer before a file was ever picked, an editor language's helper before the editor was idle once) is fetched the first time it is needed, and that needs the network. Nothing precaches all of them: together they are 12.9 MB.
 - Browser storage can be evicted (Safari deletes site data after 7 days without a visit, unless the app is installed). The app asks the browser to keep the data, says in Settings whether it agreed, and reminds you to back up after 14 days; it cannot make the browser promise.
-- The Local Bridge is a global on/off switch, isn't on npm, and does not decompress a response ([#79](https://github.com/AshwinSathian/wayfarer/issues/79), [#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
+- The Local Bridge is a global on/off switch and isn't on npm ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)). It gives no timings, and cannot yet be told to trust a certificate authority of your own or to use a proxy.
 - Cookies that responses set through the Local Bridge are kept in this browser's storage as text, like a credential typed into a request, and sent to their domain and path with later requests through the bridge. Anything that reads this origin's storage reads them. History and exports hold them masked; a cookie that repeats a vault secret is not stored. The jar has no list of public suffixes: see [`browser-limits.md`](browser-limits.md#cookies).
 - A browser drops some request headers, adds others and hides most response headers of another origin. Wayfarer cannot change that from a page; it says so for each request before you send it <!-- claim:C-049 --> and on the Headers tab, and [`browser-limits.md`](browser-limits.md) lists all of it. The Local Bridge is the way around.
 

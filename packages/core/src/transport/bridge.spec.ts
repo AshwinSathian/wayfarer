@@ -375,6 +375,11 @@ describe("bridgeHealthProblem: what /health says of a bridge (P6.3)", () => {
     for (const wrong of [null, [], "ok", 7, {}, { ok: false, version: "2.0.0", protocol: 2 }]) expect(bridgeHealthProblem(wrong)).toBe("What answered at this address is not a Local Bridge.");
     expect(bridgeHealthProblem({ ok: true, version: "<b>9</b>", protocol: 1 })).toMatch(/^Local Bridge \(version not given\) is too old/);
     expect(bridgeHealthProblem({ ok: true, version: "2.0.0", protocol: "2" })).toContain("it speaks protocol 1");
+    // A long run of digits is not searched for a version (CodeQL #33): it is read in a moment and not repeated.
+    const started = Date.now();
+    expect(bridgeHealthProblem({ ok: true, version: `1.1.${"1".repeat(200_000)}!`, protocol: 1 })).toMatch(/^Local Bridge \(version not given\)/);
+    expect(Date.now() - started).toBeLessThan(200);
+    expect(bridgeHealthProblem({ ok: true, version: "2.0.0-beta.1+build.7", protocol: 3 })).toContain("Local Bridge 2.0.0-beta.1+build.7 is newer");
   });
 });
 

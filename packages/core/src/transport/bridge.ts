@@ -43,7 +43,8 @@ export function bridgeHealthProblem(health: unknown): string | undefined {
   const { version, protocol } = health as { version?: unknown; protocol?: unknown };
   const speaks = typeof protocol === "number" && Number.isInteger(protocol) && protocol > 0 ? protocol : 1;
   if (speaks === BRIDGE_PROTOCOL) return undefined;
-  const named = typeof version === "string" && /^\d+\.\d+\.\d+[\w.+-]*$/.test(version) ? version : "(version not given)";
+  // A length first: the text is another program's, and a pattern is not run over more than a version can be.
+  const named = typeof version === "string" && version.length <= 40 && /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]*)?$/.test(version) ? version : "(version not given)";
   return speaks < BRIDGE_PROTOCOL
     ? `Local Bridge ${named} is too old for this page: it speaks protocol ${speaks}, and the page speaks protocol ${BRIDGE_PROTOCOL}. Update the Local Bridge and start it again.`
     : `Local Bridge ${named} is newer than this page: it speaks protocol ${speaks}, and the page speaks protocol ${BRIDGE_PROTOCOL}. Reload Wayfarer to get its current version.`;

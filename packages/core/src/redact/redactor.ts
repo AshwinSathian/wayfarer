@@ -68,6 +68,8 @@ function formsOf(value: string): string[] {
     // reports the URL it received reports this.
     percentEncode(value, /[^\x21\x24-\x26\x28-\x3b\x3d\x3f-\x7e]/gu),
     percentEncode(value, /[^\x21\x24-\x3b\x3d\x40-\x5f\x61-\x7a\x7c\x7e]/gu),
+    // The path again, with "^" escaped: the URL standard added it to what a path escapes, and a parser of today writes %5E.
+    percentEncode(value, /[^\x21\x24-\x3b\x3d\x40-\x5d\x5f\x61-\x7a\x7c\x7e]/gu),
     // A form field: a space is "+", and a few more characters are escaped.
     new URLSearchParams({ k: value }).toString().slice(2),
     json,

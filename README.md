@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-> **v2.2.0 status:** Wayfarer imports Postman, Insomnia, OpenAPI, cURL and HAR, each with a report before anything is stored, and exports cURL, code, Postman files and HAR; a collection and a folder hold auth, variables and scripts for their requests; AWS Signature and OAuth 2.0 are new auth types ([changelog](CHANGELOG.md)). Scripts run in a sandbox, with the parts of Postman's script API listed in [`docs/postman-compatibility.md`](docs/postman-compatibility.md). **Collections saved by 2.0 or 2.1 are removed the first time 2.2 opens**, and the page says so; environments, secrets and history are kept. Wayfarer 2 does **not** carry over what 1.x stored or exported. See [Known limitations](#known-limitations).
+> **v2.3.0 status:** several requests open at once in tabs that survive a reload; a collection or a folder runs as a whole, with a data file and reports; event streams and WebSockets; GraphQL with schema, checking and completion; and, through the optional Local Bridge, a cookie jar and redirects shown hop by hop ([changelog](CHANGELOG.md)). Wayfarer 2 stores its data in a format of its own and reads nothing a 1.x version stored; **what is live at the demo address may be older than this**: a release here is a tag, and a deploy is a separate step.
 
 **Live demo:** https://wayfarer.ashwinsathian.com/
 
@@ -31,6 +31,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Methods: any HTTP method, typed (`PURGE`, `PROPFIND`, …) and sent in upper case, with `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` one click away <!-- claim:C-017 -->
   - URL field with live validation <!-- claim:C-018 -->
+  - **Tabs**: several requests open at once, each with its own request and response, kept over a reload; a request, a run, an event stream or a WebSocket goes on in its tab while you work in another
   - Query Params, Headers, Auth (Bearer / Basic / API Key, in a header or the query / AWS Signature / OAuth 2.0), and Scripts tabs; a collection and a folder can hold auth too, and a request set to "Inherit from parent" is sent with it <!-- claim:C-019 -->
   - **AWS Signature Version 4**: the request is signed as it is sent, with the access key, secret key, region and service you give, and a session token for temporary credentials. Held to AWS's own test suite. A multipart form cannot be signed, and the app says so <!-- claim:C-061 -->. See [`docs/auth.md`](docs/auth.md)
   - **OAuth 2.0**: Authorization Code with PKCE (the sign-in opens in a window), Client Credentials and Password. The token is kept in the vault when it is unlocked and otherwise in memory only, is renewed when it expires, and is masked in history and in every export. A token endpoint that does not allow the app's origin needs the Local Bridge <!-- claim:C-062 -->. See [`docs/auth.md`](docs/auth.md)
@@ -59,6 +60,8 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - The Headers tab says when the browser withheld headers (a response from another origin shows only the CORS-safelisted ones and those the server exposes)
   - Total duration and size; phase timings (DNS → Connect → TTFB) only when the server sends `Timing-Allow-Origin`, which most cross-origin APIs don't ([#69](https://github.com/AshwinSathian/wayfarer/issues/69)) <!-- claim:C-023 -->
   - **Event streams (SSE)**: a response of type `text/event-stream` is listed event by event as it arrives (id, event, data, time), with any header the request has, since it is read with `fetch` and not with `EventSource`. **Stop** ends it; **Reconnect** sends the last id as `Last-Event-ID`. Through the Local Bridge a stream is shown when it has ended. See [`docs/browser-limits.md`](docs/browser-limits.md), "Event streams"
+  - **Through the Local Bridge, redirects hop by hop**: each redirect that was followed is listed with its status, its address and its `Location`, 20 at most; **Follow redirects** is a setting of the request. Sent directly, the browser follows unseen and the response says where it ended. A request that holds a vault secret is not followed to another host: that redirect is the response, with the reason <!-- claim:C-063 -->. See [`docs/browser-limits.md`](docs/browser-limits.md), "Redirects"
+  - **Through the Local Bridge, a cookie jar**: what a response sets is kept and sent with later requests to its domain and path, as a browser would; Settings, **Cookies** lists it, to change or delete. A page cannot read or fill the browser's own jar, so a direct request has none. See [`docs/browser-limits.md`](docs/browser-limits.md), "Cookies"
   - **WebSocket**: an address that starts with `ws://` or `wss://` is connected to instead of sent. Subprotocols, a message field (text, or text that must be JSON), and a log of what was sent and received with time and size, and the close code when the connection ends. A browser adds no header to a WebSocket's handshake, so the request's headers and auth do not go with it. See [`docs/browser-limits.md`](docs/browser-limits.md), "WebSockets"
   - An **Export** menu that copies the exchange as cURL or HAR, or shows the HAR file before you copy or save it <!-- claim:C-035 -->
 
@@ -230,10 +233,10 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 
 ## Roadmap (public intent, not a contract)
 
-- JSONPath search/filter in responses
-- OpenAPI/Swagger import
-- CSV/XLSX preview & import flows
-- WebSocket / SSE / GraphQL support
+- A command-line runner for collections, and the Local Bridge on npm
+- Full JSONPath (filters, recursive descent) in the response filter
+- GraphQL subscriptions; a WebSocket through the Local Bridge, for handshake headers
+- CSV/XLSX preview
 
 Tracked as GitHub issues; no fixed timeline.
 

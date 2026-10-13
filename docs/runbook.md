@@ -221,6 +221,24 @@ These are the P0.13 checks: `npm view … maintainers` lists the maintainer acco
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
 
+### After the first deploy of v2.3.0
+
+Nothing of 2.x is deployed yet, so these could not be checked on the host:
+
+1. **The Local Bridge from the hosted page.** Start `wayfarer-local-bridge`
+   1.1.0 with `--allow-origin https://<host>`, switch it on in Settings, and
+   send `/redirect/3` and `/cookies/set` of any echo service: the response
+   lists the hops, and Settings, Cookies lists the cookie. Whether a browser
+   lets an https page reach `http://127.0.0.1` at all is
+   [#99](https://github.com/AshwinSathian/wayfarer/issues/99).
+2. **A WebSocket from the hosted page.** `wss://` works; `ws://` to this
+   computer from an https page was not measured in any browser.
+3. **GraphQL's libraries arrive when asked for.** Choose GraphQL in the Body
+   tab and press Fetch schema with the network panel open: one more script
+   is fetched then, and none of it before.
+4. **The early theme script** (`/theme.js`) is served with the page, and a
+   light system draws no dark frame first.
+
 ### After the first deploy of v2.2.0: the OAuth 2.0 callback page
 
 v2.2.0 adds a second HTML page, `oauth/callback.html`, which an identity

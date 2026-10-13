@@ -302,6 +302,8 @@ test("folders and requests are reordered by drag and drop among their own kind, 
 });
 
 test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({ page, browser }) => {
+  // Two browsers, a seeded database, a download and an import: 4 s on a laptop, and past 30 s on CI's WebKit runner five times (#228).
+  test.slow();
   await seedAndOpen(page, { c033: "value-c033" }, { method: "GET", url: `${ECHO}/echo` });
   await openSettings(page, "Data and storage");
   const [download] = await Promise.all([

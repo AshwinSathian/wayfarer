@@ -7,6 +7,38 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-13
+
+A workspace to work in all day. Several requests are open at once, in tabs
+that are still there after a reload. A collection or a folder runs as a
+whole, with iterations, a data file and reports. A response that is an event
+stream is listed as it arrives, and a `ws://` address is a WebSocket to talk
+to. A body can be a GraphQL query, checked against the server's schema and
+completed from it. Through the optional Local Bridge, redirects are shown
+hop by hop and cookies are kept as a browser keeps them.
+
+**Nothing stored is removed by this version.** The database goes from
+version 10 to 12: it gains the stores of the tabs and of the cookie jar.
+
+**What to know before you rely on it:**
+
+- A tab is stored as you type, before you save: a token typed into a
+  request is text in this browser's storage. Cookies of the jar are too.
+  Put what must not be there into the vault.
+- The cookie jar and the list of redirects need the Local Bridge, and the
+  jar needs Local Bridge 1.1.0, which comes with this version. A browser
+  shows a page neither.
+- A request that holds a vault secret is not followed by a redirect to
+  another host; the redirect is the response.
+- A collection run goes in the order of the list, a folder's folders before
+  its requests. A Postman file may have them in another order.
+- Two libraries are new, `graphql` and `graphql-language-service` (MIT).
+  They are fetched with the first GraphQL schema, not with the page.
+- The first bundle is 1,362,406 B (351,713 B gzip), 6.4% more than 2.2.0:
+  the tabs, the run's view, the event list, the WebSocket view, the cookie
+  jar and the GraphQL pane. The size budgets are reset to this baseline
+  (warning at 1,430 kB, error at 1,498 kB, 386,800 B gzip).
+
 ### Added
 
 - **GraphQL.** A body can be a GraphQL query with its variables: choose **GraphQL** in the Body tab. The query has its own editor, the variables a JSON one, and the request is sent as the one JSON object a GraphQL server reads; `{{variables}}` are replaced in both before that JSON is made. **Fetch schema** asks the request's address for its schema, with the request's own headers, auth and scripts, and without writing anything to history. With a schema the query is checked as you type (a field the schema does not have is underlined and named under the editor), the editor completes fields and arguments, and the schema is listed under the editor: each type with its fields, their arguments and what the schema says of them. A query that does not parse is said without any schema. A schema is kept for its address until the page reloads. A Postman collection's GraphQL body imports as one and exports as one; it used to become JSON text. Two libraries came with it, `graphql` and `graphql-language-service` (MIT, with three small MIT packages); they are fetched with the first schema and are not in the first bundle. See `docs/graphql.md`.

@@ -66,6 +66,8 @@ The composer's tabs are stored, so a reload brings them back. One record per tab
 
 A tab is written about a quarter of a second after it last changed, and when the page is hidden. A reload sooner than that after a keystroke can lose that keystroke.
 
+**A tab follows its saved request.** When the request is renamed or moved in the list, here or in another browser tab, the tab has its new name and place at once, and with the place what it inherits from its folders. When the request is deleted, the tab keeps what it held, as a request that is not saved. When the request is saved from another browser tab, a tab that holds it keeps its own text: saving it then writes that text over the other's. Scripts keep their standing through all of this: a script that waited for a review still waits.
+
 **Two browser tabs share the composer's tabs.** A tab opened, closed or edited in one appears so in the other. Each browser tab keeps which tab is open for itself (`wayfarer:open-tab` in `sessionStorage`). When both edit the same tab, the later write is what is stored, and the browser tab that is not in the middle of an edit takes the other's text.
 
 A tab of a collection run is not stored, and neither is anything of the run: its requests are not written to history, its data file is read into the page and kept nowhere, and a reload does not bring the tab back.

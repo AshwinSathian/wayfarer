@@ -175,6 +175,94 @@ describe("TabsStorage", () => {
     expect(second.bound()).toBeNull();
   });
 
+  // "What session 5A left for 5B", item 5: a tab's saved request was a copy, stale after a rename, a move or a delete in the tree.
+  describe("when the saved request of an open tab changes in the tree", () => {
+    const none = { auth: { type: "none" as const }, scripts: { pre: "", post: "" }, variables: [] };
+    const collection = (approved: string[] = []) => ({ id: "c1", meta: meta("c1"), name: "C", order: 0, ...none, scriptTrust: { trusted: true, approved } });
+    const folder = (id: string) => ({ id, meta: meta(id), collectionId: "c1", name: id, order: 0, ...none });
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+    /** A tab that holds `doc`, opened as the tree opens one. */
+    const openTab = (doc: ReturnType<typeof makeRequestDoc>) => {
+      const tab = tabs.active();
+      tab.draft.set({ ...structuredClone(doc), params: [] });
+      tab.bound.set(doc);
+      tab.markClean();
+      return tab;
+    };
+
+    it("a rename is the tab's name, and a move its place: what it inherits is the new folder's", async () => {
+      const doc = makeRequestDoc({ id: "r-1", name: "Before" });
+      harness.collectionsService.setTree([{ collection: collection(), folders: [folder("f-old"), folder("f-new")], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+
+      harness.collectionsService.setTree([{ collection: collection(), folders: [folder("f-old"), folder("f-new")], requests: [{ ...doc, name: "After", folderId: "f-new" }] }]);
+      await settle();
+      expect(tab.bound()?.name).toBe("After");
+      expect(tab.bound()?.folderId).toBe("f-new");
+      // What the tab holds is not touched: it is not unsaved for the rename.
+      expect(tab.dirty()).toBe(false);
+    });
+
+    it("a request that was deleted leaves its tab a request that is not saved, with what it held", async () => {
+      const doc = makeRequestDoc({ id: "r-1", url: "https://kept.test/x" });
+      harness.collectionsService.setTree([{ collection: collection(), folders: [], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+
+      harness.collectionsService.setTree([{ collection: collection(), folders: [], requests: [] }]);
+      await settle();
+      expect(tab.bound()).toBeNull();
+      expect(tab.draft().url).toBe("https://kept.test/x");
+      expect(tab.heldScripts()).toBeNull();
+    });
+
+    it("a deleted request's scripts that waited for a review still wait: the tab does not make them typed here", async () => {
+      const doc = makeRequestDoc({ id: "r-1", scripts: { pre: "imported()", post: "" } });
+      // The collection approved nothing: the script waits for a review while the tab is bound.
+      harness.collectionsService.setTree([{ collection: collection(), folders: [], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+      expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(false);
+
+      harness.collectionsService.setTree([{ collection: collection(), folders: [], requests: [] }]);
+      await settle();
+      expect(tab.bound()).toBeNull();
+      expect(tab.heldScripts()).toMatchObject({ pre: "imported()" });
+      expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(false);
+    });
+
+    it("a deleted request's scripts that were allowed to run still run", async () => {
+      const doc = makeRequestDoc({ id: "r-1", scripts: { pre: "written.here()", post: "" } });
+      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+      expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(true);
+
+      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [] }]);
+      await settle();
+      expect(tab.bound()).toBeNull();
+      expect(tab.heldScripts()).toBeNull();
+    });
+
+    it("scripts stored for the request since, that nobody approved, do not ride on the tab's own: the tab's scripts wait", async () => {
+      const doc = makeRequestDoc({ id: "r-1", scripts: { pre: "mine()", post: "" } });
+      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("mine()")]), folders: [], requests: [doc] }]);
+      await storage.start();
+      const tab = openTab(doc);
+
+      // An import replaced the saved request: its script is another, and approved by nobody.
+      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("mine()")]), folders: [], requests: [{ ...doc, scripts: { pre: "replaced()", post: "" } }] }]);
+      await settle();
+      expect(tab.bound()?.scripts.pre).toBe("replaced()");
+      // The tab still holds and would run its own script, which was allowed; the stored one is not what runs.
+      expect(tab.draft().scripts.pre).toBe("mine()");
+      expect(tab.heldScripts()).toBeNull();
+      // The collection's list says no to what is stored for the request now, so nothing of this tab runs until that is reviewed.
+      expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(false);
+    });
+  });
+
   it("takes what another browser tab stored, but not over a change of its own that is not stored yet", async () => {
     await storage.start();
     store.setUrl("https://mine.test");

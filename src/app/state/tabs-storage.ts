@@ -57,6 +57,13 @@ export class TabsStorage {
       const closed = [...this.stored.keys()].some((id) => !now.some(([open]) => open === id));
       if (changed || closed) untracked(() => this.schedule());
     });
+    // A saved request was renamed, moved or deleted in the tree, or saved from another browser tab: a tab that holds it is bound
+    // again to the request as it is stored now. Its `bound` was a copy, stale until a reload read the stores again.
+    effect(() => {
+      if (!this.ready()) return;
+      this.collections.tree();
+      untracked(() => void this.rebind());
+    });
     effect(() => {
       // Not before the first read: that is what reads which tab was open.
       if (!this.ready()) return;
@@ -192,6 +199,32 @@ export class TabsStorage {
     this.tabs.replace(next, open);
   }
 
+  /**
+   * Binds each tab to its saved request as the tree has it now, as a reload
+   * would: by the request's id. A request that is gone leaves its tab a
+   * request that is not saved. What the tab holds is not touched.
+   *
+   * The scripts keep their standing: the digests of those that may run are
+   * taken before the binding changes, and scripts that are not among them
+   * afterwards are held by the tab. An unbound tab is otherwise "typed
+   * here", and a deleted request's unreviewed scripts would run.
+   */
+  private async rebind(): Promise<void> {
+    for (const tab of this.tabs.tabs()) {
+      const was = tab.bound();
+      if (!was) continue;
+      const now = this.requestOf(was.meta.id);
+      if (now && JSON.stringify(now) === JSON.stringify(was)) continue;
+      const draft = contentOf(tab.draft());
+      const scripts = (await this.digests(draft, tab)) ?? [];
+      // A save, or a later change of the tree, was faster: that one binds the tab.
+      if (tab.bound() !== was) continue;
+      tab.bound.set(this.requestOf(was.meta.id));
+      // Never the other way: a hold is lifted by a review, not by a change of the tree.
+      if (!(await this.allowed({ draft, scripts }, tab.bound()))) tab.heldScripts.set({ ...draft.scripts, name: was.name });
+    }
+  }
+
   /** Makes `tab` what `record` says: its draft, its saved request, its scripts' standing, and the response history kept. */
   private async restore(tab: TabState, record: StoredTab): Promise<void> {
     const draft = structuredClone(record.draft);
@@ -229,7 +262,7 @@ export class TabsStorage {
    * tab did not change are its saved request's, and the collection's list
    * decides about those. Any other must have its digest stored with the tab.
    */
-  private async allowed(record: StoredTab, bound: RequestDoc | null): Promise<boolean> {
+  private async allowed(record: Pick<StoredTab, "draft" | "scripts">, bound: RequestDoc | null): Promise<boolean> {
     const { pre, post } = record.draft.scripts;
     if (bound && bound.scripts.pre === pre && bound.scripts.post === post) return true;
     const digests = await this.digests(record.draft);

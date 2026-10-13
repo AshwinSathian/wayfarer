@@ -61,6 +61,8 @@ export class IdbCore {
    */
   private initPromise?: Promise<void>;
   private resetting = false;
+  /** Reset all data deleted the database, and the page is about to reload: nothing may open it again from this tab. */
+  private resetForReload = false;
 
   /** True once another tab reset all data; the app shows a reload banner. */
   readonly closedByOtherTab = signal(false);
@@ -184,6 +186,10 @@ export class IdbCore {
       // Reopening now would block this tab's own delete.
       throw new Error("Data is being reset.");
     }
+    if (this.resetForReload) {
+      // A send that was on its way, a tab's timer: opening now would make the database again, with that one record in it.
+      throw new Error("All data was reset; this tab is reloading.");
+    }
     await this.init();
 
     if (this.memoryOnly()) {
@@ -301,11 +307,16 @@ export class IdbCore {
    * One delete request only: a second request would queue behind a blocked
    * one and never fire any event.
    *
+   * With `untilReload` (Reset all data, which reloads the page next), a
+   * reset that succeeded leaves this tab without a database for good:
+   * whatever writes between the delete and the reload is refused, and so
+   * does not make the database again.
+   *
    * ponytail: an IndexedDB delete request can't be cancelled. A blocked one
    * stays queued and completes when the blocking tab closes, so the data may
    * disappear after this has reported failure.
    */
-  async resetDatabase(): Promise<void> {
+  async resetDatabase(options: { untilReload?: boolean } = {}): Promise<void> {
     this.resetting = true;
     try {
       await this.closeConnection();
@@ -316,6 +327,8 @@ export class IdbCore {
     } finally {
       this.resetting = false;
     }
+    // Only once the database is really gone: after a reset that failed, the data is there and stays in use.
+    this.resetForReload = options.untilReload === true;
     this.memoryOnly.set(false);
   }
 

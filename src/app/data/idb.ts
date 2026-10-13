@@ -320,8 +320,8 @@ export class Idb {
     return this.workspace.replaceAll(stores);
   }
 
-  async resetDatabase(): Promise<void> {
-    await this.core.resetDatabase();
+  async resetDatabase(options: { untilReload?: boolean } = {}): Promise<void> {
+    await this.core.resetDatabase(options);
     this.history.resetLocalState();
   }
 }

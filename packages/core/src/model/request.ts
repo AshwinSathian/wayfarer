@@ -35,7 +35,7 @@ export interface Row {
 export const RAW_LANGUAGES = ["json", "text", "xml", "html", "javascript"] as const;
 export type RawLanguage = (typeof RAW_LANGUAGES)[number];
 
-export const BODY_MODES = ["none", "raw", "urlencoded", "multipart", "binary"] as const;
+export const BODY_MODES = ["none", "raw", "urlencoded", "multipart", "binary", "graphql"] as const;
 export type BodyMode = (typeof BODY_MODES)[number];
 
 /** A file kept in the `files` store, by id, with the name it was picked under. */
@@ -57,6 +57,8 @@ export interface RequestBody {
   urlencoded?: Row[];
   multipart?: MultipartPart[];
   binary?: FileRef & { contentType?: string };
+  /** A GraphQL query and the text of its variables, a JSON object (P5.5). Sent as one JSON body: `graphqlPayload`. */
+  graphql?: { query: string; variables: string };
 }
 
 /** The `Content-Type` a raw body is sent with when the request sets none. */

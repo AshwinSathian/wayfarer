@@ -39,6 +39,7 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
           { maxLength: 3 }
         ),
         binary: fc.record({ fileId: fc.uuid(), fileName: fc.string(), contentType: fc.string() }, { requiredKeys: ["fileId", "fileName"] }),
+        graphql: fc.record({ query: fc.string(), variables: fc.string() }),
       },
       { requiredKeys: [] }
     )

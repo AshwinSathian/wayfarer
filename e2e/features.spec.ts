@@ -226,7 +226,7 @@ test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and 
 
   await bodyTab.first().click();
   await page.getByRole("combobox", { name: "Body", exact: true }).click();
-  await expect(page.getByRole("option")).toHaveText(["None", "Raw", "Form (URL-encoded)", "Multipart", "Binary file"]);
+  await expect(page.getByRole("option")).toHaveText(["None", "Raw", "Form (URL-encoded)", "Multipart", "Binary file", "GraphQL"]);
   await page.getByRole("option", { name: "Raw", exact: true }).click();
   await page.getByRole("combobox", { name: "Raw body language" }).click();
   await expect(page.getByRole("option")).toHaveText(["JSON", "Text", "XML", "HTML", "JavaScript"]);

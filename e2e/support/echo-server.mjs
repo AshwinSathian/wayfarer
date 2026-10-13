@@ -8,6 +8,8 @@
 //   /content/:type                 json | html | xml | text | csv | png | octet | js
 //   /redirect/:n                   302 chain of n hops, then /echo
 //   /redirect-to?url=&status=      one redirect to `url` as given (another origin, say), 302 unless `status` says otherwise
+//   /graphql                       POST { query, variables }: a schema of four types (graphql-schema.json answers an introspection);
+//                                  { hello } answers "Hello, <variables.name or world>"; a field the schema has not is an error, with 200
 //   /cookies/set?name=value        Set-Cookie per query param (one header each)
 //   /cookies/login                 a sign-in that answers with a redirect: 302 to /echo with Set-Cookie session=signed-in
 //   /gzip, /deflate                compressed JSON
@@ -37,6 +39,7 @@
 import { createServer } from "node:http";
 import { createHash, randomBytes } from "node:crypto";
 import { deflateSync, gzipSync } from "node:zlib";
+import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const ECHO_PORT = 4300;
@@ -89,6 +92,9 @@ const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
   "base64"
 );
+
+// The answer to an introspection of /graphql's schema, written once from its SDL with the `graphql` package: the server itself has no dependency.
+const GRAPHQL_SCHEMA = readFileSync(new URL("./graphql-schema.json", import.meta.url));
 
 const CONTENT = {
   json: ["application/json; charset=utf-8", '{"userId":1,"id":1,"title":"echo fixture","completed":false}'],
@@ -195,6 +201,19 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
   }
   if (path === "/redirect-to") {
     return send(res, Number(url.searchParams.get("status")) || 302, { ...cors, location: url.searchParams.get("url") ?? "/echo" });
+  }
+  if (path === "/graphql") {
+    let asked;
+    try {
+      asked = JSON.parse(body.toString("utf8"));
+    } catch {
+      return json(res, 400, { errors: [{ message: "The body is not JSON." }] }, cors);
+    }
+    const query = typeof asked?.query === "string" ? asked.query : "";
+    if (query.includes("__schema")) return send(res, 200, { ...cors, "content-type": "application/json" }, GRAPHQL_SCHEMA);
+    const unknown = /\b(?!hello\b|pets?\b|adopt\b|id\b|name\b|kind\b|query\b|mutation\b)[a-z]\w*\b(?=\s*[{}\s(])/.exec(query.replace(/\([^)]*\)/g, " ").replace(/"[^"]*"/g, " "));
+    if (unknown) return json(res, 200, { errors: [{ message: `Cannot query field "${unknown[0]}" on type "Query".` }] }, cors);
+    return json(res, 200, { data: { hello: `Hello, ${asked?.variables?.name ?? "world"}` }, extensions: { authorization: req.headers.authorization ?? null } }, cors);
   }
   if (path === "/cookies/login") {
     return send(res, 302, { ...cors, location: "/echo", "set-cookie": ["session=signed-in; Path=/; HttpOnly", "seen=Wed, 14 Oct; Path=/"] });

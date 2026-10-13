@@ -67,6 +67,60 @@
     (filePicked)="setPartFile($event.index, $event.file)"
   ></app-multipart-editor>
   }
+  @case ('graphql') {
+  @let known = schema();
+  <div class="graphql space-y-3">
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="known?.status === 'loading'" (click)="fetchSchema()">
+        @if (known?.status === 'loading') { <mat-spinner diameter="18" aria-hidden="true" /> } @else { <app-icon name="replay" /> }
+        {{ known?.outline ? 'Refresh schema' : 'Fetch schema' }}
+      </button>
+      <span class="graphql-schema-status type-footnote text-label-secondary min-w-0" role="status">
+        @switch (known?.status) {
+          @case ('loading') { Asking the server for its schema… }
+          @case ('ready') { The schema of this address is loaded: the query is checked against it, and the editor completes from it. }
+          @case ('error') { <span class="text-status-error">No schema: {{ known?.error }}</span> }
+          @default { Fetch the schema to have the query checked and completed. It is asked for with this request's address, headers and auth. }
+        }
+      </span>
+    </div>
+    <div>
+      <span class="ds-form-label">Query</span>
+      <app-json-editor
+        name="graphqlQuery"
+        language="graphql"
+        [ngModel]="current.graphql?.query ?? ''"
+        (ngModelChange)="setGraphql({ query: $event })"
+        [ngModelOptions]="{ standalone: true }"
+        [height]="260"
+      ></app-json-editor>
+      @if (problems().length) {
+      <!-- The status is around the list: with the role on the list itself, its items are items of nothing. -->
+      <div class="graphql-problems mt-2 type-footnote text-status-error" role="status" aria-label="Problems in the query">
+        <ul class="m-0 list-none space-y-1 p-0">
+          @for (problem of problems(); track $index) {
+          <li class="flex items-start gap-1"><app-icon name="error" class="icon-xs mt-0.5 shrink-0" /><span class="min-w-0 break-words">Line {{ problem.line }}: {{ problem.message }}</span></li>
+          }
+        </ul>
+      </div>
+      }
+    </div>
+    <div>
+      <span class="ds-form-label">Variables (a JSON object)</span>
+      <app-json-editor
+        name="graphqlVariables"
+        language="json"
+        [ngModel]="current.graphql?.variables ?? ''"
+        (ngModelChange)="setGraphql({ variables: $event })"
+        [ngModelOptions]="{ standalone: true }"
+        [height]="140"
+      ></app-json-editor>
+    </div>
+    @if (known?.outline; as outline) {
+    <app-graphql-explorer [outline]="outline" />
+    }
+  </div>
+  }
   @case ('binary') {
   <div class="flex min-w-0 items-center gap-3">
     <button matButton="outlined" class="btn-secondary" type="button" (click)="binaryFile.click()">Choose file</button>

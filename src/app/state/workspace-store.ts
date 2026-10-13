@@ -2,6 +2,7 @@ import { Injectable, computed, effect, inject, type WritableSignal } from "@angu
 import {
   FORBIDDEN_METHODS,
   RAW_CONTENT_TYPES,
+  graphqlPayload,
   VariableNestingError,
   VariableResolver,
   browserLimits,
@@ -139,6 +140,8 @@ function bodyContentType(body: RequestBody): string | undefined {
   switch (body.mode) {
     case "raw":
       return body.raw?.text ? RAW_CONTENT_TYPES[body.raw.language] : undefined;
+    case "graphql":
+      return "application/json";
     case "urlencoded":
       return "application/x-www-form-urlencoded";
     case "multipart":
@@ -155,6 +158,8 @@ function bodyTexts(body: RequestBody): string[] {
   switch (body.mode) {
     case "raw":
       return [body.raw?.text ?? ""];
+    case "graphql":
+      return [body.graphql?.query ?? "", body.graphql?.variables ?? ""];
     case "urlencoded":
       return (body.urlencoded ?? []).flatMap((row) => [row.key, row.value]);
     case "multipart":
@@ -567,6 +572,28 @@ export class WorkspaceStore {
       ...(tab.iteration && { iteration: tab.iteration }),
       ...this.scriptBinding(tab),
     });
+  }
+
+  /**
+   * Sends the open tab's request with `query` as its GraphQL body and gives
+   * the answer's text (P5.5: a schema is asked for this way). It goes the
+   * road of a send, from a tab of its own that is in no strip: the request's
+   * address, headers, auth and scripts, the trust gate, the vault, the wire
+   * check. Its assertions do not run, and nothing is written to history.
+   * Throws with a sentence when the request cannot be sent or got no answer.
+   */
+  async introspect(query: string): Promise<string> {
+    // A copy keeps the binding and the held scripts: its scripts are trusted exactly as the open tab's are.
+    const tab = this.tabs.active().copy();
+    tab.draft.update((draft) => ({ ...draft, method: "POST", body: { mode: "graphql", graphql: { query, variables: "" } }, tests: [] }));
+    const refusal = this.refusal(tab);
+    if (refusal) throw new Error(refusal);
+    const controller = new AbortController();
+    tab.inFlight = controller;
+    const { response } = await this.exchange(tab, { allowUnresolved: false, signal: controller.signal });
+    if (!response.statusCode) throw new Error(response.errorText || "The server gave no answer.");
+    // A GraphQL server may answer an introspection it refuses with 400 and its reason as JSON: the reader says what it holds.
+    return response.dataText || response.errorText;
   }
 
   /** The variables as they stand now, for a run of `collectionId` that is about to start, and the hosts the user has said yes to in it: none yet. */
@@ -993,6 +1020,12 @@ export class WorkspaceStore {
       case "raw": {
         const text = resolve(body.raw?.text ?? "");
         return text ? { data: text, contentType: RAW_CONTENT_TYPES[body.raw?.language ?? "text"] } : undefined;
+      }
+      case "graphql": {
+        // The variables are replaced in the query and in the variables' text, and the JSON is made of the result: whatever a value holds, the query is one JSON string.
+        const payload = graphqlPayload(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? ""));
+        if ("error" in payload) throw new SendBlockedError(payload.error);
+        return { data: payload.text, contentType: "application/json" };
       }
       case "urlencoded": {
         const pairs = (body.urlencoded ?? []).filter((row) => row.enabled).map((row) => [resolve(row.key), resolve(row.value)]);

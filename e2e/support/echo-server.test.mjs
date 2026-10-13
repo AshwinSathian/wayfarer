@@ -52,6 +52,15 @@ test("/redirect-to answers with the status and the Location it is given", async 
   assert.equal((await get("/redirect-to", { redirect: "manual" })).status, 302);
 });
 
+test("/graphql answers an introspection with a schema, a query with data, and an unknown field with an error", async () => {
+  const ask = async (payload) => (await get("/graphql", { method: "POST", body: JSON.stringify(payload) })).json();
+  assert.equal((await ask({ query: "query IntrospectionQuery { __schema { queryType { name } } }" })).data.__schema.queryType.name, "Query");
+  assert.deepEqual((await ask({ query: "{ hello }" })).data, { hello: "Hello, world" });
+  assert.deepEqual((await ask({ query: "query Q($name: String) { hello(name: $name) }", variables: { name: "Ada" } })).data, { hello: "Hello, Ada" });
+  assert.deepEqual((await ask({ query: "{ nope }" })).errors, [{ message: 'Cannot query field "nope" on type "Query".' }]);
+  assert.equal((await get("/graphql", { method: "POST", body: "{" })).status, 400);
+});
+
 test("/cookies/login redirects to /echo and sets two cookies, one with a comma in its value", async () => {
   const res = await get("/cookies/login", { redirect: "manual" });
   assert.equal(res.status, 302);

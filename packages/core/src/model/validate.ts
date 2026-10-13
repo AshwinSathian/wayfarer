@@ -175,6 +175,13 @@ export function validateRequestContent(value: unknown, path: string): Validation
         if (field(item, "kind") === "file") check.fileRef(item, itemPath);
       });
     }
+    if (part("graphql")) {
+      const graphql = check.object(field(body, "graphql"), `${path}.body.graphql`);
+      if (graphql) {
+        check.string(graphql, "query", `${path}.body.graphql`);
+        check.string(graphql, "variables", `${path}.body.graphql`);
+      }
+    }
     // A binary body with no file chosen yet has no `binary`.
     if (field(body, "binary") !== undefined) {
       const binary = check.object(field(body, "binary"), `${path}.body.binary`);

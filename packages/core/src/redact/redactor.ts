@@ -151,6 +151,7 @@ export class Redactor {
     return {
       ...body,
       ...(body.raw && { raw: { ...body.raw, text: this.text(body.raw.text) } }),
+      ...(body.graphql && { graphql: { query: this.text(body.graphql.query), variables: this.text(body.graphql.variables) } }),
       ...(body.urlencoded && { urlencoded: body.urlencoded.map((row) => ({ ...row, value: this.text(row.value) })) }),
       ...(body.multipart && { multipart: body.multipart.map((part) => (part.kind === "text" ? { ...part, value: this.text(part.value) } : part)) }),
     };

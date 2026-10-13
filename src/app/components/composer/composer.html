@@ -19,7 +19,7 @@
       @for (holder of breadcrumb(); track $index) {{{ holder }} / }{{ bound.name }}
     </nav>
     — Save writes back to this request.
-    <button type="button" class="underline" (click)="clearComposer()">Start a new request instead</button>
+    <button type="button" class="underline text-accent-text bg-transparent" (click)="clearComposer()">Start a new request instead</button>
   </div>
   }
 
@@ -28,7 +28,7 @@
     <app-icon name="error" class="icon-xs" />
     {{ store.endpointError() }}
     @if (store.unresolvedBlocked().length) {
-    <button type="button" class="underline text-accent-text" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
+    <button type="button" class="underline text-accent-text bg-transparent" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
     }
   </p>
   }

@@ -440,6 +440,31 @@ code errors.
   `angular.json`), linked by the loader when the first editor mounts. Do not
   import it from `src/styles.css`: that puts 390 kB on first load.
 
+## GraphQL
+
+- A GraphQL body (P5.5) is `body.graphql`, a query and the text of its
+  variables, sent as one JSON object by `graphqlPayload`
+  (`@wayfarer/core`): the variables are replaced in both texts first and
+  the JSON is made of the result. An export and a script see that JSON text
+  (`exportBody`, `scriptRequestOf`); a script that hands the body back
+  unchanged leaves it a GraphQL body (`withScriptRequest`).
+- `graphql` and `graphql-language-service` are imported by
+  `src/app/shared/graphql/graphql-tools.ts` alone, and that file only by
+  the dynamic `import()` in `GraphqlSchemas`: neither is in the first
+  bundle ("the page the server sends holds nothing of GraphQL's libraries"
+  in `e2e/graphql.spec.ts`). No `monaco-graphql`: it brings `prettier` and
+  a second Monaco. The grammar is Monaco's own
+  (`languages/definitions/graphql/register`); completion and validation
+  are the tools', in the page, not in a worker.
+- A schema is asked for by `WorkspaceStore.introspect`: a copy of the open
+  tab (`TabState.copy()`, so its scripts are trusted as the tab's are) with
+  the introspection query as its body, through `exchange` like any send. It
+  is not history. Schemas are kept by address in `GraphqlSchemas`, in
+  memory only.
+- The echo server's `/graphql` answers an introspection from
+  `e2e/support/graphql-schema.json`, written once from its SDL; the server
+  has no dependency.
+
 ## Scripts
 
 - A user's script is run by QuickJS (WebAssembly), never by the browser:

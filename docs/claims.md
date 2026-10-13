@@ -71,7 +71,7 @@ back gets reworded until one can, or removed.
 | C-036 | The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. | README.md | e2e/features.spec.ts |
 | C-037 | Dark and light themes both ship. Settings chooses one, or System, which follows the device and changes with it; a browser with no choice follows the system. | README.md | e2e/settings.spec.ts |
 | C-038 | The primary views have no critical or serious axe accessibility violations. | README.md | e2e/accessibility.spec.ts |
-| C-039 | The Body tab offers the modes none, raw, form, multipart and binary; GET and HEAD have no Body tab and send no body. | README.md | e2e/features.spec.ts |
+| C-039 | The Body tab offers the modes none, raw, form, multipart, binary and GraphQL; GET and HEAD have no Body tab and send no body. | README.md | e2e/features.spec.ts |
 | C-040 | Scripts are edited in Monaco and have the parts of Postman's script API that `docs/postman-compatibility.md` lists; that document is written from the compatibility matrix, each row of which is a test that runs in Node and in the app's worker, and what is not supported throws an error that names it. | README.md, docs/postman-compatibility.md | e2e/layout.spec.ts, src/app/shared/scripts/script-sandbox.spec.ts, src/app/shared/scripts/pm-compat.spec.ts, packages/core/test/pm-compat/pm-compat.test.ts, scripts/gen-compat-doc.test.mjs |
 | C-041 | The Local Bridge relays only for an allowed origin that presents its token. | docs/trust-center.md | local-bridge/test/server.test.js |
 | C-043 | The vault passphrase can be changed: the old one stops working and no secret is re-encrypted. | README.md, docs/trust-center.md | src/app/services/secrets-vault.spec.ts |

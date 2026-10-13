@@ -217,6 +217,8 @@ function body(value: unknown, item: string, warnings: Warning[]): RequestBody {
       }),
     }),
     ...(isObject(field(value, "file")) && { binary: { fileId: "", fileName: file(field(field(value, "file") as Loose, "src")) } }),
+    // Postman keeps the variables as text, as the app does.
+    ...(isObject(field(value, "graphql")) && { graphql: { query: text(field(field(value, "graphql") as Loose, "query")), variables: text(field(field(value, "graphql") as Loose, "variables")) } }),
   };
   if (kept.multipart?.some((part) => part.kind === "file") || kept.binary) warnings.push({ item, message: "A file of its body is named, not included: choose it again in the Body tab." });
   if (field(value, "disabled") === true) return { mode: "none", ...kept };
@@ -229,14 +231,8 @@ function body(value: unknown, item: string, warnings: Warning[]): RequestBody {
       return { ...kept, mode: "multipart", multipart: kept.multipart ?? [] };
     case "file":
       return { ...kept, mode: "binary" };
-    case "graphql": {
-      // The app has no GraphQL body until P5.5: it is the JSON a GraphQL request is sent as.
-      const graphql = field(value, "graphql");
-      const query = isObject(graphql) ? text(field(graphql, "query")) : "";
-      const variables = isObject(graphql) ? text(field(graphql, "variables")) : "";
-      warnings.push({ item, message: 'Its GraphQL body is kept as the JSON text it is sent as: the app has no GraphQL body yet. Add a "Content-Type: application/json" header if the file had none.' });
-      return { ...kept, mode: "raw", raw: { language: "json", text: `{"query":${JSON.stringify(query)},"variables":${variables.trim() || "{}"}}` } };
-    }
+    case "graphql":
+      return { ...kept, mode: "graphql", graphql: kept.graphql ?? { query: "", variables: "" } };
     case undefined:
     case null:
     case "none":

@@ -195,11 +195,12 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     for (const mode of ["raw", "urlencoded", "formdata"]) expect(importText(JSON.stringify(collection([request({ method: "POST", body: { mode } })]))).collections).toHaveLength(1);
   });
 
-  it("a GraphQL body is the JSON it is sent as, and a kind the app does not have is left out: each said", () => {
+  it("a GraphQL body is a GraphQL body, its query and its variables as written (P5.5), and a kind the app does not have is left out and said", () => {
     const graphql = one({ method: "POST", body: { mode: "graphql", graphql: { query: "query { me { id } }", variables: '{ "n": 1 }' } } });
-    expect(graphql.payload.requests[0].body).toEqual({ mode: "raw", raw: { language: "json", text: '{"query":"query { me { id } }","variables":{ "n": 1 }}' } });
-    expect(graphql.warnings[0].message).toContain("Its GraphQL body is kept as the JSON text it is sent as");
-    expect(one({ method: "POST", body: { mode: "graphql", graphql: { query: "{ a }" } } }).payload.requests[0].body.raw?.text).toBe('{"query":"{ a }","variables":{}}');
+    expect(graphql.payload.requests[0].body).toEqual({ mode: "graphql", graphql: { query: "query { me { id } }", variables: '{ "n": 1 }' } });
+    expect(graphql.warnings).toEqual([]);
+    expect(one({ method: "POST", body: { mode: "graphql", graphql: { query: "{ a }" } } }).payload.requests[0].body.graphql).toEqual({ query: "{ a }", variables: "" });
+    expect(one({ method: "POST", body: { mode: "graphql" } }).payload.requests[0].body).toEqual({ mode: "graphql", graphql: { query: "", variables: "" } });
     const odd = one({ method: "POST", body: { mode: "protobuf" } });
     expect(odd.payload.requests[0].body).toEqual({ mode: "none" });
     expect(odd.warnings).toEqual([{ item: 'request "R"', message: "Its body is of a kind the app does not have (protobuf) and is left out." }]);

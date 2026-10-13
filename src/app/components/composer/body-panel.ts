@@ -1,20 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
 import { type BodyMode, type MultipartPart, type RawLanguage } from "@wayfarer/core";
+import { GraphqlSchemas } from "../../services/graphql-schemas";
 import { RequestFiles } from "../../services/request-files";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { JsonEditor } from "../json-editor/json-editor";
+import { GraphqlExplorer } from "./graphql-explorer";
 import { MultipartEditor } from "./multipart-editor";
 import { RowsEditor } from "./rows-editor/rows-editor";
 
-/** The request body: none, text in a language, form fields, multipart parts or one file. */
+/** The request body: none, text in a language, form fields, multipart parts, one file, or a GraphQL query with its variables. */
 @Component({
   selector: "app-body-panel",
-  imports: [FormsModule, Icon, JsonEditor, MatButton, MatSelect, MatOption, MultipartEditor, RowsEditor],
+  imports: [FormsModule, GraphqlExplorer, Icon, JsonEditor, MatButton, MatProgressSpinner, MatSelect, MatOption, MultipartEditor, RowsEditor],
   templateUrl: "./body-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +31,7 @@ export class BodyPanel {
     { label: "Form (URL-encoded)", value: "urlencoded" },
     { label: "Multipart", value: "multipart" },
     { label: "Binary file", value: "binary" },
+    { label: "GraphQL", value: "graphql" },
   ];
   protected readonly languages: { label: string; value: RawLanguage }[] = [
     { label: "JSON", value: "json" },
@@ -38,6 +42,28 @@ export class BodyPanel {
   ];
 
   protected readonly body = computed(() => this.store.draft().body);
+
+  private readonly schemas = inject(GraphqlSchemas);
+  /** The schema of the request's address, as far as it was fetched (P5.5). */
+  protected readonly schema = computed(() => this.schemas.stateOf(this.store.draft().url.trim()));
+  /** What is wrong with the GraphQL query, as the editor's check last found it. */
+  protected readonly problems = this.schemas.problems;
+
+  constructor() {
+    // A GraphQL body's editor is checked: for its syntax at once, and against its address's schema once that was fetched.
+    effect(() => {
+      const draft = this.store.draft();
+      if (draft.body.mode === "graphql") void this.schemas.use(draft.url.trim());
+    });
+  }
+
+  protected fetchSchema(): void {
+    void this.schemas.fetch(this.store.draft().url.trim());
+  }
+
+  protected setGraphql(change: Partial<{ query: string; variables: string }>): void {
+    this.store.setBody({ graphql: { query: "", variables: "", ...this.body().graphql, ...change } });
+  }
   /** Why the last file picked was refused. */
   protected readonly fileError = signal("");
 
@@ -62,6 +88,7 @@ export class BodyPanel {
       raw: body.raw ?? { language: "json", text: "" },
       urlencoded: body.urlencoded?.length ? body.urlencoded : [{ key: "", value: "", enabled: true }],
       multipart: body.multipart?.length ? body.multipart : [{ kind: "text", key: "", value: "", enabled: true }],
+      ...(mode === "graphql" && { graphql: body.graphql ?? { query: "", variables: "" } }),
     });
   }
 

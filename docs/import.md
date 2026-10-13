@@ -133,7 +133,7 @@ A Postman Collection v2.0 or v2.1 file becomes a collection, under new ids.
 | `event` | the scripts: `prerequest` and `test`, at each of the three levels |
 | `url` | the address, put together from the parts Postman sends by (`raw` when the file has no parts). The query is in the address |
 | `header` | header rows; v2.0's headers as one text are read line by line |
-| `body` | `raw` with its language, `urlencoded`, `formdata`, `file`. Every part the file holds is kept, and `mode` says which is sent |
+| `body` | `raw` with its language, `urlencoded`, `formdata`, `file`, `graphql` (the query and its variables). Every part the file holds is kept, and `mode` says which is sent |
 | a description of a folder or a request | kept, and written back by an export. The app does not show it yet |
 
 What the report says could not be kept:
@@ -151,7 +151,6 @@ What the report says could not be kept:
 - **A query parameter that is switched off.** It is kept and an export
   writes it back, but the composer has no switch for a parameter: it does
   not show one, and saving the request there drops it.
-- **A GraphQL body.** It is kept as the JSON text it is sent as.
 - **Files.** A file is named, not included: choose it again in the Body tab.
 - **Saved responses** (examples). The app keeps responses in its history.
 - **A request with no address**, or with a method that is not an HTTP

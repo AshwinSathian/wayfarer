@@ -56,5 +56,17 @@ export const editor = {
   setModelLanguage: (_model: MonacoTypes.editor.ITextModel, _language: string): void => {},
   setTheme: (_themeName: string): void => {},
   defineTheme: (_themeName: string, _themeData: MonacoTypes.editor.IStandaloneThemeData): void => {},
+  // What the GraphQL tools ask of the editor (P5.5): no model exists here, and no marker is drawn.
+  getModels: (): MonacoTypes.editor.ITextModel[] => [],
+  onDidCreateModel: (_listener: (model: MonacoTypes.editor.ITextModel) => void): MonacoTypes.IDisposable => new StubDisposable(),
+  onDidChangeModelLanguage: (_listener: (event: { model: MonacoTypes.editor.ITextModel }) => void): MonacoTypes.IDisposable => new StubDisposable(),
+  setModelMarkers: (_model: MonacoTypes.editor.ITextModel, _owner: string, _markers: MonacoTypes.editor.IMarkerData[]): void => {},
+};
+
+export const MarkerSeverity = { Hint: 1, Info: 2, Warning: 4, Error: 8 } as unknown as typeof MonacoTypes.MarkerSeverity;
+
+export const languages = {
+  CompletionItemKind: { Field: 3 } as unknown as typeof MonacoTypes.languages.CompletionItemKind,
+  registerCompletionItemProvider: (_language: string, _provider: MonacoTypes.languages.CompletionItemProvider): MonacoTypes.IDisposable => new StubDisposable(),
 };
 

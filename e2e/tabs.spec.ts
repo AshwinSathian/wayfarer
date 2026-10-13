@@ -357,3 +357,36 @@ test("a request renamed in the tree is renamed in its tab at once, and one delet
   await send(page);
   await expect(page.locator(".status-badge").first()).toHaveText("200");
 });
+
+// "What session 5A left for 5B", item 7, checked in 5C: one editor is given each tab's text in turn.
+test("the editor's undo does not bring another tab's text into this one", async ({ page }) => {
+  await page.goto("/");
+  const editor = page.locator("app-script-editor .monaco-editor").first();
+  const text = async () => (await editor.locator(".view-lines").innerText()).replace(/\s+/g, " ").trim();
+  const typeInto = async (script: string) => {
+    await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();
+    await expect(editor).toBeVisible({ timeout: 20_000 });
+    await editor.click();
+    await page.keyboard.type(script);
+    await expect.poll(text).toBe(script);
+  };
+
+  await address(page).fill("https://api.example.test/first");
+  await typeInto("first();");
+  await page.getByRole("button", { name: "New tab" }).click();
+  await address(page).fill("https://api.example.test/second");
+  await typeInto("second();");
+
+  // Back in the first tab: its own script, and an undo there has nothing of the second tab's to bring back.
+  await tabs(page).first().click();
+  await expect.poll(text).toBe("first();");
+  await editor.click();
+  for (let i = 0; i < 4; i++) await page.keyboard.press("ControlOrMeta+z");
+  expect(await text()).not.toContain("second");
+  // What the first tab holds is still its own.
+  const first = (await storedTabs(page, (stored) => stored.length === 2 && JSON.stringify(stored).includes("second();"))).find((tab) => tab.draft.url.endsWith("/first"));
+  expect(first?.draft.scripts.pre ?? "").not.toContain("second");
+  // And the second tab was not changed by an undo made in the first.
+  await tabs(page).nth(1).click();
+  await expect.poll(text).toBe("second();");
+});

@@ -572,6 +572,10 @@ code errors.
   `ScriptSandbox`'s `new Worker(...)`. They must stay out of the initial
   bundle ("the page the server sends names neither the engine nor its
   worker" in `e2e/scripts.spec.ts`).
+- A worker runs one script at a time (`ScriptSandbox.take`): two sends, or
+  a send beside a collection run, each get their own, and one idle worker
+  is kept for the next script. Do not hand two runs to one worker: ending
+  it for one would end the other.
 - After a run that hit a limit the engine may be unusable: the worker is
   ended and the next run starts a new one. Do not reuse a module after
   `result.limit` is set.

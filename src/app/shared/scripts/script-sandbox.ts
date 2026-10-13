@@ -26,6 +26,8 @@ type WorkerMessage = { id: string } & (
 );
 
 interface Run {
+  /** The worker that runs this script, and no other at the same time. */
+  worker: Worker;
   settle: (result: ScriptResult) => void;
   timeoutMs: number;
   watchdog?: ReturnType<typeof setTimeout>;
@@ -54,20 +56,25 @@ const nothing = (error?: string, limit?: ScriptResult["limit"]): ScriptResult =>
  * and the few names `runScript` (`@wayfarer/core`) adds, and nothing of the
  * worker or the page. See docs/scripts.md.
  *
- * The worker is kept between runs, so the engine is downloaded and compiled
- * once; each run gets a new engine runtime, so no script sees another's
- * state. A run that hits a limit ends the worker, and the next run starts a
- * new one.
+ * A worker runs one script at a time, and one is kept between runs, so the
+ * engine is compiled once for scripts that follow each other; each run gets
+ * a new engine runtime, so no script sees another's state. Two scripts at
+ * once have a worker each. A run that hits a limit ends its worker, and
+ * the next run starts a new one.
  */
 @Injectable({ providedIn: "root" })
 export class ScriptSandbox {
-  private worker: Worker | null = null;
+  /** A worker whose script has ended, kept for the next one. */
+  private idle: Worker | null = null;
   private readonly runs = new Map<string, Run>();
 
   constructor() {
     // In the app this service lives as long as the page. A unit test makes one per test: each left its worker running
     // with the engine's memory, and an engine past the hundred-and-twentieth found none ("WebAssembly.Memory(): could not allocate memory").
-    inject(DestroyRef).onDestroy(() => this.worker?.terminate());
+    inject(DestroyRef).onDestroy(() => {
+      this.idle?.terminate();
+      for (const run of this.runs.values()) run.worker.terminate();
+    });
   }
 
   execute(
@@ -82,19 +89,35 @@ export class ScriptSandbox {
     }
     return new Promise<ScriptResult>((settle) => {
       const id = newId();
-      this.runs.set(id, { settle, timeoutMs, send, inFlight: 0 });
+      const worker = this.take();
+      this.runs.set(id, { worker, settle, timeoutMs, send, inFlight: 0 });
       const context: ScriptContext = { ...extras, environment: Array.isArray(env) ? env : Object.entries(env), ...(response && { response: scriptResponse(response) }) };
-      this.start().postMessage({ id, source: script, context, limits: { ...SCRIPT_LIMITS, timeoutMs } });
+      worker.postMessage({ id, source: script, context, limits: { ...SCRIPT_LIMITS, timeoutMs } });
     });
   }
 
-  private start(): Worker {
-    if (this.worker) return this.worker;
+  /**
+   * A worker for one script: the idle one, or a new one. Two scripts at
+   * once (two tabs sending, a run beside a send) each have their own, so a
+   * script that hits a limit, and the worker that is ended for it, takes
+   * no other script with it.
+   */
+  private take(): Worker {
+    const kept = this.idle;
+    if (kept) {
+      this.idle = null;
+      return kept;
+    }
     const worker = new Worker(new URL("./quickjs.worker", import.meta.url), { type: "module" });
     worker.addEventListener("message", ({ data }: MessageEvent<WorkerMessage>) => this.onMessage(data));
-    worker.addEventListener("error", (event) => this.discard(event.message || "Script execution failed."));
-    this.worker = worker;
+    worker.addEventListener("error", (event) => this.discard(worker, event.message || "Script execution failed."));
     return worker;
+  }
+
+  /** A worker whose script ended as it should: kept for the next script when none is kept yet, with the engine it has compiled. */
+  private release(worker: Worker): void {
+    if (this.idle) worker.terminate();
+    else this.idle = worker;
   }
 
   private onMessage(message: WorkerMessage): void {
@@ -110,12 +133,13 @@ export class ScriptSandbox {
     }
     if (message.type === "failed") {
       this.finish(message.id, nothing(message.message));
-      this.discard("Script execution was stopped.");
+      this.discard(run.worker, "Script execution was stopped.");
       return;
     }
     this.finish(message.id, message.result);
     // After a limit the engine may be unusable: the next run gets a new worker.
-    if (message.result.limit) this.discard("Script execution was stopped.");
+    if (message.result.limit) this.discard(run.worker, "Script execution was stopped.");
+    else this.release(run.worker);
   }
 
   /**
@@ -126,7 +150,7 @@ export class ScriptSandbox {
     clearTimeout(run.watchdog);
     run.watchdog = setTimeout(() => {
       this.finish(id, nothing(`Script timed out after ${run.timeoutMs} ms`, "timeout"));
-      this.discard("Script execution was stopped.");
+      this.discard(run.worker, "Script execution was stopped.");
     }, run.timeoutMs + WATCHDOG_GRACE_MS);
   }
 
@@ -149,7 +173,7 @@ export class ScriptSandbox {
     if (this.runs.get(id) !== run) return;
     run.inFlight--;
     if (!run.inFlight) this.watch(id, run);
-    this.worker?.postMessage({ type: "sent", call, ...answer });
+    run.worker.postMessage({ type: "sent", call, ...answer });
   }
 
   private finish(id: string, result: ScriptResult): void {
@@ -160,11 +184,13 @@ export class ScriptSandbox {
     run.settle(result);
   }
 
-  /** Ends the worker. Every run still waiting on it ends with `reason`. */
-  private discard(reason: string): void {
-    this.worker?.terminate();
-    this.worker = null;
-    for (const id of [...this.runs.keys()]) this.finish(id, nothing(reason));
+  /** Ends `worker`. A run still waiting on it ends with `reason`; a worker has one run at most. */
+  private discard(worker: Worker, reason: string): void {
+    worker.terminate();
+    if (this.idle === worker) this.idle = null;
+    for (const [id, run] of [...this.runs]) {
+      if (run.worker === worker) this.finish(id, nothing(reason));
+    }
   }
 }
 

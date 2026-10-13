@@ -94,11 +94,11 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
 }
 
 /** Opens the run's tab from the collection's menu. */
-async function openRun(page: Page): Promise<Locator> {
-  await page.getByRole("tree").getByText("Shop", { exact: true }).click({ button: "right" });
+async function openRun(page: Page, collection = "Shop"): Promise<Locator> {
+  await page.getByRole("tree").getByText(collection, { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Run…" }).click();
   const view = page.locator("app-run-view");
-  await expect(view.getByRole("heading", { name: "Run Shop" })).toBeVisible();
+  await expect(view.getByRole("heading", { name: `Run ${collection}` })).toBeVisible();
   return view;
 }
 
@@ -185,6 +185,69 @@ test("Cancel stops a run within one request", async ({ page }) => {
   await expect(resultRows(view).nth(1)).toContainText("The request was cancelled.");
   await expect(resultRows(view).nth(1)).toContainText("No response");
   await expect(view.getByRole("button", { name: "Run again" })).toBeVisible();
+});
+
+test("an imported Postman file keeps its order, requests before and between folders: the list shows it, a run follows it as Newman does, and a request moved past a folder is sent after that folder's", async ({ page }) => {
+  const NAME = "Run in the file's order";
+  const newman = (JSON.parse(readFileSync(join(FIXTURES, "order.golden.json"), "utf8")) as { items: { name: string }[] }).items.map((item) => item.name);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedCollection(page, [], { base: ECHO });
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(join(FIXTURES, "order.postman_collection.json"));
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // The list: one order for a folder's folders and requests, a folder inside its folder.
+  const tree = page.getByRole("tree");
+  const item = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+  const rows = async () => {
+    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => `${row.getAttribute("aria-level")} ${row.getAttribute("aria-label")}`));
+    const rest = all.slice(all.indexOf(`1 ${NAME}`) + 1);
+    // Up to the next collection.
+    const end = rest.findIndex((row) => row.startsWith("1 "));
+    return end < 0 ? rest : rest.slice(0, end);
+  };
+  await expect.poll(rows).toEqual(["2 Before every folder", "2 Middle", "2 Between two folders", "2 Tail", "2 After every folder"]);
+  await item("Middle").focus();
+  await page.keyboard.press("ArrowRight");
+  await item("Deep").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(rows).toEqual(["2 Before every folder", "2 Middle", "3 First in the folder", "3 Deep", "4 Deepest", "3 After the inner folder", "2 Between two folders", "2 Tail", "2 After every folder"]);
+
+  // The run: the order Newman sent the same file in.
+  const names = async (view: Locator) => (await resultRows(view).evaluateAll((list) => list.map((row) => row.querySelectorAll("td")[2]?.firstChild?.textContent?.trim() ?? "")));
+  const view = await openRun(page, NAME);
+  await expect(view).toContainText("7 requests");
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(status(view)).toContainText("The run is complete.", { timeout: 60_000 });
+  expect(await names(view)).toEqual(newman);
+
+  // Alt+ArrowDown takes the first request past the folder after it; the place is stored.
+  await item("Before every folder").focus();
+  await page.keyboard.press("Alt+ArrowDown");
+  await expect.poll(async () => (await rows()).filter((row) => row.startsWith("2 "))).toEqual(["2 Middle", "2 Before every folder", "2 Between two folders", "2 Tail", "2 After every folder"]);
+  await expect(item("Before every folder")).toBeFocused();
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const open = indexedDB.open("api-sandbox");
+          open.onsuccess = () => resolve(open.result);
+          open.onerror = () => reject(open.error);
+        });
+        const all = (store: string) => new Promise<{ name: string; order: number; folderId?: string; parentFolderId?: string }[]>((resolve) => (db.transaction(store).objectStore(store).getAll().onsuccess = (event) => resolve((event.target as IDBRequest).result)));
+        const top = [...(await all("folders")).filter((folder) => !folder.parentFolderId), ...(await all("requests")).filter((request) => !request.folderId)];
+        db.close();
+        return top.sort((a, b) => a.order - b.order).map((entry) => entry.name);
+      })
+    )
+    .toEqual(["Middle", "Before every folder", "Between two folders", "Tail", "After every folder"]);
+  await page.reload();
+  await expect.poll(rows).toEqual(["2 Middle", "2 Before every folder", "2 Between two folders", "2 Tail", "2 After every folder"]);
+
+  const again = await openRun(page, NAME);
+  await again.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(status(again)).toContainText("The run is complete.", { timeout: 60_000 });
+  expect(await names(again)).toEqual(["First in the folder", "Deepest", "After the inner folder", "Before every folder", "Between two folders", "In the last folder", "After every folder"]);
 });
 
 test("a run goes on while another tab is open, stops at the first failure when asked to, and its tab is not stored", async ({ page }) => {

@@ -155,8 +155,6 @@ What the report says could not be kept:
 - **Saved responses** (examples). The app keeps responses in its history.
 - **A request with no address**, or with a method that is not an HTTP
   method. It is left out.
-- **The order of a folder's contents**, where requests stand before
-  folders: the app lists a folder's folders first.
 - **A script that uses what the app does not have**, as for every import.
 
 Not read, and not in the report: a request's own settings in Postman

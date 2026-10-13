@@ -1,4 +1,4 @@
-import type { CollectionExport, EnvironmentDoc, Folder, RequestDoc } from "../model/collection";
+import { childrenInOrder, type CollectionExport, type EnvironmentDoc, type Folder, type RequestDoc } from "../model/collection";
 import type { AuthConfig, RequestBody, Row, Scripts } from "../model/request";
 import { SECRET_REFERENCE } from "../model/variables";
 
@@ -178,10 +178,8 @@ export function postmanCollection(source: CollectionExport): { file: Entry; note
   const byOrder = <T extends { order: number; id: string }>(list: T[]) => [...list].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
   const written = new Set<Folder>();
   const ids = new Set(source.folders.map((folder) => folder.id));
-  const items = (parent: string | undefined): Entry[] => [
-    ...byOrder(source.folders.filter((folder) => folder.parentFolderId === parent && !written.has(folder))).map((folder) => group(folder)),
-    ...byOrder(source.requests.filter((doc) => doc.folderId === parent)).map((doc) => request(doc, notes)),
-  ];
+  // A folder's folders and requests in their one order, as the file has its items.
+  const items = (parent: string | undefined): Entry[] => childrenInOrder(source, parent).flatMap((child) => (child.request ? [request(child.request, notes)] : written.has(child.folder) ? [] : [group(child.folder)]));
   const group = (folder: Folder): Entry => {
     written.add(folder);
     if (folder.variables.length) notes.push({ item: `folder "${folder.name}"`, message: "Its variables are written, but Postman does not read a folder's variables: move them to the collection or to an environment there." });

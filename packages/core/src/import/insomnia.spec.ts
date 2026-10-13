@@ -41,8 +41,8 @@ describe("an Insomnia export (P4.4)", () => {
     const byName = [...requests].sort((a, b) => a.name.localeCompare(b.name));
     expect(byName.map((request) => [request.name, request.method, request.url, request.folderId, request.order, request.description])).toEqual([
       ["List", "GET", "https://api.test/orders", old?.id, 0, "All of them"],
-      ["Make", "POST", "https://api.test/orders", orders?.id, 0, undefined],
-      ["Ping", "GET", "https://api.test/ping", undefined, 0, undefined],
+      ["Make", "POST", "https://api.test/orders", orders?.id, 1, undefined],
+      ["Ping", "GET", "https://api.test/ping", undefined, 1, undefined],
     ]);
   });
 
@@ -60,7 +60,7 @@ describe("an Insomnia export (P4.4)", () => {
     const byName = [...requests].sort((a, b) => a.name.localeCompare(b.name));
     expect(byName.map((request) => [request.name, request.folderId === folders[0].id, request.order, request.description])).toEqual([
       ["First", true, 0, "The first"],
-      ["Ping", false, 0, undefined],
+      ["Ping", false, 1, undefined],
       ["Second", true, 1, undefined],
     ]);
   });

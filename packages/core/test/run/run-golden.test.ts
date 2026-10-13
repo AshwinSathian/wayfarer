@@ -14,6 +14,7 @@ import type { RunOptions, RunReport } from "../../src/run/runner";
 import { startEchoServer } from "../../../../e2e/support/echo-server.mjs";
 import dataGolden from "../fixtures/run/data.golden.json";
 import flowGolden from "../fixtures/run/flow.golden.json";
+import orderGolden from "../fixtures/run/order.golden.json";
 import { runCollectionReport } from "../pm-compat/run-collection";
 
 // P5.2: a collection run. `runRequests` is the order of a run; here it is
@@ -113,5 +114,12 @@ describe("a collection run, against Newman", () => {
     // The skipped request is in the results, as skipped, in the two iterations that reach it.
     expect(report.results.filter((result) => result.skipped).map((result) => [result.iteration, result.name])).toEqual([[1, "Never sent"], [2, "Never sent"]]);
     expect(report.results.some((result) => result.name === "After the end")).toBe(false);
+  });
+
+  it("requests before, between and after folders are sent in the file's order, as Newman sends them", async () => {
+    const report = await run("order.postman_collection.json", {});
+
+    expect(asNewman(report)).toEqual(orderGolden.items);
+    expect(report.results.map((result) => result.name)).toEqual(["Before every folder", "First in the folder", "Deepest", "After the inner folder", "Between two folders", "In the last folder", "After every folder"]);
   });
 });

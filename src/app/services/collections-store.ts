@@ -212,9 +212,10 @@ export class CollectionsStore {
     }
   }
 
-  async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
-    const collectionId = order[0] ? this.findFolderCollectionId(order[0].id) : undefined;
-    await this.idb.reorderFolders(order);
+  /** The new places of a parent's folders and requests, which share one order. */
+  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
+    const collectionId = order[0] ? (this.findFolderCollectionId(order[0].id) ?? this.findRequestCollectionId(order[0].id)) : undefined;
+    await this.idb.reorderChildren(order);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
@@ -255,16 +256,6 @@ export class CollectionsStore {
   async deleteRequest(id: RequestDocId): Promise<void> {
     const collectionId = this.findRequestCollectionId(id);
     await this.idb.deleteRequest(id);
-    if (collectionId) {
-      await this.refreshCollectionEntry(collectionId);
-    } else {
-      await this.refresh();
-    }
-  }
-
-  async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
-    const collectionId = order[0] ? this.findRequestCollectionId(order[0].id) : undefined;
-    await this.idb.reorderRequests(order);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {

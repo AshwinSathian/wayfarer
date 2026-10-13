@@ -15,18 +15,18 @@ function makeCollection(id: string, name = `Collection ${id}`, order = 0): Colle
   return { id, meta: meta(id), name, order, variables: [], ...inCollection, scriptTrust: { trusted: true } };
 }
 
-function makeFolder(id: string, collectionId: string, order = 0): Folder {
-  return { id, meta: meta(id), collectionId, name: `Folder ${id}`, order, ...inFolder };
+function makeFolder(id: string, collectionId: string, order = 0, parentFolderId?: string): Folder {
+  return { id, meta: meta(id), collectionId, ...(parentFolderId && { parentFolderId }), name: `Folder ${id}`, order, ...inFolder };
 }
 
-function makeRequest(id: string, collectionId: string, folderId?: string): RequestDoc {
+function makeRequest(id: string, collectionId: string, folderId?: string, order = 0): RequestDoc {
   return {
     id,
     meta: meta(id),
     collectionId,
     folderId,
     name: `Request ${id}`,
-    order: 0,
+    order,
     ...requestContent({ url: "https://example.com" }),
   };
 }
@@ -83,12 +83,8 @@ class CollectionsServiceStub {
     this.reorderCalls.push({ kind: "collections", order });
   }
 
-  async reorderFolders(order: { id: string; order: number }[]): Promise<void> {
-    this.reorderCalls.push({ kind: "folders", order });
-  }
-
-  async reorderRequests(order: { id: string; order: number }[]): Promise<void> {
-    this.reorderCalls.push({ kind: "requests", order });
+  async reorderChildren(order: { id: string; order: number }[]): Promise<void> {
+    this.reorderCalls.push({ kind: "children", order });
   }
 
   async renameRequest(id: string, name: string): Promise<null> {
@@ -139,6 +135,28 @@ describe("CollectionsSidebar", () => {
       const requestNode = nodes[0].children?.find((n) => n.key === "request:r1");
       expect(requestNode?.children).toBeUndefined();
     });
+
+    it("a parent's folders and requests are one list in their one order, a folder inside its folder", () => {
+      collectionsService.setTree([
+        {
+          collection: makeCollection("c1"),
+          folders: [makeFolder("f2", "c1", 4), makeFolder("f1", "c1", 2), makeFolder("deep", "c1", 2, "f1")],
+          requests: [makeRequest("r3", "c1", undefined, 3), makeRequest("r1", "c1", undefined, 1), makeRequest("in-b", "c1", "f1", 3), makeRequest("in-a", "c1", "f1", 1), makeRequest("deepest", "c1", "deep", 1)],
+        },
+      ]);
+
+      const keys = (nodes: ReturnType<typeof component.nodes>): unknown[] => nodes.map((node) => (node.children ? [node.key, keys(node.children)] : node.key));
+      expect(keys(component.nodes()[0].children!)).toEqual(["request:r1", ["folder:f1", ["request:in-a", ["folder:deep", ["request:deepest"]], "request:in-b"]], "request:r3", ["folder:f2", []]]);
+    });
+
+    it("a folder whose parent is not there, and folders that name each other, are at the top: none is hidden", () => {
+      collectionsService.setTree([{ collection: makeCollection("c1"), folders: [makeFolder("lost", "c1", 1, "gone"), makeFolder("a", "c1", 2, "b"), makeFolder("b", "c1", 3, "a")], requests: [makeRequest("r1", "c1")] }]);
+
+      const [collection] = component.nodes();
+      expect(collection.children!.map((node) => node.key)).toEqual(["request:r1", "folder:lost", "folder:a"]);
+      expect(collection.children![2].children!.map((node) => node.key)).toEqual(["folder:b"]);
+      expect(collection.children![2].children![0].children).toEqual([]);
+    });
   });
 
   describe("the rendered tree", () => {
@@ -148,13 +166,13 @@ describe("CollectionsSidebar", () => {
     beforeEach(async () => {
       document.body.append(fixture.nativeElement);
       collectionsService.setTree([
-        { collection: makeCollection("c1"), folders: [makeFolder("f1", "c1"), makeFolder("f2", "c1")], requests: [makeRequest("r1", "c1"), makeRequest("r2", "c1"), makeRequest("r3", "c1", "f1")] },
+        { collection: makeCollection("c1"), folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2)], requests: [makeRequest("r1", "c1", undefined, 3), makeRequest("r2", "c1", undefined, 4), makeRequest("r3", "c1", "f1")] },
         { collection: makeCollection("c2"), folders: [], requests: [] },
       ]);
       await fixture.whenStable();
     });
 
-    it("lists collections expanded and folders collapsed, folders before requests", () => {
+    it("lists collections expanded and folders collapsed, a collection's folders and requests in their one order", () => {
       expect(rows().map((r) => `${r.getAttribute("aria-level")} ${r.getAttribute("aria-label")}`)).toEqual([
         "1 Collection c1",
         "2 Folder f1",
@@ -166,27 +184,32 @@ describe("CollectionsSidebar", () => {
       expect(row("Folder f1").getAttribute("aria-expanded")).toBe("false");
     });
 
-    it("saves a new order for the kind that moved: collections, folders or requests", async () => {
+    it("saves a new order for what moved: the collections, or a parent's folders and requests together", async () => {
       const [c1, c2] = component.nodes();
       const [f1, f2, r1, r2] = c1.children!;
 
       await component.handleReorder({ node: c2, siblings: [c2, c1] });
-      await component.handleReorder({ node: f2, siblings: [f2, f1] });
-      await component.handleReorder({ node: r2, siblings: [r2, r1] });
+      await component.handleReorder({ node: r2, siblings: [r2, f1, f2, r1] });
 
       expect(collectionsService.reorderCalls).toEqual([
         { kind: "collections", order: [{ id: "c2", order: 1 }, { id: "c1", order: 2 }] },
-        { kind: "folders", order: [{ id: "f2", order: 1 }, { id: "f1", order: 2 }] },
-        { kind: "requests", order: [{ id: "r2", order: 1 }, { id: "r1", order: 2 }] },
+        { kind: "children", order: [{ id: "r2", order: 1 }, { id: "f1", order: 2 }, { id: "f2", order: 3 }, { id: "r1", order: 4 }] },
       ]);
     });
 
-    it("Alt+ArrowUp on a request saves the new order of the requests around it", async () => {
-      row("Request r2").focus();
-      row("Request r2").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true, bubbles: true, cancelable: true }));
+    it("Alt+ArrowUp on a request moves it among the folders and requests around it: the first request goes above the folder before it", async () => {
+      row("Request r1").focus();
+      row("Request r1").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true, bubbles: true, cancelable: true }));
       await fixture.whenStable();
 
-      expect(collectionsService.reorderCalls).toEqual([{ kind: "requests", order: [{ id: "r2", order: 1 }, { id: "r1", order: 2 }] }]);
+      expect(collectionsService.reorderCalls).toEqual([{ kind: "children", order: [{ id: "f1", order: 1 }, { id: "r1", order: 2 }, { id: "f2", order: 3 }, { id: "r2", order: 4 }] }]);
+    });
+
+    it("a collection is not moved among another collection's rows, nor a row out of its folder", () => {
+      const [c1, c2] = component.nodes();
+      expect(component.nodeKind(c1)).toBe(component.nodeKind(c2));
+      expect(component.nodeKind(c1.children![0])).toBe(component.nodeKind(c1.children![2]));
+      expect(component.nodeKind(c1)).not.toBe(component.nodeKind(c1.children![0]));
     });
 
     it("F2 starts an inline rename with the name selected; Enter saves it and focus goes back to the row", async () => {

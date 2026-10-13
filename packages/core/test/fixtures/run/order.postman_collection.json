@@ -1,0 +1,156 @@
+{
+  "info": {
+    "name": "Run in the file's order",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Before every folder",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=Before%20every%20folder"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Before every folder answered\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Middle",
+      "item": [
+        {
+          "name": "First in the folder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=First%20in%20the%20folder"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"First in the folder answered\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deep",
+          "item": [
+            {
+              "name": "Deepest",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base}}/echo?n=Deepest"
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Deepest answered\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "After the inner folder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=After%20the%20inner%20folder"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"After the inner folder answered\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Between two folders",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=Between%20two%20folders"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Between two folders answered\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tail",
+      "item": [
+        {
+          "name": "In the last folder",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base}}/echo?n=In%20the%20last%20folder"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"In the last folder answered\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "After every folder",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/echo?n=After%20every%20folder"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"After every folder answered\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

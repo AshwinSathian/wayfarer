@@ -393,13 +393,14 @@ export class IdbCore {
     };
   }
 
-  async nextOrder(index: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }): Promise<number> {
-    const cursor = await index.openCursor(null, "prev");
-    if (!cursor) {
-      return 1;
+  /** The place after the last of every `by-order` index given. Folders and requests share one order: for either, give both. */
+  async nextOrder(...indexes: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }[]): Promise<number> {
+    let last = 0;
+    for (const index of indexes) {
+      const cursor = await index.openCursor(null, "prev");
+      last = Math.max(last, (cursor?.value as { order?: number } | undefined)?.order ?? 0);
     }
-    const value = cursor.value as { order?: number };
-    return (value?.order ?? 0) + 1;
+    return last + 1;
   }
 
   ensureId<T extends { meta: Meta; id?: string }>(doc: T): T {

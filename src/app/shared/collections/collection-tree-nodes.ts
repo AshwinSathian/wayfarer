@@ -1,3 +1,4 @@
+import { childrenInOrder } from "@wayfarer/core";
 import { UiTreeNode } from "../../ui/tree";
 import { Collection, Folder, RequestDoc } from "../../models/collections";
 import { CollectionTree } from "../../services/collections-store";
@@ -14,27 +15,22 @@ export function collectionsToNodes(trees: CollectionTree[]): UiTreeNode<Collecti
 }
 
 function toCollectionNode(entry: CollectionTree): UiTreeNode<CollectionNodeData> {
+  const drawn = new Set<Folder>();
+  // A parent's folders and requests are one list, in the order they share: the order of a run.
+  const children = (parent: string | undefined): UiTreeNode<CollectionNodeData>[] => childrenInOrder(entry, parent).flatMap((child) => (child.request ? [toRequestNode(child.request)] : drawn.has(child.folder) ? [] : [toFolderNode(child.folder)]));
+  const toFolderNode = (folder: Folder): UiTreeNode<CollectionNodeData> => {
+    drawn.add(folder);
+    return { key: `folder:${folder.meta.id}`, label: folder.name, data: { type: "folder", ref: folder }, children: children(folder.meta.id) };
+  };
+  const top = children(undefined);
+  // A folder whose parent is not there, or folders that name each other as parents (a file may hold either), go to the top: none is hidden.
+  for (const folder of entry.folders) if (!drawn.has(folder)) top.push(toFolderNode(folder));
   return {
     key: `collection:${entry.collection.meta.id}`,
     label: entry.collection.name,
     data: { type: "collection", ref: entry.collection },
     expanded: true,
-    children: [
-      ...entry.folders.map((folder) => toFolderNode(folder, entry)),
-      ...entry.requests.filter((req) => !req.folderId).map((req) => toRequestNode(req)),
-    ],
-  };
-}
-
-function toFolderNode(folder: Folder, entry: CollectionTree): UiTreeNode<CollectionNodeData> {
-  const children = entry.requests
-    .filter((req) => req.folderId === folder.meta.id)
-    .map((req) => toRequestNode(req));
-  return {
-    key: `folder:${folder.meta.id}`,
-    label: folder.name,
-    data: { type: "folder", ref: folder },
-    children,
+    children: top,
   };
 }
 

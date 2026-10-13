@@ -26,6 +26,5 @@ exports[`Insomnia files other people wrote (P4.4) > the whole set: what is impor
   "Its variable cascadeVar is also in the environment "…". Insomnia uses the folder's value; the app uses the environment's when that environment is active.": 1,
   "N query parameters that are switched off are kept for an export, but the composer has no switch for a parameter: it does not show one, and saving the request there drops it.": 9,
   "What the file holds that is not a request, a folder or an environment is left out (…).": 2,
-  "Where a folder holds requests before folders, the folders now come first: the app lists a folder's folders before its requests.": 3,
 }
 `;

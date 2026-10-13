@@ -69,7 +69,25 @@ async function removeWhatChangedShape(
     if (held.some((count) => count > 0)) removed.push("collections");
     for (const name of ["collections", "folders", "requests", "files"] as const) await tx.objectStore(name).clear();
   }
+  // 13: a parent's folders and requests share one order, the order of a run. Before, each kind was numbered
+  // apart and the list showed folders first: numbered again that way, nothing moves.
+  if (oldVersion < 13) await numberChildrenTogether(tx);
   return removed;
+}
+
+async function numberChildrenTogether(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<void> {
+  const byOrder = <T extends { order: number; meta: { id: string } }>(list: T[]) => list.sort((a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id));
+  const folders = byOrder(await tx.objectStore("folders").getAll());
+  const requests = byOrder(await tx.objectStore("requests").getAll());
+  const next = new Map<string, number>();
+  const place = (collectionId: string, parent: string | undefined): number => {
+    const key = JSON.stringify([collectionId, parent ?? null]);
+    const order = (next.get(key) ?? 0) + 1;
+    next.set(key, order);
+    return order;
+  };
+  for (const folder of folders) await tx.objectStore("folders").put({ ...folder, order: place(folder.collectionId, folder.parentFolderId) });
+  for (const request of requests) await tx.objectStore("requests").put({ ...request, order: place(request.collectionId, request.folderId) });
 }
 
 function createHistoryStore(db: IDBPDatabase<ApiSandboxDB>): void {

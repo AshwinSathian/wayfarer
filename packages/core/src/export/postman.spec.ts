@@ -17,11 +17,14 @@ describe("postmanCollection: each thing is where Postman's v2.1 format puts it",
     expect(POSTMAN_COLLECTION_SCHEMA).toBe("https://schema.getpostman.com/json/collection/v2.1.0/collection.json");
   });
 
-  it("folders are items that hold items, in each other, their folders before their requests", () => {
+  it("folders are items that hold items, in each other, a folder's folders and requests in their one order", () => {
     expect(top().map((item) => item["name"])).toEqual(["Admin", "Bodies", "Inherit bearer"]);
     expect((admin()["item"] as Loose[]).map((item) => item["name"])).toEqual(["Deep", "JSON"]);
     expect((named(admin()["item"], "Deep")["item"] as Loose[]).map((item) => item["name"])).toEqual(["Form"]);
     expect(bodies().map((item) => item["name"])).toEqual(["Multipart", "File", "XML"]);
+    // A request that stands before a folder is written before it.
+    const first = { ...SHOP.requests[0], id: "first", name: "First", folderId: undefined, order: -1 };
+    expect((postmanCollection({ ...SHOP, requests: [...SHOP.requests, first] }).file["item"] as Loose[]).map((item) => item["name"])).toEqual(["First", "Admin", "Bodies", "Inherit bearer"]);
   });
 
   it("variables are the collection's `variable`, one that is switched off marked disabled", () => {

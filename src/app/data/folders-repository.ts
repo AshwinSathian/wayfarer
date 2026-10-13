@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
-import { CollectionId, Folder, FolderId, InheritedPatch, RequestDoc } from "../models/collections";
+import { CollectionId, Folder, FolderId, InheritedPatch, RequestDoc, RequestDocId } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
 
@@ -32,7 +32,7 @@ export class FoldersRepository {
     order?: number;
   }): Promise<Folder> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["folders"]);
+    const tx = await this.core.txReadWrite(["folders", "requests"]);
     const store = tx.objectStore("folders");
     return this.core.commitOrRollback(tx, async () => {
       const meta = this.core.createMeta();
@@ -42,7 +42,7 @@ export class FoldersRepository {
         collectionId: payload.collectionId,
         parentFolderId: payload.parentFolderId,
         name: payload.name.trim(),
-        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"))),
+        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"), tx.objectStore("requests").index("by-order"))),
         variables: [],
         auth: { type: "inherit" },
         scripts: { pre: "", post: "" },
@@ -112,7 +112,7 @@ export class FoldersRepository {
         id: meta.id,
         meta,
         name: `${original.name} copy`,
-        order: await this.core.nextOrder(folderStore.index("by-order")),
+        order: await this.core.nextOrder(folderStore.index("by-order"), requestStore.index("by-order")),
       };
       this.core.ensureId(clone);
       await folderStore.add(clone);
@@ -127,7 +127,8 @@ export class FoldersRepository {
           meta: reqMeta,
           folderId: clone.meta.id,
           collectionId: original.collectionId,
-          order: await this.core.nextOrder(requestStore.index("by-order")),
+          // Its place in the folder, as the original's.
+          order: request.order,
         };
         this.core.ensureId(copy);
         await requestStore.add(copy);
@@ -145,8 +146,8 @@ export class FoldersRepository {
     await this.core.commitOrRollback(tx, async () => {
       const folder = await folderStore.get(id);
       await folderStore.delete(id);
-      // The tree shows folders side by side, so a folder inside this one is
-      // not deleted with it: it moves up to where this one was (F60).
+      // A folder inside this one is not deleted with it: it moves up to
+      // where this one was (F60).
       for (const inside of await folderStore.index("by-parentFolderId").getAll(id)) {
         await folderStore.put({ ...inside, parentFolderId: folder?.parentFolderId, meta: this.core.touchMeta(inside.meta) });
       }
@@ -157,19 +158,19 @@ export class FoldersRepository {
     });
   }
 
-  async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
+  /** The new places of a parent's folders and requests: the two share one order, so they are written together. */
+  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["folders"]);
-    const store = tx.objectStore("folders");
+    const tx = await this.core.txReadWrite(["folders", "requests"]);
     await this.core.commitOrRollback(tx, async () => {
       for (const entry of order) {
-        const doc = await store.get(entry.id);
-        if (!doc) {
+        const folder = await tx.objectStore("folders").get(entry.id);
+        if (folder) {
+          await tx.objectStore("folders").put({ ...folder, order: entry.order, meta: this.core.touchMeta(folder.meta) });
           continue;
         }
-        doc.order = entry.order;
-        doc.meta = this.core.touchMeta(doc.meta);
-        await store.put(doc);
+        const request = await tx.objectStore("requests").get(entry.id);
+        if (request) await tx.objectStore("requests").put({ ...request, order: entry.order, meta: this.core.touchMeta(request.meta) });
       }
     });
   }

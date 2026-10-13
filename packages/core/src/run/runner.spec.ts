@@ -183,18 +183,23 @@ describe("runFailed", () => {
 describe("requestsInOrder", () => {
   const folder = (id: string, order: number, parentFolderId?: string) => ({ id, order, parentFolderId }) as Folder;
   const request = (id: string, order: number, folderId?: string) => ({ id, name: id, order, folderId }) as RequestDoc;
+  // One order for a parent's folders and requests together, as a Postman file has its items.
   const tree = {
-    folders: [folder("f2", 2), folder("f1", 1), folder("f1a", 1, "f1")],
-    requests: [request("top-b", 2), request("top-a", 1), request("in-f1", 1, "f1"), request("in-f1a-2", 2, "f1a"), request("in-f1a-1", 1, "f1a"), request("in-f2", 1, "f2")],
+    folders: [folder("f2", 4), folder("f1", 2), folder("f1a", 2, "f1")],
+    requests: [request("top-b", 3), request("top-a", 1), request("top-c", 5), request("in-f1-b", 3, "f1"), request("in-f1-a", 1, "f1"), request("in-f1a-2", 2, "f1a"), request("in-f1a-1", 1, "f1a"), request("in-f2", 1, "f2")],
   };
 
-  it("a collection's requests: in each folder its folders first, then its requests, each by its place", () => {
-    expect(requestsInOrder(tree).map((doc) => doc.id)).toEqual(["in-f1a-1", "in-f1a-2", "in-f1", "in-f2", "top-a", "top-b"]);
+  it("a collection's requests in the order of the list: a request before a folder is sent before that folder's", () => {
+    expect(requestsInOrder(tree).map((doc) => doc.id)).toEqual(["top-a", "in-f1-a", "in-f1a-1", "in-f1a-2", "in-f1-b", "top-b", "in-f2", "top-c"]);
   });
 
   it("a folder's requests, those of its folders among them", () => {
-    expect(requestsInOrder(tree, "f1").map((doc) => doc.id)).toEqual(["in-f1a-1", "in-f1a-2", "in-f1"]);
+    expect(requestsInOrder(tree, "f1").map((doc) => doc.id)).toEqual(["in-f1-a", "in-f1a-1", "in-f1a-2", "in-f1-b"]);
     expect(requestsInOrder(tree, "nowhere")).toEqual([]);
+  });
+
+  it("a folder and a request of one place: the folder first", () => {
+    expect(requestsInOrder({ folders: [folder("z", 1)], requests: [request("a", 1), request("in-z", 1, "z")] }).map((doc) => doc.id)).toEqual(["in-z", "a"]);
   });
 
   it("two of one place are in the order of their ids", () => {

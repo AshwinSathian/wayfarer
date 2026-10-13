@@ -44,6 +44,7 @@ A file is not in a collection file: only its `fileId` and `fileName` are. The by
 ## Order
 
 * Folders and requests are written by `order`, then by `meta.id`.
+* The folders and the requests of one parent (a folder, or the top of the collection) share one `order`: a request with 1 stands before a folder with 2. That is the order of the list and of a collection run. Of two with the same number the folder is first.
 * Every object's keys are written in alphabetical order.
 * Rows and assertions keep the order the user gave them.
 

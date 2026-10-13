@@ -133,20 +133,41 @@ describe("collections, folders and requests (real IndexedDB)", () => {
       { id: collection.meta.id, order: 1 },
       { id: "missing", order: 2 },
     ]);
-    await folders.reorderFolders([
+    // A parent's folders and requests are numbered together, in one write.
+    await folders.reorderChildren([
       { id: otherFolder.meta.id, order: 0 },
-      { id: folder.meta.id, order: 1 },
-      { id: "missing", order: 2 },
-    ]);
-    await requests.reorderRequests([
-      { id: atRoot.meta.id, order: 0 },
-      { id: inFolder.meta.id, order: 1 },
-      { id: "missing", order: 2 },
+      { id: atRoot.meta.id, order: 1 },
+      { id: folder.meta.id, order: 2 },
+      { id: "missing", order: 3 },
     ]);
 
     expect((await collections.listCollections()).map((c) => c.name)).toEqual(["Second", "Billing"]);
-    expect((await folders.listFolders(collection.meta.id)).map((f) => f.name)).toEqual(["Zed", "Auth"]);
-    expect((await requests.listRequests(collection.meta.id)).map((r) => r.name)).toEqual(["Ping", "Login"]);
+    expect((await folders.listFolders(collection.meta.id)).map((f) => [f.name, f.order])).toEqual([["Zed", 0], ["Auth", 2]]);
+    expect((await requests.listRequests(collection.meta.id)).filter((r) => !r.folderId).map((r) => [r.name, r.order])).toEqual([["Ping", 1]]);
+    expect((await requests.listRequests(collection.meta.id)).find((r) => r.meta.id === inFolder.meta.id)?.order).toBe(inFolder.order);
+  });
+
+  it("a new folder and a new request each go after every folder and request there is: the two share one order", async () => {
+    const { collection, folder, atRoot } = await seed();
+
+    const after = await folders.createFolder({ collectionId: collection.meta.id, name: "After the request" });
+    expect(after.order).toBeGreaterThan(atRoot.order);
+    const last = await requests.createRequest({ collectionId: collection.meta.id, name: "Last", method: "GET", url: "/l" });
+    expect(last.order).toBeGreaterThan(after.order);
+    const copy = await requests.duplicateRequest(atRoot.meta.id);
+    expect(copy!.order).toBeGreaterThan(last.order);
+    const twin = await folders.duplicateFolder(folder.meta.id);
+    expect(twin!.order).toBeGreaterThan(copy!.order);
+  });
+
+  it("a copy of a folder holds its requests in the places they had", async () => {
+    const { collection, folder, inFolder } = await seed();
+    const second = await requests.createRequest({ collectionId: collection.meta.id, folderId: folder.meta.id, name: "Second", method: "GET", url: "/2" });
+    await folders.reorderChildren([{ id: second.meta.id, order: 1 }, { id: inFolder.meta.id, order: 2 }]);
+
+    const twin = await folders.duplicateFolder(folder.meta.id);
+
+    expect((await requests.listRequests(collection.meta.id)).filter((r) => r.folderId === twin!.meta.id).map((r) => [r.name, r.order])).toEqual([["Second", 1], ["Login", 2]]);
   });
 
   it("deleting a folder removes its requests; deleting a collection removes everything under it", async () => {

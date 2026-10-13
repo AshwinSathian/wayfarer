@@ -1,0 +1,75 @@
+{
+  "runner": "newman@6.2.3",
+  "items": [
+    {
+      "iteration": 0,
+      "name": "Before every folder",
+      "tests": [
+        {
+          "name": "Before every folder answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "First in the folder",
+      "tests": [
+        {
+          "name": "First in the folder answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Deepest",
+      "tests": [
+        {
+          "name": "Deepest answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "After the inner folder",
+      "tests": [
+        {
+          "name": "After the inner folder answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "Between two folders",
+      "tests": [
+        {
+          "name": "Between two folders answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "In the last folder",
+      "tests": [
+        {
+          "name": "In the last folder answered",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "iteration": 0,
+      "name": "After every folder",
+      "tests": [
+        {
+          "name": "After every folder answered",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

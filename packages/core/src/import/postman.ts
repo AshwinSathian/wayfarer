@@ -260,18 +260,15 @@ export function postmanCollection(value: unknown): { payload: CollectionExport; 
   const folders: Folder[] = [];
   const requests: RequestDoc[] = [];
   let examples = 0;
-  let mixed = false;
 
   const walk = (items: unknown, parent: string | undefined, depth: number): void => {
     if (depth > MAX_DEPTH) throw new ImportError(`The collection's folders are nested more than ${MAX_DEPTH} deep.`);
-    let folderOrder = 0;
-    let requestOrder = 0;
+    // One count for folders and requests: an item keeps its place among the others of its folder.
+    let order = 0;
     for (const entry of objects(items)) {
       const own = meta();
       const entryName = text(field(entry, "name")).trim();
       if (Array.isArray(field(entry, "item"))) {
-        // The app lists a folder's folders before its requests; a Postman file has them in one order.
-        if (requestOrder > 0) mixed = true;
         const item = `folder "${entryName || "Folder"}"`;
         folders.push({
           id: own.id,
@@ -280,7 +277,7 @@ export function postmanCollection(value: unknown): { payload: CollectionExport; 
           ...(parent && { parentFolderId: parent }),
           name: entryName || "Folder",
           ...description(field(entry, "description")),
-          order: folderOrder++,
+          order: order++,
           variables: rows(field(entry, "variable")),
           auth: auth(field(entry, "auth"), item, warnings, false),
           scripts: scripts(field(entry, "event"), item, warnings),
@@ -305,7 +302,7 @@ export function postmanCollection(value: unknown): { payload: CollectionExport; 
         ...(parent && { folderId: parent }),
         name: entryName || `${method} ${url}`,
         ...description(field(source, "description")),
-        order: requestOrder++,
+        order: order++,
         method,
         url,
         params,
@@ -322,7 +319,6 @@ export function postmanCollection(value: unknown): { payload: CollectionExport; 
 
   const item = `collection "${name}"`;
   if (examples) warnings.push({ item, message: `${examples} saved ${examples === 1 ? "response is" : "responses are"} left out: the app keeps responses in its history, not in a collection.` });
-  if (mixed) warnings.push({ item, message: "Where a folder holds requests before folders, the folders now come first: the app lists a folder's folders before its requests." });
   return {
     payload: {
       $id: COLLECTION_FORMAT,

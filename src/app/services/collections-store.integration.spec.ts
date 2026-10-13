@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { requestsInOrder } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Idb } from "../data/idb";
 import { CollectionsStore } from "./collections-store";
@@ -51,16 +52,18 @@ describe("CollectionsStore with real storage", () => {
     });
     const ping = await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });
 
-    await service.reorderFolders([
-      { id: misc.meta.id, order: 0 },
-      { id: auth.meta.id, order: 1 },
-    ]);
-    await service.reorderRequests([
+    // The top of the collection: its two folders and its one request, moved among each other.
+    await service.reorderChildren([
       { id: ping.meta.id, order: 0 },
-      { id: login.meta.id, order: 1 },
+      { id: misc.meta.id, order: 1 },
+      { id: auth.meta.id, order: 2 },
     ]);
     expect(tree(billing.meta.id).folders.map((f) => f.name)).toEqual(["Misc", "Auth"]);
     expect(tree(billing.meta.id).requests.map((r) => r.name)).toEqual(["Ping", "Login"]);
+    expect(requestsInOrder(tree(billing.meta.id)).map((r) => r.name)).toEqual(["Ping", "Login"]);
+    await service.reorderChildren([{ id: auth.meta.id, order: -1 }]);
+    expect(requestsInOrder(tree(billing.meta.id)).map((r) => r.name)).toEqual(["Login", "Ping"]);
+    await service.reorderChildren([{ id: auth.meta.id, order: 2 }]);
     // Changes inside one collection leave the other collection's entry alone.
     expect(tree(users.meta.id).requests).toEqual([]);
 

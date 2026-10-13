@@ -174,8 +174,8 @@ export class Idb {
     return this.folders.deleteFolder(id);
   }
 
-  async reorderFolders(order: { id: FolderId; order: number }[]): Promise<void> {
-    return this.folders.reorderFolders(order);
+  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
+    return this.folders.reorderChildren(order);
   }
 
   async listRequests(collectionId: CollectionId): Promise<RequestDoc[]> {
@@ -204,10 +204,6 @@ export class Idb {
 
   async deleteRequest(id: RequestDocId): Promise<void> {
     return this.collectionRequests.deleteRequest(id);
-  }
-
-  async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
-    return this.collectionRequests.reorderRequests(order);
   }
 
   // ── Environments ─────────────────────────────────────────────────────

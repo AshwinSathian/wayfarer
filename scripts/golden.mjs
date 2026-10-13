@@ -10,8 +10,9 @@
 //   test holds it equal to what the exporter writes
 //   (packages/core/test/export/postman.test.ts).
 //
-// - run (P5.2): two collections run as a run: one with a data file of five
-//   rows, one whose scripts choose the next request
+// - run (P5.2): three collections run as a run: one with a data file of five
+//   rows, one whose scripts choose the next request, one with requests
+//   before, between and after its folders
 //   (packages/core/test/run/run-golden.test.ts).
 //
 // - postman/newman-integration (P4.2): Newman's own integration collections,
@@ -39,6 +40,8 @@ const JOBS = [
   // P5.2: a run. Newman's order of requests, iteration by iteration, is what `runRequests` must give.
   { collection: "run/data.postman_collection.json", golden: "run/data.golden.json", run: ["--iteration-data", join(FIXTURES, "run/data.csv")] },
   { collection: "run/flow.postman_collection.json", golden: "run/flow.golden.json", run: ["--iteration-count", "3"] },
+  // Requests before, between and after folders, at two depths: a run goes in the file's order.
+  { collection: "run/order.postman_collection.json", golden: "run/order.golden.json", run: [] },
 ];
 
 const server = await startEchoServer(0);

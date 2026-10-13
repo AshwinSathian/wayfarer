@@ -16,8 +16,8 @@ import { pathToFileURL } from "node:url";
 
 const LEDGER = "docs/claims.md";
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".angular", "test-results", "playwright-report", "coverage", "archive"]);
-const DOC_ROOTS = ["README.md", "SECURITY.md", "docs", "local-bridge", "packages"];
-const TEST_ROOTS = ["e2e", "src", "scripts", "local-bridge", "packages"];
+const DOC_ROOTS = ["README.md", "SECURITY.md", "docs", "packages"];
+const TEST_ROOTS = ["e2e", "src", "scripts", "packages"];
 const TEST_FILE = /\.(spec|test)\.(ts|mjs|js)$/;
 // This checker's own tests are full of fixture titles like "@claim something".
 const SELF_TEST = "scripts/check-claims.test.mjs";

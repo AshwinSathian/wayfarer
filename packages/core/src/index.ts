@@ -95,7 +95,7 @@ export {
 } from "./safe-json";
 export { graphqlPayload } from "./http/graphql";
 export { MAX_COOKIES, cookieHeader, cookiesFor, parseSetCookie, storeCookie, withJarCookies, type Cookie } from "./cookies/jar";
-export { BridgeTransport } from "./transport/bridge";
+export { BridgeTransport, bridgeHealthProblem } from "./transport/bridge";
 export { FetchTransport } from "./transport/fetch";
 export { parseEventStream } from "./transport/sse";
 export {

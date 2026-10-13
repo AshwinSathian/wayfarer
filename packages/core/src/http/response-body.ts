@@ -102,7 +102,5 @@ export function decodeEnvelope(envelope: ResponseEnvelope): unknown {
   if (envelope.body instanceof Blob) {
     return new BinaryBody(envelope.body, (contentType ?? "").split(";")[0].trim());
   }
-  // The route already decoded the text: the target's charset no longer applies.
-  const type = envelope.charset ? contentType?.replace(/;\s*charset\s*=\s*[^;]*/i, "") : contentType;
-  return decodeResponseBody(envelope.body, type);
+  return decodeResponseBody(envelope.body, contentType);
 }

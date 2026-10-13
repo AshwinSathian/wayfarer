@@ -144,7 +144,8 @@ describe("Settings", () => {
 
     it("Test connection asks the address that is typed, not the one stored, and says what came back", async () => {
       const bridge = TestBed.inject(BridgeSettings);
-      const health = vi.spyOn(bridge, "checkHealth").mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+      const tooOld = "Local Bridge 1.1.0 is too old for this page: it speaks protocol 1, and the page speaks protocol 2. Update the Local Bridge and start it again.";
+      const health = vi.spyOn(bridge, "checkHealth").mockResolvedValueOnce(undefined).mockResolvedValueOnce("Not reachable. Is the bridge running, and is this page's origin one it allows?").mockResolvedValueOnce(tooOld);
       await type("#bridge-url-input", "http://127.0.0.1:9999 ");
       const verdict = async (text: string) =>
         vi.waitFor(async () => {
@@ -156,6 +157,9 @@ describe("Settings", () => {
       expect(health).toHaveBeenCalledWith("http://127.0.0.1:9999");
       button("Test connection").click();
       await verdict("Not reachable");
+      // A bridge that answers and is of another protocol is named, with what to do (P6.3).
+      button("Test connection").click();
+      await verdict(tooOld);
       // An edit after a test takes the verdict away: it was of another address.
       await type("#bridge-url-input", "http://127.0.0.1:1");
       expect(dialog().querySelector(".bridge-test")?.textContent?.trim()).toBe("");

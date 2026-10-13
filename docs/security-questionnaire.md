@@ -72,7 +72,7 @@ same facts, and [`SECURITY.md`](../SECURITY.md) for the disclosure process.
 
 - **Does the vendor operate a backend that touches customer data?** No.
 - **Third-party integrations that receive data?** None by default. The
-  optional [Local Bridge](../local-bridge/README.md) companion process, if
+  optional [Local Bridge](../packages/bridge/README.md) companion process, if
   a user chooses to run it, relays requests **only between that user's own
   browser and a target the user specifies**, over a token-authenticated
   local connection. It is run and controlled entirely by the user, not

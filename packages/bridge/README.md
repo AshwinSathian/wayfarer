@@ -20,7 +20,7 @@ server without CORS configured, etc.).
 ## Quick start
 
 ```bash
-node local-bridge/bin/cli.js
+node packages/bridge/bin/cli.js
 # or, from the repo root:
 npm run bridge
 ```
@@ -51,8 +51,8 @@ continuously, and per the security model below, it shouldn't.
 1. Wayfarer's own code never talks to the bridge unless you've explicitly
    enabled it in settings.
 2. When enabled, instead of the browser calling the target API directly, it
-   `POST`s a small JSON envelope (`{ method, url, headers, body }`) to
-   `http://127.0.0.1:<port>/relay`, authenticated with a bearer-style token
+   `POST`s a small JSON envelope to `http://127.0.0.1:<port>/v2/relay`
+   (see [Protocol](#protocol)), authenticated with a bearer-style token
    header.
 3. The bridge process (running as a normal OS process, not sandboxed like
    a browser tab) makes the actual HTTP(S) request to your target and
@@ -82,7 +82,7 @@ the rest of this project gives its security-relevant surfaces.
   local dev origins by default; add more with `--allow-origin`). A page
   from any other origin fails CORS preflight before the browser will even
   send the real request.
-- **Token-authenticated.** Every `/relay` call must also carry the correct
+- **Token-authenticated.** Every relay call must also carry the correct
   bridge token in an `X-Wayfarer-Bridge-Token` header. This is a second,
   independent gate on top of the Origin check: Origin alone only proves
   *which site* is asking, not that it's a Wayfarer instance you configured.
@@ -103,34 +103,64 @@ the rest of this project gives its security-relevant surfaces.
   yourself pointing it at a target you didn't mean to; you are the operator
   and the sole intended caller.
 - **Zero runtime dependencies.** The entire implementation is Node's own
-  `http`/`https`/`crypto` modules, nothing to audit in a dependency tree,
+  `http`/`https`/`crypto`/`zlib` modules, nothing to audit in a dependency tree,
   nothing that can be compromised by a supply-chain attack on an upstream
   package.
 - **Nothing is logged or persisted beyond the token.** Relayed
   requests/responses exist only in memory for the duration of each call.
 
-## Known limitations (MVP scope)
+## Protocol
 
-- Response bodies are decoded as UTF-8 text unless the target's
-  `Content-Type` clearly indicates a binary format (images, audio, video,
-  `application/octet-stream`, `application/pdf`, `application/zip`, and
-  similar), in which case they're base64-encoded. A binary response served
-  with a misleading textual `Content-Type` will be decoded lossily.
+The bridge speaks **protocol 2**, and so does the page. The number is in the
+relay's path, so a page and a bridge of different protocols do not guess at
+each other: a bridge of protocol 1 has no `/v2/relay` and sends nothing,
+and the page says the bridge is too old. `GET /health` answers
+`{ ok, name, version, protocol, capabilities }`; Settings → Local Bridge →
+Test connection reads it.
+
+```
+POST /v2/relay
+{ "method": "POST", "url": "https://api.internal/x",
+  "headers": [["Content-Type", "application/json"]],   // a list: a name may repeat
+  "bodyB64": "eyJhIjoxfQ==",                           // the body's bytes; absent for none
+  "timeoutMs": 30000 }                                 // absent: 30 s; at most 10 minutes
+
+200
+{ "status": 200, "statusText": "OK",
+  "headers": [["Set-Cookie", "a=1"], ["Set-Cookie", "b=2"]],   // as received, one entry each
+  "bodyB64": "…",                                             // the body's bytes, decoded
+  "encodedSize": 512, "decodedSize": 2048 }
+```
+
+- **Bytes both ways.** A body is never read as text here: a file, a
+  multipart form and a response in any charset arrive as they were sent.
+- **A compressed response is decoded** (`gzip`, `deflate`, `br`), and the
+  answer has both sizes. Its `Content-Encoding` header is left as the server
+  sent it. When the request names no `Accept-Encoding` the bridge asks for
+  those three, as a browser does.
+- **The request's timeout is the bridge's**: one deadline for the whole
+  exchange. A target that does not answer in time is a 504.
+- **A wrong field is refused** with 400 and a message: a field of the wrong
+  type, or one the protocol does not have, is never read as something else.
+- Any other status is the bridge's own answer, `{ "error": … }`: 401 for
+  the token, 403 for the origin, 421 for the `Host`, 502 when the target
+  could not be reached or its body could not be decoded or was too large.
+
+## Known limitations
+
 - Outgoing bodies are always sent with `Content-Length` (chunked
   transfer-encoding isn't used), which some very old or nonstandard servers
   may not expect.
 - No streaming: the full response is buffered in memory before being
-  wrapped and returned, capped at 25MB.
+  wrapped and returned. The cap is 25 MB, for the request as it arrives at
+  the bridge (base64 inside JSON: some 18 MB of body), for the response as
+  received and for the response as decoded.
 - No redirect following: redirects come back as an ordinary 3xx response.
   Wayfarer follows them itself, each hop as a relay of its own, and lists
   them. A direct browser request, by contrast, is followed by the browser
   and shows only the final response.
-- The answer's `headers` joins a repeated header into one comma-separated
-  value, which cannot be split again for `Set-Cookie` (an `Expires` holds a
-  comma). Since 1.1.0 the answer also has `headerList`, every header as
-  received, one `[name, value]` entry each; Wayfarer reads that and keeps
-  cookies from it. Compressed responses are not decompressed
-  ([#80](https://github.com/AshwinSathian/wayfarer/issues/80)).
+- Not yet: timings, a certificate authority of your own, switching
+  certificate checks off, a proxy, a `Host` header of your own.
 - Whether browsers let the hosted HTTPS app reach `http://127.0.0.1` is not
   yet verified in every browser (Chrome's Local Network Access prompt,
   Safari's mixed-content rules)
@@ -139,7 +169,7 @@ the rest of this project gives its security-relevant surfaces.
 ## CLI reference
 
 ```
-wayfarer-local-bridge [options]
+wayfarer-bridge [options]
 
   --port <n>            Port to listen on (default: 7717)
   --token <value>        Use a fixed token (16 characters or more) instead of the
@@ -157,6 +187,6 @@ stops the bridge with an error instead of falling back to a default.
 ## Development
 
 ```bash
-cd local-bridge
+cd packages/bridge
 npm test   # node --test test/, zero external test dependencies
 ```

@@ -27,7 +27,12 @@ export class BridgePane {
   protected readonly url = signal(this.bridge.config().url);
   protected readonly token = signal(this.bridge.config().token);
   protected readonly showToken = signal(false);
-  protected readonly test = signal<"idle" | "testing" | "ok" | "fail">("idle");
+  /** The last test of the connection: not made, on its way, fine, or what is wrong with the bridge. */
+  protected readonly test = signal<"idle" | "testing" | "ok" | { problem: string }>("idle");
+  protected readonly testProblem = computed(() => {
+    const test = this.test();
+    return typeof test === "string" ? "" : test.problem;
+  });
   /** Said once after a save, until the next edit. */
   protected readonly saved = signal(false);
 
@@ -46,7 +51,8 @@ export class BridgePane {
 
   protected async testConnection(): Promise<void> {
     this.test.set("testing");
-    this.test.set((await this.bridge.checkHealth(this.url().trim())) ? "ok" : "fail");
+    const problem = await this.bridge.checkHealth(this.url().trim());
+    this.test.set(problem === undefined ? "ok" : { problem });
   }
 
   protected save(): void {

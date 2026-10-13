@@ -50,7 +50,7 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
 test("with the vault unlocked the token is a vault secret: after a reload a send asks for the passphrase and goes through the bridge", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "the Local Bridge is started for Chromium only (plan P4.7)");
   const port = 7750 + test.info().parallelIndex;
-  const bridge = spawn(process.execPath, ["local-bridge/bin/cli.js", "--port", String(port), "--token", TOKEN, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
+  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", TOKEN, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
   try {
     await new Promise<void>((resolve, reject) => {
       bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));

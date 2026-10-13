@@ -64,13 +64,13 @@ function parseArgs(argv, env = process.env) {
 
 function printHelp() {
   console.log(`
-wayfarer-local-bridge v${pkg.version}
+wayfarer-bridge v${pkg.version}
 
 An optional local relay that lets Wayfarer reach CORS-restrictive or
 intranet-only APIs. Runs entirely on your own machine.
 
 Usage:
-  wayfarer-local-bridge [options]
+  wayfarer-bridge [options]
 
 Options:
   --port <n>            Port to listen on (default: ${DEFAULT_PORT})
@@ -106,14 +106,14 @@ function main() {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${port} is already in use. Pass --port <n> to use a different one.`);
     } else {
-      console.error('Failed to start wayfarer-local-bridge:', err.message);
+      console.error('Failed to start wayfarer-bridge:', err.message);
     }
     process.exitCode = 1;
   });
 
   server.listen(port, '127.0.0.1', () => {
     console.log('');
-    console.log(`  wayfarer-local-bridge v${pkg.version} — listening on http://127.0.0.1:${port}`);
+    console.log(`  wayfarer-bridge v${pkg.version} — listening on http://127.0.0.1:${port}`);
     console.log('');
     console.log(`  Bridge token: ${token}`);
     console.log(`  (persisted at ${TOKEN_FILE} — reused across restarts unless you pass --rotate-token)`);
@@ -131,7 +131,7 @@ function main() {
   });
 
   const shutdown = () => {
-    console.log('\nShutting down wayfarer-local-bridge...');
+    console.log('\nShutting down wayfarer-bridge...');
     server.close(() => process.exit(0));
   };
   process.on('SIGINT', shutdown);

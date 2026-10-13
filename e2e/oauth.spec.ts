@@ -272,7 +272,7 @@ test("through the Local Bridge the same token endpoint answers, and the token re
   test.skip(browserName !== "chromium", "the Local Bridge is started for Chromium only (plan P4.7)");
   const port = 7700 + test.info().parallelIndex;
   const token = "bridge-token-for-the-oauth-e2e-0123456789";
-  const bridge = spawn(process.execPath, ["local-bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
+  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
   try {
     await new Promise<void>((resolve, reject) => {
       bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));

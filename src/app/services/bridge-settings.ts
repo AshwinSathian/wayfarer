@@ -1,4 +1,5 @@
 import { Injectable, effect, inject, signal, untracked } from "@angular/core";
+import { bridgeHealthProblem, parseJson } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { Diagnostics } from "./diagnostics";
 import { SecretsVault } from "./secrets-vault";
@@ -7,6 +8,8 @@ const STORAGE_KEY = "wayfarer:bridge";
 const DEFAULT_URL = "http://127.0.0.1:7717";
 /** The vault secret that holds the token. Listed under Manage secrets by this name. */
 const SECRET_NAME = "Local Bridge token";
+/** Nothing answered at the bridge's address. */
+export const BRIDGE_UNREACHABLE = "Not reachable. Is the bridge running, and is this page's origin one it allows?";
 
 export interface BridgeConfig {
   enabled: boolean;
@@ -18,7 +21,7 @@ const DEFAULT_CONFIG: BridgeConfig = { enabled: false, url: DEFAULT_URL, token: 
 
 /**
  * Local machine/browser-profile preference for routing requests through the
- * optional Local Bridge companion process (see `local-bridge/README.md`).
+ * optional Local Bridge companion process (see `packages/bridge/README.md`).
  * Deliberately not per-environment: which relay to use, if any, is a
  * property of the device you're testing from, not something that should
  * sync or export with a collection/environment.
@@ -87,22 +90,28 @@ export class BridgeSettings {
     this.pending = this.pending.then(work).catch((error: unknown) => this.diagnostics.record(error, "bridge: the token could not be kept in the vault or read from it"));
   }
 
-  /** Probes `url` (the saved bridge URL by default) without changing the saved settings. */
-  async checkHealth(url = this.config().url): Promise<boolean> {
+  /**
+   * Asks the bridge at `url` (the saved one by default) for its `/health`, without changing the saved settings.
+   * What is wrong with it, as a sentence, or undefined: it answers and speaks the page's protocol (P6.3).
+   */
+  async checkHealth(url = this.config().url): Promise<string | undefined> {
     const base = url.replace(/\/+$/, "");
     if (!base) {
-      return false;
+      return BRIDGE_UNREACHABLE;
     }
+    let text: string;
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const response = await fetch(`${base}/health`, { signal: controller.signal });
+      text = response.ok ? await response.text() : "";
       clearTimeout(timeout);
-      return response.ok;
     } catch (error) {
       this.diagnostics.record(error, "bridge: health check failed");
-      return false;
+      return BRIDGE_UNREACHABLE;
     }
+    const health = parseJson(text);
+    return bridgeHealthProblem(health.ok ? health.value : undefined);
   }
 
   private load(): BridgeConfig {

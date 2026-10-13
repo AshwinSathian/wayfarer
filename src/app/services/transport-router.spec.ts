@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FetchMock } from "../../testing/fetch-mock";
 import { BridgeSettings } from "./bridge-settings";
 import { TransportRouter } from "./transport-router";
@@ -52,10 +52,11 @@ describe("TransportRouter", () => {
 
     const pending = router.send({ method: "GET", url: "https://internal.example.com/data", headers: [] }, open());
 
-    const req = fetchMock.expectOne("http://127.0.0.1:7717/relay");
+    // The body is made into bytes first: the call follows a moment later.
+    const req = await vi.waitFor(() => fetchMock.expectOne("http://127.0.0.1:7717/v2/relay"));
     expect(req.request.headers.get("X-Wayfarer-Bridge-Token")).toBe("test-token");
-    expect(req.request.body).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: {} });
-    req.flush(JSON.stringify({ status: 200, statusText: "OK", headers: {}, body: "", bodyEncoding: "utf8" }), { status: 200 });
+    expect(req.request.body).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: [] });
+    req.flush(JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }), { status: 200 });
     expect((await pending).route).toBe("bridge");
   });
 

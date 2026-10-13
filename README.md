@@ -143,7 +143,7 @@ npm run test:ci
 
 **Notes**
 
-- Calling third‑party APIs may require CORS to be enabled by that API. For CORS-restrictive or intranet-only APIs, run the optional [Local Bridge](local-bridge/README.md) (`npm run bridge`) instead of a hand-rolled proxy.
+- Calling third‑party APIs may require CORS to be enabled by that API. For CORS-restrictive or intranet-only APIs, run the optional [Local Bridge](packages/bridge/README.md) (`npm run bridge`) instead of a hand-rolled proxy.
 - History, collections, environments, and secrets are stored locally in **IndexedDB** and are **specific to the browser and device** you're using. <!-- claim:C-002 -->
 
 ---
@@ -223,7 +223,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 - [Secrets model](docs/secrets.md)
 - [Storage layout](docs/storage.md)
 - [Scripts & sandbox model](docs/scripts.md)
-- [Local Bridge (optional CORS/intranet relay)](local-bridge/README.md)
+- [Local Bridge (optional CORS/intranet relay)](packages/bridge/README.md)
 - [Browser limits](docs/browser-limits.md): what the browser blocks, including reaching the Local Bridge
 - [Trust Center](docs/trust-center.md): encryption, data residency, subprocessors, compliance status
 - [Security questionnaire (pre-answered)](docs/security-questionnaire.md)

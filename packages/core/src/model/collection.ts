@@ -79,6 +79,23 @@ export function folderChain(folders: Folder[], folderId: string | undefined): Fo
   return chain;
 }
 
+/** A folder or a request, as its parent lists it. */
+type TreeChild<F, R> = { folder: F; request?: undefined } | { request: R; folder?: undefined };
+
+/**
+ * What a folder holds, or with no `parent` what stands at the top of the
+ * collection: its folders and its requests as one list, by the one `order`
+ * they share, as a Postman file has its items. Two of one number: a folder
+ * before a request, then by id.
+ */
+export function childrenInOrder<F extends Pick<Folder, "id" | "order" | "parentFolderId">, R extends Pick<RequestDoc, "id" | "order" | "folderId">>(tree: { folders: readonly F[]; requests: readonly R[] }, parent?: string): TreeChild<F, R>[] {
+  const entries = [
+    ...tree.folders.filter((folder) => folder.parentFolderId === parent).map((folder) => ({ order: folder.order, kind: 0, id: folder.id, child: { folder } as TreeChild<F, R> })),
+    ...tree.requests.filter((request) => request.folderId === parent).map((request) => ({ order: request.order, kind: 1, id: request.id, child: { request } as TreeChild<F, R> })),
+  ];
+  return entries.sort((a, b) => a.order - b.order || a.kind - b.kind || a.id.localeCompare(b.id)).map((entry) => entry.child);
+}
+
 /**
  * What a request inherits from, in the order it applies: the collection,
  * then its folders from the outside in. `name` says which it is, as a

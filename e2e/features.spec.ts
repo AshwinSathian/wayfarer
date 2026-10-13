@@ -276,7 +276,7 @@ test("@claim:C-024 collections can be renamed inline and reordered by drag and d
   await expect.poll(order).toEqual(["C024 Beta", "C024 Gamma"]);
 });
 
-test("folders and requests are reordered by drag and drop among their own kind, and a drop onto a folder moves nothing", async ({ page }) => {
+test("folders and requests are reordered by drag and drop among each other: a request dropped on a folder's row goes after or before that folder, not into it", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await createCollection(page, "Drag Col");
@@ -295,10 +295,15 @@ test("folders and requests are reordered by drag and drop among their own kind, 
   await treeItem(page, "Drag Folder B").dragTo(treeItem(page, "Drag Folder A"), { targetPosition: { x: 40, y: 2 } });
   await expect.poll(order).toEqual(["Drag Col", "Drag Folder B", "Drag Folder A", "Drag Req 2", "Drag Req 1"]);
 
-  // A request dropped on the middle of a folder's row stays where it was.
+  // A folder's folders and requests are one list: a request dropped on the lower half of a folder's row goes after that folder.
   await treeItem(page, "Drag Req 1").dragTo(treeItem(page, "Drag Folder A"), { targetPosition: { x: 40, y: 19 } });
+  await expect.poll(order).toEqual(["Drag Col", "Drag Folder B", "Drag Folder A", "Drag Req 1", "Drag Req 2"]);
+  // And on the upper half of the first folder's row, before every folder. It is not put into the folder.
+  await treeItem(page, "Drag Req 2").dragTo(treeItem(page, "Drag Folder B"), { targetPosition: { x: 40, y: 2 } });
+  await expect.poll(order).toEqual(["Drag Col", "Drag Req 2", "Drag Folder B", "Drag Folder A", "Drag Req 1"]);
+  await expect(treeItem(page, "Drag Req 2")).toHaveAttribute("aria-level", "2");
   await page.reload();
-  await expect.poll(order).toEqual(["Drag Col", "Drag Folder B", "Drag Folder A", "Drag Req 2", "Drag Req 1"]);
+  await expect.poll(order).toEqual(["Drag Col", "Drag Req 2", "Drag Folder B", "Drag Folder A", "Drag Req 1"]);
 });
 
 test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({ page, browser }) => {

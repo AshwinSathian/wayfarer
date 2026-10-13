@@ -1,6 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **11** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The schema version is **13** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
@@ -48,6 +48,8 @@ Version 10 let a collection and a folder hold auth and scripts for the requests 
 Version 11 added the `tabs` store and changed nothing else: a version 10 database keeps its data.
 
 Version 12 added the `cookies` store and changed nothing else: a version 11 database keeps its data.
+
+Version 13 gave a parent's folders and requests one `order` between them: the order of the list and of a run. Before, folders were numbered apart from requests and the list showed folders first. The upgrade numbers each parent's folders, then its requests, from 1: **nothing is removed and nothing moves**. A collection file or a workspace backup written before has the two kinds numbered apart, and nothing in it says so: imported now, its folders and requests of one parent may stand in another order than they did. Move them in the list.
 
 ## Tabs
 

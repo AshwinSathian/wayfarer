@@ -153,6 +153,12 @@ code errors.
   (`src/app/state/run-state.ts`); the composer shows `<app-run-view>` for
   it. Such a tab is not stored (`TabsStorage.storable`), and nothing that
   loads a request may load one into it (`ComposerView.keepUnsaved`).
+- A parent's folders and requests share one `order`, as a Postman file's
+  items do: `childrenInOrder` (`@wayfarer/core`) is that list, and the
+  tree, `requestsInOrder` and the Postman exporter all read it. A new
+  folder or request takes `nextOrder` of both stores' indexes, and a move
+  is one write of both kinds (`reorderChildren`). Do not number or sort the
+  two kinds apart.
 - The order of a run is `runRequests` in `packages/core/src/run/`, which
   sends nothing and is held to Newman by the golden files of
   `packages/core/test/fixtures/run` (`npm run golden`). A change to what
@@ -673,10 +679,10 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
   converter for older files.
-- The database is version 12. `runUpgrade` empties a database from before
+- The database is version 13. `runUpgrade` empties a database from before
   version 5, and since then removes only what changed shape (secrets at 8,
   history at 9; collections, folders, requests and files at 10), saying
-  what it removed. Version 11 added the `tabs` store and version 12 the `cookies` store; neither removed anything. No stored data exists to keep
+  what it removed. Version 11 added the `tabs` store and version 12 the `cookies` store; version 13 numbered each parent's folders and requests as one list. None of the three removed anything. No stored data exists to keep
   (maintainer, 2026-10-09), so a change of stored shape may do the same
   again until the app has users; say so in the changelog and in
   `docs/storage.md`.

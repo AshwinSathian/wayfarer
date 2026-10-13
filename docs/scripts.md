@@ -444,8 +444,10 @@ run stored is that run's baseline.
 ## Collection runs
 
 **Run…** in the menu of a collection or of a folder opens a tab for a run
-of its requests, in the order of the list: in each folder its folders
-first, then its requests. Nothing is sent until **Run**.
+of its requests, in the order of the list, which is the order of a Postman
+file and of Newman: a folder's folders and requests are one list, and a
+request that stands before a folder is sent before the requests of that
+folder. Nothing is sent until **Run**.
 
 - **Each request is sent as Send would send it**: its pre-request scripts
   from the collection inward, the request built with the variables they

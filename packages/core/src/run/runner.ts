@@ -1,4 +1,4 @@
-import type { CollectionTree, RequestDoc } from "../model/collection";
+import { childrenInOrder, type CollectionTree, type RequestDoc } from "../model/collection";
 import type { Row } from "../model/request";
 
 /** A request of a run, as the run knows it. */
@@ -72,14 +72,21 @@ export function runFailed(result: Pick<RunOutcome, "error" | "tests">): boolean 
 
 /**
  * The requests a run of a collection, or of one of its folders, sends, in
- * the order of the tree: in each folder its folders first, then its requests.
+ * the order of the tree, which is a Postman file's and Newman's (asked with
+ * a probe): a request that stands before a folder is sent before the
+ * requests of that folder. A file may name folders as each other's parents:
+ * a folder is entered once.
  */
 export function requestsInOrder(tree: Pick<CollectionTree, "folders" | "requests">, folderId?: string): RequestDoc[] {
-  const byOrder = <T extends { order: number; id: string }>(list: T[]) => [...list].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-  const inOrder = (parent: string | undefined): RequestDoc[] => [
-    ...byOrder(tree.folders.filter((folder) => folder.parentFolderId === parent)).flatMap((folder) => inOrder(folder.id)),
-    ...byOrder(tree.requests.filter((request) => request.folderId === parent)),
-  ];
+  const entered = new Set<string>();
+  const inOrder = (parent: string | undefined): RequestDoc[] =>
+    childrenInOrder(tree, parent).flatMap((child) => {
+      if (child.request) return [child.request];
+      if (entered.has(child.folder.id)) return [];
+      entered.add(child.folder.id);
+      return inOrder(child.folder.id);
+    });
+  if (folderId !== undefined) entered.add(folderId);
   return inOrder(folderId);
 }
 

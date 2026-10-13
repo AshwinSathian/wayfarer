@@ -77,7 +77,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(12);
+    expect(DB_VERSION).toBe(13);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.listCollections()).toEqual([]);
     expect(await idb.listFolders("c-1")).toEqual([]);
@@ -109,7 +109,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     expect([...db.objectStoreNames]).toContain("files");
     // A collection of before version 10 holds no auth and no scripts for its requests: it is not read (D24).
     expect(await idb.listCollections()).toEqual([]);
@@ -139,7 +139,7 @@ describe("opening a database left by another release", () => {
 
     await idb.init();
 
-    expect((await core.getDatabase())!.version).toBe(12);
+    expect((await core.getDatabase())!.version).toBe(13);
     expect(await idb.listSecrets()).toEqual([]);
     expect(await idb.readVault()).toBeNull();
     // The collection goes too, since version 10.
@@ -168,7 +168,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     expect(await idb.getLatest()).toEqual([]);
     expect([...db.transaction("history").store.indexNames]).toEqual(["by-createdAt"]);
     // The collection goes too, since version 10.
@@ -212,7 +212,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     for (const name of ["collections", "folders", "requests", "files"] as const) {
       expect(await db.count(name), name).toBe(0);
     }
@@ -227,7 +227,7 @@ describe("opening a database left by another release", () => {
 
     await idb.init();
 
-    expect((await core.getDatabase())!.version).toBe(12);
+    expect((await core.getDatabase())!.version).toBe(13);
     expect(core.clearedOldData()).toEqual([]);
   });
 
@@ -247,7 +247,7 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await db.getAll("tabs")).toEqual([]);
     expect(core.clearedOldData()).toEqual([]);
@@ -270,11 +270,65 @@ describe("opening a database left by another release", () => {
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await db.getAll("cookies")).toEqual([]);
     expect(core.clearedOldData()).toEqual([]);
     expect(await db.count("tabs")).toBe(1);
+  });
+
+  it("numbers each parent's folders and requests as one list, folders first, so that nothing moves (version 13)", async () => {
+    const v12 = await openRaw(12, (db) => {
+      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
+      for (const name of ["collections", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
+      const folders = db.createObjectStore("folders", { keyPath: "meta.id" });
+      folders.createIndex("by-collectionId", "collectionId");
+      folders.createIndex("by-order", "order");
+      const requests = db.createObjectStore("requests", { keyPath: "meta.id" });
+      requests.createIndex("by-collectionId", "collectionId");
+      requests.createIndex("by-order", "order");
+      db.createObjectStore("files");
+      db.createObjectStore("meta", { keyPath: "key" });
+      db.createObjectStore("tabs", { keyPath: "id" });
+      db.createObjectStore("cookies", { keyPath: "key" });
+    });
+    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+    const tx = v12.transaction(["collections", "folders", "requests"], "readwrite");
+    for (const id of ["c-1", "c-2"]) tx.objectStore("collections").put({ id, meta: meta(id), name: id, order: 1 });
+    // As version 12 numbered them: folders and requests apart, and over the whole store.
+    const folder = (id: string, order: number, parentFolderId?: string, collectionId = "c-1") => tx.objectStore("folders").put({ id, meta: meta(id), collectionId, ...(parentFolderId && { parentFolderId }), name: id, order });
+    const request = (id: string, order: number, folderId?: string, collectionId = "c-1") => tx.objectStore("requests").put({ id, meta: meta(id), collectionId, ...(folderId && { folderId }), name: id, order, method: "GET", url: "/" });
+    folder("f-b", 7);
+    folder("f-a", 3);
+    folder("f-a-in", 9, "f-a");
+    request("r-top-2", 5);
+    request("r-top-1", 1);
+    request("r-in-a-2", 4, "f-a");
+    request("r-in-a-1", 2, "f-a");
+    folder("other-f", 1, undefined, "c-2");
+    request("other-r", 1, undefined, "c-2");
+    await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
+    v12.close();
+
+    await idb.init();
+
+    const db = (await core.getDatabase())!;
+    expect(db.version).toBe(13);
+    expect(core.clearedOldData()).toEqual([]);
+    const placed = [...(await db.getAll("folders")), ...(await db.getAll("requests"))].map((doc) => [doc.collectionId, (doc as { parentFolderId?: string }).parentFolderId ?? (doc as { folderId?: string }).folderId ?? "", doc.order, doc.meta.id] as const).sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]) || a[2] - b[2]);
+    expect(placed).toEqual([
+      ["c-1", "", 1, "f-a"],
+      ["c-1", "", 2, "f-b"],
+      ["c-1", "", 3, "r-top-1"],
+      ["c-1", "", 4, "r-top-2"],
+      ["c-1", "f-a", 1, "f-a-in"],
+      ["c-1", "f-a", 2, "r-in-a-1"],
+      ["c-1", "f-a", 3, "r-in-a-2"],
+      ["c-2", "", 1, "other-f"],
+      ["c-2", "", 2, "other-r"],
+    ]);
+    // A place is not an edit: no document says it was changed.
+    expect((await db.getAll("requests")).map((doc) => doc.meta.updatedAt)).toEqual([1, 1, 1, 1, 1]);
   });
 
   it("does not report removed data on a first run", async () => {

@@ -333,18 +333,11 @@ export class CollectionsSidebar implements OnInit {
   /** Saves the new order of a node's siblings after a drag and drop or an Alt+Arrow move. */
   async handleReorder(event: { node: UiTreeNode<NodeData>; siblings: UiTreeNode<NodeData>[] }): Promise<void> {
     const order = event.siblings.map((sibling, index) => ({ id: sibling.data.ref.meta.id, order: index + 1 }));
-    switch (event.node.data.type) {
-      case "collection":
-        return this.collectionsService.reorderCollections(order);
-      case "folder":
-        return this.collectionsService.reorderFolders(order);
-      case "request":
-        return this.collectionsService.reorderRequests(order);
-    }
+    return event.node.data.type === "collection" ? this.collectionsService.reorderCollections(order) : this.collectionsService.reorderChildren(order);
   }
 
-  /** Nodes are reordered among their own kind only: collections, folders or requests. */
-  readonly nodeKind = (node: UiTreeNode<NodeData>): string => node.data.type;
+  /** A collection is moved among collections; a folder or a request among the folders and requests of its parent, which share one order. */
+  readonly nodeKind = (node: UiTreeNode<NodeData>): string => (node.data.type === "collection" ? "collection" : "child");
 
   beginRename(node: UiTreeNode<NodeData>): void {
     this.editingKey.set(node.key ?? null);

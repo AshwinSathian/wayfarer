@@ -32,7 +32,7 @@ export class CollectionRequestsRepository {
   async createRequest(payload: NewRequest, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc> {
     await this.core.ensurePersistentSupport();
     const stored = await readFiles(files);
-    const tx = await this.core.txReadWrite(["requests", "files"]);
+    const tx = await this.core.txReadWrite(["requests", "files", "folders"]);
     const store = tx.objectStore("requests");
     return this.core.commitOrRollback(tx, async () => {
       await this.storeFiles(tx, stored);
@@ -45,7 +45,7 @@ export class CollectionRequestsRepository {
         id: meta.id,
         meta,
         name: payload.name.trim(),
-        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"))),
+        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"), tx.objectStore("folders").index("by-order"))),
       };
       this.core.ensureId(doc);
       await store.add(doc);
@@ -120,7 +120,7 @@ export class CollectionRequestsRepository {
 
   async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["requests"]);
+    const tx = await this.core.txReadWrite(["requests", "folders"]);
     const store = tx.objectStore("requests");
     return this.core.commitOrRollback(tx, async () => {
       const doc = await store.get(id);
@@ -133,7 +133,7 @@ export class CollectionRequestsRepository {
         id: meta.id,
         meta,
         name: `${doc.name} copy`,
-        order: await this.core.nextOrder(store.index("by-order")),
+        order: await this.core.nextOrder(store.index("by-order"), tx.objectStore("folders").index("by-order")),
       };
       this.core.ensureId(clone);
       await store.add(clone);
@@ -150,22 +150,6 @@ export class CollectionRequestsRepository {
     });
   }
 
-  async reorderRequests(order: { id: RequestDocId; order: number }[]): Promise<void> {
-    await this.core.ensurePersistentSupport();
-    const tx = await this.core.txReadWrite(["requests"]);
-    const store = tx.objectStore("requests");
-    await this.core.commitOrRollback(tx, async () => {
-      for (const entry of order) {
-        const doc = await store.get(entry.id);
-        if (!doc) {
-          continue;
-        }
-        doc.order = entry.order;
-        doc.meta = this.core.touchMeta(doc.meta);
-        await store.put(doc);
-      }
-    });
-  }
 }
 
 /**

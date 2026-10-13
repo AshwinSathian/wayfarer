@@ -141,7 +141,7 @@ pm.test("XML: the key went into the query", () => pm.expect(echo.url).to.eql("/e
 pm.test("XML: the body arrived as XML", () => { pm.expect(echo.body).to.eql("<a>hello</a>"); pm.expect(header("content-type")).to.include("application/xml"); });`,
       },
     }),
-    request("inherit", "Inherit bearer", 0, undefined, {
+    request("inherit", "Inherit bearer", 2, undefined, {
       url: "{{base}}/echo?a=1&b=two%20words",
       params: [row("a", "1"), row("c", "3", false), row("b", "two words")],
       headers: [row("X-Order", "{{order}}"), row("X-Off", "1", false)],

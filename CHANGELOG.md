@@ -7,6 +7,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **A collection runs in the order of its list, and the list is in the order
+  of a Postman file.** A folder's folders and requests are now one list: a
+  request can stand before a folder, between two folders or after them, and
+  drag or Alt+Arrow moves a row among both kinds. Before, the list showed a
+  folder's folders first and then its requests, a run sent them that way,
+  and an imported Postman or Insomnia file whose requests stood before a
+  folder lost that order (the import report said so). Newman sends such a
+  file in the file's order, and so does a run now; an export for Postman
+  writes the order back.
+- **A folder inside a folder is shown inside it.** Only an imported file can
+  hold one. Before, the list showed every folder of a collection side by
+  side, at the top.
+- A new folder, a new request and a copy go to the end of the collection's
+  numbering, after every folder and request there is. A copy of a folder
+  keeps its requests in the places they had.
+- **Nothing stored is removed.** The database goes to version 13: each
+  folder's folders and requests are numbered again as one list, folders
+  first, so the list looks as it did. A collection file or a workspace
+  backup written by an earlier version numbers the two kinds apart; imported
+  now, the folders and requests of one parent may stand in another order.
+
 ## [2.3.0] - 2026-10-13
 
 A workspace to work in all day. Several requests are open at once, in tabs

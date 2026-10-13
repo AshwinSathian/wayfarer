@@ -10,7 +10,7 @@ const request = (rest: Record<string, unknown> = {}, name = "R") => ({ name, req
 const one = (rest: Record<string, unknown>) => postmanCollection(collection([request(rest)]));
 
 describe("postmanCollection: a Postman file as a collection of the app", () => {
-  it("names, descriptions, variables and the tree: folders in folders, each kind in the file's order", () => {
+  it("names, descriptions, variables and the tree: folders in folders, a folder's items numbered as the file has them", () => {
     const { payload, warnings } = postmanCollection(
       collection(
         [
@@ -28,7 +28,7 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     const [admin, deep] = payload.folders;
     expect(admin).toMatchObject({ name: "Admin", description: "For admins", order: 0, variables: [{ key: "region", value: "eu", enabled: true }], auth: { type: "inherit" } });
     expect(deep).toMatchObject({ name: "Deep", parentFolderId: admin.id, order: 0 });
-    expect(payload.requests.map((doc) => [doc.name, doc.order, doc.folderId, doc.description])).toEqual([["Inner", 0, deep.id, undefined], ["List", 0, admin.id, "Lists them"], ["Top", 0, undefined, undefined]]);
+    expect(payload.requests.map((doc) => [doc.name, doc.order, doc.folderId, doc.description])).toEqual([["Inner", 0, deep.id, undefined], ["List", 1, admin.id, "Lists them"], ["Top", 1, undefined, undefined]]);
     // Ids are the app's own, each once.
     const ids = [payload.collection.id, ...payload.folders.map((folder) => folder.id), ...payload.requests.map((doc) => doc.id)];
     expect(new Set(ids).size).toBe(ids.length);
@@ -256,13 +256,14 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     expect(warnings).toEqual([{ item: 'request "Draft"', message: "It has no address and is left out." }, { item: 'request "Odd"', message: "Its method (GE T) is not an HTTP method and it is left out." }]);
   });
 
-  it("saved responses are left out and counted, and a folder after a request is said to move up", () => {
-    const { warnings } = postmanCollection(collection([{ ...request(), response: [{ name: "ok" }, { name: "bad" }] }, { name: "After", item: [] }]));
+  it("saved responses are left out and counted; a folder after a request stays after it, and nothing is said", () => {
+    const { payload, warnings } = postmanCollection(collection([{ ...request(), response: [{ name: "ok" }, { name: "bad" }] }, { name: "After", item: [request({}, "Inside"), { name: "Deep", item: [] }, request({}, "Last inside")] }, request({}, "Last")]));
 
-    expect(warnings).toEqual([
-      { item: 'collection "Shop"', message: "2 saved responses are left out: the app keeps responses in its history, not in a collection." },
-      { item: 'collection "Shop"', message: "Where a folder holds requests before folders, the folders now come first: the app lists a folder's folders before its requests." },
-    ]);
+    expect(warnings).toEqual([{ item: 'collection "Shop"', message: "2 saved responses are left out: the app keeps responses in its history, not in a collection." }]);
+    expect([...payload.folders, ...payload.requests].map((entry) => [entry.name, entry.order])).toEqual([["After", 1], ["Deep", 1], ["R", 0], ["Inside", 0], ["Last inside", 2], ["Last", 2]]);
+    // And an export writes the items as the file had them.
+    const names = (items: { name: string; item?: unknown }[]): unknown[] => items.map((item) => (item.item ? [item.name, names(item.item as { name: string }[])] : item.name));
+    expect(names(exported(payload).file["item"] as { name: string }[])).toEqual(["R", ["After", ["Inside", ["Deep", []], "Last inside"]], "Last"]);
     expect(postmanCollection(collection([{ ...request(), response: [{}] }])).warnings[0].message).toContain("1 saved response is left out");
   });
 

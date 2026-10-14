@@ -7,14 +7,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Security
+### Changed
 
-- Releasing the Local Bridge or the CLI no longer runs their dependencies'
-  code in the job that holds the npm publishing token. The tarball is
-  tested in a job without it, and that same tarball is published.
+- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
+  to fail only on critical and serious violations. None are found.
 
 ### Fixed
 
+- Two auth fields filled at once, as a password manager fills a user name
+  and a password, are both kept. The first used to be written back empty
+  (AWS Signature, Basic, API key and OAuth 2.0).
+- Opening the history or navigation drawer moves focus into it at once. A
+  Tab pressed in the first frame used to land on the page underneath (#223).
 - A dialog that asks for a name, a passphrase or a command opens with focus
   on that field. Focus used to land on its Close button.
 - Enter in the name field of a new collection, folder or request creates it.
@@ -22,10 +26,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the swap dropped focus to the page.
 - A code editor shows a focus ring while it has focus.
 
-### Changed
+### Security
 
-- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
-  to fail only on critical and serious violations. None are found.
+- Releasing the Local Bridge or the CLI no longer runs their dependencies'
+  code in the job that holds the npm publishing token. The tarball is
+  tested in a job without it, and that same tarball is published.
 
 ## [2.4.0] - 2026-10-14
 

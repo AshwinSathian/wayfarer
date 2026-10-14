@@ -1,5 +1,5 @@
 import type { ScriptTrust } from "../scripting/trust";
-import type { AuthConfig, OwnAuth, RequestContent, Row, Scripts } from "./request";
+import type { AuthConfig, OwnAuth, RequestContent, Route, Row, Scripts } from "./request";
 
 export interface Meta {
   id: string;
@@ -23,6 +23,8 @@ export interface Collection extends BaseDocument {
   auth: OwnAuth;
   /** Run for every request of the collection, before the folders' and the request's own. */
   scripts: Scripts;
+  /** How its requests are sent when a request names no route of its own (P6.4). Absent: the device's. */
+  route?: Route;
   /** Which of this collection's scripts may run. A collection made here is trusted; an import is not until its scripts are reviewed (D6). */
   scriptTrust: ScriptTrust;
 }

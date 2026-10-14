@@ -40,7 +40,7 @@ test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, 
     await expect(jar.getByRole("listitem").first()).toContainText("127.0.0.1/");
     await expect(jar.getByRole("listitem").first()).toContainText("this host only");
     await expect(jar.getByRole("textbox", { name: "session" })).toHaveValue("abc123");
-    await expect(settings.locator(".cookies-route")).toContainText("The Local Bridge is on");
+    await expect(settings.locator(".cookies-route")).toContainText("The Local Bridge is the route");
 
     // An edited value is what goes out.
     await jar.getByRole("textbox", { name: "theme" }).fill("light");
@@ -139,7 +139,7 @@ for (const theme of ["light", "dark"] as const) {
       };
       const empty = await openSettings(page, "Cookies");
       await expect(empty.locator(".cookies-empty")).toBeVisible();
-      await expect(empty.locator(".cookies-route")).toContainText("which is off");
+      await expect(empty.locator(".cookies-route")).toContainText("with the route Auto, those the browser got no answer to");
       await scan("empty, bridge off");
       await closeSettings(page, empty);
 

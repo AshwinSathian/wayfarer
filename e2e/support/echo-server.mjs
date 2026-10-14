@@ -16,6 +16,7 @@
 //   /delay/:ms                     responds after ms milliseconds
 //   /status/:code                  that status, JSON body
 //   /cors/{none,simple,full,no-expose}
+//   /cors-seen?url=/cors/none?id=x how often each method reached that address: { POST: 1, OPTIONS: 1 }
 //   /sse?count=5                   text/event-stream, honours Last-Event-ID
 //   /ws                            WebSocket echo (text and binary)
 //   /oauth/authorize, /oauth/token mock IdP: auth code + PKCE (S256),
@@ -182,7 +183,16 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     const cors = corsHeaders(req);
     return req.method === "OPTIONS" ? send(res, 204, cors) : postmanEcho(req, res, url, body, cors);
   }
-  if (path.startsWith("/cors/")) return corsRoute(req, res, path.slice(6));
+  if (path.startsWith("/cors/")) {
+    const key = `${req.method} ${req.url}`;
+    corsSeen.set(key, (corsSeen.get(key) ?? 0) + 1);
+    return corsRoute(req, res, path.slice(6));
+  }
+  if (path === "/cors-seen") {
+    const asked = url.searchParams.get("url") ?? "";
+    const counts = [...corsSeen].filter(([key]) => key.slice(key.indexOf(" ") + 1) === asked).map(([key, n]) => [key.slice(0, key.indexOf(" ")), n]);
+    return json(res, 200, Object.fromEntries(counts), corsHeaders(req));
+  }
   // A token endpoint as most are: it answers, and says nothing a browser needs to let a page read it.
   if (path === "/oauth/token-no-cors") return req.method === "OPTIONS" ? send(res, 204, {}) : token(req, res, url, body, {});
   const cors = corsHeaders(req);
@@ -253,6 +263,9 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
   if ((m = /^\/big\/(\d+)$/.exec(path))) return big(res, clampInt(m[1], 0, MAX_BIG_MB, 0), cors);
   return json(res, 404, { error: "not found", path }, cors);
 }
+
+// What reached /cors/*, by method and address: a test of the route `auto` (P6.4) counts what the server received.
+const corsSeen = new Map();
 
 function corsRoute(req, res, variant) {
   const origin = req.headers.origin ?? "*";

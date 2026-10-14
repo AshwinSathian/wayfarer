@@ -127,6 +127,7 @@ export function validateInherited(value: unknown, path: string, kind: "collectio
   check.auth(field(node, "auth"), `${path}.auth`, kind === "folder");
   check.scripts(field(node, "scripts"), `${path}.scripts`);
   if (kind === "folder") check.rows(field(node, "variables"), `${path}.variables`);
+  else check.oneOf(node, "route", path, ["auto", "direct", "bridge"], true);
   return check.issues;
 }
 

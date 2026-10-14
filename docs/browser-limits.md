@@ -5,9 +5,33 @@ request a page sends. This page says what it does, and what the Local
 Bridge changes. The composer shows the same for the request you are writing,
 under **What the browser does to this request**, before you send it. <!-- claim:C-049 -->
 
-With the [Local Bridge](../packages/bridge/README.md) switched on, the request
+Through the [Local Bridge](../packages/bridge/README.md), the request
 leaves from a Node process on your machine instead, and nothing on this page
 applies to it, except where the bridge's own row says so.
+
+## Routes
+
+Every request has a route: **Direct**, from the page; **Local Bridge**; or
+**Auto**. A request may name its own (the composer's **Route**), a
+collection may name one for its requests (its settings, **Route**), and
+otherwise the device's applies (Settings, Local Bridge, **Route**). Auto is
+the default.
+
+Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 --> Without a bridge token in the tab or the
+vault, Auto is Direct: nothing is asked and the page's failure is shown.
+
+Why: when the browser gets no answer, the page cannot tell why. A request
+that needed a preflight (see below) was never sent if the preflight failed.
+A request that needed none may have reached the server, which answered
+without the header the browser needs; sent again, it would be received
+twice. Each response says where it came from, **Direct** or **Via bridge**.
+
+What Auto cannot know: a server that allows the preflight and then answers
+without `Access-Control-Allow-Origin` has received the request, and the
+browser reports the same failure as for a refused preflight. Auto then sends
+it again through the bridge. A request a script sends (`pm.sendRequest`)
+and an OAuth token request follow the same rule, and are never asked about:
+one the browser may have sent stays a failure.
 
 ## Headers the browser will not send
 
@@ -27,7 +51,7 @@ sent. Through the bridge they are sent as written, except the ones that
 belong to the connection the bridge itself makes, which it sets:
 `Connection`, `Content-Length`, `Keep-Alive`, `Proxy-Authenticate`,
 `Proxy-Authorization`, `TE`, `Trailer`, `Transfer-Encoding` and `Upgrade`.
-The composer names those when the bridge is on. A `Host` header of your own
+The composer names those when the request's route is the bridge. A `Host` header of your own
 is sent as written (Local Bridge 2.1.0; an older bridge is not sent the
 request, and the app says to update it). Two rows with one name are
 sent as two headers. When the request names no `Accept-Encoding`, the
@@ -99,13 +123,14 @@ from a host that is down. It says:
 
 > The token request got no answer the page could read. A token endpoint
 > that does not send Access-Control-Allow-Origin for this page cannot be
-> called from a browser: switch on the Local Bridge, which has no such
-> limit.
+> called from a browser: send it through the Local Bridge (Settings, Local
+> Bridge, Route), which has no such limit.
 
 What you can do:
 
-- **Switch on the Local Bridge.** The token request then leaves from the
-  bridge, where CORS does not apply, and so does your own request.
+- **Send it through the Local Bridge** (the route Local Bridge). The token
+  request then leaves from the bridge, where CORS does not apply, and so
+  does your own request.
 - **Register the client as a browser (single-page) application** with the
   provider, where it has such a kind: providers that do then allow the
   origins you list.

@@ -1,5 +1,5 @@
 import { Injectable, effect, inject, signal, untracked } from "@angular/core";
-import { bridgeHealthProblem, parseJson } from "@wayfarer/core";
+import { bridgeHealthProblem, parseJson, type Route } from "@wayfarer/core";
 import { Idb } from "../data/idb";
 import { Diagnostics } from "./diagnostics";
 import { SecretsVault } from "./secrets-vault";
@@ -12,12 +12,14 @@ const SECRET_NAME = "Local Bridge token";
 export const BRIDGE_UNREACHABLE = "Not reachable. Is the bridge running, and is this page's origin one it allows?";
 
 export interface BridgeConfig {
-  enabled: boolean;
+  /** The device's route (P6.4): what a request is sent by when neither it nor its collection names one. */
+  route: Route;
   url: string;
   token: string;
 }
 
-const DEFAULT_CONFIG: BridgeConfig = { enabled: false, url: DEFAULT_URL, token: "" };
+const DEFAULT_CONFIG: BridgeConfig = { route: "auto", url: DEFAULT_URL, token: "" };
+const ROUTES: readonly string[] = ["auto", "direct", "bridge"];
 
 /**
  * Local machine/browser-profile preference for routing requests through the
@@ -26,7 +28,7 @@ const DEFAULT_CONFIG: BridgeConfig = { enabled: false, url: DEFAULT_URL, token: 
  * property of the device you're testing from, not something that should
  * sync or export with a collection/environment.
  *
- * Whether it is on and its address are in `localStorage`. The token is not
+ * The route and the address are in `localStorage`. The token is not
  * (F83): it is a vault secret when the vault is unlocked, and otherwise in
  * this tab's memory until the tab reloads.
  */
@@ -64,6 +66,11 @@ export class BridgeSettings {
   async tokenForSend(): Promise<string> {
     if (!this.config().token && (await this.stored()) && (await this.vault.ensureUnlocked())) await this.read();
     return this.config().token;
+  }
+
+  /** A token is in this tab or in the vault, locked or not: `auto` has a bridge to send to. */
+  async hasToken(): Promise<boolean> {
+    return !!this.config().token || !!(await this.stored());
   }
 
   private async stored() {
@@ -150,9 +157,11 @@ export class BridgeSettings {
         return DEFAULT_CONFIG;
       }
       const parsed = JSON.parse(stored) as Partial<BridgeConfig>;
-      const config = { enabled: parsed.enabled === true, url: typeof parsed.url === "string" && parsed.url ? parsed.url : DEFAULT_URL, token: "" };
+      // Before P6.4 the route was a switch: on reads as "bridge", off as the default.
+      const route = typeof parsed.route === "string" && ROUTES.includes(parsed.route) ? (parsed.route as Route) : (parsed as { enabled?: unknown }).enabled === true ? "bridge" : "auto";
+      const config = { route, url: typeof parsed.url === "string" && parsed.url ? parsed.url : DEFAULT_URL, token: "" };
       // A version before F83 kept the token here as plain text: it is not read, and it is taken out.
-      if ("token" in parsed) this.persist(config);
+      if ("token" in parsed || "enabled" in parsed) this.persist(config);
       return config;
     } catch (error) {
       this.diagnostics.record(error, "bridge: stored settings unreadable, using defaults");
@@ -162,7 +171,7 @@ export class BridgeSettings {
 
   private persist(config: BridgeConfig): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabled: config.enabled, url: config.url }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ route: config.route, url: config.url }));
     } catch (error) {
       // The bridge preference just won't survive a reload.
       this.diagnostics.record(error, "bridge: could not save settings");

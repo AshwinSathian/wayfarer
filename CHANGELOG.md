@@ -7,6 +7,28 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (routes)
+
+- **A route for every request: Direct, Local Bridge or Auto.** A request
+  may name its own (the composer's **Route**), a collection may name one for
+  its requests (its settings, **Route**), and otherwise the device's applies
+  (Settings → Local Bridge → **Route**, which replaces the switch "Route
+  requests through the bridge"). Before, the bridge was on for every request
+  or for none, and a request the browser could not send just failed.
+- **Auto is the default.** It sends from the page, and when the page gets no
+  answer, through the Local Bridge: at once when the request cannot have
+  reached the server (the browser's preflight failed first) or is a GET,
+  HEAD or OPTIONS; otherwise it asks first, since the server may have
+  received it. A response, whatever its status, is never sent again. With
+  no bridge token in the tab or the vault, Auto is Direct.
+- **Each response says where it came from**: Direct or Via bridge.
+- A stored "bridge on" reads as the route Local Bridge; "off" reads as Auto.
+  A collection's route is written to its file and checked on import; no
+  stored data changes shape (the database stays at version 13).
+- CONNECT, TRACE and TRACK need the route Local Bridge (the message says
+  so); an OAuth token request that gets no answer says to send it through
+  the bridge.
+
 ### Added (Local Bridge 2.2.0)
 
 - **Pairing.** The bridge prints a pairing code when it starts; type it in

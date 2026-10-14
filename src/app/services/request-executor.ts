@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { CookieJar } from "./cookie-jar";
 import { RequestSettings } from "./request-settings";
-import { TransportRouter } from "./transport-router";
+import { TransportRouter, type RoutePolicy } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { SecretsVault } from "./secrets-vault";
 import { protectedSecretId } from "../shared/secrets/secret-reference";
@@ -30,6 +30,7 @@ import {
   type Cookie,
   type RequestContent,
   type ResponseEnvelope,
+  type Route,
   type RunIteration,
   type StreamEvent,
   type Scripts,
@@ -233,6 +234,10 @@ export interface RequestExecutionSpec {
   folderVariables?: () => Row[];
   /** Aborted when the user cancels the send. */
   signal?: AbortSignal;
+  /** The request's route (P6.4: `routeOf`), for it and for a script's requests. The device's when absent. */
+  route?: Route;
+  /** Asked before the route `auto` sends again a request the browser may have sent (D7). */
+  askRoute?: () => Promise<boolean>;
   /** Asks for an event stream to be read as it arrives (P5.6): each event, as it comes. The send then ends when the stream does, or is stopped. */
   onEvent?: (event: StreamEvent) => void;
   /**
@@ -276,6 +281,8 @@ export interface RequestExecutionResponse {
   binary?: BinaryBody;
   /** The URL the response came from, when the request was redirected there. */
   redirectedTo?: string;
+  /** Where the response came from: the page or the Local Bridge (P6.4's badge). Absent when none came. */
+  route?: "direct" | "bridge";
   /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
   redirects?: ResponseEnvelope["redirects"];
   /** The request was sent with the server's certificate not verified (the Local Bridge). */
@@ -438,6 +445,7 @@ export class RequestExecutor {
       },
       store: (url, setCookies) => void this.cookieJar.store(url, setCookies, request.secrets),
     };
+    const policy: RoutePolicy = { route: spec.route ?? this.transport.route(), ...(spec.askRoute && { ask: spec.askRoute }) };
     const transmit = async (): Promise<ResponseEnvelope | TransportError> => {
       startedAt = performance.now();
       sentCookies = undefined;
@@ -459,7 +467,8 @@ export class RequestExecutor {
             cookies,
             // The request's own setting, for the route that can (the Local Bridge): a browser always verifies.
             ...(template.settings.tlsInsecure === true && { tlsInsecure: true }),
-          }
+          },
+          policy
         );
       } catch (error) {
         if (!(error instanceof TransportError)) throw error;
@@ -535,7 +544,7 @@ export class RequestExecutor {
         headers: redactor.headers(withJarCookies(request.headers, sentCookies ?? [])),
         ...(preview !== undefined && { bodyPreview: keep(preview).text }),
       },
-      route: outcome instanceof TransportError ? this.transport.route() : outcome.route,
+      route: outcome instanceof TransportError ? (policy.took ?? this.transport.first(policy.route)) : outcome.route,
       durationMs,
     };
     if (!(outcome instanceof TransportError)) {
@@ -583,6 +592,7 @@ export class RequestExecutor {
         contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
         binary: body instanceof BinaryBody ? body : undefined,
         redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
+        route: envelope.route,
         contentType: header("content-type"),
         headersLimited: envelope.route === "direct" && URL.parse(envelope.finalUrl, location.href)?.origin !== location.origin,
         ...(envelope.stream && { stream: envelope.stream }),
@@ -668,7 +678,7 @@ export class RequestExecutor {
       collection: scriptVariables(spec.collection?.variables() ?? []),
       request,
       info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "", ...(spec.iteration && { iteration: spec.iteration.index, iterationCount: spec.iteration.count }) },
-      send: (request) => this.sendForScript(request, spec.signal),
+      send: (request) => this.sendForScript(request, spec.signal, spec.route),
     };
   }
 
@@ -683,12 +693,13 @@ export class RequestExecutor {
    * script can change the user's own request (`pm.request`), which is then
    * built with its secrets. Approval (`ScriptTrust`) is the control for that.
    */
-  private async sendForScript(request: ScriptSendRequest, signal?: AbortSignal): Promise<ScriptResponse> {
+  private async sendForScript(request: ScriptSendRequest, signal?: AbortSignal, route = this.transport.route()): Promise<ScriptResponse> {
     if (containsSecretPlaceholder(request)) {
       throw Object.assign(new Error("pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest"), { name: "WayfarerUnsupportedError" });
     }
     const startedAt = performance.now();
-    const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() });
+    // By the route of the request whose script sends it. Nothing is asked in the middle of a script: a request the browser may have sent is not sent again (D7).
+    const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }, { route });
     const shaped = this.shapeResponse(envelope, request.url);
     return scriptResponse({
       statusCode: envelope.status,

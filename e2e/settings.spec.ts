@@ -138,7 +138,7 @@ test.describe("Settings surface", () => {
     expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
     await save.click();
     await expect(dialog.locator(".bridge-saved")).toHaveText(/Saved/);
-    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ enabled: false, url: "http://127.0.0.1:7717" });
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ route: "auto", url: "http://127.0.0.1:7717" });
     // The token is not stored there (F83): `e2e/bridge-token.spec.ts` has where it is.
     // Nothing listens there in this test: the pane says so, and why it may be.
     await dialog.getByRole("button", { name: "Test connection" }).click();
@@ -172,18 +172,22 @@ test.describe("Settings surface", () => {
     for (const link of await dialog.getByRole("link").all()) await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  test("the Local Bridge checkbox is a real checkbox: Space and its label both toggle it", async ({ page }) => {
+  test("the device's route is a real choice: the keyboard and a click both pick one (P6.4; it was a checkbox)", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Local Bridge settings" }).click();
-    const checkbox = page.getByRole("checkbox", { name: /route requests through the bridge/i });
-    await expect(checkbox).not.toBeChecked();
+    const auto = page.getByRole("radio", { name: "Auto" });
+    const direct = page.getByRole("radio", { name: "Direct" });
+    await expect(page.getByRole("radiogroup", { name: "Route" })).toBeVisible();
+    await expect(auto).toBeChecked();
 
-    await checkbox.focus();
-    await page.keyboard.press("Space");
-    await expect(checkbox).toBeChecked();
+    await auto.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(direct).toBeChecked();
+    await expect(direct).toBeFocused();
 
-    await page.getByText("Route requests through the bridge").click();
-    await expect(checkbox).not.toBeChecked();
+    await page.getByRole("radio", { name: "Local Bridge" }).click();
+    await expect(page.getByRole("radio", { name: "Local Bridge" })).toBeChecked();
+    await expect(auto).not.toBeChecked();
   });
 
   test("a button reached with the keyboard shows the focus ring", async ({ page, browserName }) => {

@@ -81,8 +81,6 @@ export class AppShell implements OnInit {
   readonly newRequest = output<void>();
   readonly clearHistory = output<void>();
   readonly deleteRequest = output<number>();
-  readonly openDrawer = output<void>();
-  readonly deleteRequest = output<PastRequestKey>();
   readonly closeDrawer = output<void>();
   readonly toggleDrawer = output<void>();
 

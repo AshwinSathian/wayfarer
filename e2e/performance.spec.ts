@@ -59,8 +59,10 @@ test("typing into the address with five tabs open answers each key within 100 ms
   await expect(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab")).toHaveCount(5);
   await expect(address).toBeFocused();
 
-  // Event Timing, where the engine has it (Chromium, Firefox): each key's interaction, as INP counts it. WebKit has none:
-  // there, from each keydown to the frame after it is handled: the input delay, the handlers and the render.
+  // Event Timing, where the engine has it (Chromium, Firefox): each key's input delay and processing, the app's part of
+  // INP. Its presentation part is left out: CI's headless Chromium draws in software, and there the next frame alone took
+  // 100 to 160 ms (while processing stayed under 32 ms at 6x CPU throttling here). WebKit has no Event Timing: there,
+  // from each keydown to the frame after it is handled.
   await page.evaluate(() => {
     const record = { keys: 0, slow: [] as number[] };
     (window as unknown as { __keys: typeof record }).__keys = record;
@@ -68,7 +70,7 @@ test("typing into the address with five tabs open answers each key within 100 ms
     if ("PerformanceEventTiming" in window) {
       // An interaction under 16 ms is not reported, and counts as answered at once.
       new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as PerformanceEventTiming[]) if (entry.interactionId && entry.name === "keydown") record.slow.push(entry.duration);
+        for (const entry of list.getEntries() as PerformanceEventTiming[]) if (entry.interactionId && entry.name === "keydown") record.slow.push(entry.processingEnd - entry.startTime);
       }).observe({ type: "event", durationThreshold: 16 } as PerformanceObserverInit);
     } else {
       document.addEventListener("keydown", (event) => {

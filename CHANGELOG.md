@@ -35,6 +35,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the swap dropped focus to the page.
 - A code editor shows a focus ring while it has focus.
 
+### Security
+
+- Releasing the Local Bridge or the CLI no longer runs their dependencies'
+  code in the job that holds the npm publishing token. The tarball is
+  tested in a job without it, and that same tarball is published.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

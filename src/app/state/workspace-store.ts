@@ -229,6 +229,7 @@ export class WorkspaceStore {
   readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
   readonly responseRedirectedTo = this.ofTab((tab) => tab.responseRedirectedTo);
   readonly responseRedirects = this.ofTab((tab) => tab.responseRedirects);
+  readonly responseTlsInsecure = this.ofTab((tab) => tab.responseTlsInsecure);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
   readonly responseInspection = this.ofTab((tab) => tab.inspection);
@@ -340,6 +341,12 @@ export class WorkspaceStore {
   setFollowRedirects(follow: boolean): void {
     const { followRedirects: _was, ...settings } = this.draft().settings;
     this.patch({ settings: follow ? settings : { ...settings, followRedirects: false } });
+  }
+
+  /** Whether the Local Bridge verifies the server's certificate for this request. Verifying is the default and is not written down. */
+  setTlsInsecure(insecure: boolean): void {
+    const { tlsInsecure: _was, ...settings } = this.draft().settings;
+    this.patch({ settings: insecure ? { ...settings, tlsInsecure: true } : settings });
   }
 
   /** The body is kept when the method changes: GET and HEAD send none, and it is there again for POST. */
@@ -1095,6 +1102,7 @@ export class WorkspaceStore {
     tab.responseBinary.set(response.binary ?? null);
     tab.responseRedirectedTo.set(response.redirectedTo);
     tab.responseRedirects.set(response.redirects);
+    tab.responseTlsInsecure.set(response.tlsInsecure === true);
     tab.responseContentType.set(response.contentType ?? "");
     tab.responseHeadersLimited.set(response.headersLimited ?? false);
     tab.responseTab.set("body");

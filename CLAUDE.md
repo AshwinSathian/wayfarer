@@ -791,7 +791,17 @@ code errors.
   messages as their own. `readPayload` checks every field and refuses one
   it does not know; `parseEnvelope` (`BridgeTransport`) does the same for
   the answer. A change either side would read wrongly is protocol 3 and a
-  new path. A body is bytes both ways (`bodyB64`), never text. The limit of
+  new path. An addition to protocol 2 is a capability in `/health`
+  (`CAPABILITIES`, and `NEEDS` in `BridgeTransport`): Local Bridge 2.0.0
+  refuses a field it does not know and took `Host` off, so the page reads
+  `/health` before it sends a request that needs one, and sends nothing to
+  a bridge that does not list it. `tls` is exactly `{ insecure: true }` or
+  absent, from the request's own `settings.tlsInsecure`, and what was sent
+  so says it (`ResponseEnvelope.tlsInsecure`, the red pill): keep the pill
+  wherever such a response is shown. A script's request and a token request
+  never switch verification off. The bridge's agents are its own
+  (`agentsFor`): no connection is kept, so every relay has timings, and the
+  proxy variables are Node's `proxyEnv`, not code of ours. A body is bytes both ways (`bodyB64`), never text. The limit of
   25 MB holds for a response as received and as decoded. The token's folder
   is `~/.wayfarer-local-bridge`, the package's old name: keep it.
 - A file reaches the stores by one road, `ImportPipeline`

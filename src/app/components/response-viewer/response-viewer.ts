@@ -116,6 +116,8 @@ export class ResponseViewer {
   readonly redirectedTo = input<string>();
   /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
   readonly redirects = input<ResponseEnvelope["redirects"]>();
+  /** The response was got with the server's certificate not verified. */
+  readonly tlsInsecure = input(false);
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
     const redirects = this.redirects();

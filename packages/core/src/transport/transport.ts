@@ -35,6 +35,24 @@ export interface ResponseEnvelope {
    * browser follows and tells a page only `redirected` and `finalUrl`.
    */
   redirects?: { chain: RedirectHop[]; stopped?: RedirectStop };
+  /**
+   * How long each part of the exchange took, in milliseconds, as the Local
+   * Bridge measured it on its own connection (the last hop's, after
+   * redirects). A direct request has none here: the browser's Resource
+   * Timing is the page's to read.
+   */
+  timings?: RelayTimings;
+  /** Set when the request was sent with the server's certificate not verified (the Local Bridge alone can). */
+  tlsInsecure?: true;
+}
+
+/** The name lookup, the TCP connection, the TLS handshake, the wait for the first byte of the response and the rest of it. A part that did not happen is absent. */
+export interface RelayTimings {
+  dns?: number;
+  tcp?: number;
+  tls?: number;
+  ttfb?: number;
+  content?: number;
 }
 
 /** One redirect that was followed: the status, the address that answered with it, and its `Location` as the server wrote it. */
@@ -88,6 +106,11 @@ export interface TransportOptions {
    * neither reads nor fills (`credentials: "omit"`).
    */
   cookies?: { for(url: string): Cookie[]; store(url: string, setCookies: string[]): void };
+  /**
+   * Do not verify the server's certificate. Only the Local Bridge can: a
+   * direct request ignores it, since a browser always verifies.
+   */
+  tlsInsecure?: boolean;
 }
 
 export interface Transport {

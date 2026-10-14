@@ -37,6 +37,16 @@ describe("ResponseViewer", () => {
     component = fixture.componentInstance;
   });
 
+  it("a response got with the certificate not verified says so in a red pill; any other has none (P6.1)", () => {
+    fixture.componentRef.setInput("responseStatusCode", 200);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector(".tls-off-pill")).toBeNull();
+    fixture.componentRef.setInput("tlsInsecure", true);
+    fixture.detectChanges();
+    expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("TLS verification off");
+  });
+
   describe("redirects (P5.4)", () => {
     const shown = (redirects: unknown) => {
       fixture.componentRef.setInput("responseStatusCode", 302);

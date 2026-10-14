@@ -25,9 +25,11 @@ when it names `CONNECT`, `TRACE` or `TRACK`.
 The composer names each such header you have set and says it will not be
 sent. Through the bridge they are sent as written, except the ones that
 belong to the connection the bridge itself makes, which it sets:
-`Connection`, `Content-Length`, `Host`, `Keep-Alive`, `Proxy-Authenticate`,
+`Connection`, `Content-Length`, `Keep-Alive`, `Proxy-Authenticate`,
 `Proxy-Authorization`, `TE`, `Trailer`, `Transfer-Encoding` and `Upgrade`.
-The composer names those when the bridge is on. Two rows with one name are
+The composer names those when the bridge is on. A `Host` header of your own
+is sent as written (Local Bridge 2.1.0; an older bridge is not sent the
+request, and the app says to update it). Two rows with one name are
 sent as two headers. When the request names no `Accept-Encoding`, the
 bridge asks for `gzip, deflate, br`, as a browser does, and decodes what
 comes; the composer does not list that one.

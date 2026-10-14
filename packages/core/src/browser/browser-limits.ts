@@ -101,7 +101,7 @@ function isLoopback(hostname: string): boolean {
 }
 
 // What the Local Bridge does not pass on (`HOP_BY_HOP_HEADERS` in packages/bridge/src/server.js): Node sets these for the connection it makes.
-const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "host", "content-length"]);
+const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "content-length"]);
 
 /**
  * What the browser will do to this request when the page at `origin` sends

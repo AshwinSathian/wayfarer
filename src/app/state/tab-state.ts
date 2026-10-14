@@ -81,6 +81,8 @@ export class TabState {
   readonly responseRedirectedTo = signal<string | undefined>(undefined);
   /** The redirects followed for the last response through the Local Bridge (P5.4), and why no more were. Not stored. */
   readonly responseRedirects = signal<ResponseEnvelope["redirects"]>(undefined);
+  /** The last response was got with the server's certificate not verified. Not stored. */
+  readonly responseTlsInsecure = signal(false);
   readonly responseContentType = signal("");
   readonly responseHeadersLimited = signal(false);
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
@@ -154,6 +156,7 @@ export class TabState {
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);
     this.responseRedirects.set(undefined);
+    this.responseTlsInsecure.set(false);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");

@@ -45,3 +45,13 @@ test('fails instead of guessing when an argument is wrong', () => {
     assert.equal(parse(argv).exitCode, 1, argv.join(' '));
   }
 });
+
+test('--ca names a file of certificates, read when the bridge starts; one that cannot be read is an error', () => {
+  const file = require('node:path').join(__dirname, 'fixtures', 'ca.pem');
+  const args = parse(['--ca', file]);
+  assert.match(args.ca, /^-----BEGIN CERTIFICATE-----/);
+  assert.equal(args.exitCode, undefined);
+  assert.equal(parse(['--ca', `${file}.missing`]).exitCode, 1);
+  assert.equal(parse(['--ca', require.resolve('../package.json')]).exitCode, 1);
+  assert.equal(parse(['--ca']).exitCode, 1);
+});

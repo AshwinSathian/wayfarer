@@ -3,6 +3,7 @@
 const http = require('node:http');
 const https = require('node:https');
 const crypto = require('node:crypto');
+const tls = require('node:tls');
 const zlib = require('node:zlib');
 const { URL } = require('node:url');
 const pkg = require('../package.json');
@@ -11,7 +12,9 @@ const pkg = require('../package.json');
 // read wrongly is a new number and a new path: the path is what keeps the two from guessing at each other.
 const PROTOCOL = 2;
 const RELAY_PATH = `/v${PROTOCOL}/relay`;
-const CAPABILITIES = ['bytes', 'decompression', 'header-list', 'timeout'];
+// What this bridge can do. The first four are protocol 2 as 2.0.0 had it; the page asks for a later one only of a
+// bridge that lists it here, since 2.0.0 refuses a field it does not know and took a Host header off.
+const CAPABILITIES = ['bytes', 'decompression', 'header-list', 'timeout', 'timings', 'tls-insecure', 'host'];
 
 // 25 MB: for the request as it arrives here (its body is base64 inside JSON, so some 18 MB of bytes) and for the
 // target's response, as received and as decoded. Generous for API testing, not "proxy anything".
@@ -23,10 +26,11 @@ const ACCEPT_ENCODING = 'gzip, deflate, br';
 
 // Headers we never forward as-is: connection-management headers Node sets
 // itself for the outgoing request, plus content-length (recomputed from the
-// actual body we're about to send).
+// actual body we're about to send). Host is not among them: a Host of the
+// user's is sent as written, and without one Node writes the address's.
 const HOP_BY_HOP_HEADERS = new Set([
   'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
-  'te', 'trailer', 'transfer-encoding', 'upgrade', 'host', 'content-length',
+  'te', 'trailer', 'transfer-encoding', 'upgrade', 'content-length',
 ]);
 
 function timingSafeEqualStrings(a, b) {
@@ -107,6 +111,10 @@ function sanitizeOutgoingHeaders(headers) {
     }
     (out[name] ??= []).push(value);
   }
+  // Node takes a Host as one text, not as a list of one.
+  for (const name of Object.keys(out)) {
+    if (name.toLowerCase() === 'host') out[name] = out[name][0];
+  }
   return { ...out };
 }
 
@@ -119,12 +127,16 @@ function readPayload(payload) {
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
     return { error: 'the request must be a JSON object' };
   }
-  const known = new Set(['method', 'url', 'headers', 'bodyB64', 'timeoutMs']);
+  const known = new Set(['method', 'url', 'headers', 'bodyB64', 'timeoutMs', 'tls']);
   const unknown = Object.keys(payload).find((key) => !known.has(key));
   if (unknown !== undefined) {
     return { error: `unknown field: ${unknown}` };
   }
-  const { method, url, headers, bodyB64, timeoutMs } = payload;
+  const { method, url, headers, bodyB64, timeoutMs, tls: tlsField } = payload;
+  // Exactly { insecure: true }, or absent: verification is never switched off by a value that only looks like yes.
+  if (tlsField !== undefined && !(tlsField !== null && typeof tlsField === 'object' && !Array.isArray(tlsField) && Object.keys(tlsField).length === 1 && tlsField.insecure === true)) {
+    return { error: 'tls must be { "insecure": true }' };
+  }
   if (typeof method !== 'string' || !/^[!#$%&'*+.^_`|~0-9A-Za-z-]{1,32}$/.test(method)) {
     return { error: 'method must be an HTTP method' };
   }
@@ -137,6 +149,9 @@ function readPayload(payload) {
   if (timeoutMs !== undefined && !(Number.isInteger(timeoutMs) && timeoutMs >= 1 && timeoutMs <= MAX_TIMEOUT_MS)) {
     return { error: `timeoutMs must be a whole number from 1 to ${MAX_TIMEOUT_MS}` };
   }
+  if (headers.filter(([name]) => name.toLowerCase() === 'host').length > 1) {
+    return { error: 'a request has one Host header at most' };
+  }
   let target;
   try {
     target = new URL(String(url ?? ''));
@@ -146,8 +161,27 @@ function readPayload(payload) {
   if (target.protocol !== 'http:' && target.protocol !== 'https:') {
     return { error: `unsupported protocol: ${target.protocol}` };
   }
-  return { method: method.toUpperCase(), target, headers, body: bodyB64 === undefined ? undefined : Buffer.from(bodyB64, 'base64'), timeoutMs: timeoutMs ?? RELAY_TIMEOUT_MS };
+  return { method: method.toUpperCase(), target, headers, body: bodyB64 === undefined ? undefined : Buffer.from(bodyB64, 'base64'), timeoutMs: timeoutMs ?? RELAY_TIMEOUT_MS, insecure: tlsField !== undefined };
 }
+
+/** The authorities a certificate may be signed by: Node's own and the user's (`--ca`). Given alone, the user's would replace them. */
+function tlsOptions(ca) {
+  return ca === undefined ? {} : { ca: [...tls.rootCertificates, ca] };
+}
+
+/**
+ * The agents every relay goes out through. Not Node's global ones: these keep no connection for the next request, so
+ * each relay makes its own and its making can be timed; and they read the proxy variables (HTTP_PROXY, HTTPS_PROXY,
+ * NO_PROXY, in either case) from the environment the bridge was started in, which is Node's own support for them.
+ */
+function agentsFor(env) {
+  const names = ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'no_proxy'];
+  const proxyEnv = Object.fromEntries(names.filter((name) => typeof env[name] === 'string' && env[name] !== '').map((name) => [name, env[name]]));
+  const options = Object.keys(proxyEnv).length ? { proxyEnv } : {};
+  return { 'http:': new http.Agent(options), 'https:': new https.Agent(options) };
+}
+
+const elapsed = (from, to) => Math.round((to - from) * 10) / 10;
 
 /** The stream that undoes a response's Content-Encoding, or undefined when there is nothing to undo. Null: an encoding Node cannot decode. */
 function decoderFor(encoding) {
@@ -161,7 +195,7 @@ function decoderFor(encoding) {
 }
 
 /** Forwards one relay request to its target and writes the wrapped envelope to `res`. */
-function relay(payload, res) {
+function relay(payload, res, { agents, ca }) {
   const request = readPayload(payload);
   if (request.error) {
     sendJson(res, 400, { error: request.error });
@@ -186,7 +220,11 @@ function relay(payload, res) {
     outgoing.destroy();
   };
 
-  const outgoing = lib.request(target, { method, headers: outgoingHeaders }, (upstreamRes) => {
+  // When each part of the exchange was over (README.md, "Protocol"): a part that did not happen has no time.
+  const at = { start: performance.now() };
+  const requestOptions = { method, headers: outgoingHeaders, agent: agents[target.protocol], ...tlsOptions(ca), ...(request.insecure && { rejectUnauthorized: false }) };
+  const outgoing = lib.request(target, requestOptions, (upstreamRes) => {
+    at.firstByte = performance.now();
     decoder = decoderFor(upstreamRes.headers['content-encoding']);
     if (decoder === null) {
       abort(502, `the response's Content-Encoding (${upstreamRes.headers['content-encoding']}) is not one the bridge can decode`, 'RELAY_DECODE_ERROR');
@@ -224,6 +262,7 @@ function relay(payload, res) {
         bodyB64: Buffer.concat(chunks).toString('base64'),
         encodedSize,
         decodedSize,
+        timings: timingsOf(at, performance.now()),
       });
     };
     decoded.on('end', finish);
@@ -234,12 +273,32 @@ function relay(payload, res) {
   // One deadline for the whole exchange, as the page's own: a socket's idle timeout would start again with every byte.
   const deadline = setTimeout(() => abort(504, 'relay request timed out', 'RELAY_TIMEOUT'), request.timeoutMs);
   outgoing.on('error', (err) => abort(502, err.message, err.code ?? 'RELAY_ERROR'));
+  outgoing.on('socket', (socket) => {
+    socket.once('lookup', () => (at.lookup = performance.now()));
+    socket.once('connect', () => (at.connect = performance.now()));
+    socket.once('secureConnect', () => (at.secure = performance.now()));
+  });
   // The page went away (Cancel, or its own timeout): the target is not kept waiting.
   res.on('close', () => {
     if (!res.writableEnded) abort(502, 'the page closed the connection', 'RELAY_ABORTED');
   });
 
   outgoing.end(body);
+}
+
+/**
+ * The phases as durations in milliseconds: the name's lookup, the TCP connection, the TLS handshake, the wait from a
+ * ready connection to the response's first byte, and the rest of the response.
+ */
+function timingsOf(at, end) {
+  const ready = at.secure ?? at.connect ?? at.start;
+  return {
+    ...(at.lookup !== undefined && { dns: elapsed(at.start, at.lookup) }),
+    ...(at.connect !== undefined && { tcp: elapsed(at.lookup ?? at.start, at.connect) }),
+    ...(at.secure !== undefined && { tls: elapsed(at.connect ?? at.start, at.secure) }),
+    ttfb: elapsed(ready, at.firstByte),
+    content: elapsed(at.firstByte, end),
+  };
 }
 
 /**
@@ -251,10 +310,11 @@ function relay(payload, res) {
  * the caller is a Wayfarer instance the operator configured, not just any
  * page that happens to be served from an allowed origin.
  */
-function createServer({ token, allowedOrigins }) {
+function createServer({ token, allowedOrigins, ca, env = process.env }) {
   if (!token) {
     throw new Error('createServer requires a token');
   }
+  const outgoing = { agents: agentsFor(env), ca };
   const origins = allowedOrigins instanceof Set ? allowedOrigins : new Set(allowedOrigins ?? []);
 
   return http.createServer((req, res) => {
@@ -318,7 +378,7 @@ function createServer({ token, allowedOrigins }) {
           sendJson(res, 400, { error: 'invalid JSON body' });
           return;
         }
-        relay(payload, res);
+        relay(payload, res, outgoing);
       })
       .catch((err) => {
         sendJson(res, err.statusCode ?? 400, { error: err.message });
@@ -331,4 +391,5 @@ module.exports = {
   isLoopbackHost,
   sanitizeOutgoingHeaders,
   timingSafeEqualStrings,
+  tlsOptions,
 };

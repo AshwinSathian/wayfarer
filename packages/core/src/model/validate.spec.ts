@@ -15,7 +15,7 @@ const full = (): RequestContent => ({
   auth: { type: "apikey", key: "X-Key", value: "{{key}}", in: "query" },
   scripts: { pre: "", post: "pm.test('ok', () => {})" },
   tests: [{ id: "t-1", target: "status", operator: "equals", expected: "200" }],
-  settings: { timeoutMs: 0, followRedirects: false, route: "bridge" },
+  settings: { timeoutMs: 0, followRedirects: false, route: "bridge", tlsInsecure: true },
 });
 
 const row = fc.record({ key: fc.string(), value: fc.string(), enabled: fc.boolean() });
@@ -79,6 +79,7 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
     {
       timeoutMs: fc.nat(),
       followRedirects: fc.boolean(),
+      tlsInsecure: fc.boolean(),
       route: fc.constantFrom("auto" as const, "direct" as const, "bridge" as const),
     },
     { requiredKeys: [] }
@@ -120,7 +121,7 @@ describe("validateRequestContent", () => {
         auth: { type: "apikey", key: "k", value: 1, in: "cookie" },
         scripts: { pre: 1 },
         tests: [{ id: "t", target: "moon", operator: "equals", key: 1 }],
-        settings: { timeoutMs: -1, followRedirects: "no", route: "proxy" },
+        settings: { timeoutMs: -1, followRedirects: "no", route: "proxy", tlsInsecure: "yes" },
       })
     ).toEqual([
       "r.method",
@@ -140,6 +141,7 @@ describe("validateRequestContent", () => {
       "r.settings.timeoutMs",
       "r.settings.followRedirects",
       "r.settings.route",
+      "r.settings.tlsInsecure",
     ]);
     expect(paths({ ...full(), body: { mode: "raw" } })).toEqual(["r.body.raw"]);
     expect(paths({ ...full(), body: { mode: "form" } })).toEqual(["r.body.mode"]);

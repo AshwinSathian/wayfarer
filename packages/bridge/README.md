@@ -123,14 +123,24 @@ POST /v2/relay
 { "method": "POST", "url": "https://api.internal/x",
   "headers": [["Content-Type", "application/json"]],   // a list: a name may repeat
   "bodyB64": "eyJhIjoxfQ==",                           // the body's bytes; absent for none
-  "timeoutMs": 30000 }                                 // absent: 30 s; at most 10 minutes
+  "timeoutMs": 30000,                                  // absent: 30 s; at most 10 minutes
+  "tls": { "insecure": true } }                        // absent: the certificate is verified (2.1.0)
 
 200
 { "status": 200, "statusText": "OK",
   "headers": [["Set-Cookie", "a=1"], ["Set-Cookie", "b=2"]],   // as received, one entry each
   "bodyB64": "…",                                             // the body's bytes, decoded
-  "encodedSize": 512, "decodedSize": 2048 }
+  "encodedSize": 512, "decodedSize": 2048,
+  "timings": { "dns": 1.2, "tcp": 3.4, "tls": 21.0, "ttfb": 48.6, "content": 2.1 } }   // milliseconds (2.1.0)
 ```
+
+**Capabilities.** Protocol 2 has grown since Local Bridge 2.0.0, and
+`/health` lists what a bridge can do: `bytes`, `decompression`,
+`header-list`, `timeout` (2.0.0), and `timings`, `tls-insecure`, `host`
+(2.1.0). Local Bridge 2.0.0 refuses a field it does not know and took a
+`Host` header off, so the page reads `/health` before it sends `tls` or a
+`Host` header, and sends neither to a bridge that does not list it: it says
+to update the bridge instead.
 
 - **Bytes both ways.** A body is never read as text here: a file, a
   multipart form and a response in any charset arrive as they were sent.
@@ -138,6 +148,17 @@ POST /v2/relay
   answer has both sizes. Its `Content-Encoding` header is left as the server
   sent it. When the request names no `Accept-Encoding` the bridge asks for
   those three, as a browser does.
+- **Timings** are the bridge's own connection, as durations: the name's
+  lookup (`dns`), the TCP connection (`tcp`), the TLS handshake (`tls`),
+  the wait from a ready connection to the response's first byte (`ttfb`)
+  and the rest of the response (`content`). A part that did not happen is
+  absent: no `dns` for an address that is a number, no `tls` for `http:`.
+  Through a proxy, `tcp` is the connection to the proxy.
+- **`tls.insecure`** switches certificate verification off for that one
+  request: any certificate is accepted, also one for another name. The
+  field is exactly `{ "insecure": true }` or absent. Wayfarer shows a red
+  "TLS verification off" pill on such a request and on its response.
+- **A `Host` header of the request's is sent as written.** One at most.
 - **The request's timeout is the bridge's**: one deadline for the whole
   exchange. A target that does not answer in time is a 504.
 - **A wrong field is refused** with 400 and a message: a field of the wrong
@@ -159,8 +180,11 @@ POST /v2/relay
   Wayfarer follows them itself, each hop as a relay of its own, and lists
   them. A direct browser request, by contrast, is followed by the browser
   and shows only the final response.
-- Not yet: timings, a certificate authority of your own, switching
-  certificate checks off, a proxy, a `Host` header of your own.
+- Each relay makes a connection of its own (none is kept for the next), so
+  that its timings are always those of a whole exchange.
+- The proxy variables are read by Node itself (`http.Agent`'s `proxyEnv`),
+  which is why the bridge needs Node 22.21 or 24.5 and later. A proxy that
+  asks for a user name and password is not tested.
 - Whether browsers let the hosted HTTPS app reach `http://127.0.0.1` is not
   yet verified in every browser (Chrome's Local Network Access prompt,
   Safari's mixed-content rules)
@@ -178,8 +202,15 @@ wayfarer-bridge [options]
                           WAYFARER_BRIDGE_TOKEN environment variable.
   --rotate-token          Generate and persist a fresh token, replacing the saved one
   --allow-origin <url>    Additional allowed Origin (repeatable), e.g. https://example.com
+  --ca <file>             A file of PEM certificates to trust besides the public
+                          authorities (a server whose certificate your own
+                          authority signed)
   --help                  Show help
 ```
+
+`HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` (in either case) are honoured for
+the requests the bridge sends: start it with them set. The target's
+certificate is verified through a proxy's tunnel as without one.
 
 A wrong argument (a port that is not a number, an option without its value)
 stops the bridge with an error instead of falling back to a default.
@@ -190,3 +221,8 @@ stops the bridge with an error instead of falling back to a default.
 cd packages/bridge
 npm test   # node --test test/, zero external test dependencies
 ```
+
+`test/fixtures/` holds a certificate authority and a certificate for
+`localhost` and `127.0.0.1`, made once with `openssl` for the tests (and the
+e2e of TLS verification off). Its private key is public on purpose: nothing
+trusts that authority but a test that names it.

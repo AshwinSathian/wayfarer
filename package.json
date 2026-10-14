@@ -33,7 +33,7 @@
   "scripts": {
     "prepare": "node scripts/build-vm-libs.mjs",
     "start": "ng serve",
-    "build": "ng build && node scripts/build-sw.mjs",
+    "build": "ng build --define \"WAYFARER_COMMIT='$(git rev-parse --short HEAD 2>/dev/null || echo unknown)'\" && node scripts/build-sw.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --coverage",

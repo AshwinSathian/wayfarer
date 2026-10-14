@@ -3,7 +3,7 @@ import { WORKSPACE_FORMAT, validateWorkspaceFile } from "./workspace";
 
 // The app's restore holds this to every store (src/app/services/workspace-backup.spec.ts); here, what the CLI reads.
 describe("validateWorkspaceFile", () => {
-  const meta = { id: "c", createdAt: 1, updatedAt: 1, version: 1 };
+  const meta = { id: "c", createdAt: 1, updatedAt: 1 };
   const collection = { id: "c", meta, name: "Shop", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true, approved: [] } };
   const file = (stores: Record<string, unknown>) => ({ $id: WORKSPACE_FORMAT, exportedAt: 1, stores: { collections: [collection], folders: [], requests: [], environments: [], secrets: [], meta: [], ...stores } });
 

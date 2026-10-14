@@ -56,7 +56,7 @@ Secrets, "Export vault", writes `wayfarer-vault.json` after you enter the passph
 
 ```jsonc
 {
-  "$id": "wayfarer/vault/2",
+  "$id": "wayfarer/vault",
   "vault": { "v": 2, "kdf": { "alg": "PBKDF2-SHA256", "iterations": 600000, "salt": "…" }, "wrappedDek": "…" },
   "secrets": [{ "id": "…", "name": "API_TOKEN", "environmentId": "…", "envelope": { "v": 2, "iv": "…", "ct": "…" } }]
 }

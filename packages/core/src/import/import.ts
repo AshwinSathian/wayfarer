@@ -62,6 +62,9 @@ export interface ImportOptions {
   duplicateAsNew?: boolean;
 }
 
+/** The `$id` is of this family: this version's, or a numbered one an earlier version wrote, which is refused by name. */
+const of = (id: string, family: string): boolean => id === family || id.startsWith(`${family}/`);
+
 const UNKNOWN = `This is not a file Wayfarer can import. It reads a Wayfarer collection ("$id": "${COLLECTION_FORMAT}"), a Wayfarer environments file ("$id": "${ENVIRONMENTS_FORMAT}"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.`;
 
 function idOf(value: unknown): string {
@@ -78,8 +81,8 @@ function idOf(value: unknown): string {
  */
 export function detectFormat(value: unknown): ImportFormat | null {
   const id = idOf(value);
-  if (id.startsWith("wayfarer/collection/")) return "wayfarer-collection";
-  if (id.startsWith("wayfarer/environments/")) return "wayfarer-environments";
+  if (of(id, "wayfarer/collection")) return "wayfarer-collection";
+  if (of(id, "wayfarer/environments")) return "wayfarer-environments";
   if (isHar(value)) return "har";
   // Before Postman's: an Insomnia file and an OpenAPI description say what they are, and a Postman file is known by a list it holds.
   if (isInsomnia(value)) return "insomnia";
@@ -132,7 +135,7 @@ export function curlToRequest(text: string): { name: string; content: RequestCon
  */
 function built(format: ImportFormat, name: string, requests: { name: string; content: RequestContent; warnings: string[] }[]): Imported {
   const now = Date.now();
-  const meta = (): Meta => ({ id: newId(), createdAt: now, updatedAt: now, version: 1 });
+  const meta = (): Meta => ({ id: newId(), createdAt: now, updatedAt: now });
   const top = meta();
   const payload: CollectionExport = {
     $id: COLLECTION_FORMAT,
@@ -182,7 +185,7 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
   if (!json.ok && (typeof value !== "object" || value === null)) throw new ImportError(NOT_READABLE);
   const format = detectFormat(value);
   if (!format) {
-    if (idOf(value).startsWith("wayfarer/workspace/")) throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
+    if (of(idOf(value), "wayfarer/workspace")) throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
     if (isPostmanV1(value)) throw new ImportError("This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.");
     throw new ImportError(UNKNOWN);
   }

@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { BRIDGE_UNREACHABLE, BridgeSettings } from "./bridge-settings";
 import { SecretsVault } from "./secrets-vault";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
@@ -59,7 +59,7 @@ describe("BridgeSettings", () => {
 
   describe("with a vault (F83)", () => {
     let vault: SecretsVault;
-    let idb: Idb;
+    let idb: Repositories;
     const NAME = "Local Bridge token";
     const inVault = async () => {
       const secret = (await vault.listSecrets()).find((entry) => entry.name === NAME);
@@ -68,7 +68,7 @@ describe("BridgeSettings", () => {
 
     beforeEach(() => {
       vault = TestBed.inject(SecretsVault);
-      idb = TestBed.inject(Idb);
+      idb = repositories();
     });
 
     afterEach(async () => {
@@ -145,7 +145,7 @@ describe("BridgeSettings", () => {
   });
 
   it("checkHealth probes the given URL, trailing slash removed, without saving it", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0", protocol: 2, capabilities: [] }), { status: 200 }));
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 200 }));
 
     await expect(service.checkHealth("http://localhost:9999/")).resolves.toBeUndefined();
 
@@ -154,26 +154,18 @@ describe("BridgeSettings", () => {
     fetchSpy.mockRestore();
   });
 
-  it("checkHealth finds nothing wrong with a bridge of the page's protocol", async () => {
+  it("checkHealth finds nothing wrong with a bridge that answers ok", async () => {
     service.update({ url: "http://localhost:7717" });
-    vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0", protocol: 2, capabilities: [] }), { status: 200 }));
+    vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.3.0" }), { status: 200 }));
 
     await expect(service.checkHealth()).resolves.toBeUndefined();
-  });
-
-  it("checkHealth says a bridge of protocol 1 is too old, with its version (P6.3)", async () => {
-    service.update({ url: "http://localhost:7717" });
-    // What Local Bridge 1.1.0 answers.
-    vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-local-bridge", version: "1.1.0" }), { status: 200 }));
-
-    await expect(service.checkHealth()).resolves.toBe("Local Bridge 1.1.0 is too old for this page: it speaks protocol 1, and the page speaks protocol 2. Update the Local Bridge and start it again.");
   });
 
   it("checkHealth says so when what answers is not a bridge: another status, or no JSON", async () => {
     service.update({ url: "http://localhost:7717" });
     const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValue(new Response("<html>", { status: 200 }));
     await expect(service.checkHealth()).resolves.toBe("What answered at this address is not a Local Bridge.");
-    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0", protocol: 2, capabilities: [] }), { status: 500 }));
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 500 }));
     await expect(service.checkHealth()).resolves.toBe("What answered at this address is not a Local Bridge.");
   });
 

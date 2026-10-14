@@ -91,7 +91,7 @@ export async function seedAndOpen(
       const read = db.transaction("meta").objectStore("meta").get("state");
       const state = await new Promise((resolve) => (read.onsuccess = () => resolve(read.result)));
       const now = Date.now();
-      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
+      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now });
       // The scripts of a seeded request stand for scripts written here: the collection holds their digests (P3.8).
       const digest = async (text: string) =>
         Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -103,7 +103,7 @@ export async function seedAndOpen(
       const rows = (record: Record<string, string>) =>
         Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
       tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars: rows(vars), order: 0 });
-      tx.objectStore("meta").put({ schemaVersion: 1, ...(state ?? {}), key: "state", activeEnvironmentId: "env-tw" });
+      tx.objectStore("meta").put({ ...(state ?? {}), key: "state", activeEnvironmentId: "env-tw" });
       tx.objectStore("collections").put({
         id: "col-tw",
         meta: meta("col-tw"),

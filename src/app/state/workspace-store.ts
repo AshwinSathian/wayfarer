@@ -52,9 +52,9 @@ import {
   type ScopeStack,
   type StreamEvent,
 } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { HistoryRepository } from "../data/history-repository";
 import { RequestDoc } from "../models/collections";
-import { PastRequest } from "../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
@@ -99,7 +99,7 @@ function sentExportBody(sent: BuiltRequest["body"], composed: RequestBody): Expo
  */
 @Injectable({ providedIn: "root" })
 export class WorkspaceStore {
-  private readonly idb = inject(Idb);
+  private readonly historyRepository = inject(HistoryRepository);
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
@@ -447,7 +447,7 @@ export class WorkspaceStore {
     // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
     if (result.cookieValues.length) tab.responseExportContext.update((context) => context && { ...context, credentials: [...context.credentials, ...result.cookieValues] });
     // Where the response is kept: a reload shows it again from there (P5.1).
-    tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
+    tab.historyKey.set((await this.historyRepository.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
   }
 

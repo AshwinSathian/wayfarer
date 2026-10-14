@@ -56,7 +56,7 @@ continuously, and per the security model below, it shouldn't.
 1. Wayfarer's own code never talks to the bridge unless you've given it the
    bridge's token (paired, or typed in) and a route that uses it.
 2. Then, instead of the browser calling the target API directly, it
-   `POST`s a small JSON envelope to `http://127.0.0.1:<port>/v2/relay`
+   `POST`s a small JSON envelope to `http://127.0.0.1:<port>/relay`
    (see [Protocol](#protocol)), authenticated with a bearer-style token
    header.
 3. The bridge process (running as a normal OS process, not sandboxed like
@@ -129,7 +129,7 @@ the rest of this project gives its security-relevant surfaces.
   independent gate on top of the Origin check: Origin alone only proves
   *which site* is asking, not that it's a Wayfarer instance you configured.
   The token is generated on first run, persisted at
-  `~/.wayfarer-local-bridge/token` (mode `0600`, re-applied at every start)
+  `~/.wayfarer-bridge/token` (mode `0600`, re-applied at every start)
   so it survives restarts,
   and compared with a constant-time check to avoid trivial timing leaks.
 - **What the token protects against, and what it doesn't:** anyone who
@@ -153,36 +153,27 @@ the rest of this project gives its security-relevant surfaces.
 
 ## Protocol
 
-The bridge speaks **protocol 2**, and so does the page. The number is in the
-relay's path, so a page and a bridge of different protocols do not guess at
-each other: a bridge of protocol 1 has no `/v2/relay` and sends nothing,
-and the page says the bridge is too old. `GET /health` answers
-`{ ok, name, version, protocol, capabilities }`; Settings → Local Bridge →
-Test connection reads it.
+One path relays, `POST /relay`, and the page and the bridge each refuse a
+field they do not read: a page and a bridge of different versions say so
+instead of guessing at each other. Use the bridge of the same release as the
+page. `GET /health` answers `{ ok, name, version }`; Settings → Local
+Bridge → Test connection reads it.
 
 ```
-POST /v2/relay
+POST /relay
 { "method": "POST", "url": "https://api.internal/x",
   "headers": [["Content-Type", "application/json"]],   // a list: a name may repeat
   "bodyB64": "eyJhIjoxfQ==",                           // the body's bytes; absent for none
   "timeoutMs": 30000,                                  // absent: 30 s; at most 10 minutes
-  "tls": { "insecure": true } }                        // absent: the certificate is verified (2.1.0)
+  "tls": { "insecure": true } }                        // absent: the certificate is verified
 
 200
 { "status": 200, "statusText": "OK",
   "headers": [["Set-Cookie", "a=1"], ["Set-Cookie", "b=2"]],   // as received, one entry each
   "bodyB64": "…",                                             // the body's bytes, decoded
   "encodedSize": 512, "decodedSize": 2048,
-  "timings": { "dns": 1.2, "tcp": 3.4, "tls": 21.0, "ttfb": 48.6, "content": 2.1 } }   // milliseconds (2.1.0)
+  "timings": { "dns": 1.2, "tcp": 3.4, "tls": 21.0, "ttfb": 48.6, "content": 2.1 } }   // milliseconds
 ```
-
-**Capabilities.** Protocol 2 has grown since Local Bridge 2.0.0, and
-`/health` lists what a bridge can do: `bytes`, `decompression`,
-`header-list`, `timeout` (2.0.0), and `timings`, `tls-insecure`, `host`
-(2.1.0). Local Bridge 2.0.0 refuses a field it does not know and took a
-`Host` header off, so the page reads `/health` before it sends `tls` or a
-`Host` header, and sends neither to a bridge that does not list it: it says
-to update the bridge instead.
 
 - **Bytes both ways.** A body is never read as text here: a file, a
   multipart form and a response in any charset arrive as they were sent.
@@ -204,7 +195,7 @@ to update the bridge instead.
 - **The request's timeout is the bridge's**: one deadline for the whole
   exchange. A target that does not answer in time is a 504.
 - **A wrong field is refused** with 400 and a message: a field of the wrong
-  type, or one the protocol does not have, is never read as something else.
+  type, or one the bridge does not read, is never read as something else.
 - Any other status is the bridge's own answer, `{ "error": … }`: 401 for
   the token, 403 for the origin, 421 for the `Host`, 502 when the target
   could not be reached or its body could not be decoded or was too large.

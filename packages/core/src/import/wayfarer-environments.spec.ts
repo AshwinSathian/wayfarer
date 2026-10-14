@@ -5,20 +5,20 @@ import { serializeEnvironmentExport, validateEnvironmentExport } from "./wayfare
 
 const env = (id: string, name: string, order: number, vars: Record<string, string> = {}): EnvironmentDoc => ({
   id,
-  meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
+  meta: { id, createdAt: 1, updatedAt: 1 },
   name,
   order,
   vars: rowsOf(vars),
 });
 
 describe("environment-io", () => {
-  const fileOf = (environments: unknown) => ({ $id: "wayfarer/environments/2", environments });
+  const fileOf = (environments: unknown) => ({ $id: "wayfarer/environments", environments });
 
   it("exports environments in order, with sorted keys, and reads its own export back unchanged", () => {
     const text = serializeEnvironmentExport([env("b", "Prod", 2, { zeta: "1", alpha: "2" }), env("a", "Dev", 1)]);
     const file = JSON.parse(text) as { $id: string; environments: EnvironmentDoc[] };
 
-    expect(file.$id).toBe("wayfarer/environments/2");
+    expect(file.$id).toBe("wayfarer/environments");
     expect(file.environments.map((e) => e.name)).toEqual(["Dev", "Prod"]);
     // Keys are sorted; variables keep the order they were written in.
     expect(text.indexOf('"meta"')).toBeLessThan(text.indexOf('"name"'));
@@ -29,14 +29,14 @@ describe("environment-io", () => {
     expect(serializeEnvironmentExport(reread.payload!)).toBe(text);
   });
 
-  it("fills a missing id from meta, and refuses a file that is not format 2", () => {
+  it("fills a missing id from meta, and refuses a file without the $id this version writes", () => {
     const withoutId = { ...env("x", "Dev", 1), id: undefined };
 
     expect(validateEnvironmentExport(fileOf([withoutId])).payload?.[0].id).toBe("x");
-    // Format 1: a bare array, or a wrapper with no $id.
-    const notFormatTwo = { ok: false, errors: ['Not a Wayfarer environments file: "$id" must be "wayfarer/environments/2".'] };
-    expect(validateEnvironmentExport([withoutId])).toEqual(notFormatTwo);
-    expect(validateEnvironmentExport({ environments: [withoutId] })).toEqual(notFormatTwo);
+    // A file of before 2.0: a bare array, or a wrapper with no $id.
+    const notThisFormat = { ok: false, errors: ['Not a Wayfarer environments file: "$id" must be "wayfarer/environments".'] };
+    expect(validateEnvironmentExport([withoutId])).toEqual(notThisFormat);
+    expect(validateEnvironmentExport({ environments: [withoutId] })).toEqual(notThisFormat);
   });
 
   it("rejects text that is not JSON and JSON that is not a list of environments", () => {
@@ -49,7 +49,7 @@ describe("environment-io", () => {
       fileOf([
         {
           id: "e",
-          meta: { id: "e", createdAt: 1, updatedAt: 1, version: 1 },
+          meta: { id: "e", createdAt: 1, updatedAt: 1 },
           name: "E",
           order: 1,
           vars: [
@@ -79,7 +79,7 @@ describe("environment-io", () => {
   describe("protected variables in an export (P2.11)", () => {
     const env = (vars: Record<string, string>): EnvironmentDoc => ({
       id: "e1",
-      meta: { id: "e1", createdAt: 1, updatedAt: 1, version: 1 },
+      meta: { id: "e1", createdAt: 1, updatedAt: 1 },
       name: "Dev",
       order: 1,
       vars: Object.entries(vars).map(([key, value]) => ({ key, value, enabled: true })),
@@ -95,7 +95,7 @@ describe("environment-io", () => {
     });
 
     it("writes the references with the vault beside them, still encrypted", () => {
-      const vault = { $id: "wayfarer/vault/2" as const, vault: { v: 2 as const, kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
+      const vault = { $id: "wayfarer/vault" as const, vault: { v: 2 as const, kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
       const json = serializeEnvironmentExport(environments, { mode: "references", vault });
       expect(values(json)).toEqual(["localhost", "{{$secret.s-1}}", "Bearer {{ $secret.s-2 }}"]);
       expect((JSON.parse(json) as { vault: unknown }).vault).toEqual(vault);

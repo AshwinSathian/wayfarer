@@ -216,9 +216,12 @@ These are the P0.13 checks: `npm view … maintainers` lists the maintainer acco
 `.github/workflows/release.yml` publishes a package when a tag names it:
 `bridge-v<version>` for `wayfarer-bridge`, `cli-v<version>` for
 `wayfarer-cli`. It checks that the tag is the package's version, runs the
-package's tests, installs the tarball into an empty folder and runs it, and
-publishes through npm's **trusted publishing**: no token is stored, and npm
-attaches a provenance attestation of the run. Once, before the first tag:
+package's tests, installs the tarball into an empty folder and runs it
+(job `pack`, with no token), and publishes that same tarball through npm's
+**trusted publishing** (job `publish`, the only one with the OIDC token; it
+installs and runs nothing): no token is stored, and npm attaches a
+provenance attestation of the run. Job `verify` then runs it from the
+registry, without the token. Once, before the first tag:
 
 1. Reserve the names (above), if that was not done.
 2. On npmjs.com, for each package: Settings → Trusted Publisher → GitHub
@@ -253,6 +256,26 @@ npm deprecate wayfarer-cli@0.0.0-reserved "placeholder; use the latest release"
 Don't unpublish the placeholders. npm allows unpublishing only within 72
 hours, and an unpublished name can't be reused for 24 hours, which is a
 window for a squatter.
+
+## Releasing the app (P7.7)
+
+A tag of the app's version makes its GitHub release:
+
+```bash
+git tag v2.5.0 && git push origin v2.5.0
+```
+
+`release.yml` checks that the tag is `package.json`'s version, builds,
+and attaches `wayfarer-<version>.tar.gz`, `wayfarer-<version>.cdx.json`
+(CycloneDX SBOM) and `SHA256SUMS`, with the changelog's section as the
+notes. Check the release page shows the three, then verify a download:
+
+```bash
+gh release download v2.5.0 --dir /tmp/wayfarer-release && cd /tmp/wayfarer-release
+sha256sum --check SHA256SUMS
+```
+
+The release deploys nothing: production is `deploy.yml`, a step of its own.
 
 ## Service worker
 

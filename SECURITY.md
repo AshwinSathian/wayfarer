@@ -22,6 +22,9 @@ server-backed product. The things we care most about are:
 "Server compromise," account takeover, and similar are **not** applicable
 threat models here: there is no server and no account.
 
+Each trust boundary, what could go wrong at it, and the tested claim that
+stops it are in the [threat model](docs/threat-model.md).
+
 For the full data-residency, encryption, and compliance picture (including
 what's *not* true yet, stated plainly), see the [Trust Center](docs/trust-center.md), which also answers the usual
 procurement questions.

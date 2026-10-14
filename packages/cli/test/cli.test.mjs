@@ -64,10 +64,10 @@ async function file(name, value) {
 
 const environment = (values) => file("env.json", { name: "Run env", values: Object.entries(values).map(([key, value]) => ({ key, value, enabled: true })) });
 
-const meta = (id) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+const meta = (id) => ({ id, createdAt: 1, updatedAt: 1 });
 const request = (id, fields) => ({ id, meta: meta(id), collectionId: "col", name: id, order: 0, method: "GET", url: "", params: [], headers: [], body: { mode: "none" }, auth: { type: "none" }, scripts: { pre: "", post: "" }, tests: [], settings: {}, ...fields });
 const collection = { id: "col", meta: meta("col"), name: "Made here", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } };
-const collectionFile = (requests) => ({ $id: "wayfarer/collection/3", meta: meta("file"), collection, folders: [], requests });
+const collectionFile = (requests) => ({ $id: "wayfarer/collection", meta: meta("file"), collection, folders: [], requests });
 
 test("--version says the package's version, --help the usage; no command is a usage error", async () => {
   assert.deepEqual(await cli(["--version"]), { code: 0, stdout: `${version}\n`, stderr: "" });
@@ -89,7 +89,7 @@ test("the P5.2 fixture with its data file gives Newman's results, writes both re
 
   const golden = JSON.parse(readFileSync(join(RUN_FIXTURES, "data.golden.json"), "utf8"));
   const report = JSON.parse(await readFile(join(folder, "wayfarer-run.json"), "utf8"));
-  assert.equal(report.$id, "wayfarer/run/1");
+  assert.equal(report.$id, "wayfarer/run");
   assert.deepEqual(report.totals, { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 });
   assert.deepEqual(
     report.results.map((result) => ({ iteration: result.iteration, name: result.name, tests: result.tests.map(({ name, passed }) => ({ name, passed })) })),
@@ -153,7 +153,7 @@ test("a vault secret is read from --vault-file with the passphrase, sent, and in
 test("a workspace backup brings its active environment, its globals and its vault", async () => {
   const vault = JSON.parse(readFileSync(VAULT, "utf8"));
   const backup = await file("backup.json", {
-    $id: "wayfarer/workspace/3",
+    $id: "wayfarer/workspace",
     exportedAt: 1,
     stores: {
       collections: [{ ...collection, scriptTrust: { trusted: true, approved: [] } }],

@@ -1,6 +1,6 @@
 import type { ExportBody, HarExchange, RedactOptions } from "@wayfarer/core";
 import { version } from "../../../../package.json";
-import type { PastRequest } from "../../models/history";
+import type { PastRequest } from "@wayfarer/core";
 
 /** What a HAR is made from, for the export dialog: the exchanges, masked as `options` say, and the file's name. */
 export interface HarSource {

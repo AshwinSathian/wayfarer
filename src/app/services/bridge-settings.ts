@@ -1,6 +1,6 @@
 import { Injectable, effect, inject, signal, untracked } from "@angular/core";
 import { bridgeHealthProblem, parseJson, type Route } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
 import { Diagnostics } from "./diagnostics";
 import { SecretsVault } from "./secrets-vault";
 
@@ -46,7 +46,7 @@ export class BridgeSettings {
       if (this.vault.isUnlocked()) untracked(() => this.inBackground(() => (this.config().token ? this.store(this.config().token) : this.read())));
     });
     // Another tab saved a token.
-    inject(Idb).onChangeElsewhere((stores) => {
+    inject(IdbCore).onChangeElsewhere((stores) => {
       if (stores.includes("secrets") && this.vault.isUnlocked()) this.inBackground(() => this.read());
     });
   }
@@ -99,7 +99,7 @@ export class BridgeSettings {
 
   /**
    * Asks the bridge at `url` (the saved one by default) for its `/health`, without changing the saved settings.
-   * What is wrong with it, as a sentence, or undefined: it answers and speaks the page's protocol (P6.3).
+   * What is wrong with it, as a sentence, or undefined: it answers as a Local Bridge (P6.3).
    */
   async checkHealth(url = this.config().url): Promise<string | undefined> {
     return (await this.health(url)).problem;

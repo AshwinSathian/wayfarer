@@ -1,20 +1,20 @@
 import { TestBed } from "@angular/core/testing";
 import { computed } from "@angular/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { SecretsVault } from "./secrets-vault";
 
 // The vault over the real IndexedDB stores and the browser's WebCrypto:
 // what is asserted is what a user's browser stores and can open.
 describe("SecretsVault", () => {
   let vault: SecretsVault;
-  let idb: Idb;
+  let idb: Repositories;
 
   beforeEach(() => {
     localStorage.removeItem("wayfarer:vault-idle-minutes");
     TestBed.configureTestingModule({});
     vault = TestBed.inject(SecretsVault);
-    idb = TestBed.inject(Idb);
+    idb = repositories();
   });
 
   afterEach(async () => {
@@ -33,7 +33,7 @@ describe("SecretsVault", () => {
       await expect(vault.saveSecret({ name: "API key", plaintext: "shh" })).rejects.toThrow(
         "Secrets are locked. Unlock before saving new secrets."
       );
-      expect(await idb.listSecrets()).toEqual([]);
+      expect(await idb.secrets.listAll()).toEqual([]);
     });
 
     it("encrypts the plaintext and writes the envelope under a fresh id when unlocked", async () => {
@@ -42,7 +42,7 @@ describe("SecretsVault", () => {
       const second = await vault.saveSecret({ name: "Other", plaintext: "shh" });
 
       expect(first).not.toBe(second);
-      const [doc] = (await idb.listSecrets()).filter((secret) => secret.id === first);
+      const [doc] = (await idb.secrets.listAll()).filter((secret) => secret.id === first);
       expect(doc).toMatchObject({ id: first, name: "API key", environmentId: "env-1", envelope: { v: 2 } });
       expect(Object.keys(doc.envelope).sort()).toEqual(["ct", "iv", "v"]);
     });
@@ -51,7 +51,7 @@ describe("SecretsVault", () => {
       await vault.create("correct horse");
       await vault.saveSecret({ name: "API key", plaintext: "super-secret-value" });
 
-      const stored = JSON.stringify([await idb.listSecrets(), await idb.readVault()]);
+      const stored = JSON.stringify([await idb.secrets.listAll(), await idb.secrets.readVault()]);
       expect(stored).not.toContain("super-secret-value");
       expect(stored).not.toContain("correct horse");
     });
@@ -82,11 +82,11 @@ describe("SecretsVault", () => {
       await vault.create("correct horse");
       const a = await vault.saveSecret({ name: "A", plaintext: "value a" });
       const b = await vault.saveSecret({ name: "B", plaintext: "value b" });
-      const [envelopeA, envelopeB] = [(await idb.readCipher(a))!, (await idb.readCipher(b))!];
+      const [envelopeA, envelopeB] = [(await idb.secrets.readCipher(a))!, (await idb.secrets.readCipher(b))!];
 
       // Two secrets' ciphertexts swapped in storage: neither opens, since each is bound to its id.
-      await idb.writeCipher({ id: a, name: "A", envelope: envelopeB });
-      await idb.writeCipher({ id: b, name: "B", envelope: envelopeA });
+      await idb.secrets.writeCipher({ id: a, name: "A", envelope: envelopeB });
+      await idb.secrets.writeCipher({ id: b, name: "B", envelope: envelopeA });
 
       await expect(vault.readSecret(a)).rejects.toThrow();
       await expect(vault.readSecret(b)).rejects.toThrow();
@@ -140,12 +140,12 @@ describe("SecretsVault", () => {
   it("@claim:C-043 changing the passphrase: the old one fails, the new one works, the secrets are intact and no secret row is rewritten", async () => {
     await vault.create("old passphrase");
     const id = await vault.saveSecret({ name: "API key", plaintext: "kept" });
-    const rowsBefore = JSON.stringify(await idb.listSecrets());
+    const rowsBefore = JSON.stringify(await idb.secrets.listAll());
 
     expect(await vault.changePassphrase("not it", "new passphrase")).toBe(false);
     expect(await vault.changePassphrase("old passphrase", "new passphrase")).toBe(true);
 
-    expect(JSON.stringify(await idb.listSecrets())).toBe(rowsBefore);
+    expect(JSON.stringify(await idb.secrets.listAll())).toBe(rowsBefore);
     // A tab that was unlocked stays so: the data key did not change.
     expect(await vault.readSecret(id)).toBe("kept");
     vault.lock();
@@ -168,7 +168,7 @@ describe("SecretsVault", () => {
       const file = (await vault.exportFile("source passphrase"))!;
       expect(file).not.toContain("travels-encrypted");
       expect(file).not.toContain("source passphrase");
-      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault/2", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
+      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
 
       // Another browser: a vault of its own, with another passphrase.
       vault.lock();
@@ -176,11 +176,11 @@ describe("SecretsVault", () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({});
       vault = TestBed.inject(SecretsVault);
-      idb = TestBed.inject(Idb);
+      idb = repositories();
       await vault.create("destination passphrase");
 
       expect(await vault.importFile(file, "wrong")).toEqual({ error: "That is not the passphrase this file was exported with." });
-      expect(await idb.listSecrets()).toEqual([]);
+      expect(await idb.secrets.listAll()).toEqual([]);
       expect(await vault.importFile(file, "source passphrase")).toEqual({ imported: 1 });
 
       expect(await vault.readSecret(id)).toBe("travels-encrypted");
@@ -188,7 +188,7 @@ describe("SecretsVault", () => {
       vault.lock();
       expect(await vault.unlock("destination passphrase")).toBe(true);
       expect(await vault.readSecret(id)).toBe("travels-encrypted");
-      expect((await idb.listSecrets())[0]).toMatchObject({ id, name: "API key", environmentId: "env-1" });
+      expect((await idb.secrets.listAll())[0]).toMatchObject({ id, name: "API key", environmentId: "env-1" });
     });
 
     it("refuses a file that is not a vault file, is too large, or has a damaged secret, and then imports nothing", async () => {
@@ -196,11 +196,11 @@ describe("SecretsVault", () => {
       await vault.saveSecret({ name: "One", plaintext: "one" });
       await vault.saveSecret({ name: "Two", plaintext: "two" });
       const file = JSON.parse((await vault.exportFile("correct horse"))!) as { secrets: { envelope: { ct: string } }[] };
-      const before = JSON.stringify(await idb.listSecrets());
+      const before = JSON.stringify(await idb.secrets.listAll());
 
       expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not valid JSON." });
       expect(await vault.importFile("{}", "correct horse")).toEqual({
-        error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault/2".',
+        error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault".',
       });
       expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({ error: "The file is larger than 10 MB." });
 
@@ -208,7 +208,7 @@ describe("SecretsVault", () => {
       file.secrets[1].envelope = file.secrets[0].envelope;
       const result = await vault.importFile(JSON.stringify(file), "correct horse");
       expect(result).toEqual({ error: expect.stringContaining("is damaged. Nothing was imported.") as string });
-      expect(JSON.stringify(await idb.listSecrets())).toBe(before);
+      expect(JSON.stringify(await idb.secrets.listAll())).toBe(before);
     });
 
     it("needs this vault unlocked to import", async () => {

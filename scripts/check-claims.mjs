@@ -7,7 +7,9 @@
 //   - a ledger row has no doc marker;
 //   - a ledger row has no test titled `@claim:<id>` in the file(s) it names;
 //   - a test titled `@claim` has no ID, or an ID with no ledger row;
-//   - an ID appears in the ledger twice.
+//   - an ID appears in the ledger twice;
+//   - docs/threat-model.md is missing, or one of its rows links no claim, or
+//     a claim with no ledger row (P7.4: every mitigation is a tested claim).
 //
 // Usage: node scripts/check-claims.mjs   (from the repo root)
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -15,6 +17,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const LEDGER = "docs/claims.md";
+const THREAT_MODEL = "docs/threat-model.md";
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".angular", "test-results", "playwright-report", "coverage", "archive"]);
 const DOC_ROOTS = ["README.md", "SECURITY.md", "docs", "packages"];
 const TEST_ROOTS = ["e2e", "src", "scripts", "packages"];
@@ -100,6 +103,25 @@ export function checkClaims(root) {
     for (const expected of row.tests) {
       if (!files.includes(expected)) errors.push(`${row.id}: ${LEDGER} names ${expected}, but no test there is titled @claim:${row.id}`);
     }
+  }
+  errors.push(...checkThreatModel(root, ids));
+  return errors;
+}
+
+/** Each row of the threat model's tables (`| Boundary | STRIDE | Threat | Mitigation | Claims |`) links a claim of the ledger. */
+function checkThreatModel(root, ids) {
+  const path = join(root, THREAT_MODEL);
+  if (!existsSync(path)) return [`${THREAT_MODEL} is missing`];
+  const errors = [];
+  const rows = readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith("|") && !/^\|\s*(Boundary\s*\||-)/.test(line))
+    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()));
+  for (const cells of rows) {
+    const name = `${cells[0]} / ${cells[1]}`;
+    const linked = [...(cells.at(-1) ?? "").matchAll(/C-\d{3}/g)].map((match) => match[0]);
+    if (!linked.length) errors.push(`${THREAT_MODEL}: the row "${name}" links no claim`);
+    for (const id of linked) if (!ids.has(id)) errors.push(`${THREAT_MODEL}: the row "${name}" links ${id}, which has no row in ${LEDGER}`);
   }
   return errors;
 }

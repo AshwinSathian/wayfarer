@@ -41,7 +41,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - Phase timings are withheld unless the server sends `Timing-Allow-Origin`. <!-- claim:C-023 -->
 - Collections have folders, drag-and-drop reorder, inline rename, and load a request into the composer. <!-- claim:C-024 -->
 - The environment manager switches environments and shows live `{{var}}` chips with source and resolved value. <!-- claim:C-025 -->
-- Collection export (file format 3) and re-import is a byte-identical round trip. <!-- claim:C-026 -->
+- Collection export and re-import is a byte-identical round trip. <!-- claim:C-026 -->
 - First use of the vault guides the user through creating a passphrase. <!-- claim:C-027 -->
 - The Secrets view lists every secret with reveal, rename, locate and delete. <!-- claim:C-028 -->
 - History groups entries by day; an entry can be loaded back, deleted, or all history cleared. <!-- claim:C-029 -->
@@ -82,6 +82,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - A collection run from the command line (`wayfarer-cli`) gives the results the same run gives in the app: the same requests in the same order, statuses, tests and errors. <!-- claim:C-065 -->
 - The command line runs a collection file's scripts only when told to (`--allow-scripts`): without it, a collection that has a script is not run, and nothing is sent. <!-- claim:C-066 -->
 - The app can be used by keyboard alone: the core flow (a collection, a new tab, an address, a header, send, save, run) needs no pointer, every stop Tab reaches shows a focus ring, a dialog opens on the field it asks for, and closing one gives focus back to what opened it. <!-- claim:C-067 -->
+- Settings → Diagnostics shows the app's errors and what the Content-Security-Policy blocked, with self-tests; the report it copies, and the GitHub issue it opens, hold no address, header, body or vault secret of a request sent before. <!-- claim:C-068 -->
 <!-- features:end -->
 
 Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).
@@ -131,6 +132,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Command line](docs/cli.md): `wayfarer-cli`
 - [Self-hosting](docs/self-hosting.md): the folder, the headers, the OAuth callback
 - [Trust Center](docs/trust-center.md): encryption, data residency, subprocessors, procurement answers, hall of fame
+- [Threat model](docs/threat-model.md): each trust boundary, its threats, and the tested claim behind each mitigation
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
 

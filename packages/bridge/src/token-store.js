@@ -5,8 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-// The folder keeps the name it had when the package was wayfarer-local-bridge: a token saved before is still found.
-const CONFIG_DIR = path.join(os.homedir(), '.wayfarer-local-bridge');
+const CONFIG_DIR = path.join(os.homedir(), '.wayfarer-bridge');
 const TOKEN_FILE = path.join(CONFIG_DIR, 'token');
 
 function generateToken() {

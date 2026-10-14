@@ -3,7 +3,7 @@ import { Injectable, effect, inject, signal } from "@angular/core";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";

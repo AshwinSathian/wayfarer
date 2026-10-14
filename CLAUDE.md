@@ -702,15 +702,13 @@ code errors.
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
-  (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
+  (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`); there is no
   converter for older files.
-- The database is version 13. `runUpgrade` empties a database from before
-  version 5, and since then removes only what changed shape (secrets at 8,
-  history at 9; collections, folders, requests and files at 10), saying
-  what it removed. Version 11 added the `tabs` store and version 12 the `cookies` store; version 13 numbered each parent's folders and requests as one list. None of the three removed anything. No stored data exists to keep
-  (maintainer, 2026-10-09), so a change of stored shape may do the same
-  again until the app has users; say so in the changelog and in
-  `docs/storage.md`.
+- The database's shape has one number, `DB_VERSION` (IndexedDB needs it).
+  `runUpgrade` empties a database of any earlier number and makes this
+  version's stores: nothing stored before is read, converted or kept
+  (maintainer, 2026-10-14). A change of stored shape raises the number;
+  say so in the changelog and in `docs/storage.md`. No step per version.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - A variable's name may hold any character but a brace (F74). A name that
@@ -810,25 +808,22 @@ code errors.
 - Local Bridge (`packages/bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
-  instead of defaulting. Keep every one of these when changing it. Its
-  protocol is 2 (P6.1), and its number is in the relay's path (`/v2/relay`):
-  a page and a bridge of different protocols must not read each other's
-  messages as their own. `readPayload` checks every field and refuses one
-  it does not know; `parseEnvelope` (`BridgeTransport`) does the same for
-  the answer. A change either side would read wrongly is protocol 3 and a
-  new path. An addition to protocol 2 is a capability in `/health`
-  (`CAPABILITIES`, and `NEEDS` in `BridgeTransport`): Local Bridge 2.0.0
-  refuses a field it does not know and took `Host` off, so the page reads
-  `/health` before it sends a request that needs one, and sends nothing to
-  a bridge that does not list it. `tls` is exactly `{ insecure: true }` or
-  absent, from the request's own `settings.tlsInsecure`, and what was sent
+  instead of defaulting. Keep every one of these when changing it. One
+  path relays, `/relay`, with no number in it and no protocol or list of
+  capabilities in `/health` (maintainer, 2026-10-14: one path for a
+  feature, nothing kept for an older version). `readPayload` checks every
+  field and refuses one it does not know; `parseEnvelope`
+  (`BridgeTransport`) does the same for the answer: that is what keeps a
+  page and a bridge of different versions from reading each other's
+  messages as their own. Change both sides in one PR. `tls` is exactly
+  `{ insecure: true }` or absent, from the request's own `settings.tlsInsecure`, and what was sent
   so says it (`ResponseEnvelope.tlsInsecure`, the red pill): keep the pill
   wherever such a response is shown. A script's request and a token request
   never switch verification off. The bridge's agents are its own
   (`agentsFor`): no connection is kept, so every relay has timings, and the
   proxy variables are Node's `proxyEnv`, not code of ours. A body is bytes both ways (`bodyB64`), never text. The limit of
   25 MB holds for a response as received and as decoded. The token's folder
-  is `~/.wayfarer-local-bridge`, the package's old name: keep it.
+  is `~/.wayfarer-bridge`.
   Pairing (P6.2): `POST /pair` from an allowed origin gives the token for
   the code printed at start, once; three wrong codes in a row lock it for
   60 s, the right one included. Keep the lock and the single use. With
@@ -880,7 +875,9 @@ code errors.
 - A write tells the other tabs which stores it touched (`IdbCore.announce`,
   called by `commitOrRollback`; a write that does not go through it calls
   `announce` itself). A store that holds what it read listens with
-  `Idb.onChangeElsewhere` and reads again.
+  `IdbCore.onChangeElsewhere` and reads again. A service injects the
+  repositories it uses (`CollectionsRepository`, `HistoryRepository`, …)
+  and `IdbCore`; there is no facade over them.
 - Variables are changed with `changeEnvironment` (a list of sets and
   removals, applied by `applyVariableChanges` inside one transaction), not
   by writing back a copy of the rows: the copy may be older than what

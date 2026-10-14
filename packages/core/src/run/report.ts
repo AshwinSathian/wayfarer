@@ -1,6 +1,6 @@
 import type { RunReport, RunResult } from "./runner";
 
-const RUN_REPORT_FORMAT = "wayfarer/run/1";
+const RUN_REPORT_FORMAT = "wayfarer/run";
 
 /** What a report says of the run besides its results. */
 export interface RunInfo {

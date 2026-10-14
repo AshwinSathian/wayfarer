@@ -1,6 +1,6 @@
 import { signal } from "@angular/core";
 import type { Row, RunReport, RunResult } from "@wayfarer/core";
-import { PastRequest } from "../models/history";
+import { PastRequest } from "@wayfarer/core";
 
 /** What a run sends: a collection, or one of its folders. `name` is what the tab and the reports call it. */
 export interface RunTarget {

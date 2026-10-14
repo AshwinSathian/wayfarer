@@ -38,7 +38,7 @@ export interface HistoryBody {
 }
 
 /**
- * One exchange as history keeps it (history v2, plan section 4.4). Nothing
+ * One exchange as history keeps it (plan section 4.4). Nothing
  * here holds a credential or a vault secret: `sent` and `response` are
  * stored masked, and so is a credential typed into the template (D5).
  */

@@ -1,6 +1,7 @@
 import { Injectable, effect, inject, signal, untracked } from "@angular/core";
 import { scriptDigest, scriptsOf } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { HistoryRepository } from "../data/history-repository";
+import { IdbCore } from "../data/idb-core";
 import { StoredTab } from "../data/idb-schema";
 import { TabsRepository } from "../data/tabs-repository";
 import { RequestDoc } from "../models/collections";
@@ -33,7 +34,8 @@ type Stored = Omit<StoredTab, "scripts"> & { held?: true };
 export class TabsStorage {
   private readonly tabs = inject(Tabs);
   private readonly repository = inject(TabsRepository);
-  private readonly idb = inject(Idb);
+  private readonly historyRepository = inject(HistoryRepository);
+  private readonly idb = inject(IdbCore);
   private readonly collections = inject(CollectionsStore);
   private readonly trust = inject(ScriptTrust);
 
@@ -235,7 +237,7 @@ export class TabsStorage {
     tab.heldScripts.set((await this.allowed(record, bound)) ? null : { ...draft.scripts, name: "This tab, as it was stored" });
     if (tab.historyKey() !== record.historyKey) {
       tab.historyKey.set(record.historyKey);
-      const entry = record.historyKey === undefined ? null : await this.idb.get(record.historyKey);
+      const entry = record.historyKey === undefined ? null : await this.historyRepository.get(record.historyKey);
       if (entry) tab.showRecorded(entry);
       else tab.resetResponse();
     }

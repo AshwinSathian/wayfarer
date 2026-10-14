@@ -14,12 +14,6 @@ Wayfarer has no account, no server of its own and no telemetry. Your requests, c
 ## What it does
 
 Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim has a test that runs in CI, in Chromium, Firefox and WebKit where it is about the page. The list is generated from that ledger (`npm run gen:readme`), so it cannot say more than the tests prove.
-- Your work stays on your device. There's no account or server, so no update, acquisition, or pricing page can gate access to data you already have. <!-- claim:C-001 --> <!-- claim:C-002 --> Browser storage can still be cleared or evicted (Safari removes site data after 7 days without a visit), so export what you can't lose.
-- Zero clutter, just the essentials. Compose a request and see a clean, structured response.
-- Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
-- Shareable results. Export a request and its response, or several entries of history at once, as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
-- No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
-- A dark and a light theme, each fully designed: the app follows your system until you choose one in Settings. Minimal, accessible (no WCAG 2.2 AA violation that axe finds), and usable by keyboard alone, with a focus ring on every stop. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-067 --> <!-- claim:C-030 -->
 
 <!-- features:start -->
 - No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose, and, when its auth is OAuth 2.0, the token request and the sign-in window, sent to the two addresses the user gave for them. <!-- claim:C-001 -->
@@ -59,7 +53,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - An exchange exports as a HAR 1.2 file with every field the format requires, from the response's Export menu or for several history entries at once, and the file is shown before it is written. A body of text is kept whatever its type; one that is not text, or is longer than 256 KB, is left out with a comment. The file imports again as the same requests. <!-- claim:C-035 -->
 - The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. <!-- claim:C-036 -->
 - Dark and light themes both ship. Settings chooses one, or System, which follows the device and changes with it; a browser with no choice follows the system. <!-- claim:C-037 -->
-- The primary views have no critical or serious axe accessibility violations. <!-- claim:C-038 -->
+- The primary views and dialogs have no axe violation of WCAG 2.2 at levels A and AA, of any impact. <!-- claim:C-038 -->
 - The Body tab offers the modes none, raw, form, multipart, binary and GraphQL; GET and HEAD have no Body tab and send no body. <!-- claim:C-039 -->
 - Scripts are edited in Monaco and have the parts of Postman's script API that `docs/postman-compatibility.md` lists; that document is written from the compatibility matrix, each row of which is a test that runs in Node and in the app's worker, and what is not supported throws an error that names it. <!-- claim:C-040 -->
 - The Local Bridge relays only for an allowed origin that presents its token. <!-- claim:C-041 -->
@@ -87,6 +81,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - The route Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 -->
 - A collection run from the command line (`wayfarer-cli`) gives the results the same run gives in the app: the same requests in the same order, statuses, tests and errors. <!-- claim:C-065 -->
 - The command line runs a collection file's scripts only when told to (`--allow-scripts`): without it, a collection that has a script is not run, and nothing is sent. <!-- claim:C-066 -->
+- The app can be used by keyboard alone: the core flow (a collection, a new tab, an address, a header, send, save, run) needs no pointer, every stop Tab reaches shows a focus ring, a dialog opens on the field it asks for, and closing one gives focus back to what opened it. <!-- claim:C-067 -->
 <!-- features:end -->
 
 Also in the app, documented but not ledger claims: tabs that survive a reload; [GraphQL](docs/graphql.md) with schema completion; event streams and WebSockets; collection runs with data files and JSON, JUnit and HAR reports; and a cookie jar through the Local Bridge ([Browser limits](docs/browser-limits.md)).

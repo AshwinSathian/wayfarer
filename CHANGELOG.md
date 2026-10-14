@@ -12,6 +12,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - "Break the sandbox": a public challenge in `SECURITY.md` to break the
   script sandbox, the vault or the Local Bridge, with credit in the Trust
   Center's hall of fame. No money.
+- Each release of the app attaches the built folder as a tarball, a
+  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
 - Settings → Diagnostics: the version and the commit, the browser, storage,
   the database, the service worker and the Local Bridge; self-tests (a
   script, the vault's encryption, a database write, a fetch of the app's

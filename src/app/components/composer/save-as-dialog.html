@@ -16,6 +16,7 @@
       <label for="save-as-name" class="type-footnote text-label-secondary">Name</label>
       <mat-form-field class="field w-full">
         <input matInput
+          cdkFocusInitial
           id="save-as-name"
           type="text"
           [ngModel]="requestSave.saveAsName()"

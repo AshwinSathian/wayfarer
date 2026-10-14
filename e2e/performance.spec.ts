@@ -41,20 +41,32 @@ test("typing into the address with five tabs open answers each key within 100 ms
   await expect(page.getByRole("tablist", { name: "Open requests" }).getByRole("tab")).toHaveCount(5);
   await expect(address).toBeFocused();
 
-  // From each keydown to the frame after it is handled: the input delay, the handlers and the render, as INP counts them.
+  // Event Timing, where the engine has it (Chromium, Firefox): each key's interaction, as INP counts it. WebKit has none:
+  // there, from each keydown to the frame after it is handled: the input delay, the handlers and the render.
   await page.evaluate(() => {
-    const delays: number[] = [];
-    (window as unknown as { __keyDelays: number[] }).__keyDelays = delays;
-    document.addEventListener("keydown", (event) => {
-      const start = event.timeStamp;
-      requestAnimationFrame(() => setTimeout(() => delays.push(performance.now() - start), 0));
-    }, true);
+    const record = { keys: 0, slow: [] as number[] };
+    (window as unknown as { __keys: typeof record }).__keys = record;
+    document.addEventListener("keydown", () => void record.keys++, true);
+    if ("PerformanceEventTiming" in window) {
+      // An interaction under 16 ms is not reported, and counts as answered at once.
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as PerformanceEventTiming[]) if (entry.interactionId && entry.name === "keydown") record.slow.push(entry.duration);
+      }).observe({ type: "event", durationThreshold: 16 } as PerformanceObserverInit);
+    } else {
+      document.addEventListener("keydown", (event) => {
+        const start = event.timeStamp;
+        requestAnimationFrame(() => setTimeout(() => record.slow.push(performance.now() - start), 0));
+      }, true);
+    }
   });
-  await page.keyboard.type("https://api.example.com/v1/users/{{id}}/orders?page=2&size=50", { delay: 30 });
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __keyDelays: number[] }).__keyDelays.length)).toBeGreaterThanOrEqual(60);
-  const delays = await page.evaluate(() => (window as unknown as { __keyDelays: number[] }).__keyDelays);
-  const sorted = [...delays].sort((a, b) => a - b);
-  // INP is the worst interaction, or close to it with many: the 98th percentile.
-  const p98 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.98))];
-  expect(p98, `key delays (ms): ${sorted.map(Math.round).join(", ")}`).toBeLessThanOrEqual(100);
+  // At 120 ms a key, a quick typist's pace: slower would hide the cost, faster measures a queue of keys rather than one.
+  const text = "https://api.example.com/v1/users/{{id}}/orders?page=2&size=50";
+  await page.keyboard.type(text, { delay: 120 });
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __keys: { keys: number } }).__keys.keys)).toBe(text.length);
+  await page.waitForTimeout(500);
+  const { keys, slow } = await page.evaluate(() => (window as unknown as { __keys: { keys: number; slow: number[] } }).__keys);
+  // INP: the worst interaction, leaving out one for every 50.
+  const worst = [...slow].sort((a, b) => b - a);
+  const inp = worst[Math.floor(keys / 50)] ?? 0;
+  expect(inp, `the slowest key interactions (ms): ${worst.slice(0, 10).map(Math.round).join(", ")}`).toBeLessThanOrEqual(100);
 });

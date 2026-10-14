@@ -349,6 +349,37 @@ test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and f
   await expect(page.locator("input.address-url")).toBeFocused();
 });
 
+// #223: the shell once moved focus in on Material's openedStart, a frame
+// after the key, and a Tab (or a check) inside that frame found it still on
+// the page. Focus is inside by the end of the task that asked for the drawer.
+for (const [width, opener, name] of [
+  [1440, "Request history", "Request history"],
+  [390, "Toggle sidebar", "Navigation"],
+] as const) {
+  test(`${name} drawer at ${width} px: focus is inside by the end of the click that opens it`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: opener })).toBeVisible();
+    const inside = await page.evaluate(([label, dialog]) => {
+      document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
+      return document.activeElement?.closest(`[aria-label="${dialog}"]`) !== null;
+    }, [opener, name]);
+    expect(inside).toBe(true);
+  });
+
+  // Opened and closed before Angular has run once: the [opened] binding saw false both times, and the drawer stayed open.
+  test(`${name} drawer at ${width} px: Escape in the task that opened it closes it`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: opener })).toBeVisible();
+    await page.evaluate((label) => {
+      document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
+      document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }, opener);
+    await expect(page.getByRole("dialog", { name })).toHaveCount(0);
+  });
+}
+
 // Material reports that a drawer has closed when its slide ends, by which
 // time the page may already have asked for it again. The shell once took
 // that late report as the state, and shut the drawer it had just opened.

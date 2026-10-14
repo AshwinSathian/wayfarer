@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- A threat model (`docs/threat-model.md`): each trust boundary, its threats
+  by STRIDE, and the tested claim behind each mitigation. `check:claims`
+  fails when a row links no claim.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

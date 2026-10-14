@@ -213,7 +213,7 @@ for (const theme of ["dark", "light"] as const) {
     // Settings, pane by pane: its list, and each section's own controls.
     await button("Settings").click();
     const appSettings = page.getByRole("dialog", { name: "Settings", exact: true });
-    for (const section of ["Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "About", "Danger zone"]) {
+    for (const section of ["Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "Diagnostics", "About", "Danger zone"]) {
       await appSettings.getByRole("navigation").getByRole("button", { name: section, exact: true }).click();
       await expect(appSettings.getByRole("heading", { name: section, exact: true })).toBeVisible();
       await scan(`settings ${section}`);

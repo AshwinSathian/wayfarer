@@ -32,6 +32,24 @@ test("the page the server sends, and the scripts it loads first, hold none of Mo
   }
 });
 
+// Monaco ran for 300 ms of the main thread at every load (Lighthouse TBT 275 ms on CI's runner): a closed dialog's
+// script editor, made with the page, loaded it. No editor is on the first screen, so nothing of Monaco is fetched.
+test("loading the app fetches nothing of Monaco: no editor is on the first screen", async ({ page }) => {
+  const monaco: string[] = [];
+  page.on("request", (request) => {
+    if (/monaco/i.test(request.url())) monaco.push(request.url());
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  expect(monaco).toEqual([]);
+  // The Scripts tab makes its editors when first chosen, and Monaco comes with them.
+  await page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true }).click();
+  await expect(page.locator("app-scripts-panel .monaco-editor").first()).toBeVisible({ timeout: 15_000 });
+  expect(monaco.length).toBeGreaterThan(0);
+});
+
 test("typing into the address with five tabs open answers each key within 100 ms", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");

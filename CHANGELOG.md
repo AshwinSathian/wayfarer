@@ -14,6 +14,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   within 200 ms; typing into the address stays within 100 ms a key with five
   tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
   the YAML parser stay out of what the page loads first.
+
+### Fixed
+
+- The app starts faster: the code editor is loaded when an editor is first
+  shown. It used to load with every page, for editors in closed dialogs and
+  in the hidden Scripts tab.
 - Settings → Diagnostics: the version and the commit, the browser, storage,
   the database, the service worker and the Local Bridge; self-tests (a
   script, the vault's encryption, a database write, a fetch of the app's

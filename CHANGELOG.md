@@ -7,6 +7,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (Local Bridge 2.2.0)
+
+- **Pairing.** The bridge prints a pairing code when it starts; type it in
+  Settings → Local Bridge and press Pair, and the bridge gives the page its
+  token, which is saved as a typed one is (in the vault while it is
+  unlocked). Nothing to copy. A code works once, and three wrong codes in a
+  row lock pairing for a minute. Pasting the token still works.
+- **HTTPS on loopback**: `--cert` and `--key` start the bridge over HTTPS
+  with a certificate of yours. Safari does not reach `http://127.0.0.1`
+  from the hosted app; the bridge's README shows how to make one with
+  `mkcert` or `openssl`. The bridge makes none itself.
+- **Settings → Local Bridge explains Chrome's question** about the local
+  network before it is asked: allow it, the bridge is on this computer.
+- The bridge answers a preflight that asks for the private network
+  (`Access-Control-Allow-Private-Network: true`).
+
 ### Added (Local Bridge 2.1.0)
 
 - **Timings through the Local Bridge.** The Timings tab shows the name

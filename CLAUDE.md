@@ -804,6 +804,11 @@ code errors.
   proxy variables are Node's `proxyEnv`, not code of ours. A body is bytes both ways (`bodyB64`), never text. The limit of
   25 MB holds for a response as received and as decoded. The token's folder
   is `~/.wayfarer-local-bridge`, the package's old name: keep it.
+  Pairing (P6.2): `POST /pair` from an allowed origin gives the token for
+  the code printed at start, once; three wrong codes in a row lock it for
+  60 s, the right one included. Keep the lock and the single use. With
+  `--cert` and `--key` the bridge speaks HTTPS only, and makes no
+  certificate and runs no other program for one (maintainer, v1.2.59).
 - A file reaches the stores by one road, `ImportPipeline`
   (`src/app/services/import-pipeline.ts`, plan P4.1): `readImportText` (the
   10 MB cap), the import worker, the report in `<app-import-dialog>`, and

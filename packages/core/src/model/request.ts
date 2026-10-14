@@ -1,5 +1,5 @@
 /**
- * The request model of data model v5 (plan section 4.4): what the composer
+ * The request model (plan section 4.4): what the composer
  * edits, what the stores keep and what an export file holds.
  */
 

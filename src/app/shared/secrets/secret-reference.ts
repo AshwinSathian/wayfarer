@@ -1,4 +1,4 @@
-import { SecretId } from "../../models/secrets";
+
 
 /**
  * A protected environment variable's value is replaced with a literal
@@ -14,7 +14,7 @@ export function isSecretReference(value: string | undefined): boolean {
   return typeof value === "string" && SECRET_REFERENCE_PATTERN.test(value);
 }
 
-export function extractSecretId(value: string | undefined): SecretId | null {
+export function extractSecretId(value: string | undefined): string | null {
   if (!value) {
     return null;
   }
@@ -22,6 +22,6 @@ export function extractSecretId(value: string | undefined): SecretId | null {
   return match ? match[1] : null;
 }
 
-export function buildSecretReference(id: SecretId): string {
+export function buildSecretReference(id: string): string {
   return `{{$secret.${id}}}`;
 }

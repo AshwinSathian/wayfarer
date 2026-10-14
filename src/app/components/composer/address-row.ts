@@ -7,7 +7,7 @@ import { MatInput } from "@angular/material/input";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatTooltip } from "@angular/material/tooltip";
-import { HTTP_METHODS } from "../../models/history";
+import { HTTP_METHODS } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { SocketClient } from "../../services/socket-client";
 import { Tabs } from "../../state/tabs";

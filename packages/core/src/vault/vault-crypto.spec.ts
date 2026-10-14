@@ -132,7 +132,7 @@ describe("vault crypto", () => {
       const paths = (value: unknown) => validateVaultFile(value).map((issue) => issue.path);
 
       expect(paths(null)).toEqual(["$"]);
-      expect(paths({ ...file(), $id: "wayfarer/vault/1" })).toEqual(["$id"]);
+      expect(paths({ ...file(), $id: "wayfarer/vault/2" })).toEqual(["$id"]);
       expect(paths({ $id: VAULT_FILE_FORMAT })).toEqual(["vault", "secrets"]);
       expect(paths({ ...file(), vault: { v: 1, kdf: { alg: "scrypt", iterations: "many", salt: 5 }, wrappedDek: "a+b" } })).toEqual([
         "vault.v",

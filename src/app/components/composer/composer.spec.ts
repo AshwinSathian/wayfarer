@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { historyEntry, inCollection, jsonBody, rowsOf } from '../../../testing/request-fixtures';
-import { PastRequest } from '../../models/history';
+import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from '../../services/request-save';
 import { WorkspaceStore } from '../../state/workspace-store';
 import { ComposerHarness, JSON_HEADERS, jsonBytes, makeRequestDoc, meta, rows, setupComposer } from '../../../testing/composer-setup';

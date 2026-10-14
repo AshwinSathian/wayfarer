@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BinaryBody, decodeEnvelope } from "../http/response-body";
 import { cookiesFor, parseSetCookie, storeCookie, type Cookie } from "../cookies/jar";
-import { BRIDGE_PROTOCOL_MISMATCH, BridgeTransport, bridgeHealthProblem } from "./bridge";
+import { BRIDGE_MISMATCH, BridgeTransport, bridgeHealthProblem } from "./bridge";
 import { fakeFetch, never } from "./fake-fetch";
 import { TransportError } from "./transport";
 
@@ -11,7 +11,7 @@ const relay = (envelope: unknown, init: ResponseInit = { status: 200 }) =>
   fakeFetch(() => new Response(JSON.stringify(envelope), init));
 const base64 = (bytes: Uint8Array): string => btoa(String.fromCharCode(...bytes));
 const fromBase64 = (text: string): Uint8Array => Uint8Array.from(atob(text), (char) => char.charCodeAt(0));
-/** A target's response as a bridge of protocol 2 answers it. */
+/** A target's response as the bridge answers it. */
 const answer = (status: number, headers: [string, string][] = [], body: string | Uint8Array = "", statusText = "") => {
   const bytes = typeof body === "string" ? new TextEncoder().encode(body) : body;
   return { status, statusText, headers, bodyB64: base64(bytes), encodedSize: bytes.length, decodedSize: bytes.length };
@@ -39,10 +39,10 @@ describe("BridgeTransport", () => {
     expect(response.status).toBe(200);
     expect(decodeEnvelope(response)).toEqual({ ok: true });
     expect(response.route).toBe("bridge");
-    expect(calls[0].url).toBe("http://127.0.0.1:7717/v2/relay");
+    expect(calls[0].url).toBe("http://127.0.0.1:7717/relay");
     expect(calls[0].init.method).toBe("POST");
     expect(new Headers(calls[0].init.headers).get("X-Wayfarer-Bridge-Token")).toBe("test-token");
-    // Exactly the fields of protocol 2: the bridge refuses one it does not know. No body, so no `bodyB64`; no timeout, so none.
+    // Exactly the fields the bridge reads: it refuses one it does not know. No body, so no `bodyB64`; no timeout, so none.
     expect(relayed(calls[0].init)).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: [["Accept", "application/json"]] });
     // The names in lower case, as a direct response has them.
     expect(response.headers).toEqual([["content-type", "application/json"]]);
@@ -113,10 +113,10 @@ describe("BridgeTransport", () => {
     expect(error.message).toBe("invalid or missing bridge token");
   });
 
-  it("an answer that is not protocol 2's is an error, never a response made of it; and the bridge's own status is named when it sends no JSON", async () => {
+  it("an answer of another shape is an error, never a response made of it; and the bridge's own status is named when it sends no JSON", async () => {
     const send = (envelope: unknown) => new BridgeTransport(BRIDGE, relay(envelope).fetch).send({ method: "GET", url: "https://x.test/", headers: [] }, open()).catch((e: unknown) => e);
     for (const wrong of [
-      // As a bridge of protocol 1 answered.
+      // As Local Bridge 1 answered.
       { status: 200, statusText: "OK", headers: { "content-type": "text/plain" }, body: "hello", bodyEncoding: "utf8" },
       { ...answer(200), bodyB64: "not base64!" },
       { ...answer(200), bodyB64: undefined },
@@ -126,7 +126,7 @@ describe("BridgeTransport", () => {
       [answer(200)],
       null,
     ]) {
-      expect(await send(wrong)).toMatchObject({ kind: "bridge", message: BRIDGE_PROTOCOL_MISMATCH });
+      expect(await send(wrong)).toMatchObject({ kind: "bridge", message: BRIDGE_MISMATCH });
     }
 
     const down = fakeFetch(() => new Response("<html>", { status: 503 }));
@@ -134,17 +134,17 @@ describe("BridgeTransport", () => {
       await new BridgeTransport(BRIDGE, down.fetch).send({ method: "GET", url: "https://x.test/", headers: [] }, open()).catch((e: unknown) => e)
     ).toMatchObject({ kind: "bridge", status: 503, message: "The bridge answered 503." });
     const garbled = fakeFetch(() => new Response("<html>", { status: 200 }));
-    expect(await new BridgeTransport(BRIDGE, garbled.fetch).send({ method: "GET", url: "https://x.test/", headers: [] }, open()).catch((e: unknown) => e)).toMatchObject({ kind: "bridge", message: BRIDGE_PROTOCOL_MISMATCH });
+    expect(await new BridgeTransport(BRIDGE, garbled.fetch).send({ method: "GET", url: "https://x.test/", headers: [] }, open()).catch((e: unknown) => e)).toMatchObject({ kind: "bridge", message: BRIDGE_MISMATCH });
   });
 
-  it("a bridge that does not know the path of protocol 2 is an older one, and the message says to update it (P6.3)", async () => {
+  it("a bridge that does not know the path is of another version, and the message says to update it (P6.3)", async () => {
     // What Local Bridge 1.1.0 answers to a path it does not have.
     const { fetch, calls } = relay({ error: "not found" }, { status: 404 });
 
     const error = await new BridgeTransport(BRIDGE, fetch).send({ method: "POST", url: "https://x.test/", headers: [["A", "1"]], body: "secret" }, open()).catch((e: unknown) => e);
 
-    expect(error).toMatchObject({ kind: "bridge", status: 404, message: BRIDGE_PROTOCOL_MISMATCH });
-    expect(BRIDGE_PROTOCOL_MISMATCH).toContain("protocol 2");
+    expect(error).toMatchObject({ kind: "bridge", status: 404, message: BRIDGE_MISMATCH });
+    expect(BRIDGE_MISMATCH).toContain("Update the Local Bridge");
     expect(calls).toHaveLength(1);
   });
 
@@ -192,7 +192,7 @@ describe("BridgeTransport", () => {
       { method: "POST", url: "https://x.test/", headers: [], body: '{"a":"é☃"}' },
       { signal: new AbortController().signal, timeoutMs: 5000 }
     );
-    expect(calls[0].url).toBe("http://127.0.0.1:7717/v2/relay");
+    expect(calls[0].url).toBe("http://127.0.0.1:7717/relay");
     expect(new TextDecoder().decode(fromBase64(relayed(calls[0].init).bodyB64 ?? ""))).toBe('{"a":"é☃"}');
     // The bridge's deadline is the request's: without it the bridge would wait its own 30 s.
     expect(relayed(calls[0].init).timeoutMs).toBe(5000);
@@ -346,82 +346,40 @@ describe("BridgeTransport", () => {
       expect(jar()).toEqual([]);
     });
 
-    it("an answer from before the list, with Set-Cookie joined into one line, is no answer of protocol 2: nothing of it is kept", async () => {
+    it("an answer from before the list, with Set-Cookie joined into one line, is an answer of another shape: nothing of it is kept", async () => {
       let jar: string[] = [];
       const cookies = { for: () => [], store: (_url: string, headers: string[]) => void (jar = [...jar, ...headers]) };
       const { fetch } = relay({ status: 200, statusText: "", headers: { "set-cookie": "sid=abc; Expires=Wed, 14 Oct 2026 00:00:00 GMT, theme=dark" }, body: "", bodyEncoding: "utf8" });
 
-      await expect(new BridgeTransport(BRIDGE, fetch).send(request, { ...open(), cookies })).rejects.toMatchObject({ message: BRIDGE_PROTOCOL_MISMATCH });
+      await expect(new BridgeTransport(BRIDGE, fetch).send(request, { ...open(), cookies })).rejects.toMatchObject({ message: BRIDGE_MISMATCH });
       expect(jar).toEqual([]);
     });
   });
 });
 
-describe("what a request needs of the bridge beyond protocol 2's first version (P6.1, second slice)", () => {
-  const health = (capabilities: unknown, version = "2.1.0") => ({ ok: true, name: "wayfarer-bridge", version, protocol: 2, capabilities });
-  const bridge = (capabilities: unknown, reply: unknown = answer(200, [], "ok"), version?: string) =>
-    fakeFetch((call) => new Response(JSON.stringify(call.url.endsWith("/health") ? health(capabilities, version) : reply)));
-  const ALL = ["bytes", "decompression", "header-list", "timeout", "timings", "tls-insecure", "host"];
+describe("what a request asks of the bridge beyond its method, address, headers and body (P6.1)", () => {
   const GET = { method: "GET", url: "https://internal.example.com/x", headers: [] as [string, string][] };
 
-  it("a request that needs nothing new asks /health nothing and sends no new field", async () => {
-    const { fetch, calls } = bridge(ALL);
+  it("a request is one relay, with no field it does not need", async () => {
+    const { fetch, calls } = relay(answer(200, [], "ok"));
     const response = await new BridgeTransport(BRIDGE, fetch).send(GET, open());
-    expect(calls.map((call) => call.url)).toEqual(["http://127.0.0.1:7717/v2/relay"]);
+    expect(calls.map((call) => call.url)).toEqual(["http://127.0.0.1:7717/relay"]);
     expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [] });
     expect(response.tlsInsecure).toBeUndefined();
   });
 
-  it("TLS verification off: /health is read first, the request says tls.insecure, and the response says it was sent so", async () => {
-    const { fetch, calls } = bridge(ALL);
+  it("TLS verification off: the request says tls.insecure, and the response says it was sent so", async () => {
+    const { fetch, calls } = relay(answer(200, [], "ok"));
     const response = await new BridgeTransport(BRIDGE, fetch).send(GET, { ...open(), tlsInsecure: true });
-    expect(calls.map((call) => [call.init.method, call.url])).toEqual([["GET", "http://127.0.0.1:7717/health"], ["POST", "http://127.0.0.1:7717/v2/relay"]]);
-    // The health check is a request of the page's own: no token, nothing of the user's request.
-    expect(new Headers(calls[0].init.headers).get("X-Wayfarer-Bridge-Token")).toBeNull();
-    expect(calls[0].init).toMatchObject({ cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer" });
-    expect(relayed(calls[1].init)).toEqual({ method: "GET", url: GET.url, headers: [], tls: { insecure: true } });
+    expect(calls.map((call) => [call.init.method, call.url])).toEqual([["POST", "http://127.0.0.1:7717/relay"]]);
+    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [], tls: { insecure: true } });
     expect(response.tlsInsecure).toBe(true);
   });
 
-  it("Local Bridge 2.0.0 lists neither: nothing is relayed, and the message names the version and what to do", async () => {
-    const old = ["bytes", "decompression", "header-list", "timeout"];
-    const insecure = bridge(old, undefined, "2.0.0");
-    await expect(new BridgeTransport(BRIDGE, insecure.fetch).send(GET, { ...open(), tlsInsecure: true })).rejects.toThrow(
-      "Local Bridge 2.0.0 cannot switch TLS verification off for a request. Update the Local Bridge and start it again. Nothing was sent."
-    );
-    expect(insecure.calls.map((call) => call.url)).toEqual(["http://127.0.0.1:7717/health"]);
-
-    // 2.0.0 takes a Host header off without a word: the request would go to another site of the server than the user named.
-    const host = bridge(old, undefined, "2.0.0");
-    const error = await new BridgeTransport(BRIDGE, host.fetch).send({ ...GET, headers: [["hOsT", "api.internal"]] }, open()).catch((thrown: unknown) => thrown);
-    expect(error).toBeInstanceOf(TransportError);
-    expect((error as TransportError).kind).toBe("bridge");
-    expect((error as TransportError).message).toBe("Local Bridge 2.0.0 cannot send a Host header of your own. Update the Local Bridge and start it again. Nothing was sent.");
-    expect(host.calls).toHaveLength(1);
-  });
-
-  it("a Host header goes to a bridge that lists host, in the header list as written", async () => {
-    const { fetch, calls } = bridge(ALL);
+  it("a Host header goes in the header list as written", async () => {
+    const { fetch, calls } = relay(answer(200, [], "ok"));
     await new BridgeTransport(BRIDGE, fetch).send({ ...GET, headers: [["Host", "api.internal"]] }, open());
-    expect(relayed(calls[1].init)).toEqual({ method: "GET", url: GET.url, headers: [["Host", "api.internal"]] });
-  });
-
-  it("what answers /health and is no bridge of protocol 2, or lists no capabilities, is sent nothing", async () => {
-    for (const body of [{ ok: true, name: "wayfarer-local-bridge", version: "1.1.0" }, { ok: true, protocol: 2 }, { ok: true, protocol: 2, capabilities: "tls-insecure" }, { ok: true, protocol: 2, capabilities: [1] }, "no"]) {
-      const { fetch, calls } = fakeFetch(() => new Response(JSON.stringify(body)));
-      await expect(new BridgeTransport(BRIDGE, fetch).send(GET, { ...open(), tlsInsecure: true })).rejects.toBeInstanceOf(TransportError);
-      expect(calls).toHaveLength(1);
-    }
-    const { fetch } = fakeFetch(() => new Response("<html>", { status: 200 }));
-    await expect(new BridgeTransport(BRIDGE, fetch).send(GET, { ...open(), tlsInsecure: true })).rejects.toThrow("What answered at this address is not a Local Bridge.");
-  });
-
-  it("the health check is under the request's own cancel", async () => {
-    const { fetch } = fakeFetch(never);
-    const controller = new AbortController();
-    const sent = new BridgeTransport(BRIDGE, fetch).send(GET, { signal: controller.signal, timeoutMs: 0, tlsInsecure: true });
-    controller.abort();
-    await expect(sent).rejects.toMatchObject({ kind: "aborted" });
+    expect(relayed(calls[0].init)).toEqual({ method: "GET", url: GET.url, headers: [["Host", "api.internal"]] });
   });
 
   it("timings are the bridge's when each is a number of 0 or more; an answer without them, or with one that is not, has none of that phase", async () => {
@@ -435,43 +393,25 @@ describe("what a request needs of the bridge beyond protocol 2's first version (
     expect(await timed({})).toBeUndefined();
   });
 
-  it("a chain of redirects asks /health once, and every hop is sent with verification off", async () => {
+  it("every hop of a chain of redirects is sent with verification off", async () => {
     const { fetch, calls } = fakeFetch((call) => {
-      if (call.url.endsWith("/health")) return new Response(JSON.stringify(health(ALL)));
       const url = relayed(call.init).url;
       return new Response(JSON.stringify(url.endsWith("/a") ? answer(302, [["Location", "/b"]]) : answer(200, [], "end")));
     });
     const response = await new BridgeTransport(BRIDGE, fetch).send({ ...GET, url: "https://internal.example.com/a" }, { ...open(), tlsInsecure: true, redirects: { follow: true, stayOnHost: false } });
-    expect(calls.map((call) => call.url.replace("http://127.0.0.1:7717", ""))).toEqual(["/health", "/v2/relay", "/v2/relay"]);
-    expect(calls.slice(1).map((call) => (relayed(call.init) as Relayed & { tls?: unknown }).tls)).toEqual([{ insecure: true }, { insecure: true }]);
+    expect(calls.map((call) => call.url.replace("http://127.0.0.1:7717", ""))).toEqual(["/relay", "/relay"]);
+    expect(calls.map((call) => (relayed(call.init) as Relayed & { tls?: unknown }).tls)).toEqual([{ insecure: true }, { insecure: true }]);
     expect(response.tlsInsecure).toBe(true);
     expect(response.redirects?.chain).toHaveLength(1);
   });
 });
 
 describe("bridgeHealthProblem: what /health says of a bridge (P6.3)", () => {
-  it("a bridge of protocol 2 is fine", () => {
-    expect(bridgeHealthProblem({ ok: true, name: "wayfarer-bridge", version: "2.0.0", protocol: 2, capabilities: ["bytes"] })).toBeUndefined();
+  it("an answer that says ok is a bridge", () => {
+    expect(bridgeHealthProblem({ ok: true, name: "wayfarer-bridge", version: "2.3.0" })).toBeUndefined();
   });
 
-  it("Local Bridge 1.1.0 names no protocol: it is too old, and the message says its version and what to do", () => {
-    expect(bridgeHealthProblem({ ok: true, name: "wayfarer-local-bridge", version: "1.1.0" })).toBe("Local Bridge 1.1.0 is too old for this page: it speaks protocol 1, and the page speaks protocol 2. Update the Local Bridge and start it again.");
-    expect(bridgeHealthProblem({ ok: true, version: "1.9.0", protocol: 1 })).toContain("is too old for this page");
-  });
-
-  it("a bridge of a later protocol is too new: the page is what to update", () => {
-    expect(bridgeHealthProblem({ ok: true, version: "3.0.0", protocol: 3 })).toBe("Local Bridge 3.0.0 is newer than this page: it speaks protocol 3, and the page speaks protocol 2. Reload Wayfarer to get its current version.");
-  });
-
-  it("what is no health answer is said to be none, and a version that is no version is not repeated", () => {
-    for (const wrong of [null, [], "ok", 7, {}, { ok: false, version: "2.0.0", protocol: 2 }]) expect(bridgeHealthProblem(wrong)).toBe("What answered at this address is not a Local Bridge.");
-    expect(bridgeHealthProblem({ ok: true, version: "<b>9</b>", protocol: 1 })).toMatch(/^Local Bridge \(version not given\) is too old/);
-    expect(bridgeHealthProblem({ ok: true, version: "2.0.0", protocol: "2" })).toContain("it speaks protocol 1");
-    // A long run of digits is not searched for a version (CodeQL #33): it is read in a moment and not repeated.
-    const started = Date.now();
-    expect(bridgeHealthProblem({ ok: true, version: `1.1.${"1".repeat(200_000)}!`, protocol: 1 })).toMatch(/^Local Bridge \(version not given\)/);
-    expect(Date.now() - started).toBeLessThan(200);
-    expect(bridgeHealthProblem({ ok: true, version: "2.0.0-beta.1+build.7", protocol: 3 })).toContain("Local Bridge 2.0.0-beta.1+build.7 is newer");
+  it("what is no health answer is said to be none", () => {
+    for (const wrong of [null, [], "ok", 7, {}, { ok: false, version: "2.0.0" }, { ok: "true" }]) expect(bridgeHealthProblem(wrong)).toBe("What answered at this address is not a Local Bridge.");
   });
 });
-

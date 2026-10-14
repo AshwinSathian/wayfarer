@@ -30,8 +30,8 @@ wayfarer-cli run <file> [options]
 
 `<file>` is any of:
 
-- a Wayfarer collection (**Export** of a collection, `"$id": "wayfarer/collection/3"`);
-- a Wayfarer workspace backup (Settings, **Backup**, `"$id": "wayfarer/workspace/3"`):
+- a Wayfarer collection (**Export** of a collection, `"$id": "wayfarer/collection"`);
+- a Wayfarer workspace backup (Settings, **Backup**, `"$id": "wayfarer/workspace"`):
   its active environment, its globals and its vault come with it, and a
   backup that holds several collections needs `--collection <name>`;
 - a Postman collection (v2.0 or v2.1), an Insomnia export or an OpenAPI

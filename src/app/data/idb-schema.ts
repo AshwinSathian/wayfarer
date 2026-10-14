@@ -2,15 +2,12 @@ import { DBSchema } from "idb";
 import { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY, type Cookie, type RequestContent, type Row, type VaultRecord } from "@wayfarer/core";
 import {
   Collection,
-  CollectionId,
   Folder,
-  FolderId,
   RequestDoc,
-  RequestDocId,
 } from "../models/collections";
-import { EnvironmentDoc, EnvironmentId } from "../models/environments";
-import { PastRequest, PastRequestKey } from "../models/history";
-import { SecretDoc, SecretId } from "../models/secrets";
+import { EnvironmentDoc } from "@wayfarer/core";
+import { PastRequest } from "@wayfarer/core";
+import { SecretDoc } from "../models/secrets";
 
 /**
  * The IndexedDB schema shape shared by `IdbCore` and every
@@ -20,7 +17,7 @@ import { SecretDoc, SecretId } from "../models/secrets";
  * `idb-core.ts`/`idb-migrations.ts`.
  */
 
-export type HistoryRecord = PastRequest & { id: PastRequestKey };
+export type HistoryRecord = PastRequest & { id: number };
 
 export type StoreName =
   | "history"
@@ -60,9 +57,9 @@ export interface StoredTab {
   /** The draft as it was when the tab was opened, loaded or saved, as JSON: a tab whose draft differs is unsaved. */
   baseline: string;
   /** The saved request the tab is bound to. */
-  requestId?: RequestDocId;
+  requestId?: string;
   /** The history entry of the tab's last send, or the one it was opened from. */
-  historyKey?: PastRequestKey;
+  historyKey?: number;
   /** The SHA-256 of each script of the draft that was allowed to run when the tab was stored (plan D6). */
   scripts: string[];
 }
@@ -78,8 +75,7 @@ export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY };
 
 export interface MetaState {
   key: typeof META_STATE_KEY;
-  schemaVersion: number;
-  activeEnvironmentId?: EnvironmentId | null;
+  activeEnvironmentId?: string | null;
 }
 
 /** The global variables: one record, so a change to them is one read and one write in one transaction. */
@@ -91,19 +87,16 @@ export interface GlobalsRecord {
 /** The vault: how its passphrase key is derived, and the data key wrapped under it. Absent until a passphrase is chosen. */
 export type VaultRecordDoc = VaultRecord & { key: typeof META_VAULT_KEY };
 
-/** What an upgrade removed, for the notice the shell shows once: "all", or the stores it emptied that held something. */
-export type RemovedData = "all" | ("secrets" | "history" | "collections")[];
-
 export interface ApiSandboxDB extends DBSchema {
   history: {
-    key: PastRequestKey;
+    key: number;
     value: HistoryRecord;
     indexes: {
       "by-createdAt": number;
     };
   };
   collections: {
-    key: CollectionId;
+    key: string;
     value: Collection;
     indexes: {
       "by-order": number;
@@ -111,25 +104,25 @@ export interface ApiSandboxDB extends DBSchema {
     };
   };
   folders: {
-    key: FolderId;
+    key: string;
     value: Folder;
     indexes: {
-      "by-collectionId": CollectionId;
-      "by-parentFolderId": FolderId;
+      "by-collectionId": string;
+      "by-parentFolderId": string;
       "by-order": number;
     };
   };
   requests: {
-    key: RequestDocId;
+    key: string;
     value: RequestDoc;
     indexes: {
-      "by-collectionId": CollectionId;
-      "by-folderId": FolderId;
+      "by-collectionId": string;
+      "by-folderId": string;
       "by-order": number;
     };
   };
   environments: {
-    key: EnvironmentId;
+    key: string;
     value: EnvironmentDoc;
     indexes: {
       "by-name": string;
@@ -137,10 +130,10 @@ export interface ApiSandboxDB extends DBSchema {
     };
   };
   secrets: {
-    key: SecretId;
+    key: string;
     value: SecretDoc;
     indexes: {
-      "by-environmentId": EnvironmentId;
+      "by-environmentId": string;
       "by-name": string;
     };
   };
@@ -168,4 +161,3 @@ export interface ApiSandboxDB extends DBSchema {
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
 export const DB_VERSION = 13;
-export const DEFAULT_SCHEMA_VERSION = 1;

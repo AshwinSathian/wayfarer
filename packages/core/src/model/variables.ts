@@ -17,6 +17,11 @@ export interface VariableChange {
 /** A protected variable's value: one reference to a vault secret and nothing else. */
 export const SECRET_REFERENCE = /^\s*\{\{\s*\$secret\.[a-z0-9-]+\s*\}\}\s*$/i;
 
+/** The secret a protected variable stands for: its value is one reference and nothing else. `null` for any other value. */
+export function protectedSecretId(value: string | undefined): string | null {
+  return value?.match(/^\s*\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}\s*$/i)?.[1] ?? null;
+}
+
 /**
  * The rows with the changes applied. A set replaces every row of that name
  * with one enabled row, where the first of them stood, or adds a row at the

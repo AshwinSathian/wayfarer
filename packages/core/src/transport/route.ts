@@ -1,6 +1,16 @@
 import { browserLimits, type LimitsRequest } from "../browser/browser-limits";
 import type { Route } from "../model/request";
 
+/** How one request is routed (P6.4). */
+export interface RoutePolicy {
+  /** The request's route, its collection's or the device's (`routeOf`). */
+  route: Route;
+  /** Asked when `auto` would send again a request the browser may have sent (D7). Without it, the failure stands. */
+  ask?: () => Promise<boolean>;
+  /** Set by the sender: where the request went last, the route of a failure too. */
+  took?: "direct" | "bridge";
+}
+
 /** The route a request is sent by: its own, else its collection's, else the device's. Absent is "inherit". */
 export function routeOf(request: Route | undefined, collection: Route | undefined, device: Route): Route {
   return request ?? collection ?? device;

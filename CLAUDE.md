@@ -97,7 +97,7 @@ code errors.
   relay of its own when the caller asks (`TransportOptions.redirects`, at
   most `MAX_REDIRECTS`) and lists them in `ResponseEnvelope.redirects`;
   `nextHop` (`packages/core/src/transport/redirect.ts`) is the rule for a
-  hop. `RequestExecutor` sets `stayOnHost` for a request with anything in
+  hop. `exchange` sets `stayOnHost` for a request with anything in
   `BuiltRequest.secrets` (claim C-063): keep it for every send that is
   built with the vault. A `Location` is read as an address, as the server
   wrote it, and never goes through the resolver. Do not move the following
@@ -124,12 +124,22 @@ code errors.
   (`TransportOptions.cookies`), reading `Set-Cookie` from the bridge's
   list of headers, one entry each. `CookieJar.store` has the
   cookies in the page before it returns: the next hop asks at once.
-  `RequestExecutor` is the one that hands the jar to a transport: each
+  `exchange` is the one that hands the jar to a transport: each
   value that went out is a credential to the redactor (`cookieValues`), a
   cookie that names a secret's reference is left out (C-007), and a cookie
   whose value holds a vault secret of the request is never written to the
   store. A cookie's value is never a template. `pm.cookies` stays
   unsupported (maintainer, 2026-10-13): a script is not given the jar.
+- One road sends a request (P6.5): `exchange`
+  (`packages/core/src/send/exchange.ts`) runs the scripts, stores what they
+  set, has the request built, checks the wire (C-007), sends it by its
+  route, runs the assertions and masks what history keeps; `buildRequest`
+  (`send/build.ts`) replaces the variables, reads the vault, asks C-053's
+  question, applies the auth and signs. Each takes what is not its own as
+  ports. The app's are `RequestExecutor` and `WorkspaceStore`'s
+  `buildRequestForExecution`; the CLI's are its own. A change to how a
+  request is sent goes into core, so both get it: do not add a step to one
+  adapter.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the
@@ -531,14 +541,14 @@ code errors.
   script can replace `String` or `JSON` under the bootstrap. No handle of a
   script's object is read by the host; write it out as text in the VM.
 - `pm.sendRequest` is not a network call of the script: the worker asks
-  the page (`ScriptSandbox`), and `RequestExecutor.sendForScript` sends it
+  the page (`ScriptSandbox`), and `exchange`'s `sendForScript` sends it
   through `TransportRouter` like the user's own request, after the same
   `containsSecretPlaceholder` check (C-007). Nothing else may make a
   request for a script, and the escape suite counts them. Do not describe
   that check as keeping secrets from scripts: an approved pre-request
   script can change the user's own request (`pm.request`, or a variable),
   which is built with its secrets. `ScriptTrust` is the control (D6, Q6).
-- A send with scripts goes in this order, in `RequestExecutor.execute`:
+- A send with scripts goes in this order, in `exchange`:
   pre-request script, its variable changes stored, the request built (and
   only then the vault read), sent, post-response script. A pre-request
   script that ends in an error stops there (`PreRequestScriptError`):
@@ -566,7 +576,7 @@ code errors.
   the docs say what that misses: do not word it as more.
 - A script's `set` on a protected variable (its value is one
   `{{$secret.<id>}}` reference) is encrypted into that secret by
-  `RequestExecutor.intoVault` and is left out of the changes that are
+  `exchange`'s `intoVault` and is left out of the changes that are
   stored. A locked vault refuses with a console line; it does not prompt.
   A new way for a script to write a value goes through `applyChanges`,
   which marks every change `keepSecret`: `applyVariableChanges` then never
@@ -724,7 +734,7 @@ code errors.
 - `BuiltRequest.secrets` and `.credentials` are what the redactor looks
   for. A new way to put a credential into a request adds its value there.
 - AWS Signature (`signV4`, `packages/core/src/auth/sigv4.ts`) is applied
-  last, in `WorkspaceStore.sign`: it signs the address, the headers and the
+  last, in `buildRequest`'s `sign`: it signs the address, the headers and the
   body's bytes as they will be sent. Nothing may change the request after
   it. It signs `Host`, its own headers, `Content-Type` and `x-amz-*` only:
   a browser adds headers the app does not write. A multipart form is

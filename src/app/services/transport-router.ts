@@ -7,20 +7,11 @@ import {
   type ResolvedRequest,
   type ResponseEnvelope,
   type Route,
+  type RoutePolicy,
   type Transport,
   type TransportOptions,
 } from "@wayfarer/core";
 import { BridgeSettings } from "./bridge-settings";
-
-/** How one request is routed (P6.4). */
-export interface RoutePolicy {
-  /** The request's route, its collection's or the device's (`routeOf`). */
-  route: Route;
-  /** Asked when `auto` would send again a request the browser may have sent (D7). Without it, the failure stands. */
-  ask?: () => Promise<boolean>;
-  /** Set by `send`: where the request went last, the route of a failure too. */
-  took?: "direct" | "bridge";
-}
 
 /**
  * Sends a request by its route: straight from the page, through the Local

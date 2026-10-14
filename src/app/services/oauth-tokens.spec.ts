@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "../data/idb";
 import { OAuthTokens } from "./oauth-tokens";
 import { SecretsVault } from "./secrets-vault";
-import { TransportRouter, type RoutePolicy } from "./transport-router";
+import type { RoutePolicy } from "@wayfarer/core";
+import { TransportRouter } from "./transport-router";
 
 const auth = (patch: Partial<OAuth2Auth> = {}): OAuth2Auth => ({ ...(emptyAuth("oauth2") as OAuth2Auth), grant: "client_credentials", tokenUrl: "https://idp.test/token", authUrl: "https://idp.test/authorize", clientId: "client", clientSecret: "secret", ...patch });
 const form = (request: ResolvedRequest) => Object.fromEntries(new URLSearchParams(String(request.body)));

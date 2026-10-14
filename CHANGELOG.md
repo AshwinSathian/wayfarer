@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed (the road a request takes)
+
+- **How a request is sent now lives in the shared engine**, so that the
+  command-line runner, coming next, sends exactly as the app does: the
+  scripts in their order, what they set, the vault, the check that no
+  secret's placeholder reaches the network, the route, the assertions, and
+  what history keeps. Nothing you see in the app changes; before, this was
+  part of the app alone and a second runner would have had to copy it.
+
 ### Added (routes)
 
 - **A route for every request: Direct, Local Bridge or Auto.** A request

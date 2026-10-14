@@ -1,15 +1,8 @@
-import { TestBed } from "@angular/core/testing";
-import { AssertionRunner, AssertionResponseContext } from "./assertion-runner";
-import { TestAssertion } from "../../models/test-assertion";
-import { describe, it, beforeEach, expect } from "vitest";
+import { describe, it, expect } from "vitest";
+import type { TestAssertion } from "../model/request";
+import { runAssertions, type AssertionResponseContext } from "./assertions";
 
-describe("AssertionRunner", () => {
-  let service: AssertionRunner;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [AssertionRunner] });
-    service = TestBed.inject(AssertionRunner);
-  });
+describe("runAssertions", () => {
 
   function assertion(overrides: Partial<TestAssertion>): TestAssertion {
     return {
@@ -24,7 +17,7 @@ describe("AssertionRunner", () => {
   describe("target resolution", () => {
     it("reads the response status code", () => {
       const response: AssertionResponseContext = { statusCode: 404, body: null, headers: {} };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "status", operator: "equals", expected: "404" })],
         response
       );
@@ -34,7 +27,7 @@ describe("AssertionRunner", () => {
 
     it("reads response duration, defaulting to 0 when not provided", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "duration", operator: "equals", expected: "0" })],
         response
       );
@@ -48,7 +41,7 @@ describe("AssertionRunner", () => {
         body: null,
         headers: { "Content-Type": "application/json" },
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [
           assertion({
             target: "header",
@@ -65,7 +58,7 @@ describe("AssertionRunner", () => {
 
     it("returns undefined for a header that isn't present", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "header", key: "X-Missing", operator: "not-exists" })],
         response
       );
@@ -79,7 +72,7 @@ describe("AssertionRunner", () => {
         body: JSON.stringify({ data: { items: [{ id: 42 }] } }),
         headers: {},
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [
           assertion({
             target: "body",
@@ -100,7 +93,7 @@ describe("AssertionRunner", () => {
         body: { name: "widget" },
         headers: {},
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "body", key: "name", operator: "equals", expected: "widget" })],
         response
       );
@@ -113,7 +106,7 @@ describe("AssertionRunner", () => {
         body: { ok: true },
         headers: {},
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "body", operator: "is-object" })],
         response
       );
@@ -127,7 +120,7 @@ describe("AssertionRunner", () => {
         body: "not json",
         headers: {},
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "body", operator: "equals", expected: "not json" })],
         response
       );
@@ -139,13 +132,13 @@ describe("AssertionRunner", () => {
     const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
 
     it("@claim:C-021 equals / not-equals coerce numeric and boolean-looking strings before comparing", () => {
-      const [eq] = service.run(
+      const [eq] = runAssertions(
         [assertion({ target: "status", operator: "equals", expected: "200" })],
         response
       );
       expect(eq.passed).toBe(true);
 
-      const [neq] = service.run(
+      const [neq] = runAssertions(
         [assertion({ target: "status", operator: "not-equals", expected: "201" })],
         response
       );
@@ -153,13 +146,13 @@ describe("AssertionRunner", () => {
     });
 
     it("@claim:C-021 contains / not-contains do substring matching on stringified values", () => {
-      const [contains] = service.run(
+      const [contains] = runAssertions(
         [assertion({ target: "status", operator: "contains", expected: "0" })],
         response
       );
       expect(contains.passed).toBe(true);
 
-      const [notContains] = service.run(
+      const [notContains] = runAssertions(
         [assertion({ target: "status", operator: "not-contains", expected: "9" })],
         response
       );
@@ -172,13 +165,13 @@ describe("AssertionRunner", () => {
         body: null,
         headers: { "X-Present": "yes" },
       };
-      const [exists] = service.run(
+      const [exists] = runAssertions(
         [assertion({ target: "header", key: "X-Present", operator: "exists" })],
         withHeader
       );
       expect(exists.passed).toBe(true);
 
-      const [notExists] = service.run(
+      const [notExists] = runAssertions(
         [assertion({ target: "header", key: "X-Absent", operator: "not-exists" })],
         withHeader
       );
@@ -191,13 +184,13 @@ describe("AssertionRunner", () => {
         body: [1, 2, 3],
         headers: {},
       };
-      const [isArray] = service.run(
+      const [isArray] = runAssertions(
         [assertion({ target: "body", operator: "is-array" })],
         arrayResponse
       );
       expect(isArray.passed).toBe(true);
 
-      const [notObject] = service.run(
+      const [notObject] = runAssertions(
         [assertion({ target: "body", operator: "is-object" })],
         arrayResponse
       );
@@ -211,19 +204,19 @@ describe("AssertionRunner", () => {
         headers: {},
         durationMs: 150,
       };
-      const [lt] = service.run(
+      const [lt] = runAssertions(
         [assertion({ target: "duration", operator: "less-than", expected: "200" })],
         durationResponse
       );
       expect(lt.passed).toBe(true);
 
-      const [gt] = service.run(
+      const [gt] = runAssertions(
         [assertion({ target: "duration", operator: "greater-than", expected: "100" })],
         durationResponse
       );
       expect(gt.passed).toBe(true);
 
-      const [ltOnString] = service.run(
+      const [ltOnString] = runAssertions(
         [assertion({ target: "header", key: "x", operator: "less-than", expected: "5" })],
         durationResponse
       );
@@ -238,7 +231,7 @@ describe("AssertionRunner", () => {
         body: "just a string",
         headers: {},
       };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "body", key: "deep.path", operator: "exists" })],
         response
       );
@@ -251,7 +244,7 @@ describe("AssertionRunner", () => {
 
     it("reads a body path from the body's own keys only (F63)", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: { name: "widget" }, headers: {} };
-      const results = service.run(
+      const results = runAssertions(
         ["constructor", "toString", "__proto__"].map((key) => assertion({ target: "body", key, operator: "exists" })),
         response
       );
@@ -260,7 +253,7 @@ describe("AssertionRunner", () => {
 
     it("builds a human-readable label from target/operator/expected", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [
           assertion({
             target: "header",
@@ -276,7 +269,7 @@ describe("AssertionRunner", () => {
 
     it("omits the expected value from the label for operators that don't need one", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = service.run(
+      const [result] = runAssertions(
         [assertion({ target: "status", operator: "exists" })],
         response
       );
@@ -285,7 +278,7 @@ describe("AssertionRunner", () => {
 
     it("runs a batch of assertions and returns one result per assertion, in order", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const results = service.run(
+      const results = runAssertions(
         [
           assertion({ target: "status", operator: "equals", expected: "200" }),
           assertion({ target: "status", operator: "equals", expected: "500" }),

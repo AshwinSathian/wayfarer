@@ -7,6 +7,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Run pressed just after choosing a data file waits for the file. The run
+  used to go once, without the file, when the file was still being read.
+
 ### Added
 
 - Settings → Diagnostics: the version and the commit, the browser, storage,

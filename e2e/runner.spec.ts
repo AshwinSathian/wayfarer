@@ -200,6 +200,25 @@ test("@claim:C-065 the command line runs the P5.2 collection and data file to th
   }
 });
 
+// C-065 failed once in CI Firefox: Run was pressed while the data file chosen just before was still being read,
+// and the run went once, without it. Run waits for the file.
+test("Run pressed in the moment a data file is chosen waits for the file, and runs once per row", async ({ page }) => {
+  await seedCollection(page, fixtureRequests(), { base: ECHO, role: "from the environment" });
+  const view = await openRun(page);
+  const csv = readFileSync(join(FIXTURES, "data.csv"), "utf8");
+  // The file is given and Run is pressed in one task: no moment for the file to be read in between.
+  await page.evaluate((text) => {
+    const input = document.querySelector<HTMLInputElement>('input[aria-label="Data file for the run"]')!;
+    const files = new DataTransfer();
+    files.items.add(new File([text], "data.csv", { type: "text/csv" }));
+    input.files = files.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    [...document.querySelectorAll<HTMLButtonElement>("app-run-view button")].find((button) => button.textContent?.trim() === "Run")!.click();
+  }, csv);
+  await expect(status(view)).toContainText("The run is complete.", { timeout: 60_000 });
+  await expect(resultRows(view)).toHaveCount(15);
+});
+
 test("Cancel stops a run within one request", async ({ page }) => {
   await seedCollection(page, [
     { name: "Quick", url: `${ECHO}/echo?n=1` },

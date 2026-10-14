@@ -211,11 +211,48 @@ npm view wayfarer-cli    dist-tags maintainers
 
 These are the P0.13 checks: `npm view … maintainers` lists the maintainer account.
 
-### Notes for the first real release (P6.6)
+### The first release (P6.6)
 
-- Publish from CI with **trusted publishing**: npmjs.com → package → Settings → Trusted Publisher → GitHub Actions, repository `AshwinSathian/wayfarer`, workflow `release.yml`. CI then publishes through OIDC, with no stored token, and gets a provenance attestation automatically. The package has to exist before a trusted publisher can be added, which is one more reason to reserve now. At that point, change `mfa=publish` to the setting the npm docs recommend for trusted publishing.
-- After the real release: `npm deprecate wayfarer-bridge@0.0.0-reserved "placeholder; use the latest release"`, and the same for `wayfarer-cli`.
-- Don't unpublish the placeholders. npm allows unpublishing only within 72 hours, and an unpublished name can't be reused for 24 hours, which is a window for a squatter.
+`.github/workflows/release.yml` publishes a package when a tag names it:
+`bridge-v<version>` for `wayfarer-bridge`, `cli-v<version>` for
+`wayfarer-cli`. It checks that the tag is the package's version, runs the
+package's tests, installs the tarball into an empty folder and runs it, and
+publishes through npm's **trusted publishing**: no token is stored, and npm
+attaches a provenance attestation of the run. Once, before the first tag:
+
+1. Reserve the names (above), if that was not done.
+2. On npmjs.com, for each package: Settings → Trusted Publisher → GitHub
+   Actions, repository `AshwinSathian/wayfarer`, workflow `release.yml`,
+   environment `npm`. Then set the package's publishing access to the one the
+   npm docs recommend with a trusted publisher (tokens not allowed).
+3. In the repository's settings, Environments: create `npm`, and give it a
+   required reviewer if a publish should wait for a click.
+
+Then, for each release, from `main` after the release PR is merged:
+
+```sh
+git tag bridge-v2.2.0 && git push origin bridge-v2.2.0
+git tag cli-v1.0.0 && git push origin cli-v1.0.0
+```
+
+Check, from a machine that has never had them:
+
+```sh
+npx wayfarer-bridge --help        # prints the bridge's usage
+npx wayfarer-cli --version        # prints 1.0.0
+```
+
+and that each package's page on npmjs.com shows the provenance badge. After
+the first real release only:
+
+```sh
+npm deprecate wayfarer-bridge@0.0.0-reserved "placeholder; use the latest release"
+npm deprecate wayfarer-cli@0.0.0-reserved "placeholder; use the latest release"
+```
+
+Don't unpublish the placeholders. npm allows unpublishing only within 72
+hours, and an unpublished name can't be reused for 24 hours, which is a
+window for a squatter.
 
 ## Service worker
 

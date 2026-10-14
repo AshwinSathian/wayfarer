@@ -30,6 +30,7 @@ const GOOD = {
   "docs/x.md": "Secrets are encrypted. <!-- claim:C-002 -->\n",
   "e2e/a.spec.ts": 'test("@claim:C-001 no third-party requests", async () => {});\n',
   "src/app/x.spec.ts": "it('encrypts @claim:C-002', () => {});\n",
+  "docs/threat-model.md": "| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n| Page and network | I | Telemetry | None is sent | C-001 |\n",
 };
 
 test("parseLedger reads ID, source and test columns", () => {
@@ -51,6 +52,18 @@ test("testTitles finds the title of a table-driven test, which follows the table
 
 test("a consistent tree has no errors", () => {
   assert.deepEqual(checkClaims(fixture(GOOD)), []);
+});
+
+test("the threat model must exist (P7.4)", () => {
+  const { ["docs/threat-model.md"]: _, ...without } = GOOD;
+  assert.match(checkClaims(fixture(without)).join("\n"), /docs\/threat-model\.md is missing/);
+});
+
+test("a threat model row with no claim, or a claim with no ledger row, fails (P7.4)", () => {
+  const model = (row) => ({ ...GOOD, "docs/threat-model.md": `| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n${row}\n` });
+  assert.match(checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | |"))).join("\n"), /threat-model\.md: the row "Page and bridge \/ S" links no claim/);
+  assert.match(checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | C-009 |"))).join("\n"), /threat-model\.md: the row "Page and bridge \/ S" links C-009, which has no row/);
+  assert.deepEqual(checkClaims(fixture(model("| Page and bridge | S, T | Another site | Origin check | C-001, C-002 |"))), []);
 });
 
 test("a doc marker with no ledger row fails", () => {

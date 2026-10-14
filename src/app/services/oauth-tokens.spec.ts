@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "../data/idb";
 import { OAuthTokens } from "./oauth-tokens";
 import { SecretsVault } from "./secrets-vault";
-import { TransportRouter } from "./transport-router";
+import { TransportRouter, type RoutePolicy } from "./transport-router";
 
 const auth = (patch: Partial<OAuth2Auth> = {}): OAuth2Auth => ({ ...(emptyAuth("oauth2") as OAuth2Auth), grant: "client_credentials", tokenUrl: "https://idp.test/token", authUrl: "https://idp.test/authorize", clientId: "client", clientSecret: "secret", ...patch });
 const form = (request: ResolvedRequest) => Object.fromEntries(new URLSearchParams(String(request.body)));
@@ -60,7 +60,9 @@ describe("OAuthTokens", () => {
           provide: TransportRouter,
           useValue: {
             route: () => route,
-            send: async (request: ResolvedRequest) => {
+            // As the router does: the policy says where the request went (P6.4).
+            send: async (request: ResolvedRequest, _options: unknown, policy: RoutePolicy) => {
+              policy.took = route;
               sent.push(request);
               const next = answers.shift();
               if (!next) throw new Error("a token request nobody expected");

@@ -1,8 +1,8 @@
 <p class="cookies-route type-footnote text-label-secondary mb-3" role="note">
-  @if (bridgeOn()) {
-  The Local Bridge is on: a cookie a response sets is kept here and sent with later requests to its domain and path, as a browser would.
+  @if (route() === 'bridge') {
+  The Local Bridge is the route: a cookie a response sets is kept here and sent with later requests to its domain and path, as a browser would.
   } @else {
-  The jar is for requests sent through the Local Bridge, which is off. Sent directly, a request carries no cookie and the browser keeps none of a response for the app: a page cannot read or fill the browser's own jar.
+  The jar is for requests sent through the Local Bridge{{ route() === 'auto' ? ': with the route Auto, those the browser got no answer to' : ', and the route is Direct' }}. Sent directly, a request carries no cookie and the browser keeps none of a response for the app: a page cannot read or fill the browser's own jar.
   }
 </p>
 

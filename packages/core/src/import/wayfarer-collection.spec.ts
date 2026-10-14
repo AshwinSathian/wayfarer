@@ -201,6 +201,21 @@ describe("collection-io", () => {
     }
   });
 
+  it("takes a collection's route (P6.4), and refuses one the app does not write", () => {
+    const file = (route: unknown) => ({
+      $id: "wayfarer/collection/3",
+      meta: meta("m"),
+      collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1, variables: [], ...inCollection, route },
+      folders: [],
+      requests: [],
+    });
+
+    expect(validateCollection(file("bridge")).ok).toBe(true);
+    expect(validateCollection(file("proxy")).errors?.map((e) => e.path)).toEqual(["collection.route"]);
+    const { route: _none, ...without } = file(undefined).collection;
+    expect(validateCollection({ ...file(undefined), collection: without }).ok).toBe(true);
+  });
+
   it("rejects a request whose method is not one of the HTTP verbs the app sends", () => {
     const result = validateCollection({
       $id: "wayfarer/collection/3",

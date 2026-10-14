@@ -83,6 +83,8 @@ export class TabState {
   readonly responseRedirects = signal<ResponseEnvelope["redirects"]>(undefined);
   /** The last response was got with the server's certificate not verified. Not stored. */
   readonly responseTlsInsecure = signal(false);
+  /** Where the response came from (P6.4's badge); null with no response. */
+  readonly responseRoute = signal<"direct" | "bridge" | null>(null);
   readonly responseContentType = signal("");
   readonly responseHeadersLimited = signal(false);
   readonly responseExportContext = signal<ResponseExportContext | null>(null);
@@ -157,6 +159,7 @@ export class TabState {
     this.responseRedirectedTo.set(undefined);
     this.responseRedirects.set(undefined);
     this.responseTlsInsecure.set(false);
+    this.responseRoute.set(null);
     this.responseContentType.set("");
     this.responseHeadersLimited.set(false);
     this.responseTab.set("body");

@@ -89,6 +89,18 @@ describe("CollectionsStore with real storage", () => {
     expect(names()).toEqual(["Users", "Payments"]);
   });
 
+  it("keeps a collection's route with its settings, writes it to the file, and takes it out again (P6.4)", async () => {
+    const collection = await service.createCollection({ name: "Billing" });
+    const settings = { auth: { type: "none" as const }, scripts: { pre: "", post: "" } };
+
+    await service.saveInherited({ collectionId: collection.meta.id }, { ...settings, route: "bridge" }, true);
+    expect(service.tree()[0].collection.route).toBe("bridge");
+    expect(JSON.parse((await service.exportCollectionJson(collection.meta.id))!).collection.route).toBe("bridge");
+
+    await service.saveInherited({ collectionId: collection.meta.id }, settings, true);
+    expect("route" in service.tree()[0].collection).toBe(false);
+  });
+
   it("exports a collection and imports the file back, as the original or as a copy", async () => {
     const billing = await service.createCollection({ name: "Billing" });
     await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });

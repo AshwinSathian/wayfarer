@@ -104,6 +104,19 @@ code errors.
   into the bridge: the page decides where a request may go, and the page
   holds what the next hop needs (P5.3's cookies). The chain is the tab's
   (`TabState.responseRedirects`) and is not stored.
+- Routes (P6.4): a request goes by `routeOf` (`@wayfarer/core`): its own
+  `settings.route`, else its collection's `route`, else the device's
+  (`BridgeSettings.config().route`, default `auto`). Absent is inherit.
+  `WorkspaceStore` hands it to the executor with the question a send may
+  ask (`askRoute`), and the executor hands `TransportRouter.send` a
+  `RoutePolicy`, which says back where the request went (`took`). `auto`
+  sends from the page and, after a `network` failure only (not a timeout,
+  not a stop) and with a bridge token in the tab or the vault, asks
+  `afterDirectSend` (D7): through the bridge at once when a preflight was
+  needed or the method is GET, HEAD or OPTIONS, otherwise only on a yes. A
+  response is never sent again (claim C-064). A script's request and a
+  token request have no one to ask: give them no `ask`. Each response
+  carries its route to the badge (`TabState.responseRoute`).
 - Cookies (P5.3): the jar is `CookieJar` (`src/app/services/cookie-jar.ts`)
   over the rules of `packages/core/src/cookies/jar.ts` (RFC 6265, no public
   suffix list), kept in the `cookies` store. It is for the Local Bridge

@@ -18,7 +18,7 @@ describe("BrowserNotes (P2.14)", () => {
   };
   const text = (element: HTMLElement, selector: string) => element.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim();
 
-  const settings = signal<{ followRedirects?: boolean; tlsInsecure?: boolean }>({});
+  const settings = signal<{ followRedirects?: boolean; tlsInsecure?: boolean; route?: "auto" | "direct" | "bridge" }>({});
   const setFollowRedirects = vi.fn();
   const setTlsInsecure = vi.fn();
 
@@ -27,8 +27,22 @@ describe("BrowserNotes (P2.14)", () => {
     setFollowRedirects.mockClear();
     TestBed.configureTestingModule({
       imports: [BrowserNotes],
-      providers: [{ provide: WorkspaceStore, useValue: { browserLimits: limits, draft: () => ({ settings: settings() }), setFollowRedirects, setTlsInsecure } }],
+      providers: [{ provide: WorkspaceStore, useValue: { browserLimits: limits, draft: () => ({ settings: settings() }), inheritedRoute: () => "auto", setFollowRedirects, setTlsInsecure, setRoute: vi.fn() } }],
     });
+  });
+
+  it("shows the request's route: the one it inherits, and what it is now, until it names its own (P6.4)", async () => {
+    const fixture = TestBed.createComponent(BrowserNotes);
+    const shown = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return text(fixture.nativeElement as HTMLElement, ".request-route .mat-mdc-select-value");
+    };
+    expect(await shown()).toBe("Inherit: Auto");
+
+    settings.set({ route: "direct" });
+    expect(await shown()).toBe("Direct");
   });
 
   it("offers Follow redirects, on unless the request says no, and says what each route does with it (P5.4)", () => {

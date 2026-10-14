@@ -243,7 +243,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByText("Sweep", { exact: true }).click({ button: "right" });
     await page.getByRole("menuitem", { name: "Settings" }).click();
     const settings = page.getByRole("dialog", { name: /^Collection settings/ });
-    for (const tab of ["Auth", "Variables", "Scripts"]) {
+    for (const tab of ["Auth", "Variables", "Scripts", "Route"]) {
       await settings.getByRole("tab", { name: tab }).click();
       await scan(`collection settings ${tab}`);
     }

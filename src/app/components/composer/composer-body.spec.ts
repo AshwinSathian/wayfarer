@@ -59,11 +59,11 @@ describe('Composer: methods and body modes', () => {
       for (const method of ['CONNECT', 'trace', 'TRACK']) {
         view.onRequestMethodChange(method);
         await component.sendRequest();
-        expect(store.endpointError()).toBe(`Browsers do not send ${method.toUpperCase()} requests. Turn on the Local Bridge to send one.`);
+        expect(store.endpointError()).toBe(`Browsers do not send ${method.toUpperCase()} requests. Choose the route Local Bridge to send one.`);
       }
 
       // Through the bridge the request is made: the bridge is not a browser.
-      TestBed.inject(BridgeSettings).config.set({ enabled: true, url: 'http://127.0.0.1:7717', token: 't'.repeat(16) });
+      TestBed.inject(BridgeSettings).config.set({ route: 'bridge', url: 'http://127.0.0.1:7717', token: 't'.repeat(16) });
       view.onRequestMethodChange('TRACE');
       const pending = component.sendRequest();
       const relay = await vi.waitFor(() => httpMock.expectOne('http://127.0.0.1:7717/v2/relay'));

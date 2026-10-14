@@ -28,7 +28,8 @@ export class CookiesPane {
   protected readonly cookies = computed(() =>
     [...this.jar.cookies()].sort((a, b) => a.domain.localeCompare(b.domain) || a.path.localeCompare(b.path) || a.name.localeCompare(b.name))
   );
-  protected readonly bridgeOn = computed(() => this.transport.route() === "bridge");
+  /** The device's route (P6.4): what it says of the jar. */
+  protected readonly route = computed(() => this.transport.route());
 
   /** What there is to say of a cookie besides its value, in the words of its attributes. */
   protected about(cookie: Cookie): string {

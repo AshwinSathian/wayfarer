@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { applyVariableChanges, type Cookie, type RequestContent, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
+import { applyVariableChanges, type Cookie, type RequestContent, type Route, type Row, type ScriptResult, type VariableChange } from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import {
   BinaryBody,
@@ -12,7 +12,7 @@ import { signal } from "@angular/core";
 import { RequestExecutor, BuiltRequest, PreRequestScriptError, RequestSkipped, SendBlockedError, SendDeclinedError } from "./request-executor";
 import { CookieJar } from "./cookie-jar";
 import { RequestSettings } from "./request-settings";
-import { TransportRouter } from "./transport-router";
+import { TransportRouter, type RoutePolicy } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
@@ -47,8 +47,14 @@ class TransportStub {
   /** What the route does with the options while it sends: a spec plays the Local Bridge with it. */
   during: ((options: TransportOptions) => void) | undefined;
 
-  send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
+  /** The policy of the last send (P6.4). */
+  policy: RoutePolicy | undefined;
+
+  send(request: ResolvedRequest, options: TransportOptions, policy: RoutePolicy = { route: this.route() }): Promise<ResponseEnvelope> {
     this.options = options;
+    this.policy = policy;
+    // As the router does: the policy says where the request went.
+    policy.took = this.first(policy.route);
     this.during?.(options);
     this.sendRequest(
       request.method,
@@ -63,8 +69,12 @@ class TransportStub {
     this.outcome = outcome;
   }
 
-  route(): "direct" | "bridge" {
+  route(): Route {
     return "direct";
+  }
+
+  first(route: Route): "direct" | "bridge" {
+    return route === "bridge" ? "bridge" : "direct";
   }
 }
 
@@ -278,6 +288,27 @@ describe("RequestExecutor", () => {
       undefined
     );
     expect(result.history.sent.bodyPreview).toBeUndefined();
+  });
+
+  it("sends by the request's route, hands the router the question D7 asks, and keeps where a failure went (P6.4)", async () => {
+    const askRoute = vi.fn(() => Promise.resolve(false));
+    transport.setResponse(new TransportError("network", "Failed to fetch"));
+
+    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), route: "bridge", askRoute });
+
+    expect(transport.policy?.route).toBe("bridge");
+    expect(transport.policy?.ask).toBe(askRoute);
+    expect(result.history.route).toBe("bridge");
+    expect(result.response.route).toBeUndefined();
+  });
+
+  it("a response says the route it came by, for the badge (P6.4)", async () => {
+    transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge" });
+
+    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+
+    expect(result.response.route).toBe("bridge");
+    expect(transport.policy).toEqual({ route: "direct", took: "direct" });
   });
 
   it("shapes a network error (status 0) into a readable message rather than leaking the raw event", async () => {
@@ -1096,14 +1127,14 @@ describe("RequestExecutor", () => {
     });
 
     /** Runs a send whose post-response script makes `request` with pm.sendRequest, and gives what the script got. */
-    async function scriptSends(request: Parameters<NonNullable<Extras["send"]>>[0], signal?: AbortSignal): Promise<unknown> {
+    async function scriptSends(request: Parameters<NonNullable<Extras["send"]>>[0], signal?: AbortSignal, route?: Route): Promise<unknown> {
       let outcome: unknown;
       scriptSandbox.execute.mockImplementation(async (_script: string, _env: unknown, _response: unknown, _timeout: unknown, given: Extras) => {
         transport.sendRequest.mockClear();
         outcome = await given.send?.(request).catch((error: unknown) => error);
         return { logs: [], changes: NO_CHANGES, testResults: [] };
       });
-      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "send()", tests: [], buildRequest: () => builtRequest(), signal });
+      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "send()", tests: [], buildRequest: () => builtRequest(), signal, ...(route && { route, askRoute: () => Promise.resolve(true) }) });
       return outcome;
     }
 
@@ -1117,6 +1148,11 @@ describe("RequestExecutor", () => {
       expect(transport.options?.timeoutMs).toBe(1500);
       expect(transport.options?.signal).toBe(controller.signal);
       expect(outcome).toMatchObject({ code: 201, status: "Created", headers: { "content-type": "application/json" }, body: '{"token":"t-1"}', responseSize: 15 });
+    });
+
+    it("pm.sendRequest goes by the route of the request whose script sends it, and nothing is asked in the middle of a script (P6.4)", async () => {
+      await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [] }, undefined, "auto");
+      expect(transport.policy).toEqual({ route: "auto", took: "direct" });
     });
 
     it("pm.sendRequest: a request that gets no response reaches the script as its error", async () => {

@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
+import { MatOption } from "@angular/material/core";
+import { MatSelect } from "@angular/material/select";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
-import { ancestorsOf, effectiveAuth, emptyAuth, scriptsApproved, scriptsOf, variableChanges, type AuthConfig, type Row, type Scripts } from "@wayfarer/core";
+import { ancestorsOf, effectiveAuth, emptyAuth, scriptsApproved, scriptsOf, variableChanges, type AuthConfig, type Route, type Row, type Scripts } from "@wayfarer/core";
 import { CollectionsStore } from "../../services/collections-store";
 import { Dialog } from "../../ui/dialog";
 import { AuthEditor } from "../composer/auth-editor/auth-editor";
@@ -18,11 +20,12 @@ export interface InheritedSettingsTarget {
 /**
  * What a collection or a folder holds for the requests in it (P4.9): auth
  * for those set to inherit, variables, and scripts that run before and
- * after each of them.
+ * after each of them. A collection also holds the route its requests are
+ * sent by (P6.4).
  */
 @Component({
   selector: "app-inherited-settings-dialog",
-  imports: [AuthEditor, Dialog, FormsModule, MatButton, MatTabLink, MatTabNav, MatTabNavPanel, RowsEditor, ScriptEditor],
+  imports: [AuthEditor, Dialog, FormsModule, MatButton, MatOption, MatSelect, MatTabLink, MatTabNav, MatTabNavPanel, RowsEditor, ScriptEditor],
   templateUrl: "./inherited-settings-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -33,12 +36,14 @@ export class InheritedSettingsDialog {
   readonly target = input<InheritedSettingsTarget | null>(null);
   readonly closed = output<void>();
 
-  protected readonly tab = signal<"auth" | "variables" | "scripts">("auth");
+  protected readonly tab = signal<"auth" | "variables" | "scripts" | "route">("auth");
   protected readonly auth = signal<AuthConfig>({ type: "none" });
   protected readonly showPassword = signal(false);
   /** A copy, edited in place by the rows editor. */
   protected readonly rows = signal<Row[]>([]);
   protected readonly scripts = signal<Scripts>({ pre: "", post: "" });
+  /** A collection's own route; null: the device's. */
+  protected readonly route = signal<Route | null>(null);
   protected readonly saving = signal(false);
 
   private readonly tree = computed(() => this.collections.tree().find((entry) => entry.collection.meta.id === this.target()?.collectionId));
@@ -70,6 +75,7 @@ export class InheritedSettingsDialog {
       this.auth.set(structuredClone(node.auth));
       this.rows.set(node.variables.map((row) => ({ ...row })));
       this.scripts.set({ ...node.scripts });
+      this.route.set(("route" in node && node.route) || null);
     });
   }
 
@@ -93,7 +99,8 @@ export class InheritedSettingsDialog {
     try {
       // The user's own scripts when the ones here before were allowed to run: the rule a request's save has (D6).
       const scriptsAllowed = await scriptsApproved(tree.collection.scriptTrust, scriptsOf(node));
-      await this.collections.saveInherited(target, { auth: this.auth(), scripts: this.scripts() }, scriptsAllowed);
+      const route = this.route();
+      await this.collections.saveInherited(target, { auth: this.auth(), scripts: this.scripts(), ...(route && { route }) }, scriptsAllowed);
       const named = this.rows()
         .map((row) => ({ ...row, key: row.key.trim() }))
         .filter((row) => row.key);

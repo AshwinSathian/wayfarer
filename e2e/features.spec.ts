@@ -60,7 +60,7 @@ test("TRACE is not sent from the browser, and the page says why", async ({ page 
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await send(page);
 
-  await expect(page.getByText("Browsers do not send TRACE requests. Turn on the Local Bridge to send one.")).toBeVisible();
+  await expect(page.getByText("Browsers do not send TRACE requests. Choose the route Local Bridge to send one.")).toBeVisible();
   expect(sent).toEqual([]);
 });
 

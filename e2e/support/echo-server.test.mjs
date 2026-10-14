@@ -90,6 +90,15 @@ test("/status/:code returns that status", async () => {
   assert.equal((await get("/status/418")).status, 418);
 });
 
+test("/cors-seen says how often each method reached a /cors address, with its query", async () => {
+  const at = "/cors/none?id=seen-test";
+  await get(at, { method: "POST", body: "a=1" });
+  await get(at, { method: "OPTIONS" });
+  await get(at, { method: "POST", body: "a=1" });
+  assert.deepEqual(await (await get(`/cors-seen?url=${encodeURIComponent(at)}`)).json(), { POST: 2, OPTIONS: 1 });
+  assert.deepEqual(await (await get(`/cors-seen?url=${encodeURIComponent("/cors/none?id=never")}`)).json(), {});
+});
+
 test("/cors variants send the documented headers", async () => {
   const origin = { origin: "http://localhost:4200" };
   assert.equal((await get("/cors/none", { headers: origin })).headers.get("access-control-allow-origin"), null);

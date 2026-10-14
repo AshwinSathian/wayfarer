@@ -18,7 +18,7 @@ import { Idb } from "../data/idb";
 import { containsSecretPlaceholder } from "./request-executor";
 import { RequestSettings } from "./request-settings";
 import { SecretsVault } from "./secrets-vault";
-import { TransportRouter } from "./transport-router";
+import { TransportRouter, type RoutePolicy } from "./transport-router";
 
 /** A token's vault secret is named this and the token's key. */
 const SECRET_NAME = "OAuth 2.0 token ";
@@ -27,7 +27,7 @@ const SIGN_IN_MS = 5 * 60_000;
 
 const NO_ANSWER =
   "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: " +
-  "switch on the Local Bridge, which has no such limit. See docs/browser-limits.md#oauth.";
+  "send it through the Local Bridge (Settings, Local Bridge, Route), which has no such limit. See docs/browser-limits.md#oauth.";
 
 /**
  * OAuth 2.0 tokens (P4.7): gets one, renews it, and keeps it. A token is
@@ -175,13 +175,15 @@ export class OAuthTokens {
     }
     let status: number;
     let body: string;
+    // The device's route; nothing is asked: a token request the browser may have sent is not sent again (D7).
+    const policy: RoutePolicy = { route: this.transport.route() };
     try {
-      const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() });
+      const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }, policy);
       status = envelope.status;
       body = await new Response(envelope.body).text();
     } catch (error) {
       if (!(error instanceof TransportError)) throw error;
-      throw new OAuthError(error.kind === "network" && this.transport.route() === "direct" ? NO_ANSWER : `The token request failed: ${error.message}`);
+      throw new OAuthError(error.kind === "network" && policy.took === "direct" ? NO_ANSWER : `The token request failed: ${error.message}`);
     }
     const token = readTokenResponse(status, body, Date.now(), previous);
     this.hold(key, token);

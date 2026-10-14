@@ -118,6 +118,8 @@ export class ResponseViewer {
   readonly redirects = input<ResponseEnvelope["redirects"]>();
   /** The response was got with the server's certificate not verified. */
   readonly tlsInsecure = input(false);
+  /** Where the response came from (P6.4): the page, or the Local Bridge. */
+  readonly route = input<"direct" | "bridge" | null>(null);
   /** Why the response is a redirect that was not followed, in words. */
   protected readonly redirectNote = computed(() => {
     const redirects = this.redirects();

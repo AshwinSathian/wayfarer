@@ -153,7 +153,7 @@ describe("an event stream in a tab", () => {
   });
 
   it("through the Local Bridge, which relays a response when it has ended, the events are read from the body and the tab says they arrived together", async () => {
-    TestBed.inject(BridgeSettings).config.set({ enabled: true, url: "http://127.0.0.1:7717", token: "t".repeat(16) });
+    TestBed.inject(BridgeSettings).config.set({ route: 'bridge', url: "http://127.0.0.1:7717", token: "t".repeat(16) });
     const sent = store.send();
     const relay = await vi.waitFor(() => httpMock.expectOne("http://127.0.0.1:7717/v2/relay"));
     relay.flush(JSON.stringify({ status: 200, statusText: "OK", headers: [["Content-Type", "text/event-stream"]], bodyB64: btoa("id: 1\ndata: a\n\nid: 2\nevent: done\ndata: b\n\n"), encodedSize: 42, decodedSize: 42 }), { status: 200 });

@@ -38,7 +38,7 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
 test("Reset All Data also clears the bridge token and the other wayfarer: preferences", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
-    localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url: "http://127.0.0.1:7717", token: "secret" }));
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "bridge", url: "http://127.0.0.1:7717", token: "secret" }));
     localStorage.setItem("elsewhere", "kept");
   });
 

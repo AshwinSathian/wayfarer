@@ -27,12 +27,15 @@ npm run bridge
 
 This prints its address (default `http://127.0.0.1:7717`), a **pairing
 code** and the **bridge token**. Open Wayfarer, go to Settings → Local Bridge
-(the toolbar's bridge icon opens it there), switch it on, type the pairing
-code and press **Pair**: the bridge gives the page its token, and the
-settings are saved. Or paste the token yourself and Save. While it is enabled, **every** request goes through the
-bridge; there is no per-request choice and no automatic fallback from a
-failed direct request ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
-Turn it off in the same settings to go back to direct requests.
+(the toolbar's bridge icon opens it there), type the pairing code and press
+**Pair**: the bridge gives the page its token, and the settings are saved.
+Or paste the token yourself and Save. Then choose the **Route**: with
+**Local Bridge** every request goes through the bridge; with **Auto**, the
+default, a request goes from the page, and through the bridge when the
+browser got no answer, at once when it cannot have reached the server and
+otherwise only after you say yes; with **Direct** the bridge is not used. A
+collection and a request may name a route of their own
+([`docs/browser-limits.md`](../../docs/browser-limits.md#routes)).
 
 **Where the app keeps the token.** In the vault, as the secret "Local Bridge
 token", when the vault is unlocked as you save it or later in that tab. A
@@ -50,9 +53,9 @@ continuously, and per the security model below, it shouldn't.
 
 ## How it works
 
-1. Wayfarer's own code never talks to the bridge unless you've explicitly
-   enabled it in settings.
-2. When enabled, instead of the browser calling the target API directly, it
+1. Wayfarer's own code never talks to the bridge unless you've given it the
+   bridge's token (paired, or typed in) and a route that uses it.
+2. Then, instead of the browser calling the target API directly, it
    `POST`s a small JSON envelope to `http://127.0.0.1:<port>/v2/relay`
    (see [Protocol](#protocol)), authenticated with a bearer-style token
    header.

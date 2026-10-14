@@ -47,6 +47,17 @@ describe("ResponseViewer", () => {
     expect(element.querySelector(".tls-off-pill")?.textContent?.trim()).toBe("TLS verification off");
   });
 
+  it("says where a response came from: the page, or the Local Bridge (P6.4)", () => {
+    fixture.componentRef.setInput("responseStatusCode", 200);
+    fixture.componentRef.setInput("route", "direct");
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Direct");
+    fixture.componentRef.setInput("route", "bridge");
+    fixture.detectChanges();
+    expect(element.querySelector(".route-badge")?.textContent?.trim()).toBe("Via bridge");
+  });
+
   describe("redirects (P5.4)", () => {
     const shown = (redirects: unknown) => {
       fixture.componentRef.setInput("responseStatusCode", 302);

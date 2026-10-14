@@ -100,7 +100,7 @@ export class CollectionsRepository {
     });
   }
 
-  /** The auth and the scripts a collection holds for its requests (P4.9). Approving a script is not done here: see `approveScripts`. */
+  /** The auth, the scripts and the route a collection holds for its requests (P4.9, P6.4). Approving a script is not done here: see `approveScripts`. */
   async setCollectionInherited(id: CollectionId, patch: InheritedPatch<Collection>): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
@@ -110,7 +110,8 @@ export class CollectionsRepository {
       if (!existing) {
         return null;
       }
-      const updated: Collection = { ...existing, auth: patch.auth, scripts: patch.scripts, meta: this.core.touchMeta(existing.meta) };
+      const { route: _was, ...rest } = existing;
+      const updated: Collection = { ...rest, auth: patch.auth, scripts: patch.scripts, ...(patch.route && { route: patch.route }), meta: this.core.touchMeta(existing.meta) };
       await store.put(updated);
       return updated;
     });

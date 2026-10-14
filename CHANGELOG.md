@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- "Break the sandbox": a public challenge in `SECURITY.md` to break the
+  script sandbox, the vault or the Local Bridge, with credit in the Trust
+  Center's hall of fame. No money.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

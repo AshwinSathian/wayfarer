@@ -10,9 +10,7 @@ import { sweepFiles } from "./request-files";
  * CRUD for requests saved inside a collection/folder (`RequestDoc`) — not
  * to be confused with `HistoryRepository`, which owns the separate
  * "sent request log" (`PastRequest`) store. Split out of
- * `CollectionsRepository` (which used to also own this) once that file
- * crossed ~540 lines; recombined behind `Idb`'s facade alongside
- * `CollectionsRepository`/`FoldersRepository`.
+ * `CollectionsRepository` once that file crossed ~540 lines.
  */
 @Injectable({ providedIn: "root" })
 export class CollectionRequestsRepository {

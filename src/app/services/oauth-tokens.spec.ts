@@ -2,7 +2,7 @@ import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { OAUTH_CHANNEL, OAuthError, TransportError, emptyAuth, oauthTokenKey, type OAuth2Auth, type ResolvedRequest, type ResponseEnvelope } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../data/idb";
+import { provideRepositories } from "../../testing/repositories";
 import { OAuthTokens } from "./oauth-tokens";
 import { SecretsVault } from "./secrets-vault";
 import type { RoutePolicy } from "@wayfarer/core";
@@ -56,7 +56,7 @@ describe("OAuthTokens", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: SecretsVault, useValue: vault },
-        { provide: Idb, useValue: { onChangeElsewhere: (listener: (stores: string[]) => void) => (changedElsewhere = listener) } },
+        ...provideRepositories({ onChangeElsewhere: (listener: (stores: string[]) => void) => (changedElsewhere = listener) }),
         {
           provide: TransportRouter,
           useValue: {

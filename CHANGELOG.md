@@ -7,6 +7,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- Each release of the app attaches the built folder as a tarball, a
+  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

@@ -21,7 +21,7 @@ const AES = { name: "AES-GCM", length: 256 } as const;
 /** A WebCrypto key. Named through `importKey`, which the Node types and the DOM types both have: core compiles without the DOM's `CryptoKey`. */
 export type VaultKey = Awaited<ReturnType<typeof crypto.subtle.importKey>>;
 
-export const VAULT_FILE_FORMAT = "wayfarer/vault/2";
+export const VAULT_FILE_FORMAT = "wayfarer/vault";
 
 /** How the passphrase key is derived, and the data key wrapped under it. Stored as the `vault` record of `meta`. */
 export interface VaultRecord {

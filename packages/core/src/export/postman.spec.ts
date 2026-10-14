@@ -149,7 +149,7 @@ describe("postmanCollection: each thing is where Postman's v2.1 format puts it",
 describe("postmanEnvironment", () => {
   const environment: EnvironmentDoc = {
     id: "env-1",
-    meta: { id: "env-1", createdAt: 0, updatedAt: 0, version: 1 },
+    meta: { id: "env-1", createdAt: 0, updatedAt: 0 },
     name: "Staging",
     order: 0,
     vars: [

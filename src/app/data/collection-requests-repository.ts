@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { emptyRequest } from "@wayfarer/core";
-import { CollectionId, NewRequest, RequestDoc, RequestDocId, RequestPatch } from "../models/collections";
+import { NewRequest, RequestDoc, RequestPatch } from "../models/collections";
 import { IDBPTransaction } from "idb";
 import { IdbCore } from "./idb-core";
 import { ApiSandboxDB, StoreCollection, StoredFile } from "./idb-schema";
@@ -18,7 +18,7 @@ import { sweepFiles } from "./request-files";
 export class CollectionRequestsRepository {
   private readonly core = inject(IdbCore);
 
-  async listRequests(collectionId: CollectionId): Promise<RequestDoc[]> {
+  async listRequests(collectionId: string): Promise<RequestDoc[]> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadonly(["requests"]);
     const index = tx.objectStore("requests").index("by-collectionId");
@@ -53,7 +53,7 @@ export class CollectionRequestsRepository {
     });
   }
 
-  async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
+  async renameRequest(id: string, name: string): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests"]);
     const store = tx.objectStore("requests");
@@ -74,7 +74,7 @@ export class CollectionRequestsRepository {
    * Writes the composer's request back onto a saved one: the "Save" half of
    * Save and Save As. Fields the patch leaves out are kept.
    */
-  async updateRequest(id: RequestDocId, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
+  async updateRequest(id: string, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
     const stored = await readFiles(files);
     const tx = await this.core.txReadWrite(["requests", "files"]);
@@ -118,7 +118,7 @@ export class CollectionRequestsRepository {
     }
   }
 
-  async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
+  async duplicateRequest(id: string): Promise<RequestDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests", "folders"]);
     const store = tx.objectStore("requests");
@@ -141,7 +141,7 @@ export class CollectionRequestsRepository {
     });
   }
 
-  async deleteRequest(id: RequestDocId): Promise<void> {
+  async deleteRequest(id: string): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["requests", "files"]);
     await this.core.commitOrRollback(tx, async () => {

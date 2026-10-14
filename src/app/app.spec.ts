@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { Idb } from './data/idb';
-import { PastRequest } from './models/history';
+import { PastRequest } from "@wayfarer/core";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 import { historyEntry } from '../testing/request-fixtures';
 
@@ -30,7 +30,7 @@ class IdbServiceMock {
   readonly updatedElsewhere = signal(false).asReadonly();
   readonly upgradeBlocked = signal(false).asReadonly();
   readonly olderThanData = signal(false).asReadonly();
-  readonly clearedOldData = signal([]).asReadonly();
+  readonly clearedOldData = signal(false).asReadonly();
 }
 
 /** The window is this wide, as far as a min-width media query can tell. */

@@ -6,14 +6,14 @@ import { EnvironmentsManager } from "./environments-manager";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { VariableFocus } from "../../services/variable-focus";
-import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { VariableToken } from "../../services/variable-focus";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
-function makeEnv(id: EnvironmentId, vars: Record<string, string> = {}): EnvironmentDoc {
+function makeEnv(id: string, vars: Record<string, string> = {}): EnvironmentDoc {
   return {
     id,
-    meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id, createdAt: 1, updatedAt: 1 },
     name: `Env ${id}`,
     vars: rowsOf(vars),
     order: 0,
@@ -29,10 +29,10 @@ class EnvironmentsServiceStub {
   readonly loading = signal(false);
 
   readonly createCalls: unknown[] = [];
-  readonly updateCalls: { id: EnvironmentId; updates: unknown }[] = [];
-  readonly duplicateCalls: EnvironmentId[] = [];
-  readonly deleteCalls: EnvironmentId[] = [];
-  readonly setActiveCalls: (EnvironmentId | null)[] = [];
+  readonly updateCalls: { id: string; updates: unknown }[] = [];
+  readonly duplicateCalls: string[] = [];
+  readonly deleteCalls: string[] = [];
+  readonly setActiveCalls: (string | null)[] = [];
 
   setEnvironments(envs: EnvironmentDoc[]): void {
     this.environmentsState.set(envs);
@@ -58,18 +58,18 @@ class EnvironmentsServiceStub {
   }
 
   async updateEnvironment(
-    id: EnvironmentId,
+    id: string,
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     this.updateCalls.push({ id, updates });
     return null;
   }
 
-  readonly changeCalls: { id: EnvironmentId; changes: unknown; details: unknown }[] = [];
+  readonly changeCalls: { id: string; changes: unknown; details: unknown }[] = [];
   /** What the stored environment is after the change, as another tab may have left it. */
   changeResult: EnvironmentDoc | null = null;
 
-  async changeEnvironment(id: EnvironmentId, changes: unknown, details: unknown): Promise<EnvironmentDoc | null> {
+  async changeEnvironment(id: string, changes: unknown, details: unknown): Promise<EnvironmentDoc | null> {
     this.changeCalls.push({ id, changes, details });
     // As the store does: it has read the environments again by the time a change returns.
     const result = this.changeResult;
@@ -79,16 +79,16 @@ class EnvironmentsServiceStub {
     return result;
   }
 
-  async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
+  async duplicateEnvironment(id: string): Promise<EnvironmentDoc | null> {
     this.duplicateCalls.push(id);
     return null;
   }
 
-  async deleteEnvironment(id: EnvironmentId): Promise<void> {
+  async deleteEnvironment(id: string): Promise<void> {
     this.deleteCalls.push(id);
   }
 
-  async setActiveEnvironment(id: EnvironmentId | null): Promise<void> {
+  async setActiveEnvironment(id: string | null): Promise<void> {
     this.setActiveCalls.push(id);
   }
 }
@@ -113,7 +113,6 @@ class SecretsServiceStub {
     return match?.plaintext ?? null;
   }
 }
-
 
 describe("EnvironmentsManager", () => {
   let component: EnvironmentsManager;

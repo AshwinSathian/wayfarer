@@ -109,7 +109,7 @@ class ScriptSandboxServiceStub {
 function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
   return {
     id: "env-1",
-    meta: { id: "env-1", createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id: "env-1", createdAt: 1, updatedAt: 1 },
     name: "Test env",
     order: 1,
     vars: rowsOf(vars),

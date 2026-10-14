@@ -7,7 +7,7 @@ describe("collection-io", () => {
   const tree = (): CollectionTree => ({
     collection: {
       id: "c2",
-      meta: { id: "c2", createdAt: 1, updatedAt: 2, version: 1 },
+      meta: { id: "c2", createdAt: 1, updatedAt: 2 },
       name: "Sample",
       description: "Desc",
       order: 2,
@@ -23,7 +23,7 @@ describe("collection-io", () => {
     folders: [
       {
         id: "f2",
-        meta: { id: "f2", createdAt: 1, updatedAt: 2, version: 1 },
+        meta: { id: "f2", createdAt: 1, updatedAt: 2 },
         collectionId: "c2",
         name: "Folder B",
         order: 2,
@@ -33,7 +33,7 @@ describe("collection-io", () => {
       },
       {
         id: "f1",
-        meta: { id: "f1", createdAt: 1, updatedAt: 2, version: 1 },
+        meta: { id: "f1", createdAt: 1, updatedAt: 2 },
         collectionId: "c2",
         name: "Folder A",
         order: 1,
@@ -43,7 +43,7 @@ describe("collection-io", () => {
     requests: [
       {
         id: "r2",
-        meta: { id: "r2", createdAt: 1, updatedAt: 2, version: 1 },
+        meta: { id: "r2", createdAt: 1, updatedAt: 2 },
         collectionId: "c2",
         name: "Request B",
         order: 2,
@@ -69,7 +69,7 @@ describe("collection-io", () => {
       },
       {
         id: "r1",
-        meta: { id: "r1", createdAt: 1, updatedAt: 2, version: 1 },
+        meta: { id: "r1", createdAt: 1, updatedAt: 2 },
         collectionId: "c2",
         name: "Request A",
         order: 1,
@@ -86,11 +86,11 @@ describe("collection-io", () => {
     expect(secondExport).toBe(firstExport);
   });
 
-  it("writes format 3: its $id first, documents in order, and no trust flag", () => {
+  it("writes the file: its $id first, documents in order, and no trust flag", () => {
     const text = serializeDeterministic(tree());
     const file = JSON.parse(text) as CollectionExport;
 
-    expect(text.startsWith('{\n  "$id": "wayfarer/collection/3",')).toBe(true);
+    expect(text.startsWith('{\n  "$id": "wayfarer/collection",')).toBe(true);
     expect(file.folders.map((folder) => folder.name)).toEqual(["Folder A", "Folder B"]);
     expect(file.requests.map((request) => request.name)).toEqual(["Request A", "Request B"]);
     // Trust is this browser's decision about a collection, not part of the collection.
@@ -110,8 +110,8 @@ describe("collection-io", () => {
     expect(request.body).toEqual({ mode: "raw", raw: { language: "json", text: '{ "n": {{count}},\n  "b": 1, "a": 2 }' } });
   });
 
-  it("refuses a file that is not format 3, naming $id", () => {
-    // A format 1 file: no $id, headers as an object.
+  it("refuses a file without the $id this version writes, naming $id", () => {
+    // A file of before 2.0: no $id, headers as an object.
     const formatOne = {
       meta: meta("export-1"),
       collection: { id: "col-1", meta: meta("col-1"), name: "Old", order: 1 },
@@ -120,13 +120,13 @@ describe("collection-io", () => {
     };
 
     expect(validateCollection(formatOne).errors).toEqual([
-      { path: "$id", message: 'Not a Wayfarer collection file: "$id" must be "wayfarer/collection/3".' },
+      { path: "$id", message: 'Not a Wayfarer collection file: "$id" must be "wayfarer/collection".' },
     ]);
-    // A format 2 file has its $id, and not what a collection and a folder hold since P4.9: there is no converter.
-    expect(validateCollection({ ...validExport(), $id: "wayfarer/collection/2" }).errors).toEqual([
-      { path: "$id", message: 'Not a Wayfarer collection file: "$id" must be "wayfarer/collection/3".' },
+    // A file of 2.4.0 or before has a numbered $id: there is no converter.
+    expect(validateCollection({ ...validExport(), $id: "wayfarer/collection/3" }).errors).toEqual([
+      { path: "$id", message: 'Not a Wayfarer collection file: "$id" must be "wayfarer/collection".' },
     ]);
-    expect(validateCollection({ ...validExport(), $id: "wayfarer/collection/4" }).errors?.[0].path).toBe("$id");
+    expect(validateCollection({ ...validExport(), $id: "wayfarer/collection/2" }).errors?.[0].path).toBe("$id");
   });
 
   it("rejects invalid payloads with helpful errors", () => {
@@ -135,11 +135,11 @@ describe("collection-io", () => {
     expect(invalid.errors?.[0].path).toBe("root");
 
     const valid = validateCollection({
-      $id: "wayfarer/collection/3",
-      meta: { id: "export-1", createdAt: 1, updatedAt: 1, version: 1 },
+      $id: "wayfarer/collection",
+      meta: { id: "export-1", createdAt: 1, updatedAt: 1 },
       collection: {
         id: "col-1",
-        meta: { id: "col-1", createdAt: 1, updatedAt: 1, version: 1 },
+        meta: { id: "col-1", createdAt: 1, updatedAt: 1 },
         name: "Valid",
         order: 1,
         variables: [],
@@ -151,9 +151,9 @@ describe("collection-io", () => {
     expect(valid.ok).toBe(true);
   });
 
-  const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 as const });
+  const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
   const validExport = () => ({
-    $id: "wayfarer/collection/3" as const,
+    $id: "wayfarer/collection" as const,
     meta: meta("export-1"),
     collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [], ...inCollection },
     folders: [
@@ -168,8 +168,8 @@ describe("collection-io", () => {
 
   it("names every problem in a malformed file by its path", () => {
     const broken = {
-      $id: "wayfarer/collection/3",
-      meta: { id: "export-1", createdAt: "yesterday", updatedAt: 1, version: 2 },
+      $id: "wayfarer/collection",
+      meta: { id: "export-1", createdAt: "yesterday", updatedAt: 1 },
       collection: { meta: meta(""), name: "", order: "first" },
       folders: [{ id: "f-1", meta: "nope", name: "Folder", order: 1 }],
       requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "", url: "", headers: null, order: 1 }],
@@ -181,7 +181,6 @@ describe("collection-io", () => {
     const paths = result.errors!.map((e) => e.path);
     for (const path of [
       "meta.createdAt",
-      "meta.version",
       "collection.id",
       "collection.name",
       "collection.order",
@@ -203,7 +202,7 @@ describe("collection-io", () => {
 
   it("takes a collection's route (P6.4), and refuses one the app does not write", () => {
     const file = (route: unknown) => ({
-      $id: "wayfarer/collection/3",
+      $id: "wayfarer/collection",
       meta: meta("m"),
       collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1, variables: [], ...inCollection, route },
       folders: [],
@@ -218,7 +217,7 @@ describe("collection-io", () => {
 
   it("rejects a request whose method is not one of the HTTP verbs the app sends", () => {
     const result = validateCollection({
-      $id: "wayfarer/collection/3",
+      $id: "wayfarer/collection",
       meta: meta("m"),
       collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1, variables: [], ...inCollection },
       folders: [],
@@ -232,11 +231,11 @@ describe("collection-io", () => {
     expect(validateCollection("{not json").ok).toBe(false);
     expect(validateCollection("42").ok).toBe(false);
 
-    const paths = validateCollection({ $id: "wayfarer/collection/3", folders: "none", requests: {} }).errors!.map((e) => e.path);
+    const paths = validateCollection({ $id: "wayfarer/collection", folders: "none", requests: {} }).errors!.map((e) => e.path);
     expect(paths).toEqual(expect.arrayContaining(["collection", "folders", "requests", "meta"]));
 
-    expect(importCollection({ $id: "wayfarer/collection/3", folders: [], requests: [] }).errors?.length).toBeGreaterThan(0);
-    expect(importCollection({ $id: "wayfarer/collection/3", folders: [], requests: [] }).payload).toBeUndefined();
+    expect(importCollection({ $id: "wayfarer/collection", folders: [], requests: [] }).errors?.length).toBeGreaterThan(0);
+    expect(importCollection({ $id: "wayfarer/collection", folders: [], requests: [] }).payload).toBeUndefined();
   });
 
   it("plans an overwrite that keeps every id when importing over the original", () => {

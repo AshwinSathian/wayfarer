@@ -151,7 +151,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   const chunks: Buffer[] = [];
   for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
   const file = Buffer.concat(chunks).toString("utf8");
-  expect(file).toContain('"$id": "wayfarer/vault/2"');
+  expect(file).toContain('"$id": "wayfarer/vault"');
   expect(file).not.toContain("exported-encrypted-7c1");
   expect(file).not.toContain(PASSPHRASE);
 

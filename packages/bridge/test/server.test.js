@@ -23,9 +23,9 @@ function close(server) {
   return new Promise((resolve) => server.close(resolve));
 }
 
-/** POSTs a relay request of protocol 2 as the page does. */
+/** POSTs a relay request as the page does. */
 function relay(port, payload) {
-  return fetch(`http://127.0.0.1:${port}/v2/relay`, {
+  return fetch(`http://127.0.0.1:${port}/relay`, {
     method: 'POST',
     headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
     body: JSON.stringify(payload),
@@ -71,20 +71,19 @@ test('GET /health returns ok without requiring a token', async () => {
     assert.equal(res.status, 200);
     assert.equal(body.ok, true);
     assert.equal(body.name, 'wayfarer-bridge');
-    // What the page reads before it relays anything (P6.3).
-    assert.equal(body.protocol, 2);
-    assert.deepEqual(body.capabilities, ['bytes', 'decompression', 'header-list', 'timeout', 'timings', 'tls-insecure', 'host']);
+    // What the page reads (P6.3): no protocol number, no list of capabilities.
+    assert.deepEqual(Object.keys(body).sort(), ['name', 'ok', 'version']);
     assert.match(body.version, /^2\.2\./);
   } finally {
     await close(bridge);
   }
 });
 
-test('@claim:C-041 POST /v2/relay rejects requests from an unlisted Origin with 403', async () => {
+test('@claim:C-041 POST /relay rejects requests from an unlisted Origin with 403', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: {
         Origin: 'https://evil.example.com',
@@ -99,11 +98,11 @@ test('@claim:C-041 POST /v2/relay rejects requests from an unlisted Origin with 
   }
 });
 
-test('@claim:C-041 POST /v2/relay rejects a missing/incorrect token with 401, even from an allowed origin', async () => {
+test('@claim:C-041 POST /relay rejects a missing/incorrect token with 401, even from an allowed origin', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: { Origin: ORIGIN, 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: 'GET', url: 'http://example.com', headers: [] }),
@@ -114,11 +113,11 @@ test('@claim:C-041 POST /v2/relay rejects a missing/incorrect token with 401, ev
   }
 });
 
-test('POST /v2/relay rejects invalid JSON bodies with 400', async () => {
+test('POST /relay rejects invalid JSON bodies with 400', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: { Origin: ORIGIN, 'X-Wayfarer-Bridge-Token': TOKEN },
       body: '{not json',
@@ -129,11 +128,11 @@ test('POST /v2/relay rejects invalid JSON bodies with 400', async () => {
   }
 });
 
-test('POST /v2/relay rejects an unparseable/unsupported target URL with 400', async () => {
+test('POST /relay rejects an unparseable/unsupported target URL with 400', async () => {
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: {
         Origin: ORIGIN,
@@ -148,7 +147,7 @@ test('POST /v2/relay rejects an unparseable/unsupported target URL with 400', as
   }
 });
 
-test('@claim:C-041 POST /v2/relay forwards a GET to the target and wraps its response', async () => {
+test('@claim:C-041 POST /relay forwards a GET to the target and wraps its response', async () => {
   const target = await startTarget((req, res) => {
     assert.equal(req.headers['x-probe'], 'yes');
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -157,7 +156,7 @@ test('@claim:C-041 POST /v2/relay forwards a GET to the target and wraps its res
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: {
         Origin: ORIGIN,
@@ -182,7 +181,7 @@ test('@claim:C-041 POST /v2/relay forwards a GET to the target and wraps its res
   }
 });
 
-test('POST /v2/relay forwards method/body and reports non-2xx target statuses as a successful relay', async () => {
+test('POST /relay forwards method/body and reports non-2xx target statuses as a successful relay', async () => {
   const target = await startTarget((req, res) => {
     let raw = '';
     req.on('data', (chunk) => (raw += chunk));
@@ -196,7 +195,7 @@ test('POST /v2/relay forwards method/body and reports non-2xx target statuses as
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: {
         Origin: ORIGIN,
@@ -216,13 +215,13 @@ test('POST /v2/relay forwards method/body and reports non-2xx target statuses as
   }
 });
 
-test('POST /v2/relay reports an unreachable target as a 502 with a readable error', async () => {
+test('POST /relay reports an unreachable target as a 502 with a readable error', async () => {
   // Port 1 is a reserved/typically-unbound port — connecting to it on
   // 127.0.0.1 fails fast with ECONNREFUSED in CI sandboxes.
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: {
         Origin: ORIGIN,
@@ -243,13 +242,13 @@ test('OPTIONS preflight only sets CORS headers for allowed origins', async () =>
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const allowed = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const allowed = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'OPTIONS',
       headers: { Origin: ORIGIN },
     });
     assert.equal(allowed.headers.get('access-control-allow-origin'), ORIGIN);
 
-    const denied = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const denied = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'OPTIONS',
       headers: { Origin: 'https://evil.example.com' },
     });
@@ -259,7 +258,7 @@ test('OPTIONS preflight only sets CORS headers for allowed origins', async () =>
   }
 });
 
-test('POST /v2/relay answers 502 instead of buffering a target response over the size limit', async () => {
+test('POST /relay answers 502 instead of buffering a target response over the size limit', async () => {
   const target = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end(Buffer.alloc(26 * 1024 * 1024, 'x'));
@@ -268,7 +267,7 @@ test('POST /v2/relay answers 502 instead of buffering a target response over the
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
       body: JSON.stringify({ method: 'GET', url: `http://127.0.0.1:${targetPort}/big`, headers: [] }),
@@ -318,7 +317,7 @@ test('the answer lists the headers as received, one entry for each, so that two 
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/v2/relay`, {
+    const res = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
       body: JSON.stringify({ method: 'GET', url: target.url, headers: [] }),
@@ -338,9 +337,9 @@ test('the answer lists the headers as received, one entry for each, so that two 
   }
 });
 
-// Protocol 2 (P6.1).
+// What the bridge reads (P6.1).
 
-test('a request of protocol 1 is refused with a message that says which to update: nothing is sent for it', async () => {
+test('a request in the shape an older page wrote is refused: nothing is sent for it', async () => {
   let reached = 0;
   const target = await startTarget((req, res) => {
     reached += 1;
@@ -349,14 +348,14 @@ test('a request of protocol 1 is refused with a message that says which to updat
   const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN] });
   const port = await listen(bridge);
   try {
-    // The page of before: the path of protocol 1.
+    // Headers as an object and the body as text, as Local Bridge 1 read them.
     const old = await fetch(`http://127.0.0.1:${port}/relay`, {
       method: 'POST',
       headers: { Origin: ORIGIN, 'Content-Type': 'application/json', 'X-Wayfarer-Bridge-Token': TOKEN },
       body: JSON.stringify({ method: 'GET', url: target.url, headers: { A: '1' }, body: 'x' }),
     });
-    assert.equal(old.status, 404);
-    assert.match((await old.json()).error, /protocol 2.*Reload Wayfarer/);
+    assert.equal(old.status, 400);
+    assert.match((await old.json()).error, /unknown field: body/);
     assert.equal(old.headers.get('access-control-allow-origin'), ORIGIN);
     assert.equal(reached, 0);
   } finally {
@@ -747,13 +746,13 @@ test('HTTP_PROXY, HTTPS_PROXY and NO_PROXY are honoured: a request goes through 
 
 test('a preflight that asks for the private network is told yes, for an allowed origin only (PNA)', async () => {
   await withBridge({}, async (port) => {
-    const ask = (origin) => fetch(`http://127.0.0.1:${port}/v2/relay`, { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Private-Network': 'true', 'Access-Control-Request-Method': 'POST' } });
+    const ask = (origin) => fetch(`http://127.0.0.1:${port}/relay`, { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Private-Network': 'true', 'Access-Control-Request-Method': 'POST' } });
     const allowed = await ask(ORIGIN);
     assert.equal(allowed.headers.get('access-control-allow-private-network'), 'true');
     assert.equal(allowed.headers.get('access-control-allow-origin'), ORIGIN);
     assert.equal((await ask('https://evil.example.com')).headers.get('access-control-allow-private-network'), null);
     // A preflight that does not ask is not told.
-    const plain = await fetch(`http://127.0.0.1:${port}/v2/relay`, { method: 'OPTIONS', headers: { Origin: ORIGIN } });
+    const plain = await fetch(`http://127.0.0.1:${port}/relay`, { method: 'OPTIONS', headers: { Origin: ORIGIN } });
     assert.equal(plain.headers.get('access-control-allow-private-network'), null);
   });
 });
@@ -775,10 +774,10 @@ test('HTTPS on loopback: with a certificate given the bridge speaks HTTPS only, 
   await withBridge({ tls: { cert: fixture('cert.pem'), key: fixture('key.pem') } }, async (port) => {
     const health = await overTls(port);
     assert.equal(health.status, 200);
-    assert.equal(JSON.parse(health.text).protocol, 2);
+    assert.equal(JSON.parse(health.text).name, 'wayfarer-bridge');
     // The Host rule and the token rule are the same over HTTPS.
     assert.equal((await overTls(port, { headers: { Host: 'rebound.example.com' } })).status, 421);
-    assert.equal((await overTls(port, { method: 'POST', path: '/v2/relay', headers: { Origin: ORIGIN, 'Content-Type': 'application/json' }, body: '{}' })).status, 401);
+    assert.equal((await overTls(port, { method: 'POST', path: '/relay', headers: { Origin: ORIGIN, 'Content-Type': 'application/json' }, body: '{}' })).status, 401);
     // Plain HTTP is not answered.
     await assert.rejects(fetch(`http://127.0.0.1:${port}/health`));
   });

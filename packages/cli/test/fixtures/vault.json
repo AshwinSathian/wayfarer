@@ -1,5 +1,5 @@
 {
-  "$id": "wayfarer/vault/2",
+  "$id": "wayfarer/vault",
   "vault": {
     "v": 2,
     "kdf": {

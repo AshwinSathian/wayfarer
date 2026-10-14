@@ -5,7 +5,6 @@ export interface Meta {
   id: string;
   createdAt: number;
   updatedAt: number;
-  version: 1;
 }
 
 interface BaseDocument {
@@ -52,7 +51,7 @@ export interface RequestDoc extends BaseDocument, RequestContent {
   order: number;
 }
 
-export const COLLECTION_FORMAT = "wayfarer/collection/3";
+export const COLLECTION_FORMAT = "wayfarer/collection";
 
 /** A collection file. Trust is not content: the file leaves it out and an import starts untrusted. */
 export interface CollectionExport {
@@ -127,4 +126,4 @@ export interface EnvironmentDoc {
   order: number;
 }
 
-export const ENVIRONMENTS_FORMAT = "wayfarer/environments/2";
+export const ENVIRONMENTS_FORMAT = "wayfarer/environments";

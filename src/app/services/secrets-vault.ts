@@ -15,7 +15,7 @@ import {
   type VaultKey,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
-import { SecretDoc, SecretId } from "../models/secrets";
+import { SecretDoc } from "../models/secrets";
 import { Diagnostics } from "./diagnostics";
 
 export interface SaveSecretRequest {
@@ -122,7 +122,7 @@ export class SecretsVault {
     this.channel.postMessage({ type: "lock" });
   }
 
-  async saveSecret(request: SaveSecretRequest): Promise<SecretId> {
+  async saveSecret(request: SaveSecretRequest): Promise<string> {
     const id = newId();
     await this.idb.writeCipher({
       id,
@@ -138,14 +138,14 @@ export class SecretsVault {
    * (a script set a protected variable, P3.12). False when the vault is
    * locked or has no such secret; nothing is written then.
    */
-  async replaceSecret(id: SecretId, plaintext: string): Promise<boolean> {
+  async replaceSecret(id: string, plaintext: string): Promise<boolean> {
     const dek = this.dek();
     // Encrypted before the transaction is opened: WebCrypto is asynchronous.
     return dek ? this.idb.replaceCipher(id, await encryptSecret(dek, id, plaintext)) : false;
   }
 
   /** The secret's plaintext, or `null` when the vault is locked or has no such secret. */
-  async readSecret(secretId: SecretId): Promise<string | null> {
+  async readSecret(secretId: string): Promise<string | null> {
     const dek = this.dek();
     if (!dek) {
       return null;
@@ -159,11 +159,11 @@ export class SecretsVault {
     return this.idb.listSecrets();
   }
 
-  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+  async renameSecret(id: string, name: string): Promise<SecretDoc | null> {
     return this.idb.renameSecret(id, name);
   }
 
-  async deleteSecret(id: SecretId): Promise<void> {
+  async deleteSecret(id: string): Promise<void> {
     return this.idb.deleteSecret(id);
   }
 

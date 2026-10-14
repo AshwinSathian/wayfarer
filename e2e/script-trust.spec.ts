@@ -8,7 +8,7 @@ import { TARGET, captureTarget, send } from "./support/app";
 // The target is a routed fake host, which the app's service worker would hide in WebKit.
 test.use({ serviceWorkers: "block" });
 
-const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
 
 /** A collection file as another person would send it: one request, with scripts. */
 function collectionFile(post: string) {
@@ -17,7 +17,7 @@ function collectionFile(post: string) {
     mimeType: "application/json",
     buffer: Buffer.from(
       JSON.stringify({
-        $id: "wayfarer/collection/3",
+        $id: "wayfarer/collection",
         meta: meta("file"),
         collection: { id: "col-shared", meta: meta("col-shared"), name: "Shared collection", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } },
         folders: [],
@@ -130,7 +130,7 @@ test("a script written here runs without a review, also after it is saved into a
     });
     const now = Date.now();
     const tx = db.transaction(["collections"], "readwrite");
-    tx.objectStore("collections").put({ id: "col-mine", meta: { id: "col-mine", createdAt: now, updatedAt: now, version: 1 }, name: "Mine", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true } });
+    tx.objectStore("collections").put({ id: "col-mine", meta: { id: "col-mine", createdAt: now, updatedAt: now }, name: "Mine", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true } });
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     db.close();
   });

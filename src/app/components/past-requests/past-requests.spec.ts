@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PastRequests, matches } from './past-requests';
-import { PastRequest } from '../../models/history';
+import { PastRequest } from "@wayfarer/core";
 import { Confirm } from '../../ui/confirm';
 import { describe, it, beforeEach, expect, vi } from "vitest";
 import { historyEntry } from '../../../testing/request-fixtures';

@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ResponseEnvelope, ScriptResult, VariableChange } from "@wayfarer/core";
 import { requestContent } from "../../testing/request-fixtures";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
 import { buildSecretReference } from "../shared/secrets/secret-reference";
@@ -22,7 +22,7 @@ describe("a script sets a protected variable (P3.12)", () => {
   let executor: RequestExecutor;
   let environments: EnvironmentsStore;
   let vault: SecretsVault;
-  let idb: Idb;
+  let idb: Repositories;
   let secretId: string;
   let script: ScriptResult;
 
@@ -40,7 +40,7 @@ describe("a script sets a protected variable (P3.12)", () => {
     executor = TestBed.inject(RequestExecutor);
     environments = TestBed.inject(EnvironmentsStore);
     vault = TestBed.inject(SecretsVault);
-    idb = TestBed.inject(Idb);
+    idb = repositories();
 
     expect(await vault.create(PASSPHRASE)).toBe(true);
     secretId = await vault.saveSecret({ name: "token", plaintext: OLD });
@@ -162,7 +162,7 @@ describe("a script sets a protected variable (P3.12)", () => {
     // Another tab protects "plain"; this tab's copy of the rows still holds the old text.
     const other = await vault.saveSecret({ name: "plain", plaintext: OLD });
     const id = environments.activeEnvironment()!.meta.id;
-    await idb.changeEnvironment(id, [{ key: "plain", value: buildSecretReference(other) }]);
+    await idb.environments.changeEnvironment(id, [{ key: "plain", value: buildSecretReference(other) }]);
     expect(variables()["plain"]).toBe("before");
 
     script = sets({ key: "plain", value: NEW });

@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { historyEntry, jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { SecretsVault } from "./secrets-vault";
 import { WORKSPACE_FORMAT, validateWorkspaceFile } from "@wayfarer/core";
@@ -11,14 +11,14 @@ const DAY = 24 * 60 * 60 * 1000;
 
 // Over the real stores and the real vault: a backup is what a user's browser holds.
 describe("WorkspaceBackup", () => {
-  let idb: Idb;
+  let idb: Repositories;
   let backup: WorkspaceBackup;
   let vault: SecretsVault;
 
   function start(): void {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(Idb);
+    idb = repositories();
     backup = TestBed.inject(WorkspaceBackup);
     vault = TestBed.inject(SecretsVault);
   }
@@ -37,23 +37,23 @@ describe("WorkspaceBackup", () => {
 
   /** A workspace with something in every store a backup holds. */
   async function seed(): Promise<string> {
-    const collection = await idb.createCollection({ name: "Billing" });
-    await idb.changeCollectionVariables(collection.meta.id, [{ key: "base", value: "https://api.test" }]);
-    const folder = await idb.createFolder({ collectionId: collection.meta.id, name: "Auth" });
-    await idb.createRequest({ collectionId: collection.meta.id, folderId: folder.meta.id, name: "Login", method: "POST", url: "{{base}}/login", body: jsonBody({ user: "a" }) });
+    const collection = await idb.collections.createCollection({ name: "Billing" });
+    await idb.collections.changeCollectionVariables(collection.meta.id, [{ key: "base", value: "https://api.test" }]);
+    const folder = await idb.folders.createFolder({ collectionId: collection.meta.id, name: "Auth" });
+    await idb.requests.createRequest({ collectionId: collection.meta.id, folderId: folder.meta.id, name: "Login", method: "POST", url: "{{base}}/login", body: jsonBody({ user: "a" }) });
     await vault.create("correct horse");
-    const environment = await idb.createEnvironment({ name: "Dev" });
+    const environment = await idb.environments.createEnvironment({ name: "Dev" });
     const secret = await vault.saveSecret({ name: "token", environmentId: environment.meta.id, plaintext: "backup-plaintext-1" });
-    await idb.updateEnvironment(environment.meta.id, { vars: rowsOf({ host: "localhost", token: `{{$secret.${secret}}}` }) });
-    await idb.setActiveEnvironment(environment.meta.id);
-    await idb.changeGlobals([{ key: "region", value: "eu" }]);
-    await idb.add(historyEntry({ url: "https://api.test/sent", createdAt: 5, status: 200 }), 500);
+    await idb.environments.updateEnvironment(environment.meta.id, { vars: rowsOf({ host: "localhost", token: `{{$secret.${secret}}}` }) });
+    await idb.environments.setActiveEnvironment(environment.meta.id);
+    await idb.environments.changeGlobals([{ key: "region", value: "eu" }]);
+    await idb.history.add(historyEntry({ url: "https://api.test/sent", createdAt: 5, status: 200 }), 500);
     return secret;
   }
 
   it("a backup holds every store and no plaintext; after a reset, restore puts the same records back, with collections untrusted", async () => {
     const secret = await seed();
-    const before = await idb.readWorkspace(true);
+    const before = await idb.workspace.readAll(true);
 
     const json = await backup.exportJson({ history: true });
     expect(json).not.toContain("backup-plaintext-1");
@@ -68,15 +68,15 @@ describe("WorkspaceBackup", () => {
     start();
     expect(await backup.restore(json)).toEqual([]);
 
-    const after = await idb.readWorkspace(true);
+    const after = await idb.workspace.readAll(true);
     // A file cannot grant itself trust (D6): that is the one difference.
     expect(before.collections[0].scriptTrust).toEqual({ trusted: true });
     expect(after).toEqual({ ...before, collections: before.collections.map((c) => ({ ...c, scriptTrust: { trusted: false } })) });
     // The vault came back with its passphrase and opens the secret it held.
     expect(await vault.unlock("correct horse")).toBe(true);
     expect(await vault.readSecret(secret)).toBe("backup-plaintext-1");
-    expect(await idb.getActiveEnvironmentId()).toBe(before.environments[0].meta.id);
-    expect(await idb.getGlobals()).toEqual(rowsOf({ region: "eu" }));
+    expect(await idb.environments.getActiveEnvironmentId()).toBe(before.environments[0].meta.id);
+    expect(await idb.environments.getGlobals()).toEqual(rowsOf({ region: "eu" }));
   });
 
   it("leaves history out unless asked, and a restore without history keeps the history that is here", async () => {
@@ -84,24 +84,24 @@ describe("WorkspaceBackup", () => {
     const json = await backup.exportJson();
     expect(Object.keys((JSON.parse(json) as WorkspaceFile).stores)).not.toContain("history");
 
-    await idb.add(historyEntry({ url: "https://api.test/later", createdAt: 9 }), 500);
+    await idb.history.add(historyEntry({ url: "https://api.test/later", createdAt: 9 }), 500);
     expect(await backup.restore(json)).toEqual([]);
-    expect((await idb.getLatest()).map((entry) => entry.sent.url)).toEqual(["https://api.test/later", "https://api.test/sent"]);
+    expect((await idb.history.getLatest()).map((entry) => entry.sent.url)).toEqual(["https://api.test/later", "https://api.test/sent"]);
   });
 
   it("replaces what is stored: a collection made after the backup is gone after the restore", async () => {
     await seed();
     const json = await backup.exportJson();
-    await idb.createCollection({ name: "Made later" });
+    await idb.collections.createCollection({ name: "Made later" });
 
     expect(await backup.restore(json)).toEqual([]);
-    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["Billing"]);
+    expect((await idb.collections.listCollections()).map((c) => c.name)).toEqual(["Billing"]);
   });
 
   it("refuses a file that is not what the app writes, says what is wrong, and changes nothing", async () => {
     await seed();
     const good = JSON.parse(await backup.exportJson({ history: true })) as WorkspaceFile;
-    const before = JSON.stringify(await idb.readWorkspace(true));
+    const before = JSON.stringify(await idb.workspace.readAll(true));
     const broken = (change: (file: WorkspaceFile) => void): string => {
       const copy = structuredClone(good);
       change(copy);
@@ -134,7 +134,7 @@ describe("WorkspaceBackup", () => {
       const errors = await backup.restore(broken(change));
       expect(errors.join("\n"), name).toMatch(expected);
     }
-    expect(JSON.stringify(await idb.readWorkspace(true))).toBe(before);
+    expect(JSON.stringify(await idb.workspace.readAll(true))).toBe(before);
   });
 
   it("reminds after 14 days without a backup, counted from the first use; a backup or Not now starts the count again", async () => {

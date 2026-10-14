@@ -28,8 +28,8 @@ import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { WorkspaceBackup } from "../../services/workspace-backup";
-import { Idb } from "../../data/idb";
-import { DatabaseResetBlockedError } from "../../data/idb-core";
+import { HistoryRepository } from "../../data/history-repository";
+import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Composer } from "../composer/composer";
@@ -90,7 +90,8 @@ export class AppShell implements OnInit {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   protected readonly backup = inject(WorkspaceBackup);
-  private readonly idb = inject(Idb);
+  private readonly idb = inject(IdbCore);
+  private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly updatedElsewhere = this.idb.updatedElsewhere;
@@ -423,6 +424,7 @@ export class AppShell implements OnInit {
     try {
       // Until the reload: a send that ends in the meantime, or a tab's timer, must not open the database again.
       await this.idb.resetDatabase({ untilReload: true });
+      this.history.resetLocalState();
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(

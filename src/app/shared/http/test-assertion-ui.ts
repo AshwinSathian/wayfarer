@@ -1,4 +1,4 @@
-import { AssertionOperator, AssertionTarget } from "../../models/test-assertion";
+import { AssertionOperator, AssertionTarget } from "@wayfarer/core";
 
 /** Static option lists + pure eligibility rules for the composer's Tests (assertion builder) tab. */
 

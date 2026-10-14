@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { EnvironmentsStore } from "./environments-store";
 import { Idb } from "../data/idb";
-import { EnvironmentDoc } from "../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class IdbServiceMock {
@@ -26,7 +26,7 @@ class IdbServiceMock {
 function buildEnv(id: string, overrides: Partial<EnvironmentDoc> = {}): EnvironmentDoc {
   return {
     id,
-    meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id, createdAt: 1, updatedAt: 1 },
     name: `Env ${id}`,
     order: 1,
     vars: {},

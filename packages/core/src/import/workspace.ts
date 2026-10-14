@@ -5,7 +5,7 @@ import { validateCollection } from "./wayfarer-collection";
 import { validateEnvironmentExport } from "./wayfarer-environments";
 
 /** A whole workspace as one file (P2.11): every store the app keeps, the vault's secrets encrypted as they are stored. */
-export const WORKSPACE_FORMAT = "wayfarer/workspace/3";
+export const WORKSPACE_FORMAT = "wayfarer/workspace";
 
 /** The keys of the records of the `meta` store. */
 export const META_STATE_KEY = "state";

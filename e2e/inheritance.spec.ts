@@ -79,7 +79,7 @@ test("a request made in a collection starts with inherit; a collection's setting
   expect(header(await sendAndEcho(page), "authorization")).toBe("Bearer from-the-collection");
 });
 
-const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
 const none = { pre: "", post: "" };
 /** Appends its letter to the `order` variable: the header that goes out says which scripts ran, and in which order. */
 const step = (letter: string) => `pm.environment.set("order", (pm.environment.get("order") || "") + "${letter}");`;
@@ -90,7 +90,7 @@ const FILE = {
   mimeType: "application/json",
   buffer: Buffer.from(
     JSON.stringify({
-      $id: "wayfarer/collection/3",
+      $id: "wayfarer/collection",
       meta: meta("file"),
       collection: { id: "col-in", meta: meta("col-in"), name: "Inherited collection", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: step("c"), post: 'pm.test("the collection\'s script ran after", () => {});' } },
       folders: [{ id: "fol-in", meta: meta("fol-in"), collectionId: "col-in", name: "Inherited folder", order: 0, variables: [], auth: { type: "inherit" }, scripts: { pre: step("f"), post: 'pm.test("the folder\'s script ran after", () => {});' } }],

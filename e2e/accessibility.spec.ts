@@ -271,9 +271,9 @@ for (const theme of ["dark", "light"] as const) {
     await scan("composer Auth, OAuth 2.0");
 
     // The import report (P4.1), with a warning in it.
-    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
     const imported = {
-      $id: "wayfarer/collection/3",
+      $id: "wayfarer/collection",
       meta: meta("file"),
       collection: { id: "col-a11y", meta: meta("col-a11y"), name: "Swept import", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "pm.vault.get('k')", post: "" } },
       folders: [],

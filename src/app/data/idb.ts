@@ -3,19 +3,16 @@ import type { Row, VariableChange } from "@wayfarer/core";
 import {
   Collection,
   CollectionExport,
-  CollectionId,
   Folder,
-  FolderId,
   InheritedPatch,
   NewRequest,
   RequestDoc,
-  RequestDocId,
   RequestPatch,
 } from "../models/collections";
-import { EnvironmentDoc, EnvironmentId } from "../models/environments";
-import { PastRequest, PastRequestKey } from "../models/history";
+import { EnvironmentDoc } from "@wayfarer/core";
+import { PastRequest } from "@wayfarer/core";
 import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
-import { SecretDoc, SecretId } from "../models/secrets";
+import { SecretDoc } from "../models/secrets";
 import { IdbCore } from "./idb-core";
 import { HistoryRepository } from "./history-repository";
 import { CollectionsRepository } from "./collections-repository";
@@ -69,11 +66,11 @@ export class Idb {
 
   // ── History ──────────────────────────────────────────────────────────
 
-  async add(req: PastRequest, cap: number): Promise<PastRequestKey | null> {
+  async add(req: PastRequest, cap: number): Promise<number | null> {
     return this.history.add(req, cap);
   }
 
-  async get(id: PastRequestKey): Promise<PastRequest | null> {
+  async get(id: number): Promise<PastRequest | null> {
     return this.history.get(id);
   }
 
@@ -81,7 +78,7 @@ export class Idb {
     return this.history.getLatest(limit);
   }
 
-  async delete(id: PastRequestKey): Promise<void> {
+  async delete(id: number): Promise<void> {
     return this.history.delete(id);
   }
 
@@ -100,45 +97,45 @@ export class Idb {
   }
 
   async renameCollection(
-    id: CollectionId,
+    id: string,
     updates: { name?: string; description?: string }
   ): Promise<Collection | null> {
     return this.collections.renameCollection(id, updates);
   }
 
-  async setCollectionInherited(id: CollectionId, patch: InheritedPatch<Collection>): Promise<Collection | null> {
+  async setCollectionInherited(id: string, patch: InheritedPatch<Collection>): Promise<Collection | null> {
     return this.collections.setCollectionInherited(id, patch);
   }
 
-  async setFolderInherited(id: FolderId, patch: InheritedPatch<Folder>): Promise<Folder | null> {
+  async setFolderInherited(id: string, patch: InheritedPatch<Folder>): Promise<Folder | null> {
     return this.folders.setFolderInherited(id, patch);
   }
 
-  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
+  async changeFolderVariables(id: string, changes: VariableChange[]): Promise<Folder | null> {
     return this.folders.changeFolderVariables(id, changes);
   }
 
-  async duplicateCollection(id: CollectionId): Promise<Collection | null> {
+  async duplicateCollection(id: string): Promise<Collection | null> {
     return this.collections.duplicateCollection(id);
   }
 
-  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<Collection | null> {
+  async approveScripts(id: string, digests: string[], review: boolean): Promise<Collection | null> {
     return this.collections.approveScripts(id, digests, review);
   }
 
-  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
+  async changeCollectionVariables(id: string, changes: VariableChange[]): Promise<Collection | null> {
     return this.collections.changeCollectionVariables(id, changes);
   }
 
-  async deleteCollection(id: CollectionId): Promise<void> {
+  async deleteCollection(id: string): Promise<void> {
     return this.collections.deleteCollection(id);
   }
 
-  async reorderCollections(order: { id: CollectionId; order: number }[]): Promise<void> {
+  async reorderCollections(order: { id: string; order: number }[]): Promise<void> {
     return this.collections.reorderCollections(order);
   }
 
-  async getCollectionExport(id: CollectionId): Promise<CollectionExport | null> {
+  async getCollectionExport(id: string): Promise<CollectionExport | null> {
     return this.collections.getCollectionExport(id);
   }
 
@@ -149,36 +146,36 @@ export class Idb {
     return this.collections.importCollectionExport(payload, options);
   }
 
-  async listFolders(collectionId: CollectionId): Promise<Folder[]> {
+  async listFolders(collectionId: string): Promise<Folder[]> {
     return this.folders.listFolders(collectionId);
   }
 
   async createFolder(payload: {
-    collectionId: CollectionId;
+    collectionId: string;
     name: string;
-    parentFolderId?: FolderId;
+    parentFolderId?: string;
     order?: number;
   }): Promise<Folder> {
     return this.folders.createFolder(payload);
   }
 
-  async renameFolder(id: FolderId, name: string): Promise<Folder | null> {
+  async renameFolder(id: string, name: string): Promise<Folder | null> {
     return this.folders.renameFolder(id, name);
   }
 
-  async duplicateFolder(id: FolderId): Promise<Folder | null> {
+  async duplicateFolder(id: string): Promise<Folder | null> {
     return this.folders.duplicateFolder(id);
   }
 
-  async deleteFolder(id: FolderId): Promise<void> {
+  async deleteFolder(id: string): Promise<void> {
     return this.folders.deleteFolder(id);
   }
 
-  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
+  async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
     return this.folders.reorderChildren(order);
   }
 
-  async listRequests(collectionId: CollectionId): Promise<RequestDoc[]> {
+  async listRequests(collectionId: string): Promise<RequestDoc[]> {
     return this.collectionRequests.listRequests(collectionId);
   }
 
@@ -186,11 +183,11 @@ export class Idb {
     return this.collectionRequests.createRequest(payload, files);
   }
 
-  async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
+  async renameRequest(id: string, name: string): Promise<RequestDoc | null> {
     return this.collectionRequests.renameRequest(id, name);
   }
 
-  async updateRequest(id: RequestDocId, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
+  async updateRequest(id: string, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
     return this.collectionRequests.updateRequest(id, patch, files);
   }
 
@@ -198,11 +195,11 @@ export class Idb {
     return this.collectionRequests.readFile(id);
   }
 
-  async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
+  async duplicateRequest(id: string): Promise<RequestDoc | null> {
     return this.collectionRequests.duplicateRequest(id);
   }
 
-  async deleteRequest(id: RequestDocId): Promise<void> {
+  async deleteRequest(id: string): Promise<void> {
     return this.collectionRequests.deleteRequest(id);
   }
 
@@ -221,29 +218,29 @@ export class Idb {
   }
 
   async updateEnvironment(
-    id: EnvironmentId,
+    id: string,
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     return this.environments.updateEnvironment(id, updates);
   }
 
   async changeEnvironment(
-    id: EnvironmentId,
+    id: string,
     changes: VariableChange[],
     details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
   ): Promise<EnvironmentDoc | null> {
     return this.environments.changeEnvironment(id, changes, details);
   }
 
-  async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
+  async duplicateEnvironment(id: string): Promise<EnvironmentDoc | null> {
     return this.environments.duplicateEnvironment(id);
   }
 
-  async deleteEnvironment(id: EnvironmentId): Promise<void> {
+  async deleteEnvironment(id: string): Promise<void> {
     return this.environments.deleteEnvironment(id);
   }
 
-  async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
+  async reorderEnvironments(order: { id: string; order: number }[]): Promise<void> {
     return this.environments.reorderEnvironments(order);
   }
 
@@ -255,30 +252,30 @@ export class Idb {
     return this.environments.changeGlobals(changes);
   }
 
-  async getActiveEnvironmentId(): Promise<EnvironmentId | null> {
+  async getActiveEnvironmentId(): Promise<string | null> {
     return this.environments.getActiveEnvironmentId();
   }
 
-  async setActiveEnvironment(id: EnvironmentId | null): Promise<void> {
+  async setActiveEnvironment(id: string | null): Promise<void> {
     return this.environments.setActiveEnvironment(id);
   }
 
   // ── Secrets ──────────────────────────────────────────────────────────
 
   async writeCipher(params: {
-    id: SecretId;
+    id: string;
     name: string;
-    environmentId?: EnvironmentId;
+    environmentId?: string;
     envelope: SecretEnvelope;
   }): Promise<void> {
     return this.secrets.writeCipher(params);
   }
 
-  async replaceCipher(id: SecretId, envelope: SecretEnvelope): Promise<boolean> {
+  async replaceCipher(id: string, envelope: SecretEnvelope): Promise<boolean> {
     return this.secrets.replaceCipher(id, envelope);
   }
 
-  async readCipher(id: SecretId): Promise<SecretEnvelope | null> {
+  async readCipher(id: string): Promise<SecretEnvelope | null> {
     return this.secrets.readCipher(id);
   }
 
@@ -298,11 +295,11 @@ export class Idb {
     return this.secrets.listAll();
   }
 
-  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+  async renameSecret(id: string, name: string): Promise<SecretDoc | null> {
     return this.secrets.renameSecret(id, name);
   }
 
-  async deleteSecret(id: SecretId): Promise<void> {
+  async deleteSecret(id: string): Promise<void> {
     return this.secrets.deleteSecret(id);
   }
 

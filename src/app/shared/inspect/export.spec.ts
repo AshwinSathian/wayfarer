@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PastRequest } from "../../models/history";
+import type { PastRequest } from "@wayfarer/core";
 import { requestContent } from "../../../testing/request-fixtures";
 import { exportRedactor } from "./export";
 import { harText, historyExchange } from "./har-export";

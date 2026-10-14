@@ -1,12 +1,11 @@
 import type { SecretEnvelope } from "@wayfarer/core";
-import { Meta, UUID } from "./collections";
+import { Meta } from "./collections";
 
 export interface SecretDoc {
-  id: UUID;
+  id: string;
   meta: Meta;
   name: string;
-  environmentId?: UUID;
+  environmentId?: string;
   envelope: SecretEnvelope;
 }
 
-export type SecretId = UUID;

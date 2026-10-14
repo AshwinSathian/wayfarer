@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } 
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { Icon } from "../../shared/icon/icon";
 import { isBodyMethod } from "@wayfarer/core";

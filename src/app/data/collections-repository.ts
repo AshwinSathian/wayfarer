@@ -3,7 +3,6 @@ import {
   COLLECTION_FORMAT,
   Collection,
   CollectionExport,
-  CollectionId,
   Folder,
   InheritedPatch,
   RequestDoc,
@@ -65,7 +64,7 @@ export class CollectionsRepository {
    * script the user just saved here, and they are added only if the
    * collection is trusted already: an edit does not approve an import.
    */
-  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<Collection | null> {
+  async approveScripts(id: string, digests: string[], review: boolean): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -84,7 +83,7 @@ export class CollectionsRepository {
   }
 
   /** Changes some variables of a collection, reading the stored rows inside the transaction that writes them (D22). */
-  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
+  async changeCollectionVariables(id: string, changes: VariableChange[]): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -101,7 +100,7 @@ export class CollectionsRepository {
   }
 
   /** The auth, the scripts and the route a collection holds for its requests (P4.9, P6.4). Approving a script is not done here: see `approveScripts`. */
-  async setCollectionInherited(id: CollectionId, patch: InheritedPatch<Collection>): Promise<Collection | null> {
+  async setCollectionInherited(id: string, patch: InheritedPatch<Collection>): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -118,7 +117,7 @@ export class CollectionsRepository {
   }
 
   async renameCollection(
-    id: CollectionId,
+    id: string,
     updates: { name?: string; description?: string }
   ): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
@@ -142,7 +141,7 @@ export class CollectionsRepository {
     });
   }
 
-  async duplicateCollection(id: CollectionId): Promise<Collection | null> {
+  async duplicateCollection(id: string): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests"]);
     const collectionStore = tx.objectStore("collections");
@@ -210,7 +209,7 @@ export class CollectionsRepository {
     });
   }
 
-  async deleteCollection(id: CollectionId): Promise<void> {
+  async deleteCollection(id: string): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
     const collectionStore = tx.objectStore("collections");
@@ -229,7 +228,7 @@ export class CollectionsRepository {
     });
   }
 
-  async reorderCollections(order: { id: CollectionId; order: number }[]): Promise<void> {
+  async reorderCollections(order: { id: string; order: number }[]): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -246,7 +245,7 @@ export class CollectionsRepository {
     });
   }
 
-  async getCollectionExport(id: CollectionId): Promise<CollectionExport | null> {
+  async getCollectionExport(id: string): Promise<CollectionExport | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadonly(["collections", "folders", "requests"]);
     const collection = await tx.objectStore("collections").get(id);

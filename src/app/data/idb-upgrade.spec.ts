@@ -27,7 +27,7 @@ const STORES = ["collections", "cookies", "environments", "files", "folders", "h
 
 /** A v4 database with a document in every store, and the store v1 left behind. */
 function buildV4(db: IDBDatabase): void {
-  const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+  const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
   db.createObjectStore("pastRequests", { keyPath: "id", autoIncrement: true }).add({ url: "https://api.test/v1" });
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).add({
     method: "GET",
@@ -54,7 +54,7 @@ function buildV4(db: IDBDatabase): void {
   db.createObjectStore("meta", { keyPath: "key" }).add({ key: "state", schemaVersion: 1, activeEnvironmentId: "e-1" });
 }
 
-// v5 does not read the shapes before it (maintainer, 2026-10-09: no stored data exists to keep).
+// Nothing an earlier version stored is read (D24; maintainer, 2026-10-14: no backward compatibility).
 describe("opening a database left by another release", () => {
   let idb: Idb;
   let core: IdbCore;
@@ -70,7 +70,7 @@ describe("opening a database left by another release", () => {
     await idb.resetDatabase();
   });
 
-  it("empties a v4 database, recreates the v5 stores and says the old data was removed", async () => {
+  it("empties a v4 database, makes this version's stores and says the old data was removed", async () => {
     (await openRaw(4, buildV4)).close();
 
     await idb.init();
@@ -86,7 +86,7 @@ describe("opening a database left by another release", () => {
     expect(await idb.listSecrets()).toEqual([]);
     expect(await idb.getLatest()).toEqual([]);
     expect(await idb.getActiveEnvironmentId()).toBeNull();
-    expect(core.clearedOldData()).toBe("all");
+    expect(core.clearedOldData()).toBe(true);
 
     // The recreated stores take new writes through their indexes.
     const collection = await idb.createCollection({ name: "New" });
@@ -94,248 +94,50 @@ describe("opening a database left by another release", () => {
     expect(collection.order).toBe(1);
   });
 
-  it("adds the files store to a version 5 database (version 6), and removes its collections and says so (version 10)", async () => {
-    // No secret was stored, so version 8 has nothing to remove and nothing to say.
-    const v5 = await openRaw(5, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
-      collections.createIndex("by-order", "order");
-      collections.add({ id: "c-5", meta: { id: "c-5", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, scriptTrust: { trusted: true } });
-      for (const name of ["folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      db.createObjectStore("meta", { keyPath: "key" });
-    });
-    v5.close();
-
-    await idb.init();
-
-    const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
-    expect([...db.objectStoreNames]).toContain("files");
-    // A collection of before version 10 holds no auth and no scripts for its requests: it is not read (D24).
-    expect(await idb.listCollections()).toEqual([]);
-    expect(core.clearedOldData()).toEqual(["collections"]);
-  });
-
-  it("removes secrets encrypted the old way and says so; the environments stay (version 8)", async () => {
-    const v7 = await openRaw(7, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
-      collections.createIndex("by-order", "order");
-      collections.add({ id: "c-7", meta: { id: "c-7", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, variables: [], scriptTrust: { trusted: true } });
-      const environments = db.createObjectStore("environments", { keyPath: "meta.id" });
-      environments.createIndex("by-order", "order");
-      environments.add({ id: "e-7", meta: { id: "e-7", createdAt: 1, updatedAt: 1, version: 1 }, name: "Dev", order: 1, vars: [{ key: "token", value: "{{$secret.s-1}}", enabled: true }] });
-      for (const name of ["folders", "requests"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      db.createObjectStore("secrets", { keyPath: "meta.id" }).add({
-        id: "s-1",
-        meta: { id: "s-1", createdAt: 1, updatedAt: 1, version: 1 },
-        name: "token",
-        envelope: { v: 1, alg: "AES-GCM", salt: "c2FsdA", iv: "aXY", ct: "Y3Q" },
-      });
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-    });
-    v7.close();
-
-    await idb.init();
-
-    expect((await core.getDatabase())!.version).toBe(13);
-    expect(await idb.listSecrets()).toEqual([]);
-    expect(await idb.readVault()).toBeNull();
-    // The collection goes too, since version 10.
-    expect(core.clearedOldData()).toEqual(["secrets", "collections"]);
-    expect(await idb.listCollections()).toEqual([]);
-    // The variable still names the secret that is gone; the send says so.
-    expect((await idb.listEnvironments())[0].vars[0].value).toBe("{{$secret.s-1}}");
-  });
-
-  it("removes history that holds what was sent as it was sent, says so, and takes entries of the new shape (version 9)", async () => {
-    const v8 = await openRaw(8, (db) => {
-      const history = db.createObjectStore("history", { keyPath: "id", autoIncrement: true });
-      history.createIndex("by-createdAt", "createdAt");
-      history.createIndex("by-url", "url");
-      history.createIndex("by-method", "method");
-      history.add({ method: "GET", url: "https://api.test", headers: { Authorization: "Bearer old-plain-token" }, createdAt: 1 });
-      const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
-      collections.createIndex("by-order", "order");
-      collections.add({ id: "c-8", meta: { id: "c-8", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", order: 1, variables: [], scriptTrust: { trusted: true } });
-      for (const name of ["folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-    });
-    v8.close();
-
-    await idb.init();
-
-    const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
-    expect(await idb.getLatest()).toEqual([]);
-    expect([...db.transaction("history").store.indexNames]).toEqual(["by-createdAt"]);
-    // The collection goes too, since version 10.
-    expect(core.clearedOldData()).toEqual(["history", "collections"]);
-    expect(await idb.listCollections()).toEqual([]);
-
-    await idb.add(historyEntry({ createdAt: 5 }), 500);
-    expect((await idb.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
-  });
-
-  /** A version 9 database as the app left it, with the stores the test fills. */
-  const openV9 = () =>
-    openRaw(9, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      for (const name of ["collections", "folders", "requests", "environments", "secrets"]) {
-        const store = db.createObjectStore(name, { keyPath: "meta.id" });
-        store.createIndex("by-order", "order");
-        if (name === "folders" || name === "requests") store.createIndex("by-collectionId", "collectionId");
+  it("empties a database of the version before this one too, every store, and says so", async () => {
+    const keyPaths: Record<string, string | undefined> = { history: "id", meta: "key", tabs: "id", cookies: "key", files: undefined };
+    const build = (db: IDBDatabase) => {
+      for (const name of STORES) {
+        const keyPath = Object.hasOwn(keyPaths, name) ? keyPaths[name] : "meta.id";
+        db.createObjectStore(name, keyPath === undefined ? undefined : { keyPath, autoIncrement: name === "history" });
       }
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-    });
-
-  it("removes collections, folders, requests and their files, says so, and keeps environments, secrets and history (version 10)", async () => {
-    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
-    const v9 = await openV9();
-    const fill = v9.transaction(["collections", "folders", "requests", "files", "environments", "secrets", "history"], "readwrite");
-    fill.objectStore("collections").add({ id: "c-9", meta: meta("c-9"), name: "Old", order: 1, variables: [], scriptTrust: { trusted: true } });
-    fill.objectStore("folders").add({ id: "f-9", meta: meta("f-9"), collectionId: "c-9", name: "Folder", order: 1 });
-    fill.objectStore("requests").add({ id: "r-9", meta: meta("r-9"), collectionId: "c-9", name: "R", order: 1, method: "GET", url: "https://a.test", auth: { type: "none" } });
-    fill.objectStore("files").add({ bytes: new ArrayBuffer(1), type: "" }, "file-9");
-    fill.objectStore("environments").add({ id: "e-9", meta: meta("e-9"), name: "Dev", order: 1, vars: [] });
-    fill.objectStore("secrets").add({ id: "s-9", meta: meta("s-9"), name: "token", envelope: { v: 2, iv: "aXY", ct: "Y3Q" } });
-    fill.objectStore("history").add(historyEntry({ createdAt: 9 }));
+    };
+    (await openRaw(DB_VERSION - 1, build)).close();
+    const db0 = await openRaw(DB_VERSION - 1);
+    const write = db0.transaction(["collections", "environments", "history", "tabs"], "readwrite");
+    write.objectStore("collections").add({ id: "c-1", meta: { id: "c-1", createdAt: 1, updatedAt: 1 }, name: "Kept before", order: 1 });
+    write.objectStore("environments").add({ id: "e-1", meta: { id: "e-1", createdAt: 1, updatedAt: 1 }, name: "Dev", vars: [], order: 1 });
+    write.objectStore("history").add(historyEntry());
+    write.objectStore("tabs").add({ id: "t-1" });
     await new Promise<void>((resolve, reject) => {
-      fill.oncomplete = () => resolve();
-      fill.onerror = () => reject(fill.error);
+      write.oncomplete = () => resolve();
+      write.onerror = () => reject(write.error);
     });
-    v9.close();
+    db0.close();
 
     await idb.init();
 
     const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
-    for (const name of ["collections", "folders", "requests", "files"] as const) {
-      expect(await db.count(name), name).toBe(0);
-    }
-    expect(core.clearedOldData()).toEqual(["collections"]);
-    expect((await idb.listEnvironments()).map((environment) => environment.name)).toEqual(["Dev"]);
-    expect((await idb.listSecrets()).map((secret) => secret.name)).toEqual(["token"]);
-    expect((await idb.getLatest()).map((entry) => entry.createdAt)).toEqual([9]);
-  });
-
-  it("says nothing when a version 9 database held no collection (version 10)", async () => {
-    (await openV9()).close();
-
-    await idb.init();
-
-    expect((await core.getDatabase())!.version).toBe(13);
-    expect(core.clearedOldData()).toEqual([]);
-  });
-
-  it("adds the tabs store to a version 10 database and removes nothing (version 11)", async () => {
-    // Version 10 held the stores of version 9: nothing was added or taken away between them.
-    const v10 = await openRaw(10, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      for (const name of ["collections", "folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-    });
-    const tx = v10.transaction("environments", "readwrite");
-    tx.objectStore("environments").put({ id: "e-1", meta: { id: "e-1", createdAt: 1, updatedAt: 1, version: 1 }, name: "Kept", vars: [], order: 1 });
-    await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
-    v10.close();
-
-    await idb.init();
-
-    const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
+    expect(db.version).toBe(DB_VERSION);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
-    expect(await db.getAll("tabs")).toEqual([]);
-    expect(core.clearedOldData()).toEqual([]);
-    expect(await db.count("environments")).toBe(1);
+    for (const name of STORES) expect(await db.count(name as never), name).toBe(0);
+    expect(core.clearedOldData()).toBe(true);
   });
 
-  it("adds the cookies store to a version 11 database and removes nothing (version 12)", async () => {
-    const v11 = await openRaw(11, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      for (const name of ["collections", "folders", "requests", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-      db.createObjectStore("tabs", { keyPath: "id" });
-    });
-    const tx = v11.transaction("tabs", "readwrite");
-    tx.objectStore("tabs").put({ id: "t-1", order: 0 });
-    await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
-    v11.close();
+  it("says nothing when an earlier database held nothing", async () => {
+    (await openRaw(DB_VERSION - 1, (db) => db.createObjectStore("collections", { keyPath: "meta.id" }))).close();
 
     await idb.init();
 
-    const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
-    expect([...db.objectStoreNames].sort()).toEqual(STORES);
-    expect(await db.getAll("cookies")).toEqual([]);
-    expect(core.clearedOldData()).toEqual([]);
-    expect(await db.count("tabs")).toBe(1);
-  });
-
-  it("numbers each parent's folders and requests as one list, folders first, so that nothing moves (version 13)", async () => {
-    const v12 = await openRaw(12, (db) => {
-      db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-      for (const name of ["collections", "environments", "secrets"]) db.createObjectStore(name, { keyPath: "meta.id" });
-      const folders = db.createObjectStore("folders", { keyPath: "meta.id" });
-      folders.createIndex("by-collectionId", "collectionId");
-      folders.createIndex("by-order", "order");
-      const requests = db.createObjectStore("requests", { keyPath: "meta.id" });
-      requests.createIndex("by-collectionId", "collectionId");
-      requests.createIndex("by-order", "order");
-      db.createObjectStore("files");
-      db.createObjectStore("meta", { keyPath: "key" });
-      db.createObjectStore("tabs", { keyPath: "id" });
-      db.createObjectStore("cookies", { keyPath: "key" });
-    });
-    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
-    const tx = v12.transaction(["collections", "folders", "requests"], "readwrite");
-    for (const id of ["c-1", "c-2"]) tx.objectStore("collections").put({ id, meta: meta(id), name: id, order: 1 });
-    // As version 12 numbered them: folders and requests apart, and over the whole store.
-    const folder = (id: string, order: number, parentFolderId?: string, collectionId = "c-1") => tx.objectStore("folders").put({ id, meta: meta(id), collectionId, ...(parentFolderId && { parentFolderId }), name: id, order });
-    const request = (id: string, order: number, folderId?: string, collectionId = "c-1") => tx.objectStore("requests").put({ id, meta: meta(id), collectionId, ...(folderId && { folderId }), name: id, order, method: "GET", url: "/" });
-    folder("f-b", 7);
-    folder("f-a", 3);
-    folder("f-a-in", 9, "f-a");
-    request("r-top-2", 5);
-    request("r-top-1", 1);
-    request("r-in-a-2", 4, "f-a");
-    request("r-in-a-1", 2, "f-a");
-    folder("other-f", 1, undefined, "c-2");
-    request("other-r", 1, undefined, "c-2");
-    await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
-    v12.close();
-
-    await idb.init();
-
-    const db = (await core.getDatabase())!;
-    expect(db.version).toBe(13);
-    expect(core.clearedOldData()).toEqual([]);
-    const placed = [...(await db.getAll("folders")), ...(await db.getAll("requests"))].map((doc) => [doc.collectionId, (doc as { parentFolderId?: string }).parentFolderId ?? (doc as { folderId?: string }).folderId ?? "", doc.order, doc.meta.id] as const).sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]) || a[2] - b[2]);
-    expect(placed).toEqual([
-      ["c-1", "", 1, "f-a"],
-      ["c-1", "", 2, "f-b"],
-      ["c-1", "", 3, "r-top-1"],
-      ["c-1", "", 4, "r-top-2"],
-      ["c-1", "f-a", 1, "f-a-in"],
-      ["c-1", "f-a", 2, "r-in-a-1"],
-      ["c-1", "f-a", 3, "r-in-a-2"],
-      ["c-2", "", 1, "other-f"],
-      ["c-2", "", 2, "other-r"],
-    ]);
-    // A place is not an edit: no document says it was changed.
-    expect((await db.getAll("requests")).map((doc) => doc.meta.updatedAt)).toEqual([1, 1, 1, 1, 1]);
+    expect([...(await core.getDatabase())!.objectStoreNames].sort()).toEqual(STORES);
+    expect(core.clearedOldData()).toBe(false);
   });
 
   it("does not report removed data on a first run", async () => {
     await idb.init();
 
     expect((await core.getDatabase())!.version).toBe(DB_VERSION);
-    expect(core.clearedOldData()).toEqual([]);
+    expect(core.clearedOldData()).toBe(false);
   });
 
   it("waits, and says so, while a tab that will not close holds the old database; finishes when it closes", async () => {

@@ -109,7 +109,6 @@ export class Settings {
   readonly clearHistory = output<void>();
   readonly openSecrets = output<void>();
 
-
   /** From package.json, so the release bump is the only place it changes. */
   readonly version = version;
 

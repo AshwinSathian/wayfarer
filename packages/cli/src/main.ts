@@ -103,7 +103,7 @@ async function readSource(file: string, collection: string | undefined): Promise
   const text = await readText(file, "file");
   const parsed = parseJson(text);
   const id = parsed.ok && typeof parsed.value === "object" && parsed.value !== null && "$id" in parsed.value ? String(parsed.value.$id) : "";
-  if (!id.startsWith("wayfarer/workspace/")) {
+  if (id !== "wayfarer/workspace" && !id.startsWith("wayfarer/workspace/")) {
     try {
       const { collections } = importText(text);
       return { source: pick(collections.map(({ payload }) => ({ name: payload.collection.name, payload })), collection, "collection", file).payload, globals: [] };
@@ -117,7 +117,7 @@ async function readSource(file: string, collection: string | undefined): Promise
   const { stores } = (parsed.ok ? parsed.value : {}) as { stores: { collections: Collection[]; folders: Folder[]; requests: RequestDoc[]; environments: EnvironmentDoc[]; secrets: VaultFile["secrets"]; meta: Record<string, unknown>[] } };
   const chosen = pick(stores.collections, collection, "collection", file);
   const source: CollectionExport = {
-    $id: "wayfarer/collection/3",
+    $id: "wayfarer/collection",
     meta: chosen.meta,
     collection: chosen,
     folders: stores.folders.filter((folder) => folder.collectionId === chosen.meta.id),

@@ -253,7 +253,7 @@ export function postmanCollection(value: unknown): { payload: CollectionExport; 
   if (!isObject(value)) throw new ImportError("The file is not a Postman collection.");
   const warnings: Warning[] = [];
   const now = Date.now();
-  const meta = (): Meta => ({ id: newId(), createdAt: now, updatedAt: now, version: 1 });
+  const meta = (): Meta => ({ id: newId(), createdAt: now, updatedAt: now });
   const top = meta();
   const info = field(value, "info");
   const name = text(isObject(info) ? field(info, "name") : field(value, "name")).trim() || "Imported from Postman";
@@ -353,7 +353,7 @@ export function postmanEnvironment(value: unknown): { environment: EnvironmentDo
   return {
     environment: {
       id,
-      meta: { id, createdAt: now, updatedAt: now, version: 1 },
+      meta: { id, createdAt: now, updatedAt: now },
       name,
       order: 0,
       vars: objects(isObject(value) ? field(value, "values") : value).map((entry) => ({ key: text(field(entry, "key")), value: text(field(entry, "value")), enabled: field(entry, "enabled") !== false && field(entry, "disabled") !== true })),

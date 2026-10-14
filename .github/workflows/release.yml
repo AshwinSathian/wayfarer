@@ -13,6 +13,12 @@ name: Release
 # tarball npm would publish is installed into an empty folder and run, and
 # only then is it published, through npm's trusted publishing (OIDC): no
 # token is stored, and npm attaches a provenance attestation of this run.
+#
+# The job that holds the OIDC token (id-token: write) runs no code of the
+# package's dependencies: installing the tarball resolves them as a user's
+# install would, unpinned and with their install scripts, so that is done in
+# `pack`, which holds no token, and `publish` publishes the very tarball
+# `pack` tested. The check from the registry runs without the token too.
 # The trusted publisher (this repository, this workflow) is set on each
 # package at npmjs.com first: docs/runbook.md, "The first release".
 
@@ -31,20 +37,23 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Publish ${{ github.ref_name }}
+  pack:
+    name: Pack and test ${{ github.ref_name }}
+    # A tag of the app is the job `app`'s; publish and verify need pack, so they are skipped with it.
     if: ${{ !startsWith(github.ref_name, 'v') }}
     runs-on: ubuntu-latest
-    environment: npm
     permissions:
       contents: read
-      id-token: write # npm's trusted publishing and provenance
+    outputs:
+      name: ${{ steps.package.outputs.name }}
+      version: ${{ steps.package.outputs.version }}
+      bin: ${{ steps.package.outputs.bin }}
+      check: ${{ steps.package.outputs.check }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          registry-url: "https://registry.npmjs.org"
           # Never a cache in a release build.
           package-manager-cache: false
 
@@ -64,8 +73,6 @@ jobs:
             echo "::error::The tag says ${TAG#*-v}; $folder/package.json says $version."
             exit 1
           fi
-          # Trusted publishing needs npm 11.5.1 or later.
-          node -e "const [a, b, c] = process.argv[1].split('.').map(Number); process.exit(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))) ? 0 : 1)" "$(npm --version)" || { echo "::error::npm $(npm --version) cannot publish through OIDC"; exit 1; }
           { echo "folder=$folder"; echo "name=$name"; echo "version=$version"; echo "bin=$bin"; echo "check=$check"; } >> "$GITHUB_OUTPUT"
 
       - run: npm ci
@@ -83,31 +90,70 @@ jobs:
         env:
           FOLDER: ${{ steps.package.outputs.folder }}
 
-      - name: Install the tarball into an empty folder and run it
+      - name: Pack, install the tarball into an empty folder and run it
         env:
           FOLDER: ${{ steps.package.outputs.folder }}
           BIN: ${{ steps.package.outputs.bin }}
           CHECK: ${{ steps.package.outputs.check }}
         run: |
-          npm pack --workspace "$FOLDER" --pack-destination "$RUNNER_TEMP"
-          tarball=$(ls "$RUNNER_TEMP"/*.tgz)
+          mkdir "$RUNNER_TEMP/tarball"
+          npm pack --workspace "$FOLDER" --pack-destination "$RUNNER_TEMP/tarball"
+          tarball=$(ls "$RUNNER_TEMP"/tarball/*.tgz)
           tar -tzf "$tarball"
           mkdir "$RUNNER_TEMP/clean" && cd "$RUNNER_TEMP/clean"
           npm init --yes > /dev/null
           npm install --no-audit --no-fund "$tarball"
           npx --no-install "$BIN" "$CHECK"
 
-      - name: Publish
-        env:
-          FOLDER: ${{ steps.package.outputs.folder }}
-        run: npm publish --workspace "$FOLDER" --access public --provenance
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tarball
+          path: ${{ runner.temp }}/tarball/*.tgz
+          if-no-files-found: error
+          retention-days: 7
 
+  publish:
+    name: Publish ${{ github.ref_name }}
+    needs: pack
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm's trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: tarball
+          path: ${{ runner.temp }}/tarball
+      # Trusted publishing needs npm 11.5.1 or later. Nothing is installed here: what is published is the tarball pack tested.
+      - name: Publish the tarball pack tested
+        run: |
+          node -e "const [a, b, c] = process.argv[1].split('.').map(Number); process.exit(a > 11 || (a === 11 && (b > 5 || (b === 5 && c >= 1))) ? 0 : 1)" "$(npm --version)" || { echo "::error::npm $(npm --version) cannot publish through OIDC"; exit 1; }
+          npm publish "$(ls "$RUNNER_TEMP"/tarball/*.tgz)" --access public --provenance
+
+  verify:
+    name: npx finds ${{ github.ref_name }} on the registry
+    needs: [pack, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
       - name: npx finds it on the registry
         env:
-          NAME: ${{ steps.package.outputs.name }}
-          VERSION: ${{ steps.package.outputs.version }}
-          BIN: ${{ steps.package.outputs.bin }}
-          CHECK: ${{ steps.package.outputs.check }}
+          NAME: ${{ needs.pack.outputs.name }}
+          VERSION: ${{ needs.pack.outputs.version }}
+          BIN: ${{ needs.pack.outputs.bin }}
+          CHECK: ${{ needs.pack.outputs.check }}
         run: |
           cd "$RUNNER_TEMP" && mkdir registry && cd registry
           # The registry may take a moment to serve a new version.

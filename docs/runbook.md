@@ -216,9 +216,12 @@ These are the P0.13 checks: `npm view … maintainers` lists the maintainer acco
 `.github/workflows/release.yml` publishes a package when a tag names it:
 `bridge-v<version>` for `wayfarer-bridge`, `cli-v<version>` for
 `wayfarer-cli`. It checks that the tag is the package's version, runs the
-package's tests, installs the tarball into an empty folder and runs it, and
-publishes through npm's **trusted publishing**: no token is stored, and npm
-attaches a provenance attestation of the run. Once, before the first tag:
+package's tests, installs the tarball into an empty folder and runs it
+(job `pack`, with no token), and publishes that same tarball through npm's
+**trusted publishing** (job `publish`, the only one with the OIDC token; it
+installs and runs nothing): no token is stored, and npm attaches a
+provenance attestation of the run. Job `verify` then runs it from the
+registry, without the token. Once, before the first tag:
 
 1. Reserve the names (above), if that was not done.
 2. On npmjs.com, for each package: Settings → Trusted Publisher → GitHub

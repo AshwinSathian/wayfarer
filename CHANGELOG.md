@@ -14,6 +14,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   within 200 ms; typing into the address stays within 100 ms a key with five
   tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
   the YAML parser stay out of what the page loads first.
+- A threat model (`docs/threat-model.md`): each trust boundary, its threats
+  by STRIDE, and the tested claim behind each mitigation. `check:claims`
+  fails when a row links no claim.
+- Each release of the app attaches the built folder as a tarball, a
+  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
+- Settings → Diagnostics: the version and the commit, the browser, storage,
+  the database, the service worker and the Local Bridge; self-tests (a
+  script, the vault's encryption, a database write, a fetch of the app's
+  own); the last 200 errors and what the Content-Security-Policy blocked.
+  Copy report and Open GitHub issue hand over all of it. Nothing of a
+  request you sent is in it, and nothing leaves the page unless you copy it.
 
 ### Changed
 

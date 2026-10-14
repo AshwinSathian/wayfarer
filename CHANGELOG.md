@@ -23,6 +23,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Opening the history or navigation drawer moves focus into it at once. A
+  Tab pressed in the first frame used to land on the page underneath (#223).
 - A dialog that asks for a name, a passphrase or a command opens with focus
   on that field. Focus used to land on its Close button.
 - Enter in the name field of a new collection, folder or request creates it.

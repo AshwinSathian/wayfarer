@@ -20,8 +20,8 @@ server without CORS configured, etc.).
 ## Quick start
 
 ```bash
-node packages/bridge/bin/cli.js
-# or, from the repo root:
+npx wayfarer-bridge            # once it is on npm (docs/runbook.md, "The first release")
+# until then, from a clone of the repository:
 npm run bridge
 ```
 

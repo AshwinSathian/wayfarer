@@ -7,6 +7,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (releases to npm)
+
+- **The Local Bridge and the command line can be published to npm** from
+  a tag (`bridge-v<version>`, `cli-v<version>`), with npm's provenance:
+  the npm page then says which build of this repository made the package.
+  Each release installs the package it is about to publish into an empty
+  folder and runs it first. The first publish is the maintainer's
+  (`docs/runbook.md`); until then, both run from a clone.
+- `docs/cli.md` has a GitHub Actions job that runs a collection on every
+  push and keeps the JUnit report.
+
 ### Added (command line)
 
 - **`wayfarer-cli`, a command-line runner** (`packages/cli`; not on npm

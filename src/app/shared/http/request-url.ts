@@ -6,6 +6,8 @@
  * isn't the only place this logic can be exercised from.
  */
 
+import { normalizeUrl } from "@wayfarer/core";
+
 export interface QueryParamRow {
   key: string;
   value: string;
@@ -14,21 +16,6 @@ export interface QueryParamRow {
 
 function hasExplicitScheme(text: string): boolean {
   return /^https?:\/\//i.test(text);
-}
-
-/**
- * Prefixes a scheme-less endpoint with `https://` so it's always sent to
- * `fetch` as an absolute URL. Without this, a scheme-less string like
- * "not-a-url" is a *relative* URL as far as the browser is concerned, and
- * `fetch` silently resolves it against the app's own origin — fetching
- * the app's own index.html and reporting it back as a misleading "200 OK".
- * The text is otherwise sent as written.
- */
-export function normalizeUrl(text: string): string {
-  // A URL parser takes tabs and line breaks out of an address without a word (a variable's value may hold one).
-  // Percent-encoded, as Postman sends them, they stay what they are: data in a path or a query, and no host.
-  const address = text.replace(/[\t\n\r]/g, encodeURIComponent);
-  return hasExplicitScheme(address) ? address : `https://${address}`;
 }
 
 export function validateUrl(text: string): boolean {
@@ -60,16 +47,6 @@ export function validateUrl(text: string): boolean {
     hostname.includes(":") ||
     !!parsed.port
   );
-}
-
-/** Appends a single key/value pair onto a URL's query string, tolerating an unparseable base URL by returning it unchanged. */
-export function appendQueryParam(url: string, key: string, value: string): string {
-  const parsed = URL.parse(normalizeUrl(url));
-  if (!parsed) {
-    return url;
-  }
-  parsed.searchParams.append(key, value);
-  return parsed.toString();
 }
 
 /** `base?query#hash`, split as text: the endpoint field may hold `{{variables}}` and need not parse as a URL. */

@@ -2,7 +2,7 @@ import { Injectable, computed, inject } from "@angular/core";
 import { VariableNestingError, parseJson } from "@wayfarer/core";
 import { Tabs } from "../state/tabs";
 import { WorkspaceStore } from "../state/workspace-store";
-import { containsSecretPlaceholder } from "./request-executor";
+import { containsSecretPlaceholder } from "@wayfarer/core";
 
 /** What a close code says, for the ones a person meets (RFC 6455, 7.4.1). */
 const CLOSE_CODES: Record<number, string> = {

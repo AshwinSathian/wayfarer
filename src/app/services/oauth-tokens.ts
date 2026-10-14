@@ -15,10 +15,10 @@ import {
   type OAuthToken,
 } from "@wayfarer/core";
 import { Idb } from "../data/idb";
-import { containsSecretPlaceholder } from "./request-executor";
+import { containsSecretPlaceholder, type RoutePolicy } from "@wayfarer/core";
 import { RequestSettings } from "./request-settings";
 import { SecretsVault } from "./secrets-vault";
-import { TransportRouter, type RoutePolicy } from "./transport-router";
+import { TransportRouter } from "./transport-router";
 
 /** A token's vault secret is named this and the token's key. */
 const SECRET_NAME = "OAuth 2.0 token ";

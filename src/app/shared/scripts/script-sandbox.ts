@@ -1,21 +1,5 @@
 import { DestroyRef, Injectable, inject } from "@angular/core";
-import { BinaryBody, SCRIPT_LIMITS, emptyChanges, newId, stringifyJson, type ScriptContext, type ScriptResponse, type ScriptResult, type ScriptSendRequest, type ScriptVariable } from "@wayfarer/core";
-
-export interface ScriptResponseContext {
-  statusCode: number;
-  statusText: string;
-  body: unknown;
-  headers: Record<string, string>;
-  durationMs?: number;
-  /** The size of the body as received, when it is known. */
-  sizeBytes?: number;
-}
-
-/** What a script is given besides the active environment's variables and the response: the other scopes, the request, and a way to make requests. */
-export interface ScriptRunExtras extends Pick<ScriptContext, "environmentName" | "folder" | "collection" | "globals" | "request" | "info"> {
-  /** Makes a request for `pm.sendRequest`. Without it a script that calls it is told it cannot. */
-  send?: (request: ScriptSendRequest) => Promise<ScriptResponse>;
-}
+import { SCRIPT_LIMITS, emptyChanges, newId, scriptResponse, type ScriptContext, type ScriptResponse, type ScriptResponseContext, type ScriptResult, type ScriptRunExtras, type ScriptSendRequest, type ScriptVariable } from "@wayfarer/core";
 
 /** What the worker says about one run. */
 type WorkerMessage = { id: string } & (
@@ -192,24 +176,4 @@ export class ScriptSandbox {
       if (run.worker === worker) this.finish(id, nothing(reason));
     }
   }
-}
-
-/** A response as a script reads it. */
-export function scriptResponse(response: ScriptResponseContext): ScriptResponse {
-  const body = bodyText(response.body);
-  return {
-    code: response.statusCode,
-    status: response.statusText,
-    headers: response.headers,
-    body,
-    responseTime: response.durationMs ?? 0,
-    responseSize: response.sizeBytes ?? new TextEncoder().encode(body).length,
-  };
-}
-
-/** A response body as the text a script reads: text as it is, parsed JSON written out again, nothing for bytes. */
-function bodyText(body: unknown): string {
-  if (typeof body === "string") return body;
-  if (body === undefined || body === null || body instanceof BinaryBody) return "";
-  return stringifyJson(body) ?? "";
 }

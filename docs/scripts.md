@@ -264,8 +264,8 @@ All five loaded take about 2 MB of the 64 MB a script may hold.
 ## Visual Test Assertions (Tests tab)
 
 Alongside scripts, requests can carry a list of declarative assertions
-(`TestAssertion`, `src/app/models/test-assertion.ts`), evaluated by
-`AssertionRunner` without running any user script at all:
+(`TestAssertion`), evaluated by `runAssertions`
+(`packages/core/src/send/assertions.ts`) without running any user script at all:
 
 - **Targets:** `status` (status code), `duration` (response time in ms),
   `header` (by name, case-insensitive), `body` (whole body, or a dot/bracket

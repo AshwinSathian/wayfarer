@@ -3,7 +3,7 @@ import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type Reque
 import { RequestDoc } from "../models/collections";
 import { PastRequest, PastRequestKey } from "../models/history";
 import { TestResult } from "../models/test-assertion";
-import type { SendTimings } from "../services/request-executor";
+import type { SendTimings } from "@wayfarer/core";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";

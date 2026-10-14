@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { WorkspaceStore, sentHeaders } from '../../state/workspace-store';
+import { sentHeaders } from '@wayfarer/core';
+import { WorkspaceStore } from '../../state/workspace-store';
 import { headerLines } from '../../shared/http/header-lines';
 import { historyEntry, jsonBody, requestContent } from '../../../testing/request-fixtures';
 import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from '../../../testing/composer-setup';

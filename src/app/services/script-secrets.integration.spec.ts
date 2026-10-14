@@ -7,7 +7,8 @@ import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
 import { buildSecretReference } from "../shared/secrets/secret-reference";
 import { EnvironmentsStore } from "./environments-store";
-import { RequestExecutor, SendDeclinedError } from "./request-executor";
+import { SendDeclinedError } from "@wayfarer/core";
+import { RequestExecutor } from "./request-executor";
 import { SecretsVault } from "./secrets-vault";
 import { TransportRouter } from "./transport-router";
 
@@ -33,7 +34,7 @@ describe("a script sets a protected variable (P3.12)", () => {
       providers: [
         { provide: ScriptSandbox, useValue: { execute: async () => script } },
         { provide: TransportRouter, useValue: { send: async () => answer, route: () => "direct" } },
-        { provide: ResponseInspector, useValue: { markRequest: () => undefined, markResponse: () => undefined } },
+        { provide: ResponseInspector, useValue: { markRequest: () => undefined, markResponse: (id: string, url: string) => ({ id, url, startTime: 0, startEpoch: 0, endTime: 0, duration: 0 }) } },
       ],
     });
     executor = TestBed.inject(RequestExecutor);

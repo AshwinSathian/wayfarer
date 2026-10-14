@@ -9,7 +9,8 @@ import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";
 import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
-import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
+import { isBodyMethod } from "@wayfarer/core";
+import { WorkspaceStore } from "../../state/workspace-store";
 
 /**
  * What the composer shows of its draft, shared by its panels: the open tab

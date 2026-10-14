@@ -14,6 +14,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   within 200 ms; typing into the address stays within 100 ms a key with five
   tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
   the YAML parser stay out of what the page loads first.
+- "Break the sandbox": a public challenge in `SECURITY.md` to break the
+  script sandbox, the vault or the Local Bridge, with credit in the Trust
+  Center's hall of fame. No money.
 - A threat model (`docs/threat-model.md`): each trust boundary, its threats
   by STRIDE, and the tested claim behind each mitigation. `check:claims`
   fails when a row links no claim.

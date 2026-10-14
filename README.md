@@ -214,6 +214,7 @@ Contributions are welcome: bug reports, small UX wins, docs tweaks, or focused f
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, branch/PR flow, and code style expectations.
 - This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 - Found a security issue? Please follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
+- Can you break the script sandbox, the vault or the Local Bridge? [Take the challenge](SECURITY.md#break-the-sandbox): no money, a place in the [hall of fame](docs/trust-center.md#hall-of-fame).
 
 Please open an issue to propose non-trivial changes before a PR, and keep scope tight.
 

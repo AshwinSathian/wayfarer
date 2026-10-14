@@ -13,7 +13,7 @@ import {
   StoreName,
 } from "./idb-schema";
 import { runUpgrade } from "./idb-migrations";
-import { recordDiagnostic } from "../services/diagnostics";
+import { keepDiagnostic, recordDiagnostic } from "../services/diagnostics";
 import { newId } from "@wayfarer/core";
 
 export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
@@ -416,6 +416,7 @@ export class IdbCore {
   }
 
   logError(message: string, error?: unknown): void {
+    keepDiagnostic(error ?? message, `IndexedDB: ${message}`);
     if (error) {
       console.error(`[IDB] ${message}`, error);
     } else {

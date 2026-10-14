@@ -54,7 +54,7 @@ import {
 } from "@wayfarer/core";
 import { HistoryRepository } from "../data/history-repository";
 import { RequestDoc } from "../models/collections";
-import { PastRequest } from "../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";

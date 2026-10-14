@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { EnvironmentsStore } from "./environments-store";
 import { provideRepositories } from "../../testing/repositories";
-import { EnvironmentDoc } from "../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class IdbServiceMock {

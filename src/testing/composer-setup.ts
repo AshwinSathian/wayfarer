@@ -9,7 +9,7 @@ import { ResponseInspection, ResponseInspector } from '../app/shared/inspect/res
 import { EnvironmentsStore } from '../app/services/environments-store';
 import { RequestSettings } from '../app/services/request-settings';
 import { SecretsVault } from '../app/services/secrets-vault';
-import { EnvironmentDoc } from '../app/models/environments';
+import { EnvironmentDoc } from "@wayfarer/core";
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
 import { requestContent, rowsOf } from './request-fixtures';
@@ -64,7 +64,7 @@ class EnvironmentsServiceStub {
 }
 
 export function meta(id: string): Meta {
-  return { id, createdAt: 1, updatedAt: 1, version: 1 };
+  return { id, createdAt: 1, updatedAt: 1 };
 }
 
 export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc {
@@ -121,7 +121,7 @@ class CollectionsServiceStub {
 export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
   return {
     id: 'env-1',
-    meta: { id: 'env-1', createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id: 'env-1', createdAt: 1, updatedAt: 1 },
     name: 'Test env',
     order: 1,
     vars: rowsOf(vars),

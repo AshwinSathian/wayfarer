@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { applyVariableChanges, type Row, type VariableChange } from "@wayfarer/core";
-import { EnvironmentDoc, EnvironmentId } from "../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { IdbCore, META_STATE_KEY } from "./idb-core";
 import { GlobalsRecord, META_GLOBALS_KEY, MetaState } from "./idb-schema";
 
@@ -42,7 +42,7 @@ export class EnvironmentsRepository {
   }
 
   async updateEnvironment(
-    id: EnvironmentId,
+    id: string,
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     await this.core.ensurePersistentSupport();
@@ -76,7 +76,7 @@ export class EnvironmentsRepository {
    * tab last read the environment, is therefore kept (D22).
    */
   async changeEnvironment(
-    id: EnvironmentId,
+    id: string,
     changes: VariableChange[],
     details: Partial<Pick<EnvironmentDoc, "name" | "description">> = {}
   ): Promise<EnvironmentDoc | null> {
@@ -102,7 +102,7 @@ export class EnvironmentsRepository {
     });
   }
 
-  async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
+  async duplicateEnvironment(id: string): Promise<EnvironmentDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
     const store = tx.objectStore("environments");
@@ -125,7 +125,7 @@ export class EnvironmentsRepository {
     });
   }
 
-  async deleteEnvironment(id: EnvironmentId): Promise<void> {
+  async deleteEnvironment(id: string): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
     await this.core.commitOrRollback(tx, async () => {
@@ -138,7 +138,7 @@ export class EnvironmentsRepository {
     }
   }
 
-  async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
+  async reorderEnvironments(order: { id: string; order: number }[]): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
     const store = tx.objectStore("environments");
@@ -177,20 +177,19 @@ export class EnvironmentsRepository {
     });
   }
 
-  async getActiveEnvironmentId(): Promise<EnvironmentId | null> {
+  async getActiveEnvironmentId(): Promise<string | null> {
     await this.core.ensurePersistentSupport();
     const meta = await this.core.getMetaState();
     return meta.activeEnvironmentId ?? null;
   }
 
-  async setActiveEnvironment(id: EnvironmentId | null): Promise<void> {
+  async setActiveEnvironment(id: string | null): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["meta"]);
     const store = tx.objectStore("meta");
     await this.core.commitOrRollback(tx, async () => {
       const state: MetaState = ((await store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
         key: META_STATE_KEY,
-        schemaVersion: 1,
         activeEnvironmentId: null,
       };
       state.activeEnvironmentId = id;

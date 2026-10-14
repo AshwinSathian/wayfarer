@@ -1,9 +1,6 @@
 import { Injectable, Signal, computed, signal, inject } from "@angular/core";
 import type { Row, VariableChange } from "@wayfarer/core";
-import {
-  EnvironmentDoc,
-  EnvironmentId,
-} from "../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { EnvironmentsRepository } from "../data/environments-repository";
 import { IdbCore } from "../data/idb-core";
 
@@ -15,7 +12,7 @@ export class EnvironmentsStore {
   private readonly idb = inject(IdbCore);
 
   private readonly environmentsState = signal<EnvironmentDoc[]>([]);
-  private readonly activeIdState = signal<EnvironmentId | null>(null);
+  private readonly activeIdState = signal<string | null>(null);
   private readonly loadingState = signal(false);
   private readonly globalsState = signal<Row[]>([]);
 
@@ -79,7 +76,7 @@ export class EnvironmentsStore {
   }
 
   async updateEnvironment(
-    id: EnvironmentId,
+    id: string,
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
     const doc = await this.environmentsRepository.updateEnvironment(id, updates);
@@ -89,7 +86,7 @@ export class EnvironmentsStore {
 
   /** Changes some variables (and the name or description) without replacing the rest: see `EnvironmentsRepository.changeEnvironment`. */
   async changeEnvironment(
-    id: EnvironmentId,
+    id: string,
     changes: VariableChange[],
     details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
   ): Promise<EnvironmentDoc | null> {
@@ -105,23 +102,23 @@ export class EnvironmentsStore {
     return stored;
   }
 
-  async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
+  async duplicateEnvironment(id: string): Promise<EnvironmentDoc | null> {
     const doc = await this.environmentsRepository.duplicateEnvironment(id);
     await this.refresh();
     return doc;
   }
 
-  async deleteEnvironment(id: EnvironmentId): Promise<void> {
+  async deleteEnvironment(id: string): Promise<void> {
     await this.environmentsRepository.deleteEnvironment(id);
     await this.refresh();
   }
 
-  async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
+  async reorderEnvironments(order: { id: string; order: number }[]): Promise<void> {
     await this.environmentsRepository.reorderEnvironments(order);
     await this.refresh();
   }
 
-  async setActiveEnvironment(id: EnvironmentId | null): Promise<void> {
+  async setActiveEnvironment(id: string | null): Promise<void> {
     await this.environmentsRepository.setActiveEnvironment(id);
     this.activeIdState.set(id);
   }

@@ -13,7 +13,7 @@ import { Tree, UiTreeNode } from "../../ui/tree";
 import { Folder, RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportPipeline } from "../../services/import-pipeline";
-import { HTTP_METHODS } from "../../models/history";
+import { HTTP_METHODS } from "@wayfarer/core";
 import {
   CollectionNodeData,
   collectionsToNodes,
@@ -92,7 +92,6 @@ export class CollectionsSidebar implements OnInit {
   readonly postmanExportOf = signal<{ id: string; name: string } | null>(null);
   readonly editingKey: WritableSignal<string | null> = signal(null);
   readonly editingValue = signal("");
-
 
   readonly commandPaletteVisible = signal(false);
   readonly commandPaletteQuery = signal("");

@@ -22,7 +22,7 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     );
 
     expect(warnings).toEqual([]);
-    expect(payload.$id).toBe("wayfarer/collection/3");
+    expect(payload.$id).toBe("wayfarer/collection");
     expect(payload.collection).toMatchObject({ name: "Shop", description: "A shop", auth: { type: "none" }, scripts: { pre: "", post: "" } });
     expect(payload.collection.variables).toEqual([{ key: "base", value: "https://api.test", enabled: true }, { key: "old", value: "7", enabled: false }]);
     const [admin, deep] = payload.folders;
@@ -304,7 +304,7 @@ describe("postmanCollection: a Postman file as a collection of the app", () => {
     fc.assert(
       fc.property(fc.array(piece, { maxLength: 12 }).map((pieces) => pieces.join("")), (raw) => {
         fc.pre(raw.trim() !== "" && !raw.includes(""));
-        const source = { $id: "wayfarer/collection/3" as const, meta: { id: "c", createdAt: 0, updatedAt: 0, version: 1 as const }, collection: { id: "c", meta: { id: "c", createdAt: 0, updatedAt: 0, version: 1 as const }, name: "C", order: 0, variables: [], auth: { type: "none" as const }, scripts: { pre: "", post: "" } }, folders: [], requests: [] };
+        const source = { $id: "wayfarer/collection" as const, meta: { id: "c", createdAt: 0, updatedAt: 0 }, collection: { id: "c", meta: { id: "c", createdAt: 0, updatedAt: 0 }, name: "C", order: 0, variables: [], auth: { type: "none" as const }, scripts: { pre: "", post: "" } }, folders: [], requests: [] };
         const doc = { id: "r", meta: source.meta, collectionId: "c", name: "R", order: 0, method: "GET", url: raw, params: [], headers: [], body: { mode: "none" as const }, auth: { type: "inherit" as const }, scripts: { pre: "", post: "" }, tests: [], settings: {} };
         const back = postmanCollection(exported({ ...source, requests: [doc] }).file).payload.requests[0];
         expect(back.url).toBe(raw);

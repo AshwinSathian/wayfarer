@@ -168,7 +168,7 @@ describe("SecretsVault", () => {
       const file = (await vault.exportFile("source passphrase"))!;
       expect(file).not.toContain("travels-encrypted");
       expect(file).not.toContain("source passphrase");
-      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault/2", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
+      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
 
       // Another browser: a vault of its own, with another passphrase.
       vault.lock();
@@ -200,7 +200,7 @@ describe("SecretsVault", () => {
 
       expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not valid JSON." });
       expect(await vault.importFile("{}", "correct horse")).toEqual({
-        error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault/2".',
+        error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault".',
       });
       expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({ error: "The file is larger than 10 MB." });
 

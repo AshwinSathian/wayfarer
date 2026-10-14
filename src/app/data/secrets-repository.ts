@@ -1,8 +1,8 @@
 import { Injectable, inject } from "@angular/core";
-import { EnvironmentId } from "../models/environments";
+
 import { Meta } from "../models/collections";
 import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
-import { SecretDoc, SecretId } from "../models/secrets";
+import { SecretDoc } from "../models/secrets";
 import { IdbCore } from "./idb-core";
 import { META_VAULT_KEY, VaultRecordDoc } from "./idb-schema";
 
@@ -11,9 +11,9 @@ export class SecretsRepository {
   private readonly core = inject(IdbCore);
 
   async writeCipher(params: {
-    id: SecretId;
+    id: string;
     name: string;
-    environmentId?: EnvironmentId;
+    environmentId?: string;
     envelope: SecretEnvelope;
   }): Promise<void> {
     await this.core.ensurePersistentSupport();
@@ -33,7 +33,7 @@ export class SecretsRepository {
   }
 
   /** Gives a secret that is there a new ciphertext, under its id and name. False when the vault has no such secret. */
-  async replaceCipher(id: SecretId, envelope: SecretEnvelope): Promise<boolean> {
+  async replaceCipher(id: string, envelope: SecretEnvelope): Promise<boolean> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["secrets"]);
     const store = tx.objectStore("secrets");
@@ -45,7 +45,7 @@ export class SecretsRepository {
     });
   }
 
-  async readCipher(id: SecretId): Promise<SecretEnvelope | null> {
+  async readCipher(id: string): Promise<SecretEnvelope | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadonly(["secrets"]);
     const doc = await tx.objectStore("secrets").get(id);
@@ -108,7 +108,7 @@ export class SecretsRepository {
     return this.core.ensureIds(items);
   }
 
-  async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
+  async renameSecret(id: string, name: string): Promise<SecretDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["secrets"]);
     const store = tx.objectStore("secrets");
@@ -123,7 +123,7 @@ export class SecretsRepository {
     });
   }
 
-  async deleteSecret(id: SecretId): Promise<void> {
+  async deleteSecret(id: string): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["secrets"]);
     await this.core.commitOrRollback(tx, async () => {

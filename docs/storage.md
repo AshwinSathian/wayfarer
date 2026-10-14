@@ -1,34 +1,27 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The schema version is **13** (`DB_VERSION` in `src/app/data/idb-schema.ts`); the stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`.
+Wayfarer keeps everything in one IndexedDB database. The stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`. IndexedDB needs a number for a database's shape: it is `DB_VERSION` in `src/app/data/idb-schema.ts`, and it rises when the shape changes.
 
 > The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
 | `history`      | `id` (auto) | `by-createdAt`                                      | Exchanges: the request as composed, as sent, and the response, with credentials and vault secrets masked. See "History" below. |
-| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, the auth and the scripts they hold for their requests, and `scriptTrust`: whether the collection is trusted and the SHA-256 of each script approved in it. A collection stored before this field had the list is read as having approved nothing, so its scripts wait for a review once; nothing was removed and the database version did not change. |
+| `collections`  | `meta.id`   | `by-order`, `by-name`                               | Collections: name, order, variables, the auth and the scripts they hold for their requests, and `scriptTrust`: whether the collection is trusted and the SHA-256 of each script approved in it. |
 | `folders`      | `meta.id`   | `by-collectionId`, `by-parentFolderId`, `by-order`  | The folder tree under each collection. A folder holds variables, auth and scripts for the requests in it. |
 | `requests`     | `meta.id`   | `by-collectionId`, `by-folderId`, `by-order`        | Saved requests (see [Collections schema](collections-schema.md)). |
 | `environments` | `meta.id`   | `by-name`, `by-order`                               | Environments; variables are ordered rows. A row a script set to something that is not text holds its JSON, with `json: true`. |
 | `secrets`      | `meta.id`   | `by-environmentId`, `by-name`                       | Encrypted secret envelopes only (no plaintext). See [Secrets vault](secrets.md). An OAuth 2.0 token got while the vault was unlocked is one of them, named "OAuth 2.0 token" and what it is for ([Auth](auth.md)). The Local Bridge's token, saved while the vault was unlocked, is another, named "Local Bridge token"; `localStorage`'s `wayfarer:bridge` holds the device's route (`auto`, `direct` or `bridge`) and the bridge's address, never the token. |
 | `files`        | the file id | —                                                   | The files of multipart and binary request bodies: bytes and type. |
+| `cookies`      | `key`       | —                                                   | The cookie jar of the Local Bridge, by domain, path and name. |
 | `tabs`         | `id`        | —                                                   | The composer's tabs: for each, the request being composed in it, as a saved request is stored, and where it belongs. See "Tabs" below. |
 | `meta`         | `key`       | —                                                   | Three records: `state` (the active environment), `globals` (the global variables) and `vault` (how the passphrase key is derived, and the wrapped data key). |
 
-## Version 5 starts empty
+## An update starts empty
 
-Version 5 does not read what versions 1 to 4 stored. When it opens a database an earlier version left, it deletes that database's stores and creates its own, in one upgrade transaction: either all of it happens or the database is still the old one. The page then says, once, that the earlier data was removed. There is no conversion and no backup copy. This was decided on 2026-10-09, while the app had no users with data to keep.
+**Nothing an earlier version stored is kept.** When the app opens a database whose shape is older than its own, it deletes every store and creates its own, in one upgrade transaction: either all of it happens or the database is still the old one. The page then says, once, that the earlier data was removed. There is no conversion and no backup copy: export collections and back up the workspace before an update that changes the shape. This was decided while the app had no users with data to keep (2026-10-09, and again 2026-10-14).
 
-Collection and environment files written before version 5 (they have no `$id`) are not imported either.
-
-Version 6 added the `files` store and changed nothing else: a version 5 database keeps its data.
-
-Version 7 gave collections their variables. The global variables are a new record, `globals`, in `meta`; a database without it has none.
-
-Version 8 changed how the vault encrypts (one data key, wrapped by the passphrase, where each secret had a key of its own). Secrets stored before it cannot be read with the new key and are **removed** by the upgrade; nothing else is touched. When there were any, the page says so once. An environment variable that referred to a removed secret still holds its `{{$secret.<id>}}` reference, and needs its value again. Like version 5, this was decided while the app had no users with data to keep.
-
-Version 9 changed what history keeps (below). An entry of before held the headers as they were sent, `Authorization` included, so the upgrade **removes** history; nothing else is touched. When there was any, the page says so once.
+Files are the same: a collection, environments, workspace or vault file holds the `$id` of this version (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`), and a file with any other `$id`, the numbered ones earlier versions wrote among them, is refused.
 
 ## History
 
@@ -42,14 +35,6 @@ One entry per request sent:
 | `route`, `durationMs`, `error` | `direct` or `bridge`; milliseconds; the message of a failure. |
 
 History keeps the newest 500 entries (Settings, "History size", 1 to 5000); the oldest are deleted in the transaction that writes a new one. "Keep response bodies in history" switches the bodies off. Opening an entry loads `template` into the composer and shows the recorded response. A file a body referred to may be gone by then (it is deleted when no saved request names it), and the composer says so when the request is sent.
-
-Version 10 let a collection and a folder hold auth and scripts for the requests in them, a folder variables, and a request's auth be "inherit". The upgrade **removes** every collection, folder and saved request, and the body files only they named; environments, the globals, secrets and history are kept. When there was a collection, the page says so once. Collection and workspace files changed with it: they are format 3 (`wayfarer/collection/3`, `wayfarer/workspace/3`), and a format 2 file is refused; nothing converts it. Like versions 5, 8 and 9, this was decided while the app had no users with data to keep. (The step version 7 took, giving a stored collection its variables, is gone: there is no stored collection for it to act on.)
-
-Version 11 added the `tabs` store and changed nothing else: a version 10 database keeps its data.
-
-Version 12 added the `cookies` store and changed nothing else: a version 11 database keeps its data.
-
-Version 13 gave a parent's folders and requests one `order` between them: the order of the list and of a run. Before, folders were numbered apart from requests and the list showed folders first. The upgrade numbers each parent's folders, then its requests, from 1: **nothing is removed and nothing moves**. A collection file or a workspace backup written before has the two kinds numbered apart, and nothing in it says so: imported now, its folders and requests of one parent may stand in another order than they did. Move them in the list.
 
 ## Tabs
 
@@ -81,7 +66,7 @@ The tabs are not in a workspace backup, and a restore leaves them as they are: a
 Everything above is in one browser profile, and a browser may delete it: when the disk runs low, or, in Safari, after seven days without a visit to a site that is not installed.
 
 - **Asking the browser to keep it.** The first time you save a request or an environment, Wayfarer calls `navigator.storage.persist()`. Settings, "Storage in this browser", says what the browser answered and how much space is used. A browser that said no is asked again at the next save. In Safari the same place explains the seven-day rule and how to install the app, which lifts it.
-- **Workspace backup.** Settings, "Back up", writes `wayfarer-workspace.json` (`"$id": "wayfarer/workspace/3"`): the `collections`, `folders`, `requests`, `environments`, `secrets` and `meta` stores as they are, and `history` when "With history" is ticked. Secrets are in it as stored, encrypted; the file opens the vault with the passphrase the vault had. The files of request bodies are not in it: a request names its file, as in a collection file.
+- **Workspace backup.** Settings, "Back up", writes `wayfarer-workspace.json` (`"$id": "wayfarer/workspace"`): the `collections`, `folders`, `requests`, `environments`, `secrets` and `meta` stores as they are, and `history` when "With history" is ticked. Secrets are in it as stored, encrypted; the file opens the vault with the passphrase the vault had. The files of request bodies are not in it: a request names its file, as in a collection file.
 - **Restore** replaces all of those stores with the file's, in one transaction, after a confirmation. Every record is checked first with the validators the single-store importers use, and a file that fails is refused whole with the reasons. Restored collections are marked untrusted, like any import. History is replaced only when the file has one. Stored body files are removed, since no restored request has its file here.
 - **Reminder.** When the last backup, or the first use if there is none, is more than 14 days ago, the page says so. "Not now" puts it off for 14 days. The times are the `wayfarer:last-backup` and `wayfarer:backup-reminder-from` keys in `localStorage`.
 

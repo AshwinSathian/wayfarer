@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { repositories, type Repositories } from "../../testing/repositories";
 import { IdbCore } from './idb-core';
-import { PastRequest } from '../models/history';
+import { PastRequest } from "@wayfarer/core";
 import { historyEntry } from '../../testing/request-fixtures';
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 

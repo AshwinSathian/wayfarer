@@ -7,6 +7,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Opening the history or navigation drawer moves focus into it at once. A
+  Tab pressed in the first frame used to land on the page underneath (#223).
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

@@ -1,8 +1,9 @@
 <!-- Both drawers slide over the page (Material's sidenav in "over" mode).
      The container does not scroll: the window does, as before.
-     Focus is moved in and back by the shell (focusDrawer), at the start of
-     the slide. Material moves it at the end, which also took it from a
-     dialog opened from the drawer in the meantime; hence autoFocus false.
+     Focus is moved in by the shell (openDrawer) in the task that asks for
+     the drawer, and back at the start of the closing slide. Material moves
+     it at the end, which also took it from a dialog opened from the drawer
+     in the meantime; hence autoFocus false.
      Escape and a click on the backdrop are handled here too (disableClose):
      Material reports a close when the slide has ended, a frame after its
      input can be told to open again, and that late "closed" shut a drawer
@@ -29,7 +30,7 @@
           </div>
         </div>
         @if (sidebarOverlay()) {
-        <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="toggleDrawer.emit()">
+        <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="closeNavigation()">
           <app-icon name="side_navigation" class="icon-md" />
         </button>
         }
@@ -63,6 +64,7 @@
        is correct here, since it covers the whole screen and there's nothing else
        to reach until it closes. -->
   <mat-sidenav
+    #navigationDrawer
     class="drawer"
     mode="over"
     position="start"
@@ -73,9 +75,8 @@
     aria-label="Navigation"
     [style.width]="drawerWidth"
     [opened]="drawerVisible()"
-    (openedStart)="focusDrawer(navigation)"
     disableClose
-    (keydown.escape)="closeDrawer.emit()"
+    (keydown.escape)="closeNavigation()"
     (closedStart)="restoreDrawerFocus()"
   >
     <div #navigation class="h-full">
@@ -86,6 +87,7 @@
 
   <!-- History drawer -->
   <mat-sidenav
+    #historyDrawer
     class="drawer"
     mode="over"
     position="end"
@@ -96,9 +98,8 @@
     aria-label="Request history"
     style="width: 27rem"
     [opened]="historyDrawerVisible()"
-    (openedStart)="focusDrawer(history)"
     disableClose
-    (keydown.escape)="historyDrawerVisible.set(false)"
+    (keydown.escape)="closeHistory()"
     (closedStart)="restoreDrawerFocus()"
   >
     <div #history class="flex h-full flex-col">
@@ -117,7 +118,7 @@
             aria-label="Clear all history"
             (click)="confirmClear()"
           ><app-icon name="delete" /></button>
-          <button type="button" matIconButton class="btn-plain" (click)="historyDrawerVisible.set(false)" title="Close" aria-label="Close history">
+          <button type="button" matIconButton class="btn-plain" (click)="closeHistory()" title="Close" aria-label="Close history">
             <app-icon name="close" class="icon-md" />
           </button>
         </div>
@@ -156,7 +157,7 @@
         <mat-toolbar class="ds-toolbar" role="banner">
           <!-- Left: nav toggle + brand -->
           <div class="flex items-center gap-2">
-            <button type="button" matIconButton class="btn-plain" (click)="toggleDrawer.emit()" title="Toggle sidebar" aria-label="Toggle sidebar">
+            <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" title="Toggle sidebar" aria-label="Toggle sidebar">
               <app-icon name="side_navigation" class="icon-md" />
             </button>
             <div class="hidden lg:flex items-center gap-2">
@@ -238,7 +239,7 @@
             <button type="button"
               matIconButton class="btn-plain"
               [class.bg-accent-fill]="historyDrawerVisible()"
-              (click)="historyDrawerVisible.set(true)"
+              (click)="openHistory()"
               title="Request history"
               aria-label="Request history"
             >

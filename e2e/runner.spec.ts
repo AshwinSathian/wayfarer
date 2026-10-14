@@ -250,6 +250,60 @@ test("an imported Postman file keeps its order, requests before and between fold
   expect(await names(again)).toEqual(["First in the folder", "Deepest", "After the inner folder", "Before every folder", "Between two folders", "In the last folder", "After every folder"]);
 });
 
+test("a folder is copied and deleted with the folders inside it: the copy holds them, and the question says what goes", async ({ page }) => {
+  const NAME = "Run in the file's order";
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedCollection(page, [], { base: ECHO });
+  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(join(FIXTURES, "order.postman_collection.json"));
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm import" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const tree = page.getByRole("tree");
+  const item = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+  const rows = async () => {
+    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => `${row.getAttribute("aria-level")} ${row.getAttribute("aria-label")}`));
+    const rest = all.slice(all.indexOf(`1 ${NAME}`) + 1);
+    const end = rest.findIndex((row) => row.startsWith("1 "));
+    return end < 0 ? rest : rest.slice(0, end);
+  };
+  const menu = async (name: string, entry: string) => {
+    await item(name).focus();
+    await page.keyboard.press("Shift+F10");
+    await expect(page.getByRole("menuitem").first()).toBeFocused();
+    await page.getByRole("menuitem", { name: entry, exact: true }).click();
+  };
+
+  await menu("Middle", "Duplicate");
+  await expect(item("Middle copy")).toBeVisible();
+  await item("Middle copy").focus();
+  await page.keyboard.press("ArrowRight");
+  await item("Deep").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(rows).toEqual(["2 Before every folder", "2 Middle", "2 Between two folders", "2 Tail", "2 After every folder", "2 Middle copy", "3 First in the folder", "3 Deep", "4 Deepest", "3 After the inner folder"]);
+
+  // The original goes with what is in it; the copy stays whole.
+  await menu("Middle", "Delete");
+  const question = page.getByRole("alertdialog", { name: "Delete item?" });
+  await expect(question).toContainText('Folder "Middle" is deleted with the 1 folder and 3 requests in it.');
+  await question.getByRole("button", { name: "Proceed", exact: true }).click();
+  await expect.poll(rows).toEqual(["2 Before every folder", "2 Between two folders", "2 Tail", "2 After every folder", "2 Middle copy", "3 First in the folder", "3 Deep", "4 Deepest", "3 After the inner folder"]);
+  await page.reload();
+  await expect(item("Middle copy")).toBeVisible();
+  await expect(item("Middle")).toHaveCount(0);
+  const stored = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open("api-sandbox");
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const names = (store: string) => new Promise<string[]>((resolve) => (db.transaction(store).objectStore(store).getAll().onsuccess = (event) => resolve(((event.target as IDBRequest).result as { name: string }[]).map((doc) => doc.name).sort())));
+    const found = { folders: await names("folders"), requests: await names("requests") };
+    db.close();
+    return found;
+  });
+  expect(stored.folders).toEqual(["Deep", "Middle copy", "Tail"]);
+  expect(stored.requests).toEqual(["After every folder", "After the inner folder", "Before every folder", "Between two folders", "Deepest", "First in the folder", "In the last folder"]);
+});
+
 test("a run goes on while another tab is open, stops at the first failure when asked to, and its tab is not stored", async ({ page }) => {
   await seedCollection(page, [
     { name: "One", url: `${ECHO}/delay/1500`, post: `pm.test("one is fine", () => pm.response.to.have.status(200));` },

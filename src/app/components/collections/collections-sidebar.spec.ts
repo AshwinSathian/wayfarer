@@ -308,6 +308,19 @@ describe("CollectionsSidebar", () => {
       expect(collectionsService.deleteRequestCalls).toEqual(["r1"]);
     });
 
+    it("the question before a folder is deleted says how many folders and requests go with it", async () => {
+      const collection = makeCollection("c1");
+      const requests = [makeRequest("r1", "c1", "f1", 1), makeRequest("r2", "c1", "f2", 1), makeRequest("r3", "c1", undefined, 3)];
+      collectionsService.setTree([{ collection, folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2, "f1"), makeFolder("f3", "c1", 2)], requests }]);
+      const confirm = vi.spyOn(TestBed.inject(Confirm), "confirm").mockResolvedValue(true);
+      const folderNode = component.nodes()[0].children!.find((node) => node.key === "folder:f1");
+
+      await component.handleAction("delete", folderNode!);
+
+      expect(confirm).toHaveBeenCalledWith({ title: "Delete item?", message: 'Folder "Folder f1" is deleted with the 1 folder and 2 requests in it. This action cannot be undone. Continue?' });
+      expect(collectionsService.deleteFolderCalls).toEqual(["f1"]);
+    });
+
     it("does not delete when the user backs out of the confirmation", async () => {
       const collection = makeCollection("c1");
       const request = makeRequest("r1", "c1");

@@ -14,7 +14,7 @@ import {
   type VaultFile,
   type VaultKey,
 } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { SecretsRepository } from "../data/secrets-repository";
 import { SecretDoc, SecretId } from "../models/secrets";
 import { Diagnostics } from "./diagnostics";
 
@@ -42,7 +42,7 @@ export type VaultImportResult = { imported: number } | { error: string };
   providedIn: "root",
 })
 export class SecretsVault {
-  private readonly idb = inject(Idb);
+  private readonly secretsRepository = inject(SecretsRepository);
   private readonly diagnostics = inject(Diagnostics);
 
   private readonly dek = signal<VaultKey | null>(null);
@@ -71,7 +71,7 @@ export class SecretsVault {
 
   /** Whether a passphrase has been chosen. */
   async exists(): Promise<boolean> {
-    return (await this.idb.readVault()) !== null;
+    return (await this.secretsRepository.readVault()) !== null;
   }
 
   /**
@@ -80,14 +80,14 @@ export class SecretsVault {
    */
   async create(passphrase: string): Promise<boolean> {
     const { record, dek } = await createVault(passphrase);
-    if (!(await this.idb.writeVault(record, false))) return false;
+    if (!(await this.secretsRepository.writeVault(record, false))) return false;
     this.holdKey(dek);
     return true;
   }
 
   /** False when the passphrase is wrong, or there is no vault. The passphrase is used exactly as typed. */
   async unlock(passphrase: string): Promise<boolean> {
-    const record = await this.idb.readVault();
+    const record = await this.secretsRepository.readVault();
     const dek = record && (await unwrapDek(record, passphrase));
     if (!dek) return false;
     this.holdKey(dek);
@@ -124,7 +124,7 @@ export class SecretsVault {
 
   async saveSecret(request: SaveSecretRequest): Promise<SecretId> {
     const id = newId();
-    await this.idb.writeCipher({
+    await this.secretsRepository.writeCipher({
       id,
       name: request.name,
       environmentId: request.environmentId,
@@ -141,7 +141,7 @@ export class SecretsVault {
   async replaceSecret(id: SecretId, plaintext: string): Promise<boolean> {
     const dek = this.dek();
     // Encrypted before the transaction is opened: WebCrypto is asynchronous.
-    return dek ? this.idb.replaceCipher(id, await encryptSecret(dek, id, plaintext)) : false;
+    return dek ? this.secretsRepository.replaceCipher(id, await encryptSecret(dek, id, plaintext)) : false;
   }
 
   /** The secret's plaintext, or `null` when the vault is locked or has no such secret. */
@@ -150,21 +150,21 @@ export class SecretsVault {
     if (!dek) {
       return null;
     }
-    const envelope = await this.idb.readCipher(secretId);
+    const envelope = await this.secretsRepository.readCipher(secretId);
     return envelope ? decryptSecret(dek, secretId, envelope) : null;
   }
 
   /** All secrets across every environment, ciphertext only — for the dedicated Secrets management view. */
   async listSecrets(): Promise<SecretDoc[]> {
-    return this.idb.listSecrets();
+    return this.secretsRepository.listAll();
   }
 
   async renameSecret(id: SecretId, name: string): Promise<SecretDoc | null> {
-    return this.idb.renameSecret(id, name);
+    return this.secretsRepository.renameSecret(id, name);
   }
 
   async deleteSecret(id: SecretId): Promise<void> {
-    return this.idb.deleteSecret(id);
+    return this.secretsRepository.deleteSecret(id);
   }
 
   /**
@@ -172,9 +172,9 @@ export class SecretsVault {
    * one, and no secret is rewritten. False when `current` is wrong.
    */
   async changePassphrase(current: string, next: string): Promise<boolean> {
-    const record = await this.idb.readVault();
+    const record = await this.secretsRepository.readVault();
     const rotated = record && (await rewrapDek(record, current, next));
-    return rotated ? this.idb.writeVault(rotated, true) : false;
+    return rotated ? this.secretsRepository.writeVault(rotated, true) : false;
   }
 
   /**
@@ -183,16 +183,16 @@ export class SecretsVault {
    * passphrase, so the user must know it.
    */
   async exportFile(passphrase: string): Promise<string | null> {
-    const record = await this.idb.readVault();
+    const record = await this.secretsRepository.readVault();
     if (!record || !(await unwrapDek(record, passphrase))) return null;
     return JSON.stringify(await this.bundle(), null, 2);
   }
 
   /** The vault as a vault file's content, to go beside what refers to its secrets. `null` when there is no vault. */
   async bundle(): Promise<VaultFile | null> {
-    const record = await this.idb.readVault();
+    const record = await this.secretsRepository.readVault();
     if (!record) return null;
-    const secrets = (await this.idb.listSecrets()).map(({ id, name, environmentId, envelope }) => ({ id, name, environmentId, envelope }));
+    const secrets = (await this.secretsRepository.listAll()).map(({ id, name, environmentId, envelope }) => ({ id, name, environmentId, envelope }));
     return { $id: VAULT_FILE_FORMAT, vault: record, secrets };
   }
 
@@ -228,7 +228,7 @@ export class SecretsVault {
       }
       docs.push({ id, name, environmentId, envelope: await encryptSecret(local, id, plaintext) });
     }
-    await this.idb.writeSecrets(docs);
+    await this.secretsRepository.writeSecrets(docs);
     return { imported: docs.length };
   }
 

@@ -121,7 +121,7 @@ The cookie jar of requests sent through the Local Bridge ([Browser limits](brows
 
 Two browser tabs share the jar: a cookie one stores, the other reads. The jar is not in a workspace backup, and a restore leaves it as it is. Reset all data removes it.
 
-`Idb` is the one entry to the stores; each kind of document has its own repository behind it.
+Each kind of document has its own repository (`CollectionsRepository`, `HistoryRepository`, …), over `IdbCore`, which holds the connection.
 
 * `txReadWrite` and `txReadonly` open a transaction over the stores named.
 * `commitOrRollback` wraps a write so that a reorder, an import or a duplication is all or nothing.

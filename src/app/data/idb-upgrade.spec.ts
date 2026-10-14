@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { historyEntry } from "../../testing/request-fixtures";
 import { IdbCore } from "./idb-core";
 import { DB_NAME, DB_VERSION } from "./idb-schema";
-import { Idb } from "./idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 
 /** Opens the database with the raw API, at a version of the caller's choosing. The connection ignores `versionchange`. */
 function openRaw(version: number, build: (db: IDBDatabase) => void = () => undefined): Promise<IDBDatabase> {
@@ -56,13 +56,13 @@ function buildV4(db: IDBDatabase): void {
 
 // v5 does not read the shapes before it (maintainer, 2026-10-09: no stored data exists to keep).
 describe("opening a database left by another release", () => {
-  let idb: Idb;
+  let idb: Repositories;
   let core: IdbCore;
 
   beforeEach(async () => {
     await deleteDatabase();
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(Idb);
+    idb = repositories();
     core = TestBed.inject(IdbCore);
   });
 
@@ -73,24 +73,24 @@ describe("opening a database left by another release", () => {
   it("empties a v4 database, recreates the v5 stores and says the old data was removed", async () => {
     (await openRaw(4, buildV4)).close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
     expect(DB_VERSION).toBe(13);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
-    expect(await idb.listCollections()).toEqual([]);
-    expect(await idb.listFolders("c-1")).toEqual([]);
-    expect(await idb.listRequests("c-1")).toEqual([]);
-    expect(await idb.listEnvironments()).toEqual([]);
-    expect(await idb.listSecrets()).toEqual([]);
-    expect(await idb.getLatest()).toEqual([]);
-    expect(await idb.getActiveEnvironmentId()).toBeNull();
+    expect(await idb.collections.listCollections()).toEqual([]);
+    expect(await idb.folders.listFolders("c-1")).toEqual([]);
+    expect(await idb.requests.listRequests("c-1")).toEqual([]);
+    expect(await idb.environments.listEnvironments()).toEqual([]);
+    expect(await idb.secrets.listAll()).toEqual([]);
+    expect(await idb.history.getLatest()).toEqual([]);
+    expect(await idb.environments.getActiveEnvironmentId()).toBeNull();
     expect(core.clearedOldData()).toBe("all");
 
     // The recreated stores take new writes through their indexes.
-    const collection = await idb.createCollection({ name: "New" });
-    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["New"]);
+    const collection = await idb.collections.createCollection({ name: "New" });
+    expect((await idb.collections.listCollections()).map((c) => c.name)).toEqual(["New"]);
     expect(collection.order).toBe(1);
   });
 
@@ -106,13 +106,13 @@ describe("opening a database left by another release", () => {
     });
     v5.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
     expect([...db.objectStoreNames]).toContain("files");
     // A collection of before version 10 holds no auth and no scripts for its requests: it is not read (D24).
-    expect(await idb.listCollections()).toEqual([]);
+    expect(await idb.collections.listCollections()).toEqual([]);
     expect(core.clearedOldData()).toEqual(["collections"]);
   });
 
@@ -137,16 +137,16 @@ describe("opening a database left by another release", () => {
     });
     v7.close();
 
-    await idb.init();
+    await idb.core.init();
 
     expect((await core.getDatabase())!.version).toBe(13);
-    expect(await idb.listSecrets()).toEqual([]);
-    expect(await idb.readVault()).toBeNull();
+    expect(await idb.secrets.listAll()).toEqual([]);
+    expect(await idb.secrets.readVault()).toBeNull();
     // The collection goes too, since version 10.
     expect(core.clearedOldData()).toEqual(["secrets", "collections"]);
-    expect(await idb.listCollections()).toEqual([]);
+    expect(await idb.collections.listCollections()).toEqual([]);
     // The variable still names the secret that is gone; the send says so.
-    expect((await idb.listEnvironments())[0].vars[0].value).toBe("{{$secret.s-1}}");
+    expect((await idb.environments.listEnvironments())[0].vars[0].value).toBe("{{$secret.s-1}}");
   });
 
   it("removes history that holds what was sent as it was sent, says so, and takes entries of the new shape (version 9)", async () => {
@@ -165,18 +165,18 @@ describe("opening a database left by another release", () => {
     });
     v8.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
-    expect(await idb.getLatest()).toEqual([]);
+    expect(await idb.history.getLatest()).toEqual([]);
     expect([...db.transaction("history").store.indexNames]).toEqual(["by-createdAt"]);
     // The collection goes too, since version 10.
     expect(core.clearedOldData()).toEqual(["history", "collections"]);
-    expect(await idb.listCollections()).toEqual([]);
+    expect(await idb.collections.listCollections()).toEqual([]);
 
-    await idb.add(historyEntry({ createdAt: 5 }), 500);
-    expect((await idb.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
+    await idb.history.add(historyEntry({ createdAt: 5 }), 500);
+    expect((await idb.history.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
   });
 
   /** A version 9 database as the app left it, with the stores the test fills. */
@@ -209,7 +209,7 @@ describe("opening a database left by another release", () => {
     });
     v9.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
@@ -217,15 +217,15 @@ describe("opening a database left by another release", () => {
       expect(await db.count(name), name).toBe(0);
     }
     expect(core.clearedOldData()).toEqual(["collections"]);
-    expect((await idb.listEnvironments()).map((environment) => environment.name)).toEqual(["Dev"]);
-    expect((await idb.listSecrets()).map((secret) => secret.name)).toEqual(["token"]);
-    expect((await idb.getLatest()).map((entry) => entry.createdAt)).toEqual([9]);
+    expect((await idb.environments.listEnvironments()).map((environment) => environment.name)).toEqual(["Dev"]);
+    expect((await idb.secrets.listAll()).map((secret) => secret.name)).toEqual(["token"]);
+    expect((await idb.history.getLatest()).map((entry) => entry.createdAt)).toEqual([9]);
   });
 
   it("says nothing when a version 9 database held no collection (version 10)", async () => {
     (await openV9()).close();
 
-    await idb.init();
+    await idb.core.init();
 
     expect((await core.getDatabase())!.version).toBe(13);
     expect(core.clearedOldData()).toEqual([]);
@@ -244,7 +244,7 @@ describe("opening a database left by another release", () => {
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     v10.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
@@ -267,7 +267,7 @@ describe("opening a database left by another release", () => {
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     v11.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
@@ -310,7 +310,7 @@ describe("opening a database left by another release", () => {
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     v12.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(13);
@@ -332,7 +332,7 @@ describe("opening a database left by another release", () => {
   });
 
   it("does not report removed data on a first run", async () => {
-    await idb.init();
+    await idb.core.init();
 
     expect((await core.getDatabase())!.version).toBe(DB_VERSION);
     expect(core.clearedOldData()).toEqual([]);
@@ -342,7 +342,7 @@ describe("opening a database left by another release", () => {
     // A tab running a build from before v5 does not close on versionchange.
     const oldTab = await openRaw(4, buildV4);
 
-    const opening = idb.init();
+    const opening = idb.core.init();
     await vi.waitFor(() => expect(core.upgradeBlocked()).toBe(true));
     oldTab.close();
     await opening;
@@ -353,7 +353,7 @@ describe("opening a database left by another release", () => {
   });
 
   it("closes its connection and asks for a reload when a newer release upgrades the database", async () => {
-    await idb.init();
+    await idb.core.init();
 
     const newer = await openRaw(DB_VERSION + 1);
     try {
@@ -370,7 +370,7 @@ describe("opening a database left by another release", () => {
     (await openRaw(DB_VERSION + 1)).close();
     const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    await idb.init();
+    await idb.core.init();
 
     expect(core.olderThanData()).toBe(true);
     expect(core.memoryOnly()).toBe(true);

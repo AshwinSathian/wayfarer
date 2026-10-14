@@ -878,7 +878,9 @@ code errors.
 - A write tells the other tabs which stores it touched (`IdbCore.announce`,
   called by `commitOrRollback`; a write that does not go through it calls
   `announce` itself). A store that holds what it read listens with
-  `Idb.onChangeElsewhere` and reads again.
+  `IdbCore.onChangeElsewhere` and reads again. A service injects the
+  repositories it uses (`CollectionsRepository`, `HistoryRepository`, …)
+  and `IdbCore`; there is no facade over them.
 - Variables are changed with `changeEnvironment` (a list of sets and
   removals, applied by `applyVariableChanges` inside one transaction), not
   by writing back a copy of the rows: the copy may be older than what

@@ -7,6 +7,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- Internal: the 320-line `Idb` class that only handed each call on to a
+  repository is gone; services use the repositories directly.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

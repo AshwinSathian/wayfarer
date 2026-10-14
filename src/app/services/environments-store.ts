@@ -4,13 +4,15 @@ import {
   EnvironmentDoc,
   EnvironmentId,
 } from "../models/environments";
-import { Idb } from "../data/idb";
+import { EnvironmentsRepository } from "../data/environments-repository";
+import { IdbCore } from "../data/idb-core";
 
 @Injectable({
   providedIn: "root",
 })
 export class EnvironmentsStore {
-  private readonly idb = inject(Idb);
+  private readonly environmentsRepository = inject(EnvironmentsRepository);
+  private readonly idb = inject(IdbCore);
 
   private readonly environmentsState = signal<EnvironmentDoc[]>([]);
   private readonly activeIdState = signal<EnvironmentId | null>(null);
@@ -48,15 +50,15 @@ export class EnvironmentsStore {
   async refresh(): Promise<void> {
     this.loadingState.set(true);
     try {
-      const environments = await this.idb.listEnvironments();
+      const environments = await this.environmentsRepository.listEnvironments();
       this.environmentsState.set(environments);
-      this.globalsState.set(await this.idb.getGlobals());
-      const active = await this.idb.getActiveEnvironmentId();
+      this.globalsState.set(await this.environmentsRepository.getGlobals());
+      const active = await this.environmentsRepository.getActiveEnvironmentId();
       if (active) {
         this.activeIdState.set(active);
       } else if (environments.length) {
         const firstId = environments[0].meta.id;
-        await this.idb.setActiveEnvironment(firstId);
+        await this.environmentsRepository.setActiveEnvironment(firstId);
         this.activeIdState.set(firstId);
       } else {
         this.activeIdState.set(null);
@@ -71,7 +73,7 @@ export class EnvironmentsStore {
     description?: string;
     vars?: Row[];
   }): Promise<EnvironmentDoc> {
-    const doc = await this.idb.createEnvironment(payload);
+    const doc = await this.environmentsRepository.createEnvironment(payload);
     await this.refresh();
     return doc;
   }
@@ -80,7 +82,7 @@ export class EnvironmentsStore {
     id: EnvironmentId,
     updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
   ): Promise<EnvironmentDoc | null> {
-    const doc = await this.idb.updateEnvironment(id, updates);
+    const doc = await this.environmentsRepository.updateEnvironment(id, updates);
     await this.refresh();
     return doc;
   }
@@ -91,36 +93,36 @@ export class EnvironmentsStore {
     changes: VariableChange[],
     details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
   ): Promise<EnvironmentDoc | null> {
-    const doc = await this.idb.changeEnvironment(id, changes, details);
+    const doc = await this.environmentsRepository.changeEnvironment(id, changes, details);
     await this.refresh();
     return doc;
   }
 
   /** Changes some global variables without replacing the rest; gives back what is stored now. */
   async changeGlobals(changes: VariableChange[]): Promise<Row[]> {
-    const stored = await this.idb.changeGlobals(changes);
+    const stored = await this.environmentsRepository.changeGlobals(changes);
     this.globalsState.set(stored);
     return stored;
   }
 
   async duplicateEnvironment(id: EnvironmentId): Promise<EnvironmentDoc | null> {
-    const doc = await this.idb.duplicateEnvironment(id);
+    const doc = await this.environmentsRepository.duplicateEnvironment(id);
     await this.refresh();
     return doc;
   }
 
   async deleteEnvironment(id: EnvironmentId): Promise<void> {
-    await this.idb.deleteEnvironment(id);
+    await this.environmentsRepository.deleteEnvironment(id);
     await this.refresh();
   }
 
   async reorderEnvironments(order: { id: EnvironmentId; order: number }[]): Promise<void> {
-    await this.idb.reorderEnvironments(order);
+    await this.environmentsRepository.reorderEnvironments(order);
     await this.refresh();
   }
 
   async setActiveEnvironment(id: EnvironmentId | null): Promise<void> {
-    await this.idb.setActiveEnvironment(id);
+    await this.environmentsRepository.setActiveEnvironment(id);
     this.activeIdState.set(id);
   }
 }

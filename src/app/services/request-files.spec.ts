@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../data/idb";
+import { provideRepositories } from "../../testing/repositories";
 import { RequestFiles } from "./request-files";
 
 describe("RequestFiles", () => {
@@ -9,7 +9,7 @@ describe("RequestFiles", () => {
 
   beforeEach(() => {
     idb.readFile.mockReset();
-    TestBed.configureTestingModule({ providers: [{ provide: Idb, useValue: idb }] });
+    TestBed.configureTestingModule({ providers: [...provideRepositories(idb)] });
     files = TestBed.inject(RequestFiles);
   });
 

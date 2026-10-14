@@ -41,9 +41,9 @@ export class DatabaseResetBlockedError extends Error {
  * (HistoryRepository, CollectionsRepository, EnvironmentsRepository,
  * SecretsRepository): the single IndexedDB connection and its
  * open/upgrade/fallback lifecycle, transaction helpers, and the id/meta
- * bookkeeping every store needs. None of this is aggregate-specific, which
- * is exactly why it used to make Idb a 1,300+ line god object —
- * every repository injects this instead of duplicating connection logic.
+ * bookkeeping every store needs. None of this is aggregate-specific: every
+ * repository injects this instead of duplicating connection logic, and a
+ * service injects the repositories it uses.
  *
  * The actual object-store/index/migration definitions live in
  * idb-migrations.ts (this service just wires that in as its `upgrade`

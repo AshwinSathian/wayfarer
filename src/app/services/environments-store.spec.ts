@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { EnvironmentsStore } from "./environments-store";
-import { Idb } from "../data/idb";
+import { provideRepositories } from "../../testing/repositories";
 import { EnvironmentDoc } from "../models/environments";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
@@ -55,7 +55,7 @@ describe("EnvironmentsStore", () => {
   beforeEach(() => {
     idb = new IdbServiceMock();
     TestBed.configureTestingModule({
-      providers: [{ provide: Idb, useValue: idb }],
+      providers: [...provideRepositories(idb)],
     });
     service = TestBed.inject(EnvironmentsStore);
   });
@@ -142,7 +142,7 @@ describe("EnvironmentsStore", () => {
     });
   });
 
-  describe("mutation methods refresh state from Idb afterward", () => {
+  describe("mutation methods refresh state from the repository afterward", () => {
     it("createEnvironment() persists then re-reads the full list", async () => {
       const created = buildEnv("new");
       idb.createEnvironment.mockResolvedValue(created);
@@ -193,7 +193,7 @@ describe("EnvironmentsStore", () => {
       expect(idb.setActiveEnvironment).toHaveBeenCalledWith("a");
       expect(service.activeEnvironment()).toEqual(envA);
       // setActiveEnvironment() only updates the local active-id signal, it
-      // doesn't re-fetch the whole environments list from Idb.
+      // doesn't re-fetch the whole environments list from the repository.
       expect(idb.listEnvironments).not.toHaveBeenCalled();
     });
 

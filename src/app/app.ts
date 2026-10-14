@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { AppShell } from './components/app-shell/app-shell';
-import { Idb } from './data/idb';
+import { HistoryRepository } from './data/history-repository';
+import { IdbCore } from './data/idb-core';
 import { PastRequest, PastRequestKey } from './models/history';
 import { RequestSettings } from './services/request-settings';
 import { TabsStorage } from './state/tabs-storage';
@@ -15,7 +16,8 @@ import { CookieJar } from "./services/cookie-jar";
     host: { '(window:resize)': 'onWindowResize()' },
 })
 export class App implements OnInit {
-  private readonly idbService = inject(Idb);
+  private readonly history = inject(HistoryRepository);
+  private readonly idb = inject(IdbCore);
   private readonly requestSettings = inject(RequestSettings);
   private readonly tabsStorage = inject(TabsStorage);
   private readonly cookieJar = inject(CookieJar);
@@ -40,7 +42,7 @@ export class App implements OnInit {
     // The cookie jar (P5.3), for requests that leave through the Local Bridge.
     void this.cookieJar.start();
     // Another tab sent a request, or cleared its history.
-    this.idbService.onChangeElsewhere((stores) => {
+    this.idb.onChangeElsewhere((stores) => {
       if (stores.includes("history")) {
         void this.refreshPastRequests();
       }
@@ -55,19 +57,19 @@ export class App implements OnInit {
 
     this.historyLoading.set(true);
     try {
-      this.pastRequests.set(await this.idbService.getLatest(this.requestSettings.historyCap()));
+      this.pastRequests.set(await this.history.getLatest(this.requestSettings.historyCap()));
     } finally {
       this.historyLoading.set(false);
     }
   }
 
   async clearPastRequests(): Promise<void> {
-    await this.idbService.clear();
+    await this.history.clear();
     await this.refreshPastRequests();
   }
 
   async deletePastRequest(id: PastRequestKey): Promise<void> {
-    await this.idbService.delete(id);
+    await this.history.delete(id);
     await this.refreshPastRequests();
   }
 
@@ -88,7 +90,7 @@ export class App implements OnInit {
   }
 
   private async initializeHistory(): Promise<void> {
-    await this.idbService.init();
+    await this.idb.init();
     await this.refreshPastRequests();
   }
 

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { Idb } from './data/idb';
+import { provideRepositories } from "../testing/repositories";
 import { PastRequest } from './models/history';
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 import { historyEntry } from '../testing/request-fixtures';
@@ -18,7 +18,7 @@ class IdbServiceMock {
   clear = vi.fn().mockReturnValue(Promise.resolve());
   delete = vi.fn().mockReturnValue(Promise.resolve());
   // AppShell.ngOnInit() calls EnvironmentsStore.ensureLoaded() and
-  // SecretsVault.exists(), both of which round-trip through Idb.
+  // SecretsVault.exists(), both of which round-trip through the repositories.
   listEnvironments = vi.fn().mockReturnValue(Promise.resolve([]));
   getActiveEnvironmentId = vi.fn().mockReturnValue(Promise.resolve(null));
   getGlobals = vi.fn().mockReturnValue(Promise.resolve([]));
@@ -52,7 +52,7 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        { provide: Idb, useValue: idbService },
+        ...provideRepositories(idbService),
       ],
     }).compileComponents();
   });

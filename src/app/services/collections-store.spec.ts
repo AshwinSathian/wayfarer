@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { inCollection, inFolder, jsonBody, requestContent, rowsOf } from "../../testing/request-fixtures";
 import { CollectionsStore } from "./collections-store";
-import { Idb } from "../data/idb";
+import { provideRepositories } from "../../testing/repositories";
 import { Collection, Folder, Meta, RequestDoc } from "../models/collections";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
@@ -122,7 +122,7 @@ describe("CollectionsStore", () => {
   beforeEach(() => {
     idb = new IdbServiceMock();
     TestBed.configureTestingModule({
-      providers: [CollectionsStore, { provide: Idb, useValue: idb }],
+      providers: [CollectionsStore, ...provideRepositories(idb)],
     });
     service = TestBed.inject(CollectionsStore);
   });

@@ -7,6 +7,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **Deleting a folder deletes the folders inside it.** Before, they moved up
+  one level with their requests, which was written when the list showed
+  every folder side by side; since folders are drawn inside their folder, a
+  deleted folder left its inner folders standing where it had been. The
+  question before the deletion now says how many folders and requests go
+  with it.
+- **Duplicate on a folder copies the folders inside it**, at every depth,
+  each with its requests and in its place. Before, the copy held the
+  folder's own requests only.
+
 ### Changed (Local Bridge 2.0.0, protocol 2)
 
 - **The Local Bridge relays bytes.** A file, a multipart form and a binary

@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- CI holds the app to performance budgets: Lighthouse's desktop score of 90
+  or more, a largest contentful paint within 2 s and a total blocking time
+  within 200 ms; typing into the address stays within 100 ms a key with five
+  tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
+  the YAML parser stay out of what the page loads first.
+
 ### Fixed
 
 - A dialog that asks for a name, a passphrase or a command opens with focus

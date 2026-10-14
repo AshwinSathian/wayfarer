@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- Settings → Diagnostics: the version and the commit, the browser, storage,
+  the database, the service worker and the Local Bridge; self-tests (a
+  script, the vault's encryption, a database write, a fetch of the app's
+  own); the last 200 errors and what the Content-Security-Policy blocked.
+  Copy report and Open GitHub issue hand over all of it. Nothing of a
+  request you sent is in it, and nothing leaves the page unless you copy it.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

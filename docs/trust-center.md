@@ -157,6 +157,13 @@ Wayfarer's code contains no analytics SDK, no error reporter, and no usage
 ping. <!-- claim:C-001 --> If that ever changes, it will be an explicit, opt-in, off-by-default
 setting.
 
+Errors stay in the page. Settings → Diagnostics lists the last 200 of this
+page's life and what the Content-Security-Policy blocked, with self-tests,
+and copies a report or opens a GitHub issue with it only when you ask. An
+error's message is kept without any address, quoted text or anything that
+looks like a key or a token, so the report holds no address, header or body
+of a request you sent. <!-- claim:C-068 -->
+
 The hosting zone currently injects Cloudflare's Web Analytics beacon and a
 bot-detection script into the page. The site's Content-Security-Policy
 blocks both from running <!-- claim:C-011 -->, and they are being switched off at the host

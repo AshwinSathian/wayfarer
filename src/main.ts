@@ -5,8 +5,10 @@ import { bootstrapApplication } from "@angular/platform-browser";
 import { App } from "./app/app";
 import { appConfig } from "./app/app.config";
 import { SwUpdate } from "./app/services/sw-update";
+import { listenForCspViolations } from "./app/services/diagnostics";
 
 installTrustedTypesPolicy();
+listenForCspViolations();
 
 bootstrapApplication(App, appConfig)
   .then((app) => app.injector.get(SwUpdate).register())

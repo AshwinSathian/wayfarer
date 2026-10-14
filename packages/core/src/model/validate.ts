@@ -214,6 +214,10 @@ export function validateRequestContent(value: unknown, path: string): Validation
       check.fail(`${path}.settings.followRedirects`, "Value must be true or false.");
     }
     check.oneOf(settings, "route", `${path}.settings`, ["auto", "direct", "bridge"], true);
+    const insecure = field(settings, "tlsInsecure");
+    if (insecure !== undefined && typeof insecure !== "boolean") {
+      check.fail(`${path}.settings.tlsInsecure`, "Value must be true or false.");
+    }
   }
 
   return check.issues;

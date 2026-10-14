@@ -7,6 +7,34 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (Local Bridge 2.1.0)
+
+- **Timings through the Local Bridge.** The Timings tab shows the name
+  lookup, the TCP connection, the TLS handshake, the wait for the first
+  byte and the rest of the response, measured by the bridge on its own
+  connection. Before, a request through the bridge had no breakdown at all
+  ("CORS-limited timings").
+- **Do not verify the server's certificate**, a setting of a request, in
+  the composer beside Follow redirects. Through the Local Bridge such a
+  request accepts any certificate (self-signed, expired, for another name);
+  the request and its response carry a red "TLS verification off" pill.
+  Sent directly it changes nothing: a browser always verifies. A request a
+  script sends and an OAuth token request are always verified.
+- **A `Host` header of your own is sent through the bridge.** Before, the
+  bridge took it off and the composer said so.
+- **`--ca <file>`** starts the bridge trusting your own certificate
+  authority besides the public ones.
+- **`HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`** are honoured by the bridge,
+  through Node's own support: the bridge now needs Node 22.21, or 24.5 and
+  later (before: 20.19).
+- These are additions to protocol 2. Local Bridge 2.0.0 would refuse the
+  new field and drop the `Host` header, so the app reads the bridge's
+  `/health` first and, for a bridge that lists neither, sends nothing and
+  says to update it. A request that needs neither works with 2.0.0 as
+  before.
+- The composer's note for the Local Bridge names the `Accept-Encoding` the
+  bridge adds.
+
 ### Fixed
 
 - **Deleting a folder deletes the folders inside it.** Before, they moved up

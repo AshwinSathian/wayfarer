@@ -3,6 +3,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const https = require('node:https');
+const net = require('node:net');
+const fs = require('node:fs');
+const path = require('node:path');
 const zlib = require('node:zlib');
 const { createServer, sanitizeOutgoingHeaders, timingSafeEqualStrings } = require('../src/server');
 
@@ -42,12 +46,13 @@ test('sanitizeOutgoingHeaders drops hop-by-hop headers and keeps a repeated name
     ['Authorization', 'Bearer xyz'],
     ['Content-Length', '999'],
     ['Connection', 'keep-alive'],
-    ['Host', 'evil.example.com'],
+    ['Host', 'api.internal'],
     ['X-Twice', 'one'],
     ['X-Twice', 'two'],
   ]);
   // A name that repeats is sent as often: Node takes a list of values.
-  assert.deepEqual(out, { Authorization: ['Bearer xyz'], 'X-Twice': ['one', 'two'] });
+  // A Host of the user's is theirs to send (2.1.0): the target's name is not always the address's.
+  assert.deepEqual(out, { Authorization: ['Bearer xyz'], Host: 'api.internal', 'X-Twice': ['one', 'two'] });
 });
 
 test('timingSafeEqualStrings matches equal strings and rejects mismatches/undefined', () => {
@@ -68,8 +73,8 @@ test('GET /health returns ok without requiring a token', async () => {
     assert.equal(body.name, 'wayfarer-bridge');
     // What the page reads before it relays anything (P6.3).
     assert.equal(body.protocol, 2);
-    assert.deepEqual(body.capabilities, ['bytes', 'decompression', 'header-list', 'timeout']);
-    assert.match(body.version, /^2\./);
+    assert.deepEqual(body.capabilities, ['bytes', 'decompression', 'header-list', 'timeout', 'timings', 'tls-insecure', 'host']);
+    assert.match(body.version, /^2\.1\./);
   } finally {
     await close(bridge);
   }
@@ -562,5 +567,180 @@ test('a response with no body is not decoded, whatever its Content-Encoding says
   } finally {
     await close(bridge);
     await close(target.server);
+  }
+});
+
+// A certificate for localhost and 127.0.0.1, signed by a CA no machine trusts: made once with openssl, for these tests only.
+const fixture = (name) => fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
+
+/** An HTTPS target whose certificate only `fixtures/ca.pem` vouches for. */
+function startTlsTarget(handler) {
+  const server = https.createServer({ key: fixture('key.pem'), cert: fixture('cert.pem') }, handler);
+  return listen(server).then((port) => ({ server, port, url: `https://127.0.0.1:${port}` }));
+}
+
+async function withBridge(options, run) {
+  const bridge = createServer({ token: TOKEN, allowedOrigins: [ORIGIN], ...options });
+  const port = await listen(bridge);
+  try {
+    await run(port);
+  } finally {
+    await close(bridge);
+  }
+}
+
+test('timings: the answer says how long the connection, the wait for the first byte and the body took', async () => {
+  const target = await startTarget((req, res) => {
+    setTimeout(() => {
+      res.writeHead(200);
+      res.write('first');
+      setTimeout(() => res.end('last'), 60);
+    }, 60);
+  });
+  try {
+    await withBridge({}, async (port) => {
+      const body = await (await relay(port, { method: 'GET', url: `${target.url}/slow`, headers: [] })).json();
+      assert.equal(text64(body.bodyB64), 'firstlast');
+      const { timings } = body;
+      for (const [name, value] of Object.entries(timings)) assert.ok(typeof value === 'number' && value >= 0, `${name}: ${value}`);
+      assert.ok(Object.keys(timings).every((name) => ['dns', 'tcp', 'tls', 'ttfb', 'content'].includes(name)), Object.keys(timings).join());
+      // A connection of its own for every relay, so its making is always measured.
+      assert.equal(typeof timings.tcp, 'number');
+      assert.equal(timings.tls, undefined);
+      assert.ok(timings.ttfb >= 50, `ttfb ${timings.ttfb}`);
+      assert.ok(timings.content >= 50, `content ${timings.content}`);
+      const again = await (await relay(port, { method: 'GET', url: `${target.url}/slow`, headers: [] })).json();
+      assert.equal(typeof again.timings.tcp, 'number');
+    });
+  } finally {
+    await close(target.server);
+  }
+});
+
+test('tls.insecure: a certificate nobody vouches for is a 502, and is accepted for the one request that says so', async () => {
+  const target = await startTlsTarget((req, res) => res.end('over tls'));
+  try {
+    await withBridge({}, async (port) => {
+      const refused = await relay(port, { method: 'GET', url: target.url, headers: [] });
+      assert.equal(refused.status, 502);
+      assert.match((await refused.json()).error.code, /UNABLE_TO_VERIFY_LEAF_SIGNATURE|SELF_SIGNED|UNABLE_TO_GET_ISSUER_CERT/);
+
+      const accepted = await relay(port, { method: 'GET', url: target.url, headers: [], tls: { insecure: true } });
+      assert.equal(accepted.status, 200);
+      const body = await accepted.json();
+      assert.equal(text64(body.bodyB64), 'over tls');
+      assert.equal(typeof body.timings.tls, 'number');
+
+      // It held for that request alone.
+      assert.equal((await relay(port, { method: 'GET', url: target.url, headers: [] })).status, 502);
+
+      for (const tls of [true, 'insecure', { insecure: 'yes' }, { insecure: 1 }, { insecure: true, ca: 'x' }, [], null]) {
+        const wrong = await relay(port, { method: 'GET', url: target.url, headers: [], tls });
+        assert.equal(wrong.status, 400, JSON.stringify(tls));
+      }
+    });
+  } finally {
+    await close(target.server);
+  }
+});
+
+test('--ca: a certificate signed by the given authority is verified and accepted, and the public authorities still are', async () => {
+  const target = await startTlsTarget((req, res) => res.end('vouched for'));
+  try {
+    await withBridge({ ca: fixture('ca.pem') }, async (port) => {
+      const res = await relay(port, { method: 'GET', url: target.url, headers: [] });
+      assert.equal(res.status, 200);
+      assert.equal(text64((await res.json()).bodyB64), 'vouched for');
+    });
+    // The given authority is added to Node's own, it does not replace them.
+    const { tlsOptions } = require('../src/server');
+    const { ca } = tlsOptions(fixture('ca.pem'));
+    assert.ok(ca.length > 50, `${ca.length} authorities`);
+    assert.equal(ca.at(-1), fixture('ca.pem'));
+    assert.deepEqual(tlsOptions(undefined), {});
+  } finally {
+    await close(target.server);
+  }
+});
+
+test("a Host of the user's is sent as written", async () => {
+  const seen = [];
+  const target = await startTarget((req, res) => {
+    seen.push(req.headers.host);
+    res.end('ok');
+  });
+  try {
+    await withBridge({}, async (port) => {
+      await relay(port, { method: 'GET', url: target.url, headers: [['Host', 'api.internal']] });
+      await relay(port, { method: 'GET', url: target.url, headers: [] });
+      // Two would be two answers to "which site": refused, not chosen between.
+      assert.equal((await relay(port, { method: 'GET', url: target.url, headers: [['Host', 'a.internal'], ['host', 'b.internal']] })).status, 400);
+    });
+    assert.deepEqual(seen, ['api.internal', `127.0.0.1:${target.port}`]);
+  } finally {
+    await close(target.server);
+  }
+});
+
+/** A forward proxy: answers a plain request itself, and tunnels a CONNECT to where it says. */
+function startProxy() {
+  const seen = [];
+  const server = http.createServer((req, res) => {
+    seen.push(`${req.method} ${req.url}`);
+    res.end('from the proxy');
+  });
+  server.on('connect', (req, socket, head) => {
+    seen.push(`CONNECT ${req.url}`);
+    const [host, port] = req.url.split(':');
+    const upstream = net.connect(Number(port), host, () => {
+      socket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+      upstream.write(head);
+      upstream.pipe(socket);
+      socket.pipe(upstream);
+    });
+    // When either side is done the tunnel is: a half-open one would keep this server from closing.
+    upstream.on('error', () => socket.destroy());
+    socket.on('error', () => upstream.destroy());
+    upstream.on('close', () => socket.destroy());
+    socket.on('close', () => upstream.destroy());
+  });
+  return listen(server).then((port) => ({ server, seen, url: `http://127.0.0.1:${port}` }));
+}
+
+test('HTTP_PROXY, HTTPS_PROXY and NO_PROXY are honoured: a request goes through the proxy, an https one through its tunnel, and a host that is excepted goes direct', async () => {
+  const proxy = await startProxy();
+  const target = await startTarget((req, res) => res.end('from the target'));
+  const secure = await startTlsTarget((req, res) => res.end('from the tls target'));
+  try {
+    await withBridge({ env: { HTTP_PROXY: proxy.url, HTTPS_PROXY: proxy.url }, ca: fixture('ca.pem') }, async (port) => {
+      const plain = await (await relay(port, { method: 'GET', url: 'http://wayfarer.invalid/x', headers: [] })).json();
+      assert.equal(text64(plain.bodyB64), 'from the proxy');
+      const tunnelled = await (await relay(port, { method: 'GET', url: secure.url, headers: [] })).json();
+      assert.equal(text64(tunnelled.bodyB64), 'from the tls target');
+    });
+    assert.deepEqual(proxy.seen, ['GET http://wayfarer.invalid/x', `CONNECT 127.0.0.1:${secure.port}`]);
+
+    // Through the tunnel the target's certificate is still verified.
+    await withBridge({ env: { HTTPS_PROXY: proxy.url } }, async (port) => {
+      assert.equal((await relay(port, { method: 'GET', url: secure.url, headers: [] })).status, 502);
+      assert.equal((await relay(port, { method: 'GET', url: secure.url, headers: [], tls: { insecure: true } })).status, 200);
+    });
+
+    proxy.seen.length = 0;
+    await withBridge({ env: { http_proxy: proxy.url, NO_PROXY: '127.0.0.1' } }, async (port) => {
+      const direct = await (await relay(port, { method: 'GET', url: target.url, headers: [] })).json();
+      assert.equal(text64(direct.bodyB64), 'from the target');
+    });
+    assert.deepEqual(proxy.seen, []);
+
+    // No variable, no proxy.
+    await withBridge({ env: {} }, async (port) => {
+      assert.equal(text64((await (await relay(port, { method: 'GET', url: target.url, headers: [] })).json()).bodyB64), 'from the target');
+    });
+    assert.deepEqual(proxy.seen, []);
+  } finally {
+    await close(proxy.server);
+    await close(target.server);
+    await close(secure.server);
   }
 });

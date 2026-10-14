@@ -880,6 +880,28 @@ describe("RequestExecutor", () => {
     );
   });
 
+  describe("what only the Local Bridge can do (P6.1)", () => {
+    const run = (template: RequestContent) =>
+      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+
+    it("asks the route not to verify the certificate only when the request's settings say so, and the response says it was got so", async () => {
+      expect((await run(TEMPLATE)).response.tlsInsecure).toBeUndefined();
+      expect(transport.options?.tlsInsecure).toBeUndefined();
+
+      transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge", tlsInsecure: true });
+      const result = await run({ ...TEMPLATE, settings: { tlsInsecure: true } });
+      expect(transport.options?.tlsInsecure).toBe(true);
+      expect(result.response.tlsInsecure).toBe(true);
+    });
+
+    it("the timings of a request through the bridge are the bridge's: the connection was its own", async () => {
+      transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge", timings: { dns: 1, tcp: 2, tls: 3, ttfb: 40, content: 5 } });
+      const result = await run(TEMPLATE);
+      expect(result.inspection.phases).toEqual({ dns: 1, tcp: 2, tls: 3, ttfb: 40, content: 5 });
+      expect(result.inspection.limitedByCors).toBe(false);
+    });
+  });
+
   describe("redirects (P5.4)", () => {
     const run = (template: RequestContent, built: Partial<BuiltRequest> = {}) =>
       service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(built) });

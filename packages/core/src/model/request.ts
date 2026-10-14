@@ -160,7 +160,7 @@ export interface RequestContent {
   auth: AuthConfig;
   scripts: Scripts;
   tests: TestAssertion[];
-  settings: { timeoutMs?: number; followRedirects?: boolean; route?: "auto" | "direct" | "bridge" };
+  settings: { timeoutMs?: number; followRedirects?: boolean; route?: "auto" | "direct" | "bridge"; /** Through the Local Bridge, the server's certificate is not verified. Only `true` is written. */ tlsInsecure?: boolean };
 }
 
 /** The auth of a type just chosen, with nothing typed. */

@@ -150,7 +150,8 @@ describe("browserLimits: the edges", () => {
     const headers: [string, string][] = [["Cookie", "a"], ["Host", "b"], ["Content-Length", "3"], ["Origin", "https://x.example"], ["Connection", "close"]];
     expect(limits({ method: "PUT", url: "http://example.invalid/", headers }, PAGE, "bridge")).toEqual({
       route: "bridge",
-      dropped: ["Host", "Content-Length", "Connection"],
+      // A Host of the user's is sent since Local Bridge 2.1.0.
+      dropped: ["Content-Length", "Connection"],
       crossOrigin: false,
       preflight: [],
       mixedContent: null,

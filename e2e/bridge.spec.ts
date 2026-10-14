@@ -1,8 +1,11 @@
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { createServer, type Server } from "node:http";
+import { createServer as createTlsServer } from "node:https";
 import type { AddressInfo } from "node:net";
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { openSettings, send } from "./support/app";
+import { openSettings, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 
@@ -116,5 +119,88 @@ test("an older bridge is named in Settings with its version, and a request throu
     expect(direct).toEqual([]);
   } finally {
     old.stop();
+  }
+});
+
+test("a server whose certificate nobody vouches for: refused as it is, and with verification off for the request it answers, with a red pill, a Host of the user's and the bridge's timings", async ({ page }) => {
+  // The certificate of the bridge's own tests: for localhost, signed by an authority no machine trusts.
+  const fixture = (name: string) => readFileSync(`packages/bridge/test/fixtures/${name}`);
+  const target = createTlsServer({ key: fixture("key.pem"), cert: fixture("cert.pem") }, (request, response) => {
+    response.setHeader("Content-Type", "application/json");
+    response.end(JSON.stringify({ host: request.headers.host }));
+  });
+  await new Promise<void>((resolve) => target.listen(0, "127.0.0.1", resolve));
+  const bridge = await startBridge();
+  const violations: string[] = [];
+  await page.exposeFunction("cspViolation", (directive: string) => violations.push(directive));
+  await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (event) => void (window as unknown as { cspViolation(d: string): void }).cspViolation(event.violatedDirective)));
+  try {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await seedAndOpen(page, {}, { method: "GET", url: `https://localhost:${(target.address() as AddressInfo).port}/who`, headers: { Host: "api.internal" } });
+    await routeThroughBridge(page, bridge);
+
+    // As it is, the bridge verifies, and says what it found.
+    await send(page);
+    const viewer = page.locator("app-response-viewer");
+    await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
+    await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
+
+    const box = page.getByRole("checkbox", { name: "Do not verify the server's certificate" });
+    await box.check();
+    const notes = page.locator("app-browser-notes .tls-insecure");
+    await expect(notes.locator(".tls-off-pill")).toHaveText("TLS verification off");
+    await expect(notes).toContainText("the Local Bridge accepts any certificate");
+
+    const relayed = page.waitForResponse((response) => response.url().endsWith("/v2/relay") && response.request().method() === "POST");
+    await send(page);
+    const relay = await relayed;
+    expect((relay.request().postDataJSON() as { tls?: unknown }).tls).toEqual({ insecure: true });
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
+    // The Host the user wrote is the one the server heard.
+    await expect(viewer).toContainText('"host": "api.internal"');
+    await expect(viewer.locator(".tls-off-pill")).toHaveText("TLS verification off");
+
+    // The pill in both themes, where it is and as it is drawn.
+    for (const scheme of ["dark", "light"] as const) {
+      await page.evaluate((theme) => document.documentElement.setAttribute("data-theme", theme), scheme);
+      const scan = await new AxeBuilder({ page }).include(".tls-off-pill").analyze();
+      expect(scan.violations.map((violation) => violation.id), scheme).toEqual([]);
+    }
+
+    // The connection was the bridge's, and so are the timings: a TLS handshake is among them.
+    await viewer.getByRole("tab", { name: "Timings" }).click();
+    await expect(viewer.getByText("CORS-limited timings")).toHaveCount(0);
+    const bridgeTimings = ((await relay.json()) as { timings: Record<string, number> }).timings;
+    expect(Object.keys(bridgeTimings).sort()).toEqual(expect.arrayContaining(["content", "tcp", "tls", "ttfb"]));
+
+    // The setting is the request's: unchecked, the next send is verified again.
+    await box.uncheck();
+    await expect(notes.locator(".tls-off-pill")).toHaveCount(0);
+    await send(page);
+    await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
+    await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
+    expect(violations).toEqual([]);
+  } finally {
+    bridge.stop();
+    await new Promise((resolve) => target.close(resolve));
+  }
+});
+
+test("nothing is wider than the window with verification off said in the composer and on the response", async ({ page }) => {
+  const bridge = await startBridge();
+  try {
+    await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+    await routeThroughBridge(page, bridge);
+    await page.getByRole("checkbox", { name: "Do not verify the server's certificate" }).check();
+    await send(page);
+    await expect(page.locator("app-response-viewer .tls-off-pill")).toBeVisible({ timeout: 15_000 });
+    for (const width of [360, 390, 820, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.locator("app-response-viewer .tls-off-pill")).toBeVisible();
+      // Polled: the toolbar gives way a frame after the window does.
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `${width} px` }).toBeLessThanOrEqual(0);
+    }
+  } finally {
+    bridge.stop();
   }
 });

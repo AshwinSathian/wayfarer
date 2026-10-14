@@ -57,6 +57,13 @@
       </span>
       }
 
+      @if (tlsInsecure()) {
+      <span class="tls-off-pill" matTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
+        <app-icon name="warning" class="icon-xs" />
+        TLS verification off
+      </span>
+      }
+
       <!-- Export -->
       @if (canExport) {
       <div class="ml-auto">

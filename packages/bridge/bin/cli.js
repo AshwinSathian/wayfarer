@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+const fs = require('node:fs');
 const { createServer } = require('../src/server');
 const { loadOrCreateToken, TOKEN_FILE } = require('../src/token-store');
 const pkg = require('../package.json');
@@ -48,6 +49,18 @@ function parseArgs(argv, env = process.env) {
         else fail(`--allow-origin must be an origin like https://example.com, got: ${origin}`);
         break;
       }
+      case '--ca': {
+        const file = value();
+        if (file === undefined) break;
+        try {
+          const pem = fs.readFileSync(file, 'utf8');
+          if (pem.includes('-----BEGIN CERTIFICATE-----')) args.ca = pem;
+          else fail(`--ca must name a file of PEM certificates, and ${file} holds none`);
+        } catch (err) {
+          fail(`--ca: ${file} could not be read (${err.code ?? err.message})`);
+        }
+        break;
+      }
       case '--help':
       case '-h':
         args.help = true;
@@ -80,7 +93,13 @@ Options:
   --rotate-token          Generate and persist a fresh token, replacing the saved one
   --allow-origin <url>    Additional allowed Origin (repeatable). Defaults already
                           include localhost dev and the hosted Wayfarer app.
+  --ca <file>             A file of PEM certificates to trust besides the public
+                          authorities, for a server whose certificate your own
+                          authority signed
   --help                  Show this help
+
+HTTP_PROXY, HTTPS_PROXY and NO_PROXY (in either case) are honoured for the
+requests the bridge sends.
 
 The bridge only ever binds to 127.0.0.1 — it is never reachable from other
 machines on your network. Read README.md's security model before running
@@ -100,7 +119,7 @@ function main() {
   const token = args.token ?? loadOrCreateToken({ rotate: Boolean(args.rotateToken) });
   const allowedOrigins = new Set([...DEFAULT_ALLOWED_ORIGINS, ...args.allowOrigin]);
 
-  const server = createServer({ token, allowedOrigins });
+  const server = createServer({ token, allowedOrigins, ca: args.ca });
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {

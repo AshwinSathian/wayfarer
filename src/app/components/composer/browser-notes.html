@@ -27,13 +27,24 @@
   <span class="min-w-0">Sent directly, a request is always followed: the browser shows a page only where it ended. The Local Bridge can list each redirect, or not follow.</span>
   }
 </div>
+<div class="tls-insecure flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
+  <mat-checkbox [checked]="store.draft().settings.tlsInsecure === true" (change)="store.setTlsInsecure($event.checked)">Do not verify the server's certificate</mat-checkbox>
+  @if (store.draft().settings.tlsInsecure === true) {
+  <span class="tls-off-pill"><app-icon name="warning" class="icon-xs" /> TLS verification off</span>
+  }
+  @if (limits.route === 'bridge') {
+  <span class="min-w-0">For this request the Local Bridge accepts any certificate: a self-signed one, an expired one, one for another name.</span>
+  } @else {
+  <span class="min-w-0">Only the Local Bridge can: sent directly, the browser verifies every certificate, whatever this says.</span>
+  }
+</div>
 <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
   <mat-accordion class="sections" displayMode="flat" hideToggle>
     <mat-expansion-panel>
       <mat-expansion-panel-header>What the browser does to this request <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
       <div class="space-y-3 type-footnote text-label-secondary">
         @if (limits.route === 'bridge') {
-        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code> and <code>Origin</code> are sent as written, no server is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar (Settings, Cookies) and sent with later requests to its domain and path.</p>
+        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code>, <code>Origin</code> and <code>Host</code> are sent as written, the bridge asks for a compressed response (<code>Accept-Encoding: gzip, deflate, br</code>) unless the request names its own, no server is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar (Settings, Cookies) and sent with later requests to its domain and path.</p>
         } @else {
         <p class="browser-note-preflight">
           @if (limits.preflight.length) {

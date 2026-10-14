@@ -66,6 +66,21 @@
 .status-badge.status-5xx { background: var(--status-error-fill);   color: var(--status-error-text);   border: 1px solid var(--status-error-border); }
 .status-badge.status-err { background: var(--status-error-fill);   color: var(--status-error-text);   border: 1px solid var(--status-error-border); }
 
+/* A request sent, or to be sent, with the server's certificate not verified: red, since what answers may not be the server. */
+.tls-off-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  background: var(--status-error-fill);
+  color: var(--status-error-text);
+  border: 1px solid var(--status-error-border);
+}
+
 /* ── Panel / Card ────────────────────────────────────────── */
 .ds-panel {
   background: var(--canvas-panel);

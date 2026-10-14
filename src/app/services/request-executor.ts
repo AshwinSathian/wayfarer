@@ -278,6 +278,8 @@ export interface RequestExecutionResponse {
   redirectedTo?: string;
   /** The redirects that were followed through the Local Bridge (P5.4), and why no more were. */
   redirects?: ResponseEnvelope["redirects"];
+  /** The request was sent with the server's certificate not verified (the Local Bridge). */
+  tlsInsecure?: true;
   /** The `Content-Type` header as received. */
   contentType?: string;
   /** The browser withheld headers: a direct answer from another origin shows only the CORS-safelisted ones and those the server exposes. */
@@ -455,6 +457,8 @@ export class RequestExecutor {
             // followed to another host (C-063): a redirect is the server's word, and the secret was written for this host.
             redirects: { follow: template.settings.followRedirects !== false, stayOnHost: request.secrets.length > 0 },
             cookies,
+            // The request's own setting, for the route that can (the Local Bridge): a browser always verifies.
+            ...(template.settings.tlsInsecure === true && { tlsInsecure: true }),
           }
         );
       } catch (error) {
@@ -474,6 +478,11 @@ export class RequestExecutor {
     const durationMs = Math.round(performance.now() - startedAt);
     timings.requestMs = durationMs;
     const inspection = this.responseInspector.markResponse(requestId, request.url);
+    // Through the Local Bridge the connection is the bridge's, and so are its timings: the browser's own are of the call to the bridge.
+    if (!(outcome instanceof TransportError) && outcome.timings) {
+      inspection.phases = outcome.timings;
+      inspection.limitedByCors = false;
+    }
 
     const shaped = outcome instanceof TransportError ? this.shapeFailure(outcome, request.url) : this.shapeResponse(outcome, request.url);
     // What a script writes is masked like everything else the app shows or
@@ -578,6 +587,7 @@ export class RequestExecutor {
         headersLimited: envelope.route === "direct" && URL.parse(envelope.finalUrl, location.href)?.origin !== location.origin,
         ...(envelope.stream && { stream: envelope.stream }),
         ...(envelope.redirects && { redirects: envelope.redirects }),
+        ...(envelope.tlsInsecure && { tlsInsecure: true as const }),
       },
     };
   }

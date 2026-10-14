@@ -1,6 +1,6 @@
 {
   "name": "wayfarer-cli",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Runs Wayfarer and Postman collections from the command line, with the engine the Wayfarer app sends with: the same scripts, variables, vault and results.",
   "license": "MIT",
   "author": "Ashwin Sathian",

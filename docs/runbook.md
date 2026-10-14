@@ -234,8 +234,8 @@ registry, without the token. Once, before the first tag:
 Then, for each release, from `main` after the release PR is merged:
 
 ```sh
-git tag bridge-v2.2.0 && git push origin bridge-v2.2.0
-git tag cli-v1.0.0 && git push origin cli-v1.0.0
+git tag bridge-v3.0.0 && git push origin bridge-v3.0.0
+git tag cli-v2.0.0 && git push origin cli-v2.0.0
 ```
 
 Check, from a machine that has never had them:
@@ -280,6 +280,20 @@ The release deploys nothing: production is `deploy.yml`, a step of its own.
 ## Service worker
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
+
+### After the first deploy of v2.5.0
+
+1. Settings → Diagnostics on `https://<host>`: the commit is the tag's,
+   and **Run self-tests** passes all five in Chrome, Firefox and Safari.
+2. A browser that used an earlier version shows, once, that the data an
+   earlier version stored was removed (only if its database's version was
+   below this one's: 2.4.0 left version 13, as this one does, so a 2.4.0
+   browser keeps its data). A collection file exported by 2.4.0 is refused
+   by name.
+3. The Local Bridge 3.0.0 (`bridge-v3.0.0`) relays at `/relay`: pair again
+   (its token folder is `~/.wayfarer-bridge` now) and send through it.
+4. The release page of `v2.5.0` has its three assets, and
+   `sha256sum --check SHA256SUMS` passes.
 
 ### After the first deploy of v2.4.0
 

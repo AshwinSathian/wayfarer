@@ -73,7 +73,7 @@ test('GET /health returns ok without requiring a token', async () => {
     assert.equal(body.name, 'wayfarer-bridge');
     // What the page reads (P6.3): no protocol number, no list of capabilities.
     assert.deepEqual(Object.keys(body).sort(), ['name', 'ok', 'version']);
-    assert.match(body.version, /^2\.2\./);
+    assert.match(body.version, /^3\.0\./);
   } finally {
     await close(bridge);
   }

@@ -8,7 +8,7 @@
 
 Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- claim:C-001 --> Your requests, collections, environments and history live in your browser's IndexedDB, exportable any time; <!-- claim:C-002 --> values you put in the secrets vault are encrypted, everything else is stored as plain text. <!-- claim:C-003 --> When you outgrow solo use, sync and team features will be opt-in and self-hostable, never a requirement.
 
-> **v2.3.0 status:** several requests open at once in tabs that survive a reload; a collection or a folder runs as a whole, with a data file and reports; event streams and WebSockets; GraphQL with schema, checking and completion; and, through the optional Local Bridge, a cookie jar and redirects shown hop by hop ([changelog](CHANGELOG.md)). Wayfarer 2 stores its data in a format of its own and reads nothing a 1.x version stored; **what is live at the demo address may be older than this**: a release here is a tag, and a deploy is a separate step.
+> **v2.4.0 status:** a route for every request (Direct, Local Bridge, or Auto, which goes through the bridge when the page gets no answer); Local Bridge 2.2.0 with pairing, HTTPS on loopback, timings, a proxy and certificate options; and `wayfarer-cli`, which runs a collection from a terminal or a CI job with the app's results ([changelog](CHANGELOG.md)). Wayfarer 2 stores its data in a format of its own and reads nothing a 1.x version stored; **what is live at the demo address may be older than this**: a release here is a tag, and a deploy is a separate step.
 
 **Live demo:** https://wayfarer.ashwinsathian.com/
 

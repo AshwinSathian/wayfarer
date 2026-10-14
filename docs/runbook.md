@@ -258,6 +258,24 @@ window for a squatter.
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
 
+### After the first deploy of v2.4.0
+
+Phase 6's first exit criterion waits for this: **pairing in under 60
+seconds from the hosted page, in Chrome, Firefox and Safari**.
+
+1. On a computer that has never run it, time the documented flow: start
+   `npx wayfarer-bridge` (or `npm run bridge` until it is on npm), open
+   Settings → Local Bridge on `https://<host>`, type the pairing code, press
+   Pair, send a request with the route Local Bridge. In Chrome, allow the
+   Local Network Access prompt the pane explains first.
+2. Safari does not reach `http://127.0.0.1` from an https page: start the
+   bridge with `--cert` and `--key` (the README shows `mkcert`) and repeat.
+3. A request with the route Auto to an address without CORS goes through
+   the bridge and its badge says **Via bridge**.
+4. Write each browser's time and result in
+   [#99](https://github.com/AshwinSathian/wayfarer/issues/99) (F42), which
+   this closes.
+
 ### After the first deploy of v2.3.0
 
 Nothing of 2.x is deployed yet, so these could not be checked on the host:

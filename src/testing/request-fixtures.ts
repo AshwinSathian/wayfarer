@@ -1,5 +1,5 @@
 import { emptyRequest, type Folder, type RequestBody, type RequestContent, type Row } from "@wayfarer/core";
-import type { PastRequest } from "../app/models/history";
+import type { PastRequest } from "@wayfarer/core";
 
 /** Name and value pairs as enabled rows, in the order written. */
 export function rowsOf(record: Record<string, string>): Row[] {

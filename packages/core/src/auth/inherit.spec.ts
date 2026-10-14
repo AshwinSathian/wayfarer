@@ -46,7 +46,7 @@ describe("effectiveAuth: collection, then folders from the outside in, then the 
 describe("folderChain", () => {
   const folder = (id: string, parentFolderId?: string): Folder => ({
     id,
-    meta: { id, createdAt: 0, updatedAt: 0, version: 1 },
+    meta: { id, createdAt: 0, updatedAt: 0 },
     collectionId: "c",
     parentFolderId,
     name: id,

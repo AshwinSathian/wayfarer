@@ -103,7 +103,7 @@ describe("a collection run, against Newman", () => {
   it("the JSON report holds the results and their totals", async () => {
     const data = parseDataFile(readFileSync(join(FIXTURES, "run/data.csv"), "utf8"), "data.csv");
     const report = await run("data.postman_collection.json", { data });
-    expect(runReportJson(report, INFO)).toMatchObject({ $id: "wayfarer/run/1", name: INFO.name, startedAt: INFO.startedAt, iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
+    expect(runReportJson(report, INFO)).toMatchObject({ $id: "wayfarer/run", name: INFO.name, startedAt: INFO.startedAt, iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
   });
 
   it("setNextRequest, skipRequest and null move a run as they move Newman's", async () => {

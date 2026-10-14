@@ -9,9 +9,9 @@ import { CollectionsStore } from "./collections-store";
 import { EnvironmentsStore } from "./environments-store";
 import { ImportPipeline } from "./import-pipeline";
 
-const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 as const });
+const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
 const collectionFile = JSON.stringify({
-  $id: "wayfarer/collection/3",
+  $id: "wayfarer/collection",
   meta: meta("export-1"),
   collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [], ...inCollection },
   folders: [{ id: "f-1", meta: meta("f-1"), collectionId: "col-1", name: "Auth", order: 1, ...inFolder }],
@@ -19,7 +19,7 @@ const collectionFile = JSON.stringify({
 });
 
 const env = (id: string, name: string, order: number, vars: Record<string, string> = {}): EnvironmentDoc => ({ id, meta: meta(id), name, order, vars: rowsOf(vars) });
-const environmentsFile = JSON.stringify({ $id: "wayfarer/environments/2", environments: [env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })] });
+const environmentsFile = JSON.stringify({ $id: "wayfarer/environments", environments: [env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })] });
 
 /** The worker's work, done here: the importers themselves, and their error as the page gets it. */
 const worker = {

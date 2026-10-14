@@ -44,8 +44,8 @@ or a body mode the app does not have, a field that is dropped).
 
 | Format | Recognised by | Notes |
 |---|---|---|
-| Wayfarer collection | `"$id": "wayfarer/collection/3"` | See [`collections-schema.md`](collections-schema.md). "Import as duplicate" stores it under new ids beside the collection it came from; otherwise a collection, folder or request here with the same id is replaced. |
-| Wayfarer environments | `"$id": "wayfarer/environments/2"` | Each environment is added, or replaces the environment of the same name: the report lets you choose per environment. |
+| Wayfarer collection | `"$id": "wayfarer/collection"` | See [`collections-schema.md`](collections-schema.md). "Import as duplicate" stores it under new ids beside the collection it came from; otherwise a collection, folder or request here with the same id is replaced. |
+| Wayfarer environments | `"$id": "wayfarer/environments"` | Each environment is added, or replaces the environment of the same name: the report lets you choose per environment. |
 | Postman collection, v2.0 or v2.1 | it has `item`: the list of requests and folders | See below. A Collection v1 file is refused with a message that says to export v2.1 from Postman. |
 | Postman environment or globals | `values`, each with a `key`; or the bare list of them an older Postman wrote for globals | One environment. See below. |
 | Insomnia export, format 4 or 5 | `"_type": "export"` (format 4, JSON or YAML), or `type: collection.insomnia.rest/5.0` (format 5, YAML) | See below. |
@@ -349,7 +349,7 @@ UTF-16, which Postman on Windows has written.
 
 A file of any other format, or one that is neither JSON nor YAML, is
 refused with a message that names these. A
-workspace backup (`wayfarer/workspace/3`) is not imported here: it replaces
+workspace backup (`wayfarer/workspace`) is not imported here: it replaces
 everything, and is restored in Settings.
 
 A file that says it is one of these formats and is not what the app writes

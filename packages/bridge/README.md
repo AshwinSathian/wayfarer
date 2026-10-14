@@ -25,9 +25,11 @@ node packages/bridge/bin/cli.js
 npm run bridge
 ```
 
-This prints a **port** (default `7717`) and a **bridge token**. Open
-Wayfarer, go to Settings → Local Bridge (the toolbar's bridge icon opens it
-there), switch it on, enter both, and Save. While it is enabled, **every** request goes through the
+This prints its address (default `http://127.0.0.1:7717`), a **pairing
+code** and the **bridge token**. Open Wayfarer, go to Settings → Local Bridge
+(the toolbar's bridge icon opens it there), switch it on, type the pairing
+code and press **Pair**: the bridge gives the page its token, and the
+settings are saved. Or paste the token yourself and Save. While it is enabled, **every** request goes through the
 bridge; there is no per-request choice and no automatic fallback from a
 failed direct request ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 Turn it off in the same settings to go back to direct requests.
@@ -64,6 +66,33 @@ continuously, and per the security model below, it shouldn't.
 The bridge never talks to any Wayfarer-operated server; the only two
 parties in this flow are your browser and the target you specified.
 
+### From the hosted app, in each browser
+
+- **Chrome and Edge** ask, the first time the page reaches the bridge,
+  whether the site may look for and connect to devices on your local
+  network (Local Network Access). Allow it: the bridge is on this computer.
+  Blocked by mistake, it is allowed again in the site's settings (the icon
+  left of the address). Settings → Local Bridge says this before you test.
+- **Firefox** reaches `http://127.0.0.1` from the hosted app.
+- **Safari** does not reach `http://127.0.0.1` from an HTTPS page (mixed
+  content). Start the bridge over HTTPS with a certificate of yours, and
+  give Wayfarer the `https://` address:
+
+  ```bash
+  # mkcert makes an authority your browsers trust, and a certificate from it:
+  mkcert -install
+  mkcert -cert-file bridge.pem -key-file bridge-key.pem localhost 127.0.0.1
+  npm run bridge -- --cert bridge.pem --key bridge-key.pem
+
+  # or with openssl alone: a self-signed certificate you then trust by hand
+  # (Keychain Access on a Mac: open bridge.pem, set "Always Trust")
+  openssl req -x509 -newkey rsa:2048 -nodes -days 825 -keyout bridge-key.pem -out bridge.pem \
+    -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+  ```
+
+  The bridge reads the two files and makes no certificate itself; with
+  them it speaks HTTPS only.
+
 ## Security model
 
 This is the part worth reading before you run it against anything you care
@@ -82,6 +111,16 @@ the rest of this project gives its security-relevant surfaces.
   local dev origins by default; add more with `--allow-origin`). A page
   from any other origin fails CORS preflight before the browser will even
   send the real request.
+- **Pairing, once.** The pairing code printed at start is exchanged for the
+  token by `POST /pair` from an allowed origin. It works once (then 410),
+  is eight characters of 31 (no `0`, `O`, `1`, `I`, `L`), and three wrong
+  codes in a row lock pairing for 60 seconds, the right code included
+  (429 with `Retry-After`). A page that paired before you would have the
+  token; you would see your own Pair refused with "was used": stop the
+  bridge and start it with `--rotate-token`.
+- **Private Network Access.** A preflight from an allowed origin that asks
+  for the private network (`Access-Control-Request-Private-Network: true`)
+  is answered `Access-Control-Allow-Private-Network: true`.
 - **Token-authenticated.** Every relay call must also carry the correct
   bridge token in an `X-Wayfarer-Bridge-Token` header. This is a second,
   independent gate on top of the Origin check: Origin alone only proves
@@ -185,9 +224,10 @@ to update the bridge instead.
 - The proxy variables are read by Node itself (`http.Agent`'s `proxyEnv`),
   which is why the bridge needs Node 22.21 or 24.5 and later. A proxy that
   asks for a user name and password is not tested.
-- Whether browsers let the hosted HTTPS app reach `http://127.0.0.1` is not
-  yet verified in every browser (Chrome's Local Network Access prompt,
-  Safari's mixed-content rules)
+- Reaching the bridge from the hosted app was measured in 2026-09 (Chrome's
+  Local Network Access prompt, Safari's mixed content: see
+  `docs/browser-limits.md`, "Bridge reachability"); the pairing flow and
+  HTTPS mode are tested in Playwright's Chromium, not yet in Safari itself
   ([#99](https://github.com/AshwinSathian/wayfarer/issues/99)).
 
 ## CLI reference
@@ -201,6 +241,8 @@ wayfarer-bridge [options]
                           read it in the process list: prefer the
                           WAYFARER_BRIDGE_TOKEN environment variable.
   --rotate-token          Generate and persist a fresh token, replacing the saved one
+  --cert <file>           Serve HTTPS with this PEM certificate (with --key)
+  --key <file>            The certificate's PEM private key
   --allow-origin <url>    Additional allowed Origin (repeatable), e.g. https://example.com
   --ca <file>             A file of PEM certificates to trust besides the public
                           authorities (a server whose certificate your own

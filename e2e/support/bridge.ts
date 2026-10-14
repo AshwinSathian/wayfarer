@@ -5,21 +5,27 @@ import { expect, test, type Page } from "@playwright/test";
 export interface TestBridge {
   url: string;
   token: string;
+  /** The one-time code it printed (P6.2). */
+  pairingCode: string;
   stop: () => void;
 }
 
 /** Starts `packages/bridge/bin/cli.js` and resolves when it listens. Call `stop` in a `finally`. */
-export async function startBridge(): Promise<TestBridge> {
+export async function startBridge(extra: string[] = []): Promise<TestBridge> {
   const port = 7720 + test.info().parallelIndex;
   const token = "bridge-token-for-an-e2e-0123456789abcdef";
-  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
-  await new Promise<void>((resolve, reject) => {
+  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200", ...extra], { stdio: ["ignore", "pipe", "inherit"] });
+  let printed = "";
+  const scheme = await new Promise<string>((resolve, reject) => {
     bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));
     bridge.stdout.on("data", (chunk: Buffer) => {
-      if (String(chunk).includes("listening on")) resolve();
+      printed += String(chunk);
+      const listening = /listening on (https?):/.exec(printed);
+      if (listening && /Pairing code: \S+/.test(printed)) resolve(listening[1]);
     });
   });
-  return { url: `http://127.0.0.1:${port}`, token, stop: () => bridge.kill() };
+  const pairingCode = /Pairing code: (\S+)/.exec(printed)?.[1] ?? "";
+  return { url: `${scheme}://127.0.0.1:${port}`, token, pairingCode, stop: () => bridge.kill() };
 }
 
 /** Switches the bridge on as a user does: the toolbar's button opens Settings at the bridge's pane. */

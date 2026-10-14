@@ -298,6 +298,17 @@ for Safari, and a pre-explained Local Network Access prompt is required
 for Chrome. The Private Network Access preflight header is harmless but
 not what unblocks Chrome today.
 
+**As built (P6.2, Local Bridge 2.2.0):** the bridge serves HTTPS when it is
+given a certificate and its key (`--cert`, `--key`; the README shows
+`mkcert` and `openssl`); Settings → Local Bridge says, before the first
+test, that Chrome and Edge will ask about the local network and that the
+answer is to allow it; the bridge answers a preflight that asks for the
+private network with `Access-Control-Allow-Private-Network: true`; and a
+pairing code printed by the bridge is exchanged for its token, so nothing
+is copied. Not measured again in the three browsers from the production
+page since 2026-09-28: nothing is deployed (Phase 6's exit criterion waits
+for it).
+
 Two things found while measuring:
 
 - The bridge's default allowed origins are `http://localhost:4200`,

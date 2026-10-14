@@ -74,7 +74,7 @@ test('GET /health returns ok without requiring a token', async () => {
     // What the page reads before it relays anything (P6.3).
     assert.equal(body.protocol, 2);
     assert.deepEqual(body.capabilities, ['bytes', 'decompression', 'header-list', 'timeout', 'timings', 'tls-insecure', 'host']);
-    assert.match(body.version, /^2\.1\./);
+    assert.match(body.version, /^2\.2\./);
   } finally {
     await close(bridge);
   }
@@ -743,4 +743,87 @@ test('HTTP_PROXY, HTTPS_PROXY and NO_PROXY are honoured: a request goes through 
     await close(target.server);
     await close(secure.server);
   }
+});
+
+test('a preflight that asks for the private network is told yes, for an allowed origin only (PNA)', async () => {
+  await withBridge({}, async (port) => {
+    const ask = (origin) => fetch(`http://127.0.0.1:${port}/v2/relay`, { method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Private-Network': 'true', 'Access-Control-Request-Method': 'POST' } });
+    const allowed = await ask(ORIGIN);
+    assert.equal(allowed.headers.get('access-control-allow-private-network'), 'true');
+    assert.equal(allowed.headers.get('access-control-allow-origin'), ORIGIN);
+    assert.equal((await ask('https://evil.example.com')).headers.get('access-control-allow-private-network'), null);
+    // A preflight that does not ask is not told.
+    const plain = await fetch(`http://127.0.0.1:${port}/v2/relay`, { method: 'OPTIONS', headers: { Origin: ORIGIN } });
+    assert.equal(plain.headers.get('access-control-allow-private-network'), null);
+  });
+});
+
+/** A GET or POST over HTTPS that trusts the test authority, as a browser trusts a certificate the user installed. */
+function overTls(port, { method = 'GET', path: target = '/health', headers = {}, body } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = https.request({ host: '127.0.0.1', servername: 'localhost', port, method, path: target, ca: fixture('ca.pem'), headers }, (res) => {
+      let text = '';
+      res.on('data', (chunk) => (text += chunk));
+      res.on('end', () => resolve({ status: res.statusCode, text }));
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
+test('HTTPS on loopback: with a certificate given the bridge speaks HTTPS only, and its rules hold the same', async () => {
+  await withBridge({ tls: { cert: fixture('cert.pem'), key: fixture('key.pem') } }, async (port) => {
+    const health = await overTls(port);
+    assert.equal(health.status, 200);
+    assert.equal(JSON.parse(health.text).protocol, 2);
+    // The Host rule and the token rule are the same over HTTPS.
+    assert.equal((await overTls(port, { headers: { Host: 'rebound.example.com' } })).status, 421);
+    assert.equal((await overTls(port, { method: 'POST', path: '/v2/relay', headers: { Origin: ORIGIN, 'Content-Type': 'application/json' }, body: '{}' })).status, 401);
+    // Plain HTTP is not answered.
+    await assert.rejects(fetch(`http://127.0.0.1:${port}/health`));
+  });
+});
+
+const pair = (port, body, origin = ORIGIN) =>
+  fetch(`http://127.0.0.1:${port}/pair`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+test('pairing: the code from the terminal is exchanged once for the token, from an allowed origin; written with a dash or in lower case it is the same code', async () => {
+  await withBridge({ pairing: { code: 'ABCD2345' } }, async (port) => {
+    assert.equal((await pair(port, { code: 'ABCD2345' }, 'https://evil.example.com')).status, 403);
+    const paired = await pair(port, { code: 'abcd-2345' });
+    assert.equal(paired.status, 200);
+    assert.equal(paired.headers.get('access-control-allow-origin'), ORIGIN);
+    assert.deepEqual(await paired.json(), { token: TOKEN });
+    // Once.
+    const again = await pair(port, { code: 'ABCD2345' });
+    assert.equal(again.status, 410);
+    assert.match((await again.json()).error, /used/);
+  });
+  // A bridge started with no code has no pairing.
+  await withBridge({}, async (port) => assert.equal((await pair(port, { code: 'ABCD2345' })).status, 410));
+});
+
+test('pairing with a wrong code 3 times locks pairing for 60 s, the right code included; then it may be tried again', async () => {
+  let now = 1_000_000;
+  await withBridge({ pairing: { code: 'ABCD2345' }, clock: () => now }, async (port) => {
+    for (let i = 0; i < 3; i += 1) assert.equal((await pair(port, { code: 'WRONG234' })).status, 401);
+    const locked = await pair(port, { code: 'ABCD2345' });
+    assert.equal(locked.status, 429);
+    assert.equal(locked.headers.get('retry-after'), '60');
+    now += 59_000;
+    assert.equal((await pair(port, { code: 'ABCD2345' })).status, 429);
+    now += 1_000;
+    // The lock is over, and the count starts again.
+    assert.equal((await pair(port, { code: 'WRONG234' })).status, 401);
+    assert.equal((await pair(port, { code: 'ABCD2345' })).status, 200);
+  });
+});
+
+test('a pairing request of the wrong shape is a 400 and not a try', async () => {
+  await withBridge({ pairing: { code: 'ABCD2345' } }, async (port) => {
+    for (const body of [{}, { code: 1 }, { code: 'ABCD2345', token: 'x' }, [], 'ABCD2345', { code: 'x'.repeat(100) }]) {
+      assert.equal((await pair(port, body)).status, 400, JSON.stringify(body));
+    }
+    assert.equal((await pair(port, { code: 'ABCD2345' })).status, 200);
+  });
 });

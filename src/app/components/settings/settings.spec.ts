@@ -125,6 +125,33 @@ describe("Settings", () => {
       expect(button("Save").disabled).toBe(true);
     });
 
+    it("explains the browser's question about the local network before it is asked (P6.2)", () => {
+      expect(dialog().querySelector(".bridge-lna")?.textContent?.replace(/\s+/g, " ")).toContain("may ask whether this site may look for and connect to devices on your local network");
+    });
+
+    it("pairs with the code the bridge shows: the token it gives is saved, and the code field is emptied (P6.2)", async () => {
+      const bridge = TestBed.inject(BridgeSettings);
+      const pair = vi.spyOn(bridge, "pair").mockResolvedValue({ token: "a-token-of-the-bridge-0123456789" });
+      expect(button("Pair").disabled).toBe(true);
+      await type("#bridge-pairing-input", "ABCD-2345");
+      button("Pair").click();
+      await settle();
+      // ngModel writes the emptied field a turn after the signal changes.
+      await settle();
+      expect(pair).toHaveBeenCalledWith("http://127.0.0.1:7717", "ABCD-2345");
+      expect(bridge.config().token).toBe("a-token-of-the-bridge-0123456789");
+      expect(input("#bridge-pairing-input").value).toBe("");
+      expect(dialog().querySelector(".bridge-paired")?.textContent).toContain("Paired");
+
+      pair.mockResolvedValue({ problem: "That is not the code the bridge shows." });
+      await type("#bridge-pairing-input", "WRONG");
+      button("Pair").click();
+      await settle();
+      await settle();
+      expect(dialog().querySelector(".bridge-pair-problem")?.textContent).toContain("That is not the code the bridge shows.");
+      expect(bridge.config().token).toBe("a-token-of-the-bridge-0123456789");
+    });
+
     it("Discard puts back what is stored", async () => {
       await type("#bridge-url-input", "http://127.0.0.1:9999");
       const discard = [...dialog().querySelectorAll("button")].find((candidate) => candidate.textContent?.trim() === "Discard") as HTMLButtonElement;

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- CI holds the app to performance budgets: Lighthouse's desktop score of 90
+  or more, a largest contentful paint within 2 s and a total blocking time
+  within 200 ms; typing into the address stays within 100 ms a key with five
+  tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
+  the YAML parser stay out of what the page loads first.
 - "Break the sandbox": a public challenge in `SECURITY.md` to break the
   script sandbox, the vault or the Local Bridge, with credit in the Trust
   Center's hall of fame. No money.
@@ -51,6 +56,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- The app starts faster: the code editor is loaded when an editor is first
+  shown. It used to load with every page, for editors in closed dialogs and
+  in the hidden Scripts tab.
+- Each release of the app attaches the built folder as a tarball, a
+  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
+- Settings → Diagnostics: the version and the commit, the browser, storage,
+  the database, the service worker and the Local Bridge; self-tests (a
+  script, the vault's encryption, a database write, a fetch of the app's
+  own); the last 200 errors and what the Content-Security-Policy blocked.
+  Copy report and Open GitHub issue hand over all of it. Nothing of a
+  request you sent is in it, and nothing leaves the page unless you copy it.
 - Two auth fields filled at once, as a password manager fills a user name
   and a password, are both kept. The first used to be written back empty
   (AWS Signature, Basic, API key and OAuth 2.0).

@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { headersFor, parseHeadersFile } from "./prod-server.mjs";
+import { encodingFor, headersFor, parseHeadersFile, startServer } from "./prod-server.mjs";
 
 const URL_BASE = "http://localhost:4200";
 const apply = (text, path) => Object.fromEntries(headersFor(parseHeadersFile(text), new URL(path, URL_BASE)));
@@ -68,5 +68,44 @@ test("the repo's public/_headers gives every path the production CSP", () => {
     const headers = Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
     assert.match(headers["content-security-policy"], /script-src 'self'/, path);
     assert.equal(headers["x-content-type-options"], "nosniff", path);
+  }
+});
+
+// P7.2: Cloudflare compresses what it serves; a page measured without that
+// is measured on a megabyte it never sends.
+test("encodingFor picks brotli, then gzip, for text, script and wasm, and nothing for the rest", () => {
+  assert.equal(encodingFor("gzip, deflate, br", "text/javascript; charset=utf-8"), "br");
+  assert.equal(encodingFor("gzip", "text/css; charset=utf-8"), "gzip");
+  assert.equal(encodingFor("br;q=0, gzip", "application/json"), "gzip");
+  assert.equal(encodingFor(undefined, "text/html; charset=utf-8"), null);
+  assert.equal(encodingFor("br", "application/wasm"), "br");
+  assert.equal(encodingFor("br, gzip", "image/png"), null);
+  assert.equal(encodingFor("br, gzip", "font/woff2"), null);
+});
+
+test("the server sends a compressed body that decompresses to the file, and says so", async () => {
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { brotliDecompressSync } = await import("node:zlib");
+  const root = mkdtempSync(join(tmpdir(), "prod-server-"));
+  writeFileSync(join(root, "_headers"), "/*\n  X-Test: yes\n");
+  writeFileSync(join(root, "index.html"), "<p>shell</p>");
+  const script = "console.log('wayfarer');\n".repeat(200);
+  writeFileSync(join(root, "main.js"), script);
+  const server = startServer(root, 0);
+  await new Promise((done) => server.once("listening", done));
+  try {
+    const { port } = server.address();
+    const { request } = await import("node:http");
+    const response = await new Promise((done, fail) => request({ port, path: "/main.js", headers: { "accept-encoding": "br, gzip" } }, done).on("error", fail).end());
+    const chunks = [];
+    for await (const chunk of response) chunks.push(chunk);
+    assert.equal(response.headers["content-encoding"], "br");
+    assert.equal(response.headers["vary"], "Accept-Encoding");
+    assert.equal(response.headers["x-test"], "yes");
+    assert.equal(brotliDecompressSync(Buffer.concat(chunks)).toString(), script);
+  } finally {
+    server.close();
   }
 });

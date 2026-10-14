@@ -1,8 +1,8 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { axe } from "./support/axe";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -402,8 +402,8 @@ for (const theme of ["dark", "light"] as const) {
       await page.mouse.move(640, 880);
       // Once the page has stopped animating: a colour half way through a fade is not the colour.
       await settled(page);
-      const results = await new AxeBuilder({ page }).analyze();
-      expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+      const results = await axe(page).analyze();
+      expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
     };
     await scan("before the run");
     await view.getByLabel("Data file for the run").setInputFiles({ name: "not-data.json", mimeType: "application/json", buffer: Buffer.from("{}") });

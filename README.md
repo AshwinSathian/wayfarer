@@ -21,7 +21,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 - Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
 - Shareable results. Export a request and its response, or several entries of history at once, as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
 - No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
-- A dark and a light theme, each fully designed: the app follows your system until you choose one in Settings. Minimal, accessible, and keyboard‑friendly. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-030 -->
+- A dark and a light theme, each fully designed: the app follows your system until you choose one in Settings. Minimal, accessible (no WCAG 2.2 AA violation that axe finds), and usable by keyboard alone, with a focus ring on every stop. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-067 --> <!-- claim:C-030 -->
 
 ---
 

@@ -1,5 +1,5 @@
-import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { axe } from "./support/axe";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
 
@@ -124,8 +124,8 @@ for (const theme of ["dark", "light"] as const) {
     const scan = async (state: string) => {
       await page.mouse.move(640, 880);
       await settled(page);
-      const results = await new AxeBuilder({ page }).analyze();
-      expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+      const results = await axe(page).analyze();
+      expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
     };
     await scan("not connected");
     await page.getByRole("button", { name: "Connect", exact: true }).click();

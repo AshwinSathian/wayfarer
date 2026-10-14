@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
+import { axe } from "./support/axe";
 import { readFileSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 import { createServer as createTlsServer } from "node:https";
 import type { AddressInfo } from "node:net";
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { openSettings, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
@@ -157,7 +157,7 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     // The pill in both themes, where it is and as it is drawn.
     for (const scheme of ["dark", "light"] as const) {
       await page.evaluate((theme) => document.documentElement.setAttribute("data-theme", theme), scheme);
-      const scan = await new AxeBuilder({ page }).include(".tls-off-pill").analyze();
+      const scan = await axe(page).include(".tls-off-pill").analyze();
       expect(scan.violations.map((violation) => violation.id), scheme).toEqual([]);
     }
 

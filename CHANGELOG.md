@@ -12,6 +12,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - "Break the sandbox": a public challenge in `SECURITY.md` to break the
   script sandbox, the vault or the Local Bridge, with credit in the Trust
   Center's hall of fame. No money.
+- Settings → Diagnostics: the version and the commit, the browser, storage,
+  the database, the service worker and the Local Bridge; self-tests (a
+  script, the vault's encryption, a database write, a fetch of the app's
+  own); the last 200 errors and what the Content-Security-Policy blocked.
+  Copy report and Open GitHub issue hand over all of it. Nothing of a
+  request you sent is in it, and nothing leaves the page unless you copy it.
 
 ### Changed
 
@@ -20,6 +26,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Two auth fields filled at once, as a password manager fills a user name
+  and a password, are both kept. The first used to be written back empty
+  (AWS Signature, Basic, API key and OAuth 2.0).
+- Opening the history or navigation drawer moves focus into it at once. A
+  Tab pressed in the first frame used to land on the page underneath (#223).
 - A dialog that asks for a name, a passphrase or a command opens with focus
   on that field. Focus used to land on its Close button.
 - Enter in the name field of a new collection, folder or request creates it.

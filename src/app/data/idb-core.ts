@@ -1,13 +1,11 @@
 import { Injectable, WritableSignal, signal } from "@angular/core";
 import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
-import { Meta, META_VERSION } from "../models/collections";
+import { Meta } from "../models/collections";
 import {
   ApiSandboxDB,
   DB_NAME,
   DB_VERSION,
-  DEFAULT_SCHEMA_VERSION,
   MetaState,
-  RemovedData,
   META_STATE_KEY,
   StoreCollection,
   StoreName,
@@ -76,8 +74,8 @@ export class IdbCore {
   /** True when the database is from a newer release than this tab's code (a stale cache, a rollback). */
   readonly olderThanData = signal(false);
 
-  /** True when this open emptied a database an older release left: v5 does not read the shapes before it. */
-  readonly clearedOldData = signal<RemovedData>([]);
+  /** True when this open emptied a database an earlier version left, which held data. */
+  readonly clearedOldData = signal(false);
 
   /**
    * True when IndexedDB could not be opened (blocked storage, some private
@@ -144,13 +142,13 @@ export class IdbCore {
       return;
     }
 
-    let removed: Promise<RemovedData> = Promise.resolve([]);
+    let removed: Promise<boolean> = Promise.resolve(false);
     try {
       this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
-        upgrade: (db, oldVersion, _newVersion, tx) => {
-          removed = runUpgrade(db, oldVersion, tx);
+        upgrade: (db, _oldVersion, _newVersion, tx) => {
+          removed = runUpgrade(db, tx);
         },
-        // A tab running a build from before v5 does not close on request.
+        // A tab running an older build that does not close on request.
         blocked: () => this.upgradeBlocked.set(true),
         // Another tab is deleting the database (no new version) or upgrading
         // it; holding the connection would block either.
@@ -161,7 +159,6 @@ export class IdbCore {
       await this.dbPromise;
       this.upgradeBlocked.set(false);
       this.clearedOldData.set(await removed);
-      await this.ensureMetaDocument();
     } catch (error) {
       this.upgradeBlocked.set(false);
       // VersionError: the stored version is above DB_VERSION.
@@ -280,14 +277,12 @@ export class IdbCore {
     if (!db) {
       return {
         key: META_STATE_KEY,
-        schemaVersion: DEFAULT_SCHEMA_VERSION,
         activeEnvironmentId: null,
       };
     }
     const tx = db.transaction("meta", "readonly");
     const state = ((await tx.store.get(META_STATE_KEY)) as MetaState | undefined) ?? {
       key: META_STATE_KEY,
-      schemaVersion: DEFAULT_SCHEMA_VERSION,
       activeEnvironmentId: null,
     };
     await tx.done;
@@ -377,7 +372,6 @@ export class IdbCore {
       id: newId(),
       createdAt: now,
       updatedAt: now,
-      version: META_VERSION,
     };
   }
 
@@ -427,23 +421,5 @@ export class IdbCore {
     this.memoryOnly.set(true);
     this.initPromise ??= Promise.resolve();
     this.dbPromise = undefined;
-  }
-
-  private async ensureMetaDocument(): Promise<void> {
-    if (this.memoryOnly() || !this.dbPromise) {
-      return;
-    }
-    const db = await this.dbPromise;
-    const tx = db.transaction("meta", "readwrite");
-    const store = tx.objectStore("meta");
-    const existing = await store.get(META_STATE_KEY);
-    if (!existing) {
-      await store.add({
-        key: META_STATE_KEY,
-        schemaVersion: DEFAULT_SCHEMA_VERSION,
-        activeEnvironmentId: null,
-      } satisfies MetaState);
-    }
-    await tx.done;
   }
 }

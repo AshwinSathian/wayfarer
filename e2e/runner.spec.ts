@@ -58,7 +58,7 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
       const read = db.transaction("meta").objectStore("meta").get("state");
       const state = await new Promise((resolve) => (read.onsuccess = () => resolve(read.result)));
       const now = Date.now();
-      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
+      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now });
       const rows = (record: Record<string, string>) => Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
       const digest = async (text: string) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
       const approved = await Promise.all(requests.flatMap((request) => [request.pre ?? "", request.post ?? ""]).filter((script) => script.trim()).map(digest));
@@ -142,7 +142,7 @@ test("three requests and a data file of five rows give the fifteen results Newma
   const json = await saved(page, () => view.getByRole("button", { name: "JSON", exact: true }).click());
   expect(json.name).toBe("wayfarer-run.json");
   const report = JSON.parse(json.text) as { $id: string; name: string; iterations: number; ended: string; totals: unknown; results: { iteration: number; name: string; status: number; tests: { name: string; passed: boolean }[] }[] };
-  expect(report).toMatchObject({ $id: "wayfarer/run/1", name: "Shop", iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
+  expect(report).toMatchObject({ $id: "wayfarer/run", name: "Shop", iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
   expect(report.results.map((result) => ({ iteration: result.iteration, name: result.name, tests: result.tests.map(({ name, passed }) => ({ name, passed })) }))).toEqual(golden.items);
 
   // The JUnit report: the document core's test validates against the schema, with this run's numbers.

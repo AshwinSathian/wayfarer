@@ -215,7 +215,7 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
   expect(copied[6]).toContain("await fetch(");
   expect(copied[7]).toContain("requests.request(");
   expect(copied[8]).toMatch(/^http /);
-  expect(files[0]).toContain('"$id": "wayfarer/collection/3"');
+  expect(files[0]).toContain('"$id": "wayfarer/collection"');
   expect(postman[0]).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
   expect(postman[1]).toContain('"key": "username"');
   for (const file of har) expect(file).toContain('"version": "1.2"');

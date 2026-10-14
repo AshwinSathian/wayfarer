@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { applyVariableChanges, type VariableChange } from "@wayfarer/core";
-import { CollectionId, Folder, FolderId, InheritedPatch, RequestDoc, RequestDocId } from "../models/collections";
+import { Folder, InheritedPatch, RequestDoc } from "../models/collections";
 import { IdbCore } from "./idb-core";
 import { sweepFiles } from "./request-files";
 
@@ -15,7 +15,7 @@ import { sweepFiles } from "./request-files";
 export class FoldersRepository {
   private readonly core = inject(IdbCore);
 
-  async listFolders(collectionId: CollectionId): Promise<Folder[]> {
+  async listFolders(collectionId: string): Promise<Folder[]> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadonly(["folders"]);
     const index = tx.objectStore("folders").index("by-collectionId");
@@ -26,9 +26,9 @@ export class FoldersRepository {
   }
 
   async createFolder(payload: {
-    collectionId: CollectionId;
+    collectionId: string;
     name: string;
-    parentFolderId?: FolderId;
+    parentFolderId?: string;
     order?: number;
   }): Promise<Folder> {
     await this.core.ensurePersistentSupport();
@@ -54,16 +54,16 @@ export class FoldersRepository {
   }
 
   /** The auth and the scripts a folder holds for the requests in it (P4.9). */
-  async setFolderInherited(id: FolderId, patch: InheritedPatch<Folder>): Promise<Folder | null> {
+  async setFolderInherited(id: string, patch: InheritedPatch<Folder>): Promise<Folder | null> {
     return this.change(id, (folder) => ({ ...folder, auth: patch.auth, scripts: patch.scripts }));
   }
 
   /** Changes some variables of a folder, reading the stored rows inside the transaction that writes them (D22). */
-  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
+  async changeFolderVariables(id: string, changes: VariableChange[]): Promise<Folder | null> {
     return this.change(id, (folder) => ({ ...folder, variables: applyVariableChanges(folder.variables, changes) }));
   }
 
-  private async change(id: FolderId, next: (folder: Folder) => Folder): Promise<Folder | null> {
+  private async change(id: string, next: (folder: Folder) => Folder): Promise<Folder | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders"]);
     const store = tx.objectStore("folders");
@@ -78,7 +78,7 @@ export class FoldersRepository {
     });
   }
 
-  async renameFolder(id: FolderId, name: string): Promise<Folder | null> {
+  async renameFolder(id: string, name: string): Promise<Folder | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders"]);
     const store = tx.objectStore("folders");
@@ -96,7 +96,7 @@ export class FoldersRepository {
   }
 
   /** A copy of a folder with everything in it: its requests, and the folders inside it at every depth. */
-  async duplicateFolder(id: FolderId): Promise<Folder | null> {
+  async duplicateFolder(id: string): Promise<Folder | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests"]);
     const folderStore = tx.objectStore("folders");
@@ -109,7 +109,7 @@ export class FoldersRepository {
       }
       // Read whole before the first copy is written: a copy is a folder of the same parent.
       const subtree = await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id);
-      const copies = new Map<FolderId, FolderId>();
+      const copies = new Map<string, string>();
       let top: Folder | null = null;
       for (const folder of [original, ...subtree]) {
         const meta = this.core.createMeta();
@@ -135,8 +135,8 @@ export class FoldersRepository {
     });
   }
 
-  /** A folder is deleted with everything in it: the folders inside it are not moved up (the tree draws them inside since version 13). */
-  async deleteFolder(id: FolderId): Promise<void> {
+  /** A folder is deleted with everything in it: the folders inside it are not moved up. */
+  async deleteFolder(id: string): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests", "files"]);
     const folderStore = tx.objectStore("folders");
@@ -152,10 +152,10 @@ export class FoldersRepository {
   }
 
   /** The folders inside a folder, each after its parent. A folder is taken once, so folders that name each other end. */
-  private async subtree(inside: (parent: FolderId) => Promise<Folder[]>, id: FolderId): Promise<Folder[]> {
+  private async subtree(inside: (parent: string) => Promise<Folder[]>, id: string): Promise<Folder[]> {
     const found: Folder[] = [];
-    const seen = new Set<FolderId>([id]);
-    const queue: FolderId[] = [id];
+    const seen = new Set<string>([id]);
+    const queue: string[] = [id];
     for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
       for (const folder of await inside(next)) {
         if (seen.has(folder.meta.id)) continue;
@@ -168,7 +168,7 @@ export class FoldersRepository {
   }
 
   /** The new places of a parent's folders and requests: the two share one order, so they are written together. */
-  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
+  async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests"]);
     await this.core.commitOrRollback(tx, async () => {

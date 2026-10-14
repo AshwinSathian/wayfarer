@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PastRequest } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from "../../../testing/composer-setup";
 

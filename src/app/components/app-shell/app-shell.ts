@@ -22,7 +22,7 @@ import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/mat
 import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import { PastRequest, PastRequestKey } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
@@ -79,7 +79,7 @@ export class AppShell implements OnInit {
 
   readonly newRequest = output<void>();
   readonly clearHistory = output<void>();
-  readonly deleteRequest = output<PastRequestKey>();
+  readonly deleteRequest = output<number>();
   readonly openDrawer = output<void>();
   readonly closeDrawer = output<void>();
   readonly toggleDrawer = output<void>();

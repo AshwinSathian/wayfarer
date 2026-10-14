@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { AppShell } from './components/app-shell/app-shell';
 import { Idb } from './data/idb';
-import { PastRequest, PastRequestKey } from './models/history';
+import { PastRequest } from "@wayfarer/core";
 import { RequestSettings } from './services/request-settings';
 import { TabsStorage } from './state/tabs-storage';
 import { CookieJar } from "./services/cookie-jar";
@@ -66,7 +66,7 @@ export class App implements OnInit {
     await this.refreshPastRequests();
   }
 
-  async deletePastRequest(id: PastRequestKey): Promise<void> {
+  async deletePastRequest(id: number): Promise<void> {
     await this.idbService.delete(id);
     await this.refreshPastRequests();
   }

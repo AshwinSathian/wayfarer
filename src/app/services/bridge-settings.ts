@@ -99,7 +99,7 @@ export class BridgeSettings {
 
   /**
    * Asks the bridge at `url` (the saved one by default) for its `/health`, without changing the saved settings.
-   * What is wrong with it, as a sentence, or undefined: it answers and speaks the page's protocol (P6.3).
+   * What is wrong with it, as a sentence, or undefined: it answers as a Local Bridge (P6.3).
    */
   async checkHealth(url = this.config().url): Promise<string | undefined> {
     const base = url.replace(/\/+$/, "");

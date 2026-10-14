@@ -50,6 +50,9 @@ jobs:
       # The claim tests themselves run in the retry-free claims-* projects
       # of the e2e job.
       - run: npm run check:claims
+      # P7.6: the README's feature list is the ledger; every doc link leads to a file, and the README links every doc.
+      - run: npm run check:readme
+      - run: npm run check:links
 
   test:
     name: Unit tests

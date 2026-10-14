@@ -26,8 +26,8 @@ Each trust boundary, what could go wrong at it, and the tested claim that
 stops it are in the [threat model](docs/threat-model.md).
 
 For the full data-residency, encryption, and compliance picture (including
-what's *not* true yet, stated plainly), see the [Trust Center](docs/trust-center.md)
-and the [pre-answered security questionnaire](docs/security-questionnaire.md).
+what's *not* true yet, stated plainly), see the [Trust Center](docs/trust-center.md), which also answers the usual
+procurement questions.
 Automated scanners can discover this policy via
 [`/.well-known/security.txt`](public/.well-known/security.txt).
 

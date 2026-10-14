@@ -167,6 +167,8 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   const opens = async (opener: string, field: Locator) => {
     const button = page.getByRole("button", { name: opener, exact: true });
     await button.focus();
+    // Once in CI, at Save to Collection, no dialog came after Enter and the caret was still in the address: say which half failed.
+    await expect(button, `${opener} has focus before Enter`).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(field, opener).toBeFocused();
     await page.keyboard.press("Escape");

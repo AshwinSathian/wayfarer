@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -70,33 +70,57 @@ export class AuthEditor {
     { label: "Query param", value: "query" },
   ];
 
+  /**
+   * What this editor last emitted, until its input has it. The input changes
+   * only at the next change detection: two fields filled in one frame (a
+   * password manager does so) would each start from the auth without the
+   * other, and the second wrote the first back empty.
+   */
+  private emitted: AuthConfig | undefined;
+
+  constructor() {
+    effect(() => {
+      this.auth();
+      this.emitted = undefined;
+    });
+  }
+
+  private current(): AuthConfig {
+    return this.emitted ?? this.auth();
+  }
+
+  private emit(auth: AuthConfig): void {
+    this.emitted = auth;
+    this.authChange.emit(auth);
+  }
+
   onAuthTypeChange(type: AuthType): void {
     this.authTypeChange.emit(type);
   }
 
   // Each field belongs to one auth type, and its input exists only while that type is chosen.
   setBearerToken(token: string): void {
-    this.authChange.emit({ type: "bearer", token });
+    this.emit({ type: "bearer", token });
   }
 
   setBasicUsername(username: string): void {
-    const auth = this.auth();
-    this.authChange.emit({ type: "basic", username, password: auth.type === "basic" ? auth.password : "" });
+    const auth = this.current();
+    this.emit({ type: "basic", username, password: auth.type === "basic" ? auth.password : "" });
   }
 
   setBasicPassword(password: string): void {
-    const auth = this.auth();
-    this.authChange.emit({ type: "basic", username: auth.type === "basic" ? auth.username : "", password });
+    const auth = this.current();
+    this.emit({ type: "basic", username: auth.type === "basic" ? auth.username : "", password });
   }
 
   setApiKeyField(patch: Partial<{ key: string; value: string; in: "header" | "query" }>): void {
-    const auth = this.auth();
-    this.authChange.emit({ ...(auth.type === "apikey" ? auth : emptyApiKey), ...patch });
+    const auth = this.current();
+    this.emit({ ...(auth.type === "apikey" ? auth : emptyApiKey), ...patch });
   }
 
   setAwsField(patch: Partial<Omit<AwsAuth, "type">>): void {
-    const auth = this.auth();
-    this.authChange.emit({ ...(auth.type === "awsv4" ? auth : emptyAws), ...patch });
+    const auth = this.current();
+    this.emit({ ...(auth.type === "awsv4" ? auth : emptyAws), ...patch });
   }
 
   readonly oauthGrants: { label: string; value: OAuthAuth["grant"] }[] = [
@@ -112,8 +136,8 @@ export class AuthEditor {
   protected readonly redirectUri = oauthRedirectUri();
 
   setOAuthField(patch: Partial<Omit<OAuthAuth, "type">>): void {
-    const auth = this.auth();
-    this.authChange.emit({ ...(auth.type === "oauth2" ? auth : (emptyAuth("oauth2") as OAuthAuth)), ...patch });
+    const auth = this.current();
+    this.emit({ ...(auth.type === "oauth2" ? auth : (emptyAuth("oauth2") as OAuthAuth)), ...patch });
   }
 
   onTogglePasswordVisibility(): void {

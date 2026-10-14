@@ -14,6 +14,12 @@ Wayfarer has no account, no server of its own and no telemetry. Your requests, c
 ## What it does
 
 Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim has a test that runs in CI, in Chromium, Firefox and WebKit where it is about the page. The list is generated from that ledger (`npm run gen:readme`), so it cannot say more than the tests prove.
+- Your work stays on your device. There's no account or server, so no update, acquisition, or pricing page can gate access to data you already have. <!-- claim:C-001 --> <!-- claim:C-002 --> Browser storage can still be cleared or evicted (Safari removes site data after 7 days without a visit), so export what you can't lose.
+- Zero clutter, just the essentials. Compose a request and see a clean, structured response.
+- Great defaults: sensible method/body pairing, helpful validation, and safe fallbacks.
+- Shareable results. Export a request and its response, or several entries of history at once, as **HAR 1.2** for teammates and tooling. <!-- claim:C-035 -->
+- No cloud, no account, no telemetry. Collections, environments, history, and secrets all live **per‑browser, per‑device** in **IndexedDB (IDB)**, and none of it is uploaded anywhere. <!-- claim:C-001 --> <!-- claim:C-002 -->
+- A dark and a light theme, each fully designed: the app follows your system until you choose one in Settings. Minimal, accessible (no WCAG 2.2 AA violation that axe finds), and usable by keyboard alone, with a focus ring on every stop. <!-- claim:C-037 --> <!-- claim:C-038 --> <!-- claim:C-067 --> <!-- claim:C-030 -->
 
 <!-- features:start -->
 - No account, no cloud, no telemetry: apart from loading the app, the only network traffic is the request the user composes, sent to the host they chose, and, when its auth is OAuth 2.0, the token request and the sign-in window, sent to the two addresses the user gave for them. <!-- claim:C-001 -->

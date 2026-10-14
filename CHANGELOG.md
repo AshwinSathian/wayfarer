@@ -7,6 +7,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- A dialog that asks for a name, a passphrase or a command opens with focus
+  on that field. Focus used to land on its Close button.
+- Enter in the name field of a new collection, folder or request creates it.
+- Focus stays on Send through a send. Send and Cancel were two buttons, and
+  the swap dropped focus to the page.
+- A code editor shows a focus ring while it has focus.
+
+### Changed
+
+- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
+  to fail only on critical and serious violations. None are found.
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

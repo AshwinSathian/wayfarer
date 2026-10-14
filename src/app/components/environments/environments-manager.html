@@ -210,6 +210,7 @@
       <label for="new-env-name-input" class="ds-form-label">Name</label>
       <mat-form-field class="field w-full">
         <input matInput
+          cdkFocusInitial
           id="new-env-name-input"
           [ngModel]="newEnvForm().name"
           (ngModelChange)="onNewEnvNameChange($event)"

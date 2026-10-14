@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../../data/idb";
+import { provideRepositories } from "../../../testing/repositories";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Theme } from "../../services/theme";
 import { Settings } from "./settings";
@@ -21,7 +21,7 @@ describe("Settings", () => {
     localStorage.removeItem("wayfarer:theme");
     await TestBed.configureTestingModule({
       imports: [Settings],
-      providers: [{ provide: Idb, useValue: { onChangeElsewhere: vi.fn(), listSecrets: async () => [], memoryOnly: () => false } }],
+      providers: [...provideRepositories({ onChangeElsewhere: vi.fn(), listAll: async () => [], memoryOnly: () => false })],
     }).compileComponents();
     fixture = TestBed.createComponent(Settings);
     fixture.componentRef.setInput("visible", true);

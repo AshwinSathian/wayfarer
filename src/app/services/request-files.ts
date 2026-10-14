@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { fileIdsOf, newId, type FileRef, type RequestBody } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
+import { CollectionRequestsRepository } from "../data/collection-requests-repository";
 import { MAX_FILE_BYTES } from "../data/request-files";
 
 /**
@@ -11,7 +12,8 @@ import { MAX_FILE_BYTES } from "../data/request-files";
  */
 @Injectable({ providedIn: "root" })
 export class RequestFiles {
-  private readonly idb = inject(Idb);
+  private readonly idb = inject(IdbCore);
+  private readonly requestsRepository = inject(CollectionRequestsRepository);
   private readonly picked = new Map<string, Blob>();
 
   /** Takes a picked file and returns the reference a body holds, or the reason it is refused. */
@@ -27,7 +29,7 @@ export class RequestFiles {
 
   /** The file's bytes, or undefined when this browser does not have them (a request that came from a file). */
   async read(fileId: string): Promise<Blob | undefined> {
-    return this.picked.get(fileId) ?? (this.idb.memoryOnly() ? undefined : this.idb.readFile(fileId));
+    return this.picked.get(fileId) ?? (this.idb.memoryOnly() ? undefined : this.requestsRepository.readFile(fileId));
   }
 
   /** The picked files a body names: what a save has to store with the request. */

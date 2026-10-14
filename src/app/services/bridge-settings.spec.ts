@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { BRIDGE_UNREACHABLE, BridgeSettings } from "./bridge-settings";
 import { SecretsVault } from "./secrets-vault";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
@@ -59,7 +59,7 @@ describe("BridgeSettings", () => {
 
   describe("with a vault (F83)", () => {
     let vault: SecretsVault;
-    let idb: Idb;
+    let idb: Repositories;
     const NAME = "Local Bridge token";
     const inVault = async () => {
       const secret = (await vault.listSecrets()).find((entry) => entry.name === NAME);
@@ -68,7 +68,7 @@ describe("BridgeSettings", () => {
 
     beforeEach(() => {
       vault = TestBed.inject(SecretsVault);
-      idb = TestBed.inject(Idb);
+      idb = repositories();
     });
 
     afterEach(async () => {

@@ -17,6 +17,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- Internal: the 320-line `Idb` class that only handed each call on to a
+  repository is gone; services use the repositories directly.
 - **Nothing an earlier version stored is kept.** When this version opens a
   database an earlier one left, it removes everything and says so once.
   Export collections and back up the workspace first.

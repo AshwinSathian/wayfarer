@@ -1,0 +1,23 @@
+{
+  "$id": "wayfarer/vault/2",
+  "vault": {
+    "v": 2,
+    "kdf": {
+      "alg": "PBKDF2-SHA256",
+      "iterations": 600000,
+      "salt": "Q49pHpjjQBp9HhclBfu0rQ"
+    },
+    "wrappedDek": "MZBSib_taKK4udEVD6fk1TrrOJpXHHdTZbJ-QZq9bgf3yUNePw8BvcqYTms33HODvus4FDAa91G5FAhG"
+  },
+  "secrets": [
+    {
+      "id": "0b6f4a2e-cli-fixture",
+      "name": "API key",
+      "envelope": {
+        "v": 2,
+        "iv": "MuOGKJWpeGGltnBf",
+        "ct": "wyJ2MA6OI4jye39iP4JVrza4i2ZWpvXo4dGs6dNC44yWNMEhPQ"
+      }
+    }
+  ]
+}

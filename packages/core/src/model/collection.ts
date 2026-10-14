@@ -105,7 +105,7 @@ export function childrenInOrder<F extends Pick<Folder, "id" | "order" | "parentF
  */
 export type Ancestor = Pick<Collection | Folder, "name" | "variables" | "auth" | "scripts">;
 
-export function ancestorsOf(collection: Collection, folders: Folder[], folderId: string | undefined): Ancestor[] {
+export function ancestorsOf(collection: Ancestor, folders: Folder[], folderId: string | undefined): Ancestor[] {
   const named = (kind: string, { name, variables, auth, scripts }: Ancestor): Ancestor => ({ name: `${kind} "${name}"`, variables, auth, scripts });
   return [named("collection", collection), ...folderChain(folders, folderId).map((folder) => named("folder", folder))];
 }

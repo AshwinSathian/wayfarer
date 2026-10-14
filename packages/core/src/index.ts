@@ -165,3 +165,5 @@ export {
   type RunSend,
   type SentBody,
 } from "./send/build";
+export { runOutcome } from "./send/run";
+export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY, WORKSPACE_FORMAT, validateWorkspaceFile } from "./import/workspace";

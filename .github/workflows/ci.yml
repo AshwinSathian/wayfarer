@@ -113,6 +113,24 @@ jobs:
       # P3.10 (risk R3): what a real script costs in the engine. Fails above 300 ms (p95 of 20 runs) or a 250 ms engine load.
       - run: npm -w packages/core run bench
 
+  cli:
+    # P6.5: the command line, built and run against local servers, on both Node versions it supports.
+    name: CLI (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm -w packages/cli run typecheck
+      - run: npm -w packages/cli test
+
   local-bridge:
     name: Local Bridge (zero-dependency Node test suite)
     runs-on: ubuntu-latest

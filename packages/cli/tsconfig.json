@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../..",
+    // A Node program: no DOM.
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "paths": {
+      "@wayfarer/core": ["../core/src/index.ts"],
+      "@wayfarer/core/library-loader": ["../core/src/scripting/library-loader.ts"],
+      "@wayfarer/core/import": ["../core/src/import/import.ts"],
+      "@wayfarer/core/run-report": ["../core/src/run/report.ts"],
+      "@wayfarer/core/data-file": ["../core/src/run/data-file.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

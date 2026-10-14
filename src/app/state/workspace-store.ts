@@ -3,15 +3,14 @@ import {
   FORBIDDEN_METHODS,
   OAuthError,
   PreRequestScriptError,
-  RequestSkipped,
   SendBlockedError,
-  SendDeclinedError,
   UnresolvedVariablesError,
   assemble,
   bodyContentType,
   bodyTexts,
   buildRequest,
   isBodyMethod,
+  runOutcome,
   normalizeUrl,
   oauthOf,
   scriptsOf,
@@ -56,7 +55,6 @@ import {
 import { Idb } from "../data/idb";
 import { RequestDoc } from "../models/collections";
 import { PastRequest } from "../models/history";
-import { TestResult } from "../models/test-assertion";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
@@ -582,34 +580,13 @@ export class WorkspaceStore {
     const controller = new AbortController();
     signal.addEventListener("abort", () => controller.abort());
     tab.inFlight = controller;
-    const tests = (rows: TestResult[]): RunOutcome["tests"] => rows.map((row) => ({ name: row.label, passed: row.passed, ...(row.error !== undefined && { error: row.error }) }));
-    const said = (outcome: RunOutcome, exchange?: PastRequest) => ({ outcome, exchange, scriptsSkipped: tab.scriptsSkipped() });
-
     const refusal = this.refusal(tab);
-    if (refusal) return said({ error: refusal, tests: [] });
-    try {
-      const result = await this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run });
-      const { response } = result;
-      // No status, or the browser's 0: no response arrived, and the text says why.
-      const failed = !response.statusCode;
-      return said(
-        {
-          ...(response.statusCode !== undefined && { status: response.statusCode }),
-          ...(response.statusText && { statusText: response.statusText }),
-          durationMs: result.durationMs,
-          ...(failed && { error: response.errorText }),
-          tests: tests(result.testResults),
-          ...(result.nextRequest !== undefined && { nextRequest: result.nextRequest }),
-        },
-        result.history
-      );
-    } catch (error) {
-      if (error instanceof RequestSkipped) return said({ skipped: true, tests: tests(error.testResults), ...(error.nextRequest !== undefined && { nextRequest: error.nextRequest }) });
-      if (error instanceof SendDeclinedError) return said({ error: error.message, tests: [], end: "You chose not to send a request with a vault secret to a host a script had changed." });
-      if (error instanceof PreRequestScriptError) return said({ error: error.message, tests: tests(error.testResults) });
-      if (error instanceof SendBlockedError || error instanceof VariableNestingError) return said({ error: error.message, tests: [] });
-      throw error;
-    }
+    if (refusal) return { outcome: { error: refusal, tests: [] }, scriptsSkipped: false };
+    const { outcome, exchange } = await runOutcome(
+      () => this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run }),
+      "You chose not to send a request with a vault secret to a host a script had changed."
+    );
+    return { outcome, exchange, scriptsSkipped: tab.scriptsSkipped() };
   }
 
   /** What a script is told of the saved request in the composer, and the collection whose variables it may read and change. */

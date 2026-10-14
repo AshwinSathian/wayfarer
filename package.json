@@ -49,7 +49,8 @@
     "gen:compat": "node scripts/gen-compat-doc.mjs",
     "check:compat": "node scripts/gen-compat-doc.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=386800"
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=386800",
+    "cli:test": "npm -w packages/cli test"
   },
   "dependencies": {
     "@angular/cdk": "^22.2.2",

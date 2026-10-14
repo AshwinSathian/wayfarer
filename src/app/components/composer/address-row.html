@@ -98,29 +98,18 @@
     <app-icon name="save" />
     }
   </button>
+  <!-- One button each, whose label and action change: a button swapped for another took focus with it. -->
   @if (socket.isSocket()) {
   <!-- An address of a WebSocket (P5.7): it is connected to, not sent. -->
-  @if (socketStatus() === 'closed') {
-  <button matButton="filled" type="button" class="send-btn" (click)="socket.connect()">Connect</button>
-  } @else {
-  <button matButton="filled" type="button" class="send-btn" (click)="socket.disconnect()">Disconnect</button>
-  }
-  } @else if (store.loadingState()) {
-  <button
-    matButton="filled"
-    type="button"
-    aria-label="Cancel request"
-    (click)="store.cancel()"
-    class="send-btn"
-  >Cancel</button>
+  <button matButton="filled" type="button" class="send-btn" (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()">{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button>
   } @else {
   <button
     matButton="filled"
     type="button"
-    [disabled]="!store.draft().url"
-    aria-label="Send request"
-    (click)="send.emit()"
+    [disabled]="!store.loadingState() && !store.draft().url"
+    [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
+    (click)="store.loadingState() ? store.cancel() : send.emit()"
     class="send-btn"
-  >Send</button>
+  >{{ store.loadingState() ? "Cancel" : "Send" }}</button>
   }
 </div>

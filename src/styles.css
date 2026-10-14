@@ -147,6 +147,13 @@ body {
   border-radius: var(--radius-xs);
 }
 
+/* Monaco takes focus in a hidden text area and draws no ring of its own:
+   the editor shows one while it has focus (P7.1). */
+.monaco-editor.focused {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 /* ── Remove focus outline for mouse interactions ─────────── */
 :focus:not(:focus-visible) {
   outline: none;

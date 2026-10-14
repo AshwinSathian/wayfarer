@@ -71,15 +71,11 @@ export class App implements OnInit {
     await this.refreshPastRequests();
   }
 
-  openHistoryDrawer(): void {
-    this.drawerVisible.set(true);
-  }
-
-  closeHistoryDrawer(): void {
+  closeNavigation(): void {
     this.drawerVisible.set(false);
   }
 
-  toggleHistoryDrawer(): void {
+  toggleNavigation(): void {
     this.drawerVisible.update((visible) => !visible);
   }
 

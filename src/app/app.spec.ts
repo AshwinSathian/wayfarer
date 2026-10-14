@@ -147,11 +147,11 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(component.drawerVisible()).toBe(true);
-    component.toggleHistoryDrawer();
+    component.toggleNavigation();
     expect(component.drawerVisible()).toBe(false);
-    component.openHistoryDrawer();
+    component.toggleNavigation();
     expect(component.drawerVisible()).toBe(true);
-    component.closeHistoryDrawer();
+    component.closeNavigation();
     expect(component.drawerVisible()).toBe(false);
   });
 

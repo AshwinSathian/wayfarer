@@ -27,8 +27,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - `version` in each record's `meta`, and `schemaVersion` in the stored
   state: nothing read them.
 
+- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
+  to fail only on critical and serious violations. None are found.
+
 ### Fixed
 
+- Opening the history or navigation drawer moves focus into it at once. A
+  Tab pressed in the first frame used to land on the page underneath (#223).
 - A dialog that asks for a name, a passphrase or a command opens with focus
   on that field. Focus used to land on its Close button.
 - Enter in the name field of a new collection, folder or request creates it.

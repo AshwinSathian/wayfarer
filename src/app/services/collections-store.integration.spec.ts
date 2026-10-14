@@ -1,19 +1,19 @@
 import { TestBed } from "@angular/core/testing";
 import { requestsInOrder } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { CollectionsStore } from "./collections-store";
 
 // CollectionsStore over the real IndexedDB stores: what the sidebar shows
 // (the `tree` signal) must match what was written, after every operation.
 describe("CollectionsStore with real storage", () => {
   let service: CollectionsStore;
-  let idb: Idb;
+  let idb: Repositories;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(CollectionsStore);
-    idb = TestBed.inject(Idb);
+    idb = repositories();
   });
 
   afterEach(async () => {

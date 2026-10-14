@@ -14,7 +14,7 @@ import {
   type OAuthExchange,
   type OAuthToken,
 } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
 import { containsSecretPlaceholder, type RoutePolicy } from "@wayfarer/core";
 import { RequestSettings } from "./request-settings";
 import { SecretsVault } from "./secrets-vault";
@@ -58,7 +58,7 @@ export class OAuthTokens {
       if (this.vault.isUnlocked()) untracked(() => void this.sync(true));
     });
     // Another tab renewed a token: its refresh token replaced the one held here.
-    inject(Idb).onChangeElsewhere((stores) => {
+    inject(IdbCore).onChangeElsewhere((stores) => {
       if (stores.includes("secrets") && this.vault.isUnlocked()) void this.sync(false);
     });
   }

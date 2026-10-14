@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { Redactor, cookiesFor, parseSetCookie, storeCookie, type Cookie } from "@wayfarer/core";
 import { CookiesRepository } from "../data/cookies-repository";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
 import { recordDiagnostic } from "./diagnostics";
 
 const keyOf = (cookie: Cookie): string => `${cookie.domain}|${cookie.path}|${cookie.name}`;
@@ -21,7 +21,7 @@ const keyOf = (cookie: Cookie): string => `${cookie.domain}|${cookie.path}|${coo
 @Injectable({ providedIn: "root" })
 export class CookieJar {
   private readonly repository = inject(CookiesRepository);
-  private readonly idb = inject(Idb);
+  private readonly idb = inject(IdbCore);
 
   private readonly held = signal<Cookie[]>([]);
   /** Every cookie of the jar, the stored ones and those of this tab's memory. */

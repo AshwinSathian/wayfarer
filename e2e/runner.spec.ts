@@ -64,7 +64,7 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
       const approved = await Promise.all(requests.flatMap((request) => [request.pre ?? "", request.post ?? ""]).filter((script) => script.trim()).map(digest));
       const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
       tx.objectStore("environments").put({ id: "env-run", meta: meta("env-run"), name: "Run env", vars: rows(vars), order: 0 });
-      tx.objectStore("meta").put({ schemaVersion: 1, ...(state ?? {}), key: "state", activeEnvironmentId: "env-run" });
+      tx.objectStore("meta").put({ ...(state ?? {}), key: "state", activeEnvironmentId: "env-run" });
       tx.objectStore("collections").put({ id: "col-run", meta: meta("col-run"), name: "Shop", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true, approved } });
       requests.forEach((request, order) =>
         tx.objectStore("requests").put({

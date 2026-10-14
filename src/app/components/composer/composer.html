@@ -113,7 +113,10 @@
         (closed)="view.onMobilePanelClosed('scripts', scriptsSection)"
       >
         <mat-expansion-panel-header>Scripts <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <!-- Its editors are Monaco: made when the section first opens, and kept (P7.2: at load they cost 300 ms of the main thread). -->
+        @defer (when view.mobileActivePanels() === 'scripts') {
         <app-scripts-panel class="block space-y-6" />
+        }
       </mat-expansion-panel>
     </mat-accordion>
   </section>
@@ -174,7 +177,10 @@
                 </div>
                 <div class="tab-pane" [hidden]="view.activeTab() !== 'scripts'">
                   <div class="px-4 pb-5">
+                    <!-- Its editors are Monaco: made when the tab is first chosen, and kept mounted after (P7.2). -->
+                    @defer (when view.activeTab() === 'scripts') {
                     <app-scripts-panel class="block space-y-6" />
+                    }
                   </div>
                 </div>
               </mat-tab-nav-panel>

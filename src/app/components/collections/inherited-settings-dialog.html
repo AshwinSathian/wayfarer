@@ -1,4 +1,6 @@
 <ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="closed.emit()" width="720px">
+  <!-- A dialog's content is made with the page; its script editors load Monaco: made while the dialog is open (P7.2). -->
+  @if (target() !== null) {
   <div class="tabs">
     <div mat-tab-nav-bar class="tab-bar" [tabPanel]="settingsPanel" [mat-stretch-tabs]="false" disablePagination>
       <button mat-tab-link type="button" [active]="tab() === 'auth'" (click)="tab.set('auth')" (focus)="tab.set('auth')">Auth</button>
@@ -76,6 +78,7 @@
       }
     </mat-tab-nav-panel>
   </div>
+  }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
       <button matButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>

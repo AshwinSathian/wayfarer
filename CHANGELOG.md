@@ -34,6 +34,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   before.
 - The composer's note for the Local Bridge names the `Accept-Encoding` the
   bridge adds.
+
 ### Fixed
 
 - **Deleting a folder deletes the folders inside it.** Before, they moved up

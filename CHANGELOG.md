@@ -7,6 +7,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- The README's feature list is the claims ledger: each line is a claim with
+  a test. It also says what the browser cannot do, and links every doc.
+- The pre-answered security questionnaire is now the Trust Center's
+  "Procurement answers".
+
+### Added
+
+- `docs/self-hosting.md`: the folder, the headers, the OAuth callback.
+- CI checks that every doc link leads to a file and that the README links
+  every doc (`check:links`), and that the README's list is the ledger
+  (`check:readme`).
+
 ### Added
 
 - "Break the sandbox": a public challenge in `SECURITY.md` to break the

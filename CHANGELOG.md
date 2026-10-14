@@ -7,22 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
-### Changed
-
-- The README's feature list is the claims ledger: each line is a claim with
-  a test. It also says what the browser cannot do, and links every doc.
-- The pre-answered security questionnaire is now the Trust Center's
-  "Procurement answers".
-
 ### Added
 
 - `docs/self-hosting.md`: the folder, the headers, the OAuth callback.
 - CI checks that every doc link leads to a file and that the README links
   every doc (`check:links`), and that the README's list is the ledger
   (`check:readme`).
-
-### Added
-
 - CI holds the app to performance budgets: Lighthouse's desktop score of 90
   or more, a largest contentful paint within 2 s and a total blocking time
   within 200 ms; typing into the address stays within 100 ms a key with five
@@ -45,6 +35,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- The README's feature list is the claims ledger: each line is a claim with
+  a test. It also says what the browser cannot do, and links every doc.
+- The pre-answered security questionnaire is now the Trust Center's
+  "Procurement answers".
 - Internal: the 320-line `Idb` class that only handed each call on to a
   repository is gone; services use the repositories directly.
 - **Nothing an earlier version stored is kept.** When this version opens a
@@ -70,6 +64,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- Run pressed just after choosing a data file waits for the file. The run
+  used to go once, without the file, when the file was still being read.
 - The app starts faster: the code editor is loaded when an editor is first
   shown. It used to load with every page, for editors in closed dialogs and
   in the hidden Scripts tab.

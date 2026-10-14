@@ -7,6 +7,38 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-14
+
+The Local Bridge becomes a first-class route, and collections run from the
+command line. A request, a collection or the device chooses its route:
+Direct, Local Bridge, or Auto, which sends through the bridge when the page
+gets no answer and asks first when the server may have received the
+request. Local Bridge 2.2.0 speaks protocol 2: bodies as bytes, decompressed
+responses, timings, a `Host` of your own, certificate verification off for
+one request, a certificate authority and a proxy of your own, HTTPS on
+loopback, and pairing with a code instead of copying a token.
+`wayfarer-cli` runs a collection, a workspace backup or a Postman file in a
+terminal or a CI job, with the app's own engine and the app's results.
+
+**Nothing stored is removed by this version.** The database goes from
+version 12 to 13: each folder's folders and requests are numbered again as
+one list, so a run follows the order of the list and of a Postman file.
+
+**What to know before you rely on it:**
+
+- The page speaks the bridge's protocol 2 only: an older Local Bridge is
+  refused with a message that says to update it.
+- Auto may send a request twice when a server received it and answered
+  without the CORS headers the browser needs: the browser reports both the
+  same way (said in `docs/browser-limits.md`).
+- The command line runs a file's scripts only with `--allow-scripts`, and
+  sends every request directly. It is not on npm yet: the first publish is
+  a separate step (`docs/runbook.md`); until then, build it from a clone.
+- The first bundle is 1,379,337 B (357,374 B gzip), 1.2% more than 2.3.0:
+  the route, the badge, the bridge's pane and the road a request takes,
+  now in the shared engine. The size budgets are reset to this baseline
+  (warning at 1,448 kB, error at 1,517 kB, 393,100 B gzip).
+
 ### Added (command line)
 
 - **`wayfarer-cli`, a command-line runner** (`packages/cli`; not on npm

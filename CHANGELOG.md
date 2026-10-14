@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- "Break the sandbox": a public challenge in `SECURITY.md` to break the
+  script sandbox, the vault or the Local Bridge, with credit in the Trust
+  Center's hall of fame. No money.
 - A threat model (`docs/threat-model.md`): each trust boundary, its threats
   by STRIDE, and the tested claim behind each mitigation. `check:claims`
   fails when a row links no claim.

@@ -1,3 +1,13 @@
+<div class="request-route flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
+  <span id="request-route-label">Route</span>
+  <mat-select class="select w-48!" aria-labelledby="request-route-label" [value]="store.draft().settings.route ?? null" (valueChange)="store.setRoute($event)" [placeholder]="'Inherit: ' + routeNames[store.inheritedRoute()]">
+    <mat-option [value]="null">Inherit: {{ routeNames[store.inheritedRoute()] }}</mat-option>
+    <mat-option value="auto">Auto</mat-option>
+    <mat-option value="direct">Direct</mat-option>
+    <mat-option value="bridge">Local Bridge</mat-option>
+  </mat-select>
+  <span class="min-w-0">Auto sends from the page, and through the Local Bridge when the browser could not. Inherit is the collection's, else the device's (Settings, Local Bridge).</span>
+</div>
 @let limits = store.browserLimits();
 @if (limits.mixedContent === 'blocked') {
 <p class="browser-note-mixed type-footnote text-status-warning flex items-start gap-1.5" role="status">

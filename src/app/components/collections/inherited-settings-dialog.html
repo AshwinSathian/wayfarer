@@ -4,6 +4,9 @@
       <button mat-tab-link type="button" [active]="tab() === 'auth'" (click)="tab.set('auth')" (focus)="tab.set('auth')">Auth</button>
       <button mat-tab-link type="button" [active]="tab() === 'variables'" (click)="tab.set('variables')" (focus)="tab.set('variables')">Variables</button>
       <button mat-tab-link type="button" [active]="tab() === 'scripts'" (click)="tab.set('scripts')" (focus)="tab.set('scripts')">Scripts</button>
+      @if (kind() === 'collection') {
+      <button mat-tab-link type="button" [active]="tab() === 'route'" (click)="tab.set('route')" (focus)="tab.set('route')">Route</button>
+      }
     </div>
     <mat-tab-nav-panel #settingsPanel class="tab-panes">
       <div class="tab-pane" [hidden]="tab() !== 'auth'">
@@ -58,6 +61,19 @@
           </div>
         </div>
       </div>
+      @if (kind() === 'collection') {
+      <div class="tab-pane" [hidden]="tab() !== 'route'">
+        <p class="type-footnote text-label-secondary mb-3" id="inherited-route-label">
+          How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.
+        </p>
+        <mat-select class="select collection-route w-64!" aria-labelledby="inherited-route-label" [value]="route()" (valueChange)="route.set($event)" placeholder="The device's (Settings, Local Bridge)">
+          <mat-option [value]="null">The device's (Settings, Local Bridge)</mat-option>
+          <mat-option value="auto">Auto</mat-option>
+          <mat-option value="direct">Direct</mat-option>
+          <mat-option value="bridge">Local Bridge</mat-option>
+        </mat-select>
+      </div>
+      }
     </mat-tab-nav-panel>
   </div>
   <div uiDialogFooter>

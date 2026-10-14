@@ -28,12 +28,12 @@ export async function startBridge(extra: string[] = []): Promise<TestBridge> {
   return { url: `${scheme}://127.0.0.1:${port}`, token, pairingCode, stop: () => bridge.kill() };
 }
 
-/** Switches the bridge on as a user does: the toolbar's button opens Settings at the bridge's pane. */
-export async function routeThroughBridge(page: Page, bridge: TestBridge): Promise<void> {
+/** Sets the device's route (P6.4) and the bridge as a user does: the toolbar's button opens Settings at the bridge's pane. */
+export async function routeThroughBridge(page: Page, bridge: TestBridge, route: "Local Bridge" | "Auto" = "Local Bridge"): Promise<void> {
   await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
-  await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
+  await settings.locator(".bridge-route").getByText(route, { exact: true }).click();
   await settings.locator("#bridge-url-input").fill(bridge.url);
   await settings.locator("#bridge-token-input").fill(bridge.token);
   await settings.getByRole("button", { name: "Save", exact: true }).click();

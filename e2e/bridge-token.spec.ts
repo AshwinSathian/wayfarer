@@ -10,7 +10,7 @@ const TOKEN = "bridge-token-for-the-f83-e2e-0123456789";
 
 async function switchBridgeOn(page: Page, url: string): Promise<void> {
   const settings = await openSettings(page, "Local Bridge");
-  await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
+  await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
   await settings.locator("#bridge-url-input").fill(url);
   await settings.locator("#bridge-token-input").fill(TOKEN);
   await settings.getByRole("button", { name: "Save", exact: true }).click();
@@ -34,7 +34,7 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   await switchBridgeOn(page, "http://127.0.0.1:7799");
   expect(await everythingStored(page)).not.toContain(TOKEN);
-  expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ enabled: true, url: "http://127.0.0.1:7799" });
+  expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ route: "bridge", url: "http://127.0.0.1:7799" });
 
   await page.reload();
   await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();

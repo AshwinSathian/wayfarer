@@ -99,7 +99,7 @@ test("an older bridge is named in Settings with its version, and a request throu
     });
     await page.goto("/");
     const settings = await openSettings(page, "Local Bridge");
-    await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
+    await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
     await settings.locator("#bridge-url-input").fill(old.url);
     await settings.locator("#bridge-token-input").fill("a-token-of-sixteen-characters-or-more");
     await settings.getByRole("button", { name: "Test connection" }).click();

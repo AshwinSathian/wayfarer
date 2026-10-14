@@ -3,6 +3,12 @@
  * edits, what the stores keep and what an export file holds.
  */
 
+/**
+ * Where a request is sent from (P6.4): the page, the Local Bridge, or the
+ * page first and then, where D7 allows it, the bridge.
+ */
+export type Route = "auto" | "direct" | "bridge";
+
 /** The methods the composer suggests. Any HTTP method can be typed. */
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"] as const;
 
@@ -160,7 +166,7 @@ export interface RequestContent {
   auth: AuthConfig;
   scripts: Scripts;
   tests: TestAssertion[];
-  settings: { timeoutMs?: number; followRedirects?: boolean; route?: "auto" | "direct" | "bridge"; /** Through the Local Bridge, the server's certificate is not verified. Only `true` is written. */ tlsInsecure?: boolean };
+  settings: { timeoutMs?: number; followRedirects?: boolean; /** Absent: the collection's, else the device's (P6.4). */ route?: Route; /** Through the Local Bridge, the server's certificate is not verified. Only `true` is written. */ tlsInsecure?: boolean };
 }
 
 /** The auth of a type just chosen, with nothing typed. */

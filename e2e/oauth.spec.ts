@@ -257,7 +257,7 @@ test("@claim:C-062 a token endpoint without CORS headers: sent from the page, th
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }) });
   await openAuth(page);
   const message =
-    "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: switch on the Local Bridge, which has no such limit. See docs/browser-limits.md#oauth.";
+    "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: send it through the Local Bridge (Settings, Local Bridge, Route), which has no such limit. See docs/browser-limits.md#oauth.";
   await page.getByRole("button", { name: "Get token", exact: true }).click();
   await expect(page.locator(".oauth-token-error")).toHaveText(message);
   await expect(status(page)).toContainText("No token yet.");
@@ -289,7 +289,7 @@ test("through the Local Bridge the same token endpoint answers, and the token re
     await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "Settings", exact: true });
     await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
-    await settings.getByRole("checkbox", { name: "Route requests through the bridge" }).check();
+    await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
     await settings.locator("#bridge-url-input").fill(`http://127.0.0.1:${port}`);
     await settings.locator("#bridge-token-input").fill(token);
     await settings.getByRole("button", { name: "Save", exact: true }).click();

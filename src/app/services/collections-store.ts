@@ -144,13 +144,13 @@ export class CollectionsStore {
    * collection is trusted (D6; the rule of a request's save). Approved
    * before they are written, so that none is stored not yet approved.
    */
-  async saveInherited(target: { collectionId: CollectionId; folderId?: FolderId }, patch: InheritedPatch<Folder>, scriptsAllowed: boolean): Promise<void> {
+  async saveInherited(target: { collectionId: CollectionId; folderId?: FolderId }, patch: InheritedPatch<Folder> & Pick<Collection, "route">, scriptsAllowed: boolean): Promise<void> {
     const { auth } = patch;
     if (!target.folderId && auth.type === "inherit") throw new Error("A collection has nothing to inherit its auth from.");
     const scripts = scriptsOf(patch);
     if (scriptsAllowed && scripts.length) await this.idb.approveScripts(target.collectionId, await Promise.all(scripts.map(scriptDigest)), false);
     if (target.folderId) await this.idb.setFolderInherited(target.folderId, patch);
-    else if (auth.type !== "inherit") await this.idb.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts });
+    else if (auth.type !== "inherit") await this.idb.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts, route: patch.route });
     await this.refresh();
   }
 

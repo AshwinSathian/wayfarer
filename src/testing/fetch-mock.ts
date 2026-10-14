@@ -28,6 +28,12 @@ export class MockRequest {
     this.pending.resolve(new Response(empty ? null : body, init));
   }
 
+  /** Fails as `fetch` does when no response came: a CORS refusal, a refused connection. */
+  fail(): void {
+    this.pending.settled = true;
+    this.pending.reject(new TypeError("Failed to fetch"));
+  }
+
   /** Answers with a response built by the spec. */
   respond(response: Response): void {
     this.pending.settled = true;

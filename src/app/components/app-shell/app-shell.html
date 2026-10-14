@@ -216,7 +216,7 @@
             <!-- Local Bridge -->
             <button type="button"
               matIconButton class="btn-plain max-lg:hidden!"
-              [class.text-status-success]="bridgeService.config().enabled"
+              [class.text-status-success]="bridgeService.config().route === 'bridge'"
               (click)="openBridgeSettings()"
               title="Local Bridge settings"
               aria-label="Local Bridge settings"

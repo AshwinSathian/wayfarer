@@ -3,30 +3,65 @@ import {
   BridgeTransport,
   FetchTransport,
   TransportError,
+  afterDirectSend,
   type ResolvedRequest,
   type ResponseEnvelope,
+  type Route,
   type Transport,
   type TransportOptions,
 } from "@wayfarer/core";
 import { BridgeSettings } from "./bridge-settings";
 
+/** How one request is routed (P6.4). */
+export interface RoutePolicy {
+  /** The request's route, its collection's or the device's (`routeOf`). */
+  route: Route;
+  /** Asked when `auto` would send again a request the browser may have sent (D7). Without it, the failure stands. */
+  ask?: () => Promise<boolean>;
+  /** Set by `send`: where the request went last, the route of a failure too. */
+  took?: "direct" | "bridge";
+}
+
 /**
- * Sends a request by the route the device is set to: straight from the page,
- * or through the Local Bridge when it is switched on (see
- * `packages/bridge/README.md`).
+ * Sends a request by its route: straight from the page, through the Local
+ * Bridge (see `packages/bridge/README.md`), or `auto`: from the page, and
+ * through the bridge after a network failure where D7 allows it.
  */
 @Injectable({ providedIn: "root" })
 export class TransportRouter implements Transport {
   private readonly bridge = inject(BridgeSettings);
 
-  /** The route a request sent now would take. */
-  route(): "direct" | "bridge" {
-    const bridge = this.bridge.config();
-    return bridge.enabled && bridge.url ? "bridge" : "direct";
+  /** The device's route: what a request of no other route is sent by. */
+  route(): Route {
+    return this.bridge.config().route;
   }
 
-  async send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
-    if (this.route() !== "bridge") return new FetchTransport().send(request, options);
+  /** Where a request of `route` goes first. A bridge with no address is no route. */
+  first(route: Route = this.route()): "direct" | "bridge" {
+    return route === "bridge" && this.bridge.config().url ? "bridge" : "direct";
+  }
+
+  async send(request: ResolvedRequest, options: TransportOptions, policy: RoutePolicy = { route: this.route() }): Promise<ResponseEnvelope> {
+    policy.took = this.first(policy.route);
+    if (policy.took === "bridge") return this.viaBridge(request, options);
+    if (policy.route !== "auto") return new FetchTransport().send(request, options);
+    try {
+      return await new FetchTransport().send(request, options);
+    } catch (error) {
+      if (!(error instanceof TransportError) || error.kind !== "network" || !(await this.retryable(request, policy))) throw error;
+      policy.took = "bridge";
+      return this.viaBridge(request, options);
+    }
+  }
+
+  /** D7, for a request the page sent and got no response to. With no bridge to send it to, nothing is asked. */
+  private async retryable(request: ResolvedRequest, policy: RoutePolicy): Promise<boolean> {
+    if (!this.bridge.config().url || !(await this.bridge.hasToken())) return false;
+    const next = afterDirectSend(request, location.origin, true);
+    return next === "retry" || (next === "ask" && !!policy.ask && (await policy.ask()));
+  }
+
+  private async viaBridge(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
     // Held in this tab: sent at once. Otherwise it may be in the vault, and the vault may have to be unlocked.
     const token = this.bridge.config().token || (await this.bridge.tokenForSend());
     if (!token) {

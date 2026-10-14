@@ -57,6 +57,13 @@
       </span>
       }
 
+      @if (route(); as route) {
+      <span class="route-badge inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
+        <app-icon [name]="route === 'bridge' ? 'router' : 'dns'" class="icon-xs" />
+        {{ route === 'bridge' ? 'Via bridge' : 'Direct' }}
+      </span>
+      }
+
       @if (tlsInsecure()) {
       <span class="tls-off-pill" matTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
         <app-icon name="warning" class="icon-xs" />

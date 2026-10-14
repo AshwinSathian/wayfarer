@@ -18,6 +18,7 @@ import {
   parseEventStream,
   redactExport,
   resolveAuth,
+  routeOf,
   signV4,
   type Ancestor,
   type AuthConfig,
@@ -28,6 +29,7 @@ import {
   type ExportSource,
   type FileRef,
   type MultipartPart,
+  type Route,
   type RedactOptions,
   type RequestBody,
   type RequestContent,
@@ -41,7 +43,6 @@ import { Idb } from "../data/idb";
 import { RequestDoc } from "../models/collections";
 import { PastRequest } from "../models/history";
 import { TestResult } from "../models/test-assertion";
-import { BridgeSettings } from "../services/bridge-settings";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
@@ -183,7 +184,6 @@ export class WorkspaceStore {
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
-  private readonly bridge = inject(BridgeSettings);
   private readonly collections = inject(CollectionsStore);
   private readonly saved = inject(RequestSave);
   private readonly vault = inject(SecretsVault);
@@ -230,6 +230,7 @@ export class WorkspaceStore {
   readonly responseRedirectedTo = this.ofTab((tab) => tab.responseRedirectedTo);
   readonly responseRedirects = this.ofTab((tab) => tab.responseRedirects);
   readonly responseTlsInsecure = this.ofTab((tab) => tab.responseTlsInsecure);
+  readonly responseRoute = this.ofTab((tab) => tab.responseRoute);
   readonly responseContentType = this.ofTab((tab) => tab.responseContentType);
   readonly responseHeadersLimited = this.ofTab((tab) => tab.responseHeadersLimited);
   readonly responseInspection = this.ofTab((tab) => tab.inspection);
@@ -292,7 +293,7 @@ export class WorkspaceStore {
       headers.push(["Content-Type", contentType]);
     }
     const url = draft.url.trim();
-    return browserLimits({ method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers }, { origin: location.origin, route: this.router.route() });
+    return browserLimits({ method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers }, { origin: location.origin, route: this.firstRoute() });
   });
 
   constructor() {
@@ -341,6 +342,12 @@ export class WorkspaceStore {
   setFollowRedirects(follow: boolean): void {
     const { followRedirects: _was, ...settings } = this.draft().settings;
     this.patch({ settings: follow ? settings : { ...settings, followRedirects: false } });
+  }
+
+  /** The request's own route (P6.4), or null to inherit its collection's, else the device's. */
+  setRoute(route: Route | null): void {
+    const { route: _was, ...settings } = this.draft().settings;
+    this.patch({ settings: route ? { ...settings, route } : settings });
   }
 
   /** Whether the Local Bridge verifies the server's certificate for this request. Verifying is the default and is not written down. */
@@ -544,6 +551,22 @@ export class WorkspaceStore {
     }
   }
 
+  /** The route `tab`'s request is sent by (P6.4): its own, else its collection's, else the device's. */
+  private routeOf(tab: TabState): Route {
+    return routeOf(tab.draft().settings.route, this.collectionRoute(tab), this.router.route());
+  }
+
+  private collectionRoute(tab: TabState): Route | undefined {
+    const bound = tab.bound();
+    return bound ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId)?.collection.route : undefined;
+  }
+
+  /** The route the open tab's request has when it names none: its collection's, else the device's. */
+  readonly inheritedRoute = computed(() => routeOf(undefined, this.collectionRoute(this.tabs.active()), this.router.route()));
+
+  /** Where the open tab's request goes first, for what the composer says of it. */
+  readonly firstRoute = computed(() => this.router.first(this.routeOf(this.tabs.active())));
+
   /**
    * One exchange for `tab`: its scripts checked and run, its request built
    * and sent. A send and a request of a run are both this. Throws what
@@ -574,6 +597,14 @@ export class WorkspaceStore {
       ...(options.onEvent && { onEvent: options.onEvent }),
       retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved),
       signal: options.signal,
+      route: this.routeOf(tab),
+      askRoute: () =>
+        this.confirm.confirm({
+          title: "Send through the Local Bridge?",
+          message: `The browser got no answer to ${draft.method} ${draft.url}, and may have sent it: the server may have received it. Sent again through the Local Bridge, it may be received twice.`,
+          acceptLabel: "Send through the bridge",
+          rejectLabel: "Don't send",
+        }),
       inherited,
       folderVariables: () => this.scopesOf(tab).folder ?? [],
       ...(tab.iteration && { iteration: tab.iteration }),
@@ -730,9 +761,8 @@ export class WorkspaceStore {
     if (!isHttpMethod(method)) {
       return `"${method}" is not an HTTP method. A method is one word of at most 32 characters: letters, digits and !#$%&'*+-.^_\`|~.`;
     }
-    const bridge = this.bridge.config();
-    if (FORBIDDEN_METHODS.includes(method) && !(bridge.enabled && bridge.url)) {
-      return `Browsers do not send ${method} requests. Turn on the Local Bridge to send one.`;
+    if (FORBIDDEN_METHODS.includes(method) && this.firstRoute() !== "bridge") {
+      return `Browsers do not send ${method} requests. Choose the route Local Bridge to send one.`;
     }
     return "";
   }
@@ -1103,6 +1133,7 @@ export class WorkspaceStore {
     tab.responseRedirectedTo.set(response.redirectedTo);
     tab.responseRedirects.set(response.redirects);
     tab.responseTlsInsecure.set(response.tlsInsecure === true);
+    tab.responseRoute.set(response.route ?? null);
     tab.responseContentType.set(response.contentType ?? "");
     tab.responseHeadersLimited.set(response.headersLimited ?? false);
     tab.responseTab.set("body");

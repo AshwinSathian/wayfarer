@@ -120,7 +120,7 @@ describe("Settings", () => {
       expect(bridge.config().token).toBe("");
       button("Save").click();
       await settle();
-      expect(bridge.config()).toEqual({ enabled: false, url: "http://127.0.0.1:7717", token: "a-token" });
+      expect(bridge.config()).toEqual({ route: "auto", url: "http://127.0.0.1:7717", token: "a-token" });
       expect(dialog().querySelector(".bridge-saved")?.textContent).toContain("Saved");
       expect(button("Save").disabled).toBe(true);
     });
@@ -161,10 +161,10 @@ describe("Settings", () => {
       expect(button("Save").disabled).toBe(true);
     });
 
-    it("switched on with no address is refused, and says why", async () => {
-      dialog().querySelector<HTMLInputElement>("#bridge-enabled-checkbox-input")?.click();
+    it("the route Local Bridge with no address is refused, and says why", async () => {
+      [...dialog().querySelectorAll<HTMLButtonElement>(".bridge-route button")].find((candidate) => candidate.textContent?.trim() === "Local Bridge")?.click();
       await type("#bridge-url-input", "  ");
-      expect(dialog().querySelector('[role="alert"]')?.textContent).toContain("Give the bridge's address, or switch the bridge off.");
+      expect(dialog().querySelector('[role="alert"]')?.textContent).toContain("Give the bridge's address, or choose another route.");
       expect(button("Save").disabled).toBe(true);
       expect(button("Test connection").disabled).toBe(true);
     });

@@ -17,30 +17,44 @@ describe("BridgeSettings", () => {
     localStorage.removeItem("wayfarer:bridge");
   });
 
-  it("defaults to disabled with a localhost URL and no token", () => {
+  it("defaults to the route auto with a localhost URL and no token (P6.4)", () => {
     const config = service.config();
-    expect(config.enabled).toBe(false);
+    expect(config.route).toBe("auto");
     expect(config.url).toBe("http://127.0.0.1:7717");
     expect(config.token).toBe("");
   });
 
-  it("keeps whether it is on and its address in localStorage, and the token in memory only (F83)", () => {
-    service.update({ enabled: true, url: "http://localhost:9999", token: "abc123" });
+  it("keeps the route and the address in localStorage, and the token in memory only (F83)", () => {
+    service.update({ route: "bridge", url: "http://localhost:9999", token: "abc123" });
 
-    expect(service.config()).toEqual({ enabled: true, url: "http://localhost:9999", token: "abc123" });
+    expect(service.config()).toEqual({ route: "bridge", url: "http://localhost:9999", token: "abc123" });
 
     expect(localStorage.getItem("wayfarer:bridge")).not.toContain("abc123");
-    expect(JSON.parse(localStorage.getItem("wayfarer:bridge") ?? "{}")).toEqual({ enabled: true, url: "http://localhost:9999" });
+    expect(JSON.parse(localStorage.getItem("wayfarer:bridge") ?? "{}")).toEqual({ route: "bridge", url: "http://localhost:9999" });
   });
 
   it("loads what is stored, and removes a token an older version left there as plain text (F83)", () => {
-    localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url: "http://localhost:1234", token: "xyz" }));
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "direct", url: "http://localhost:1234", token: "xyz" }));
 
     // A fresh instance re-reads localStorage in its constructor.
     const fresh = TestBed.runInInjectionContext(() => new BridgeSettings());
 
-    expect(fresh.config()).toEqual({ enabled: true, url: "http://localhost:1234", token: "" });
-    expect(localStorage.getItem("wayfarer:bridge")).toBe(JSON.stringify({ enabled: true, url: "http://localhost:1234" }));
+    expect(fresh.config()).toEqual({ route: "direct", url: "http://localhost:1234", token: "" });
+    expect(localStorage.getItem("wayfarer:bridge")).toBe(JSON.stringify({ route: "direct", url: "http://localhost:1234" }));
+  });
+
+  it("reads the switch of a version before P6.4: on is the route bridge, and the route is written in its place", () => {
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url: "http://localhost:1234" }));
+    expect(TestBed.runInInjectionContext(() => new BridgeSettings()).config().route).toBe("bridge");
+    expect(localStorage.getItem("wayfarer:bridge")).toBe(JSON.stringify({ route: "bridge", url: "http://localhost:1234" }));
+
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: false, url: "http://localhost:1234" }));
+    expect(TestBed.runInInjectionContext(() => new BridgeSettings()).config().route).toBe("auto");
+  });
+
+  it("a route it does not know is the default", () => {
+    localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "proxy", url: "http://localhost:1234" }));
+    expect(TestBed.runInInjectionContext(() => new BridgeSettings()).config().route).toBe("auto");
   });
 
   describe("with a vault (F83)", () => {
@@ -64,7 +78,7 @@ describe("BridgeSettings", () => {
 
     it("unlocked, a saved token is a vault secret, and a tab that starts later reads it once the vault is unlocked", async () => {
       await vault.create("correct horse");
-      service.update({ enabled: true, token: "token-kept-in-the-vault" });
+      service.update({ route: "bridge", token: "token-kept-in-the-vault" });
       await vi.waitFor(async () => expect(await inVault()).toBe("token-kept-in-the-vault"));
       expect(localStorage.getItem("wayfarer:bridge")).not.toContain("token-kept-in-the-vault");
 
@@ -95,7 +109,7 @@ describe("BridgeSettings", () => {
 
     it("for a send: the token held; with none held and one in a locked vault, the user is asked to unlock, and a no gives none", async () => {
       await vault.create("correct horse");
-      service.update({ enabled: true, token: "asked-for-at-send" });
+      service.update({ route: "bridge", token: "asked-for-at-send" });
       await vi.waitFor(async () => expect(await inVault()).toBe("asked-for-at-send"));
       await expect(service.tokenForSend()).resolves.toBe("asked-for-at-send");
 
@@ -126,7 +140,7 @@ describe("BridgeSettings", () => {
 
     const fresh = TestBed.runInInjectionContext(() => new BridgeSettings());
 
-    expect(fresh.config().enabled).toBe(false);
+    expect(fresh.config().route).toBe("auto");
     expect(fresh.config().url).toBe("http://127.0.0.1:7717");
   });
 

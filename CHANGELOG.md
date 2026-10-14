@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Security
+
+- Releasing the Local Bridge or the CLI no longer runs their dependencies'
+  code in the job that holds the npm publishing token. The tarball is
+  tested in a job without it, and that same tarball is published.
+
 ### Fixed
 
 - A dialog that asks for a name, a passphrase or a command opens with focus

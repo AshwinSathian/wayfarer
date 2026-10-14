@@ -59,9 +59,11 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
 
 test("@claim:C-015 offline after one visit, every script that visit loaded is there, the lazy ones too: the editor opens (F84)", async ({ page, context, browserName }) => {
   await loadControlled(page);
-  // The editor's files are not in index.html: the page asks for them after it starts,
-  // for the body editor that the composer holds in a tab that is not open yet. Firefox mounts it 5 s in.
-  const editor = page.locator(".monaco-editor").first();
+  // The editor's files are not in index.html: the page asks for them when an editor is first shown (P7.2:
+  // not at load), here the Scripts tab's. Firefox mounts it some seconds in.
+  const scriptsTab = page.locator(".composer-pane").getByRole("tab", { name: "Scripts", exact: true });
+  const editor = page.locator("app-scripts-panel .monaco-editor").first();
+  await scriptsTab.click();
   await expect(editor).toBeAttached({ timeout: 15_000 });
   // On a first visit they were loaded before the worker took control, and the page hands them to it afterwards.
   const scripts = () =>
@@ -81,6 +83,7 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
   const failed: string[] = [];
   page.on("requestfailed", (request) => failed.push(new URL(request.url()).pathname));
   await page.reload();
+  await scriptsTab.click();
   await expect(editor).toBeAttached({ timeout: 15_000 });
   // A file the page had not asked for before the network went (a language's worker, fetched when the editor is
   // first idle) is not kept, and fails now. What the visit did load must not.

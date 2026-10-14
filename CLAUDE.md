@@ -385,6 +385,12 @@ code errors.
   animation to 0 ms: Material moves focus in only when its entrance ends,
   and keeps the panel over the page until its exit does. The entrance is drawn in `animations.css`. Both
   pass `ariaModal: true`; Material's default is false.
+- A `<ui-dialog>`'s content is projected, and Angular makes projected
+  content with the page, open or not: a Monaco editor in a closed dialog
+  loaded Monaco at every start (P7.2, 300 ms of the main thread). Put an
+  editor, or anything heavy, inside `@if` of the dialog's open state; the
+  footer (`uiDialogFooter`) stays outside it. A composer pane with an
+  editor is `@defer (when …)` its tab is first chosen, and stays.
 - The small confirmation under a button stays on the CDK's dialog:
   Material's is placed in the window, not against an element.
 - Drawer: `<mat-sidenav class="drawer" mode="over" fixedInViewport

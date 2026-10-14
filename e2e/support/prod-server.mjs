@@ -15,11 +15,15 @@
 // Unmatched paths get index.html with 200, like wrangler.jsonc's
 // `not_found_handling: "single-page-application"` without a Worker script.
 //
+// Text, script and wasm go compressed, brotli or gzip, as Cloudflare sends
+// them (P7.2): measured without it, the page loaded a megabyte it never sends.
+//
 // Usage: node e2e/support/prod-server.mjs [root] [port]
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
+import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -38,6 +42,29 @@ const TYPES = {
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
 };
+
+const COMPRESSIBLE = /^(text\/|application\/(json|manifest\+json|wasm)|image\/svg\+xml)/;
+
+/** The encoding to send a body of `type` in, for a request's `Accept-Encoding`: brotli, gzip, or none. */
+export function encodingFor(accept, type) {
+  if (!accept || !COMPRESSIBLE.test(type)) return null;
+  const offered = new Map(
+    accept.split(",").map((part) => {
+      const [name, ...params] = part.trim().toLowerCase().split(";");
+      const q = params.map((param) => param.trim()).find((param) => param.startsWith("q="));
+      return [name, q ? Number(q.slice(2)) : 1];
+    })
+  );
+  return ["br", "gzip"].find((name) => (offered.get(name) ?? 0) > 0) ?? null;
+}
+
+// Each version of a file is compressed once: a test may swap the build under a running server.
+const compressed = new Map();
+async function compress(file, body, encoding) {
+  const key = `${encoding}:${file}:${(await stat(file)).mtimeMs}:${body.length}`;
+  if (!compressed.has(key)) compressed.set(key, encoding === "br" ? brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } }) : gzipSync(body));
+  return compressed.get(key);
+}
 
 /** @returns {{ pattern: RegExp, absolute: boolean, names: string[], headers: [string, string | null][] }[]} */
 export function parseHeadersFile(text) {
@@ -116,7 +143,7 @@ async function resolveFile(root, pathname) {
   return null;
 }
 
-function startServer(root, port) {
+export function startServer(root, port) {
   return createServer(async (req, res) => {
     try {
       // `_headers` is re-read per request so a test can swap the build in place.
@@ -125,10 +152,17 @@ function startServer(root, port) {
       // Cloudflare never serves the _headers file itself.
       const found = url.pathname === "/_headers" ? null : await resolveFile(root, url.pathname);
       const file = found ?? join(root, "index.html");
-      const body = await readFile(file);
+      const raw = await readFile(file);
+      const type = TYPES[extname(file)] ?? "application/octet-stream";
+      const encoding = encodingFor(req.headers["accept-encoding"], type);
+      const body = encoding ? await compress(file, raw, encoding) : raw;
       res.statusCode = 200;
       for (const [name, value] of headersFor(rules, url)) res.setHeader(name, value);
-      res.setHeader("content-type", TYPES[extname(file)] ?? "application/octet-stream");
+      res.setHeader("content-type", type);
+      if (encoding) {
+        res.setHeader("content-encoding", encoding);
+        res.setHeader("vary", "Accept-Encoding");
+      }
       res.end(req.method === "HEAD" ? undefined : body);
     } catch (error) {
       console.error("prod-server:", error);

@@ -63,6 +63,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
   - **Route, per request, per collection or for the device**: **Direct** (from the page), **Local Bridge**, or **Auto**, the default. Auto sends a request from the page, and through the Local Bridge when the page got no answer: at once when the request cannot have reached the server (the browser's preflight failed first) or is a GET, HEAD or OPTIONS, and otherwise only after you say yes. A response is never sent again. <!-- claim:C-064 --> Each response says where it came from: **Direct** or **Via bridge**. See [`docs/browser-limits.md`](docs/browser-limits.md), "Routes"
   - **Through the Local Bridge, redirects hop by hop**: each redirect that was followed is listed with its status, its address and its `Location`, 20 at most; **Follow redirects** is a setting of the request. Sent directly, the browser follows unseen and the response says where it ended. A request that holds a vault secret is not followed to another host: that redirect is the response, with the reason <!-- claim:C-063 -->. See [`docs/browser-limits.md`](docs/browser-limits.md), "Redirects"
   - **Through the Local Bridge, what a browser cannot do for a request**: timings of the name lookup, the connection, the TLS handshake and the wait, measured on the bridge's own connection; a `Host` header of your own; certificate verification switched off for one request, with a red "TLS verification off" pill; a certificate authority of your own (`--ca`); and a proxy (`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`).
+  - **A command-line runner**, `wayfarer-cli`: runs a Wayfarer collection, a workspace backup or a Postman collection with an environment and a data file, writes the JSON and JUnit reports, and exits with 1 when a test fails. It sends with the app's engine, and gives the results the app's runner gives <!-- claim:C-065 -->. A file's scripts run only with `--allow-scripts`; without it a collection with scripts is not run <!-- claim:C-066 -->. See [`docs/cli.md`](docs/cli.md)
   - **Through the Local Bridge, a cookie jar**: what a response sets is kept and sent with later requests to its domain and path, as a browser would; Settings, **Cookies** lists it, to change or delete. A page cannot read or fill the browser's own jar, so a direct request has none. See [`docs/browser-limits.md`](docs/browser-limits.md), "Cookies"
   - **WebSocket**: an address that starts with `ws://` or `wss://` is connected to instead of sent. Subprotocols, a message field (text, or text that must be JSON), and a log of what was sent and received with time and size, and the close code when the connection ends. A browser adds no header to a WebSocket's handshake, so the request's headers and auth do not go with it. See [`docs/browser-limits.md`](docs/browser-limits.md), "WebSockets"
   - An **Export** menu that copies the exchange as cURL or HAR, or shows the HAR file before you copy or save it <!-- claim:C-035 -->
@@ -226,6 +227,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 - [Storage layout](docs/storage.md)
 - [Scripts & sandbox model](docs/scripts.md)
 - [Local Bridge (optional CORS/intranet relay)](packages/bridge/README.md)
+- [Command line (`wayfarer-cli`)](docs/cli.md)
 - [Browser limits](docs/browser-limits.md): what the browser blocks, including reaching the Local Bridge
 - [Trust Center](docs/trust-center.md): encryption, data residency, subprocessors, compliance status
 - [Security questionnaire (pre-answered)](docs/security-questionnaire.md)
@@ -235,7 +237,7 @@ Please open an issue to propose non-trivial changes before a PR, and keep scope 
 
 ## Roadmap (public intent, not a contract)
 
-- A command-line runner for collections, and the Local Bridge on npm
+- The command-line runner and the Local Bridge on npm
 - Full JSONPath (filters, recursive descent) in the response filter
 - GraphQL subscriptions; a WebSocket through the Local Bridge, for handshake headers
 - CSV/XLSX preview

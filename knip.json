@@ -48,6 +48,17 @@
       "ignoreBinaries": [
         "xmllint"
       ]
+    },
+    "packages/cli": {
+      "entry": [
+        "src/main.ts",
+        "test/*.mjs"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "*.mjs",
+        "test/*.mjs"
+      ]
     }
   },
   "ignoreExportsUsedInFile": true

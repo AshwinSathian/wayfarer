@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Idb } from "../data/idb";
 import { historyEntry, jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { SecretsVault } from "./secrets-vault";
-import { WORKSPACE_FORMAT, WorkspaceBackup, WorkspaceFile, validateWorkspaceFile } from "./workspace-backup";
+import { WORKSPACE_FORMAT, validateWorkspaceFile } from "@wayfarer/core";
+import { WorkspaceBackup, WorkspaceFile } from "./workspace-backup";
 
 const KEYS = ["wayfarer:last-backup", "wayfarer:backup-reminder-from"];
 const DAY = 24 * 60 * 60 * 1000;

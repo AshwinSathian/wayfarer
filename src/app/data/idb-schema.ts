@@ -1,5 +1,5 @@
 import { DBSchema } from "idb";
-import type { Cookie, RequestContent, Row, VaultRecord } from "@wayfarer/core";
+import { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY, type Cookie, type RequestContent, type Row, type VaultRecord } from "@wayfarer/core";
 import {
   Collection,
   CollectionId,
@@ -74,9 +74,7 @@ export interface StoredTab {
  */
 export type StoredCookie = Cookie & { key: string };
 
-export const META_STATE_KEY = "state";
-export const META_GLOBALS_KEY = "globals";
-export const META_VAULT_KEY = "vault";
+export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY };
 
 export interface MetaState {
   key: typeof META_STATE_KEY;

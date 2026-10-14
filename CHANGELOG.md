@@ -7,6 +7,26 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added (command line)
+
+- **`wayfarer-cli`, a command-line runner** (`packages/cli`; not on npm
+  yet, see `docs/cli.md` to build it). `wayfarer-cli run <file>` runs a
+  Wayfarer collection, a workspace backup or a Postman collection, with an
+  environment (`-e`), a data file (`-d`) and a number of iterations (`-n`),
+  and writes the reports the app's run view saves (`--reporter
+  cli,json,junit`). It exits with 1 when a test fails or a request gets no
+  response, so a CI job can run it. It sends with the app's own engine: the
+  same scripts in the same order, the same variables, vault and checks,
+  and a test holds its results to the app's for the same run.
+- **A file's scripts run only with `--allow-scripts`.** In the app a
+  collection from a file runs its scripts after you have reviewed them; a
+  file carries no review, so without the flag a collection with scripts is
+  not run, and nothing is sent.
+- **The vault from the command line**: a workspace backup brings its vault,
+  or `--vault-file` names an exported one; the passphrase is read from
+  `WAYFARER_VAULT_PASSPHRASE`, never from an argument. Every request goes
+  straight from Node: the Local Bridge adds nothing there.
+
 ### Changed (the road a request takes)
 
 - **How a request is sent now lives in the shared engine**, so that the

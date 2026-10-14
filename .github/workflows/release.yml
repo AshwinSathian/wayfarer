@@ -5,6 +5,10 @@ name: Release
 #   git tag bridge-v2.2.0 && git push origin bridge-v2.2.0   -> wayfarer-bridge 2.2.0
 #   git tag cli-v1.0.0    && git push origin cli-v1.0.0      -> wayfarer-cli 1.0.0
 #
+# P7.7: a tag of the app (v2.5.0) builds it and attaches to its GitHub
+# release the built folder as a tarball, a CycloneDX SBOM of what ships and
+# SHA256SUMS of both. A deploy stays a step of its own (deploy.yml).
+#
 # The tag's version must be the package's. The package's tests run, the
 # tarball npm would publish is installed into an empty folder and run, and
 # only then is it published, through npm's trusted publishing (OIDC): no
@@ -23,6 +27,7 @@ on:
     tags:
       - "bridge-v*"
       - "cli-v*"
+      - "v*"
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -34,6 +39,8 @@ permissions:
 jobs:
   pack:
     name: Pack and test ${{ github.ref_name }}
+    # A tag of the app is the job `app`'s; publish and verify need pack, so they are skipped with it.
+    if: ${{ !startsWith(github.ref_name, 'v') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -155,3 +162,54 @@ jobs:
             sleep 20
           done
           exit 1
+
+  app:
+    name: Release ${{ github.ref_name }} (the app)
+    if: ${{ startsWith(github.ref_name, 'v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the release and its assets
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          # Never a cache in a release build.
+          package-manager-cache: false
+
+      - name: The tag is the app's version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "::error::The tag says ${TAG#v}; package.json says $version."
+            exit 1
+          fi
+
+      - run: npm ci
+      # The build carries this commit, which Settings → Diagnostics shows.
+      - run: npm run build
+
+      - name: The tarball, the SBOM and their checksums
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          assets="$RUNNER_TEMP/assets" && mkdir "$assets"
+          name="wayfarer-${TAG#v}"
+          tar -czf "$assets/$name.tar.gz" -C dist/wayfarer/browser .
+          # What ships: the dependencies of the build, not the tools that make it.
+          npm sbom --sbom-format cyclonedx --omit dev > "$assets/$name.cdx.json"
+          cd "$assets" && sha256sum "$name.tar.gz" "$name.cdx.json" > SHA256SUMS
+          sha256sum --check SHA256SUMS
+
+      - name: The release, with the changelog's section as its notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          awk -v head="## [${TAG#v}]" 'index($0, head) == 1 { on = 1; next } on && /^## \[/ { exit } on' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          test -s "$RUNNER_TEMP/notes.md" || { echo "::error::CHANGELOG.md has no section ## [${TAG#v}]"; exit 1; }
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --verify-tag --title "Wayfarer $TAG" --notes-file "$RUNNER_TEMP/notes.md"
+          gh release upload "$TAG" "$RUNNER_TEMP"/assets/* --clobber
+          gh release view "$TAG" --json assets --jq '.assets[].name'

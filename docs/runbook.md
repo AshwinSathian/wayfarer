@@ -257,6 +257,26 @@ Don't unpublish the placeholders. npm allows unpublishing only within 72
 hours, and an unpublished name can't be reused for 24 hours, which is a
 window for a squatter.
 
+## Releasing the app (P7.7)
+
+A tag of the app's version makes its GitHub release:
+
+```bash
+git tag v2.5.0 && git push origin v2.5.0
+```
+
+`release.yml` checks that the tag is `package.json`'s version, builds,
+and attaches `wayfarer-<version>.tar.gz`, `wayfarer-<version>.cdx.json`
+(CycloneDX SBOM) and `SHA256SUMS`, with the changelog's section as the
+notes. Check the release page shows the three, then verify a download:
+
+```bash
+gh release download v2.5.0 --dir /tmp/wayfarer-release && cd /tmp/wayfarer-release
+sha256sum --check SHA256SUMS
+```
+
+The release deploys nothing: production is `deploy.yml`, a step of its own.
+
 ## Service worker
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.

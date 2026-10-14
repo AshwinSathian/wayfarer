@@ -8,8 +8,13 @@ the same reports. A collection run from the command line gives the results
 the same run gives in the app <!-- claim:C-065 -->; a test runs one fixture
 both ways, in Chromium, Firefox and WebKit, and compares the two reports.
 
-It needs Node.js 22.12 or later. Until it is published on npm, build it from
-this repository:
+It needs Node.js 22.12 or later:
+
+```bash
+npx wayfarer-cli run my-collection.json
+```
+
+Until the first release is on npm, build it from this repository:
 
 ```bash
 npm ci
@@ -104,8 +109,33 @@ Node's own support, in Node 22.21 and 24.5 and later.
 
 ## In a CI job
 
+A GitHub Actions job that runs a collection on every push, keeps the JUnit
+report and fails when a test fails:
+
 ```yaml
-- run: npx wayfarer-cli run collections/api.json -e env/ci.json --allow-scripts --reporter cli,junit --out reports
-  env:
-    WAYFARER_VAULT_PASSPHRASE: ${{ secrets.WAYFARER_VAULT_PASSPHRASE }}
+name: API tests
+on: [push]
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Run the collection
+        run: npx --yes wayfarer-cli@1 run api/collection.json -e api/ci.environment.json --allow-scripts --reporter cli,junit --out reports
+        env:
+          # Only for requests that use a vault secret, with --vault-file or a workspace backup.
+          WAYFARER_VAULT_PASSPHRASE: ${{ secrets.WAYFARER_VAULT_PASSPHRASE }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-report
+          path: reports/wayfarer-run.junit.xml
 ```
+
+Pin the major version (`wayfarer-cli@1`) so that a new major release does
+not change a job unannounced. The package is published from this
+repository's `release.yml` with a provenance attestation: `npm audit
+signatures` in the job checks it.

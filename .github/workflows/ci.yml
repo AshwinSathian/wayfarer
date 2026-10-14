@@ -130,6 +130,14 @@ jobs:
       - run: npm ci
       - run: npm -w packages/cli run typecheck
       - run: npm -w packages/cli test
+      # P6.6: the tarball npm would publish, installed into an empty folder, runs.
+      - name: Pack, install and run
+        run: |
+          npm pack --workspace packages/cli --pack-destination "$RUNNER_TEMP"
+          mkdir "$RUNNER_TEMP/clean" && cd "$RUNNER_TEMP/clean"
+          npm init --yes > /dev/null
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/wayfarer-cli-*.tgz
+          npx --no-install wayfarer-cli --version
 
   local-bridge:
     name: Local Bridge (zero-dependency Node test suite)

@@ -3,7 +3,20 @@
   "version": "2.2.0",
   "description": "Optional local relay that lets Wayfarer reach CORS-restrictive or intranet-only APIs. Runs entirely on your own machine, with no cloud component and zero runtime dependencies.",
   "license": "MIT",
-  "private": true,
+  "author": "Ashwin Sathian",
+  "homepage": "https://github.com/AshwinSathian/wayfarer/tree/main/packages/bridge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AshwinSathian/wayfarer.git",
+    "directory": "packages/bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/AshwinSathian/wayfarer/issues"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
   "type": "commonjs",
   "bin": {
     "wayfarer-bridge": "./bin/cli.js"

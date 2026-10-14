@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { historyEntry } from "../../testing/request-fixtures";
 import { IdbCore } from "./idb-core";
 import { DB_NAME, DB_VERSION } from "./idb-schema";
-import { Idb } from "./idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 
 /** Opens the database with the raw API, at a version of the caller's choosing. The connection ignores `versionchange`. */
 function openRaw(version: number, build: (db: IDBDatabase) => void = () => undefined): Promise<IDBDatabase> {
@@ -56,13 +56,13 @@ function buildV4(db: IDBDatabase): void {
 
 // Nothing an earlier version stored is read (D24; maintainer, 2026-10-14: no backward compatibility).
 describe("opening a database left by another release", () => {
-  let idb: Idb;
+  let idb: Repositories;
   let core: IdbCore;
 
   beforeEach(async () => {
     await deleteDatabase();
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(Idb);
+    idb = repositories();
     core = TestBed.inject(IdbCore);
   });
 
@@ -73,24 +73,24 @@ describe("opening a database left by another release", () => {
   it("empties a v4 database, makes this version's stores and says the old data was removed", async () => {
     (await openRaw(4, buildV4)).close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
     expect(DB_VERSION).toBe(13);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
-    expect(await idb.listCollections()).toEqual([]);
-    expect(await idb.listFolders("c-1")).toEqual([]);
-    expect(await idb.listRequests("c-1")).toEqual([]);
-    expect(await idb.listEnvironments()).toEqual([]);
-    expect(await idb.listSecrets()).toEqual([]);
-    expect(await idb.getLatest()).toEqual([]);
-    expect(await idb.getActiveEnvironmentId()).toBeNull();
+    expect(await idb.collections.listCollections()).toEqual([]);
+    expect(await idb.folders.listFolders("c-1")).toEqual([]);
+    expect(await idb.requests.listRequests("c-1")).toEqual([]);
+    expect(await idb.environments.listEnvironments()).toEqual([]);
+    expect(await idb.secrets.listAll()).toEqual([]);
+    expect(await idb.history.getLatest()).toEqual([]);
+    expect(await idb.environments.getActiveEnvironmentId()).toBeNull();
     expect(core.clearedOldData()).toBe(true);
 
     // The recreated stores take new writes through their indexes.
-    const collection = await idb.createCollection({ name: "New" });
-    expect((await idb.listCollections()).map((c) => c.name)).toEqual(["New"]);
+    const collection = await idb.collections.createCollection({ name: "New" });
+    expect((await idb.collections.listCollections()).map((c) => c.name)).toEqual(["New"]);
     expect(collection.order).toBe(1);
   });
 
@@ -115,7 +115,7 @@ describe("opening a database left by another release", () => {
     });
     db0.close();
 
-    await idb.init();
+    await idb.core.init();
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
@@ -127,14 +127,14 @@ describe("opening a database left by another release", () => {
   it("says nothing when an earlier database held nothing", async () => {
     (await openRaw(DB_VERSION - 1, (db) => db.createObjectStore("collections", { keyPath: "meta.id" }))).close();
 
-    await idb.init();
+    await idb.core.init();
 
     expect([...(await core.getDatabase())!.objectStoreNames].sort()).toEqual(STORES);
     expect(core.clearedOldData()).toBe(false);
   });
 
   it("does not report removed data on a first run", async () => {
-    await idb.init();
+    await idb.core.init();
 
     expect((await core.getDatabase())!.version).toBe(DB_VERSION);
     expect(core.clearedOldData()).toBe(false);
@@ -144,7 +144,7 @@ describe("opening a database left by another release", () => {
     // A tab running a build from before v5 does not close on versionchange.
     const oldTab = await openRaw(4, buildV4);
 
-    const opening = idb.init();
+    const opening = idb.core.init();
     await vi.waitFor(() => expect(core.upgradeBlocked()).toBe(true));
     oldTab.close();
     await opening;
@@ -155,7 +155,7 @@ describe("opening a database left by another release", () => {
   });
 
   it("closes its connection and asks for a reload when a newer release upgrades the database", async () => {
-    await idb.init();
+    await idb.core.init();
 
     const newer = await openRaw(DB_VERSION + 1);
     try {
@@ -172,7 +172,7 @@ describe("opening a database left by another release", () => {
     (await openRaw(DB_VERSION + 1)).close();
     const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    await idb.init();
+    await idb.core.init();
 
     expect(core.olderThanData()).toBe(true);
     expect(core.memoryOnly()).toBe(true);

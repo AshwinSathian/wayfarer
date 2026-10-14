@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it } from "vitest";
 import { CookiesRepository } from "../data/cookies-repository";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
 import type { StoredCookie } from "../data/idb-schema";
 import { CookieJar } from "./cookie-jar";
 
@@ -35,7 +35,7 @@ describe("CookieJar", () => {
   beforeEach(async () => {
     repository = new CookiesRepositoryFake();
     idb = new IdbFake();
-    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: Idb, useValue: idb }] });
+    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: IdbCore, useValue: idb }] });
     jar = TestBed.inject(CookieJar);
     await jar.start();
   });
@@ -56,7 +56,7 @@ describe("CookieJar", () => {
   it("reads the stored cookies when the page starts", async () => {
     await jar.store(URL, ["sid=abc; Path=/"], []);
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: Idb, useValue: idb }] });
+    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: IdbCore, useValue: idb }] });
     const again = TestBed.inject(CookieJar);
     expect(again.cookies()).toEqual([]);
     await again.start();

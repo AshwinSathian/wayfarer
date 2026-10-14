@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { IMPORT_TOO_LARGE, WORKSPACE_FORMAT, isOversizedImport, parseJson, validateWorkspaceFile } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { WorkspaceRepository } from "../data/workspace-repository";
 import { WorkspaceStores } from "../data/workspace-repository";
 import { Diagnostics } from "./diagnostics";
 
@@ -18,7 +18,7 @@ const REMINDER_AFTER_MS = 14 * 24 * 60 * 60 * 1000;
 /** Backup and restore of everything the app stores, and the reminder to make one (P2.11). */
 @Injectable({ providedIn: "root" })
 export class WorkspaceBackup {
-  private readonly idb = inject(Idb);
+  private readonly workspaceRepository = inject(WorkspaceRepository);
   private readonly diagnostics = inject(Diagnostics);
 
   /** True when the last backup, or the first use when there is none, is more than 14 days ago. */
@@ -31,7 +31,7 @@ export class WorkspaceBackup {
    * in a collection file.
    */
   async exportJson(options: { history?: boolean } = {}): Promise<string> {
-    const file: WorkspaceFile = { $id: WORKSPACE_FORMAT, exportedAt: Date.now(), stores: await this.idb.readWorkspace(options.history ?? false) };
+    const file: WorkspaceFile = { $id: WORKSPACE_FORMAT, exportedAt: Date.now(), stores: await this.workspaceRepository.readAll(options.history ?? false) };
     this.remember(LAST_BACKUP_KEY);
     this.reminderDue.set(false);
     return JSON.stringify(file, null, 2);
@@ -50,7 +50,7 @@ export class WorkspaceBackup {
     const errors = validateWorkspaceFile(parsed.value);
     if (errors.length) return errors;
     const { stores } = parsed.value as WorkspaceFile;
-    await this.idb.restoreWorkspace({
+    await this.workspaceRepository.replaceAll({
       ...stores,
       collections: stores.collections.map((collection) => ({ ...collection, scriptTrust: { trusted: false } })),
     });

@@ -4,7 +4,7 @@ import { Composer } from '../app/components/composer/composer';
 import { ComposerView } from '../app/components/composer/composer-view';
 import { RequestSave } from '../app/services/request-save';
 import { WorkspaceStore } from '../app/state/workspace-store';
-import { Idb } from '../app/data/idb';
+import { provideRepositories } from "./repositories";
 import { ResponseInspection, ResponseInspector } from '../app/shared/inspect/response-inspector';
 import { EnvironmentsStore } from '../app/services/environments-store';
 import { RequestSettings } from '../app/services/request-settings';
@@ -142,7 +142,7 @@ export async function setupComposer(extra: Provider[] = []) {
   await TestBed.configureTestingModule({
     imports: [Composer],
     providers: [
-      { provide: Idb, useValue: idbService },
+      ...provideRepositories(idbService),
       { provide: ResponseInspector, useValue: responseInspector },
       { provide: EnvironmentsStore, useValue: environmentsService },
       { provide: CollectionsStore, useValue: collectionsService },

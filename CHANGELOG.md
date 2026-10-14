@@ -7,93 +7,77 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-15
+
+Hardening and the release gate (Phase 7). The app is held to WCAG 2.2 AA
+and to performance budgets in CI, can be used by keyboard alone, and shows
+its own diagnostics. A threat model links every mitigation to a tested
+claim, and each release attaches the build, an SBOM and checksums.
+
+**What to know before you update:** files have one shape now, with no
+number in their `$id`, and a file an earlier version exported is refused:
+export again after you update. Data stored by 2.4.0 is kept; from now on,
+an update that changes how data is stored removes what an earlier version
+stored, once, with a notice. Local Bridge 3.0.0 relays at `/relay` and
+keeps its token in `~/.wayfarer-bridge`: update it and pair again.
+
 ### Added
 
-- `docs/self-hosting.md`: the folder, the headers, the OAuth callback.
-- CI checks that every doc link leads to a file and that the README links
-  every doc (`check:links`), and that the README's list is the ledger
-  (`check:readme`).
-- CI holds the app to performance budgets: Lighthouse's desktop score of 90
-  or more, a largest contentful paint within 2 s and a total blocking time
-  within 200 ms; typing into the address stays within 100 ms a key with five
-  tabs open; Monaco, the script engine, GraphQL, the OpenAPI importer and
-  the YAML parser stay out of what the page loads first.
-- "Break the sandbox": a public challenge in `SECURITY.md` to break the
-  script sandbox, the vault or the Local Bridge, with credit in the Trust
-  Center's hall of fame. No money.
+- Settings → Diagnostics: version and commit, browser, storage, database,
+  service worker, Local Bridge; self-tests; the last 200 errors and the
+  Content-Security-Policy violations. Copy report and Open GitHub issue
+  hold nothing of a request you sent.
 - A threat model (`docs/threat-model.md`): each trust boundary, its threats
-  by STRIDE, and the tested claim behind each mitigation. `check:claims`
-  fails when a row links no claim.
-- Each release of the app attaches the built folder as a tarball, a
-  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
-- Settings → Diagnostics: the version and the commit, the browser, storage,
-  the database, the service worker and the Local Bridge; self-tests (a
-  script, the vault's encryption, a database write, a fetch of the app's
-  own); the last 200 errors and what the Content-Security-Policy blocked.
-  Copy report and Open GitHub issue hand over all of it. Nothing of a
-  request you sent is in it, and nothing leaves the page unless you copy it.
+  by STRIDE, and the tested claim behind each mitigation.
+- "Break the sandbox": a public challenge in `SECURITY.md`, with a hall of
+  fame in the Trust Center. No money.
+- `docs/self-hosting.md`.
+- Each release attaches the built folder, a CycloneDX SBOM and SHA-256
+  checksums.
+- CI holds the app to performance budgets (Lighthouse desktop 90 or more,
+  LCP within 2 s, TBT within 200 ms; typing within 100 ms a key with five
+  tabs open) and checks that Monaco, the script engine, GraphQL, the
+  OpenAPI importer and the YAML parser stay out of the first load.
+- CI checks that every doc link leads to a file and that the README links
+  every doc, and that the README's feature list is the claims ledger.
 
 ### Changed
 
-- The README's feature list is the claims ledger: each line is a claim with
-  a test. It also says what the browser cannot do, and links every doc.
-- The pre-answered security questionnaire is now the Trust Center's
-  "Procurement answers".
-- Internal: the 320-line `Idb` class that only handed each call on to a
-  repository is gone; services use the repositories directly.
-- **Nothing an earlier version stored is kept.** When this version opens a
-  database an earlier one left, it removes everything and says so once.
-  Export collections and back up the workspace first.
 - Files have one `$id` each, with no number: `wayfarer/collection`,
   `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`,
-  `wayfarer/run`. A file an earlier version wrote is refused.
-- The Local Bridge relays at `/relay`. `/health` answers `{ ok, name,
-  version }`: no protocol number, no list of capabilities. Use the bridge of
-  the same release as the page; a bridge of another version is named as
-  such. Its token is kept in `~/.wayfarer-bridge`: pair again.
-- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
-  to fail only on critical and serious violations. None are found.
-
-### Removed
-
-- `version` in each record's `meta`, and `schemaVersion` in the stored
-  state: nothing read them.
-
-- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
-  to fail only on critical and serious violations. None are found.
+  `wayfarer/run`.
+- An update that changes how data is stored removes what an earlier version
+  stored, once, with a notice. There is no conversion.
+- Local Bridge 3.0.0 relays at `/relay`; `/health` answers
+  `{ ok, name, version }`, with no protocol number or capabilities. Use the
+  bridge of the same release as the page.
+- `wayfarer-cli` 2.0.0 reads the files of this version.
+- Every axe scan checks WCAG 2.2 A and AA at every impact; none is found.
+- The README's feature list is the claims ledger. The security questionnaire
+  is now the Trust Center's "Procurement answers".
+- Size budgets reset to the new baseline: initial 1,386,465 B raw,
+  358,979 B gzip (+7,128 and +1,605 over 2.4.0, for Diagnostics and the
+  accessibility work); budgets 1456kb / 1525kb / 394,800 B.
+- Internal: services use the repositories directly (the `Idb` facade is
+  gone), and `meta.version`, `schemaVersion` and the ID alias types are
+  gone.
 
 ### Fixed
 
-- Run pressed just after choosing a data file waits for the file. The run
-  used to go once, without the file, when the file was still being read.
-- The app starts faster: the code editor is loaded when an editor is first
-  shown. It used to load with every page, for editors in closed dialogs and
-  in the hidden Scripts tab.
-- Each release of the app attaches the built folder as a tarball, a
-  CycloneDX SBOM of what ships, and SHA-256 checksums of both.
-- Settings → Diagnostics: the version and the commit, the browser, storage,
-  the database, the service worker and the Local Bridge; self-tests (a
-  script, the vault's encryption, a database write, a fetch of the app's
-  own); the last 200 errors and what the Content-Security-Policy blocked.
-  Copy report and Open GitHub issue hand over all of it. Nothing of a
-  request you sent is in it, and nothing leaves the page unless you copy it.
-- Two auth fields filled at once, as a password manager fills a user name
-  and a password, are both kept. The first used to be written back empty
-  (AWS Signature, Basic, API key and OAuth 2.0).
-- Opening the history or navigation drawer moves focus into it at once. A
-  Tab pressed in the first frame used to land on the page underneath (#223).
+- The app starts faster: the code editor loads with the first editor shown,
+  not with every page.
 - A dialog that asks for a name, a passphrase or a command opens with focus
-  on that field. Focus used to land on its Close button.
-- Enter in the name field of a new collection, folder or request creates it.
-- Focus stays on Send through a send. Send and Cancel were two buttons, and
-  the swap dropped focus to the page.
-- A code editor shows a focus ring while it has focus.
+  on that field; Enter in a new item's name creates it.
+- Focus stays on Send through a send.
+- Opening a drawer moves focus into it at once (#223).
+- A code editor shows a focus ring.
+- Two auth fields filled at once, as a password manager does, are both kept.
+- Run pressed just after choosing a data file waits for the file.
 
 ### Security
 
-- Releasing the Local Bridge or the CLI no longer runs their dependencies'
-  code in the job that holds the npm publishing token. The tarball is
-  tested in a job without it, and that same tarball is published.
+- Publishing the Local Bridge or the CLI no longer runs their dependencies'
+  code in the job that holds the npm token.
 
 ## [2.4.0] - 2026-10-14
 

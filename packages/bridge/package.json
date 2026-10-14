@@ -1,6 +1,6 @@
 {
   "name": "wayfarer-bridge",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "Optional local relay that lets Wayfarer reach CORS-restrictive or intranet-only APIs. Runs entirely on your own machine, with no cloud component and zero runtime dependencies.",
   "license": "MIT",
   "author": "Ashwin Sathian",

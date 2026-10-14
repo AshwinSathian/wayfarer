@@ -26,7 +26,7 @@ class IdbServiceMock {
 function buildEnv(id: string, overrides: Partial<EnvironmentDoc> = {}): EnvironmentDoc {
   return {
     id,
-    meta: { id, createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id, createdAt: 1, updatedAt: 1 },
     name: `Env ${id}`,
     order: 1,
     vars: {},

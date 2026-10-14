@@ -232,13 +232,37 @@ Automated-scanner discovery file: [`/.well-known/security.txt`](../public/.well-
 Every fixed security-relevant issue is recorded in [`CHANGELOG.md`](../CHANGELOG.md)
 rather than quietly folded into an unrelated release note.
 
-## Procurement / security questionnaire
+## Procurement answers
 
-A pre-answered CAIQ-lite packet covering the questions enterprise security
-reviewers ask most often (data residency, encryption, subprocessors,
-incident history, authentication model) lives at
-[`docs/security-questionnaire.md`](security-questionnaire.md). Read it
-directly rather than opening a review ticket for facts already written down.
+The questions a security review asks most often (the "CAIQ-lite" set),
+answered once. Copy from here into your questionnaire; the facts behind
+each answer are in the sections above.
+
+| Question | Answer |
+|---|---|
+| Product | Wayfarer, a local-first API client. |
+| Vendor | Ashwin Sathian, solo maintainer; no legal entity. |
+| Hosting model | Client-side only: static files from Cloudflare's edge (or your own host, see [Self-hosting](self-hosting.md)); all logic and data run in the user's browser. |
+| Support | Best effort, through GitHub Issues. No support tier with an SLA. |
+| Where is customer data stored? | Only in the user's browser, in IndexedDB. No database, object storage or server-side store exists. |
+| Does data leave the device? | Only the request the user composes, sent to the host the user chose (and an OAuth 2.0 token request and sign-in, to addresses the user typed). |
+| Data residency | Not applicable: wherever the user's device is. |
+| Retention | Until the user deletes it (an item, or Reset all data) or clears the site's storage. |
+| Encryption at rest | Vault secrets: AES-GCM-256 under a data key wrapped by a PBKDF2-SHA-256 key (600,000 iterations) from the passphrase. Everything else: plain text in IndexedDB, under the browser's sandbox and the device's disk encryption. |
+| Encryption in transit | The user's own TLS to their own target; the app neither weakens nor intercepts it. |
+| Key management | The data key is in memory only while unlocked. No escrow, no server-side key, no recovery of a lost passphrase. |
+| Accounts, SSO, MFA | None: there are no accounts. |
+| Backend touching customer data | None. |
+| Third parties receiving data | None. The optional Local Bridge runs on the user's machine, under the user's control. |
+| Subprocessors | Cloudflare, as the static host; it sees each page load's IP address, user agent and URL, never the user's data. A self-hosted copy has none. |
+| Certifications | No SOC 2, ISO 27001 or third-party penetration test. |
+| GDPR / CCPA | The vendor collects, stores and processes no personal data; users control what they type into their own requests. |
+| Incident history | No breach: there is no vendor-held data store. Every security fix is in [`CHANGELOG.md`](../CHANGELOG.md). |
+| Vulnerability disclosure | Private reports, an answer within 5 business days, coordinated disclosure: [`SECURITY.md`](../SECURITY.md). |
+| Licence | MIT, for all of the client. |
+
+A question this table does not answer: [open an issue](https://github.com/AshwinSathian/wayfarer/issues).
+An absence here means "not yet written down", not "no".
 
 ## What this page is not
 

@@ -19,6 +19,8 @@ npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
 npm run check:compat    # docs/postman-compatibility.md is what the compatibility matrix gives
+npm run check:readme    # README's feature list is docs/claims.md (npm run gen:readme writes it)
+npm run check:links     # every doc link leads to a file; README links every doc
 npm -w packages/core run mutation    # Stryker on the resolver, the redactor and the vault's crypto (3 minutes)
 npx knip                # no unused files, exports or dependencies
 ```
@@ -893,6 +895,8 @@ code errors.
 - A bug fix starts with a test that fails for the reason reported. Keep it.
 - A change to a documented claim updates `docs/claims.md` and its
   `@claim:C-NNN` test in the same PR.
+  Then `npm run gen:readme`: the README's feature list is the ledger,
+  and a new doc under `docs/` is linked from the README (`check:links`).
 - Before replacing one Angular construct with another, check the behaviour
   with a throwaway test when the docs leave it open.
 - An e2e does not read, through the browser, the body of a response the

@@ -33,6 +33,8 @@ async function addVariables(page: Page, dialogName: string | RegExp, variables: 
 }
 
 test("a collection variable and a global reach the server, an environment's value wins, and both are kept over a reload", async ({ page }) => {
+  // Two dialogs of rows, a send, a reload and a second send: 29 to 30 s on GitHub's WebKit runner when it passes (#228).
+  test.slow();
   await seedAndOpen(
     page,
     { winner: "from-environment" },

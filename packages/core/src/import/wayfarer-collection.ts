@@ -307,16 +307,13 @@ function validateMeta(meta: unknown, path: string, errors: ValidationResult[]): 
     errors.push({ path, message: "Meta must be an object." });
     return;
   }
-  const m = meta as Partial<Record<"id" | "createdAt" | "updatedAt" | "version", unknown>>;
+  const m = meta as Partial<Record<"id" | "createdAt" | "updatedAt", unknown>>;
   validateRequiredString(m.id, `${path}.id`, errors);
   if (typeof m.createdAt !== "number") {
     errors.push({ path: `${path}.createdAt`, message: "createdAt must be a number." });
   }
   if (typeof m.updatedAt !== "number") {
     errors.push({ path: `${path}.updatedAt`, message: "updatedAt must be a number." });
-  }
-  if (m.version !== 1) {
-    errors.push({ path: `${path}.version`, message: "version must equal 1." });
   }
 }
 

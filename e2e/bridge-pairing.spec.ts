@@ -34,7 +34,7 @@ test("the code the bridge printed pairs the page: the token is saved without bei
     await page.keyboard.press("Escape");
 
     await page.locator("input.address-url").fill(`${ECHO}/echo`);
-    const relayed = page.waitForResponse((response) => response.url().endsWith("/v2/relay"));
+    const relayed = page.waitForResponse((response) => response.url().endsWith("/relay"));
     await send(page);
     expect((await relayed).status()).toBe(200);
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });

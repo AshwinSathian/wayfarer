@@ -18,6 +18,24 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Nothing an earlier version stored is kept.** When this version opens a
+  database an earlier one left, it removes everything and says so once.
+  Export collections and back up the workspace first.
+- Files have one `$id` each, with no number: `wayfarer/collection`,
+  `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`,
+  `wayfarer/run`. A file an earlier version wrote is refused.
+- The Local Bridge relays at `/relay`. `/health` answers `{ ok, name,
+  version }`: no protocol number, no list of capabilities. Use the bridge of
+  the same release as the page; a bridge of another version is named as
+  such. Its token is kept in `~/.wayfarer-bridge`: pair again.
+- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
+  to fail only on critical and serious violations. None are found.
+
+### Removed
+
+- `version` in each record's `meta`, and `schemaVersion` in the stored
+  state: nothing read them.
+
 - Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
   to fail only on critical and serious violations. None are found.
 

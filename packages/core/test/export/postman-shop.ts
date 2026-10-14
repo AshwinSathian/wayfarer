@@ -7,7 +7,7 @@ import { emptyRequest, type RequestContent } from "../../src/model/request";
  * the same results from two runners mean the same requests were sent.
  * Files: `pixel.png` of `FILES`. Environment: `base`, the echo server.
  */
-const meta = (id: string): Meta => ({ id, createdAt: 0, updatedAt: 0, version: 1 });
+const meta = (id: string): Meta => ({ id, createdAt: 0, updatedAt: 0 });
 
 const ECHO = `const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];`;
 const add = (letter: string) => `pm.collectionVariables.set("order", pm.collectionVariables.get("order") + "${letter}");`;
@@ -39,7 +39,7 @@ const request = (id: string, name: string, order: number, folderId: string | und
 });
 
 export const SHOP: CollectionExport = {
-  $id: "wayfarer/collection/3",
+  $id: "wayfarer/collection",
   meta: meta("shop"),
   collection: {
     id: "shop",

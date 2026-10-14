@@ -1,105 +1,30 @@
 import { IDBPDatabase, IDBPTransaction } from "idb";
-import { ApiSandboxDB, RemovedData, StoreName } from "./idb-schema";
+import { ApiSandboxDB, StoreName } from "./idb-schema";
 
 /**
- * The `openDB(...).upgrade` handler. v5 does not read the shapes of v1 to v4,
- * so whatever an older release left is removed and the v5 stores are created
- * empty (maintainer, 2026-10-09: no stored data exists to keep). It throws
- * nothing it catches: an error aborts the upgrade and the database keeps its
- * old version.
+ * The `openDB(...).upgrade` handler. Nothing an earlier version stored is
+ * read (D24, maintainer 2026-10-14: no backward compatibility): every store
+ * is removed and this version's are made empty. It throws nothing it
+ * catches: an error aborts the upgrade and the database keeps its version.
  *
- * Resolves, once the upgrade's writes are queued, to what it removed.
+ * Resolves, once the upgrade's writes are queued, to whether the database
+ * held anything, for the notice the shell shows once.
  */
-export function runUpgrade(
+export async function runUpgrade(
   db: IDBPDatabase<ApiSandboxDB>,
-  oldVersion: number,
   tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
-): Promise<RemovedData> {
-  if (oldVersion < 5) {
-    createV5Stores(db);
-  }
-  // 6 (P2.12): the files of multipart and binary bodies. Nothing stored changes shape.
-  if (oldVersion < 6) {
-    db.createObjectStore("files");
-  }
-  // 11 (P5.1): the composer's tabs. Nothing stored changes shape, and no draft was stored before.
-  if (oldVersion < 11) {
-    db.createObjectStore("tabs", { keyPath: "id" });
-  }
-  // 12 (P5.3): the cookie jar. Nothing stored changes shape.
-  if (oldVersion < 12) {
-    db.createObjectStore("cookies", { keyPath: "key" });
-  }
-  // 7 (P2.4) gave a stored collection its variables. Version 10 empties the collections, so that step is gone.
-  if (oldVersion < 5) {
-    return Promise.resolve(oldVersion > 0 ? "all" : []);
-  }
-  return removeWhatChangedShape(db, oldVersion, tx);
+): Promise<boolean> {
+  // Typed loosely: an earlier version may have left a store this one does not name.
+  const names = Array.from(db.objectStoreNames as DOMStringList);
+  const loose = tx as unknown as IDBPTransaction<unknown, string[], "versionchange">;
+  const held = (await Promise.all(names.map((name) => loose.objectStore(name).count()))).some((count) => count > 0);
+  for (const name of names) (db as unknown as IDBPDatabase).deleteObjectStore(name);
+  createStores(db);
+  return held;
 }
 
-/**
- * Stores whose records an older version wrote in a shape this one does not
- * read (maintainer, 2026-10-09: no stored data exists to keep). Resolves to
- * the ones that held anything.
- */
-async function removeWhatChangedShape(
-  db: IDBPDatabase<ApiSandboxDB>,
-  oldVersion: number,
-  tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
-): Promise<RemovedData> {
-  const removed: Exclude<RemovedData, "all"> = [];
-  // 9 (P2.5): history v2. An entry of before holds what was sent as it was sent, credentials included.
-  // The store is made again: it is searched in memory and keeps one index.
-  if (oldVersion < 9) {
-    if ((await tx.objectStore("history").count()) > 0) removed.push("history");
-    db.deleteObjectStore("history");
-    createHistoryStore(db);
-  }
-  // 8 (P2.6): the vault has one data key, wrapped by the passphrase. A
-  // secret encrypted under a key of its own cannot be read with it.
-  if (oldVersion < 8) {
-    const store = tx.objectStore("secrets");
-    if ((await store.count()) > 0) removed.unshift("secrets");
-    await store.clear();
-  }
-  // 10 (P4.9): a collection and a folder hold auth and scripts, a folder variables, and a request's auth may be
-  // "inherit". The three stores are emptied, and with them the files only their requests named.
-  if (oldVersion < 10) {
-    const held = await Promise.all((["collections", "folders", "requests"] as const).map((name) => tx.objectStore(name).count()));
-    if (held.some((count) => count > 0)) removed.push("collections");
-    for (const name of ["collections", "folders", "requests", "files"] as const) await tx.objectStore(name).clear();
-  }
-  // 13: a parent's folders and requests share one order, the order of a run. Before, each kind was numbered
-  // apart and the list showed folders first: numbered again that way, nothing moves.
-  if (oldVersion < 13) await numberChildrenTogether(tx);
-  return removed;
-}
-
-async function numberChildrenTogether(tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">): Promise<void> {
-  const byOrder = <T extends { order: number; meta: { id: string } }>(list: T[]) => list.sort((a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id));
-  const folders = byOrder(await tx.objectStore("folders").getAll());
-  const requests = byOrder(await tx.objectStore("requests").getAll());
-  const next = new Map<string, number>();
-  const place = (collectionId: string, parent: string | undefined): number => {
-    const key = JSON.stringify([collectionId, parent ?? null]);
-    const order = (next.get(key) ?? 0) + 1;
-    next.set(key, order);
-    return order;
-  };
-  for (const folder of folders) await tx.objectStore("folders").put({ ...folder, order: place(folder.collectionId, folder.parentFolderId) });
-  for (const request of requests) await tx.objectStore("requests").put({ ...request, order: place(request.collectionId, request.folderId) });
-}
-
-function createHistoryStore(db: IDBPDatabase<ApiSandboxDB>): void {
+function createStores(db: IDBPDatabase<ApiSandboxDB>): void {
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
-}
-
-function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {
-  for (const name of Array.from(db.objectStoreNames as DOMStringList)) {
-    (db as unknown as IDBPDatabase).deleteObjectStore(name);
-  }
-
-  createHistoryStore(db);
 
   const collections = db.createObjectStore("collections", { keyPath: "meta.id" });
   collections.createIndex("by-order", "order");
@@ -124,4 +49,7 @@ function createV5Stores(db: IDBPDatabase<ApiSandboxDB>): void {
   secrets.createIndex("by-name", "name");
 
   db.createObjectStore("meta", { keyPath: "key" });
+  db.createObjectStore("files");
+  db.createObjectStore("tabs", { keyPath: "id" });
+  db.createObjectStore("cookies", { keyPath: "key" });
 }

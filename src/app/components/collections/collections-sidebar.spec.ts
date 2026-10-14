@@ -8,7 +8,7 @@ import { Collection, Folder, Meta, RequestDoc } from "../../models/collections";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function meta(id: string): Meta {
-  return { id, createdAt: 1, updatedAt: 1, version: 1 };
+  return { id, createdAt: 1, updatedAt: 1 };
 }
 
 function makeCollection(id: string, name = `Collection ${id}`, order = 0): Collection {

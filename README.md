@@ -72,7 +72,7 @@ Wayfarer is a local-first API client. No account. No cloud. No telemetry. <!-- c
 
   - Collections tree with folders, drag/drop reorder, inline rename, and one-click **load into composer** <!-- claim:C-024 -->
   - Environment manager with a dropdown switcher and live `{{var}}` autocomplete chips showing source + resolved value as you type <!-- claim:C-025 -->
-  - Deterministic collection import/export in file format 3 (a round trip is byte-identical) <!-- claim:C-026 -->
+  - Deterministic collection import/export (a round trip is byte-identical) <!-- claim:C-026 -->
   - **One import road**: every file you import is read and checked off the page's thread, and a report shows what it will add and what of it could not be kept before anything is stored; Cancel stores nothing <!-- claim:C-054 -->. See [`docs/import.md`](docs/import.md)
   - **Export for Postman**: a collection as a Postman Collection v2.1 file, with its folders, variables, auth and scripts at every level and each request's body, credentials masked unless asked for; an environment as a Postman environment file. Newman runs the exported collection and gives the results the app gives <!-- claim:C-057 -->. See [`docs/export.md`](docs/export.md)
   - **Import from Postman**: Collection v2.0 and v2.1 files, with folders, variables, auth and scripts at every level, and environment and globals files. The report says what could not be kept, and scripts wait for your review <!-- claim:C-058 -->. See [`docs/import.md`](docs/import.md)

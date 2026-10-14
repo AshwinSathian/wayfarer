@@ -8,13 +8,6 @@ const zlib = require('node:zlib');
 const { URL } = require('node:url');
 const pkg = require('../package.json');
 
-// The protocol the page and the bridge speak (README.md, "Protocol"). A change that an older page or bridge would
-// read wrongly is a new number and a new path: the path is what keeps the two from guessing at each other.
-const PROTOCOL = 2;
-const RELAY_PATH = `/v${PROTOCOL}/relay`;
-// What this bridge can do. The first four are protocol 2 as 2.0.0 had it; the page asks for a later one only of a
-// bridge that lists it here, since 2.0.0 refuses a field it does not know and took a Host header off.
-const CAPABILITIES = ['bytes', 'decompression', 'header-list', 'timeout', 'timings', 'tls-insecure', 'host'];
 
 // 25 MB: for the request as it arrives here (its body is base64 inside JSON, so some 18 MB of bytes) and for the
 // target's response, as received and as decoded. Generous for API testing, not "proxy anything".
@@ -158,8 +151,8 @@ function sanitizeOutgoingHeaders(headers) {
 
 /**
  * What a relay request asks for, or the reason it is refused. Every field
- * is checked: a field of the wrong type, or one this protocol does not
- * have, is an error and never a default.
+ * is checked: a field of the wrong type, or one the bridge does not read,
+ * is an error and never a default.
  */
 function readPayload(payload) {
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -383,18 +376,10 @@ function createServer({ token, allowedOrigins, ca, env = process.env, tls: certi
       if (originAllowed) {
         setCorsHeaders(res, origin);
       }
-      sendJson(res, 200, { ok: true, name: 'wayfarer-bridge', version: pkg.version, protocol: PROTOCOL, capabilities: CAPABILITIES });
+      sendJson(res, 200, { ok: true, name: 'wayfarer-bridge', version: pkg.version });
       return;
     }
 
-    if (req.url === '/relay' && req.method === 'POST') {
-      // The path of protocol 1: a page from before this bridge. Its request is not read as anything.
-      if (originAllowed) {
-        setCorsHeaders(res, origin);
-      }
-      sendJson(res, 404, { error: `This Local Bridge speaks protocol ${PROTOCOL} and the page speaks protocol 1. Reload Wayfarer to get its current version.` });
-      return;
-    }
     if (req.url === '/pair' && req.method === 'POST') {
       if (!originAllowed) {
         sendJson(res, 403, { error: `origin not allowed: ${origin ?? '(none sent)'}` });
@@ -415,7 +400,7 @@ function createServer({ token, allowedOrigins, ca, env = process.env, tls: certi
         .catch((err) => sendJson(res, err.statusCode ?? 400, { error: err.message }));
       return;
     }
-    if (req.url !== RELAY_PATH || req.method !== 'POST') {
+    if (req.url !== '/relay' || req.method !== 'POST') {
       sendJson(res, 404, { error: 'not found' });
       return;
     }

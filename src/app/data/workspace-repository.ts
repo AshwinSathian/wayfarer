@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { Collection, Folder, RequestDoc } from "../models/collections";
-import { EnvironmentDoc } from "../models/environments";
-import { PastRequest } from "../models/history";
+import { EnvironmentDoc } from "@wayfarer/core";
+import { PastRequest } from "@wayfarer/core";
 import { SecretDoc } from "../models/secrets";
 import { IdbCore } from "./idb-core";
 import { GlobalsRecord, MetaState, StoreName, VaultRecordDoc } from "./idb-schema";

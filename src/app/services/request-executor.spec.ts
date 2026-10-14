@@ -9,7 +9,7 @@ import { TransportRouter } from "./transport-router";
 import { EnvironmentsStore } from "./environments-store";
 import { ResponseInspector } from "../shared/inspect/response-inspector";
 import { ScriptSandbox } from "../shared/scripts/script-sandbox";
-import type { EnvironmentDoc } from "../models/environments";
+import type { EnvironmentDoc } from "@wayfarer/core";
 
 // The order of a send, its scripts, the wire check and history are `exchange`'s, and its spec is in core
 // (`packages/core/src/send/exchange.spec.ts`). This one holds the app's ports to it.
@@ -46,7 +46,7 @@ describe("RequestExecutor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     answer = envelope();
-    active.set({ id: "env-1", meta: { id: "env-1", createdAt: 1, updatedAt: 1, version: 1 }, name: "Env", order: 1, vars: rowsOf({ n: "1" }) } as EnvironmentDoc);
+    active.set({ id: "env-1", meta: { id: "env-1", createdAt: 1, updatedAt: 1 }, name: "Env", order: 1, vars: rowsOf({ n: "1" }) } as EnvironmentDoc);
     TestBed.configureTestingModule({
       providers: [
         { provide: TransportRouter, useValue: transport },

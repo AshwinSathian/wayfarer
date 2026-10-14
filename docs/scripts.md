@@ -481,7 +481,7 @@ folder. Nothing is sent until **Run**.
 - **A run is not history.** Its requests are not written there, and a
   run's tab is not stored: a reload does not bring it back. You may open
   another tab while a run goes on.
-- **Reports**, once a run has ended: JSON (`"$id": "wayfarer/run/1"`),
+- **Reports**, once a run has ended: JSON (`"$id": "wayfarer/run"`),
   JUnit XML as CI servers read it (validated against Jenkins' JUnit schema
   in the tests), and a HAR 1.2 file of every exchange, masked as history
   is: a vault secret and a credential read `***`.

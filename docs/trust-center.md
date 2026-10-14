@@ -239,6 +239,14 @@ Automated-scanner discovery file: [`/.well-known/security.txt`](../public/.well-
 Every fixed security-relevant issue is recorded in [`CHANGELOG.md`](../CHANGELOG.md)
 rather than quietly folded into an unrelated release note.
 
+## Hall of fame
+
+People who broke the script sandbox, the vault or the Local Bridge under
+the rules of the [challenge in `SECURITY.md`](../SECURITY.md#break-the-sandbox),
+in the order their reports arrived.
+
+No one yet.
+
 ## Procurement answers
 
 The questions a security review asks most often (the "CAIQ-lite" set),

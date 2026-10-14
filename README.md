@@ -139,6 +139,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 ## Security
 
 - Report a vulnerability privately: [SECURITY.md](SECURITY.md).
+- Can you break the script sandbox, the vault or the Local Bridge? [Take the challenge](SECURITY.md#break-the-sandbox): no money, a place in the [hall of fame](docs/trust-center.md#hall-of-fame).
 
 ## Known limitations
 

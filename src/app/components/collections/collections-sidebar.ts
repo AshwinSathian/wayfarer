@@ -10,7 +10,7 @@ import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
 import { Tree, UiTreeNode } from "../../ui/tree";
-import { RequestDoc } from "../../models/collections";
+import { Folder, RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { HTTP_METHODS } from "../../models/history";
@@ -443,7 +443,7 @@ export class CollectionsSidebar implements OnInit {
   private async deleteNode(data: NodeData): Promise<void> {
     const confirmed = await this.confirm.confirm({
       title: "Delete item?",
-      message: "This action cannot be undone. Continue?",
+      message: `${data.type === "folder" ? this.insideFolder(data.ref) : ""}This action cannot be undone. Continue?`,
     });
     if (!confirmed) return;
     if (data.type === "collection") {
@@ -453,6 +453,18 @@ export class CollectionsSidebar implements OnInit {
     } else {
       await this.collectionsService.deleteRequest(data.ref.meta.id);
     }
+  }
+
+  /** What a folder's deletion takes with it, as a sentence; nothing for an empty folder. */
+  private insideFolder(folder: Folder): string {
+    const tree = this.collectionsService.tree().find((entry) => entry.collection.meta.id === folder.collectionId);
+    const within = (folderId: string | undefined) => folderChain(tree?.folders ?? [], folderId).some((entry) => entry.meta.id === folder.meta.id);
+    const folders = (tree?.folders ?? []).filter((entry) => entry.meta.id !== folder.meta.id && within(entry.meta.id)).length;
+    const requests = (tree?.requests ?? []).filter((request) => within(request.folderId)).length;
+    if (folders + requests === 0) return "";
+    const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+    const parts = [...(folders ? [count(folders, "folder")] : []), ...(requests ? [count(requests, "request")] : [])];
+    return `Folder "${folder.name}" is deleted with the ${parts.join(" and ")} in it. `;
   }
 
   private async exportCollection(node: UiTreeNode<NodeData>, credentials = false): Promise<void> {

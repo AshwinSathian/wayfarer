@@ -95,6 +95,7 @@ export class FoldersRepository {
     });
   }
 
+  /** A copy of a folder with everything in it: its requests, and the folders inside it at every depth. */
   async duplicateFolder(id: FolderId): Promise<Folder | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests"]);
@@ -106,37 +107,35 @@ export class FoldersRepository {
       if (!original) {
         return null;
       }
-      const meta = this.core.createMeta();
-      const clone: Folder = {
-        ...structuredClone(original),
-        id: meta.id,
-        meta,
-        name: `${original.name} copy`,
-        order: await this.core.nextOrder(folderStore.index("by-order"), requestStore.index("by-order")),
-      };
-      this.core.ensureId(clone);
-      await folderStore.add(clone);
+      // Read whole before the first copy is written: a copy is a folder of the same parent.
+      const subtree = await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id);
+      const copies = new Map<FolderId, FolderId>();
+      let top: Folder | null = null;
+      for (const folder of [original, ...subtree]) {
+        const meta = this.core.createMeta();
+        copies.set(folder.meta.id, meta.id);
+        const clone: Folder =
+          folder === original
+            ? { ...structuredClone(folder), id: meta.id, meta, name: `${folder.name} copy`, order: await this.core.nextOrder(folderStore.index("by-order"), requestStore.index("by-order")) }
+            : // A folder inside keeps its name and its place, in the copy of its parent.
+              { ...structuredClone(folder), id: meta.id, meta, parentFolderId: copies.get(folder.parentFolderId ?? "") };
+        this.core.ensureId(clone);
+        await folderStore.add(clone);
+        top ??= clone;
 
-      const requestIndex = requestStore.index("by-folderId");
-      const requests = await requestIndex.getAll(original.meta.id);
-      for (const request of requests) {
-        const reqMeta = this.core.createMeta();
-        const copy: RequestDoc = {
-          ...structuredClone(request),
-          id: reqMeta.id,
-          meta: reqMeta,
-          folderId: clone.meta.id,
-          collectionId: original.collectionId,
+        for (const request of await requestStore.index("by-folderId").getAll(folder.meta.id)) {
+          const reqMeta = this.core.createMeta();
           // Its place in the folder, as the original's.
-          order: request.order,
-        };
-        this.core.ensureId(copy);
-        await requestStore.add(copy);
+          const copy: RequestDoc = { ...structuredClone(request), id: reqMeta.id, meta: reqMeta, folderId: meta.id, collectionId: original.collectionId };
+          this.core.ensureId(copy);
+          await requestStore.add(copy);
+        }
       }
-      return clone;
+      return top;
     });
   }
 
+  /** A folder is deleted with everything in it: the folders inside it are not moved up (the tree draws them inside since version 13). */
   async deleteFolder(id: FolderId): Promise<void> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["folders", "requests", "files"]);
@@ -144,18 +143,28 @@ export class FoldersRepository {
     const requestStore = tx.objectStore("requests");
 
     await this.core.commitOrRollback(tx, async () => {
-      const folder = await folderStore.get(id);
-      await folderStore.delete(id);
-      // A folder inside this one is not deleted with it: it moves up to
-      // where this one was (F60).
-      for (const inside of await folderStore.index("by-parentFolderId").getAll(id)) {
-        await folderStore.put({ ...inside, parentFolderId: folder?.parentFolderId, meta: this.core.touchMeta(inside.meta) });
+      for (const folderId of [id, ...(await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id)).map((folder) => folder.meta.id)]) {
+        await folderStore.delete(folderId);
+        for (const key of await requestStore.index("by-folderId").getAllKeys(folderId)) await requestStore.delete(key);
       }
-      const requestIndex = requestStore.index("by-folderId");
-      const requests = await requestIndex.getAll(id);
-      await Promise.all(requests.map((request) => requestStore.delete(request.meta.id)));
       await sweepFiles(tx);
     });
+  }
+
+  /** The folders inside a folder, each after its parent. A folder is taken once, so folders that name each other end. */
+  private async subtree(inside: (parent: FolderId) => Promise<Folder[]>, id: FolderId): Promise<Folder[]> {
+    const found: Folder[] = [];
+    const seen = new Set<FolderId>([id]);
+    const queue: FolderId[] = [id];
+    for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+      for (const folder of await inside(next)) {
+        if (seen.has(folder.meta.id)) continue;
+        seen.add(folder.meta.id);
+        found.push(folder);
+        queue.push(folder.meta.id);
+      }
+    }
+    return found;
   }
 
   /** The new places of a parent's folders and requests: the two share one order, so they are written together. */

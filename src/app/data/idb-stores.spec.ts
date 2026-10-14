@@ -192,29 +192,47 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect((await requests.listRequests(other.meta.id)).map((r) => r.meta.id)).toEqual([kept.meta.id]);
   });
 
-  it("deleting a folder moves the folders inside it up one level, with their requests (F60)", async () => {
-    const { collection } = await seed();
+  it("deleting a folder deletes the folders inside it and their requests, at every depth", async () => {
+    const { collection, atRoot } = await seed();
     const outer = await folders.createFolder({ collectionId: collection.meta.id, name: "Outer" });
     const middle = await folders.createFolder({ collectionId: collection.meta.id, name: "Middle", parentFolderId: outer.meta.id });
     const inner = await folders.createFolder({ collectionId: collection.meta.id, name: "Inner", parentFolderId: middle.meta.id });
-    const kept = await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "Kept", method: "GET", url: "/k" });
+    const beside = await requests.createRequest({ collectionId: collection.meta.id, folderId: outer.meta.id, name: "Beside", method: "GET", url: "/b" });
+    await requests.createRequest({ collectionId: collection.meta.id, folderId: middle.meta.id, name: "In the middle", method: "GET", url: "/m" });
+    await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "Deepest", method: "GET", url: "/d" });
 
     await folders.deleteFolder(middle.meta.id);
 
-    const left = await folders.listFolders(collection.meta.id);
-    expect(left.map((f) => [f.name, f.parentFolderId])).toEqual([
-      ["Auth", undefined],
-      ["Outer", undefined],
-      ["Inner", outer.meta.id],
-    ]);
-    expect((await requests.listRequests(collection.meta.id)).some((r) => r.meta.id === kept.meta.id)).toBe(true);
-
-    // A folder at the top level: what was inside it is at the top level now.
-    await folders.deleteFolder(outer.meta.id);
     expect((await folders.listFolders(collection.meta.id)).map((f) => [f.name, f.parentFolderId])).toEqual([
       ["Auth", undefined],
-      ["Inner", undefined],
+      ["Outer", undefined],
     ]);
+    expect((await requests.listRequests(collection.meta.id)).map((r) => r.name).sort()).toEqual(["Beside", "Login", "Ping"]);
+    expect((await requests.listRequests(collection.meta.id)).some((r) => r.meta.id === beside.meta.id || r.meta.id === atRoot.meta.id)).toBe(true);
+  });
+
+  it("a copy of a folder holds the folders inside it and their requests, each under a new id and in its place", async () => {
+    const { collection, folder } = await seed();
+    const inner = await folders.createFolder({ collectionId: collection.meta.id, name: "Inner", parentFolderId: folder.meta.id });
+    const deepest = await folders.createFolder({ collectionId: collection.meta.id, name: "Deepest", parentFolderId: inner.meta.id });
+    await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "In inner", method: "GET", url: "/i" });
+    await requests.createRequest({ collectionId: collection.meta.id, folderId: deepest.meta.id, name: "In deepest", method: "GET", url: "/d" });
+
+    const twin = await folders.duplicateFolder(folder.meta.id);
+
+    const allFolders = await folders.listFolders(collection.meta.id);
+    const allRequests = await requests.listRequests(collection.meta.id);
+    const twinInner = allFolders.find((f) => f.parentFolderId === twin!.meta.id);
+    expect(twinInner).toMatchObject({ name: "Inner", order: inner.order });
+    expect(twinInner!.meta.id).not.toBe(inner.meta.id);
+    const twinDeepest = allFolders.find((f) => f.parentFolderId === twinInner!.meta.id);
+    expect(twinDeepest).toMatchObject({ name: "Deepest", order: deepest.order });
+    expect(allRequests.filter((r) => r.folderId === twinInner!.meta.id).map((r) => r.name)).toEqual(["In inner"]);
+    expect(allRequests.filter((r) => r.folderId === twinDeepest!.meta.id).map((r) => r.name)).toEqual(["In deepest"]);
+    // The original keeps what it had.
+    expect(allFolders.filter((f) => f.parentFolderId === folder.meta.id).map((f) => f.meta.id)).toEqual([inner.meta.id]);
+    expect(allFolders).toHaveLength(6);
+    expect(new Set([...allFolders, ...allRequests].map((doc) => doc.meta.id)).size).toBe(allFolders.length + allRequests.length);
   });
 
   it("exports a collection with its folders and requests, and imports it back over the existing one", async () => {

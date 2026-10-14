@@ -11,6 +11,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - Internal: the 320-line `Idb` class that only handed each call on to a
   repository is gone; services use the repositories directly.
+- Every axe scan checks WCAG 2.2 at levels A and AA, every impact. It used
+  to fail only on critical and serious violations. None are found.
+
+### Fixed
+
+- A dialog that asks for a name, a passphrase or a command opens with focus
+  on that field. Focus used to land on its Close button.
+- Enter in the name field of a new collection, folder or request creates it.
+- Focus stays on Send through a send. Send and Cancel were two buttons, and
+  the swap dropped focus to the page.
+- A code editor shows a focus ring while it has focus.
 
 ## [2.4.0] - 2026-10-14
 

@@ -58,7 +58,7 @@ Options:
       --allow-scripts       Run the file's scripts. A file's scripts are not
                             reviewed, so a collection that has any is not run
                             without it.
-      --vault-file <file>   A vault file (Settings, Vault, export) for the
+      --vault-file <file>   A vault file (the app's Export vault) for the
                             requests that use a vault secret. The passphrase
                             is read from WAYFARER_VAULT_PASSPHRASE.
   -v, --version

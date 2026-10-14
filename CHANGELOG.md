@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- Two auth fields filled at once, as a password manager fills a user name
+  and a password, are both kept. The first used to be written back empty
+  (AWS Signature, Basic, API key and OAuth 2.0).
+
 ## [2.4.0] - 2026-10-14
 
 The Local Bridge becomes a first-class route, and collections run from the

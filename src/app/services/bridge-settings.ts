@@ -114,6 +114,35 @@ export class BridgeSettings {
     return bridgeHealthProblem(health.ok ? health.value : undefined);
   }
 
+  /**
+   * Exchanges the code the bridge printed for its token (P6.2), at `url`,
+   * without saving either. The bridge gives the token once, and after three
+   * wrong codes takes none for a minute.
+   */
+  async pair(url: string, code: string): Promise<{ token: string } | { problem: string }> {
+    let response: Response;
+    try {
+      response = await fetch(`${url.trim().replace(/\/+$/, "")}/pair`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+        cache: "no-store",
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+      });
+    } catch (error) {
+      this.diagnostics.record(error, "bridge: pairing failed");
+      return { problem: BRIDGE_UNREACHABLE };
+    }
+    if (response.status === 401) return { problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute." };
+    if (response.status === 429) return { problem: `Three wrong codes: the bridge takes no code for ${Number.parseInt(response.headers.get("Retry-After") ?? "", 10) || 60} s.` };
+    if (response.status === 410) return { problem: "This bridge's code was used. Start the bridge again for a new one." };
+    const answer = parseJson(response.ok ? await response.text() : "");
+    const token = answer.ok && answer.value !== null && typeof answer.value === "object" ? (answer.value as { token?: unknown }).token : undefined;
+    // The bridge takes no token shorter than 16 characters.
+    return typeof token === "string" && token.length >= 16 ? { token } : { problem: "What answered at this address is not a Local Bridge." };
+  }
+
   private load(): BridgeConfig {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);

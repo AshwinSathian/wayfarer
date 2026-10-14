@@ -63,6 +63,44 @@ function sendJson(res, status, payload, extraHeaders = {}) {
   res.end(body);
 }
 
+/** A pairing code as the user may type it: case and the dash do not matter. */
+const normalCode = (code) => String(code).toUpperCase().replace(/[\s-]/g, '');
+
+// After this many wrong codes in a row, pairing takes no code for PAIRING_LOCK_MS: eight characters of 31 cannot be
+// guessed three at a time a minute.
+const PAIRING_TRIES = 3;
+const PAIRING_LOCK_MS = 60_000;
+
+/**
+ * The one-time exchange of the code printed in the terminal for the token (P6.2). The code works once; a wrong one
+ * counts, and the third in a row locks pairing for a minute, the right code included.
+ */
+function pairingFor(code, token, clock) {
+  let remaining = code === undefined ? undefined : normalCode(code);
+  let wrong = 0;
+  let lockedUntil = 0;
+  return (payload) => {
+    if (payload === null || typeof payload !== 'object' || Array.isArray(payload) || Object.keys(payload).length !== 1 || typeof payload.code !== 'string' || payload.code.length > 32) {
+      return { status: 400, body: { error: 'the request must be { "code": "…" }' } };
+    }
+    const now = clock();
+    if (now < lockedUntil) {
+      return { status: 429, body: { error: 'too many wrong codes: wait' }, headers: { 'Retry-After': String(Math.ceil((lockedUntil - now) / 1000)) } };
+    }
+    if (remaining === undefined) return { status: 410, body: { error: 'this bridge has no pairing code: it was used, or the bridge was started without one' } };
+    if (!timingSafeEqualStrings(normalCode(payload.code), remaining)) {
+      wrong += 1;
+      if (wrong >= PAIRING_TRIES) {
+        wrong = 0;
+        lockedUntil = now + PAIRING_LOCK_MS;
+      }
+      return { status: 401, body: { error: 'wrong pairing code' } };
+    }
+    remaining = undefined;
+    return { status: 200, body: { token } };
+  };
+}
+
 function setCorsHeaders(res, origin) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Vary', 'Origin');
@@ -310,14 +348,16 @@ function timingsOf(at, end) {
  * the caller is a Wayfarer instance the operator configured, not just any
  * page that happens to be served from an allowed origin.
  */
-function createServer({ token, allowedOrigins, ca, env = process.env }) {
+function createServer({ token, allowedOrigins, ca, env = process.env, tls: certificate, pairing, clock = Date.now }) {
   if (!token) {
     throw new Error('createServer requires a token');
   }
   const outgoing = { agents: agentsFor(env), ca };
+  const pair = pairingFor(pairing?.code, token, clock);
   const origins = allowedOrigins instanceof Set ? allowedOrigins : new Set(allowedOrigins ?? []);
 
-  return http.createServer((req, res) => {
+  // With a certificate the bridge speaks HTTPS only (P6.2): Safari will not reach http://127.0.0.1 from an HTTPS page.
+  const handler = (req, res) => {
     // A loopback name is the only Host a browser sends when it really means
     // this process. Anything else is a DNS-rebinding page whose hostname was
     // re-pointed at 127.0.0.1; refuse it before looking at anything else.
@@ -331,6 +371,8 @@ function createServer({ token, allowedOrigins, ca, env = process.env }) {
     if (req.method === 'OPTIONS') {
       if (originAllowed) {
         setCorsHeaders(res, origin);
+        // Private Network Access: a public page's preflight to a loopback address asks whether it may.
+        if (req.headers['access-control-request-private-network'] === 'true') res.setHeader('Access-Control-Allow-Private-Network', 'true');
       }
       res.writeHead(204);
       res.end();
@@ -351,6 +393,26 @@ function createServer({ token, allowedOrigins, ca, env = process.env }) {
         setCorsHeaders(res, origin);
       }
       sendJson(res, 404, { error: `This Local Bridge speaks protocol ${PROTOCOL} and the page speaks protocol 1. Reload Wayfarer to get its current version.` });
+      return;
+    }
+    if (req.url === '/pair' && req.method === 'POST') {
+      if (!originAllowed) {
+        sendJson(res, 403, { error: `origin not allowed: ${origin ?? '(none sent)'}` });
+        return;
+      }
+      setCorsHeaders(res, origin);
+      readRequestBody(req)
+        .then((raw) => {
+          let payload;
+          try {
+            payload = JSON.parse(raw.toString('utf8'));
+          } catch {
+            payload = undefined;
+          }
+          const answer = pair(payload);
+          sendJson(res, answer.status, answer.body, answer.headers);
+        })
+        .catch((err) => sendJson(res, err.statusCode ?? 400, { error: err.message }));
       return;
     }
     if (req.url !== RELAY_PATH || req.method !== 'POST') {
@@ -383,7 +445,8 @@ function createServer({ token, allowedOrigins, ca, env = process.env }) {
       .catch((err) => {
         sendJson(res, err.statusCode ?? 400, { error: err.message });
       });
-  });
+  };
+  return certificate ? https.createServer({ cert: certificate.cert, key: certificate.key }, handler) : http.createServer(handler);
 }
 
 module.exports = {

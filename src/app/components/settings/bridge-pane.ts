@@ -33,6 +33,13 @@ export class BridgePane {
     const test = this.test();
     return typeof test === "string" ? "" : test.problem;
   });
+  protected readonly pairingCode = signal("");
+  /** The last pairing: not made, on its way, done, or what went wrong. */
+  protected readonly pairing = signal<"idle" | "pairing" | "paired" | { problem: string }>("idle");
+  protected readonly pairProblem = computed(() => {
+    const pairing = this.pairing();
+    return typeof pairing === "string" ? "" : pairing.problem;
+  });
   /** Said once after a save, until the next edit. */
   protected readonly saved = signal(false);
 
@@ -53,6 +60,20 @@ export class BridgePane {
     this.test.set("testing");
     const problem = await this.bridge.checkHealth(this.url().trim());
     this.test.set(problem === undefined ? "ok" : { problem });
+  }
+
+  /** The code the bridge printed, for its token: saved at once with what else the pane holds, as Save would. */
+  protected async pair(): Promise<void> {
+    this.pairing.set("pairing");
+    const result = await this.bridge.pair(this.url().trim(), this.pairingCode());
+    if ("problem" in result) {
+      this.pairing.set({ problem: result.problem });
+      return;
+    }
+    this.token.set(result.token);
+    this.pairingCode.set("");
+    this.save();
+    this.pairing.set("paired");
   }
 
   protected save(): void {

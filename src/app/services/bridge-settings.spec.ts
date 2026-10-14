@@ -174,4 +174,40 @@ describe("BridgeSettings", () => {
     service.update({ url: "" });
     await expect(service.checkHealth()).resolves.toBe(BRIDGE_UNREACHABLE);
   });
+
+  describe("pairing (P6.2)", () => {
+    const answer = (status: number, body: unknown) => vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status }));
+
+    it("exchanges the code for the token at the given address, as a request of the page's own, and gives the token", async () => {
+      const fetchSpy = answer(200, { token: "a-token-of-the-bridge-0123456789" });
+      await expect(service.pair("http://127.0.0.1:7717/", " abcd-2345 ")).resolves.toEqual({ token: "a-token-of-the-bridge-0123456789" });
+      expect(fetchSpy.mock.calls[0][0]).toBe("http://127.0.0.1:7717/pair");
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      expect(init).toMatchObject({ method: "POST", cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer" });
+      expect(JSON.parse(init.body as string)).toEqual({ code: "abcd-2345" });
+      // Nothing is saved by it: the pane saves.
+      expect(service.config().token).toBe("");
+    });
+
+    it("says what went wrong: a wrong code, a lock with its seconds, a code already used, no bridge, an answer that is no token", async () => {
+      answer(401, { error: "wrong pairing code" });
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute." });
+      vi.restoreAllMocks();
+      vi.spyOn(window, "fetch").mockResolvedValue(new Response("{}", { status: 429, headers: { "Retry-After": "42" } }));
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "Three wrong codes: the bridge takes no code for 42 s." });
+      vi.restoreAllMocks();
+      answer(410, { error: "used" });
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "This bridge's code was used. Start the bridge again for a new one." });
+      vi.restoreAllMocks();
+      vi.spyOn(window, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: BRIDGE_UNREACHABLE });
+      vi.restoreAllMocks();
+      for (const body of [{ token: 5 }, { token: "short" }, "no", {}]) {
+        answer(200, body);
+        await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "What answered at this address is not a Local Bridge." });
+        vi.restoreAllMocks();
+      }
+    });
+  });
 });
+

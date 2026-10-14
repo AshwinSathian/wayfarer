@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const { createServer } = require('../src/server');
 const { loadOrCreateToken, TOKEN_FILE } = require('../src/token-store');
@@ -14,6 +15,24 @@ const DEFAULT_ALLOWED_ORIGINS = [
 ];
 
 const MIN_TOKEN_LENGTH = 16;
+// No 0/O, 1/I/L: a code is read off a terminal and typed.
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+/** A one-time pairing code: eight characters, shown as two halves. */
+function pairingCode() {
+  const chars = Array.from({ length: 8 }, () => CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)]);
+  return `${chars.slice(0, 4).join('')}-${chars.slice(4).join('')}`;
+}
+
+/** A PEM file's text when it holds `marker`; otherwise the reason it does not do. */
+function readPem(file, marker, option) {
+  try {
+    const pem = fs.readFileSync(file, 'utf8');
+    return pem.includes(marker) ? { pem } : { problem: `${option} must name a PEM file with ${marker.replace(/-/g, '').trim().toLowerCase()}, and ${file} has none` };
+  } catch (err) {
+    return { problem: `${option}: ${file} could not be read (${err.code ?? err.message})` };
+  }
+}
 
 function parseArgs(argv, env = process.env) {
   const args = { allowOrigin: [], token: env.WAYFARER_BRIDGE_TOKEN || undefined };
@@ -49,16 +68,15 @@ function parseArgs(argv, env = process.env) {
         else fail(`--allow-origin must be an origin like https://example.com, got: ${origin}`);
         break;
       }
-      case '--ca': {
+      case '--ca':
+      case '--cert':
+      case '--key': {
         const file = value();
         if (file === undefined) break;
-        try {
-          const pem = fs.readFileSync(file, 'utf8');
-          if (pem.includes('-----BEGIN CERTIFICATE-----')) args.ca = pem;
-          else fail(`--ca must name a file of PEM certificates, and ${file} holds none`);
-        } catch (err) {
-          fail(`--ca: ${file} could not be read (${err.code ?? err.message})`);
-        }
+        const read = readPem(file, arg === '--key' ? 'PRIVATE KEY-----' : '-----BEGIN CERTIFICATE-----', arg);
+        if (read.problem) fail(read.problem);
+        else if (arg === '--ca') args.ca = read.pem;
+        else (args.tls ??= {})[arg.slice(2)] = read.pem;
         break;
       }
       case '--help':
@@ -68,6 +86,9 @@ function parseArgs(argv, env = process.env) {
       default:
         fail(`Unknown argument: ${arg}`);
     }
+  }
+  if (args.tls && !(args.tls.cert && args.tls.key)) {
+    fail('--cert and --key go together: the certificate and its private key');
   }
   if (args.token !== undefined && args.token.length < MIN_TOKEN_LENGTH) {
     fail(`The token must be at least ${MIN_TOKEN_LENGTH} characters`);
@@ -93,6 +114,10 @@ Options:
   --rotate-token          Generate and persist a fresh token, replacing the saved one
   --allow-origin <url>    Additional allowed Origin (repeatable). Defaults already
                           include localhost dev and the hosted Wayfarer app.
+  --cert <file>           Serve HTTPS with this PEM certificate (with --key). Safari
+                          reaches the bridge from the hosted app only over HTTPS;
+                          make one with mkcert or openssl (README.md)
+  --key <file>            The certificate's PEM private key
   --ca <file>             A file of PEM certificates to trust besides the public
                           authorities, for a server whose certificate your own
                           authority signed
@@ -119,7 +144,9 @@ function main() {
   const token = args.token ?? loadOrCreateToken({ rotate: Boolean(args.rotateToken) });
   const allowedOrigins = new Set([...DEFAULT_ALLOWED_ORIGINS, ...args.allowOrigin]);
 
-  const server = createServer({ token, allowedOrigins, ca: args.ca });
+  const code = pairingCode();
+  const server = createServer({ token, allowedOrigins, ca: args.ca, tls: args.tls, pairing: { code } });
+  const scheme = args.tls ? 'https' : 'http';
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -132,7 +159,10 @@ function main() {
 
   server.listen(port, '127.0.0.1', () => {
     console.log('');
-    console.log(`  wayfarer-bridge v${pkg.version} — listening on http://127.0.0.1:${port}`);
+    console.log(`  wayfarer-bridge v${pkg.version} — listening on ${scheme}://127.0.0.1:${port}`);
+    console.log('');
+    console.log(`  Pairing code: ${code}`);
+    console.log("  (enter it in Wayfarer's Local Bridge settings and press Pair; it works once)");
     console.log('');
     console.log(`  Bridge token: ${token}`);
     console.log(`  (persisted at ${TOKEN_FILE} — reused across restarts unless you pass --rotate-token)`);
@@ -142,7 +172,7 @@ function main() {
       console.log(`    - ${origin}`);
     }
     console.log('');
-    console.log("  Paste the port and token into Wayfarer's Local Bridge settings to enable it.");
+    console.log("  Or paste the address and the token into Wayfarer's Local Bridge settings.");
     console.log('  Anyone with this token who can reach an allowed origin can make this process');
     console.log("  issue HTTP requests on your behalf — stop it (Ctrl+C) when you're done, and");
     console.log('  only add origins you trust with --allow-origin.');
@@ -159,4 +189,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { parseArgs };
+module.exports = { parseArgs, pairingCode };

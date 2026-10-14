@@ -55,3 +55,22 @@ test('--ca names a file of certificates, read when the bridge starts; one that c
   assert.equal(parse(['--ca', require.resolve('../package.json')]).exitCode, 1);
   assert.equal(parse(['--ca']).exitCode, 1);
 });
+
+test('--cert and --key name the HTTPS certificate and its key, read when the bridge starts; one without the other is an error', () => {
+  const fixture = (name) => require('node:path').join(__dirname, 'fixtures', name);
+  const args = parse(['--cert', fixture('cert.pem'), '--key', fixture('key.pem')]);
+  assert.match(args.tls.cert, /^-----BEGIN CERTIFICATE-----/);
+  assert.match(args.tls.key, /PRIVATE KEY-----/);
+  assert.equal(args.exitCode, undefined);
+  assert.equal(parse(['--cert', fixture('cert.pem')]).exitCode, 1);
+  assert.equal(parse(['--key', fixture('key.pem')]).exitCode, 1);
+  assert.equal(parse(['--cert', fixture('key.pem'), '--key', fixture('cert.pem')]).exitCode, 1);
+  assert.equal(parse(['--cert', `${fixture('cert.pem')}.missing`, '--key', fixture('key.pem')]).exitCode, 1);
+});
+
+test('a pairing code is eight letters and digits that cannot be mistaken for each other, shown in two halves', () => {
+  const { pairingCode } = require('../bin/cli');
+  const codes = new Set(Array.from({ length: 200 }, () => pairingCode()));
+  assert.ok(codes.size > 195);
+  for (const code of codes) assert.match(code, /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{4}$/);
+});

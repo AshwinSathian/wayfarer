@@ -14,6 +14,25 @@
     </mat-form-field>
   </div>
   <div class="settings-row settings-row-stacked">
+    <label for="bridge-pairing-input" class="type-subhead text-label-primary">Pairing code</label>
+    <p class="type-caption text-label-tertiary">The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code works once; after three wrong ones the bridge waits a minute.</p>
+    <div class="flex flex-wrap items-center gap-2">
+      <mat-form-field class="field min-w-0 flex-1 basis-40">
+        <input matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
+      </mat-form-field>
+      <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
+        @if (pairing() === 'pairing') { <mat-spinner diameter="18" aria-hidden="true" /> } Pair
+      </button>
+    </div>
+    <span class="type-footnote flex items-center gap-1" role="status">
+      @if (pairProblem()) {
+      <app-icon name="error" class="icon-xs text-status-error" /> <span class="bridge-pair-problem text-status-error">{{ pairProblem() }}</span>
+      } @else if (pairing() === 'paired') {
+      <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="bridge-paired text-status-success">Paired: the token is saved.</span>
+      }
+    </span>
+  </div>
+  <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
     <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
     <div class="flex items-center gap-2">
@@ -51,6 +70,12 @@
   }
   <button matButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
 </div>
+
+<p class="bridge-lna type-caption text-label-tertiary mt-4">
+  The first time this page reaches the bridge, Chrome and Edge may ask whether this site may look for and connect to devices on your local network.
+  The bridge is a program on this computer: allow it, or the page cannot reach the bridge. If you blocked it, allow it again in the site's settings (the icon left of the address).
+  From the hosted app, Safari reaches the bridge only over HTTPS: start the bridge with a certificate (<span class="font-mono">--cert</span>, <span class="font-mono">--key</span>).
+</p>
 
 <p class="type-caption text-label-tertiary mt-4">
   The bridge is a small program you run yourself; nothing is sent to it unless you switch it on here.

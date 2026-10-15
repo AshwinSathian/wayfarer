@@ -109,3 +109,45 @@ test("the server sends a compressed body that decompresses to the file, and says
     server.close();
   }
 });
+
+// #228: a `page.goto` in WebKit on CI waited 30 s for a document that never
+// came (status -1). The log says whether the request reached the server, on
+// which connection, and whether its answer was sent.
+test("with a log file, the server writes each connection, request and answer as a line of JSON", async () => {
+  const { mkdtempSync, readFileSync: read, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { Agent, request } = await import("node:http");
+  const root = mkdtempSync(join(tmpdir(), "prod-server-"));
+  writeFileSync(join(root, "_headers"), "/*\n  X-Test: yes\n");
+  writeFileSync(join(root, "index.html"), "<p>shell</p>");
+  const log = join(root, "server.log");
+  const server = startServer(root, 0, log);
+  await new Promise((done) => server.once("listening", done));
+  const agent = new Agent({ keepAlive: true });
+  const { port } = server.address();
+  try {
+    for (const path of ["/", "/app"]) {
+      const response = await new Promise((done, fail) => request({ port, path, agent }, done).on("error", fail).end());
+      for await (const chunk of response) void chunk;
+    }
+  } finally {
+    agent.destroy();
+    await new Promise((done) => server.close(done));
+  }
+  // The server's `close` comes before its socket's.
+  for (let wait = 0; wait < 100 && !read(log, "utf8").includes('"closed"'); wait++) await new Promise((done) => setTimeout(done, 10));
+  const lines = read(log, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+  for (const line of lines) assert.match(line.t, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  assert.deepEqual(
+    lines.map(({ event, socket, method, path, status }) => ({ event, socket, method, path, status })),
+    [
+      { event: "connection", socket: `${port}#1`, method: undefined, path: undefined, status: undefined },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/", status: undefined },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/", status: 200 },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/app", status: undefined },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/app", status: 200 },
+      { event: "closed", socket: `${port}#1`, method: undefined, path: undefined, status: undefined },
+    ]
+  );
+});

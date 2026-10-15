@@ -18,7 +18,11 @@
 // Text, script and wasm go compressed, brotli or gzip, as Cloudflare sends
 // them (P7.2): measured without it, the page loaded a megabyte it never sends.
 //
+// With PROD_SERVER_LOG set to a file, each connection, request and answer is
+// a line of JSON there (#228: whether a document WebKit waited for arrived).
+//
 // Usage: node e2e/support/prod-server.mjs [root] [port]
+import { appendFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
@@ -143,8 +147,15 @@ async function resolveFile(root, pathname) {
   return null;
 }
 
-export function startServer(root, port) {
-  return createServer(async (req, res) => {
+/** Serves `root` on `port`; with `logFile`, appends a line of JSON to it for each connection, request and answer. */
+export function startServer(root, port, logFile) {
+  const log = logFile ? (event, fields) => appendFileSync(logFile, `${JSON.stringify({ t: new Date().toISOString(), event, ...fields })}\n`) : () => {};
+  const sockets = new WeakMap();
+  let connections = 0;
+  const server = createServer(async (req, res) => {
+    const request = { socket: sockets.get(req.socket), method: req.method, path: req.url };
+    log("request", request);
+    res.on("close", () => log(res.writableFinished ? "answered" : "unanswered", { ...request, status: res.statusCode }));
     try {
       // `_headers` is re-read per request so a test can swap the build in place.
       const rules = parseHeadersFile(await readFile(join(root, "_headers"), "utf8"));
@@ -169,7 +180,15 @@ export function startServer(root, port) {
       res.statusCode = 500;
       res.end("Internal Server Error");
     }
-  }).listen(port, function () {
+  });
+  server.on("connection", (socket) => {
+    // By port as well: e2e/service-worker.spec.ts starts a second server, which writes to the same file.
+    const id = `${socket.localPort}#${++connections}`;
+    sockets.set(socket, id);
+    log("connection", { socket: id });
+    socket.on("close", () => log("closed", { socket: id }));
+  });
+  return server.listen(port, function () {
     console.log(`prod-server: ${root} on http://localhost:${this.address().port}`);
   });
 }
@@ -181,5 +200,5 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     console.error(`prod-server: no _headers in ${root}; build first (npm run build)`);
     process.exit(1);
   });
-  startServer(root, port);
+  startServer(root, port, process.env.PROD_SERVER_LOG);
 }

@@ -1,8 +1,8 @@
 # RFC: Wayfarer rebuilt for people (design, website, teams)
 
-> Status: OPEN FOR REVIEW. Refreshed 2026-10-16 against `main` at `b57632d`; no task starts before the maintainer's review. The remediation plan's P7.8 is done (its v1.2.107); its P7.9 is the owner's and does not block this plan.
+> Status: LOCKED (v1.0, 2026-10-16, approved by the maintainer). Changes after lock need a row in section 14. The remediation plan's P7.8 is done (its v1.2.107); its P7.9 is the owner's and does not block this plan.
 > Scale: Epic
-> Target start: the session after the maintainer's review (P7.8 merged on 2026-10-15)
+> Target start: 2026-10-16 (remediation session 11), with W0
 > Created: 2026-10-14
 > Author: AshwinSathian (maintainer), drafted with Claude
 > Research: [`docs/design/research-2026.md`](docs/design/research-2026.md)
@@ -548,3 +548,4 @@ Each has a default; a session goes ahead on the default and says so.
 |---|---|---|
 | 2026-10-14 | 0.1 | Drafted. The maintainer's answers of this date are in section 1. Research in `docs/design/research-2026.md`. |
 | 2026-10-16 | 0.2 | Refreshed against `main` at `b57632d` for the maintainer's review (remediation session 11): 67 claims, 47 components, 4,069 template lines, 1,125 e2e tests, `material-theme.scss` 411 lines with 19 override mixins (20 was a miscount), 34 Material rules in `CLAUDE.md`; P7.8 done; the npm names published; DQ1 answered (W1 before D0); the release of `main` waits for the website. |
+| 2026-10-16 | 1.0 | **Locked: the maintainer approved the plan** ("Design looks good", 2026-10-16). Work starts with phase W (DQ1): W0.1 splits it into sessions, W0.2 chooses the site's stack, then W1.1 moves the app to `/app`. |

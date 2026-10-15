@@ -65,7 +65,7 @@ export function vmDecode(encoding: VmEncoding, words: string): string {
   } catch (error) {
     if (!(error instanceof TypeError)) throw error;
     // The message crypto-js gives, which scripts test for.
-    throw new Error("Malformed UTF-8 data");
+    throw new Error("Malformed UTF-8 data", { cause: error });
   }
 }
 

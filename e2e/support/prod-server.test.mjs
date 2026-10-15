@@ -6,6 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { encodingFor, headersFor, parseHeadersFile, startServer } from "./prod-server.mjs";
 
 const URL_BASE = "http://localhost:4200";
@@ -112,7 +113,8 @@ test("the server sends a compressed body that decompresses to the file, and says
 
 // #228: a `page.goto` in WebKit on CI waited 30 s for a document that never
 // came (status -1). The log says whether the request reached the server, on
-// which connection, and whether its answer was sent.
+// which connection, and whether its answer was sent: with the `Accept-Encoding`
+// asked for, the encoding chosen and the bytes of the body (#228, the second hang).
 test("with a log file, the server writes each connection, request and answer as a line of JSON", async () => {
   const { mkdtempSync, readFileSync: read, writeFileSync } = await import("node:fs");
   const { tmpdir } = await import("node:os");
@@ -127,8 +129,8 @@ test("with a log file, the server writes each connection, request and answer as 
   const agent = new Agent({ keepAlive: true });
   const { port } = server.address();
   try {
-    for (const path of ["/", "/app"]) {
-      const response = await new Promise((done, fail) => request({ port, path, agent }, done).on("error", fail).end());
+    for (const [path, headers] of [["/", { "accept-encoding": "gzip" }], ["/app", {}]]) {
+      const response = await new Promise((done, fail) => request({ port, path, agent, headers }, done).on("error", fail).end());
       for await (const chunk of response) void chunk;
     }
   } finally {
@@ -140,14 +142,14 @@ test("with a log file, the server writes each connection, request and answer as 
   const lines = read(log, "utf8").trim().split("\n").map((line) => JSON.parse(line));
   for (const line of lines) assert.match(line.t, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
   assert.deepEqual(
-    lines.map(({ event, socket, method, path, status }) => ({ event, socket, method, path, status })),
+    lines.map(({ t, ...line }) => line),
     [
-      { event: "connection", socket: `${port}#1`, method: undefined, path: undefined, status: undefined },
-      { event: "request", socket: `${port}#1`, method: "GET", path: "/", status: undefined },
-      { event: "answered", socket: `${port}#1`, method: "GET", path: "/", status: 200 },
-      { event: "request", socket: `${port}#1`, method: "GET", path: "/app", status: undefined },
-      { event: "answered", socket: `${port}#1`, method: "GET", path: "/app", status: 200 },
-      { event: "closed", socket: `${port}#1`, method: undefined, path: undefined, status: undefined },
+      { event: "connection", socket: `${port}#1` },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip" },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip", status: 200, encoding: "gzip", bytes: gzipSync("<p>shell</p>").length },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/app" },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/app", status: 200, bytes: 12 },
+      { event: "closed", socket: `${port}#1` },
     ]
   );
 });

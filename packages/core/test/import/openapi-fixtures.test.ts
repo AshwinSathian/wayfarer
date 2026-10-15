@@ -70,7 +70,7 @@ describe("OpenAPI descriptions other people wrote (P4.3)", () => {
     try {
       imported = importText(read(file));
     } catch (error) {
-      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`);
+      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`, { cause: error });
     }
     expect(imported.report.formatName).toBe("OpenAPI description");
     expect(imported.report.counts.requests).toBe(operations(file));

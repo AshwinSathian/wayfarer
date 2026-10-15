@@ -136,3 +136,23 @@ test("@claim:C-035 a response's Export as HAR… shows the file first: masked, o
   await expect(dialog.getByRole("checkbox", { name: "Include credentials" })).not.toBeChecked();
   await expect(preview).not.toContainText("typed-bearer-c035");
 });
+
+// Material's menu takes `pointer-events: none` while it animates. On CI's
+// slow runner its entrance began between a click's press and its release
+// (e2e/FLAKES.md, C-007 at Export as HAR…): the press was on the item, the
+// release on the backdrop, and the click went to neither. The entrance is
+// made 60 s long here, so that the whole click falls inside it.
+test("an item clicked while its menu is still opening is chosen", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  await sendTo(page, `${ECHO}/echo`);
+  await page.addStyleTag({ content: ".mat-mdc-menu-panel:not(.mat-menu-panel-exit-animation) { animation-duration: 60s !important; }" });
+
+  await page.getByRole("button", { name: "Export response" }).click();
+  const item = page.getByRole("menuitem", { name: "Export as HAR…", exact: true });
+  await expect(page.locator(".mat-mdc-menu-panel")).toHaveClass(/mat-menu-panel-animating/);
+  const box = await item.boundingBox();
+  if (!box) throw new Error("The menu item has no box.");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(page.getByRole("dialog", { name: "Export as HAR" })).toBeVisible();
+});

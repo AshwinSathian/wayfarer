@@ -276,6 +276,14 @@ html {
   );
 }
 
+/* Material takes pointer events off a menu while it animates. Opening, that
+   lost a click whose press and release fell on either side of the start of
+   the animation: the press was on an item, the release on the backdrop
+   (e2e/FLAKES.md, C-007). An opening menu takes a click; a closing one does not. */
+.mat-mdc-menu-panel.mat-menu-panel-animating:not(.mat-menu-panel-exit-animation) {
+  pointer-events: auto;
+}
+
 /* ── Dialog ──────────────────────────────────────────────── */
 html {
   @include mat.dialog-overrides(

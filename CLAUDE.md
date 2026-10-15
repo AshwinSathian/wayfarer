@@ -82,6 +82,12 @@ code errors.
   (`inlineStylesheets: "never"`) and Markdown is not highlighted (Shiki
   writes `style` attributes). A page that needs a script needs a decision
   in `PLAN-design.md` first.
+- A sentence of the site that says what Wayfarer does names its claims
+  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.astro`);
+  `e2e/site.spec.ts` holds every ID named to `docs/claims.md`. The
+  pictures of the app are `scripts/site-screenshot.mjs`'s: take them again
+  when the app they show changes. Lighthouse (mobile) holds the site to
+  95, 100 and 100 (`check-lighthouse.mjs --site`).
 - The synthetic monitor runs the latest release's tests (`v*` tag), not
   `main`'s: production runs a release, and `main` may have moved paths.
 

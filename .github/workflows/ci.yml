@@ -186,6 +186,13 @@ jobs:
             done
           done
           node scripts/check-lighthouse.mjs "$RUNNER_TEMP"/lighthouse-*.json
+          # The site at / (W2.1 of PLAN-design.md), on Lighthouse's mobile preset.
+          for run in 1 2 3; do
+            for attempt in 1 2; do
+              npx --yes lighthouse@12.8.2 http://localhost:4200/ --output=json --output-path="$RUNNER_TEMP/site-$run.json" --chrome-flags="--headless=new --no-sandbox" --quiet && break
+            done
+          done
+          node scripts/check-lighthouse.mjs --site "$RUNNER_TEMP"/site-*.json
 
   e2e:
     name: E2E (${{ matrix.browser }})

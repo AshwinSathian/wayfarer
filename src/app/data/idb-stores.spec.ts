@@ -508,8 +508,8 @@ describe("environments (real IndexedDB)", () => {
 describe("secrets (real IndexedDB)", () => {
   let core: Repositories;
   let secrets: SecretsRepository;
-  const envelope = (tag: string): SecretEnvelope => ({ v: 2, iv: `iv-${tag}`, ct: `ct-${tag}` });
-  const vault = (tag: string): VaultRecord => ({ v: 2, kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
+  const envelope = (tag: string): SecretEnvelope => ({ iv: `iv-${tag}`, ct: `ct-${tag}` });
+  const vault = (tag: string): VaultRecord => ({ kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
 
   beforeEach(() => {
     TestBed.configureTestingModule({});

@@ -1,7 +1,6 @@
 {
   "$id": "wayfarer/vault",
   "vault": {
-    "v": 2,
     "kdf": {
       "alg": "PBKDF2-SHA256",
       "iterations": 600000,
@@ -14,7 +13,6 @@
       "id": "0b6f4a2e-cli-fixture",
       "name": "API key",
       "envelope": {
-        "v": 2,
         "iv": "MuOGKJWpeGGltnBf",
         "ct": "wyJ2MA6OI4jye39iP4JVrza4i2ZWpvXo4dGs6dNC44yWNMEhPQ"
       }

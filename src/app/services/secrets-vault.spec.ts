@@ -43,8 +43,8 @@ describe("SecretsVault", () => {
 
       expect(first).not.toBe(second);
       const [doc] = (await idb.secrets.listAll()).filter((secret) => secret.id === first);
-      expect(doc).toMatchObject({ id: first, name: "API key", environmentId: "env-1", envelope: { v: 2 } });
-      expect(Object.keys(doc.envelope).sort()).toEqual(["ct", "iv", "v"]);
+      expect(doc).toMatchObject({ id: first, name: "API key", environmentId: "env-1", envelope: { iv: expect.any(String), ct: expect.any(String) } });
+      expect(Object.keys(doc.envelope).sort()).toEqual(["ct", "iv"]);
     });
 
     it("never lets the plaintext itself reach storage", async () => {

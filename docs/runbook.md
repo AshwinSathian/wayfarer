@@ -301,7 +301,7 @@ Phase 6's first exit criterion waits for this: **pairing in under 60
 seconds from the hosted page, in Chrome, Firefox and Safari**.
 
 1. On a computer that has never run it, time the documented flow: start
-   `npx wayfarer-bridge` (or `npm run bridge` until it is on npm), open
+   `npx wayfarer-bridge`, open
    Settings → Local Bridge on `https://<host>`, type the pairing code, press
    Pair, send a request with the route Local Bridge. In Chrome, allow the
    Local Network Access prompt the pane explains first.

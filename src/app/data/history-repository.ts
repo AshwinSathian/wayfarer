@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { PastRequest, PastRequestKey } from "../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { HistoryRecord, IdbCore } from "./idb-core";
 
 @Injectable({ providedIn: "root" })
@@ -13,7 +13,7 @@ export class HistoryRepository {
    * Records an exchange and deletes the oldest ones beyond `cap`, in one
    * transaction: the store never holds more than `cap` entries.
    */
-  async add(req: PastRequest, cap: number): Promise<PastRequestKey | null> {
+  async add(req: PastRequest, cap: number): Promise<number | null> {
     try {
       if (this.core.useMemoryFallback) {
         return this.addToMemory(req, cap);
@@ -39,7 +39,7 @@ export class HistoryRepository {
     }
   }
 
-  async get(id: PastRequestKey): Promise<PastRequest | null> {
+  async get(id: number): Promise<PastRequest | null> {
     try {
       if (this.core.useMemoryFallback) {
         return this.memoryStore.find((item) => item.id === id) ?? null;
@@ -88,7 +88,7 @@ export class HistoryRepository {
     }
   }
 
-  async delete(id: PastRequestKey): Promise<void> {
+  async delete(id: number): Promise<void> {
     try {
       if (this.core.useMemoryFallback) {
         this.memoryStore = this.memoryStore.filter((item) => item.id !== id);
@@ -138,7 +138,7 @@ export class HistoryRepository {
     this.memorySequence = 1;
   }
 
-  private addToMemory(item: PastRequest, cap: number): PastRequestKey {
+  private addToMemory(item: PastRequest, cap: number): number {
     const record = { ...item, id: this.memorySequence++ } as HistoryRecord;
     this.memoryStore.push(record);
     this.sortMemoryStore();

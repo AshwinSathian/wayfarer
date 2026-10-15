@@ -30,13 +30,15 @@ export default defineConfig({
   reporter: CI ? [["list"], ["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }]] : "list",
   use: {
     baseURL: BASE_URL ?? "http://localhost:4200",
-    trace: "on-first-retry",
+    // The failed attempt's trace, not the retry's: a flake's retry passes and shows nothing of it
+    // (e2e/FLAKES.md, the drawer at 768 and 820 px). About a tenth more time in WebKit.
+    trace: "retain-on-first-failure",
     screenshot: "only-on-failure",
   },
   // P1.3: every spec runs in all three engines. Tests tagged @claim back a
   // public claim (docs/claims.md), so they run in their own projects with
-  // retries disabled: a claim test that fails once fails CI. With no retry
-  // there is no "first retry" to trace, so these keep the trace of a failure.
+  // retries disabled: a claim test that fails once fails CI, and keeps the
+  // trace of its failure.
   projects: BROWSERS.flatMap(({ name, device }) => [
     { name, use: { ...device }, grepInvert: /@claim\b/ },
     { name: `claims-${name}`, use: { ...device, trace: "retain-on-failure" as const }, grep: /@claim\b/, retries: 0, expect: { timeout: CLAIMS_EXPECT_MS } },

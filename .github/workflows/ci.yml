@@ -50,6 +50,9 @@ jobs:
       # The claim tests themselves run in the retry-free claims-* projects
       # of the e2e job.
       - run: npm run check:claims
+      # P7.6: the README's feature list is the ledger; every doc link leads to a file, and the README links every doc.
+      - run: npm run check:readme
+      - run: npm run check:links
 
   test:
     name: Unit tests
@@ -113,6 +116,32 @@ jobs:
       # P3.10 (risk R3): what a real script costs in the engine. Fails above 300 ms (p95 of 20 runs) or a 250 ms engine load.
       - run: npm -w packages/core run bench
 
+  cli:
+    # P6.5: the command line, built and run against local servers, on both Node versions it supports.
+    name: CLI (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm -w packages/cli run typecheck
+      - run: npm -w packages/cli test
+      # P6.6: the tarball npm would publish, installed into an empty folder, runs.
+      - name: Pack, install and run
+        run: |
+          npm pack --workspace packages/cli --pack-destination "$RUNNER_TEMP"
+          mkdir "$RUNNER_TEMP/clean" && cd "$RUNNER_TEMP/clean"
+          npm init --yes > /dev/null
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/wayfarer-cli-*.tgz
+          npx --no-install wayfarer-cli --version
+
   local-bridge:
     name: Local Bridge (zero-dependency Node test suite)
     runs-on: ubuntu-latest
@@ -122,6 +151,39 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: npm run bridge:test
+
+  lighthouse:
+    # P7.2: the built app, served as production serves it (headers,
+    # compression), measured with Lighthouse's desktop preset: the median of
+    # three runs scores 90 or more, LCP at most 2 s, TBT at most 200 ms.
+    name: Lighthouse (desktop)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist/wayfarer/browser/
+      - run: npm ci
+      # The Chromium the e2e suite pins: the runner's own Chrome gave Lighthouse no navigation start (NO_NAVSTART).
+      - run: npx playwright install --with-deps chromium
+      - name: Three runs against the build
+        run: |
+          export CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()")
+          node e2e/support/prod-server.mjs dist/wayfarer/browser 4200 &
+          until curl -sf -o /dev/null http://localhost:4200/; do sleep 1; done
+          for run in 1 2 3; do
+            # Pinned, and not a dependency of the project (as Newman is not, for the golden files). A run Lighthouse itself could not record is made again, once.
+            for attempt in 1 2; do
+              npx --yes lighthouse@12.8.2 http://localhost:4200/ --preset=desktop --output=json --output-path="$RUNNER_TEMP/lighthouse-$run.json" --chrome-flags="--headless=new --no-sandbox" --quiet && break
+            done
+          done
+          node scripts/check-lighthouse.mjs "$RUNNER_TEMP"/lighthouse-*.json
 
   e2e:
     name: E2E (${{ matrix.browser }})
@@ -145,12 +207,22 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       # Serves the downloaded build through prod-server.mjs (production
       # headers). claims-<browser> runs the @claim tests with retries off.
+      # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).
+      # Both uploads also run for a flake: its retry passes and the job is green, and a
+      # trace.zip under test-results/ is what a failed first attempt leaves (retain-on-first-failure).
       - run: npx playwright test --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }}
         env:
           CI: "1"
+          PROD_SERVER_LOG: ${{ runner.temp }}/prod-server.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
         with:
           name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
+          retention-days: 7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
+        with:
+          name: prod-server-log-${{ matrix.browser }}
+          path: ${{ runner.temp }}/prod-server.log
           retention-days: 7

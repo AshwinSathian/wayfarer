@@ -19,6 +19,8 @@ npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
 npm run check:compat    # docs/postman-compatibility.md is what the compatibility matrix gives
+npm run check:readme    # README's feature list is docs/claims.md (npm run gen:readme writes it)
+npm run check:links     # every doc link leads to a file; README links every doc
 npm -w packages/core run mutation    # Stryker on the resolver, the redactor and the vault's crypto (3 minutes)
 npx knip                # no unused files, exports or dependencies
 ```
@@ -97,7 +99,7 @@ code errors.
   relay of its own when the caller asks (`TransportOptions.redirects`, at
   most `MAX_REDIRECTS`) and lists them in `ResponseEnvelope.redirects`;
   `nextHop` (`packages/core/src/transport/redirect.ts`) is the rule for a
-  hop. `RequestExecutor` sets `stayOnHost` for a request with anything in
+  hop. `exchange` sets `stayOnHost` for a request with anything in
   `BuiltRequest.secrets` (claim C-063): keep it for every send that is
   built with the vault. A `Location` is read as an address, as the server
   wrote it, and never goes through the resolver. Do not move the following
@@ -124,12 +126,22 @@ code errors.
   (`TransportOptions.cookies`), reading `Set-Cookie` from the bridge's
   list of headers, one entry each. `CookieJar.store` has the
   cookies in the page before it returns: the next hop asks at once.
-  `RequestExecutor` is the one that hands the jar to a transport: each
+  `exchange` is the one that hands the jar to a transport: each
   value that went out is a credential to the redactor (`cookieValues`), a
   cookie that names a secret's reference is left out (C-007), and a cookie
   whose value holds a vault secret of the request is never written to the
   store. A cookie's value is never a template. `pm.cookies` stays
   unsupported (maintainer, 2026-10-13): a script is not given the jar.
+- One road sends a request (P6.5): `exchange`
+  (`packages/core/src/send/exchange.ts`) runs the scripts, stores what they
+  set, has the request built, checks the wire (C-007), sends it by its
+  route, runs the assertions and masks what history keeps; `buildRequest`
+  (`send/build.ts`) replaces the variables, reads the vault, asks C-053's
+  question, applies the auth and signs. Each takes what is not its own as
+  ports. The app's are `RequestExecutor` and `WorkspaceStore`'s
+  `buildRequestForExecution`; the CLI's are its own. A change to how a
+  request is sent goes into core, so both get it: do not add a step to one
+  adapter.
 - A transport takes a signal and a timeout through `withDeadline`. Do not
   swap it for `AbortSignal.any([signal, AbortSignal.timeout(ms)])`: in
   WebKit that signal never aborted the fetch ("a request that outlasts the
@@ -373,6 +385,12 @@ code errors.
   animation to 0 ms: Material moves focus in only when its entrance ends,
   and keeps the panel over the page until its exit does. The entrance is drawn in `animations.css`. Both
   pass `ariaModal: true`; Material's default is false.
+- A `<ui-dialog>`'s content is projected, and Angular makes projected
+  content with the page, open or not: a Monaco editor in a closed dialog
+  loaded Monaco at every start (P7.2, 300 ms of the main thread). Put an
+  editor, or anything heavy, inside `@if` of the dialog's open state; the
+  footer (`uiDialogFooter`) stays outside it. A composer pane with an
+  editor is `@defer (when …)` its tab is first chosen, and stays.
 - The small confirmation under a button stays on the CDK's dialog:
   Material's is placed in the window, not against an element.
 - Drawer: `<mat-sidenav class="drawer" mode="over" fixedInViewport
@@ -531,14 +549,14 @@ code errors.
   script can replace `String` or `JSON` under the bootstrap. No handle of a
   script's object is read by the host; write it out as text in the VM.
 - `pm.sendRequest` is not a network call of the script: the worker asks
-  the page (`ScriptSandbox`), and `RequestExecutor.sendForScript` sends it
+  the page (`ScriptSandbox`), and `exchange`'s `sendForScript` sends it
   through `TransportRouter` like the user's own request, after the same
   `containsSecretPlaceholder` check (C-007). Nothing else may make a
   request for a script, and the escape suite counts them. Do not describe
   that check as keeping secrets from scripts: an approved pre-request
   script can change the user's own request (`pm.request`, or a variable),
   which is built with its secrets. `ScriptTrust` is the control (D6, Q6).
-- A send with scripts goes in this order, in `RequestExecutor.execute`:
+- A send with scripts goes in this order, in `exchange`:
   pre-request script, its variable changes stored, the request built (and
   only then the vault read), sent, post-response script. A pre-request
   script that ends in an error stops there (`PreRequestScriptError`):
@@ -566,7 +584,7 @@ code errors.
   the docs say what that misses: do not word it as more.
 - A script's `set` on a protected variable (its value is one
   `{{$secret.<id>}}` reference) is encrypted into that secret by
-  `RequestExecutor.intoVault` and is left out of the changes that are
+  `exchange`'s `intoVault` and is left out of the changes that are
   stored. A locked vault refuses with a console line; it does not prompt.
   A new way for a script to write a value goes through `applyChanges`,
   which marks every change `keepSecret`: `applyVariableChanges` then never
@@ -690,15 +708,13 @@ code errors.
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
-  (`wayfarer/collection/3`, `wayfarer/environments/2`, `wayfarer/workspace/3`); there is no
+  (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`); there is no
   converter for older files.
-- The database is version 13. `runUpgrade` empties a database from before
-  version 5, and since then removes only what changed shape (secrets at 8,
-  history at 9; collections, folders, requests and files at 10), saying
-  what it removed. Version 11 added the `tabs` store and version 12 the `cookies` store; version 13 numbered each parent's folders and requests as one list. None of the three removed anything. No stored data exists to keep
-  (maintainer, 2026-10-09), so a change of stored shape may do the same
-  again until the app has users; say so in the changelog and in
-  `docs/storage.md`.
+- The database's shape has one number, `DB_VERSION` (IndexedDB needs it).
+  `runUpgrade` empties a database of any earlier number and makes this
+  version's stores: nothing stored before is read, converted or kept
+  (maintainer, 2026-10-14). A change of stored shape raises the number;
+  say so in the changelog and in `docs/storage.md`. No step per version.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - A variable's name may hold any character but a brace (F74). A name that
@@ -724,7 +740,7 @@ code errors.
 - `BuiltRequest.secrets` and `.credentials` are what the redactor looks
   for. A new way to put a credential into a request adds its value there.
 - AWS Signature (`signV4`, `packages/core/src/auth/sigv4.ts`) is applied
-  last, in `WorkspaceStore.sign`: it signs the address, the headers and the
+  last, in `buildRequest`'s `sign`: it signs the address, the headers and the
   body's bytes as they will be sent. Nothing may change the request after
   it. It signs `Host`, its own headers, `Content-Type` and `x-amz-*` only:
   a browser adds headers the app does not write. A multipart form is
@@ -798,25 +814,22 @@ code errors.
 - Local Bridge (`packages/bridge/`): zero dependencies; binds to 127.0.0.1;
   refuses a non-loopback `Host`; needs an allowed `Origin` and the token for
   `/relay`; caps request and response bodies; rejects a wrong argument
-  instead of defaulting. Keep every one of these when changing it. Its
-  protocol is 2 (P6.1), and its number is in the relay's path (`/v2/relay`):
-  a page and a bridge of different protocols must not read each other's
-  messages as their own. `readPayload` checks every field and refuses one
-  it does not know; `parseEnvelope` (`BridgeTransport`) does the same for
-  the answer. A change either side would read wrongly is protocol 3 and a
-  new path. An addition to protocol 2 is a capability in `/health`
-  (`CAPABILITIES`, and `NEEDS` in `BridgeTransport`): Local Bridge 2.0.0
-  refuses a field it does not know and took `Host` off, so the page reads
-  `/health` before it sends a request that needs one, and sends nothing to
-  a bridge that does not list it. `tls` is exactly `{ insecure: true }` or
-  absent, from the request's own `settings.tlsInsecure`, and what was sent
+  instead of defaulting. Keep every one of these when changing it. One
+  path relays, `/relay`, with no number in it and no protocol or list of
+  capabilities in `/health` (maintainer, 2026-10-14: one path for a
+  feature, nothing kept for an older version). `readPayload` checks every
+  field and refuses one it does not know; `parseEnvelope`
+  (`BridgeTransport`) does the same for the answer: that is what keeps a
+  page and a bridge of different versions from reading each other's
+  messages as their own. Change both sides in one PR. `tls` is exactly
+  `{ insecure: true }` or absent, from the request's own `settings.tlsInsecure`, and what was sent
   so says it (`ResponseEnvelope.tlsInsecure`, the red pill): keep the pill
   wherever such a response is shown. A script's request and a token request
   never switch verification off. The bridge's agents are its own
   (`agentsFor`): no connection is kept, so every relay has timings, and the
   proxy variables are Node's `proxyEnv`, not code of ours. A body is bytes both ways (`bodyB64`), never text. The limit of
   25 MB holds for a response as received and as decoded. The token's folder
-  is `~/.wayfarer-local-bridge`, the package's old name: keep it.
+  is `~/.wayfarer-bridge`.
   Pairing (P6.2): `POST /pair` from an allowed origin gives the token for
   the code printed at start, once; three wrong codes in a row lock it for
   60 s, the right one included. Keep the lock and the single use. With
@@ -868,7 +881,9 @@ code errors.
 - A write tells the other tabs which stores it touched (`IdbCore.announce`,
   called by `commitOrRollback`; a write that does not go through it calls
   `announce` itself). A store that holds what it read listens with
-  `Idb.onChangeElsewhere` and reads again.
+  `IdbCore.onChangeElsewhere` and reads again. A service injects the
+  repositories it uses (`CollectionsRepository`, `HistoryRepository`, …)
+  and `IdbCore`; there is no facade over them.
 - Variables are changed with `changeEnvironment` (a list of sets and
   removals, applied by `applyVariableChanges` inside one transaction), not
   by writing back a copy of the rows: the copy may be older than what
@@ -883,6 +898,8 @@ code errors.
 - A bug fix starts with a test that fails for the reason reported. Keep it.
 - A change to a documented claim updates `docs/claims.md` and its
   `@claim:C-NNN` test in the same PR.
+  Then `npm run gen:readme`: the README's feature list is the ledger,
+  and a new doc under `docs/` is linked from the README (`check:links`).
 - Before replacing one Angular construct with another, check the behaviour
   with a throwaway test when the docs leave it open.
 - An e2e does not read, through the browser, the body of a response the

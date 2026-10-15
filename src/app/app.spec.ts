@@ -1,8 +1,8 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { App } from './app';
-import { Idb } from './data/idb';
-import { PastRequest } from './models/history';
+import { provideRepositories } from "../testing/repositories";
+import { PastRequest } from "@wayfarer/core";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 import { historyEntry } from '../testing/request-fixtures';
 
@@ -18,7 +18,7 @@ class IdbServiceMock {
   clear = vi.fn().mockReturnValue(Promise.resolve());
   delete = vi.fn().mockReturnValue(Promise.resolve());
   // AppShell.ngOnInit() calls EnvironmentsStore.ensureLoaded() and
-  // SecretsVault.exists(), both of which round-trip through Idb.
+  // SecretsVault.exists(), both of which round-trip through the repositories.
   listEnvironments = vi.fn().mockReturnValue(Promise.resolve([]));
   getActiveEnvironmentId = vi.fn().mockReturnValue(Promise.resolve(null));
   getGlobals = vi.fn().mockReturnValue(Promise.resolve([]));
@@ -30,7 +30,7 @@ class IdbServiceMock {
   readonly updatedElsewhere = signal(false).asReadonly();
   readonly upgradeBlocked = signal(false).asReadonly();
   readonly olderThanData = signal(false).asReadonly();
-  readonly clearedOldData = signal([]).asReadonly();
+  readonly clearedOldData = signal(false).asReadonly();
 }
 
 /** The window is this wide, as far as a min-width media query can tell. */
@@ -52,7 +52,7 @@ describe('App', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        { provide: Idb, useValue: idbService },
+        ...provideRepositories(idbService),
       ],
     }).compileComponents();
   });
@@ -147,11 +147,11 @@ describe('App', () => {
     await fixture.whenStable();
 
     expect(component.drawerVisible()).toBe(true);
-    component.toggleHistoryDrawer();
+    component.toggleNavigation();
     expect(component.drawerVisible()).toBe(false);
-    component.openHistoryDrawer();
+    component.toggleNavigation();
     expect(component.drawerVisible()).toBe(true);
-    component.closeHistoryDrawer();
+    component.closeNavigation();
     expect(component.drawerVisible()).toBe(false);
   });
 

@@ -3,13 +3,14 @@ import { Injectable, effect, inject, signal } from "@angular/core";
 import { MatExpansionPanel } from "@angular/material/expansion";
 import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";
 import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
-import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
+import { isBodyMethod } from "@wayfarer/core";
+import { WorkspaceStore } from "../../state/workspace-store";
 
 /**
  * What the composer shows of its draft, shared by its panels: the open tab

@@ -64,20 +64,22 @@ test.describe("the preflight", () => {
   });
 });
 
-test("F64: with the service worker in control, a request the server's preflight answer refuses is not sent", async ({ page, browserName }) => {
-  // A tripwire, as in tripwire.spec.ts: WebKit gets a 200 here (issue #209), so this fails there and goes red if that changes.
-  test.fail(browserName === "webkit", "F64 (#209): WebKit sends the request although the preflight was refused");
+test("F64: with the service worker in control, a request that needs a preflight is asked about first, and the server's refusal stops it", async ({ page, browserName }) => {
+  // A tripwire, as in tripwire.spec.ts: WebKit sends no OPTIONS and the request itself here (issue #209), so this fails there and goes red if that changes.
+  test.fail(browserName === "webkit", "F64 (#209): WebKit sends the request without a preflight");
   await page.goto("/");
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  const address = `/cors/simple?id=f64-${browserName}-${Date.now()}`;
   const outcome = await page.evaluate(
     (url) =>
       fetch(url, { headers: { "X-Api-Key": "k" }, cache: "no-store" }).then(
         (response) => `answered ${response.status}`,
         () => "refused"
       ),
-    `${ECHO}/cors/simple`
+    `${ECHO}${address}`
   );
-  expect(outcome).toBe("refused");
+  const seen = await (await fetch(`${ECHO}/cors-seen?url=${encodeURIComponent(address)}`)).json();
+  expect({ outcome, seen }).toEqual({ outcome: "refused", seen: { OPTIONS: 1 } });
 });
 
 test("an http:// address is not called mixed content on a page that is itself http://", async ({ page }) => {

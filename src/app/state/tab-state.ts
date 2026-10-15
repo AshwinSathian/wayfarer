@@ -1,9 +1,9 @@
 import { computed, signal } from "@angular/core";
 import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type ResponseEnvelope, type Row, type RunIteration, type StreamEvent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
-import { PastRequest, PastRequestKey } from "../models/history";
-import { TestResult } from "../models/test-assertion";
-import type { SendTimings } from "../services/request-executor";
+import { PastRequest } from "@wayfarer/core";
+import { TestResult } from "@wayfarer/core";
+import type { SendTimings } from "@wayfarer/core";
 import { VariableToken } from "../services/variable-focus";
 import { ResponseExportContext } from "../shared/inspect/response-export-entry";
 import { ResponseInspection } from "../shared/inspect/response-inspector";
@@ -50,7 +50,7 @@ export class TabState {
   /** Scripts that came from somewhere else (a history entry) and wait for a review (`ScriptTrust`). */
   readonly heldScripts = signal<HeldScripts | null>(null);
   /** The history entry of the tab's last send, or the one it was opened from: where its response is kept (P5.1). */
-  readonly historyKey = signal<PastRequestKey | undefined>(undefined);
+  readonly historyKey = signal<number | undefined>(undefined);
 
   /** The draft as it was when the tab was opened, loaded or saved. */
   readonly baseline = signal("");

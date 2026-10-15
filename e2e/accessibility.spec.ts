@@ -1,22 +1,16 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { axe } from "./support/axe";
 import { settled } from "./support/settled";
 import { ECHO } from "./support/echo";
-import AxeBuilder from "@axe-core/playwright";
-
-// The one exclusion: .monaco-editor, a third-party widget with its own DOM
-// and rendering that the app's templates cannot reach.
-function buildAxe(page: Parameters<typeof AxeBuilder>[0]["page"]) {
-  return new AxeBuilder({ page }).include("body").exclude(".monaco-editor");
-}
 
 // Scan only once the page has stopped animating (see settled()).
-async function analyze(page: Parameters<typeof AxeBuilder>[0]["page"]) {
+async function analyze(page: Page) {
   await settled(page);
-  return buildAxe(page).analyze();
+  return axe(page).include("body").analyze();
 }
 
 test.describe("Accessibility (primary flows)", () => {
-  test("@claim:C-038 composer + response viewer have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 composer + response viewer have no WCAG 2.2 AA violations", async ({ page }) => {
     await page.goto("/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -44,16 +38,14 @@ test.describe("Accessibility (primary flows)", () => {
 
     const results = await analyze(page);
 
-    const seriousOrWorse = results.violations.filter(
-      (v) => v.impact === "serious" || v.impact === "critical"
-    );
+    const violations = results.violations;
     expect(
-      seriousOrWorse,
-      seriousOrWorse.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
+      violations,
+      violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
     ).toEqual([]);
   });
 
-  test("@claim:C-038 collections sidebar has no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 collections sidebar has no WCAG 2.2 AA violations", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "New collection" }).click();
     // Scan the settled page, not a frame of the entrance/dialog fade: a
@@ -65,16 +57,14 @@ test.describe("Accessibility (primary flows)", () => {
 
     const results = await analyze(page);
 
-    const seriousOrWorse = results.violations.filter(
-      (v) => v.impact === "serious" || v.impact === "critical"
-    );
+    const violations = results.violations;
     expect(
-      seriousOrWorse,
-      seriousOrWorse.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
+      violations,
+      violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
     ).toEqual([]);
   });
 
-  test("@claim:C-038 the Save to Collection and command palette dialogs have no critical/serious violations", async ({ page }) => {
+  test("@claim:C-038 the Save to Collection and command palette dialogs have no WCAG 2.2 AA violations", async ({ page }) => {
     await page.goto("/");
 
     await page.getByRole("button", { name: "New collection" }).click();
@@ -93,9 +83,7 @@ test.describe("Accessibility (primary flows)", () => {
     await expect(page.locator("#save-as-name")).toBeVisible();
 
     const saveAsResults = await analyze(page);
-    const saveAsViolations = saveAsResults.violations.filter(
-      (v) => v.impact === "serious" || v.impact === "critical"
-    );
+    const saveAsViolations = saveAsResults.violations;
     expect(
       saveAsViolations,
       saveAsViolations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
@@ -107,9 +95,7 @@ test.describe("Accessibility (primary flows)", () => {
     await expect(page.getByPlaceholder("Type a command")).toBeVisible();
 
     const paletteResults = await analyze(page);
-    const paletteViolations = paletteResults.violations.filter(
-      (v) => v.impact === "serious" || v.impact === "critical"
-    );
+    const paletteViolations = paletteResults.violations;
     expect(
       paletteViolations,
       paletteViolations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")
@@ -137,15 +123,15 @@ test.describe("Accessibility (primary flows)", () => {
     await expect(page.getByRole("alertdialog")).toHaveCount(1);
 
     await settled(page);
-    const results = await new AxeBuilder({ page }).include('[role="alertdialog"]').analyze();
-    const seriousOrWorse = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
-    expect(seriousOrWorse, seriousOrWorse.map((v) => `${v.id}: ${v.help}`).join("\n")).toEqual([]);
+    const results = await axe(page).include('[role="alertdialog"]').analyze();
+    const violations = results.violations;
+    expect(violations, violations.map((v) => `${v.id}: ${v.help}`).join("\n")).toEqual([]);
   });
 
   // F47: the popup's Cancel was a "secondary text" button, which in the dark
   // theme was drawn in near-black on a dark surface; the popup had no
   // accessible name and a low-contrast message.
-  test("@claim:C-038 the history delete confirmation has no critical/serious violations, in both themes", async ({ page }) => {
+  test("@claim:C-038 the history delete confirmation has no WCAG 2.2 AA violations, in both themes", async ({ page }) => {
     await page.goto("/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?a11y=1`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -158,11 +144,11 @@ test.describe("Accessibility (primary flows)", () => {
       await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeVisible();
 
       await settled(page);
-      const results = await new AxeBuilder({ page }).include('[role="alertdialog"]').analyze();
-      const seriousOrWorse = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      const results = await axe(page).include('[role="alertdialog"]').analyze();
+      const violations = results.violations;
       expect(
-        seriousOrWorse,
-        `${theme}: ` + seriousOrWorse.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.html.slice(0, 80)).join(" | ")})`).join("\n")
+        violations,
+        `${theme}: ` + violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.html.slice(0, 80)).join(" | ")})`).join("\n")
       ).toEqual([]);
 
       await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
@@ -174,7 +160,7 @@ test.describe("Accessibility (primary flows)", () => {
 // the app in both themes: a colour that passes on one theme's surfaces can
 // fail on the other's (status green was 1.85:1 on the light theme's fill).
 for (const theme of ["dark", "light"] as const) {
-  test(`every view, menu and dialog is free of critical and serious violations in the ${theme} theme`, async ({ page }) => {
+  test(`every view, menu and dialog is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     // The longest test there is: every view, menu and dialog, each scanned. On the WebKit runner of GitHub it takes
     // 66 to 96 s (#228), and 90 s was its limit: it failed for want of time, not for a violation.
     test.setTimeout(240_000);
@@ -190,7 +176,7 @@ for (const theme of ["dark", "light"] as const) {
       // Off anything with a tooltip: an open one is scanned too, and belongs to no state here.
       await page.mouse.move(640, 880);
       const results = await analyze(page);
-      for (const violation of results.violations.filter((v) => v.impact === "serious" || v.impact === "critical")) {
+      for (const violation of results.violations) {
         for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")} (${node.failureSummary?.split("\n")[1]?.trim() ?? ""})`);
       }
     };
@@ -227,7 +213,7 @@ for (const theme of ["dark", "light"] as const) {
     // Settings, pane by pane: its list, and each section's own controls.
     await button("Settings").click();
     const appSettings = page.getByRole("dialog", { name: "Settings", exact: true });
-    for (const section of ["Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "About", "Danger zone"]) {
+    for (const section of ["Requests", "History", "Data and storage", "Vault", "Local Bridge", "Shortcuts", "Diagnostics", "About", "Danger zone"]) {
       await appSettings.getByRole("navigation").getByRole("button", { name: section, exact: true }).click();
       await expect(appSettings.getByRole("heading", { name: section, exact: true })).toBeVisible();
       await scan(`settings ${section}`);
@@ -285,9 +271,9 @@ for (const theme of ["dark", "light"] as const) {
     await scan("composer Auth, OAuth 2.0");
 
     // The import report (P4.1), with a warning in it.
-    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1, version: 1 });
+    const meta = (id: string) => ({ id, createdAt: 1, updatedAt: 1 });
     const imported = {
-      $id: "wayfarer/collection/3",
+      $id: "wayfarer/collection",
       meta: meta("file"),
       collection: { id: "col-a11y", meta: meta("col-a11y"), name: "Swept import", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "pm.vault.get('k')", post: "" } },
       folders: [],

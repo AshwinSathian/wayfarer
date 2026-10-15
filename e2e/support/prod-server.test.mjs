@@ -6,7 +6,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { headersFor, parseHeadersFile } from "./prod-server.mjs";
+import { gzipSync } from "node:zlib";
+import { encodingFor, headersFor, parseHeadersFile, startServer } from "./prod-server.mjs";
 
 const URL_BASE = "http://localhost:4200";
 const apply = (text, path) => Object.fromEntries(headersFor(parseHeadersFile(text), new URL(path, URL_BASE)));
@@ -69,4 +70,86 @@ test("the repo's public/_headers gives every path the production CSP", () => {
     assert.match(headers["content-security-policy"], /script-src 'self'/, path);
     assert.equal(headers["x-content-type-options"], "nosniff", path);
   }
+});
+
+// P7.2: Cloudflare compresses what it serves; a page measured without that
+// is measured on a megabyte it never sends.
+test("encodingFor picks brotli, then gzip, for text, script and wasm, and nothing for the rest", () => {
+  assert.equal(encodingFor("gzip, deflate, br", "text/javascript; charset=utf-8"), "br");
+  assert.equal(encodingFor("gzip", "text/css; charset=utf-8"), "gzip");
+  assert.equal(encodingFor("br;q=0, gzip", "application/json"), "gzip");
+  assert.equal(encodingFor(undefined, "text/html; charset=utf-8"), null);
+  assert.equal(encodingFor("br", "application/wasm"), "br");
+  assert.equal(encodingFor("br, gzip", "image/png"), null);
+  assert.equal(encodingFor("br, gzip", "font/woff2"), null);
+});
+
+test("the server sends a compressed body that decompresses to the file, and says so", async () => {
+  const { mkdtempSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { brotliDecompressSync } = await import("node:zlib");
+  const root = mkdtempSync(join(tmpdir(), "prod-server-"));
+  writeFileSync(join(root, "_headers"), "/*\n  X-Test: yes\n");
+  writeFileSync(join(root, "index.html"), "<p>shell</p>");
+  const script = "console.log('wayfarer');\n".repeat(200);
+  writeFileSync(join(root, "main.js"), script);
+  const server = startServer(root, 0);
+  await new Promise((done) => server.once("listening", done));
+  try {
+    const { port } = server.address();
+    const { request } = await import("node:http");
+    const response = await new Promise((done, fail) => request({ port, path: "/main.js", headers: { "accept-encoding": "br, gzip" } }, done).on("error", fail).end());
+    const chunks = [];
+    for await (const chunk of response) chunks.push(chunk);
+    assert.equal(response.headers["content-encoding"], "br");
+    assert.equal(response.headers["vary"], "Accept-Encoding");
+    assert.equal(response.headers["x-test"], "yes");
+    assert.equal(brotliDecompressSync(Buffer.concat(chunks)).toString(), script);
+  } finally {
+    server.close();
+  }
+});
+
+// #228: a `page.goto` in WebKit on CI waited 30 s for a document that never
+// came (status -1). The log says whether the request reached the server, on
+// which connection, and whether its answer was sent: with the `Accept-Encoding`
+// asked for, the encoding chosen and the bytes of the body (#228, the second hang).
+test("with a log file, the server writes each connection, request and answer as a line of JSON", async () => {
+  const { mkdtempSync, readFileSync: read, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { Agent, request } = await import("node:http");
+  const root = mkdtempSync(join(tmpdir(), "prod-server-"));
+  writeFileSync(join(root, "_headers"), "/*\n  X-Test: yes\n");
+  writeFileSync(join(root, "index.html"), "<p>shell</p>");
+  const log = join(root, "server.log");
+  const server = startServer(root, 0, log);
+  await new Promise((done) => server.once("listening", done));
+  const agent = new Agent({ keepAlive: true });
+  const { port } = server.address();
+  try {
+    for (const [path, headers] of [["/", { "accept-encoding": "gzip" }], ["/app", {}]]) {
+      const response = await new Promise((done, fail) => request({ port, path, agent, headers }, done).on("error", fail).end());
+      for await (const chunk of response) void chunk;
+    }
+  } finally {
+    agent.destroy();
+    await new Promise((done) => server.close(done));
+  }
+  // The server's `close` comes before its socket's.
+  for (let wait = 0; wait < 100 && !read(log, "utf8").includes('"closed"'); wait++) await new Promise((done) => setTimeout(done, 10));
+  const lines = read(log, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+  for (const line of lines) assert.match(line.t, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
+  assert.deepEqual(
+    lines.map(({ t, ...line }) => line),
+    [
+      { event: "connection", socket: `${port}#1` },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip" },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip", status: 200, encoding: "gzip", bytes: gzipSync("<p>shell</p>").length },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/app" },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/app", status: 200, bytes: 12 },
+      { event: "closed", socket: `${port}#1` },
+    ]
+  );
 });

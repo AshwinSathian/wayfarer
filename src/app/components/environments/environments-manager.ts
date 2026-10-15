@@ -6,7 +6,7 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
-import { EnvironmentDoc, EnvironmentId } from "../../models/environments";
+import { EnvironmentDoc } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
@@ -34,7 +34,7 @@ function jsonOf(rows: Row[]): string {
 }
 
 interface EnvironmentDraft {
-  id: EnvironmentId;
+  id: string;
   name: string;
   description?: string;
   vars: Row[];
@@ -81,7 +81,7 @@ export class EnvironmentsManager implements OnInit {
   readonly globalsVisible = signal(false);
   readonly globalsHint =
     "Every request can use these as {{name}}, whichever environment is active. An environment's or a collection's variable with the same name wins.";
-  readonly selectedId: WritableSignal<EnvironmentId | null> = signal(null);
+  readonly selectedId: WritableSignal<string | null> = signal(null);
   readonly draft: WritableSignal<EnvironmentDraft | null> = signal(null);
   readonly editorTab = signal<"pairs" | "json">("pairs");
 
@@ -91,7 +91,6 @@ export class EnvironmentsManager implements OnInit {
     }
   }
   private readonly secretPreview = signal<Record<string, string>>({});
-
 
   readonly newEnvDialogVisible = signal(false);
   readonly newEnvForm = signal({
@@ -139,7 +138,7 @@ export class EnvironmentsManager implements OnInit {
     void this.envService.ensureLoaded();
   }
 
-  selectEnvironment(id: EnvironmentId): void {
+  selectEnvironment(id: string): void {
     const env = this.environments().find((doc) => doc.meta.id === id);
     this.selectedId.set(id);
     if (env) {
@@ -284,7 +283,6 @@ export class EnvironmentsManager implements OnInit {
   get secretsUnlocked(): boolean {
     return this.secretsService.isUnlocked();
   }
-
 
   onPairsChange(): void {
     this.syncJsonFromPairs();

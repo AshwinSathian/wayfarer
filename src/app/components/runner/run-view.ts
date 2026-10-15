@@ -57,8 +57,12 @@ export class RunView {
   protected readonly harSource = signal<HarSource | null>(null);
   protected readonly failedOf = runFailed;
 
-  protected start(): void {
-    void this.runner.start(this.run());
+  /** The data file being read, if one is: Run pressed in that moment waits for it, or the run would go without it. */
+  private reading: Promise<void> = Promise.resolve();
+
+  protected async start(): Promise<void> {
+    await this.reading;
+    await this.runner.start(this.run());
   }
 
   protected cancel(): void {
@@ -75,8 +79,13 @@ export class RunView {
     this.run().delayMs.set(Number.isFinite(ms) ? Math.min(Math.max(ms, 0), 600_000) : 0);
   }
 
+  protected pickData(field: HTMLInputElement): Promise<void> {
+    this.reading = this.readData(field);
+    return this.reading;
+  }
+
   /** Reads the chosen data file: CSV, or a JSON list of objects. The parser is fetched when a file is first chosen. */
-  protected async pickData(field: HTMLInputElement): Promise<void> {
+  private async readData(field: HTMLInputElement): Promise<void> {
     const file = field.files?.[0];
     field.value = "";
     if (!file) return;

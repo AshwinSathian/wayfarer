@@ -2,21 +2,28 @@ import { TestBed } from "@angular/core/testing";
 import { IdbCore } from "./idb-core";
 import { historyEntry, jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "./idb";
+import { repositories, type Repositories } from "../../testing/repositories";
+import type { CollectionRequestsRepository } from "./collection-requests-repository";
+import type { CollectionsRepository } from "./collections-repository";
+import type { EnvironmentsRepository } from "./environments-repository";
+import type { FoldersRepository } from "./folders-repository";
+import type { HistoryRepository } from "./history-repository";
+import type { SecretsRepository } from "./secrets-repository";
 import type { SecretEnvelope, VaultRecord } from "@wayfarer/core";
 
-// These run against the real IndexedDB of the test browser, through
-// Idb, the facade the app calls: the stores, indexes and transactions
-// are the ones users' data lives in.
+// These run against the real IndexedDB of the test browser, through the
+// repositories the app calls: the stores, indexes and transactions are the
+// ones users' data lives in.
 describe("collections, folders and requests (real IndexedDB)", () => {
-  let core: Idb;
-  let collections: Idb;
-  let folders: Idb;
-  let requests: Idb;
+  let core: Repositories;
+  let collections: CollectionsRepository;
+  let folders: FoldersRepository;
+  let requests: CollectionRequestsRepository;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = collections = folders = requests = TestBed.inject(Idb);
+    core = repositories();
+    ({ collections, folders, requests } = core);
   });
 
   afterEach(async () => {
@@ -372,12 +379,13 @@ describe("collections, folders and requests (real IndexedDB)", () => {
 });
 
 describe("environments (real IndexedDB)", () => {
-  let core: Idb;
-  let environments: Idb;
+  let core: Repositories;
+  let environments: EnvironmentsRepository;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = environments = TestBed.inject(Idb);
+    core = repositories();
+    ({ environments } = core);
   });
 
   afterEach(async () => {
@@ -431,11 +439,11 @@ describe("environments (real IndexedDB)", () => {
     const heard: string[][] = [];
     otherTab.addEventListener("message", (event: MessageEvent<{ stores: string[] }>) => heard.push(event.data.stores));
     const heardHere: string[][] = [];
-    environments.onChangeElsewhere((stores) => heardHere.push(stores));
+    core.core.onChangeElsewhere((stores) => heardHere.push(stores));
     try {
       const env = await environments.createEnvironment({ name: "Dev" });
       await environments.setActiveEnvironment(env.meta.id);
-      await environments.add(historyEntry({ url: "https://api.test", createdAt: 1 }), 500);
+      await core.history.add(historyEntry({ url: "https://api.test", createdAt: 1 }), 500);
       await vi.waitFor(() => expect(heard).toEqual([["environments"], ["meta"], ["history"]]));
       expect(heardHere).toEqual([]);
 
@@ -498,14 +506,15 @@ describe("environments (real IndexedDB)", () => {
 });
 
 describe("secrets (real IndexedDB)", () => {
-  let core: Idb;
-  let secrets: Idb;
-  const envelope = (tag: string): SecretEnvelope => ({ v: 2, iv: `iv-${tag}`, ct: `ct-${tag}` });
-  const vault = (tag: string): VaultRecord => ({ v: 2, kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
+  let core: Repositories;
+  let secrets: SecretsRepository;
+  const envelope = (tag: string): SecretEnvelope => ({ iv: `iv-${tag}`, ct: `ct-${tag}` });
+  const vault = (tag: string): VaultRecord => ({ kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    core = secrets = TestBed.inject(Idb);
+    core = repositories();
+    ({ secrets } = core);
   });
 
   afterEach(async () => {
@@ -513,7 +522,7 @@ describe("secrets (real IndexedDB)", () => {
   });
 
   it("stores and returns exactly the envelope it was given, per secret id", async () => {
-    expect(await secrets.listSecrets()).toEqual([]);
+    expect(await secrets.listAll()).toEqual([]);
 
     await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("a") });
     await secrets.writeCipher({ id: "s-2", name: "Token", envelope: envelope("b") });
@@ -522,7 +531,7 @@ describe("secrets (real IndexedDB)", () => {
     expect(await secrets.readCipher("s-2")).toEqual(envelope("b"));
     expect(await secrets.readCipher("missing")).toBeNull();
 
-    const listed = await secrets.listSecrets();
+    const listed = await secrets.listAll();
     expect(listed.map((s) => [s.id, s.name, s.environmentId]).sort()).toEqual([
       ["s-1", "API key", "env-1"],
       ["s-2", "Token", undefined],
@@ -531,7 +540,7 @@ describe("secrets (real IndexedDB)", () => {
     // Writing the same id again replaces the ciphertext.
     await secrets.writeCipher({ id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("c") });
     expect(await secrets.readCipher("s-1")).toEqual(envelope("c"));
-    expect(await secrets.listSecrets()).toHaveLength(2);
+    expect(await secrets.listAll()).toHaveLength(2);
   });
 
   it("keeps one vault record: the first is not overwritten by a second, and a change of passphrase needs one to change (P2.6)", async () => {
@@ -548,8 +557,8 @@ describe("secrets (real IndexedDB)", () => {
     expect(await secrets.writeVault(vault("rotated"), true)).toBe(true);
     expect(await secrets.readVault()).toEqual(vault("rotated"));
     // The record shares its store with the active environment and the globals, and leaves them alone.
-    expect(await secrets.getActiveEnvironmentId()).toBeNull();
-    expect(await secrets.getGlobals()).toEqual([]);
+    expect(await core.environments.getActiveEnvironmentId()).toBeNull();
+    expect(await core.environments.getGlobals()).toEqual([]);
   });
 
   it("writes the secrets of a vault file in one transaction, each under its id", async () => {
@@ -558,7 +567,7 @@ describe("secrets (real IndexedDB)", () => {
       { id: "s-1", name: "API key", environmentId: "env-1", envelope: envelope("a") },
       { id: "s-2", name: "Token", envelope: envelope("b") },
     ]);
-    expect((await secrets.listSecrets()).map((s) => [s.id, s.name, s.environmentId, s.envelope]).sort()).toEqual([
+    expect((await secrets.listAll()).map((s) => [s.id, s.name, s.environmentId, s.envelope]).sort()).toEqual([
       ["s-1", "API key", "env-1", envelope("a")],
       ["s-2", "Token", undefined, envelope("b")],
     ]);
@@ -574,20 +583,22 @@ describe("secrets (real IndexedDB)", () => {
 
     await secrets.deleteSecret("s-1");
     expect(await secrets.readCipher("s-1")).toBeNull();
-    expect(await secrets.listSecrets()).toEqual([]);
+    expect(await secrets.listAll()).toEqual([]);
   });
 });
 
 describe("history (real IndexedDB)", () => {
-  let idb: Idb;
+  let core: Repositories;
+  let idb: HistoryRepository;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    idb = TestBed.inject(Idb);
+    core = repositories();
+    idb = core.history;
   });
 
   afterEach(async () => {
-    await idb.resetDatabase();
+    await core.resetDatabase();
   });
 
   it("returns entries newest first with what they recorded, and deletes one or all", async () => {

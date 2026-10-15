@@ -1,6 +1,6 @@
 {
   "name": "wayfarer",
-  "version": "2.3.0",
+  "version": "2.5.0",
   "description": "A local-first, no-account API client that runs entirely in the browser: collections, environments, an encrypted secrets vault, test assertions, and a response viewer.",
   "license": "MIT",
   "private": true,
@@ -33,7 +33,7 @@
   "scripts": {
     "prepare": "node scripts/build-vm-libs.mjs",
     "start": "ng serve",
-    "build": "ng build && node scripts/build-sw.mjs",
+    "build": "ng build --define \"WAYFARER_COMMIT='$(git rev-parse --short HEAD 2>/dev/null || echo unknown)'\" && node scripts/build-sw.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --coverage",
@@ -49,7 +49,11 @@
     "gen:compat": "node scripts/gen-compat-doc.mjs",
     "check:compat": "node scripts/gen-compat-doc.mjs --check",
     "check:claims": "node scripts/check-claims.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=386800"
+    "gen:readme": "node scripts/gen-readme.mjs",
+    "check:readme": "node scripts/gen-readme.mjs --check",
+    "check:links": "node scripts/check-links.mjs",
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=394800",
+    "cli:test": "npm -w packages/cli test"
   },
   "dependencies": {
     "@angular/cdk": "^22.2.2",

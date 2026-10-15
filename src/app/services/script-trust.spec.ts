@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { emptyRequest, scriptDigest, type RequestContent } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Idb } from "../data/idb";
+import { repositories, type Repositories } from "../../testing/repositories";
 import { CollectionsStore } from "./collections-store";
 import { RequestSave } from "./request-save";
 import { ScriptTrust } from "./script-trust";
@@ -12,14 +12,14 @@ describe("ScriptTrust", () => {
   let trust: ScriptTrust;
   let collections: CollectionsStore;
   let saved: RequestSave;
-  let idb: Idb;
+  let idb: Repositories;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({});
     trust = TestBed.inject(ScriptTrust);
     collections = TestBed.inject(CollectionsStore);
     saved = TestBed.inject(RequestSave);
-    idb = TestBed.inject(Idb);
+    idb = repositories();
     await collections.ensureLoaded();
   });
 
@@ -45,7 +45,7 @@ describe("ScriptTrust", () => {
   async function imported(script: string) {
     const made = await collections.createCollection({ name: "From a file" });
     await collections.createRequest({ ...content(script), collectionId: made.meta.id, name: "Login" });
-    const file = (await idb.getCollectionExport(made.meta.id))!;
+    const file = (await idb.collections.getCollectionExport(made.meta.id))!;
     await collections.importCollection(file);
     return collections.getCollectionTree(made.meta.id)!;
   }
@@ -108,7 +108,7 @@ describe("ScriptTrust", () => {
 
   it("@claim:C-051 a collection's and a folder's script from a file hold back a request that has none of its own, until they are reviewed", async () => {
     const made = await withInheritedScripts();
-    await collections.importCollection((await idb.getCollectionExport(made.collection.meta.id))!);
+    await collections.importCollection((await idb.collections.getCollectionExport(made.collection.meta.id))!);
     const tree = collections.getCollectionTree(made.collection.meta.id)!;
     expect(tree.collection.scriptTrust).toEqual({ trusted: false });
     saved.bind(tree.requests[0]);
@@ -131,7 +131,7 @@ describe("ScriptTrust", () => {
 
   it("saving a folder's script in a collection that is not reviewed does not approve it; changed past the settings, it does not run", async () => {
     const made = await withInheritedScripts();
-    await collections.importCollection((await idb.getCollectionExport(made.collection.meta.id))!);
+    await collections.importCollection((await idb.collections.getCollectionExport(made.collection.meta.id))!);
     const collectionId = made.collection.meta.id;
     const folderId = made.folders[0].meta.id;
     // The settings dialog's save, for scripts that were not allowed to run.
@@ -143,7 +143,7 @@ describe("ScriptTrust", () => {
     await trust.approve();
     expect(await allowed()).toBe(true);
     // Written past the app's own save, as another program could: no digest of it is approved.
-    await idb.setFolderInherited(folderId, { auth: { type: "inherit" }, scripts: { pre: "", post: "swapped()" } });
+    await idb.folders.setFolderInherited(folderId, { auth: { type: "inherit" }, scripts: { pre: "", post: "swapped()" } });
     await collections.refresh();
     expect(await allowed()).toBe(false);
   });
@@ -187,7 +187,7 @@ describe("ScriptTrust", () => {
     await trust.approve();
     expect(await allowed()).toBe(true);
 
-    const file = (await idb.getCollectionExport(tree.collection.meta.id))!;
+    const file = (await idb.collections.getCollectionExport(tree.collection.meta.id))!;
     file.requests[0].scripts.pre = "second()";
     await collections.importCollection(file);
     expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: false });

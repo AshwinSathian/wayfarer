@@ -17,7 +17,6 @@ The vault record, in the `meta` store under the key `vault`:
 
 ```ts
 interface VaultRecord {
-  v: 2;
   kdf: { alg: "PBKDF2-SHA256"; iterations: 600000; salt: string }; // 16-byte salt
   wrappedDek: string; // a 12-byte IV, then the data key encrypted under the passphrase key
 }
@@ -27,7 +26,6 @@ Each secret, in the `secrets` store, as `{ meta, id, name, environmentId?, envel
 
 ```ts
 interface SecretEnvelope {
-  v: 2;
   iv: string; // a random 12-byte IV for this secret
   ct: string; // the value, encrypted under the data key
 }
@@ -56,9 +54,9 @@ Secrets, "Export vault", writes `wayfarer-vault.json` after you enter the passph
 
 ```jsonc
 {
-  "$id": "wayfarer/vault/2",
-  "vault": { "v": 2, "kdf": { "alg": "PBKDF2-SHA256", "iterations": 600000, "salt": "…" }, "wrappedDek": "…" },
-  "secrets": [{ "id": "…", "name": "API_TOKEN", "environmentId": "…", "envelope": { "v": 2, "iv": "…", "ct": "…" } }]
+  "$id": "wayfarer/vault",
+  "vault": { "kdf": { "alg": "PBKDF2-SHA256", "iterations": 600000, "salt": "…" }, "wrappedDek": "…" },
+  "secrets": [{ "id": "…", "name": "API_TOKEN", "environmentId": "…", "envelope": { "iv": "…", "ct": "…" } }]
 }
 ```
 

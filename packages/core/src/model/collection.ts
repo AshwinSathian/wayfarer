@@ -5,7 +5,6 @@ export interface Meta {
   id: string;
   createdAt: number;
   updatedAt: number;
-  version: 1;
 }
 
 interface BaseDocument {
@@ -52,7 +51,7 @@ export interface RequestDoc extends BaseDocument, RequestContent {
   order: number;
 }
 
-export const COLLECTION_FORMAT = "wayfarer/collection/3";
+export const COLLECTION_FORMAT = "wayfarer/collection";
 
 /** A collection file. Trust is not content: the file leaves it out and an import starts untrusted. */
 export interface CollectionExport {
@@ -105,7 +104,7 @@ export function childrenInOrder<F extends Pick<Folder, "id" | "order" | "parentF
  */
 export type Ancestor = Pick<Collection | Folder, "name" | "variables" | "auth" | "scripts">;
 
-export function ancestorsOf(collection: Collection, folders: Folder[], folderId: string | undefined): Ancestor[] {
+export function ancestorsOf(collection: Ancestor, folders: Folder[], folderId: string | undefined): Ancestor[] {
   const named = (kind: string, { name, variables, auth, scripts }: Ancestor): Ancestor => ({ name: `${kind} "${name}"`, variables, auth, scripts });
   return [named("collection", collection), ...folderChain(folders, folderId).map((folder) => named("folder", folder))];
 }
@@ -127,4 +126,4 @@ export interface EnvironmentDoc {
   order: number;
 }
 
-export const ENVIRONMENTS_FORMAT = "wayfarer/environments/2";
+export const ENVIRONMENTS_FORMAT = "wayfarer/environments";

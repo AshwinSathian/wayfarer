@@ -4,12 +4,12 @@ import { Composer } from '../app/components/composer/composer';
 import { ComposerView } from '../app/components/composer/composer-view';
 import { RequestSave } from '../app/services/request-save';
 import { WorkspaceStore } from '../app/state/workspace-store';
-import { Idb } from '../app/data/idb';
+import { provideRepositories } from "./repositories";
 import { ResponseInspection, ResponseInspector } from '../app/shared/inspect/response-inspector';
 import { EnvironmentsStore } from '../app/services/environments-store';
 import { RequestSettings } from '../app/services/request-settings';
 import { SecretsVault } from '../app/services/secrets-vault';
-import { EnvironmentDoc } from '../app/models/environments';
+import { EnvironmentDoc } from "@wayfarer/core";
 import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
 import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
 import { requestContent, rowsOf } from './request-fixtures';
@@ -64,7 +64,7 @@ class EnvironmentsServiceStub {
 }
 
 export function meta(id: string): Meta {
-  return { id, createdAt: 1, updatedAt: 1, version: 1 };
+  return { id, createdAt: 1, updatedAt: 1 };
 }
 
 export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc {
@@ -121,7 +121,7 @@ class CollectionsServiceStub {
 export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
   return {
     id: 'env-1',
-    meta: { id: 'env-1', createdAt: 1, updatedAt: 1, version: 1 },
+    meta: { id: 'env-1', createdAt: 1, updatedAt: 1 },
     name: 'Test env',
     order: 1,
     vars: rowsOf(vars),
@@ -142,7 +142,7 @@ export async function setupComposer(extra: Provider[] = []) {
   await TestBed.configureTestingModule({
     imports: [Composer],
     providers: [
-      { provide: Idb, useValue: idbService },
+      ...provideRepositories(idbService),
       { provide: ResponseInspector, useValue: responseInspector },
       { provide: EnvironmentsStore, useValue: environmentsService },
       { provide: CollectionsStore, useValue: collectionsService },

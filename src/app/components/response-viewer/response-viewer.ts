@@ -18,8 +18,8 @@ import { harText, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { BinaryBody, HEX_VIEW_BYTES, MAX_REDIRECTS, evaluatePath, hexDump, indentXml, responseViews, type HarExchange, type RedactOptions, type ResponseEnvelope, type ResponseView } from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
-import { TestResult } from "../../models/test-assertion";
-import type { SendTimings } from "../../services/request-executor";
+import { TestResult } from "@wayfarer/core";
+import type { SendTimings } from "@wayfarer/core";
 import {
   JsonWorkerClient,
   WorkerSearchResult,

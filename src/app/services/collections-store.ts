@@ -2,17 +2,17 @@ import { Injectable, Signal, computed, signal, inject } from "@angular/core";
 import {
   Collection,
   CollectionExport,
-  CollectionId,
   Folder,
-  FolderId,
   InheritedPatch,
   NewRequest,
   RequestDoc,
-  RequestDocId,
   RequestPatch,
 } from "../models/collections";
 import { Redactor, scriptDigest, scriptsOf, serializeDeterministic, type CollectionTree, type ExportNote, type RedactOptions, type VariableChange } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { CollectionsRepository } from "../data/collections-repository";
+import { FoldersRepository } from "../data/folders-repository";
+import { IdbCore } from "../data/idb-core";
+import { CollectionRequestsRepository } from "../data/collection-requests-repository";
 
 export type { CollectionTree };
 
@@ -20,7 +20,10 @@ export type { CollectionTree };
   providedIn: "root",
 })
 export class CollectionsStore {
-  private readonly idb = inject(Idb);
+  private readonly collectionsRepository = inject(CollectionsRepository);
+  private readonly foldersRepository = inject(FoldersRepository);
+  private readonly idb = inject(IdbCore);
+  private readonly requestsRepository = inject(CollectionRequestsRepository);
 
   private readonly treeState = signal<CollectionTree[]>([]);
   private readonly loadingState = signal(false);
@@ -40,12 +43,12 @@ export class CollectionsStore {
   async refresh(): Promise<void> {
     this.loadingState.set(true);
     try {
-      const collections = await this.idb.listCollections();
+      const collections = await this.collectionsRepository.listCollections();
       const trees: CollectionTree[] = [];
       for (const collection of collections) {
         const [folders, requests] = await Promise.all([
-          this.idb.listFolders(collection.meta.id),
-          this.idb.listRequests(collection.meta.id),
+          this.foldersRepository.listFolders(collection.meta.id),
+          this.requestsRepository.listRequests(collection.meta.id),
         ]);
         trees.push({ collection, folders, requests });
       }
@@ -71,7 +74,7 @@ export class CollectionsStore {
    * collections themselves) still use `refresh()`, since those change the
    * top-level list shape and are comparatively rare.
    */
-  private async refreshCollectionEntry(collectionId: CollectionId): Promise<void> {
+  private async refreshCollectionEntry(collectionId: string): Promise<void> {
     const index = this.treeState().findIndex(
       (entry) => entry.collection.meta.id === collectionId
     );
@@ -82,15 +85,15 @@ export class CollectionsStore {
       return;
     }
     const [folders, requests] = await Promise.all([
-      this.idb.listFolders(collectionId),
-      this.idb.listRequests(collectionId),
+      this.foldersRepository.listFolders(collectionId),
+      this.requestsRepository.listRequests(collectionId),
     ]);
     const next = [...this.treeState()];
     next[index] = { ...next[index], folders, requests };
     this.treeState.set(next);
   }
 
-  private findFolderCollectionId(id: FolderId): CollectionId | undefined {
+  private findFolderCollectionId(id: string): string | undefined {
     for (const entry of this.treeState()) {
       if (entry.folders.some((folder) => folder.meta.id === id)) {
         return entry.collection.meta.id;
@@ -99,7 +102,7 @@ export class CollectionsStore {
     return undefined;
   }
 
-  private findRequestCollectionId(id: RequestDocId): CollectionId | undefined {
+  private findRequestCollectionId(id: string): string | undefined {
     for (const entry of this.treeState()) {
       if (entry.requests.some((request) => request.meta.id === id)) {
         return entry.collection.meta.id;
@@ -112,27 +115,27 @@ export class CollectionsStore {
     name: string;
     description?: string;
   }): Promise<Collection> {
-    const created = await this.idb.createCollection(payload);
+    const created = await this.collectionsRepository.createCollection(payload);
     await this.refresh();
     return created;
   }
 
   async renameCollection(
-    id: CollectionId,
+    id: string,
     updates: { name?: string; description?: string }
   ): Promise<Collection | null> {
-    const updated = await this.idb.renameCollection(id, updates);
+    const updated = await this.collectionsRepository.renameCollection(id, updates);
     await this.refresh();
     return updated;
   }
 
   /** See `CollectionsRepository.approveScripts`. */
-  async approveScripts(id: CollectionId, digests: string[], review: boolean): Promise<void> {
-    if (await this.idb.approveScripts(id, digests, review)) await this.refresh();
+  async approveScripts(id: string, digests: string[], review: boolean): Promise<void> {
+    if (await this.collectionsRepository.approveScripts(id, digests, review)) await this.refresh();
   }
 
-  async changeCollectionVariables(id: CollectionId, changes: VariableChange[]): Promise<Collection | null> {
-    const updated = await this.idb.changeCollectionVariables(id, changes);
+  async changeCollectionVariables(id: string, changes: VariableChange[]): Promise<Collection | null> {
+    const updated = await this.collectionsRepository.changeCollectionVariables(id, changes);
     await this.refresh();
     return updated;
   }
@@ -144,67 +147,67 @@ export class CollectionsStore {
    * collection is trusted (D6; the rule of a request's save). Approved
    * before they are written, so that none is stored not yet approved.
    */
-  async saveInherited(target: { collectionId: CollectionId; folderId?: FolderId }, patch: InheritedPatch<Folder> & Pick<Collection, "route">, scriptsAllowed: boolean): Promise<void> {
+  async saveInherited(target: { collectionId: string; folderId?: string }, patch: InheritedPatch<Folder> & Pick<Collection, "route">, scriptsAllowed: boolean): Promise<void> {
     const { auth } = patch;
     if (!target.folderId && auth.type === "inherit") throw new Error("A collection has nothing to inherit its auth from.");
     const scripts = scriptsOf(patch);
-    if (scriptsAllowed && scripts.length) await this.idb.approveScripts(target.collectionId, await Promise.all(scripts.map(scriptDigest)), false);
-    if (target.folderId) await this.idb.setFolderInherited(target.folderId, patch);
-    else if (auth.type !== "inherit") await this.idb.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts, route: patch.route });
+    if (scriptsAllowed && scripts.length) await this.collectionsRepository.approveScripts(target.collectionId, await Promise.all(scripts.map(scriptDigest)), false);
+    if (target.folderId) await this.foldersRepository.setFolderInherited(target.folderId, patch);
+    else if (auth.type !== "inherit") await this.collectionsRepository.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts, route: patch.route });
     await this.refresh();
   }
 
-  async changeFolderVariables(id: FolderId, changes: VariableChange[]): Promise<Folder | null> {
-    const folder = await this.idb.changeFolderVariables(id, changes);
+  async changeFolderVariables(id: string, changes: VariableChange[]): Promise<Folder | null> {
+    const folder = await this.foldersRepository.changeFolderVariables(id, changes);
     if (folder) await this.refreshCollectionEntry(folder.collectionId);
     return folder;
   }
 
-  async duplicateCollection(id: CollectionId): Promise<Collection | null> {
-    const result = await this.idb.duplicateCollection(id);
+  async duplicateCollection(id: string): Promise<Collection | null> {
+    const result = await this.collectionsRepository.duplicateCollection(id);
     await this.refresh();
     return result;
   }
 
-  async deleteCollection(id: CollectionId): Promise<void> {
-    await this.idb.deleteCollection(id);
+  async deleteCollection(id: string): Promise<void> {
+    await this.collectionsRepository.deleteCollection(id);
     await this.refresh();
   }
 
-  async reorderCollections(order: { id: CollectionId; order: number }[]): Promise<void> {
-    await this.idb.reorderCollections(order);
+  async reorderCollections(order: { id: string; order: number }[]): Promise<void> {
+    await this.collectionsRepository.reorderCollections(order);
     await this.refresh();
   }
 
   async createFolder(payload: {
-    collectionId: CollectionId;
+    collectionId: string;
     name: string;
-    parentFolderId?: FolderId;
+    parentFolderId?: string;
   }): Promise<Folder> {
-    const folder = await this.idb.createFolder(payload);
+    const folder = await this.foldersRepository.createFolder(payload);
     await this.refreshCollectionEntry(payload.collectionId);
     return folder;
   }
 
-  async renameFolder(id: FolderId, name: string): Promise<Folder | null> {
-    const folder = await this.idb.renameFolder(id, name);
+  async renameFolder(id: string, name: string): Promise<Folder | null> {
+    const folder = await this.foldersRepository.renameFolder(id, name);
     if (folder) {
       await this.refreshCollectionEntry(folder.collectionId);
     }
     return folder;
   }
 
-  async duplicateFolder(id: FolderId): Promise<Folder | null> {
-    const folder = await this.idb.duplicateFolder(id);
+  async duplicateFolder(id: string): Promise<Folder | null> {
+    const folder = await this.foldersRepository.duplicateFolder(id);
     if (folder) {
       await this.refreshCollectionEntry(folder.collectionId);
     }
     return folder;
   }
 
-  async deleteFolder(id: FolderId): Promise<void> {
+  async deleteFolder(id: string): Promise<void> {
     const collectionId = this.findFolderCollectionId(id);
-    await this.idb.deleteFolder(id);
+    await this.foldersRepository.deleteFolder(id);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
@@ -213,9 +216,9 @@ export class CollectionsStore {
   }
 
   /** The new places of a parent's folders and requests, which share one order. */
-  async reorderChildren(order: { id: FolderId | RequestDocId; order: number }[]): Promise<void> {
+  async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
     const collectionId = order[0] ? (this.findFolderCollectionId(order[0].id) ?? this.findRequestCollectionId(order[0].id)) : undefined;
-    await this.idb.reorderChildren(order);
+    await this.foldersRepository.reorderChildren(order);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
@@ -224,38 +227,38 @@ export class CollectionsStore {
   }
 
   async createRequest(payload: NewRequest, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc> {
-    const doc = await this.idb.createRequest(payload, files);
+    const doc = await this.requestsRepository.createRequest(payload, files);
     await this.refreshCollectionEntry(payload.collectionId);
     return doc;
   }
 
-  async renameRequest(id: RequestDocId, name: string): Promise<RequestDoc | null> {
-    const doc = await this.idb.renameRequest(id, name);
+  async renameRequest(id: string, name: string): Promise<RequestDoc | null> {
+    const doc = await this.requestsRepository.renameRequest(id, name);
     if (doc) {
       await this.refreshCollectionEntry(doc.collectionId);
     }
     return doc;
   }
 
-  async updateRequest(id: RequestDocId, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
-    const doc = await this.idb.updateRequest(id, patch, files);
+  async updateRequest(id: string, patch: RequestPatch, files?: ReadonlyMap<string, Blob>): Promise<RequestDoc | null> {
+    const doc = await this.requestsRepository.updateRequest(id, patch, files);
     if (doc) {
       await this.refreshCollectionEntry(doc.collectionId);
     }
     return doc;
   }
 
-  async duplicateRequest(id: RequestDocId): Promise<RequestDoc | null> {
-    const doc = await this.idb.duplicateRequest(id);
+  async duplicateRequest(id: string): Promise<RequestDoc | null> {
+    const doc = await this.requestsRepository.duplicateRequest(id);
     if (doc) {
       await this.refreshCollectionEntry(doc.collectionId);
     }
     return doc;
   }
 
-  async deleteRequest(id: RequestDocId): Promise<void> {
+  async deleteRequest(id: string): Promise<void> {
     const collectionId = this.findRequestCollectionId(id);
-    await this.idb.deleteRequest(id);
+    await this.requestsRepository.deleteRequest(id);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
     } else {
@@ -263,13 +266,13 @@ export class CollectionsStore {
     }
   }
 
-  getCollection(id: CollectionId): Collection | undefined {
+  getCollection(id: string): Collection | undefined {
     return this.treeState()
       .map((entry) => entry.collection)
       .find((collection) => collection.meta.id === id);
   }
 
-  getCollectionTree(id: CollectionId): CollectionTree | undefined {
+  getCollectionTree(id: string): CollectionTree | undefined {
     return this.treeState().find((entry) => entry.collection.meta.id === id);
   }
 
@@ -278,13 +281,13 @@ export class CollectionsStore {
    * of a folder or of the collection, or into a credential header, is masked unless `credentials` is asked for
    * (plan D5); one that is a `{{variable}}` is a reference and stays.
    */
-  async exportCollectionJson(id: CollectionId, options: RedactOptions = {}): Promise<string | null> {
+  async exportCollectionJson(id: string, options: RedactOptions = {}): Promise<string | null> {
     const snapshot = await this.redacted(id, options);
     return snapshot && serializeDeterministic(snapshot);
   }
 
   /** The collection as a Postman Collection v2.1 file, masked as the app's own file is, with what Postman's format has no place for. */
-  async exportCollectionPostman(id: CollectionId, options: RedactOptions = {}): Promise<{ json: string; notes: ExportNote[] } | null> {
+  async exportCollectionPostman(id: string, options: RedactOptions = {}): Promise<{ json: string; notes: ExportNote[] } | null> {
     const snapshot = await this.redacted(id, options);
     if (!snapshot) return null;
     const { postmanCollection } = await import("@wayfarer/core/postman");
@@ -293,8 +296,8 @@ export class CollectionsStore {
   }
 
   /** The collection as stored, through the redactor: what any export of it is written from. */
-  private async redacted(id: CollectionId, options: RedactOptions): Promise<CollectionExport | null> {
-    const snapshot = await this.idb.getCollectionExport(id);
+  private async redacted(id: string, options: RedactOptions): Promise<CollectionExport | null> {
+    const snapshot = await this.collectionsRepository.getCollectionExport(id);
     if (!snapshot) {
       return null;
     }
@@ -311,7 +314,7 @@ export class CollectionsStore {
     payload: CollectionExport,
     options?: { duplicateAsNew?: boolean }
   ): Promise<Collection | null> {
-    const collection = await this.idb.importCollectionExport(payload, options);
+    const collection = await this.collectionsRepository.importCollectionExport(payload, options);
     await this.refresh();
     return collection;
   }

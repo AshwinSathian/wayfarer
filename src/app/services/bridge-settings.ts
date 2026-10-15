@@ -1,6 +1,6 @@
 import { Injectable, effect, inject, signal, untracked } from "@angular/core";
 import { bridgeHealthProblem, parseJson, type Route } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { IdbCore } from "../data/idb-core";
 import { Diagnostics } from "./diagnostics";
 import { SecretsVault } from "./secrets-vault";
 
@@ -46,7 +46,7 @@ export class BridgeSettings {
       if (this.vault.isUnlocked()) untracked(() => this.inBackground(() => (this.config().token ? this.store(this.config().token) : this.read())));
     });
     // Another tab saved a token.
-    inject(Idb).onChangeElsewhere((stores) => {
+    inject(IdbCore).onChangeElsewhere((stores) => {
       if (stores.includes("secrets") && this.vault.isUnlocked()) this.inBackground(() => this.read());
     });
   }
@@ -99,12 +99,17 @@ export class BridgeSettings {
 
   /**
    * Asks the bridge at `url` (the saved one by default) for its `/health`, without changing the saved settings.
-   * What is wrong with it, as a sentence, or undefined: it answers and speaks the page's protocol (P6.3).
+   * What is wrong with it, as a sentence, or undefined: it answers as a Local Bridge (P6.3).
    */
   async checkHealth(url = this.config().url): Promise<string | undefined> {
+    return (await this.health(url)).problem;
+  }
+
+  /** What the bridge at `url` says of itself: its version, or what is wrong with it (P6.3, P7.3). */
+  async health(url = this.config().url): Promise<{ problem?: string; version?: string }> {
     const base = url.replace(/\/+$/, "");
     if (!base) {
-      return BRIDGE_UNREACHABLE;
+      return { problem: BRIDGE_UNREACHABLE };
     }
     let text: string;
     try {
@@ -115,10 +120,15 @@ export class BridgeSettings {
       clearTimeout(timeout);
     } catch (error) {
       this.diagnostics.record(error, "bridge: health check failed");
-      return BRIDGE_UNREACHABLE;
+      return { problem: BRIDGE_UNREACHABLE };
     }
     const health = parseJson(text);
-    return bridgeHealthProblem(health.ok ? health.value : undefined);
+    const value = health.ok ? health.value : undefined;
+    const problem = bridgeHealthProblem(value);
+    if (problem) return { problem };
+    // Another program's text: repeated only when it is a version, and short.
+    const version = (value as { version?: unknown }).version;
+    return typeof version === "string" && version.length <= 40 && /^\d+\.\d+\.\d+[0-9A-Za-z.+-]*$/.test(version) ? { version } : {};
   }
 
   /**

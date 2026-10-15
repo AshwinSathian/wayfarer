@@ -1,0 +1,39 @@
+{
+  "name": "wayfarer-cli",
+  "version": "2.0.1",
+  "description": "Runs Wayfarer and Postman collections from the command line, with the engine the Wayfarer app sends with: the same scripts, variables, vault and results.",
+  "license": "MIT",
+  "author": "Ashwin Sathian",
+  "homepage": "https://github.com/AshwinSathian/wayfarer/tree/main/packages/cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AshwinSathian/wayfarer.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/AshwinSathian/wayfarer/issues"
+  },
+  "type": "module",
+  "bin": {
+    "wayfarer-cli": "./dist/wayfarer-cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "prepack": "node build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node build.mjs && node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@jitl/quickjs-wasmfile-release-sync": "^0.32.0",
+    "quickjs-emscripten-core": "^0.32.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

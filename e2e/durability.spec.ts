@@ -58,7 +58,7 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   await page.getByRole("checkbox", { name: "With history" }).check();
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Back up workspace" }).click()]);
   const file = await text(download);
-  expect(file).toContain('"$id": "wayfarer/workspace/3"');
+  expect(file).toContain('"$id": "wayfarer/workspace"');
   expect(file).not.toContain(SECRET);
   expect(file).not.toContain(PASSPHRASE);
 
@@ -103,11 +103,11 @@ test("a file that is not a workspace backup is refused, with the reason, and not
   await expect.poll(async () => (await dumpIdb(page))["tabs"]?.length ?? 0).toBe(1);
   const before = await dumpIdb(page);
   await openData(page);
-  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection/3"}') });
+  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection"}') });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
 
   await expect(page.getByText("The file was not restored and nothing was changed:")).toBeVisible();
-  await expect(page.getByText('Not a Wayfarer workspace file: "$id" must be "wayfarer/workspace/3".')).toBeVisible();
+  await expect(page.getByText('Not a Wayfarer workspace file: "$id" must be "wayfarer/workspace".')).toBeVisible();
   expect(await dumpIdb(page)).toEqual(before);
 });
 
@@ -124,7 +124,7 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 
   const [plainDefault] = await Promise.all([page.waitForEvent("download"), (await exportWith()).click()]);
   const stripped = await text(plainDefault);
-  expect(stripped).toContain('"$id": "wayfarer/environments/2"');
+  expect(stripped).toContain('"$id": "wayfarer/environments"');
   expect(stripped).toContain('"value": "localhost"');
   expect(stripped).not.toContain("$secret");
   expect(stripped).not.toContain(SECRET);
@@ -132,7 +132,7 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
   const [withVault] = await Promise.all([page.waitForEvent("download"), (await exportWith("With the vault")).click()]);
   const bundled = await text(withVault);
   expect(bundled).toMatch(/"value": "\{\{\$secret\.[0-9a-f-]+\}\}"/);
-  expect(bundled).toContain('"$id": "wayfarer/vault/2"');
+  expect(bundled).toContain('"$id": "wayfarer/vault"');
   expect(bundled).not.toContain(SECRET);
 
   // Plain text: not without the words.

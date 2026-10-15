@@ -1,6 +1,8 @@
-import { readFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import { axe } from "./support/axe";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -56,13 +58,13 @@ async function seedCollection(page: Page, requests: SeededRequest[], vars: Recor
       const read = db.transaction("meta").objectStore("meta").get("state");
       const state = await new Promise((resolve) => (read.onsuccess = () => resolve(read.result)));
       const now = Date.now();
-      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now, version: 1 });
+      const meta = (id: string) => ({ id, createdAt: now, updatedAt: now });
       const rows = (record: Record<string, string>) => Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
       const digest = async (text: string) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
       const approved = await Promise.all(requests.flatMap((request) => [request.pre ?? "", request.post ?? ""]).filter((script) => script.trim()).map(digest));
       const tx = db.transaction(["environments", "collections", "requests", "meta"], "readwrite");
       tx.objectStore("environments").put({ id: "env-run", meta: meta("env-run"), name: "Run env", vars: rows(vars), order: 0 });
-      tx.objectStore("meta").put({ schemaVersion: 1, ...(state ?? {}), key: "state", activeEnvironmentId: "env-run" });
+      tx.objectStore("meta").put({ ...(state ?? {}), key: "state", activeEnvironmentId: "env-run" });
       tx.objectStore("collections").put({ id: "col-run", meta: meta("col-run"), name: "Shop", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true, approved } });
       requests.forEach((request, order) =>
         tx.objectStore("requests").put({
@@ -140,7 +142,7 @@ test("three requests and a data file of five rows give the fifteen results Newma
   const json = await saved(page, () => view.getByRole("button", { name: "JSON", exact: true }).click());
   expect(json.name).toBe("wayfarer-run.json");
   const report = JSON.parse(json.text) as { $id: string; name: string; iterations: number; ended: string; totals: unknown; results: { iteration: number; name: string; status: number; tests: { name: string; passed: boolean }[] }[] };
-  expect(report).toMatchObject({ $id: "wayfarer/run/1", name: "Shop", iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
+  expect(report).toMatchObject({ $id: "wayfarer/run", name: "Shop", iterations: 5, ended: "completed", totals: { requests: 15, skipped: 0, tests: 40, failedTests: 2, errors: 0 } });
   expect(report.results.map((result) => ({ iteration: result.iteration, name: result.name, tests: result.tests.map(({ name, passed }) => ({ name, passed })) }))).toEqual(golden.items);
 
   // The JUnit report: the document core's test validates against the schema, with this run's numbers.
@@ -162,6 +164,59 @@ test("three requests and a data file of five rows give the fifteen results Newma
   // A run is not history, and its scripts ran inside the policy.
   expect(await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations)).toEqual([]);
   await page.keyboard.press("Escape");
+});
+
+/** A run's results without what differs from one run to the next: how long each request took, and the ids of the requests. */
+const comparable = (report: { iterations: number; ended: string; totals: unknown; results: Record<string, unknown>[] }) => ({
+  iterations: report.iterations,
+  ended: report.ended,
+  totals: report.totals,
+  results: report.results.map(({ durationMs: _durationMs, id: _id, ...result }) => result),
+});
+
+test("@claim:C-065 the command line runs the P5.2 collection and data file to the results the app's runner gives", async ({ page }) => {
+  test.slow();
+  await seedCollection(page, fixtureRequests(), { base: ECHO, role: "from the environment" });
+  const view = await openRun(page);
+  await view.getByLabel("Data file for the run").setInputFiles(join(FIXTURES, "data.csv"));
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(status(view)).toContainText("The run is complete.", { timeout: 60_000 });
+  const app = JSON.parse((await saved(page, () => view.getByRole("button", { name: "JSON", exact: true }).click())).text) as Parameters<typeof comparable>[0];
+
+  // The same collection, environment and data file, from the command line (P6.5).
+  const cli = join(__dirname, "../packages/cli");
+  execFileSync(process.execPath, [join(cli, "build.mjs")]);
+  const folder = mkdtempSync(join(tmpdir(), "wayfarer-cli-diff-"));
+  try {
+    const environment = join(folder, "env.json");
+    writeFileSync(environment, JSON.stringify({ name: "Run env", values: [{ key: "base", value: ECHO, enabled: true }, { key: "role", value: "from the environment", enabled: true }] }));
+    const run = spawnSync(process.execPath, [join(cli, "dist/wayfarer-cli.mjs"), "run", join(FIXTURES, "data.postman_collection.json"), "-e", environment, "-d", join(FIXTURES, "data.csv"), "--allow-scripts", "--reporter", "json", "--out", folder], { encoding: "utf8" });
+    // Two of the fixture's tests fail, in the app as here.
+    expect(run.status, run.stderr).toBe(1);
+    const fromCli = JSON.parse(readFileSync(join(folder, "wayfarer-run.json"), "utf8")) as Parameters<typeof comparable>[0];
+    expect(comparable(fromCli)).toEqual(comparable(app));
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+// C-065 failed once in CI Firefox: Run was pressed while the data file chosen just before was still being read,
+// and the run went once, without it. Run waits for the file.
+test("Run pressed in the moment a data file is chosen waits for the file, and runs once per row", async ({ page }) => {
+  await seedCollection(page, fixtureRequests(), { base: ECHO, role: "from the environment" });
+  const view = await openRun(page);
+  const csv = readFileSync(join(FIXTURES, "data.csv"), "utf8");
+  // The file is given and Run is pressed in one task: no moment for the file to be read in between.
+  await page.evaluate((text) => {
+    const input = document.querySelector<HTMLInputElement>('input[aria-label="Data file for the run"]')!;
+    const files = new DataTransfer();
+    files.items.add(new File([text], "data.csv", { type: "text/csv" }));
+    input.files = files.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    [...document.querySelectorAll<HTMLButtonElement>("app-run-view button")].find((button) => button.textContent?.trim() === "Run")!.click();
+  }, csv);
+  await expect(status(view)).toContainText("The run is complete.", { timeout: 60_000 });
+  await expect(resultRows(view)).toHaveCount(15);
 });
 
 test("Cancel stops a run within one request", async ({ page }) => {
@@ -366,8 +421,8 @@ for (const theme of ["dark", "light"] as const) {
       await page.mouse.move(640, 880);
       // Once the page has stopped animating: a colour half way through a fade is not the colour.
       await settled(page);
-      const results = await new AxeBuilder({ page }).analyze();
-      expect(results.violations.filter((v) => v.impact === "serious" || v.impact === "critical").flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+      const results = await axe(page).analyze();
+      expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
     };
     await scan("before the run");
     await view.getByLabel("Data file for the run").setInputFiles({ name: "not-data.json", mimeType: "application/json", buffer: Buffer.from("{}") });

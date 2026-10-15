@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnInit,
   effect,
   inject,
@@ -22,13 +23,13 @@ import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/mat
 import { Dialog } from "../../ui/dialog";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import { PastRequest, PastRequestKey } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { WorkspaceBackup } from "../../services/workspace-backup";
-import { Idb } from "../../data/idb";
-import { DatabaseResetBlockedError } from "../../data/idb-core";
+import { HistoryRepository } from "../../data/history-repository";
+import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
 import { Theme } from "../../services/theme";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Composer } from "../composer/composer";
@@ -79,8 +80,7 @@ export class AppShell implements OnInit {
 
   readonly newRequest = output<void>();
   readonly clearHistory = output<void>();
-  readonly deleteRequest = output<PastRequestKey>();
-  readonly openDrawer = output<void>();
+  readonly deleteRequest = output<number>();
   readonly closeDrawer = output<void>();
   readonly toggleDrawer = output<void>();
 
@@ -90,7 +90,8 @@ export class AppShell implements OnInit {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   protected readonly backup = inject(WorkspaceBackup);
-  private readonly idb = inject(Idb);
+  private readonly idb = inject(IdbCore);
+  private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly updatedElsewhere = this.idb.updatedElsewhere;
@@ -180,12 +181,12 @@ export class AppShell implements OnInit {
       {
         id: "toggle-sidebar",
         label: "Toggle Collections Sidebar",
-        run: () => this.toggleDrawer.emit(),
+        run: () => this.toggleNavigation(),
       },
       {
         id: "open-history",
         label: "Open Request History",
-        run: () => this.historyDrawerVisible.set(true),
+        run: () => this.openHistory(),
       },
       {
         id: this.secretsUnlocked ? "lock-secrets" : "unlock-secrets",
@@ -225,20 +226,57 @@ export class AppShell implements OnInit {
   /** What had focus when a drawer opened. */
   private drawerOpener: HTMLElement | null = null;
 
+  private readonly navigationDrawer = viewChild<MatSidenav>("navigationDrawer");
+  private readonly navigationPanel = viewChild<ElementRef<HTMLElement>>("navigation");
+  private readonly historyDrawer = viewChild.required<MatSidenav>("historyDrawer");
+  private readonly historyPanel = viewChild.required<ElementRef<HTMLElement>>("history");
+
+  protected openHistory(): void {
+    this.openDrawer(this.historyDrawer(), this.historyPanel().nativeElement);
+    this.historyDrawerVisible.set(true);
+  }
+
+  protected closeHistory(): void {
+    void this.historyDrawer().close();
+    this.historyDrawerVisible.set(false);
+  }
+
+  /** Pinned, the sidebar is no drawer: the app shows or hides it. */
+  protected toggleNavigation(): void {
+    const drawer = this.navigationDrawer();
+    const panel = this.navigationPanel();
+    if (drawer?.opened) void drawer.close();
+    else if (drawer && panel) this.openDrawer(drawer, panel.nativeElement);
+    this.toggleDrawer.emit();
+  }
+
+  protected closeNavigation(): void {
+    void this.navigationDrawer()?.close();
+    this.closeDrawer.emit();
+  }
+
   /**
-   * Moves focus into a drawer as it starts to open. Material does so when
-   * the slide ends; until then Tab walked the page underneath, and Escape,
-   * which a drawer reads from its own element, did nothing.
+   * Opens a drawer and moves focus into it in the task that asked for it
+   * (#223). Material shows the drawer at once but moves focus when the slide
+   * ends, and its openedStart comes a frame late: until then Tab walked the
+   * page underneath, and Escape, which a drawer reads from its own element,
+   * did nothing. A drawer is closed the same way, in the task: opened and
+   * closed before Angular ran, the [opened] binding saw no change and the
+   * drawer stayed open. The binding then finds the drawer as it was left.
    */
-  protected focusDrawer(panel: HTMLElement): void {
+  private openDrawer(drawer: MatSidenav, panel: HTMLElement): void {
+    if (drawer.opened) return;
     this.drawerOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    panel.querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), [tabindex='0']")?.focus();
+    void drawer.open();
+    panel
+      .querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), [tabindex='0']")
+      ?.focus();
   }
 
   /** A click on the page behind an open drawer closes it. */
   protected closeDrawers(): void {
-    if (this.historyDrawerVisible()) this.historyDrawerVisible.set(false);
-    else if (this.sidebarOverlay() && this.drawerVisible()) this.closeDrawer.emit();
+    if (this.historyDrawer().opened) this.closeHistory();
+    else if (this.navigationDrawer()?.opened) this.closeNavigation();
   }
 
   /** Material notes where focus was only once the slide has ended, by when it is inside the drawer. */
@@ -254,7 +292,7 @@ export class AppShell implements OnInit {
   handleLoadRequest(request: PastRequest): void {
     this.composer().loadPastRequest(request);
     if (this.sidebarOverlay()) {
-      this.closeDrawer.emit();
+      this.closeNavigation();
     }
   }
 
@@ -262,14 +300,14 @@ export class AppShell implements OnInit {
     this.composer().loadCollectionRequest(request);
     this.composer().focusUrl();
     if (this.sidebarOverlay()) {
-      this.closeDrawer.emit();
+      this.closeNavigation();
     }
   }
 
   handleRun(target: RunTarget): void {
     this.composer().openRun(target);
     if (this.sidebarOverlay()) {
-      this.closeDrawer.emit();
+      this.closeNavigation();
     }
   }
 
@@ -277,7 +315,7 @@ export class AppShell implements OnInit {
     this.composer().clearComposer();
     this.composer().focusUrl();
     if (this.sidebarOverlay()) {
-      this.closeDrawer.emit();
+      this.closeNavigation();
     }
   }
 
@@ -386,6 +424,7 @@ export class AppShell implements OnInit {
     try {
       // Until the reload: a send that ends in the meantime, or a tab's timer, must not open the database again.
       await this.idb.resetDatabase({ untilReload: true });
+      this.history.resetLocalState();
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(

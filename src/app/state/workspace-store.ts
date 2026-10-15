@@ -1,25 +1,40 @@
 import { Injectable, computed, effect, inject, type WritableSignal } from "@angular/core";
 import {
   FORBIDDEN_METHODS,
-  RAW_CONTENT_TYPES,
-  graphqlPayload,
+  OAuthError,
+  PreRequestScriptError,
+  SendBlockedError,
+  UnresolvedVariablesError,
+  assemble,
+  bodyContentType,
+  bodyTexts,
+  buildRequest,
+  isBodyMethod,
+  runOutcome,
+  normalizeUrl,
+  oauthOf,
+  scriptsOf,
+  sentAuth,
+  sentHeaders,
+  type BuiltRequest,
+  type Composed,
+  type OAuth2Auth,
+  type RequestExecutionResponse,
+  type RequestExecutionSpec,
+  type RunSend,
   VariableNestingError,
   VariableResolver,
   browserLimits,
   buildAuthHeaders,
   buildCurl,
-  buildAuthQueryParam,
-  credentialsOf,
   effectiveAuth,
   exportBody,
-  isCredentialHeader,
   isHttpMethod,
   newId,
   parseEventStream,
   redactExport,
   resolveAuth,
   routeOf,
-  signV4,
   type Ancestor,
   type AuthConfig,
   type BrowserLimits,
@@ -28,64 +43,34 @@ import {
   type ExportBody,
   type ExportSource,
   type FileRef,
-  type MultipartPart,
   type Route,
   type RedactOptions,
   type RequestBody,
   type RequestContent,
-  type Row,
   type RunIteration,
   type RunOutcome,
   type ScopeStack,
   type StreamEvent,
 } from "@wayfarer/core";
-import { Idb } from "../data/idb";
+import { HistoryRepository } from "../data/history-repository";
 import { RequestDoc } from "../models/collections";
-import { PastRequest } from "../models/history";
-import { TestResult } from "../models/test-assertion";
+import { PastRequest } from "@wayfarer/core";
 import { CollectionsStore } from "../services/collections-store";
 import { EnvironmentsStore } from "../services/environments-store";
 import { RequestFiles } from "../services/request-files";
-import {
-  BuiltRequest,
-  PreRequestScriptError,
-  RequestExecutionResponse,
-  RequestExecutionSpec,
-  RequestExecutionResult,
-  RequestExecutor,
-  RequestSkipped,
-  SendBlockedError,
-  SendDeclinedError,
-} from "../services/request-executor";
+import { RequestExecutionResult, RequestExecutor } from "../services/request-executor";
 import { OAuthTokens } from "../services/oauth-tokens";
 import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
 import { TransportRouter } from "../services/transport-router";
 import { writeToClipboard } from "../shared/http/clipboard";
-import {
-  appendQueryParam,
-  buildUrlFromParams,
-  normalizeUrl,
-  parseParamsFromUrl,
-  validateUrl,
-} from "../shared/http/request-url";
-import { OAuthError, oauthTokenKey, scriptsOf, type OAuth2Auth } from "@wayfarer/core";
+import { buildUrlFromParams, parseParamsFromUrl, validateUrl } from "../shared/http/request-url";
+
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
 import { SHOWN_EVENTS, TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
-
-/** GET and HEAD cannot carry a body: `fetch` refuses one. */
-export function isBodyMethod(method?: string): boolean {
-  return !!method && method !== "GET" && method !== "HEAD";
-}
-
-/** A body as it is sent, with the `Content-Type` its mode implies. */
-interface SentBody {
-  data: string | Blob | FormData;
-  contentType?: string;
-}
 
 /** A body as text, for the places that show or copy one. A file or a form has none. */
 function textOf(body: BuiltRequest["body"]): string | undefined {
@@ -104,72 +89,6 @@ function sentExportBody(sent: BuiltRequest["body"], composed: RequestBody): Expo
   return { mode: "binary", fileName: composed.binary?.fileName ?? "" };
 }
 
-/** The headers that are sent: enabled rows with a name, in order. */
-export function sentHeaders(rows: Row[]): [string, string][] {
-  return rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value]);
-}
-
-/** A request that has a `{{variable}}` with no value, held back until the user says to send it as written (plan D3). */
-export class UnresolvedVariablesError extends SendBlockedError {
-  constructor(readonly names: string[]) {
-    super(`${names.map((name) => `{{${name}}}`).join(", ")} ${names.length === 1 ? "has" : "have"} no value. The request was not sent.`);
-  }
-}
-
-/** A request as it was before its pre-request script ran: its address as composed, and the variables as they were. */
-interface Composed {
-  url: string;
-  scopes: ScopeStack;
-  /** In a run: the hosts the user has said yes to. A host is asked about once in a run. */
-  accepted?: Set<string>;
-}
-
-/** What a run's requests share (P5.2): the variables as they were when the run started, and the hosts the user has said yes to. */
-export interface RunSend {
-  baseline: ScopeStack;
-  acceptedHosts: Set<string>;
-}
-
-/** The host a request goes to: its name, and its port when that is not the scheme's own. An address that is no URL stands for itself. */
-function hostOf(url: string, scopes: ScopeStack): string {
-  const address = normalizeUrl(new VariableResolver(scopes).resolve(url.trim()));
-  return URL.parse(address)?.host ?? address;
-}
-
-/** The `Content-Type` a body's mode implies, without reading a file: what a preflight is decided on. */
-function bodyContentType(body: RequestBody): string | undefined {
-  switch (body.mode) {
-    case "raw":
-      return body.raw?.text ? RAW_CONTENT_TYPES[body.raw.language] : undefined;
-    case "graphql":
-      return "application/json";
-    case "urlencoded":
-      return "application/x-www-form-urlencoded";
-    case "multipart":
-      return "multipart/form-data";
-    case "binary":
-      return body.binary?.contentType || "application/octet-stream";
-    default:
-      return undefined;
-  }
-}
-
-/** Every text of a body that may hold a `{{variable}}`. */
-function bodyTexts(body: RequestBody): string[] {
-  switch (body.mode) {
-    case "raw":
-      return [body.raw?.text ?? ""];
-    case "graphql":
-      return [body.graphql?.query ?? "", body.graphql?.variables ?? ""];
-    case "urlencoded":
-      return (body.urlencoded ?? []).flatMap((row) => [row.key, row.value]);
-    case "multipart":
-      return (body.multipart ?? []).flatMap((part) => [part.key, part.kind === "text" ? part.value : ""]);
-    default:
-      return [];
-  }
-}
-
 /**
  * The one request being composed, as a `Draft`, and the response it last
  * received. The composer's panels edit the draft; a saved request holds the
@@ -180,7 +99,7 @@ function bodyTexts(body: RequestBody): string[] {
  */
 @Injectable({ providedIn: "root" })
 export class WorkspaceStore {
-  private readonly idb = inject(Idb);
+  private readonly historyRepository = inject(HistoryRepository);
   private readonly environments = inject(EnvironmentsStore);
   private readonly executor = inject(RequestExecutor);
   private readonly files = inject(RequestFiles);
@@ -528,7 +447,7 @@ export class WorkspaceStore {
     // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
     if (result.cookieValues.length) tab.responseExportContext.update((context) => context && { ...context, credentials: [...context.credentials, ...result.cookieValues] });
     // Where the response is kept: a reload shows it again from there (P5.1).
-    tab.historyKey.set((await this.idb.add(result.history, this.settings.historyCap())) ?? undefined);
+    tab.historyKey.set((await this.historyRepository.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
   }
 
@@ -661,34 +580,13 @@ export class WorkspaceStore {
     const controller = new AbortController();
     signal.addEventListener("abort", () => controller.abort());
     tab.inFlight = controller;
-    const tests = (rows: TestResult[]): RunOutcome["tests"] => rows.map((row) => ({ name: row.label, passed: row.passed, ...(row.error !== undefined && { error: row.error }) }));
-    const said = (outcome: RunOutcome, exchange?: PastRequest) => ({ outcome, exchange, scriptsSkipped: tab.scriptsSkipped() });
-
     const refusal = this.refusal(tab);
-    if (refusal) return said({ error: refusal, tests: [] });
-    try {
-      const result = await this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run });
-      const { response } = result;
-      // No status, or the browser's 0: no response arrived, and the text says why.
-      const failed = !response.statusCode;
-      return said(
-        {
-          ...(response.statusCode !== undefined && { status: response.statusCode }),
-          ...(response.statusText && { statusText: response.statusText }),
-          durationMs: result.durationMs,
-          ...(failed && { error: response.errorText }),
-          tests: tests(result.testResults),
-          ...(result.nextRequest !== undefined && { nextRequest: result.nextRequest }),
-        },
-        result.history
-      );
-    } catch (error) {
-      if (error instanceof RequestSkipped) return said({ skipped: true, tests: tests(error.testResults), ...(error.nextRequest !== undefined && { nextRequest: error.nextRequest }) });
-      if (error instanceof SendDeclinedError) return said({ error: error.message, tests: [], end: "You chose not to send a request with a vault secret to a host a script had changed." });
-      if (error instanceof PreRequestScriptError) return said({ error: error.message, tests: tests(error.testResults) });
-      if (error instanceof SendBlockedError || error instanceof VariableNestingError) return said({ error: error.message, tests: [] });
-      throw error;
-    }
+    if (refusal) return { outcome: { error: refusal, tests: [] }, scriptsSkipped: false };
+    const { outcome, exchange } = await runOutcome(
+      () => this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run }),
+      "You chose not to send a request with a vault secret to a host a script had changed."
+    );
+    return { outcome, exchange, scriptsSkipped: tab.scriptsSkipped() };
   }
 
   /** What a script is told of the saved request in the composer, and the collection whose variables it may read and change. */
@@ -712,7 +610,7 @@ export class WorkspaceStore {
 
   /** The auth that is sent for `auth` from `tab`: itself, or what the tab's saved request inherits. */
   private sentAuth(auth: AuthConfig, tab: TabState): AuthConfig {
-    return effectiveAuth(auth, this.saved.ancestorsFor(tab.bound())).auth;
+    return sentAuth(auth, this.saved.ancestorsFor(tab.bound()));
   }
 
   /**
@@ -723,16 +621,7 @@ export class WorkspaceStore {
   readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() => this.oauthOf(this.draft().auth, this.tabs.active()));
 
   private oauthOf(own: AuthConfig, tab: TabState): { auth: OAuth2Auth; key: string } | null {
-    const auth = this.sentAuth(own, tab);
-    if (auth.type !== "oauth2") return null;
-    const probe = new VariableResolver(this.scopesOf(tab));
-    try {
-      return { auth, key: oauthTokenKey(resolveAuth(auth, (text) => probe.resolve(text))) };
-    } catch (error) {
-      // Variables that refer to each other: the send says so. Such an auth has no token.
-      if (!(error instanceof VariableNestingError)) throw error;
-      return null;
-    }
+    return oauthOf(own, this.saved.ancestorsFor(tab.bound()), this.scopesOf(tab));
   }
 
   /**
@@ -810,7 +699,8 @@ export class WorkspaceStore {
       const body = exportBody(content.body, content.method, (text) => resolver.resolve(text));
       // The type the body's mode implies, as a send adds it. A multipart form has none: its sender writes the boundary.
       const contentType = body.mode === "none" || body.mode === "multipart" || (body.mode === "raw" && !body.text) ? undefined : bodyContentType(content.body);
-      const built = this.assemble(this.tabs.active(), endpoint, content, contentType ? { data: "", contentType } : undefined, resolver);
+      const tab = this.tabs.active();
+      const built = assemble(content, contentType ? { data: "", contentType } : undefined, resolver, { ancestors: this.saved.ancestorsFor(tab.bound()), lastEventId: tab.lastEventId });
       return { method: built.method, url: built.url, headers: built.headers, body, secrets: built.secrets, credentials: built.credentials };
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
@@ -845,7 +735,27 @@ export class WorkspaceStore {
    * just made, so it reads a fresh variable context.
    */
   private buildRequestForExecution(tab: TabState, content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
-    const built = this.resolveRequest(tab, content, allowUnresolved, composed, renewToken);
+    const built = buildRequest(content, {
+      // Read at each use: a pre-request script, or a vault unlock, may have come between.
+      scopes: () => this.scopesOf(tab),
+      ancestors: this.saved.ancestorsFor(tab.bound()),
+      readSecrets: (ids) => this.readSecrets(ids),
+      readFile: (ref) => this.fileOf(ref),
+      blockUnresolved: this.settings.blockUnresolved() && !allowUnresolved,
+      ...(composed && { composed }),
+      askHost: (from, to) =>
+        this.confirm.confirm({
+          title: "Send to a different host?",
+          message: composed?.accepted
+            ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Yes holds for ${to} until the run ends.`
+            : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
+          acceptLabel: "Send",
+          rejectLabel: "Don't send",
+        }),
+      oauthToken: (auth, key, renew) => this.oauthTokens.tokenFor(auth, key, { renew, signal: tab.inFlight?.signal }),
+      renewToken,
+      ...(tab.lastEventId !== undefined && { lastEventId: tab.lastEventId }),
+    });
     return built instanceof Promise ? built.then((request) => this.recordForExport(tab, request, content)) : this.recordForExport(tab, built, content);
   }
 
@@ -882,59 +792,6 @@ export class WorkspaceStore {
   }
 
   /**
-   * `content` (the draft, as a pre-request script may have changed it) with
-   * `{{var}}` placeholders substituted, as it is transmitted. The editors
-   * keep the literal template.
-   *
-   * `composed` is the request before its pre-request script ran. When the
-   * script left it going to another host and it uses a vault secret, the
-   * user is asked before the vault is read (plan Q6). One send is compared:
-   * a variable a script set in an earlier send is not seen here.
-   */
-  private resolveRequest(tab: TabState, content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
-    const endpointText = content.url;
-    // Read at each use: a pre-request script, or a vault unlock, may have come between.
-    const scopes = () => this.scopesOf(tab);
-    // First without the vault: this pass says which secrets the request needs.
-    const probe = new VariableResolver(scopes());
-    for (const text of [endpointText, ...sentHeaders(content.headers).flat(), ...bodyTexts(content.body)]) {
-      probe.resolve(text);
-    }
-    // Every field of the auth that is sent, not its credentials alone: a username or an access key may be a secret too (F81).
-    resolveAuth(this.sentAuth(content.auth, tab), (text) => probe.resolve(text));
-    const checked = (resolver: VariableResolver): BuiltRequest | Promise<BuiltRequest> => {
-      const built = this.build(tab, endpointText, content, resolver, renewToken);
-      const check = (request: BuiltRequest): BuiltRequest => {
-        if (resolver.unresolved.size && this.settings.blockUnresolved() && !allowUnresolved) {
-          throw new UnresolvedVariablesError([...resolver.unresolved]);
-        }
-        return request;
-      };
-      return built instanceof Promise ? built.then(check) : check(built);
-    };
-    // Nothing to read from the vault: the request is built at once, in the same task as the click.
-    if (!probe.lockedSecrets.size) return checked(new VariableResolver(scopes()));
-    const withSecrets = () => this.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
-    const from = composed && hostOf(composed.url, composed.scopes);
-    const to = hostOf(endpointText, scopes());
-    if (from === undefined || from === to || composed?.accepted?.has(to)) return withSecrets();
-    return this.confirm
-      .confirm({
-        title: "Send to a different host?",
-        message: composed?.accepted
-          ? `A script of this run changed where "${tab.bound()?.name ?? "this request"}" goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there. Yes holds for ${to} until the run ends.`
-          : `The pre-request script changed where this request goes: from ${from} to ${to}. The request uses a vault secret, which would be sent there.`,
-        acceptLabel: "Send",
-        rejectLabel: "Don't send",
-      })
-      .then((accepted) => {
-        if (!accepted) throw new SendDeclinedError("The request was not sent, and what the pre-request script set was undone.");
-        composed?.accepted?.add(to);
-        return withSecrets();
-      });
-  }
-
-  /**
    * The plaintext of the secrets a request refers to. A locked vault asks
    * for the passphrase first; when the user closes that dialog, nothing is
    * sent (plan D4). A secret the vault does not have is left out: its
@@ -950,149 +807,6 @@ export class WorkspaceStore {
       if (plaintext !== null) secrets.set(id, plaintext);
     }
     return secrets;
-  }
-
-  /** A promise only when a file has to be read: everything else is built at once. */
-  private build(tab: TabState, endpointText: string, content: RequestContent, resolver: VariableResolver, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
-    const resolve = (text: string): string => resolver.resolve(text);
-    const auth = resolveAuth(this.sentAuth(content.auth, tab), resolve);
-    // Read before anything else is resolved: these are the auth's own.
-    const withoutValue = [...resolver.unresolved];
-    const sent = isBodyMethod(content.method) ? this.resolveBody(content.body, resolve) : undefined;
-    const finish = (body: SentBody | undefined, token?: string): BuiltRequest | Promise<BuiltRequest> => this.sign(this.assemble(tab, endpointText, content, body, resolver, token), auth);
-    const oauth = auth.type === "oauth2" ? this.oauthOf(content.auth, tab) : null;
-    if (auth.type !== "oauth2" || !oauth) return sent instanceof Promise ? sent.then((body) => finish(body)) : finish(sent);
-    // A token is not asked for with a variable's name where its value should be, whatever "Send anyway" says of the request itself.
-    if (withoutValue.length) {
-      throw new SendBlockedError(`The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`);
-    }
-    // OAuth 2.0 (P4.7): the token held, or a renewed one. Fetched before the request is put together, and never by a copy or an export.
-    const token = this.oauthTokens.tokenFor(auth, oauth.key, { renew: renewToken, signal: tab.inFlight?.signal }).catch((error: unknown) => {
-      throw error instanceof OAuthError ? new SendBlockedError(`${error.message} Nothing was sent.`) : error;
-    });
-    return Promise.all([sent, token]).then(([body, value]) => finish(body, value));
-  }
-
-  /**
-   * AWS Signature Version 4 (P4.8), last of all: it signs the address, the
-   * headers and the body as they will be sent. Signed besides `Host` and the
-   * signer's own headers: `Content-Type` and any `x-amz-` header the request
-   * sets. The hashes are WebCrypto's, which a page has only when it is
-   * served over https or from localhost.
-   */
-  private sign(built: BuiltRequest, auth: AuthConfig): BuiltRequest | Promise<BuiltRequest> {
-    if (auth.type !== "awsv4" || !URL.canParse(built.url)) return built;
-    if (built.body instanceof FormData) {
-      throw new SendBlockedError("AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign. Send a file as a File body, or the fields as a URL-encoded form. Nothing was sent.");
-    }
-    if (!globalThis.crypto?.subtle) throw new SendBlockedError("AWS Signature needs the browser's cryptography, which a page has only over https or from localhost. Nothing was sent.");
-    const add = async (body: string | Uint8Array | undefined): Promise<BuiltRequest> => {
-      const own = built.headers.filter(([name]) => /^(content-type$|x-amz-)/i.test(name));
-      const { headers: signature } = await signV4({ method: built.method, url: built.url, headers: own, body }, auth, new Date());
-      const replaced = new Set(signature.map(([name]) => name.toLowerCase()));
-      return {
-        ...built,
-        headers: [...built.headers.filter(([name]) => !replaced.has(name.toLowerCase())), ...signature],
-        // The signature's header too: a server may send it back.
-        credentials: [...built.credentials, ...signature.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)],
-      };
-    };
-    if (built.body instanceof Blob) return built.body.arrayBuffer().then((bytes) => add(new Uint8Array(bytes)));
-    return add(built.body);
-  }
-
-  private assemble(
-    tab: TabState,
-    endpointText: string,
-    content: RequestContent,
-    sent: SentBody | undefined,
-    resolver: VariableResolver,
-    /** An OAuth 2.0 token fetched for this send. It goes in as it is: a token is not a template. */
-    token?: string
-  ): BuiltRequest {
-    const resolve = (text: string): string => resolver.resolve(text);
-    const auth = resolveAuth(this.sentAuth(content.auth, tab), resolve);
-    // One value per name, whatever its case, the later one winning: the auth
-    // header replaces a row of the same name. A Map keeps a name such as
-    // "__proto__" as data (F56).
-    const byName = new Map<string, [string, string]>();
-    for (const [key, value] of [...sentHeaders(content.headers), ...Object.entries(buildAuthHeaders(auth))]) {
-      const name = resolve(key);
-      byName.set(name.toLowerCase(), [name, resolve(value)]);
-    }
-    if (token) byName.set("authorization", ["Authorization", `Bearer ${token}`]);
-    // The id of an event is the server's text, not a template: a `{{variable}}` in it is not replaced, or a server could name one and be sent its value.
-    if (tab.lastEventId !== undefined) byName.set("last-event-id", ["Last-Event-ID", tab.lastEventId]);
-    // The body's own type, unless the request names one.
-    if (sent?.contentType && !byName.has("content-type")) {
-      byName.set("content-type", ["Content-Type", sent.contentType]);
-    }
-    const headers = [...byName.values()];
-    // The Params rows are already in the URL field (they mirror its query).
-    let url = normalizeUrl(resolve(endpointText.trim()));
-    const authParam = buildAuthQueryParam(auth);
-    if (authParam) {
-      url = appendQueryParam(url, authParam.key, authParam.value);
-    }
-    return {
-      method: content.method,
-      url,
-      headers,
-      body: sent?.data,
-      // An OAuth 2.0 token is kept like a vault secret and masked like one: in history, in every export, and in what a script is shown.
-      secrets: [...resolver.taint, ...(token ? [token] : [])],
-      // Also what a credential header carries, typed by hand or built from the Auth tab: a server may send it back.
-      credentials: [...credentialsOf(auth), ...headers.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)].filter((value) => value),
-    };
-  }
-
-  /**
-   * The body as it is sent, by mode, with the `Content-Type` it implies. A
-   * form has none here: `fetch` writes the multipart type with its boundary.
-   */
-  private resolveBody(body: RequestBody, resolve: (text: string) => string): SentBody | undefined | Promise<SentBody> {
-    switch (body.mode) {
-      case "none":
-        return undefined;
-      case "raw": {
-        const text = resolve(body.raw?.text ?? "");
-        return text ? { data: text, contentType: RAW_CONTENT_TYPES[body.raw?.language ?? "text"] } : undefined;
-      }
-      case "graphql": {
-        // The variables are replaced in the query and in the variables' text, and the JSON is made of the result: whatever a value holds, the query is one JSON string.
-        const payload = graphqlPayload(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? ""));
-        if ("error" in payload) throw new SendBlockedError(payload.error);
-        return { data: payload.text, contentType: "application/json" };
-      }
-      case "urlencoded": {
-        const pairs = (body.urlencoded ?? []).filter((row) => row.enabled).map((row) => [resolve(row.key), resolve(row.value)]);
-        return { data: new URLSearchParams(pairs).toString(), contentType: "application/x-www-form-urlencoded" };
-      }
-      case "multipart":
-        return this.multipartForm((body.multipart ?? []).filter((item) => item.enabled), resolve);
-      case "binary":
-        return this.binaryFile(body.binary);
-    }
-  }
-
-  private async multipartForm(parts: MultipartPart[], resolve: (text: string) => string): Promise<SentBody> {
-    const form = new FormData();
-    for (const part of parts) {
-      if (part.kind === "text") {
-        form.append(resolve(part.key), resolve(part.value));
-      } else {
-        form.append(resolve(part.key), await this.fileOf(part), part.fileName);
-      }
-    }
-    return { data: form };
-  }
-
-  private async binaryFile(binary: RequestBody["binary"]): Promise<SentBody> {
-    if (!binary) {
-      throw new SendBlockedError("Choose a file for the body, or set the body to None.");
-    }
-    const file = await this.fileOf(binary);
-    return { data: file, contentType: binary.contentType || file.type || "application/octet-stream" };
   }
 
   private async fileOf(ref: FileRef): Promise<Blob> {

@@ -9,7 +9,7 @@ Collections live in IndexedDB and travel as JSON files. A file is written the sa
 | `Collection` | `meta`, `id`, `name`, `order`, `variables`, `auth`, `scripts`, optional `description`; stored only: `scriptTrust` | `meta.id` is the key. `variables` is a list of `{key, value, enabled}` rows that every request of the collection can use (see [Variables](variables.md)); a file must have it, and it may be empty. `auth` is what a request or a folder set to inherit is sent with; it is one of the request auth types below and never `inherit`. `scripts` is `{ pre, post }`, run for every request of the collection before its folders' and its own. `scriptTrust.trusted` is true for a collection made in this browser and false for an imported one. It is not written to a file. |
 | `Folder`     | `meta`, `id`, `collectionId`, `name`, `order`, `variables`, `auth`, `scripts`, optional `parentFolderId` and `description` | A folder at the top has no `parentFolderId`. A `description` (of a folder or of a request) is kept from a file that had one, such as a Postman collection, and written back; the app does not show it yet. `variables` win over the collection's and lose to the environment's, the nearest folder first. `auth` is `{ "type": "inherit" }` for a new folder. `scripts` run after the collection's, the outer folder's before the inner one's. |
 | `RequestDoc` | `meta`, `id`, `collectionId`, optional `folderId`, `name`, optional `description`, `order`, and the request fields below | |
-| `Meta`       | `id`, `createdAt`, `updatedAt`, `version: 1` | Times are milliseconds since the epoch. `version` is the version of this block, not of the file. |
+| `Meta`       | `id`, `createdAt`, `updatedAt` | Times are milliseconds since the epoch. |
 
 ## Request fields
 
@@ -48,16 +48,16 @@ A file is not in a collection file: only its `fileId` and `fileName` are. The by
 * Every object's keys are written in alphabetical order.
 * Rows and assertions keep the order the user gave them.
 
-## File format 3
+## The file
 
 ```jsonc
 {
-  "$id": "wayfarer/collection/3",
+  "$id": "wayfarer/collection",
   "collection": {
     "auth": { "token": "{{token}}", "type": "bearer" },
     "description": "Demo collection",
     "id": "col-1",
-    "meta": { "createdAt": 1717692390115, "id": "col-1", "updatedAt": 1717692390115, "version": 1 },
+    "meta": { "createdAt": 1717692390115, "id": "col-1", "updatedAt": 1717692390115 },
     "name": "Sample",
     "order": 1,
     "scripts": { "post": "", "pre": "" },
@@ -68,14 +68,14 @@ A file is not in a collection file: only its `fileId` and `fileName` are. The by
       "auth": { "type": "inherit" },
       "collectionId": "col-1",
       "id": "fold-1",
-      "meta": { "createdAt": 1717692390115, "id": "fold-1", "updatedAt": 1717692390115, "version": 1 },
+      "meta": { "createdAt": 1717692390115, "id": "fold-1", "updatedAt": 1717692390115 },
       "name": "Auth",
       "order": 1,
       "scripts": { "post": "", "pre": "" },
       "variables": []
     }
   ],
-  "meta": { "createdAt": 1717692390115, "id": "col-1", "updatedAt": 1717692390115, "version": 1 },
+  "meta": { "createdAt": 1717692390115, "id": "col-1", "updatedAt": 1717692390115 },
   "requests": [
     {
       "auth": { "type": "inherit" },
@@ -84,7 +84,7 @@ A file is not in a collection file: only its `fileId` and `fileName` are. The by
       "folderId": "fold-1",
       "headers": [{ "enabled": true, "key": "Content-Type", "value": "application/json" }],
       "id": "req-1",
-      "meta": { "createdAt": 1717692390115, "id": "req-1", "updatedAt": 1717692390115, "version": 1 },
+      "meta": { "createdAt": 1717692390115, "id": "req-1", "updatedAt": 1717692390115 },
       "method": "POST",
       "name": "Login",
       "order": 1,
@@ -104,7 +104,7 @@ An export adds nothing of its own: no new ids, no new times. Exporting, importin
 
 How any file is imported, and the report shown first, is in [Import](import.md). Of this format:
 
-* The file must say `"$id": "wayfarer/collection/3"`. A file without it, which is what versions before 2.0 wrote, and a format 2 file, which is what 2.0 and 2.1 wrote, are refused; nothing converts them.
+* The file must say `"$id": "wayfarer/collection"`. Any other `$id`, the numbered ones earlier versions wrote among them, is refused; nothing converts it.
 * Every field above is checked against the values the app writes: a method that is not one upper-case word, a header that is not a row, a body mode or an auth type the app does not know are each reported with their path, and nothing is imported.
 * **Export** writes `***` in place of a credential typed into the auth of a request, of a folder or of the collection, or into a credential header (`Authorization`, `Cookie`, `X-API-Key`, and any name with token, secret, key or pass in it), and in place of a collection or folder variable with such a name. A value that holds a `{{variable}}` is a reference and is written as it is. **Export with credentials** writes everything as typed. Importing a masked file gives requests whose credentials read `***`.
 * An imported collection is marked untrusted (`scriptTrust` is `{ "trusted": false }`, with no approved scripts), also when it replaces a collection that was trusted. `scriptTrust` is `{ trusted, approved }`: `approved` lists the SHA-256, in hex, of each script text that was reviewed or written in this app. A script runs only when the collection is trusted and the script's digest is in the list.
@@ -112,4 +112,4 @@ How any file is imported, and the report shown first, is in [Import](import.md).
 
 ## Environments file
 
-`"$id": "wayfarer/environments/2"` with `environments`, a list of `{ meta, id, name, order, optional description, vars }`. `vars` is a list of rows, in order; when a name appears twice, the later enabled row is the one used. A variable's row may also hold `"json": true`: a script set the variable to something that is not text, and `value` is its JSON. A file with that mark on a value that is not JSON is refused.
+`"$id": "wayfarer/environments"` with `environments`, a list of `{ meta, id, name, order, optional description, vars }`. `vars` is a list of rows, in order; when a name appears twice, the later enabled row is the one used. A variable's row may also hold `"json": true`: a script set the variable to something that is not text, and `value` is its JSON. A file with that mark on a value that is not JSON is refused.

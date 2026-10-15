@@ -16,7 +16,7 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { Dialog } from "../../ui/dialog";
 import { MatTooltip } from "@angular/material/tooltip";
-import { SecretDoc, SecretId } from "../../models/secrets";
+import { SecretDoc } from "../../models/secrets";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { VaultActions } from "./vault-actions";
@@ -61,14 +61,14 @@ export class SecretsManager {
 
   private readonly docs = signal<SecretDoc[]>([]);
   readonly loading = signal(false);
-  readonly revealedValues = signal<Record<SecretId, string>>({});
-  readonly revealingId = signal<SecretId | null>(null);
-  readonly editingId = signal<SecretId | null>(null);
+  readonly revealedValues = signal<Record<string, string>>({});
+  readonly revealingId = signal<string | null>(null);
+  readonly editingId = signal<string | null>(null);
   readonly editingName = signal("");
 
   readonly rows = computed<SecretRow[]>(() => {
     const environments = this.environmentsService.environments();
-    const usagesBySecretId = new Map<SecretId, SecretUsage[]>();
+    const usagesBySecretId = new Map<string, SecretUsage[]>();
     for (const env of environments) {
       for (const { key, value } of env.vars) {
         const secretId = extractSecretId(value);
@@ -126,7 +126,7 @@ export class SecretsManager {
     }
   }
 
-  async reveal(id: SecretId): Promise<void> {
+  async reveal(id: string): Promise<void> {
     if (!this.secretsService.isUnlocked()) {
       this.requestUnlock.emit();
       return;
@@ -142,7 +142,7 @@ export class SecretsManager {
     }
   }
 
-  hideRevealed(id: SecretId): void {
+  hideRevealed(id: string): void {
     this.revealedValues.update((current) => {
       const next = { ...current };
       delete next[id];
@@ -150,11 +150,11 @@ export class SecretsManager {
     });
   }
 
-  isRevealed(id: SecretId): boolean {
+  isRevealed(id: string): boolean {
     return id in this.revealedValues();
   }
 
-  revealedValue(id: SecretId): string | undefined {
+  revealedValue(id: string): string | undefined {
     return this.revealedValues()[id];
   }
 
@@ -194,7 +194,7 @@ export class SecretsManager {
     if (confirmed) await this.deleteSecret(row.doc.id);
   }
 
-  private async deleteSecret(id: SecretId): Promise<void> {
+  private async deleteSecret(id: string): Promise<void> {
     await this.secretsService.deleteSecret(id);
     this.hideRevealed(id);
     await this.refresh();

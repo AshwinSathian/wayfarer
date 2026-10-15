@@ -157,6 +157,13 @@ Wayfarer's code contains no analytics SDK, no error reporter, and no usage
 ping. <!-- claim:C-001 --> If that ever changes, it will be an explicit, opt-in, off-by-default
 setting.
 
+Errors stay in the page. Settings → Diagnostics lists the last 200 of this
+page's life and what the Content-Security-Policy blocked, with self-tests,
+and copies a report or opens a GitHub issue with it only when you ask. An
+error's message is kept without any address, quoted text or anything that
+looks like a key or a token, so the report holds no address, header or body
+of a request you sent. <!-- claim:C-068 -->
+
 The hosting zone currently injects Cloudflare's Web Analytics beacon and a
 bot-detection script into the page. The site's Content-Security-Policy
 blocks both from running <!-- claim:C-011 -->, and they are being switched off at the host
@@ -220,7 +227,7 @@ These are open, tracked, and scheduled in
 
 - The Local Bridge's token, which you paste into its settings or which the bridge gives the page for its pairing code (once; three wrong codes lock pairing for a minute), is kept in the vault while the vault is unlocked. With the vault locked, or with no vault, it is in the tab's memory only and you give it again after a reload: it is never written as plain text. A vault file holds it encrypted, like every vault secret.
 - OAuth 2.0 sign-in is tested in Chromium, Firefox and a test build of WebKit, not yet in Safari itself, and a token endpoint that does not allow the app's origin can only be reached through the Local Bridge ([`browser-limits.md`](browser-limits.md#oauth)). The implicit and device grants are not built.
-- In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent although the server's answer refused it ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
+- In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent without one: the server received the request and no `OPTIONS` ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
 - Data and files from Wayfarer 1.x are not read by version 2: the first open removes them and says so.
 
 All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09).
@@ -232,13 +239,45 @@ Automated-scanner discovery file: [`/.well-known/security.txt`](../public/.well-
 Every fixed security-relevant issue is recorded in [`CHANGELOG.md`](../CHANGELOG.md)
 rather than quietly folded into an unrelated release note.
 
-## Procurement / security questionnaire
+## Hall of fame
 
-A pre-answered CAIQ-lite packet covering the questions enterprise security
-reviewers ask most often (data residency, encryption, subprocessors,
-incident history, authentication model) lives at
-[`docs/security-questionnaire.md`](security-questionnaire.md). Read it
-directly rather than opening a review ticket for facts already written down.
+People who broke the script sandbox, the vault or the Local Bridge under
+the rules of the [challenge in `SECURITY.md`](../SECURITY.md#break-the-sandbox),
+in the order their reports arrived.
+
+No one yet.
+
+## Procurement answers
+
+The questions a security review asks most often (the "CAIQ-lite" set),
+answered once. Copy from here into your questionnaire; the facts behind
+each answer are in the sections above.
+
+| Question | Answer |
+|---|---|
+| Product | Wayfarer, a local-first API client. |
+| Vendor | Ashwin Sathian, solo maintainer; no legal entity. |
+| Hosting model | Client-side only: static files from Cloudflare's edge (or your own host, see [Self-hosting](self-hosting.md)); all logic and data run in the user's browser. |
+| Support | Best effort, through GitHub Issues. No support tier with an SLA. |
+| Where is customer data stored? | Only in the user's browser, in IndexedDB. No database, object storage or server-side store exists. |
+| Does data leave the device? | Only the request the user composes, sent to the host the user chose (and an OAuth 2.0 token request and sign-in, to addresses the user typed). |
+| Data residency | Not applicable: wherever the user's device is. |
+| Retention | Until the user deletes it (an item, or Reset all data) or clears the site's storage. |
+| Encryption at rest | Vault secrets: AES-GCM-256 under a data key wrapped by a PBKDF2-SHA-256 key (600,000 iterations) from the passphrase. Everything else: plain text in IndexedDB, under the browser's sandbox and the device's disk encryption. |
+| Encryption in transit | The user's own TLS to their own target; the app neither weakens nor intercepts it. |
+| Key management | The data key is in memory only while unlocked. No escrow, no server-side key, no recovery of a lost passphrase. |
+| Accounts, SSO, MFA | None: there are no accounts. |
+| Backend touching customer data | None. |
+| Third parties receiving data | None. The optional Local Bridge runs on the user's machine, under the user's control. |
+| Subprocessors | Cloudflare, as the static host; it sees each page load's IP address, user agent and URL, never the user's data. A self-hosted copy has none. |
+| Certifications | No SOC 2, ISO 27001 or third-party penetration test. |
+| GDPR / CCPA | The vendor collects, stores and processes no personal data; users control what they type into their own requests. |
+| Incident history | No breach: there is no vendor-held data store. Every security fix is in [`CHANGELOG.md`](../CHANGELOG.md). |
+| Vulnerability disclosure | Private reports, an answer within 5 business days, coordinated disclosure: [`SECURITY.md`](../SECURITY.md). |
+| Licence | MIT, for all of the client. |
+
+A question this table does not answer: [open an issue](https://github.com/AshwinSathian/wayfarer/issues).
+An absence here means "not yet written down", not "no".
 
 ## What this page is not
 

@@ -264,8 +264,8 @@ All five loaded take about 2 MB of the 64 MB a script may hold.
 ## Visual Test Assertions (Tests tab)
 
 Alongside scripts, requests can carry a list of declarative assertions
-(`TestAssertion`, `src/app/models/test-assertion.ts`), evaluated by
-`AssertionRunner` without running any user script at all:
+(`TestAssertion`), evaluated by `runAssertions`
+(`packages/core/src/send/assertions.ts`) without running any user script at all:
 
 - **Targets:** `status` (status code), `duration` (response time in ms),
   `header` (by name, case-insensitive), `body` (whole body, or a dot/bracket
@@ -481,7 +481,7 @@ folder. Nothing is sent until **Run**.
 - **A run is not history.** Its requests are not written there, and a
   run's tab is not stored: a reload does not bring it back. You may open
   another tab while a run goes on.
-- **Reports**, once a run has ended: JSON (`"$id": "wayfarer/run/1"`),
+- **Reports**, once a run has ended: JSON (`"$id": "wayfarer/run"`),
   JUnit XML as CI servers read it (validated against Jenkins' JUnit schema
   in the tests), and a HAR 1.2 file of every exchange, masked as history
   is: a vault secret and a credential read `***`.

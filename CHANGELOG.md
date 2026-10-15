@@ -7,6 +7,186 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **Wayfarer is deployed at v2.5.0, and the Local Bridge and the command
+  line are on npm.** `npx wayfarer-bridge` and `npx wayfarer-cli` work, each
+  published from this repository with a provenance attestation. The README
+  no longer says they are not on npm.
+
+- **The npm pages of `wayfarer-bridge` (3.0.1) and `wayfarer-cli` say what
+  each package does today.** The bridge's still said it was not on npm and
+  linked to files by paths that do not open from npmjs.com. Both now have
+  real output from the published packages, a table of the bridge's error
+  answers and what to do about each, how to call the bridge with `curl`, a
+  table of Newman's flags and their `wayfarer-cli` equivalents, the reports'
+  format, and a CI example. `wayfarer-bridge` 3.0.1 changes nothing else.
+
+- **The database is version 14, and an update empties it.** The vault's
+  record and each encrypted secret no longer carry a version field (`v`):
+  there is one shape, and nothing checks for another. A vault file from
+  this version has no `v` either; a file written before still opens, the
+  field is ignored. Export collections and back up the workspace before
+  updating: what version 13 stored is removed, as the page then says.
+
+### Fixed
+
+- **`wayfarer-cli` 2.0.1: `--out` with a folder that did not exist yet.**
+  2.0.0 ran the whole collection, then failed to write its reports with
+  `ENOENT` and exited `2`, the code that says nothing was run. The CI example
+  in `docs/cli.md` writes to `--out reports`, so on a fresh checkout it
+  failed this way. The folder is now made before the first request; if it
+  cannot be made, the run stops there with exit code `2` and nothing sent.
+
+- **A click on a menu item as the menu opened could be lost.** While a
+  menu animated open it took no pointer events: a click pressed on an item
+  and released a moment later, once the animation had begun, chose nothing
+  and left the menu open. An opening menu now takes the click.
+
+## [2.5.0] - 2026-10-15
+
+Hardening and the release gate (Phase 7). The app is held to WCAG 2.2 AA
+and to performance budgets in CI, can be used by keyboard alone, and shows
+its own diagnostics. A threat model links every mitigation to a tested
+claim, and each release attaches the build, an SBOM and checksums.
+
+**What to know before you update:** files have one shape now, with no
+number in their `$id`, and a file an earlier version exported is refused:
+export again after you update. Data stored by 2.4.0 is kept; from now on,
+an update that changes how data is stored removes what an earlier version
+stored, once, with a notice. Local Bridge 3.0.0 relays at `/relay` and
+keeps its token in `~/.wayfarer-bridge`: update it and pair again.
+
+### Added
+
+- Settings → Diagnostics: version and commit, browser, storage, database,
+  service worker, Local Bridge; self-tests; the last 200 errors and the
+  Content-Security-Policy violations. Copy report and Open GitHub issue
+  hold nothing of a request you sent.
+- A threat model (`docs/threat-model.md`): each trust boundary, its threats
+  by STRIDE, and the tested claim behind each mitigation.
+- "Break the sandbox": a public challenge in `SECURITY.md`, with a hall of
+  fame in the Trust Center. No money.
+- `docs/self-hosting.md`.
+- Each release attaches the built folder, a CycloneDX SBOM and SHA-256
+  checksums.
+- CI holds the app to performance budgets (Lighthouse desktop 90 or more,
+  LCP within 2 s, TBT within 200 ms; typing within 100 ms a key with five
+  tabs open) and checks that Monaco, the script engine, GraphQL, the
+  OpenAPI importer and the YAML parser stay out of the first load.
+- CI checks that every doc link leads to a file and that the README links
+  every doc, and that the README's feature list is the claims ledger.
+
+### Changed
+
+- Files have one `$id` each, with no number: `wayfarer/collection`,
+  `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`,
+  `wayfarer/run`.
+- An update that changes how data is stored removes what an earlier version
+  stored, once, with a notice. There is no conversion.
+- Local Bridge 3.0.0 relays at `/relay`; `/health` answers
+  `{ ok, name, version }`, with no protocol number or capabilities. Use the
+  bridge of the same release as the page.
+- `wayfarer-cli` 2.0.0 reads the files of this version.
+- Every axe scan checks WCAG 2.2 A and AA at every impact; none is found.
+- The README's feature list is the claims ledger. The security questionnaire
+  is now the Trust Center's "Procurement answers".
+- Size budgets reset to the new baseline: initial 1,386,465 B raw,
+  358,979 B gzip (+7,128 and +1,605 over 2.4.0, for Diagnostics and the
+  accessibility work); budgets 1456kb / 1525kb / 394,800 B.
+- Internal: services use the repositories directly (the `Idb` facade is
+  gone), and `meta.version`, `schemaVersion` and the ID alias types are
+  gone.
+
+### Fixed
+
+- The app starts faster: the code editor loads with the first editor shown,
+  not with every page.
+- A dialog that asks for a name, a passphrase or a command opens with focus
+  on that field; Enter in a new item's name creates it.
+- Focus stays on Send through a send.
+- Opening a drawer moves focus into it at once (#223).
+- A code editor shows a focus ring.
+- Two auth fields filled at once, as a password manager does, are both kept.
+- Run pressed just after choosing a data file waits for the file.
+
+### Security
+
+- Publishing the Local Bridge or the CLI no longer runs their dependencies'
+  code in the job that holds the npm token.
+
+## [2.4.0] - 2026-10-14
+
+The Local Bridge becomes a first-class route, and collections run from the
+command line. A request, a collection or the device chooses its route:
+Direct, Local Bridge, or Auto, which sends through the bridge when the page
+gets no answer and asks first when the server may have received the
+request. Local Bridge 2.2.0 speaks protocol 2: bodies as bytes, decompressed
+responses, timings, a `Host` of your own, certificate verification off for
+one request, a certificate authority and a proxy of your own, HTTPS on
+loopback, and pairing with a code instead of copying a token.
+`wayfarer-cli` runs a collection, a workspace backup or a Postman file in a
+terminal or a CI job, with the app's own engine and the app's results.
+
+**Nothing stored is removed by this version.** The database goes from
+version 12 to 13: each folder's folders and requests are numbered again as
+one list, so a run follows the order of the list and of a Postman file.
+
+**What to know before you rely on it:**
+
+- The page speaks the bridge's protocol 2 only: an older Local Bridge is
+  refused with a message that says to update it.
+- Auto may send a request twice when a server received it and answered
+  without the CORS headers the browser needs: the browser reports both the
+  same way (said in `docs/browser-limits.md`).
+- The command line runs a file's scripts only with `--allow-scripts`, and
+  sends every request directly. It is not on npm yet: the first publish is
+  a separate step (`docs/runbook.md`); until then, build it from a clone.
+- The first bundle is 1,379,337 B (357,374 B gzip), 1.2% more than 2.3.0:
+  the route, the badge, the bridge's pane and the road a request takes,
+  now in the shared engine. The size budgets are reset to this baseline
+  (warning at 1,448 kB, error at 1,517 kB, 393,100 B gzip).
+
+### Added (releases to npm)
+
+- **The Local Bridge and the command line can be published to npm** from
+  a tag (`bridge-v<version>`, `cli-v<version>`), with npm's provenance:
+  the npm page then says which build of this repository made the package.
+  Each release installs the package it is about to publish into an empty
+  folder and runs it first. The first publish is the maintainer's
+  (`docs/runbook.md`); until then, both run from a clone.
+- `docs/cli.md` has a GitHub Actions job that runs a collection on every
+  push and keeps the JUnit report.
+
+### Added (command line)
+
+- **`wayfarer-cli`, a command-line runner** (`packages/cli`; not on npm
+  yet, see `docs/cli.md` to build it). `wayfarer-cli run <file>` runs a
+  Wayfarer collection, a workspace backup or a Postman collection, with an
+  environment (`-e`), a data file (`-d`) and a number of iterations (`-n`),
+  and writes the reports the app's run view saves (`--reporter
+  cli,json,junit`). It exits with 1 when a test fails or a request gets no
+  response, so a CI job can run it. It sends with the app's own engine: the
+  same scripts in the same order, the same variables, vault and checks,
+  and a test holds its results to the app's for the same run.
+- **A file's scripts run only with `--allow-scripts`.** In the app a
+  collection from a file runs its scripts after you have reviewed them; a
+  file carries no review, so without the flag a collection with scripts is
+  not run, and nothing is sent.
+- **The vault from the command line**: a workspace backup brings its vault,
+  or `--vault-file` names an exported one; the passphrase is read from
+  `WAYFARER_VAULT_PASSPHRASE`, never from an argument. Every request goes
+  straight from Node: the Local Bridge adds nothing there.
+
+### Changed (the road a request takes)
+
+- **How a request is sent now lives in the shared engine**, so that the
+  command-line runner, coming next, sends exactly as the app does: the
+  scripts in their order, what they set, the vault, the check that no
+  secret's placeholder reaches the network, the route, the assertions, and
+  what history keeps. Nothing you see in the app changes; before, this was
+  part of the app alone and a second runner would have had to copy it.
+
 ### Added (routes)
 
 - **A route for every request: Direct, Local Bridge or Auto.** A request

@@ -60,7 +60,7 @@ export type {
   Scripts,
   TestAssertion,
 } from "./model/request";
-export { applyVariableChanges, scriptVariables, variableChanges, variablesByName, type ScriptVariable, type VariableChange } from "./model/variables";
+export { applyVariableChanges, protectedSecretId, scriptVariables, variableChanges, variablesByName, type ScriptVariable, type VariableChange } from "./model/variables";
 export {
   KDF_ITERATIONS,
   VAULT_FILE_FORMAT,
@@ -97,7 +97,7 @@ export {
 export { graphqlPayload } from "./http/graphql";
 export { MAX_COOKIES, cookieHeader, cookiesFor, parseSetCookie, storeCookie, withJarCookies, type Cookie } from "./cookies/jar";
 export { BridgeTransport, bridgeHealthProblem } from "./transport/bridge";
-export { afterDirectSend, routeOf } from "./transport/route";
+export { afterDirectSend, routeOf, type RoutePolicy } from "./transport/route";
 export { FetchTransport } from "./transport/fetch";
 export { parseEventStream } from "./transport/sse";
 export {
@@ -128,3 +128,42 @@ export { loadLibraries } from "./scripting/libraries";
 export { scriptRequestOf, sentScriptRequest, withScriptRequest } from "./scripting/request-view";
 export { scriptDigest, scriptsApproved, scriptsOf, type ScriptTrust } from "./scripting/trust";
 export { requestsInOrder, runFailed, runRequests, type RunIteration, type RunOptions, type RunOutcome, type RunReport, type RunRequest, type RunResult } from "./run/runner";
+export { containsSecretPlaceholder } from "./send/wire";
+export { runAssertions, type AssertionResponseContext, type TestResult } from "./send/assertions";
+export {
+  HISTORY_BODY_LIMIT,
+  PreRequestScriptError,
+  RequestSkipped,
+  SendBlockedError,
+  SendDeclinedError,
+  exchange,
+  scriptResponse,
+  type BuiltRequest,
+  type ExchangePorts,
+  type ExchangeResult,
+  type HistoryBody,
+  type PastRequest,
+  type RequestExecutionResponse,
+  type RequestExecutionSpec,
+  type ScriptResponseContext,
+  type ScriptRunExtras,
+  type SendTimings,
+} from "./send/exchange";
+export {
+  UnresolvedVariablesError,
+  assemble,
+  bodyContentType,
+  bodyTexts,
+  buildRequest,
+  isBodyMethod,
+  normalizeUrl,
+  oauthOf,
+  sentAuth,
+  sentHeaders,
+  type BuildContext,
+  type Composed,
+  type RunSend,
+  type SentBody,
+} from "./send/build";
+export { runOutcome } from "./send/run";
+export { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY, WORKSPACE_FORMAT, validateWorkspaceFile } from "./import/workspace";

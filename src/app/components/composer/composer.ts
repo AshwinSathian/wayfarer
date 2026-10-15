@@ -3,10 +3,11 @@ import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } 
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { RequestDoc } from "../../models/collections";
-import { PastRequest } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { Icon } from "../../shared/icon/icon";
-import { WorkspaceStore, isBodyMethod } from "../../state/workspace-store";
+import { isBodyMethod } from "@wayfarer/core";
+import { WorkspaceStore } from "../../state/workspace-store";
 import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
 import { Splitter } from "../../ui/splitter";

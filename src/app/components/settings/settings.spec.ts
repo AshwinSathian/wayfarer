@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../../data/idb";
+import { provideRepositories } from "../../../testing/repositories";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Theme } from "../../services/theme";
 import { Settings } from "./settings";
@@ -21,15 +21,15 @@ describe("Settings", () => {
     localStorage.removeItem("wayfarer:theme");
     await TestBed.configureTestingModule({
       imports: [Settings],
-      providers: [{ provide: Idb, useValue: { onChangeElsewhere: vi.fn(), listSecrets: async () => [], memoryOnly: () => false } }],
+      providers: [...provideRepositories({ onChangeElsewhere: vi.fn(), listAll: async () => [], memoryOnly: () => false })],
     }).compileComponents();
     fixture = TestBed.createComponent(Settings);
     fixture.componentRef.setInput("visible", true);
     await settle();
   });
 
-  it("lists ten sections, the danger zone last, and opens at General", () => {
-    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual(["General", "Requests", "History", "Data and storage", "Vault", "Local Bridge", "Cookies", "Shortcuts", "About", "Danger zone"]);
+  it("lists eleven sections, the danger zone last, and opens at General", () => {
+    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual(["General", "Requests", "History", "Data and storage", "Vault", "Local Bridge", "Cookies", "Shortcuts", "Diagnostics", "About", "Danger zone"]);
     expect(heading()).toBe("General");
     expect(item("General").getAttribute("aria-current")).toBe("page");
     expect(item("Requests").getAttribute("aria-current")).toBeNull();
@@ -171,8 +171,8 @@ describe("Settings", () => {
 
     it("Test connection asks the address that is typed, not the one stored, and says what came back", async () => {
       const bridge = TestBed.inject(BridgeSettings);
-      const tooOld = "Local Bridge 1.1.0 is too old for this page: it speaks protocol 1, and the page speaks protocol 2. Update the Local Bridge and start it again.";
-      const health = vi.spyOn(bridge, "checkHealth").mockResolvedValueOnce(undefined).mockResolvedValueOnce("Not reachable. Is the bridge running, and is this page's origin one it allows?").mockResolvedValueOnce(tooOld);
+      const notBridge = "What answered at this address is not a Local Bridge.";
+      const health = vi.spyOn(bridge, "checkHealth").mockResolvedValueOnce(undefined).mockResolvedValueOnce("Not reachable. Is the bridge running, and is this page's origin one it allows?").mockResolvedValueOnce(notBridge);
       await type("#bridge-url-input", "http://127.0.0.1:9999 ");
       const verdict = async (text: string) =>
         vi.waitFor(async () => {
@@ -184,9 +184,9 @@ describe("Settings", () => {
       expect(health).toHaveBeenCalledWith("http://127.0.0.1:9999");
       button("Test connection").click();
       await verdict("Not reachable");
-      // A bridge that answers and is of another protocol is named, with what to do (P6.3).
+      // What answers and is no bridge is named (P6.3).
       button("Test connection").click();
-      await verdict(tooOld);
+      await verdict(notBridge);
       // An edit after a test takes the verdict away: it was of another address.
       await type("#bridge-url-input", "http://127.0.0.1:1");
       expect(dialog().querySelector(".bridge-test")?.textContent?.trim()).toBe("");

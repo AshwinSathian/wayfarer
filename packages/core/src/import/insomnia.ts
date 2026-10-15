@@ -66,7 +66,7 @@ function rowsOf(data: unknown, said: (value: unknown) => string, prefix = "", de
 function environment(name: string, vars: Row[]): EnvironmentDoc {
   const id = newId();
   const now = Date.now();
-  return { id, meta: { id, createdAt: now, updatedAt: now, version: 1 }, name, order: 0, vars };
+  return { id, meta: { id, createdAt: now, updatedAt: now }, name, order: 0, vars };
 }
 
 /** `{name, value, disabled}` entries as Postman's `{key, value, disabled}`. A row with no name and no value is one the editor left empty. */

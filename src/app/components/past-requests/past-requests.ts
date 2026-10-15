@@ -10,7 +10,7 @@ import { historyExchange, type HarSource } from "../../shared/inspect/har-export
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { MatTooltip } from "@angular/material/tooltip";
 import { HoverCard } from "../../ui/hover-card";
-import { PastRequest, PastRequestKey } from "../../models/history";
+import { PastRequest } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
 
 /** Whether every word of `query` is part of the entry's URL, or is its method or its status. Case does not matter. */
@@ -51,7 +51,7 @@ export class PastRequests {
   readonly loading = input(false);
   readonly displayHeader = input(true);
   readonly loadRequest = output<PastRequest>();
-  readonly deleteRequest = output<PastRequestKey>();
+  readonly deleteRequest = output<number>();
 
   private readonly confirm = inject(Confirm);
 
@@ -65,7 +65,7 @@ export class PastRequests {
   readonly groups = computed(() => this.buildGroups(this.shown()));
 
   /** The entries ticked for an export (P4.6 c), by id. One that was deleted since is not among `chosen`. */
-  private readonly ticked = signal<ReadonlySet<PastRequestKey>>(new Set());
+  private readonly ticked = signal<ReadonlySet<number>>(new Set());
   protected readonly chosen = computed(() => this.pastRequests().filter((request) => request.id !== undefined && this.ticked().has(request.id)));
   protected readonly allShownChosen = computed(() => this.shown().length > 0 && this.shown().every((request) => request.id !== undefined && this.ticked().has(request.id)));
   /** What the HAR dialog exports. Null while it is closed. */
@@ -180,7 +180,7 @@ export class PastRequests {
     if (confirmed) this.deleteRequest.emit(id);
   }
 
-  trackById(_index: number, item: PastRequest): PastRequestKey | undefined {
+  trackById(_index: number, item: PastRequest): number | undefined {
     return item.id;
   }
 }

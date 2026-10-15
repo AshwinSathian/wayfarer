@@ -23,6 +23,9 @@
         "lodash",
         "moment",
         "uuid"
+      ],
+      "ignoreBinaries": [
+        "wayfarer-cli"
       ]
     },
     "packages/bridge": {
@@ -47,6 +50,20 @@
       ],
       "ignoreBinaries": [
         "xmllint"
+      ]
+    },
+    "packages/cli": {
+      "entry": [
+        "src/main.ts",
+        "test/*.mjs"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "*.mjs",
+        "test/*.mjs"
+      ],
+      "ignoreDependencies": [
+        "@wayfarer/core"
       ]
     }
   },

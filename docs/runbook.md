@@ -211,15 +211,107 @@ npm view wayfarer-cli    dist-tags maintainers
 
 These are the P0.13 checks: `npm view … maintainers` lists the maintainer account.
 
-### Notes for the first real release (P6.6)
+### The first release (P6.6)
 
-- Publish from CI with **trusted publishing**: npmjs.com → package → Settings → Trusted Publisher → GitHub Actions, repository `AshwinSathian/wayfarer`, workflow `release.yml`. CI then publishes through OIDC, with no stored token, and gets a provenance attestation automatically. The package has to exist before a trusted publisher can be added, which is one more reason to reserve now. At that point, change `mfa=publish` to the setting the npm docs recommend for trusted publishing.
-- After the real release: `npm deprecate wayfarer-bridge@0.0.0-reserved "placeholder; use the latest release"`, and the same for `wayfarer-cli`.
-- Don't unpublish the placeholders. npm allows unpublishing only within 72 hours, and an unpublished name can't be reused for 24 hours, which is a window for a squatter.
+`.github/workflows/release.yml` publishes a package when a tag names it:
+`bridge-v<version>` for `wayfarer-bridge`, `cli-v<version>` for
+`wayfarer-cli`. It checks that the tag is the package's version, runs the
+package's tests, installs the tarball into an empty folder and runs it
+(job `pack`, with no token), and publishes that same tarball through npm's
+**trusted publishing** (job `publish`, the only one with the OIDC token; it
+installs and runs nothing): no token is stored, and npm attaches a
+provenance attestation of the run. Job `verify` then runs it from the
+registry, without the token. Once, before the first tag:
+
+1. Reserve the names (above), if that was not done.
+2. On npmjs.com, for each package: Settings → Trusted Publisher → GitHub
+   Actions, repository `AshwinSathian/wayfarer`, workflow `release.yml`,
+   environment `npm`. Then set the package's publishing access to the one the
+   npm docs recommend with a trusted publisher (tokens not allowed).
+3. In the repository's settings, Environments: create `npm`, and give it a
+   required reviewer if a publish should wait for a click.
+
+Then, for each release, from `main` after the release PR is merged:
+
+```sh
+git tag bridge-v3.0.0 && git push origin bridge-v3.0.0
+git tag cli-v2.0.0 && git push origin cli-v2.0.0
+```
+
+Check, from a machine that has never had them:
+
+```sh
+npx wayfarer-bridge --help        # prints the bridge's usage
+npx wayfarer-cli --version        # prints 1.0.0
+```
+
+and that each package's page on npmjs.com shows the provenance badge. After
+the first real release only:
+
+```sh
+npm deprecate wayfarer-bridge@0.0.0-reserved "placeholder; use the latest release"
+npm deprecate wayfarer-cli@0.0.0-reserved "placeholder; use the latest release"
+```
+
+Don't unpublish the placeholders. npm allows unpublishing only within 72
+hours, and an unpublished name can't be reused for 24 hours, which is a
+window for a squatter.
+
+## Releasing the app (P7.7)
+
+A tag of the app's version makes its GitHub release:
+
+```bash
+git tag v2.5.0 && git push origin v2.5.0
+```
+
+`release.yml` checks that the tag is `package.json`'s version, builds,
+and attaches `wayfarer-<version>.tar.gz`, `wayfarer-<version>.cdx.json`
+(CycloneDX SBOM) and `SHA256SUMS`, with the changelog's section as the
+notes. Check the release page shows the three, then verify a download:
+
+```bash
+gh release download v2.5.0 --dir /tmp/wayfarer-release && cd /tmp/wayfarer-release
+sha256sum --check SHA256SUMS
+```
+
+The release deploys nothing: production is `deploy.yml`, a step of its own.
 
 ## Service worker
 
 The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
+
+### After the first deploy of v2.5.0
+
+1. Settings → Diagnostics on `https://<host>`: the commit is the tag's,
+   and **Run self-tests** passes all five in Chrome, Firefox and Safari.
+2. A browser that used an earlier version shows, once, that the data an
+   earlier version stored was removed (only if its database's version was
+   below this one's: 2.4.0 left version 13, as this one does, so a 2.4.0
+   browser keeps its data). A collection file exported by 2.4.0 is refused
+   by name.
+3. The Local Bridge 3.0.0 (`bridge-v3.0.0`) relays at `/relay`: pair again
+   (its token folder is `~/.wayfarer-bridge` now) and send through it.
+4. The release page of `v2.5.0` has its three assets, and
+   `sha256sum --check SHA256SUMS` passes.
+
+### After the first deploy of v2.4.0
+
+Phase 6's first exit criterion waits for this: **pairing in under 60
+seconds from the hosted page, in Chrome, Firefox and Safari**.
+
+1. On a computer that has never run it, time the documented flow: start
+   `npx wayfarer-bridge`, open
+   Settings → Local Bridge on `https://<host>`, type the pairing code, press
+   Pair, send a request with the route Local Bridge. In Chrome, allow the
+   Local Network Access prompt the pane explains first.
+2. Safari does not reach `http://127.0.0.1` from an https page: start the
+   bridge with `--cert` and `--key` (the README shows `mkcert`) and repeat.
+3. A request with the route Auto to an address without CORS goes through
+   the bridge and its badge says **Via bridge**.
+4. Write each browser's time and result in
+   [#99](https://github.com/AshwinSathian/wayfarer/issues/99) (F42), which
+   this closes.
 
 ### After the first deploy of v2.3.0
 

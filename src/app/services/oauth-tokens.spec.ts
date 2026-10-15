@@ -2,10 +2,11 @@ import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { OAUTH_CHANNEL, OAuthError, TransportError, emptyAuth, oauthTokenKey, type OAuth2Auth, type ResolvedRequest, type ResponseEnvelope } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Idb } from "../data/idb";
+import { provideRepositories } from "../../testing/repositories";
 import { OAuthTokens } from "./oauth-tokens";
 import { SecretsVault } from "./secrets-vault";
-import { TransportRouter, type RoutePolicy } from "./transport-router";
+import type { RoutePolicy } from "@wayfarer/core";
+import { TransportRouter } from "./transport-router";
 
 const auth = (patch: Partial<OAuth2Auth> = {}): OAuth2Auth => ({ ...(emptyAuth("oauth2") as OAuth2Auth), grant: "client_credentials", tokenUrl: "https://idp.test/token", authUrl: "https://idp.test/authorize", clientId: "client", clientSecret: "secret", ...patch });
 const form = (request: ResolvedRequest) => Object.fromEntries(new URLSearchParams(String(request.body)));
@@ -55,7 +56,7 @@ describe("OAuthTokens", () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: SecretsVault, useValue: vault },
-        { provide: Idb, useValue: { onChangeElsewhere: (listener: (stores: string[]) => void) => (changedElsewhere = listener) } },
+        ...provideRepositories({ onChangeElsewhere: (listener: (stores: string[]) => void) => (changedElsewhere = listener) }),
         {
           provide: TransportRouter,
           useValue: {

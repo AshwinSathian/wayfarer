@@ -27,7 +27,8 @@ describe("vault crypto", () => {
     expect(derived).toEqual({ name: "AES-GCM", length: 256 });
     expect(generateKey.mock.calls[0][0]).toEqual({ name: "AES-GCM", length: 256 });
     expect(wrapKey.mock.calls[0][3]).toMatchObject({ name: "AES-GCM" });
-    expect(record.v).toBe(2);
+    // One shape, with no version field.
+    expect(Object.keys(record).sort()).toEqual(["kdf", "wrappedDek"]);
     expect(record.kdf).toMatchObject({ alg: "PBKDF2-SHA256", iterations: KDF_ITERATIONS });
     expect(KDF_ITERATIONS).toBe(600_000);
     expect(bytes(record.kdf.salt)).toBe(16);
@@ -36,7 +37,7 @@ describe("vault crypto", () => {
 
     const first = await encryptSecret(dek, "id-1", "payload");
     const second = await encryptSecret(dek, "id-1", "payload");
-    expect(first.v).toBe(2);
+    expect(Object.keys(first).sort()).toEqual(["ct", "iv"]);
     expect(bytes(first.iv)).toBe(12);
     expect(second.iv).not.toBe(first.iv);
     expect(second.ct).not.toBe(first.ct);
@@ -114,11 +115,11 @@ describe("vault crypto", () => {
   });
 
   describe("validateVaultFile", () => {
-    const record: VaultRecord = { v: 2, kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcHBlZA" };
+    const record: VaultRecord = { kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcHBlZA" };
     const file = () => ({
       $id: VAULT_FILE_FORMAT,
       vault: structuredClone(record),
-      secrets: [{ id: "s-1", name: "token", environmentId: "env-1", envelope: { v: 2, iv: "aXY", ct: "Y3Q" } }],
+      secrets: [{ id: "s-1", name: "token", environmentId: "env-1", envelope: { iv: "aXY", ct: "Y3Q" } }],
     });
 
     it("accepts what the app writes", () => {
@@ -132,22 +133,20 @@ describe("vault crypto", () => {
       const paths = (value: unknown) => validateVaultFile(value).map((issue) => issue.path);
 
       expect(paths(null)).toEqual(["$"]);
-      expect(paths({ ...file(), $id: "wayfarer/vault/1" })).toEqual(["$id"]);
+      expect(paths({ ...file(), $id: "wayfarer/vault/2" })).toEqual(["$id"]);
       expect(paths({ $id: VAULT_FILE_FORMAT })).toEqual(["vault", "secrets"]);
-      expect(paths({ ...file(), vault: { v: 1, kdf: { alg: "scrypt", iterations: "many", salt: 5 }, wrappedDek: "a+b" } })).toEqual([
-        "vault.v",
+      expect(paths({ ...file(), vault: { kdf: { alg: "scrypt", iterations: "many", salt: 5 }, wrappedDek: "a+b" } })).toEqual([
         "vault.kdf.alg",
         "vault.kdf.iterations",
         "vault.kdf.salt",
         "vault.wrappedDek",
       ]);
       expect(paths({ ...file(), vault: { ...record, kdf: null } })).toEqual(["vault.kdf"]);
-      expect(paths({ ...file(), secrets: [null, { id: "", name: 1, environmentId: 2, envelope: { v: 1, iv: "", ct: "=" } }, { id: "x", name: "n" }] })).toEqual([
+      expect(paths({ ...file(), secrets: [null, { id: "", name: 1, environmentId: 2, envelope: { iv: "", ct: "=" } }, { id: "x", name: "n" }] })).toEqual([
         "secrets[0]",
         "secrets[1].id",
         "secrets[1].name",
         "secrets[1].environmentId",
-        "secrets[1].envelope.v",
         "secrets[1].envelope.iv",
         "secrets[1].envelope.ct",
         "secrets[2].envelope",

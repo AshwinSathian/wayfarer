@@ -166,8 +166,11 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await expect(page.locator("input.address-url")).toBeVisible();
   const opens = async (opener: string, field: Locator) => {
     const button = page.getByRole("button", { name: opener, exact: true });
+    // Save to Collection is disabled until the draft has an address, and
+    // focus() on a disabled button does nothing: in CI's trace (#316) it came
+    // 1 ms after the last key, before the button was enabled.
+    await expect(button, `${opener} can take focus`).toBeEnabled();
     await button.focus();
-    // Once in CI, at Save to Collection, no dialog came after Enter and the caret was still in the address: say which half failed.
     await expect(button, `${opener} has focus before Enter`).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(field, opener).toBeFocused();

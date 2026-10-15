@@ -26,6 +26,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **`wayfarer-cli` 2.0.1: `--out` with a folder that did not exist yet.**
+  2.0.0 ran the whole collection, then failed to write its reports with
+  `ENOENT` and exited `2`, the code that says nothing was run. The CI example
+  in `docs/cli.md` writes to `--out reports`, so on a fresh checkout it
+  failed this way. The folder is now made before the first request; if it
+  cannot be made, the run stops there with exit code `2` and nothing sent.
+
 - **A click on a menu item as the menu opened could be lost.** While a
   menu animated open it took no pointer events: a click pressed on an item
   and released a moment later, once the animation had begun, chose nothing

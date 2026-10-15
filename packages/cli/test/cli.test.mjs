@@ -116,6 +116,21 @@ test("the flow and order fixtures run as Newman ran them; a run where everything
   }
 });
 
+test("--out names a folder that does not exist yet: it is made, and the reports are written in it", async () => {
+  // 2.0.0 ran the whole collection, then failed to write with ENOENT and exited 2, the code for "nothing was run".
+  const env = await environment({ base });
+  const run = await cli(["run", join(RUN_FIXTURES, "order.postman_collection.json"), "-e", env, "--allow-scripts", "--reporter", "json,junit", "--out", "reports/api"]);
+  assert.equal(run.code, 0, run.stderr);
+  assert.equal(JSON.parse(await readFile(join(folder, "reports", "api", "wayfarer-run.json"), "utf8")).$id, "wayfarer/run");
+  assert.match(await readFile(join(folder, "reports", "api", "wayfarer-run.junit.xml"), "utf8"), /^<\?xml/);
+  // A folder that cannot be made (a file has the name) stops the run before anything is sent.
+  await writeFile(join(folder, "taken"), "");
+  const refused = await cli(["run", join(RUN_FIXTURES, "order.postman_collection.json"), "-e", env, "--allow-scripts", "--reporter", "json", "--out", "taken/api"]);
+  assert.equal(refused.code, 2);
+  assert.match(refused.stderr, /^--out taken\/api: /);
+  assert.equal(refused.stdout, "");
+});
+
 test("@claim:C-066 a collection with scripts is not run without --allow-scripts: it says where they are, and nothing is sent", async () => {
   const path = await file("scripted.json", collectionFile([request("Scripted", { url: `${recorded}/scripted`, scripts: { pre: "", post: 'pm.test("ran", () => {});' } })]));
   seen.length = 0;

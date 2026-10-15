@@ -20,9 +20,9 @@ async function resetAllData(page: Page): Promise<void> {
 test("@claim:C-013 Reset All Data in one tab deletes the data and tells the other tab to reload", async ({ context }) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
-  await pageA.goto("/");
+  await pageA.goto("/app/");
   await createCollection(pageA, "Reset me");
-  await pageB.goto("/");
+  await pageB.goto("/app/");
   await expect(pageB.getByText("Reset me", { exact: true })).toBeVisible();
 
   // Page A reloads only after a successful delete.
@@ -36,7 +36,7 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
 });
 
 test("Reset All Data also clears the bridge token and the other wayfarer: preferences", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.evaluate(() => {
     localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "bridge", url: "http://127.0.0.1:7717", token: "secret" }));
     localStorage.setItem("elsewhere", "kept");
@@ -51,7 +51,7 @@ test("Reset All Data also clears the bridge token and the other wayfarer: prefer
 });
 
 test("Reset All Data removes the composer's tabs: the page starts again with one empty tab", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill("https://api.example.test/gone-after-reset");
   await page.getByRole("button", { name: "New tab" }).click();
   await page.locator("input.address-url").fill("https://api.example.test/also-gone");

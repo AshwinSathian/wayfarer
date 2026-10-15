@@ -11,7 +11,7 @@ async function analyze(page: Page) {
 
 test.describe("Accessibility (primary flows)", () => {
   test("@claim:C-038 composer + response viewer have no WCAG 2.2 AA violations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -46,7 +46,7 @@ test.describe("Accessibility (primary flows)", () => {
   });
 
   test("@claim:C-038 collections sidebar has no WCAG 2.2 AA violations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "New collection" }).click();
     // Scan the settled page, not a frame of the entrance/dialog fade: a
     // half-faded label measured 4.38-4.46:1 while its at-rest colours are
@@ -65,7 +65,7 @@ test.describe("Accessibility (primary flows)", () => {
   });
 
   test("@claim:C-038 the Save to Collection and command palette dialogs have no WCAG 2.2 AA violations", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     await page.getByRole("button", { name: "New collection" }).click();
     await page.locator("#creation-name-input").fill("A11y Save Collection");
@@ -105,7 +105,7 @@ test.describe("Accessibility (primary flows)", () => {
   test("@claim:C-038 an actually-open confirm dialog has a real accessible name (not just the closed-shell exclusion above)", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     // The "Clear all history" confirm is disabled until there's history —
     // send one request first so it's reachable.
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
@@ -132,7 +132,7 @@ test.describe("Accessibility (primary flows)", () => {
   // theme was drawn in near-black on a dark surface; the popup had no
   // accessible name and a low-contrast message.
   test("@claim:C-038 the history delete confirmation has no WCAG 2.2 AA violations, in both themes", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?a11y=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -166,7 +166,7 @@ for (const theme of ["dark", "light"] as const) {
     test.setTimeout(240_000);
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?sweep=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });

@@ -81,7 +81,7 @@ curl -s  https://wayfarer.ashwinsathian.com/ | grep -E 'cdn-cgi/challenge-platfo
 curl -sI https://wayfarer.ashwinsathian.com/ | grep -iE '^(nel|report-to):'
 ```
 
-Then compare all response headers against what `public/_headers` sets. Anything not in this list (besides standard ones like `date`, `content-type`, `cf-ray`, `server`) came from the zone:
+Then compare all response headers against what `_headers` (`packages/site/public/_headers`) sets. Anything not in this list (besides standard ones like `date`, `content-type`, `cf-ray`, `server`) came from the zone:
 
 ```sh
 curl -sI https://wayfarer.ashwinsathian.com/ | cut -d: -f1 | tr 'A-Z' 'a-z' | sort
@@ -119,7 +119,7 @@ Undo each step in reverse order: delete rule `wayfarer-no-injection`, re-enable 
 These are good hygiene for a site whose pitch is trust. Each changes behaviour for the whole zone, so they're listed separately and are your call:
 
 - **SSL/TLS → Edge Certificates:** *Always Use HTTPS* on; *Minimum TLS Version* 1.2; *TLS 1.3* on.
-- **HSTS:** sent from `public/_headers` for this host only (`Strict-Transport-Security: max-age=31536000`), not zone-wide. Don't tick *includeSubDomains* or *preload* unless every subdomain of `ashwinsathian.com` is HTTPS-only forever: preload is effectively irreversible.
+- **HSTS:** sent from `_headers` for this host only (`Strict-Transport-Security: max-age=31536000`), not zone-wide. Don't tick *includeSubDomains* or *preload* unless every subdomain of `ashwinsathian.com` is HTTPS-only forever: preload is effectively irreversible.
 - **DNS → Settings → DNSSEC:** enable it, then add the DS record at your registrar if it isn't Cloudflare.
 
 ### Change record
@@ -279,7 +279,7 @@ The release deploys nothing: production is `deploy.yml`, a step of its own.
 
 ## Service worker
 
-The app registers `/sw.js` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
+The app registers `/app/sw.js` with the scope `/app/` (source `src/sw.ts`, built by `scripts/build-sw.mjs` as part of `npm run build`). It caches only the app's own files and never handles requests to other origins. A new deploy installs a new worker version, which waits until the user clicks **Reload** on the "Update available" banner. `/ngsw-worker.js` stays in `public/` permanently: it is Angular's safety worker, which removes the pre-v1.1.0 Angular service worker from returning browsers.
 
 ### After the first deploy of v2.5.0
 
@@ -359,6 +359,29 @@ run in Playwright's WebKit, which does not block it. If Safari blocks it,
 the Auth tab says "The browser blocked the sign-in window": record it as a
 finding.
 
+### After the deploy that moves the app to `/app/` (W1)
+
+The release that carries the website (PLAN-design.md, v2.6.0) moves the app
+from `/` to `/app/` on the same origin. Check once after its deploy:
+
+1. **`/` is the site, `/app/` the app.** `curl -sI https://<host>/` shows
+   the site's `Content-Security-Policy` (`default-src 'none'`, no
+   `script-src`); `curl -sI https://<host>/app/` the app's, and only it.
+   `https://<host>/app` redirects to `/app/`; a missing page is a 404.
+2. **What a browser stored before is there.** In a browser that used the
+   app at `/`, open `/app/`: the collections, environments, history and
+   theme are the same (storage belongs to the origin, not the path).
+3. **The OAuth callback is at `/app/oauth/callback`.** Open it with
+   `?code=x&state=y`: "Wayfarer has not answered…", not the app. Identity
+   providers registered with `/oauth/callback` need the new address.
+4. **The old worker.** A browser that visited before still has the worker
+   registered at `/sw.js` with the scope `/`. Its next update finds no
+   `/sw.js` (a 404) and the browser keeps it: it answers the site's pages,
+   from the network first, and stores the last one as its shell. The app's
+   own worker, at `/app/sw.js`, controls `/app/`. If the old one ever
+   misbehaves, deploy the kill switch below as `/sw.js` at the root
+   (`dist/deploy/sw.js`), not under `app/`.
+
 ### Service worker kill switch
 
 Use this if a deployed `sw.js` is broken (for example, users are stuck on an old version or requests misbehave only with the worker active). Rolling back alone may not help, because browsers keep the installed worker.
@@ -367,12 +390,12 @@ Use this if a deployed `sw.js` is broken (for example, users are stuck on an old
 
    ```sh
    npm ci && npm run build
-   cp scripts/sw-kill.js dist/wayfarer/browser/sw.js
+   cp scripts/sw-kill.js dist/deploy/app/sw.js
    ```
 
-2. Upload and promote it as in [`deployment.md`](deployment.md) (steps 2–4). Browsers fetch `/sw.js` on their next navigation (it is never HTTP-cached: `updateViaCache: "none"`), install the kill switch, which deletes all caches, unregisters, and reloads open tabs from the network.
+2. Upload and promote it as in [`deployment.md`](deployment.md) (steps 2–4). Browsers fetch `/app/sw.js` on their next navigation (it is never HTTP-cached: `updateViaCache: "none"`), install the kill switch, which deletes all caches, unregisters, and reloads open tabs from the network.
 3. Check in a browser that had the app open: DevTools → Application → Service workers shows no registration after one reload, and Cache Storage is empty.
-4. Fix the worker, then deploy normally; the app registers the fixed `/sw.js` again.
+4. Fix the worker, then deploy normally; the app registers the fixed `/app/sw.js` again.
 
 ## The update is stuck, or the data is from a newer version
 

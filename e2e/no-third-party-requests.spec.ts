@@ -54,7 +54,7 @@ test("@claim:C-001 no-third-party-requests: a full session talks only to the app
     (route) => route.abort("blockedbyclient")
   );
 
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${TARGET}/content/json?session=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");

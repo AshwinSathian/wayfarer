@@ -56,6 +56,35 @@ code errors.
 - Do not reorganise the top-level folders (`components`, `services`, `data`,
   `shared`, `ui`): Phase 2 of the plan moves code into `packages/core`.
 
+## The site and the app's address (PLAN-design.md, phase W)
+
+- The deploy is `dist/deploy` (`scripts/build-deploy.mjs`, the last step
+  of `npm run build`): the site's build (`packages/site`, Astro) at the
+  root and the app's (`dist/wayfarer/browser`) under `app/`. Wrangler, the
+  e2e server and the release tarball serve or pack that folder. A test
+  that reads a file of the app's build still reads `dist/wayfarer/browser`.
+- The app is at `/app/` (`baseHref` in `angular.json`). Every address the
+  app makes of its own files is relative to `document.baseURI`: `sw.js`
+  with the scope `./`, the manifest, the licences, the OAuth callback
+  (`oauthRedirectUri`). The Trusted Types policy reads a script URL against
+  the base too. Do not write a path from `/` in the app.
+- The service worker's scope is the app's folder: `src/sw.ts` reads it
+  from its registration; the manifest's paths are the build's.
+- What must be at the origin's root (`_headers`, `/.well-known/security.txt`,
+  `/ngsw-worker.js`, the safety worker kept there for good) is in
+  `packages/site/public`.
+- A missing path is the site's `404.html` with a 404
+  (`not_found_handling: "404-page"`); the app has no addresses of its own
+  past `/app/`. `prod-server.mjs` does the same, and redirects a folder
+  without its slash (`/app`) with a 307, as Workers do.
+- The site runs no script and loads nothing from another origin
+  (`security/csp-site.json`, `e2e/site.spec.ts`): Astro writes CSS to files
+  (`inlineStylesheets: "never"`) and Markdown is not highlighted (Shiki
+  writes `style` attributes). A page that needs a script needs a decision
+  in `PLAN-design.md` first.
+- The synthetic monitor runs the latest release's tests (`v*` tag), not
+  `main`'s: production runs a release, and `main` may have moved paths.
+
 ## packages/core
 
 - `@wayfarer/core` is the engine the web app and, later, the CLI share. The
@@ -764,16 +793,17 @@ code errors.
   Basic header is form-encoded first (RFC 6749): that check reads Basic
   credentials percent-decoded as well.
 - The sign-in window answers on the `BroadcastChannel` `wayfarer:oauth`
-  from `public/oauth/callback.html` (plan D20); only an answer with the
+  from `public/oauth/callback.html`, served at `/app/oauth/callback` (plan D20); only an answer with the
   `state` made for that sign-in is taken. No `window.opener`, and COOP
   stays `same-origin`. The callback page is not the app: its script and
   style are files of its own (the CSP allows no inline one) and it imports
   nothing of the app.
-- The redirect URI is `/oauth/callback`, without `.html`: Workers static
+- The redirect URI is `oauth/callback` beside the app (`/app/oauth/callback`),
+  read from `document.baseURI`, without `.html`: Workers static
   assets serve the page there, and answer the name with its extension
   with a 307 whose query nobody promises to keep. `prod-server.mjs` serves
   it the same way; `ng serve` does not, so `e2e/oauth.spec.ts` needs `CI=1`.
-- The service worker leaves every path under `/oauth/` to the network
+- The service worker leaves every path under its scope's `oauth/` to the network
   (F69): an HTML page that is not the app goes there, or gets the same
   rule. Any other HTML answer to a navigation is stored as the app's shell.
 - `OAuthTokens.tokenFor` reads the vault itself and waits for it. Do not
@@ -786,8 +816,9 @@ code errors.
   needs (F81): a field left out of it is never read from the vault.
 - A change to `resolver.ts`, `redactor.ts` or `vault-crypto.ts` keeps the
   mutation score at 85% or more: `npm -w packages/core run mutation`.
-- The CSP lives in `security/csp.json`; run `npm run gen:csp`. No
-  `unsafe-eval`, no third-party origin.
+- The app's CSP lives in `security/csp.json`, the site's in
+  `security/csp-site.json`; run `npm run gen:csp`. No `unsafe-eval`, no
+  third-party origin.
 - A response is shown, never run. HTML goes to `HtmlPreview`
   (`src/app/components/response-viewer/html-preview.ts`): a `blob:` of
   `previewDocument()` in `<iframe sandbox>` with no `allow-*` token, its
@@ -805,9 +836,11 @@ code errors.
   changes only through the plan's Vault v2 (P2.6); do not add an interim
   one. Raising the iteration count in place was a one-time decision made
   while no stored data existed; with users, it needs a migration.
-- Response headers live in `public/_headers`: CSP (generated), HSTS for this
-  host only (no `includeSubDomains`, no `preload`), COOP and CORP
-  `same-origin`. The smoke e2e asserts them.
+- Response headers live in `packages/site/public/_headers`, the root of the
+  deploy: CSP (generated; the site's under `/*`, and under `/app/*` the
+  site's detached and the app's set), HSTS for this host only (no
+  `includeSubDomains`, no `preload`), COOP and CORP `same-origin`. The smoke
+  e2e asserts them at `/` and `/app/`.
 - The Local Bridge's token is never in `localStorage` (F83): `BridgeSettings` keeps it as the vault secret
   "Local Bridge token" while the vault is unlocked and in memory otherwise, and `TransportRouter` asks for it
   with `tokenForSend`, which may ask the user to unlock the vault. Vault work there goes one after another.

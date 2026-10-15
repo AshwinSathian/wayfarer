@@ -76,7 +76,7 @@ export async function seedAndOpen(
   /** The app's address when it is not the configured one (a spec that runs its own server). */
   base = ""
 ): Promise<Response | null> {
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
     (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5)

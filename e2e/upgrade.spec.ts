@@ -4,7 +4,7 @@ import { dumpIdb } from "./support/app";
 // Nothing an earlier version stored is kept (D24). These tests reach the states a version
 // change passes through, from a page of this origin that does not run the app.
 
-const BLANK = "/3rdpartylicenses.txt";
+const BLANK = "/app/3rdpartylicenses.txt";
 
 declare global {
   interface Window {
@@ -61,7 +61,7 @@ test("data saved by an earlier version is removed, and the page says so once", a
   await openRaw(page, 4, true);
   await page.evaluate(() => window.heldDb?.close());
 
-  await page.goto("/");
+  await page.goto("/app/");
 
   await expect(page.getByText(/saved by an earlier version were removed/)).toBeVisible();
   await expect(page.getByText("Old collection", { exact: true })).toHaveCount(0);
@@ -84,7 +84,7 @@ test("a tab that will not close holds the update: the page asks for it to be clo
   await openRaw(oldTab, 4, true);
 
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.getByText("Close other Wayfarer tabs to finish the update", { exact: false })).toBeVisible();
 
   await oldTab.close();
@@ -95,7 +95,7 @@ test("a tab that will not close holds the update: the page asks for it to be clo
 
 test("a tab running this version closes its connection when a newer one updates the database, and asks for a reload", async ({ context }) => {
   const page = await context.newPage();
-  await page.goto("/");
+  await page.goto("/app/");
   await createCollection(page, "Before the update");
 
   const newerTab = await context.newPage();
@@ -112,7 +112,7 @@ test("a database from a newer version: the page says this tab is older, not that
   await openRaw(page, 99);
   await page.evaluate(() => window.heldDb?.close());
 
-  await page.goto("/");
+  await page.goto("/app/");
 
   await expect(page.getByText(/running an older Wayfarer/)).toBeVisible();
   await expect(page.getByText(/not letting Wayfarer store data/)).toHaveCount(0);
@@ -154,7 +154,7 @@ test("a database of an earlier 2.x is emptied whole, the page says so once, and 
       })
   );
 
-  await page.goto("/");
+  await page.goto("/app/");
 
   await expect(page.getByText(/saved by an earlier version were removed/)).toBeVisible();
   await expect(page.getByText("Version 9 collection", { exact: true })).toHaveCount(0);

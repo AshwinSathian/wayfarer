@@ -35,7 +35,7 @@ async function sendAndEcho(page: Page): Promise<Echo> {
 /** A new POST to the echo-server, with the Body tab open on `mode`. */
 async function postWithBody(page: Page, mode: string): Promise<void> {
   await watchViolations(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await page.getByRole("tab", { name: "Body", exact: true }).first().click();

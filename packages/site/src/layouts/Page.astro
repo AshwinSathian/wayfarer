@@ -1,0 +1,26 @@
+---
+// The site's one layout (W1). The tokens are the app's (src/design-system/tokens.css) until
+// packages/tokens builds them for both (D3.1). The landing of W2.1 replaces the pages' text.
+import "../../../../src/design-system/tokens.css";
+import "../site.css";
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/x-icon" href="/app/favicon.ico" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

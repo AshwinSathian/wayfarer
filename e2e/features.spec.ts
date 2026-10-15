@@ -34,7 +34,7 @@ async function recordClipboard(page: Page): Promise<() => Promise<string[]>> {
 }
 
 test("@claim:C-017 any HTTP method can be typed and is sent in upper case, and the seven common ones are offered", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const method = page.getByRole("textbox", { name: "HTTP method" });
   await page.getByRole("button", { name: "Common methods" }).click();
   await expect(page.getByRole("menuitem")).toHaveText(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
@@ -51,7 +51,7 @@ test("@claim:C-017 any HTTP method can be typed and is sent in upper case, and t
 });
 
 test("TRACE is not sent from the browser, and the page says why", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const sent: string[] = [];
   page.on("request", (request) => {
     if (request.url().startsWith(ECHO)) sent.push(request.method());
@@ -81,7 +81,7 @@ for (const [name, auth, check] of [
 
 test("@claim:C-020 Copy as cURL copies a runnable command once a URL is entered", async ({ page }) => {
   const clipboard = await recordClipboard(page);
-  await page.goto("/");
+  await page.goto("/app/");
   const copy = page.getByRole("button", { name: "Copy as cURL" });
   await expect(copy).toBeDisabled();
   await page.locator("input.address-url").fill(`${ECHO}/echo?c020=1`);
@@ -113,7 +113,7 @@ test("@claim:C-021 visual assertions on status, headers, body and duration repor
 });
 
 test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow-Origin", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   // Allows the (preflighted) request but sends no Timing-Allow-Origin.
   await page.locator("input.address-url").fill(`${ECHO}/cors/no-expose?c023=${Date.now()}`);
   await send(page);
@@ -128,7 +128,7 @@ test("@claim:C-023 phase timings are withheld when the server omits Timing-Allow
 });
 
 test("@claim:C-029 history groups entries by day, reloads one into the composer, and deletes one", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   for (const n of [1, 2]) {
     await page.locator("input.address-url").fill(`${ECHO}/content/json?c029=${n}`);
     await send(page);
@@ -154,7 +154,7 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
 
 test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c034=1`);
   await send(page);
   const arrive = page.locator(".animate-response-arrive").first();
@@ -174,7 +174,7 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
 
 test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange, with a body of text whatever its type", async ({ page }) => {
   const clipboard = await recordClipboard(page);
-  await page.goto("/");
+  await page.goto("/app/");
   interface Har {
     log: { version: string; entries: { request: { url: string; cookies: unknown[] }; response: { status: number; redirectURL: string; content: { mimeType: string; text?: string } } }[] };
   }
@@ -200,21 +200,22 @@ test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange
 });
 
 test("@claim:C-036 the app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const href = await page.locator('link[rel="manifest"]').getAttribute("href");
-  const manifest = await (await request.get(`/${href}`)).json();
+  const at = new URL(href ?? "", page.url());
+  const manifest = await (await request.get(at.href)).json();
   expect(manifest.name).toBe("Wayfarer");
   expect(manifest.start_url).toBeTruthy();
   expect(["standalone", "fullscreen", "minimal-ui"]).toContain(manifest.display);
   const sizes = (manifest.icons as { sizes: string }[]).map((i) => i.sizes);
   expect(sizes).toEqual(expect.arrayContaining(["192x192", "512x512"]));
   for (const icon of manifest.icons as { src: string }[]) {
-    expect((await request.get(`/${icon.src.replace(/^\//, "")}`)).status(), icon.src).toBe(200);
+    expect((await request.get(new URL(icon.src, at).href)).status(), icon.src).toBe(200);
   }
 });
 
 test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
   const method = page.getByRole("textbox", { name: "HTTP method" });
   // A new request is a GET.
@@ -255,7 +256,7 @@ async function createUnder(page: Page, parent: string, size: number, item: strin
 }
 
 test("@claim:C-024 collections can be renamed inline and reordered by drag and drop, and both survive a reload", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await createCollection(page, "C024 Alpha");
   await createCollection(page, "C024 Beta");
 
@@ -278,7 +279,7 @@ test("@claim:C-024 collections can be renamed inline and reordered by drag and d
 
 test("folders and requests are reordered by drag and drop among each other: a request dropped on a folder's row goes after or before that folder, not into it", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await createCollection(page, "Drag Col");
   await createUnder(page, "Drag Col", 10, "New Folder", "Drag Folder A");
   await createUnder(page, "Drag Col", 10, "New Folder", "Drag Folder B");
@@ -319,7 +320,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
 
   const fresh = await browser.newContext({ serviceWorkers: "block" });
   const other = await fresh.newPage();
-  await other.goto("/");
+  await other.goto("/app/");
   await openSettings(other, "Data and storage");
   await other.getByLabel("Import environments from file").setInputFiles(file);
   // Since P4.1 every import shows what it will add first, also this one.
@@ -333,7 +334,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
 });
 
 test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c029clear=1`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -348,7 +349,7 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
 
 test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async ({ page }) => {
   const clipboard = await recordClipboard(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c035curl=1`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -361,7 +362,7 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
 // Tooltips and the history details card are
 // reachable with the keyboard alone, and dismissible.
 test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page, browserName }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   // Off the window's corner: a headless pointer rests at (0, 0), which is
   // where the CDK first places an overlay before positioning it. Material
   // hides a tooltip the pointer has entered and then left.
@@ -397,7 +398,7 @@ test("a tooltip opens on keyboard focus, describes its button, and closes on Esc
 
 test("a history entry shows its details on keyboard focus and hides them on blur", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?details=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -438,7 +439,7 @@ test("a history entry shows its details on keyboard focus and hides them on blur
 test("switching the theme recolours the environment select at once", async ({ page }) => {
   // From the dark theme, chosen: with no choice the app follows the system, which differs from one engine's test browser to the next.
   await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "dark"));
-  await page.goto("/");
+  await page.goto("/app/");
   const select = page.getByRole("banner").getByRole("combobox", { name: "Environment", exact: true });
   await expect(select).toHaveText("No environment");
   await page.getByRole("banner").getByRole("button", { name: "Switch to light mode" }).click();

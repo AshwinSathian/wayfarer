@@ -416,14 +416,14 @@ benchmark says matters most.
 **Goal:** `wayfarer.ashwinsathian.com` explains Wayfarer to someone who
 has never heard of it and gets them into the app.
 
-- [ ] **W0.1** Re-read the phase and split it.
+- [x] **W0.1** Re-read the phase and split it.
   - AC: a section 14 row with the split into sessions.
-- [ ] **W0.2** Choose the site's stack: a static generator (Astro or
+- [x] **W0.2** Choose the site's stack: a static generator (Astro or
   similar), Angular's prerendering, or plain HTML from Markdown. Measured
   on: bytes shipped for the landing, build time, sharing tokens with
   the app, Markdown docs, CSP without `unsafe-inline`.
   - AC: a decision record with a prototype landing page built in each.
-- [ ] **W1.1** Move the app to `/app`: the build's base href, the service
+- [x] **W1.1** Move the app to `/app`: the build's base href, the service
   worker's scope, `public/_headers` per path, the CSP per path, the OAuth
   callback at `/app/oauth/callback`, the Local Bridge's allowed origins
   (unchanged: the origin does not change), every e2e's base URL.
@@ -431,7 +431,7 @@ has never heard of it and gets them into the app.
     smoke e2e asserts the app's headers at `/app/` and the site's at `/`;
     data stored before the move is there after it (an e2e that writes at
     the old path and reads at the new one).
-- [ ] **W1.2** Ground rules for the site: its own CSP; no request to a
+- [x] **W1.2** Ground rules for the site: its own CSP; no request to a
   third party unless W3.6 allows it; no cookie.
   - AC: an e2e that loads every site page and records every request's
     origin.
@@ -550,3 +550,5 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-10-16 | 0.2 | Refreshed against `main` at `b57632d` for the maintainer's review (remediation session 11): 67 claims, 47 components, 4,069 template lines, 1,125 e2e tests, `material-theme.scss` 411 lines with 19 override mixins (20 was a miscount), 34 Material rules in `CLAUDE.md`; P7.8 done; the npm names published; DQ1 answered (W1 before D0); the release of `main` waits for the website. |
 | 2026-10-16 | 1.0 | **Locked: the maintainer approved the plan** ("Design looks good", 2026-10-16). Work starts with phase W (DQ1): W0.1 splits it into sessions, W0.2 chooses the site's stack, then W1.1 moves the app to `/app`. |
 | 2026-10-16 | 1.1 | **The site ships before the redesign (maintainer, 2026-10-16).** Asked whether the site waits for v3.0.0 (W4 as written) or ships first, since the release of `main` waits for the website (remediation v1.2.101): it ships first. When W1 to W3 are done, a release (v2.6.0) carries `main`, the app at `/app` and the site, and is deployed; W4's AC (the monitor checks both paths, the runbook rolls each back) holds for that release. At D5, v3.0.0 brings the redesign to the same site, and the site's screenshots of the app are taken again. **W0.1, the split** (read against `main` at `b57632d`): **W-a**: W0.2 (a landing prototype in each candidate stack, measured, a decision record), W1.1 (the app to `/app`: `baseHref`, the service worker's scope and precache list in `scripts/build-sw.mjs` and `src/sw.ts`, `public/_headers` per path, `security/csp.json` per path with `gen:csp`, the callback at `/app/oauth/callback` and its 16 files, `wrangler.jsonc`'s SPA fallback for `/app/*` only, `prod-server.mjs`, Playwright's `baseURL` and the 198 `page.goto("/")` calls), W1.2 (the site's CSP, no cookie, the e2e that records every request's origin). **W-b**: W2.1, W2.2, W2.4. **W-c**: W2.3, W2.5, W3.1, W3.2, W3.6 and the release above. |
+| 2026-10-16 | 1.2 | **W0.2: the site is built with Astro (maintainer's choice of three, 2026-10-16).** One landing page (hero, the call to open the app, a screenshot, four claims) and the 18 files of `docs/` as pages, built in each candidate from the same text and the app's `tokens.css`. Landing, HTML and CSS gzipped: plain HTML from Markdown (`marked`, already in the tree through Monaco, and a script of 20 lines) 4.4 kB, its CSS not minified; **Astro 7.4.0** 2.5 kB, no script; Angular 22's static prerender 82 kB, of which 245 kB raw is the script that hydrates the page (a docs page 169 kB gzipped, with every doc in one chunk, a short cut of the prototype). Build: plain 0.05 s, Astro 2.0 s for 19 pages, Angular 1.9 s. No inline script in any; Astro's Markdown highlighting (Shiki) writes `style` attributes, so the site's CSP without `unsafe-inline` needs it off (`markdown.syntaxHighlight: false`), and its small stylesheets inline unless `build.inlineStylesheets` is `"never"`. Astro adds 183 packages to the lockfile (`npm audit` 0) and has the sitemap, RSS and search that W2.2 to W3.1 need; plain HTML needs each written. The prototypes were throwaway and are not in the repository. |
+| 2026-10-16 | 1.3 | **W1 (W1.1 and W1.2) done, in one PR: the site at `/`, the app at `/app/`.** `packages/site` (Astro, a placeholder page and a 404 page until W2.1); `npm run build` ends in `dist/deploy` (`scripts/build-deploy.mjs`), which Wrangler serves with `not_found_handling: "404-page"`. The app's own addresses are relative to its base (`sw.js` with the scope `./`, the manifest, the licences, `oauthRedirectUri`); the Trusted Types policy read a relative script URL against the origin and registered `/sw.js`, found by the e2e suite. `_headers` moved to `packages/site/public` with `/.well-known/security.txt` and `/ngsw-worker.js`; the site's CSP is `security/csp-site.json` (no script, nothing from another origin, `frame-ancestors 'none'`), and `/app/*` detaches it before setting the app's (checked with `wrangler dev` 4.149: one policy at each path). The synthetic monitor runs the latest `v*` tag's tests, since production runs v2.5.0 until the release. Measured in three engines: a worker registered at `/sw.js` before the move stays registered when its script is a 404, and the app's own controls `/app/` (`docs/runbook.md`, "After the deploy that moves the app"). `e2e/site.spec.ts` holds W1.2's AC; storage is the origin's, so the AC's "data stored before the move is there after it" is a test that writes at `/` and reads at `/app/`. |

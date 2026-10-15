@@ -66,7 +66,7 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
   const violations: string[] = [];
   await page.exposeFunction("reportViolation", (directive: string) => violations.push(directive));
   await page.addInitScript(() => addEventListener("securitypolicyviolation", (event) => void (window as unknown as { reportViolation: (directive: string) => void }).reportViolation(event.violatedDirective)));
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -106,7 +106,7 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
 });
 
 test("@claim:C-059 an Insomnia format 4 export in JSON imports: a workspace as a collection, and the environment under its base as an environment", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const export4 = {
     _type: "export",
@@ -136,7 +136,7 @@ test("@claim:C-059 an Insomnia format 4 export in JSON imports: a workspace as a
 });
 
 test("a YAML file written to grow without end as it is read is refused with a message, and the page goes on working", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
   // A billion laughs: nine levels, each nine of the one before. Written out it is 9 to the power of 9 strings.
@@ -160,7 +160,7 @@ test("a YAML file written to grow without end as it is read is refused with a me
 });
 
 test("a YAML file over 1 MB is refused before the reader sees it", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await pick(page, "dense.yaml", "[".repeat(1024 * 1024 + 1));
   await expect(dialog(page, "Import").getByRole("alert")).toContainText("at more than 1 MB it is too large to be read as YAML");

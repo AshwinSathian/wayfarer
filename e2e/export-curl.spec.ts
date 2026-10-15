@@ -187,7 +187,7 @@ test("the code generators are not in the page the server sends, are fetched when
   expect(await readFile(`${dist}/index.html`, "utf8")).not.toContain(holders[0]);
 
   const scripts: string[] = [];
-  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.slice(1)));
+  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.replace(/^\/app\//, "")));
   await seedAndOpen(page, {}, { method: "POST", url: `${ECHO}/echo?code=1`, storedBody: raw("json", '{"a":1}') });
   await copiedCurl(page);
   expect(scripts).not.toContain(holders[0]);

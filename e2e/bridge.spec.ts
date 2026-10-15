@@ -30,7 +30,7 @@ async function sendAndRelay(page: Page): Promise<{ status: number; headers: [str
 test("a gzip response through the bridge is shown decoded, and the bridge says both sizes", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await page.locator("input.address-url").fill(`${ECHO}/gzip`);
 
@@ -53,7 +53,7 @@ test("a file is the body through the bridge too, byte for byte, with the file's 
   const file = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0xfe]), randomBytes(4096)]);
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
     await page.locator("input.address-url").fill(`${ECHO}/echo`);
@@ -95,7 +95,7 @@ test("a request through a bridge that does not know the page's relay fails with 
     page.on("request", (request) => {
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
-    await page.goto("/");
+    await page.goto("/app/");
     const settings = await openSettings(page, "Local Bridge");
     await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
     await settings.locator("#bridge-url-input").fill(other.url);

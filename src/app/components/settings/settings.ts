@@ -117,7 +117,7 @@ export class Settings {
     { label: "Changelog", about: "What changed in each version, and what was wrong before.", href: "https://github.com/AshwinSathian/wayfarer/blob/main/CHANGELOG.md" },
     { label: "Trust center", about: "Where your data is, what leaves the page, and the known limits.", href: "https://github.com/AshwinSathian/wayfarer/blob/main/docs/trust-center.md" },
     { label: "Source and issues", about: "The code, and where to report a problem.", href: "https://github.com/AshwinSathian/wayfarer" },
-    { label: "Licences", about: "The licences of the packages bundled with the app.", href: "/3rdpartylicenses.txt" },
+    { label: "Licences", about: "The licences of the packages bundled with the app.", href: "3rdpartylicenses.txt" },
   ];
 
   readonly fixedShortcuts: KeyboardShortcut[] = [

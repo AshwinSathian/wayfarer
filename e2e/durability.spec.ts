@@ -145,7 +145,7 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 
 test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({ page }) => {
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const reminder = page.getByText(/more than 14 days since this workspace was backed up/);
   await expect(reminder).toHaveCount(0);
@@ -163,7 +163,7 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
 });
 
 test("Settings says whether the browser keeps the data, and shows Safari's seven-day rule only in Safari", async ({ page, browserName }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await openData(page);
   await expect(page.getByTestId("storage-status")).toContainText(/promised to keep this data|does not say whether/);
   // How much is used, of how much the browser allows, each in a unit a person reads.

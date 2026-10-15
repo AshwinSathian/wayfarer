@@ -63,13 +63,18 @@ test("a header line with a colon in its value keeps the whole value", () => {
   assert.deepEqual(apply(text, "/"), { link: "<https://a.test/x>; rel=preload" });
 });
 
-test("the repo's public/_headers gives every path the production CSP", () => {
-  const rules = parseHeadersFile(readFileSync(new URL("../../public/_headers", import.meta.url), "utf8"));
-  for (const path of ["/", "/worker-ABC123.js", "/ngsw-worker.js", "/assets/x.svg"]) {
-    const headers = Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
-    assert.match(headers["content-security-policy"], /script-src 'self'/, path);
-    assert.equal(headers["x-content-type-options"], "nosniff", path);
+test("the repo's _headers gives the site its policy at / and the app its own at /app/", () => {
+  const rules = parseHeadersFile(readFileSync(new URL("../../packages/site/public/_headers", import.meta.url), "utf8"));
+  const at = (path) => Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
+  for (const path of ["/", "/404.html", "/_astro/page.css"]) {
+    assert.match(at(path)["content-security-policy"], /^default-src 'none';/, path);
+    assert.doesNotMatch(at(path)["content-security-policy"], /script-src/, path);
   }
+  for (const path of ["/app/", "/app/main-ABC123.js", "/app/oauth/callback"]) {
+    assert.match(at(path)["content-security-policy"], /^default-src 'self'; script-src 'self' 'wasm-unsafe-eval';/, path);
+    assert.doesNotMatch(at(path)["content-security-policy"], /, /, `${path}: one policy, not the site's joined to the app's`);
+  }
+  for (const path of ["/", "/app/"]) assert.equal(at(path)["x-content-type-options"], "nosniff", path);
 });
 
 // P7.2: Cloudflare compresses what it serves; a page measured without that
@@ -129,7 +134,7 @@ test("with a log file, the server writes each connection, request and answer as 
   const agent = new Agent({ keepAlive: true });
   const { port } = server.address();
   try {
-    for (const [path, headers] of [["/", { "accept-encoding": "gzip" }], ["/app", {}]]) {
+    for (const [path, headers] of [["/", { "accept-encoding": "gzip" }], ["/nothing", {}]]) {
       const response = await new Promise((done, fail) => request({ port, path, agent, headers }, done).on("error", fail).end());
       for await (const chunk of response) void chunk;
     }
@@ -147,9 +152,59 @@ test("with a log file, the server writes each connection, request and answer as 
       { event: "connection", socket: `${port}#1` },
       { event: "request", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip" },
       { event: "answered", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip", status: 200, encoding: "gzip", bytes: gzipSync("<p>shell</p>").length },
-      { event: "request", socket: `${port}#1`, method: "GET", path: "/app" },
-      { event: "answered", socket: `${port}#1`, method: "GET", path: "/app", status: 200, bytes: 12 },
+      { event: "request", socket: `${port}#1`, method: "GET", path: "/nothing" },
+      { event: "answered", socket: `${port}#1`, method: "GET", path: "/nothing", status: 404, bytes: 0 },
       { event: "closed", socket: `${port}#1` },
     ]
   );
+});
+
+/** A server on a temporary folder of `files`, and a GET of each path without following redirects. */
+async function serve(files, paths) {
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { dirname, join } = await import("node:path");
+  const { request } = await import("node:http");
+  const root = mkdtempSync(join(tmpdir(), "prod-server-"));
+  for (const [name, text] of Object.entries({ _headers: "/*\n  X-Test: yes\n", ...files })) {
+    mkdirSync(dirname(join(root, name)), { recursive: true });
+    writeFileSync(join(root, name), text);
+  }
+  const server = startServer(root, 0);
+  await new Promise((done) => server.once("listening", done));
+  try {
+    const { port } = server.address();
+    const answers = [];
+    for (const path of paths) {
+      const response = await new Promise((done, fail) => request({ port, path }, done).on("error", fail).end());
+      const chunks = [];
+      for await (const chunk of response) chunks.push(chunk);
+      answers.push({ status: response.statusCode, location: response.headers.location, test: response.headers["x-test"], body: Buffer.concat(chunks).toString() });
+    }
+    return answers;
+  } finally {
+    server.close();
+  }
+}
+
+// W1 (PLAN-design.md): wrangler.jsonc's `not_found_handling` is "404-page", and a folder is its index.html.
+test("a path with no file is the nearest 404.html, with a 404 and the rules' headers", async () => {
+  const files = { "index.html": "site", "404.html": "not here", "app/index.html": "app", "app/404.html": "app's not here" };
+  assert.deepEqual(await serve(files, ["/nothing", "/docs/nothing", "/app/nothing"]), [
+    { status: 404, location: undefined, test: "yes", body: "not here" },
+    { status: 404, location: undefined, test: "yes", body: "not here" },
+    { status: 404, location: undefined, test: "yes", body: "app's not here" },
+  ]);
+  assert.deepEqual(await serve({ "index.html": "site" }, ["/nothing"]), [{ status: 404, location: undefined, test: "yes", body: "" }]);
+});
+
+test("a folder is its index.html, and without its slash a 307 to it with the slash", async () => {
+  const files = { "index.html": "site", "app/index.html": "app", "app/oauth/callback.html": "callback" };
+  assert.deepEqual(await serve(files, ["/", "/app/", "/app", "/app?x=1", "/app/oauth/callback"]), [
+    { status: 200, location: undefined, test: "yes", body: "site" },
+    { status: 200, location: undefined, test: "yes", body: "app" },
+    { status: 307, location: "/app/", test: "yes", body: "" },
+    { status: 307, location: "/app/?x=1", test: "yes", body: "" },
+    { status: 200, location: undefined, test: "yes", body: "callback" },
+  ]);
 });

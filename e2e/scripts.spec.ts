@@ -174,7 +174,7 @@ test("the engine is fetched on the first run, from the app's own origin, and onc
   await expect(page.locator(".test-result-pass", { hasText: "ran" })).toBeVisible();
   expect(engine).toHaveLength(1);
   // A content hash in the name, under the app's own origin.
-  expect(engine[0]).toMatch(new RegExp(`^${baseURL}/media/emscripten-module-[A-Z0-9]{8}\\.wasm$`));
+  expect(engine[0]).toMatch(new RegExp(`^${baseURL}/app/media/emscripten-module-[A-Z0-9]{8}\\.wasm$`));
 
   // A second run uses the worker that is there: nothing is fetched again.
   await send(page);
@@ -212,7 +212,7 @@ test("require gives the five libraries under the production CSP, each from a fil
   // A library is one hashed file of the build, found by text only it holds.
   const dist = "dist/wayfarer/browser";
   const files = await Promise.all((await readdir(dist)).filter((name) => /^chunk-.*\.js$/.test(name)).map(async (name) => [name, await readFile(`${dist}/${name}`, "utf8")] as const));
-  const fileOf = (marker: string) => files.filter(([, text]) => text.includes(marker)).map(([name]) => `${baseURL}/${name}`);
+  const fileOf = (marker: string) => files.filter(([, text]) => text.includes(marker)).map(([name]) => `${baseURL}/app/${name}`);
   const libraries = { lodash: fileOf("__lodash_hash_undefined__"), "crypto-js": fileOf("Malformed UTF-8 data"), moment: fileOf("Moment<"), uuid: fileOf("Invalid UUID"), chai: fileOf("AssertionError") };
   for (const [name, found] of Object.entries(libraries)) expect(found, name).toHaveLength(1);
   const all = Object.values(libraries).flat();
@@ -230,7 +230,7 @@ test("require gives the five libraries under the production CSP, each from a fil
   await expect(failed).toContainText("require('cheerio') is not supported — see docs/postman-compatibility.md#require");
   // Each library was fetched once, from the app's own origin, under a name with a content hash.
   expect(fetched.filter((url) => all.includes(url)).sort()).toEqual([...all].sort());
-  for (const url of all) expect(url).toMatch(new RegExp(`^${baseURL}/chunk-[A-Z0-9]{8}\\.js$`));
+  for (const url of all) expect(url).toMatch(new RegExp(`^${baseURL}/app/chunk-[A-Z0-9]{8}\\.js$`));
 
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");

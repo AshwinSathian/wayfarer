@@ -29,7 +29,7 @@ For the full data-residency, encryption, and compliance picture (including
 what's *not* true yet, stated plainly), see the [Trust Center](docs/trust-center.md), which also answers the usual
 procurement questions.
 Automated scanners can discover this policy via
-[`/.well-known/security.txt`](public/.well-known/security.txt).
+[`/.well-known/security.txt`](packages/site/public/.well-known/security.txt).
 
 ## Reporting a Vulnerability
 

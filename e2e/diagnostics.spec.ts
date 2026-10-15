@@ -20,7 +20,7 @@ test("@claim:C-068 an IndexedDB that fails to open is named in Diagnostics, and 
       throw new DOMException("forced for the test", "UnknownError");
     };
   });
-  await page.goto("/");
+  await page.goto("/app/");
   const settings = await openSettings(page, "Diagnostics");
   await expect(settings.locator(".diagnostics-errors")).toContainText("IndexedDB: Failed to open IndexedDB");
   await expect(settings.locator(".diagnostics-errors")).toContainText("UnknownError: forced for the test");
@@ -31,7 +31,7 @@ test("@claim:C-068 an IndexedDB that fails to open is named in Diagnostics, and 
 });
 
 test("the self-tests pass in a browser with storage, and the facts name the version and the commit", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const settings = await openSettings(page, "Diagnostics");
   await expect(settings.getByText("Commit", { exact: true })).toBeVisible();
   await expect(settings.locator(".diagnostics-fact").nth(1)).toHaveText(/^[0-9a-f]{7,}$/);

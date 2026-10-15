@@ -2,7 +2,7 @@ import { Injectable, inject, isDevMode, signal } from "@angular/core";
 import { Diagnostics } from "./diagnostics";
 
 /**
- * Registers the service worker (src/sw.ts, built to /sw.js by
+ * Registers the service worker (src/sw.ts, built to sw.js beside the app by
  * scripts/build-sw.mjs) in production builds, and offers a waiting new
  * version as "Update available" instead of switching under a running page.
  */
@@ -17,7 +17,7 @@ export class SwUpdate {
     if (isDevMode() || !("serviceWorker" in navigator)) return;
     const container = navigator.serviceWorker;
     try {
-      this.watch(container, await container.register("/sw.js", { scope: "/", updateViaCache: "none" }));
+      this.watch(container, await container.register("sw.js", { scope: "./", updateViaCache: "none" }));
     } catch (error) {
       this.diagnostics.record(error, "service worker: registration failed");
     }

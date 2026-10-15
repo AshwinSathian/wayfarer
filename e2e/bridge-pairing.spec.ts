@@ -18,7 +18,7 @@ async function openPane(page: Page, bridge: TestBridge) {
 test("the code the bridge printed pairs the page: the token is saved without being typed, and a request goes through", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     const settings = await openPane(page, bridge);
     await expect(settings.locator(".bridge-lna")).toContainText("may ask whether this site may look for and connect to devices on your local network");
     expect(bridge.pairingCode).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
@@ -46,7 +46,7 @@ test("the code the bridge printed pairs the page: the token is saved without bei
 test("three wrong codes lock pairing: the page says so, with the seconds, and the right code waits too", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     const settings = await openPane(page, bridge);
     const field = settings.locator("#bridge-pairing-input");
     const pair = settings.getByRole("button", { name: "Pair", exact: true });
@@ -73,7 +73,7 @@ test.describe("over HTTPS", () => {
     const bridge = await startBridge(["--cert", "packages/bridge/test/fixtures/cert.pem", "--key", "packages/bridge/test/fixtures/key.pem"]);
     try {
       expect(bridge.url).toMatch(/^https:\/\/127\.0\.0\.1:/);
-      await page.goto("/");
+      await page.goto("/app/");
       const settings = await openPane(page, bridge);
       await settings.getByRole("button", { name: "Test connection" }).click();
       await expect(settings.locator(".bridge-test")).toContainText("Reachable");

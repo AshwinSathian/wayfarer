@@ -5,7 +5,7 @@
  * named policies; this default policy covers the one remaining kind of
  * sink: script URLs (Worker, SharedWorker, ServiceWorker registration) on
  * this origin, which are the bundled Monaco, JSON and sandbox workers and
- * /sw.js. Everything else returns null, so the browser blocks it. There is
+ * the app's sw.js. Everything else returns null, so the browser blocks it. There is
  * no createHTML and no createScript: no string becomes markup or code.
  */
 
@@ -17,16 +17,16 @@ interface TrustedTypesGlobal {
   trustedTypes?: { createPolicy(name: string, options: TrustedTypePolicyOptions): unknown };
 }
 
-export function allowScriptUrl(input: string, origin: string): string | null {
-  const url = URL.parse(input, origin);
-  return url && url.origin === origin && (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
+/** `input` read against `base` (the page's base URL), if it is on the base's origin. */
+export function allowScriptUrl(input: string, base: string): string | null {
+  const url = URL.parse(input, base);
+  return url && url.origin === new URL(base).origin && (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
 }
 
 export function installTrustedTypesPolicy(): void {
   const factory = (globalThis as TrustedTypesGlobal).trustedTypes;
   if (!factory) return; // Browser without Trusted Types: the CSP directive is ignored too.
-  const origin = globalThis.location.origin;
   factory.createPolicy("default", {
-    createScriptURL: (input) => allowScriptUrl(input, origin),
+    createScriptURL: (input) => allowScriptUrl(input, document.baseURI),
   });
 }

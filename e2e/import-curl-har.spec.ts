@@ -40,7 +40,7 @@ test("@claim:C-056 a cURL command pasted into the address field fills the open t
   const violations: string[] = [];
   await page.exposeFunction("__violation", (text: string) => violations.push(text));
   await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => void (window as unknown as { __violation: (text: string) => void }).__violation(`${e.effectiveDirective} ${e.blockedURI}`)));
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -75,7 +75,7 @@ test("@claim:C-056 a cURL command pasted into the address field fills the open t
 
 test("@claim:C-056 a cURL command pasted into the import dialog goes down the import road: a report first, then a collection with the request", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -115,7 +115,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
 
 test("@claim:C-056 a HAR 1.2 file with three entries imports as three requests", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
 
   const har = await readFile("packages/core/test/fixtures/har/three-entries.har.json");

@@ -108,7 +108,8 @@ The implicit grant is not offered. The code grant is always sent with PKCE
 
 **Register the redirect URI.** For the code grant the provider must know
 where to send the sign-in window back: the Auth tab shows the address,
-`<the app's origin>/oauth/callback`. Register exactly that with your
+`<the app's address>oauth/callback` (`https://wayfarer.ashwinsathian.com/app/oauth/callback`
+on the hosted app). Register exactly that with your
 client.
 
 **The sign-in window.** The provider sends the window back to a small page

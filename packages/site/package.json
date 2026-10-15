@@ -1,0 +1,13 @@
+{
+  "name": "@wayfarer/site",
+  "private": true,
+  "description": "Wayfarer's website, at / of the deploy (PLAN-design.md, phase W). The app is at /app/.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build"
+  },
+  "dependencies": {
+    "astro": "^7.4.0"
+  }
+}

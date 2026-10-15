@@ -123,7 +123,7 @@ export class DiagnosticsPane {
   }
 
   private async fetchOwn(): Promise<Omit<SelfTest, "name">> {
-    const response = await fetch("/manifest.webmanifest", { cache: "no-store" });
+    const response = await fetch("manifest.webmanifest", { cache: "no-store" });
     return { ok: response.ok, detail: `${response.status} ${response.statusText}`.trim() };
   }
 

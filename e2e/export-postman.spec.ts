@@ -123,7 +123,7 @@ test("the Postman exporter is not in the page the server sends, and is fetched w
   expect(await readFile(`${dist}/index.html`, "utf8")).not.toContain(holders[0]);
 
   const scripts: string[] = [];
-  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.slice(1)));
+  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.replace(/^\/app\//, "")));
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   expect(scripts).not.toContain(holders[0]);
   await exportForPostman(page);

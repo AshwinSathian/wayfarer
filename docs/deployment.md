@@ -9,7 +9,7 @@ lives in [`wrangler.jsonc`](../wrangler.jsonc).
 ## How it ships
 
 **Build once, deploy what was tested** (P1.7). Every push to `main` runs CI
-(`.github/workflows/ci.yml`), which builds `dist/wayfarer/browser` once,
+(`.github/workflows/ci.yml`), which builds `dist/deploy` once,
 uploads it as the `dist` artifact (kept 14 days), and runs the e2e suite in
 Chromium, Firefox and WebKit against exactly those files.
 
@@ -76,7 +76,8 @@ npm run build
 ```
 
 Deploy only a commit whose CI run is green, and only from a clean tree. The
-deployed files are exactly what is in `dist/wayfarer/browser`.
+deployed files are exactly what is in `dist/deploy`: the site at its root,
+the app under `app/`.
 
 Optional local check, with production's headers applied (Playwright builds
 again and serves the build through `e2e/support/prod-server.mjs` itself):
@@ -98,7 +99,7 @@ Check the preview before promoting it:
 
 ```bash
 PREVIEW=https://<preview-url-from-the-output>
-curl -sI "$PREVIEW/" | grep -i content-security-policy     # the CSP from public/_headers
+curl -sI "$PREVIEW/app/" | grep -i content-security-policy     # the app's CSP from _headers
 BASE_URL="$PREVIEW" npx playwright test --grep @smoke
 ```
 
@@ -119,7 +120,7 @@ you're skipping the preview check on purpose.)
 
 ```bash
 curl -sI https://wayfarer.ashwinsathian.com/ | grep -iE 'content-security-policy|nel|report-to'
-curl -s https://wayfarer.ashwinsathian.com/ | grep -oE 'main-[A-Z0-9]+\.js'   # same name as dist/wayfarer/browser/index.html
+curl -s https://wayfarer.ashwinsathian.com/app/ | grep -oE 'main-[A-Z0-9]+\.js'   # same name as dist/deploy/app/index.html
 BASE_URL=https://wayfarer.ashwinsathian.com npx playwright test --grep @smoke
 ```
 
@@ -138,13 +139,17 @@ doesn't rebuild. It can't undo anything stored in users' browsers. See
 
 ## Headers & CSP
 
-[`public/_headers`](../public/_headers) is applied by Cloudflare to every
-response and defines the Content-Security-Policy, `X-Content-Type-Options`,
+[`packages/site/public/_headers`](../packages/site/public/_headers), the
+root of the deploy, is applied by Cloudflare to every response and defines
+the Content-Security-Policies (the site's under `/*`; under `/app/*` the
+site's is removed and the app's set), `X-Content-Type-Options`,
 `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` (this
 host only, one year) and the `Cross-Origin-Opener-Policy` /
-`Cross-Origin-Resource-Policy` pair. The CSP comes from
-[`security/csp.json`](../security/csp.json): `npm run gen:csp` writes it into
-`public/_headers` and the `<meta>` tag in `src/index.html`, and
+`Cross-Origin-Resource-Policy` pair. The app's CSP comes from
+[`security/csp.json`](../security/csp.json) and the site's from
+[`security/csp-site.json`](../security/csp-site.json): `npm run gen:csp`
+writes both into that file and the app's into the `<meta>` tag in
+`src/index.html`, and
 `npm run check:csp` (in CI) fails if either file was edited by hand.
 [`e2e/support/prod-server.mjs`](../e2e/support/prod-server.mjs) applies the
 same file locally, so CI's e2e runs see production's headers.

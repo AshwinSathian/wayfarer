@@ -4,7 +4,7 @@ import { ECHO } from "./support/echo";
 test.describe("Resizable composer/response layout (desktop)", () => {
   test("shows a resizable split between the composer and the response viewer", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
 
     // Before any response exists, the response pane shows its own empty state.
     await expect(page.getByText("Send a request to see the response here")).toBeVisible();
@@ -21,7 +21,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   test("@claim:C-031 persists the chosen split ratio across a reload", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -52,7 +52,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   test("opening an editor tab does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?wide=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -70,7 +70,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 390, 360]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
 
       // Not wider; WebKit reports it narrower by the 5 px vertical scrollbar.
@@ -83,7 +83,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     // no room for the URL and its buttons on one line: the field shrank to 16 px.
     test(`the URL field has room to type in at ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
       const url = await page.locator("input.address-url").boundingBox();
       // The narrowest it gets by design is on a 360 px phone: about 120 px.
       expect(url!.width).toBeGreaterThanOrEqual(100);
@@ -94,7 +94,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   // name made the list 621 px wide in a 390 px window and its buttons could not be reached.
   test("a long environment name is cut short, and its row's buttons stay inside a 390 px window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "New environment" }).click();
     await page.locator("#new-env-name-input").fill("A much longer environment name that has to be cut somewhere");
     await page.getByRole("button", { name: "Create environment" }).click();
@@ -111,7 +111,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   // a long one pushed the header's chevron to x = 1355 in a 390 px window, out of sight.
   test("a long URL in a phone's history row is cut short, and the row's chevron stays inside a 390 px window", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
@@ -130,7 +130,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   for (const width of [768, 820, 1024, 1199]) {
     test(`at ${width} px the sidebar is a drawer, so the composer and the response have room`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
       const field = await page.getByLabel("Headers name, row 1").boundingBox();
@@ -148,7 +148,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   // Not at 1200 px exactly: WebKit takes its scrollbar off the width a media query sees.
   test("at 1220 px the sidebar is pinned beside the composer, and the composer still has room", async ({ page }) => {
     await page.setViewportSize({ width: 1220, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
@@ -167,7 +167,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   for (const width of [390, 820, 1023]) {
     test(`at ${width} px the toolbar leaves secrets, the bridge and the theme to Settings`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
       for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
         await expect(page.getByRole("banner").getByRole("button", { name })).toBeHidden();
@@ -180,7 +180,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   // Not at 1024 px exactly: WebKit takes its scrollbar off the width a media query sees.
   test("at 1100 px the toolbar shows secrets, the bridge and the theme", async ({ page }) => {
     await page.setViewportSize({ width: 1100, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
       await expect(page.getByRole("banner").getByRole("button", { name })).toBeVisible();
     }
@@ -188,7 +188,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "New environment" }).click();
     await page.getByPlaceholder("Environment name").fill("Wide");
     await page.getByRole("button", { name: "Create environment" }).click();
@@ -200,7 +200,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     const splitter = page.locator(".composer-response-splitter");
     const gutter = splitter.getByRole("separator");
     const composer = page.locator(".composer-pane");
@@ -226,7 +226,7 @@ test.describe("Mobile composer (390px)", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("@claim:C-032 shows one composer section at a time via a single-open accordion, with real labels", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     // Headers is open by default; the others are present as labeled,
     // collapsed headers — not stacked-and-unlabeled content (Part D bug).
@@ -243,7 +243,7 @@ test.describe("Mobile composer (390px)", () => {
   });
 
   test("@claim:C-040 Monaco initializes in the Scripts panel instead of getting stuck on the loading placeholder", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Scripts", exact: true }).click();
 
     // Neither script editor should be permanently stuck on the placeholder.
@@ -259,7 +259,7 @@ test.describe("Mobile composer (390px)", () => {
 // it was first seen.
 test("the composer keeps its open tab when the window is made narrow and wide again", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const tab = (name: string) => page.locator(".composer-pane").getByRole("tab", { name, exact: true });
   for (const name of ["Scripts", "Auth", "Params"]) {
     await tab(name).click();
@@ -276,7 +276,7 @@ test("the composer keeps its open tab when the window is made narrow and wide ag
 
 test.describe("Disabled 'Copy as cURL' affordance", () => {
   test("is visibly disabled (not an empty box) and explains why via a tooltip", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const curlButton = page.getByRole("button", { name: "Copy as cURL" });
     const curlWrap = page.locator(".curl-btn-wrap");
@@ -304,7 +304,7 @@ test.describe("Render stability under rapid tab/viewport transitions", () => {
       if (!/^ResizeObserver loop/.test(err.message)) pageErrors.push(String(err));
     });
 
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -332,7 +332,7 @@ test.describe("Render stability under rapid tab/viewport transitions", () => {
 // the previous drawer library the backdrop stayed in the page and swallowed every later click.
 test.describe("The app stays usable after an overlay closes", () => {
   test("after the history drawer closes, the toolbar can be clicked", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Request history" }).click();
     await page.getByRole("button", { name: "Close history" }).click();
 
@@ -341,7 +341,7 @@ test.describe("The app stays usable after an overlay closes", () => {
   });
 
   test("after a dialog closes with Escape, the composer can be clicked", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
     await page.keyboard.press("Escape");
@@ -353,7 +353,7 @@ test.describe("The app stays usable after an overlay closes", () => {
 
   test("on a phone, after the navigation drawer closes, the composer can be clicked", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Toggle sidebar" }).first().click();
     await page.getByRole("button", { name: "Close navigation" }).click();
 

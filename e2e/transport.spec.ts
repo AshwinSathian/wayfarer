@@ -14,7 +14,7 @@ async function open(page: Page): Promise<string[]> {
     const seen: string[] = ((window as unknown as { __violations: string[] }).__violations = []);
     document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI}`));
   });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   return [];
 }

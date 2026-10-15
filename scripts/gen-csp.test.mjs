@@ -32,6 +32,15 @@ test("applyToHeaders rewrites only the CSP line of the /* rule", () => {
   );
 });
 
+test("applyToHeaders rewrites the CSP line of the rule it is given, after a detach", () => {
+  const before = "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: old\n";
+  assert.equal(
+    applyToHeaders(before, "new", "/app/*"),
+    "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: new\n"
+  );
+  assert.throws(() => applyToHeaders(before, "x", "/docs/*"), /under \/docs\/\*/);
+});
+
 test("applyToHeaders keeps CRLF line endings and is linear on pathological input", () => {
   assert.equal(
     applyToHeaders("/*\r\n  X-A: 1\r\n  Content-Security-Policy: old\r\n", "new"),
@@ -59,14 +68,14 @@ test("the committed files match security/csp.json", () => {
 
 test("--check fails when either file is hand-edited, and a write fixes it", () => {
   const dir = mkdtempSync(join(tmpdir(), "csp-"));
-  for (const path of ["security/csp.json", "public/_headers", "src/index.html", "scripts/gen-csp.mjs"]) {
+  for (const path of ["security/csp.json", "security/csp-site.json", "packages/site/public/_headers", "src/index.html", "scripts/gen-csp.mjs"]) {
     mkdirSync(join(dir, path, ".."), { recursive: true });
     cpSync(path, join(dir, path));
   }
   const run = () => execFileSync(process.execPath, ["scripts/gen-csp.mjs", "--check"], { cwd: dir, stdio: "pipe" });
   run();
 
-  for (const file of ["public/_headers", "src/index.html"]) {
+  for (const file of ["packages/site/public/_headers", "src/index.html"]) {
     const original = readFileSync(join(dir, file), "utf8");
     writeFileSync(join(dir, file), original.replace("object-src 'none'", "object-src *"));
     assert.throws(run, (error) => error.status === 1 && /out of sync/.test(String(error.stderr)), file);

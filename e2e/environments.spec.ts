@@ -4,7 +4,7 @@ test.describe("Environments", () => {
   test("@claim:C-025 creates an environment, adds a variable, and resolves it as a live chip while typing the URL", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     await page.getByRole("button", { name: "New environment" }).click();
     const nameInput = page.locator("#new-env-name-input");

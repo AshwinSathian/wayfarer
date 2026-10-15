@@ -1,7 +1,9 @@
 #!/usr/bin/env node
-// Writes the Content-Security-Policy from security/csp.json into
-// public/_headers and the <meta> in src/index.html (P1.5). With --check it
-// writes nothing and exits 1 if either file is out of sync.
+// Writes the Content-Security-Policies into packages/site/public/_headers
+// (the deploy's root: the site's from security/csp-site.json under /*, the
+// app's from security/csp.json under /app/*) and the app's into the <meta> in
+// src/index.html (P1.5, W1). With --check it writes nothing and exits 1 if
+// either file is out of sync.
 //
 // Usage: node scripts/gen-csp.mjs [--check]
 import { readFileSync, writeFileSync } from "node:fs";
@@ -17,18 +19,18 @@ export function serialize(spec, { meta = false } = {}) {
     .join("; ");
 }
 
-/** Replaces the CSP line of the first `/*` rule in a `_headers` file. */
-export function applyToHeaders(text, policy) {
+/** Replaces the CSP line of the first `rule` (by default `/*`) in a `_headers` file. */
+export function applyToHeaders(text, policy, rule = "/*") {
   const lines = text.split("\n");
-  const rule = lines.findIndex((line) => line.replace(/\r$/, "") === "/*");
-  for (let i = rule + 1; rule >= 0 && i < lines.length && /^[ \t]/.test(lines[i]); i++) {
+  const start = lines.findIndex((line) => line.replace(/\r$/, "") === rule);
+  for (let i = start + 1; start >= 0 && i < lines.length && /^[ \t]/.test(lines[i]); i++) {
     const match = /^([ \t]+Content-Security-Policy:)/.exec(lines[i]);
     if (match) {
       lines[i] = `${match[1]} ${policy}${lines[i].endsWith("\r") ? "\r" : ""}`;
       return lines.join("\n");
     }
   }
-  throw new Error("public/_headers: no Content-Security-Policy line under /*");
+  throw new Error(`_headers: no Content-Security-Policy line under ${rule}`);
 }
 
 /** Replaces the content attribute of the CSP <meta> in index.html. */
@@ -41,8 +43,9 @@ export function applyToIndex(text, policy) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const check = process.argv.includes("--check");
   const spec = JSON.parse(readFileSync("security/csp.json", "utf8"));
+  const site = JSON.parse(readFileSync("security/csp-site.json", "utf8"));
   const targets = [
-    ["public/_headers", (text) => applyToHeaders(text, serialize(spec))],
+    ["packages/site/public/_headers", (text) => applyToHeaders(applyToHeaders(text, serialize(site)), serialize(spec), "/app/*")],
     ["src/index.html", (text) => applyToIndex(text, serialize(spec, { meta: true }).replaceAll('"', "&quot;"))],
   ];
   let stale = [];
@@ -54,7 +57,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     if (!check) writeFileSync(path, next);
   }
   if (check && stale.length) {
-    console.error(`CSP out of sync with security/csp.json: ${stale.join(", ")}. Run npm run gen:csp.`);
+    console.error(`CSP out of sync with security/csp.json or csp-site.json: ${stale.join(", ")}. Run npm run gen:csp.`);
     process.exit(1);
   }
   console.log(check ? "CSP in sync." : stale.length ? `Updated ${stale.join(", ")}.` : "CSP already in sync.");

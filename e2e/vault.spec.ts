@@ -50,7 +50,7 @@ async function protect(page: Page, name: string, plaintext: string): Promise<voi
 
 test("a wrong passphrase is refused when the vault holds no secret", async ({ page }) => {
   await watchViolations(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await createVault(page);
   await lockButton(page).click();
 
@@ -69,8 +69,8 @@ test("a wrong passphrase is refused when the vault holds no secret", async ({ pa
 test("locking the vault in one tab locks it in the other within a second", async ({ context }) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
-  await pageA.goto("/");
-  await pageB.goto("/");
+  await pageA.goto("/app/");
+  await pageB.goto("/app/");
   await createVault(pageA);
   await unlock(pageB, PASSPHRASE);
   await expect(lockButton(pageB)).toBeVisible();
@@ -82,7 +82,7 @@ test("locking the vault in one tab locks it in the other within a second", async
 
 test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, it is locked 61 seconds later", async ({ page }) => {
   await page.clock.install();
-  await page.goto("/");
+  await page.goto("/app/");
   await openSettings(page, "Vault");
   const idle = page.getByLabel("Lock the vault when idle");
   await expect(idle).toHaveValue("15");
@@ -105,7 +105,7 @@ test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, 
 
 test("the passphrase can be changed: the old one stops working and the secret is still there", async ({ page }) => {
   await watchViolations(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await createVault(page);
   await protect(page, "API_TOKEN", "rotation-keeps-me");
 
@@ -139,7 +139,7 @@ test("the passphrase can be changed: the old one stops working and the secret is
 
 test("the vault is exported as a file without any plaintext, and a secret deleted since comes back from it", async ({ page }) => {
   await watchViolations(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await createVault(page);
   await protect(page, "API_TOKEN", "exported-encrypted-7c1");
 

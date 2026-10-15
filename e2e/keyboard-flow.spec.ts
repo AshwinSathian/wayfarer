@@ -59,7 +59,7 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
   for (const theme of ["light", "dark"] as const) {
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.locator("input.address-url")).toBeVisible();
     const seen = new Set<string>();
     for (let stop = 0; stop < 60; stop++) {
@@ -75,7 +75,7 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
 test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an address, a header, send, save, run", async ({ page }) => {
   test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
 
   // A collection to save into: the sidebar's New collection, its name, Enter.
@@ -144,7 +144,7 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
 
 test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to its button when Escape closes it", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "New environment", "New collection", "Import a cURL command", "Open command palette"]) {
     const button = page.getByRole("button", { name: opener, exact: true });
@@ -162,7 +162,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
 // its Close button came first, and a keyboard user had to Tab to type.
 test("@claim:C-067 a dialog with a field to fill opens with focus on that field", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const opens = async (opener: string, field: Locator) => {
     const button = page.getByRole("button", { name: opener, exact: true });
@@ -198,10 +198,16 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
 // that had focus was removed, and focus fell to the page's body.
 test("@claim:C-067 focus stays on Send through a send started from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/delay/1500`);
-  await page.getByRole("button", { name: "Send request" }).focus();
+  // Send is disabled until the draft has an address, and focus() on a disabled
+  // button does nothing: in a local trace (session 11) it came 13 ms after the
+  // last key, and Enter sent nothing.
+  const send = page.getByRole("button", { name: "Send request" });
+  await expect(send, "Send can take focus").toBeEnabled();
+  await send.focus();
+  await expect(send, "Send has focus before Enter").toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Cancel request" })).toBeFocused();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });

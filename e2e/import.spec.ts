@@ -39,7 +39,7 @@ const dialog = (page: Page, name = "Import collection") => page.getByRole("dialo
 const stored = async (page: Page) => JSON.stringify(await dumpIdb(page));
 
 test("@claim:C-054 an import shows what it will add and what it could not keep before anything is stored; cancelled, it stores nothing", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -72,7 +72,7 @@ test("@claim:C-054 an import shows what it will add and what it could not keep b
 });
 
 test("a file of no known format is refused with a message that names the formats, and nothing is stored", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -92,7 +92,7 @@ test("a file of no known format is refused with a message that names the formats
 
 test("one road: a collection file picked with the Environments panel's Import is imported as the collection it is", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator('app-environments-manager input[type="file"]').setInputFiles(file("shared.json", collection([request("r-1", "Plain")])));
   await dialog(page).getByRole("button", { name: "Confirm import" }).click();
   await expect(page.getByText("Imported collection", { exact: true })).toBeVisible();
@@ -116,8 +116,8 @@ test("the worker and the importers are not in the page the server sends, and are
   expect(holders[0]).toMatch(/^worker-[A-Z0-9]{8}\.js$/);
 
   const scripts: string[] = [];
-  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.slice(1)));
-  await page.goto("/");
+  page.on("request", (sent) => scripts.push(new URL(sent.url()).pathname.replace(/^\/app\//, "")));
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   expect(scripts).not.toContain(holders[0]);
   await pick(page, file("shared.json", collection([request("r-1", "Plain")])));
@@ -150,7 +150,7 @@ test("5,000 requests in one file import, and the page says how long it took", as
   expect(big.buffer.byteLength).toBeLessThan(10 * 1024 * 1024);
   expect(big.buffer.byteLength).toBeGreaterThan(3 * 1024 * 1024);
 
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const started = Date.now();
   await pick(page, big);
@@ -185,7 +185,7 @@ test("5,000 requests in one file import, and the page says how long it took", as
 const POSTMAN = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
 
 test("@claim:C-058 a Postman collection imports with a report of what could not be kept; its auth is inherited, and its scripts wait for a review", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
   const shop = {
@@ -237,7 +237,7 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
 });
 
 test("@claim:C-058 a Postman environment imports as an environment, and Postman's globals as one that says so", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
 
   await pick(page, file("staging.postman_environment.json", { name: "Staging", values: [{ key: "host", value: "staging.test", enabled: true }, { key: "old", value: "x", enabled: false }], _postman_variable_scope: "environment" }));

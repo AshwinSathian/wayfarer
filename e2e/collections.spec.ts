@@ -3,7 +3,7 @@ import { ECHO } from "./support/echo";
 
 test.describe("Collections", () => {
   test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     // Create a collection via the sidebar header's "+" button.
     const newCollectionButton = page.getByRole("button", { name: "New collection" });
@@ -39,7 +39,7 @@ test.describe("Collections", () => {
   });
 
   test("saves the composer's current request into a collection, then reloads it with everything intact", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
     const nameInput = page.locator("#creation-name-input");

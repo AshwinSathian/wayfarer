@@ -65,6 +65,11 @@
       "ignoreDependencies": [
         "@wayfarer/core"
       ]
+    },
+    "packages/site": {
+      "ignore": [
+        "public/**"
+      ]
     }
   },
   "ignoreExportsUsedInFile": true

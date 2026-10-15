@@ -10,7 +10,7 @@
   ],
   "preview_urls": true,
   "assets": {
-    "directory": "dist/wayfarer/browser",
-    "not_found_handling": "single-page-application"
+    "directory": "dist/deploy",
+    "not_found_handling": "404-page"
   }
 }

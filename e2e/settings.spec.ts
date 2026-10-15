@@ -22,7 +22,7 @@ test.describe("Settings surface", () => {
         });
         waitForBody.observe(document, { childList: true, subtree: true });
       }, theme);
-      await page.goto("/");
+      await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
       const seen = await page.evaluate(() => (window as unknown as { themesSeen: (string | null)[] }).themesSeen);
       expect(seen.length).toBeGreaterThan(0);
@@ -31,7 +31,7 @@ test.describe("Settings surface", () => {
   }
 
   test("@claim:C-033 @claim:C-037 opens from the toolbar, and the theme is Light, Dark or the system's, kept over a reload", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     // No choice yet: the system's. (Set once the page is there: Playwright's Firefox does not give a
     // page its emulated scheme on a context's first load, and gives it from then on.)
     await page.emulateMedia({ colorScheme: "dark" });
@@ -53,7 +53,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-033 every section is one click from the list, and each shows its own pane", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const dialog = await openSettings(page);
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
     await expect(list.getByRole("button")).toHaveText([/General/, /Requests/, /History/, /Data and storage/, /Vault/, /Local Bridge/, /Cookies/, /Shortcuts/, /Diagnostics/, /About/, /Danger zone/]);
@@ -79,7 +79,7 @@ test.describe("Settings surface", () => {
 
   test("on a phone Settings is the list, a section opens in its place, and All settings goes back", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
@@ -100,7 +100,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-030 opens from the command palette", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.keyboard.press("Meta+K");
     await page.getByPlaceholder("Type a command").fill("Settings");
     await page.getByText("Settings", { exact: true }).click();
@@ -109,7 +109,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-033 lists keyboard shortcuts, including live command palette actions", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const dialog = await openSettings(page, "Shortcuts");
 
     await expect(dialog.getByText("Open the command palette")).toBeVisible();
@@ -118,7 +118,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-033 Reset All Data requires confirmation and is reachable from Settings", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await openSettings(page, "Danger zone");
     await page.getByRole("button", { name: "Reset all data" }).click();
 
@@ -130,7 +130,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-033 Local Bridge settings are a pane of Settings: nothing is stored until Save, and the toolbar's bridge button opens it", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const dialog = await openSettings(page, "Local Bridge");
     const save = dialog.getByRole("button", { name: "Save", exact: true });
     await expect(save).toBeDisabled();
@@ -152,7 +152,7 @@ test.describe("Settings surface", () => {
   });
 
   test("@claim:C-033 exports environments as a JSON file", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await openSettings(page, "Data and storage");
 
     const downloadPromise = page.waitForEvent("download");
@@ -164,16 +164,16 @@ test.describe("Settings surface", () => {
 
   test("shows the app version from package.json (P0.11)", async ({ page }) => {
     const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
-    await page.goto("/");
+    await page.goto("/app/");
     const dialog = await openSettings(page, "About");
     await expect(page.getByTestId("app-version")).toHaveText(version);
     // The licences are a file of the app itself; the other links leave it, each in a tab of its own.
-    await expect(dialog.getByRole("link", { name: /Licences/ })).toHaveAttribute("href", "/3rdpartylicenses.txt");
+    await expect(dialog.getByRole("link", { name: /Licences/ })).toHaveAttribute("href", "3rdpartylicenses.txt");
     for (const link of await dialog.getByRole("link").all()) await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
   test("the device's route is a real choice: the keyboard and a click both pick one (P6.4; it was a checkbox)", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Local Bridge settings" }).click();
     const auto = page.getByRole("radio", { name: "Auto" });
     const direct = page.getByRole("radio", { name: "Direct" });
@@ -191,7 +191,7 @@ test.describe("Settings surface", () => {
   });
 
   test("a button reached with the keyboard shows the focus ring", async ({ page, browserName }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").focus();
     // Safari moves focus to buttons with Option+Tab unless the user changed the default.
     await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");

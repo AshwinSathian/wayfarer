@@ -18,7 +18,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
     document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.sample}`));
   });
 
-  const response = await page.goto("/");
+  const response = await page.goto("/app/");
   expect(response?.headers()["content-security-policy"]).toContain("require-trusted-types-for 'script'");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c016=1`);
   await page.getByRole("button", { name: "Send request" }).click();

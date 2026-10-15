@@ -25,7 +25,7 @@ const closeSettings = async (page: Page, settings: Locator) => {
 test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, the next request carries none", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
 
     await sendTo(page, `${ECHO}/cookies/set?session=abc123&theme=dark`);
@@ -73,7 +73,7 @@ test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, 
 test("a sign-in that answers with a redirect: the cookie it sets goes out with the next hop, and the jar is kept over a reload", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await sendTo(page, `${ECHO}/cookies/login`);
     await expect(page.locator(".status-badge").first()).toHaveText("200");
@@ -129,7 +129,7 @@ for (const theme of ["light", "dark"] as const) {
     try {
       await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
       const scan = async (state: string) => {
         await page.mouse.move(640, 880);
         // Once the page has stopped animating: a colour half way through a fade is not the colour.

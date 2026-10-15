@@ -93,7 +93,7 @@ test.describe("through a Local Bridge", () => {
 });
 
 test("a response from the page says Direct", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");

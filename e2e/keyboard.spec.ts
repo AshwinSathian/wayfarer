@@ -6,7 +6,7 @@ import { ECHO } from "./support/echo";
 
 test("composer tabs: arrow keys, Home and End move focus and show the matching panel", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const composer = page.locator(".composer-pane");
   const tab = (name: string) => composer.getByRole("tab", { name, exact: true });
 
@@ -35,7 +35,7 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
 });
 
 test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?keys=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -53,7 +53,7 @@ test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({
 // The Basic / JSON switch this test drove is gone (P2.12, Q1). What replaced it is driven the same way.
 test("headers and body: Bulk edit and the body type are driven from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByLabel("Headers name, row 1").fill("Accept");
   await page.getByLabel("Headers value, row 1").fill("*/*");
 
@@ -89,7 +89,7 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
 
 test("phone composer: Enter and Space open a section, one at a time, and a closed section is out of reach", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/app/");
   const header = (name: string) => page.getByRole("button", { name, exact: true });
   await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
 
@@ -112,7 +112,7 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
 // The method was a select of seven until P2.16. It is a text field now, so
 // any method can be typed, with the common ones in a menu beside it.
 test("method: any one can be typed and is upper-cased; the menu of common ones is driven from the keyboard", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const method = page.getByRole("textbox", { name: "HTTP method" });
   await expect(method).toHaveValue("GET");
 
@@ -150,7 +150,7 @@ test("method: any one can be typed and is upper-cased; the menu of common ones i
 });
 
 test("a select inside a dialog: Escape closes the list first, the dialog second", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "New collection" }).click();
   await page.locator("#creation-name-input").fill("Keys");
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -175,7 +175,7 @@ test("a select inside a dialog: Escape closes the list first, the dialog second"
 });
 
 test("export menu: opens from the keyboard, arrows move, Escape returns focus, Enter runs an item", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?menu=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -205,7 +205,7 @@ test("export menu: opens from the keyboard, arrows move, Escape returns focus, E
 
 test("collection context menu: arrow keys reach every action and Escape closes it", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "New collection" }).click();
   await page.locator("#creation-name-input").fill("Menu target");
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -251,7 +251,7 @@ async function clickAgain(page: Page, trigger: Locator): Promise<void> {
 }
 
 test("with the mouse: a second click on the Export button or on a select closes it again", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?toggle=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -288,7 +288,7 @@ async function expectFocusTrapped(page: Page, surface: Locator, browserName: str
 
 test("settings dialog: focus moves in, Tab stays in, Escape closes at once and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const opener = page.getByRole("button", { name: "Settings", exact: true });
   await opener.focus();
   await page.keyboard.press("Enter");
@@ -315,7 +315,7 @@ test("settings dialog: focus moves in, Tab stays in, Escape closes at once and f
 
 test("history drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const opener = page.getByRole("button", { name: "Request history" });
   await opener.focus();
   await page.keyboard.press("Enter");
@@ -333,7 +333,7 @@ test("history drawer: focus moves in, Tab stays in, Escape closes and focus retu
 
 test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/app/");
   const opener = page.getByRole("button", { name: "Toggle sidebar" });
   await opener.focus();
   await page.keyboard.press("Enter");
@@ -358,7 +358,7 @@ for (const [width, opener, name] of [
 ] as const) {
   test(`${name} drawer at ${width} px: focus is inside by the end of the click that opens it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByRole("button", { name: opener })).toBeVisible();
     const inside = await page.evaluate(([label, dialog]) => {
       document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
@@ -370,7 +370,7 @@ for (const [width, opener, name] of [
   // Opened and closed before Angular has run once: the [opened] binding saw false both times, and the drawer stayed open.
   test(`${name} drawer at ${width} px: Escape in the task that opened it closes it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await expect(page.getByRole("button", { name: opener })).toBeVisible();
     await page.evaluate((label) => {
       document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
@@ -385,7 +385,7 @@ for (const [width, opener, name] of [
 // that late report as the state, and shut the drawer it had just opened.
 test("history drawer: asked for again as the last close is reported, it opens and stays open", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const opener = page.getByRole("button", { name: "Request history" });
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await opener.click();
@@ -407,7 +407,7 @@ test("history drawer: asked for again as the last close is reported, it opens an
 
 test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?confirm=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -450,7 +450,7 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
 
 test("composer and response split: the gutter is a focusable separator moved by arrow keys, Home and End, and the result is kept", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const gutter = page.getByRole("separator", { name: "Resize the composer and the response" });
   const composer = page.locator(".composer-pane");
   const total = (await page.locator(".composer-response-splitter").boundingBox())!.width;
@@ -486,7 +486,7 @@ async function createUnder(page: Page, parent: string, item: string, name: strin
 
 test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reorders, Shift+F10 opens the menu", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "New collection" }).click();
   await page.locator("#creation-name-input").fill("Tree Col");
   await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -560,7 +560,7 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
 
 test("phone: Escape with a tree row's menu open closes the menu and leaves the navigation drawer open", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "Toggle sidebar" }).click();
   const drawer = page.getByRole("dialog", { name: "Navigation" });
   await drawer.getByRole("button", { name: "New collection" }).click();

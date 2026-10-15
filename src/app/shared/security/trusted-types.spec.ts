@@ -7,6 +7,9 @@ describe("Trusted Types default policy", () => {
   it("allows script URLs on the app's own origin only", () => {
     expect(allowScriptUrl("/sw.js", ORIGIN)).toBe(`${ORIGIN}/sw.js`);
     expect(allowScriptUrl(`${ORIGIN}/worker-ABCDEFGH.js`, ORIGIN)).toBe(`${ORIGIN}/worker-ABCDEFGH.js`);
+    // A relative URL is the page's: beside the app (W1), as the browser would have read it without the policy.
+    expect(allowScriptUrl("sw.js", `${ORIGIN}/app/`)).toBe(`${ORIGIN}/app/sw.js`);
+    expect(allowScriptUrl("https://evil.example/x.js", `${ORIGIN}/app/`)).toBeNull();
     for (const bad of [
       "https://evil.example/x.js",
       "//evil.example/x.js",

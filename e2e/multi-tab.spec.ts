@@ -25,8 +25,8 @@ async function addVariable(page: Page, key: string, value: string): Promise<void
 test("what one tab saves appears in the other within a second: a collection, an environment, a sent request", async ({ context }) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
-  await pageA.goto("/");
-  await pageB.goto("/");
+  await pageA.goto("/app/");
+  await pageB.goto("/app/");
   await expect(pageB.getByText("No collections yet", { exact: false })).toBeVisible();
 
   await pageA.getByRole("button", { name: "New collection" }).click();
@@ -47,14 +47,14 @@ test("what one tab saves appears in the other within a second: a collection, an 
 test("two tabs save different variables of one environment at the same moment, and both are kept", async ({ context }) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
-  await pageA.goto("/");
+  await pageA.goto("/app/");
   await createEnvironment(pageA, "Shared env");
   await addVariable(pageA, "base", "kept");
   await pageA.getByRole("button", { name: "Save changes" }).click();
   await expect.poll(async () => JSON.stringify((await dumpIdb(pageA))["environments"])).toContain("kept");
 
   // Tab B opens the environment as it is now; then each tab adds its own variable.
-  await pageB.goto("/");
+  await pageB.goto("/app/");
   await expect(pageB.locator("input[placeholder='KEY']")).toHaveValue("base");
   await addVariable(pageA, "fromA", "1");
   await addVariable(pageB, "fromB", "2");

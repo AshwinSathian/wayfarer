@@ -102,7 +102,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 
 ## Start
 
-- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/). It installs as an app and loads offline after the first visit.
+- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/app/). It installs as an app and loads offline after the first visit.
 - **From source:** Node 24 (`.nvmrc`), then:
 
   ```bash
@@ -135,6 +135,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Threat model](docs/threat-model.md): each trust boundary, its threats, and the tested claim behind each mitigation
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
+- [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
 
 ## Security
 

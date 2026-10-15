@@ -23,7 +23,7 @@ const address = (page: Page): Locator => page.locator("input.address-url");
 const unsaved = (tab: Locator): Locator => tab.getByRole("img", { name: "Unsaved changes" });
 
 test("a new tab is an empty request, and each tab keeps its own request and response", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(tabs(page)).toHaveCount(1);
   await address(page).fill(`${ECHO}/content/json?keys=1`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -77,7 +77,7 @@ test("an edit marks the tab unsaved; a saved request opened again goes to its ta
 });
 
 test("closing a tab with unsaved changes asks first; a clean one closes at once", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "New tab" }).click();
   await expect(tabs(page)).toHaveCount(2);
   await page.getByRole("button", { name: "Close tab" }).click();
@@ -98,7 +98,7 @@ test("closing a tab with unsaved changes asks first; a clean one closes at once"
 });
 
 test("Duplicate tab opens a second tab with the same request, unsaved changes included", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill("https://api.example.test/copy");
   await page.getByRole("button", { name: "Duplicate tab" }).click();
   await expect(tabs(page)).toHaveCount(2);
@@ -112,7 +112,7 @@ test("Duplicate tab opens a second tab with the same request, unsaved changes in
 });
 
 test("keyboard: Alt+T opens a tab and Alt+W closes it, in the app and not in the browser; arrow keys walk the strip", async ({ page, context }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill("https://api.example.test/first");
   // In the address field, where on macOS Option+T would type a dagger.
   await page.keyboard.press("Alt+KeyT");
@@ -147,7 +147,7 @@ test("keyboard: Alt+T opens a tab and Alt+W closes it, in the app and not in the
 
 // A send holds the tab it was started in (session 5B; the maintainer's answer, plan v1.2.41). Until then the open tab could not be changed while a request was on its way.
 test("a tab may be left while its request is on its way, and its response is there on the way back", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(`${ECHO}/delay/3000`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.getByRole("button", { name: "Cancel request" })).toBeVisible();
@@ -167,7 +167,7 @@ test("a tab may be left while its request is on its way, and its response is the
 });
 
 test("closing a tab whose request is on its way asks first, and cancels the request", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.getByRole("button", { name: "New tab" }).click();
   // Longer than the test may take: only a cancel ends this request in time.
   await address(page).fill(`${ECHO}/delay/60000`);
@@ -190,7 +190,7 @@ test("closing a tab whose request is on its way asks first, and cancels the requ
 
 test("the open tab is in view when the strip holds more tabs than fit", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto("/");
+  await page.goto("/app/");
   for (let opened = 1; opened <= 6; opened++) {
     await page.getByRole("button", { name: "New tab" }).click();
     await expect(tabs(page)).toHaveCount(opened + 1);
@@ -202,7 +202,7 @@ test("the open tab is in view when the strip holds more tabs than fit", async ({
 // ── What is stored (the `tabs` store, database version 11) ─────────────────
 
 test("five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   for (let opened = 1; opened < 5; opened++) await page.getByRole("button", { name: "New tab" }).click();
   await expect(tabs(page)).toHaveCount(5);
   await tabs(page).nth(1).click();
@@ -301,8 +301,8 @@ test("a script of a restored tab runs when it was allowed as the tab was stored,
 test("two browser tabs share the composer's tabs: one opened or closed in one is opened or closed in the other, and each keeps its own open tab", async ({ context }) => {
   const one = await context.newPage();
   const two = await context.newPage();
-  await one.goto("/");
-  await two.goto("/");
+  await one.goto("/app/");
+  await two.goto("/app/");
   await expect(tabs(two)).toHaveCount(1);
 
   await address(one).fill("https://api.example.test/from-one");
@@ -360,7 +360,7 @@ test("a request renamed in the tree is renamed in its tab at once, and one delet
 
 // "What session 5A left for 5B", item 7, checked in 5C: one editor is given each tab's text in turn.
 test("the editor's undo does not bring another tab's text into this one", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   const editor = page.locator("app-script-editor .monaco-editor").first();
   const text = async () => (await editor.locator(".view-lines").innerText()).replace(/\s+/g, " ").trim();
   const typeInto = async (script: string) => {

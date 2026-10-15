@@ -1,0 +1,17 @@
+{
+  "$comment": [
+    "The site's Content-Security-Policy (W1.2 of PLAN-design.md): the pages at / and everything under it but /app/, which has its own (security/csp.json). `npm run gen:csp` writes it under /* in packages/site/public/_headers, and the app's under /app/*, which detaches this one first.",
+    "The site runs no script: script-src falls back to default-src 'none'. A page that needs one gets it by a decision in PLAN-design.md (W3.6).",
+    "Styles, images and fonts come from the site's own files only: no inline style (Astro writes its CSS to files with build.inlineStylesheets 'never', and Markdown's syntax highlighting, which writes style attributes, is off).",
+    "No third party: the site's pages make no request to another origin (e2e/site.spec.ts). frame-ancestors 'none': nothing frames the site."
+  ],
+  "directives": {
+    "default-src": ["'none'"],
+    "style-src": ["'self'"],
+    "img-src": ["'self'"],
+    "font-src": ["'self'"],
+    "base-uri": ["'none'"],
+    "form-action": ["'none'"],
+    "frame-ancestors": ["'none'"]
+  }
+}

@@ -72,7 +72,7 @@ test("@claim:C-060 @claim:C-001 an OpenAPI 3.1 description in YAML imports with 
     const url = request.url();
     if (!url.startsWith("data:") && !url.startsWith("blob:") && new URL(url).origin !== appOrigin) elsewhere.push(`${request.method()} ${url}`);
   });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
@@ -111,7 +111,7 @@ test("@claim:C-060 @claim:C-001 an OpenAPI 3.1 description in YAML imports with 
 });
 
 test("@claim:C-060 a Swagger 2.0 description in JSON imports: its host as the collection's variable, its form as a form, its API key as the collection's auth", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const swagger = {
     swagger: "2.0",
@@ -146,7 +146,7 @@ test("@claim:C-060 a Swagger 2.0 description in JSON imports: its host as the co
 });
 
 test("a description of a version the app does not read, and one with no operation, are refused with a message, and nothing is stored", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
   for (const [name, content, message] of [

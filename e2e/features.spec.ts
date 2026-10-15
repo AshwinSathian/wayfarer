@@ -377,6 +377,10 @@ test("a tooltip opens on keyboard focus, describes its button, and closes on Esc
   await expect(curl).toBeFocused();
   const tooltip = page.locator(".mat-mdc-tooltip");
   await expect(tooltip).toHaveText("Copy as cURL");
+  // The element and its text are there before Material shows it (a
+  // setTimeout later). Escape before then is not the tooltip's to take, and
+  // the show that follows left it open (F67, #222). Wait until it is shown.
+  await expect(tooltip).toHaveClass(/mat-mdc-tooltip-show/);
   // The tooltip repeats the button's name, so Material adds no description:
   // a screen reader would say the same words twice.
   await expect(curl).toHaveAccessibleName("Copy as cURL");

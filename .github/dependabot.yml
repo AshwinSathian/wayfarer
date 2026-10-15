@@ -16,6 +16,10 @@ updates:
       # TypeScript moves with Angular: @angular/build 22 accepts >=6.0 <6.1.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # The Node types match the Node the app is built and tested with (.nvmrc, 24): types of a later
+      # major would accept APIs that Node 22 and 24, where the CLI and the bridge run, do not have.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

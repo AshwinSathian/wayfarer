@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The npm pages of `wayfarer-bridge` (3.0.1) and `wayfarer-cli` say what
+  each package does today.** The bridge's still said it was not on npm and
+  linked to files by paths that do not open from npmjs.com. Both now have
+  real output from the published packages, a table of the bridge's error
+  answers and what to do about each, how to call the bridge with `curl`, a
+  table of Newman's flags and their `wayfarer-cli` equivalents, the reports'
+  format, and a CI example. `wayfarer-bridge` 3.0.1 changes nothing else.
+
 - **The database is version 14, and an update empties it.** The vault's
   record and each encrypted secret no longer carry a version field (`v`):
   there is one shape, and nothing checks for another. A vault file from

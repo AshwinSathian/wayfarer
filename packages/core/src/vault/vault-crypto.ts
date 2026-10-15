@@ -25,7 +25,6 @@ export const VAULT_FILE_FORMAT = "wayfarer/vault";
 
 /** How the passphrase key is derived, and the data key wrapped under it. Stored as the `vault` record of `meta`. */
 export interface VaultRecord {
-  v: 2;
   kdf: { alg: "PBKDF2-SHA256"; iterations: number; salt: string };
   /** base64url of the 12-byte IV followed by the wrapped key. */
   wrappedDek: string;
@@ -33,7 +32,6 @@ export interface VaultRecord {
 
 /** One secret, encrypted under the data key with the secret's id as additional authenticated data. */
 export interface SecretEnvelope {
-  v: 2;
   iv: string;
   ct: string;
 }
@@ -83,7 +81,7 @@ async function wrap(dek: VaultKey, passphrase: string): Promise<VaultRecord> {
   const kdf: VaultRecord["kdf"] = { alg: "PBKDF2-SHA256", iterations: KDF_ITERATIONS, salt: toBase64Url(randomBytes(SALT_BYTES)) };
   const iv = randomBytes(IV_BYTES);
   const wrapped = new Uint8Array(await crypto.subtle.wrapKey("raw", dek, await deriveKek(passphrase, kdf), { name: "AES-GCM", iv }));
-  return { v: 2, kdf, wrappedDek: toBase64Url(new Uint8Array([...iv, ...wrapped])) };
+  return { kdf, wrappedDek: toBase64Url(new Uint8Array([...iv, ...wrapped])) };
 }
 
 /** The data key, or `null` when the passphrase is not the vault's. */
@@ -134,7 +132,7 @@ export async function rewrapDek(record: VaultRecord, current: string, next: stri
 export async function encryptSecret(dek: VaultKey, id: string, plaintext: string): Promise<SecretEnvelope> {
   const iv = randomBytes(IV_BYTES);
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: utf8(id) }, dek, utf8(plaintext));
-  return { v: 2, iv: toBase64Url(iv), ct: toBase64Url(new Uint8Array(ct)) };
+  return { iv: toBase64Url(iv), ct: toBase64Url(new Uint8Array(ct)) };
 }
 
 /** Rejects when the envelope was not written for this id under this key. */
@@ -173,7 +171,6 @@ export function validateVaultFile(value: unknown): ValidationIssue[] {
   if (typeof vault !== "object" || vault === null) {
     fail("vault", "Value must be an object.");
   } else {
-    if (field(vault, "v") !== 2) fail("vault.v", "Value must be 2.");
     const kdf = field(vault, "kdf");
     if (typeof kdf !== "object" || kdf === null) {
       fail("vault.kdf", "Value must be an object.");
@@ -209,7 +206,6 @@ export function validateVaultFile(value: unknown): ValidationIssue[] {
       fail(`${path}.envelope`, "Value must be an object.");
       return;
     }
-    if (field(envelope, "v") !== 2) fail(`${path}.envelope.v`, "Value must be 2.");
     if (!isBase64Url(field(envelope, "iv"))) fail(`${path}.envelope.iv`, "Value must be base64url text.");
     if (!isBase64Url(field(envelope, "ct"))) fail(`${path}.envelope.ct`, "Value must be base64url text.");
   });

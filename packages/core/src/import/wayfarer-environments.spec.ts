@@ -95,7 +95,7 @@ describe("environment-io", () => {
     });
 
     it("writes the references with the vault beside them, still encrypted", () => {
-      const vault = { $id: "wayfarer/vault" as const, vault: { v: 2 as const, kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
+      const vault = { $id: "wayfarer/vault" as const, vault: { kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
       const json = serializeEnvironmentExport(environments, { mode: "references", vault });
       expect(values(json)).toEqual(["localhost", "{{$secret.s-1}}", "Bearer {{ $secret.s-2 }}"]);
       expect((JSON.parse(json) as { vault: unknown }).vault).toEqual(vault);

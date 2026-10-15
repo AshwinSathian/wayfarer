@@ -208,18 +208,20 @@ jobs:
       # Serves the downloaded build through prod-server.mjs (production
       # headers). claims-<browser> runs the @claim tests with retries off.
       # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).
+      # Both uploads also run for a flake: its retry passes and the job is green, and a
+      # trace.zip under test-results/ is what a failed first attempt leaves (retain-on-first-failure).
       - run: npx playwright test --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }}
         env:
           CI: "1"
           PROD_SERVER_LOG: ${{ runner.temp }}/prod-server.log
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
         with:
           name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 7
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: failure()
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
         with:
           name: prod-server-log-${{ matrix.browser }}
           path: ${{ runner.temp }}/prod-server.log

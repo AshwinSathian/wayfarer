@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 import {
@@ -242,6 +242,12 @@ async function main(argv: string[]): Promise<number> {
   if (values.insecure) process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 
   const startedAt = new Date().toISOString();
+  // Before anything is sent: a folder that cannot be made stops the run while nothing has been run.
+  if (reporters.has("json") || reporters.has("junit")) {
+    await mkdir(values.out, { recursive: true }).catch((error: unknown) => {
+      throw new Refusal(`--out ${values.out}: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  }
   const report = await runCollection(
     { source: read.source, ...(environment && { environment }), globals: read.globals, ...(vault && { vault }), allowScripts: values["allow-scripts"], timeoutMs },
     {

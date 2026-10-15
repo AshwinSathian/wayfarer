@@ -14,7 +14,7 @@ It needs Node.js 22.12 or later:
 npx wayfarer-cli run my-collection.json
 ```
 
-Until the first release is on npm, build it from this repository:
+To run the version on `main`, build it from this repository:
 
 ```bash
 npm ci
@@ -44,7 +44,7 @@ wayfarer-cli run <file> [options]
 | `-n`, `--iterations <n>` | How many iterations. Default: one per row of the data file, or 1. |
 | `--collection <name>` | Which collection of a file that holds several. |
 | `--reporter <list>` | `cli`, `json`, `junit`, comma-separated; default `cli`. `json` writes `wayfarer-run.json` and `junit` writes `wayfarer-run.junit.xml`: the files the app's run view saves. |
-| `--out <dir>` | Where the reports are written. Default: the current directory. |
+| `--out <dir>` | Where the reports are written, made if it does not exist. Default: the current directory. |
 | `--bail` | Stop at the first failure. |
 | `--timeout <ms>` | Give up on a request after this long. Default: no limit. |
 | `--insecure` | Do not verify servers' TLS certificates, for every request of the run. Node says so on stderr. |
@@ -124,7 +124,7 @@ jobs:
         with:
           node-version: 24
       - name: Run the collection
-        run: npx --yes wayfarer-cli@1 run api/collection.json -e api/ci.environment.json --allow-scripts --reporter cli,junit --out reports
+        run: npx --yes wayfarer-cli@2 run api/collection.json -e api/ci.environment.json --allow-scripts --reporter cli,junit --out reports
         env:
           # Only for requests that use a vault secret, with --vault-file or a workspace backup.
           WAYFARER_VAULT_PASSPHRASE: ${{ secrets.WAYFARER_VAULT_PASSPHRASE }}
@@ -135,7 +135,7 @@ jobs:
           path: reports/wayfarer-run.junit.xml
 ```
 
-Pin the major version (`wayfarer-cli@1`) so that a new major release does
+Pin the major version (`wayfarer-cli@2`) so that a new major release does
 not change a job unannounced. The package is published from this
 repository's `release.yml` with a provenance attestation: `npm audit
 signatures` in the job checks it.

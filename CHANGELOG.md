@@ -7,6 +7,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A click on a menu item as the menu opened could be lost.** While a
+  menu animated open it took no pointer events: a click pressed on an item
+  and released a moment later, once the animation had begun, chose nothing
+  and left the menu open. An opening menu now takes the click.
+
 ## [2.5.0] - 2026-10-15
 
 Hardening and the release gate (Phase 7). The app is held to WCAG 2.2 AA

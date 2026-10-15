@@ -14,7 +14,7 @@ test("F71: nothing of Monaco's throws once its language services have loaded and
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
-  await page.goto("/");
+  await page.goto("/app/");
 
   // A script editor: the TypeScript service starts.
   await page.getByRole("tab", { name: "Scripts", exact: true }).first().click();

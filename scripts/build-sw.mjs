@@ -18,7 +18,8 @@ const SOURCE = "src/sw.ts";
 /** App shell, everything index.html references, all CSS, woff2 fonts, icons, manifest. */
 export function precacheList(root) {
   const index = readFileSync(join(root, "index.html"), "utf8");
-  const referenced = [...index.matchAll(/(?:href|src)="([^"]+)"/g)]
+  // Not <base href>: the app's folder (/app/), not a file of it.
+  const referenced = [...index.replace(/<base\b[^>]*>/i, "").matchAll(/(?:href|src)="([^"]+)"/g)]
     .map((m) => m[1])
     .filter((ref) => !/^[a-z]+:|^\/\//i.test(ref) && ref !== "/");
   const files = readdirSync(root, { recursive: true, withFileTypes: true })

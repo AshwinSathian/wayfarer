@@ -11,7 +11,7 @@ const eventRows = (page: Page): Locator => viewer(page).getByRole("region", { na
 const cells = (page: Page) => eventRows(page).evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent?.trim() ?? "")));
 
 test("the five events of a stream are listed with their id, event, data and time", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(`${ECHO}/sse?count=5&interval=100`);
   await page.getByRole("button", { name: "Send request" }).click();
 
@@ -32,7 +32,7 @@ test("the five events of a stream are listed with their id, event, data and time
 });
 
 test("an open stream shows its events as they come, is stopped with Stop, and Reconnect goes on from the last id", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(`${ECHO}/sse?count=1000&interval=200`);
   await page.getByRole("button", { name: "Send request" }).click();
 
@@ -60,7 +60,7 @@ test("an open stream shows its events as they come, is stopped with Stop, and Re
 });
 
 test("a stream goes on in its tab while another tab is open", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(`${ECHO}/sse?count=6&interval=300`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(eventRows(page).first()).toBeVisible({ timeout: 15_000 });
@@ -81,7 +81,7 @@ for (const theme of ["dark", "light"] as const) {
     test.slow();
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     const scan = async (state: string) => {
       await page.mouse.move(640, 880);
       // Once the page has stopped animating: a colour half way through a fade is not the colour.

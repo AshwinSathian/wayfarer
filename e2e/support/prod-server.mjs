@@ -12,8 +12,9 @@
 // `:name`). Every matching rule applies; a repeated header name is joined
 // with ", "; `! Name` detaches a header set by an earlier rule.
 //
-// Unmatched paths get index.html with 200, like wrangler.jsonc's
-// `not_found_handling: "single-page-application"` without a Worker script.
+// A folder is its index.html, and its path without the slash a 307 to the
+// path with it; an unmatched path gets the nearest 404.html with a 404, like
+// wrangler.jsonc's `not_found_handling: "404-page"` without a Worker script.
 //
 // Text, script and wasm go compressed, brotli or gzip, as Cloudflare sends
 // them (P7.2): measured without it, the page loaded a megabyte it never sends.
@@ -25,7 +26,7 @@
 import { appendFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { extname, join, normalize, resolve, sep } from "node:path";
+import { dirname, extname, join, normalize, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 
@@ -130,21 +131,31 @@ export function headersFor(rules, url) {
   return out;
 }
 
+const isFile = async (file) => (await stat(file).catch((error) => (error.code === "ENOENT" || error.code === "ENOTDIR" ? null : Promise.reject(error))))?.isFile() ?? false;
+
+/** What `pathname` is in `root`: a file, a folder asked for without its slash, or nothing (the nearest 404.html, if any). */
 async function resolveFile(root, pathname) {
   let decoded;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {
-    return null; // malformed escape: fall through to the SPA shell, don't crash
+    decoded = null; // malformed escape: a 404, don't crash
   }
-  const candidate = normalize(join(root, decoded));
-  if (candidate !== root && !candidate.startsWith(root + sep)) return null;
-  // `/oauth/callback` is `oauth/callback.html`: Workers static assets serve a page without its extension (`html_handling`, the default).
-  for (const file of [candidate, join(candidate, "index.html"), `${candidate}.html`]) {
-    const info = await stat(file).catch((error) => (error.code === "ENOENT" || error.code === "ENOTDIR" ? null : Promise.reject(error)));
-    if (info?.isFile()) return file;
+  const candidate = decoded === null ? null : normalize(join(root, decoded));
+  if (candidate && (candidate === root || candidate.startsWith(root + sep))) {
+    const folder = join(candidate, "index.html");
+    if (pathname.endsWith("/")) {
+      if (await isFile(folder)) return { file: folder };
+    } else {
+      // `/app/oauth/callback` is `app/oauth/callback.html`: Workers static assets serve a page without its extension (`html_handling`, the default).
+      for (const file of [candidate, `${candidate}.html`]) if (await isFile(file)) return { file };
+      if (await isFile(folder)) return { slash: true };
+    }
   }
-  return null;
+  for (let dir = candidate && candidate.startsWith(root) ? candidate : root; ; dir = dirname(dir)) {
+    if (dir.startsWith(root) && (await isFile(join(dir, "404.html")))) return { missing: join(dir, "404.html") };
+    if (!dir.startsWith(root + sep)) return { missing: null };
+  }
 }
 
 /** Serves `root` on `port`; with `logFile`, appends a line of JSON to it for each connection, request and answer. */
@@ -163,15 +174,27 @@ export function startServer(root, port, logFile) {
       const rules = parseHeadersFile(await readFile(join(root, "_headers"), "utf8"));
       const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
       // Cloudflare never serves the _headers file itself.
-      const found = url.pathname === "/_headers" ? null : await resolveFile(root, url.pathname);
-      const file = found ?? join(root, "index.html");
+      const found = url.pathname === "/_headers" ? { missing: join(root, "404.html") } : await resolveFile(root, url.pathname);
+      for (const [name, value] of headersFor(rules, url)) res.setHeader(name, value);
+      if (found.slash) {
+        res.statusCode = 307;
+        res.setHeader("location", `${url.pathname}/${url.search}`);
+        Object.assign(sent, { bytes: 0 });
+        res.end();
+        return;
+      }
+      const file = found.file ?? found.missing;
+      res.statusCode = found.file ? 200 : 404;
+      if (!file || !(await isFile(file))) {
+        Object.assign(sent, { bytes: 0 });
+        res.end();
+        return;
+      }
       const raw = await readFile(file);
       const type = TYPES[extname(file)] ?? "application/octet-stream";
       const encoding = encodingFor(req.headers["accept-encoding"], type);
       const body = encoding ? await compress(file, raw, encoding) : raw;
       Object.assign(sent, { encoding: encoding ?? undefined, bytes: req.method === "HEAD" ? 0 : body.length });
-      res.statusCode = 200;
-      for (const [name, value] of headersFor(rules, url)) res.setHeader(name, value);
       res.setHeader("content-type", type);
       if (encoding) {
         res.setHeader("content-encoding", encoding);
@@ -197,7 +220,7 @@ export function startServer(root, port, logFile) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  const root = resolve(process.argv[2] ?? "dist/wayfarer/browser");
+  const root = resolve(process.argv[2] ?? "dist/deploy");
   const port = Number(process.argv[3] ?? process.env.PORT ?? 4200);
   await stat(join(root, "_headers")).catch(() => {
     console.error(`prod-server: no _headers in ${root}; build first (npm run build)`);

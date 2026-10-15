@@ -2,14 +2,14 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.getByRole("button", { name: "Manage secrets" }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("No secrets yet")).toBeVisible();
   });
 
   test("opens from the command palette", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.keyboard.press("Meta+K");
     await expect(page.getByPlaceholder("Type a command")).toBeVisible();
     await page.getByPlaceholder("Type a command").fill("Manage Secrets");
@@ -19,7 +19,7 @@ test.describe("Secrets management view", () => {
   });
 
   test("@claim:C-028 lists a protected variable, supports reveal, rename, locate, and delete", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     // Create an environment with one variable.
     await page.getByRole("button", { name: "New environment" }).click();

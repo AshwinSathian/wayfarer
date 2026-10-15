@@ -1,14 +1,16 @@
 /// <reference lib="webworker" />
 
 // Wayfarer's service worker (P1.6). Compiled and given its asset manifest by
-// scripts/build-sw.mjs, served at /sw.js. It replaces @angular/service-worker,
-// which answered failed cross-origin requests with a synthetic 504 (F06).
+// scripts/build-sw.mjs, served at sw.js beside the app (/app/sw.js on the
+// hosted site, W1), with the app's folder as its scope. It replaces
+// @angular/service-worker, which answered failed cross-origin requests with a
+// synthetic 504 (F06).
 //
 // Rules:
 // - Cross-origin requests are never intercepted: the user's API calls go
 //   straight to the network, and their failures reach the app unchanged.
 // - Navigations are network-first, falling back to the cached app shell, so
-//   the app loads offline after one visit. Not those under /oauth/: that is
+//   the app loads offline after one visit. Not those under oauth/: that is
 //   the OAuth callback page, which is not the app.
 // - Hashed same-origin assets are cache-first (their names change when their
 //   content does). The initial ones are precached at install; lazy chunks are
@@ -22,8 +24,11 @@ declare const WAYFARER_SW: { version: string; precache: string[] };
 const sw = self as unknown as ServiceWorkerGlobalScope;
 const CACHE_PREFIX = "wayfarer-";
 const CACHE = `${CACHE_PREFIX}${WAYFARER_SW.version}`;
-const SHELL = "/";
-const NOT_THE_APP = "/oauth/";
+// The app's folder ("/app/"): the manifest's paths are the build's, from its root ("/" is index.html).
+const SCOPE = new URL(sw.registration.scope).pathname;
+const SHELL = SCOPE;
+const PRECACHE = WAYFARER_SW.precache.map((path) => SCOPE + path.slice(1));
+const NOT_THE_APP = `${SCOPE}oauth/`;
 // The build's output hashes: main-XU6HGUMA.js, media/inter-latin-…-B6TL4M5W.woff2, and for a lazy chunk
 // chunk-iAuoh2-d.js. Upper case alone left 20 of 28 lazy chunks out of the cache (F84).
 const HASHED = /-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
@@ -32,7 +37,7 @@ sw.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE);
-      await cache.addAll(WAYFARER_SW.precache.map((path) => new Request(path, { cache: "reload" })));
+      await cache.addAll(PRECACHE.map((path) => new Request(path, { cache: "reload" })));
       // Only a previous version of this worker waits for the page's go-ahead.
       // A foreign worker (the pre-v1.1.0 Angular one at /ngsw-worker.js, or
       // its safety replacement) is replaced at once: it is what caused F06.
@@ -81,7 +86,7 @@ sw.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith(NOT_THE_APP)) return;
   if (request.mode === "navigate") {
     event.respondWith(networkFirstShell(request));
-  } else if (HASHED.test(url.pathname) || WAYFARER_SW.precache.includes(url.pathname)) {
+  } else if (HASHED.test(url.pathname) || PRECACHE.includes(url.pathname)) {
     event.respondWith(cacheFirst(request));
   }
 });

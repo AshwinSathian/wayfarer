@@ -17,6 +17,7 @@
               "base": "dist/wayfarer"
             },
             "index": "src/index.html",
+            "baseHref": "/app/",
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {

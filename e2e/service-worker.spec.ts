@@ -6,10 +6,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { seedAndOpen, send } from "./support/app";
 
-const DIST = "dist/wayfarer/browser";
+// The deploy: the site at its root and the app, with its worker, under app/ (W1).
+const DIST = "dist/deploy";
 
 // The worker only exists in the production build (npm run build).
-test.skip(!existsSync(join(DIST, "sw.js")), "needs the production build: run `npm run build` (CI=1 does it)");
+test.skip(!existsSync(join(DIST, "app/sw.js")), "needs the production build: run `npm run build` (CI=1 does it)");
 
 let root: string;
 let server: ChildProcess;
@@ -35,11 +36,11 @@ test.afterEach(async () => {
 
 /** Loads the app and waits until the service worker controls the page. */
 async function loadControlled(page: Page): Promise<void> {
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () => {
     await navigator.serviceWorker.ready;
-    return navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js") ?? false;
+    return navigator.serviceWorker.controller?.scriptURL.endsWith("/app/sw.js") ?? false;
   });
 }
 
@@ -70,13 +71,13 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
     page.evaluate(async () => {
       const loaded = performance.getEntriesByType("resource").map((entry) => new URL(entry.name));
       // Every script but the worker's own file, which a browser never takes from a worker's cache.
-      const paths = loaded.filter((url) => url.origin === location.origin && url.pathname.endsWith(".js") && url.pathname !== "/sw.js").map((url) => url.pathname);
+      const paths = loaded.filter((url) => url.origin === location.origin && url.pathname.endsWith(".js") && url.pathname !== "/app/sw.js").map((url) => url.pathname);
       const kept = await Promise.all(paths.map((path) => caches.match(path)));
       return { loaded: paths, notKept: paths.filter((_, index) => !kept[index]) };
     });
   await expect.poll(async () => (await scripts()).notKept).toEqual([]);
   const { loaded } = await scripts();
-  expect(loaded.filter((path) => path.startsWith("/chunk-")).length).toBeGreaterThan(5);
+  expect(loaded.filter((path) => path.startsWith("/app/chunk-")).length).toBeGreaterThan(5);
   server.kill();
   await new Promise((resolve) => server.once("exit", resolve));
   if (browserName !== "webkit") await context.setOffline(true);
@@ -92,13 +93,13 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
 
 test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell",async ({ page, context, browserName }) => {
   await loadControlled(page);
-  // Served same-origin as text/markdown and text/plain: never the app shell.
-  await page.goto(`${base}/THIRD_PARTY_NOTICES.md`);
-  await page.goto(`${base}/.well-known/security.txt`);
+  // Served same-origin as text/markdown and text/plain, in the worker's scope: never the app shell.
+  await page.goto(`${base}/app/THIRD_PARTY_NOTICES.md`);
+  await page.goto(`${base}/app/3rdpartylicenses.txt`);
   server.kill();
   await new Promise((resolve) => server.once("exit", resolve));
   if (browserName !== "webkit") await context.setOffline(true);
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
 });
 
@@ -106,12 +107,12 @@ test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app
 // OAuth callback page (P4.7) is the app's second HTML page.
 test("@claim:C-015 after an OAuth sign-in came back to the callback page, the offline app is still the app", async ({ page, context, browserName }) => {
   await loadControlled(page);
-  await page.goto(`${base}/oauth/callback?code=c-1&state=s-1`);
+  await page.goto(`${base}/app/oauth/callback?code=c-1&state=s-1`);
   await expect(page.getByText("Wayfarer has not answered.")).toBeVisible();
   server.kill();
   await new Promise((resolve) => server.once("exit", resolve));
   if (browserName !== "webkit") await context.setOffline(true);
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
 });
 
@@ -126,7 +127,7 @@ test("@claim:C-015 a script runs with the network disabled after one run online"
   await expect(ran).toBeVisible();
   // The engine, its worker, the worker's chunks and the library the script requires were fetched once and are in the worker's cache now.
   const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).map((r) => new URL(r.url).pathname));
-  expect(cached.filter((path) => /^\/media\/emscripten-module-[A-Z0-9]{8}\.wasm$/.test(path))).toHaveLength(1);
+  expect(cached.filter((path) => /^\/app\/media\/emscripten-module-[A-Z0-9]{8}\.wasm$/.test(path))).toHaveLength(1);
 
   server.kill();
   await new Promise((resolve) => server.once("exit", resolve));
@@ -171,12 +172,12 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
   await loadControlled(page);
 
   // Simulate a deploy: new index.html content, regenerated worker manifest.
-  const index = join(root, "index.html");
+  const index = join(root, "app/index.html");
   await writeFile(index, (await readFile(index, "utf8")).replace("</head>", "<!-- deploy 2 --></head>"));
-  execFileSync(process.execPath, ["scripts/build-sw.mjs", root]);
-  const version = /version":"([0-9a-f]+)/.exec(await readFile(join(root, "sw.js"), "utf8"))?.[1];
+  execFileSync(process.execPath, ["scripts/build-sw.mjs", join(root, "app")]);
+  const version = /version":"([0-9a-f]+)/.exec(await readFile(join(root, "app/sw.js"), "utf8"))?.[1];
 
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   const banner = page.getByRole("status").filter({ hasText: "Update available" });
   await expect(banner).toBeVisible();
 
@@ -188,7 +189,7 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
 });
 
 test("a registration left by the pre-v1.1.0 Angular worker is gone after one navigation", async ({ page }) => {
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   // A returning pre-v1.1.0 visitor: a registration for /ngsw-worker.js plus
   // an ngsw cache. /ngsw-worker.js is permanently the safety worker (P0.5).
   await page.evaluate(async () => {
@@ -204,18 +205,18 @@ test("a registration left by the pre-v1.1.0 Angular worker is gone after one nav
     });
   });
 
-  await page.goto(`${base}/`);
+  await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await expect
     .poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map((r) => (r.active ?? r.installing ?? r.waiting)?.scriptURL ?? "")))
-    .toEqual([`${base}/sw.js`]);
+    .toEqual([`${base}/app/sw.js`]);
   expect((await page.evaluate(() => caches.keys())).filter((k) => k.startsWith("ngsw:"))).toEqual([]);
 });
 
 test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker and its caches", async ({ page }) => {
   await loadControlled(page);
-  await cp("scripts/sw-kill.js", join(root, "sw.js"));
-  await page.goto(`${base}/`);
+  await cp("scripts/sw-kill.js", join(root, "app/sw.js"));
+  await page.goto(`${base}/app/`);
   // The kill switch reloads open tabs, so evaluate only once the page settles.
   const settled = async <T>(fn: () => Promise<T>): Promise<T | "navigating"> => {
     await page.waitForLoadState();

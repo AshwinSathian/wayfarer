@@ -11,7 +11,7 @@ import { openSettings } from "./support/app";
 // EXPECTED_VERSION (optional) is the package.json version the site must show.
 
 test("@smoke the app shell loads with production security headers", async ({ page }) => {
-  const response = await page.goto("/");
+  const response = await page.goto("/app/");
   expect(response?.status()).toBe(200);
   const headers = response?.headers() ?? {};
   const directives = (headers["content-security-policy"] ?? "").split(";").map((d) => d.trim());
@@ -27,15 +27,28 @@ test("@smoke the app shell loads with production security headers", async ({ pag
   }
 });
 
-test("responses carry HSTS and the cross-origin isolation headers", async ({ request }) => {
-  const headers = (await request.get("/")).headers();
-  expect(headers["strict-transport-security"]).toBe("max-age=31536000");
-  expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
-  expect(headers["cross-origin-resource-policy"]).toBe("same-origin");
+test("responses carry HSTS and the cross-origin isolation headers, the site's and the app's", async ({ request }) => {
+  for (const path of ["/", "/app/"]) {
+    const headers = (await request.get(path)).headers();
+    expect(headers["strict-transport-security"], path).toBe("max-age=31536000");
+    expect(headers["cross-origin-opener-policy"], path).toBe("same-origin");
+    expect(headers["cross-origin-resource-policy"], path).toBe("same-origin");
+  }
+});
+
+// W1 (PLAN-design.md): the site at / has a policy of its own, stricter than the app's, which it does not carry.
+test("@smoke the site at / runs no script and links to the app at /app/", async ({ page }) => {
+  const response = await page.goto("/");
+  expect(response?.status()).toBe(200);
+  const policy = response?.headers()["content-security-policy"] ?? "";
+  expect(policy.split(";").map((d) => d.trim())).toContain("default-src 'none'");
+  expect(policy).not.toContain("script-src");
+  expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
+  await expect(page.getByRole("link", { name: "Open Wayfarer" })).toHaveAttribute("href", "/app/");
 });
 
 test("the licences of the bundled packages are served with the app", async ({ request }) => {
-  const response = await request.get("/3rdpartylicenses.txt");
+  const response = await request.get("/app/3rdpartylicenses.txt");
   expect(response.status()).toBe(200);
   const text = await response.text();
   for (const name of ["@angular/core", "monaco-editor", "rxjs", "idb"]) expect(text).toContain(`Package: ${name}`);
@@ -44,19 +57,19 @@ test("the licences of the bundled packages are served with the app", async ({ re
 });
 
 test("@smoke a request round-trips and renders", async ({ page, baseURL }) => {
-  await page.goto("/");
-  // The site's own manifest: same-origin, so no CORS and no third party.
-  await page.locator("input.address-url").fill(`${baseURL}/manifest.webmanifest`);
+  await page.goto("/app/");
+  // The app's own manifest: same-origin, so no CORS and no third party.
+  await page.locator("input.address-url").fill(`${baseURL}/app/manifest.webmanifest`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
   await expect(page.getByText('"Wayfarer"').first()).toBeVisible();
 });
 
 test("@smoke the service worker installs and serves the app offline", async ({ page, context, browserName }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.waitForFunction(async () => {
     await navigator.serviceWorker.ready;
-    return navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js") ?? false;
+    return navigator.serviceWorker.controller?.scriptURL.endsWith("/app/sw.js") ?? false;
   });
   // Playwright's WebKit offline emulation breaks worker-served navigations
   // (see e2e/service-worker.spec.ts, which covers WebKit by stopping the server).

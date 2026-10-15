@@ -64,7 +64,7 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
     document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
   });
   const hits = await captureTarget(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await importFile(page, 'pm.test("the file\'s script ran", () => {});');
 
@@ -119,7 +119,7 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
 
 test("a script written here runs without a review, also after it is saved into a collection made here", async ({ page }) => {
   await captureTarget(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   // A collection the user makes, and a request saved into it.
   await page.evaluate(async () => {

@@ -221,7 +221,10 @@ export class OAuthTokens {
   }
 }
 
-/** Where the identity provider sends the sign-in window back to: the app's own callback page. It is what a client registers. */
-export function oauthRedirectUri(): string {
-  return `${location.origin}/oauth/callback`;
+/**
+ * Where the identity provider sends the sign-in window back to: the app's own callback page, beside the app
+ * (`/app/oauth/callback` on the hosted site). It is what a client registers.
+ */
+export function oauthRedirectUri(base = document.baseURI): string {
+  return new URL("oauth/callback", base).href;
 }

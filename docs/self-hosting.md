@@ -16,30 +16,36 @@ database or environment variable to configure.
   ```
 
 - **From source:** `npm ci && npm run build`. The folder is
-  `dist/wayfarer/browser`.
+  `dist/deploy`.
+
+The folder holds the website at its root and the app under `app/`.
 
 ## Serve it
 
 Serve the folder's root at the root of an origin (`https://api-client.example.com/`,
-not a subpath). The app, its service worker (`/sw.js`) and its workers
-expect to be at `/`.
+not a subpath). The app expects to be at `/app/`, with its service worker
+at `/app/sw.js`; the site's pages are at `/`.
 
 1. **HTTPS.** The vault (WebCrypto), the service worker and the clipboard
    need a secure context. `http://localhost` counts as one; nothing else
    served over plain HTTP does.
-2. **Every unknown path serves `index.html`** with status 200, so a reload
-   on any address opens the app.
-3. **`/oauth/callback` serves `oauth/callback.html`**, without a redirect
-   that drops the query. This is the redirect URI of OAuth 2.0 sign-ins
-   ([Auth](auth.md)). Many hosts already serve `x.html` at `/x`; if yours
-   does not, add a rewrite. Register `https://<your origin>/oauth/callback`
-   with your identity provider.
+2. **A folder serves its `index.html`**, and its address without the
+   slash redirects to the one with it (`/app` to `/app/`). **An unknown
+   path serves `404.html` with status 404.** The app has no addresses of
+   its own beyond `/app/`.
+3. **`/app/oauth/callback` serves `app/oauth/callback.html`**, without a
+   redirect that drops the query. This is the redirect URI of OAuth 2.0
+   sign-ins ([Auth](auth.md)). Many hosts already serve `x.html` at `/x`;
+   if yours does not, add a rewrite. Register
+   `https://<your origin>/app/oauth/callback` with your identity provider.
 4. **The headers in `_headers`** (shipped in the folder, in Cloudflare's and
-   Netlify's format) on every response:
+   Netlify's format) on every response. The site's pages and the app have
+   a policy each: the rule for `/app/*` removes the site's
+   `Content-Security-Policy` and sets the app's.
 
    | Header | Why |
    |---|---|
-   | `Content-Security-Policy` | No script but the app's own, no `eval`, Trusted Types for DOM script sinks. Without it, an injected script could reach your vault while it is unlocked. Copy it exactly; it is generated from `security/csp.json`. |
+   | `Content-Security-Policy` | Under `/app/`: no script but the app's own, no `eval`, Trusted Types for DOM script sinks. Without it, an injected script could reach your vault while it is unlocked. Elsewhere: no script at all. Copy both exactly; they are generated from `security/csp.json` and `security/csp-site.json`. |
    | `Cross-Origin-Opener-Policy: same-origin` | The OAuth sign-in window answers on a `BroadcastChannel`, never through `window.opener`. |
    | `Cross-Origin-Resource-Policy: same-origin` | Other sites cannot embed the app's files. |
    | `X-Content-Type-Options: nosniff` | A file is read as its type. |
@@ -50,7 +56,7 @@ expect to be at `/`.
    For hosts that do not read `_headers`, set the same values in the host's
    own configuration (nginx `add_header … always;`, Caddy `header`, an S3
    and CloudFront response headers policy, and so on).
-5. **No caching of `index.html` and `sw.js`** beyond revalidation. Hashed
+5. **No caching of `app/index.html` and `app/sw.js`** beyond revalidation. Hashed
    files (`main-XXXXXXXX.js`) can be cached forever.
 
 ## Check it

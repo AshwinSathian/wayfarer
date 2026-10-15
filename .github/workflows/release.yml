@@ -197,7 +197,7 @@ jobs:
         run: |
           assets="$RUNNER_TEMP/assets" && mkdir "$assets"
           name="wayfarer-${TAG#v}"
-          tar -czf "$assets/$name.tar.gz" -C dist/wayfarer/browser .
+          tar -czf "$assets/$name.tar.gz" -C dist/deploy .
           # What ships: the dependencies of the build, not the tools that make it.
           npm sbom --sbom-format cyclonedx --omit dev > "$assets/$name.cdx.json"
           cd "$assets" && sha256sum "$name.tar.gz" "$name.cdx.json" > SHA256SUMS

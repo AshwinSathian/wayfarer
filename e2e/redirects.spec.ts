@@ -24,7 +24,7 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
     page.on("request", (request) => {
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await expect(page.locator(".follow-redirects")).toContainText("Through the Local Bridge each one is listed");
     await address(page).fill(`${ECHO}/redirect/3`);
@@ -44,7 +44,7 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
 test("with Follow redirects off the 302 is the response as it came, and the tab says why it went no further", async ({ page }) => {
   const bridge = await startBridge();
   try {
-    await page.goto("/");
+    await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await address(page).fill(`${ECHO}/redirect/3`);
     await page.getByRole("checkbox", { name: "Follow redirects" }).uncheck();
@@ -98,7 +98,7 @@ for (const theme of ["light", "dark"] as const) {
     try {
       await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto("/");
+      await page.goto("/app/");
       await routeThroughBridge(page, bridge);
       const scan = async (state: string) => {
         await page.mouse.move(640, 880);

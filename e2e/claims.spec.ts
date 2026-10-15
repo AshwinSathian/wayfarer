@@ -52,7 +52,7 @@ test("@claim:C-002 collections, environments and history are stored in this brow
 
 test("@claim:C-003 a vault value is stored only as ciphertext; nothing persisted holds the plaintext", async ({ page }) => {
   const plaintext = "c003-plaintext-9f2b7e";
-  await page.goto("/");
+  await page.goto("/app/");
   await protectVariable(page, plaintext);
   await expect.poll(async () => (await dumpIdb(page))["secrets"]?.length ?? 0).toBe(1);
 
@@ -62,7 +62,7 @@ test("@claim:C-003 a vault value is stored only as ciphertext; nothing persisted
 });
 
 test("@claim:C-005 the vault key is held in memory only: a reload locks the vault", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await protectVariable(page, "c005-plaintext-41d0aa");
   await page.reload();
   await expect(page.getByRole("button", { name: "Unlock secrets" })).toBeVisible();
@@ -119,7 +119,7 @@ test("@claim:C-014 a collection export masks credentials unless that export asks
 });
 
 test("@claim:C-011 the CSP forbids eval and inline script, and blocks an injected inline script", async ({ page, request }) => {
-  const response = await page.goto("/");
+  const response = await page.goto("/app/");
   const scriptSrc = (policy: string | undefined) =>
     (policy ?? "").split(";").map((d) => d.trim()).find((d) => d.startsWith("script-src ")) ?? "";
 

@@ -3,7 +3,7 @@ import { ECHO } from "./support/echo";
 
 test.describe("Send request → view response", () => {
   test("@claim:C-022 sends a GET request and renders the response body, headers, and status", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
     await urlInput.fill(`${ECHO}/content/json?todo=1`);
@@ -34,7 +34,7 @@ test.describe("Send request → view response", () => {
   });
 
   test("keeps the composed request visible after Send, instead of wiping the form", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
     await urlInput.fill(`${ECHO}/content/json?todo=1`);
@@ -54,7 +54,7 @@ test.describe("Send request → view response", () => {
   });
 
   test("@claim:C-018 rejects an unparseable URL instead of silently succeeding", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
     await urlInput.fill("not a valid url at all");
@@ -67,7 +67,7 @@ test.describe("Send request → view response", () => {
   });
 
   test("reports a readable message for a network-level failure, not a raw event object", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");
     await urlInput.fill("https://this-domain-should-not-exist-e2e-check.invalid");
@@ -89,7 +89,7 @@ test("searching a response runs in the app's JSON worker, not on the main thread
     if (message.type() === "error" || message.type() === "warning") consoleErrors.push(message.text());
   });
 
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
@@ -101,6 +101,6 @@ test("searching a response runs in the app's JSON worker, not on the main thread
   // A worker shipped with the app answered: no source file was requested,
   // and the service did not report a failed job.
   expect(requested.filter((path) => path.endsWith(".ts"))).toEqual([]);
-  expect(workerUrls.slice(before).some((path) => /^\/worker-[A-Z0-9]+\.js$/.test(path))).toBe(true);
+  expect(workerUrls.slice(before).some((path) => /^\/app\/worker-[A-Z0-9]+\.js$/.test(path))).toBe(true);
   expect(consoleErrors.filter((text) => text.includes("json worker"))).toEqual([]);
 });

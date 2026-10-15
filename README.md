@@ -102,7 +102,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 
 ## Start
 
-- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/). It installs as an app and loads offline after the first visit.
+- **In the browser:** open the [hosted app](https://wayfarer.ashwinsathian.com/app/). It installs as an app and loads offline after the first visit.
 - **From source:** Node 24 (`.nvmrc`), then:
 
   ```bash

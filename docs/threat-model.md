@@ -82,7 +82,7 @@ page when the browser cannot, and answers on `127.0.0.1` only.
 ## The page and the sign-in window
 
 OAuth 2.0's Authorization Code grant opens the identity provider in another
-window, which answers on `/oauth/callback`.
+window, which answers on `/app/oauth/callback`.
 
 | Boundary | STRIDE | Threat | Mitigation | Claims |
 |---|---|---|---|---|

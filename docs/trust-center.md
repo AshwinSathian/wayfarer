@@ -235,7 +235,7 @@ All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/way
 ## Vulnerability disclosure & incident history
 
 Reporting process, response-time commitment, and scope: [`SECURITY.md`](../SECURITY.md).
-Automated-scanner discovery file: [`/.well-known/security.txt`](../public/.well-known/security.txt).
+Automated-scanner discovery file: [`/.well-known/security.txt`](../packages/site/public/.well-known/security.txt).
 Every fixed security-relevant issue is recorded in [`CHANGELOG.md`](../CHANGELOG.md)
 rather than quietly folded into an unrelated release note.
 

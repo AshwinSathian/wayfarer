@@ -109,7 +109,7 @@ for (const [name, path, status] of [
   ["an error status", "/status/404", "404"],
 ] as const) {
   test(`@claim:C-050 nothing moves in the 500 ms after ${name} arrives`, async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}${path}`);
     const samples = await sampleAfterResponse(page, status, 500);
     await send(page);
@@ -126,7 +126,7 @@ for (const [name, path, status] of [
 }
 
 test("@claim:C-050 nothing moves when a second response replaces the first", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json`);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");

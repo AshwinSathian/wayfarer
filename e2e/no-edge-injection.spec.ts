@@ -15,7 +15,7 @@ test("@claim:C-012 @smoke no-edge-injection: page load triggers no CSP violation
     });
   });
 
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForLoadState("networkidle");
 

@@ -438,7 +438,7 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
 });
 
 test("history keeps as many entries as Settings says: with the size at 5, 7 requests leave the newest 5", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await openSettings(page, "History");
   const size = page.getByLabel("History size");
   await expect(size).toHaveValue("500");
@@ -459,7 +459,7 @@ test("history keeps as many entries as Settings says: with the size at 5, 7 requ
 });
 
 test("history is searched by URL, by method and by status", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   for (const [method, url] of [["GET", `${ECHO}/echo?find=users`], ["DELETE", `${ECHO}/status/500?find=orders`]]) {
     await page.getByRole("textbox", { name: "HTTP method" }).fill(method);
     await page.locator("input.address-url").fill(url);

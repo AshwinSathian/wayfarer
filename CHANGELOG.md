@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The app moves to `/app/`, and `/` is the start of Wayfarer's website.**
+  Before, the address opened the app and there was no page that said what
+  Wayfarer is. The site's first page says it in two sentences and links to
+  the app; a page that does not exist is now a 404 with that link, not the
+  app. What you stored is kept: the browser keeps it for the whole address,
+  not one path. **If you use OAuth 2.0 sign-ins, register the new redirect
+  URI with your identity provider**: `https://<host>/app/oauth/callback`
+  (the Auth tab shows it). The site runs no script and loads nothing from
+  another address; its own Content-Security-Policy says so.
+
 - **Wayfarer is deployed at v2.5.0, and the Local Bridge and the command
   line are on npm.** `npx wayfarer-bridge` and `npx wayfarer-cli` work, each
   published from this repository with a provenance attestation. The README

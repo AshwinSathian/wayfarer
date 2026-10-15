@@ -24,7 +24,7 @@ async function expectNoViolations(page: Page): Promise<void> {
 
 async function open(page: Page, url: string): Promise<void> {
   await watchViolations(page);
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(url);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -185,12 +185,12 @@ test("@claim:C-048 the HTML preview draws the page and nothing else: no script r
 
 test("no other origin can put the app in a frame", async ({ page, baseURL }) => {
   // frame-ancestors is 'self' so that the preview's blob: frame loads in WebKit (plan D25). It must still refuse everyone else.
-  const response = await page.goto("/");
+  const response = await page.goto("/app/");
   const policy = response?.headers()["content-security-policy"] ?? "";
   expect(policy).toContain("frame-ancestors 'self'");
   expect(policy).toContain("frame-src blob:;");
 
-  const framer = { status: 200, contentType: "text/html", body: `<h1>framer</h1><iframe src="${baseURL}/"></iframe>` };
+  const framer = { status: 200, contentType: "text/html", body: `<h1>framer</h1><iframe src="${baseURL}/app/"></iframe>` };
   const framed = () => page.mainFrame().childFrames()[0]?.locator("input.address-url");
 
   // The app's own origin may: this is what "the app was drawn in the frame" looks like.
@@ -279,7 +279,7 @@ test("the Headers tab says once that the browser withholds headers of a response
 });
 
 test("a response from the app's own origin has no such note", async ({ page, baseURL }) => {
-  await open(page, new URL("/manifest.webmanifest", baseURL).href);
+  await open(page, new URL("/app/manifest.webmanifest", baseURL).href);
   await viewer(page).getByRole("tab", { name: "Headers" }).click();
   await expect(viewer(page).locator("table.ds-table th").first()).toBeVisible();
   await expect(viewer(page).locator(".headers-note")).toHaveCount(0);

@@ -85,7 +85,7 @@ test.describe("Phase 0 tripwires", () => {
   ]) {
     test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response can be read as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
       await captureTarget(page, { contentType, body });
-      await page.goto("/");
+      await page.goto("/app/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
       await send(page);
 
@@ -108,7 +108,7 @@ test.describe("Phase 0 tripwires", () => {
   test("F05 @claim:C-009: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff]);
     await captureTarget(page, { contentType: "image/png", body: png });
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${TARGET}/f05.png`);
     await send(page);
 
@@ -160,7 +160,7 @@ test.describe("Phase 0 tripwires", () => {
 
 test.describe("Phase 0 tripwires (service worker active)", () => {
   test("F06 @claim:C-010: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
-    const response = await page.goto("/");
+    const response = await page.goto("/app/");
     await expectProdParity(response);
     // Recreate a returning pre-v1.1.0 visitor: a registration for
     // /ngsw-worker.js. On the audited build that URL is the Angular service
@@ -209,7 +209,7 @@ test.describe("Tripwires found by the Phase 1 rails", () => {
 
   test("F43: a query typed in the URL is sent once, not duplicated by the mirrored Params rows", async ({ page }) => {
     const hits = await captureTarget(page);
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${TARGET}/f43?a=1&b=two`);
     await send(page);
     await expect.poll(() => hits.length).toBe(1);

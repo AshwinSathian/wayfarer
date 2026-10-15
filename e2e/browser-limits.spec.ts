@@ -20,7 +20,7 @@ async function openPanel(page: Page): Promise<void> {
 }
 
 test("@claim:C-049 a Cookie header is shown as dropped, and the browser does drop it", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await expect(notes(page).locator(".browser-note-dropped")).toHaveCount(0);
 
@@ -47,7 +47,7 @@ test.describe("the preflight", () => {
 
   test("says when the browser asks the server first, and why; a server that does not answer that question never gets the request", async ({ page }) => {
     // /cors/simple allows the origin and answers no preflight: a request the browser asks about first fails there.
-    await page.goto("/");
+    await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/cors/simple`);
     await openPanel(page);
     const preflight = notes(page).locator(".browser-note-preflight");
@@ -67,7 +67,7 @@ test.describe("the preflight", () => {
 test("F64: with the service worker in control, a request that needs a preflight is asked about first, and the server's refusal stops it", async ({ page, browserName }) => {
   // A tripwire, as in tripwire.spec.ts: WebKit sends no OPTIONS and the request itself here (issue #209), so this fails there and goes red if that changes.
   test.fail(browserName === "webkit", "F64 (#209): WebKit sends the request without a preflight");
-  await page.goto("/");
+  await page.goto("/app/");
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
   const address = `/cors/simple?id=f64-${browserName}-${Date.now()}`;
   const outcome = await page.evaluate(
@@ -84,7 +84,7 @@ test("F64: with the service worker in control, a request that needs a preflight 
 
 test("an http:// address is not called mixed content on a page that is itself http://", async ({ page }) => {
   // The notice for an HTTPS page is a unit test of browserLimits: the e2e origin is http://localhost.
-  await page.goto("/");
+  await page.goto("/app/");
   await page.locator("input.address-url").fill("http://example.invalid/x");
   await openPanel(page);
   await expect(notes(page).locator(".browser-note-preflight")).toBeVisible();

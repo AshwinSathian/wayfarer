@@ -45,7 +45,7 @@ function fixtureRequests(): SeededRequest[] {
 
 /** Writes a collection "Shop" of `requests`, their scripts approved as scripts written here are, and an active environment; then reloads. */
 async function seedCollection(page: Page, requests: SeededRequest[], vars: Record<string, string> = {}): Promise<void> {
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () => (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5));
   await page.evaluate(

@@ -53,16 +53,17 @@ export default defineConfig({
           reuseExistingServer: !CI,
         },
         {
-          // CI serves the production build through prod-server.mjs, which
-          // applies public/_headers like Cloudflare does, so e2e sees
-          // production's CSP (e2e/tripwire.spec.ts F01). A prebuilt dist/
+          // CI serves the deploy (the site, and the app under /app/) through
+          // prod-server.mjs, which applies its _headers like Cloudflare
+          // does, so e2e sees production's CSP (e2e/tripwire.spec.ts F01).
+          // A prebuilt dist/
           // (the CI build artifact, P1.7) is served as-is; otherwise build.
           // A production build also avoids Angular's dev server compiling
           // Monaco's `?worker` imports on demand, which raced under a cold
           // server and intermittently broke e2e/layout.spec.ts in CI.
           // Locally, `ng serve` is kept for fast iteration.
           command: CI
-            ? "(test -f dist/wayfarer/browser/index.html || npm run build) && node e2e/support/prod-server.mjs dist/wayfarer/browser 4200"
+            ? "(test -f dist/deploy/app/index.html || npm run build) && node e2e/support/prod-server.mjs dist/deploy 4200"
             : "npx ng serve --configuration development",
           url: "http://localhost:4200",
           reuseExistingServer: !CI,

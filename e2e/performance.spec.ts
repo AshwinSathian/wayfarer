@@ -13,7 +13,7 @@ const LAZY = {
 };
 
 test("the page the server sends, and the scripts it loads first, hold none of Monaco, QuickJS, GraphQL, the OpenAPI importer or YAML", async ({ request }) => {
-  const html = await (await request.get("/")).text();
+  const html = await (await request.get("/app/")).text();
   const first = [...html.matchAll(/<script[^>]+src="([^"]+)"|<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g)].map((match) => match[1] ?? match[2]);
   expect(first.length).toBeGreaterThan(0);
   // What those import at once (`import … from "./x.js"`) loads first too; an `import()` does not.
@@ -23,7 +23,7 @@ test("the page the server sends, and the scripts it loads first, hold none of Mo
     const path = queue.shift() ?? "";
     if (seen.has(path)) continue;
     seen.add(path);
-    const text = await (await request.get(`/${path.replace(/^\.?\//, "")}`)).text();
+    const text = await (await request.get(`/app/${path.replace(/^\.?\//, "")}`)).text();
     texts.push(text);
     queue.push(...[...text.matchAll(/(?:^|[;}\s])import(?:[^("']*?from)?\s*["']\.\/([^"']+\.js)["']/g)].map((match) => match[1]));
   }
@@ -40,7 +40,7 @@ test("loading the app fetches nothing of Monaco: no editor is on the first scree
     if (/monaco/i.test(request.url())) monaco.push(request.url());
   });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForLoadState("networkidle");
   expect(monaco).toEqual([]);
@@ -52,7 +52,7 @@ test("loading the app fetches nothing of Monaco: no editor is on the first scree
 
 test("typing into the address with five tabs open answers each key within 100 ms", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await page.goto("/app/");
   const address = page.locator("input.address-url");
   await expect(address).toBeVisible();
   for (let tab = 1; tab < 5; tab++) await page.keyboard.press("Alt+t");

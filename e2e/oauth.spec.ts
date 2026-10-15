@@ -90,7 +90,7 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   await page.locator("#auth-oauth-token-url").fill(`${ECHO}/oauth/token`);
   await page.locator("#auth-oauth-client-id").fill("wayfarer-e2e");
   await page.locator("#auth-oauth-scope").fill("read");
-  await expect(page.locator(".oauth-redirect-uri")).toHaveText("http://localhost:4200/oauth/callback");
+  await expect(page.locator(".oauth-redirect-uri")).toHaveText("http://localhost:4200/app/oauth/callback");
   await expect(status(page)).toContainText("No token yet.");
 
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));
@@ -100,13 +100,13 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   if (!popup.isClosed()) await popup.waitForEvent("close");
   const asked = new URL((await authorize).url()).searchParams;
   expect(asked.get("response_type")).toBe("code");
-  expect(asked.get("redirect_uri")).toBe("http://localhost:4200/oauth/callback");
+  expect(asked.get("redirect_uri")).toBe("http://localhost:4200/app/oauth/callback");
   expect(asked.get("code_challenge_method")).toBe("S256");
   expect(asked.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(asked.get("state")).toMatch(/^[0-9a-f-]{36}$/);
   // One exchange: the code with the verifier, the client named in the form (it has no secret).
   expect(tokens).toHaveLength(1);
-  expect(tokens[0]).toMatchObject({ grant_type: "authorization_code", redirect_uri: "http://localhost:4200/oauth/callback", client_id: "wayfarer-e2e" });
+  expect(tokens[0]).toMatchObject({ grant_type: "authorization_code", redirect_uri: "http://localhost:4200/app/oauth/callback", client_id: "wayfarer-e2e" });
   expect(tokens[0]["code_verifier"]).toMatch(/^[A-Za-z0-9._~-]{43,128}$/);
 
   // The request arrives with a token, and it is the one the identity provider issued for that code and scope.

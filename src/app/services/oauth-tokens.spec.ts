@@ -3,7 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { OAUTH_CHANNEL, OAuthError, TransportError, emptyAuth, oauthTokenKey, type OAuth2Auth, type ResolvedRequest, type ResponseEnvelope } from "@wayfarer/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { provideRepositories } from "../../testing/repositories";
-import { OAuthTokens } from "./oauth-tokens";
+import { OAuthTokens, oauthRedirectUri } from "./oauth-tokens";
 import { SecretsVault } from "./secrets-vault";
 import type { RoutePolicy } from "@wayfarer/core";
 import { TransportRouter } from "./transport-router";
@@ -36,6 +36,12 @@ class FakeVault {
   }
   deleteSecret = async (id: string) => void this.secrets.delete(id);
 }
+
+describe("oauthRedirectUri", () => {
+  it("is the callback page beside the app, wherever the app is served from", () => {
+    expect([oauthRedirectUri("https://w.test/app/"), oauthRedirectUri("https://w.test/")]).toEqual(["https://w.test/app/oauth/callback", "https://w.test/oauth/callback"]);
+  });
+});
 
 describe("OAuthTokens", () => {
   let tokens: OAuthTokens;
@@ -237,7 +243,7 @@ describe("OAuthTokens", () => {
       const done = tokens.get(code, codeKey);
       const state = await stateAsked();
       expect(tokens.waiting()).toBe(true);
-      expect(opened[0].searchParams.get("redirect_uri")).toBe(`${location.origin}/oauth/callback`);
+      expect(opened[0].searchParams.get("redirect_uri")).toBe(oauthRedirectUri());
 
       other.postMessage({ state: "someone-else", code: "stolen" });
       await vi.waitFor(() => expect(tokens.notice()).toBe("An answer came back with a state this app did not issue, and was ignored."));
@@ -248,7 +254,7 @@ describe("OAuthTokens", () => {
 
       other.postMessage({ state, code: "code-1" });
       await done;
-      expect(form(sent[0])).toMatchObject({ grant_type: "authorization_code", code: "code-1", redirect_uri: `${location.origin}/oauth/callback`, client_id: "client" });
+      expect(form(sent[0])).toMatchObject({ grant_type: "authorization_code", code: "code-1", redirect_uri: oauthRedirectUri(), client_id: "client" });
       // The verifier is the one whose SHA-256 was sent as the challenge.
       const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(form(sent[0])["code_verifier"])));
       expect(opened[0].searchParams.get("code_challenge")).toBe(btoa(String.fromCharCode(...digest)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""));

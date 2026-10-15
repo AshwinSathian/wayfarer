@@ -25,7 +25,7 @@ test("three messages sent to an echo are logged in order, each with its answer, 
     (window as unknown as { __violations: string[] }).__violations = [];
     document.addEventListener("securitypolicyviolation", (event) => (window as unknown as { __violations: string[] }).__violations.push(`${event.violatedDirective} ${event.blockedURI}`));
   });
-  const response = await page.goto("/");
+  const response = await page.goto("/app/");
   // Under the production policy, which names no ws: source: `connect-src *` admits it.
   expect(response?.headers()["content-security-policy"]).toContain("connect-src *");
   await address(page).fill(WS);
@@ -62,7 +62,7 @@ test("three messages sent to an echo are logged in order, each with its answer, 
 });
 
 test("subprotocols are asked for and the one the server chose is logged; a name that is no token is refused with the browser's reason", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(WS);
   await view(page).getByLabel("Subprotocols").fill("chat.v2, json");
   await page.getByRole("button", { name: "Connect", exact: true }).click();
@@ -77,7 +77,7 @@ test("subprotocols are asked for and the one the server chose is logged; a name 
 });
 
 test("a server that is not there: the log has the close code, and the tab can connect again", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill("ws://127.0.0.1:9/nothing");
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   // Chromium and Firefox close with 1006. WebKit, for a port it will not connect to, gives an error and no close.
@@ -87,7 +87,7 @@ test("a server that is not there: the log has the close code, and the tab can co
 });
 
 test("a variable is replaced in the address and in a message, and a socket stays open in its tab while another tab is used", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/app/");
   await address(page).fill(WS);
   await page.getByRole("button", { name: "Connect", exact: true }).click();
   await expect(view(page).getByRole("status")).toHaveText("Connected");
@@ -119,7 +119,7 @@ for (const theme of ["dark", "light"] as const) {
     test.slow();
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/app/");
     await address(page).fill(WS);
     const scan = async (state: string) => {
       await page.mouse.move(640, 880);

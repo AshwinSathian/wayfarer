@@ -14,8 +14,9 @@
       Content-Security-Policy, generated from security/csp.json by
       `npm run gen:csp` (do not edit by hand; `npm run check:csp` fails CI on
       drift). The rationale for each directive is in that file. The same
-      policy is sent as an HTTP header via public/_headers, which also carries
-      frame-ancestors (a <meta> policy can't).
+      policy is sent as an HTTP header via packages/site/public/_headers (the
+      rule for /app/*), which also carries frame-ancestors (a <meta> policy
+      can't).
     -->
     <meta
       http-equiv="Content-Security-Policy"

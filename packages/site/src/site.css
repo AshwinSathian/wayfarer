@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  background: var(--canvas-app);
+  color: var(--label-primary);
+  font: 1rem/1.5 system-ui, sans-serif;
+}
+
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 4rem 1rem;
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1.15;
+}
+
+p {
+  color: var(--label-secondary);
+  font-size: 1.125rem;
+}
+
+a {
+  color: var(--label-primary);
+}
+
+.open {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-fill);
+  color: var(--accent-text);
+  text-decoration: none;
+}

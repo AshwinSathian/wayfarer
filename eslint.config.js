@@ -5,6 +5,8 @@ const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
 
 module.exports = defineConfig([
+  // Astro writes its types into the site's folder when it builds (W1); the site has no TypeScript of its own.
+  { ignores: ["packages/site/.astro/**", "packages/site/dist/**"] },
   {
     files: ["**/*.ts"],
     extends: [

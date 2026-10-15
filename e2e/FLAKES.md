@@ -2,6 +2,8 @@
 
 Plan risk R6: a test that failed without a product cause is listed here with its issue. `@claim` tests run with retries 0, so a flake in one of them fails CI and must be fixed, not retried.
 
+When an e2e job fails on CI, it uploads `prod-server-log-<browser>` beside the report: one line of JSON for each connection, request and answer the test server had, with its time (#228). For a `page.goto` that timed out, look there for the document's `request` and `answered` lines at the trace's time.
+
 | Test | Seen | Cause | Issue | State |
 |---|---|---|---|---|
 | `tripwire.spec.ts` › F06 `@claim:C-010` | 2026-10-07, CI, `claims-chromium`, once | The test waited for one `statechange` of a service worker that unregisters itself; the event never came | #118 | Fixed in two steps: the wait for the event gives up after 5 s; the final check polls until the old registration is gone (seen again 2026-10-07 on PR #121, where it was still listed at the single sample) |

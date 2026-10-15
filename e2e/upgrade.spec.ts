@@ -162,7 +162,7 @@ test("a database of an earlier 2.x is emptied whole, the page says so once, and 
   for (const name of ["collections", "folders", "requests", "files", "environments", "history"]) {
     expect(stores[name], name).toEqual([]);
   }
-  expect(await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version)).toBe(13);
+  expect(await page.evaluate(async () => (await indexedDB.databases()).find((db) => db.name === "api-sandbox")?.version)).toBe(14);
 
   // A collection made now holds what this version writes, and the notice is about that one upgrade.
   await createCollection(page, "After the update");

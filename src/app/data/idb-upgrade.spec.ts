@@ -77,7 +77,7 @@ describe("opening a database left by another release", () => {
 
     const db = (await core.getDatabase())!;
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(13);
+    expect(DB_VERSION).toBe(14);
     expect([...db.objectStoreNames].sort()).toEqual(STORES);
     expect(await idb.collections.listCollections()).toEqual([]);
     expect(await idb.folders.listFolders("c-1")).toEqual([]);

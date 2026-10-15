@@ -1,8 +1,8 @@
 # RFC: Wayfarer rebuilt for people (design, website, teams)
 
-> Status: OPEN FOR REVIEW. No task starts before `PLAN-airtight-remediation.md` is closed (its P7.8).
+> Status: OPEN FOR REVIEW. Refreshed 2026-10-16 against `main` at `b57632d`; no task starts before the maintainer's review. The remediation plan's P7.8 is done (its v1.2.107); its P7.9 is the owner's and does not block this plan.
 > Scale: Epic
-> Target start: the session after P7.8 merges
+> Target start: the session after the maintainer's review (P7.8 merged on 2026-10-15)
 > Created: 2026-10-14
 > Author: AshwinSathian (maintainer), drafted with Claude
 > Research: [`docs/design/research-2026.md`](docs/design/research-2026.md)
@@ -22,7 +22,7 @@ splits it into sessions (the D0, W0 and T0 tasks), as P2.0 to P6.0 did.
 
 ### Problem
 
-Wayfarer's engine is careful: 62 claims with tests, a sandbox, a vault, a
+Wayfarer's engine is careful: 67 claims with tests, a sandbox, a vault, a
 claims ledger. Its interface was built on top of that engine one feature
 at a time, by agents following rules. Nobody has yet designed the product
 as a whole, judged it against the tools its users already know, or asked
@@ -36,9 +36,9 @@ Three facts make this the moment:
    tab with no account. Its home page does not say so, because it has no
    home page: `wayfarer.ashwinsathian.com` opens the app.
 3. The widget layer is expensive to keep. `controls.css` (1,079
-   lines) and `material-theme.scss` (403 lines, 20 override mixins) exist
+   lines) and `material-theme.scss` (411 lines, 19 override mixins) exist
    to make Angular Material look like the tokens, and the "Angular Material"
-   section of `CLAUDE.md` has 33 rules on how to use it and where
+   section of `CLAUDE.md` has 34 rules on how to use it and where
    it falls short.
 
 ### What success looks like
@@ -70,7 +70,9 @@ Measured at the end of phase D5 and W4, against the baseline of D0:
 - **Character: research decides.** D2 shows two or three directions and
   the maintainer chooses.
 - **Placement: after the remediation plan**, as its own file, because
-  P7.8 archives that plan.
+  P7.8 archives that plan. P7.8 is done (2026-10-15). The release of
+  `main` and its deploy wait for the website (remediation v1.2.101,
+  confirmed 2026-10-16).
 - **Teams: all four ways to share** (Git, peer-to-peer, a self-hosted
   server, files and links). This plan designs all of them (D4) and builds
   them in phase T, files and links first.
@@ -97,18 +99,19 @@ Measured at the end of phase D5 and W4, against the baseline of D0:
 
 ## 2. Background
 
-What exists, measured 2026-10-14 (details in the research, section 11):
+What exists, measured 2026-10-14 and re-measured 2026-10-16 (details in the
+research, section 11):
 
 - Angular 22, zoneless, standalone; Angular Material for widgets; Tailwind
   4 without preflight; tokens in `src/design-system/tokens.css` (157
   declarations, Apple's naming); type classes in
   `src/design-system/typography.css`, of which `type-footnote`,
   `type-caption` and `type-callout` carry most of the interface.
-- 15 component folders under `src/app/components`, 3,971 lines of
+- 15 component folders under `src/app/components`, 4,069 lines of
   templates, 44 inline SVG icons (`src/app/shared/icon/icon-paths.ts`).
 - Layout by two widths in `App.updateViewportFlags`: 1,200 px (sidebar
   becomes a drawer) and 768 px (composer stacks).
-- 1,071 e2e tests in three engines, many of them reaching controls by
+- 1,125 e2e tests in 58 files across the three engines' projects, many of them reaching controls by
   role and name. A rebuild changes names; every changed test is a row in
   the PR saying why (as the remediation plan requires).
 - Hosting: Cloudflare Workers static assets (`wrangler.jsonc`), headers
@@ -191,7 +194,7 @@ designed in T0 with its validator, as every stored shape is today.
 | Restyle in place | Keep Material and the layout; new tokens and type only | Smallest diff; tests mostly stand | Keeps the override layer and the flows nobody designed | Rejected by the maintainer's "truly everything"; kept as D2's fallback direction |
 | Rebuild, widgets on Angular Aria | Headless accessible patterns, our own styles | No override layer; Angular's own; stable in v22 | Fewer ready parts than Material (no tree, no data table); we own the look of every state | Candidate, decided in D1.5 |
 | Rebuild, widgets on the platform | `<dialog>`, popover, anchor positioning, native select | No dependency; fastest | Customizable select is not Baseline; some keyboard patterns are ours to write | Candidate for overlays at least, D1.5 |
-| Another framework | React or Svelte for the UI | Larger design-system ecosystems | Rewrites 41 components and their tests; Angular is not the problem the audit has found so far | Kept open only if D1 finds a reason |
+| Another framework | React or Svelte for the UI | Larger design-system ecosystems | Rewrites 47 components and their tests; Angular is not the problem the audit has found so far | Kept open only if D1 finds a reason |
 | Website inside the app | The landing is a route of the Angular app | One toolchain | The app's strict CSP and SW apply to marketing pages; the first load pays for the app | Rejected for the landing; W0 compares SSG options |
 
 ## 6. Trade-offs
@@ -201,8 +204,9 @@ designed in T0 with its validator, as every stored shape is today.
   claim tests keep their IDs. No test is deleted without a replacement
   that proves the same thing.
 - A new name throws away whatever recognition "Wayfarer" has. Accepted as
-  an option because the npm names are not reserved yet (remediation P0.13)
-  and there are no users (D24).
+  an option because there are no users (D24). The npm names are taken
+  since 2026-10-15 (`wayfarer-bridge` 3.0.1, `wayfarer-cli` 2.0.1, with
+  provenance): a new name means new packages and `npm deprecate` on these.
 - A website brings the third parties a site usually has (fonts, video,
   analytics). The app's claim that it makes no third-party request
   (`e2e/no-third-party-requests.spec.ts`) stays true for `/app`; the site
@@ -223,8 +227,11 @@ designed in T0 with its validator, as every stored shape is today.
 
 ## 8. Dependencies
 
-- **Upstream:** `PLAN-airtight-remediation.md` closed (P7.8), including the
-  owner pass (deployed production, Cloudflare zone) and the CLI (P6.5).
+- **Upstream:** `PLAN-airtight-remediation.md`'s P7.8, done 2026-10-15
+  (production serves v2.5.0; the CLI is published). Its P7.9 owner steps
+  (the Cloudflare zone, P0.12; the deploy token and rollback drill, P1.7;
+  F42; F64) do not block D or W, but W4 deploys through `deploy.yml`,
+  which needs the `CLOUDFLARE_API_TOKEN` secret.
 - **Libraries, each decided in its task:** Angular 22 and Angular Aria;
   a DTCG token builder (Style Dictionary or Terrazzo, D3.1); the site
   generator (W0.2); a CRDT library for T3 (Yjs or Automerge).
@@ -523,7 +530,7 @@ Each has a default; a session goes ahead on the default and says so.
 
 | # | Question | Default | Owner | Needed by |
 |---|---|---|---|---|
-| DQ1 | Does phase W1 (the move to `/app`) wait for this plan, or run right after P7.8 and before D0? | Before D0: the site's work does not depend on the redesign, and an early landing page can be replaced in W2 | Maintainer | P7.8 |
+| DQ1 | Does phase W1 (the move to `/app`) wait for this plan, or run right after P7.8 and before D0? | **Answered 2026-10-16: before D0.** The site's work does not depend on the redesign, and an early landing page can be replaced in W2 | Maintainer | P7.8 |
 | DQ2 | Does the site measure visits (W3.6)? | No measurement until the maintainer decides | Maintainer | W3.6 |
 | DQ3 | Where does the rival benchmark's Postman run: the free plan of one user, or a trial of Team for the sharing task? | Free plan; the sharing task is measured on Team's trial if one is available | Maintainer | D1.4 |
 | DQ4 | Does a renamed product keep `wayfarer.ashwinsathian.com` as a redirect? | Yes, permanently | Maintainer | D2.3 |
@@ -540,3 +547,4 @@ Each has a default; a session goes ahead on the default and says so.
 | Date | Version | Change |
 |---|---|---|
 | 2026-10-14 | 0.1 | Drafted. The maintainer's answers of this date are in section 1. Research in `docs/design/research-2026.md`. |
+| 2026-10-16 | 0.2 | Refreshed against `main` at `b57632d` for the maintainer's review (remediation session 11): 67 claims, 47 components, 4,069 template lines, 1,125 e2e tests, `material-theme.scss` 411 lines with 19 override mixins (20 was a miscount), 34 Material rules in `CLAUDE.md`; P7.8 done; the npm names published; DQ1 answered (W1 before D0); the release of `main` waits for the website. |

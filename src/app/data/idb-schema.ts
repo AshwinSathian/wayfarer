@@ -160,4 +160,4 @@ export interface ApiSandboxDB extends DBSchema {
 
 // The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
 export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 13;
+export const DB_VERSION = 14;

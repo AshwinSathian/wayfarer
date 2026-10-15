@@ -7,6 +7,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **The database is version 14, and an update empties it.** The vault's
+  record and each encrypted secret no longer carry a version field (`v`):
+  there is one shape, and nothing checks for another. A vault file from
+  this version has no `v` either; a file written before still opens, the
+  field is ignored. Export collections and back up the workspace before
+  updating: what version 13 stored is removed, as the page then says.
+
 ### Fixed
 
 - **A click on a menu item as the menu opened could be lost.** While a

@@ -227,7 +227,7 @@ These are open, tracked, and scheduled in
 
 - The Local Bridge's token, which you paste into its settings or which the bridge gives the page for its pairing code (once; three wrong codes lock pairing for a minute), is kept in the vault while the vault is unlocked. With the vault locked, or with no vault, it is in the tab's memory only and you give it again after a reload: it is never written as plain text. A vault file holds it encrypted, like every vault secret.
 - OAuth 2.0 sign-in is tested in Chromium, Firefox and a test build of WebKit, not yet in Safari itself, and a token endpoint that does not allow the app's origin can only be reached through the Local Bridge ([`browser-limits.md`](browser-limits.md#oauth)). The implicit and device grants are not built.
-- In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent although the server's answer refused it ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
+- In Safari's engine, once the app is cached, a request that needs a CORS preflight was seen to be sent without one: the server received the request and no `OPTIONS` ([#209](https://github.com/AshwinSathian/wayfarer/issues/209)). Measured in a test build of WebKit; not yet confirmed in Safari itself.
 - Data and files from Wayfarer 1.x are not read by version 2: the first open removes them and says so.
 
 All audit findings: [label `audit-2026-09`](https://github.com/AshwinSathian/wayfarer/issues?q=label%3Aaudit-2026-09).

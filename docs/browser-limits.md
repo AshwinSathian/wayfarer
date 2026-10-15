@@ -101,11 +101,14 @@ server that does not answer `OPTIONS` with the right
 shows a network error, because the browser does not say why. Through the
 bridge there is no preflight.
 
-One exception was measured in session 2D and is tracked as
+One exception is tracked as
 [#209](https://github.com/AshwinSathian/wayfarer/issues/209): in Playwright's
-WebKit, once the app's service worker controls the page, a request whose
-preflight the server refused was sent anyway. Whether Safari itself does
-this is not confirmed.
+WebKit, once the app's service worker controls the page, a request that
+needs a preflight is sent without one. The server receives the request
+itself and no `OPTIONS`, and answers it. The worker does not answer the
+request; WebKit sends it on to the network without asking first. Chromium
+and Firefox send only the `OPTIONS` in the same case. Whether Safari itself
+does this is not confirmed.
 
 <a id="oauth"></a>
 

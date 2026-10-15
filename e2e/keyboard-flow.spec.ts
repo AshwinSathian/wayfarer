@@ -201,7 +201,13 @@ test("@claim:C-067 focus stays on Send through a send started from the keyboard"
   await page.goto("/app/");
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/delay/1500`);
-  await page.getByRole("button", { name: "Send request" }).focus();
+  // Send is disabled until the draft has an address, and focus() on a disabled
+  // button does nothing: in a local trace (session 11) it came 13 ms after the
+  // last key, and Enter sent nothing.
+  const send = page.getByRole("button", { name: "Send request" });
+  await expect(send, "Send can take focus").toBeEnabled();
+  await send.focus();
+  await expect(send, "Send has focus before Enter").toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Cancel request" })).toBeFocused();
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });

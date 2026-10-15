@@ -145,7 +145,6 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 
 - A browser can delete a site's data; Safari does after seven days without a visit, unless the app is installed. Wayfarer asks the browser to keep it and reminds you to back up, but it cannot make the browser promise.
 - An update that changes how data is stored removes what an earlier version stored. Back up first ([Storage](docs/storage.md)).
-- The Local Bridge and the CLI are not on npm yet ([#79](https://github.com/AshwinSathian/wayfarer/issues/79)).
 
 ## Contributing
 

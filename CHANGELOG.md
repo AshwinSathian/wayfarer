@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Wayfarer is deployed at v2.5.0, and the Local Bridge and the command
+  line are on npm.** `npx wayfarer-bridge` and `npx wayfarer-cli` work, each
+  published from this repository with a provenance attestation. The README
+  no longer says they are not on npm.
+
 - **The npm pages of `wayfarer-bridge` (3.0.1) and `wayfarer-cli` say what
   each package does today.** The bridge's still said it was not on npm and
   linked to files by paths that do not open from npmjs.com. Both now have

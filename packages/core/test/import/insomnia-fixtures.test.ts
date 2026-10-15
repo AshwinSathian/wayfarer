@@ -87,7 +87,7 @@ describe("Insomnia files other people wrote (P4.4)", () => {
     try {
       imported = importText(read(file));
     } catch (error) {
-      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`);
+      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`, { cause: error });
     }
     expect(imported.report.formatName).toBe("Insomnia export");
     expect(imported.report.counts).toEqual(counted(file));

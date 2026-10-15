@@ -153,9 +153,11 @@ export function startServer(root, port, logFile) {
   const sockets = new WeakMap();
   let connections = 0;
   const server = createServer(async (req, res) => {
-    const request = { socket: sockets.get(req.socket), method: req.method, path: req.url };
+    // A field left undefined is left out of the line.
+    const request = { socket: sockets.get(req.socket), method: req.method, path: req.url, acceptEncoding: req.headers["accept-encoding"] };
+    const sent = {};
     log("request", request);
-    res.on("close", () => log(res.writableFinished ? "answered" : "unanswered", { ...request, status: res.statusCode }));
+    res.on("close", () => log(res.writableFinished ? "answered" : "unanswered", { ...request, status: res.statusCode, ...sent }));
     try {
       // `_headers` is re-read per request so a test can swap the build in place.
       const rules = parseHeadersFile(await readFile(join(root, "_headers"), "utf8"));
@@ -167,6 +169,7 @@ export function startServer(root, port, logFile) {
       const type = TYPES[extname(file)] ?? "application/octet-stream";
       const encoding = encodingFor(req.headers["accept-encoding"], type);
       const body = encoding ? await compress(file, raw, encoding) : raw;
+      Object.assign(sent, { encoding: encoding ?? undefined, bytes: req.method === "HEAD" ? 0 : body.length });
       res.statusCode = 200;
       for (const [name, value] of headersFor(rules, url)) res.setHeader(name, value);
       res.setHeader("content-type", type);

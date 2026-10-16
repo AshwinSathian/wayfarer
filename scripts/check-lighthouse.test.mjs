@@ -1,7 +1,7 @@
 // Tests for scripts/check-lighthouse.mjs (P7.2). Run: npm run test:scripts
 import test from "node:test";
 import assert from "node:assert/strict";
-import { judge } from "./check-lighthouse.mjs";
+import { judge, judgeSite } from "./check-lighthouse.mjs";
 
 const report = (performance, lcp, tbt) => ({
   categories: { performance: { score: performance } },
@@ -22,4 +22,13 @@ test("each budget that the median breaks is named, with its value", () => {
 
 test("no report is a failure, not a pass", () => {
   assert.deepEqual(judge([]).failures, ["no Lighthouse report to judge"]);
+});
+
+// W2.1 (PLAN-design.md, section 1): the site, on Lighthouse's mobile preset.
+const site = (performance, accessibility, seo) => ({ categories: { performance: { score: performance }, accessibility: { score: accessibility }, seo: { score: seo } } });
+
+test("the site needs 95 for performance and 100 for accessibility and search, by the median", () => {
+  assert.deepEqual(judgeSite([site(0.99, 1, 1), site(0.5, 0.8, 0.9), site(0.96, 1, 1)]).failures, []);
+  assert.deepEqual(judgeSite([site(0.94, 0.98, 0.92)]).failures, ["performance 94 is under 95", "accessibility 98 is under 100", "seo 92 is under 100"]);
+  assert.deepEqual(judgeSite([]).failures, ["no Lighthouse report to judge"]);
 });

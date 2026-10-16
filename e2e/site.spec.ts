@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { relative } from "node:path";
+import { axe } from "./support/axe";
 
 // W1 (PLAN-design.md): the site is at /, the app at /app/, on one origin.
 // The site is in the production build only (`npm run build` writes
@@ -20,7 +21,7 @@ function sitePages(): string[] {
 test("the site is at / and opens the app, which is at /app/", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("app-root")).toHaveCount(0);
-  await page.getByRole("link", { name: "Open Wayfarer" }).click();
+  await page.getByRole("link", { name: "Open Wayfarer" }).first().click();
   await expect(page).toHaveURL(/\/app\/$/);
   await expect(page.locator("input.address-url")).toBeVisible();
 });
@@ -79,3 +80,25 @@ test("the site at / and the app at /app/ share the origin's storage", async ({ p
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map((db) => db.name));
   expect(databases).toContain("api-sandbox");
 });
+
+// W2.1: every sentence of the landing that says what Wayfarer does names its claim, and every ID it names is a
+// row of the ledger: a claim the ledger drops cannot stay on the page.
+test("each claim the landing names is a row of the claims ledger", async ({ page }) => {
+  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]));
+  expect(ledger.size).toBeGreaterThan(60);
+  await page.goto("/");
+  const named = (await page.locator("[data-claims]").evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))).flatMap((ids) => ids.split(" "));
+  expect(named.length).toBeGreaterThan(10);
+  expect(named.filter((id) => !ledger.has(id))).toEqual([]);
+});
+
+for (const width of [360, 390, 820, 1440]) {
+  test(`the site's pages are not wider than a ${width} px window, and have no axe violation`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const path of sitePages()) {
+      await page.goto(path);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), path).toBeLessThanOrEqual(0);
+      expect((await axe(page).analyze()).violations.map((v) => `${path}: ${v.id}`)).toEqual([]);
+    }
+  });
+}

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Wayfarer's website has a front page.** It says what Wayfarer is, shows
+  the app with a request and its response, and links each thing it says
+  the app does to the claim and test behind it in the claims ledger. Before,
+  `/` had two sentences and a link.
+
 - **The app moves to `/app/`, and `/` is the start of Wayfarer's website.**
   Before, the address opened the app and there was no page that said what
   Wayfarer is. The site's first page says it in two sentences and links to

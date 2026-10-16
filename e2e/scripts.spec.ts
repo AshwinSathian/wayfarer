@@ -115,7 +115,7 @@ test("P3.9: a pre-request script adds a header that reaches the server, and the 
     url: `${ECHO}/echo`,
     preRequestScript: `(async () => {
       pm.request.headers.add({ key: "X-Signed", value: "by-the-script" });
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     })();`,
     postRequestScript: "pm.test('after', () => {});",
   });
@@ -129,8 +129,9 @@ test("P3.9: a pre-request script adds a header that reaches the server, and the 
   const timings = page.locator(".script-timings");
   await expect(timings).toHaveText(/^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/);
   const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+) ms/g)].map((match) => Number(match[1]));
-  // The script waited 200 ms of its own. Whatever the machine, that time is in its number and not in the request's.
-  expect(pre).toBeGreaterThanOrEqual(200);
+  // The script waited 1,500 ms of its own: that time is in its number and not in the request's. With 200 ms, a slow
+  // runner's request to the echo server (412 ms, Firefox on CI) outlasted the script's 381 ms (e2e/FLAKES.md).
+  expect(pre).toBeGreaterThanOrEqual(1500);
   expect(request).toBeLessThan(pre);
   expect(await violations()).toEqual([]);
 });

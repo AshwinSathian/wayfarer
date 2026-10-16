@@ -278,6 +278,9 @@ test("@claim:C-024 collections can be renamed inline and reordered by drag and d
 });
 
 test("folders and requests are reordered by drag and drop among each other: a request dropped on a folder's row goes after or before that folder, not into it", async ({ page }) => {
+  // A collection, two folders, two requests, four drags and a reload: on CI's WebKit each dialog took 2 to 3 s and
+  // the test passed 30 s at its last step (e2e/FLAKES.md, #357).
+  test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await createCollection(page, "Drag Col");

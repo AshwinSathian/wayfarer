@@ -12,7 +12,8 @@ const cells = (page: Page) => eventRows(page).evaluateAll((rows) => rows.map((ro
 
 test("the five events of a stream are listed with their id, event, data and time", async ({ page }) => {
   await page.goto("/app/");
-  await address(page).fill(`${ECHO}/sse?count=5&interval=100`);
+  // 200 ms apart, 800 ms from first to last: at 100 ms, CI's Firefox handed over the five within 282 ms (e2e/FLAKES.md).
+  await address(page).fill(`${ECHO}/sse?count=5&interval=200`);
   await page.getByRole("button", { name: "Send request" }).click();
 
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });

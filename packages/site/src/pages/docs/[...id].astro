@@ -12,7 +12,7 @@ const { Content } = await render(doc);
 const title = titleOf(doc);
 ---
 
-<Docs title={`${title}: Wayfarer docs`} description={`Wayfarer's documentation: ${title}.`}>
+<Docs title={`${title}: Wayfarer docs`} description={`Wayfarer's documentation: ${title}.`} scripts={doc.id === "claims" ? ["/claims-ci.js"] : []}>
   <article data-pagefind-body>
     <Content />
   </article>

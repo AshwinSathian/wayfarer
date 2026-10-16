@@ -80,6 +80,17 @@ jobs:
           run-id: ${{ steps.run.outputs.id }}
           github-token: ${{ github.token }}
 
+      # W2.4 (PLAN-design.md): the claims page says which CI run this deploy's files passed. A data file beside
+      # the tested files, which change in nothing; a build that was not deployed from a run has none.
+      - name: The CI run, for the claims page
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ steps.run.outputs.id }}
+        run: |
+          gh run view "$RUN" -R "$GITHUB_REPOSITORY" --json databaseId,headSha,createdAt \
+            --jq '{run: .databaseId, commit: .headSha, date: .createdAt}' > dist/deploy/ci-run.json
+          cat dist/deploy/ci-run.json
+
       - name: Record the live version (rollback target)
         id: previous
         env:

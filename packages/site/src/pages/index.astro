@@ -3,6 +3,7 @@
 // (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger.
 import Page from "../layouts/Page.astro";
 import Claims from "../components/Claims.astro";
+import Header from "../components/Header.astro";
 
 const REPO = "https://github.com/AshwinSathian/wayfarer";
 ---
@@ -11,15 +12,7 @@ const REPO = "https://github.com/AshwinSathian/wayfarer";
   title="Wayfarer: an API client in your browser"
   description="An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own."
 >
-  <header class="top">
-    <a class="name" href="/">Wayfarer</a>
-    <nav aria-label="Site">
-      <a href="/docs/">Docs</a>
-      <a href="/docs/claims/">Claims</a>
-      <a href="/docs/trust-center/">Trust Center</a>
-      <a href={REPO}>GitHub</a>
-    </nav>
-  </header>
+  <Header />
   <main>
     <section class="hero">
       <h1>An API client that runs in your browser and keeps your work on your device.</h1>
@@ -88,7 +81,7 @@ const REPO = "https://github.com/AshwinSathian/wayfarer";
     </section>
   </main>
   <footer>
-    <a href={`${REPO}/blob/main/CHANGELOG.md`}>Changelog</a>
+    <a href="/changelog/">Changelog</a>
     <a href={`${REPO}/blob/main/SECURITY.md`}>Security</a>
     <a href={`${REPO}/blob/main/LICENSE`}>MIT licence</a>
   </footer>

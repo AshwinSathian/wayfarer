@@ -57,6 +57,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Alt+T right after typing an address opens a tab whose address field is
+  empty.** Pressed before the app had drawn the last keystroke, the new tab
+  was selected but its address field went on showing the previous tab's
+  address, though the new tab's request had none.
+
 - **`wayfarer-cli` 2.0.1: `--out` with a folder that did not exist yet.**
   2.0.0 ran the whole collection, then failed to write its reports with
   `ENOENT` and exited `2`, the code that says nothing was run. The CI example

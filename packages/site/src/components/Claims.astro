@@ -4,7 +4,7 @@ interface Props {
   ids: string[];
 }
 const { ids } = Astro.props;
-const LEDGER = "https://github.com/AshwinSathian/wayfarer/blob/main/docs/claims.md";
+const LEDGER = "/docs/claims/";
 ---
 
 <span class="claims" data-claims={ids.join(" ")}>({ids.map((id, i) => <>{i > 0 && ", "}<a href={LEDGER}>{id}</a></>)})</span>

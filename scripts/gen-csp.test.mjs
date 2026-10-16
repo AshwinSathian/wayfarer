@@ -68,7 +68,7 @@ test("the committed files match security/csp.json", () => {
 
 test("--check fails when either file is hand-edited, and a write fixes it", () => {
   const dir = mkdtempSync(join(tmpdir(), "csp-"));
-  for (const path of ["security/csp.json", "security/csp-site.json", "packages/site/public/_headers", "src/index.html", "scripts/gen-csp.mjs"]) {
+  for (const path of ["security/csp.json", "security/csp-site.json", "security/csp-docs.json", "packages/site/public/_headers", "src/index.html", "scripts/gen-csp.mjs"]) {
     mkdirSync(join(dir, path, ".."), { recursive: true });
     cpSync(path, join(dir, path));
   }

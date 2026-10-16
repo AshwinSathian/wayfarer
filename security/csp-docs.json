@@ -1,0 +1,38 @@
+{
+  "$comment": [
+    "The docs' Content-Security-Policy (W2.2 of PLAN-design.md): the pages under /docs/, which `npm run gen:csp` writes under /docs/* and /pagefind/* in packages/site/public/_headers (Pagefind searches in a worker, and a worker has the policy of its own script's response), after detaching the site's (security/csp-site.json).",
+    "It is the site's policy and one more thing: script from the site's own files, for the search (Pagefind: /pagefind/pagefind-ui.js, its index and its WebAssembly, and /docs-search.js, which starts it). 'wasm-unsafe-eval' compiles Pagefind's WebAssembly; it allows no eval of text. No inline script and no third party (maintainer, 2026-10-16: search with a script on /docs/ only; the landing keeps none).",
+    "img-src data: is Pagefind's stylesheet, which draws its search and clear icons as data: SVGs."
+  ],
+  "directives": {
+    "default-src": [
+      "'none'"
+    ],
+    "script-src": [
+      "'self'",
+      "'wasm-unsafe-eval'"
+    ],
+    "style-src": [
+      "'self'"
+    ],
+    "img-src": [
+      "'self'",
+      "data:"
+    ],
+    "font-src": [
+      "'self'"
+    ],
+    "connect-src": [
+      "'self'"
+    ],
+    "base-uri": [
+      "'none'"
+    ],
+    "form-action": [
+      "'none'"
+    ],
+    "frame-ancestors": [
+      "'none'"
+    ]
+  }
+}

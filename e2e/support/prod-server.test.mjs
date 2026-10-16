@@ -63,7 +63,7 @@ test("a header line with a colon in its value keeps the whole value", () => {
   assert.deepEqual(apply(text, "/"), { link: "<https://a.test/x>; rel=preload" });
 });
 
-test("the repo's _headers gives the site its policy at / and the app its own at /app/", () => {
+test("the repo's _headers gives the site its policy at /, the docs theirs at /docs/, and the app its own at /app/", () => {
   const rules = parseHeadersFile(readFileSync(new URL("../../packages/site/public/_headers", import.meta.url), "utf8"));
   const at = (path) => Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
   for (const path of ["/", "/404.html", "/_astro/page.css"]) {
@@ -74,7 +74,11 @@ test("the repo's _headers gives the site its policy at / and the app its own at 
     assert.match(at(path)["content-security-policy"], /^default-src 'self'; script-src 'self' 'wasm-unsafe-eval';/, path);
     assert.doesNotMatch(at(path)["content-security-policy"], /, /, `${path}: one policy, not the site's joined to the app's`);
   }
-  for (const path of ["/", "/app/"]) assert.equal(at(path)["x-content-type-options"], "nosniff", path);
+  for (const path of ["/docs/", "/docs/auth/", "/pagefind/pagefind-worker.js"]) {
+    assert.match(at(path)["content-security-policy"], /^default-src 'none'; script-src 'self' 'wasm-unsafe-eval';/, path);
+    assert.doesNotMatch(at(path)["content-security-policy"], /, /, `${path}: one policy`);
+  }
+  for (const path of ["/", "/docs/", "/app/"]) assert.equal(at(path)["x-content-type-options"], "nosniff", path);
 });
 
 // P7.2: Cloudflare compresses what it serves; a page measured without that

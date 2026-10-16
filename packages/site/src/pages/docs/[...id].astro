@@ -1,0 +1,20 @@
+---
+// A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article.
+import { getCollection, render } from "astro:content";
+import Docs from "../../layouts/Docs.astro";
+import { titleOf } from "../../docs";
+
+export async function getStaticPaths() {
+  return (await getCollection("docs")).map((doc) => ({ params: { id: doc.id }, props: { doc } }));
+}
+const { doc } = Astro.props;
+const { Content } = await render(doc);
+const title = titleOf(doc);
+---
+
+<Docs title={`${title}: Wayfarer docs`} description={`Wayfarer's documentation: ${title}.`}>
+  <article data-pagefind-body>
+    <Content />
+  </article>
+  <p class="source"><a href={`https://github.com/AshwinSathian/wayfarer/blob/main/docs/${doc.id}.md`}>This page on GitHub</a></p>
+</Docs>

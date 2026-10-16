@@ -101,3 +101,28 @@ footer {
   justify-content: flex-start;
   color: var(--label-secondary);
 }
+
+.docs article {
+  max-width: 48rem;
+}
+
+.docs article table {
+  display: block;
+  overflow-x: auto;
+}
+
+.docs article pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0.75rem;
+  border: 1px solid var(--separator);
+  border-radius: 0.5rem;
+}
+
+.docs article :is(p, li, td) {
+  overflow-wrap: anywhere;
+}
+
+.source {
+  font-size: 0.875rem;
+}

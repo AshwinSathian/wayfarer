@@ -136,3 +136,38 @@ test("/docs/ has the docs' policy, with script from the site's own files, and / 
   expect(docs).not.toContain(", ");
   expect((await request.get("/")).headers()["content-security-policy"]).not.toContain("script-src");
 });
+
+// W2.4: the changelog and the roadmap are pages, and the ledger says which CI run the deployed files passed.
+test("the changelog and the roadmap are pages, the roadmap as the plan has it", async ({ page }) => {
+  await page.goto("/changelog/");
+  await expect(page.getByRole("heading", { name: "[Unreleased]" })).toBeVisible();
+  await page.goto("/roadmap/");
+  await expect(page.getByRole("heading", { name: /^Phase W/ })).toBeVisible();
+  await expect(page.locator("li.task-done", { hasText: "W1.1" })).toBeVisible();
+  await expect(page.locator("li.task-open").first()).toBeVisible();
+});
+
+const RUN = { run: 38850000000, commit: "0123456789abcdef0123456789abcdef01234567", date: "2026-10-16T05:00:00Z" };
+
+test("the claims page names the CI run its deploy passed, on each claim's row", async ({ page }) => {
+  await page.route("**/ci-run.json", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(RUN) }));
+  await page.goto("/docs/claims/");
+  const table = page.locator("article table").first();
+  await expect(table.locator("thead th").last()).toHaveText("Last CI");
+  const rows = await table.locator("tbody tr").count();
+  expect(rows).toBeGreaterThan(60);
+  await expect(table.getByRole("link", { name: "Passed" })).toHaveCount(rows);
+  await expect(table.getByRole("link", { name: "Passed" }).first()).toHaveAttribute("href", `https://github.com/AshwinSathian/wayfarer/actions/runs/${RUN.run}`);
+  await expect(page.locator(".ci-note")).toContainText("0123456789ab");
+  await expect(page.locator(".ci-note")).toContainText("2026-10-16");
+});
+
+test("with no CI run, or a file that is not one, the claims page says it has no result", async ({ page }) => {
+  await page.goto("/docs/claims/");
+  await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
+  await expect(page.getByRole("link", { name: "Passed" })).toHaveCount(0);
+  await page.route("**/ci-run.json", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...RUN, commit: "<b>x</b>" }) }));
+  await page.reload();
+  await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
+  await expect(page.locator("article b")).toHaveCount(0);
+});

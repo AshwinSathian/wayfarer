@@ -95,6 +95,10 @@ code errors.
   worker has its script's policy). `npm run check:site-links` follows every
   link of the built site to itself. Astro keeps rendered docs in
   `packages/site/.astro`: after a change to a Markdown plugin, delete it.
+- The changelog (`/changelog/`) and the roadmap (`/roadmap/`, from this
+  plan's section 9, `roadmap.mjs`) are built from the files. The claims
+  page's "Last CI" column reads `/ci-run.json`, which `deploy.yml` writes
+  beside the tested files; `claims-ci.js` writes it as text only.
 - The synthetic monitor runs the latest release's tests (`v*` tag), not
   `main`'s: production runs a release, and `main` may have moved paths.
 

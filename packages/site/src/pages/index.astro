@@ -14,8 +14,9 @@ const REPO = "https://github.com/AshwinSathian/wayfarer";
   <header class="top">
     <a class="name" href="/">Wayfarer</a>
     <nav aria-label="Site">
-      <a href={`${REPO}/blob/main/docs/claims.md`}>Claims</a>
-      <a href={`${REPO}/blob/main/docs/trust-center.md`}>Trust Center</a>
+      <a href="/docs/">Docs</a>
+      <a href="/docs/claims/">Claims</a>
+      <a href="/docs/trust-center/">Trust Center</a>
       <a href={REPO}>GitHub</a>
     </nav>
   </header>
@@ -28,7 +29,7 @@ const REPO = "https://github.com/AshwinSathian/wayfarer";
       </p>
       <p class="actions">
         <a class="open" href="/app/">Open Wayfarer</a>
-        <a href={`${REPO}/blob/main/docs/self-hosting.md`}>Host it yourself</a>
+        <a href="/docs/self-hosting/">Host it yourself</a>
       </p>
       <img
         class="shot"
@@ -80,7 +81,7 @@ const REPO = "https://github.com/AshwinSathian/wayfarer";
     <section>
       <h2>Every claim here has a test</h2>
       <p>
-        The IDs on this page are rows of the <a href={`${REPO}/blob/main/docs/claims.md`}>claims ledger</a>. Each row names the automated test
+        The IDs on this page are rows of the <a href="/docs/claims/">claims ledger</a>. Each row names the automated test
         that proves it. CI runs them on every change, those about the page in Chromium, Firefox and WebKit, and fails when a claim has no test.
       </p>
       <p class="actions"><a class="open" href="/app/">Open Wayfarer</a></p>

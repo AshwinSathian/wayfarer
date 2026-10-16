@@ -42,7 +42,7 @@
     "e2e:ui": "playwright test --ui",
     "bridge": "node packages/bridge/bin/cli.js",
     "bridge:test": "node --test packages/bridge/test/*.test.js",
-    "test:scripts": "node --test e2e/support/*.test.mjs scripts/*.test.mjs",
+    "test:scripts": "node --test e2e/support/*.test.mjs scripts/*.test.mjs packages/site/src/*.test.mjs",
     "golden": "node scripts/golden.mjs",
     "gen:csp": "node scripts/gen-csp.mjs",
     "check:csp": "node scripts/gen-csp.mjs --check",
@@ -52,6 +52,7 @@
     "gen:readme": "node scripts/gen-readme.mjs",
     "check:readme": "node scripts/gen-readme.mjs --check",
     "check:links": "node scripts/check-links.mjs",
+    "check:site-links": "node scripts/check-site-links.mjs",
     "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=394800",
     "cli:test": "npm -w packages/cli test"
   },

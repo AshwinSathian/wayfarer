@@ -102,3 +102,36 @@ for (const width of [360, 390, 820, 1440]) {
     }
   });
 }
+
+// W2.2: every file of docs/ is a page, and the search, the site's one script, finds them.
+test("every doc of the repository is a page of the site, its links leading to pages", async ({ page }) => {
+  const docs = readdirSync("docs", { recursive: true }).map(String).filter((name) => name.endsWith(".md")).map((name) => name.split("\\").join("/").slice(0, -3));
+  expect(docs.length).toBeGreaterThan(15);
+  for (const doc of docs) {
+    const response = await page.goto(`/docs/${doc}/`);
+    expect(response?.status(), doc).toBe(200);
+    await expect(page.locator("article h1").first(), doc).toBeVisible();
+    // A link to another doc goes to its page, never to its Markdown file.
+    expect(await page.locator('article a[href$=".md"]:not([href^="https://"])').count(), doc).toBe(0);
+  }
+});
+
+test("the docs' search finds a doc by a word in it, from the site's own files", async ({ page, context, baseURL }) => {
+  const origin = new URL(baseURL ?? "http://localhost:4200").origin;
+  const foreign: string[] = [];
+  context.on("request", (request) => {
+    if (!request.url().startsWith(origin) && !request.url().startsWith("data:")) foreign.push(request.url());
+  });
+  await page.goto("/docs/");
+  const search = page.getByRole("search", { name: "Search this site" });
+  await search.getByRole("textbox", { name: "Search" }).fill("passphrase");
+  await expect(page.locator('#search a[href^="/docs/secrets/"]').first()).toBeVisible();
+  expect(foreign).toEqual([]);
+});
+
+test("/docs/ has the docs' policy, with script from the site's own files, and / still has none", async ({ request }) => {
+  const docs = (await request.get("/docs/")).headers()["content-security-policy"] ?? "";
+  expect(docs.split(";").map((d) => d.trim())).toContain("script-src 'self' 'wasm-unsafe-eval'");
+  expect(docs).not.toContain(", ");
+  expect((await request.get("/")).headers()["content-security-policy"]).not.toContain("script-src");
+});

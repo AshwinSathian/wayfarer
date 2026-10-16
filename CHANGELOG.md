@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The docs are pages of the website, with a search.** Each file of
+  `docs/` is a page at `/docs/`, its links to other docs leading to their
+  pages, and a search box finds a page by a word in it. The search runs in
+  your browser from the site's own files and sends what you type nowhere.
+  The front page's claim IDs now open the ledger on the site.
+
 - **Wayfarer's website has a front page.** It says what Wayfarer is, shows
   the app with a request and its response, and links each thing it says
   the app does to the claim and test behind it in the claims ledger. Before,

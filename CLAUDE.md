@@ -88,6 +88,13 @@ code errors.
   pictures of the app are `scripts/site-screenshot.mjs`'s: take them again
   when the app they show changes. Lighthouse (mobile) holds the site to
   95, 100 and 100 (`check-lighthouse.mjs --site`).
+- The docs are pages (`/docs/<name>/`, from `docs/**/*.md`): write a link to
+  another doc as its file (`auth.md#oauth`), as GitHub reads it;
+  `doc-links.mjs` makes it the page. The search (Pagefind) is the site's one
+  script, under `security/csp-docs.json` on `/docs/*` and `/pagefind/*` (its
+  worker has its script's policy). `npm run check:site-links` follows every
+  link of the built site to itself. Astro keeps rendered docs in
+  `packages/site/.astro`: after a change to a Markdown plugin, delete it.
 - The synthetic monitor runs the latest release's tests (`v*` tag), not
   `main`'s: production runs a release, and `main` may have moved paths.
 

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative } from "node:path";
 import { axe } from "./support/axe";
 
@@ -92,13 +92,14 @@ test("each claim the landing names is a row of the claims ledger", async ({ page
   expect(named.filter((id) => !ledger.has(id))).toEqual([]);
 });
 
-for (const width of [360, 390, 820, 1440]) {
-  test(`the site's pages are not wider than a ${width} px window, and have no axe violation`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    for (const path of sitePages()) {
+// One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).
+for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
+  test(`${path} is not wider than a window of 360, 390, 820 or 1,440 px, and has no axe violation`, async ({ page }) => {
+    for (const width of [360, 390, 820, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
       await page.goto(path);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), path).toBeLessThanOrEqual(0);
-      expect((await axe(page).analyze()).violations.map((v) => `${path}: ${v.id}`)).toEqual([]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), `${path} at ${width} px`).toBeLessThanOrEqual(0);
+      expect((await axe(page).analyze()).violations.map((v) => `${path} at ${width} px: ${v.id}`)).toEqual([]);
     }
   });
 }

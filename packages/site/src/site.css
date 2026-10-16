@@ -51,7 +51,8 @@ footer {
 .top nav,
 footer {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
 .name {
@@ -125,4 +126,24 @@ footer {
 
 .source {
   font-size: 0.875rem;
+}
+
+.tasks {
+  padding-left: 0;
+  list-style: none;
+}
+
+.tasks li {
+  margin: 0.5rem 0;
+}
+
+.state {
+  display: inline-block;
+  min-width: 3.5rem;
+  color: var(--label-secondary);
+  font-size: 0.875rem;
+}
+
+.task-done .state {
+  color: var(--status-success-text);
 }

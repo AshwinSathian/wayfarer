@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website has the changelog, a roadmap, and the claims' test results.**
+  `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,
+  each done or not. The claims ledger shows, on each claim's row, the CI run
+  whose tests the deployed site passed, with its date and commit.
+
 - **The docs are pages of the website, with a search.** Each file of
   `docs/` is a page at `/docs/`, its links to other docs leading to their
   pages, and a search box finds a page by a word in it. The search runs in

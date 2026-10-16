@@ -1,0 +1,16 @@
+---
+// The changelog (W2.4): the repository's CHANGELOG.md as a page.
+import { getCollection, render } from "astro:content";
+import Header from "../components/Header.astro";
+import Page from "../layouts/Page.astro";
+
+const [changelog] = await getCollection("changelog");
+const { Content } = await render(changelog);
+---
+
+<Page title="Changelog: Wayfarer" description="What changed in each release of Wayfarer, and what is on main and not released yet.">
+  <Header />
+  <main class="docs">
+    <article><Content /></article>
+  </main>
+</Page>

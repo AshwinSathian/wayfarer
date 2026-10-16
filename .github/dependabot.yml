@@ -25,6 +25,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      # init, analyze and upload-sarif are three parts of one release: alone, Dependabot opened three PRs (#353, #355, #356).
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
     labels:
       - "dependencies"
       - "ci"

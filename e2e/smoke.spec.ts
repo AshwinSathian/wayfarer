@@ -44,7 +44,7 @@ test("@smoke the site at / runs no script and links to the app at /app/", async 
   expect(policy.split(";").map((d) => d.trim())).toContain("default-src 'none'");
   expect(policy).not.toContain("script-src");
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
-  await expect(page.getByRole("link", { name: "Open Wayfarer" })).toHaveAttribute("href", "/app/");
+  await expect(page.getByRole("link", { name: "Open Wayfarer" }).first()).toHaveAttribute("href", "/app/");
 });
 
 test("the licences of the bundled packages are served with the app", async ({ request }) => {

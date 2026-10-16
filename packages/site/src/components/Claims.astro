@@ -1,0 +1,10 @@
+---
+// The claims a sentence makes, each a link to its row of the ledger (docs/claims.md).
+interface Props {
+  ids: string[];
+}
+const { ids } = Astro.props;
+const LEDGER = "/docs/claims/";
+---
+
+<span class="claims" data-claims={ids.join(" ")}>({ids.map((id, i) => <>{i > 0 && ", "}<a href={LEDGER}>{id}</a></>)})</span>

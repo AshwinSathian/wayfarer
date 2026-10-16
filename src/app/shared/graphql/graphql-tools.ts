@@ -47,7 +47,7 @@ export function schemaFrom(answer: string): GraphQLSchema {
     parsed = JSON.parse(answer);
   } catch (error) {
     if (!(error instanceof SyntaxError)) throw error;
-    throw new Error("The server's answer is not JSON.");
+    throw new Error("The server's answer is not JSON.", { cause: error });
   }
   const data = (parsed as { data?: unknown } | null)?.data;
   if (typeof data !== "object" || data === null || !("__schema" in data)) {

@@ -1,0 +1,29 @@
+---
+// The docs' layout (W2.2): the site's page with the search, which is the one script of the site
+// (Pagefind, from its own files; /docs/* has a CSP of its own, security/csp-docs.json).
+import Page from "./Page.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+---
+
+<Page title={title} description={description}>
+  <link slot="head" rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+  <header class="top">
+    <a class="name" href="/">Wayfarer</a>
+    <nav aria-label="Site">
+      <a href="/docs/">Docs</a>
+      <a href="/docs/claims/">Claims</a>
+      <a href="/app/">Open Wayfarer</a>
+    </nav>
+  </header>
+  <main class="docs">
+    <div id="search"></div>
+    <slot />
+  </main>
+  <script is:inline src="/pagefind/pagefind-ui.js"></script>
+  <script is:inline src="/docs-search.js"></script>
+</Page>

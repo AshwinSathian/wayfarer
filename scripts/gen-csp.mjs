@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Writes the Content-Security-Policies into packages/site/public/_headers
 // (the deploy's root: the site's from security/csp-site.json under /*, the
-// app's from security/csp.json under /app/*) and the app's into the <meta> in
+// docs' from security/csp-docs.json under /docs/* and /pagefind/* (the
+// search's worker has its own script's policy), the app's from
+// security/csp.json under /app/*) and the app's into the <meta> in
 // src/index.html (P1.5, W1). With --check it writes nothing and exits 1 if
 // either file is out of sync.
 //
@@ -44,8 +46,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const check = process.argv.includes("--check");
   const spec = JSON.parse(readFileSync("security/csp.json", "utf8"));
   const site = JSON.parse(readFileSync("security/csp-site.json", "utf8"));
+  const docs = JSON.parse(readFileSync("security/csp-docs.json", "utf8"));
   const targets = [
-    ["packages/site/public/_headers", (text) => applyToHeaders(applyToHeaders(text, serialize(site)), serialize(spec), "/app/*")],
+    ["packages/site/public/_headers", (text) => [["/*", site], ["/docs/*", docs], ["/pagefind/*", docs], ["/app/*", spec]].reduce((headers, [rule, policy]) => applyToHeaders(headers, serialize(policy), rule), text)],
     ["src/index.html", (text) => applyToIndex(text, serialize(spec, { meta: true }).replaceAll('"', "&quot;"))],
   ];
   let stale = [];
@@ -57,7 +60,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     if (!check) writeFileSync(path, next);
   }
   if (check && stale.length) {
-    console.error(`CSP out of sync with security/csp.json or csp-site.json: ${stale.join(", ")}. Run npm run gen:csp.`);
+    console.error(`CSP out of sync with security/csp.json, csp-site.json or csp-docs.json: ${stale.join(", ")}. Run npm run gen:csp.`);
     process.exit(1);
   }
   console.log(check ? "CSP in sync." : stale.length ? `Updated ${stale.join(", ")}.` : "CSP already in sync.");

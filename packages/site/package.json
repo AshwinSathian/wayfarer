@@ -5,9 +5,11 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build"
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build && pagefind --site dist"
   },
   "dependencies": {
-    "astro": "^7.4.0"
+    "@astrojs/markdown-satteri": "^0.4.4",
+    "astro": "^7.4.0",
+    "pagefind": "^1.5.2"
   }
 }

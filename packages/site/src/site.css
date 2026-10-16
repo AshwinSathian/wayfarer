@@ -6,7 +6,7 @@ body {
 }
 
 main {
-  max-width: 44rem;
+  max-width: 68rem;
   margin: 0 auto;
   padding: 4rem 1rem;
 }
@@ -17,6 +17,7 @@ h1 {
 }
 
 p {
+  max-width: 44rem;
   color: var(--label-secondary);
   font-size: 1.125rem;
 }
@@ -34,4 +35,94 @@ a {
   background: var(--accent-fill);
   color: var(--accent-text);
   text-decoration: none;
+}
+
+.top,
+footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.top nav,
+footer {
+  display: flex;
+  gap: 1rem;
+}
+
+.name {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hero {
+  max-width: none;
+}
+
+.lede {
+  font-size: 1.25rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 2rem;
+  border: 1px solid var(--separator);
+  border-radius: 0.75rem;
+}
+
+h2 {
+  margin-top: 3rem;
+  font-size: 1.5rem;
+}
+
+.claims {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+code {
+  font-family: ui-monospace, monospace;
+}
+
+footer {
+  justify-content: flex-start;
+  color: var(--label-secondary);
+}
+
+.docs article {
+  max-width: 48rem;
+}
+
+.docs article table {
+  display: block;
+  overflow-x: auto;
+}
+
+.docs article pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0.75rem;
+  border: 1px solid var(--separator);
+  border-radius: 0.5rem;
+}
+
+.docs article :is(p, li, td) {
+  overflow-wrap: anywhere;
+}
+
+.source {
+  font-size: 0.875rem;
 }

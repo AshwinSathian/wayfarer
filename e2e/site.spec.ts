@@ -145,10 +145,10 @@ test("no page of the site has a script of Next's, an inline script, an inline ha
   for (const path of sitePages()) {
     const file = `${DEPLOY}${path.endsWith("/") ? `${path}index.html` : path}`;
     const html = readFileSync(file, "utf8");
-    const inline = [...html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script[^>]*>/gi)].filter(([, attributes = "", body]) => !/\ssrc=/i.test(attributes) && !/application\/(ld\+)?json/i.test(attributes) && body !== "");
-    expect(inline.map(([script]) => script.slice(0, 80)), path).toEqual([]);
+    // Every script, closed or not, is a file of the site's own or data.
+    const scripts = html.match(/<script\b[^>]*>/gi) ?? [];
+    expect(scripts.filter((tag) => !/\ssrc="\/(?!_next\/)[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)), path).toEqual([]);
     expect(html.match(/\s(style|on[a-z]+)="/g) ?? [], path).toEqual([]);
-    expect(html.match(/<script[^>]*\ssrc="\/_next\/[^"]*"/gi) ?? [], path).toEqual([]);
   }
 });
 

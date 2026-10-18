@@ -9,21 +9,35 @@ import { readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-/** Whether a <script> tag is the site's own file or data, not one of Next's. */
+/** Whether a <script> opening tag is the site's own file or data, not one of Next's. */
 function kept(tag) {
   const src = /\ssrc="([^"]*)"/i.exec(tag)?.[1];
   if (src !== undefined) return !src.startsWith("/_next/");
   return /\stype="application\/ld\+json"/i.test(tag);
 }
 
-/** The page without Next's scripts and their preloads; again until nothing changes, so no tag is left made of the pieces of two. */
+/**
+ * The page without Next's scripts and their preloads. Each `<script` is read from its opening to its `</script>`, or
+ * to the end of the page when it has none, as a browser reads it: a script left unclosed would still run. Taken out
+ * again until nothing changes, so the text around one taken out cannot make another.
+ */
 export function strip(html) {
-  let before;
-  do {
-    before = html;
-    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi, (tag) => (kept(tag) ? tag : "")).replace(/<link\b[^>]*\bas="script"[^>]*>/gi, "");
-  } while (html !== before);
-  return html;
+  const once = pass(html);
+  return once === html ? html : strip(once);
+}
+
+function pass(html) {
+  const lower = html.toLowerCase();
+  let out = "";
+  let at = 0;
+  for (let open = lower.indexOf("<script", at); open !== -1; open = lower.indexOf("<script", at)) {
+    const close = lower.indexOf("</script", open);
+    const end = close === -1 ? html.length : lower.indexOf(">", close) + 1 || html.length;
+    const tag = html.slice(open, end);
+    out += html.slice(at, open) + (kept(tag.slice(0, tag.indexOf(">") + 1 || tag.length)) ? tag : "");
+    at = end;
+  }
+  return (out + html.slice(at)).replace(/<link\b[^>]*\bas="script"[^>]*>/gi, "");
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

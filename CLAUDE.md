@@ -70,9 +70,8 @@ code errors.
   the base too. Do not write a path from `/` in the app.
 - The service worker's scope is the app's folder: `src/sw.ts` reads it
   from its registration; the manifest's paths are the build's.
-- What must be at the origin's root (`_headers`, `/.well-known/security.txt`,
-  `/ngsw-worker.js`, the safety worker kept there for good) is in
-  `packages/site/public`.
+- What must be at the origin's root (`_headers`, `/.well-known/security.txt`)
+  is in `packages/site/public`.
 - A missing path is the site's `404.html` with a 404
   (`not_found_handling: "404-page"`); the app has no addresses of its own
   past `/app/`. `prod-server.mjs` does the same, and redirects a folder
@@ -754,13 +753,14 @@ code errors.
   app itself writes (`validateRequestContent` and `validateRows` in
   `@wayfarer/core`). A method is any RFC 9110 token of at most 32
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
-  (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`); there is no
-  converter for older files.
-- The database's shape has one number, `DB_VERSION` (IndexedDB needs it).
-  `runUpgrade` empties a database of any earlier number and makes this
-  version's stores: nothing stored before is read, converted or kept
-  (maintainer, 2026-10-14). A change of stored shape raises the number;
-  say so in the changelog and in `docs/storage.md`. No step per version.
+  (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`).
+- There is one version of Wayfarer and one shape of its data (maintainer,
+  2026-10-19). The database is `wayfarer` at `DB_VERSION` 1, and
+  `createStores` (`idb-stores.ts`) makes its stores on a browser's first
+  open. There is no upgrade, no check for another version, and no word in
+  the app about an earlier or a later one. IndexedDB makes stores and
+  indexes only in an upgrade, so a change to them would not reach a browser
+  that has the database: ask the maintainer before making one.
 - Ids come from `newId()` in `@wayfarer/core` (`packages/core/src/id.ts`).
   No `Math.random`.
 - A variable's name may hold any character but a brace (F74). A name that

@@ -24,9 +24,8 @@ export class SwUpdate {
   }
 
   /**
-   * Offers a new version of this worker once it has installed. A first
-   * install, or one replacing the pre-v1.1.0 worker, takes over by itself
-   * (src/sw.ts) and is not an update.
+   * Offers a new build of this worker once it has installed. A first
+   * install takes over by itself (src/sw.ts) and is not an update.
    *
    * Which of the two it is, is read from the registration when the worker
    * starts to install, as src/sw.ts reads it. Read later, from the page's
@@ -34,16 +33,16 @@ export class SwUpdate {
    * look like an update: the worker can already have claimed the page.
    */
   watch(container: ServiceWorkerContainer, registration: ServiceWorkerRegistration): void {
-    const ours = () => !!registration.active?.scriptURL.endsWith("/sw.js");
+    const updating = () => !!registration.active;
     const offer = (worker: ServiceWorker) => {
       this.waiting = worker;
       this.updateAvailable.set(true);
     };
     const track = (worker: ServiceWorker) => {
-      if (!ours()) return;
+      if (!updating()) return;
       worker.addEventListener("statechange", () => worker.state === "installed" && offer(worker));
     };
-    if (registration.waiting && ours()) offer(registration.waiting);
+    if (registration.waiting && updating()) offer(registration.waiting);
     if (registration.installing) track(registration.installing);
     registration.addEventListener("updatefound", () => registration.installing && track(registration.installing));
     container.addEventListener("controllerchange", () => this.reloading && location.reload());

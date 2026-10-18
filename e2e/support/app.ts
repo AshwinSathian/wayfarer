@@ -79,12 +79,12 @@ export async function seedAndOpen(
   await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5)
+    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 1)
   );
   await page.evaluate(
     async ({ vars, request }) => {
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const open = indexedDB.open("api-sandbox");
+        const open = indexedDB.open("wayfarer");
         open.onsuccess = () => resolve(open.result);
         open.onerror = () => reject(open.error);
       });
@@ -212,7 +212,7 @@ export async function send(page: Page): Promise<void> {
 export async function dumpIdb(page: Page): Promise<Record<string, unknown[]>> {
   return page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

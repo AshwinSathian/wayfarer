@@ -9,6 +9,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **There is one version of Wayfarer, and the app no longer talks about
+  others.** The banners about data an earlier version stored, a tab running
+  an older Wayfarer, an update held up by another tab, and an update made
+  in another tab are gone, with the code that checked for them. The data
+  now lives in a database named `wayfarer`, made on a browser's first
+  open. **What this release does to data:** a browser that used Wayfarer
+  before starts empty; what it stored under the project's first name is
+  not read. Back up the workspace (Settings, Data and storage) before
+  opening this release, and restore it after. The service worker that
+  removed the first builds' Angular worker is gone from the site's root.
+  The "Update available" prompt for a new deploy stays.
+
 - **The trust center says what the website measures: nothing.** It has no
   analytics, no counter and no cookie, and loads nothing from another
   site; the two scripts it runs (the docs' search and the claims page's

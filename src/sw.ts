@@ -38,10 +38,8 @@ sw.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE);
       await cache.addAll(PRECACHE.map((path) => new Request(path, { cache: "reload" })));
-      // Only a previous version of this worker waits for the page's go-ahead.
-      // A foreign worker (the pre-v1.1.0 Angular one at /ngsw-worker.js, or
-      // its safety replacement) is replaced at once: it is what caused F06.
-      if (!sw.registration.active?.scriptURL.endsWith("/sw.js")) await sw.skipWaiting();
+      // A first install takes over at once; a new build waits for the page's go-ahead.
+      if (!sw.registration.active) await sw.skipWaiting();
     })()
   );
 });
@@ -49,10 +47,9 @@ sw.addEventListener("install", (event) => {
 sw.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      // Older Wayfarer versions, and the caches of the pre-v1.1.0 Angular
-      // service worker ("ngsw:…").
+      // The cache of the build this one replaces.
       for (const key of await caches.keys()) {
-        if ((key.startsWith(CACHE_PREFIX) && key !== CACHE) || key.startsWith("ngsw:")) await caches.delete(key);
+        if (key.startsWith(CACHE_PREFIX) && key !== CACHE) await caches.delete(key);
       }
       await sw.clients.claim();
     })()

@@ -94,11 +94,6 @@ export class AppShell implements OnInit {
   private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
-  readonly updatedElsewhere = this.idb.updatedElsewhere;
-  readonly upgradeBlocked = this.idb.upgradeBlocked;
-  readonly olderThanData = this.idb.olderThanData;
-  readonly clearedOldData = this.idb.clearedOldData;
-  readonly clearedNoticeDismissed = signal(false);
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
 
@@ -444,13 +439,13 @@ export class AppShell implements OnInit {
     location.reload();
   }
 
-  /** Every key the app ever wrote: theme, bridge URL and token, split ratios (`api-sandbox:` is the pre-rename prefix). */
+  /** Every key the app writes: theme, bridge URL and token, split ratios. */
   private clearLocalCaches(): void {
     for (const name of ["localStorage", "sessionStorage"] as const) {
       try {
         const storage = window[name];
         for (const key of Object.keys(storage)) {
-          if (/^(wayfarer|api-sandbox):/.test(key)) storage.removeItem(key);
+          if (key.startsWith("wayfarer:")) storage.removeItem(key);
         }
       } catch (error) {
         this.diagnostics.record(error, `reset: could not clear ${name}`);

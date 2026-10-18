@@ -47,11 +47,11 @@ function fixtureRequests(): SeededRequest[] {
 async function seedCollection(page: Page, requests: SeededRequest[], vars: Record<string, string> = {}): Promise<void> {
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  await page.waitForFunction(async () => (await indexedDB.databases()).some((db) => db.name === "api-sandbox" && (db.version ?? 0) >= 5));
+  await page.waitForFunction(async () => (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 1));
   await page.evaluate(
     async ({ requests, vars }) => {
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        const open = indexedDB.open("api-sandbox");
+        const open = indexedDB.open("wayfarer");
         open.onsuccess = () => resolve(open.result);
         open.onerror = () => reject(open.error);
       });
@@ -285,7 +285,7 @@ test("an imported Postman file keeps its order, requests before and between fold
     .poll(() =>
       page.evaluate(async () => {
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
-          const open = indexedDB.open("api-sandbox");
+          const open = indexedDB.open("wayfarer");
           open.onsuccess = () => resolve(open.result);
           open.onerror = () => reject(open.error);
         });
@@ -346,7 +346,7 @@ test("a folder is copied and deleted with the folders inside it: the copy holds 
   await expect(item("Middle")).toHaveCount(0);
   const stored = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });
@@ -388,7 +388,7 @@ test("a run goes on while another tab is open, stops at the first failure when a
   // The send is in history; the run's two requests are not.
   const stored = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

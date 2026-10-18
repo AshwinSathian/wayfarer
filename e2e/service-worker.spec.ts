@@ -188,31 +188,6 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
   expect(await page.evaluate(() => caches.keys())).toEqual([`wayfarer-${version}`]);
 });
 
-test("a registration left by the pre-v1.1.0 Angular worker is gone after one navigation", async ({ page }) => {
-  await page.goto(`${base}/app/`);
-  // A returning pre-v1.1.0 visitor: a registration for /ngsw-worker.js plus
-  // an ngsw cache. /ngsw-worker.js is permanently the safety worker (P0.5).
-  await page.evaluate(async () => {
-    await (await caches.open("ngsw:/:db:control")).put("/x", new Response("x"));
-    const registration = await navigator.serviceWorker.register("/ngsw-worker.js");
-    const worker = registration.installing ?? registration.waiting ?? registration.active;
-    await new Promise<void>((resolve) => {
-      // Firefox never reports "activated" for a worker that unregisters
-      // itself while activating; "activating" already means it took over.
-      const settled = () => ["activating", "activated", "redundant"].includes(worker?.state ?? "");
-      if (!worker || settled()) return resolve();
-      worker.addEventListener("statechange", () => settled() && resolve());
-    });
-  });
-
-  await page.goto(`${base}/app/`);
-  await expect(page.locator("input.address-url")).toBeVisible();
-  await expect
-    .poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map((r) => (r.active ?? r.installing ?? r.waiting)?.scriptURL ?? "")))
-    .toEqual([`${base}/app/sw.js`]);
-  expect((await page.evaluate(() => caches.keys())).filter((k) => k.startsWith("ngsw:"))).toEqual([]);
-});
-
 test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker and its caches", async ({ page }) => {
   await loadControlled(page);
   await cp("scripts/sw-kill.js", join(root, "app/sw.js"));

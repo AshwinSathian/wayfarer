@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { openSettings, seedAndOpen, send } from "./support/app";
+import { openEnvironments, openSettings, seedAndOpen, send } from "./support/app";
 
 // Claim tests for the README's feature list (docs/claims.md, C-017 onward),
 // against the local echo-server in all three engines.
@@ -332,6 +332,8 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   await report.getByRole("button", { name: "Confirm import" }).click();
   await expect(report).toHaveCount(0);
   await other.keyboard.press("Escape");
+  await expect(other.getByRole("dialog")).toHaveCount(0);
+  await openEnvironments(other);
   await expect(other.locator(".env-item", { hasText: "Tripwire env" })).toBeVisible();
   await fresh.close();
 });

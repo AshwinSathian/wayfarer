@@ -48,7 +48,7 @@
     [matContextMenuTriggerRestoreFocus]="false"
     (menuClosed)="tree.focusSelected()"
     (selected)="handleNodeSelect($event)"
-    (opened)="handleNodeOpen($event)"
+    (opened)="handleNodeOpen(tree, $event.node, $event.keyboard)"
     (edit)="beginRename($event)"
     (reorder)="handleReorder($event)"
   >

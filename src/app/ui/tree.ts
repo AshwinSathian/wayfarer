@@ -56,7 +56,7 @@ interface Row<T> {
         [class.ui-tree-row--drop-before]="dropTarget()?.key === node.key && dropTarget()?.before"
         [class.ui-tree-row--drop-after]="dropTarget()?.key === node.key && !dropTarget()?.before"
         (expandedChange)="setExpanded(node, $event)"
-        (activation)="select(node); opened.emit(node)"
+        (activation)="select(node); opened.emit({ node, keyboard: true })"
         (click)="select(node); onClick(node, $event)"
         (contextmenu)="select(node)"
         (keydown)="onKeydown(node, $event)"
@@ -83,8 +83,8 @@ export class Tree<T> {
   readonly group = input<(node: UiTreeNode<T>) => unknown>(() => null);
 
   readonly selected = output<UiTreeNode<T>>();
-  /** A click, Enter or Space on the row: the user wants what the node stands for. */
-  readonly opened = output<UiTreeNode<T>>();
+  /** A click, Enter or Space on the row: the user wants what the node stands for. From the keyboard, focus stays in the tree. */
+  readonly opened = output<{ node: UiTreeNode<T>; keyboard: boolean }>();
   /** F2: the user wants to edit the node. */
   readonly edit = output<UiTreeNode<T>>();
   /** `node` moved; `siblings` are the nodes of its group under the same parent, in their new order. */
@@ -190,7 +190,7 @@ export class Tree<T> {
   protected onClick(node: UiTreeNode<T>, event: MouseEvent): void {
     // A click into something inside a row (an inline rename) is not for the tree.
     if ((event.target as HTMLElement).closest("input")) return;
-    this.opened.emit(node);
+    this.opened.emit({ node, keyboard: false });
   }
 
   /** The keys Material's tree has no meaning for. It reads the rest from the same event, further up. */

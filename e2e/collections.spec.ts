@@ -125,5 +125,7 @@ test.describe("Collections", () => {
     await row.focus();
     await page.keyboard.press("Enter");
     await expect(urlInput).toHaveValue(`${ECHO}/echo?one=click`);
+    // From the keyboard the user goes on walking the tree.
+    await expect(row).toBeFocused();
   });
 });

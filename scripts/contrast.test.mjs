@@ -69,6 +69,15 @@ for (const name of ["dark", "light"]) {
     }
   });
 
+  test(`${name}: method text reads on every surface without a fill`, () => {
+    for (const kind of ["get", "post", "put", "patch", "delete", "head", "options"]) {
+      for (const surface of SURFACES) {
+        const ratio = contrast(colour(`--method-${kind}-text`), colour(surface));
+        assert.ok(ratio >= 4.5, `--method-${kind}-text on ${surface}: ${ratio.toFixed(2)}:1`);
+      }
+    }
+  });
+
   test(`${name}: white reads on a primary button, at rest, hovered and pressed`, () => {
     for (const state of ["", "-hover", "-active"]) {
       const ratio = contrast([255, 255, 255, 1], colour(`--ctl-primary-fill${state}`));

@@ -163,7 +163,7 @@ test("multipart: a text part and a 1 MB file arrive byte for byte, also after th
   await expect(page.getByRole("treeitem", { name: /Upload one megabyte/ })).toBeVisible();
 
   await page.reload();
-  await page.getByRole("treeitem", { name: /Upload one megabyte/ }).dblclick();
+  await page.getByRole("treeitem", { name: /Upload one megabyte/ }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   check(await sendAndEcho(page));
   expect(await violations(page)).toEqual([]);

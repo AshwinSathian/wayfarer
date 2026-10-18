@@ -373,7 +373,7 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   // After a reload the tab holds nothing. The send asks for the passphrase and takes the token from the vault: no new one is asked for.
   await page.reload();
   // In the collections tree: the tab the reload restored shows the name too.
-  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   const again = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
   await send(page);

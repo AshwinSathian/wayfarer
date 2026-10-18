@@ -318,11 +318,18 @@ export class CollectionsSidebar implements OnInit {
     void this.handleAction(action, node);
   }
 
-  handleNodeDoubleClick(node: UiTreeNode<NodeData>): void {
+  handleNodeOpen(tree: Tree<NodeData>, node: UiTreeNode<NodeData>, keyboard: boolean): void {
     const data = node.data as NodeData | undefined;
-    if (data?.type === "request") {
+    if (data?.type === "request" && this.editingKey() !== node.key) {
       this.emitLoadRequest(data.ref);
+      // Opened from the keyboard, the user goes on walking the tree: focus comes back to the row.
+      if (keyboard) afterNextRender(() => tree.focusNode(node.key), { injector: this.injector });
     }
+  }
+
+  /** The method as the tree shows it: the two long ones shortened, as Postman does. */
+  protected methodLabel(method: string): string {
+    return method === "DELETE" ? "DEL" : method === "OPTIONS" ? "OPT" : method;
   }
 
   private emitLoadRequest(doc: RequestDoc): void {

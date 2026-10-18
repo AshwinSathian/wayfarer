@@ -1,6 +1,5 @@
 import { Claims } from "./Claims";
 
-export const ADDRESS = "https://api.example.com/v1/users/42";
 const BODY: [string, string][] = [
   ["id", "42"],
   ["name", '"Ada Lovelace"'],

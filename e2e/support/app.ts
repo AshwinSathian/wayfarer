@@ -173,7 +173,7 @@ export async function openFolder(page: Page, name: string): Promise<void> {
  * from the list, as a user does at any width. Gives back the dialog.
  */
 export async function openSettings(page: Page, section?: string): Promise<Locator> {
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(dialog).toBeVisible();
   if (section) {

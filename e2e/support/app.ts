@@ -173,7 +173,7 @@ export async function openFolder(page: Page, name: string): Promise<void> {
  * from the list, as a user does at any width. Gives back the dialog.
  */
 export async function openSettings(page: Page, section?: string): Promise<Locator> {
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(dialog).toBeVisible();
   if (section) {
@@ -221,6 +221,11 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await page.getByRole("button", { name: "Save changes" }).click();
   await closeEnvironments(page);
   await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+}
+
+/** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */
+export async function openRequestSettings(page: Page): Promise<void> {
+  await page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true }).click();
 }
 
 export async function send(page: Page): Promise<void> {

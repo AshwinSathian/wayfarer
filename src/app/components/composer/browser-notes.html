@@ -1,3 +1,4 @@
+@let limits = store.browserLimits();
 <div class="request-route flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
   <span id="request-route-label">Route</span>
   <mat-select class="select w-48!" aria-labelledby="request-route-label" [value]="store.draft().settings.route ?? null" (valueChange)="store.setRoute($event)" [placeholder]="'Inherit: ' + routeNames[store.inheritedRoute()]">
@@ -8,27 +9,6 @@
   </mat-select>
   <span class="min-w-0">Auto sends from the page, and through the Local Bridge when the browser could not. Inherit is the collection's, else the device's (Settings, Local Bridge).</span>
 </div>
-@let limits = store.browserLimits();
-@if (limits.mixedContent === 'blocked') {
-<p class="browser-note-mixed type-footnote text-status-warning flex items-start gap-1.5" role="status">
-  <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
-  <span>The browser will block this request: this page was loaded over HTTPS, and a page like that may not call an <code>http://</code> address. Use <code>https://</code>, or send it through the Local Bridge.</span>
-</p>
-}
-@if (limits.dropped.length) {
-<p class="browser-note-dropped type-footnote text-status-warning flex items-start gap-1.5" role="status">
-  <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
-  <span>
-    {{ limits.route === 'bridge' ? 'The Local Bridge' : 'The browser' }} will not send
-    @for (name of limits.dropped; track $index) {<code>{{ name }}</code>{{ $last ? '' : ', ' }}}:
-    @if (limits.route === 'bridge') {
-    the Local Bridge sets {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }} itself, for the connection it makes.
-    } @else {
-    a page is not allowed to set {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }}.
-    }
-  </span>
-</p>
-}
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
   <mat-checkbox [checked]="store.draft().settings.followRedirects !== false" (change)="store.setFollowRedirects($event.checked)">Follow redirects</mat-checkbox>
   @if (limits.route === 'bridge') {
@@ -39,19 +19,14 @@
 </div>
 <div class="tls-insecure flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
   <mat-checkbox [checked]="store.draft().settings.tlsInsecure === true" (change)="store.setTlsInsecure($event.checked)">Do not verify the server's certificate</mat-checkbox>
-  @if (store.draft().settings.tlsInsecure === true) {
-  <span class="tls-off-pill"><app-icon name="warning" class="icon-xs" /> TLS verification off</span>
-  }
   @if (limits.route === 'bridge') {
   <span class="min-w-0">For this request the Local Bridge accepts any certificate: a self-signed one, an expired one, one for another name.</span>
   } @else {
   <span class="min-w-0">Only the Local Bridge can: sent directly, the browser verifies every certificate, whatever this says.</span>
   }
 </div>
-<section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
-  <mat-accordion class="sections" displayMode="flat" hideToggle>
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>What the browser does to this request <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+<section class="space-y-3 pt-2">
+      <h3 class="type-subhead text-label-primary">What the browser does to this request</h3>
       <div class="space-y-3 type-footnote text-label-secondary">
         @if (limits.route === 'bridge') {
         <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code>, <code>Origin</code> and <code>Host</code> are sent as written, the bridge asks for a compressed response (<code>Accept-Encoding: gzip, deflate, br</code>) unless the request names its own, no server is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar (Settings, Cookies) and sent with later requests to its domain and path.</p>
@@ -81,6 +56,4 @@
         }
         <p><a class="underline text-accent-text" [href]="docs" target="_blank" rel="noopener noreferrer">What each of these means, and what the Local Bridge changes</a></p>
       </div>
-    </mat-expansion-panel>
-  </mat-accordion>
 </section>

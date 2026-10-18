@@ -167,7 +167,7 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
     page.locator(selector).first().evaluate((el, p) => Math.max(...getComputedStyle(el)[p].split(",").map(parseFloat)), property);
   expect(await seconds("mat-sidenav.mat-drawer-end", "transitionDuration")).toBeLessThan(0.01);
   expect(await seconds(".tab-bar .mdc-tab-indicator__content", "transitionDuration")).toBeLessThan(0.01);
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
   expect(await seconds(".mat-mdc-dialog-surface", "animationDuration")).toBeLessThan(0.01);
 });

@@ -44,7 +44,7 @@
   </div>
   }
 
-  <app-browser-notes class="block space-y-2" />
+  <app-request-warnings class="block space-y-2 empty:hidden" />
 
   <!-- ── Variable tokens preview ──────────────────────────── -->
   @if (store.variableTokens().length) {
@@ -118,6 +118,15 @@
         <app-scripts-panel class="block space-y-6" />
         }
       </mat-expansion-panel>
+      <mat-expansion-panel
+        #settingsSection
+        [expanded]="view.mobileActivePanels() === 'settings'"
+        (opened)="view.onMobileIndexChange('settings')"
+        (closed)="view.onMobilePanelClosed('settings', settingsSection)"
+      >
+        <mat-expansion-panel-header>Settings <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
+        <app-browser-notes class="block space-y-4" />
+      </mat-expansion-panel>
     </mat-accordion>
   </section>
 
@@ -148,6 +157,7 @@
                   }
                   <button mat-tab-link type="button" [active]="view.activeTab() === 'auth'" (click)="view.onActiveTabChange('auth')" (focus)="view.onActiveTabChange('auth')">Auth</button>
                   <button mat-tab-link type="button" [active]="view.activeTab() === 'scripts'" (click)="view.onActiveTabChange('scripts')" (focus)="view.onActiveTabChange('scripts')">Scripts</button>
+                  <button mat-tab-link type="button" [active]="view.activeTab() === 'settings'" (click)="view.onActiveTabChange('settings')" (focus)="view.onActiveTabChange('settings')">Settings</button>
                 </div>
 
               </div>
@@ -181,6 +191,11 @@
                     @defer (when view.activeTab() === 'scripts') {
                     <app-scripts-panel class="block space-y-6" />
                     }
+                  </div>
+                </div>
+                <div class="tab-pane" [hidden]="view.activeTab() !== 'settings'">
+                  <div class="px-4 pb-5">
+                    <app-browser-notes class="block space-y-4" />
                   </div>
                 </div>
               </mat-tab-nav-panel>

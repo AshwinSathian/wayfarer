@@ -19,13 +19,13 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
   await expect(page.locator("#auth-type-select")).toBeVisible();
 
   await page.keyboard.press("End");
-  await expect(tab("Scripts")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Settings")).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("ArrowRight");
   await expect(tab("Params")).toBeFocused();
   await expect(composer.getByRole("button", { name: "Add parameter" })).toBeVisible();
 
   await page.keyboard.press("ArrowLeft");
-  await expect(tab("Scripts")).toHaveAttribute("aria-selected", "true");
+  await expect(tab("Settings")).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("Home");
   await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
 
@@ -289,7 +289,7 @@ async function expectFocusTrapped(page: Page, surface: Locator, browserName: str
 test("settings dialog: focus moves in, Tab stays in, Escape closes at once and focus returns", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  const opener = page.getByRole("button", { name: "Settings", exact: true });
+  const opener = page.getByRole("banner").getByRole("button", { name: "Settings", exact: true });
   await opener.focus();
   await page.keyboard.press("Enter");
 

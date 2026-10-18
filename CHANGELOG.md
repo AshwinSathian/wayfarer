@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A request's route, redirects and certificate check are in its Settings
+  tab.** They sat above every request with a sentence of explanation each,
+  followed by a section on what the browser does, and pushed the request
+  and its response down the page. They are now the request's Settings tab,
+  beside Params, Headers, Auth and Scripts, with what the browser does to
+  the request written out there. What will go wrong is still said above
+  the request: an address the browser will block, a header it will not
+  send, and a red "TLS verification off" while the certificate check is
+  off.
+
 - **One click opens a request, and the collections show each request's
   method.** A request in the sidebar opened only on a double click, which
   no other API client asks for, so a click seemed to do nothing. A click,
@@ -211,10 +221,12 @@ one list, so a run follows the order of the list and of a Postman file.
   response, so a CI job can run it. It sends with the app's own engine: the
   same scripts in the same order, the same variables, vault and checks,
   and a test holds its results to the app's for the same run.
+
 - **A file's scripts run only with `--allow-scripts`.** In the app a
   collection from a file runs its scripts after you have reviewed them; a
   file carries no review, so without the flag a collection with scripts is
   not run, and nothing is sent.
+
 - **The vault from the command line**: a workspace backup brings its vault,
   or `--vault-file` names an exported one; the passphrase is read from
   `WAYFARER_VAULT_PASSPHRASE`, never from an argument. Every request goes
@@ -237,12 +249,14 @@ one list, so a run follows the order of the list and of a Postman file.
   (Settings → Local Bridge → **Route**, which replaces the switch "Route
   requests through the bridge"). Before, the bridge was on for every request
   or for none, and a request the browser could not send just failed.
+
 - **Auto is the default.** It sends from the page, and when the page gets no
   answer, through the Local Bridge: at once when the request cannot have
   reached the server (the browser's preflight failed first) or is a GET,
   HEAD or OPTIONS; otherwise it asks first, since the server may have
   received it. A response, whatever its status, is never sent again. With
   no bridge token in the tab or the vault, Auto is Direct.
+
 - **Each response says where it came from**: Direct or Via bridge.
 - A stored "bridge on" reads as the route Local Bridge; "off" reads as Auto.
   A collection's route is written to its file and checked on import; no
@@ -258,10 +272,12 @@ one list, so a run follows the order of the list and of a Postman file.
   token, which is saved as a typed one is (in the vault while it is
   unlocked). Nothing to copy. A code works once, and three wrong codes in a
   row lock pairing for a minute. Pasting the token still works.
+
 - **HTTPS on loopback**: `--cert` and `--key` start the bridge over HTTPS
   with a certificate of yours. Safari does not reach `http://127.0.0.1`
   from the hosted app; the bridge's README shows how to make one with
   `mkcert` or `openssl`. The bridge makes none itself.
+
 - **Settings → Local Bridge explains Chrome's question** about the local
   network before it is asked: allow it, the bridge is on this computer.
 - The bridge answers a preflight that asks for the private network
@@ -274,16 +290,20 @@ one list, so a run follows the order of the list and of a Postman file.
   byte and the rest of the response, measured by the bridge on its own
   connection. Before, a request through the bridge had no breakdown at all
   ("CORS-limited timings").
+
 - **Do not verify the server's certificate**, a setting of a request, in
   the composer beside Follow redirects. Through the Local Bridge such a
   request accepts any certificate (self-signed, expired, for another name);
   the request and its response carry a red "TLS verification off" pill.
   Sent directly it changes nothing: a browser always verifies. A request a
   script sends and an OAuth token request are always verified.
+
 - **A `Host` header of your own is sent through the bridge.** Before, the
   bridge took it off and the composer said so.
+
 - **`--ca <file>`** starts the bridge trusting your own certificate
   authority besides the public ones.
+
 - **`HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`** are honoured by the bridge,
   through Node's own support: the bridge now needs Node 22.21, or 24.5 and
   later (before: 20.19).
@@ -303,6 +323,7 @@ one list, so a run follows the order of the list and of a Postman file.
   deleted folder left its inner folders standing where it had been. The
   question before the deletion now says how many folders and requests go
   with it.
+
 - **Duplicate on a folder copies the folders inside it**, at every depth,
   each with its requests and in its place. Before, the copy held the
   folder's own requests only.
@@ -315,11 +336,14 @@ one list, so a run follows the order of the list and of a Postman file.
   server sent: before, the bridge read every body as UTF-8 unless its type
   looked binary, so text in another charset and binary data under a text
   type were damaged.
+
 - **A compressed response through the bridge is decoded** (gzip, deflate,
   Brotli) and shown with both sizes. Before, it was passed on compressed and
   read as text. The 25 MB limit holds for the decoded body too.
+
 - **The request's timeout holds through the bridge.** Before, the bridge
   waited its own 30 seconds whatever the request said.
+
 - **The page and the bridge must be of the same protocol, and say so when
   they are not.** This version of the app needs Local Bridge 2.0.0: with an
   older one a request fails with "does not speak protocol 2", and Settings →
@@ -341,12 +365,14 @@ one list, so a run follows the order of the list and of a Postman file.
   folder lost that order (the import report said so). Newman sends such a
   file in the file's order, and so does a run now; an export for Postman
   writes the order back.
+
 - **A folder inside a folder is shown inside it.** Only an imported file can
   hold one. Before, the list showed every folder of a collection side by
   side, at the top.
 - A new folder, a new request and a copy go to the end of the collection's
   numbering, after every folder and request there is. A copy of a folder
   keeps its requests in the places they had.
+
 - **Nothing stored is removed.** The database goes to version 13: each
   folder's folders and requests are numbered again as one list, folders
   first, so the list looks as it did. A collection file or a workspace
@@ -686,23 +712,28 @@ first and re-create it by hand.
   collections, folders, requests, environments, secrets and history from
   an earlier version are deleted, and the page says so once. Nothing is
   backed up. This was decided while the app has no users with data to keep.
+
 - **History saved by earlier versions is removed.** History now keeps
   credentials masked (database version 9). An entry of before held the
   headers as they were sent, `Authorization` included, so the first time
   this version opens, history is deleted and the page says so once.
+
 - **Exports and copies mask credentials.** **Copy as cURL**, **Copy as
   HAR** and a collection's **Export** now write `***` where a credential
   was. Each has a "with credentials" twin beside it for when you need
   the real values. A vault secret is masked in both.
+
 - **A request with a `{{variable}}` that has no value is not sent** until
   you choose **Send anyway**. It was sent with the text `{{variable}}` in
   it. Settings can switch this back.
+
 - **Secrets saved by earlier versions are removed.** The vault now
   encrypts every secret under one data key (database version 8) and
   cannot read secrets that each had a key of their own. The first time
   this version opens, stored secrets are deleted and the page says so
   once; collections, environments and history stay. A variable that used
   a removed secret keeps its reference and needs its value again.
+
 - **Collection and environment files from earlier versions no longer
   import.** A file now starts with `"$id": "wayfarer/collection/2"` (or
   `wayfarer/environments/2`), and a file without it is refused with that
@@ -716,15 +747,19 @@ first and re-create it by hand.
   download beside it. A list above the body switches the view, so an HTML
   or XML body can always be read as the text that was sent. Before, HTML
   and XML were plain text and a binary body could only be downloaded.
+
 - **The HTML preview cannot do anything.** It is drawn in a frame with no
   permissions: the page's scripts do not run, it loads nothing from the
   network (images, styles and fonts on other sites stay blank), and
   clicking a link or a button does nothing.
+
 - **Filter a JSON response by path.** Type `data.items[*].id` above the
   body to see only that part; `[*]` takes every item of a list. Ctrl+F
   (Cmd+F on a Mac) inside the body opens the editor's find.
+
 - **JSON over 5 MB opens as plain text**, with a note; choose JSON to
   format it anyway.
+
 - **The Headers tab says when headers are missing.** A response from
   another origin shows only the headers a browser lets a page read; the
   tab now says so. A header sent twice is listed twice.
@@ -739,6 +774,7 @@ first and re-create it by hand.
   cookies). With the Local Bridge on it says what the bridge changes.
   `docs/browser-limits.md` explains each item. Before, a `Cookie` header
   you typed simply never arrived.
+
 - **Workspace backup and restore.** Settings, **Back up**, writes every
   collection, request, environment, the global variables and the vault
   (still encrypted) to one file, with history if you tick it; **Restore**
@@ -746,13 +782,16 @@ first and re-create it by hand.
   Restored collections are untrusted until approved, like any import.
   Before, only single collections and the environments could be exported
   (#74).
+
 - **A reminder to back up** when the last backup is more than 14 days
   old, with **Not now**.
+
 - **Wayfarer asks the browser to keep your data** the first time you save
   something, and Settings says what the browser answered and how much
   space is used. In Safari, Settings also explains that Safari deletes a
   site's data after seven days without a visit and how installing the app
   prevents that (#73).
+
 - **Environment export asks about protected variables.** They are left
   out by default: the file has no secret and no reference to one. It
   wrote the references before, which pointed at nothing on another
@@ -765,26 +804,31 @@ first and re-create it by hand.
   passphrase is asked for first; close that dialog and nothing is sent.
   A secret's `{{$secret.…}}` reference is never sent. Before, a request
   that used a protected variable was always refused (#60).
+
 - **Nothing stored or copied holds a secret.** Every vault secret and
   credential of a request is masked in history, in **Copy as cURL** and
   **Copy as HAR**, also where the server sent it back, and also when it
   arrives percent-encoded, JSON-escaped or inside base64 (as in Basic
   credentials). Before, history kept `Authorization` in plain text (#71)
   and a collection export wrote auth fields as typed (#72).
+
 - **History keeps more, and less of it.** An entry now holds the request
   as you composed it (variables not resolved), what was sent, and the
   response: status, headers and a text body up to 1 MB. Opening an entry
   shows that response again. History keeps the newest 500 entries
   (Settings, **History size**), where it grew without limit, and
   **Keep response bodies in history** switches the bodies off.
+
 - **Search history** by URL, method or status.
 
 - **Change the vault passphrase.** Secrets, **Change passphrase**. The
   old passphrase stops working at once and no secret is re-encrypted.
   Before, the passphrase could not be changed at all (#66).
+
 - **The vault locks itself** after 15 minutes without a key press or a
   click. Settings, **Lock the vault when idle**, takes 1 to 240 minutes,
   or 0 for never. **Locking in one tab locks every tab.**
+
 - **Vault file.** Secrets, **Export vault** writes every secret, still
   encrypted, to a file that opens with the vault's passphrase; **Import
   vault** reads one into this vault. See
@@ -797,10 +841,12 @@ first and re-create it by hand.
   ones (**Global variables** in the Environments panel). `{{name}}` takes
   the active environment's value, then the collection's, then the global
   one. Before, only the active environment had variables.
+
 - **A variable's value may use other variables**, up to 10 deep: with
   `url` set to `https://{{host}}/v1`, `{{url}}` is the whole address.
   Variables that refer to each other in a circle are not sent, and the
   composer says which.
+
 - **Dynamic variables**: `{{$guid}}`, `{{$randomUUID}}`, `{{$timestamp}}`,
   `{{$isoTimestamp}}`, `{{$randomInt}}` and `{{$randomAlphaNumeric}}` give
   a new value on every send. See [`docs/variables.md`](docs/variables.md).
@@ -828,6 +874,7 @@ first and re-create it by hand.
 - The Body tab is there for every method except `GET` and `HEAD` (it was
   there for `POST`, `PUT` and `PATCH` only), and the body is kept when you
   change the method.
+
 - **Bulk edit** on the Headers tab: the headers as text, one `Name: value`
   per line, for pasting a block of them. A line that starts with `#` is
   kept without being sent.
@@ -838,6 +885,7 @@ first and re-create it by hand.
   headers were saved as one value per name. Environment variables are
   saved the same way. A file may also mark a row as switched off: it is
   kept and not sent (the composer has no switch for it yet).
+
 - **The body is saved as text**, as it is written, where it used to be
   saved as a parsed JSON value.
 - When Wayfarer is updated while it is open in another tab, that tab says
@@ -851,6 +899,7 @@ first and re-create it by hand.
 
 - **Cancel.** While a request is in flight, **Send** becomes **Cancel**;
   pressing it stops the request at once. There was no way to stop one.
+
 - **Request timeout**, under Settings, Network: the milliseconds after which
   a request is given up, with "Timed out after N ms" in place of a
   response. The default, 0, waits for as long as it takes, as before.
@@ -886,6 +935,7 @@ first and re-create it by hand.
   Wayfarer's own: no `Referer`, no cookies, no cached answer. `Accept` is
   what you set, or `*/*`; it used to be `application/json, text/plain, */*`
   whenever you set none.
+
 - **The duration no longer includes a pre-request script's time.** It is
   measured around the request alone.
 - A response body over 50 MB is offered as a download and not read into
@@ -913,6 +963,7 @@ first and re-create it by hand.
   fades in where it is; so does a tab's content when you switch tabs, and
   the composer's sections on a phone when the page loads
   ([#119](https://github.com/AshwinSathian/wayfarer/issues/119)).
+
 - **The composer keeps its tab when the window is resized.** Making the
   window narrower than 768 px and wide again put the composer back on
   Headers, whatever tab was open, and on a phone-sized window the section
@@ -922,6 +973,7 @@ first and re-create it by hand.
   `Body.constructor exists` passed for any JSON object. A path now reads
   only what the JSON holds
   ([#207](https://github.com/AshwinSathian/wayfarer/issues/207)).
+
 - **A wrong vault passphrase is always refused.** With no secret stored
   yet, any passphrase "unlocked" the vault, and a secret saved then was
   encrypted under whatever had been typed. The passphrase you choose is
@@ -945,6 +997,7 @@ first and re-create it by hand.
   that is not an object is now left as it is (#183).
 - A header named `__proto__` is sent, and appears in **Copy as cURL**. It
   was silently left out of both.
+
 - **Environments editor.** Editing a variable removed a row you had just
   added and not named yet. Opening an environment that came from a file
   switched its switched-off variables back on and dropped the first of two
@@ -1003,12 +1056,14 @@ No stored data changes.
 - Fifteen design tokens and five text-size classes nothing read are gone
   (spare shadows, glows, gradients and the largest heading sizes). Nothing
   on screen changes; the stylesheet is 1.7 kB smaller.
+
 - **Selects follow the native one's keys.** Enter or Space opens the list.
   An arrow key or a letter on a closed select changes the value straight
   away; it used to open the list.
 - The text in a select starts 12 px from its edge. It touched the border.
 - **Folder (optional)** in Save to Collection is cleared by choosing
   **No folder** from the list. It had a small clear button.
+
 - **Import** under Settings, Environments, is a real button: it can be
   reached and pressed with the keyboard. It was a label around a hidden
   file field.
@@ -1080,6 +1135,7 @@ No stored data changes.
   them inside every collection, outside its report.
 - For contributors: the layout tests also run at 390 px, the phone width
   at which the header was once wider than the screen.
+
 - **Text meets the 4.5:1 contrast minimum in both themes, on every view.**
   In the light theme the green of a 200 was 1.85:1 on its badge and the
   orange of a warning 1.83:1; method badges, the label on a primary button
@@ -1091,6 +1147,7 @@ No stored data changes.
   768 and about 1000 px wide, with the sidebar open, the field shrank to a
   16 px sliver beside its buttons. The buttons now move to the next line
   when there is no room for both.
+
 - **The app is usable on a tablet and in a narrow window.** From 768 to
   1199 px wide the collections sidebar stayed pinned open. At 820 px that
   left the request and the response about 150 px each: a header's name
@@ -1098,12 +1155,15 @@ No stored data changes.
   1024 px the Scripts tab was cut off and a header read "Content-" and
   "applicatio". Below 1200 px the sidebar now opens over the page from the
   toolbar button, as it does on a phone, and starts closed.
+
 - **Switching to the light theme no longer hides "No environment".** The
   text in the toolbar's environment box stayed white on the light toolbar
   for half a second after the switch.
+
 - **"Update available" no longer appears on a first visit.** On a slow
   machine the service worker could take the page over before the app heard
   it had installed, and the app took that first install for a new version.
+
 - **Clear all history** shows its tooltip. The button named one, but the
   toolbar never loaded the code that draws it.
 - `{{constructor}}`, `{{toString}}` and other names that exist on every
@@ -1135,6 +1195,7 @@ No stored data changes.
   colours now.
 - The request tabs wrap instead of sliding under the Basic/JSON switch when
   the pane is narrow.
+
 - **Test connection** in the Local Bridge settings no longer writes the
   URL being tested into the saved settings while the check runs.
 - The Local Bridge answers 502 when a target's response is over 25 MB,
@@ -1168,17 +1229,20 @@ No stored data changes.
   `Cross-Origin-Resource-Policy: same-origin`.
 - A collection or environment file over 10 MB is refused by size before it
   is read into memory.
+
 - **The vault derives its key with 600,000 PBKDF2 iterations** (OWASP's 2023
   minimum for SHA-256), up from 200,000. Secrets saved by an earlier version
   cannot be read; there were none in use.
 - The vault passphrase is used exactly as typed. Spaces at either end were
   removed without a word.
+
 - **Copy as cURL** no longer lets an imported collection run commands or read
   files when its output is pasted into a shell: the method is quoted unless it
   is a plain verb, and the body goes out with `--data-raw` (a body starting
   with `@` was read from a local file by `-d`).
 - Importing a collection now rejects a request whose method is not GET, POST,
   PUT, PATCH, DELETE, HEAD or OPTIONS.
+
 - **Reset all data** now also clears the Local Bridge token and every other
   `wayfarer:` setting in the browser. It cleared two keys, one of them unused.
 - The Local Bridge's default allowed origins name the hosted app
@@ -1198,6 +1262,7 @@ work, with before and after screenshots.
 
 - **Angular 20.3 to 22.2, TypeScript 6, Vitest 5** for unit tests, with a
   coverage gate (lines of `src/app` at 70% or more; 75.8% today).
+
 - **PrimeNG, `@primeng/themes` and `primeicons` are removed.** The first
   load is about 42% smaller (initial JavaScript and CSS, 989,854 B instead of
   1,707,095 B; 284,702 B instead of 443,272 B compressed). The size budgets are
@@ -1256,9 +1321,11 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   evaluates scripts with `new Function`, which the site's CSP forbids, so
   every script failed without an error. The Scripts tab shows a banner;
   Tests-tab assertions still run. Scripts return on a QuickJS sandbox (#58).
+
 - **Sending requests that reference a vault secret.** The placeholder
   `{{$secret.<id>}}` went out literally. The request is now blocked with an
   inline error; vault resolution ships in v2.0 (#60).
+
 - **Offline support.** The service worker faked `504 Gateway Timeout` on
   network failures, so it was replaced by Angular's safety worker, which
   unregisters itself (#63).
@@ -1313,6 +1380,7 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   compliance-status facts in one place instead of filing a ticket.
 - `/.well-known/security.txt` (RFC 9116) for automated vulnerability-scanner
   discovery, linked from `SECURITY.md`.
+
 - **Local Bridge** (`local-bridge/`): an optional, zero-dependency companion
   process that relays requests to CORS-restrictive or intranet-only APIs a
   browser tab structurally cannot reach. Binds to `127.0.0.1` only, gates
@@ -1350,6 +1418,7 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   Bridge settings, Reset All Data, registered alongside the existing
   collection/folder commands. The palette previously had exactly one
   command ("New Collection").
+
 - **A dedicated Secrets management view** (`SecretsManagerComponent`), a
   dialog matching the Local Bridge settings dialog's visual/interaction
   pattern, listing every secret across every environment in one place with
@@ -1361,12 +1430,14 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   added the missing `listAll()`/`renameSecret()`/`deleteSecret()` aggregate
   methods to `SecretsRepository`. Registered in the command palette and a
   toolbar icon button.
+
 - **A dedicated Settings surface** (`SettingsComponent`) consolidating the
   theme toggle, environments export/import, Reset All Data, Local Bridge
   settings, and a keyboard-shortcuts reference (a live list of every
   registered command-palette action), previously scattered across the
   toolbar and command palette with no single home. Registered in the
   command palette and a toolbar icon button.
+
 - **A resizable split between the request composer and the response
   viewer** on desktop widths (PrimeNG `p-splitter`), replacing a
   fixed-width centered layout that left large amounts of dead canvas at
@@ -1386,6 +1457,7 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   WebCrypto APIs that `script-sandbox.service.spec.ts` (the sandbox-escape
   regression suite) and several other specs genuinely exercise. All 21 spec
   files ported; `karma.conf.js` and the Karma/Jasmine dependencies removed.
+
 - **Zoneless change detection adopted** (`provideZonelessChangeDetection()`).
   `zone.js` is now fully removed from the repo, dev and prod (confirmed
   by a 0-byte `polyfills` chunk in the production build). Zoneless CD
@@ -1465,6 +1537,7 @@ docs. Every finding is an issue labelled `audit-2026-09`.
   confirm dialogs share the same closed-shell pattern already documented
   for the pre-existing one. None of this was reproducible before switching
   off the dev server, which is exactly why it had never been caught.
+
 - **A successful Send no longer wipes the entire composer.** `sendRequest()`
   called `resetForm()` unconditionally after every send: method, URL,
   headers, body, and auth all vanished the instant a response arrived, with

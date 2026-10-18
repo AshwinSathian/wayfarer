@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
-import { protectVariable, seedAndOpen, send } from "./support/app";
+import { openRequestSettings, protectVariable, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -26,6 +26,7 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
     });
     await page.goto("/app/");
     await routeThroughBridge(page, bridge);
+    await openRequestSettings(page);
     await expect(page.locator(".follow-redirects")).toContainText("Through the Local Bridge each one is listed");
     await address(page).fill(`${ECHO}/redirect/3`);
     await send(page);
@@ -47,6 +48,7 @@ test("with Follow redirects off the 302 is the response as it came, and the tab 
     await page.goto("/app/");
     await routeThroughBridge(page, bridge);
     await address(page).fill(`${ECHO}/redirect/3`);
+    await openRequestSettings(page);
     await page.getByRole("checkbox", { name: "Follow redirects" }).uncheck();
     await send(page);
 
@@ -108,6 +110,7 @@ for (const theme of ["light", "dark"] as const) {
         expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
       };
       await address(page).fill(`${ECHO}/redirect/3`);
+      await openRequestSettings(page);
       await page.getByRole("checkbox", { name: "Follow redirects" }).uncheck();
       await send(page);
       await expect(chain(page).getByRole("status")).toBeVisible();

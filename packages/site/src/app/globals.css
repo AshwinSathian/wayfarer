@@ -123,6 +123,12 @@
   background-position: 11px 0;
 }
 
+/* The demo's request, once it is answered: its stop on the route is filled (public/site.js sets the attribute). */
+[data-demo-stop][data-on] {
+  background: var(--route);
+  border-style: solid;
+}
+
 /* The demo's caret, and each step of it appearing. Motion is only the demo's, and only when it is wanted. */
 @keyframes caret {
   50% {

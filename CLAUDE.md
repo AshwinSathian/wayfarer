@@ -78,20 +78,22 @@ code errors.
   past `/app/`. `prod-server.mjs` does the same, and redirects a folder
   without its slash (`/app`) with a 307, as Workers do.
 - The site is Next.js with Tailwind 4 (`output: "export"`, PLAN-design
-  1.8): files, no server. It runs script from its own files only and loads
-  nothing from another origin (`security/csp-site.json`, `e2e/site.spec.ts`).
-  There is no `'unsafe-inline'`: a page built ahead of time cannot carry a
-  nonce, so `externalize-scripts.mjs` (in the site's build) moves every
-  script Next writes into a page to a file, in its place. Write no `style`
+  1.8): React renders each page when the site is built, and the browser
+  gets none of it (1.9: it cost the landing 1.1 s of mobile LCP).
+  `strip-scripts.mjs`, in the site's build, takes every script Next adds out
+  of the pages, with their files. So no component is `"use client"` and
+  none has a handler: what a page does in the browser is a script file of
+  the site's own (`public/site.js`: the theme toggle and the landing's
+  demo; the docs' search; `claims-ci.js`), found by a `data-` attribute.
+  The site loads nothing from another origin and has no `'unsafe-inline'`
+  (`security/csp-site.json`, `e2e/site.spec.ts`). Write no `style`
   attribute (`style={{}}`) and no inline script; a test reads every built
-  page for both. Links between the site's pages are plain `<a>`, not
-  `next/link`: each page loads whole, so the docs' search and the claims
-  page's script run on every visit.
-- An element a site script fills before React takes the page over (the
-  search's `#search`, the claims table inside a doc's HTML) is given as
-  `dangerouslySetInnerHTML`: React does not compare what is inside it.
-- The site's theme is the app's choice (`wayfarer:theme`): the layout loads
-  `/app/theme.js` in its head, and the toggle stores the same key.
+  page for both and for Next's scripts. Links are plain `<a>`, not
+  `next/link`.
+- The site's theme and mark are the app's: the layout loads
+  `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
+  mark is `/app/icons/logo.svg` (`public/icons/logo.svg`, which the app
+  shell shows too).
 - A sentence of the site that says what Wayfarer does names its claims
   (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`);
   `e2e/site.spec.ts` holds every ID named to `docs/claims.md`. The

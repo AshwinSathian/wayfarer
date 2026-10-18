@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // /app/theme.js sets data-theme before the page is drawn, so React finds an attribute it did not write.
-    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <head>
         <script src="/app/theme.js" />
+        <script src="/site.js" defer />
       </head>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>

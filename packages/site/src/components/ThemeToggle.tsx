@@ -1,23 +1,10 @@
-"use client";
-
 // Light or dark, stored as the app's own choice (`wayfarer:theme`), so the site and the app agree. /app/theme.js reads
-// it before the page is drawn; without a stored choice the system's theme holds.
+// it before the page is drawn; public/site.js makes this button switch it.
 export function ThemeToggle() {
-  function toggle() {
-    const root = document.documentElement;
-    const current = root.getAttribute("data-theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const next = current === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("wayfarer:theme", next);
-    } catch {
-      // Storage refused: the choice holds for this page only.
-    }
-  }
   return (
     <button
       type="button"
-      onClick={toggle}
+      data-theme-toggle
       aria-label="Switch between light and dark"
       className="grid size-10 place-items-center rounded-lg text-ink-muted hover:bg-paper-sunk hover:text-ink"
     >

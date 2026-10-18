@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
 import { docs } from "../lib/content";
 
-/**
- * A docs page: every doc listed beside the open one, and the search. Pagefind fills #search before React takes the page
- * over; the element is given as HTML, which React does not compare.
- */
+/** A docs page: every doc listed beside the open one, and the search, which Pagefind draws into #search. */
 export function DocsFrame({ current, children }: { current?: string; children: ReactNode }) {
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
@@ -31,7 +28,7 @@ export function DocsFrame({ current, children }: { current?: string; children: R
         </nav>
       </aside>
       <main className="min-w-0">
-        <div id="search" className="mb-10" dangerouslySetInnerHTML={{ __html: "" }} />
+        <div id="search" className="mb-10" />
         {children}
       </main>
     </div>

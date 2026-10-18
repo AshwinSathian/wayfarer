@@ -188,7 +188,7 @@ as a Postman file and imported again, and is the same collection. A
 collection made in the app comes back the same but for what the list above
 names, and for a file body's type, which comes back as a header row.
 
-**An environment.** In the Environments panel, **Export environments**,
+**An environment.** In Environments (the toolbar button beside the environment), **Export environments**,
 then "File for: Postman". A Postman environment file holds one
 environment, so the dialog asks which. A protected variable is of
 Postman's type `secret`; its value is left out, or written in plain text

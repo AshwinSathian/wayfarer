@@ -146,7 +146,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "New environment", "New collection", "Import a cURL command", "Open command palette"]) {
+  for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "Environments", "New collection", "Import a cURL command", "Open command palette"]) {
     const button = page.getByRole("button", { name: opener, exact: true });
     await button.focus();
     await page.keyboard.press("Enter");
@@ -186,7 +186,17 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await opens("Open command palette", page.getByPlaceholder("Type a command"));
-  await opens("New environment", page.locator("#new-env-name-input"));
+  // New environment is in the environments dialog: it opens on its field, and Escape gives focus back to the button.
+  await page.getByRole("button", { name: "Environments", exact: true }).click();
+  const newEnvironment = page.getByRole("button", { name: "New environment", exact: true });
+  await newEnvironment.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#new-env-name-input")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#new-env-name-input")).toHaveCount(0);
+  await expect(newEnvironment).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await opens("Import a cURL command", page.locator("#import-paste-text"));
   await opens("Unlock secrets", page.locator('input[type="password"]').first());
   await page.locator("input.address-url").focus();

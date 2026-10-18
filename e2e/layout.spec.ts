@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { openEnvironments } from "./support/app";
 import { ECHO } from "./support/echo";
 
 test.describe("Resizable composer/response layout (desktop)", () => {
@@ -95,10 +96,11 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   test("a long environment name is cut short, and its row's buttons stay inside a 390 px window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");
+    await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).click();
     await page.locator("#new-env-name-input").fill("A much longer environment name that has to be cut somewhere");
     await page.getByRole("button", { name: "Create environment" }).click();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("#new-env-name-input")).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 900 });
     for (const name of ["Delete A much longer environment name that has to be cut somewhere", "Import environments", "Save changes"]) {
@@ -189,6 +191,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");
+    await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).click();
     await page.getByPlaceholder("Environment name").fill("Wide");
     await page.getByRole("button", { name: "Create environment" }).click();

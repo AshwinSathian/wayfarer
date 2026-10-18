@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The window is the workspace.** From 768 px wide, the request and its
+  response fill the window, side by side, and each scrolls inside itself;
+  the page no longer scrolls, so the response is never below the fold. The
+  environments are no longer at the bottom of the page: **Environments**,
+  beside the environment in the toolbar, opens them, and so does a click
+  on one of a request's environment variables, which shows that variable.
+  The command palette has them too. On a phone the page scrolls as before.
+
 - **The trust center says what the website measures: nothing.** It has no
   analytics, no counter and no cookie, and loads nothing from another
   site; the two scripts it runs (the docs' search and the claims page's

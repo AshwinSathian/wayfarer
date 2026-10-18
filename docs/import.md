@@ -1,7 +1,7 @@
 # Import
 
 Every file reaches the app by one road, whichever Import button you press
-(the Collections panel, the Environments panel, or Settings):
+(the Collections panel, Environments, or Settings):
 
 1. **Read.** The page reads the file, at most 10 MB of it. A larger file is
    refused before it is parsed. A file may be JSON or YAML; a YAML file may

@@ -136,7 +136,9 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <div class="flex min-h-screen bg-canvas-app text-label-primary">
+    <!-- From 768 px the window is the workspace: panes of its height, each scrolling inside itself.
+         Below, the composer's sections stack and the window scrolls the page. -->
+    <div [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'">
       @if (!sidebarOverlay() && drawerVisible()) {
       <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
            focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
@@ -185,6 +187,14 @@
               <mat-option [value]="option.value">{{ option.label }}</mat-option>
               }
             </mat-select>
+            <button type="button"
+              matIconButton class="btn-plain"
+              (click)="environmentsVisible.set(true)"
+              matTooltip="Environments"
+              aria-label="Environments"
+            >
+              <app-icon name="dns" class="icon-md" />
+            </button>
 
             <!-- Divider -->
             <div class="w-px h-5 bg-separator hidden sm:block"></div>
@@ -259,8 +269,8 @@
         </mat-toolbar>
 
         <!-- Page content -->
-        <main class="flex-1 overflow-y-auto">
-          <div class="flex w-full flex-col gap-5 px-4 pb-16 pt-5 md:px-8">
+        <main [class]="isMobile() ? 'flex-1' : 'flex min-h-0 flex-1 flex-col'">
+          <div [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'">
             @if (swUpdate.updateAvailable()) {
             <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
               <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
@@ -318,8 +328,7 @@
               <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
             </div>
             }
-            <app-composer [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
-            <app-environments-manager (requestUnlock)="openLockDialog()"></app-environments-manager>
+            <app-composer [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'" [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
           </div>
         </main>
       </div>
@@ -388,6 +397,18 @@
       >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button>
     </div>
   </div>
+</ui-dialog>
+
+<!-- The environments and their variables. Made while open: the page holds the request and its response. -->
+<ui-dialog
+  header="Environments"
+  [visible]="environmentsVisible()"
+  (visibleChange)="environmentsVisible.set($event)"
+  width="min(1040px, 96vw)"
+>
+  @if (environmentsVisible()) {
+  <app-environments-manager (requestUnlock)="openLockDialog()" />
+  }
 </ui-dialog>
 
 <!-- Secrets management dialog -->

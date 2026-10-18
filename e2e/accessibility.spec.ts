@@ -202,7 +202,7 @@ for (const theme of ["dark", "light"] as const) {
       await page.locator("app-response-viewer").getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
       await scan(`response ${tab}`);
     }
-    for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "New environment", "New collection"]) {
+    for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "Environments", "New collection"]) {
       await button(opener).click();
       await expect(page.getByRole("dialog").first()).toBeVisible();
       await scan(opener);
@@ -244,16 +244,21 @@ for (const theme of ["dark", "light"] as const) {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
-    // The environments export, with the file for Postman chosen: it then asks which environment.
+    // The environments, and their export with the file for Postman chosen: it then asks which environment.
+    await button("Environments").click();
     await button("New environment").click();
+    await scan("new environment");
     await page.locator("#new-env-name-input").fill("Swept env");
     await button("Create environment").click();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator("#new-env-name-input")).toHaveCount(0);
+    await scan("environments, one open");
     await button("Export environments").click();
     const environments = page.getByRole("dialog", { name: "Export environments" });
     await environments.getByRole("radio", { name: "Postman" }).click();
     await expect(environments.getByRole("combobox", { name: "Environment" })).toContainText("Swept env");
     await scan("export environments, file for Postman");
+    await page.keyboard.press("Escape");
+    await expect(environments).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 

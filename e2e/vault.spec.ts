@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { openSettings } from "./support/app";
+import { closeEnvironments, openEnvironments, openSettings } from "./support/app";
 
 // P2.6, vault v2 (F09): one data key wrapped by the passphrase. Each test
 // also holds the page to its CSP and Trusted Types policy (plan risk R15):
@@ -37,6 +37,7 @@ async function unlock(page: Page, passphrase: string): Promise<void> {
 
 /** An environment with one protected variable, saved. The vault must be unlocked. */
 async function protect(page: Page, name: string, plaintext: string): Promise<void> {
+  await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).click();
   await page.locator("#new-env-name-input").fill("Vault env");
   await page.getByRole("button", { name: "Create environment" }).click();
@@ -46,6 +47,7 @@ async function protect(page: Page, name: string, plaintext: string): Promise<voi
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await page.getByRole("button", { name: "Save changes" }).click();
+  await closeEnvironments(page);
 }
 
 test("a wrong passphrase is refused when the vault holds no secret", async ({ page }) => {

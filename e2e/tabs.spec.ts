@@ -145,6 +145,28 @@ test("keyboard: Alt+T opens a tab and Alt+W closes it, in the app and not in the
   await expect(page).toHaveURL(/\/$/);
 });
 
+// #360: Alt+T pressed before the app had drawn the last keystroke left the new tab's field showing the old tab's address.
+test("Alt+T in the same task as the last keystroke opens a tab whose field shows its own empty address", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(address(page)).toBeVisible();
+  await page.evaluate(() => {
+    const input = document.querySelector<HTMLInputElement>("input.address-url");
+    if (!input) throw new Error("no address field");
+    input.focus();
+    input.value = "https://api.example.test/first";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyT", key: "t", altKey: true, bubbles: true }));
+  });
+  await expect(tabs(page)).toHaveCount(2);
+  await expect(tabs(page).nth(1)).toHaveAttribute("aria-selected", "true");
+  // The draft beside the field: the tab's name is its draft's address, or "New request".
+  await expect(tabs(page).nth(0)).toContainText("api.example.test/first");
+  await expect(tabs(page).nth(1)).toContainText("New request");
+  await expect(address(page)).toHaveValue("");
+  await tabs(page).nth(0).click();
+  await expect(address(page)).toHaveValue("https://api.example.test/first");
+});
+
 // A send holds the tab it was started in (session 5B; the maintainer's answer, plan v1.2.41). Until then the open tab could not be changed while a request was on its way.
 test("a tab may be left while its request is on its way, and its response is there on the way back", async ({ page }) => {
   await page.goto("/app/");

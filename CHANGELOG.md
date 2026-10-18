@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **One click opens a request, and the collections show each request's
+  method.** A request in the sidebar opened only on a double click, which
+  no other API client asks for, so a click seemed to do nothing. A click,
+  or Enter on the focused row, now opens it. Each request's method
+  (`GET`, `POST`, `DEL`) is shown before its name, in its colour.
+
 - **The website has a new design and a light theme.** The front page now
   plays a request and lists every request that left the tab, shows the
   app, says what changed in Postman's free plan with its sources, and

@@ -1,7 +1,7 @@
 {
   "$comment": [
     "The site's Content-Security-Policy (W1.2 of PLAN-design.md): the pages at / and everything under it but /app/, which has its own (security/csp.json). `npm run gen:csp` writes it under /* in packages/site/public/_headers, and the app's under /app/*, which detaches this one first.",
-    "Script from the site's own files only: public/site.js (the theme toggle and the landing's demo), the app's /app/theme.js, and on /docs/ the search. The site is built with Next.js, and React stays on the build machine (PLAN-design 1.8 and 1.9): packages/site/strip-scripts.mjs takes Next's scripts out of every page. No 'unsafe-inline', no 'unsafe-eval'; e2e/site.spec.ts holds every page to no inline script and none of Next's.",
+    "Script from the site's own files only: public/site.js (the theme toggle and the landing's demo), the app's /app/theme.js, and on /docs/ the search. The site is built with Next.js, and React stays on the build machine (PLAN-design 1.8 and 1.10): packages/site/strip-scripts.mjs takes Next's scripts out of every page. No 'unsafe-inline', no 'unsafe-eval'; e2e/site.spec.ts holds every page to no inline script and none of Next's.",
     "Styles, images and fonts come from the site's own files only: no inline style (Next writes CSS to files, the site's components write no style attribute, and Markdown's syntax highlighting, which would, is not used).",
     "No third party: the site's pages make no request to another origin (e2e/site.spec.ts). frame-ancestors 'none': nothing frames the site.",
     "connect-src 'self': Lighthouse reads robots.txt with a fetch from inside the page (its SEO audit scored 92 without it, W2.1), and the claims page reads /ci-run.json."

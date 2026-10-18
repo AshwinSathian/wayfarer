@@ -79,7 +79,7 @@ code errors.
   without its slash (`/app`) with a 307, as Workers do.
 - The site is Next.js with Tailwind 4 (`output: "export"`, PLAN-design
   1.8): React renders each page when the site is built, and the browser
-  gets none of it (1.9: it cost the landing 1.1 s of mobile LCP).
+  gets none of it (1.10: it cost the landing 1.1 s of mobile LCP).
   `strip-scripts.mjs`, in the site's build, takes every script Next adds out
   of the pages, with their files. So no component is `"use client"` and
   none has a handler: what a page does in the browser is a script file of

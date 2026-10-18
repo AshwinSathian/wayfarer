@@ -101,7 +101,7 @@ test("@claim:C-060 @claim:C-001 an OpenAPI 3.1 description in YAML imports with 
   await page.getByRole("tree").getByText("Pet shop", { exact: true }).click();
   await page.keyboard.press("ArrowRight");
   await openFolder(page, "pets");
-  await page.getByText("Add a pet", { exact: true }).dblclick();
+  await page.getByText("Add a pet", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue("{{baseUrl}}/echo?limit=20");
   const [sent] = await Promise.all([page.waitForRequest((candidate) => candidate.url() === "http://127.0.0.1:4300/echo?limit=20" && candidate.method() === "POST"), send(page)]);
   expect(sent.postData()).toBe(body);

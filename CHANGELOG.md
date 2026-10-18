@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A request's route, redirects and certificate check are in its Settings
+  tab.** They sat above every request with a sentence of explanation each,
+  followed by a section on what the browser does, and pushed the request
+  and its response down the page. They are now the request's Settings tab,
+  beside Params, Headers, Auth and Scripts, with what the browser does to
+  the request written out there. What will go wrong is still said above
+  the request: an address the browser will block, a header it will not
+  send, and a red "TLS verification off" while the certificate check is
+  off.
+
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,
   each done or not. The claims ledger shows, on each claim's row, the CI run

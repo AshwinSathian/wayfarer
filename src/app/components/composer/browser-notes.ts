@@ -1,20 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatOption } from "@angular/material/core";
-import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { MatSelect } from "@angular/material/select";
-import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
 
 /**
- * What the browser will do to the request being composed (plan P2.14): the
- * two things that change what arrives are said outright, the rest is in a
- * section to open. All of it is `WorkspaceStore.browserLimits`. Above them,
- * the request's route (P6.4).
+ * The request's Settings tab: how it is sent (its route, P6.4; redirects,
+ * P5.4; the certificate check, P6.1) and what the browser will do to it
+ * (P2.14, `WorkspaceStore.browserLimits`). What will go wrong with it is
+ * said above the request instead (`RequestWarnings`).
  */
 @Component({
   selector: "app-browser-notes",
-  imports: [Icon, MatAccordion, MatCheckbox, MatExpansionPanel, MatExpansionPanelHeader, MatOption, MatSelect],
+  imports: [MatCheckbox, MatOption, MatSelect],
   templateUrl: "./browser-notes.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

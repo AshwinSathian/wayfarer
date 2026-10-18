@@ -204,6 +204,11 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await page.getByRole("button", { name: "Save changes" }).click();
 }
 
+/** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */
+export async function openRequestSettings(page: Page): Promise<void> {
+  await page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true }).click();
+}
+
 export async function send(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Send request" }).click();
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, input, output } from "@angular/core";
+import { ApplicationRef, ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, input, output } from "@angular/core";
 import { MatIconButton } from "@angular/material/button";
 import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -22,6 +22,7 @@ import { Confirm } from "../../ui/confirm";
 export class TabStrip {
   protected readonly tabs = inject(Tabs);
   private readonly confirm = inject(Confirm);
+  private readonly app = inject(ApplicationRef);
 
   /** The panel the tabs are tabs of: the composer. */
   readonly panel = input.required<MatTabNavPanel>();
@@ -97,6 +98,9 @@ export class TabStrip {
     // A closed drawer is in the page too, and says `aria-modal` all the time.
     if (document.querySelector('.cdk-overlay-container [aria-modal="true"], .mat-drawer-opened[aria-modal="true"]')) return;
     event.preventDefault();
+    // The key may come in the same task as the last keystroke (#360), before the app has drawn it: `[ngModel]` would
+    // then see the new tab's address as unchanged and leave the field holding the old tab's. Draw first.
+    this.app.tick();
     if (event.code === "KeyT") this.open();
     else void this.close();
   }

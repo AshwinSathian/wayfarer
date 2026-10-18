@@ -48,6 +48,25 @@
 .method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head-text);    border: 1px solid rgba(99,99,102,0.20); }
 .method-badge.method-options { background: var(--method-options-fill); color: var(--method-options-text); border: 1px solid rgba(90,200,250,0.20); }
 
+/* A method as text alone, where a list names many (the collections tree).
+   A method of the user's own (any token) keeps the label colour. */
+.method-tag {
+  flex: 0 0 2.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+.method-tag.method-get     { color: var(--method-get-text); }
+.method-tag.method-post    { color: var(--method-post-text); }
+.method-tag.method-put     { color: var(--method-put-text); }
+.method-tag.method-patch   { color: var(--method-patch-text); }
+.method-tag.method-delete  { color: var(--method-delete-text); }
+.method-tag.method-head    { color: var(--method-head-text); }
+.method-tag.method-options { color: var(--method-options-text); }
+
 /* ── Status code badges ──────────────────────────────────── */
 .status-badge {
   display: inline-flex;

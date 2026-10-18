@@ -69,6 +69,11 @@
     "packages/site": {
       "ignore": [
         "public/**"
+      ],
+      "ignoreDependencies": [
+        "@fontsource-variable/bricolage-grotesque",
+        "@fontsource-variable/jetbrains-mono",
+        "@fontsource/atkinson-hyperlegible-next"
       ]
     }
   },

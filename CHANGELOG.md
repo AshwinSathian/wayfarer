@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website has a new design and a light theme.** The front page now
+  plays a request and lists every request that left the tab, shows the
+  app, says what changed in Postman's free plan with its sources, and
+  answers common questions. Site and app share one logo and one theme
+  setting: switch to light or dark on either and the other follows. The
+  site is built with Next.js and Tailwind; it still loads nothing from
+  another site, and runs no script that is not one of its own files.
+
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,
   each done or not. The claims ledger shows, on each claim's row, the CI run

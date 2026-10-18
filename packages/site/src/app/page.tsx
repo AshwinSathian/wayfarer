@@ -106,8 +106,8 @@ export default function Home() {
                 Your requests go to your API. Nowhere else.
               </h1>
               <p className="mt-6 max-w-xl text-lg text-ink-muted sm:text-xl">
-                Wayfarer is an API client that runs in a browser tab. There is nothing to install and no account to make, and it has no server of its
-                own: a request goes from your tab to the host you name. <Claims ids={["C-001"]} />
+                Wayfarer is an API client that runs in a browser tab, with nothing to install and no account to make. It has no server of its own: a
+                request goes from your tab to the host you name. <Claims ids={["C-001"]} />
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <a href="/app/" className="rounded-xl bg-route px-6 py-3.5 text-lg font-bold text-route-ink hover:opacity-90">
@@ -120,6 +120,27 @@ export default function Home() {
               <p className="mt-5 text-sm text-ink-muted">Free and open source, MIT licence. Tested in Chromium, Firefox and WebKit.</p>
             </div>
             <RouteDemo />
+          </div>
+        </section>
+
+        <section aria-labelledby="app" className="border-t border-line bg-paper-sunk">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <h2 id="app" className="max-w-3xl font-display text-3xl leading-[1.1] font-bold tracking-tight text-ink sm:text-[2.6rem]">
+              The rest of the app is in the same tab.
+            </h2>
+            <p className="mt-5 max-w-2xl text-lg text-ink-muted">
+              Collections, environments, history, the vault and scripts, kept in your browser. <Claims ids={["C-002"]} />
+            </p>
+            <img
+              className="mt-12 w-full rounded-xl border border-line-strong shadow-[0_30px_80px_-40px_rgb(18_22_32/0.6)]"
+              src="/app.jpg"
+              srcSet="/app-720.jpg 720w, /app.jpg 1440w"
+              sizes="(max-width: 1200px) 100vw, 1152px"
+              width={1440}
+              height={900}
+              loading="lazy"
+              alt="Wayfarer with a GET request to api.example.com/v1/users/42 and its JSON response, status 200"
+            />
           </div>
         </section>
 
@@ -154,7 +175,7 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section id="features" title="What it does while it stays out of the way">
+        <Section id="features" title="What else it does">
           <div className="mt-10">
             <Feature
               title="Secrets are encrypted before they are stored"
@@ -269,11 +290,11 @@ export default function Home() {
 
         <Section
           id="evidence"
-          title="Every sentence on this page names its test."
+          title="Each claim on this page names its test."
           intro={
             <p>
-              The small IDs above are rows of the claims ledger. Each row names the automated test that proves it, CI runs them on every change, and a
-              claim without a test fails the build. There are {ledger.length} of them. Here are five:
+              The small IDs above are rows of the claims ledger, and each row names the automated test that proves it. CI runs those tests on every
+              change, and a claim without a test fails the build. The ledger has {ledger.length} claims; here are five.
             </p>
           }
         >

@@ -159,5 +159,9 @@ export interface WayfarerDB extends DBSchema {
 }
 
 export const DB_NAME = "wayfarer";
-/** IndexedDB needs a number. There is one shape of the database, and this is it. */
-export const DB_VERSION = 1;
+/**
+ * IndexedDB needs a number; there is one shape of the database. Not 1: 1 is
+ * what `indexedDB.open(name)` makes when it is given no number, an empty
+ * database the app would then open as its own, with no stores.
+ */
+export const DB_VERSION = 2;

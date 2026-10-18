@@ -1,7 +1,7 @@
 import { IDBPDatabase } from "idb";
 import { WayfarerDB } from "./idb-schema";
 
-/** The `openDB(...).upgrade` handler: it runs once, on a browser that has no database yet, and makes the stores. */
+/** The `openDB(...).upgrade` handler: it runs once, on a browser that has no database of this number yet, and makes the stores. */
 export function createStores(db: IDBPDatabase<WayfarerDB>): void {
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
 

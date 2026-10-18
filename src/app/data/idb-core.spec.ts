@@ -22,10 +22,24 @@ describe("IdbCore", () => {
     expect(db).not.toBeNull();
   });
 
-  it("makes every store on a browser's first open, in a database named wayfarer at version 1", async () => {
+  it("makes its stores in a database that a versionless open left empty", async () => {
+    await new Promise<void>((resolve, reject) => {
+      const open = indexedDB.open(DB_NAME);
+      open.onsuccess = () => {
+        open.result.close();
+        resolve();
+      };
+      open.onerror = () => reject(open.error);
+    });
+    await service.init();
+    const db = await service.getDatabase();
+    expect(db?.objectStoreNames.contains("collections")).toBe(true);
+  });
+
+  it("makes every store on a browser's first open, in a database named wayfarer at version 2", async () => {
     await service.init();
     const db = (await service.getDatabase())!;
-    expect([db.name, db.version]).toEqual(["wayfarer", 1]);
+    expect([db.name, db.version]).toEqual(["wayfarer", 2]);
     expect(Array.from(db.objectStoreNames).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
   });
 

@@ -755,7 +755,8 @@ code errors.
   characters, in upper case (`isHttpMethod`): not a list of verbs. A file must carry the format's `$id`
   (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`).
 - There is one version of Wayfarer and one shape of its data (maintainer,
-  2026-10-19). The database is `wayfarer` at `DB_VERSION` 1, and
+  2026-10-19). The database is `wayfarer` at `DB_VERSION` 2 (not 1: a versionless
+  `indexedDB.open` makes an empty 1), and
   `createStores` (`idb-stores.ts`) makes its stores on a browser's first
   open. There is no upgrade, no check for another version, and no word in
   the app about an earlier or a later one. IndexedDB makes stores and

@@ -1,6 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database, `wayfarer`. Its stores are made on a browser's first open by `createStores` in `src/app/data/idb-stores.ts`. IndexedDB needs a number for a database's shape: `DB_VERSION` in `src/app/data/idb-schema.ts` is 1, and it stays 1. There is one shape and no upgrade.
+Wayfarer keeps everything in one IndexedDB database, `wayfarer`. Its stores are made on a browser's first open by `createStores` in `src/app/data/idb-stores.ts`. IndexedDB needs a number for a database's shape: `DB_VERSION` in `src/app/data/idb-schema.ts` is 2, and it stays 2: there is one shape and no upgrade. It is not 1 because 1 is what `indexedDB.open` makes when it is given no number, an empty database the app would take for its own.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|

@@ -47,7 +47,7 @@ function fixtureRequests(): SeededRequest[] {
 async function seedCollection(page: Page, requests: SeededRequest[], vars: Record<string, string> = {}): Promise<void> {
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  await page.waitForFunction(async () => (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 1));
+  await page.waitForFunction(async () => (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2));
   await page.evaluate(
     async ({ requests, vars }) => {
       const db = await new Promise<IDBDatabase>((resolve, reject) => {

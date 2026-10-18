@@ -1,3 +1,4 @@
+import { DocsFrame } from "../../../components/DocsFrame";
 import { REPO, docHtml, docs } from "../../../lib/content";
 
 export const dynamicParams = false;
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function DocPage({ params }: Props) {
   const id = (await params).slug.join("/");
   return (
-    <>
+    <DocsFrame current={id}>
       <article className="prose" data-pagefind-body dangerouslySetInnerHTML={{ __html: docHtml(id) }} />
       <p className="mt-12 text-sm text-ink-muted">
         <a className="underline underline-offset-4 hover:text-route" href={`${REPO}/blob/main/docs/${id}.md`}>
@@ -27,6 +28,6 @@ export default async function DocPage({ params }: Props) {
       </p>
       {/* The ledger's last CI result (W2.4): a file of the site's own, which adds a column to the table. */}
       {id === "claims" && <script src="/claims-ci.js" />}
-    </>
+    </DocsFrame>
   );
 }

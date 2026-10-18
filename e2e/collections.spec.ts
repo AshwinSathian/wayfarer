@@ -72,7 +72,7 @@ test.describe("Collections", () => {
     // the tree only ever emitted a lossy PastRequest-shaped object.
     await page.getByRole("button", { name: "New request", exact: true }).click();
     await expect(urlInput).toHaveValue("");
-    await page.getByText("My Saved Request", { exact: true }).dblclick();
+    await page.getByText("My Saved Request", { exact: true }).click();
     await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=7`);
 
     // Editing and hitting the now-"Save" (in-place) button persists the
@@ -90,7 +90,40 @@ test.describe("Collections", () => {
     // stale footer and the sidebar tree node can momentarily both match
     // the same text and trip Playwright's strict-mode check.
     await expect(page.getByRole("main").getByText("My Saved Request", { exact: true })).toBeHidden();
-    await page.getByText("My Saved Request", { exact: true }).dblclick();
+    await page.getByText("My Saved Request", { exact: true }).click();
     await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=8`);
+  });
+
+  // U-008 and U-009 of docs/design/audit.md: every rival opens a request on
+  // one click and names its method in the tree.
+  test("a click or Enter on a request opens it, and the tree shows its method", async ({ page }) => {
+    await page.goto("/app/");
+    const urlInput = page.locator("input.address-url");
+    const nameInput = page.locator("#creation-name-input");
+
+    await page.getByRole("button", { name: "New collection" }).click();
+    await nameInput.fill("One Click");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+
+    await page.getByLabel("HTTP method").fill("POST");
+    await urlInput.fill(`${ECHO}/echo?one=click`);
+    await page.getByRole("button", { name: "Save to Collection" }).click();
+    const saveDialog = page.getByRole("dialog", { name: "Save to Collection" });
+    await saveDialog.locator("#save-as-name").fill("Clicked");
+    await saveDialog.getByRole("button", { name: "Save", exact: true }).click();
+
+    const row = page.getByRole("treeitem", { name: "Clicked" });
+    await expect(row).toContainText("POST");
+
+    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await expect(urlInput).toHaveValue("");
+    await row.click();
+    await expect(urlInput).toHaveValue(`${ECHO}/echo?one=click`);
+
+    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await expect(urlInput).toHaveValue("");
+    await row.focus();
+    await page.keyboard.press("Enter");
+    await expect(urlInput).toHaveValue(`${ECHO}/echo?one=click`);
   });
 });

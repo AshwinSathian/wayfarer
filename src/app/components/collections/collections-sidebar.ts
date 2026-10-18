@@ -318,11 +318,16 @@ export class CollectionsSidebar implements OnInit {
     void this.handleAction(action, node);
   }
 
-  handleNodeDoubleClick(node: UiTreeNode<NodeData>): void {
+  handleNodeOpen(node: UiTreeNode<NodeData>): void {
     const data = node.data as NodeData | undefined;
-    if (data?.type === "request") {
+    if (data?.type === "request" && this.editingKey() !== node.key) {
       this.emitLoadRequest(data.ref);
     }
+  }
+
+  /** The method as the tree shows it: the two long ones shortened, as Postman does. */
+  protected methodLabel(method: string): string {
+    return method === "DELETE" ? "DEL" : method === "OPTIONS" ? "OPT" : method;
   }
 
   private emitLoadRequest(doc: RequestDoc): void {

@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **One click opens a request, and the collections show each request's
+  method.** A request in the sidebar opened only on a double click, which
+  no other API client asks for, so a click seemed to do nothing. A click,
+  or Enter on the focused row, now opens it. Each request's method
+  (`GET`, `POST`, `DEL`) is shown before its name, in its colour.
+
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,
   each done or not. The claims ledger shows, on each claim's row, the CI run

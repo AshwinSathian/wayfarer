@@ -32,7 +32,8 @@ interface Row<T> {
  * Material gives the tree its roles, levels and keys: one row is in the tab
  * order, arrow keys move between visible rows, Right and Left expand,
  * collapse or step to a child or parent, Home and End jump, a letter jumps
- * to the next row that starts with it, Enter or Space selects. Here: F2
+ * to the next row that starts with it, Enter or Space selects. Here: a
+ * click, Enter or Space also opens the node (`opened`); F2
  * asks to edit; a right-click selects the row and goes on up as a
  * `contextmenu` event, and Shift+F10 sends the row the same event.
  */
@@ -55,8 +56,8 @@ interface Row<T> {
         [class.ui-tree-row--drop-before]="dropTarget()?.key === node.key && dropTarget()?.before"
         [class.ui-tree-row--drop-after]="dropTarget()?.key === node.key && !dropTarget()?.before"
         (expandedChange)="setExpanded(node, $event)"
-        (activation)="select(node)"
-        (click)="select(node)"
+        (activation)="select(node); opened.emit(node)"
+        (click)="select(node); onClick(node, $event)"
         (contextmenu)="select(node)"
         (keydown)="onKeydown(node, $event)"
         (dragstart)="onDragStart(node, $event)"
@@ -82,6 +83,8 @@ export class Tree<T> {
   readonly group = input<(node: UiTreeNode<T>) => unknown>(() => null);
 
   readonly selected = output<UiTreeNode<T>>();
+  /** A click, Enter or Space on the row: the user wants what the node stands for. */
+  readonly opened = output<UiTreeNode<T>>();
   /** F2: the user wants to edit the node. */
   readonly edit = output<UiTreeNode<T>>();
   /** `node` moved; `siblings` are the nodes of its group under the same parent, in their new order. */
@@ -182,6 +185,12 @@ export class Tree<T> {
   protected select(node: UiTreeNode<T>): void {
     this.selectedKey.set(node.key);
     this.selected.emit(node);
+  }
+
+  protected onClick(node: UiTreeNode<T>, event: MouseEvent): void {
+    // A click into something inside a row (an inline rename) is not for the tree.
+    if ((event.target as HTMLElement).closest("input")) return;
+    this.opened.emit(node);
   }
 
   /** The keys Material's tree has no meaning for. It reads the rest from the same event, further up. */

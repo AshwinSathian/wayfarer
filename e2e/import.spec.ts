@@ -230,7 +230,7 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
   await page.getByRole("tree").getByText("Shop API", { exact: true }).click();
   await page.keyboard.press("ArrowRight");
   await openFolder(page, "Admin");
-  await page.getByText("List", { exact: true }).dblclick();
+  await page.getByText("List", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue("{{base}}/echo?x=1");
   const [sent] = await Promise.all([page.waitForRequest((candidate) => candidate.url() === "http://127.0.0.1:4300/echo?x=1" && candidate.method() === "GET"), send(page)]);
   expect(sent.headers()["x-shop-key"]).toBe("k-1");

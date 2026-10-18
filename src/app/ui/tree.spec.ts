@@ -9,8 +9,8 @@ const node = (key: string, data: Kind, children?: UiTreeNode<Kind>[], expanded?:
 @Component({
   imports: [Tree],
   template: `
-    <ui-tree ariaLabel="Files" [nodes]="nodes()" [group]="kind" (selected)="selected.push($event.key)" (contextmenu)="menus.push($event)" (edit)="edits.push($event.key)" (reorder)="onReorder($event)">
-      <ng-template let-node><span class="name">{{ node.label }}</span></ng-template>
+    <ui-tree ariaLabel="Files" [nodes]="nodes()" [group]="kind" (selected)="selected.push($event.key)" (opened)="opened.push($event.key)" (contextmenu)="menus.push($event)" (edit)="edits.push($event.key)" (reorder)="onReorder($event)">
+      <ng-template let-node><span class="name">{{ node.label }}</span>@if (node.key === "b.ts") {<input aria-label="Rename" />}</ng-template>
     </ui-tree>
   `,
 })
@@ -21,6 +21,7 @@ class TestHost {
   ]);
   readonly kind = (n: UiTreeNode<Kind>) => n.data;
   readonly selected: string[] = [];
+  readonly opened: string[] = [];
   readonly menus: MouseEvent[] = [];
   readonly edits: string[] = [];
   readonly reorders: { node: string; siblings: string[] }[] = [];
@@ -73,6 +74,21 @@ describe("ui-tree", () => {
     };
     return { fixture, host: fixture.componentInstance, root, rows, labels, row, press, drag, settle };
   }
+
+  it("opens a node on a click and on Enter, not on a click into a field inside its row or an arrow key", async () => {
+    const { host, row, press, settle } = await setup();
+    row("a.ts").click();
+    await settle();
+    expect(host.opened).toEqual(["a.ts"]);
+    row("b.ts").querySelector("input")!.click();
+    await settle();
+    expect(host.opened).toEqual(["a.ts"]);
+    row("a.ts").focus();
+    await press("ArrowDown");
+    expect(host.opened).toEqual(["a.ts"]);
+    await press("Enter");
+    expect(host.opened).toEqual(["a.ts", "b.ts"]);
+  });
 
   it("renders visible nodes as tree items with level, position, set size and expanded state; one row is in the tab order", async () => {
     const { fixture, root, rows, labels, row } = await setup();

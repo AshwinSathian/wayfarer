@@ -18,3 +18,7 @@ test("Next's scripts, inline or from /_next/, and their preloads go; the site's 
     '<script src="/app/theme.js"></script><script src="/site.js" defer></script><script type="application/ld+json">{"@type":"SoftwareApplication"}</script>'
   );
 });
+
+test("a script made of the pieces left by taking out another is taken out too", () => {
+  assert.equal(strip("<scr<script>a()</script>ipt>b()</script>"), "");
+});

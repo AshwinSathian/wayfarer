@@ -16,11 +16,14 @@ function kept(tag) {
   return /\stype="application\/ld\+json"/i.test(tag);
 }
 
-/** The page without Next's scripts and their preloads. */
+/** The page without Next's scripts and their preloads; again until nothing changes, so no tag is left made of the pieces of two. */
 export function strip(html) {
-  return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi, (tag) => (kept(tag) ? tag : ""))
-    .replace(/<link\b[^>]*\bas="script"[^>]*>/gi, "");
+  let before;
+  do {
+    before = html;
+    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi, (tag) => (kept(tag) ? tag : "")).replace(/<link\b[^>]*\bas="script"[^>]*>/gi, "");
+  } while (html !== before);
+  return html;
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

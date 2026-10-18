@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A run's report says what happened before it lists it.** It counts what
+  passed, what failed and what was skipped, shows how far a run has got,
+  and can show the failed requests alone. An error that two or more
+  requests ended with is said once above the table, with how many it was,
+  and each of those rows says "Same error as above": a run against a host
+  the page cannot reach repeated the same three lines on every row.
+
 - **One click opens a request, and the collections show each request's
   method.** A request in the sidebar opened only on a double click, which
   no other API client asks for, so a click seemed to do nothing. A click,

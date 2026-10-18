@@ -96,7 +96,7 @@ test("@claim:C-059 an Insomnia format 5 file in YAML imports with a report; its 
   await page.getByRole("tree").getByText("Shop API", { exact: true }).click();
   await page.keyboard.press("ArrowRight");
   await openFolder(page, "Admin");
-  await page.getByText("List", { exact: true }).dblclick();
+  await page.getByText("List", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue("{{base}}/echo?region={{region}}");
   const [sent] = await Promise.all([page.waitForRequest((candidate) => candidate.url() === "http://127.0.0.1:4300/echo?region=eu" && candidate.method() === "GET"), send(page)]);
   // The first environment the app is given becomes the active one. Its password wins over the collection's, which was

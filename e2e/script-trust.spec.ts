@@ -49,7 +49,7 @@ async function importFile(page: Page, post: string): Promise<void> {
   const dialog = page.getByRole("dialog", { name: "Import collection" });
   await dialog.getByRole("button", { name: "Confirm import" }).click();
   await expect(dialog).toHaveCount(0);
-  await page.getByTitle("Double-click to load into composer").getByText("Shared request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Shared request", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${TARGET}/trust`);
 }
 

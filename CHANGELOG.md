@@ -14,6 +14,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   no other API client asks for, so a click seemed to do nothing. A click,
   or Enter on the focused row, now opens it. Each request's method
   (`GET`, `POST`, `DEL`) is shown before its name, in its colour.
+- **The trust center says what the website measures: nothing.** It has no
+  analytics, no counter and no cookie, and loads nothing from another
+  site; the two scripts it runs (the docs' search and the claims page's
+  test column) are its own files.
 
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,

@@ -169,6 +169,20 @@ bot-detection script into the page. The site's Content-Security-Policy
 blocks both from running <!-- claim:C-011 -->, and they are being switched off at the host
 ([#75](https://github.com/AshwinSathian/wayfarer/issues/75)).
 
+## The website
+
+The website around the app (the front page, these docs, the changelog,
+the roadmap) does not count or track visits. It has no analytics script,
+no counter, no pixel, and it sets no cookie. Every file it loads comes
+from its own origin, and `e2e/site.spec.ts` loads each page to check that
+no request goes elsewhere and no cookie is set. Every script it runs is
+a file of the site itself, never one written into the page: the code its
+pages are built with (React, through Next.js), the docs' search, which
+searches in your browser and sends what you type nowhere, and the claims
+page's "Last CI" column. The host's own record of requests is described under
+Subprocessors below. The maintainer decided this on 2026-10-16; if it
+changes, this section will say what is measured before it is.
+
 ## Subprocessors
 
 **Cloudflare** hosts the app as static files at

@@ -17,6 +17,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   site is built with Next.js and Tailwind; it still loads nothing from
   another site, and runs no script that is not one of its own files.
 
+- **The trust center says what the website measures: nothing.** It has no
+  analytics, no counter and no cookie, and loads nothing from another
+  site; every script it runs is one of its own files.
+
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,
   each done or not. The claims ledger shows, on each claim's row, the CI run

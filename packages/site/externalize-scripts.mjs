@@ -14,8 +14,8 @@ const DIR = "_next/static/inline";
 
 /** The page with each inline script replaced by a reference to its file; `files` maps each file's name to its text. */
 export function externalize(html, files) {
-  return html.replace(/<script((?:\s[^>]*)?)>([\s\S]*?)<\/script>/g, (whole, attributes, body) => {
-    if (/\ssrc=/.test(attributes) || /\stype="(application\/(ld\+)?json|importmap)"/.test(attributes) || body === "") return whole;
+  return html.replace(/<script((?:\s[^>]*)?)>([\s\S]*?)<\/script[^>]*>/gi, (whole, attributes, body) => {
+    if (/\ssrc=/i.test(attributes) || /\stype="(application\/(ld\+)?json|importmap)"/i.test(attributes) || body === "") return whole;
     const name = `${createHash("sha256").update(body).digest("hex").slice(0, 32)}.js`;
     files.set(name, body);
     return `<script${attributes} src="/${DIR}/${name}"></script>`;

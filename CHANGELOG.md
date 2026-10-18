@@ -21,6 +21,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   removed the first builds' Angular worker is gone from the site's root.
   The "Update available" prompt for a new deploy stays.
 
+- **A request's route, redirects and certificate check are in its Settings
+  tab.** They sat above every request with a sentence of explanation each,
+  followed by a section on what the browser does, and pushed the request
+  and its response down the page. They are now the request's Settings tab,
+  beside Params, Headers, Auth and Scripts, with what the browser does to
+  the request written out there. What will go wrong is still said above
+  the request: an address the browser will block, a header it will not
+  send, and a red "TLS verification off" while the certificate check is
+  off.
+
 - **One click opens a request, and the collections show each request's
   method.** A request in the sidebar opened only on a double click, which
   no other API client asks for, so a click seemed to do nothing. A click,

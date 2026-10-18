@@ -1,10 +1,4 @@
-/** Wayfarer's mark: a route from one stop to another. */
+/** Wayfarer's mark: the app's own file (public/icons/logo.svg of the app), so the site and the app show one. */
 export function Mark({ className = "" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
-      <path d="M5 18c4 0 3.5-7 7-7s3-6 7-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeDasharray="0.1 4.2" />
-      <circle cx="5" cy="18" r="2.6" fill="currentColor" />
-      <circle cx="19" cy="5" r="2.6" fill="none" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
+  return <img src="/app/icons/logo.svg" alt="" width={26} height={26} className={`rounded-md ${className}`} />;
 }

@@ -16,7 +16,7 @@ export function Header() {
     <header className="border-b border-line bg-paper">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
         <a href="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-ink">
-          <Mark className="size-6 text-route" />
+          <Mark className="size-7" />
           Wayfarer
         </a>
         <nav aria-label="Site" className="hidden gap-6 text-[0.95rem] text-ink-muted md:flex">

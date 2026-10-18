@@ -1,9 +1,4 @@
 @import "tailwindcss" source("../");
-@import "@fontsource-variable/bricolage-grotesque";
-@import "@fontsource/atkinson-hyperlegible-next/400.css";
-@import "@fontsource/atkinson-hyperlegible-next/400-italic.css";
-@import "@fontsource/atkinson-hyperlegible-next/700.css";
-@import "@fontsource-variable/jetbrains-mono";
 
 /*
  * The site's palette (PLAN-design 1.8): the paper of a survey map, its ink, and one route drawn across it in the
@@ -65,9 +60,9 @@
 }
 
 @theme inline {
-  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", monospace;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
 
   --color-paper: var(--paper);
   --color-paper-raised: var(--paper-raised);

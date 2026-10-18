@@ -49,8 +49,9 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Terminal({ children }: { children: ReactNode }) {
-  return <pre className="overflow-x-auto rounded-xl bg-code-bg p-5 font-mono text-[0.8rem] leading-6 whitespace-pre text-code-ink">{children}</pre>;
+function Terminal({ label, children }: { label: string; children: ReactNode }) {
+  // It scrolls sideways on a narrow window, so it takes focus: a keyboard can scroll it.
+  return <pre tabIndex={0} aria-label={label} className="overflow-x-auto rounded-xl bg-code-bg p-5 font-mono text-[0.8rem] leading-6 whitespace-pre text-code-ink">{children}</pre>;
 }
 
 const QUESTIONS: [string, ReactNode][] = [
@@ -241,7 +242,7 @@ export default function Home() {
             <Feature
               title="The same run in CI"
               figure={
-                <Terminal>
+                <Terminal label="A collection run in a terminal">
                   <span className="text-code-muted">$ </span>npx wayfarer-cli run users.postman.json --allow-scripts{"\n"}
                   <span className="text-code-string">✓</span> Get a user: 200 OK, 17 ms{"\n"}
                   {"    "}

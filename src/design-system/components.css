@@ -215,14 +215,9 @@
   color: var(--label-tertiary);
 }
 
+/* The mark, public/icons/logo.svg: the one file the app and the site both show. */
 .brand-logo-icon {
-  width: 26px;
-  height: 26px;
   border-radius: var(--radius-sm);
-  background: var(--gradient-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(76, 110, 245, 0.35);
 }

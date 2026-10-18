@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { send } from "./support/app";
+import { openRequestSettings, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.14: before a request is sent, the composer says what the browser will
@@ -10,22 +10,24 @@ import { ECHO } from "./support/echo";
 const notes = (page: Page) => page.locator("app-browser-notes");
 
 async function setHeader(page: Page, name: string, value: string): Promise<void> {
+  await page.locator("app-composer").getByRole("tab", { name: "Headers", exact: true }).first().click();
   const panel = page.locator("app-headers-panel");
   await panel.getByPlaceholder("name").last().fill(name);
   await panel.getByPlaceholder("value").last().fill(value);
 }
 
-async function openPanel(page: Page): Promise<void> {
-  await notes(page).getByRole("button", { name: /What the browser does to this request/ }).click();
-}
+const warnings = (page: Page) => page.locator("app-request-warnings");
+
+/** What the browser does is in the request's Settings tab. */
+const openPanel = openRequestSettings;
 
 test("@claim:C-049 a Cookie header is shown as dropped, and the browser does drop it", async ({ page }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
-  await expect(notes(page).locator(".browser-note-dropped")).toHaveCount(0);
+  await expect(warnings(page).locator(".browser-note-dropped")).toHaveCount(0);
 
   await setHeader(page, "Cookie", "session=abc");
-  const dropped = notes(page).locator(".browser-note-dropped");
+  const dropped = warnings(page).locator(".browser-note-dropped");
   await expect(dropped).toContainText("The browser will not send Cookie");
 
   // What was said is what happened: the server saw no cookie, and saw the headers listed as added.
@@ -88,5 +90,5 @@ test("an http:// address is not called mixed content on a page that is itself ht
   await page.locator("input.address-url").fill("http://example.invalid/x");
   await openPanel(page);
   await expect(notes(page).locator(".browser-note-preflight")).toBeVisible();
-  await expect(notes(page).locator(".browser-note-mixed")).toHaveCount(0);
+  await expect(page.locator(".browser-note-mixed")).toHaveCount(0);
 });

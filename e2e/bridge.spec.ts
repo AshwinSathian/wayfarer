@@ -5,7 +5,7 @@ import { createServer, type Server } from "node:http";
 import { createServer as createTlsServer } from "node:https";
 import type { AddressInfo } from "node:net";
 import { expect, test, type Page } from "@playwright/test";
-import { openSettings, seedAndOpen, send } from "./support/app";
+import { openRequestSettings, openSettings, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 
@@ -139,10 +139,11 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
     await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
     await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
 
+    await openRequestSettings(page);
     const box = page.getByRole("checkbox", { name: "Do not verify the server's certificate" });
     await box.check();
     const notes = page.locator("app-browser-notes .tls-insecure");
-    await expect(notes.locator(".tls-off-pill")).toHaveText("TLS verification off");
+    await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveText("TLS verification off");
     await expect(notes).toContainText("the Local Bridge accepts any certificate");
 
     const relayed = page.waitForResponse((response) => response.url().endsWith("/relay") && response.request().method() === "POST");
@@ -169,7 +170,7 @@ test("a server whose certificate nobody vouches for: refused as it is, and with 
 
     // The setting is the request's: unchecked, the next send is verified again.
     await box.uncheck();
-    await expect(notes.locator(".tls-off-pill")).toHaveCount(0);
+    await expect(page.locator("app-request-warnings .tls-off-pill")).toHaveCount(0);
     await send(page);
     await expect(viewer).toContainText("unable to verify the first certificate", { timeout: 15_000 });
     await expect(viewer.locator(".tls-off-pill")).toHaveCount(0);
@@ -185,6 +186,7 @@ test("nothing is wider than the window with verification off said in the compose
   try {
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
     await routeThroughBridge(page, bridge);
+    await openRequestSettings(page);
     await page.getByRole("checkbox", { name: "Do not verify the server's certificate" }).check();
     await send(page);
     await expect(page.locator("app-response-viewer .tls-off-pill")).toBeVisible({ timeout: 15_000 });

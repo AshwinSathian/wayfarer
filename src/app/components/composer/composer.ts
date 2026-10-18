@@ -17,6 +17,7 @@ import { SocketClient } from "../../services/socket-client";
 import { ResponseViewer } from "../response-viewer/response-viewer";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
+import { RequestWarnings } from "./request-warnings";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
 import { ComposerView } from "./composer-view";
@@ -46,6 +47,7 @@ import { VariableChips } from "./variable-chips";
     ResponseViewer,
     AddressRow,
     BrowserNotes,
+    RequestWarnings,
     VariableChips,
     ParamsPanel,
     HeadersPanel,

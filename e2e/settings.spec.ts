@@ -80,7 +80,7 @@ test.describe("Settings surface", () => {
   test("on a phone Settings is the list, a section opens in its place, and All settings goes back", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
     await expect(list).toBeVisible();
@@ -103,7 +103,7 @@ test.describe("Settings surface", () => {
     await page.goto("/app/");
     await page.keyboard.press("Meta+K");
     await page.getByPlaceholder("Type a command").fill("Settings");
-    await page.getByText("Settings", { exact: true }).click();
+    await page.getByRole("dialog", { name: "Command palette" }).getByText("Settings", { exact: true }).click();
     await expect(page.getByPlaceholder("Type a command")).toBeHidden();
     await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
   });

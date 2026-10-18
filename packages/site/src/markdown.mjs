@@ -6,8 +6,8 @@ import GithubSlugger from "github-slugger";
 import { Marked } from "marked";
 import { siteLink } from "./doc-links.mjs";
 
-const ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
-const textOf = (html) => html.replace(/<[^>]*>/g, "").replace(/&(amp|lt|gt|quot|#39);/g, (entity) => ENTITIES[entity]);
+/** A heading's text as GitHub slugs it: the words of its tokens, without any markup. */
+const textOf = (tokens) => tokens.map((token) => (token.tokens ? textOf(token.tokens) : (token.text ?? ""))).join("");
 const escape = (text) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
 /** The HTML of `markdown`, the file at `from` (a path from the repository's root). */
@@ -17,8 +17,7 @@ export function renderMarkdown(markdown, from) {
     gfm: true,
     renderer: {
       heading({ tokens, depth }) {
-        const html = this.parser.parseInline(tokens);
-        return `<h${depth} id="${escape(slugger.slug(textOf(html)))}">${html}</h${depth}>\n`;
+        return `<h${depth} id="${escape(slugger.slug(textOf(tokens)))}">${this.parser.parseInline(tokens)}</h${depth}>\n`;
       },
       link({ href, title, tokens }) {
         const titled = title ? ` title="${escape(title)}"` : "";

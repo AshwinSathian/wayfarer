@@ -50,7 +50,7 @@ export function RouteDemo() {
             {step.phase === "typing" && <span className="caret ml-px inline-block h-[1em] w-px translate-y-[0.15em] bg-ink" />}
           </span>
           <span
-            className={`rounded-md px-3 py-1.5 text-sm font-bold ${step.phase === "sending" ? "bg-route/70 text-route-ink" : "bg-route text-route-ink"}`}
+            className="rounded-md bg-route px-3 py-1.5 text-sm font-bold text-route-ink"
           >
             {step.phase === "sending" ? "Sending" : "Send"}
           </span>
@@ -92,8 +92,8 @@ export function RouteDemo() {
               Wayfarer itself, from this site, once. After the first visit it loads from your browser, offline too. <Claims ids={["C-015"]} />
             </p>
           </li>
-          <li className={`relative pl-9 ${answered ? "arrive" : "opacity-35"}`}>
-            <span aria-hidden="true" className="absolute left-[5px] top-1.5 size-3.5 rounded-full border-2 border-route bg-route" />
+          <li className={`relative pl-9 ${answered ? "arrive" : ""}`}>
+            <span aria-hidden="true" className={`absolute left-[5px] top-1.5 size-3.5 rounded-full border-2 border-route ${answered ? "bg-route" : "border-dashed bg-paper"}`} />
             <code className="text-[0.8rem] text-ink">GET api.example.com/v1/users/42</code>
             <p className="text-sm text-ink-muted">
               Your request, from this tab to the host you named. <Claims ids={["C-001"]} />

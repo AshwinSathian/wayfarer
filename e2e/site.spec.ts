@@ -145,7 +145,7 @@ test("no page of the site has an inline script, an inline handler or a style att
   for (const path of sitePages()) {
     const file = `${DEPLOY}${path.endsWith("/") ? `${path}index.html` : path}`;
     const html = readFileSync(file, "utf8");
-    const inline = [...html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)].filter(([, attributes = "", body]) => !/\ssrc=/.test(attributes) && !/application\/(ld\+)?json/.test(attributes) && body !== "");
+    const inline = [...html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script[^>]*>/gi)].filter(([, attributes = "", body]) => !/\ssrc=/i.test(attributes) && !/application\/(ld\+)?json/i.test(attributes) && body !== "");
     expect(inline.map(([script]) => script.slice(0, 80)), path).toEqual([]);
     expect(html.match(/\s(style|on[a-z]+)="/g) ?? [], path).toEqual([]);
   }

@@ -20,3 +20,10 @@ test("a script with a source, one that is data and an empty one stay as they are
   externalize("<script>same</script><script>same</script>", files);
   assert.equal(files.size, 1);
 });
+
+test("a script written in capitals, or closed with a space, is moved too", () => {
+  const files = new Map();
+  const html = externalize('<SCRIPT>a()</SCRIPT ><script >b()</script\n>', files);
+  assert.equal(files.size, 2);
+  assert.doesNotMatch(html, /a\(\)|b\(\)/);
+});

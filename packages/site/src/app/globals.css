@@ -62,7 +62,7 @@
 @theme inline {
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+  --font-mono: ui-monospace, "SFMono-Regular", monospace;
 
   --color-paper: var(--paper);
   --color-paper-raised: var(--paper-raised);

@@ -18,6 +18,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the request: an address the browser will block, a header it will not
   send, and a red "TLS verification off" while the certificate check is
   off.
+
 - **The trust center says what the website measures: nothing.** It has no
   analytics, no counter and no cookie, and loads nothing from another
   site; the two scripts it runs (the docs' search and the claims page's

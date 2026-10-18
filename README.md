@@ -136,6 +136,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Claims](docs/claims.md): every public claim and the test behind it
 - [Deployment](docs/deployment.md) and [Runbook](docs/runbook.md): how the hosted app ships, for the maintainer
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
+- [Design audit, 2026](docs/design/audit.md): what is wrong with the interface today, finding by finding, with screenshots
 
 ## Security
 

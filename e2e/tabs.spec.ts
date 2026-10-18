@@ -66,7 +66,7 @@ test("an edit marks the tab unsaved; a saved request opened again goes to its ta
   await expect(unsaved(tabs(page).first())).toBeVisible();
 
   await page.getByRole("button", { name: "New tab" }).click();
-  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Tripwire request", { exact: true }).click();
   await expect(tabs(page)).toHaveCount(2);
   await expect(tabs(page).first()).toHaveAttribute("aria-selected", "true");
   await expect(address(page)).toHaveValue(`${ECHO}/echo?edited=1`);

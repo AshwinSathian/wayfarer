@@ -72,7 +72,7 @@ test("a request made in a collection starts with inherit; a collection's setting
   await page.getByRole("menuitem", { name: "New Request" }).click();
   await page.locator("#creation-name-input").fill("Made here");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByTitle("Double-click to load into composer").getByText("Made here", { exact: true }).dblclick();
+  await page.getByRole("tree").getByText("Made here", { exact: true }).click();
   await authTab(page).click();
   await expect(page.locator(".auth-inherited")).toHaveText('Bearer Token is sent, from collection "Tripwire collection".');
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
@@ -135,7 +135,7 @@ test.describe("scripts of a collection and a folder", () => {
     await dialog.getByRole("button", { name: "Confirm import" }).click();
     await expect(dialog).toHaveCount(0);
     await openFolder(page, "Inherited folder");
-    await page.getByTitle("Double-click to load into composer").getByText("Inherited request", { exact: true }).dblclick();
+    await page.getByRole("tree").getByText("Inherited request", { exact: true }).click();
     await expect(page.locator("input.address-url")).toHaveValue(`${TARGET}/inherited`);
 
     // Sent, and none of the five scripts ran.

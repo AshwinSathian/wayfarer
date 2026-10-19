@@ -384,9 +384,19 @@ code errors.
 
 ## Angular Material
 
+- **Material is on its way out (D1.5, maintainer, 2026-10-19;
+  `docs/design/widget-bakeoff.md`).** The composite widgets (tree, select,
+  menus, tabs, accordion, toolbars) move to Angular Aria with our own
+  styles; dialogs, tooltips, buttons, inputs and checkboxes to the
+  platform (`<dialog>`, `popover`, the native elements); the CDK stays. D3.3
+  replaces one family per PR, with its keyboard e2e. Until a family has
+  moved, it stays Material and the rules below hold for it, also for a new
+  use of it (a button in a new feature is still `matButton`, and moves with
+  its family). A family the app does not use yet is not added from
+  Material.
 - Widgets are Angular Material components (maintainer, 2026-10-09; this
-  reverses the "custom on CDK" default of decision D14 in the plan). A new
-  widget is a Material component, themed as below. `src/app/ui` holds only:
+  reverses the "custom on CDK" default of decision D14 in the plan). A
+  widget not yet moved by D3.3 is a Material component, themed as below. `src/app/ui` holds only:
   - wrappers that give a Material component what this app needs from it:
     `ui-dialog` (a dialog opened from a template), `Confirm`, `ui-tree`;
   - what Material has no component for, built on the CDK: `ui-splitter`,

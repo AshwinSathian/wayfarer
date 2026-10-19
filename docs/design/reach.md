@@ -66,10 +66,13 @@ old app with no site around it.
 
 ### The repository
 
-- **What is done:** the repository's description and website field already
-  name the app. Its topics would add `api-client`, `rest-client`,
-  `postman-alternative`, `local-first` and `offline-first`.
-- **Status:** topics not set; the maintainer sets them.
+- **What is there:** the description and the website field name the app.
+  Its topics are `angular`, `indexeddb`, `api-client`, `api-testing`,
+  `developer-tools`, `http-client`, `local-first`, `primeng`, `rest-client`
+  and `typescript` (read 2026-10-19).
+- **What is proposed:** add `postman-alternative` and `offline-first`, and
+  take out `primeng`, which the app no longer uses.
+- **Status:** not changed; the maintainer changes them.
 
 ## Not on the list, and why
 

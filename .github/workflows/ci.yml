@@ -6,9 +6,13 @@ on:
   push:
     branches: [main]
 
+# deploy.yml deploys only a successful push run on main, so each commit of
+# main gets a group of its own: a new run in a group cancels the one pending
+# there even without cancel-in-progress. A pull request's new commit cancels
+# its older run.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

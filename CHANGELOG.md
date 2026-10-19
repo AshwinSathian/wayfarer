@@ -29,6 +29,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Every change merged to `main` keeps its own test run, so each one can be
+  deployed.** A merge cancelled the run of the change merged just before it
+  when that run was still going or waiting, and only a finished run of
+  `main` can be deployed: the 2.6.0 release's run was cancelled twice this
+  way. A pull request's new commit still cancels its older run.
+
 - **`wayfarer-cli` 2.0.2: a request that gets no connection says why, as a
   command line can.** It said what the app says in a browser: that the host
   "may not allow cross-origin requests from this site (CORS)", that "the

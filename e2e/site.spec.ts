@@ -112,7 +112,7 @@ test("the blog lists its posts, each a page, and its RSS feed has an item for ea
     await expect(page.locator("article"), href).not.toBeEmpty();
   }
   await page.goto("/");
-  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute("href", "/blog/rss.xml");
+  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute("href", "https://wayfarer.ashwinsathian.com/blog/rss.xml");
 });
 
 // One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).

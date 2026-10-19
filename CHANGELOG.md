@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Cancel and the request timeout are a claim with tests (C-042).** A
+  request on its way can be cancelled, and Settings, Requests, sets a
+  timeout, none by default. Both were there since 2.0 but not in the
+  claims ledger or the README's list.
+
 - **The docs say where Wayfarer will be listed and announced, and when**
   (`docs/design/reach.md`). Nothing has been posted yet.
 

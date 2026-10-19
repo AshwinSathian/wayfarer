@@ -57,6 +57,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - The Body tab offers the modes none, raw, form, multipart, binary and GraphQL; GET and HEAD have no Body tab and send no body. <!-- claim:C-039 -->
 - Scripts are edited in Monaco and have the parts of Postman's script API that `docs/postman-compatibility.md` lists; that document is written from the compatibility matrix, each row of which is a test that runs in Node and in the app's worker, and what is not supported throws an error that names it. <!-- claim:C-040 -->
 - The Local Bridge relays only for an allowed origin that presents its token. <!-- claim:C-041 -->
+- A request on its way can be cancelled, and a request timeout can be set in Settings; by default there is none. <!-- claim:C-042 -->
 - The vault passphrase can be changed: the old one stops working and no secret is re-encrypted. <!-- claim:C-043 -->
 - The vault can be exported as a file that holds only ciphertext and opens with its passphrase, and imported into another vault. <!-- claim:C-044 -->
 - A request with a `{{variable}}` that has no value is held back until the user chooses to send it as written. <!-- claim:C-045 -->

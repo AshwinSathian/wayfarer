@@ -104,7 +104,7 @@
 .ds-panel {
   background: var(--canvas-panel);
   border: 1px solid var(--separator);
-  border-top-color: var(--glass-border);
+  border-top-color: var(--border-subtle);
   border-radius: var(--radius-xl);
 }
 
@@ -136,8 +136,6 @@
   padding: 0 20px;
   font: inherit;
   letter-spacing: inherit;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--separator);
   position: sticky;
   top: 0;
@@ -216,7 +214,7 @@
 
 /* ── Timing waterfall ────────────────────────────────────── */
 .timing-bar-fill {
-  background: var(--gradient-accent);
+  background: var(--accent-solid);
   border-radius: var(--radius-full);
 }
 

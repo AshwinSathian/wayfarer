@@ -1,0 +1,678 @@
+{
+  "$description": "Wayfarer's dark theme (direction A, Workbench): warm graphite. DTCG 2025.10; colours in OKLCH.",
+  "canvas": {
+    "$description": "Surfaces, darkest at the sidebar, lightest where a surface floats.",
+    "canvas-app": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.196091, 0.004248, 84.5908]
+      }
+    },
+    "canvas-sidebar": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.178407, 0.002613, 67.6588]
+      }
+    },
+    "canvas-panel": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.218127, 0.00414, 84.5884]
+      }
+    },
+    "canvas-elevated": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.247717, 0.005756, 91.5971]
+      }
+    },
+    "canvas-overlay": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.28089, 0.005586, 91.5728]
+      }
+    }
+  },
+  "fill": {
+    "$description": "Translucent fills over a surface: a control, a hover, a press.",
+    "fill-primary": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.11
+      }
+    },
+    "fill-secondary": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.06
+      }
+    },
+    "fill-hover": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.06
+      }
+    },
+    "fill-active": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.1
+      }
+    }
+  },
+  "label": {
+    "$description": "Text. scripts/contrast.test.mjs holds each to 4.5:1 on every canvas; -on-fill is a step stronger for text on a fill.",
+    "label-primary": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.937203, 0.007028, 88.6443]
+      }
+    },
+    "label-secondary": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.70084, 0.014147, 82.3969]
+      }
+    },
+    "label-secondary-on-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.74277, 0.01395, 82.3983]
+      }
+    },
+    "label-tertiary": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.671444, 0.014293, 82.3956]
+      }
+    },
+    "label-placeholder": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.658276, 0.014362, 82.3949]
+      }
+    }
+  },
+  "separator": {
+    "$description": "Hairlines between areas.",
+    "separator": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.08
+      }
+    },
+    "separator-opaque": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.28089, 0.005586, 91.5728]
+      }
+    }
+  },
+  "accent": {
+    "$description": "The one accent: plain for rings and borders, -text for words, -solid under white text.",
+    "accent": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.694926, 0.083139, 177.2047]
+      }
+    },
+    "accent-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.694926, 0.083139, 177.2047],
+        "alpha": 0.14
+      }
+    },
+    "accent-border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.694926, 0.083139, 177.2047],
+        "alpha": 0.4
+      }
+    },
+    "accent-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.811502, 0.071303, 176.5218]
+      }
+    },
+    "accent-solid": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.495977, 0.069083, 177.9612]
+      }
+    },
+    "accent-solid-hover": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.540142, 0.074851, 178.4413]
+      }
+    },
+    "accent-solid-active": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.444958, 0.061157, 178.2963]
+      }
+    }
+  },
+  "surface": {
+    "$description": "Surfaces that float (toolbar, menus, dialogs). Opaque: with no blur behind them, transparency let the page show through (audit U-025).",
+    "surface-toolbar": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.196091, 0.004248, 84.5908]
+      }
+    },
+    "surface-overlay": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.28089, 0.005586, 91.5728]
+      }
+    },
+    "surface-dialog": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.28089, 0.005586, 91.5728]
+      }
+    }
+  },
+  "border": {
+    "$description": "Edges of floating surfaces and controls: -subtle a top-edge highlight, -strong an outline.",
+    "border-subtle": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.07
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.12
+      }
+    }
+  },
+  "status": {
+    "$description": "Success, warning, error and information. The plain colour is for fills, borders and icons; -text is for words.",
+    "status-success": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.693885, 0.131058, 154.4209]
+      }
+    },
+    "status-success-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.693885, 0.131058, 154.4209],
+        "alpha": 0.14
+      }
+    },
+    "status-success-border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.693885, 0.131058, 154.4209],
+        "alpha": 0.32
+      }
+    },
+    "status-warning": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.782365, 0.171055, 67.2231]
+      }
+    },
+    "status-warning-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.782365, 0.171055, 67.2231],
+        "alpha": 0.14
+      }
+    },
+    "status-warning-border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.782365, 0.171055, 67.2231],
+        "alpha": 0.32
+      }
+    },
+    "status-error": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.663303, 0.22361, 28.2919]
+      }
+    },
+    "status-error-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.663303, 0.22361, 28.2919],
+        "alpha": 0.14
+      }
+    },
+    "status-error-border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.663303, 0.22361, 28.2919],
+        "alpha": 0.32
+      }
+    },
+    "status-info": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.654536, 0.156207, 262.5018]
+      }
+    },
+    "status-info-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.654536, 0.156207, 262.5018],
+        "alpha": 0.14
+      }
+    },
+    "status-info-border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.654536, 0.156207, 262.5018],
+        "alpha": 0.32
+      }
+    },
+    "status-success-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.798795, 0.112998, 154.7546]
+      }
+    },
+    "status-warning-text": {
+      "$value": "{status.status-warning}"
+    },
+    "status-error-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.732713, 0.164045, 26.2303]
+      }
+    },
+    "status-info-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.763874, 0.095282, 258.4836]
+      }
+    }
+  },
+  "method": {
+    "$description": "HTTP methods as Postman colours them: GET green, POST amber, PUT blue, PATCH purple, DELETE red. -text is for words.",
+    "method-get": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.693885, 0.131058, 154.4209]
+      }
+    },
+    "method-get-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.693885, 0.131058, 154.4209],
+        "alpha": 0.12
+      }
+    },
+    "method-post": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.755843, 0.136484, 76.8402]
+      }
+    },
+    "method-post-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.755843, 0.136484, 76.8402],
+        "alpha": 0.12
+      }
+    },
+    "method-put": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.654536, 0.156207, 262.5018]
+      }
+    },
+    "method-put-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.654536, 0.156207, 262.5018],
+        "alpha": 0.12
+      }
+    },
+    "method-patch": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.684445, 0.144968, 309.9925]
+      }
+    },
+    "method-patch-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.684445, 0.144968, 309.9925],
+        "alpha": 0.12
+      }
+    },
+    "method-delete": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.63737, 0.18285, 26.7079]
+      }
+    },
+    "method-delete-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.63737, 0.18285, 26.7079],
+        "alpha": 0.12
+      }
+    },
+    "method-head": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.625638, 0.011953, 76.5537]
+      }
+    },
+    "method-head-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.625638, 0.011953, 76.5537],
+        "alpha": 0.12
+      }
+    },
+    "method-options": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.707909, 0.095588, 214.9654]
+      }
+    },
+    "method-options-fill": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.707909, 0.095588, 214.9654],
+        "alpha": 0.12
+      }
+    },
+    "method-get-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.798795, 0.112998, 154.7546]
+      }
+    },
+    "method-post-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.808311, 0.127406, 75.2685]
+      }
+    },
+    "method-put-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.763874, 0.095282, 258.4836]
+      }
+    },
+    "method-patch-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.788744, 0.111627, 309.8759]
+      }
+    },
+    "method-delete-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.74034, 0.126046, 26.4545]
+      }
+    },
+    "method-head-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.74277, 0.01395, 82.3983]
+      }
+    },
+    "method-options-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.8039, 0.080416, 213.0972]
+      }
+    }
+  },
+  "scrollbar": {
+    "$description": "The scrollbar's thumb.",
+    "scrollbar-thumb": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.12
+      }
+    },
+    "scrollbar-thumb-hover": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.973929, 0.022517, 78.2215],
+        "alpha": 0.22
+      }
+    }
+  },
+  "selection": {
+    "$description": "Selected text.",
+    "selection-bg": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [0.694926, 0.083139, 177.2047],
+        "alpha": 0.32
+      }
+    },
+    "selection-text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "oklch",
+        "components": [1, 0, "none"]
+      }
+    }
+  },
+  "shadow": {
+    "$description": "Shadows under floating surfaces.",
+    "shadow-overlay": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "oklch",
+            "components": [0, 0, "none"],
+            "alpha": 0.45
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 8,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 28,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "oklch",
+            "components": [0, 0, "none"],
+            "alpha": 0.3
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 1,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 3,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        }
+      ]
+    },
+    "shadow-dialog": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "oklch",
+            "components": [0, 0, "none"],
+            "alpha": 0.55
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 24,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 64,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        },
+        {
+          "color": {
+            "colorSpace": "oklch",
+            "components": [0, 0, "none"],
+            "alpha": 0.3
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 4,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 16,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 0,
+            "unit": "px"
+          }
+        }
+      ]
+    }
+  },
+  "glow": {
+    "$description": "The focus ring's glow.",
+    "glow-accent": {
+      "$type": "shadow",
+      "$value": [
+        {
+          "color": {
+            "colorSpace": "oklch",
+            "components": [0.694926, 0.083139, 177.2047],
+            "alpha": 0.32
+          },
+          "offsetX": {
+            "value": 0,
+            "unit": "px"
+          },
+          "offsetY": {
+            "value": 0,
+            "unit": "px"
+          },
+          "blur": {
+            "value": 0,
+            "unit": "px"
+          },
+          "spread": {
+            "value": 3,
+            "unit": "px"
+          }
+        }
+      ]
+    }
+  }
+}

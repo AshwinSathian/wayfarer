@@ -18,6 +18,7 @@ npm -w packages/core run typecheck   # packages/core compiles without the DOM ty
 npm run test:scripts    # scripts/ and e2e/support
 npm run check:claims    # every documented claim has a ledger row and a test
 npm run check:csp       # index.html and _headers match security/csp.json
+npm run check:tokens    # src/design-system/tokens.css and tokens.ts are what packages/tokens gives
 npm run check:compat    # docs/postman-compatibility.md is what the compatibility matrix gives
 npm run check:readme    # README's feature list is docs/claims.md (npm run gen:readme writes it)
 npm run check:links     # every doc link leads to a file; README links every doc
@@ -307,9 +308,19 @@ code errors.
 
 ## Styling and layout
 
+- The design tokens are `packages/tokens` (D3.1): DTCG 2025.10 files
+  (`base`, `dark`, `light`), colours in OKLCH. `npm run gen:tokens` writes
+  `src/design-system/tokens.css` and `tokens.ts` (the colours as hex, for
+  Monaco, which cannot read a CSS variable); never edit either. A colour
+  must be inside sRGB (the build refuses one that is not), and a token the
+  app does not read fails `packages/tokens/tokens.test.mjs`: delete it.
+  `scripts/contrast.test.mjs` reads the package.
 - Tailwind CSS 4. Its configuration is the `@theme` block in
   `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
-  Tailwind names onto the design tokens in `src/design-system/tokens.css`.
+  Tailwind names onto the tokens. A token whose name is Tailwind's own
+  (`--radius-md`, `--font-mono`) needs no entry: the tokens are outside any
+  layer and win over Tailwind's theme, which is in one. Do not give `@theme`
+  a value of its own for such a name; it was dead, and said something else.
 - Only `tailwindcss/theme.css` and `tailwindcss/utilities.css` are
   imported. **No preflight**: the design system is the base. The utilities
   are imported without a cascade layer on purpose, so source order decides

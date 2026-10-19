@@ -30,7 +30,7 @@
   --ctl-success-tint: color-mix(in srgb, var(--status-success), transparent 94%);
   --ctl-success-tint-strong: color-mix(in srgb, var(--status-success), transparent 84%);
   --ctl-surface: var(--canvas-elevated);
-  --ctl-surface-border: var(--glass-border-strong);
+  --ctl-surface-border: var(--border-strong);
   --ctl-surface-muted: var(--label-secondary);
   --ctl-surface-text: var(--label-primary);
   --ctl-segment-checked: var(--canvas-overlay);
@@ -268,7 +268,7 @@
   content: none;
 }
 
-/* Send — the gradient call to action */
+/* Send: the call to action */
 .send-btn.mat-mdc-button-base.mdc-button {
   height: 40px;
   padding: 0 22px;
@@ -409,11 +409,9 @@
 /* ── Popover: a card of details under its trigger ────────── */
 .ui-popover {
   padding: 0.75rem;
-  border: 1px solid var(--glass-border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
-  background: var(--glass-overlay);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--surface-overlay);
   box-shadow: var(--shadow-overlay);
 }
 
@@ -721,10 +719,8 @@
   max-height: 200px;
   margin-block: 2px;
   padding: 4px;
-  border: 1px solid var(--glass-border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .mat-mdc-select-panel .mat-mdc-option {
@@ -795,9 +791,7 @@
    Colours and type come through Material's tokens. */
 .cdk-overlay-pane .mat-mdc-menu-panel {
   min-width: 160px;
-  border: 1px solid var(--glass-border-strong);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-strong);
 }
 
 .cdk-overlay-pane .mat-mdc-menu-panel.menu-context {
@@ -848,7 +842,7 @@
 .confirm-panel .mat-mdc-dialog-surface {
   max-height: 90vh;
   overflow: hidden;
-  border: 1px solid var(--glass-border-strong);
+  border: 1px solid var(--border-strong);
 }
 
 .dialog-header {
@@ -914,8 +908,6 @@
 
 .mat-drawer.drawer {
   max-width: 100vw;
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
 }
 
 .mat-drawer.drawer:not(.mat-drawer-end) {
@@ -946,12 +938,10 @@
 }
 
 .ui-confirm-popup .cdk-dialog-container {
-  border: 1px solid var(--glass-border-strong);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   outline: none;
-  background: var(--glass-overlay);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--surface-overlay);
   box-shadow: var(--shadow-overlay);
 }
 

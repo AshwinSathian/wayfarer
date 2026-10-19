@@ -328,6 +328,16 @@ code errors.
   (`scripts/input-fonts.test.mjs` fails on one that says neither). On a
   Material input `font-mono` works through the rule in `controls.css`:
   Material's `font: inherit` loads later and beat the class alone.
+- Durations and easings are the `motion` tokens (`docs/design/motion.md`):
+  no stylesheet or template writes its own (`0.2s`, `ease-in-out`,
+  Tailwind's `duration-150`; the token test fails). Tailwind's transition
+  utilities take `--dur-quick` and `--ease-standard` from `@theme`. With
+  reduced motion `animations.css` makes everything last `--dur-none`
+  (0.001 ms, not 0: Material waits for the end events), with no delay and
+  one run; do not give a transition `!important` on a class, or it beats
+  that rule. A script that moves something (`scrollIntoView` with
+  `smooth`) asks `prefers-reduced-motion` itself. Nothing loops but a
+  loading skeleton. `e2e/motion.spec.ts` checks all of it.
 - Tailwind CSS 4. Its configuration is the `@theme` block in
   `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
   Tailwind names onto the tokens. A token whose name is Tailwind's own

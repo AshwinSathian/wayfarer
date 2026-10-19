@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Reduced motion now stops all of the app's motion, and nothing pulses
+  forever.** With your system set to reduce motion, hover colours on
+  history rows and on other elements still faded over 0.12 s, and the
+  address field still scrolled smoothly into view; neither does now. A missing variable's chip pulsed for
+  as long as it was there; it pulses twice and then holds still. Switching
+  the theme no longer fades every element of the page at once; it is
+  instant. What moves, and for how long, is now written down in
+  `docs/design/motion.md`.
+
 - **What you type and what a server sends are in a monospace font.** The
   address, every param, header, form and multipart row, the variables, the
   auth fields, the tests, the bridge's address and token, the response's

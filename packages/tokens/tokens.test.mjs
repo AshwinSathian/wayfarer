@@ -64,3 +64,17 @@ test("no text is under 12 px: the scale, every font-size in the stylesheets, and
   for (const [file, text] of sources(/\.(html|ts)$/)) for (const m of text.matchAll(/text-\[([\d.]+)px\]/g)) if (Number(m[1]) < 12) small.push(`${file}: ${m[0]}`);
   assert.deepEqual(small, []);
 });
+
+test("no stylesheet or template writes a duration or an easing of its own: they are the motion tokens", () => {
+  const own = [];
+  for (const [file, text] of sources(/\.(css|scss)$/, (file) => /design-system\/tokens\.css$/.test(file))) {
+    // A declaration of motion runs on until its semicolon: a transition list spans lines.
+    for (const m of text.matchAll(/\b(transition|animation)(-[a-z-]+)?\s*:([^;{}]*);/g)) {
+      const value = m[3].replace(/var\(--[\w-]+\)/g, "");
+      // 0s is no time at all, which needs no token.
+      if (/(?<![\w.-])(?!0s\b)[\d.]+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)\b|cubic-bezier|steps\(/.test(value)) own.push(`${file}: ${m[0].replace(/\s+/g, " ").trim()}`);
+    }
+  }
+  for (const [file, text] of sources(/\.(html|ts)$/)) for (const m of text.matchAll(/(?<![\w-])(duration|delay|ease)-(\d+|in|out|in-out|linear)(?![\w-])/g)) own.push(`${file}: ${m[0]}`);
+  assert.deepEqual(own, []);
+});

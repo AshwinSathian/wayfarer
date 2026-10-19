@@ -64,7 +64,9 @@ export class AddressRow {
     if (!el) {
       return;
     }
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // A script's scroll is not CSS: reduced motion is asked here (docs/design/motion.md).
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
     el.focus();
   }
 

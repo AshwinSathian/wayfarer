@@ -53,7 +53,7 @@
     }
   },
   "motion": {
-    "$description": "Durations and easings. D3.4 is their spec.",
+    "$description": "Durations and easings: docs/design/motion.md is their spec. No stylesheet writes a duration or an easing of its own (packages/tokens/tokens.test.mjs).",
     "ease-standard": {
       "$type": "cubicBezier",
       "$value": [0.25, 0, 0, 1]
@@ -91,6 +91,31 @@
       "$type": "duration",
       "$value": {
         "value": 300,
+        "unit": "ms"
+      }
+    },
+    "ease-in-out": {
+      "$type": "cubicBezier",
+      "$value": [0.42, 0, 0.58, 1]
+    },
+    "dur-pulse": {
+      "$type": "duration",
+      "$value": {
+        "value": 2000,
+        "unit": "ms"
+      }
+    },
+    "dur-shimmer": {
+      "$type": "duration",
+      "$value": {
+        "value": 1200,
+        "unit": "ms"
+      }
+    },
+    "dur-none": {
+      "$type": "duration",
+      "$value": {
+        "value": 0.001,
         "unit": "ms"
       }
     }

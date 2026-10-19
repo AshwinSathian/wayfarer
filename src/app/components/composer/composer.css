@@ -1,10 +1,9 @@
 /* ── Resizable composer/response split (desktop) ─────────────
-   The splitter needs a resolved height to share between its two panes.
-   The subtracted amount approximates the toolbar + address bar + variable
-   chips chrome above it; each pane scrolls internally past that. */
+   The splitter takes the panel's height left below the address and its
+   notes; each pane scrolls inside itself. A short window scrolls the panel. */
 .composer-response-splitter {
-  height: calc(100vh - 260px);
-  min-height: 460px;
+  flex: 1 1 0;
+  min-height: 320px;
 }
 
 .composer-pane,

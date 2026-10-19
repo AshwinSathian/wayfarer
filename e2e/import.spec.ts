@@ -1,6 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { test, expect, type Page } from "@playwright/test";
-import { dumpIdb, openFolder, send } from "./support/app";
+import { dumpIdb, openEnvironments, openFolder, send } from "./support/app";
 
 // P4.1: the one road by which a file reaches the stores. Read, map and
 // check (in a worker), report, confirm, write. Run with CI=1 (the built app).
@@ -93,6 +93,7 @@ test("a file of no known format is refused with a message that names the formats
 test("one road: a collection file picked with the Environments panel's Import is imported as the collection it is", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
+  await openEnvironments(page);
   await page.locator('app-environments-manager input[type="file"]').setInputFiles(file("shared.json", collection([request("r-1", "Plain")])));
   await dialog(page).getByRole("button", { name: "Confirm import" }).click();
   await expect(page.getByText("Imported collection", { exact: true })).toBeVisible();

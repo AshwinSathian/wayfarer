@@ -1,6 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { expect, test, type Download, type Page } from "@playwright/test";
-import { protectVariable, seedAndOpen } from "./support/app";
+import { openEnvironments, protectVariable, seedAndOpen } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P4.6 (b): a collection and an environment as Postman files. That Newman
@@ -81,6 +81,7 @@ test("@claim:C-057 a collection exports as a Postman Collection v2.1 file: auth 
 test("@claim:C-057 an environment exports as a Postman environment file: one environment, a protected variable of type secret with no value unless asked", async ({ page }) => {
   await seedAndOpen(page, { host: "localhost" }, { method: "GET", url: `${ECHO}/echo` });
   await protectVariable(page, "API_TOKEN", SECRET);
+  await openEnvironments(page);
   await page.getByRole("button", { name: "Export environments" }).click();
   const dialog = page.getByRole("dialog", { name: "Export environments" });
   await dialog.getByRole("radio", { name: "With the vault" }).click();

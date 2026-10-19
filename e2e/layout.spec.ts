@@ -390,14 +390,15 @@ test.describe("the response's height", () => {
     );
     const editor = page.locator("app-response-viewer app-json-editor");
     const height = async () => (await editor.boundingBox())?.height ?? 0;
-    await page.setViewportSize({ width: 1440, height: 900 });
+    // 1000 px: at 900 the status bar and the response's own controls (audit U-030) leave the editor its 300 px minimum.
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/app/");
     await page.locator("input.address-url").fill("https://fills.test/items");
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
     await expect.poll(height).toBeGreaterThan(300);
     const short = await height();
-    await page.setViewportSize({ width: 1440, height: 1300 });
+    await page.setViewportSize({ width: 1440, height: 1400 });
     await expect.poll(height).toBeGreaterThan(short + 300);
     // The pane holds it: the editor ends inside the response pane.
     const pane = await page.locator(".response-pane").boundingBox();

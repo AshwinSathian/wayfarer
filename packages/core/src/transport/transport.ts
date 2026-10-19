@@ -165,7 +165,7 @@ export async function withDeadline<T>(options: TransportOptions, run: (signal: A
     if (cause instanceof TransportError) throw cause;
     if (timedOut) throw new TransportError("timeout", `Timed out after ${options.timeoutMs} ms`);
     if (options.signal.aborted) throw new TransportError("aborted", "The request was cancelled.");
-    throw new TransportError("network", cause instanceof Error ? cause.message : String(cause));
+    throw new TransportError("network", networkMessage(cause));
   } finally {
     clearTimeout(timer);
     options.signal.removeEventListener("abort", cancel);
@@ -236,4 +236,15 @@ export async function readEventStream(response: Response, signal: AbortSignal, o
     stopped = true;
   }
   return { body: kept.slice(0, size).buffer, stream: { stopped, ...(truncated && { truncated }) } };
+}
+
+/**
+ * What a failed fetch says. Node's names the reason in its cause's code
+ * (`ECONNREFUSED`, `ENOTFOUND`); a browser's says "Failed to fetch" and no
+ * more. The code alone is kept: the cause's message holds the address.
+ */
+function networkMessage(cause: unknown): string {
+  if (!(cause instanceof Error)) return String(cause);
+  const code: unknown = cause.cause instanceof Error && "code" in cause.cause ? cause.cause.code : undefined;
+  return typeof code === "string" && /^[A-Z][A-Z0-9_]*$/.test(code) ? `${cause.message} (${code})` : cause.message;
 }

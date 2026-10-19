@@ -395,7 +395,7 @@
   inset: 0;
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, var(--fill-primary), transparent);
-  animation: ui-skeleton-shimmer 1.2s infinite;
+  animation: ui-skeleton-shimmer var(--dur-shimmer) var(--ease-in-out) infinite;
 }
 
 @keyframes ui-skeleton-shimmer {
@@ -556,8 +556,8 @@
   letter-spacing: inherit;
   color: var(--ctl-surface-muted);
   transition:
-    background 0.2s,
-    color 0.2s;
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard);
 }
 
 .sections .mat-expansion-panel-header:hover,

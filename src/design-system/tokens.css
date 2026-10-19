@@ -22,6 +22,10 @@
   --dur-quick: 120ms;
   --dur-standard: 240ms;
   --dur-enter: 300ms;
+  --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+  --dur-pulse: 2000ms;
+  --dur-shimmer: 1200ms;
+  --dur-none: 0.001ms;
 
   /* font */
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;

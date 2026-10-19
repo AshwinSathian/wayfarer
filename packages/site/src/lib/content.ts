@@ -37,13 +37,26 @@ export function docDescription(id: string): string {
     .split(/\n\s*\n/)
     .map((block) => block.trim())
     .find((block) => block !== "" && !/^(#|>|\||[-*] |```|<!--|\d+\. )/.test(block));
-  const text = (paragraph ?? "")
+  // Plain text: a comment (a claim's marker) and anything that looks like a tag are cut by their brackets, and any
+  // bracket left goes, so nothing of markup is in the description.
+  const text = cutComments(paragraph ?? "")
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<!--.*?-->/g, "")
-    .replace(/[`*_]/g, "")
+    .replace(/[`*_<>]/g, "")
     .replace(/\s+/g, " ")
     .trim();
   return text.length > 160 ? `${text.slice(0, 157).replace(/\s+\S*$/, "")}…` : text;
+}
+
+/** `text` without its HTML comments, an unclosed one to the end. */
+function cutComments(text: string): string {
+  let out = "";
+  let at = 0;
+  for (let open = text.indexOf("<!--"); open !== -1; open = text.indexOf("<!--", at)) {
+    out += text.slice(at, open);
+    const close = text.indexOf("-->", open + 4);
+    at = close === -1 ? text.length : close + 3;
+  }
+  return out + text.slice(at);
 }
 
 export function docHtml(id: string): string {

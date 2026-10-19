@@ -78,6 +78,29 @@ for (const name of ["dark", "light"]) {
     }
   });
 
+  test(`${name}: every text token reads on every surface, placeholders included`, () => {
+    for (const text of ["--label-primary", "--label-secondary", "--label-secondary-on-fill", "--label-tertiary", "--label-placeholder", "--accent-text"]) {
+      for (const surface of SURFACES) {
+        const ratio = contrast(colour(text), colour(surface));
+        assert.ok(ratio >= 4.5, `${text} on ${surface}: ${ratio.toFixed(2)}:1`);
+      }
+    }
+  });
+
+  test(`${name}: the focus ring (--accent) stands out from every surface`, () => {
+    for (const surface of SURFACES) {
+      const ratio = contrast(colour("--accent"), colour(surface));
+      assert.ok(ratio >= 3, `--accent on ${surface}: ${ratio.toFixed(2)}:1`);
+    }
+  });
+
+  test(`${name}: white reads on the accent's fill, at rest, hovered and pressed`, () => {
+    for (const state of ["", "-hover", "-active"]) {
+      const ratio = contrast([255, 255, 255, 1], colour(`--accent-solid${state}`));
+      assert.ok(ratio >= 4.5, `white on --accent-solid${state}: ${ratio.toFixed(2)}:1`);
+    }
+  });
+
   test(`${name}: white reads on a primary button, at rest, hovered and pressed`, () => {
     for (const state of ["", "-hover", "-active"]) {
       const ratio = contrast([255, 255, 255, 1], colour(`--ctl-primary-fill${state}`));

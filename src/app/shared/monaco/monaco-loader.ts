@@ -140,33 +140,54 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
     return;
   }
   sandboxThemesDefined = true;
+  // Monaco cannot read CSS variables: these are src/design-system/tokens.css's values (direction A), as hex.
   monaco.editor.defineTheme("sandbox-dark", {
     base: "vs-dark",
     inherit: true,
     rules: [
-      { token: "string.key.json", foreground: "a5b4fc" },
-      { token: "string.value.json", foreground: "22c55e" },
-      { token: "number.json", foreground: "f59e0b" },
-      { token: "keyword.json", foreground: "ef4444" },
+      { token: "string.key.json", foreground: "8DB4EF" },
+      { token: "string.value.json", foreground: "7FD39D" },
+      { token: "number.json", foreground: "F0B45A" },
+      { token: "keyword.json", foreground: "F08A80" },
     ],
     colors: {
-      "editor.background": "#141720",
-      "editor.foreground": "#e6e8f0",
-      "editorLineNumber.foreground": "#4c5070",
-      "editorLineNumber.activeForeground": "#8a8fa8",
-      "editor.selectionBackground": "#6366f130",
-      "editor.lineHighlightBackground": "#1a1d2880",
-      "editorCursor.foreground": "#6366f1",
-      "editor.inactiveSelectionBackground": "#6366f118",
-      "scrollbarSlider.background": "#ffffff20",
-      "scrollbarSlider.hoverBackground": "#ffffff38",
-      "scrollbarSlider.activeBackground": "#ffffff50",
+      "editor.background": "#1B1A18",
+      "editor.foreground": "#ECEAE5",
+      "editorLineNumber.foreground": "#6E6A63",
+      "editorLineNumber.activeForeground": "#A39E95",
+      "editor.selectionBackground": "#5FAE9C40",
+      "editor.lineHighlightBackground": "#22211E80",
+      "editorCursor.foreground": "#8FD1C0",
+      "editor.inactiveSelectionBackground": "#5FAE9C20",
+      "scrollbarSlider.background": "#fff5e61f",
+      "scrollbarSlider.hoverBackground": "#fff5e638",
+      "scrollbarSlider.activeBackground": "#fff5e650",
+    },
+  });
+  monaco.editor.defineTheme("sandbox-light", {
+    base: "vs",
+    inherit: true,
+    rules: [
+      { token: "string.key.json", foreground: "2453A6" },
+      { token: "string.value.json", foreground: "1F6B3E" },
+      { token: "number.json", foreground: "7D4D00" },
+      { token: "keyword.json", foreground: "A8322B" },
+    ],
+    colors: {
+      "editor.background": "#FFFFFF",
+      "editor.foreground": "#22211F",
+      "editorLineNumber.foreground": "#A39E95",
+      "editorLineNumber.activeForeground": "#6B675F",
+      "editor.selectionBackground": "#2F6F6233",
+      "editor.lineHighlightBackground": "#F6F5F2",
+      "editorCursor.foreground": "#2F6F62",
+      "editor.inactiveSelectionBackground": "#2F6F621A",
     },
   });
 }
 
 export function monacoThemeName(theme: "dark" | "light"): string {
-  return theme === "dark" ? "sandbox-dark" : "vs";
+  return theme === "dark" ? "sandbox-dark" : "sandbox-light";
 }
 
 /**

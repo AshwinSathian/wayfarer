@@ -3,79 +3,56 @@
    Markup: native elements plus the directives in src/app/ui/.
    ============================================================ */
 
-/* Control colours that are not general design tokens. */
+/* Control colours, from the design tokens in both themes (CLAUDE.md): the
+   primary is the accent (direction A, PLAN-design 1.9), a neutral is a
+   label or a fill, and nothing here is a colour of its own. */
 [data-theme="dark"],
 :root {
-  --ctl-primary: #818cf8;
-  --ctl-primary-hover: #a5b4fc;
-  --ctl-primary-active: #c7d2fe;
-  /* Behind white text: --ctl-primary is a text colour here (white on it is
-     2.98:1). These are the brand gradient's start and two steps around it. */
-  --ctl-primary-fill: #405dd0;
-  --ctl-primary-fill-hover: #4a5ae0;
-  --ctl-primary-fill-active: #3348c2;
-  --ctl-primary-border: #4338ca;
-  --ctl-primary-tint: color-mix(in srgb, #818cf8, transparent 96%);
-  --ctl-primary-tint-strong: color-mix(in srgb, #818cf8, transparent 84%);
-  /* The earlier dark values here were #252840 on dark surfaces (1.03:1). */
+  /* As text and icons; behind white text, the -fill steps (accent-solid). */
+  --ctl-primary: var(--accent-text);
+  --ctl-primary-hover: var(--accent-text);
+  --ctl-primary-active: var(--accent-text);
+  /* What sits on --ctl-primary as a fill (a checkbox's tick): dark on the light green of this theme. */
+  --ctl-on-primary: var(--canvas-app);
+  --ctl-primary-fill: var(--accent-solid);
+  --ctl-primary-fill-hover: var(--accent-solid-hover);
+  --ctl-primary-fill-active: var(--accent-solid-active);
+  --ctl-primary-border: var(--accent-border);
+  --ctl-primary-tint: color-mix(in srgb, var(--accent), transparent 94%);
+  --ctl-primary-tint-strong: color-mix(in srgb, var(--accent), transparent 84%);
   --ctl-neutral: var(--label-secondary-on-fill);
   --ctl-neutral-tint: var(--fill-hover);
   --ctl-neutral-tint-strong: var(--fill-active);
-  --ctl-danger: #f87171;
-  --ctl-danger-tint: color-mix(in srgb, #f87171, transparent 96%);
-  --ctl-danger-tint-strong: color-mix(in srgb, #f87171, transparent 84%);
-  --ctl-success: #4ade80;
-  --ctl-success-tint: color-mix(in srgb, #4ade80, transparent 96%);
-  --ctl-success-tint-strong: color-mix(in srgb, #4ade80, transparent 84%);
-  /* Dark-theme surfaces use the design tokens. The values PrimeNG left here
-     drew a pale grey accordion with near-black text on a black app, and
-     chevrons and menu icons at 1.2:1. */
+  --ctl-danger: var(--status-error-text);
+  --ctl-danger-tint: color-mix(in srgb, var(--status-error), transparent 94%);
+  --ctl-danger-tint-strong: color-mix(in srgb, var(--status-error), transparent 84%);
+  --ctl-success: var(--status-success-text);
+  --ctl-success-tint: color-mix(in srgb, var(--status-success), transparent 94%);
+  --ctl-success-tint-strong: color-mix(in srgb, var(--status-success), transparent 84%);
   --ctl-surface: var(--canvas-elevated);
-  --ctl-surface-border: #474d70;
+  --ctl-surface-border: var(--glass-border-strong);
   --ctl-surface-muted: var(--label-secondary);
   --ctl-surface-text: var(--label-primary);
-  --ctl-segment-checked: #6b7280;
+  --ctl-segment-checked: var(--canvas-overlay);
   --ctl-chevron: var(--label-secondary);
-  --ctl-highlight: rgba(99, 102, 241, 0.15);
-  --ctl-highlight-text: #a5b4fc;
+  --ctl-highlight: var(--accent-fill);
+  --ctl-highlight-text: var(--accent-text);
   --ctl-menu-icon: var(--label-secondary);
-  --ctl-drawer-shadow: rgba(0, 0, 0, 0.50);
-  /* --status-error on --status-error-fill is 3.5:1 on overlay surfaces. */
-  --ctl-danger-on-fill: #ff7a70;
+  --ctl-drawer-shadow: rgba(0, 0, 0, 0.45);
+  --ctl-danger-on-fill: var(--status-error-text);
 }
 
 [data-theme="light"] {
-  /* #6366f1 was 4.46:1 under white text and as text on white. */
-  --ctl-primary: #4f46e5;
-  --ctl-primary-hover: #4338ca;
-  --ctl-primary-active: #3730a3;
-  --ctl-primary-fill: var(--ctl-primary);
-  --ctl-primary-fill-hover: var(--ctl-primary-hover);
-  --ctl-primary-fill-active: var(--ctl-primary-active);
-  --ctl-primary-border: #c7d2fe;
-  --ctl-primary-tint: #eef2ff;
-  --ctl-primary-tint-strong: #e0e7ff;
-  --ctl-neutral: #64748b;
-  --ctl-neutral-tint: #f8fafc;
-  --ctl-neutral-tint-strong: #f1f5f9;
-  /* The earlier #ef4444 is 3.8:1 on the light surfaces. */
-  --ctl-danger: #c81e1e;
-  --ctl-danger-tint: #fef2f2;
-  --ctl-danger-tint-strong: #fee2e2;
-  --ctl-success: #22c55e;
-  --ctl-success-tint: #f0fdf4;
-  --ctl-success-tint-strong: #dcfce7;
-  --ctl-surface: #ffffff;
-  --ctl-surface-border: #e2e8f0;
-  --ctl-surface-muted: #64748b;
-  --ctl-surface-text: #334155;
-  --ctl-segment-checked: #ffffff;
-  --ctl-chevron: #94a3b8;
-  --ctl-highlight: #eef2ff;
-  --ctl-highlight-text: #4338ca;
-  --ctl-menu-icon: #94a3b8;
-  --ctl-drawer-shadow: rgba(0, 0, 0, 0.12);
-  --ctl-danger-on-fill: #c81e1e;
+  --ctl-on-primary: #ffffff;
+  --ctl-neutral: var(--label-secondary);
+  --ctl-neutral-tint: var(--fill-secondary);
+  --ctl-neutral-tint-strong: var(--fill-primary);
+  --ctl-surface: var(--canvas-panel);
+  --ctl-surface-border: var(--separator-opaque);
+  --ctl-segment-checked: var(--canvas-panel);
+  --ctl-chevron: var(--label-tertiary);
+  --ctl-menu-icon: var(--label-tertiary);
+  --ctl-drawer-shadow: rgba(40, 30, 10, 0.12);
 }
 
 /* ── Button ──────────────────────────────────────────────── */
@@ -297,23 +274,19 @@
   padding: 0 22px;
   border: none;
   border-radius: var(--radius-lg);
-  background: var(--gradient-accent);
+  background: var(--accent-solid);
   color: #ffffff;
-  font-weight: 560;
+  font-weight: 600;
   letter-spacing: -0.006em;
-  box-shadow: 0 2px 12px rgba(76, 110, 245, 0.35), 0 1px 2px rgba(0, 0, 0, 0.20);
 }
 
+/* No glow and no lift: the button the app is used for, all day (audit U-019). */
 .send-btn.mat-mdc-button-base.mdc-button:not(:disabled):hover {
-  background: var(--gradient-accent);
-  box-shadow: 0 4px 18px rgba(76, 110, 245, 0.50), 0 1px 4px rgba(0, 0, 0, 0.25);
-  transform: translateY(-1px) scale(1.01);
+  background: var(--accent-solid-hover);
 }
 
 .send-btn.mat-mdc-button-base.mdc-button:not(:disabled):active {
-  background: var(--gradient-accent);
-  transform: translateY(0) scale(0.97);
-  box-shadow: 0 1px 6px rgba(76, 110, 245, 0.30);
+  background: var(--accent-solid-active);
 }
 
 .send-btn.mat-mdc-button-base.mdc-button:disabled {
@@ -464,6 +437,12 @@
   display: none;
 }
 
+/* Tabs are fractions of a pixel wide and the scroll range is whole pixels:
+   without this pixel WebKit could not scroll the last tab fully in. */
+.tab-bar .mat-mdc-tab-links {
+  padding-inline-end: 1px;
+}
+
 .tab-bar .mat-mdc-tab-link.mdc-tab {
   min-width: 0;
   height: auto;
@@ -484,7 +463,7 @@
 }
 
 .tab-bar .mat-mdc-tab-link.mdc-tab--active {
-  font-weight: 580;
+  font-weight: 500;
 }
 
 .tab-bar .mat-mdc-tab-link .mdc-tab__ripple::before {
@@ -519,7 +498,7 @@
 
 .request-tab-method {
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--label-secondary);
 }
 
@@ -779,7 +758,7 @@
 .field.method-field input.mat-mdc-input-element {
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

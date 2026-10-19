@@ -29,7 +29,7 @@ The candidates:
 | Aria 22.2.3 | `ngTree` | `ngCombobox` on a `div`, `ngListbox` in a CDK overlay | `ngMenu` in a CDK overlay |
 | Platform | ours, to WAI-ARIA's tree pattern | native `<select>` (`appearance: base-select` where there is one) | `popover`, placed and keyed by us |
 
-The prototype is the branch `proto/d1.5-widgets` (commit `ef16e81`), at
+The prototype is the branch `proto/d1.5-widgets` (commit `682af6c`), at
 `/app/?bakeoff=material`, `aria` or `platform`. It is never merged.
 
 ## The tests
@@ -98,8 +98,7 @@ system 179 selectors that reach into Material's own classes (`.mat-*`,
 And one it does not fix: in Chromium the select drops a key that comes
 within 10 ms of the key that opened it (End after Enter chose nothing at 0
 and 10 ms and was right from 25 ms; Firefox and WebKit were right at 0 ms).
-A person does not type that fast; a test, a macro or a screen reader's
-command can.
+A person does not type that fast; a test or a macro can.
 
 Aria has no positioning: its menus and lists are placed by the CDK's
 overlay, and it needs `@angular/cdk` as a peer dependency.
@@ -115,17 +114,20 @@ written by us, and two bugs found and fixed in our own code:
    is written at once.
 
 The native select needs no keyboard code, and cannot be styled the same
-in every engine: `appearance: base-select` is in Chromium only.
+in every engine: `appearance: base-select` is in Chromium (156) and WebKit
+(27.2), not in Firefox (157).
 
 ## What each costs
 
 **Bundle**, the candidate alone over an empty Angular app (the
 `size-*` projects of the branch's `angular.json`, production build, the
-initial JavaScript):
+initial JavaScript). Material's candidate draws its chevrons with the app's
+icon set, which the others do not load: that set (34 kB raw, 10 kB
+transfer, `size-icon`) is taken off its figure.
 
 | | Raw | Estimated transfer |
 |---|---|---|
-| Material | 323 kB | 77 kB |
+| Material | 290 kB | 67 kB |
 | Aria (with the CDK overlay) | 184 kB | 42 kB |
 | Platform | 44 kB | 13 kB |
 
@@ -136,16 +138,37 @@ minification, so its shares hold better than its sizes). The bake-off covers thr
 Material's entry points.
 
 **Rendering**, the 1,000-row tree, from the page's start to its last row,
-median of five runs, one worker:
+median of five runs, one worker. `ui-tree` draws an SVG chevron on every
+row, which the others draw as text; Material's line is measured with
+`ui-tree`'s chevron made text as well, and with the icons in brackets:
 
 | | Chromium | Firefox | WebKit |
 |---|---|---|---|
-| Material | 374 ms | 806 ms | 560 ms |
+| Material | 303 ms (374) | 642 ms (806) | 465 ms (560) |
 | Aria | 357 ms | 462 ms | 321 ms |
 | Platform | 143 ms | 157 ms | 198 ms |
 
-End to the last of those rows took 89 to 111 ms with Material, 92 to
-214 ms with Aria and 55 to 84 ms on the platform (medians, by engine).
+End to the last of those rows took 78 to 96 ms with Material (without the
+icons), 92 to 214 ms with Aria and 55 to 84 ms on the platform (medians,
+by engine).
+
+## What was not tested
+
+- A real screen reader. The checks read the accessibility tree that axe and
+  Playwright see; NVDA, JAWS, VoiceOver and Orca were not run.
+- Touch: a long press for the menu, and a drag on a phone. All three use
+  the same HTML5 drag, so the result would be the same for each.
+- Right-to-left text, and forced colours outside Chromium's emulation.
+
+D3.3's per-family PRs carry these checks: each family's keyboard e2e, and a
+VoiceOver pass by hand before Material's last family goes.
+
+## Also found
+
+Popover, CSS anchor positioning and `<dialog closedby>` are in all three
+engines the tests ran (Chromium 156, Firefox 157, WebKit 27.2). The CDK's
+overlay places Aria's popups here; anchor positioning may replace it in
+D3.3, where a family's PR can measure both.
 
 ## Found in all three
 
@@ -161,8 +184,8 @@ removed family by family in D3.3.**
 
 - Aria for what has a keyboard pattern of its own: the tree, the select,
   menus, tabs, the accordion and toolbars. Its patterns passed every check,
-  at 57% of Material's bundle for these three, and 1.7 times as fast to
-  draw a large tree in Firefox and WebKit (about the same in Chromium). The six things above become code with a test each.
+  at 64% of Material's bundle for these three, and 1.4 times as fast to
+  draw a large tree in Firefox and WebKit (18% slower in Chromium). The six things above become code with a test each.
 - The platform for what the browser already does: `<dialog>` for dialogs,
   `popover` for tooltips and hover cards, `<button>`, `<input>` and
   `<input type="checkbox">` with our own styles. They are about 60% of
@@ -171,14 +194,20 @@ removed family by family in D3.3.**
   the toolbar and the ripple); the composite widgets are the other 40%
   (tabs, menu, select, the accordion, the button toggles, the tree).
 - The CDK stays: Aria needs it, and its overlay places menus and lists.
+- Most of the gain is in the second half and in the override layer that
+  goes with Material. For the three composite widgets alone, Aria's gain
+  is modest: 37% smaller, faster in two engines of three and slower in
+  Chromium. It is chosen for them because it removes Material without
+  making every key ours, not for its speed.
 - D3.3 replaces one family per PR, each with its keyboard e2e, and deletes
   `material-theme.scss` and Material's selectors when the last one goes.
 
 Why not stay on Material: every check passed with it, and nothing new had
 to be written. Against that are its weight (38% of the first bundle with
-the CDK), its rendering (the slowest in every engine), and an override
-layer of 19 mixins, 179 selectors into its internals and 34 rules, which
-is what the audit's "old and legacy" look and feel is drawn through.
+the CDK), its rendering (slower than Aria in Firefox and WebKit, slower than the
+platform everywhere), and an override
+layer of 19 mixins, 179 selectors into its internals and 34 rules that
+every restyle has to go through.
 
 Why not the platform for everything: its tree and menu are the fastest
 and smallest, but every key is ours to write and to keep right, and two

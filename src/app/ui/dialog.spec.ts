@@ -1,7 +1,7 @@
 import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { afterEach, describe, expect, it } from "vitest";
-import { Dialog } from "./dialog";
+import { Dialog, keepFocusInDialogs } from "./dialog";
 
 @Component({
   imports: [Dialog],
@@ -160,5 +160,34 @@ describe("ui-dialog", () => {
     fixture.destroy();
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(dialog()).toBeNull();
+  });
+});
+
+describe("keepFocusInDialogs", () => {
+  it("gives focus that fell to the page to the topmost dialog still open, and leaves focus that is somewhere alone", () => {
+    const overlay = document.createElement("div");
+    overlay.className = "cdk-overlay-container";
+    const under = Object.assign(document.createElement("div"), { tabIndex: -1 });
+    under.setAttribute("role", "dialog");
+    const over = Object.assign(document.createElement("div"), { tabIndex: -1 });
+    over.setAttribute("role", "alertdialog");
+    overlay.append(under, over);
+    const field = document.createElement("input");
+    document.body.append(overlay, field);
+
+    field.focus();
+    keepFocusInDialogs();
+    expect(document.activeElement).toBe(field);
+
+    field.blur();
+    keepFocusInDialogs();
+    expect(document.activeElement).toBe(over);
+
+    over.remove();
+    (document.activeElement as HTMLElement).blur();
+    keepFocusInDialogs();
+    expect(document.activeElement).toBe(under);
+    overlay.remove();
+    field.remove();
   });
 });

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A response's body starts higher.** The status, time, size and route are
+  one line, with Export as an icon beside them, and the view, the search and
+  the path filter share one row above the body. Before, they took up to
+  five rows between them.
+
 - **Settings, Diagnostics, says when an import has waited 5 seconds for
   its file to be read.** The import's report showed "Reading" with nothing
   to say why; the read happens in a worker of its own, and a read that has

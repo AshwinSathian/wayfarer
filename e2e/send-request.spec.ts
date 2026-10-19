@@ -25,7 +25,7 @@ test.describe("Send request → view response", () => {
     // than what the status bar already reported (regression coverage for
     // the Timings/status-bar mismatch bug).
     const statusBarDurationText = await page
-      .locator("span:has(app-icon[name='timer'])")
+      .locator("app-response-viewer .response-fact[title='Time']")
       .first()
       .textContent();
     await responseViewer.getByRole("tab", { name: "Timings" }).click();
@@ -95,7 +95,7 @@ test("searching a response runs in the app's JSON worker, not on the main thread
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
   const before = workerUrls.length;
-  await page.getByPlaceholder("Search response…").fill(":");
+  await page.getByLabel("Search the response").fill(":");
   await expect(page.getByRole("button", { name: "Next search match" })).toBeEnabled();
 
   // A worker shipped with the app answered: no source file was requested,

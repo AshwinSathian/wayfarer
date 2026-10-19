@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A JSON or XML response takes the height of its pane.** Beside the
+  request, its body was a box of 300 px whatever the window; it now fills
+  the response pane below the tabs and grows with the window. On a phone
+  it keeps its height.
+
 - **The window is the workspace.** From 768 px wide, the request and its
   response fill the window, side by side, and each scrolls inside itself;
   the page no longer scrolls, so the response is never below the fold. The

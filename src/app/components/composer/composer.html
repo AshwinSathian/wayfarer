@@ -222,7 +222,8 @@
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>
   <app-response-viewer
-    class="animate-fade-in"
+    [class]="isMobile() ? 'block animate-fade-in' : 'block h-full animate-fade-in'"
+    [fill]="!isMobile()"
     [loading]="store.loadingState()"
     [responseData]="store.responseData()"
     [responseError]="store.responseError()"

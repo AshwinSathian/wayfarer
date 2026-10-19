@@ -364,3 +364,31 @@ test.describe("The app stays usable after an overlay closes", () => {
     await expect(page.getByRole("button", { name: "Add test" })).toBeVisible();
   });
 });
+
+// S3b of PLAN-design 1.9: beside the request the response's JSON takes the pane's height, not a fixed 300 px.
+test.describe("the response's height", () => {
+  // A routed host must not be answered by the app's service worker first.
+  test.use({ serviceWorkers: "block" });
+
+  test("a JSON response fills the height of its pane, and grows with the window", async ({ page }) => {
+    const items = Array.from({ length: 60 }, (_, id) => ({ id, name: `item ${id}` }));
+    await page.route("https://fills.test/**", (route) =>
+      route.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: JSON.stringify({ items }) })
+    );
+    const editor = page.locator("app-response-viewer app-json-editor");
+    const height = async () => (await editor.boundingBox())?.height ?? 0;
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill("https://fills.test/items");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    await expect.poll(height).toBeGreaterThan(300);
+    const short = await height();
+    await page.setViewportSize({ width: 1440, height: 1300 });
+    await expect.poll(height).toBeGreaterThan(short + 300);
+    // The pane holds it: the editor ends inside the response pane.
+    const pane = await page.locator(".response-pane").boundingBox();
+    const box = await editor.boundingBox();
+    expect(box && pane && box.y + box.height <= pane.y + pane.height).toBe(true);
+  });
+});

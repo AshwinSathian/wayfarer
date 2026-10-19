@@ -1,6 +1,7 @@
 /* ============================================================
-   Design Tokens — Wayfarer · "Obsidian" Design Language
-   Apple-inspired, OLED-first dark design system
+   Design Tokens — Wayfarer · direction A, "Workbench"
+   (PLAN-design 1.9, D2.1): warm graphite and warm paper, one muted
+   green accent, hairlines over cards
    ============================================================ */
 
 [data-theme="dark"],
@@ -8,51 +9,50 @@
   color-scheme: dark;
 
   /* ── Canvas ──────────────────────────────────────────────
-     True-black OLED elevation stack, identical to iOS dark mode.
+     Warm graphite, darkest at the sidebar, lightest where a surface floats.
   */
-  --canvas-app:      #000000;
-  --canvas-sidebar:  #0C0C0E;
-  --canvas-panel:    #111113;
-  --canvas-elevated: #1C1C1E;
-  --canvas-overlay:  #2C2C2E;
+  --canvas-app:      #161513;
+  --canvas-sidebar:  #121110;
+  --canvas-panel:    #1B1A18;
+  --canvas-elevated: #22211E;
+  --canvas-overlay:  #2A2926;
 
   /* ── Fill ─────────────────────────────────────────────────*/
-  --fill-primary:   rgba(255, 255, 255, 0.12);
-  --fill-secondary: rgba(255, 255, 255, 0.07);
-  --fill-hover:     rgba(255, 255, 255, 0.07);
-  --fill-active:    rgba(255, 255, 255, 0.11);
+  --fill-primary:   rgba(255, 245, 230, 0.11);
+  --fill-secondary: rgba(255, 245, 230, 0.06);
+  --fill-hover:     rgba(255, 245, 230, 0.06);
+  --fill-active:    rgba(255, 245, 230, 0.10);
 
   /* ── Label ────────────────────────────────────────────────
-     Apple iOS dark mode exact label values.
+     Warm greys; scripts/contrast.test.mjs holds each to 4.5:1 on every canvas.
   */
-  --label-primary:     #FFFFFF;
-  --label-secondary:   #8E8E93;
+  --label-primary:     #ECEAE5;
+  --label-secondary:   #A39E95;
   /* A step brighter than --label-secondary, for de-emphasized text sitting
      on a *lighter* composited surface (e.g. inside --fill-secondary
      controls) where --label-secondary itself drops under 4.5:1. */
-  --label-secondary-on-fill: #9C9CA1;
-  /* Apple's real tertiaryLabel is a translucent white (rgba(235,235,245,.3))
-     blended over whatever sits beneath it — as a flat opaque color that
-     translates to ~#48484A, which measures ~1.9:1 against this palette's
-     dark canvas colors, well under WCAG AA's 4.5:1 for normal text. Bumped
-     to a value that clears AA on canvas-app/panel/elevated while staying
-     visibly one step down from --label-secondary. */
-  --label-tertiary:    #8A8A8E;
-  --label-placeholder: #3A3A3C;
+  --label-secondary-on-fill: #B0ABA2;
+  /* One step down from --label-secondary, and still 4.5:1 on every canvas. */
+  --label-tertiary:    #9A958C;
+  /* A placeholder says what a field is for ("name", "Search"): 4.5:1, a step under typed text. */
+  --label-placeholder: #969188;
 
   /* ── Separator ────────────────────────────────────────────*/
-  --separator:        rgba(255, 255, 255, 0.06);
-  --separator-opaque: #1C1C1E;
+  --separator:        rgba(255, 245, 230, 0.08);
+  --separator-opaque: #2A2926;
 
   /* ── Accent ───────────────────────────────────────────────
-     "Wayfarer Indigo" — an ownable route/waypoint-inspired hue,
-     deliberately distinct from iOS system blue rather than
-     borrowing Apple's exact accent.
+     A muted green (direction A): --accent for rings and borders, -text for
+     words, -solid under white text. The logo keeps its indigo until D2.4.
   */
-  --accent:        #4C6EF5;
-  --accent-fill:   rgba(76, 110, 245, 0.15);
-  --accent-border: rgba(76, 110, 245, 0.40);
-  --accent-text:   #8DA2FF;
+  --accent:        #5FAE9C;
+  --accent-fill:   rgba(95, 174, 156, 0.14);
+  --accent-border: rgba(95, 174, 156, 0.40);
+  --accent-text:   #8FD1C0;
+  /* The accent as a fill under white text: a primary button, Send. */
+  --accent-solid:        #2F6F62;
+  --accent-solid-hover:  #367D6F;
+  --accent-solid-active: #285F54;
 
   /* ── Gradient ─────────────────────────────────────────────
      Signature gradient for primary CTAs and brand moments.
@@ -61,26 +61,27 @@
      only 4.32:1 against white — just under WCAG AA's 4.5:1) so white text
      laid directly over the gradient's lightest point still clears the
      threshold; the accent token elsewhere is unaffected. */
-  --gradient-accent:   linear-gradient(135deg, #405DD0 0%, #7B4CF5 100%);
+  --gradient-accent:   linear-gradient(#2F6F62, #2F6F62);
 
-  /* ── Glass / Material ─────────────────────────────────────
-     Vibrancy-effect backgrounds for frosted surfaces.
-  */
-  --glass-toolbar:  rgba(12, 12, 14, 0.82);
-  --glass-overlay:  rgba(28, 28, 30, 0.90);
-  --glass-dialog:   rgba(28, 28, 30, 0.95);
-  --glass-blur:     blur(24px) saturate(1.8);
+  /* ── Surfaces that float: toolbar, menus, dialogs ───────────
+     Opaque (direction A): with no blur behind them, any transparency only
+     let the page show through (the "ghost" of audit U-025). */
+  --glass-toolbar:  #161513;
+  --glass-overlay:  #2A2926;
+  --glass-dialog:   #2A2926;
+  /* No blur: the surfaces are opaque, and a blur only cost frames (WebKit without a GPU, #371). */
+  --glass-blur:     none;
 
   /* Specular highlight — top-edge glow on elevated surfaces */
-  --glass-border:   rgba(255, 255, 255, 0.08);
-  --glass-border-strong: rgba(255, 255, 255, 0.14);
+  --glass-border:   rgba(255, 245, 230, 0.07);
+  --glass-border-strong: rgba(255, 245, 230, 0.12);
 
   /* ── Status ───────────────────────────────────────────────
-     Apple system semantic colours — dark mode exact.
+     Status: green, amber, red, and blue for information.
   */
-  --status-success:        #30D158;
-  --status-success-fill:   rgba(48, 209, 88, 0.14);
-  --status-success-border: rgba(48, 209, 88, 0.32);
+  --status-success:        #4FB477;
+  --status-success-fill:   rgba(79, 180, 119, 0.14);
+  --status-success-border: rgba(79, 180, 119, 0.32);
 
   --status-warning:        #FF9F0A;
   --status-warning-fill:   rgba(255, 159, 10, 0.14);
@@ -90,57 +91,58 @@
   --status-error-fill:     rgba(255, 69, 58, 0.14);
   --status-error-border:   rgba(255, 69, 58, 0.32);
 
-  --status-info:           #4C6EF5;
-  --status-info-fill:      rgba(76, 110, 245, 0.14);
-  --status-info-border:    rgba(76, 110, 245, 0.32);
+  --status-info:           #5B8DEF;
+  --status-info-fill:      rgba(91, 141, 239, 0.14);
+  --status-info-border:    rgba(91, 141, 239, 0.32);
 
   /* Status and method colours as text. The colours above are for fills,
      borders and icons; as 10 to 13 px text on their own tinted fill some of
      them are under 4.5:1 (info 2.8:1, error 3.5:1, HEAD 2.1:1). */
-  --status-success-text: var(--status-success);
+  --status-success-text: #7FD39D;
   --status-warning-text: var(--status-warning);
   --status-error-text:   #FF7A70;
-  --status-info-text:    var(--accent-text);
+  --status-info-text:    #8DB4EF;
 
   /* ── HTTP Methods ─────────────────────────────────────────
-     Aligned with Apple system semantic colours.
+     As Postman colours them, so a Postman user reads them at once: GET green,
+     POST amber, PUT blue, PATCH purple, DELETE red.
   */
-  --method-get:          #4C6EF5;
-  --method-get-fill:     rgba(76, 110, 245, 0.12);
+  --method-get:          #4FB477;
+  --method-get-fill:     rgba(79, 180, 119, 0.12);
 
-  --method-post:         #30D158;
-  --method-post-fill:    rgba(48, 209, 88, 0.12);
+  --method-post:         #E0A33B;
+  --method-post-fill:    rgba(224, 163, 59, 0.12);
 
-  --method-put:          #FF9F0A;
-  --method-put-fill:     rgba(255, 159, 10, 0.12);
+  --method-put:          #5B8DEF;
+  --method-put-fill:     rgba(91, 141, 239, 0.12);
 
-  --method-patch:        #BF5AF2;
-  --method-patch-fill:   rgba(191, 90, 242, 0.12);
+  --method-patch:        #B57EDC;
+  --method-patch-fill:   rgba(181, 126, 220, 0.12);
 
-  --method-delete:       #FF453A;
-  --method-delete-fill:  rgba(255, 69, 58, 0.12);
+  --method-delete:       #E5534B;
+  --method-delete-fill:  rgba(229, 83, 75, 0.12);
 
-  --method-head:         #636366;
-  --method-head-fill:    rgba(99, 99, 102, 0.12);
+  --method-head:         #8C8780;
+  --method-head-fill:    rgba(140, 135, 128, 0.12);
 
-  --method-options:      #5AC8FA;
-  --method-options-fill: rgba(90, 200, 250, 0.12);
+  --method-options:      #4FB0C6;
+  --method-options-fill: rgba(79, 176, 198, 0.12);
 
-  --method-get-text:     var(--accent-text);
-  --method-post-text:    var(--method-post);
-  --method-put-text:     var(--method-put);
-  --method-patch-text:   #D08BF6;
-  --method-delete-text:  #FF7A70;
-  --method-head-text:    #A1A1A6;
-  --method-options-text: var(--method-options);
+  --method-get-text:     #7FD39D;
+  --method-post-text:    #F0B45A;
+  --method-put-text:     #8DB4EF;
+  --method-patch-text:   #D0A6F0;
+  --method-delete-text:  #F08A80;
+  --method-head-text:    #B0ABA2;
+  --method-options-text: #7FCDDE;
 
   /* ── Radius ───────────────────────────────────────────────*/
   --radius-xs:   3px;
-  --radius-sm:   7px;
-  --radius-md:   10px;
-  --radius-lg:   14px;
-  --radius-xl:   18px;
-  --radius-2xl:  24px;
+  --radius-sm:   5px;
+  --radius-md:   7px;
+  --radius-lg:   9px;
+  --radius-xl:   12px;
+  --radius-2xl:  16px;
   --radius-full: 9999px;
 
   /* ── Motion ───────────────────────────────────────────────
@@ -156,21 +158,21 @@
   --dur-spring:    400ms;
 
   /* ── Scrollbar ────────────────────────────────────────────*/
-  --scrollbar-thumb:       rgba(255, 255, 255, 0.12);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+  --scrollbar-thumb:       rgba(255, 245, 230, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 245, 230, 0.22);
 
   /* ── Selection ────────────────────────────────────────────*/
-  --selection-bg:   rgba(76, 110, 245, 0.35);
+  --selection-bg:   rgba(95, 174, 156, 0.32);
   --selection-text: #FFFFFF;
 
   /* ── Shadow ───────────────────────────────────────────────
      Multi-layer shadows for realistic depth.
   */
-  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.40);
-  --shadow-dialog:  0 32px 80px rgba(0, 0, 0, 0.85), 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-dialog:  0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.30);
 
   /* ── Glow / Focus rings ───────────────────────────────────*/
-  --glow-accent:   0 0 0 3px rgba(76, 110, 245, 0.30);
+  --glow-accent:   0 0 0 3px rgba(95, 174, 156, 0.32);
 
   /* ── Typography ───────────────────────────────────────────*/
   --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -179,55 +181,58 @@
 
 /* ============================================================
    Light Mode
-   Apple macOS light mode — pure whites with warm dark labels.
+   Light mode — warm paper, white panels, warm dark labels.
    ============================================================ */
 [data-theme="light"] {
   color-scheme: light;
 
-  --canvas-app:      #F5F5F7;
-  --canvas-sidebar:  #FFFFFF;
+  --canvas-app:      #FBFAF8;
+  --canvas-sidebar:  #F4F3F0;
   --canvas-panel:    #FFFFFF;
-  --canvas-elevated: #F2F2F7;
+  --canvas-elevated: #F6F5F2;
   --canvas-overlay:  #FFFFFF;
 
-  --fill-primary:   rgba(0, 0, 0, 0.07);
-  --fill-secondary: rgba(0, 0, 0, 0.04);
-  --fill-hover:     rgba(0, 0, 0, 0.04);
-  --fill-active:    rgba(0, 0, 0, 0.07);
+  --fill-primary:   rgba(40, 30, 10, 0.07);
+  --fill-secondary: rgba(40, 30, 10, 0.04);
+  --fill-hover:     rgba(40, 30, 10, 0.04);
+  --fill-active:    rgba(40, 30, 10, 0.07);
 
-  --label-primary:     #1D1D1F;
-  --label-secondary:   #6E6E73;
+  --label-primary:     #22211F;
+  --label-secondary:   #6B675F;
   /* Same idea as the dark-theme token above: a darker step for de-emphasized
      text on a composited --fill-secondary surface, where plain
      --label-secondary's already-tight margin can drop under 4.5:1. */
-  --label-secondary-on-fill: #5C5C61;
+  --label-secondary-on-fill: #5E5A53;
   /* Same fix as the dark-theme token above: #AEAEB2 measures ~2:1 against
      this palette's light canvas colors. --label-secondary itself only just
      clears 4.5:1 here, which leaves little room for a *lighter* tertiary
      tier to also stay compliant — so this is a hair darker than secondary
      instead, prioritizing the WCAG floor over strict tier ordering. */
-  --label-tertiary:    #68686D;
-  --label-placeholder: #C7C7CC;
+  --label-tertiary:    #67635C;
+  --label-placeholder: #716D66;
 
-  --separator:        rgba(0, 0, 0, 0.08);
-  --separator-opaque: #E5E5EA;
+  --separator:        rgba(40, 30, 10, 0.10);
+  --separator-opaque: #E6E3DD;
 
-  --accent:        #3D5AFE;
-  --accent-fill:   rgba(61, 90, 254, 0.10);
-  --accent-border: rgba(61, 90, 254, 0.32);
-  --accent-text:   #3D5AFE;
+  --accent:        #2F6F62;
+  --accent-fill:   rgba(47, 111, 98, 0.10);
+  --accent-border: rgba(47, 111, 98, 0.32);
+  --accent-text:   #24584D;
+  --accent-solid:        #2F6F62;
+  --accent-solid-hover:  #285F54;
+  --accent-solid-active: #22524A;
 
-  --gradient-accent:  linear-gradient(135deg, #3D5AFE 0%, #7B4CF5 100%);
+  --gradient-accent:  linear-gradient(#2F6F62, #2F6F62);
 
-  --glass-toolbar:  rgba(255, 255, 255, 0.80);
-  --glass-overlay:  rgba(242, 242, 247, 0.90);
-  --glass-dialog:   rgba(255, 255, 255, 0.96);
-  --glass-border:   rgba(0, 0, 0, 0.06);
-  --glass-border-strong: rgba(0, 0, 0, 0.10);
+  --glass-toolbar:  #FBFAF8;
+  --glass-overlay:  #F6F5F2;
+  --glass-dialog:   #FFFFFF;
+  --glass-border:   rgba(40, 30, 10, 0.07);
+  --glass-border-strong: rgba(40, 30, 10, 0.11);
 
-  --status-success:        #34C759;
-  --status-success-fill:   rgba(52, 199, 89, 0.10);
-  --status-success-border: rgba(52, 199, 89, 0.28);
+  --status-success:        #2F8F55;
+  --status-success-fill:   rgba(47, 143, 85, 0.10);
+  --status-success-border: rgba(47, 143, 85, 0.28);
 
   --status-warning:        #FF9500;
   --status-warning-fill:   rgba(255, 149, 0, 0.10);
@@ -237,51 +242,51 @@
   --status-error-fill:     rgba(255, 59, 48, 0.10);
   --status-error-border:   rgba(255, 59, 48, 0.28);
 
-  --status-info:           #3D5AFE;
-  --status-info-fill:      rgba(61, 90, 254, 0.10);
-  --status-info-border:    rgba(61, 90, 254, 0.28);
+  --status-info:           #2453A6;
+  --status-info-fill:      rgba(36, 83, 166, 0.10);
+  --status-info-border:    rgba(36, 83, 166, 0.28);
 
   /* On this theme's pale fills the status colours are 1.8:1 to 3.1:1 as
      text (green 1.85:1). These are the same hues, dark enough to read. */
-  --status-success-text: #0F6229;
+  --status-success-text: #1F6B3E;
   --status-warning-text: #7D4700;
   --status-error-text:   #A81616;
-  --status-info-text:    #2A3FCC;
+  --status-info-text:    #2453A6;
 
-  --method-get:          #3D5AFE;
-  --method-get-fill:     rgba(61, 90, 254, 0.10);
+  --method-get:          #2F8F55;
+  --method-get-fill:     rgba(47, 143, 85, 0.10);
 
-  --method-post:         #34C759;
-  --method-post-fill:    rgba(52, 199, 89, 0.10);
+  --method-post:         #C98A1E;
+  --method-post-fill:    rgba(201, 138, 30, 0.10);
 
-  --method-put:          #FF9500;
-  --method-put-fill:     rgba(255, 149, 0, 0.10);
+  --method-put:          #2E66C9;
+  --method-put-fill:     rgba(46, 102, 201, 0.10);
 
-  --method-patch:        #AF52DE;
-  --method-patch-fill:   rgba(175, 82, 222, 0.10);
+  --method-patch:        #8E4DC2;
+  --method-patch-fill:   rgba(142, 77, 194, 0.10);
 
-  --method-delete:       #FF3B30;
-  --method-delete-fill:  rgba(255, 59, 48, 0.10);
+  --method-delete:       #C7372F;
+  --method-delete-fill:  rgba(199, 55, 47, 0.10);
 
-  --method-head:         #8E8E93;
-  --method-head-fill:    rgba(142, 142, 147, 0.10);
+  --method-head:         #8C8780;
+  --method-head-fill:    rgba(140, 135, 128, 0.10);
 
-  --method-options:      #32ADE6;
-  --method-options-fill: rgba(50, 173, 230, 0.10);
+  --method-options:      #1F8BA3;
+  --method-options-fill: rgba(31, 139, 163, 0.10);
 
-  --method-get-text:     #2A3FCC;
-  --method-post-text:    #0F6229;
-  --method-put-text:     #7D4700;
-  --method-patch-text:   #7228A0;
-  --method-delete-text:  #A81616;
-  --method-head-text:    #505055;
-  --method-options-text: #085A80;
+  --method-get-text:     #1F6B3E;
+  --method-post-text:    #7D4D00;
+  --method-put-text:     #2453A6;
+  --method-patch-text:   #6E2F9E;
+  --method-delete-text:  #A8322B;
+  --method-head-text:    #57534C;
+  --method-options-text: #0F5E70;
 
-  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.07);
-  --shadow-dialog:  0 32px 80px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.10);
+  --shadow-overlay: 0 8px 28px rgba(40, 30, 10, 0.10), 0 1px 3px rgba(40, 30, 10, 0.06);
+  --shadow-dialog:  0 24px 64px rgba(40, 30, 10, 0.14), 0 4px 16px rgba(40, 30, 10, 0.08);
 
-  --glow-accent:   0 0 0 3px rgba(61, 90, 254, 0.25);
+  --glow-accent:   0 0 0 3px rgba(47, 111, 98, 0.25);
 
-  --scrollbar-thumb:       rgba(0, 0, 0, 0.14);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.24);
+  --scrollbar-thumb:       rgba(40, 30, 10, 0.14);
+  --scrollbar-thumb-hover: rgba(40, 30, 10, 0.24);
 }

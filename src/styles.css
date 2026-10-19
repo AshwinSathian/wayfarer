@@ -22,12 +22,11 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css";
 
-/* Tailwind names for the design tokens (src/design-system/tokens.css).
-   Radius, easing and font names are the same on both sides. */
+/* Tailwind names for the design tokens (packages/tokens, written to
+   src/design-system/tokens.css). Radius, easing and font utilities need no
+   entry: Tailwind's theme has those names, and the tokens, outside any layer,
+   give them their values. */
 @theme {
-  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
-
   --color-canvas-app: var(--canvas-app);
   --color-canvas-sidebar: var(--canvas-sidebar);
   --color-canvas-panel: var(--canvas-panel);
@@ -73,19 +72,6 @@
   --color-method-delete: var(--method-delete);
   --color-method-head: var(--method-head);
   --color-method-options: var(--method-options);
-
-  --radius-xs: 3px;
-  --radius-sm: 7px;
-  --radius: 10px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 24px;
-  --radius-full: 9999px;
-
-  --ease-standard: cubic-bezier(0.25, 0, 0, 1);
-  --ease-enter: cubic-bezier(0, 0, 0, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Status colours as text use their text shade (tokens.css). Tailwind's

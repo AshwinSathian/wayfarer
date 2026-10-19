@@ -228,7 +228,7 @@ html {
       enabled-arrow-color: var(--ctl-chevron),
       focused-arrow-color: var(--ctl-chevron),
       disabled-arrow-color: var(--ctl-chevron),
-      panel-background-color: var(--glass-overlay),
+      panel-background-color: var(--surface-overlay),
       container-elevation-shadow: var(--shadow-overlay),
       trigger-text-size: 14px,
       trigger-text-weight: 400,
@@ -262,7 +262,7 @@ html {
 html {
   @include mat.menu-overrides(
     (
-      container-color: var(--glass-overlay),
+      container-color: var(--surface-overlay),
       container-shape: var(--radius-lg),
       container-elevation-shadow: var(--shadow-overlay),
       item-label-text-color: var(--label-primary),
@@ -288,7 +288,7 @@ html {
 html {
   @include mat.dialog-overrides(
     (
-      container-color: var(--glass-dialog),
+      container-color: var(--surface-dialog),
       container-shape: var(--radius-2xl),
       container-elevation-shadow: var(--shadow-dialog),
       /* The caller sets a dialog's width; the window caps it. */
@@ -316,7 +316,7 @@ html {
     (
       /* The dialog's glass, not the toolbar's: at 80% the dimmed page showed
          through and small grey text on it fell to 4.19:1. */
-      container-background-color: var(--glass-dialog),
+      container-background-color: var(--surface-dialog),
       container-text-color: var(--ctl-surface-text),
       container-shape: 0,
       container-divider-color: transparent,
@@ -392,7 +392,7 @@ html {
 html {
   @include mat.toolbar-overrides(
     (
-      container-background-color: var(--glass-toolbar),
+      container-background-color: var(--surface-toolbar),
       container-text-color: var(--label-primary),
       standard-height: 56px,
       mobile-height: 56px,

@@ -1,292 +1,229 @@
-/* ============================================================
-   Design Tokens — Wayfarer · direction A, "Workbench"
-   (PLAN-design 1.9, D2.1): warm graphite and warm paper, one muted
-   green accent, hairlines over cards
-   ============================================================ */
+/* Generated from packages/tokens (DTCG 2025.10) by `npm run gen:tokens`. Do not edit:
+   change the token files and run it again. What each group is for is in their $description. */
 
 [data-theme="dark"],
 :root {
   color-scheme: dark;
 
-  /* ── Canvas ──────────────────────────────────────────────
-     Warm graphite, darkest at the sidebar, lightest where a surface floats.
-  */
-  --canvas-app:      #161513;
-  --canvas-sidebar:  #121110;
-  --canvas-panel:    #1B1A18;
-  --canvas-elevated: #22211E;
-  --canvas-overlay:  #2A2926;
-
-  /* ── Fill ─────────────────────────────────────────────────*/
-  --fill-primary:   rgba(255, 245, 230, 0.11);
-  --fill-secondary: rgba(255, 245, 230, 0.06);
-  --fill-hover:     rgba(255, 245, 230, 0.06);
-  --fill-active:    rgba(255, 245, 230, 0.10);
-
-  /* ── Label ────────────────────────────────────────────────
-     Warm greys; scripts/contrast.test.mjs holds each to 4.5:1 on every canvas.
-  */
-  --label-primary:     #ECEAE5;
-  --label-secondary:   #A39E95;
-  /* A step brighter than --label-secondary, for de-emphasized text sitting
-     on a *lighter* composited surface (e.g. inside --fill-secondary
-     controls) where --label-secondary itself drops under 4.5:1. */
-  --label-secondary-on-fill: #B0ABA2;
-  /* One step down from --label-secondary, and still 4.5:1 on every canvas. */
-  --label-tertiary:    #9A958C;
-  /* A placeholder says what a field is for ("name", "Search"): 4.5:1, a step under typed text. */
-  --label-placeholder: #969188;
-
-  /* ── Separator ────────────────────────────────────────────*/
-  --separator:        rgba(255, 245, 230, 0.08);
-  --separator-opaque: #2A2926;
-
-  /* ── Accent ───────────────────────────────────────────────
-     A muted green (direction A): --accent for rings and borders, -text for
-     words, -solid under white text. The logo keeps its indigo until D2.4.
-  */
-  --accent:        #5FAE9C;
-  --accent-fill:   rgba(95, 174, 156, 0.14);
-  --accent-border: rgba(95, 174, 156, 0.40);
-  --accent-text:   #8FD1C0;
-  /* The accent as a fill under white text: a primary button, Send. */
-  --accent-solid:        #2F6F62;
-  --accent-solid-hover:  #367D6F;
-  --accent-solid-active: #285F54;
-
-  /* ── Gradient ─────────────────────────────────────────────
-     Signature gradient for primary CTAs and brand moments.
-  */
-  /* Start stop deliberately darker than --accent itself (#4C6EF5, which is
-     only 4.32:1 against white — just under WCAG AA's 4.5:1) so white text
-     laid directly over the gradient's lightest point still clears the
-     threshold; the accent token elsewhere is unaffected. */
-  --gradient-accent:   linear-gradient(#2F6F62, #2F6F62);
-
-  /* ── Surfaces that float: toolbar, menus, dialogs ───────────
-     Opaque (direction A): with no blur behind them, any transparency only
-     let the page show through (the "ghost" of audit U-025). */
-  --glass-toolbar:  #161513;
-  --glass-overlay:  #2A2926;
-  --glass-dialog:   #2A2926;
-  /* No blur: the surfaces are opaque, and a blur only cost frames (WebKit without a GPU, #371). */
-  --glass-blur:     none;
-
-  /* Specular highlight — top-edge glow on elevated surfaces */
-  --glass-border:   rgba(255, 245, 230, 0.07);
-  --glass-border-strong: rgba(255, 245, 230, 0.12);
-
-  /* ── Status ───────────────────────────────────────────────
-     Status: green, amber, red, and blue for information.
-  */
-  --status-success:        #4FB477;
-  --status-success-fill:   rgba(79, 180, 119, 0.14);
-  --status-success-border: rgba(79, 180, 119, 0.32);
-
-  --status-warning:        #FF9F0A;
-  --status-warning-fill:   rgba(255, 159, 10, 0.14);
-  --status-warning-border: rgba(255, 159, 10, 0.32);
-
-  --status-error:          #FF453A;
-  --status-error-fill:     rgba(255, 69, 58, 0.14);
-  --status-error-border:   rgba(255, 69, 58, 0.32);
-
-  --status-info:           #5B8DEF;
-  --status-info-fill:      rgba(91, 141, 239, 0.14);
-  --status-info-border:    rgba(91, 141, 239, 0.32);
-
-  /* Status and method colours as text. The colours above are for fills,
-     borders and icons; as 10 to 13 px text on their own tinted fill some of
-     them are under 4.5:1 (info 2.8:1, error 3.5:1, HEAD 2.1:1). */
-  --status-success-text: #7FD39D;
-  --status-warning-text: var(--status-warning);
-  --status-error-text:   #FF7A70;
-  --status-info-text:    #8DB4EF;
-
-  /* ── HTTP Methods ─────────────────────────────────────────
-     As Postman colours them, so a Postman user reads them at once: GET green,
-     POST amber, PUT blue, PATCH purple, DELETE red.
-  */
-  --method-get:          #4FB477;
-  --method-get-fill:     rgba(79, 180, 119, 0.12);
-
-  --method-post:         #E0A33B;
-  --method-post-fill:    rgba(224, 163, 59, 0.12);
-
-  --method-put:          #5B8DEF;
-  --method-put-fill:     rgba(91, 141, 239, 0.12);
-
-  --method-patch:        #B57EDC;
-  --method-patch-fill:   rgba(181, 126, 220, 0.12);
-
-  --method-delete:       #E5534B;
-  --method-delete-fill:  rgba(229, 83, 75, 0.12);
-
-  --method-head:         #8C8780;
-  --method-head-fill:    rgba(140, 135, 128, 0.12);
-
-  --method-options:      #4FB0C6;
-  --method-options-fill: rgba(79, 176, 198, 0.12);
-
-  --method-get-text:     #7FD39D;
-  --method-post-text:    #F0B45A;
-  --method-put-text:     #8DB4EF;
-  --method-patch-text:   #D0A6F0;
-  --method-delete-text:  #F08A80;
-  --method-head-text:    #B0ABA2;
-  --method-options-text: #7FCDDE;
-
-  /* ── Radius ───────────────────────────────────────────────*/
-  --radius-xs:   3px;
-  --radius-sm:   5px;
-  --radius-md:   7px;
-  --radius-lg:   9px;
-  --radius-xl:   12px;
-  --radius-2xl:  16px;
+  /* radius */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 9px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
   --radius-full: 9999px;
 
-  /* ── Motion ───────────────────────────────────────────────
-     Apple-quality spring easing. Fast micro, fluid standard.
-  */
+  /* motion */
   --ease-standard: cubic-bezier(0.25, 0, 0, 1);
-  --ease-enter:    cubic-bezier(0, 0, 0, 1);
-  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-micro:     60ms;
-  --dur-quick:     120ms;
-  --dur-standard:  240ms;
-  --dur-enter:     300ms;
-  --dur-spring:    400ms;
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-micro: 60ms;
+  --dur-quick: 120ms;
+  --dur-standard: 240ms;
+  --dur-enter: 300ms;
 
-  /* ── Scrollbar ────────────────────────────────────────────*/
-  --scrollbar-thumb:       rgba(255, 245, 230, 0.12);
+  /* font */
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', Menlo, 'SF Mono', Consolas, monospace;
+
+  /* canvas */
+  --canvas-app: #161513;
+  --canvas-sidebar: #121110;
+  --canvas-panel: #1B1A18;
+  --canvas-elevated: #22211E;
+  --canvas-overlay: #2A2926;
+
+  /* fill */
+  --fill-primary: rgba(255, 245, 230, 0.11);
+  --fill-secondary: rgba(255, 245, 230, 0.06);
+  --fill-hover: rgba(255, 245, 230, 0.06);
+  --fill-active: rgba(255, 245, 230, 0.1);
+
+  /* label */
+  --label-primary: #ECEAE5;
+  --label-secondary: #A39E95;
+  --label-secondary-on-fill: #B0ABA2;
+  --label-tertiary: #9A958C;
+  --label-placeholder: #969188;
+
+  /* separator */
+  --separator: rgba(255, 245, 230, 0.08);
+  --separator-opaque: #2A2926;
+
+  /* accent */
+  --accent: #5FAE9C;
+  --accent-fill: rgba(95, 174, 156, 0.14);
+  --accent-border: rgba(95, 174, 156, 0.4);
+  --accent-text: #8FD1C0;
+  --accent-solid: #2F6F62;
+  --accent-solid-hover: #367D6F;
+  --accent-solid-active: #285F54;
+
+  /* surface */
+  --surface-toolbar: #161513;
+  --surface-overlay: #2A2926;
+  --surface-dialog: #2A2926;
+
+  /* border */
+  --border-subtle: rgba(255, 245, 230, 0.07);
+  --border-strong: rgba(255, 245, 230, 0.12);
+
+  /* status */
+  --status-success: #4FB477;
+  --status-success-fill: rgba(79, 180, 119, 0.14);
+  --status-success-border: rgba(79, 180, 119, 0.32);
+  --status-warning: #FF9F0A;
+  --status-warning-fill: rgba(255, 159, 10, 0.14);
+  --status-warning-border: rgba(255, 159, 10, 0.32);
+  --status-error: #FF453A;
+  --status-error-fill: rgba(255, 69, 58, 0.14);
+  --status-error-border: rgba(255, 69, 58, 0.32);
+  --status-info: #5B8DEF;
+  --status-info-fill: rgba(91, 141, 239, 0.14);
+  --status-info-border: rgba(91, 141, 239, 0.32);
+  --status-success-text: #7FD39D;
+  --status-warning-text: var(--status-warning);
+  --status-error-text: #FF7A70;
+  --status-info-text: #8DB4EF;
+
+  /* method */
+  --method-get: #4FB477;
+  --method-get-fill: rgba(79, 180, 119, 0.12);
+  --method-post: #E0A33B;
+  --method-post-fill: rgba(224, 163, 59, 0.12);
+  --method-put: #5B8DEF;
+  --method-put-fill: rgba(91, 141, 239, 0.12);
+  --method-patch: #B57EDC;
+  --method-patch-fill: rgba(181, 126, 220, 0.12);
+  --method-delete: #E5534B;
+  --method-delete-fill: rgba(229, 83, 75, 0.12);
+  --method-head: #8C8780;
+  --method-head-fill: rgba(140, 135, 128, 0.12);
+  --method-options: #4FB0C6;
+  --method-options-fill: rgba(79, 176, 198, 0.12);
+  --method-get-text: #7FD39D;
+  --method-post-text: #F0B45A;
+  --method-put-text: #8DB4EF;
+  --method-patch-text: #D0A6F0;
+  --method-delete-text: #F08A80;
+  --method-head-text: #B0ABA2;
+  --method-options-text: #7FCDDE;
+
+  /* scrollbar */
+  --scrollbar-thumb: rgba(255, 245, 230, 0.12);
   --scrollbar-thumb-hover: rgba(255, 245, 230, 0.22);
 
-  /* ── Selection ────────────────────────────────────────────*/
-  --selection-bg:   rgba(95, 174, 156, 0.32);
+  /* selection */
+  --selection-bg: rgba(95, 174, 156, 0.32);
   --selection-text: #FFFFFF;
 
-  /* ── Shadow ───────────────────────────────────────────────
-     Multi-layer shadows for realistic depth.
-  */
-  --shadow-overlay: 0 8px 28px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
-  --shadow-dialog:  0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.30);
+  /* shadow */
+  --shadow-overlay: 0 8px 28px 0 rgba(0, 0, 0, 0.45), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --shadow-dialog: 0 24px 64px 0 rgba(0, 0, 0, 0.55), 0 4px 16px 0 rgba(0, 0, 0, 0.3);
 
-  /* ── Glow / Focus rings ───────────────────────────────────*/
-  --glow-accent:   0 0 0 3px rgba(95, 174, 156, 0.32);
-
-  /* ── Typography ───────────────────────────────────────────*/
-  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Menlo', 'SF Mono', 'Consolas', monospace;
+  /* glow */
+  --glow-accent: 0 0 0 3px rgba(95, 174, 156, 0.32);
 }
 
-/* ============================================================
-   Light Mode
-   Light mode — warm paper, white panels, warm dark labels.
-   ============================================================ */
 [data-theme="light"] {
   color-scheme: light;
 
-  --canvas-app:      #FBFAF8;
-  --canvas-sidebar:  #F4F3F0;
-  --canvas-panel:    #FFFFFF;
+  /* canvas */
+  --canvas-app: #FBFAF8;
+  --canvas-sidebar: #F4F3F0;
+  --canvas-panel: #FFFFFF;
   --canvas-elevated: #F6F5F2;
-  --canvas-overlay:  #FFFFFF;
+  --canvas-overlay: #FFFFFF;
 
-  --fill-primary:   rgba(40, 30, 10, 0.07);
+  /* fill */
+  --fill-primary: rgba(40, 30, 10, 0.07);
   --fill-secondary: rgba(40, 30, 10, 0.04);
-  --fill-hover:     rgba(40, 30, 10, 0.04);
-  --fill-active:    rgba(40, 30, 10, 0.07);
+  --fill-hover: rgba(40, 30, 10, 0.04);
+  --fill-active: rgba(40, 30, 10, 0.07);
 
-  --label-primary:     #22211F;
-  --label-secondary:   #6B675F;
-  /* Same idea as the dark-theme token above: a darker step for de-emphasized
-     text on a composited --fill-secondary surface, where plain
-     --label-secondary's already-tight margin can drop under 4.5:1. */
+  /* label */
+  --label-primary: #22211F;
+  --label-secondary: #6B675F;
   --label-secondary-on-fill: #5E5A53;
-  /* Same fix as the dark-theme token above: #AEAEB2 measures ~2:1 against
-     this palette's light canvas colors. --label-secondary itself only just
-     clears 4.5:1 here, which leaves little room for a *lighter* tertiary
-     tier to also stay compliant — so this is a hair darker than secondary
-     instead, prioritizing the WCAG floor over strict tier ordering. */
-  --label-tertiary:    #67635C;
+  --label-tertiary: #67635C;
   --label-placeholder: #716D66;
 
-  --separator:        rgba(40, 30, 10, 0.10);
+  /* separator */
+  --separator: rgba(40, 30, 10, 0.1);
   --separator-opaque: #E6E3DD;
 
-  --accent:        #2F6F62;
-  --accent-fill:   rgba(47, 111, 98, 0.10);
+  /* accent */
+  --accent: #2F6F62;
+  --accent-fill: rgba(47, 111, 98, 0.1);
   --accent-border: rgba(47, 111, 98, 0.32);
-  --accent-text:   #24584D;
-  --accent-solid:        #2F6F62;
-  --accent-solid-hover:  #285F54;
+  --accent-text: #24584D;
+  --accent-solid: #2F6F62;
+  --accent-solid-hover: #285F54;
   --accent-solid-active: #22524A;
 
-  --gradient-accent:  linear-gradient(#2F6F62, #2F6F62);
+  /* surface */
+  --surface-toolbar: #FBFAF8;
+  --surface-overlay: #F6F5F2;
+  --surface-dialog: #FFFFFF;
 
-  --glass-toolbar:  #FBFAF8;
-  --glass-overlay:  #F6F5F2;
-  --glass-dialog:   #FFFFFF;
-  --glass-border:   rgba(40, 30, 10, 0.07);
-  --glass-border-strong: rgba(40, 30, 10, 0.11);
+  /* border */
+  --border-subtle: rgba(40, 30, 10, 0.07);
+  --border-strong: rgba(40, 30, 10, 0.11);
 
-  --status-success:        #2F8F55;
-  --status-success-fill:   rgba(47, 143, 85, 0.10);
+  /* status */
+  --status-success: #2F8F55;
+  --status-success-fill: rgba(47, 143, 85, 0.1);
   --status-success-border: rgba(47, 143, 85, 0.28);
-
-  --status-warning:        #FF9500;
-  --status-warning-fill:   rgba(255, 149, 0, 0.10);
+  --status-warning: #FF9500;
+  --status-warning-fill: rgba(255, 149, 0, 0.1);
   --status-warning-border: rgba(255, 149, 0, 0.28);
-
-  --status-error:          #FF3B30;
-  --status-error-fill:     rgba(255, 59, 48, 0.10);
-  --status-error-border:   rgba(255, 59, 48, 0.28);
-
-  --status-info:           #2453A6;
-  --status-info-fill:      rgba(36, 83, 166, 0.10);
-  --status-info-border:    rgba(36, 83, 166, 0.28);
-
-  /* On this theme's pale fills the status colours are 1.8:1 to 3.1:1 as
-     text (green 1.85:1). These are the same hues, dark enough to read. */
+  --status-error: #FF3B30;
+  --status-error-fill: rgba(255, 59, 48, 0.1);
+  --status-error-border: rgba(255, 59, 48, 0.28);
+  --status-info: #2453A6;
+  --status-info-fill: rgba(36, 83, 166, 0.1);
+  --status-info-border: rgba(36, 83, 166, 0.28);
   --status-success-text: #1F6B3E;
   --status-warning-text: #7D4700;
-  --status-error-text:   #A81616;
-  --status-info-text:    #2453A6;
+  --status-error-text: #A81616;
+  --status-info-text: #2453A6;
 
-  --method-get:          #2F8F55;
-  --method-get-fill:     rgba(47, 143, 85, 0.10);
-
-  --method-post:         #C98A1E;
-  --method-post-fill:    rgba(201, 138, 30, 0.10);
-
-  --method-put:          #2E66C9;
-  --method-put-fill:     rgba(46, 102, 201, 0.10);
-
-  --method-patch:        #8E4DC2;
-  --method-patch-fill:   rgba(142, 77, 194, 0.10);
-
-  --method-delete:       #C7372F;
-  --method-delete-fill:  rgba(199, 55, 47, 0.10);
-
-  --method-head:         #8C8780;
-  --method-head-fill:    rgba(140, 135, 128, 0.10);
-
-  --method-options:      #1F8BA3;
-  --method-options-fill: rgba(31, 139, 163, 0.10);
-
-  --method-get-text:     #1F6B3E;
-  --method-post-text:    #7D4D00;
-  --method-put-text:     #2453A6;
-  --method-patch-text:   #6E2F9E;
-  --method-delete-text:  #A8322B;
-  --method-head-text:    #57534C;
+  /* method */
+  --method-get: #2F8F55;
+  --method-get-fill: rgba(47, 143, 85, 0.1);
+  --method-post: #C98A1E;
+  --method-post-fill: rgba(201, 138, 30, 0.1);
+  --method-put: #2E66C9;
+  --method-put-fill: rgba(46, 102, 201, 0.1);
+  --method-patch: #8E4DC2;
+  --method-patch-fill: rgba(142, 77, 194, 0.1);
+  --method-delete: #C7372F;
+  --method-delete-fill: rgba(199, 55, 47, 0.1);
+  --method-head: #8C8780;
+  --method-head-fill: rgba(140, 135, 128, 0.1);
+  --method-options: #1F8BA3;
+  --method-options-fill: rgba(31, 139, 163, 0.1);
+  --method-get-text: #1F6B3E;
+  --method-post-text: #7D4D00;
+  --method-put-text: #2453A6;
+  --method-patch-text: #6E2F9E;
+  --method-delete-text: #A8322B;
+  --method-head-text: #57534C;
   --method-options-text: #0F5E70;
 
-  --shadow-overlay: 0 8px 28px rgba(40, 30, 10, 0.10), 0 1px 3px rgba(40, 30, 10, 0.06);
-  --shadow-dialog:  0 24px 64px rgba(40, 30, 10, 0.14), 0 4px 16px rgba(40, 30, 10, 0.08);
-
-  --glow-accent:   0 0 0 3px rgba(47, 111, 98, 0.25);
-
-  --scrollbar-thumb:       rgba(40, 30, 10, 0.14);
+  /* scrollbar */
+  --scrollbar-thumb: rgba(40, 30, 10, 0.14);
   --scrollbar-thumb-hover: rgba(40, 30, 10, 0.24);
+
+  /* selection */
+  --selection-bg: rgba(47, 111, 98, 0.22);
+  --selection-text: #22211F;
+
+  /* shadow */
+  --shadow-overlay: 0 8px 28px 0 rgba(40, 30, 10, 0.1), 0 1px 3px 0 rgba(40, 30, 10, 0.06);
+  --shadow-dialog: 0 24px 64px 0 rgba(40, 30, 10, 0.14), 0 4px 16px 0 rgba(40, 30, 10, 0.08);
+
+  /* glow */
+  --glow-accent: 0 0 0 3px rgba(47, 111, 98, 0.25);
 }

@@ -1,0 +1,15 @@
+{
+  "name": "@wayfarer/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Wayfarer's design tokens (DTCG 2025.10) and the build that writes them as CSS.",
+  "type": "module",
+  "exports": {
+    ".": "./tokens.mjs"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check",
+    "test": "node --test"
+  }
+}

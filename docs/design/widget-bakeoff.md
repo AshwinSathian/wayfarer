@@ -196,7 +196,7 @@ removed family by family in D3.3.**
 - The CDK stays: Aria needs it, and its overlay places menus and lists.
 - Most of the gain is in the second half and in the override layer that
   goes with Material. For the three composite widgets alone, Aria's gain
-  is modest: 37% smaller, faster in two engines of three and slower in
+  is modest: 36% smaller, faster in two engines of three and slower in
   Chromium. It is chosen for them because it removes Material without
   making every key ours, not for its speed.
 - D3.3 replaces one family per PR, each with its keyboard e2e, and deletes

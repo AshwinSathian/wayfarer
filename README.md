@@ -139,6 +139,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
 - [Reach plan](docs/design/reach.md): where Wayfarer is listed and announced, and when; nothing is posted before the maintainer approves it
 - [Design audit, 2026](docs/design/audit.md): what is wrong with the interface today, finding by finding, with screenshots
+- [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends
 
 ## Security
 

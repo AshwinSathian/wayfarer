@@ -6,6 +6,7 @@ const LINKS = [
   ["Docs", "/docs/"],
   ["Compare", "/compare/"],
   ["Claims", "/docs/claims/"],
+  ["Blog", "/blog/"],
   ["Changelog", "/changelog/"],
   ["Roadmap", "/roadmap/"],
   ["GitHub", REPO],

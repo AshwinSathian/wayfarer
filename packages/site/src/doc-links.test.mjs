@@ -18,3 +18,8 @@ test("a link to the rest of the repository is the file on GitHub", () => {
 test("an address, an anchor on the page and a mail link are left as they are", () => {
   for (const url of ["https://a.test/x.md", "#top", "mailto:a@b.c", "//cdn.test/x"]) assert.equal(siteLink(url, "docs/a.md"), url);
 });
+
+test("a link to the changelog is its page", () => {
+  assert.equal(siteLink("../CHANGELOG.md#unreleased", "docs/a.md"), "/changelog/#unreleased");
+  assert.equal(siteLink("../../../../CHANGELOG.md", "packages/site/content/blog/p.md"), "/changelog/");
+});

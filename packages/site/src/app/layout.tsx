@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Wayfarer: an API client in your browser",
   description: "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own.",
   // The app's own icons: one mark for the site and the app.
+  alternates: { types: { "application/rss+xml": "/blog/rss.xml" } },
   icons: {
     icon: [{ url: "/app/favicon.ico", sizes: "any" }, { url: "/app/icons/logo.svg", type: "image/svg+xml" }],
     apple: "/app/icons/icon-192x192.png",

@@ -92,6 +92,29 @@ test("each claim the landing names is a row of the claims ledger", async ({ page
   expect(named.filter((id) => !ledger.has(id))).toEqual([]);
 });
 
+// W2.5: the blog's posts are pages, newest first, and its RSS feed lists each with its address and date.
+test("the blog lists its posts, each a page, and its RSS feed has an item for each", async ({ page, request }) => {
+  const files = readdirSync("packages/site/content/blog").filter((name) => name.endsWith(".md"));
+  expect(files.length).toBeGreaterThanOrEqual(2);
+  await page.goto("/blog/");
+  const links = page.locator("main li h2 a");
+  await expect(links).toHaveCount(files.length);
+  const dates = await page.locator("main li time").evaluateAll((times) => times.map((time) => time.getAttribute("datetime") ?? ""));
+  expect(dates).toEqual([...dates].sort().reverse());
+  const feed = await request.get("/blog/rss.xml");
+  expect(feed.status()).toBe(200);
+  const xml = await feed.text();
+  expect(xml.match(/<item>/g)?.length).toBe(files.length);
+  for (const href of await links.evaluateAll((anchors) => anchors.map((a) => a.getAttribute("href") ?? ""))) {
+    expect(xml).toContain(`<link>https://wayfarer.ashwinsathian.com${href}</link>`);
+    const response = await page.goto(href);
+    expect(response?.status(), href).toBe(200);
+    await expect(page.locator("article"), href).not.toBeEmpty();
+  }
+  await page.goto("/");
+  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute("href", "https://wayfarer.ashwinsathian.com/blog/rss.xml");
+});
+
 // W2.3: every fact about another product on the comparison pages names its source and the date it was read, every
 // claim they name is a row of the ledger, and the index lists where Wayfarer is behind.
 test("each comparison page cites a source with its date for every fact about a rival, and names only claims of the ledger", async ({ page }) => {

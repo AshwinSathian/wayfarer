@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website has a blog, with an RSS feed.** The first posts are the
+  2.5.0 release notes and how the claims ledger works.
+
 - **The website compares Wayfarer with Postman, Bruno, Yaak, Hoppscotch and
   Insomnia, and has a guide to moving from Postman.** Each fact about
   another product links to the page it came from and says when it was

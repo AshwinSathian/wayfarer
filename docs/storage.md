@@ -80,7 +80,7 @@ Exporting environments asks what to write of protected variables:
 | With the vault | its `{{$secret.<id>}}` reference | `vault`: a vault file (see [Secrets vault](secrets.md)), still encrypted |
 | Plain text | the secret itself | nothing else. Needs the vault unlocked and `EXPORT SECRETS` typed |
 
-A file "with the vault" imports as environments in the Environments panel and as a vault in Secrets, "Import vault", with the passphrase the vault had.
+A file "with the vault" imports as environments in Environments and as a vault in Secrets, "Import vault", with the passphrase the vault had.
 
 ## Files
 

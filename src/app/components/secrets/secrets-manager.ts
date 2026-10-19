@@ -1,12 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
   model,
   output,
   signal,
+  viewChild,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
@@ -55,6 +59,9 @@ export class SecretsManager {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly variableFocus = inject(VariableFocus);
   private readonly confirm = inject(Confirm);
+  private readonly injector = inject(Injector);
+  private readonly list = viewChild<ElementRef<HTMLElement>>("secretsList");
+  private readonly actions = viewChild(VaultActions, { read: ElementRef });
 
   readonly visible = model(false);
   readonly requestUnlock = output<void>();
@@ -198,6 +205,8 @@ export class SecretsManager {
     await this.secretsService.deleteSecret(id);
     this.hideRevealed(id);
     await this.refresh();
+    // The row whose button had focus is gone: focus stays in the dialog, on the next row or the vault's actions.
+    afterNextRender(() => (this.list()?.nativeElement.querySelector("button") ?? (this.actions()?.nativeElement as HTMLElement | undefined)?.querySelector("button"))?.focus(), { injector: this.injector });
   }
 
   /** Closes this dialog and hands off to the Environments editor's existing variable-highlight flow (VariableFocus), reused as-is. */

@@ -1,5 +1,5 @@
 import { expect, test, type Download, type Page } from "@playwright/test";
-import { dumpIdb, openSettings, seedAndOpen, send } from "./support/app";
+import { closeEnvironments, dumpIdb, openEnvironments, openSettings, protectVariable, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.11: the workspace lives in one browser. A backup and a restore, what
@@ -15,25 +15,6 @@ async function text(download: Download): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-/** Adds a protected variable to the open environment, making the vault on the way. */
-async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
-  const keys = page.getByPlaceholder("KEY", { exact: true });
-  const before = await keys.count();
-  await page.getByRole("button", { name: "Add variable" }).click();
-  await expect(keys).toHaveCount(before + 1);
-  await keys.last().fill(name);
-  await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
-  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
-  await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
-  await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
-  await dialog.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
-  await expect(page.getByText("Secret stored")).toBeVisible();
-  await page.getByRole("button", { name: "Save changes" }).click();
-}
-
 const openData = (page: Page) => openSettings(page, "Data and storage");
 
 test("@claim:C-046 backup, Reset all data, restore: every store of the backup holds what it held, with collections untrusted; the composer's tabs are not in it", async ({ page }) => {
@@ -42,12 +23,14 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   test.slow();
   await seedAndOpen(page, { host: ECHO }, { method: "GET", url: "{{host}}/echo?backup=1", auth: { type: "bearer", token: "typed-token" } });
   await protectVariable(page, "API_TOKEN", SECRET);
+  await openEnvironments(page);
   await page.getByRole("button", { name: "Global variables" }).click();
   const globals = page.getByRole("dialog", { name: "Global variables" });
   await globals.getByRole("button", { name: "Add variable" }).click();
   await globals.getByPlaceholder("name").last().fill("region");
   await globals.getByPlaceholder("value").last().fill("eu");
   await globals.getByRole("button", { name: "Save variables" }).click();
+  await closeEnvironments(page);
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
@@ -115,6 +98,7 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
   await seedAndOpen(page, { host: "localhost" }, { method: "GET", url: `${ECHO}/echo` });
   await protectVariable(page, "API_TOKEN", SECRET);
   const dialog = page.getByRole("dialog", { name: "Export environments" });
+  await openEnvironments(page);
   const exportWith = async (choice?: string, typed?: string) => {
     await page.getByRole("button", { name: "Export environments" }).click();
     if (choice) await dialog.getByRole("radio", { name: choice }).click();

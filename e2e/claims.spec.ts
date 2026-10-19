@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { dumpIdb, seedAndOpen, send } from "./support/app";
+import { closeEnvironments, dumpIdb, openEnvironments, seedAndOpen, send } from "./support/app";
 
 // Tests that back public claims in README.md and docs/trust-center.md
 // (ledger: docs/claims.md, gate: scripts/check-claims.mjs). Each title
@@ -14,6 +14,7 @@ interface TrustedTypesFactory {
 
 /** Creates an environment with one protected variable holding `plaintext`, saved. */
 async function protectVariable(page: Page, plaintext: string): Promise<void> {
+  await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).click();
   await page.locator("#new-env-name-input").fill("Claims env");
   await page.getByRole("button", { name: "Create environment" }).click();
@@ -25,10 +26,12 @@ async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await inputs.nth(0).fill(PASSPHRASE);
   await inputs.nth(1).fill(PASSPHRASE);
   await page.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toHaveCount(0);
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await page.getByRole("button", { name: "Save changes" }).click();
+  await closeEnvironments(page);
+  await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
 }
 
 /** Everything the app persisted in this origin: IndexedDB, localStorage, sessionStorage. */

@@ -127,7 +127,8 @@ for (const theme of ["light", "dark"] as const) {
           .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `${where} at ${width} px` })
           .toBeLessThanOrEqual(0);
         for (const locator of shown) {
-          await locator.scrollIntoViewIfNeeded();
+          // Crossing 768 px draws the composer's other layout: the element may be made again under the call.
+          await expect(async () => locator.scrollIntoViewIfNeeded({ timeout: 2_000 })).toPass();
           await expect
             .poll(
               async () => {

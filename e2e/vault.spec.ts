@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { openSettings } from "./support/app";
+import { closeEnvironments, openEnvironments, openSettings } from "./support/app";
 
 // P2.6, vault v2 (F09): one data key wrapped by the passphrase. Each test
 // also holds the page to its CSP and Trusted Types policy (plan risk R15):
@@ -37,6 +37,7 @@ async function unlock(page: Page, passphrase: string): Promise<void> {
 
 /** An environment with one protected variable, saved. The vault must be unlocked. */
 async function protect(page: Page, name: string, plaintext: string): Promise<void> {
+  await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).click();
   await page.locator("#new-env-name-input").fill("Vault env");
   await page.getByRole("button", { name: "Create environment" }).click();
@@ -46,6 +47,7 @@ async function protect(page: Page, name: string, plaintext: string): Promise<voi
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await page.getByRole("button", { name: "Save changes" }).click();
+  await closeEnvironments(page);
 }
 
 test("a wrong passphrase is refused when the vault holds no secret", async ({ page }) => {
@@ -121,7 +123,10 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
   await expect(secrets.getByText("Passphrase changed. The old one no longer opens the vault.")).toBeVisible();
+  // The form's button is gone: focus is back on the one that opened it, so Escape reaches the dialog.
+  await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
   await page.keyboard.press("Escape");
+  await expect(secrets).toHaveCount(0);
 
   await lockButton(page).click();
   await unlock(page, PASSPHRASE);
@@ -158,6 +163,8 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await secrets.getByRole("button", { name: "Delete API_TOKEN" }).click();
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
   await expect(secrets.getByText("No secrets yet")).toBeVisible();
+  // The deleted row's button is gone: focus stays in the dialog.
+  await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
 
   await secrets.getByRole("button", { name: "Import vault" }).click();
   await secrets.getByLabel("Vault file").setInputFiles({ name: "wayfarer-vault.json", mimeType: "application/json", buffer: Buffer.from(file) });

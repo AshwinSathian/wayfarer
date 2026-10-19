@@ -48,7 +48,7 @@ test.describe("Transport on fetch (P2.3)", () => {
     expect(await violations(page)).toEqual([]);
   });
 
-  test("Cancel replaces Send while a request is in flight, and stops it at once", async ({ page }) => {
+  test("@claim:C-042 Cancel replaces Send while a request is in flight, and stops it at once", async ({ page }) => {
     await open(page);
     await sendTo(page, `${ECHO}/delay/10000`);
 
@@ -63,7 +63,7 @@ test.describe("Transport on fetch (P2.3)", () => {
     expect(await violations(page)).toEqual([]);
   });
 
-  test("a request that outlasts the timeout set in Settings says so", async ({ page }) => {
+  test("@claim:C-042 a request that outlasts the timeout set in Settings says so", async ({ page }) => {
     await open(page);
     await openSettings(page, "Requests");
     const timeout = page.getByLabel("Request timeout");

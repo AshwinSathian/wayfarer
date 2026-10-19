@@ -73,7 +73,7 @@
           <app-icon name="folder" class="icon-sm text-label-tertiary shrink-0" />
           }
           @if (node.data.type === 'request') {
-          <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [title]="node.data.ref.method">{{ methodLabel(node.data.ref.method) }}</span>
+          <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [title]="node.data.ref.method">{{ methodLabel(node.data.ref.method) }}</span>&ngsp;
           }
           <span class="type-body text-label-primary truncate">{{ node.label }}</span>
         }

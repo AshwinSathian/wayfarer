@@ -1,7 +1,8 @@
 import { Page } from "../../components/Page";
 import { longDate, posts } from "../../lib/blog";
+import { pageMeta } from "../../lib/meta";
 
-export const metadata = { title: "Blog: Wayfarer", description: "Release notes and write-ups about how Wayfarer is built and tested." };
+export const metadata = pageMeta("/blog/", "Blog: Wayfarer", "Release notes and write-ups about how Wayfarer is built and tested.");
 
 export default function Blog() {
   return (

@@ -1,12 +1,38 @@
 // The landing (W2.1, rebuilt in PLAN-design 1.8). Each sentence that says what Wayfarer does names the claim that
 // proves it (docs/claims.md): e2e/site.spec.ts holds every ID named here to the ledger. A fact about another product
 // names its source and the date it was read.
+import { SITE, pageMeta } from "../lib/meta";
+import { version } from "../../../../package.json";
 import type { ReactNode } from "react";
 import { Claims } from "../components/Claims";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { RouteDemo } from "../components/RouteDemo";
 import { claims } from "../lib/content";
+
+export const metadata = pageMeta(
+  "/",
+  "Wayfarer: an API client in your browser",
+  "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own."
+);
+
+/**
+ * What search engines read about the app (W3.1): schema.org's SoftwareApplication, as data in the page, which the
+ * site's policy does not run. No rating or review: there are none to give.
+ */
+const SOFTWARE = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Wayfarer",
+  description: "An API client that runs in your browser and keeps your work on your device. No install, no account, no server of its own.",
+  url: `${SITE}/app/`,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Any, in a web browser",
+  softwareVersion: version,
+  license: "https://opensource.org/license/mit",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
 
 const POSTMAN_PRICING = "https://www.postman.com/pricing/";
 const YAAK_POST = "https://yaak.app/blog/postman-free-plan-one-user";
@@ -98,6 +124,8 @@ export default function Home() {
   return (
     <>
       <Header />
+      {/* Data, not script: "<" is written as \u003c so no text can end the element. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE).replace(/</g, "\\u003c") }} />
       <main>
         <section aria-labelledby="hero" className="contours">
           <div className="mx-auto grid grid-cols-1 max-w-6xl items-start gap-14 px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-16">

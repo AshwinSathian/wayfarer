@@ -1,12 +1,10 @@
+import { pageMeta } from "../../../lib/meta";
 import type { ReactNode } from "react";
 import { Claims } from "../../../components/Claims";
 import { H2, Page } from "../../../components/Page";
 import { Cite, type Source } from "../../../lib/rivals";
 
-export const metadata = {
-  title: "Moving from Postman: Wayfarer",
-  description: "Bring your Postman collections, environments and scripts to Wayfarer, step by step, and see what does not come across.",
-};
+export const metadata = pageMeta("/compare/moving-from-postman/", "Moving from Postman: Wayfarer", "Bring your Postman collections, environments and scripts to Wayfarer, step by step, and see what does not come across.");
 
 const POSTMAN_EXPORT: Source = {
   title: "Postman docs: Export data",

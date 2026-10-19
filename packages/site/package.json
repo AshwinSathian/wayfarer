@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --port 4321",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build && node strip-scripts.mjs out && pagefind --site out"
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build && node strip-scripts.mjs out && node social-images.mjs out && pagefind --site out"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "5.3.0",

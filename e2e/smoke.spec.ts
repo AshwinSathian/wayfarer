@@ -53,13 +53,14 @@ test("@smoke the site at / runs script from its own files only and links to the 
 // The synthetic monitor reads which release production runs from /version.json, and runs that release's tests
 // (scripts/deployed-release.mjs).
 test("@smoke /version.json names the release that is served", async ({ page }) => {
-  // From GitHub's runners Cloudflare challenges a client that runs no script: load a page first, and ask with its
-  // cookies.
+  // Asked by the page: from GitHub's runners Cloudflare challenges a client that is not a browser.
   await page.goto("/");
-  const response = await page.request.get("/version.json");
-  expect(response.status()).toBe(200);
+  const answer = await page.evaluate(async () => {
+    const r = await fetch("/version.json", { cache: "no-store" });
+    return { status: r.status, body: (await r.json()) as unknown };
+  });
   const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
-  expect(await response.json()).toEqual({ version });
+  expect(answer).toEqual({ status: 200, body: { version } });
 });
 
 test("the licences of the bundled packages are served with the app", async ({ request }) => {

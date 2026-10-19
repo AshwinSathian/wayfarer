@@ -5,8 +5,8 @@
 // deployed yet (v2.6.0's tests failed against v2.5.0, #398).
 //
 // It asks through Chromium: Cloudflare answers a client from GitHub's
-// runners that runs no script with a challenge (403, `cf-mitigated:
-// challenge`), whatever its User-Agent; a browser passes it.
+// runners that is not a browser with a challenge (403, `cf-mitigated:
+// challenge`), whatever its User-Agent.
 //
 // Usage: node scripts/deployed-release.mjs https://wayfarer.ashwinsathian.com
 import { pathToFileURL } from "node:url";
@@ -26,16 +26,19 @@ export async function deployedRelease(site, get) {
 }
 
 async function throughBrowser(site) {
-  const { chromium } = await import("@playwright/test");
+  const { chromium, devices } = await import("@playwright/test");
   const browser = await chromium.launch();
   try {
-    const page = await browser.newPage();
+    // As the smoke tests' browser: headless Chromium's own User-Agent is challenged too, and never let through.
+    const page = await browser.newPage({ ...devices["Desktop Chrome"] });
     await page.goto(site);
-    await page.waitForFunction(() => document.title !== "Just a moment...");
-    // The page's request carries the cookie the challenge set.
+    // Asked by the page, not by Node: Cloudflare challenges what a browser does not send.
     return await deployedRelease(site, async (url) => {
-      const answer = await page.request.get(url);
-      return new Response(await answer.body(), { status: answer.status(), headers: answer.headers() });
+      const { status, type, body } = await page.evaluate(async (u) => {
+        const r = await fetch(u, { cache: "no-store" });
+        return { status: r.status, type: r.headers.get("content-type") ?? "", body: await r.text() };
+      }, url);
+      return new Response(body, { status, headers: { "content-type": type } });
     });
   } finally {
     await browser.close();

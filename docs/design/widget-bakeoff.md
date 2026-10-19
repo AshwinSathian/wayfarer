@@ -4,7 +4,7 @@
 widgets are built on: Angular Material, as today; Angular Aria, the
 headless patterns, with our own styles; or the platform's own elements.
 This page is what was built to decide it, what was measured, and the
-recommendation. The decision is the maintainer's.
+recommendation. **The maintainer chose it on 2026-10-19.**
 
 ## What was built
 
@@ -186,5 +186,4 @@ bugs were found in about 250 lines. Aria's patterns are those keys,
 maintained by Angular's team.
 
 The risk is Aria's age: six workarounds in three widgets. Each is small and
-now known, and an upstream report for numbers 1, 4 and the dropped key
-would let them go later.
+now known, and each becomes code with a test in D3.3.

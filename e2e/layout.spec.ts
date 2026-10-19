@@ -163,30 +163,43 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     expect(last!.x + last!.width).toBeLessThanOrEqual(pane!.x + pane!.width + 1);
   });
 
-  // CLAUDE.md, "Below 1024 px the toolbar shows only what Settings does not
-  // also offer". A Tailwind `hidden` on a Material button loses to Material's
-  // own `display`, so the three came back and pushed Settings off a phone.
-  for (const width of [390, 820, 1023]) {
-    test(`at ${width} px the toolbar leaves secrets, the bridge and the theme to Settings`, async ({ page }) => {
+  // S4 of PLAN-design 1.9: the toolbar holds the environment, Environments, History and Settings; from
+  // 768 px the bridge, the vault, the secrets and the theme are in the status bar, each with its state
+  // in words. On a phone the lock stays in the toolbar and the rest is in Settings.
+  for (const width of [390, 767]) {
+    test(`at ${width} px there is no status bar, and the toolbar keeps the lock and Settings in the window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
+      await expect(page.getByRole("contentinfo", { name: "Status" })).toHaveCount(0);
+      await expect(page.getByRole("banner").getByRole("button", { name: "Unlock secrets", exact: true })).toBeVisible();
       for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
-        await expect(page.getByRole("banner").getByRole("button", { name })).toBeHidden();
+        await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
       const settings = await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).boundingBox();
       expect(settings!.x + settings!.width).toBeLessThanOrEqual(width);
     });
   }
 
-  // Not at 1024 px exactly: WebKit takes its scrollbar off the width a media query sees.
-  test("at 1100 px the toolbar shows secrets, the bridge and the theme", async ({ page }) => {
-    await page.setViewportSize({ width: 1100, height: 900 });
-    await page.goto("/app/");
-    for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
-      await expect(page.getByRole("banner").getByRole("button", { name })).toBeVisible();
-    }
-  });
+  // From 768 + 20 px: WebKit takes its scrollbar off the width a media query sees.
+  for (const width of [788, 1100, 1440]) {
+    test(`at ${width} px the status bar holds the bridge, the vault, the secrets and the theme, and says each state`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/app/");
+      const status = page.getByRole("contentinfo", { name: "Status" });
+      await expect(status).toBeVisible();
+      await expect(status).toContainText("Route: Auto");
+      await expect(status).toContainText("Vault locked");
+      await expect(status).toContainText("Saved in this browser only");
+      for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/, /^Unlock secrets$/]) {
+        await expect(status.getByRole("button", { name })).toBeVisible();
+        await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
+      }
+      const box = await status.boundingBox();
+      expect(box!.y + box!.height).toBeLessThanOrEqual(900);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+    });
+  }
 
   test("opening the environment JSON editor does not make the page wider than the window", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });

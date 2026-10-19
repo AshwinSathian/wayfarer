@@ -102,6 +102,7 @@ export class AppShell implements OnInit {
   readonly clearedNoticeDismissed = signal(false);
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
+  protected readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();

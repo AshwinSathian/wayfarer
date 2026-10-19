@@ -331,7 +331,8 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   await expect(report).toContainText("will add 1 environment");
   await report.getByRole("button", { name: "Confirm import" }).click();
   await expect(report).toHaveCount(0);
-  await other.keyboard.press("Escape");
+  // Closed by its button: this claim is about the file, and dialog-focus.spec holds Escape after an import.
+  await other.getByRole("dialog", { name: "Settings", exact: true }).getByRole("button", { name: "Close", exact: true }).first().click();
   await expect(other.getByRole("dialog")).toHaveCount(0);
   await openEnvironments(other);
   await expect(other.locator(".env-item", { hasText: "Tripwire env" })).toBeVisible();

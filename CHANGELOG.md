@@ -14,6 +14,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   another product links to the page it came from and says when it was
   read, and one list says where Wayfarer is behind.
 
+- **Closing a dialog over another leaves focus in the one under it.** When
+  the element a dialog had come from could not take focus back (an import's
+  report over Settings, opened from a hidden file field; in Safari a click
+  does not focus a button), focus fell to the page, and Escape and Tab no
+  longer reached the dialog still open. It now goes to that dialog.
+
 - **There is one version of Wayfarer, and the app no longer talks about
   others.** The banners about data an earlier version stored, a tab running
   an older Wayfarer, an update held up by another tab, and an update made

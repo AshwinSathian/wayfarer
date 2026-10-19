@@ -16,14 +16,14 @@ import type { SchemaOutline } from "../../shared/graphql/graphql-tools";
               </summary>
               <div class="space-y-1 px-3 pb-3">
                 @if (type.description) {
-                  <p class="type-caption text-label-secondary">{{ type.description }}</p>
+                  <p class="type-footnote text-label-secondary">{{ type.description }}</p>
                 }
                 <ul class="m-0 list-none space-y-1 p-0">
                   @for (member of type.members; track member.name) {
                     <li class="min-w-0">
                       <code class="type-footnote break-all">{{ member.signature }}</code>
                       @if (member.description) {
-                        <span class="type-caption text-label-secondary">&ngsp;{{ member.description }}</span>
+                        <span class="type-footnote text-label-secondary">&ngsp;{{ member.description }}</span>
                       }
                     </li>
                   }

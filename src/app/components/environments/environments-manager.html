@@ -32,7 +32,7 @@
     @if (!environments().length) {
     <div class="ds-empty-state py-6">
       <app-icon name="dns" class="icon-lg text-label-tertiary" />
-      <p class="type-caption text-label-tertiary text-center">No environments yet.</p>
+      <p class="type-footnote text-label-tertiary text-center">No environments yet.</p>
     </div>
     } @else {
     @let activeEnv = activeEnvironment();
@@ -130,8 +130,8 @@
                 </mat-form-field>
                 } @else {
                 <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
-                  <div class="type-caption text-status-warning font-semibold">Secret stored</div>
-                  <div class="type-caption text-label-tertiary mt-0.5">
+                  <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
+                  <div class="type-footnote text-label-tertiary mt-0.5">
                     @if (!secretsUnlocked) {
                     Unlock to reveal
                     } @else if (getSecretPreview(form.vars[$index].value)) {

@@ -1,120 +1,60 @@
-/* ============================================================
-   Typography — Wayfarer · "Obsidian" Design Language
-   Inter Variable with SF Pro-calibre refinements
-   ============================================================ */
-
-/* ── Font rendering ──────────────────────────────────────── */
-html {
-  font-optical-sizing: auto;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-
-/* ── Font stack ──────────────────────────────────────────── */
-* {
-  font-family: var(--font-sans);
-  /* cv02 = single-story a, cv03 = single-story g, cv04 = simple i/l,
-     cv11 = single-story g (some builds). Together these give Inter
-     the clean geometric feel of SF Pro. */
-  font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1, 'kern' 1;
-}
-
-code,
-pre,
-.font-mono,
-[class*="type-mono"] {
-  font-family: var(--font-mono);
-  font-feature-settings: normal;
-}
-
-/* ── Icon system ─────────────────────────────────────────── */
-/* <app-icon> renders an inline SVG sized 1em, so these classes size it
-   through font-size and colour it through currentColor. Glyphs are Material
-   Symbols Outlined, weight 300 (see src/app/shared/icon/icon-paths.ts). */
-.app-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.icon-xs  { font-size: 14px; }
-.icon-sm  { font-size: 16px; }
-.icon-md  { font-size: 20px; }
-.icon-lg  { font-size: 24px; }
-.icon-xl  { font-size: 32px; }
-
-/* ── Type scale ──────────────────────────────────────────── */
-/* Apple-inspired scale: tighter tracking on larger sizes,
-   optical weight adjustments at each step. */
+/* Generated from packages/tokens by `npm run gen:tokens`. Do not edit. The app's type
+   scale (D3.2): each class reads its style's custom properties in tokens.css. */
 
 .type-title-2 {
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  letter-spacing: -0.014em;
+  font-size: var(--type-title-2-size);
+  line-height: var(--type-title-2-line);
+  font-weight: var(--type-title-2-weight);
+  letter-spacing: var(--type-title-2-tracking);
 }
 
 .type-title-3 {
-  font-size: 15px;
-  line-height: 20px;
-  font-weight: 600;
-  letter-spacing: -0.010em;
+  font-size: var(--type-title-3-size);
+  line-height: var(--type-title-3-line);
+  font-weight: var(--type-title-3-weight);
+  letter-spacing: var(--type-title-3-tracking);
 }
 
 .type-body {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
-  letter-spacing: -0.003em;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
 }
 
 .type-callout {
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 400;
-  letter-spacing: -0.002em;
+  font-size: var(--type-callout-size);
+  line-height: var(--type-callout-line);
+  font-weight: var(--type-callout-weight);
+  letter-spacing: var(--type-callout-tracking);
 }
 
 .type-subhead {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-size: var(--type-subhead-size);
+  line-height: var(--type-subhead-line);
+  font-weight: var(--type-subhead-weight);
+  letter-spacing: var(--type-subhead-tracking);
 }
 
 .type-footnote {
-  font-size: 11px;
-  line-height: 15px;
-  font-weight: 400;
-  letter-spacing: 0.002em;
+  font-size: var(--type-footnote-size);
+  line-height: var(--type-footnote-line);
+  font-weight: var(--type-footnote-weight);
+  letter-spacing: var(--type-footnote-tracking);
 }
 
-.type-caption {
-  font-size: 10px;
-  line-height: 14px;
-  font-weight: 400;
-  letter-spacing: 0.006em;
+.type-overline {
+  font-size: var(--type-overline-size);
+  line-height: var(--type-overline-line);
+  font-weight: var(--type-overline-weight);
+  letter-spacing: var(--type-overline-tracking);
+  text-transform: uppercase;
 }
 
-/* ── Mono type scale ─────────────────────────────────────── */
 .type-mono-body {
   font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 20px;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-/* ── Uppercase labels ────────────────────────────────────── */
-/* Used for section headers, column labels, category tags */
-.type-overline {
-  font-size: 10px;
-  line-height: 14px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--type-mono-body-size);
+  line-height: var(--type-mono-body-line);
+  font-weight: var(--type-mono-body-weight);
+  letter-spacing: var(--type-mono-body-tracking);
 }

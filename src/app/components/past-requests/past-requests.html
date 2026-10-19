@@ -67,7 +67,7 @@
 
             @if (request.response) {
             <span
-              class="type-caption font-mono shrink-0 tabular-nums"
+              class="type-footnote font-mono shrink-0 tabular-nums"
               [class]="{
                 'text-status-success': request.response.status >= 200 && request.response.status < 300,
                 'text-status-warning': request.response.status >= 300 && request.response.status < 500,
@@ -77,10 +77,10 @@
             }
 
             @if (request.durationMs) {
-            <span class="type-caption text-label-tertiary shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
+            <span class="type-footnote text-label-tertiary shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
             }
 
-            <span class="type-caption text-label-tertiary shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
+            <span class="type-footnote text-label-tertiary shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
               {{ relativeTime(request.createdAt) }}
             </span>
 

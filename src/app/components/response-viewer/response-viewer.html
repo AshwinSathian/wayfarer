@@ -131,10 +131,10 @@
             @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
-              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-caption text-status-success tabular-nums" style="background: var(--status-success-fill); border: 1px solid var(--status-success-border);">{{ testPassCount }}</span>
+              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-success tabular-nums" style="background: var(--status-success-fill); border: 1px solid var(--status-success-border);">{{ testPassCount }}</span>
               }
               @if (testFailCount) {
-              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-caption text-status-error tabular-nums" style="background: var(--status-error-fill); border: 1px solid var(--status-error-border);">{{ testFailCount }}</span>
+              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-error tabular-nums" style="background: var(--status-error-fill); border: 1px solid var(--status-error-border);">{{ testFailCount }}</span>
               }
             </span>
             }
@@ -212,7 +212,7 @@
               }
 
               @if (currentSearchExcerpt) {
-              <div class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-caption text-label-secondary font-mono">
+              <div class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-footnote text-label-secondary font-mono">
                 …{{ currentSearchExcerpt }}…
               </div>
               }
@@ -424,7 +424,7 @@
                   </div>
                   }
                 </div>
-                <p class="type-caption text-label-tertiary">
+                <p class="type-footnote text-label-tertiary">
                   Detailed phase breakdown unavailable for this response.
                 </p>
                 }
@@ -468,13 +468,13 @@
                       [class.text-status-error]="!result.passed"
                     >{{ result.label }}</div>
                     @if (!result.passed && result.error) {
-                    <div class="type-caption text-label-tertiary mt-0.5">{{ result.error }}</div>
+                    <div class="type-footnote text-label-tertiary mt-0.5">{{ result.error }}</div>
                     }
                     @if (!result.passed && result.actual !== undefined) {
-                    <div class="type-caption text-label-tertiary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
+                    <div class="type-footnote text-label-tertiary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
                     }
                   </div>
-                  <span class="type-caption text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
+                  <span class="type-footnote text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
                 </div>
                 }
               </div>
@@ -491,12 +491,12 @@
               </div>
               }
               @if (scriptTimings()) {
-              <p class="script-timings type-caption text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
+              <p class="script-timings type-footnote text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
               }
               @if (scriptLogs().length) {
               <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
                 <h3 class="ds-section-label">Console</h3>
-                <pre class="type-caption font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words">{{ scriptLogs().join("\n") }}</pre>
+                <pre class="type-footnote font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words">{{ scriptLogs().join("\n") }}</pre>
               </section>
               }
             </div>

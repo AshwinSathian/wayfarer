@@ -495,7 +495,7 @@
 }
 
 .request-tab-method {
-  font-size: 11px;
+  font-size: var(--type-footnote-size);
   font-weight: 600;
   color: var(--label-secondary);
 }

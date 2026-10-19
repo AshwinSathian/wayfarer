@@ -31,7 +31,7 @@
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary" id="settings-theme-label">Theme</p>
-              <p class="type-caption text-label-tertiary">System follows your device, and changes with it. Now: {{ themeService.theme() === 'dark' ? 'dark' : 'light' }}.</p>
+              <p class="type-footnote text-label-tertiary">System follows your device, and changes with it. Now: {{ themeService.theme() === 'dark' ? 'dark' : 'light' }}.</p>
             </div>
             <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator aria-labelledby="settings-theme-label" [value]="themeService.choice()" (change)="themeService.choose($event.value)">
               @for (choice of themeChoices; track choice.value) {
@@ -47,19 +47,19 @@
           <div class="settings-row">
             <div class="min-w-0">
               <label for="request-timeout" class="type-subhead text-label-primary">Request timeout</label>
-              <p class="type-caption text-label-tertiary">How long a request may take before it is given up. 0 waits for as long as it takes.</p>
+              <p class="type-footnote text-label-tertiary">How long a request may take before it is given up. 0 waits for as long as it takes.</p>
             </div>
             <div class="settings-number">
               <mat-form-field class="field w-28">
                 <input matInput id="request-timeout" type="number" min="0" step="1000" inputmode="numeric" aria-describedby="request-timeout-unit" [value]="requestSettings.timeoutMs()" (change)="requestSettings.setTimeoutMs(+$any($event.target).value)" />
               </mat-form-field>
-              <span id="request-timeout-unit" class="type-caption text-label-tertiary">ms</span>
+              <span id="request-timeout-unit" class="type-footnote text-label-tertiary">ms</span>
             </div>
           </div>
           <div class="settings-row settings-row-switch">
             <div class="min-w-0">
               <label for="block-unresolved-input" class="type-subhead text-label-primary">Hold back a request with a variable that has no value</label>
-              <p class="type-caption text-label-tertiary">The composer says which variable and offers "Send anyway". Off: the variable is sent as written, as in Postman.</p>
+              <p class="type-footnote text-label-tertiary">The composer says which variable and offers "Send anyway". Off: the variable is sent as written, as in Postman.</p>
             </div>
             <mat-checkbox id="block-unresolved" [checked]="requestSettings.blockUnresolved()" (change)="requestSettings.setBlockUnresolved($event.checked)" />
           </div>
@@ -72,26 +72,26 @@
           <div class="settings-row">
             <div class="min-w-0">
               <label for="history-cap" class="type-subhead text-label-primary">History size</label>
-              <p class="type-caption text-label-tertiary">How many requests history keeps, 1 to 5000. The oldest go first.</p>
+              <p class="type-footnote text-label-tertiary">How many requests history keeps, 1 to 5000. The oldest go first.</p>
             </div>
             <div class="settings-number">
               <mat-form-field class="field w-28">
                 <input matInput id="history-cap" type="number" min="1" max="5000" step="1" inputmode="numeric" aria-describedby="history-cap-unit" [value]="requestSettings.historyCap()" (change)="requestSettings.setHistoryCap(+$any($event.target).value)" />
               </mat-form-field>
-              <span id="history-cap-unit" class="type-caption text-label-tertiary">requests</span>
+              <span id="history-cap-unit" class="type-footnote text-label-tertiary">requests</span>
             </div>
           </div>
           <div class="settings-row settings-row-switch">
             <div class="min-w-0">
               <label for="history-bodies-input" class="type-subhead text-label-primary">Keep response bodies in history</label>
-              <p class="type-caption text-label-tertiary">Text bodies, up to 1 MB each, with credentials and vault secrets masked. Off: history keeps the status and headers only.</p>
+              <p class="type-footnote text-label-tertiary">Text bodies, up to 1 MB each, with credentials and vault secrets masked. Off: history keeps the status and headers only.</p>
             </div>
             <mat-checkbox id="history-bodies" [checked]="requestSettings.historyBodies()" (change)="requestSettings.setHistoryBodies($event.checked)" />
           </div>
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">Clear history</p>
-              <p class="type-caption text-label-tertiary">Removes every entry. Collections and saved requests are not touched.</p>
+              <p class="type-footnote text-label-tertiary">Removes every entry. Collections and saved requests are not touched.</p>
             </div>
             <button matButton class="btn-danger btn-sm" type="button" aria-label="Clear history" (click)="clearHistory.emit()">Clear…</button>
           </div>
@@ -103,7 +103,7 @@
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">Workspace backup</p>
-              <p class="type-caption text-label-tertiary">One file with every collection, request, environment, the global variables and the vault (still encrypted). Files of request bodies are not in it.</p>
+              <p class="type-footnote text-label-tertiary">One file with every collection, request, environment, the global variables and the vault (still encrypted). Files of request bodies are not in it.</p>
               <mat-checkbox id="backup-history" class="mt-1.5 -ml-2" [checked]="backupHistory()" (change)="backupHistory.set($event.checked)">With history</mat-checkbox>
             </div>
             <div class="settings-actions">
@@ -125,7 +125,7 @@
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">Environments</p>
-              <p class="type-caption text-label-tertiary">Every environment as one JSON file, or bring one back in.</p>
+              <p class="type-footnote text-label-tertiary">Every environment as one JSON file, or bring one back in.</p>
             </div>
             <div class="settings-actions">
               <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Export environments" (click)="exportEnvironments()"><app-icon name="download" /> Export</button>
@@ -142,11 +142,11 @@
             @if (persistence.estimate(); as estimate) {
             <div class="flex items-baseline justify-between gap-3">
               <p class="type-subhead text-label-primary">{{ size(estimate.usage) }} used</p>
-              <p class="type-caption text-label-tertiary">of {{ size(estimate.quota) }} the browser allows</p>
+              <p class="type-footnote text-label-tertiary">of {{ size(estimate.quota) }} the browser allows</p>
             </div>
             <div class="settings-meter" role="img" [attr.aria-label]="size(estimate.usage) + ' used of ' + size(estimate.quota)"><span [style.width.%]="used(estimate)"></span></div>
             }
-            <p class="type-caption text-label-tertiary" data-testid="storage-status">
+            <p class="type-footnote text-label-tertiary" data-testid="storage-status">
               @switch (persistence.persisted()) {
                 @case (true) { The browser has promised to keep this data. }
                 @case (false) { The browser has not promised to keep this data: it may delete it when the disk runs low. Wayfarer asks again the next time you save. }
@@ -154,7 +154,7 @@
               }
             </p>
             @if (persistence.safariNotInstalled) {
-            <p class="type-caption text-status-warning" data-testid="safari-eviction-notice">
+            <p class="type-footnote text-status-warning" data-testid="safari-eviction-notice">
               Safari deletes a website's data after seven days without a visit. To keep it: in Safari, File → Add to Dock (on iPhone and iPad: Share → Add to Home Screen), and open Wayfarer from there. A backup protects you either way.
             </p>
             }
@@ -167,20 +167,20 @@
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">Secrets</p>
-              <p class="type-caption text-label-tertiary">View, reveal, rename and delete the secrets of every environment. The vault is {{ vault.isUnlocked() ? 'unlocked in this tab' : 'locked' }}.</p>
+              <p class="type-footnote text-label-tertiary">View, reveal, rename and delete the secrets of every environment. The vault is {{ vault.isUnlocked() ? 'unlocked in this tab' : 'locked' }}.</p>
             </div>
             <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Manage secrets" (click)="openSecrets.emit(); close()">Manage…</button>
           </div>
           <div class="settings-row">
             <div class="min-w-0">
               <label for="vault-idle-minutes" class="type-subhead text-label-primary">Lock the vault when idle</label>
-              <p class="type-caption text-label-tertiary">Time without a key press or a click before this tab locks the vault, 1 to 240. 0 never locks it.</p>
+              <p class="type-footnote text-label-tertiary">Time without a key press or a click before this tab locks the vault, 1 to 240. 0 never locks it.</p>
             </div>
             <div class="settings-number">
               <mat-form-field class="field w-28">
                 <input matInput id="vault-idle-minutes" type="number" min="0" max="240" step="1" inputmode="numeric" aria-describedby="vault-idle-unit" [value]="vault.idleMinutes()" (change)="vault.setIdleMinutes(+$any($event.target).value)" />
               </mat-form-field>
-              <span id="vault-idle-unit" class="type-caption text-label-tertiary">minutes</span>
+              <span id="vault-idle-unit" class="type-footnote text-label-tertiary">minutes</span>
             </div>
           </div>
         </div>
@@ -227,7 +227,7 @@
           <a class="settings-row settings-row-link" [href]="link.href" target="_blank" rel="noopener noreferrer">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">{{ link.label }}</p>
-              <p class="type-caption text-label-tertiary">{{ link.about }}</p>
+              <p class="type-footnote text-label-tertiary">{{ link.about }}</p>
             </div>
             <app-icon name="chevron_right" class="icon-sm text-label-tertiary shrink-0" />
           </a>
@@ -241,7 +241,7 @@
           <div class="settings-row">
             <div class="min-w-0">
               <p class="type-subhead text-label-primary">Reset all data</p>
-              <p class="type-caption text-label-tertiary">Deletes every collection, environment, secret and history entry, and every setting on this page. Cannot be undone: back up first.</p>
+              <p class="type-footnote text-label-tertiary">Deletes every collection, environment, secret and history entry, and every setting on this page. Cannot be undone: back up first.</p>
             </div>
             <button matButton="filled" class="btn-danger btn-sm" type="button" aria-label="Reset all data" (click)="resetAllData.emit()">Reset…</button>
           </div>

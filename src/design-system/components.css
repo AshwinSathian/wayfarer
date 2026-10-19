@@ -3,6 +3,34 @@
    Utility classes and canonical component patterns
    ============================================================ */
 
+/* Font rendering and the font stacks: before the components, where typography.css
+   had them (that file is now written from the tokens). */
+/* ── Font rendering ──────────────────────────────────────── */
+html {
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Font stack ──────────────────────────────────────────── */
+* {
+  font-family: var(--font-sans);
+  /* cv02 = single-story a, cv03 = single-story g, cv04 = simple i/l,
+     cv11 = single-story g (some builds). Together these give Inter
+     the clean geometric feel of SF Pro. */
+  font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1, 'kern' 1;
+}
+
+code,
+pre,
+.font-mono,
+[class*="type-mono"] {
+  font-family: var(--font-mono);
+  font-feature-settings: normal;
+}
+
+
 /* ── Background utilities ────────────────────────────────── */
 .bg-canvas-app      { background-color: var(--canvas-app); }
 .bg-canvas-panel    { background-color: var(--canvas-panel); }
@@ -30,7 +58,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--type-footnote-size);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -110,7 +138,7 @@
 
 /* ── Section label ───────────────────────────────────────── */
 .ds-section-label {
-  font-size: 10px;
+  font-size: var(--type-footnote-size);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -186,7 +214,7 @@
   transition:
     opacity var(--dur-quick) var(--ease-standard),
     transform var(--dur-micro) var(--ease-spring);
-  font-size: 11px;
+  font-size: var(--type-footnote-size);
 }
 
 .var-chip:hover {
@@ -247,7 +275,7 @@
   border-radius: var(--radius-full);
   background: var(--status-success-fill);
   border: 1px solid var(--status-success-border);
-  font-size: 10px;
+  font-size: var(--type-footnote-size);
   font-weight: 600;
   color: var(--status-success-text);
   letter-spacing: 0.04em;
@@ -275,7 +303,7 @@
 .ds-table th {
   padding: 8px 12px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--type-footnote-size);
   font-weight: 500;
   color: var(--label-secondary);
   text-align: left;
@@ -351,3 +379,22 @@
   margin-right: 0.625rem;
   color: var(--label-tertiary);
 }
+
+/* ── Icon system ─────────────────────────────────────────── */
+/* <app-icon> renders an inline SVG sized 1em, so these classes size it
+   through font-size and colour it through currentColor. Glyphs are Material
+   Symbols Outlined, weight 300 (see src/app/shared/icon/icon-paths.ts). */
+.app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.icon-xs  { font-size: 14px; }
+.icon-sm  { font-size: 16px; }
+.icon-md  { font-size: 20px; }
+.icon-lg  { font-size: 24px; }
+.icon-xl  { font-size: 32px; }

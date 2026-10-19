@@ -1,7 +1,7 @@
 @let state = run();
 @let results = state.results();
 <div class="flex flex-wrap items-center gap-3">
-  <h2 class="type-headline min-w-0 break-words">Run {{ state.target.name }}</h2>
+  <h2 class="type-title-2 min-w-0 break-words">Run {{ state.target.name }}</h2>
   <span class="type-footnote text-label-tertiary">{{ requests().length }} {{ requests().length === 1 ? "request" : "requests" }}, in the order of the list</span>
   <span class="flex-1"></span>
   @if (state.running()) {

@@ -34,7 +34,7 @@
   background: transparent;
   color: var(--label-secondary);
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--type-callout-size);
   cursor: pointer;
   transition:
     background var(--dur-quick) var(--ease-standard),
@@ -131,7 +131,7 @@
   display: block;
 }
 
-.settings-row .type-subhead + .type-caption {
+.settings-row .type-subhead + .type-footnote {
   margin-top: 3px;
 }
 
@@ -203,7 +203,7 @@
 .settings-note {
   margin-top: 12px;
   color: var(--label-tertiary);
-  font-size: 12.5px;
+  font-size: var(--type-callout-size);
   line-height: 1.5;
 }
 
@@ -246,7 +246,7 @@
   /* The primary label: the secondary one is 4.2:1 on this fill at 11 px. */
   color: var(--label-primary);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--type-footnote-size);
   white-space: nowrap;
 }
 

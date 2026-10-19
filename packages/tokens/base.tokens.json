@@ -105,5 +105,141 @@
       "$type": "fontFamily",
       "$value": ["JetBrains Mono", "Menlo", "SF Mono", "Consolas", "monospace"]
     }
+  },
+  "type": {
+    "$description": "The app's type scale (D3.2). Nothing is under 12 px; a font size anywhere in the stylesheets reads one of these or is 12 px or more (packages/tokens/tokens.test.mjs). Letter spacing is in px, as DTCG's dimension allows, at each style's own size.",
+    "type-title-2": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 18,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -0.252,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      }
+    },
+    "type-title-3": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 15,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": -0.15,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      }
+    },
+    "type-body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": -0.042,
+          "unit": "px"
+        },
+        "lineHeight": 1.4286
+      }
+    },
+    "type-callout": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": -0.026,
+          "unit": "px"
+        },
+        "lineHeight": 1.3846
+      }
+    },
+    "type-subhead": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 500,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      }
+    },
+    "type-footnote": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0.024,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      }
+    },
+    "type-overline": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "value": 0.72,
+          "unit": "px"
+        },
+        "lineHeight": 1.3333
+      },
+      "$extensions": {
+        "com.wayfarer.css": {
+          "text-transform": "uppercase"
+        }
+      }
+    },
+    "type-mono-body": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.font-mono}",
+        "fontSize": {
+          "value": 13,
+          "unit": "px"
+        },
+        "fontWeight": 400,
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5385
+      }
+    }
   }
 }

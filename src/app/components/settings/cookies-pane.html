@@ -13,14 +13,14 @@
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <label [for]="'cookie-value-' + i" class="type-subhead text-label-primary font-mono break-all">{{ cookie.name }}</label>
-        <p class="type-caption text-label-tertiary break-all"><span class="font-mono">{{ cookie.domain }}{{ cookie.path }}</span> · {{ about(cookie) }}</p>
+        <p class="type-footnote text-label-tertiary break-all"><span class="font-mono">{{ cookie.domain }}{{ cookie.path }}</span> · {{ about(cookie) }}</p>
       </div>
       <button matIconButton type="button" class="btn-plain shrink-0" [attr.aria-label]="'Delete cookie ' + cookie.name + ' of ' + cookie.domain" (click)="jar.remove(cookie)"><app-icon name="delete" /></button>
     </div>
     <mat-form-field class="field w-full">
       <input matInput [id]="'cookie-value-' + i" type="text" autocomplete="off" spellcheck="false" class="font-mono" [value]="cookie.value" (change)="jar.setValue(cookie, $any($event.target).value)" />
     </mat-form-field>
-    <p class="type-caption text-label-tertiary">
+    <p class="type-footnote text-label-tertiary">
       @if (cookie.expires === undefined) { Kept until you delete it: the server gave it no end. } @else { Until {{ until(cookie.expires) }}. }
       @if (jar.inMemoryOnly(cookie)) { <span class="cookie-unstored">Not stored: its value holds a vault secret, so it is in this tab's memory only.</span> }
     </p>

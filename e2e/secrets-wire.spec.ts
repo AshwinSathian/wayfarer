@@ -157,9 +157,12 @@ test("@claim:C-007 a protected variable reaches the server as its plaintext, and
 
   // Every export there is, with and without credentials: a vault secret is in none.
   const exportMenu = page.getByRole("button", { name: "Export response" });
-  for (const item of ["Copy as cURL", "Copy as HAR", "Copy as cURL with credentials", "Copy as HAR with credentials"]) {
+  const responseCopies = ["Copy as cURL", "Copy as HAR", "Copy as cURL with credentials", "Copy as HAR with credentials"];
+  for (const item of responseCopies) {
     await exportMenu.click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
+    // The HAR builder is fetched for the first HAR: each copy is waited for, so the order is the list's.
+    await expect.poll(async () => (await clipboard()).length).toBe(responseCopies.indexOf(item) + 1);
   }
   // The composer's own: the command, and the request as code for each target (P4.6 a).
   for (const item of ["Copy as cURL", "Copy as cURL with credentials", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"]) {
@@ -334,9 +337,12 @@ test("@claim:C-007 an OAuth 2.0 token is kept in the vault and nowhere else: a s
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
 
   const exportMenu = page.getByRole("button", { name: "Export response" });
-  for (const item of ["Copy as cURL", "Copy as HAR", "Copy as cURL with credentials", "Copy as HAR with credentials"]) {
+  const responseCopies = ["Copy as cURL", "Copy as HAR", "Copy as cURL with credentials", "Copy as HAR with credentials"];
+  for (const item of responseCopies) {
     await exportMenu.click();
     await page.getByRole("menuitem", { name: item, exact: true }).click();
+    // The HAR builder is fetched for the first HAR: each copy is waited for, so the order is the list's.
+    await expect.poll(async () => (await clipboard()).length).toBe(responseCopies.indexOf(item) + 1);
   }
   const composer = ["Copy as cURL", "Copy as cURL with credentials", "Copy as JavaScript (fetch)", "Copy as Python (requests)", "Copy as HTTPie"];
   for (const item of composer) {

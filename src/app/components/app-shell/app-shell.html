@@ -327,7 +327,7 @@
 
     <div class="flex flex-col gap-3">
       <mat-form-field class="field w-full">
-        <input matInput
+        <input class="font-sans" matInput
           cdkFocusInitial
           type="password"
           [ngModel]="unlockPassphrase()"
@@ -338,7 +338,7 @@
       </mat-form-field>
       @if (isFirstVaultSetup()) {
       <mat-form-field class="field w-full">
-        <input matInput
+        <input class="font-sans" matInput
           type="password"
           [ngModel]="confirmPassphrase()"
           (ngModelChange)="confirmPassphrase.set($event)"

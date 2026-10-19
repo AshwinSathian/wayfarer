@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **What you type and what a server sends are in a monospace font.** The
+  address, every param, header, form and multipart row, the variables, the
+  auth fields, the tests, the bridge's address and token, the response's
+  search, its header values and an event's id and name now read as code,
+  so `l`, `1` and `I` or `O` and `0` are told apart. The address and the
+  path filter asked for it before and did not get it: Material's own style
+  for an input won. Names, descriptions, passphrases and numbers stay in
+  the app's text font. A plain button, such as "Start a new request instead",
+  was in the browser's own font, 11 px in Safari on a Mac; buttons and
+  fields now take the font of the text around them.
+
 - **No text in the app is smaller than 12 px.** The tree's method tags,
   section labels such as "Collections", the tab's method, chips, captions
   and hints were 10 or 11 px; they are 12 px now. The run view's title had a

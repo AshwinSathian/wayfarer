@@ -2,7 +2,7 @@
 <div class="address-bar min-w-0 flex-[1_1_20rem]">
   <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. -->
   <mat-form-field class="field method-field">
-    <input matInput
+    <input class="font-mono" matInput
       #methodInput
       aria-label="HTTP method"
       maxlength="32"
@@ -30,7 +30,7 @@
     <input matInput
       #urlInput
       type="url"
-      class="address-url"
+      class="address-url font-mono"
       [ngModel]="store.draft().url"
       (ngModelChange)="store.setUrl($event)"
       (paste)="onPaste($event)"

@@ -16,7 +16,7 @@
   </mat-select>
   @if (needsKey(test.target)) {
   <mat-form-field class="field w-44">
-    <input matInput
+    <input class="font-mono" matInput
       [(ngModel)]="test.key"
       (ngModelChange)="store.edited()"
       [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
@@ -35,7 +35,7 @@
   </mat-select>
   @if (needsExpected(test.operator)) {
   <mat-form-field class="field flex-1 min-w-[120px]!">
-    <input matInput
+    <input class="font-mono" matInput
       [(ngModel)]="test.expected"
       (ngModelChange)="store.edited()"
       placeholder="expected value"

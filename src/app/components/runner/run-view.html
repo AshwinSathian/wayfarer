@@ -15,7 +15,7 @@
   <div class="flex flex-col gap-1">
     <label for="run-iterations" class="type-footnote text-label-secondary">Iterations</label>
     <mat-form-field class="field w-36">
-      <input
+      <input class="font-sans"
         matInput
         id="run-iterations"
         type="number"
@@ -33,7 +33,7 @@
   <div class="flex flex-col gap-1">
     <label for="run-delay" class="type-footnote text-label-secondary">Delay between requests (ms)</label>
     <mat-form-field class="field w-36">
-      <input matInput id="run-delay" type="number" min="0" max="600000" step="100" inputmode="numeric" [value]="state.delayMs()" [disabled]="state.running()" (change)="setDelay($any($event.target).value)" />
+      <input class="font-sans" matInput id="run-delay" type="number" min="0" max="600000" step="100" inputmode="numeric" [value]="state.delayMs()" [disabled]="state.running()" (change)="setDelay($any($event.target).value)" />
     </mat-form-field>
   </div>
   <mat-checkbox [checked]="state.stopOnFailure()" [disabled]="state.running()" (change)="state.stopOnFailure.set($event.checked)">Stop on the first failure</mat-checkbox>

@@ -166,7 +166,7 @@
                 <!-- The search, its count and its arrows wrap together. -->
                 <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
                 <mat-form-field class="field min-w-0 flex-1">
-                  <input matInput
+                  <input class="font-mono" matInput
                     [value]="searchQuery()"
                     (input)="onSearchQueryChange($any($event.target).value)"
                     aria-label="Search the response"
@@ -307,7 +307,7 @@
                     @for (header of responseHeaders(); track $index) {
                     <tr>
                       <th>{{ header.name }}</th>
-                      <td class="break-all">{{ header.value || '—' }}</td>
+                      <td class="break-all font-mono">{{ header.value || '—' }}</td>
                     </tr>
                     }
                   </tbody>

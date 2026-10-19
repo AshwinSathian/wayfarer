@@ -83,13 +83,13 @@
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
         <mat-form-field class="field w-full">
-          <input matInput id="env-name-input" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+          <input class="font-sans" matInput id="env-name-input" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
         </mat-form-field>
       </div>
       <div>
         <label for="env-description-input" class="ds-form-label">Description</label>
         <mat-form-field class="field w-full">
-          <input matInput
+          <input class="font-sans" matInput
             id="env-description-input"
             [(ngModel)]="form.description"
             (ngModelChange)="syncDraft(form)"
@@ -114,7 +114,7 @@
                 [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
               >
                 <mat-form-field class="field">
-                  <input matInput
+                  <input class="font-mono" matInput
                     placeholder="KEY"
                     [(ngModel)]="form.vars[$index].key"
                     (ngModelChange)="onPairsChange()"
@@ -122,7 +122,7 @@
                 </mat-form-field>
                 @if (!isSecretValue(form.vars[$index].value)) {
                 <mat-form-field class="field">
-                  <input matInput
+                  <input class="font-mono" matInput
                     placeholder="Value"
                     [(ngModel)]="form.vars[$index].value"
                     (ngModelChange)="onPairsChange()"
@@ -209,7 +209,7 @@
     <div>
       <label for="new-env-name-input" class="ds-form-label">Name</label>
       <mat-form-field class="field w-full">
-        <input matInput
+        <input class="font-sans" matInput
           cdkFocusInitial
           id="new-env-name-input"
           [ngModel]="newEnvForm().name"
@@ -221,7 +221,7 @@
     <div>
       <label for="new-env-description-input" class="ds-form-label">Description</label>
       <mat-form-field class="field w-full">
-        <input matInput
+        <input class="font-sans" matInput
           id="new-env-description-input"
           [ngModel]="newEnvForm().description"
           (ngModelChange)="onNewEnvDescriptionChange($event)"

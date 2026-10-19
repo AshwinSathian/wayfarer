@@ -751,6 +751,15 @@
   box-shadow: none;
 }
 
+/* A value a user typed, or one a server sent or will read, is monospace (D3.2):
+   the input says so with `font-mono`. Material's input sets `font: inherit` in a
+   sheet that loads after this one, so the class alone lost. */
+.mat-mdc-form-field .mat-mdc-input-element.font-mono,
+.mat-mdc-form-field .mat-mdc-input-element[class*="type-mono"] {
+  font-family: var(--font-mono);
+  font-feature-settings: normal;
+}
+
 .field.method-field input.mat-mdc-input-element {
   font-family: var(--font-mono);
   font-size: 12px;

@@ -1,0 +1,90 @@
+/* The rows of <ui-tree>. A group is the rows under a row, one step in. */
+.ui-tree,
+.ui-tree-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-tree {
+  padding-top: 2px;
+}
+
+.ui-tree-group {
+  padding-inline-start: 16px;
+}
+
+/* A collapsed group holds no rows: no gap for it either. */
+.ui-tree-group:empty {
+  display: none;
+}
+
+.ui-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--label-primary);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-standard);
+}
+
+.ui-tree-row--selected {
+  background: var(--ctl-highlight);
+}
+
+.ui-tree-row:hover {
+  background: var(--fill-hover);
+}
+
+.ui-tree-row:focus-visible {
+  outline-offset: -2px;
+}
+
+.ui-tree-row--drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.ui-tree-row--drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* Forced colours take every background away, and with it the only mark of
+   the selected row: it gets a bar at its start. */
+@media (forced-colors: active) {
+  .ui-tree-row--selected {
+    border-inline-start: 4px solid Highlight;
+    padding-inline-start: 4px;
+  }
+}
+
+.ui-tree-toggle {
+  display: flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--ctl-surface-muted);
+  /* The glyph fills half of its box: 28px draws it as large as the old 16px chevron. */
+  font-size: 28px;
+}
+
+.ui-tree-row--selected .ui-tree-toggle {
+  color: var(--ctl-highlight-text);
+}
+
+.ui-tree-toggle--hidden {
+  visibility: hidden;
+}
+
+.ui-tree-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--label-primary);
+  font-size: 13px;
+  letter-spacing: -0.002em;
+}

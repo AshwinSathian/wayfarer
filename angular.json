@@ -81,6 +81,12 @@
               "sourceMap": true,
               "namedChunks": true,
               "extractLicenses": false
+            },
+            "catalogue": {
+              "outputPath": {
+                "base": "dist/catalogue",
+                "browser": "app"
+              }
             }
           },
           "defaultConfiguration": "production"

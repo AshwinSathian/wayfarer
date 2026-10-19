@@ -93,6 +93,9 @@ jobs:
       - run: npm run check:site-links
       # release.yml attaches this SBOM; it fails for a workspace with no version (v2.6.0's first tag).
       - run: npm sbom --sbom-format cyclonedx --omit dev > /dev/null
+      # D3.3: the widget catalogue, a development build that e2e serves beside the
+      # deploy (dist/catalogue). Nothing of it is deployed.
+      - run: npm run build:catalogue
       # P1.7: build once. e2e and deploy.yml use exactly these files: dist/deploy is
       # what is served (the site, and the app under app/), dist/wayfarer/browser the
       # app's build, which tests read files of.

@@ -62,7 +62,7 @@ old app with no site around it.
 - **What is there:** `/blog/` and its RSS feed (W2.5).
 - **What is posted:** each post on the site first. A post may be published
   elsewhere only with a link back to its address on the site.
-- **Status:** three posts, live with the v2.6.0 deploy.
+- **Status:** two posts, live with the v2.6.0 deploy.
 
 ### The repository
 

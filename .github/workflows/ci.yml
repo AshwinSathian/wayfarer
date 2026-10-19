@@ -86,6 +86,8 @@ jobs:
       - run: npm run bundle:report
       # W2.2: every link of the site to itself leads to a page and an id it has.
       - run: npm run check:site-links
+      # release.yml attaches this SBOM; it fails for a workspace with no version (v2.6.0's first tag).
+      - run: npm sbom --sbom-format cyclonedx --omit dev > /dev/null
       # P1.7: build once. e2e and deploy.yml use exactly these files: dist/deploy is
       # what is served (the site, and the app under app/), dist/wayfarer/browser the
       # app's build, which tests read files of.

@@ -114,6 +114,10 @@ const NETWORK_ERROR_TEXT =
   "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
   "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
 
+/** Without a page (the CLI), there is no CORS and the runtime says why. */
+const networkErrorWithoutPage = (reason: string) =>
+  `Network error — no response was received: ${reason}. Check the URL, that the host resolves, and that it accepts connections.`;
+
 const SECRET_PLACEHOLDER_BLOCKED =
   "This request refers to a vault secret that could not be read (it may have been deleted), so it was not sent. " +
   "Give the variable a value again.";
@@ -482,7 +486,7 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   timings.requestMs = durationMs;
   ports.watch?.received(request.url);
 
-  const shaped = outcome instanceof TransportError ? shapeFailure(outcome, request.url) : shapeResponse(outcome, request.url, ports.page);
+  const shaped = outcome instanceof TransportError ? shapeFailure(outcome, request.url, ports.page) : shapeResponse(outcome, request.url, ports.page);
   // What a script writes is masked like everything else the app shows or
   // keeps of this exchange (D5): a post-response script reads the response,
   // and a server may send a secret back.
@@ -598,10 +602,11 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
 
 /**
  * No response arrived. The browser does not say why a request failed, so
- * a network failure gets the guidance text (F06); a timeout, a cancel and
- * the Local Bridge say what happened themselves.
+ * a network failure from a page gets the guidance text (F06); without a
+ * page, the runtime's reason is given. A timeout, a cancel and the Local
+ * Bridge say what happened themselves.
  */
-function shapeFailure(failure: TransportError, url: string): Shaped {
+function shapeFailure(failure: TransportError, url: string, page: string | undefined): Shaped {
   const network = failure.kind === "network";
   const statusCode = network ? 0 : failure.kind === "bridge" ? failure.status ?? 0 : undefined;
   return {
@@ -615,7 +620,7 @@ function shapeFailure(failure: TransportError, url: string): Shaped {
       statusText: network ? "Unknown Error" : "",
       bodyIsJson: false,
       dataText: "",
-      errorText: network ? NETWORK_ERROR_TEXT : failure.message,
+      errorText: !network ? failure.message : page === undefined ? networkErrorWithoutPage(failure.message) : NETWORK_ERROR_TEXT,
       headersView: [],
     },
   };

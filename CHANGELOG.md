@@ -27,6 +27,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   not come back in 5 seconds is now recorded there and in the browser's
   console.
 
+### Fixed
+
+- **`wayfarer-cli` 2.0.2: a request that gets no connection says why, as a
+  command line can.** It said what the app says in a browser: that the host
+  "may not allow cross-origin requests from this site (CORS)", that "the
+  browser does not reveal which", and that the Local Bridge could relay the
+  request. None of that applies outside a browser. It now gives Node's
+  reason (`fetch failed (ECONNREFUSED)`, `(ENOTFOUND)`) and asks to check
+  the address, that the host resolves and that it accepts connections. The
+  app's message is unchanged.
+
 ## [2.6.0] - 2026-10-19
 
 The website, and the app at `/app/`. `/` is now Wayfarer's site: a front

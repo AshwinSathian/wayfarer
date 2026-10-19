@@ -223,6 +223,19 @@ test("a request that gets no response fails the run; --bail stops there; --timeo
   assert.match(timedOut.stdout, /Timed out after 200 ms/);
 });
 
+test("a refused connection is said as Node saw it, not as a browser would", async () => {
+  const closed = createServer();
+  await new Promise((resolve) => closed.listen(0, "127.0.0.1", resolve));
+  const port = closed.address().port;
+  closed.close();
+  const path = await file("refused.json", collectionFile([request("Refused", { url: `http://127.0.0.1:${port}/` })]));
+  const run = await cli(["run", path]);
+  assert.equal(run.code, 1);
+  assert.match(run.stdout, /✗ Refused: no response/);
+  assert.match(run.stdout, /ECONNREFUSED/);
+  assert.doesNotMatch(run.stdout, /browser|CORS|cross-origin|Local Bridge/i);
+});
+
 test("what cannot be run is said, with exit code 2", async () => {
   const path = await file("one.json", collectionFile([request("One", { url: `${recorded}/` })]));
   const cases = [

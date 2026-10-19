@@ -138,6 +138,8 @@ describe("exchange", () => {
   let settings: { timeoutMs: number };
   let environmentsService: EnvironmentsServiceStub;
   let scriptSandbox: ScriptSandboxServiceStub;
+  /** `ExchangePorts.page`: absent unless a test is about what a page is told. */
+  let page: string | undefined;
 
   beforeEach(() => {
     cookieJar.for.mockReset().mockReturnValue([]);
@@ -148,7 +150,9 @@ describe("exchange", () => {
     scriptSandbox = new ScriptSandboxServiceStub();
 
     settings = { timeoutMs: 0 };
+    page = undefined;
     const ports = (): ExchangePorts => ({
+      page,
       // As the app's script worker is called.
       runScript: (script, environment, response, extras) => scriptSandbox.execute(script, environment, response, undefined, extras) as Promise<ScriptResult>,
       transport,
@@ -309,6 +313,7 @@ describe("exchange", () => {
 
   it("shapes a network error (status 0) into a readable message rather than leaking the raw event", async () => {
     // The browser says no more than "Failed to fetch"; the guidance text is shown instead (P0.5, #63).
+    page = "https://wayfarer.example/app/";
     transport.setResponse(new TransportError("network", "Failed to fetch"));
 
     const result = await service.execute({ template: TEMPLATE, runScripts: true,
@@ -325,6 +330,15 @@ describe("exchange", () => {
     expect(result.response.errorText).toMatch(/CORS/);
     expect(result.response.errorText).not.toContain("Unknown Error");
     expect(result.history.error).toBeDefined();
+  });
+
+  it("without a page (the CLI), a network error gives the runtime's reason and says nothing of a browser", async () => {
+    transport.setResponse(new TransportError("network", "fetch failed (ECONNREFUSED)"));
+
+    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+
+    expect(result.response.errorText).toMatch(/^Network error — no response was received: fetch failed \(ECONNREFUSED\)\./);
+    expect(result.response.errorText).not.toMatch(/browser|CORS|cross-origin|Local Bridge/i);
   });
 
   it("shapes a JSON error body from a real HTTP error response", async () => {

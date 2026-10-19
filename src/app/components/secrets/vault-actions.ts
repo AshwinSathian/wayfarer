@@ -33,8 +33,10 @@ export class VaultActions {
   protected readonly error = signal("");
   protected readonly done = signal("");
   private fileText = "";
+  /** The button that opened the form: focus goes back to it when the form goes, not to the page. */
+  private opener: HTMLElement | null = null;
 
-  protected open(mode: Mode): void {
+  protected open(mode: Mode, opener: EventTarget | null): void {
     if (mode === "import" && !this.vault.isUnlocked()) {
       // Imported secrets are encrypted under this vault's key.
       this.requestUnlock.emit();
@@ -42,9 +44,12 @@ export class VaultActions {
     }
     this.close();
     this.mode.set(mode);
+    this.opener = opener instanceof HTMLElement ? opener : null;
   }
 
   protected close(): void {
+    // The form's button may hold focus: the opener takes it before the form is removed.
+    if (this.mode()) this.opener?.focus();
     this.mode.set(null);
     this.current.set("");
     this.next.set("");

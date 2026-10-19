@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The docs say where Wayfarer will be listed and announced, and when**
+  (`docs/design/reach.md`). Nothing has been posted yet.
+
 - **A run's report says what happened before it lists it.** It counts what
   passed, what failed and what was skipped, shows how far a run has got,
   and can show the failed requests alone. An error that two or more

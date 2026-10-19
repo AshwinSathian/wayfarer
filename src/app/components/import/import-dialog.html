@@ -60,7 +60,7 @@
     <label for="import-duplicate-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
-        <p class="type-caption text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
       <mat-checkbox
         id="import-duplicate-checkbox"
@@ -78,10 +78,10 @@
       <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
         <div>
           <p class="type-subhead text-label-primary capitalize">{{ item.type }} · {{ item.name }}</p>
-          <p class="type-caption text-label-tertiary">{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
+          <p class="type-footnote text-label-tertiary">{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
         </div>
         <span
-          class="rounded-full px-2.5 py-0.5 type-caption uppercase font-semibold"
+          class="rounded-full px-2.5 py-0.5 type-footnote uppercase font-semibold"
           [class]="item.action === 'create'
             ? 'bg-status-success-fill border border-status-success-border text-status-success'
             : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
@@ -104,16 +104,16 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <p class="type-body font-semibold text-label-primary">{{ entry.doc.name }}</p>
-            <p class="type-caption text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
+            <p class="type-footnote text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
           </div>
           @if (entry.targetId) {
-          <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-caption font-semibold text-status-warning">Existing</span>
+          <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-footnote font-semibold text-status-warning">Existing</span>
           }
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
+            class="rounded-lg border px-3 py-1.5 type-footnote font-medium transition-colors"
             [class]="entry.action === 'merge'
               ? 'border-accent-border bg-accent-fill text-accent-text'
               : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
@@ -121,7 +121,7 @@
           >Merge as new</button>
           <button
             type="button"
-            class="rounded-lg border px-3 py-1.5 type-caption font-medium transition-colors"
+            class="rounded-lg border px-3 py-1.5 type-footnote font-medium transition-colors"
             [disabled]="!entry.targetId"
             [class]="entry.action === 'replace' && entry.targetId
               ? 'border-status-warning-border bg-status-warning-fill text-status-warning'

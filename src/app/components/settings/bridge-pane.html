@@ -1,7 +1,7 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary" id="bridge-route-label">Route</p>
-    <p class="type-caption text-label-tertiary">How a request leaves when neither it nor its collection says. <strong>Auto</strong> sends from the page, and through the bridge when the browser could not: a request the server cannot have received is sent again at once, and one it may have received is sent again only if you say so. <strong>Direct</strong> always sends from the page. <strong>Local Bridge</strong> sends every request from the bridge on this machine, where CORS and mixed content do not apply.</p>
+    <p class="type-footnote text-label-tertiary">How a request leaves when neither it nor its collection says. <strong>Auto</strong> sends from the page, and through the bridge when the browser could not: a request the server cannot have received is sent again at once, and one it may have received is sent again only if you say so. <strong>Direct</strong> always sends from the page. <strong>Local Bridge</strong> sends every request from the bridge on this machine, where CORS and mixed content do not apply.</p>
     <mat-button-toggle-group class="segmented bridge-route" hideSingleSelectionIndicator aria-labelledby="bridge-route-label" [value]="route()" (change)="route.set($event.value); edited()">
       <mat-button-toggle value="auto">Auto</mat-button-toggle>
       <mat-button-toggle value="direct">Direct</mat-button-toggle>
@@ -10,14 +10,14 @@
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
-    <p class="type-caption text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
+    <p class="type-footnote text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
     <mat-form-field class="field w-full">
       <input matInput id="bridge-url-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" [ngModel]="url()" (ngModelChange)="url.set($event); edited()" placeholder="http://127.0.0.1:7717" />
     </mat-form-field>
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-pairing-input" class="type-subhead text-label-primary">Pairing code</label>
-    <p class="type-caption text-label-tertiary">The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code works once; after three wrong ones the bridge waits a minute.</p>
+    <p class="type-footnote text-label-tertiary">The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code works once; after three wrong ones the bridge waits a minute.</p>
     <div class="flex flex-wrap items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1 basis-40">
         <input matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
@@ -36,7 +36,7 @@
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
-    <p class="type-caption text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
+    <p class="type-footnote text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
     <div class="flex items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1">
         <input matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
@@ -73,13 +73,13 @@
   <button matButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
 </div>
 
-<p class="bridge-lna type-caption text-label-tertiary mt-4">
+<p class="bridge-lna type-footnote text-label-tertiary mt-4">
   The first time this page reaches the bridge, Chrome and Edge may ask whether this site may look for and connect to devices on your local network.
   The bridge is a program on this computer: allow it, or the page cannot reach the bridge. If you blocked it, allow it again in the site's settings (the icon left of the address).
   From the hosted app, Safari reaches the bridge only over HTTPS: start the bridge with a certificate (<span class="font-mono">--cert</span>, <span class="font-mono">--key</span>).
 </p>
 
-<p class="type-caption text-label-tertiary mt-4">
+<p class="type-footnote text-label-tertiary mt-4">
   The bridge is a small program you run yourself; nothing is sent to it unless you switch it on here.
   <a href="https://github.com/AshwinSathian/wayfarer/blob/main/packages/bridge/README.md" target="_blank" rel="noopener noreferrer" class="text-accent-text underline">Setup and security model</a>.
 </p>

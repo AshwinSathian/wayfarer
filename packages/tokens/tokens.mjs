@@ -36,7 +36,42 @@ export function theme(name) {
 /** A theme's tokens as CSS values, by custom property name; an alias (`{group.name}`) stays a `var()`. */
 export function cssValues(name) {
   const tokens = theme(name);
-  return Object.fromEntries([...tokens].map(([key, token]) => [`--${key}`, css(key, token, tokens)]));
+  return Object.fromEntries([...tokens].flatMap(([key, token]) => (token.$type === "typography" ? typeValues(key, token) : [[`--${key}`, css(key, token, tokens)]])));
+}
+
+/** A type style as the custom properties its class reads: `--type-body-size`, `-line`, `-weight`, `-tracking`. */
+function typeValues(key, token) {
+  const { fontSize, lineHeight, fontWeight, letterSpacing } = token.$value;
+  if (fontSize.unit !== "px" || letterSpacing.unit !== "px") throw new Error(`${key}: sizes are in px`);
+  return [
+    [`--${key}-size`, `${fontSize.value}px`],
+    // In px, as the scale was drawn: a ratio times the size can land a fraction of a pixel off.
+    [`--${key}-line`, `${Math.round(lineHeight * fontSize.value * 100) / 100}px`],
+    [`--${key}-weight`, String(fontWeight)],
+    [`--${key}-tracking`, letterSpacing.value ? `${letterSpacing.value}px` : "0"],
+  ];
+}
+
+/** The type styles, as the classes typography.css holds. */
+export function typeClasses() {
+  const out = [];
+  for (const [key, token] of theme("dark")) {
+    if (token.$type !== "typography") continue;
+    const family = token.$value.fontFamily;
+    const extra = token.$extensions?.["com.wayfarer.css"] ?? {};
+    out.push({
+      name: key,
+      declarations: [
+        ...(family === "{font.font-sans}" ? [] : [["font-family", `var(--${family.slice(1, -1).split(".").pop()})`]]),
+        ["font-size", `var(--${key}-size)`],
+        ["line-height", `var(--${key}-line)`],
+        ["font-weight", `var(--${key}-weight)`],
+        ["letter-spacing", `var(--${key}-tracking)`],
+        ...Object.entries(extra),
+      ],
+    });
+  }
+  return out;
 }
 
 function css(key, token, tokens) {

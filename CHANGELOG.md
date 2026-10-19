@@ -21,6 +21,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   removed the first builds' Angular worker is gone from the site's root.
   The "Update available" prompt for a new deploy stays.
 
+- **A run's report says what happened before it lists it.** It counts what
+  passed, what failed and what was skipped, shows how far a run has got,
+  and can show the failed requests alone. An error that two or more
+  requests ended with is said once above the table, with how many it was,
+  and each of those rows says "Same error as above": a run against a host
+  the page cannot reach repeated the same three lines on every row.
+
 - **A request's route, redirects and certificate check are in its Settings
   tab.** They sat above every request with a sentence of explanation each,
   followed by a section on what the browser does, and pushed the request

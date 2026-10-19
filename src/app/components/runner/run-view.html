@@ -71,6 +71,33 @@
 </div>
 
 @if (results.length) {
+<div class="run-summary flex flex-wrap items-center gap-x-5 gap-y-2">
+  <span class="run-count run-count-passed"><b>{{ passed() }}</b> passed</span>
+  <span class="run-count run-count-failed" [class.run-count-zero]="!failed()"><b>{{ failed() }}</b> failed</span>
+  @if (skipped()) {
+  <span class="run-count"><b>{{ skipped() }}</b> skipped</span>
+  }
+  @if (tests().length) {
+  <span class="run-count"><b>{{ tests().length - failedTests() }}/{{ tests().length }}</b> tests</span>
+  }
+  @if (state.running()) {
+  <progress class="run-progress" [value]="results.length" [max]="expected() > results.length ? expected() : results.length + 1" aria-label="Run progress"></progress>
+  }
+  <span class="flex-1"></span>
+  @if (failed()) {
+  <mat-checkbox [checked]="failedOnly()" (change)="failedOnly.set($event.checked)">Failed only</mat-checkbox>
+  }
+</div>
+
+@for (shared of sharedErrors(); track shared.error; let index = $index) {
+<div class="run-shared-error rounded-xl border border-status-error-border bg-status-error-fill px-4 py-3" role="note">
+  <p class="type-callout text-status-error flex items-start gap-1.5">
+    <app-icon name="error" class="icon-xs mt-1 shrink-0" />
+    <span>@if (sharedErrors().length > 1) {<b>{{ index + 1 }}.</b> }<b>{{ shared.count }} requests failed with the same error.</b> {{ shared.error }}</span>
+  </p>
+</div>
+}
+
 <div class="overflow-x-auto rounded-xl border border-separator" role="region" aria-label="Run results" tabindex="0">
   <table class="ds-table run-results">
     <thead>
@@ -85,9 +112,10 @@
     </thead>
     <tbody>
       <!-- By position: a request may be sent more than once in a run. -->
-      @for (result of results; track $index) {
+      @for (row of rows(); track row.number) {
+      @let result = row.result;
       <tr [class.run-result-failed]="failedOf(result)">
-        <td>{{ $index + 1 }}</td>
+        <td>{{ row.number }}</td>
         <td>{{ result.iteration + 1 }}</td>
         <td class="break-words">
           {{ result.name }}

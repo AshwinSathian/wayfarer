@@ -162,6 +162,12 @@ describe("FetchTransport", () => {
       kind: "network",
       message: "Failed to fetch",
     });
+
+    // Node's fetch names the reason in its cause's code; the cause's message, which holds the address, is not kept.
+    const refused = new FetchTransport(() =>
+      Promise.reject(new TypeError("fetch failed", { cause: Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:9"), { code: "ECONNREFUSED" }) }))
+    );
+    expect(await refused.send(request, open()).catch((e: unknown) => e)).toMatchObject({ kind: "network", message: "fetch failed (ECONNREFUSED)" });
   });
 
   // P5.6: a response that is an event stream is read as it arrives, when the caller asks for its events.

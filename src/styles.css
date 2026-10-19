@@ -166,11 +166,8 @@ body {
   outline: none;
 }
 
-/* A theme change is instant (docs/design/motion.md). Every element of the page
-   had a 0.2 s colour transition for it: a switch animated thousands at once,
-   and a contrast scan could read a colour half-way. Controls keep their own. */
-
-/* Exceptions: don't animate transform, opacity etc. globally */
+/* Controls fade their colours on hover and focus. Nothing else has a colour
+   transition, so a theme change is instant (docs/design/motion.md). */
 button, a, input, select, textarea {
   transition:
     background-color var(--dur-quick) var(--ease-standard),

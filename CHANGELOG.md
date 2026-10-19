@@ -11,8 +11,8 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 - **A response's body starts higher.** The status, time, size and route are
   one line, with Export as an icon beside them, and the view, the search and
-  the path filter share one row above the body. Before, they took five rows
-  between them.
+  the path filter share one row above the body. Before, they took up to
+  five rows between them.
 
 ## [2.6.0] - 2026-10-19
 

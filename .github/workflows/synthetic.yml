@@ -44,10 +44,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      # Production runs a release, deployed from its tag: check it with that release's tests, not main's.
-      # main may be ahead (the app moved to /app/ before the release that moves it was deployed).
-      - name: Check out the latest release
-        run: git checkout "$(git describe --tags --match 'v*' --abbrev=0)"
+      # Production runs a release, deployed from its tag: check it with that release's tests, not main's
+      # (main may be ahead) and not the newest tag's (it may not be deployed yet, #398).
+      - name: Check out the release production runs
+        env:
+          BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
+        run: |
+          release=$(node scripts/deployed-release.mjs "$BASE_URL")
+          echo "Production runs $release"
+          git checkout "$release"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc

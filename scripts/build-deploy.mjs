@@ -4,7 +4,7 @@
 // last; wrangler.jsonc serves the folder, and the e2e tests are run against it.
 //
 // Usage: node scripts/build-deploy.mjs
-import { cpSync, existsSync, rmSync } from "node:fs";
+import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const SITE = "packages/site/out";
 const APP = "dist/wayfarer/browser";
@@ -19,4 +19,7 @@ for (const dir of [SITE, APP]) {
 rmSync(OUT, { recursive: true, force: true });
 cpSync(SITE, OUT, { recursive: true });
 cpSync(APP, `${OUT}/app`, { recursive: true });
+// The release this is, for the synthetic monitor (scripts/deployed-release.mjs).
+const { version } = JSON.parse(readFileSync("package.json", "utf8"));
+writeFileSync(`${OUT}/version.json`, JSON.stringify({ version }) + "\n");
 console.log(`build-deploy: ${SITE} and ${APP} in ${OUT}`);

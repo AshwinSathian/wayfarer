@@ -7,6 +7,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-10-19
+
+The website, and the app at `/app/`. `/` is now Wayfarer's site: a front
+page, the docs with a search, comparisons with five other API clients, a
+blog, the changelog, the roadmap and the claims ledger. The app is at
+`/app/`, where the window is the workspace: the request and its response
+side by side from 768 px, a status bar for the route and the vault, and a
+request's route and redirects in its own Settings tab.
+
+**Before you open this release, back up your workspace** (Settings, Data
+and storage, in the version you have now). A browser that used Wayfarer
+before starts empty: the data now lives in a database of a new name, and
+the old one is not read. Restore the backup after.
+
 ### Changed
 
 - **Each page of the website has a picture and a summary for when it is
@@ -145,11 +159,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Before, the address opened the app and there was no page that said what
   Wayfarer is. The site's first page says it in two sentences and links to
   the app; a page that does not exist is now a 404 with that link, not the
-  app. What you stored is kept: the browser keeps it for the whole address,
-  not one path. **If you use OAuth 2.0 sign-ins, register the new redirect
-  URI with your identity provider**: `https://<host>/app/oauth/callback`
-  (the Auth tab shows it). The site runs no script and loads nothing from
-  another address; its own Content-Security-Policy says so.
+  app. (What you stored before is not read: see "There is one version of
+  Wayfarer" below.) **If you use OAuth 2.0 sign-ins, register the new
+  redirect URI with your identity provider**:
+  `https://<host>/app/oauth/callback` (the Auth tab shows it). The site
+  runs only scripts of its own files and loads nothing from another
+  address; its own Content-Security-Policy says so.
 
 - **Wayfarer is deployed at v2.5.0, and the Local Bridge and the command
   line are on npm.** `npx wayfarer-bridge` and `npx wayfarer-cli` work, each
@@ -164,12 +179,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   table of Newman's flags and their `wayfarer-cli` equivalents, the reports'
   format, and a CI example. `wayfarer-bridge` 3.0.1 changes nothing else.
 
-- **The database is version 14, and an update empties it.** The vault's
-  record and each encrypted secret no longer carry a version field (`v`):
-  there is one shape, and nothing checks for another. A vault file from
-  this version has no `v` either; a file written before still opens, the
-  field is ignored. Export collections and back up the workspace before
-  updating: what version 13 stored is removed, as the page then says.
+- **The vault's record and each encrypted secret no longer carry a
+  version field (`v`):** there is one shape, and nothing checks for
+  another. A vault file from this version has no `v` either; a file
+  written before still opens, the field is ignored.
 
 ### Fixed
 

@@ -11,7 +11,7 @@
     />
     }
     <mat-form-field class="field min-w-0 flex-1 basis-40">
-      <input matInput
+      <input class="font-mono" matInput
         placeholder="name"
         [(ngModel)]="item.key"
         (ngModelChange)="itemChange.emit()"
@@ -21,7 +21,7 @@
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-48 items-center gap-2">
     <mat-form-field class="field min-w-0 flex-1">
-      <input matInput
+      <input class="font-mono" matInput
         placeholder="value"
         [(ngModel)]="item.value"
         (ngModelChange)="itemChange.emit()"

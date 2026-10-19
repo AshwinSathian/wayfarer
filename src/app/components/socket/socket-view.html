@@ -4,7 +4,7 @@
   <div class="flex min-w-0 flex-[1_1_16rem] flex-col gap-1">
     <label for="socket-protocols" class="type-footnote text-label-secondary">Subprotocols</label>
     <mat-form-field class="field w-full">
-      <input matInput id="socket-protocols" spellcheck="false" autocomplete="off" placeholder="None. Names parted by commas, such as graphql-ws" [value]="socket.protocols()" [disabled]="status !== 'closed'" (input)="socket.protocols.set($any($event.target).value)" />
+      <input class="font-mono" matInput id="socket-protocols" spellcheck="false" autocomplete="off" placeholder="None. Names parted by commas, such as graphql-ws" [value]="socket.protocols()" [disabled]="status !== 'closed'" (input)="socket.protocols.set($any($event.target).value)" />
     </mat-form-field>
   </div>
   <div role="status" class="type-callout text-label-secondary flex items-center gap-2 pb-2">

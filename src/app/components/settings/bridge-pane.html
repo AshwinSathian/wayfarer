@@ -12,7 +12,7 @@
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
     <p class="type-footnote text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
     <mat-form-field class="field w-full">
-      <input matInput id="bridge-url-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" [ngModel]="url()" (ngModelChange)="url.set($event); edited()" placeholder="http://127.0.0.1:7717" />
+      <input class="font-mono" matInput id="bridge-url-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" [ngModel]="url()" (ngModelChange)="url.set($event); edited()" placeholder="http://127.0.0.1:7717" />
     </mat-form-field>
   </div>
   <div class="settings-row settings-row-stacked">
@@ -20,7 +20,7 @@
     <p class="type-footnote text-label-tertiary">The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code works once; after three wrong ones the bridge waits a minute.</p>
     <div class="flex flex-wrap items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1 basis-40">
-        <input matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
+        <input class="font-mono" matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
       </mat-form-field>
       <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
         @if (pairing() === 'pairing') { <mat-spinner diameter="18" aria-hidden="true" /> } Pair
@@ -39,7 +39,7 @@
     <p class="type-footnote text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
     <div class="flex items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1">
-        <input matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
+        <input class="font-mono" matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
       </mat-form-field>
       <button matIconButton type="button" [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'" (click)="showToken.set(!showToken())"><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'" /></button>
     </div>

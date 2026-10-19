@@ -19,7 +19,7 @@
     <label for="postman-export-credentials-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Include credentials</p>
-        <p class="type-caption text-label-tertiary mt-0.5">Without this, a token, password or key you typed is written as ***. A vault secret is never written.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5">Without this, a token, password or key you typed is written as ***. A vault secret is never written.</p>
       </div>
       <mat-checkbox id="postman-export-credentials" aria-label="Include credentials" [ngModel]="credentials()" (ngModelChange)="credentials.set($event)" />
     </label>

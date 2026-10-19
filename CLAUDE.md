@@ -315,6 +315,12 @@ code errors.
   must be inside sRGB (the build refuses one that is not), and a token the
   app does not read fails `packages/tokens/tokens.test.mjs`: delete it.
   `scripts/contrast.test.mjs` reads the package.
+- Text is set with a type class (`type-body`, `type-footnote`, …; the scale is
+  the `type` group of `base.tokens.json`, and `typography.css` is written
+  from it) or, in a stylesheet, with its custom properties
+  (`var(--type-footnote-size)`). Nothing is under 12 px: the token test
+  fails on a `font-size` under 12 px in any stylesheet or a Tailwind
+  `text-[Npx]` under it, and `e2e/type-floor.spec.ts` on any drawn text.
 - Tailwind CSS 4. Its configuration is the `@theme` block in
   `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
   Tailwind names onto the tokens. A token whose name is Tailwind's own

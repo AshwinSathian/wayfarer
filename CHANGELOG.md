@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **No text in the app is smaller than 12 px.** The tree's method tags,
+  section labels such as "Collections", the tab's method, chips, captions
+  and hints were 10 or 11 px; they are 12 px now. The run view's title had a
+  type style that did not exist and came out at the browser's own heading
+  size; it is the app's title size now. The type scale is part of the design
+  tokens, and a test fails if a stylesheet sets text under 12 px.
+
 - **Selected text is readable in the light theme, and so are the editors'
   line numbers.** The light theme had no selection colours of its own and
   drew selected text white on a pale green, at 1.37:1; it is now dark text

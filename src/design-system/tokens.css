@@ -27,6 +27,40 @@
   --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', Menlo, 'SF Mono', Consolas, monospace;
 
+  /* type */
+  --type-title-2-size: 18px;
+  --type-title-2-line: 24px;
+  --type-title-2-weight: 600;
+  --type-title-2-tracking: -0.252px;
+  --type-title-3-size: 15px;
+  --type-title-3-line: 20px;
+  --type-title-3-weight: 600;
+  --type-title-3-tracking: -0.15px;
+  --type-body-size: 14px;
+  --type-body-line: 20px;
+  --type-body-weight: 400;
+  --type-body-tracking: -0.042px;
+  --type-callout-size: 13px;
+  --type-callout-line: 18px;
+  --type-callout-weight: 400;
+  --type-callout-tracking: -0.026px;
+  --type-subhead-size: 12px;
+  --type-subhead-line: 16px;
+  --type-subhead-weight: 500;
+  --type-subhead-tracking: 0;
+  --type-footnote-size: 12px;
+  --type-footnote-line: 16px;
+  --type-footnote-weight: 400;
+  --type-footnote-tracking: 0.024px;
+  --type-overline-size: 12px;
+  --type-overline-line: 16px;
+  --type-overline-weight: 600;
+  --type-overline-tracking: 0.72px;
+  --type-mono-body-size: 13px;
+  --type-mono-body-line: 20px;
+  --type-mono-body-weight: 400;
+  --type-mono-body-tracking: 0;
+
   /* canvas */
   --canvas-app: #161513;
   --canvas-sidebar: #121110;

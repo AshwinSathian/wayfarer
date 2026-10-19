@@ -9,12 +9,12 @@
     <label for="har-export-credentials-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
       <div>
         <p class="type-subhead text-label-primary">Include credentials</p>
-        <p class="type-caption text-label-tertiary mt-0.5">Without this, a token, password or key is written as ***. A vault secret is never written.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5">Without this, a token, password or key is written as ***. A vault secret is never written.</p>
       </div>
       <mat-checkbox id="har-export-credentials" aria-label="Include credentials" [ngModel]="credentials()" (ngModelChange)="credentials.set($event)" />
     </label>
     } @else {
-    <p class="type-caption text-label-tertiary">History is stored with credentials and vault secrets already masked: this file has them as ***.</p>
+    <p class="type-footnote text-label-tertiary">History is stored with credentials and vault secrets already masked: this file has them as ***.</p>
     }
 
     <div>
@@ -22,7 +22,7 @@
       <!-- Focusable: a reader of the keyboard scrolls it. -->
       <pre class="har-export-preview max-h-72 overflow-auto rounded-xl border border-separator bg-canvas-panel p-3 font-mono text-xs text-label-primary" tabindex="0" role="region" aria-labelledby="har-export-preview-label">{{ preview() }}</pre>
       @if (more()) {
-      <p class="type-caption text-label-tertiary mt-1.5">…and {{ more() }} more characters, which the file has and this box does not show.</p>
+      <p class="type-footnote text-label-tertiary mt-1.5">…and {{ more() }} more characters, which the file has and this box does not show.</p>
       }
     </div>
   </div>

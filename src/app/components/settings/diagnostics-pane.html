@@ -15,7 +15,7 @@
         @if (testing()) { <mat-spinner diameter="18" aria-hidden="true" /> } Run self-tests
       </button>
     </div>
-    <p class="type-caption text-label-tertiary">Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the Local Bridge, if one is used. Nothing leaves this machine.</p>
+    <p class="type-footnote text-label-tertiary">Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the Local Bridge, if one is used. Nothing leaves this machine.</p>
     @if (tests().length) {
     <ul class="diagnostics-tests space-y-1" aria-live="polite">
       @for (test of tests(); track test.name) {
@@ -32,7 +32,7 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary">Errors</p>
-    <p class="type-caption text-label-tertiary">The last 200 of this page, newest first, kept in memory only. An address, quoted text and anything that looks like a key or a token are left out.</p>
+    <p class="type-footnote text-label-tertiary">The last 200 of this page, newest first, kept in memory only. An address, quoted text and anything that looks like a key or a token are left out.</p>
     @if (errors().length) {
     <ul class="diagnostics-errors space-y-1 type-footnote font-mono text-label-secondary">
       @for (entry of errors(); track $index) {

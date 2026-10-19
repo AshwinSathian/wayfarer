@@ -6,6 +6,8 @@ import { Icon } from "../shared/icon/icon";
 export interface UiTreeNode<T = unknown> {
   key: string;
   label: string;
+  /** The row's accessible name when it shows more than its label (WCAG 2.5.3: the name holds the visible text). */
+  ariaLabel?: string;
   data: T;
   children?: UiTreeNode<T>[];
   /** Whether the node starts expanded. The tree remembers what the user does after that. */
@@ -48,7 +50,7 @@ interface Row<T> {
         class="ui-tree-row"
         draggable="true"
         [attr.data-key]="node.key"
-        [attr.aria-label]="node.label"
+        [attr.aria-label]="node.ariaLabel ?? node.label"
         [attr.aria-selected]="node.key === selectedKey()"
         [isExpandable]="!!node.children?.length"
         [style.margin-inline-start.px]="row.level * 16"

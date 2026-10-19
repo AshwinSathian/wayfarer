@@ -19,6 +19,7 @@ import {
   collectionsToNodes,
   isCollectionRef,
   isFolderRef,
+  methodLabel,
 } from "../../shared/collections/collection-tree-nodes";
 import {
   CollectionNodeAction,
@@ -327,10 +328,7 @@ export class CollectionsSidebar implements OnInit {
     }
   }
 
-  /** The method as the tree shows it: the two long ones shortened, as Postman does. */
-  protected methodLabel(method: string): string {
-    return method === "DELETE" ? "DEL" : method === "OPTIONS" ? "OPT" : method;
-  }
+  protected readonly methodLabel = methodLabel;
 
   private emitLoadRequest(doc: RequestDoc): void {
     this.loadRequest.emit(doc);

@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website compares Wayfarer with Postman, Bruno, Yaak, Hoppscotch and
+  Insomnia, and has a guide to moving from Postman.** Each fact about
+  another product links to the page it came from and says when it was
+  read, and one list says where Wayfarer is behind.
+
 - **A run's report says what happened before it lists it.** It counts what
   passed, what failed and what was skipped, shows how far a run has got,
   and can show the failed requests alone. An error that two or more

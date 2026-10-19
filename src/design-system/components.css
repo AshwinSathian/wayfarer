@@ -237,7 +237,8 @@ pre,
   background: var(--status-error-fill);
   border: 1px solid var(--status-error-border);
   color: var(--status-error-text);
-  animation: chip-pulse 2s ease-in-out infinite;
+  /* Twice, then still: a loop past five seconds needs a way to stop it (WCAG 2.2.2). */
+  animation: chip-pulse var(--dur-pulse) var(--ease-in-out) 2;
 }
 
 /* ── Timing waterfall ────────────────────────────────────── */

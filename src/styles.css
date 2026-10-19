@@ -27,6 +27,11 @@
    entry: Tailwind's theme has those names, and the tokens, outside any layer,
    give them their values. */
 @theme {
+  /* What Tailwind's transition utilities (transition-colors, transition-all)
+     last and ease by, unless a class says otherwise: the motion tokens. */
+  --default-transition-duration: var(--dur-quick);
+  --default-transition-timing-function: var(--ease-standard);
+
   --color-canvas-app: var(--canvas-app);
   --color-canvas-sidebar: var(--canvas-sidebar);
   --color-canvas-panel: var(--canvas-panel);
@@ -161,15 +166,9 @@ body {
   outline: none;
 }
 
-/* ── Smooth color transitions on theme change ─────────────── */
-*,
-::before,
-::after {
-  transition:
-    background-color 0.2s var(--ease-standard),
-    border-color 0.2s var(--ease-standard),
-    color 0.2s var(--ease-standard);
-}
+/* A theme change is instant (docs/design/motion.md). Every element of the page
+   had a 0.2 s colour transition for it: a switch animated thousands at once,
+   and a contrast scan could read a colour half-way. Controls keep their own. */
 
 /* Exceptions: don't animate transform, opacity etc. globally */
 button, a, input, select, textarea {

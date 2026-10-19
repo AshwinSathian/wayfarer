@@ -88,6 +88,8 @@ export class ResponseViewer {
   private readonly jsonWorker = inject(JsonWorkerClient);
 
   readonly loading = input(false);
+  /** Beside the request (from 768 px) the response fills its pane, and a JSON or XML body the room left in it. */
+  readonly fill = input(false);
   readonly responseData = input("");
   readonly responseError = input("");
   readonly responseBodyIsJson = input(false);

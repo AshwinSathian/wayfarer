@@ -325,3 +325,15 @@
   height: 0.375rem;
   accent-color: var(--accent);
 }
+
+/* ── The response, filling its pane (S3b) ────────────────── */
+/* From 768 px the response is a column of its pane's height: the status
+   bar and the tabs keep theirs, and a JSON or XML body takes the rest. */
+.response-fill { display: flex; flex-direction: column; height: 100%; }
+.response-fill .response-main,
+.response-fill .response-tabs,
+.response-fill .response-tabs > .tabs { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.response-fill .tab-panes { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.response-fill .response-body-pane:not([hidden]) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.response-fill .response-body-pane > div { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.response-fill .response-body-pane app-json-editor { flex: 1 1 0; min-height: 300px; }

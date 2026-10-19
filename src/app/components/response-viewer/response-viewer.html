@@ -1,4 +1,4 @@
-<div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
+<div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden" [class.response-fill]="fill()">
   @if (loading() && events().length) {
   <!-- An event stream that is open (P5.6): its events as they arrive. The rest of the response is here when it ends. -->
   <app-event-list class="block space-y-3 p-6" [events]="events()" [count]="eventCount()" [live]="true" (stop)="stopStream.emit()" />
@@ -9,7 +9,7 @@
     <span class="ui-skeleton h-36 w-full" aria-hidden="true"></span>
   </div>
   } @else {
-  <div>
+  <div class="response-main">
     <!-- ── Status bar ─────────────────────────────────────── -->
     @let statusCode = responseStatusCode();
     @if (statusCode !== undefined) {
@@ -125,7 +125,7 @@
     }
 
     <!-- ── Response tabs ──────────────────────────────────── -->
-    <div class="px-4 pt-1">
+    <div class="response-tabs px-4 pt-1">
       <div class="tabs">
         <div mat-tab-nav-bar class="tab-bar" [tabPanel]="responsePanel" [mat-stretch-tabs]="false" disablePagination>
           <button mat-tab-link type="button" [active]="activeTab() === 'body'" (click)="onTabChange('body')" (focus)="onTabChange('body')">Body</button>
@@ -151,7 +151,7 @@
 
         <mat-tab-nav-panel #responsePanel class="tab-panes">
           <!-- ── Body tab ───────────────────────────────────── -->
-          <div class="tab-pane" [hidden]="activeTab() !== 'body'">
+          <div class="tab-pane response-body-pane" [hidden]="activeTab() !== 'body'">
             <div class="space-y-3 pb-4">
               @if (views().length > 1) {
               <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
@@ -256,6 +256,7 @@
                     [ngModel]="filteredJson() || formattedResponseBody"
                     [ngModelOptions]="{ standalone: true }"
                     [height]="300"
+                    [fill]="fill()"
                   ></app-json-editor>
                 }
                 @case ('xml') {
@@ -266,6 +267,7 @@
                     [ngModel]="xmlText()"
                     [ngModelOptions]="{ standalone: true }"
                     [height]="300"
+                    [fill]="fill()"
                   ></app-json-editor>
                 }
                 @case ('html') {

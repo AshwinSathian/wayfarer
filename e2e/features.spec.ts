@@ -447,7 +447,7 @@ test("switching the theme recolours the environment select at once", async ({ pa
   await page.goto("/app/");
   const select = page.getByRole("banner").getByRole("combobox", { name: "Environment", exact: true });
   await expect(select).toHaveText("No environment");
-  await page.getByRole("banner").getByRole("button", { name: "Switch to light mode" }).click();
+  await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: "Switch to light mode" }).click();
   const colours = await select.evaluate((host) => {
     const text = host.querySelector(".mat-mdc-select-min-line");
     return { host: getComputedStyle(host).color, text: text && getComputedStyle(text).color };

@@ -1,6 +1,7 @@
 import { Footer } from "../../../components/Footer";
 import { Header } from "../../../components/Header";
 import { longDate, postHtml, posts } from "../../../lib/blog";
+import { pageMeta } from "../../../lib/meta";
 
 export const dynamicParams = false;
 
@@ -21,7 +22,7 @@ const find = async (params: Props["params"]) => {
 
 export async function generateMetadata({ params }: Props) {
   const post = await find(params);
-  return { title: `${post.title}: Wayfarer blog`, description: post.description };
+  return pageMeta(`/blog/${post.slug}/`, `${post.title}: Wayfarer blog`, post.description);
 }
 
 export default async function BlogPost({ params }: Props) {

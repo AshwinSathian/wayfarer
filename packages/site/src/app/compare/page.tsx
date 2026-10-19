@@ -1,10 +1,8 @@
+import { pageMeta } from "../../lib/meta";
 import { H2, Page } from "../../components/Page";
 import { BEHIND, Cite, RIVALS } from "../../lib/rivals";
 
-export const metadata = {
-  title: "Compare: Wayfarer",
-  description: "Wayfarer beside Postman, Bruno, Yaak, Hoppscotch and Insomnia, with each fact's source, and where Wayfarer is behind.",
-};
+export const metadata = pageMeta("/compare/", "Compare: Wayfarer", "Wayfarer beside Postman, Bruno, Yaak, Hoppscotch and Insomnia, with each fact's source, and where Wayfarer is behind.");
 
 /** The comparison pages' index (W2.3): each rival in a line, and where Wayfarer is behind. */
 export default function Compare() {

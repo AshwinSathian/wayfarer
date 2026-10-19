@@ -1,4 +1,5 @@
 import { H2, Page } from "../../../components/Page";
+import { pageMeta } from "../../../lib/meta";
 import { Cite, RIVALS } from "../../../lib/rivals";
 
 export const dynamicParams = false;
@@ -20,7 +21,7 @@ const find = async (params: Props["params"]) => {
 
 export async function generateMetadata({ params }: Props) {
   const rival = await find(params);
-  return { title: `Wayfarer and ${rival.name}: Wayfarer`, description: `How Wayfarer and ${rival.name} differ, with the source of each fact about ${rival.name}.` };
+  return pageMeta(`/compare/${rival.id}/`, `Wayfarer and ${rival.name}: Wayfarer`, `How Wayfarer and ${rival.name} differ, with the source of each fact about ${rival.name}.`);
 }
 
 /** One comparison (W2.3): what the rival says of itself, how Wayfarer differs, and where the rival is ahead. */

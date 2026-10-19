@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Each page of the website has a picture and a summary for when it is
+  shared or found.** A link posted in a chat or a social network shows the
+  page's own title, description and image; the site has a sitemap and an
+  `llms.txt`.
+
 - **What a screen reader says matches what is on screen, in two places.**
   A request in the collections reads as it shows, method first ("GET
   List users"); it was read as its name alone. The button under the

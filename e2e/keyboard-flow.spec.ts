@@ -67,8 +67,9 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
       expect(await focusShown(page), `${theme}, stop ${stop}`).toBeNull();
       seen.add(await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 60) ?? ""));
     }
-    // The walk went somewhere: not one element over and over.
-    expect(seen.size).toBeGreaterThan(20);
+    // The walk went somewhere: not one element over and over. Since the
+    // environments are a dialog (S3), an empty app has about twenty stops.
+    expect(seen.size).toBeGreaterThan(15);
   }
 });
 

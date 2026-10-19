@@ -27,3 +27,28 @@
 [data-theme="light"] .app-sidebar-pinned {
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
 }
+
+/* The status bar (S4): what the toolbar's icons were, said in words. */
+.status-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 16px;
+  height: 30px;
+  padding: 0 16px 0 12px;
+  border-top: 1px solid var(--separator);
+  background: var(--canvas-sidebar);
+  color: var(--label-secondary);
+  font-size: 0.75rem;
+}
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.status-bar .status-button {
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+}

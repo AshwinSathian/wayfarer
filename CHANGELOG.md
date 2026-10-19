@@ -21,6 +21,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   removed the first builds' Angular worker is gone from the site's root.
   The "Update available" prompt for a new deploy stays.
 
+- **A status bar says where a request goes and what holds its secrets.**
+  The toolbar was six icons with no words, two of them the vault. It now
+  holds the environment, Environments, History and Settings; from 768 px a
+  bar under the panes shows the route ("Route: Auto"), whether the vault
+  is locked, the secrets, where the data is kept, and the theme, each with
+  the button it was. The name Wayfarer is on the screen once, and the page
+  runs to the window's edges: an 8 px margin the browser adds was left
+  around everything. On a phone the lock stays in the toolbar.
+
 - **A JSON or XML response takes the height of its pane.** Beside the
   request, its body was a box of 300 px whatever the window; it now fills
   the response pane below the tabs and grows with the window. On a phone

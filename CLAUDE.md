@@ -345,8 +345,13 @@ code errors.
 - Both are read with `matchMedia`, not `innerWidth`: WebKit takes a classic
   scrollbar off the width a media query sees, so the two disagreed over
   15 px. An e2e test of a layout "from N px" therefore uses N + 20.
-- Below 1024 px the toolbar shows only what Settings does not also offer.
-  A new toolbar action needs `max-lg:hidden` and a home in Settings.
+- The toolbar holds the environment, Environments, History and Settings
+  (S4). From 768 px the status bar under the panes holds the Local Bridge,
+  the vault's lock, the secrets and the theme: each an icon button that
+  keeps its name ("Unlock secrets"), with its state beside it as text. On a
+  phone there is no status bar: the lock stays in the toolbar and the rest
+  is in Settings. A new control of that kind goes into the status bar and
+  has a home in Settings.
 - Settings (`src/app/components/settings/`) is a dialog with a list of
   sections and one section's pane, drawn only while it is the open one
   (`@switch`). A new setting goes into the pane it belongs to, as a

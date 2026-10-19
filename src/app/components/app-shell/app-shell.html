@@ -157,10 +157,13 @@
             <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" title="Toggle sidebar" aria-label="Toggle sidebar">
               <app-icon name="side_navigation" class="icon-md" />
             </button>
+            <!-- The name once: the pinned sidebar carries it. -->
+            @if (sidebarOverlay() || !drawerVisible()) {
             <div class="hidden lg:flex items-center gap-2">
               <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="22" height="22" />
               <span class="type-title-3 text-label-secondary" style="font-weight: 480; letter-spacing: -0.010em;">Wayfarer</span>
             </div>
+            }
           </div>
 
           <!-- Right: actions cluster -->
@@ -189,9 +192,9 @@
             <!-- Divider -->
             <div class="w-px h-5 bg-separator hidden sm:block"></div>
 
-            <!-- Below the desktop width the toolbar keeps lock, history and settings; secrets,
-                 the bridge and the theme are in Settings (max-lg:hidden below). -->
-            <!-- Secrets lock -->
+            <!-- From 768 px the vault, the secrets, the bridge and the theme are in the status bar; on a phone the
+                 lock stays here, and the rest is in Settings. -->
+            @if (isMobile()) {
             <button type="button"
               matIconButton class="btn-plain"
               [class.text-status-success]="secretsUnlocked"
@@ -201,39 +204,7 @@
             >
               <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
             </button>
-
-            <!-- Manage Secrets — a dedicated, discoverable home for the vault
-                 concept, previously reachable only as flagged rows buried
-                 inside the Environments editor or via the command palette. -->
-            <button type="button"
-              matIconButton class="btn-plain max-lg:hidden!"
-              (click)="secretsDialogVisible.set(true)"
-              title="Manage secrets"
-              aria-label="Manage secrets"
-            >
-              <app-icon name="key" class="icon-md" />
-            </button>
-
-            <!-- Local Bridge -->
-            <button type="button"
-              matIconButton class="btn-plain max-lg:hidden!"
-              [class.text-status-success]="bridgeService.config().route === 'bridge'"
-              (click)="openBridgeSettings()"
-              title="Local Bridge settings"
-              aria-label="Local Bridge settings"
-            >
-              <app-icon name="router" class="icon-md" />
-            </button>
-
-            <!-- Theme toggle -->
-            <button type="button"
-              matIconButton class="btn-plain max-lg:hidden!"
-              (click)="themeService.toggle()"
-              [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-              [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-            >
-              <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-md" />
-            </button>
+            }
 
             <!-- History -->
             <button type="button"
@@ -299,6 +270,36 @@
             <app-composer [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'" [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
           </div>
         </main>
+
+        @if (!isMobile()) {
+        <!-- Where a request goes and what holds its secrets, always in sight (S4). Each control is the
+             button it was in the toolbar, with its name; the state beside it is text. -->
+        <footer class="status-bar" aria-label="Status">
+          <span class="status-item">
+            <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" title="Local Bridge settings" aria-label="Local Bridge settings">
+              <app-icon name="router" class="icon-xs" />
+            </button>
+            <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
+          </span>
+          <span class="status-item">
+            <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
+              <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
+            </button>
+            <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
+          </span>
+          <span class="status-item">
+            <button type="button" matIconButton class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" title="Manage secrets" aria-label="Manage secrets">
+              <app-icon name="key" class="icon-xs" />
+            </button>
+            <span>Secrets</span>
+          </span>
+          <span class="flex-1"></span>
+          <span class="status-item">{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span>
+          <button type="button" matIconButton class="btn-plain status-button" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+            <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
+          </button>
+        </footer>
+        }
       </div>
     </div>
   </mat-sidenav-content>

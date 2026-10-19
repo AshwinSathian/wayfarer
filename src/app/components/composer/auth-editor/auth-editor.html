@@ -19,7 +19,7 @@
   <div class="flex items-center gap-3">
     <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
     <mat-form-field class="field flex-1">
-      <input matInput
+      <input class="font-mono" matInput
         [id]="idPrefix() + '-bearer-token'"
         placeholder="Enter bearer token"
         [ngModel]="currentAuth.token"
@@ -34,7 +34,7 @@
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-username'">Username</label>
       <mat-form-field class="field flex-1">
-        <input matInput
+        <input class="font-mono" matInput
           [id]="idPrefix() + '-basic-username'"
           placeholder="Username"
           [ngModel]="currentAuth.username"
@@ -46,7 +46,7 @@
       <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-password'">Password</label>
       <div class="flex flex-1 items-center gap-2">
         <mat-form-field class="field flex-1">
-          <input matInput
+          <input class="font-mono" matInput
             [id]="idPrefix() + '-basic-password'"
             [type]="showPassword() ? 'text' : 'password'"
             placeholder="Password"
@@ -70,7 +70,7 @@
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
       <mat-form-field class="field flex-1">
-        <input matInput
+        <input class="font-mono" matInput
           [id]="idPrefix() + '-apikey-key'"
           placeholder="Header or param name"
           [ngModel]="currentAuth.key"
@@ -81,7 +81,7 @@
     <div class="flex items-center gap-3">
       <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
       <mat-form-field class="field flex-1">
-        <input matInput
+        <input class="font-mono" matInput
           [id]="idPrefix() + '-apikey-value'"
           placeholder="Key value"
           [ngModel]="currentAuth.value"
@@ -111,14 +111,14 @@
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-access-key'">Access key</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-aws-access-key'" placeholder="Access key ID" [ngModel]="currentAuth.accessKey" (ngModelChange)="setAwsField({ accessKey: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-aws-access-key'" placeholder="Access key ID" [ngModel]="currentAuth.accessKey" (ngModelChange)="setAwsField({ accessKey: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-secret-key'">Secret key</label>
       <div class="flex flex-1 basis-48 items-center gap-2">
         <mat-form-field class="field flex-1">
-          <input matInput [id]="idPrefix() + '-aws-secret-key'" [type]="showPassword() ? 'text' : 'password'" placeholder="Secret access key" [ngModel]="currentAuth.secretKey" (ngModelChange)="setAwsField({ secretKey: $event })" />
+          <input class="font-mono" matInput [id]="idPrefix() + '-aws-secret-key'" [type]="showPassword() ? 'text' : 'password'" placeholder="Secret access key" [ngModel]="currentAuth.secretKey" (ngModelChange)="setAwsField({ secretKey: $event })" />
         </mat-form-field>
         <button matIconButton type="button" [attr.aria-label]="showPassword() ? 'Hide secret key' : 'Show secret key'" (click)="onTogglePasswordVisibility()"><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" /></button>
       </div>
@@ -126,19 +126,19 @@
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-session-token'">Session token</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-aws-session-token'" [type]="showPassword() ? 'text' : 'password'" placeholder="Only with temporary credentials" [ngModel]="currentAuth.sessionToken" (ngModelChange)="setAwsField({ sessionToken: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-aws-session-token'" [type]="showPassword() ? 'text' : 'password'" placeholder="Only with temporary credentials" [ngModel]="currentAuth.sessionToken" (ngModelChange)="setAwsField({ sessionToken: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-region'">Region</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-aws-region'" placeholder="us-east-1" [ngModel]="currentAuth.region" (ngModelChange)="setAwsField({ region: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-aws-region'" placeholder="us-east-1" [ngModel]="currentAuth.region" (ngModelChange)="setAwsField({ region: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-aws-service'">Service</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-aws-service'" placeholder="s3, execute-api, …" [ngModel]="currentAuth.service" (ngModelChange)="setAwsField({ service: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-aws-service'" placeholder="s3, execute-api, …" [ngModel]="currentAuth.service" (ngModelChange)="setAwsField({ service: $event })" />
       </mat-form-field>
     </div>
     <p class="type-callout text-label-tertiary">The request is signed as it is sent: the address, the body and the date. A multipart form cannot be signed.</p>
@@ -159,27 +159,27 @@
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Auth URL</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-auth-url'" placeholder="https://idp.example/authorize" [ngModel]="currentAuth.authUrl" (ngModelChange)="setOAuthField({ authUrl: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-auth-url'" placeholder="https://idp.example/authorize" [ngModel]="currentAuth.authUrl" (ngModelChange)="setOAuthField({ authUrl: $event })" />
       </mat-form-field>
     </div>
     }
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token URL</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-token-url'" placeholder="https://idp.example/token" [ngModel]="currentAuth.tokenUrl" (ngModelChange)="setOAuthField({ tokenUrl: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-token-url'" placeholder="https://idp.example/token" [ngModel]="currentAuth.tokenUrl" (ngModelChange)="setOAuthField({ tokenUrl: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-client-id'" placeholder="Client ID" [ngModel]="currentAuth.clientId" (ngModelChange)="setOAuthField({ clientId: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-client-id'" placeholder="Client ID" [ngModel]="currentAuth.clientId" (ngModelChange)="setOAuthField({ clientId: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
       <div class="flex flex-1 basis-48 items-center gap-2">
         <mat-form-field class="field flex-1">
-          <input matInput [id]="idPrefix() + '-oauth-client-secret'" [type]="showPassword() ? 'text' : 'password'" placeholder="None for a public client" [ngModel]="currentAuth.clientSecret" (ngModelChange)="setOAuthField({ clientSecret: $event })" />
+          <input class="font-mono" matInput [id]="idPrefix() + '-oauth-client-secret'" [type]="showPassword() ? 'text' : 'password'" placeholder="None for a public client" [ngModel]="currentAuth.clientSecret" (ngModelChange)="setOAuthField({ clientSecret: $event })" />
         </mat-form-field>
         <button matIconButton type="button" [attr.aria-label]="showPassword() ? 'Hide client secret' : 'Show client secret'" (click)="onTogglePasswordVisibility()"><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" /></button>
       </div>
@@ -187,20 +187,20 @@
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-scope'" placeholder="Separated by spaces" [ngModel]="currentAuth.scope" (ngModelChange)="setOAuthField({ scope: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-scope'" placeholder="Separated by spaces" [ngModel]="currentAuth.scope" (ngModelChange)="setOAuthField({ scope: $event })" />
       </mat-form-field>
     </div>
     @if (currentAuth.grant === 'password') {
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-username'" placeholder="Username" [ngModel]="currentAuth.username" (ngModelChange)="setOAuthField({ username: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-username'" placeholder="Username" [ngModel]="currentAuth.username" (ngModelChange)="setOAuthField({ username: $event })" />
       </mat-form-field>
     </div>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
       <mat-form-field class="field flex-1 basis-48">
-        <input matInput [id]="idPrefix() + '-oauth-password'" [type]="showPassword() ? 'text' : 'password'" placeholder="Password" [ngModel]="currentAuth.password" (ngModelChange)="setOAuthField({ password: $event })" />
+        <input class="font-mono" matInput [id]="idPrefix() + '-oauth-password'" [type]="showPassword() ? 'text' : 'password'" placeholder="Password" [ngModel]="currentAuth.password" (ngModelChange)="setOAuthField({ password: $event })" />
       </mat-form-field>
     </div>
     }

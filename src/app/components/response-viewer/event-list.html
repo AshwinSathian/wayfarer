@@ -25,8 +25,8 @@
       <!-- By position: two events may be the same in every field. -->
       @for (event of events(); track $index) {
       <tr>
-        <td class="break-all">{{ event.id || "—" }}</td>
-        <td class="break-all">{{ event.event }}</td>
+        <td class="break-all font-mono">{{ event.id || "—" }}</td>
+        <td class="break-all font-mono">{{ event.event }}</td>
         <td class="break-all font-mono whitespace-pre-wrap">{{ event.data }}</td>
         <td class="whitespace-nowrap">{{ event.timeMs === undefined ? "—" : "+" + event.timeMs + " ms" }}</td>
       </tr>

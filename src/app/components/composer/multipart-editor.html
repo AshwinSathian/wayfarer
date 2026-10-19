@@ -7,7 +7,7 @@
       (ngModelChange)="partChange.emit()"
     />
     <mat-form-field class="field min-w-0 flex-1 basis-32">
-      <input matInput
+      <input class="font-mono" matInput
         placeholder="name"
         [(ngModel)]="part.key"
         (ngModelChange)="partChange.emit()"
@@ -27,7 +27,7 @@
     <div class="flex min-w-0 flex-1 basis-56 items-center gap-2">
     @if (part.kind === 'text') {
     <mat-form-field class="field min-w-0 flex-1">
-      <input matInput
+      <input class="font-mono" matInput
         placeholder="value"
         [(ngModel)]="part.value"
         (ngModelChange)="partChange.emit()"

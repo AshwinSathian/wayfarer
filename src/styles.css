@@ -92,6 +92,17 @@
   box-sizing: border-box;
 }
 
+/* A form control takes the text around it (Tailwind's preflight does this; it
+   is off). Without it a bare <button> was the browser's own font: 11 px in
+   WebKit on macOS, 13.33 px in Chromium. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
 /* The browser's 8 px around the page: the shell is the window, edge to edge. */
 body {
   margin: 0;

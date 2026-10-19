@@ -321,6 +321,13 @@ code errors.
   (`var(--type-footnote-size)`). Nothing is under 12 px: the token test
   fails on a `font-size` under 12 px in any stylesheet or a Tailwind
   `text-[Npx]` under it, and `e2e/type-floor.spec.ts` on any drawn text.
+- A value a user typed, or one a server sent or will read (an address, a
+  header, a variable, a credential, a body field), is monospace; a name,
+  prose, a passphrase or a number is not. Every Material input says which,
+  with `font-mono` (or a `type-mono-*` class) or `font-sans`
+  (`scripts/input-fonts.test.mjs` fails on one that says neither). On a
+  Material input `font-mono` works through the rule in `controls.css`:
+  Material's `font: inherit` loads later and beat the class alone.
 - Tailwind CSS 4. Its configuration is the `@theme` block in
   `src/styles.css`; there is no `tailwind.config.js`. Theme entries map
   Tailwind names onto the tokens. A token whose name is Tailwind's own

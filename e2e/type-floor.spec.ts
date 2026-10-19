@@ -48,3 +48,38 @@ for (const width of [1440, 390]) {
     expect(await smallText(page), "the environments").toEqual([]);
   });
 }
+
+test("what a user typed or a server sent is monospace; names and prose are not", async ({ page }) => {
+  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  const family = (locator: ReturnType<Page["locator"]>) => locator.first().evaluate((el) => getComputedStyle(el).fontFamily);
+  const mono = /^"?JetBrains Mono/;
+  expect(await family(page.locator("input.address-url")), "the address").toMatch(mono);
+  expect(await family(page.getByLabel("HTTP method")), "the method").toMatch(mono);
+  expect(await family(page.getByLabel("Filter the JSON by path")), "the path filter").toMatch(mono);
+  await page.getByRole("tab", { name: "Headers" }).first().click();
+  await page.getByRole("button", { name: "Add Header" }).click();
+  expect(await family(page.getByLabel(/name, row 1$/)), "a header's name").toMatch(mono);
+  expect(await family(page.getByLabel(/value, row 1$/)), "a header's value").toMatch(mono);
+  const environments = await openEnvironments(page);
+  await environments.getByRole("button", { name: /New environment|Create/ }).first().click();
+  expect(await family(page.locator("#new-env-name-input")), "an environment's name").not.toMatch(mono);
+});
+
+test("a bare form control takes the font of the text around it, not the browser's own", async ({ page }) => {
+  await page.goto("/app/");
+  await expect(page.locator("input.address-url")).toBeVisible();
+  // WebKit on macOS gives a bare <button> 11 px of its own; Chromium 13.33 px; Linux's engines other sizes.
+  const fonts = await page.evaluate(() => {
+    const host = document.createElement("div");
+    host.style.fontSize = "17px";
+    // Made one by one: the page's Trusted Types policy is not asked to take HTML.
+    for (const tag of ["button", "input", "select", "textarea"]) host.append(document.createElement(tag));
+    document.body.append(host);
+    const out = [...host.children].map((el) => `${el.tagName} ${getComputedStyle(el).fontSize} ${getComputedStyle(el).fontFamily === getComputedStyle(host).fontFamily}`);
+    host.remove();
+    return out;
+  });
+  expect(fonts).toEqual(["BUTTON 17px true", "INPUT 17px true", "SELECT 17px true", "TEXTAREA 17px true"]);
+});

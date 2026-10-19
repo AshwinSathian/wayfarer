@@ -10,8 +10,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 ### Changed
 
 - **The website has a blog, with an RSS feed.** The first posts are the
-  2.5.0 release notes, how the website was rebuilt, and how the claims
-  ledger works.
+  2.5.0 release notes and how the claims ledger works.
 
 - **A status bar says where a request goes and what holds its secrets.**
   The toolbar was six icons with no words, two of them the vault. It now

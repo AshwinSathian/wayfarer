@@ -95,7 +95,7 @@ test("each claim the landing names is a row of the claims ledger", async ({ page
 // W2.5: the blog's posts are pages, newest first, and its RSS feed lists each with its address and date.
 test("the blog lists its posts, each a page, and its RSS feed has an item for each", async ({ page, request }) => {
   const files = readdirSync("packages/site/content/blog").filter((name) => name.endsWith(".md"));
-  expect(files.length).toBeGreaterThanOrEqual(3);
+  expect(files.length).toBeGreaterThanOrEqual(2);
   await page.goto("/blog/");
   const links = page.locator("main li h2 a");
   await expect(links).toHaveCount(files.length);

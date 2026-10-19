@@ -2,6 +2,8 @@ import { TestBed } from "@angular/core/testing";
 import { computed } from "@angular/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { repositories, type Repositories } from "../../testing/repositories";
+import { SecretsRepository } from "../data/secrets-repository";
+import { diagnosticEntries } from "./diagnostics";
 import { SecretsVault } from "./secrets-vault";
 
 // The vault over the real IndexedDB stores and the browser's WebCrypto:
@@ -54,6 +56,38 @@ describe("SecretsVault", () => {
       const stored = JSON.stringify([await idb.secrets.listAll(), await idb.secrets.readVault()]);
       expect(stored).not.toContain("super-secret-value");
       expect(stored).not.toContain("correct horse");
+    });
+  });
+
+  // C-053's stall in WebKit on CI (e2e/FLAKES.md): saveSecret had not returned in 15 s, with nothing in the console
+  // to say whether the encryption or the write was waiting. A save still going after 5 s says which.
+  describe("saveSecret() that does not finish", () => {
+    it("records after 5 s that it is still writing, when the write has not finished", async () => {
+      await vault.create("correct horse");
+      let reached: () => void = () => undefined;
+      const writing = new Promise<void>((resolve) => (reached = resolve));
+      vi.spyOn(TestBed.inject(SecretsRepository), "writeCipher").mockImplementation(() => {
+        reached();
+        return new Promise<void>(() => undefined);
+      });
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      void vault.saveSecret({ name: "API key", plaintext: "shh" });
+      await writing;
+      vi.advanceTimersByTime(4_999);
+      expect(diagnosticEntries().filter((entry) => entry.context === "vault")).toEqual([]);
+      vi.advanceTimersByTime(1);
+      expect(diagnosticEntries().filter((entry) => entry.context === "vault").map((entry) => entry.message)).toEqual([
+        "saving a secret is still writing it to storage after 5 s",
+      ]);
+    });
+
+    it("records nothing for a save that finished", async () => {
+      await vault.create("correct horse");
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      await vault.saveSecret({ name: "API key", plaintext: "shh" });
+      const before = diagnosticEntries().length;
+      vi.advanceTimersByTime(10_000);
+      expect(diagnosticEntries().length).toBe(before);
     });
   });
 

@@ -445,3 +445,33 @@ for (const theme of ["dark", "light"] as const) {
     }
   });
 }
+
+// U-013 and U-014 of docs/design/audit.md: a run that fails the same way many times says so once,
+// counts what passed and failed, and can show the failures alone.
+test("a run's report counts passed and failed, says a shared error once, and can show the failures alone", async ({ page }) => {
+  const closed = "http://127.0.0.1:9";
+  await seedCollection(page, [
+    { name: "Fine", url: `${ECHO}/status/200` },
+    { name: "Gone one", url: `${closed}/a` },
+    { name: "Gone two", url: `${closed}/b` },
+    { name: "Gone three", url: `${closed}/c` },
+  ]);
+  const view = await openRun(page);
+  await view.getByRole("button", { name: "Run", exact: true }).click();
+  await expect(view.getByRole("button", { name: "Run again" })).toBeVisible({ timeout: 15_000 });
+
+  const summary = view.locator(".run-summary");
+  await expect(summary).toContainText("1 passed");
+  await expect(summary).toContainText("3 failed");
+  const shared = view.locator(".run-shared-error");
+  await expect(shared).toHaveCount(1);
+  await expect(shared).toContainText("3 requests failed with the same error");
+  await expect(resultRows(view)).toHaveCount(4);
+  await expect(view.getByText("Same error as above")).toHaveCount(3);
+
+  await view.getByRole("checkbox", { name: "Failed only" }).check();
+  await expect(resultRows(view)).toHaveCount(3);
+  await expect(resultRows(view).first()).toContainText("Gone one");
+  // Each row keeps its number in the run.
+  await expect(resultRows(view).first().locator("td").first()).toHaveText("2");
+});

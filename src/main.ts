@@ -13,7 +13,9 @@ listenForCspViolations();
 // D3.3's widget catalogue, in development builds only: a production build
 // defines ngDevMode as false, and drops this branch and the page with it.
 if ((typeof ngDevMode === "undefined" || ngDevMode) && new URLSearchParams(location.search).has("catalogue")) {
-  void import("./app/catalogue/catalogue").then(({ Catalogue }) => bootstrapApplication(Catalogue, appConfig));
+  import("./app/catalogue/catalogue")
+    .then(({ Catalogue }) => bootstrapApplication(Catalogue, appConfig))
+    .catch((err) => console.error(err));
 } else {
   bootstrapApplication(App, appConfig)
     .then((app) => app.injector.get(SwUpdate).register())

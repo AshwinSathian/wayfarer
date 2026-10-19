@@ -83,6 +83,7 @@
               "extractLicenses": false
             },
             "catalogue": {
+              "sourceMap": false,
               "outputPath": {
                 "base": "dist/catalogue",
                 "browser": "app"

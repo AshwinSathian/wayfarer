@@ -1,6 +1,7 @@
 // D3.3: the widget catalogue (src/app/catalogue/catalogue.ts), a page of
 // development builds only. Every widget in each state passes axe in both
 // themes, and in forced colours what is selected is still marked.
+import { readdir, readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
 import { settled } from "./support/settled";
@@ -98,4 +99,13 @@ test("tree: in forced colours the selected row is still marked", async ({ page }
   const mark = (name: string) => row(name).evaluate((el) => getComputedStyle(el).borderInlineStartWidth);
   expect(await mark("PATCH Update a plan")).toBe("4px");
   expect(await mark("HEAD Ping")).toBe("0px");
+});
+
+test("the production build holds nothing of the catalogue", async () => {
+  const dist = "dist/wayfarer/browser";
+  const holders = [];
+  for (const name of (await readdir(dist)).filter((entry) => entry.endsWith(".js"))) {
+    if ((await readFile(`${dist}/${name}`, "utf8")).includes("Widget catalogue")) holders.push(name);
+  }
+  expect(holders).toEqual([]);
 });

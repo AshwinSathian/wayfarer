@@ -221,7 +221,7 @@ test("the open tab is in view when the strip holds more tabs than fit", async ({
   await expect(tabs(page).nth(0)).not.toBeInViewport();
 });
 
-// ── What is stored (the `tabs` store, database version 11) ─────────────────
+// ── What is stored (the `tabs` store) ──────────────────────────────────────
 
 test("five tabs, two of them edited, are all there after a reload, the two still unsaved and the open one still open", async ({ page }) => {
   await page.goto("/app/");

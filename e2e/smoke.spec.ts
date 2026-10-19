@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { openSettings } from "./support/app";
 
@@ -47,6 +48,15 @@ test("@smoke the site at / runs script from its own files only and links to the 
   expect(policy).not.toMatch(/unsafe-inline|unsafe-eval/);
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
   await expect(page.getByRole("link", { name: "Open Wayfarer" }).first()).toHaveAttribute("href", "/app/");
+});
+
+// The synthetic monitor reads which release production runs from /version.json, and runs that release's tests
+// (scripts/deployed-release.mjs).
+test("@smoke /version.json names the release that is served", async ({ request }) => {
+  const response = await request.get("/version.json");
+  expect(response.status()).toBe(200);
+  const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
+  expect(await response.json()).toEqual({ version });
 });
 
 test("the licences of the bundled packages are served with the app", async ({ request }) => {

@@ -57,6 +57,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The 6-hourly production check tests the release production runs.** It
+  ran the newest release's tests, and a release is tagged before it is
+  deployed: v2.6.0's tests, which look for the app at `/app/`, ran against
+  v2.5.0 and opened a "production is failing" issue (#398) while production
+  was fine. The deploy now names its release at `/version.json`, and the
+  check reads it and runs that release's tests.
 - **Every change merged to `main` keeps its own test run, so each one can be
   deployed.** A merge cancelled the run of the change merged just before it
   when that run was still going or waiting, and only a finished run of

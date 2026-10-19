@@ -77,7 +77,8 @@ npm run build
 
 Deploy only a commit whose CI run is green, and only from a clean tree. The
 deployed files are exactly what is in `dist/deploy`: the site at its root,
-the app under `app/`. One file is added beside them, `ci-run.json`: the CI
+the app under `app/`, and `version.json`, the release they are (the
+synthetic monitor runs that release's tests). One file is added beside them, `ci-run.json`: the CI
 run they came from, its commit and its date, which the claims page
 (`/docs/claims/`) shows on each claim's row.
 

@@ -123,7 +123,10 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
   await expect(secrets.getByText("Passphrase changed. The old one no longer opens the vault.")).toBeVisible();
+  // The form's button is gone: focus is back on the one that opened it, so Escape reaches the dialog.
+  await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
   await page.keyboard.press("Escape");
+  await expect(secrets).toHaveCount(0);
 
   await lockButton(page).click();
   await unlock(page, PASSPHRASE);
@@ -160,6 +163,8 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await secrets.getByRole("button", { name: "Delete API_TOKEN" }).click();
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
   await expect(secrets.getByText("No secrets yet")).toBeVisible();
+  // The deleted row's button is gone: focus stays in the dialog.
+  await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
 
   await secrets.getByRole("button", { name: "Import vault" }).click();
   await secrets.getByLabel("Vault file").setInputFiles({ name: "wayfarer-vault.json", mimeType: "application/json", buffer: Buffer.from(file) });

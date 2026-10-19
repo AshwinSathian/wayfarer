@@ -17,6 +17,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   on one of a request's environment variables, which shows that variable.
   The command palette has them too. On a phone the page scrolls as before.
 
+- **Focus stays in the Secrets dialog.** After the passphrase was changed,
+  the vault exported or imported, or a secret deleted, the button that had
+  focus was gone and focus fell to the page, so Escape no longer closed the
+  dialog and a keyboard user lost their place. Focus now goes back to the
+  button that opened the form, or to the next secret.
+
 - **A run's report says what happened before it lists it.** It counts what
   passed, what failed and what was skipped, shows how far a run has got,
   and can show the failed requests alone. An error that two or more

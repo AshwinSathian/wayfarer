@@ -32,9 +32,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Production runs a release, deployed from its tag: check it with that release's tests, not main's
+  # (main may be ahead) and not the newest tag's (it may not be deployed yet, #398).
+  release:
+    name: The release production runs
+    if: github.event_name != 'schedule' || vars.SYNTHETIC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - id: release
+        env:
+          BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
+        run: |
+          tag=$(node scripts/deployed-release.mjs "$BASE_URL")
+          echo "Production runs $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
   smoke:
     name: Smoke (${{ matrix.browser }})
-    if: github.event_name != 'schedule' || vars.SYNTHETIC_ENABLED == 'true'
+    needs: release
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -43,16 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-      # Production runs a release, deployed from its tag: check it with that release's tests, not main's
-      # (main may be ahead) and not the newest tag's (it may not be deployed yet, #398).
-      - name: Check out the release production runs
-        env:
-          BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
-        run: |
-          release=$(node scripts/deployed-release.mjs "$BASE_URL")
-          echo "Production runs $release"
-          git checkout "$release"
+          ref: ${{ needs.release.outputs.tag }}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
@@ -80,15 +95,15 @@ jobs:
 
   alert:
     name: Open or update the prod-down issue
-    needs: smoke
-    if: always() && needs.smoke.result != 'skipped'
+    needs: [release, smoke]
+    if: always() && needs.release.result != 'skipped'
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
       - env:
           GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ needs.smoke.result }}
+          RESULT: ${{ needs.release.result == 'success' && needs.smoke.result || needs.release.result }}
           TARGET: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}
         run: |
           RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"

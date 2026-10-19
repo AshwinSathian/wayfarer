@@ -208,6 +208,11 @@ the old one is not read. Restore the backup after.
 
 ### Fixed
 
+- **The release has its SBOM and checksums.** The first tag of 2.6.0 made
+  no GitHub release: `npm sbom` refused the website's package, which had no
+  version. It has one now, and CI builds the SBOM on every change, so a tag
+  cannot be the first to find out.
+
 - **Alt+T right after typing an address opens a tab whose address field is
   empty.** Pressed before the app had drawn the last keystroke, the new tab
   was selected but its address field went on showing the previous tab's

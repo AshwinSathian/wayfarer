@@ -1,6 +1,6 @@
 <app-tab-strip class="request-tab-strip" [panel]="requestPanel" (opened)="focusUrl()" />
 
-<mat-tab-nav-panel #requestPanel class="ds-panel block p-6 w-full space-y-5">
+<mat-tab-nav-panel #requestPanel class="ds-panel p-6 w-full space-y-5" [class]="isMobile() ? 'block' : 'flex min-h-0 flex-1 flex-col overflow-y-auto'">
 
   @if (tabs.active().run; as run) {
   <app-run-view class="block space-y-5" [run]="run" />
@@ -222,7 +222,8 @@
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>
   <app-response-viewer
-    class="animate-fade-in"
+    [class]="isMobile() ? 'block animate-fade-in' : 'block h-full animate-fade-in'"
+    [fill]="!isMobile()"
     [loading]="store.loadingState()"
     [responseData]="store.responseData()"
     [responseError]="store.responseError()"

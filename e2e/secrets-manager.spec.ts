@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { closeEnvironments, openEnvironments } from "./support/app";
 
 test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
@@ -22,6 +23,7 @@ test.describe("Secrets management view", () => {
     await page.goto("/app/");
 
     // Create an environment with one variable.
+    await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).click();
     await page.locator("#new-env-name-input").fill("Secrets E2E Env");
     await page.getByRole("button", { name: "Create environment" }).click();
@@ -44,7 +46,7 @@ test.describe("Secrets management view", () => {
     await passphraseInputs.nth(0).fill("correct horse battery staple");
     await passphraseInputs.nth(1).fill("correct horse battery staple");
     await page.getByRole("button", { name: "Create vault" }).click();
-    await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
+    await expect(page.getByText("Create vault passphrase")).toHaveCount(0);
 
     // Protecting the variable didn't happen automatically after unlocking —
     // the click that triggered the unlock dialog didn't itself protect the
@@ -56,6 +58,8 @@ test.describe("Secrets management view", () => {
     // EnvironmentsStore (and therefore the Secrets view's usage
     // cross-reference) actually picks up the {{$secret.<id>}} reference.
     await page.getByRole("button", { name: "Save changes" }).click();
+    await closeEnvironments(page);
+    await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
 
     // Open the Secrets view and verify the new secret is listed with its usage.
     await page.getByRole("button", { name: "Manage secrets" }).click();

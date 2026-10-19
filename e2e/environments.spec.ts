@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { closeEnvironments, openEnvironments, seedAndOpen } from "./support/app";
 
 test.describe("Environments", () => {
   test("@claim:C-025 creates an environment, adds a variable, and resolves it as a live chip while typing the URL", async ({
@@ -6,6 +7,7 @@ test.describe("Environments", () => {
   }) => {
     await page.goto("/app/");
 
+    await openEnvironments(page);
     await page.getByRole("button", { name: "New environment" }).click();
     const nameInput = page.locator("#new-env-name-input");
     await nameInput.fill("E2E Env");
@@ -24,6 +26,7 @@ test.describe("Environments", () => {
     await keyInputs.last().fill("baseHost");
     await valueInputs.last().fill("example.com");
     await page.getByRole("button", { name: "Save changes" }).click();
+    await closeEnvironments(page);
 
     // Typing {{baseHost}} into the URL should resolve against the active
     // environment and stop flagging it as missing.
@@ -32,4 +35,15 @@ test.describe("Environments", () => {
     await expect(page.getByText("baseHost", { exact: false }).first()).toBeVisible();
     await expect(page.getByText(/Missing: baseHost/i)).toHaveCount(0);
   });
+});
+
+// U-001 and U-012 of docs/design/audit.md: the environments are a dialog, not the bottom of the page.
+test("a click on an environment variable's chip opens the environments with that variable shown", async ({ page }) => {
+  await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
+  await expect(page.getByRole("dialog", { name: "Environments", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: /^Variable host, source environment/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator("input[placeholder='KEY']")).toHaveValue("host");
+  await expect(dialog.locator(".ring-2")).toHaveCount(1);
 });

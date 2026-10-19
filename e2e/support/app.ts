@@ -186,7 +186,24 @@ export async function openSettings(page: Page, section?: string): Promise<Locato
 export const PASSPHRASE = "correct horse battery staple";
 
 /** Adds a protected variable to the open environment, making the vault on the way. */
+/** Opens the environments editor, a dialog of its own, and gives it. */
+export async function openEnvironments(page: Page): Promise<Locator> {
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  if (!(await dialog.count())) await page.getByRole("button", { name: "Environments", exact: true }).click();
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
+
+/** Closes the environments editor; the composer is reachable again. */
+export async function closeEnvironments(page: Page): Promise<void> {
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  await dialog.getByRole("button", { name: "Close", exact: true }).first().click();
+  await expect(dialog).toHaveCount(0);
+}
+
+/** In the open environment, a protected variable holding `plaintext`, saved; the vault is made for it. The editor is closed after. */
 export async function protectVariable(page: Page, name: string, plaintext: string): Promise<void> {
+  await openEnvironments(page);
   const keys = page.getByPlaceholder("KEY", { exact: true });
   const before = await keys.count();
   await page.getByRole("button", { name: "Add variable" }).click();
@@ -198,10 +215,12 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
   await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
   await dialog.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+  await expect(dialog).toHaveCount(0);
   await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await page.getByRole("button", { name: "Save changes" }).click();
+  await closeEnvironments(page);
+  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
 }
 
 /** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */

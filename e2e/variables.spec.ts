@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { seedAndOpen, send } from "./support/app";
+import { closeEnvironments, openEnvironments, seedAndOpen, send } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.4: a variable of the collection and a global one, set in their editors,
@@ -45,8 +45,10 @@ test("a collection variable and a global reach the server, an environment's valu
     }
   );
 
+  await openEnvironments(page);
   await page.getByRole("button", { name: "Global variables" }).click();
   await addVariables(page, "Global variables", { fromGlobal: "g-1", winner: "from-global", second: "from-global" });
+  await closeEnvironments(page);
 
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   // A collection's variables are in its settings since P4.9, with its auth and its scripts.

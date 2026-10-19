@@ -1,13 +1,10 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { rowsOf } from "../../../testing/request-fixtures";
 import { signal } from "@angular/core";
-import { Subject } from "rxjs";
 import { EnvironmentsManager } from "./environments-manager";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
-import { VariableFocus } from "../../services/variable-focus";
 import { EnvironmentDoc } from "@wayfarer/core";
-import { VariableToken } from "../../services/variable-focus";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 function makeEnv(id: string, vars: Record<string, string> = {}): EnvironmentDoc {
@@ -119,19 +116,16 @@ describe("EnvironmentsManager", () => {
   let fixture: ComponentFixture<EnvironmentsManager>;
   let envService: EnvironmentsServiceStub;
   let secretsService: SecretsServiceStub;
-  let focusSubject: Subject<VariableToken>;
 
   beforeEach(async () => {
     envService = new EnvironmentsServiceStub();
     secretsService = new SecretsServiceStub();
-    focusSubject = new Subject<VariableToken>();
 
     await TestBed.configureTestingModule({
       imports: [EnvironmentsManager],
       providers: [
         { provide: EnvironmentsStore, useValue: envService },
         { provide: SecretsVault, useValue: secretsService },
-        { provide: VariableFocus, useValue: { focus$: focusSubject.asObservable(), requestFocus: () => {} } },
       ],
     }).compileComponents();
 

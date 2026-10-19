@@ -1,11 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
-import { dumpIdb } from "./support/app";
+import { closeEnvironments, dumpIdb, openEnvironments } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.10 (F37, #94): two tabs of the app share one database. A write in one
 // is shown in the other, and neither overwrites what the other just saved.
 
 async function createEnvironment(page: Page, name: string): Promise<void> {
+  await openEnvironments(page);
   await page.getByRole("button", { name: "New environment" }).click();
   await page.locator("#new-env-name-input").fill(name);
   await page.getByRole("button", { name: "Create environment" }).click();
@@ -35,7 +36,8 @@ test("what one tab saves appears in the other within a second: a collection, an 
   await expect(pageB.getByText("Made in tab A", { exact: true })).toBeVisible({ timeout: 1000 });
 
   await createEnvironment(pageA, "Shared env");
-  await expect(pageB.locator("app-environments-manager").getByText("Shared env", { exact: true })).toBeVisible({ timeout: 1000 });
+  await closeEnvironments(pageA);
+  await expect(pageB.getByRole("combobox", { name: "Environment" })).toContainText("Shared env", { timeout: 1000 });
 
   await pageA.locator("input.address-url").fill(`${ECHO}/echo?from=a`);
   await pageA.getByRole("button", { name: "Send request" }).click();
@@ -55,6 +57,7 @@ test("two tabs save different variables of one environment at the same moment, a
 
   // Tab B opens the environment as it is now; then each tab adds its own variable.
   await pageB.goto("/app/");
+  await openEnvironments(pageB);
   await expect(pageB.locator("input[placeholder='KEY']")).toHaveValue("base");
   await addVariable(pageA, "fromA", "1");
   await addVariable(pageB, "fromB", "2");

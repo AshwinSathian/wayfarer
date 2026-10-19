@@ -16,6 +16,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Param". Angular 22.2.3, Playwright 1.64.1, axe-core 4.14, Vitest 5.0.5
   and Wrangler 4.151; axe 4.14 checks this (WCAG 2.5.3) and found both.
 
+- **Cancel and the request timeout are a claim with tests (C-042).** A
+  request on its way can be cancelled, and Settings, Requests, sets a
+  timeout, none by default. Both were there since 2.0 but not in the
+  claims ledger or the README's list.
+
 - **The docs say where Wayfarer will be listed and announced, and when**
   (`docs/design/reach.md`). Nothing has been posted yet.
 

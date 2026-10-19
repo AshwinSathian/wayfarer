@@ -1,5 +1,4 @@
-/* Toolbar glass effect is applied via .ds-toolbar in components.css.
-   Component-specific overrides only below. */
+/* The toolbar's look is .ds-toolbar in components.css. Component-specific overrides only below. */
 
 :host {
   display: contents;

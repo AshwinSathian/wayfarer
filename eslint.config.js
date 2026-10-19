@@ -5,10 +5,18 @@ const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
 
 module.exports = defineConfig([
-  // Astro writes its types into the site's folder when it builds (W1); the site has no TypeScript of its own.
-  { ignores: ["packages/site/.astro/**", "packages/site/dist/**"] },
+  // Next writes its build and its types into the site's folder (PLAN-design 1.8).
+  { ignores: ["packages/site/.next/**", "packages/site/out/**", "packages/site/next-env.d.ts"] },
+  // The site is React (Next.js), not Angular: the TypeScript rules without Angular's.
+  {
+    files: ["packages/site/src/**/*.{ts,tsx}"],
+    extends: [eslint.configs.recommended, tseslint.configs.recommended, tseslint.configs.stylistic],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: __dirname } },
+    rules: { "@typescript-eslint/no-floating-promises": "error", "@typescript-eslint/no-misused-promises": "error" },
+  },
   {
     files: ["**/*.ts"],
+    ignores: ["packages/site/**"],
     extends: [
       eslint.configs.recommended,
       tseslint.configs.recommended,

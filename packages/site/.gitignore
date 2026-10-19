@@ -1,2 +1,5 @@
-dist/
-.astro/
+out/
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+AGENTS.md

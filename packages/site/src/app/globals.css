@@ -1,0 +1,273 @@
+@import "tailwindcss" source("../");
+
+/*
+ * The site's palette (PLAN-design 1.8): the paper of a survey map, its ink, and one route drawn across it in the
+ * app's own indigo. The dark theme is the same map at night. The theme follows the app's stored choice
+ * (`wayfarer:theme`, set before the page is drawn by /app/theme.js), else the system's.
+ */
+:root {
+  --paper: #f3f4ef;
+  --paper-raised: #fbfbf8;
+  --paper-sunk: #e8eae3;
+  --ink: #121620;
+  --ink-muted: #4a5261;
+  --line: #cfd4c9;
+  --line-strong: #a9b0a4;
+  --route: #3451d1;
+  --route-ink: #ffffff;
+  --route-soft: #dde3f9;
+  --ok: #17784d;
+  --code-bg: #121620;
+  --code-ink: #e3e7ee;
+  --code-muted: #9aa3b2;
+  --code-key: #a9b8ff;
+  --code-string: #8fd6ae;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #0d1015;
+  --paper-raised: #141921;
+  --paper-sunk: #090b0f;
+  --ink: #e9ecef;
+  --ink-muted: #a3abb8;
+  --line: #262d37;
+  --line-strong: #3a4350;
+  --route: #8ea2ff;
+  --route-ink: #0d1015;
+  --route-soft: #1b2346;
+  --ok: #5ccf96;
+  --code-bg: #090b0f;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1015;
+    --paper-raised: #141921;
+    --paper-sunk: #090b0f;
+    --ink: #e9ecef;
+    --ink-muted: #a3abb8;
+    --line: #262d37;
+    --line-strong: #3a4350;
+    --route: #8ea2ff;
+    --route-ink: #0d1015;
+    --route-soft: #1b2346;
+    --ok: #5ccf96;
+    --code-bg: #090b0f;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", monospace;
+
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-route: var(--route);
+  --color-route-ink: var(--route-ink);
+  --color-route-soft: var(--route-soft);
+  --color-ok: var(--ok);
+  --color-code-bg: var(--code-bg);
+  --color-code-ink: var(--code-ink);
+  --color-code-muted: var(--code-muted);
+  --color-code-key: var(--code-key);
+  --color-code-string: var(--code-string);
+}
+
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+  :focus-visible {
+    outline: 2px solid var(--route);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  ::selection {
+    background: var(--route-soft);
+  }
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+}
+
+/* A dotted contour grid behind the hero: the map the route is drawn on. */
+.contours {
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* The route through the hero's trace: a line with a stop at each request. */
+.route-line {
+  background-image: linear-gradient(var(--route), var(--route));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: 11px 0;
+}
+
+/* The demo's request, once it is answered: its stop on the route is filled (public/site.js sets the attribute). */
+[data-demo-stop][data-on] {
+  background: var(--route);
+  border-style: solid;
+}
+
+/* The demo's caret, and each step of it appearing. Motion is only the demo's, and only when it is wanted. */
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.caret {
+  animation: caret 1s steps(1) infinite;
+}
+.arrive {
+  animation: arrive 240ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .caret,
+  .arrive {
+    animation: none;
+  }
+}
+
+/* A doc, the changelog: Markdown written for GitHub, set for reading. */
+.prose {
+  max-width: 72ch;
+  overflow-wrap: anywhere;
+}
+.prose > * + * {
+  margin-top: 1em;
+}
+.prose h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+.prose h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.2;
+  font-weight: 650;
+  margin-top: 2.2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--line);
+}
+.prose h3 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 650;
+  margin-top: 1.8em;
+}
+.prose h4 {
+  font-weight: 700;
+  margin-top: 1.5em;
+}
+.prose a {
+  color: var(--route);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover {
+  text-decoration-thickness: 2px;
+}
+.prose ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.prose ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prose li + li {
+  margin-top: 0.35em;
+}
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.35em;
+}
+.prose blockquote {
+  border-left: 3px solid var(--route);
+  padding-left: 1em;
+  color: var(--ink-muted);
+}
+.prose :not(pre) > code {
+  background: var(--paper-sunk);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.05em 0.3em;
+}
+.prose pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--line);
+  padding: 0.45em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+.prose th {
+  background: var(--paper-sunk);
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.prose img {
+  max-width: 100%;
+}
+.prose .ci-note {
+  border-left: 3px solid var(--ok);
+  padding-left: 1em;
+}
+
+/* Pagefind's search box in the site's colours: its interface reads these variables. */
+#search {
+  --pagefind-ui-primary: var(--route);
+  --pagefind-ui-text: var(--ink);
+  --pagefind-ui-background: var(--paper-raised);
+  --pagefind-ui-border: var(--line-strong);
+  --pagefind-ui-tag: var(--paper-sunk);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 8px;
+  --pagefind-ui-font: var(--font-sans);
+}

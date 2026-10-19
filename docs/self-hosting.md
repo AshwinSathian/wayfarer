@@ -45,7 +45,7 @@ at `/app/sw.js`; the site's pages are at `/`.
 
    | Header | Why |
    |---|---|
-   | `Content-Security-Policy` | Under `/app/`: no script but the app's own, no `eval`, Trusted Types for DOM script sinks. Without it, an injected script could reach your vault while it is unlocked. Elsewhere: no script at all. Copy both exactly; they are generated from `security/csp.json` and `security/csp-site.json`. |
+   | `Content-Security-Policy` | Under `/app/`: no script but the app's own, no `eval`, Trusted Types for DOM script sinks. Without it, an injected script could reach your vault while it is unlocked. Elsewhere: script from the site's own files only, never inline. Copy both exactly; they are generated from `security/csp.json` and `security/csp-site.json`. |
    | `Cross-Origin-Opener-Policy: same-origin` | The OAuth sign-in window answers on a `BroadcastChannel`, never through `window.opener`. |
    | `Cross-Origin-Resource-Policy: same-origin` | Other sites cannot embed the app's files. |
    | `X-Content-Type-Options: nosniff` | A file is read as its type. |

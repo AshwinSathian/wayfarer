@@ -6,7 +6,7 @@
 // Usage: node scripts/build-deploy.mjs
 import { cpSync, existsSync, rmSync } from "node:fs";
 
-const SITE = "packages/site/dist";
+const SITE = "packages/site/out";
 const APP = "dist/wayfarer/browser";
 const OUT = "dist/deploy";
 

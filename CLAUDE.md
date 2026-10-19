@@ -59,8 +59,8 @@ code errors.
 ## The site and the app's address (PLAN-design.md, phase W)
 
 - The deploy is `dist/deploy` (`scripts/build-deploy.mjs`, the last step
-  of `npm run build`): the site's build (`packages/site`, Astro) at the
-  root and the app's (`dist/wayfarer/browser`) under `app/`. Wrangler, the
+  of `npm run build`): the site's build (`packages/site`, Next.js static export to
+  `packages/site/out`) at the root and the app's (`dist/wayfarer/browser`) under `app/`. Wrangler, the
   e2e server and the release tarball serve or pack that folder. A test
   that reads a file of the app's build still reads `dist/wayfarer/browser`.
 - The app is at `/app/` (`baseHref` in `angular.json`). Every address the
@@ -77,24 +77,35 @@ code errors.
   (`not_found_handling: "404-page"`); the app has no addresses of its own
   past `/app/`. `prod-server.mjs` does the same, and redirects a folder
   without its slash (`/app`) with a 307, as Workers do.
-- The site runs no script and loads nothing from another origin
-  (`security/csp-site.json`, `e2e/site.spec.ts`): Astro writes CSS to files
-  (`inlineStylesheets: "never"`) and Markdown is not highlighted (Shiki
-  writes `style` attributes). A page that needs a script needs a decision
-  in `PLAN-design.md` first.
+- The site is Next.js with Tailwind 4 (`output: "export"`, PLAN-design
+  1.8): React renders each page when the site is built, and the browser
+  gets none of it (1.10: it cost the landing 1.1 s of mobile LCP).
+  `strip-scripts.mjs`, in the site's build, takes every script Next adds out
+  of the pages, with their files. So no component is `"use client"` and
+  none has a handler: what a page does in the browser is a script file of
+  the site's own (`public/site.js`: the theme toggle and the landing's
+  demo; the docs' search; `claims-ci.js`), found by a `data-` attribute.
+  The site loads nothing from another origin and has no `'unsafe-inline'`
+  (`security/csp-site.json`, `e2e/site.spec.ts`). Write no `style`
+  attribute (`style={{}}`) and no inline script; a test reads every built
+  page for both and for Next's scripts. Links are plain `<a>`, not
+  `next/link`.
+- The site's theme and mark are the app's: the layout loads
+  `/app/theme.js` in its head, the toggle stores `wayfarer:theme`, and the
+  mark is `/app/icons/logo.svg` (`public/icons/logo.svg`, which the app
+  shell shows too).
 - A sentence of the site that says what Wayfarer does names its claims
-  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.astro`);
+  (`<Claims ids={[...]} />`, `packages/site/src/components/Claims.tsx`);
   `e2e/site.spec.ts` holds every ID named to `docs/claims.md`. The
   pictures of the app are `scripts/site-screenshot.mjs`'s: take them again
   when the app they show changes. Lighthouse (mobile) holds the site to
   95, 100 and 100 (`check-lighthouse.mjs --site`).
 - The docs are pages (`/docs/<name>/`, from `docs/**/*.md`): write a link to
   another doc as its file (`auth.md#oauth`), as GitHub reads it;
-  `doc-links.mjs` makes it the page. The search (Pagefind) is the site's one
-  script, under `security/csp-docs.json` on `/docs/*` and `/pagefind/*` (its
+  `doc-links.mjs` makes it the page, and `markdown.mjs` (marked, GitHub's
+  heading ids) renders it. The search (Pagefind) is under `security/csp-docs.json` on `/docs/*` and `/pagefind/*` (its
   worker has its script's policy). `npm run check:site-links` follows every
-  link of the built site to itself. Astro keeps rendered docs in
-  `packages/site/.astro`: after a change to a Markdown plugin, delete it.
+  link of the built site to itself.
 - The changelog (`/changelog/`) and the roadmap (`/roadmap/`, from this
   plan's section 9, `roadmap.mjs`) are built from the files. The claims
   page's "Last CI" column reads `/ci-run.json`, which `deploy.yml` writes

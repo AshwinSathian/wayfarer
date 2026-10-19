@@ -67,15 +67,6 @@
   animation: fade-in var(--dur-enter) var(--ease-standard) both;
 }
 
-/* ── Transition utilities ────────────────────────────────── */
-
-.transition-colors {
-  transition:
-    background-color var(--dur-quick) var(--ease-standard),
-    color var(--dur-quick) var(--ease-standard),
-    border-color var(--dur-quick) var(--ease-standard) !important;
-}
-
 /* A response's status bar. The element is made anew for every response, so
    the animation runs again each time. Opacity only (F48). */
 .animate-response-arrive {
@@ -92,9 +83,12 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
+    /* Not 0: a length, so the end events Material waits for are still sent. */
+    animation-duration: var(--dur-none) !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    transition-duration: var(--dur-none) !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

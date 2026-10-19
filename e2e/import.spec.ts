@@ -165,7 +165,7 @@ test("5,000 requests in one file import, and the page says how long it took", as
 
   const counts = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

@@ -8,7 +8,6 @@ describe("Theme", () => {
 
   beforeEach(() => {
     localStorage.removeItem("wayfarer:theme");
-    localStorage.removeItem("api-sandbox:theme");
     systemDark = true;
     onSystemChange = undefined;
     vi.spyOn(window, "matchMedia").mockImplementation(
@@ -50,8 +49,8 @@ describe("Theme", () => {
     expect([theme.choice(), drawn()]).toEqual(["dark", "dark"]);
   });
 
-  it("reads the stored choice, the one of before the rename too, and takes nothing else for one", () => {
-    localStorage.setItem("api-sandbox:theme", "light");
+  it("reads the stored choice, and takes nothing else for one", () => {
+    localStorage.setItem("wayfarer:theme", "light");
     expect(TestBed.inject(Theme).choice()).toBe("light");
     TestBed.resetTestingModule();
     localStorage.setItem("wayfarer:theme", "sepia");

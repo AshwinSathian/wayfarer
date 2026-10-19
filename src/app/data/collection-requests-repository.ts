@@ -3,7 +3,7 @@ import { emptyRequest } from "@wayfarer/core";
 import { NewRequest, RequestDoc, RequestPatch } from "../models/collections";
 import { IDBPTransaction } from "idb";
 import { IdbCore } from "./idb-core";
-import { ApiSandboxDB, StoreCollection, StoredFile } from "./idb-schema";
+import { WayfarerDB, StoreCollection, StoredFile } from "./idb-schema";
 import { sweepFiles } from "./request-files";
 
 /**
@@ -108,7 +108,7 @@ export class CollectionRequestsRepository {
   }
 
   private async storeFiles(
-    tx: IDBPTransaction<ApiSandboxDB, StoreCollection, "readwrite">,
+    tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">,
     files: [string, StoredFile][]
   ): Promise<void> {
     for (const [id, file] of files) {

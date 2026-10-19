@@ -74,7 +74,7 @@ describe("a script sets a protected variable (P3.12)", () => {
   /** Everything every store holds, as text. */
   async function everythingStored(): Promise<string> {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

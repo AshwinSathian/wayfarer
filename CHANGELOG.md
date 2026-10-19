@@ -16,6 +16,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   beside the environment in the toolbar, opens them, and so does a click
   on one of a request's environment variables, which shows that variable.
   The command palette has them too. On a phone the page scrolls as before.
+  A dialog no longer blurs the page behind it, which only dims: with one
+  dialog over another, two blurs of the whole window made the page stutter
+  on a machine without a graphics card.
 
 - **Focus stays in the Secrets dialog.** After the passphrase was changed,
   the vault exported or imported, or a secret deleted, the button that had

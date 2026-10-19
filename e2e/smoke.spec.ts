@@ -36,13 +36,15 @@ test("responses carry HSTS and the cross-origin isolation headers, the site's an
   }
 });
 
-// W1 (PLAN-design.md): the site at / has a policy of its own, stricter than the app's, which it does not carry.
-test("@smoke the site at / runs no script and links to the app at /app/", async ({ page }) => {
+// W1 (PLAN-design.md): the site at / has a policy of its own, stricter than the app's, which it does not carry. Since
+// PLAN-design 1.8 it runs script from its own files, never inline.
+test("@smoke the site at / runs script from its own files only and links to the app at /app/", async ({ page }) => {
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
   const policy = response?.headers()["content-security-policy"] ?? "";
   expect(policy.split(";").map((d) => d.trim())).toContain("default-src 'none'");
-  expect(policy).not.toContain("script-src");
+  expect(policy.split(";").map((d) => d.trim())).toContain("script-src 'self'");
+  expect(policy).not.toMatch(/unsafe-inline|unsafe-eval/);
   expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
   await expect(page.getByRole("link", { name: "Open Wayfarer" }).first()).toHaveAttribute("href", "/app/");
 });

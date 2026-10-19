@@ -130,11 +130,52 @@ test("the docs' search finds a doc by a word in it, from the site's own files", 
   expect(foreign).toEqual([]);
 });
 
-test("/docs/ has the docs' policy, with script from the site's own files, and / still has none", async ({ request }) => {
+test("/docs/ has the docs' policy, with script from the site's own files, and / script from them alone", async ({ request }) => {
   const docs = (await request.get("/docs/")).headers()["content-security-policy"] ?? "";
   expect(docs.split(";").map((d) => d.trim())).toContain("script-src 'self' 'wasm-unsafe-eval'");
   expect(docs).not.toContain(", ");
-  expect((await request.get("/")).headers()["content-security-policy"]).not.toContain("script-src");
+  const site = (await request.get("/")).headers()["content-security-policy"] ?? "";
+  expect(site.split(";").map((d) => d.trim())).toContain("script-src 'self'");
+  expect(site).not.toMatch(/unsafe-inline|unsafe-eval/);
+});
+
+// PLAN-design 1.8: the site is built with React and sends none of it (packages/site/strip-scripts.mjs), and its
+// policy has no 'unsafe-inline'. A page with one of Next's scripts left, or an inline one, would break either.
+test("no page of the site has a script of Next's, an inline script, an inline handler or a style attribute", () => {
+  for (const path of sitePages()) {
+    const file = `${DEPLOY}${path.endsWith("/") ? `${path}index.html` : path}`;
+    const html = readFileSync(file, "utf8");
+    // Every script, closed or not, is a file of the site's own or data.
+    const scripts = html.match(/<script\b[^>]*>/gi) ?? [];
+    expect(scripts.filter((tag) => !/\ssrc="\/(?!_next\/)[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)), path).toEqual([]);
+    expect(html.match(/\s(style|on[a-z]+)="/g) ?? [], path).toEqual([]);
+  }
+});
+
+// What the pages do in the browser is public/site.js: the landing's demo and the theme toggle.
+test("the landing's demo plays to its answer and again on Replay, and the toggle switches the theme the app reads", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("wayfarer:theme", "dark"));
+  await page.reload();
+  const demo = page.locator("[data-demo]");
+  await expect(demo.getByText("200 OK")).toBeVisible({ timeout: 10_000 });
+  await expect(demo.locator("[data-demo-address]")).toHaveText("https://api.example.com/v1/users/42");
+  await demo.getByRole("button", { name: "Replay" }).click();
+  await expect(demo.getByText("200 OK")).toBeHidden();
+  await expect(demo.getByText("200 OK")).toBeVisible({ timeout: 10_000 });
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Switch between light and dark" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  expect(await page.evaluate(() => localStorage.getItem("wayfarer:theme"))).toBe("light");
+  await page.goto("/app/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
+test("with reduced motion the demo shows its answer at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.locator("[data-demo]").getByText("200 OK")).toBeVisible({ timeout: 1_000 });
 });
 
 // W2.4: the changelog and the roadmap are pages, and the ledger says which CI run the deployed files passed.

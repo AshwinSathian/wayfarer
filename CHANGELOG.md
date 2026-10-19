@@ -26,6 +26,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   dialog and a keyboard user lost their place. Focus now goes back to the
   button that opened the form, or to the next secret.
 
+- **Settings, Diagnostics, says when saving a secret takes more than 5
+  seconds**, and whether the encryption or the write to storage is the step
+  still waiting.
+
 - **A run's report says what happened before it lists it.** It counts what
   passed, what failed and what was skipped, shows how far a run has got,
   and can show the failed requests alone. An error that two or more
@@ -49,10 +53,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   or Enter on the focused row, now opens it. Each request's method
   (`GET`, `POST`, `DEL`) is shown before its name, in its colour.
 
+- **The website has a new design and a light theme.** The front page now
+  plays a request and lists every request that left the tab, shows the
+  app, says what changed in Postman's free plan with its sources, and
+  answers common questions. Site and app share one logo and one theme
+  setting: switch to light or dark on either and the other follows. The
+  site is built with Next.js and Tailwind; it still loads nothing from
+  another site, and runs no script that is not one of its own files.
+
 - **The trust center says what the website measures: nothing.** It has no
   analytics, no counter and no cookie, and loads nothing from another
-  site; the two scripts it runs (the docs' search and the claims page's
-  test column) are its own files.
+  site; every script it runs is one of its own files.
 
 - **The website has the changelog, a roadmap, and the claims' test results.**
   `/changelog/` is this file; `/roadmap/` lists the plan's phases and tasks,

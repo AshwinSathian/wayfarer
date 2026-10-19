@@ -66,9 +66,9 @@ test("a header line with a colon in its value keeps the whole value", () => {
 test("the repo's _headers gives the site its policy at /, the docs theirs at /docs/, and the app its own at /app/", () => {
   const rules = parseHeadersFile(readFileSync(new URL("../../packages/site/public/_headers", import.meta.url), "utf8"));
   const at = (path) => Object.fromEntries(headersFor(rules, new URL(path, URL_BASE)));
-  for (const path of ["/", "/404.html", "/_astro/page.css"]) {
-    assert.match(at(path)["content-security-policy"], /^default-src 'none';/, path);
-    assert.doesNotMatch(at(path)["content-security-policy"], /script-src/, path);
+  for (const path of ["/", "/404.html", "/_next/static/chunks/page.js"]) {
+    assert.match(at(path)["content-security-policy"], /^default-src 'none'; script-src 'self';/, path);
+    assert.doesNotMatch(at(path)["content-security-policy"], /unsafe-inline|unsafe-eval|wasm-unsafe-eval/, path);
   }
   for (const path of ["/app/", "/app/main-ABC123.js", "/app/oauth/callback"]) {
     assert.match(at(path)["content-security-policy"], /^default-src 'self'; script-src 'self' 'wasm-unsafe-eval';/, path);

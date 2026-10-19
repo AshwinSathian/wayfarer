@@ -16,7 +16,7 @@ import {
 } from "@wayfarer/core";
 import { SecretsRepository } from "../data/secrets-repository";
 import { SecretDoc } from "../models/secrets";
-import { Diagnostics } from "./diagnostics";
+import { Diagnostics, recordDiagnostic } from "./diagnostics";
 
 export interface SaveSecretRequest {
   name: string;
@@ -124,12 +124,18 @@ export class SecretsVault {
 
   async saveSecret(request: SaveSecretRequest): Promise<string> {
     const id = newId();
-    await this.secretsRepository.writeCipher({
-      id,
-      name: request.name,
-      environmentId: request.environmentId,
-      envelope: await encryptSecret(this.key(), id, request.plaintext),
-    });
+    const key = this.key();
+    let step = "encrypting it";
+    // C-053's stall in WebKit on CI (e2e/FLAKES.md): a save had not returned in 15 s, and nothing said which step was
+    // waiting. One still going after 5 s says so in the console and in Diagnostics.
+    const watch = setTimeout(() => recordDiagnostic(`saving a secret is still ${step} after 5 s`, "vault"), 5_000);
+    try {
+      const envelope = await encryptSecret(key, id, request.plaintext);
+      step = "writing it to storage";
+      await this.secretsRepository.writeCipher({ id, name: request.name, environmentId: request.environmentId, envelope });
+    } finally {
+      clearTimeout(watch);
+    }
     return id;
   }
 

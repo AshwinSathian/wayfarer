@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { inCollection, inFolder, requestContent, rowsOf } from "../../testing/request-fixtures";
 import { ImportRefused, ImportWorkerClient } from "../shared/import/import-worker-client";
 import { CollectionsStore } from "./collections-store";
+import { diagnosticEntries } from "./diagnostics";
 import { EnvironmentsStore } from "./environments-store";
 import { ImportPipeline } from "./import-pipeline";
 
@@ -53,6 +54,38 @@ describe("ImportPipeline", () => {
       ],
     });
     service = TestBed.inject(ImportPipeline);
+  });
+
+  // C-035's stall in Firefox (e2e/FLAKES.md): the report still said "Reading" 5 s after the file, with nothing in the
+  // console to say whether the worker had started. A read still waiting for the worker after 5 s says so.
+  describe("a read whose worker does not answer", () => {
+    it("records after 5 s that the worker has not answered", async () => {
+      worker.run.mockImplementationOnce(() => new Promise<Imported>(() => undefined));
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      try {
+        void service.stage("billing.json", collectionFile);
+        vi.advanceTimersByTime(4_999);
+        expect(diagnosticEntries().filter((entry) => entry.context === "import")).toEqual([]);
+        vi.advanceTimersByTime(1);
+        expect(diagnosticEntries().filter((entry) => entry.context === "import").map((entry) => entry.message)).toEqual([
+          "the import worker has not answered after 5 s",
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("records nothing for a read that finished", async () => {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      try {
+        await service.stage("billing.json", collectionFile);
+        const before = diagnosticEntries().length;
+        vi.advanceTimersByTime(10_000);
+        expect(diagnosticEntries().length).toBe(before);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe("a collection file", () => {

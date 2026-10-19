@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Settings, Diagnostics, says when an import has waited 5 seconds for
+  its file to be read.** The import's report showed "Reading" with nothing
+  to say why; the read happens in a worker of its own, and a read that has
+  not come back in 5 seconds is now recorded there and in the browser's
+  console.
+
+### Changed
+
 - **Each page of the website has a picture and a summary for when it is
   shared or found.** A link posted in a chat or a social network shows the
   page's own title, description and image; the site has a sitemap and an

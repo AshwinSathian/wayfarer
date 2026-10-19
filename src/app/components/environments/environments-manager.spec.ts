@@ -341,6 +341,27 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.vars[0].value).toBe("raw-value");
     });
 
+    // C-053's stall in WebKit (e2e/FLAKES.md): a second click on "Mark variable as secret" changed nothing for 15 s,
+    // and nothing said whether it reached the save. Each way the click goes is written to the console, for a trace.
+    it("protectVariable says in the console which way it went", async () => {
+      const debug = vi.spyOn(console, "debug").mockImplementation(() => undefined);
+      try {
+        secretsService.unlocked = false;
+        await component.protectVariable(0);
+        secretsService.unlocked = true;
+        await component.protectVariable(0);
+        component.draft()!.vars.push({ key: "", value: "", enabled: true });
+        await component.protectVariable(1);
+        expect(debug.mock.calls.map((call) => call.join(" "))).toEqual([
+          "[wayfarer] mark as secret: the vault is locked, asking to unlock",
+          "[wayfarer] mark as secret: saving",
+          "[wayfarer] mark as secret: the row has no name or no value",
+        ]);
+      } finally {
+        debug.mockRestore();
+      }
+    });
+
     it("revealSecret fetches and caches the plaintext for a protected variable", async () => {
       secretsService.unlocked = true;
       await component.protectVariable(0);

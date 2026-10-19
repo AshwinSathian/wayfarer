@@ -4,6 +4,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const LINKS = [
   ["Docs", "/docs/"],
+  ["Compare", "/compare/"],
   ["Claims", "/docs/claims/"],
   ["Changelog", "/changelog/"],
   ["Roadmap", "/roadmap/"],

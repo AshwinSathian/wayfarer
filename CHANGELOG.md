@@ -9,6 +9,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The docs say where Wayfarer will be listed and announced, and when**
+  (`docs/design/reach.md`). Nothing has been posted yet.
+
 - **The website has a blog, with an RSS feed.** The first posts are the
   2.5.0 release notes and how the claims ledger works.
 

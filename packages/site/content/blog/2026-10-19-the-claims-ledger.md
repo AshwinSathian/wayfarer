@@ -7,7 +7,7 @@ description: How Wayfarer's claims ledger works, why a claim test is never retri
 Most product pages ask you to take them at their word. Wayfarer's
 [claims ledger](../../../../docs/claims.md) is a table instead: each row is one thing the
 app says it does, with a stable ID, the documents that say it, and the
-automated tests that prove it. On 19 October 2026 it has 67 rows.
+automated tests that prove it. On 19 October 2026 it has 68 rows.
 
 ## How a sentence gets an ID
 

@@ -291,6 +291,43 @@
           }
         }
       }
+    },
+    "size-icon": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/size-icon",
+            "index": "src/index.html",
+            "baseHref": "/app/",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": [],
+            "scripts": [],
+            "browser": "src/bakeoff/size/icon.ts",
+            "loader": {
+              ".ttf": "file",
+              ".wasm": "file"
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": false
+              },
+              "fonts": true
+            },
+            "outputHashing": "all",
+            "sourceMap": false,
+            "namedChunks": false,
+            "extractLicenses": true,
+            "budgets": []
+          }
+        }
+      }
     }
   }
 }

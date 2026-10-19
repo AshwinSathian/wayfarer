@@ -17,7 +17,8 @@
          and recreated on every send — sendRequest() always toggles
          loading() true then false around each request, so this animation
          genuinely replays per response rather than only on first mount. -->
-    <div class="flex flex-wrap items-center gap-3 border-b border-separator px-5 py-3.5 animate-response-arrive">
+    <!-- One line (U-030): the status, then what it took, in words, not pills. -->
+    <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2 animate-response-arrive">
       <!-- Status code badge -->
       <span
         class="status-badge"
@@ -41,28 +42,18 @@
 
       @let inspData = inspectionValue;
 
-      <!-- Duration -->
+      <!-- The facts wrap as one line, not one by one. -->
+      <span class="inline-flex flex-wrap items-center gap-x-2.5">
       @if (inspData && inspData.duration) {
-      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
-        <app-icon name="timer" class="icon-xs" />
-        {{ formatMs(inspData.duration) }}
-      </span>
+      <span class="response-fact" title="Time">{{ formatMs(inspData.duration) }}</span>
       }
-
-      <!-- Size -->
       @if (responseContentLength()) {
-      <span class="inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
-        <app-icon name="data_object" class="icon-xs" />
-        {{ formatBytes(responseContentLength()) }}
-      </span>
+      <span class="response-fact" title="Size">{{ formatBytes(responseContentLength()) }}</span>
       }
-
       @if (route(); as route) {
-      <span class="route-badge inline-flex items-center gap-1 rounded-full bg-fill-secondary px-2.5 py-1 type-footnote text-label-secondary-on-fill border border-separator">
-        <app-icon [name]="route === 'bridge' ? 'router' : 'dns'" class="icon-xs" />
-        {{ route === 'bridge' ? 'Via bridge' : 'Direct' }}
-      </span>
+      <span class="response-fact route-badge" title="Route">{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span>
       }
+      </span>
 
       @if (tlsInsecure()) {
       <span class="tls-off-pill" matTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
@@ -75,11 +66,12 @@
       @if (canExport) {
       <div class="ml-auto">
         <button
-          matButton="outlined" class="btn-secondary btn-sm"
+          matIconButton class="btn-plain"
           type="button"
           aria-label="Export response"
+          title="Export response"
           [matMenuTriggerFor]="exportMenu"
-        ><app-icon name="download" /> Export</button>
+        ><app-icon name="download" class="icon-md" /></button>
         <mat-menu #exportMenu="matMenu">
           @for (item of exportItems; track $index) {
             @if ("separator" in item) {
@@ -153,10 +145,13 @@
           <!-- ── Body tab ───────────────────────────────────── -->
           <div class="tab-pane response-body-pane" [hidden]="activeTab() !== 'body'">
             <div class="space-y-3 pb-4">
+              @if (views().length > 1 || view() === 'json') {
+              <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
+              <div class="response-tools flex flex-wrap items-center gap-2">
               @if (views().length > 1) {
               <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
               <mat-select
-                class="select w-32!"
+                class="select w-28!"
                 aria-label="View the body as"
                 [value]="view()"
                 (selectionChange)="viewOverride.set($event.value)"
@@ -168,12 +163,14 @@
               }
 
               @if (view() === 'json') {
-              <div class="flex flex-wrap items-center gap-2">
-                <mat-form-field class="field w-48">
+                <!-- The search, its count and its arrows wrap together. -->
+                <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
+                <mat-form-field class="field min-w-0 flex-1">
                   <input matInput
                     [value]="searchQuery()"
                     (input)="onSearchQueryChange($any($event.target).value)"
-                    placeholder="Search response…"
+                    aria-label="Search the response"
+                    placeholder="Search"
                    />
                 </mat-form-field>
                 <span class="type-footnote text-label-tertiary tabular-nums">
@@ -195,21 +192,23 @@
                     (click)="stepSearch(1)"
                   ><app-icon name="keyboard_arrow_down" /></button>
                 </div>
+                </div>
                 <mat-form-field class="field min-w-0 flex-1 basis-56">
                   <input matInput
                     class="font-mono"
                     aria-label="Filter the JSON by path"
                     [value]="jsonFilter()"
                     (input)="jsonFilter.set($any($event.target).value)"
-                    placeholder="Filter by path: data.items[*].id"
+                    placeholder="Path: data.items[*].id"
                     spellcheck="false"
                     autocomplete="off"
                    />
                 </mat-form-field>
-              </div>
-              @if (filteredJson() === '') {
-              <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
               }
+              </div>
+              }
+              @if (view() === 'json' && filteredJson() === '') {
+              <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
               }
 
               @if (currentSearchExcerpt) {

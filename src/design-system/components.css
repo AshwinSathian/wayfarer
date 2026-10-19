@@ -337,3 +337,20 @@
 .response-fill .response-body-pane:not([hidden]) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .response-fill .response-body-pane > div { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .response-fill .response-body-pane app-json-editor { flex: 1 1 0; min-height: 300px; }
+
+/* ── The response's status line (U-030) ──────────────────── */
+/* What a response took, in words with a dot between: no pill each. The
+   facts wrap as one group, after the status. */
+.response-fact {
+  font-size: 0.8125rem;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.response-fact + .response-fact::before {
+  content: "·";
+  /* Read as nothing: the dot only separates. */
+  content: "·" / "";
+  margin-right: 0.625rem;
+  color: var(--label-tertiary);
+}

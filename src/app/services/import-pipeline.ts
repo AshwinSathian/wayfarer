@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from "@angular/core";
 import { readImportText, type EnvironmentDoc, type Imported, type ValidationIssue } from "@wayfarer/core";
 import { ImportRefused, ImportWorkerClient } from "../shared/import/import-worker-client";
 import { CollectionsStore } from "./collections-store";
-import { Diagnostics } from "./diagnostics";
+import { Diagnostics, recordDiagnostic } from "./diagnostics";
 import { EnvironmentsStore } from "./environments-store";
 
 /** An environment of the file, and what storing it does: a new one, or one that replaces the environment of that name. */
@@ -110,6 +110,8 @@ export class ImportPipeline {
   private async read(): Promise<void> {
     this.reading.set(true);
     this.refused.set(null);
+    // C-035's stall in Firefox (e2e/FLAKES.md): a read still waiting for the worker after 5 s says so.
+    const watch = setTimeout(() => recordDiagnostic("the import worker has not answered after 5 s", "import"), 5_000);
     try {
       const imported = await this.worker.run(this.text, { duplicateAsNew: this.duplicateAsNew() });
       this.imported.set(imported);
@@ -124,6 +126,7 @@ export class ImportPipeline {
         this.refused.set({ message: "The file could not be read: the import stopped with an error.", issues: [] });
       }
     } finally {
+      clearTimeout(watch);
       this.reading.set(false);
     }
   }

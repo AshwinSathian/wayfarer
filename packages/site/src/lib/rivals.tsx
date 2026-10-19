@@ -51,7 +51,7 @@ export const RIVALS: Rival[] = [
   {
     id: "postman",
     name: "Postman",
-    is: "The best-known API platform: a desktop and web app with team workspaces in Postman's cloud.",
+    is: "An API platform: a desktop and web app, with team workspaces in Postman's cloud.",
     facts: [
       { text: "The Free plan is for one user. Team costs $19 a user a month, billed yearly; Solo $9 a month, billed yearly.", source: POSTMAN_PRICING },
       { text: "The one-user limit on the free plan started in March 2026.", source: YAAK_POST },
@@ -75,7 +75,7 @@ export const RIVALS: Rival[] = [
       </>,
     ],
     ahead: [
-      { text: "Its signed-out client alone sends gRPC, MQTT and Socket.IO requests, which Wayfarer does not.", source: POSTMAN_CLIENT },
+      { text: "Even signed out, it sends gRPC, MQTT and Socket.IO requests, which Wayfarer does not.", source: POSTMAN_CLIENT },
       { text: "Teams share workspaces and collections in its cloud, on the Team plan.", source: POSTMAN_PRICING },
     ],
   },

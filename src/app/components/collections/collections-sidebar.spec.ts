@@ -161,7 +161,8 @@ describe("CollectionsSidebar", () => {
 
   describe("the rendered tree", () => {
     const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[role="treeitem"]'));
-    const row = (name: string) => rows().find((r) => r.getAttribute("aria-label") === name)!;
+    // A request's row is named as it reads, its method first: found here by what it is called.
+    const row = (name: string) => rows().find((r) => r.getAttribute("aria-label")?.replace(/^(GET|POST|PUT|PATCH|DEL|HEAD|OPT) /, "") === name)!;
 
     beforeEach(async () => {
       document.body.append(fixture.nativeElement);
@@ -177,8 +178,8 @@ describe("CollectionsSidebar", () => {
         "1 Collection c1",
         "2 Folder f1",
         "2 Folder f2",
-        "2 Request r1",
-        "2 Request r2",
+        "2 GET Request r1",
+        "2 GET Request r2",
         "1 Collection c2",
       ]);
       expect(row("Folder f1").getAttribute("aria-expanded")).toBe("false");

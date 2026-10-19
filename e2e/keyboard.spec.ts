@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { treeRow, withoutMethod } from "./support/app";
 import { ECHO } from "./support/echo";
 
 // Keyboard-only use of the app's own widgets (docs: WAI-ARIA Authoring
@@ -494,8 +495,8 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
   await createUnder(page, "Tree Col", "New Request", "Tree Req 1");
   await createUnder(page, "Tree Col", "New Request", "Tree Req 2");
   await createUnder(page, "Tree Folder", "New Request", "Tree Inner");
-  const item = (name: string) => page.getByRole("treeitem", { name, exact: true });
-  const order = async () => (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? ""))).filter((n) => n.startsWith("Tree "));
+  const item = (name: string) => treeRow(page, name);
+  const order = async () => (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? ""))).map(withoutMethod).filter((n) => n.startsWith("Tree "));
 
   // Exactly one row is in the tab order.
   await expect(page.locator('[role="treeitem"][tabindex="0"]')).toHaveCount(1);

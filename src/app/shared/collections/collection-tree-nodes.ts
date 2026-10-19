@@ -34,12 +34,15 @@ function toCollectionNode(entry: CollectionTree): UiTreeNode<CollectionNodeData>
   };
 }
 
+/** A method as the tree shows it: the two long ones shortened, as Postman does. */
+export function methodLabel(method: string): string {
+  return method === "DELETE" ? "DEL" : method === "OPTIONS" ? "OPT" : method;
+}
+
 function toRequestNode(req: RequestDoc): UiTreeNode<CollectionNodeData> {
-  return {
-    key: `request:${req.meta.id}`,
-    label: req.name || req.url || req.method,
-    data: { type: "request", ref: req },
-  };
+  const label = req.name || req.url || req.method;
+  // The row shows its method before its name, and is named as it reads.
+  return { key: `request:${req.meta.id}`, label, ariaLabel: `${methodLabel(req.method)} ${label}`, data: { type: "request", ref: req } };
 }
 
 export function isCollectionRef(ref: Collection | Folder | RequestDoc): ref is Collection {

@@ -11,7 +11,8 @@ export async function deployedRelease(site, fetchImpl = fetch) {
   const response = await fetchImpl(new URL("/version.json", site), { cache: "no-store" });
   // ponytail: the two releases before the file; drop these lines once one that writes it is deployed.
   // v2.6.0 answers a missing path with the site's 404, v2.5.0 with the app's shell.
-  if (!response.ok) return "v2.6.0";
+  if (response.status === 404) return "v2.6.0";
+  if (!response.ok) throw new Error(`deployed-release: ${site}/version.json answered ${response.status}`);
   if (!response.headers.get("content-type")?.includes("json")) return "v2.5.0";
   const { version } = await response.json();
   if (typeof version !== "string" || !/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(version)) {

@@ -46,6 +46,12 @@ jobs:
           fetch-depth: 0
       # Production runs a release, deployed from its tag: check it with that release's tests, not main's
       # (main may be ahead) and not the newest tag's (it may not be deployed yet, #398).
+      - name: PROBE (throwaway)
+        run: |
+          for ua in "node" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36"; do
+            echo "== UA: $ua"; curl -s -o /tmp/b -D - -A "$ua" https://wayfarer.ashwinsathian.com/version.json | grep -iE "^HTTP|cf-mitigated|^server|content-type"; head -c 200 /tmp/b; echo
+          done
+          echo "== /app/ with node UA"; curl -s -o /dev/null -w "%{http_code}\n" -A node https://wayfarer.ashwinsathian.com/app/
       - name: Check out the release production runs
         env:
           BASE_URL: ${{ inputs.base_url || 'https://wayfarer.ashwinsathian.com' }}

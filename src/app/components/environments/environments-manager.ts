@@ -11,7 +11,6 @@ import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ImportPipeline } from "../../services/import-pipeline";
 import {
   buildSecretReference,
@@ -121,17 +120,18 @@ export class EnvironmentsManager implements OnInit {
       }
     });
 
-    this.variableFocus.focus$
-      .pipe(takeUntilDestroyed())
-      .subscribe((token) => {
-        if (token.source === "environment") {
-          if (token.environmentId && token.environmentId !== this.selectedId()) {
-            this.selectEnvironment(token.environmentId);
-          }
-          this.editorTab.set("pairs");
-          this.highlightVariable(token.key);
+    effect(() => {
+      const token = this.variableFocus.pending();
+      if (token?.source !== "environment") return;
+      untracked(() => {
+        this.variableFocus.pending.set(null);
+        if (token.environmentId && token.environmentId !== this.selectedId()) {
+          this.selectEnvironment(token.environmentId);
         }
+        this.editorTab.set("pairs");
+        this.highlightVariable(token.key);
       });
+    });
   }
 
   ngOnInit(): void {

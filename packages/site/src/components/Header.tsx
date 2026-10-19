@@ -4,13 +4,14 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const LINKS = [
   ["Docs", "/docs/"],
+  ["Compare", "/compare/"],
   ["Claims", "/docs/claims/"],
   ["Changelog", "/changelog/"],
   ["Roadmap", "/roadmap/"],
   ["GitHub", REPO],
 ] as const;
 
-/** The site's header: the name, the pages a reader looks for, the theme, and the app. Below 768 px the pages fold into a menu. */
+/** The site's header: the name, the pages a reader looks for, the theme, and the app. Below 1024 px the pages fold into a menu. */
 export function Header() {
   return (
     <header className="border-b border-line bg-paper">
@@ -19,7 +20,7 @@ export function Header() {
           <Mark className="size-7" />
           Wayfarer
         </a>
-        <nav aria-label="Site" className="hidden gap-6 text-[0.95rem] text-ink-muted md:flex">
+        <nav aria-label="Site" className="hidden gap-6 text-[0.95rem] text-ink-muted lg:flex">
           {LINKS.map(([name, href]) => (
             <a key={name} href={href} className="hover:text-ink">
               {name}
@@ -27,7 +28,7 @@ export function Header() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <details className="group relative md:hidden">
+          <details className="group relative lg:hidden">
             <summary className="grid h-10 cursor-pointer list-none place-items-center rounded-lg px-3 text-[0.95rem] text-ink-muted hover:bg-paper-sunk [&::-webkit-details-marker]:hidden">
               Menu
             </summary>

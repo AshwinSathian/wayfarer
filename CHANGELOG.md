@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The website compares Wayfarer with Postman, Bruno, Yaak, Hoppscotch and
+  Insomnia, and has a guide to moving from Postman.** Each fact about
+  another product links to the page it came from and says when it was
+  read, and one list says where Wayfarer is behind.
+
 - **Closing a dialog over another leaves focus in the one under it.** When
   the element a dialog had come from could not take focus back (an import's
   report over Settings, opened from a hidden file field; in Safari a click

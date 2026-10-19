@@ -262,7 +262,7 @@ window for a squatter.
 A tag of the app's version makes its GitHub release:
 
 ```bash
-git tag v2.5.0 && git push origin v2.5.0
+git tag v2.6.0 && git push origin v2.6.0
 ```
 
 `release.yml` checks that the tag is `package.json`'s version, builds,
@@ -271,7 +271,7 @@ and attaches `wayfarer-<version>.tar.gz`, `wayfarer-<version>.cdx.json`
 notes. Check the release page shows the three, then verify a download:
 
 ```bash
-gh release download v2.5.0 --dir /tmp/wayfarer-release && cd /tmp/wayfarer-release
+gh release download v2.6.0 --dir /tmp/wayfarer-release && cd /tmp/wayfarer-release
 sha256sum --check SHA256SUMS
 ```
 
@@ -368,9 +368,13 @@ from `/` to `/app/` on the same origin. Check once after its deploy:
    the site's `Content-Security-Policy` (`default-src 'none'`, no
    `script-src`); `curl -sI https://<host>/app/` the app's, and only it.
    `https://<host>/app` redirects to `/app/`; a missing page is a 404.
-2. **What a browser stored before is there.** In a browser that used the
-   app at `/`, open `/app/`: the collections, environments, history and
-   theme are the same (storage belongs to the origin, not the path).
+2. **What a browser stored before is not read, and a backup restores.**
+   In a browser that used 2.5.0 at `/`, back up the workspace there first
+   (Settings, Data and storage), then open `/app/`: it starts empty (the
+   database is `wayfarer` now; 2.5.0's `api-sandbox` is left as it was).
+   Restore the backup: the collections, environments and vault come back,
+   and the vault unlocks with the same passphrase. The theme is kept
+   (`wayfarer:theme` belongs to the origin, not the path).
 3. **The OAuth callback is at `/app/oauth/callback`.** Open it with
    `?code=x&state=y`: "Wayfarer has not answered…", not the app. Identity
    providers registered with `/oauth/callback` need the new address.

@@ -16,7 +16,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   (forced colours), the selected row looked like every other row, since its
   background was its only mark; it now has a bar at its start. The tree
   is now built on Angular Aria instead of Angular Material, the first of
-  the widgets to move; its keys are the same.
+  the widgets to move; its keys are the same. A name too long for the
+  sidebar now ends in "…" at its edge: before, it ran under the edge and was
+  cut mid-letter, and in Safari a short name could be cut to two letters.
 
 - **What you type and what a server sends are in a monospace font.** The
   address, every param, header, form and multipart row, the variables, the

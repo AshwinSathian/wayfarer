@@ -45,7 +45,7 @@ html {
       scrim: #000000,
       shadow: #000000,
       primary: var(--ctl-primary),
-      on-primary: #ffffff,
+      on-primary: var(--ctl-on-primary),
       primary-container: var(--accent-fill),
       on-primary-container: var(--accent-text),
       primary-fixed: var(--accent-fill),

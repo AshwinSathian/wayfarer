@@ -31,7 +31,7 @@
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 2px 8px;
@@ -40,13 +40,13 @@
   line-height: 1.5;
 }
 
-.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get-text);     border: 1px solid rgba(76,110,245,0.20); }
-.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post-text);    border: 1px solid rgba(48,209,88,0.20); }
-.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put-text);     border: 1px solid rgba(255,159,10,0.20); }
-.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch-text);   border: 1px solid rgba(191,90,242,0.20); }
-.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete-text);  border: 1px solid rgba(255,69,58,0.20); }
-.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head-text);    border: 1px solid rgba(99,99,102,0.20); }
-.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options-text); border: 1px solid rgba(90,200,250,0.20); }
+.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get-text);     border: 1px solid color-mix(in srgb, var(--method-get), transparent 78%); }
+.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post-text);    border: 1px solid color-mix(in srgb, var(--method-post), transparent 78%); }
+.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put-text);     border: 1px solid color-mix(in srgb, var(--method-put), transparent 78%); }
+.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch-text);   border: 1px solid color-mix(in srgb, var(--method-patch), transparent 78%); }
+.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete-text);  border: 1px solid color-mix(in srgb, var(--method-delete), transparent 78%); }
+.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head-text);    border: 1px solid color-mix(in srgb, var(--method-head), transparent 78%); }
+.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options-text); border: 1px solid color-mix(in srgb, var(--method-options), transparent 78%); }
 
 /* A method as text alone, where a list names many (the collections tree).
    A method of the user's own (any token) keeps the label colour. */
@@ -73,7 +73,7 @@
   align-items: center;
   font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   padding: 3px 11px;
   border-radius: var(--radius-full);
   letter-spacing: 0.01em;
@@ -121,7 +121,7 @@
 .ds-form-label {
   display: block;
   font-size: 12px;
-  font-weight: 520;
+  font-weight: 500;
   color: var(--label-secondary);
   letter-spacing: -0.002em;
   margin-bottom: 6px;
@@ -238,7 +238,6 @@
 .brand-logo-icon {
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(76, 110, 245, 0.35);
 }
 
 /* ── Env tag ─────────────────────────────────────────────── */

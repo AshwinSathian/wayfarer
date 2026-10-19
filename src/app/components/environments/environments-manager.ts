@@ -232,16 +232,21 @@ export class EnvironmentsManager implements OnInit {
   async protectVariable(index: number): Promise<void> {
     const draft = this.draft();
     if (!draft) {
+      console.debug("[wayfarer] mark as secret: no environment is open");
       return;
     }
     const pair = draft.vars[index];
+    // C-053's stall (e2e/FLAKES.md): each way a click goes is in the console, so a trace says which it took.
     if (!pair?.key?.trim() || !String(pair.value ?? "").trim()) {
+      console.debug("[wayfarer] mark as secret: the row has no name or no value");
       return;
     }
     if (!this.secretsService.isUnlocked()) {
+      console.debug("[wayfarer] mark as secret: the vault is locked, asking to unlock");
       this.requestUnlock.emit();
       return;
     }
+    console.debug("[wayfarer] mark as secret: saving");
     const secretId = await this.secretsService.saveSecret({
       name: pair.key.trim(),
       environmentId: draft.id,

@@ -159,27 +159,10 @@ test.describe("Phase 0 tripwires", () => {
 });
 
 test.describe("Phase 0 tripwires (service worker active)", () => {
-  test("F06 @claim:C-010: a DNS failure shows a network error, not a synthetic 504, and the old service worker is gone", async ({ page }) => {
+  test("F06 @claim:C-010: a DNS failure shows a network error, not a synthetic 504", async ({ page }) => {
     const response = await page.goto("/app/");
     await expectProdParity(response);
-    // Recreate a returning pre-v1.1.0 visitor: a registration for
-    // /ngsw-worker.js. On the audited build that URL is the Angular service
-    // worker; from v1.1.0 it is the safety worker, which unregisters itself.
-    await page.evaluate(async () => {
-      const registration = await navigator.serviceWorker.register("/ngsw-worker.js");
-      const worker = registration.installing ?? registration.waiting ?? registration.active;
-      await new Promise<void>((resolve) => {
-        // Firefox never reports "activated" for a worker that unregisters
-        // itself while activating; "activating" already means it took over.
-        const settled = () => ["activating", "activated", "redundant"].includes(worker?.state ?? "");
-        if (!worker || settled()) return resolve();
-        worker.addEventListener("statechange", () => settled() && resolve());
-        // The safety worker unregisters itself, and a browser may then report
-        // no further state (#118). The assertions below do not depend on
-        // which state was seen, so stop waiting after 5 s.
-        setTimeout(resolve, 5_000);
-      });
-    });
+    // The app's worker controls the page from its second load.
     await page.reload();
 
     await page.locator("input.address-url").fill("https://tripwire-f06.invalid/");
@@ -187,20 +170,6 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
 
     await expect(page.getByText(/Network error/).first()).toBeVisible();
     await expect(page.locator(".status-badge")).not.toHaveText("504");
-    // From v1.2.0 the app registers its own same-origin worker, /sw.js
-    // (P1.6); the old Angular worker must be gone.
-    // The safety worker unregisters itself asynchronously: on a slow runner
-    // it can still be listed for a moment after the reload (#118). It must
-    // be gone, so wait for that rather than sampling once.
-    await expect
-      .poll(async () =>
-        (
-          await page.evaluate(async () =>
-            (await navigator.serviceWorker.getRegistrations()).map((r) => (r.active ?? r.waiting ?? r.installing)?.scriptURL ?? "")
-          )
-        ).filter((url) => url.endsWith("/ngsw-worker.js"))
-      )
-      .toEqual([]);
   });
 });
 

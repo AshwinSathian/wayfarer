@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, Injectable, inject } from "@angular
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { firstValueFrom } from "rxjs";
 import { Icon } from "../shared/icon/icon";
+import { keepFocusInDialogs } from "./dialog";
 import { MatButton } from "@angular/material/button";
 
 export interface ConfirmOptions {
@@ -100,7 +101,9 @@ export class Confirm {
         enterAnimationDuration: "0ms",
         exitAnimationDuration: "0ms",
       });
-      return (await firstValueFrom(ref.afterClosed())) === true;
+      const result = await firstValueFrom(ref.afterClosed());
+      keepFocusInDialogs();
+      return result === true;
     }
     // Material's dialog is placed in the window, not against an element, so
     // the small popup under a button is the CDK's dialog, which Material's
@@ -126,6 +129,8 @@ export class Confirm {
         ])
         .withViewportMargin(8),
     });
-    return (await firstValueFrom(ref.closed)) === true;
+    const result = await firstValueFrom(ref.closed);
+    keepFocusInDialogs();
+    return result === true;
   }
 }

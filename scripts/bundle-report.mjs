@@ -22,7 +22,7 @@ const size = (file) => {
   const bytes = readFileSync(join(root, file));
   return { file, raw: bytes.length, gzip: gzipSync(bytes, { level: 9 }).length };
 };
-const all = readdirSync(root).filter((f) => /\.(js|css)$/.test(f) && f !== "sw.js" && f !== "ngsw-worker.js");
+const all = readdirSync(root).filter((f) => /\.(js|css)$/.test(f) && f !== "sw.js");
 const initialFiles = all.filter((f) => initial.has(f)).map(size);
 const lazyFiles = all.filter((f) => !initial.has(f)).map(size).sort((a, b) => b.raw - a.raw);
 const sum = (files, key, ext) => files.filter((f) => !ext || f.file.endsWith(ext)).reduce((s, f) => s + f[key], 0);

@@ -124,7 +124,7 @@ test("a script written here runs without a review, also after it is saved into a
   // A collection the user makes, and a request saved into it.
   await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

@@ -1,8 +1,8 @@
-import { Injectable, WritableSignal, signal } from "@angular/core";
+import { Injectable, signal } from "@angular/core";
 import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
 import { Meta } from "../models/collections";
 import {
-  ApiSandboxDB,
+  WayfarerDB,
   DB_NAME,
   DB_VERSION,
   MetaState,
@@ -10,11 +10,11 @@ import {
   StoreCollection,
   StoreName,
 } from "./idb-schema";
-import { runUpgrade } from "./idb-migrations";
+import { createStores } from "./idb-stores";
 import { keepDiagnostic, recordDiagnostic } from "../services/diagnostics";
 import { newId } from "@wayfarer/core";
 
-export type { HistoryRecord, StoreName, StoreCollection, MetaState, ApiSandboxDB } from "./idb-schema";
+export type { HistoryRecord, StoreName, StoreCollection, MetaState, WayfarerDB } from "./idb-schema";
 export { META_STATE_KEY } from "./idb-schema";
 
 const LIFECYCLE_CHANNEL = "wayfarer:lifecycle";
@@ -38,19 +38,18 @@ export class DatabaseResetBlockedError extends Error {
  * Owns everything that's shared across the per-aggregate repositories
  * (HistoryRepository, CollectionsRepository, EnvironmentsRepository,
  * SecretsRepository): the single IndexedDB connection and its
- * open/upgrade/fallback lifecycle, transaction helpers, and the id/meta
+ * open/close/fallback lifecycle, transaction helpers, and the id/meta
  * bookkeeping every store needs. None of this is aggregate-specific: every
  * repository injects this instead of duplicating connection logic, and a
  * service injects the repositories it uses.
  *
- * The actual object-store/index/migration definitions live in
- * idb-migrations.ts (this service just wires that in as its `upgrade`
- * callback), and the schema types live in idb-schema.ts — both extracted
+ * The object stores and indexes are made in idb-stores.ts (this service
+ * wires that in as its `upgrade` callback), and the schema types live in idb-schema.ts — both extracted
  * so this file is left holding only the connection lifecycle itself.
  */
 @Injectable({ providedIn: "root" })
 export class IdbCore {
-  private dbPromise?: Promise<IDBPDatabase<ApiSandboxDB>>;
+  private dbPromise?: Promise<IDBPDatabase<WayfarerDB>>;
   /**
    * Shared by concurrent `init()` callers. It used to be an `initialized`
    * flag set only after the open finished, so every caller that arrived
@@ -64,18 +63,6 @@ export class IdbCore {
 
   /** True once another tab reset all data; the app shows a reload banner. */
   readonly closedByOtherTab = signal(false);
-
-  /** True once a tab running a newer release upgraded the database: this tab's code no longer matches it. */
-  readonly updatedElsewhere = signal(false);
-
-  /** True while the upgrade waits for a tab that holds the old database and will not close it. */
-  readonly upgradeBlocked = signal(false);
-
-  /** True when the database is from a newer release than this tab's code (a stale cache, a rollback). */
-  readonly olderThanData = signal(false);
-
-  /** True when this open emptied a database an earlier version left, which held data. */
-  readonly clearedOldData = signal(false);
 
   /**
    * True when IndexedDB could not be opened (blocked storage, some private
@@ -98,7 +85,7 @@ export class IdbCore {
       // opened it has nothing to read; one that reset it is about to reload,
       // and reading would open it again; one that closed for another tab
       // cannot read at all (F61).
-      const open = !!this.initPromise && !this.closedByOtherTab() && !this.updatedElsewhere();
+      const open = !!this.initPromise && !this.closedByOtherTab();
       if (open && Array.isArray(stores)) {
         const names = stores.filter((name): name is string => typeof name === "string");
         this.changeListeners.forEach((listener) => listener(names));
@@ -106,7 +93,7 @@ export class IdbCore {
     });
     this.lifecycle.addEventListener("message", (event: MessageEvent<LifecycleMessage>) => {
       if (event.data?.type === "close") {
-        void this.closeForOtherTab(this.closedByOtherTab);
+        void this.closeForOtherTab();
       }
     });
   }
@@ -142,27 +129,15 @@ export class IdbCore {
       return;
     }
 
-    let removed: Promise<boolean> = Promise.resolve(false);
     try {
-      this.dbPromise = openDB<ApiSandboxDB>(DB_NAME, DB_VERSION, {
-        upgrade: (db, _oldVersion, _newVersion, tx) => {
-          removed = runUpgrade(db, tx);
-        },
-        // A tab running an older build that does not close on request.
-        blocked: () => this.upgradeBlocked.set(true),
-        // Another tab is deleting the database (no new version) or upgrading
-        // it; holding the connection would block either.
-        blocking: (_current, blockedVersion) =>
-          void this.closeForOtherTab(blockedVersion === null ? this.closedByOtherTab : this.updatedElsewhere),
+      this.dbPromise = openDB<WayfarerDB>(DB_NAME, DB_VERSION, {
+        upgrade: (db) => createStores(db),
+        // Another tab is deleting the database (Reset all data): holding the connection would block it.
+        blocking: () => void this.closeForOtherTab(),
       });
 
       await this.dbPromise;
-      this.upgradeBlocked.set(false);
-      this.clearedOldData.set(await removed);
     } catch (error) {
-      this.upgradeBlocked.set(false);
-      // VersionError: the stored version is above DB_VERSION.
-      this.olderThanData.set(error instanceof DOMException && error.name === "VersionError");
       this.logError(
         "Failed to open IndexedDB. Falling back to in-memory store.",
         error
@@ -171,13 +146,10 @@ export class IdbCore {
     }
   }
 
-  async getDatabase(): Promise<IDBPDatabase<ApiSandboxDB> | null> {
+  async getDatabase(): Promise<IDBPDatabase<WayfarerDB> | null> {
     if (this.closedByOtherTab()) {
       // Reopening would recreate the database the other tab just deleted.
       throw new Error("Data was reset in another tab; reload this tab.");
-    }
-    if (this.updatedElsewhere()) {
-      throw new Error("Wayfarer was updated in another tab; reload this tab.");
     }
     if (this.resetting) {
       // Reopening now would block this tab's own delete.
@@ -214,9 +186,9 @@ export class IdbCore {
 
   async txReadWrite(
     storeNames: StoreName[]
-  ): Promise<IDBPTransaction<ApiSandboxDB, StoreCollection, "readwrite">> {
+  ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">> {
     return (await this.openTransaction(storeNames as StoreCollection, "readwrite")) as IDBPTransaction<
-      ApiSandboxDB,
+      WayfarerDB,
       StoreCollection,
       "readwrite"
     >;
@@ -224,9 +196,9 @@ export class IdbCore {
 
   async txReadonly(
     storeNames: StoreName[]
-  ): Promise<IDBPTransaction<ApiSandboxDB, StoreCollection, "readonly">> {
+  ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readonly">> {
     return (await this.openTransaction(storeNames as StoreCollection, "readonly")) as IDBPTransaction<
-      ApiSandboxDB,
+      WayfarerDB,
       StoreCollection,
       "readonly"
     >;
@@ -235,7 +207,7 @@ export class IdbCore {
   private async openTransaction(
     storeNames: StoreCollection,
     mode: IDBTransactionMode
-  ): Promise<IDBPTransaction<ApiSandboxDB, StoreCollection, IDBTransactionMode>> {
+  ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, IDBTransactionMode>> {
     const db = await this.getDatabase();
     if (!db) {
       throw new Error("Database unavailable");
@@ -244,7 +216,7 @@ export class IdbCore {
   }
 
   async commitOrRollback<T>(
-    tx: IDBPTransaction<ApiSandboxDB, StoreCollection, "readwrite">,
+    tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">,
     work: () => Promise<T>
   ): Promise<T> {
     try {
@@ -357,12 +329,12 @@ export class IdbCore {
     }
   }
 
-  /** Another tab reset or upgraded the database: drop this tab's connection so it is not in the way, say which, and never reopen. */
-  private async closeForOtherTab(reason: WritableSignal<boolean>): Promise<void> {
-    if (this.closedByOtherTab() || this.updatedElsewhere() || this.resetting) {
+  /** Another tab reset all data: drop this tab's connection so it is not in the way, say so, and never reopen. */
+  private async closeForOtherTab(): Promise<void> {
+    if (this.closedByOtherTab() || this.resetting) {
       return;
     }
-    reason.set(true);
+    this.closedByOtherTab.set(true);
     await this.closeConnection();
   }
 

@@ -22,6 +22,27 @@ describe("IdbCore", () => {
     expect(db).not.toBeNull();
   });
 
+  it("makes its stores in a database that a versionless open left empty", async () => {
+    await new Promise<void>((resolve, reject) => {
+      const open = indexedDB.open(DB_NAME);
+      open.onsuccess = () => {
+        open.result.close();
+        resolve();
+      };
+      open.onerror = () => reject(open.error);
+    });
+    await service.init();
+    const db = await service.getDatabase();
+    expect(db?.objectStoreNames.contains("collections")).toBe(true);
+  });
+
+  it("makes every store on a browser's first open, in a database named wayfarer at version 2", async () => {
+    await service.init();
+    const db = (await service.getDatabase())!;
+    expect([db.name, db.version]).toEqual(["wayfarer", 2]);
+    expect(Array.from(db.objectStoreNames).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+  });
+
   it("passes on another tab's changes only while it has the database open: not before, not after a reset, not once closed for another tab (F61)", async () => {
     const otherTab = new BroadcastChannel("wayfarer:data");
     const heard: string[][] = [];
@@ -58,10 +79,6 @@ describe("IdbCore", () => {
       await tell("closed");
       expect(heard).toEqual([["open"], []]);
       service.closedByOtherTab.set(false);
-      service.updatedElsewhere.set(true);
-      await tell("updated");
-      expect(heard).toEqual([["open"], []]);
-      service.updatedElsewhere.set(false);
     } finally {
       otherTab.close();
     }

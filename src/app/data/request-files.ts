@@ -1,6 +1,6 @@
 import { IDBPTransaction } from "idb";
 import { fileIdsOf } from "@wayfarer/core";
-import { ApiSandboxDB, StoreCollection } from "./idb-schema";
+import { WayfarerDB, StoreCollection } from "./idb-schema";
 
 /** A file a request body may hold. Larger ones are refused when picked. */
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;
@@ -13,7 +13,7 @@ export const MAX_FILE_BYTES = 50 * 1024 * 1024;
  * ponytail: reads every request on each call. Keep a reference count on the
  * file if collections grow to where that shows.
  */
-export async function sweepFiles(tx: IDBPTransaction<ApiSandboxDB, StoreCollection, "readwrite">): Promise<void> {
+export async function sweepFiles(tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">): Promise<void> {
   const used = new Set((await tx.objectStore("requests").getAll()).flatMap((request) => fileIdsOf(request.body)));
   const files = tx.objectStore("files");
   for (const id of await files.getAllKeys()) {

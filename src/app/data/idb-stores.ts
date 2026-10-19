@@ -1,29 +1,8 @@
-import { IDBPDatabase, IDBPTransaction } from "idb";
-import { ApiSandboxDB, StoreName } from "./idb-schema";
+import { IDBPDatabase } from "idb";
+import { WayfarerDB } from "./idb-schema";
 
-/**
- * The `openDB(...).upgrade` handler. Nothing an earlier version stored is
- * read (D24, maintainer 2026-10-14: no backward compatibility): every store
- * is removed and this version's are made empty. It throws nothing it
- * catches: an error aborts the upgrade and the database keeps its version.
- *
- * Resolves, once the upgrade's writes are queued, to whether the database
- * held anything, for the notice the shell shows once.
- */
-export async function runUpgrade(
-  db: IDBPDatabase<ApiSandboxDB>,
-  tx: IDBPTransaction<ApiSandboxDB, StoreName[], "versionchange">
-): Promise<boolean> {
-  // Typed loosely: an earlier version may have left a store this one does not name.
-  const names = Array.from(db.objectStoreNames as DOMStringList);
-  const loose = tx as unknown as IDBPTransaction<unknown, string[], "versionchange">;
-  const held = (await Promise.all(names.map((name) => loose.objectStore(name).count()))).some((count) => count > 0);
-  for (const name of names) (db as unknown as IDBPDatabase).deleteObjectStore(name);
-  createStores(db);
-  return held;
-}
-
-function createStores(db: IDBPDatabase<ApiSandboxDB>): void {
+/** The `openDB(...).upgrade` handler: it runs once, on a browser that has no database of this number yet, and makes the stores. */
+export function createStores(db: IDBPDatabase<WayfarerDB>): void {
   db.createObjectStore("history", { keyPath: "id", autoIncrement: true }).createIndex("by-createdAt", "createdAt");
 
   const collections = db.createObjectStore("collections", { keyPath: "meta.id" });

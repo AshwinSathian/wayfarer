@@ -78,7 +78,7 @@ test("the site at / and the app at /app/ share the origin's storage", async ({ p
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.goto("/");
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map((db) => db.name));
-  expect(databases).toContain("api-sandbox");
+  expect(databases).toContain("wayfarer");
 });
 
 // W2.1: every sentence of the landing that says what Wayfarer does names its claim, and every ID it names is a
@@ -90,6 +90,58 @@ test("each claim the landing names is a row of the claims ledger", async ({ page
   const named = (await page.locator("[data-claims]").evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))).flatMap((ids) => ids.split(" "));
   expect(named.length).toBeGreaterThan(10);
   expect(named.filter((id) => !ledger.has(id))).toEqual([]);
+});
+
+// W2.5: the blog's posts are pages, newest first, and its RSS feed lists each with its address and date.
+test("the blog lists its posts, each a page, and its RSS feed has an item for each", async ({ page, request }) => {
+  const files = readdirSync("packages/site/content/blog").filter((name) => name.endsWith(".md"));
+  expect(files.length).toBeGreaterThanOrEqual(2);
+  await page.goto("/blog/");
+  const links = page.locator("main li h2 a");
+  await expect(links).toHaveCount(files.length);
+  const dates = await page.locator("main li time").evaluateAll((times) => times.map((time) => time.getAttribute("datetime") ?? ""));
+  expect(dates).toEqual([...dates].sort().reverse());
+  const feed = await request.get("/blog/rss.xml");
+  expect(feed.status()).toBe(200);
+  const xml = await feed.text();
+  expect(xml.match(/<item>/g)?.length).toBe(files.length);
+  for (const href of await links.evaluateAll((anchors) => anchors.map((a) => a.getAttribute("href") ?? ""))) {
+    expect(xml).toContain(`<link>https://wayfarer.ashwinsathian.com${href}</link>`);
+    const response = await page.goto(href);
+    expect(response?.status(), href).toBe(200);
+    await expect(page.locator("article"), href).not.toBeEmpty();
+  }
+  await page.goto("/");
+  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute("href", "https://wayfarer.ashwinsathian.com/blog/rss.xml");
+});
+
+// W2.3: every fact about another product on the comparison pages names its source and the date it was read, every
+// claim they name is a row of the ledger, and the index lists where Wayfarer is behind.
+test("each comparison page cites a source with its date for every fact about a rival, and names only claims of the ledger", async ({ page }) => {
+  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]));
+  const pages = sitePages().filter((path) => path.startsWith("/compare/"));
+  expect(pages.length).toBeGreaterThanOrEqual(7);
+  for (const path of pages) {
+    await page.goto(path);
+    for (const cite of await page.locator(".cite").all()) {
+      await expect(cite.getByRole("link"), path).toHaveAttribute("href", /^https:\/\//);
+      await expect(cite.locator("time"), path).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}$/);
+    }
+    const named = (await page.locator("[data-claims]").evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))).flatMap((ids) => ids.split(" "));
+    expect(named.filter((id) => !ledger.has(id)), path).toEqual([]);
+  }
+  for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia"]) {
+    await page.goto(`/compare/${rival}/`);
+    // Each fact and each "ahead" line is an item with its citation.
+    for (const list of ["facts", "ahead"]) {
+      const items = page.locator(`#${list} + ul > li`);
+      expect(await items.count(), `${rival} ${list}`).toBeGreaterThan(0);
+      for (const item of await items.all()) await expect(item.locator(".cite"), `${rival} ${list}`).toHaveCount(1);
+    }
+  }
+  await page.goto("/compare/");
+  await expect(page.getByRole("heading", { name: "Where Wayfarer is behind" })).toBeVisible();
+  expect(await page.locator("#behind + ul > li").count()).toBeGreaterThanOrEqual(4);
 });
 
 // One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).

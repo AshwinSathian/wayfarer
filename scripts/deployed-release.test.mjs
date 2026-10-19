@@ -26,10 +26,17 @@ test("production that names no release is v2.6.0 (the site's 404) or v2.5.0 (the
   assert.equal(await deployedRelease("https://example.test", answer("<!doctype html>", "text/html")), "v2.5.0");
 });
 
+test("an answer that is neither the file nor a missing page is an error, with its status", async () => {
+  // GitHub's runners were answered otherwise than a laptop, and a guess checked out v2.6.0 for v2.5.0.
+  const forbidden = async () => new Response("challenge", { status: 403, headers: { "content-type": "text/html" } });
+  await assert.rejects(deployedRelease("https://example.test", forbidden), /403/);
+});
+
 test("the monitor checks out the release production runs, not the newest tag", () => {
   const workflow = readFileSync(new URL("../.github/workflows/synthetic.yml", import.meta.url), "utf8");
   assert.match(workflow, /node scripts\/deployed-release\.mjs/);
   assert.doesNotMatch(workflow, /git describe/);
+  assert.match(workflow, /ref: \$\{\{ needs\.release\.outputs\.tag \}\}/);
 });
 
 test("the deploy names its release in /version.json", () => {

@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The app has new colours: warm neutrals and one teal accent.** The
+  indigo and violet gradients, the glow behind Send and the see-through,
+  frosted toolbar and dialogs are gone: surfaces are solid, so a dialog no
+  longer shows the page behind it. Method colours are the ones Postman uses.
+  Text and placeholders now reach 4.5:1 on every surface in both themes
+  (placeholders were about 2:1), and the code editors take the same colours.
+
 - **A response's body starts higher.** The status, time, size and route are
   one line, with Export as an icon beside them, and the view, the search and
   the path filter share one row above the body. Before, they took up to

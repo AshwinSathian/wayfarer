@@ -306,3 +306,22 @@
   border-radius: var(--radius-md);
   padding: 10px 14px;
 }
+
+/* ── A run's summary (P5.2) ──────────────────────────────── */
+.run-count {
+  font-size: 0.875rem;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.run-count b {
+  font-weight: 600;
+  color: var(--label-primary);
+}
+.run-count-passed b { color: var(--status-success-text); }
+.run-count-failed b { color: var(--status-error-text); }
+.run-count-failed.run-count-zero b { color: var(--label-primary); }
+.run-progress {
+  width: 10rem;
+  height: 0.375rem;
+  accent-color: var(--accent);
+}

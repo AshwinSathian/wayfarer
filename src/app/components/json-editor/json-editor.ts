@@ -63,7 +63,7 @@ const noop = () => {};
     -->
     <div
       class="h-full w-full"
-      [style.height.px]="height() ?? defaultHeight"
+      [style.height.px]="fill() ? null : (height() ?? defaultHeight)"
     >
       @defer (on viewport; on timer(400ms)) {
         <div
@@ -102,6 +102,8 @@ export class JsonEditor
   /** A raw-body language. Only "json" is checked for validity. */
   readonly language = input("json");
   readonly height = input<number>();
+  /** Takes the height its parent gives it, not `height`: the parent is a flex column that sizes it. */
+  readonly fill = input(false);
   readonly schemaUri = input<string>();
   readonly schema = input<unknown>();
 

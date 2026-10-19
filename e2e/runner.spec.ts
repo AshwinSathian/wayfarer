@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { treeRow, withoutMethod } from "./support/app";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
 
@@ -253,9 +254,9 @@ test("an imported Postman file keeps its order, requests before and between fold
 
   // The list: one order for a folder's folders and requests, a folder inside its folder.
   const tree = page.getByRole("tree");
-  const item = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+  const item = (name: string) => treeRow(tree, name);
   const rows = async () => {
-    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => `${row.getAttribute("aria-level")} ${row.getAttribute("aria-label")}`));
+    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => [row.getAttribute("aria-level"), row.getAttribute("aria-label") ?? ""])).then((rows) => rows.map(([level, name]) => `${level} ${withoutMethod(name)}`));
     const rest = all.slice(all.indexOf(`1 ${NAME}`) + 1);
     // Up to the next collection.
     const end = rest.findIndex((row) => row.startsWith("1 "));
@@ -313,9 +314,9 @@ test("a folder is copied and deleted with the folders inside it: the copy holds 
   await page.getByRole("dialog").getByRole("button", { name: "Confirm import" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const tree = page.getByRole("tree");
-  const item = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+  const item = (name: string) => treeRow(tree, name);
   const rows = async () => {
-    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => `${row.getAttribute("aria-level")} ${row.getAttribute("aria-label")}`));
+    const all = await tree.getByRole("treeitem").evaluateAll((items) => items.map((row) => [row.getAttribute("aria-level"), row.getAttribute("aria-label") ?? ""])).then((rows) => rows.map(([level, name]) => `${level} ${withoutMethod(name)}`));
     const rest = all.slice(all.indexOf(`1 ${NAME}`) + 1);
     const end = rest.findIndex((row) => row.startsWith("1 "));
     return end < 0 ? rest : rest.slice(0, end);

@@ -186,6 +186,19 @@ export async function openSettings(page: Page, section?: string): Promise<Locato
 export const PASSPHRASE = "correct horse battery staple";
 
 /** Adds a protected variable to the open environment, making the vault on the way. */
+const METHOD_TAG = "(?:GET|POST|PUT|PATCH|DEL|HEAD|OPT) ";
+
+/** A row of the collections tree by its name. A request's row is named as it reads, its method first ("GET Clicked"). */
+export function treeRow(scope: Page | Locator, name: string): Locator {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return scope.getByRole("treeitem", { name: new RegExp(`^(?:${METHOD_TAG})?${escaped}$`) });
+}
+
+/** A row's accessible name without a request's method: what the row is called. */
+export function withoutMethod(name: string): string {
+  return name.replace(new RegExp(`^${METHOD_TAG}`), "");
+}
+
 /** Opens the environments editor, a dialog of its own, and gives it. */
 export async function openEnvironments(page: Page): Promise<Locator> {
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });

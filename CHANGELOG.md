@@ -9,6 +9,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **What a screen reader says matches what is on screen, in two places.**
+  A request in the collections reads as it shows, method first ("GET
+  List users"); it was read as its name alone. The button under the
+  parameters says "Add parameter", as it is named; it showed "Add
+  Param". Angular 22.2.3, Playwright 1.64.1, axe-core 4.14, Vitest 5.0.5
+  and Wrangler 4.151; axe 4.14 checks this (WCAG 2.5.3) and found both.
+
 - **Cancel and the request timeout are a claim with tests (C-042).** A
   request on its way can be cancelled, and Settings, Requests, sets a
   timeout, none by default. Both were there since 2.0 but not in the

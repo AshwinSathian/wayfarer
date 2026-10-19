@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { openEnvironments, openSettings, seedAndOpen, send } from "./support/app";
+import { openEnvironments, openSettings, seedAndOpen, send, treeRow, withoutMethod } from "./support/app";
 
 // Claim tests for the README's feature list (docs/claims.md, C-017 onward),
 // against the local echo-server in all three engines.
@@ -240,10 +240,10 @@ async function createCollection(page: Page, name: string): Promise<void> {
   await expect(page.getByText(name, { exact: true })).toBeVisible();
 }
 
-const treeItem = (page: Page, name: string) => page.getByRole("treeitem", { name, exact: true });
+const treeItem = (page: Page, name: string) => treeRow(page, name);
 /** Names of the tree's rows, top to bottom, limited to those starting with `prefix`. */
 const treeOrder = (page: Page, prefix: string) => async () =>
-  (await page.getByRole("treeitem").evaluateAll((items) => items.map((item) => item.getAttribute("aria-label") ?? ""))).filter((name) => name.startsWith(prefix));
+  (await page.getByRole("treeitem").evaluateAll((items) => items.map((item) => item.getAttribute("aria-label") ?? ""))).map(withoutMethod).filter((name) => name.startsWith(prefix));
 
 /** Opens a row's context menu (`size` items once it shows that row's actions), picks an item, and fills the creation dialog. */
 async function createUnder(page: Page, parent: string, size: number, item: string, name: string): Promise<void> {

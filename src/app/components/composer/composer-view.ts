@@ -152,7 +152,7 @@ export class ComposerView {
 
     if (isBodyMethod(this.store.draft().method) && next === "body") {
       this.activeTab.set("body");
-    } else if (next === "params" || next === "auth" || next === "scripts") {
+    } else if (next === "params" || next === "auth" || next === "scripts" || next === "settings") {
       // Keep activeTab in sync for non-headers/body panels too, so state
       // (e.g. which JSON editor synced) matches whatever the user is
       // actually looking at.

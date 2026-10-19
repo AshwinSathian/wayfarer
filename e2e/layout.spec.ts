@@ -336,13 +336,13 @@ test.describe("The app stays usable after an overlay closes", () => {
     await page.getByRole("button", { name: "Request history" }).click();
     await page.getByRole("button", { name: "Close history" }).click();
 
-    await page.getByRole("button", { name: "Settings", exact: true }).click({ timeout: 5_000 });
+    await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click({ timeout: 5_000 });
     await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
   });
 
   test("after a dialog closes with Escape, the composer can be clicked", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog", { name: "Settings" })).toBeHidden();

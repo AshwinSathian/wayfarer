@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { axe } from "./support/axe";
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { openSettings, seedAndOpen, send } from "./support/app";
+import { openRequestSettings, openSettings, seedAndOpen, send } from "./support/app";
 import { routeThroughBridge, startBridge } from "./support/bridge";
 import { ECHO } from "./support/echo";
 import { settled } from "./support/settled";
@@ -143,6 +143,7 @@ for (const theme of ["light", "dark"] as const) {
       await page.setViewportSize({ width: 1440, height: 900 });
     };
 
+    await openRequestSettings(page);
     await fits("the composer", page.getByRole("combobox", { name: "Route" }), page.locator(".route-badge"));
 
     const settings = await openSettings(page, "Local Bridge");

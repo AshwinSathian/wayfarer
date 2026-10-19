@@ -14,6 +14,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   another product links to the page it came from and says when it was
   read, and one list says where Wayfarer is behind.
 
+- **Settings, Diagnostics, says when saving a secret takes more than 5
+  seconds**, and whether the encryption or the write to storage is the step
+  still waiting.
+
 - **A run's report says what happened before it lists it.** It counts what
   passed, what failed and what was skipped, shows how far a run has got,
   and can show the failed requests alone. An error that two or more

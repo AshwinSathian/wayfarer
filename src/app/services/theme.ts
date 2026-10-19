@@ -2,7 +2,6 @@ import { Injectable, computed, inject, signal } from "@angular/core";
 import { Diagnostics } from "./diagnostics";
 
 const STORAGE_KEY = "wayfarer:theme";
-const LEGACY_STORAGE_KEY = "api-sandbox:theme";
 
 /** What the user chose: one of the two themes, or whatever the system says. */
 export type ThemeChoice = "system" | "light" | "dark";
@@ -25,7 +24,7 @@ export class Theme {
 
   constructor() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY);
       if (stored && CHOICES.includes(stored)) this.choice.set(stored as ThemeChoice);
     } catch (error) {
       this.diagnostics.record(error, "theme: localStorage unavailable, following the system");

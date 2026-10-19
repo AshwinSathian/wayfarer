@@ -78,7 +78,7 @@ test("the site at / and the app at /app/ share the origin's storage", async ({ p
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.goto("/");
   const databases = await page.evaluate(async () => (await indexedDB.databases()).map((db) => db.name));
-  expect(databases).toContain("api-sandbox");
+  expect(databases).toContain("wayfarer");
 });
 
 // W2.1: every sentence of the landing that says what Wayfarer does names its claim, and every ID it names is a

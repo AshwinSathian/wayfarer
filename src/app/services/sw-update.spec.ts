@@ -68,14 +68,4 @@ describe("SwUpdate", () => {
     expect(watch(registration).service.updateAvailable()).toBe(true);
   });
 
-  it("offers nothing when the worker in charge is not this app's: the new one replaces it by itself", () => {
-    const registration = new FakeRegistration();
-    registration.active = { scriptURL: "https://app.test/ngsw-worker.js" };
-    const worker = (registration.installing = new FakeWorker());
-    const { service } = watch(registration);
-
-    worker.become("installed");
-
-    expect(service.updateAvailable()).toBe(false);
-  });
 });

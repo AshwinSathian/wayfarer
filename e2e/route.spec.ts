@@ -127,16 +127,13 @@ for (const theme of ["light", "dark"] as const) {
           .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `${where} at ${width} px` })
           .toBeLessThanOrEqual(0);
         for (const locator of shown) {
-          await locator.scrollIntoViewIfNeeded();
-          await expect
-            .poll(
-              async () => {
-                const box = await locator.boundingBox();
-                return !!box && box.x >= 0 && box.x + box.width <= width;
-              },
-              { message: `${where} at ${width} px` }
-            )
-            .toBe(true);
+          // Across 768 px the composer is drawn again in its other layout, a frame after the width changes: the element
+          // found before that is gone by the time it is scrolled. Scroll and measure again until both hold.
+          await expect(async () => {
+            await locator.scrollIntoViewIfNeeded({ timeout: 1_000 });
+            const box = await locator.boundingBox();
+            expect(!!box && box.x >= 0 && box.x + box.width <= width, `${where} at ${width} px`).toBe(true);
+          }).toPass();
         }
         await scan(`${where} at ${width} px`);
       }

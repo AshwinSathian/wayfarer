@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **Settings, Diagnostics, says when an import has waited 5 seconds for
+  its file to be read.** The import's report showed "Reading" with nothing
+  to say why; the read happens in a worker of its own, and a read that has
+  not come back in 5 seconds is now recorded there and in the browser's
+  console.
+
 ## [2.6.0] - 2026-10-19
 
 The website, and the app at `/app/`. `/` is now Wayfarer's site: a front
@@ -22,12 +30,6 @@ before starts empty: the data now lives in a database of a new name, and
 the old one is not read. Restore the backup after.
 
 ### Changed
-
-- **Settings, Diagnostics, says when an import has waited 5 seconds for
-  its file to be read.** The import's report showed "Reading" with nothing
-  to say why; the read happens in a worker of its own, and a read that has
-  not come back in 5 seconds is now recorded there and in the browser's
-  console.
 
 ### Changed
 

@@ -78,9 +78,11 @@ npm run build
 Deploy only a commit whose CI run is green, and only from a clean tree. The
 deployed files are exactly what is in `dist/deploy`: the site at its root,
 the app under `app/`, and `version.json`, the release they are (the
-synthetic monitor runs that release's tests). One file is added beside them, `ci-run.json`: the CI
-run they came from, its commit and its date, which the claims page
-(`/docs/claims/`) shows on each claim's row.
+synthetic monitor runs that release's tests). `deploy.yml` adds one file
+beside them, `ci-run.json`: the CI run they came from, its commit and its
+date, which the claims page (`/docs/claims/`) shows on each claim's row. A
+deploy by hand has none, and the claims page then says it was not
+deployed from a CI run.
 
 Optional local check, with production's headers applied (Playwright builds
 again and serves the build through `e2e/support/prod-server.mjs` itself):

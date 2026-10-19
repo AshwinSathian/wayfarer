@@ -37,6 +37,31 @@ export class RunView {
     return tree ? requestsInOrder(tree, folderId) : [];
   });
   protected readonly failed = computed(() => this.run().results().filter(runFailed).length);
+  protected readonly passed = computed(() => this.run().results().filter((result) => !result.skipped && !runFailed(result)).length);
+  protected readonly skipped = computed(() => this.run().results().filter((result) => result.skipped).length);
+  /** How many results the run should give: its requests once an iteration. A script can send more or fewer. */
+  protected readonly expected = computed(() => {
+    const run = this.run();
+    return this.requests().length * (run.iterations() ?? (run.dataFile()?.rows.length || 1));
+  });
+  /**
+   * Each error two or more results ended with, the commonest first: a run
+   * against a host the page cannot reach gave the same three lines on every
+   * row. Each is said once, above the table.
+   */
+  protected readonly sharedErrors = computed(() => {
+    const counts = new Map<string, number>();
+    for (const { error } of this.run().results()) if (error !== undefined) counts.set(error, (counts.get(error) ?? 0) + 1);
+    return [...counts].filter(([, count]) => count >= 2).sort((a, b) => b[1] - a[1]).map(([error, count]) => ({ error, count }));
+  });
+  protected readonly failedOnly = signal(false);
+  /** The rows of the table, each with its number in the run. */
+  protected readonly rows = computed(() =>
+    this.run()
+      .results()
+      .map((result, index) => ({ result, number: index + 1 }))
+      .filter(({ result }) => !this.failedOnly() || runFailed(result))
+  );
   protected readonly tests = computed(() => this.run().results().flatMap((result) => result.tests));
   protected readonly failedTests = computed(() => this.tests().filter((test) => !test.passed).length);
   /** How the run ended, in a sentence. */
@@ -122,7 +147,11 @@ export class RunView {
 
   /** What went wrong with a result: why there is no response, and each failed test with its message. */
   protected problems(result: RunResult): string[] {
-    return [...(result.error !== undefined ? [result.error] : []), ...result.tests.filter((test) => !test.passed).map((test) => (test.error ? `${test.name}: ${test.error}` : test.name))];
+    const shared = this.sharedErrors();
+    const index = shared.findIndex(({ error }) => error === result.error);
+    const said = index < 0 ? result.error : shared.length === 1 ? "Same error as above" : `Same error as ${index + 1} above`;
+    const error = said === undefined ? [] : [said];
+    return [...error, ...result.tests.filter((test) => !test.passed).map((test) => (test.error ? `${test.name}: ${test.error}` : test.name))];
   }
 
   /** The reports are fetched when one is first asked for. */

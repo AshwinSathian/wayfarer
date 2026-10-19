@@ -292,7 +292,7 @@ test("a script of a restored tab runs when it was allowed as the tab was stored,
   // Something else writes another script into the stored tab. Its digest is not the one stored with the tab.
   await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const open = indexedDB.open("api-sandbox");
+      const open = indexedDB.open("wayfarer");
       open.onsuccess = () => resolve(open.result);
       open.onerror = () => reject(open.error);
     });

@@ -16,3 +16,11 @@ export function Page({ title, lede, children }: { title: string; lede: ReactNode
     </>
   );
 }
+
+export function H2({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <h2 id={id} className="mt-16 border-t border-line pt-10 font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+      {children}
+    </h2>
+  );
+}

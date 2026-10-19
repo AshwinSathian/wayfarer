@@ -5,7 +5,7 @@
 (function () {
   var choice = null;
   try {
-    choice = localStorage.getItem("wayfarer:theme") || localStorage.getItem("api-sandbox:theme");
+    choice = localStorage.getItem("wayfarer:theme");
   } catch (error) {
     // Storage is refused: the system's theme. `Theme` meets the same refusal and records it.
     choice = null;

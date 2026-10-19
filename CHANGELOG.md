@@ -12,6 +12,29 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **The website has a blog, with an RSS feed.** The first posts are the
   2.5.0 release notes and how the claims ledger works.
 
+- **The website compares Wayfarer with Postman, Bruno, Yaak, Hoppscotch and
+  Insomnia, and has a guide to moving from Postman.** Each fact about
+  another product links to the page it came from and says when it was
+  read, and one list says where Wayfarer is behind.
+
+- **Closing a dialog over another leaves focus in the one under it.** When
+  the element a dialog had come from could not take focus back (an import's
+  report over Settings, opened from a hidden file field; in Safari a click
+  does not focus a button), focus fell to the page, and Escape and Tab no
+  longer reached the dialog still open. It now goes to that dialog.
+
+- **There is one version of Wayfarer, and the app no longer talks about
+  others.** The banners about data an earlier version stored, a tab running
+  an older Wayfarer, an update held up by another tab, and an update made
+  in another tab are gone, with the code that checked for them. The data
+  now lives in a database named `wayfarer`, made on a browser's first
+  open. **What this release does to data:** a browser that used Wayfarer
+  before starts empty; what it stored under the project's first name is
+  not read. Back up the workspace (Settings, Data and storage) before
+  opening this release, and restore it after. The service worker that
+  removed the first builds' Angular worker is gone from the site's root.
+  The "Update available" prompt for a new deploy stays.
+
 - **A status bar says where a request goes and what holds its secrets.**
   The toolbar was six icons with no words, two of them the vault. It now
   holds the environment, Environments, History and Settings; from 768 px a

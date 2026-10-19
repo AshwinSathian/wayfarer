@@ -104,7 +104,7 @@ An export adds nothing of its own: no new ids, no new times. Exporting, importin
 
 How any file is imported, and the report shown first, is in [Import](import.md). Of this format:
 
-* The file must say `"$id": "wayfarer/collection"`. Any other `$id`, the numbered ones earlier versions wrote among them, is refused; nothing converts it.
+* The file must say `"$id": "wayfarer/collection"`. Any other `$id` is refused.
 * Every field above is checked against the values the app writes: a method that is not one upper-case word, a header that is not a row, a body mode or an auth type the app does not know are each reported with their path, and nothing is imported.
 * **Export** writes `***` in place of a credential typed into the auth of a request, of a folder or of the collection, or into a credential header (`Authorization`, `Cookie`, `X-API-Key`, and any name with token, secret, key or pass in it), and in place of a collection or folder variable with such a name. A value that holds a `{{variable}}` is a reference and is written as it is. **Export with credentials** writes everything as typed. Importing a masked file gives requests whose credentials read `***`.
 * An imported collection is marked untrusted (`scriptTrust` is `{ "trusted": false }`, with no approved scripts), also when it replaces a collection that was trusted. `scriptTrust` is `{ trusted, approved }`: `approved` lists the SHA-256, in hex, of each script text that was reviewed or written in this app. A script runs only when the collection is trusted and the script's digest is in the list.

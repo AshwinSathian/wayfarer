@@ -13,8 +13,8 @@ import { SecretDoc } from "../models/secrets";
  * The IndexedDB schema shape shared by `IdbCore` and every
  * per-aggregate repository. Split out on its own so a repository that only
  * needs the type (e.g. `HistoryRepository` typing a cursor) doesn't have to
- * import the connection/migration logic that lives alongside it in
- * `idb-core.ts`/`idb-migrations.ts`.
+ * import the connection logic that lives alongside it in
+ * `idb-core.ts`/`idb-stores.ts`.
  */
 
 export type HistoryRecord = PastRequest & { id: number };
@@ -87,7 +87,7 @@ export interface GlobalsRecord {
 /** The vault: how its passphrase key is derived, and the data key wrapped under it. Absent until a passphrase is chosen. */
 export type VaultRecordDoc = VaultRecord & { key: typeof META_VAULT_KEY };
 
-export interface ApiSandboxDB extends DBSchema {
+export interface WayfarerDB extends DBSchema {
   history: {
     key: number;
     value: HistoryRecord;
@@ -158,6 +158,10 @@ export interface ApiSandboxDB extends DBSchema {
   };
 }
 
-// The project's first name, "API Sandbox". Never shown to users; see docs/storage.md.
-export const DB_NAME = "api-sandbox";
-export const DB_VERSION = 14;
+export const DB_NAME = "wayfarer";
+/**
+ * IndexedDB needs a number; there is one shape of the database. Not 1: 1 is
+ * what `indexedDB.open(name)` makes when it is given no number, an empty
+ * database the app would then open as its own, with no stores.
+ */
+export const DB_VERSION = 2;

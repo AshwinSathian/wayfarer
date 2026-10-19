@@ -17,6 +17,19 @@ import { MatDialog, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogT
 import { Icon } from "../shared/icon/icon";
 
 /**
+ * After a dialog closes, focus that went back to the page (the element it
+ * came from is gone, or never had focus: Safari does not focus a button on
+ * a click) goes to the dialog still open under it. Otherwise Escape and Tab
+ * no longer reach that dialog.
+ */
+export function keepFocusInDialogs(): void {
+  const active = document.activeElement;
+  if (active && active !== document.body) return;
+  const open = document.querySelectorAll<HTMLElement>('.cdk-overlay-container [role="dialog"], .cdk-overlay-container [role="alertdialog"]');
+  open[open.length - 1]?.focus();
+}
+
+/**
  * A modal dialog, named by its header. Material's dialog is opened from
  * code; this opens it from a template and keeps it in step with `visible`:
  *
@@ -118,6 +131,7 @@ export class Dialog implements OnDestroy {
     ref.backdropClick().subscribe(() => {
       if (this.dismissableMask()) this.requestClose();
     });
+    ref.afterClosed().subscribe(keepFocusInDialogs);
     this.ref = ref;
   }
 

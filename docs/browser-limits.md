@@ -3,7 +3,9 @@
 Wayfarer runs in a browser tab, and the browser has the last word on every
 request a page sends. This page says what it does, and what the Local
 Bridge changes. The composer shows the same for the request you are writing,
-under **What the browser does to this request**, before you send it. <!-- claim:C-049 -->
+before you send it: a header the browser will not send and an address it
+will block are said above the request, and the rest is in the request's
+**Settings** tab, under **What the browser does to this request**. <!-- claim:C-049 -->
 
 Through the [Local Bridge](../packages/bridge/README.md), the request
 leaves from a Node process on your machine instead, and nothing on this page

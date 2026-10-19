@@ -1,8 +1,6 @@
 # Storage Layout
 
-Wayfarer keeps everything in one IndexedDB database. The stores are created by `runUpgrade` in `src/app/data/idb-migrations.ts`. IndexedDB needs a number for a database's shape: it is `DB_VERSION` in `src/app/data/idb-schema.ts`, and it rises when the shape changes.
-
-> The database's name, `api-sandbox`, is the project's first name. It is never shown and is kept as it is.
+Wayfarer keeps everything in one IndexedDB database, `wayfarer`. Its stores are made on a browser's first open by `createStores` in `src/app/data/idb-stores.ts`. IndexedDB needs a number for a database's shape: `DB_VERSION` in `src/app/data/idb-schema.ts` is 2, and it stays 2: there is one shape and no upgrade. It is not 1 because 1 is what `indexedDB.open` makes when it is given no number, an empty database the app would take for its own.
 
 | Store          | Key path    | Indexes                                             | Holds                                                     |
 |----------------|-------------|-----------------------------------------------------|-----------------------------------------------------------|
@@ -17,11 +15,9 @@ Wayfarer keeps everything in one IndexedDB database. The stores are created by `
 | `tabs`         | `id`        | —                                                   | The composer's tabs: for each, the request being composed in it, as a saved request is stored, and where it belongs. See "Tabs" below. |
 | `meta`         | `key`       | —                                                   | Three records: `state` (the active environment), `globals` (the global variables) and `vault` (how the passphrase key is derived, and the wrapped data key). |
 
-## An update starts empty
+## One shape
 
-**Nothing an earlier version stored is kept.** When the app opens a database whose shape is older than its own, it deletes every store and creates its own, in one upgrade transaction: either all of it happens or the database is still the old one. The page then says, once, that the earlier data was removed. There is no conversion and no backup copy: export collections and back up the workspace before an update that changes the shape. This was decided while the app had no users with data to keep (2026-10-09, and again 2026-10-14).
-
-Files are the same: a collection, environments, workspace or vault file holds the `$id` of this version (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`), and a file with any other `$id`, the numbered ones earlier versions wrote among them, is refused.
+The database has one shape, the one above, and files have one format each: a collection, environments, workspace or vault file holds its `$id` (`wayfarer/collection`, `wayfarer/environments`, `wayfarer/workspace`, `wayfarer/vault`), and a file with any other `$id` is refused.
 
 ## History
 
@@ -91,12 +87,6 @@ A file picked for a request body is kept in memory until the request is saved. S
 Every tab of the app uses the one database. After a write, the tab says which stores it touched on the BroadcastChannel `wayfarer:data`, and the other tabs read those stores again: a collection, an environment or a sent request made in one tab shows in the others without a reload. The request being composed is not replaced.
 
 A change to an environment's variables is sent as the change (set this name, remove that one), and applied to the stored variables inside the transaction that writes them. So two tabs that each add a variable to the same environment both keep theirs. Replacing an environment from an import file still replaces all of its variables. A collection's variables and the global variables are changed the same way.
-
-## When versions meet
-
-- **Another tab is running an older build and keeps the database open.** The update cannot start until that tab is closed. The page says "Close other Wayfarer tabs to finish the update" and finishes by itself when they are gone. Nothing is saved meanwhile.
-- **Another tab updates the database to a newer version.** This tab closes its connection, so the update is not held up, stops saving, and says "Wayfarer was updated in another tab — reload".
-- **The database is from a newer version than this tab's code** (a stale cached page, a rollback). The database is not opened and not changed. The page says "This tab is running an older Wayfarer … reload".
 
 ## Transactions and helpers
 

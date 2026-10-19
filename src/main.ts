@@ -10,6 +10,9 @@ import { listenForCspViolations } from "./app/services/diagnostics";
 installTrustedTypesPolicy();
 listenForCspViolations();
 
-bootstrapApplication(App, appConfig)
+// D1.5's bake-off (prototype branch only): `?bakeoff=material|aria|platform`.
+if (new URLSearchParams(location.search).has("bakeoff")) {
+  void import("./bakeoff/page").then(({ BakeoffPage }) => bootstrapApplication(BakeoffPage, appConfig));
+} else bootstrapApplication(App, appConfig)
   .then((app) => app.injector.get(SwUpdate).register())
   .catch((err) => console.error(err));

@@ -115,12 +115,19 @@
             "providersFile": "src/testing/vitest-providers.ts",
             "runnerConfig": "vitest.config.mts",
             "isolate": true,
-            "coverageInclude": ["src/app/**/*.ts"],
-            "coverageReporters": ["text-summary", "json-summary"],
+            "coverageInclude": [
+              "src/app/**/*.ts"
+            ],
+            "coverageReporters": [
+              "text-summary",
+              "json-summary"
+            ],
             "coverageThresholds": {
               "lines": 70
             },
-            "browsers": ["ChromiumHeadless"]
+            "browsers": [
+              "ChromiumHeadless"
+            ]
           }
         },
         "lint": {
@@ -133,6 +140,154 @@
               "packages/**/*.ts",
               "playwright.config.ts"
             ]
+          }
+        }
+      }
+    },
+    "size-material": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/size-material",
+            "index": "src/index.html",
+            "baseHref": "/app/",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": [],
+            "scripts": [],
+            "browser": "src/bakeoff/size/material.ts",
+            "loader": {
+              ".ttf": "file",
+              ".wasm": "file"
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": false
+              },
+              "fonts": true
+            },
+            "outputHashing": "all",
+            "sourceMap": false,
+            "namedChunks": false,
+            "extractLicenses": true,
+            "budgets": []
+          }
+        }
+      }
+    },
+    "size-aria": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/size-aria",
+            "index": "src/index.html",
+            "baseHref": "/app/",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": [],
+            "scripts": [],
+            "browser": "src/bakeoff/size/aria.ts",
+            "loader": {
+              ".ttf": "file",
+              ".wasm": "file"
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": false
+              },
+              "fonts": true
+            },
+            "outputHashing": "all",
+            "sourceMap": false,
+            "namedChunks": false,
+            "extractLicenses": true,
+            "budgets": []
+          }
+        }
+      }
+    },
+    "size-platform": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/size-platform",
+            "index": "src/index.html",
+            "baseHref": "/app/",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": [],
+            "scripts": [],
+            "browser": "src/bakeoff/size/platform.ts",
+            "loader": {
+              ".ttf": "file",
+              ".wasm": "file"
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": false
+              },
+              "fonts": true
+            },
+            "outputHashing": "all",
+            "sourceMap": false,
+            "namedChunks": false,
+            "extractLicenses": true,
+            "budgets": []
+          }
+        }
+      }
+    },
+    "size-none": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/size-none",
+            "index": "src/index.html",
+            "baseHref": "/app/",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [],
+            "styles": [],
+            "scripts": [],
+            "browser": "src/bakeoff/size/none.ts",
+            "loader": {
+              ".ttf": "file",
+              ".wasm": "file"
+            },
+            "optimization": {
+              "scripts": true,
+              "styles": {
+                "minify": true,
+                "inlineCritical": false
+              },
+              "fonts": true
+            },
+            "outputHashing": "all",
+            "sourceMap": false,
+            "namedChunks": false,
+            "extractLicenses": true,
+            "budgets": []
           }
         }
       }

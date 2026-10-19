@@ -13,6 +13,20 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   2.5.0 release notes, how the website was rebuilt, and how the claims
   ledger works.
 
+- **A status bar says where a request goes and what holds its secrets.**
+  The toolbar was six icons with no words, two of them the vault. It now
+  holds the environment, Environments, History and Settings; from 768 px a
+  bar under the panes shows the route ("Route: Auto"), whether the vault
+  is locked, the secrets, where the data is kept, and the theme, each with
+  the button it was. The name Wayfarer is on the screen once, and the page
+  runs to the window's edges: an 8 px margin the browser adds was left
+  around everything. On a phone the lock stays in the toolbar.
+
+- **A JSON or XML response takes the height of its pane.** Beside the
+  request, its body was a box of 300 px whatever the window; it now fills
+  the response pane below the tabs and grows with the window. On a phone
+  it keeps its height.
+
 - **The window is the workspace.** From 768 px wide, the request and its
   response fill the window, side by side, and each scrolls inside itself;
   the page no longer scrolls, so the response is never below the fold. The

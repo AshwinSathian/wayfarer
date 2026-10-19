@@ -5,8 +5,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { cssValues } from "../packages/tokens/tokens.mjs";
 
-/** The custom properties of one theme: the dark block is the default, the light block overrides it. */
+/** The custom properties of one theme of controls.css: the dark block is the default, the light block overrides it. */
 function theme(css, name) {
   const block = (selector) => {
     const start = css.indexOf(selector);
@@ -39,12 +40,12 @@ function contrast(a, b) {
   return (light + 0.05) / (dark + 0.05);
 }
 
-const tokens = readFileSync(new URL("../src/design-system/tokens.css", import.meta.url), "utf8");
 const controls = readFileSync(new URL("../src/design-system/controls.css", import.meta.url), "utf8");
 const SURFACES = ["--canvas-app", "--canvas-sidebar", "--canvas-panel", "--canvas-elevated", "--canvas-overlay"];
 
 for (const name of ["dark", "light"]) {
-  const vars = { ...theme(tokens, name), ...theme(controls, name) };
+  // The tokens come from packages/tokens; the controls' variables are built on them in controls.css.
+  const vars = { ...cssValues(name), ...theme(controls, name) };
   const colour = (token) => parse(resolve(vars, vars[token] ?? assert.fail(`${token} is not defined in the ${name} theme`)));
 
   test(`${name}: status and method text reads on its own fill, on every surface`, () => {
@@ -98,6 +99,18 @@ for (const name of ["dark", "light"]) {
     for (const state of ["", "-hover", "-active"]) {
       const ratio = contrast([255, 255, 255, 1], colour(`--accent-solid${state}`));
       assert.ok(ratio >= 4.5, `white on --accent-solid${state}: ${ratio.toFixed(2)}:1`);
+    }
+  });
+
+  test(`${name}: what sits on the primary colour (a checkbox's tick) reads on it`, () => {
+    const ratio = contrast(colour("--ctl-on-primary"), colour("--ctl-primary"));
+    assert.ok(ratio >= 4.5, `--ctl-on-primary on --ctl-primary: ${ratio.toFixed(2)}:1`);
+  });
+
+  test(`${name}: selected text reads on its highlight, on every surface`, () => {
+    for (const surface of SURFACES) {
+      const ratio = contrast(colour("--selection-text"), over(colour("--selection-bg"), colour(surface)));
+      assert.ok(ratio >= 4.5, `--selection-text on --selection-bg over ${surface}: ${ratio.toFixed(2)}:1`);
     }
   });
 

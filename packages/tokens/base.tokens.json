@@ -1,0 +1,109 @@
+{
+  "$description": "Wayfarer's tokens that both themes share. DTCG 2025.10.",
+  "radius": {
+    "$description": "Corner radii.",
+    "radius-xs": {
+      "$type": "dimension",
+      "$value": {
+        "value": 3,
+        "unit": "px"
+      }
+    },
+    "radius-sm": {
+      "$type": "dimension",
+      "$value": {
+        "value": 5,
+        "unit": "px"
+      }
+    },
+    "radius-md": {
+      "$type": "dimension",
+      "$value": {
+        "value": 7,
+        "unit": "px"
+      }
+    },
+    "radius-lg": {
+      "$type": "dimension",
+      "$value": {
+        "value": 9,
+        "unit": "px"
+      }
+    },
+    "radius-xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "radius-2xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "radius-full": {
+      "$type": "dimension",
+      "$value": {
+        "value": 9999,
+        "unit": "px"
+      }
+    }
+  },
+  "motion": {
+    "$description": "Durations and easings. D3.4 is their spec.",
+    "ease-standard": {
+      "$type": "cubicBezier",
+      "$value": [0.25, 0, 0, 1]
+    },
+    "ease-enter": {
+      "$type": "cubicBezier",
+      "$value": [0, 0, 0, 1]
+    },
+    "ease-spring": {
+      "$type": "cubicBezier",
+      "$value": [0.34, 1.56, 0.64, 1]
+    },
+    "dur-micro": {
+      "$type": "duration",
+      "$value": {
+        "value": 60,
+        "unit": "ms"
+      }
+    },
+    "dur-quick": {
+      "$type": "duration",
+      "$value": {
+        "value": 120,
+        "unit": "ms"
+      }
+    },
+    "dur-standard": {
+      "$type": "duration",
+      "$value": {
+        "value": 240,
+        "unit": "ms"
+      }
+    },
+    "dur-enter": {
+      "$type": "duration",
+      "$value": {
+        "value": 300,
+        "unit": "ms"
+      }
+    }
+  },
+  "font": {
+    "$description": "Font families.",
+    "font-sans": {
+      "$type": "fontFamily",
+      "$value": ["Inter Variable", "Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"]
+    },
+    "font-mono": {
+      "$type": "fontFamily",
+      "$value": ["JetBrains Mono", "Menlo", "SF Mono", "Consolas", "monospace"]
+    }
+  }
+}

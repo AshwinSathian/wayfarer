@@ -1,3 +1,4 @@
+import { TOKEN_COLOURS } from "../../../design-system/tokens";
 import { recordDiagnostic } from "../../services/diagnostics";
 /**
  * Shared Monaco loading state. All editor components import from here
@@ -140,50 +141,40 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
     return;
   }
   sandboxThemesDefined = true;
-  // Monaco cannot read CSS variables: these are src/design-system/tokens.css's values (direction A), as hex.
-  monaco.editor.defineTheme("sandbox-dark", {
-    base: "vs-dark",
-    inherit: true,
-    rules: [
-      { token: "string.key.json", foreground: "8DB4EF" },
-      { token: "string.value.json", foreground: "7FD39D" },
-      { token: "number.json", foreground: "F0B45A" },
-      { token: "keyword.json", foreground: "F08A80" },
-    ],
-    colors: {
-      "editor.background": "#1B1A18",
-      "editor.foreground": "#ECEAE5",
-      "editorLineNumber.foreground": "#6E6A63",
-      "editorLineNumber.activeForeground": "#A39E95",
-      "editor.selectionBackground": "#5FAE9C40",
-      "editor.lineHighlightBackground": "#22211E80",
-      "editorCursor.foreground": "#8FD1C0",
-      "editor.inactiveSelectionBackground": "#5FAE9C20",
-      "scrollbarSlider.background": "#fff5e61f",
-      "scrollbarSlider.hoverBackground": "#fff5e638",
-      "scrollbarSlider.activeBackground": "#fff5e650",
-    },
-  });
-  monaco.editor.defineTheme("sandbox-light", {
-    base: "vs",
-    inherit: true,
-    rules: [
-      { token: "string.key.json", foreground: "2453A6" },
-      { token: "string.value.json", foreground: "1F6B3E" },
-      { token: "number.json", foreground: "7D4D00" },
-      { token: "keyword.json", foreground: "A8322B" },
-    ],
-    colors: {
-      "editor.background": "#FFFFFF",
-      "editor.foreground": "#22211F",
-      "editorLineNumber.foreground": "#A39E95",
-      "editorLineNumber.activeForeground": "#6B675F",
-      "editor.selectionBackground": "#2F6F6233",
-      "editor.lineHighlightBackground": "#F6F5F2",
-      "editorCursor.foreground": "#2F6F62",
-      "editor.inactiveSelectionBackground": "#2F6F621A",
-    },
-  });
+  // Monaco cannot read CSS variables: its colours are the tokens' (packages/tokens), as hex.
+  for (const theme of ["dark", "light"] as const) {
+    const t = TOKEN_COLOURS[theme];
+    const bare = (hex: string) => hex.slice(1, 7);
+    monaco.editor.defineTheme(monacoThemeName(theme), {
+      base: theme === "dark" ? "vs-dark" : "vs",
+      inherit: true,
+      rules: [
+        { token: "string.key.json", foreground: bare(t["method-put-text"]) },
+        { token: "string.value.json", foreground: bare(t["status-success-text"]) },
+        { token: "number.json", foreground: bare(t["method-post-text"]) },
+        { token: "keyword.json", foreground: bare(t["method-delete-text"]) },
+      ],
+      colors: {
+        "editor.background": t["canvas-panel"],
+        "editor.foreground": t["label-primary"],
+        // Line numbers are text: 4.5:1 on the editor, as every label is.
+        "editorLineNumber.foreground": t["label-tertiary"],
+        "editorLineNumber.activeForeground": t["label-secondary"],
+        "editor.selectionBackground": withAlpha(t["accent"], 0.25),
+        "editor.inactiveSelectionBackground": withAlpha(t["accent"], 0.12),
+        "editor.lineHighlightBackground": theme === "dark" ? withAlpha(t["canvas-elevated"], 0.5) : t["canvas-elevated"],
+        "editorCursor.foreground": theme === "dark" ? t["accent-text"] : t["accent"],
+        "scrollbarSlider.background": t["scrollbar-thumb"],
+        "scrollbarSlider.hoverBackground": t["scrollbar-thumb-hover"],
+        "scrollbarSlider.activeBackground": t["scrollbar-thumb-hover"],
+      },
+    });
+  }
+}
+
+/** `#RRGGBB` with an alpha, as Monaco writes it: `#RRGGBBAA`. */
+function withAlpha(hex: string, alpha: number): string {
+  return hex.slice(0, 7) + Math.round(alpha * 255).toString(16).padStart(2, "0").toUpperCase();
 }
 
 export function monacoThemeName(theme: "dark" | "light"): string {

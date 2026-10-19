@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Selected text is readable in the light theme, and so are the editors'
+  line numbers.** The light theme had no selection colours of its own and
+  drew selected text white on a pale green, at 1.37:1; it is now dark text
+  on a green tint, at 10.7:1 or more on every surface. The code editors' line
+  numbers were 2.7:1 on white and 3.2:1 in the dark theme, and are now the
+  same grey as other secondary text, at 4.5:1 or more. Behind this, the
+  app's colours, radii, motion and fonts are now one set of design tokens
+  (`packages/tokens`) from which the stylesheet and the editors' colours
+  are both written, so the two can no longer drift apart.
+
 - **The app has new colours: warm neutrals and one teal accent.** The
   indigo and violet gradients, the glow behind Send and the see-through,
   frosted toolbar and dialogs are gone: surfaces are solid, so a dialog no

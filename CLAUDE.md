@@ -584,14 +584,18 @@ code errors.
   indents the rows under it (Aria writes `aria-level`, and `level()` read
   in a row's own binding throws at first render). `[wrap]="false"`: Aria
   wraps by default, WAI-ARIA's tree does not. A click on a row with
-  children opens or closes it (Aria's). Two things Aria does not do, each
+  children opens or closes it (Aria's). Three things Aria does not do, each
   with a test:
   - it does not follow focus: a row focused by code (`focusNode`, the
     menu giving focus back) is made Aria's active row in the row's
     `(focus)`, or the keys moved on from the row focused before;
   - it reads every key that reaches the tree, also one typed into a field
     inside a row (a rename): the row stops a key without Ctrl, Meta or Alt
-    from a field, and a click into one.
+    from a field, and a click into one;
+  - it stops every key it handles (arrows, Home, End, Enter, Space, any
+    letter): a listener on `window` never hears them from a row. The
+    sidebar's single-key shortcuts ("c", "n", Delete) are read on `window`
+    in the capture phase, before the tree.
 
 ## Monaco
 

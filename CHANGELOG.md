@@ -7,6 +7,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Changed
+
+- **Settings, Diagnostics, says when an import has waited 5 seconds for
+  its file to be read.** The import's report showed "Reading" with nothing
+  to say why; the read happens in a worker of its own, and a read that has
+  not come back in 5 seconds is now recorded there and in the browser's
+  console.
+
 ### Fixed
 
 - **`wayfarer-cli` 2.0.2: a request that gets no connection says why, as a
@@ -31,6 +39,8 @@ request's route and redirects in its own Settings tab.
 and storage, in the version you have now). A browser that used Wayfarer
 before starts empty: the data now lives in a database of a new name, and
 the old one is not read. Restore the backup after.
+
+### Changed
 
 ### Changed
 

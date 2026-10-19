@@ -405,4 +405,24 @@ test.describe("the response's height", () => {
     const box = await editor.boundingBox();
     expect(box && pane && box.y + box.height <= pane.y + pane.height).toBe(true);
   });
+
+  // U-030 of docs/design/audit.md: the status, the tabs and the body's tools took 310 px before the body.
+  test("the body starts within 240 px of the response's top: one status line, one row of tools", async ({ page }) => {
+    await page.route("https://fills.test/**", (route) =>
+      route.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: JSON.stringify({ items: [1, 2, 3] }) })
+    );
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill("https://fills.test/items");
+    await page.getByRole("button", { name: "Send request" }).click();
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    const viewer = page.locator("app-response-viewer");
+    const editor = viewer.locator("app-json-editor");
+    await expect(editor).toBeVisible();
+    const top = (await viewer.boundingBox())?.y ?? 0;
+    expect(((await editor.boundingBox())?.y ?? 0) - top).toBeLessThanOrEqual(240);
+    // The status line is one line: the status and every fact share a row.
+    const status = await viewer.locator(".response-status").boundingBox();
+    expect(status?.height ?? 0).toBeLessThanOrEqual(56);
+  });
 });

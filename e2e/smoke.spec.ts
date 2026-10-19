@@ -52,8 +52,11 @@ test("@smoke the site at / runs script from its own files only and links to the 
 
 // The synthetic monitor reads which release production runs from /version.json, and runs that release's tests
 // (scripts/deployed-release.mjs).
-test("@smoke /version.json names the release that is served", async ({ request }) => {
-  const response = await request.get("/version.json");
+test("@smoke /version.json names the release that is served", async ({ page }) => {
+  // From GitHub's runners Cloudflare challenges a client that runs no script: load a page first, and ask with its
+  // cookies.
+  await page.goto("/");
+  const response = await page.request.get("/version.json");
   expect(response.status()).toBe(200);
   const { version } = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
   expect(await response.json()).toEqual({ version });

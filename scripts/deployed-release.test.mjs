@@ -36,6 +36,7 @@ test("the monitor checks out the release production runs, not the newest tag", (
   const workflow = readFileSync(new URL("../.github/workflows/synthetic.yml", import.meta.url), "utf8");
   assert.match(workflow, /node scripts\/deployed-release\.mjs/);
   assert.doesNotMatch(workflow, /git describe/);
+  assert.match(workflow, /ref: \$\{\{ needs\.release\.outputs\.tag \}\}/);
 });
 
 test("the deploy names its release in /version.json", () => {

@@ -206,6 +206,14 @@ describe("CollectionsSidebar", () => {
       expect(collectionsService.reorderCalls).toEqual([{ kind: "children", order: [{ id: "f1", order: 1 }, { id: "r1", order: 2 }, { id: "f2", order: 3 }, { id: "r2", order: 4 }] }]);
     });
 
+    it("a single-key shortcut pressed on a row reaches the panel: the tree's own keys do not swallow it", async () => {
+      row("Collection c1").focus();
+      row("Collection c1").dispatchEvent(new KeyboardEvent("keydown", { key: "c", bubbles: true, cancelable: true }));
+      await fixture.whenStable();
+
+      expect(component.creationDialogVisible()).toBe(true);
+    });
+
     it("a collection is not moved among another collection's rows, nor a row out of its folder", () => {
       const [c1, c2] = component.nodes();
       expect(component.nodeKind(c1)).toBe(component.nodeKind(c2));

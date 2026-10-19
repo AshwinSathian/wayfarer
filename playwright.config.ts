@@ -69,5 +69,18 @@ export default defineConfig({
           reuseExistingServer: !CI,
           timeout: 180_000,
         },
+        // D3.3's widget catalogue is in development builds only. Locally
+        // `ng serve` is one; CI serves `npm run build:catalogue` beside the
+        // deploy, under the app's _headers (e2e/catalogue.spec.ts).
+        ...(CI
+          ? [
+              {
+                command: "(test -f dist/catalogue/app/index.html || npm run build:catalogue) && node e2e/support/prod-server.mjs dist/catalogue 4201",
+                url: "http://localhost:4201/app/",
+                reuseExistingServer: false,
+                timeout: 180_000,
+              },
+            ]
+          : []),
       ],
 });

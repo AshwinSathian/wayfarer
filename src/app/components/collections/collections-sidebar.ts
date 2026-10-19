@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -56,7 +56,6 @@ export interface PaletteAction {
   templateUrl: "./collections-sidebar.html",
   styleUrl: "./collections-sidebar.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { "(window:keydown)": "handleGlobalKeydown($event)" },
 })
 // ~570 lines: tree-node building/type guards moved to
 // shared/collections/collection-tree-nodes.ts, context-menu building to
@@ -74,6 +73,14 @@ export class CollectionsSidebar implements OnInit {
   private readonly confirm = inject(Confirm);
   /** Every file picked here goes down the one import road (P4.1). */
   protected readonly importPipeline = inject(ImportPipeline);
+
+  constructor() {
+    // Read on the way down, before the tree's own keys: Aria's tree stops every key it
+    // handles, a letter among them, so "c" and "n" on a row never reached the window.
+    const keydown = (event: KeyboardEvent) => this.handleGlobalKeydown(event);
+    window.addEventListener("keydown", keydown, true);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+  }
 
   readonly loadRequest = output<RequestDoc>();
   /** "Run…" was chosen for a collection or a folder (P5.2): the composer opens the run's tab. */

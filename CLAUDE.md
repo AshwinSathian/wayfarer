@@ -432,7 +432,9 @@ code errors.
   reverses the "custom on CDK" default of decision D14 in the plan). A
   widget not yet moved by D3.3 is a Material component, themed as below. `src/app/ui` holds only:
   - wrappers that give a Material component what this app needs from it:
-    `ui-dialog` (a dialog opened from a template), `Confirm`, `ui-tree`;
+    `ui-dialog` (a dialog opened from a template), `Confirm`;
+  - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
+    `ui-tree`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
     `uiHoverCard` (a tooltip that takes a template), and the confirmation
     placed under a button.
@@ -515,18 +517,6 @@ code errors.
   and the late "closed" shut a drawer the user had just reopened.
 - A drawer's content is in the page from the start, hidden while closed. A
   dialog's is created when it opens.
-- Tree: `<ui-tree>` (`src/app/ui/tree.ts`) is Material's `mat-tree` with
-  flat `mat-tree-node` rows, plus what the collections list needs and
-  Material has not: one selected node, reorder by drag and by Alt+Arrow,
-  F2, and Shift+F10 sent on as a `contextmenu` event. Three things about
-  `mat-tree` it works around, each with a test:
-  - a row's `isExpanded` input is set while the tree renders, and a node
-    opened then is marked open without its children drawn; expansion is
-    applied after render, through `tree.expand()`;
-  - with `trackBy`, a row keeps the node object it was first drawn with;
-    the children accessor looks the node up by key;
-  - the first row in the tab order is the first one Material hears of,
-    which under an expanded node is a child; it is moved to the top row.
 - Text input: `<mat-form-field class="field">` around `<input matInput>`.
   The outline appearance and `subscriptSizing: "dynamic"` are set app-wide
   (`app.config.ts`); the label is a `<label for>` outside the field. Width
@@ -568,6 +558,44 @@ code errors.
   pointer off the window's corner (`page.mouse.move`). A headless pointer
   rests at (0, 0), where the CDK first places an overlay, and Material hides
   a tooltip the pointer entered and left.
+
+## Angular Aria
+
+- A family D3.3 moved off Material is an Angular Aria pattern
+  (`@angular/aria`) with the app's own styles, in the component's own
+  stylesheet (`tree.css`), not in `controls.css` or `material-theme.scss`.
+  Aria gives roles, focus and keys; what it does not do is ours, with a
+  test each. `docs/design/widget-bakeoff.md` lists what the bake-off found.
+- Each moved widget is in the catalogue (`src/app/catalogue/catalogue.ts`)
+  in every state a person can put it in, and `e2e/catalogue.spec.ts` scans
+  each state with axe in both themes and walks its keys. The catalogue is
+  in development builds only: `src/main.ts` loads it for `/app/?catalogue`
+  behind `ngDevMode`, which a production build defines as false. CI serves
+  `npm run build:catalogue` (`dist/catalogue`, under the app's `_headers`)
+  on port 4201; locally `ng serve` has it.
+- In forced colours a background is taken away: a state shown only by one
+  (a selected row) needs another mark there, tested with
+  `page.emulateMedia({ forcedColors: "active" })`.
+- Tree: `<ui-tree>` (`src/app/ui/tree.ts`) is Aria's `ngTree`, plus what
+  the collections list needs and Aria has not: one selected node, opening a
+  node on a click, Enter or Space (`opened`), reorder by drag and by
+  Alt+Arrow, F2, and Shift+F10 sent on as a `contextmenu` event. Its rows
+  are flat: each group is a `role="none"` box beside its row, which
+  indents the rows under it (Aria writes `aria-level`, and `level()` read
+  in a row's own binding throws at first render). `[wrap]="false"`: Aria
+  wraps by default, WAI-ARIA's tree does not. A click on a row with
+  children opens or closes it (Aria's). Three things Aria does not do, each
+  with a test:
+  - it does not follow focus: a row focused by code (`focusNode`, the
+    menu giving focus back) is made Aria's active row in the row's
+    `(focus)`, or the keys moved on from the row focused before;
+  - it reads every key that reaches the tree, also one typed into a field
+    inside a row (a rename): the row stops a key without Ctrl, Meta or Alt
+    from a field, and a click into one;
+  - it stops every key it handles (arrows, Home, End, Enter, Space, any
+    letter): a listener on `window` never hears them from a row. The
+    sidebar's single-key shortcuts ("c", "n", Delete) are read on `window`
+    in the capture phase, before the tree.
 
 ## Monaco
 

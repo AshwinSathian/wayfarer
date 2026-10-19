@@ -140,6 +140,47 @@ describe("ui-tree", () => {
     fixture.destroy();
   });
 
+  it("moves on from a row focused from code, not from the row focused before it", async () => {
+    const { fixture, row, press } = await setup();
+    row("src").focus();
+    await press("ArrowDown");
+    // As the menu does when it closes, or the sidebar after a rename.
+    row("c.ts").focus();
+    await press("ArrowUp");
+    expect(document.activeElement).toBe(row("b.ts"));
+    expect(row("b.ts").tabIndex).toBe(0);
+    expect(row("app").tabIndex).toBe(-1);
+    fixture.destroy();
+  });
+
+  it("a letter moves to the next row that starts with it; typed into a field inside a row, it stays there", async () => {
+    const { fixture, row, press } = await setup();
+    row("src").focus();
+    await press("d");
+    expect(document.activeElement).toBe(row("docs"));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    const field = row("b.ts").querySelector("input")!;
+    field.focus();
+    const event = new KeyboardEvent("keydown", { key: "s", bubbles: true, cancelable: true });
+    field.dispatchEvent(event);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(field);
+    fixture.destroy();
+  });
+
+  it("a click on a node with children expands or collapses it", async () => {
+    const { fixture, labels, row, settle } = await setup();
+    row("app").click();
+    await settle();
+    expect(row("app").getAttribute("aria-expanded")).toBe("true");
+    expect(labels()).toContain("main.ts");
+    row("app").click();
+    await settle();
+    expect(labels()).not.toContain("main.ts");
+    fixture.destroy();
+  });
+
   it("selects on click, Enter and Space; F2 asks to edit; Shift+F10 and a right-click ask for the menu", async () => {
     const { fixture, host, row, press } = await setup();
 

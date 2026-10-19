@@ -9,6 +9,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Each page of the website has a picture and a summary for when it is
+  shared or found.** A link posted in a chat or a social network shows the
+  page's own title, description and image; the site has a sitemap and an
+  `llms.txt`.
+
 - **The docs say where Wayfarer will be listed and announced, and when**
   (`docs/design/reach.md`). Nothing has been posted yet.
 

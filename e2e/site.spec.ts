@@ -144,6 +144,45 @@ test("each comparison page cites a source with its date for every fact about a r
   expect(await page.locator("#behind + ul > li").count()).toBeGreaterThanOrEqual(4);
 });
 
+// W3.1: every page names its canonical address, its Open Graph and Twitter cards and an image of its own, which is a
+// 1200 by 630 PNG; the sitemap lists every page; robots.txt names the sitemap; the front page describes the app as
+// schema.org data; /llms.txt says what the site is.
+test("every page has its canonical address, its cards and its own image, and the sitemap, robots.txt, the app's data and llms.txt are there", async ({ page, request }) => {
+  const SITE = "https://wayfarer.ashwinsathian.com";
+  const pages = sitePages().filter((path) => !/^\/(404|_not-found)/.test(path));
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  const images = new Set<string>();
+  for (const path of pages) {
+    await page.goto(path);
+    const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
+    expect(canonical, path).toBe(`${SITE}${path}`);
+    expect(sitemap, path).toContain(`<loc>${SITE}${path}</loc>`);
+    const og = async (name: string) => page.locator(`meta[property="og:${name}"]`).getAttribute("content");
+    expect(await og("title"), path).toBe(await page.title());
+    expect(await og("description"), path).toBe(await page.locator('meta[name="description"]').getAttribute("content"));
+    expect(await og("url"), path).toBe(`${SITE}${path}`);
+    expect(await page.locator('meta[name="twitter:card"]').getAttribute("content"), path).toBe("summary_large_image");
+    const image = (await og("image")) ?? "";
+    expect(image.startsWith(`${SITE}/og/`), path).toBe(true);
+    images.add(image);
+    const png = await request.get(image.slice(SITE.length));
+    expect(png.status(), image).toBe(200);
+    const bytes = await png.body();
+    // A PNG's signature, then its width and height in the IHDR chunk.
+    expect(bytes.subarray(1, 4).toString("latin1"), image).toBe("PNG");
+    expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)], image).toEqual([1200, 630]);
+  }
+  expect(images.size).toBe(pages.length);
+
+  expect(await (await request.get("/robots.txt")).text()).toContain(`Sitemap: ${SITE}/sitemap.xml`);
+  await page.goto("/");
+  const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}") as Record<string, unknown>;
+  expect(data).toMatchObject({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Wayfarer", url: `${SITE}/app/`, offers: { "@type": "Offer", price: "0" } });
+  const llms = await request.get("/llms.txt");
+  expect(llms.status()).toBe(200);
+  expect(await llms.text()).toMatch(/^# Wayfarer\n\n> /);
+});
+
 // One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).
 for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
   test(`${path} is not wider than a window of 360, 390, 820 or 1,440 px, and has no axe violation`, async ({ page }) => {

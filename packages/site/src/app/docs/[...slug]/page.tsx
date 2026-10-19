@@ -1,5 +1,6 @@
 import { DocsFrame } from "../../../components/DocsFrame";
-import { REPO, docHtml, docs } from "../../../lib/content";
+import { REPO, docDescription, docHtml, docs } from "../../../lib/content";
+import { pageMeta } from "../../../lib/meta";
 
 export const dynamicParams = false;
 
@@ -12,7 +13,7 @@ interface Props { params: Promise<{ slug: string[] }> }
 export async function generateMetadata({ params }: Props) {
   const id = (await params).slug.join("/");
   const title = docs().find((doc) => doc.id === id)?.title ?? id;
-  return { title: `${title}: Wayfarer docs`, description: `Wayfarer's documentation: ${title}.` };
+  return pageMeta(`/docs/${id}/`, `${title}: Wayfarer docs`, docDescription(id) || `Wayfarer's documentation: ${title}.`);
 }
 
 /** A doc of the repository's docs/ as a page (W2.2). Pagefind indexes the article. */

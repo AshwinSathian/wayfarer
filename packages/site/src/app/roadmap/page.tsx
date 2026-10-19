@@ -1,11 +1,9 @@
+import { pageMeta } from "../../lib/meta";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import { roadmap } from "../../lib/content";
 
-export const metadata = {
-  title: "Roadmap: Wayfarer",
-  description: "What is being built next for Wayfarer: the design rebuild, the website and sharing for teams, task by task.",
-};
+export const metadata = pageMeta("/roadmap/", "Roadmap: Wayfarer", "What is being built next for Wayfarer: the design rebuild, the website and sharing for teams, task by task.");
 
 const PLAN = "https://github.com/AshwinSathian/wayfarer/blob/main/PLAN-design.md";
 

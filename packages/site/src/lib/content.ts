@@ -28,6 +28,24 @@ export function docs(): Doc[] {
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
+/**
+ * A doc's description for search and sharing: its first paragraph as plain text, up to 160 characters. Links keep
+ * their words, and code and emphasis marks go.
+ */
+export function docDescription(id: string): string {
+  const paragraph = read(`docs/${id}.md`)
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .find((block) => block !== "" && !/^(#|>|\||[-*] |```|<!--|\d+\. )/.test(block));
+  const text = (paragraph ?? "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/<!--.*?-->/g, "")
+    .replace(/[`*_]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 160 ? `${text.slice(0, 157).replace(/\s+\S*$/, "")}…` : text;
+}
+
 export function docHtml(id: string): string {
   return renderMarkdown(read(`docs/${id}.md`), `docs/${id}.md`);
 }

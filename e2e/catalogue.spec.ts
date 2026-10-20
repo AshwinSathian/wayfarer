@@ -75,7 +75,8 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
-  test(`every widget of the catalogue, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+  // Two tests, not one: each scan reads the whole page, and with every family in it one test took more than its 30 s in Firefox on CI.
+  test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
     const scan = scanner(page, found);
@@ -105,6 +106,13 @@ for (const theme of ["light", "dark"] as const) {
     await scan("menu, a row's, at the pointer");
     await page.keyboard.press("Escape");
 
+    expect(found).toEqual([]);
+  });
+
+  test(`the tabs and the accordion, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
     const parts = page.getByRole("tablist", { name: "Request parts" });
     await parts.getByRole("tab", { name: "Tests" }).click();
     await scan("tabs, one chosen by a click");

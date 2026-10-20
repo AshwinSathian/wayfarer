@@ -161,12 +161,12 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   await expect(arrive).toBeVisible();
   expect(parseFloat(await arrive.evaluate((el) => getComputedStyle(el).animationDuration))).toBeLessThan(0.01);
 
-  // Angular Material's own motion too: a drawer's slide, a tab's sliding
-  // underline and a dialog's entrance all end at once.
+  // Angular Material's own motion too, and the tabs': a drawer's slide, a
+  // tab's colour and a dialog's entrance all end at once.
   const seconds = (selector: string, property: "transitionDuration" | "animationDuration") =>
     page.locator(selector).first().evaluate((el, p) => Math.max(...getComputedStyle(el)[p].split(",").map(parseFloat)), property);
   expect(await seconds("mat-sidenav.mat-drawer-end", "transitionDuration")).toBeLessThan(0.01);
-  expect(await seconds(".tab-bar .mdc-tab-indicator__content", "transitionDuration")).toBeLessThan(0.01);
+  expect(await seconds('.tab-bar [role="tab"]', "transitionDuration")).toBeLessThan(0.01);
   await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
   expect(await seconds(".mat-mdc-dialog-surface", "animationDuration")).toBeLessThan(0.01);

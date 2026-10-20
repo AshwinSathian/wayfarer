@@ -12,7 +12,8 @@ import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
+import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
+import { UiTabList } from "../../ui/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { exportRedactor } from "../../shared/inspect/export";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
@@ -63,7 +64,7 @@ interface ResponseHeader {
     JsonPipe,
     Icon,
     FormsModule,
-    MatTabNav, MatTabLink, MatTabNavPanel,
+    Tab, TabContent, TabPanel, Tabs, UiTabList,
     MatTooltip,
     JsonEditor,
     HtmlPreview,
@@ -575,13 +576,6 @@ export class ResponseViewer {
     this.searchActiveIndex.set(0);
     this.searchPending.set(false);
     this.searchToken++;
-  }
-
-  onTabChange(value: ResponseTab | string | number | undefined): void {
-    if (value === undefined) {
-      return;
-    }
-    this.activeTab.set(value as ResponseTab);
   }
 
   get inspectionValue(): ResponseInspection | null {

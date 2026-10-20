@@ -1,12 +1,6 @@
-<div mat-tab-nav-bar class="tab-bar request-tabs" [tabPanel]="panel()" [mat-stretch-tabs]="false" disablePagination aria-label="Open requests">
+<div uiTabList class="request-tabs" [selectedTab]="tabs.active().id" (selectedTabChange)="tabs.activate($event)" aria-label="Open requests">
   @for (tab of tabs.tabs(); track tab.id) {
-  <button
-    mat-tab-link
-    type="button"
-    [active]="tab === tabs.active()"
-    (click)="tabs.activate(tab.id)"
-    (focus)="tabs.activate(tab.id)"
-  >
+  <button ngTab type="button" [value]="tab.id">
     <span class="request-tab-method">{{ tab.run ? "RUN" : isSocket(tab) ? "WS" : tab.draft().method }}</span>
     <span class="request-tab-name">{{ label(tab) }}</span>
     @if (tab.dirty()) {
@@ -15,6 +9,12 @@
   </button>
   }
 </div>
+<!-- Every tab has its panel: the open one's is the composer, the others' are empty and hidden. -->
+@for (tab of tabs.tabs(); track tab.id) {
+@if (tab !== tabs.active()) {
+<div ngTabPanel class="tab-pane" [value]="tab.id"><ng-template ngTabContent /></div>
+}
+}
 <div class="flex items-center">
   <button matIconButton class="btn-plain" type="button" aria-label="New tab" matTooltip="New tab (Alt+T)" (click)="open()"><app-icon name="add" /></button>
   <button matIconButton class="btn-plain" type="button" aria-label="Duplicate tab" matTooltip="Duplicate tab" (click)="duplicate()"><app-icon name="content_copy" /></button>

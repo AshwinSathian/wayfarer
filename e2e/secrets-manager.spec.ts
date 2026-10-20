@@ -30,11 +30,9 @@ test.describe("Secrets management view", () => {
     await expect(page.locator(".env-item", { hasText: "Secrets E2E Env" })).toBeVisible();
 
     // Scoped to the environment editor's own KEY/Value inputs (exact,
-    // case-sensitive match) — the composer's Params tab has its own
-    // lowercase "key"/"value" placeholders always mounted (the tabs
-    // keeps every tabpanel's content in the DOM, [hidden] on the
-    // inactive ones rather than removing it), which a loose/case-
-    // insensitive placeholder match would otherwise collide with.
+    // case-sensitive match): the composer's Params tab, once it has been
+    // shown, keeps its lowercase "key"/"value" placeholders mounted and
+    // hidden, which a loose, case-insensitive match would collide with.
     await page.getByRole("button", { name: "Add variable" }).click();
     await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
     await page.getByPlaceholder("Value", { exact: true }).fill("super-secret-value");

@@ -1,17 +1,17 @@
 <ui-dialog [header]="header()" [visible]="target() !== null" (visibleChange)="closed.emit()" width="720px">
   <!-- A dialog's content is made with the page; its script editors load Monaco: made while the dialog is open (P7.2). -->
   @if (target() !== null) {
-  <div class="tabs">
-    <div mat-tab-nav-bar class="tab-bar" [tabPanel]="settingsPanel" [mat-stretch-tabs]="false" disablePagination>
-      <button mat-tab-link type="button" [active]="tab() === 'auth'" (click)="tab.set('auth')" (focus)="tab.set('auth')">Auth</button>
-      <button mat-tab-link type="button" [active]="tab() === 'variables'" (click)="tab.set('variables')" (focus)="tab.set('variables')">Variables</button>
-      <button mat-tab-link type="button" [active]="tab() === 'scripts'" (click)="tab.set('scripts')" (focus)="tab.set('scripts')">Scripts</button>
+  <div ngTabs class="tabs">
+    <div uiTabList [selectedTab]="tab()" (selectedTabChange)="tab.set($event)">
+      <button ngTab type="button" value="auth">Auth</button>
+      <button ngTab type="button" value="variables">Variables</button>
+      <button ngTab type="button" value="scripts">Scripts</button>
       @if (kind() === 'collection') {
-      <button mat-tab-link type="button" [active]="tab() === 'route'" (click)="tab.set('route')" (focus)="tab.set('route')">Route</button>
+      <button ngTab type="button" value="route">Route</button>
       }
     </div>
-    <mat-tab-nav-panel #settingsPanel class="tab-panes">
-      <div class="tab-pane" [hidden]="tab() !== 'auth'">
+    <div class="tab-panes">
+      <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
         <p class="type-footnote text-label-secondary mb-3">Sent with every request in this {{ kind() }} whose own auth is "Inherit from parent".</p>
         <app-auth-editor
           class="block"
@@ -24,8 +24,8 @@
           (authChange)="auth.set($event)"
           (togglePasswordVisibility)="showPassword.set(!showPassword())"
         />
-      </div>
-      <div class="tab-pane" [hidden]="tab() !== 'variables'">
+      </ng-template></div>
+      <div ngTabPanel value="variables" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
         <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
         <app-rows-editor
           context="Variables"
@@ -35,8 +35,8 @@
           (add)="rows.set([...rows(), { key: '', value: '', enabled: true }])"
           (remove)="removeRow($event)"
         />
-      </div>
-      <div class="tab-pane" [hidden]="tab() !== 'scripts'">
+      </ng-template></div>
+      <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
         <div class="flex flex-col gap-4">
           <p class="type-footnote text-label-secondary">
             Run for every request in this {{ kind() }}: the collection's scripts first, then each folder's from the outside in, then the request's own.
@@ -62,9 +62,9 @@
             ></app-script-editor>
           </div>
         </div>
-      </div>
+      </ng-template></div>
       @if (kind() === 'collection') {
-      <div class="tab-pane" [hidden]="tab() !== 'route'">
+      <div ngTabPanel value="route" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
         <p class="type-footnote text-label-secondary mb-3" id="inherited-route-label">
           How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.
         </p>
@@ -74,9 +74,9 @@
           <mat-option value="direct">Direct</mat-option>
           <mat-option value="bridge">Local Bridge</mat-option>
         </mat-select>
-      </div>
+      </ng-template></div>
       }
-    </mat-tab-nav-panel>
+    </div>
   </div>
   }
   <div uiDialogFooter>

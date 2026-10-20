@@ -4,7 +4,8 @@ import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
-import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
+import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
+import { UiTabList } from "../../ui/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -49,7 +50,7 @@ interface EnvironmentDraft {
     Icon,
     FormsModule,
     MatButton, MatIconButton,
-    MatTabNav, MatTabLink, MatTabNavPanel,
+    Tab, TabContent, TabPanel, Tabs, UiTabList,
     Dialog,
     MatTooltip,
     JsonEditor,
@@ -84,11 +85,6 @@ export class EnvironmentsManager implements OnInit {
   readonly draft: WritableSignal<EnvironmentDraft | null> = signal(null);
   readonly editorTab = signal<"pairs" | "json">("pairs");
 
-  onEditorTabChange(value: string | number | undefined): void {
-    if (value === "pairs" || value === "json") {
-      this.editorTab.set(value);
-    }
-  }
   private readonly secretPreview = signal<Record<string, string>>({});
 
   readonly newEnvDialogVisible = signal(false);

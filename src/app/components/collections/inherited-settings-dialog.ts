@@ -3,7 +3,8 @@ import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
 import { MatSelect } from "@angular/material/select";
-import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
+import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
+import { UiTabList } from "../../ui/tabs";
 import { ancestorsOf, effectiveAuth, emptyAuth, scriptsApproved, scriptsOf, variableChanges, type AuthConfig, type Route, type Row, type Scripts } from "@wayfarer/core";
 import { CollectionsStore } from "../../services/collections-store";
 import { Dialog } from "../../ui/dialog";
@@ -25,7 +26,7 @@ export interface InheritedSettingsTarget {
  */
 @Component({
   selector: "app-inherited-settings-dialog",
-  imports: [AuthEditor, Dialog, FormsModule, MatButton, MatOption, MatSelect, MatTabLink, MatTabNav, MatTabNavPanel, RowsEditor, ScriptEditor],
+  imports: [AuthEditor, Dialog, FormsModule, MatButton, MatOption, MatSelect, Tab, TabContent, TabPanel, Tabs, UiTabList, RowsEditor, ScriptEditor],
   templateUrl: "./inherited-settings-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -88,12 +88,6 @@ describe("ResponseViewer", () => {
     });
   });
 
-  it("updates the active tab model signal", () => {
-    component.onTabChange("headers");
-
-    expect(component.activeTab()).toBe("headers");
-  });
-
   it("returns empty timing bars when inspection is missing", () => {
     fixture.componentRef.setInput('inspection', signal<ResponseInspection | null>(null));
 

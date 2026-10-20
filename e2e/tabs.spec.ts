@@ -146,6 +146,38 @@ test("keyboard: Alt+T opens a tab and Alt+W closes it, in the app and not in the
 });
 
 // #360: Alt+T pressed before the app had drawn the last keystroke left the new tab's field showing the old tab's address.
+test("each tab controls a panel: the open one's is the composer, named by its tab; the others' are hidden and empty", async ({ page }) => {
+  await page.goto("/app/");
+  await address(page).fill(`${ECHO}/echo?first=1`);
+  await page.keyboard.press("Alt+KeyT");
+  await page.keyboard.press("Alt+KeyT");
+  await expect(tabs(page)).toHaveCount(3);
+  await tabs(page).nth(1).click();
+
+  const panels = await tabs(page).evaluateAll((all) =>
+    all.map((tab) => {
+      const panel = document.getElementById(tab.getAttribute("aria-controls") ?? "");
+      return {
+        selected: tab.getAttribute("aria-selected"),
+        role: panel?.getAttribute("role"),
+        labelledBy: panel?.getAttribute("aria-labelledby") === tab.id,
+        inert: panel?.hasAttribute("inert"),
+        holdsAddress: !!panel?.querySelector("input.address-url"),
+      };
+    })
+  );
+  expect(panels).toEqual([
+    { selected: "false", role: "tabpanel", labelledBy: true, inert: true, holdsAddress: false },
+    { selected: "true", role: "tabpanel", labelledBy: true, inert: false, holdsAddress: true },
+    { selected: "false", role: "tabpanel", labelledBy: true, inert: true, holdsAddress: false },
+  ]);
+  // The composer is the same element as the tabs change: what it holds is not made again.
+  const before = await page.locator("app-address-row").elementHandle();
+  await tabs(page).nth(0).click();
+  await expect(address(page)).toHaveValue(`${ECHO}/echo?first=1`);
+  expect(await before?.evaluate((element) => element.isConnected)).toBe(true);
+});
+
 test("Alt+T in the same task as the last keystroke opens a tab whose field shows its own empty address", async ({ page }) => {
   await page.goto("/app/");
   await expect(address(page)).toBeVisible();

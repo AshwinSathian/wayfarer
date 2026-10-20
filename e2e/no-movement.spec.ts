@@ -36,7 +36,7 @@ async function sampleAfterResponse(page: Page, status: string, duration: number)
       ...[...document.querySelectorAll("app-response-viewer [role='tab']")].map((tab, index): [string, Element] => [`tab ${index} ${tab.textContent?.trim().split(/\s+/)[0]}`, tab]),
       ...[...document.querySelectorAll(".composer-response-splitter [role='separator']")].map((gutter): [string, Element] => ["gutter", gutter]),
       // What the open pane holds: the view select, the editor, a Download button.
-      ...[...document.querySelectorAll("app-response-viewer .tab-pane:not([hidden]) > div > *")].map((element, index): [string, Element] => [`body ${index}`, element]),
+      ...[...document.querySelectorAll("app-response-viewer .tab-pane:not([inert]) > div > *")].map((element, index): [string, Element] => [`body ${index}`, element]),
       // What a person presses next: the composer's tabs, and what sits in the status bar.
       ...[...document.querySelectorAll("app-composer .composer-pane [role='tab']")].map((tab, index): [string, Element] => [`composer tab ${index}`, tab]),
       ...[...document.querySelectorAll("app-response-viewer .status-badge, app-response-viewer [aria-label='Export response']")].map(

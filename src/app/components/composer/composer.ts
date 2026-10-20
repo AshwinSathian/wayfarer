@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } from "@angular/core";
 import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
-import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
+import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
@@ -11,6 +11,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
 import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
 import { Splitter } from "../../ui/splitter";
+import { UiTabList } from "../../ui/tabs";
 import { RunView } from "../runner/run-view";
 import { SocketView } from "../socket/socket-view";
 import { SocketClient } from "../../services/socket-client";
@@ -40,9 +41,11 @@ import { VariableChips } from "./variable-chips";
     MatAccordion,
     MatExpansionPanel,
     MatExpansionPanelHeader,
-    MatTabNav,
-    MatTabLink,
-    MatTabNavPanel,
+    AriaTabs,
+    Tab,
+    TabContent,
+    TabPanel,
+    UiTabList,
     Splitter,
     ResponseViewer,
     AddressRow,
@@ -61,6 +64,8 @@ import { VariableChips } from "./variable-chips";
     SocketView,
   ],
   providers: [ComposerView],
+  // The request tabs' container: their list is in the strip, the open one's panel here.
+  hostDirectives: [AriaTabs],
   templateUrl: "./composer.html",
   styleUrl: "./composer.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

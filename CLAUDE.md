@@ -434,7 +434,7 @@ code errors.
   - wrappers that give a Material component what this app needs from it:
     `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
-    `ui-tree`;
+    `ui-tree`, `ui-menu`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
     `uiHoverCard` (a tooltip that takes a template), and the confirmation
     placed under a button.
@@ -476,16 +476,8 @@ code errors.
   [value]="null">`; Material then shows the placeholder.
 - Material's select behaves like the native one: Enter or Space opens the
   list, and an arrow key or a letter on the closed select changes the value.
-- Menu: `<mat-menu>` of `<button mat-menu-item>`, opened with
-  `[matMenuTriggerFor]`, or `[matContextMenuTriggerFor]` for one at the
-  pointer. When the items depend on what was clicked, put them in
-  `<ng-template matMenuContent>`: content outside it is rendered with the
-  page, and shows the last target's items for a frame.
-- A Material menu reads its keys from its own panel, so they work once the
-  panel holds focus. An e2e test waits for the first item to be focused
-  before it sends a key.
-- An open menu or select sits over a transparent backdrop. A test that
-  clicks its trigger a second time clicks the coordinates, not the element.
+- An open select sits over a transparent backdrop. A test that clicks its
+  trigger a second time clicks the coordinates, not the element.
 - Dialog: `<ui-dialog>` (`src/app/ui/dialog.ts`) opens Material's dialog
   from a template and keeps it in step with `[visible]`; `Confirm` opens it
   from code. Both set `delayFocusTrap: false` and Material's enter and exit
@@ -573,6 +565,26 @@ code errors.
   behind `ngDevMode`, which a production build defines as false. CI serves
   `npm run build:catalogue` (`dist/catalogue`, under the app's `_headers`)
   on port 4201; locally `ng serve` has it.
+- Menu: `<ui-menu>` (`src/app/ui/menu.ts`) is Aria's `ngMenu` in the
+  CDK's overlay, its items a `UiMenuItem[]`. A button opens it through
+  Aria's trigger (`ngMenuTrigger #t="ngMenuTrigger" [menu]="m.menu()"`,
+  and `<ui-menu #m [trigger]="t">`); a row opens it at the pointer with
+  `openAt(event, restore)` from its `(contextmenu)`, which a right-click
+  and Shift+F10 on a tree row both send. Its first item has focus when it
+  opens. What it does that Aria does not, each with a test:
+  - the items are not in `ngMenuContent`: drawn a render after the panel,
+    they came after the CDK had placed the panel as empty, below a button
+    where the menu did not fit;
+  - Tab closes it from what opened it, so the key goes on from there:
+    Firefox kept focus in the menu and Chromium moved it to the button;
+  - opened at the pointer, the right button's release is not a click
+    outside, and Escape, a choice and Tab hand focus back through
+    `restore`; a click elsewhere leaves focus where it went;
+  - its host is `display: contents`: an element in a flex row took a gap.
+- On a button that Material's `matButton` also draws, `[disabled]` reaches
+  Aria's trigger too, and Aria's default `softDisabled` writes no
+  `disabled` attribute: give such a trigger `[softDisabled]="false"`, or
+  the two fight over the attribute.
 - In forced colours a background is taken away: a state shown only by one
   (a selected row) needs another mark there, tested with
   `page.emulateMedia({ forcedColors: "active" })`.

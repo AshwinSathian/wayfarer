@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Menus are built on Angular Aria, and a click away from a collection's
+  menu leaves focus where you clicked.** Before, closing a collection's
+  right-click menu by clicking elsewhere sent focus back to the tree row,
+  away from what you had just clicked. Its rows now have the same small
+  gaps as the app's other menus; before, they sat flush. The keys are the
+  same: arrows, Home, End, a letter to jump, Enter or Space to choose,
+  Escape to close and Tab to move on.
+
 - **A click on a collection or a folder in the tree now opens or closes
   it, and in a high-contrast theme the selected row is marked.** Before,
   only the small arrow beside its name did, and a click on the name

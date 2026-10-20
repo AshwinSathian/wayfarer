@@ -50,7 +50,7 @@
   animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
 }
 
-/* Material animates its own menus and select lists. */
+/* Material animates its own select lists; ui-menu animates in menu.css. */
 .ui-confirm-popup .cdk-dialog-container,
 .ui-popover {
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;

@@ -6,7 +6,8 @@ import { EventList } from "./event-list";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
+import { MenuTrigger } from "@angular/aria/menu";
+import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatOption } from "@angular/material/core";
@@ -68,7 +69,7 @@ interface ResponseHeader {
     HtmlPreview,
     MatButton, MatIconButton,
     MatSelect, MatOption,
-    MatMenu, MatMenuItem, MatMenuTrigger,
+    MenuTrigger, UiMenu,
   ],
   templateUrl: "./response-viewer.html",
   changeDetection: ChangeDetectionStrategy.OnPush,

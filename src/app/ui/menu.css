@@ -1,0 +1,62 @@
+/* <ui-menu> draws nothing where it sits: its panel is in the CDK's overlay.
+   In a flex row an element would take a gap of its own. */
+:host {
+  display: contents;
+}
+
+/* The panel. */
+.ui-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  padding: 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
+  color: var(--label-primary);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.002em;
+  line-height: normal;
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+.ui-menu--context {
+  min-width: 12.5rem;
+}
+
+.ui-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-standard);
+}
+
+/* Focus from the keyboard shows; the first item, focused as a click opens the menu, does not. */
+.ui-menu-item:hover,
+.ui-menu-item:focus-visible {
+  background: var(--fill-hover);
+}
+
+
+/* Forced colours take the background away: the item that has focus keeps an outline. */
+@media (forced-colors: active) {
+  .ui-menu-item:focus {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+.ui-menu-icon {
+  color: var(--ctl-menu-icon);
+  font-size: 18px;
+}
+
+.ui-menu-separator {
+  border-top: 1px solid var(--ctl-surface-border);
+}

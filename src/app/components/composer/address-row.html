@@ -17,13 +17,11 @@
     matIconButton class="btn-plain address-method method-menu"
     type="button"
     aria-label="Common methods"
-    [matMenuTriggerFor]="methods"
+    ngMenuTrigger
+    #methodsTrigger="ngMenuTrigger"
+    [menu]="methods.menu()"
   ><app-icon name="keyboard_arrow_down" class="icon-sm" /></button>
-  <mat-menu #methods="matMenu">
-    @for (method of requestMethods; track method) {
-    <button mat-menu-item type="button" (click)="view.onRequestMethodChange(method)">{{ method }}</button>
-    }
-  </mat-menu>
+  <ui-menu #methods [trigger]="methodsTrigger" [items]="methodItems" />
 
   <!-- URL input -->
   <mat-form-field class="field address-field">
@@ -71,19 +69,14 @@
       matTooltipPosition="below"
       [matTooltipDisabled]="!store.draft().url"
       aria-label="Copy as cURL"
-      [matMenuTriggerFor]="curlMenu"
+      ngMenuTrigger
+      #curlTrigger="ngMenuTrigger"
+      [softDisabled]="false"
+      [menu]="curlMenu.menu()"
       class="btn-secondary btn-square curl-btn"
     ><app-icon name="terminal" /></button>
   </span>
-  <!-- Credentials are masked unless asked for; a vault secret's reference stays as written. -->
-  <mat-menu #curlMenu="matMenu">
-    <button mat-menu-item type="button" (click)="store.copyAsCurl()">Copy as cURL</button>
-    <button mat-menu-item type="button" (click)="store.copyAsCurl({ credentials: true })">Copy as cURL with credentials</button>
-    <!-- The same request as code, masked as the first cURL item is (P4.6 a). -->
-    <button mat-menu-item type="button" (click)="store.copyAsCode('fetch')">Copy as JavaScript (fetch)</button>
-    <button mat-menu-item type="button" (click)="store.copyAsCode('python-requests')">Copy as Python (requests)</button>
-    <button mat-menu-item type="button" (click)="store.copyAsCode('httpie')">Copy as HTTPie</button>
-  </mat-menu>
+  <ui-menu #curlMenu [trigger]="curlTrigger" [items]="curlItems" />
   <button
     matButton="outlined" class="btn-secondary btn-square"
     type="button"

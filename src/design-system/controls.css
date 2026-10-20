@@ -793,49 +793,6 @@
   width: 28px;
 }
 
-/* ── Menu ────────────────────────────────────────────────── */
-/* Markup: <mat-menu> of <button mat-menu-item>, with an optional
-   <app-icon class="menu-icon"> and <div class="menu-separator" role="separator">
-   between groups. class="menu-context" on a menu opened at the pointer.
-   Colours and type come through Material's tokens. */
-.cdk-overlay-pane .mat-mdc-menu-panel {
-  min-width: 160px;
-  border: 1px solid var(--border-strong);
-}
-
-.cdk-overlay-pane .mat-mdc-menu-panel.menu-context {
-  min-width: 12.5rem;
-}
-
-.mat-mdc-menu-panel .mat-mdc-menu-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 9px;
-}
-
-.mat-mdc-menu-panel .mat-mdc-menu-item {
-  min-height: 0;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  transition: background var(--dur-micro) var(--ease-standard);
-}
-
-.mat-mdc-menu-panel .mat-mdc-menu-item-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.menu-icon {
-  color: var(--ctl-menu-icon);
-  font-size: 18px;
-}
-
-.menu-separator {
-  border-top: 1px solid var(--ctl-surface-border);
-}
-
 /* ── Dialog ──────────────────────────────────────────────── */
 /* Material's dialog, opened by <ui-dialog> (panel class dialog-panel) and by
    the Confirm service (confirm-panel). The surface colour, shape, shadow and

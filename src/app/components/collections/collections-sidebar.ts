@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { MatContextMenuTrigger, MatMenu, MatMenuContent, MatMenuItem } from "@angular/material/menu";
+import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
@@ -46,7 +46,7 @@ export interface PaletteAction {
     Icon,
     FormsModule,
     Tree,
-    MatMenu, MatMenuContent, MatMenuItem, MatContextMenuTrigger,
+    UiMenu,
     MatButton,
     Dialog,
     MatSelect, MatOption,

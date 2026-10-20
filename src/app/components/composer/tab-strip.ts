@@ -1,11 +1,12 @@
-import { ApplicationRef, ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, inject, input, output } from "@angular/core";
+import { ApplicationRef, ChangeDetectionStrategy, Component, inject, output } from "@angular/core";
+import { Tab, TabContent, TabPanel } from "@angular/aria/tabs";
 import { MatIconButton } from "@angular/material/button";
-import { MatTabLink, MatTabNav, MatTabNavPanel } from "@angular/material/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
 import { Icon } from "../../shared/icon/icon";
 import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
 import { Confirm } from "../../ui/confirm";
+import { UiTabList } from "../../ui/tabs";
 
 /**
  * The composer's tabs (P5.1): one per request being composed, and the three
@@ -14,7 +15,7 @@ import { Confirm } from "../../ui/confirm";
  */
 @Component({
   selector: "app-tab-strip",
-  imports: [Icon, MatIconButton, MatTabLink, MatTabNav, MatTooltip],
+  imports: [Icon, MatIconButton, MatTooltip, Tab, TabContent, TabPanel, UiTabList],
   templateUrl: "./tab-strip.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(window:keydown)": "onKeydown($event)" },
@@ -24,25 +25,8 @@ export class TabStrip {
   private readonly confirm = inject(Confirm);
   private readonly app = inject(ApplicationRef);
 
-  /** The panel the tabs are tabs of: the composer. */
-  readonly panel = input.required<MatTabNavPanel>();
   /** A tab was opened and is empty: the composer puts the caret in its address field. */
   readonly opened = output<void>();
-
-  constructor() {
-    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-    // The bar scrolls sideways and Material's paging is off: the open tab is brought into it. The bar is moved, not the page.
-    afterRenderEffect(() => {
-      this.tabs.active();
-      const bar = host.querySelector(".mat-mdc-tab-link-container");
-      const open = host.querySelector(".mdc-tab--active")?.getBoundingClientRect();
-      if (!bar || !open) return;
-      const room = bar.getBoundingClientRect();
-      // Whole pixels, rounded outward: WebKit left a tab 0.4% out of the bar.
-      if (open.left < room.left) bar.scrollLeft -= Math.ceil(room.left - open.left);
-      else if (open.right > room.right) bar.scrollLeft += Math.ceil(open.right - room.right);
-    });
-  }
 
   /** The saved request's name, or else the address, or else that it is new. */
   protected label(tab: TabState): string {

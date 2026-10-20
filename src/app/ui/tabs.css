@@ -1,0 +1,125 @@
+/* The tabs of [uiTabList] and their panes. Not encapsulated: the tabs and the
+   panes are written in the template that uses the bar. */
+.tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The list. A bar that does not fit scrolls sideways, without a scrollbar. */
+.tab-bar {
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--separator);
+  /* Tabs are fractions of a pixel wide and the scroll range is whole pixels:
+     without this pixel WebKit could not scroll the last tab fully in. */
+  padding-inline-end: 1px;
+}
+
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-bar [role="tab"] {
+  position: relative;
+  flex: none;
+  /* 2px more below: the chosen tab's line is drawn inside it, under the label. */
+  padding: 10px 16px 12px;
+  border: 0;
+  background: none;
+  color: var(--label-secondary);
+  font-family: inherit;
+  font-size: var(--type-callout-size);
+  font-weight: 500;
+  letter-spacing: var(--type-callout-tracking);
+  line-height: normal;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--dur-quick) var(--ease-standard);
+}
+
+.tab-bar [role="tab"]:hover,
+.tab-bar [role="tab"][aria-selected="true"] {
+  color: var(--label-primary);
+}
+
+/* A border, not a background or a shadow: forced colours keep it. */
+.tab-bar [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  border-bottom: 2px solid var(--accent);
+}
+
+.tab-bar [role="tab"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* The composer's own tabs (P5.1): a request each, above the composer. The
+   bar takes the room the three buttons beside it leave and scrolls. */
+.request-tab-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.request-tab-strip .request-tabs {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.request-tabs [role="tab"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.request-tab-method {
+  font-size: var(--type-footnote-size);
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+
+.request-tab-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.request-tab-unsaved {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* The panes. Aria makes a pane that is not shown inert and leaves hiding it to us. */
+.tab-panes {
+  display: block;
+  padding: 18px 0 0;
+  color: var(--ctl-surface-text);
+}
+
+.tab-pane[inert] {
+  display: none;
+}
+
+/* A pane that is shown re-enters the render tree, so the animation replays on
+   every switch. Opacity only: what is in a pane is pressed as soon as it
+   shows (F48). */
+.tab-pane:not([inert]) {
+  animation: fade-in var(--dur-standard) var(--ease-standard) both;
+}
+
+/* A pane is in the tab order (Aria's tabindex, as WAI-ARIA's pattern asks). */
+[role="tabpanel"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

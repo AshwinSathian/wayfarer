@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Tabs are built on Angular Aria, and Tab from a tab now stops on its
+  pane.** This covers the open requests, a request's parts, the response, an
+  environment's editor and a collection's settings. The keys are the same:
+  arrows (they wrap), Home and End move between tabs, and the tab you land
+  on opens. The pane under the tabs is now in the tab order between the tabs
+  and what the pane holds, as WAI-ARIA's tabs pattern asks; the pane is
+  named by its tab. Getting to the pane's first field takes one more Tab. A pane is now built the first time you open its tab, then
+  kept. Behind this, the app's first download is 21 kB smaller (3.9 kB
+  compressed), and the size budgets are reset to it: initial 1,373,853 B
+  raw and 355,869 B gzip; budgets 1443kb, 1512kb and 391,456 B.
+
 - **Menus are built on Angular Aria, and a click away from a collection's
   menu leaves focus where you clicked.** Before, closing a collection's
   right-click menu by clicking elsewhere sent focus back to the tree row,

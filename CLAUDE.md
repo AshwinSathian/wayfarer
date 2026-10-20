@@ -305,6 +305,9 @@ code errors.
 - Import single directives and pipes, not `CommonModule`.
 - Never write `standalone: true`. Use `styleUrl`, not `styleUrls`.
 - Lifecycle hooks are synchronous: `void this.load()`, not `async ngOnInit`.
+- A template listener's value is its return: one that gives `false`
+  (`(keydown)="a && b()"`) has its event's default prevented. Call a
+  method that returns nothing. It stopped Escape and Tab on the tabs.
 
 ## Styling and layout
 
@@ -434,7 +437,7 @@ code errors.
   - wrappers that give a Material component what this app needs from it:
     `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
-    `ui-tree`, `ui-menu`;
+    `ui-tree`, `ui-menu`, `uiTabList`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
     `uiHoverCard` (a tooltip that takes a template), and the confirmation
     placed under a button.
@@ -458,12 +461,6 @@ code errors.
   button that clicks a hidden `<input type="file">`.
 - Segmented choice: `<mat-button-toggle-group class="segmented"
   hideSingleSelectionIndicator>`.
-- Tabs: a `mat-tab-nav-bar` (class `tab-bar`) of `<button mat-tab-link>` and
-  one `mat-tab-nav-panel` (class `tab-panes`) holding a `tab-pane` div per
-  tab, each with `[hidden]`. Not `mat-tab-group`: it renders a tab's content
-  only once selected, and an editor in a pane must stay mounted. Each link
-  selects on `(click)` and on `(focus)`, so arrow keys switch panels as they
-  move.
 - Accordion: `<mat-accordion class="sections" displayMode="flat" hideToggle>`
   with the app's `section-chevron` icon in each header. To hold one panel
   open from a signal, bind `[expanded]` and handle `(opened)` and
@@ -585,6 +582,34 @@ code errors.
     menu drawn under a still pointer gets one from the browser, and Aria
     moved focus to the item there, not the first (Shift+F10 after a click
     in the same place).
+- Tabs: an `ngTabs` holding a `uiTabList` (`src/app/ui/tabs.ts`, Aria's
+  `ngTabList` with the app's styles in `tabs.css`) of `<button ngTab
+  value="…">`, and one `ngTabPanel` per tab (class `tab-pane`, in a
+  `tab-panes` div) with `[preserveContent]="true"` and its content in
+  `<ng-template ngTabContent>`. Bind `[selectedTab]` and listen to
+  `(selectedTabChange)`. A pane is made the first time its tab is chosen and
+  kept after: `preserveContent` is false by default in 22.2.3, whatever
+  Angular's guide says, and an editor in a pane must stay mounted. A
+  hidden pane is `inert` (Aria) and `display: none` (ours); a shown pane is
+  in the tab order (Aria's `tabindex="0"`, as WAI-ARIA's pattern asks). The
+  composer's request tabs are one `ngTabs` on `app-composer` (a host
+  directive): the open tab's panel is the composer, and the strip gives each
+  other tab an empty one, so that every tab controls a panel. A pane whose
+  tab is not there is shown (Aria hides a panel only when its tab is not
+  chosen): put a pane under the same `@if` as its tab. A rule for a shown
+  pane reads `:not([inert])`. What
+  `uiTabList` does that Aria does not, each with a test in `tabs.spec.ts`:
+  - a tab chosen by code (Alt+T, the composer opening Body) becomes Aria's
+    active tab, the tab stop and the one the arrows move from;
+  - so does a tab focused by code, and it is chosen, as one focused by
+    its keys is (Material chose a tab on any focus);
+  - when the chosen value has no tab (Body, for a GET), Aria sends
+    `undefined` and forgets the value: that is not passed on, and the value
+    is given again when the tabs change, so the tab is chosen when it comes
+    back;
+  - the bar scrolls sideways and brings the chosen tab into it;
+  - a click, or a key Aria took, is drawn at once (`ApplicationRef.tick`):
+    Chromium took a Tab before the next render, into the pane shown before.
 - Aria's trigger takes Escape on its button and stops it, also with the
   menu closed, so a Material tooltip there never hears it: the button hides
   its own (`(keydown.escape)="tip.hide(0)"`, the cURL button).

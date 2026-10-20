@@ -179,29 +179,6 @@ html {
   );
 }
 
-/* ── Tabs ────────────────────────────────────────────────── */
-html {
-  @include mat.tabs-overrides(
-    (
-      divider-color: var(--separator),
-      active-indicator-color: var(--accent),
-      active-hover-indicator-color: var(--accent),
-      active-focus-indicator-color: var(--accent),
-      active-indicator-height: 2px,
-      active-indicator-shape: 0,
-      inactive-label-text-color: var(--label-secondary),
-      inactive-hover-label-text-color: var(--label-primary),
-      inactive-focus-label-text-color: var(--label-secondary),
-      active-label-text-color: var(--label-primary),
-      active-hover-label-text-color: var(--label-primary),
-      active-focus-label-text-color: var(--label-primary),
-      label-text-size: 13px,
-      label-text-weight: 500,
-      label-text-tracking: -0.002em,
-    )
-  );
-}
-
 /* ── Accordion (expansion panel) ─────────────────────────── */
 html {
   @include mat.expansion-overrides(

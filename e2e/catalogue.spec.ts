@@ -52,6 +52,20 @@ for (const theme of ["light", "dark"] as const) {
     await scan("menu, a row's, at the pointer");
     await page.keyboard.press("Escape");
 
+    const parts = page.getByRole("tablist", { name: "Request parts" });
+    await parts.getByRole("tab", { name: "Tests" }).click();
+    await scan("tabs, one chosen by a click");
+    await page.keyboard.press("ArrowLeft");
+    await expect(parts.getByRole("tab", { name: "Body" })).toBeFocused();
+    await scan("tabs, one focused from the keyboard");
+    await parts.getByRole("tab", { name: "Params" }).hover();
+    await scan("tabs, one under the pointer");
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("tabpanel", { name: "Body" })).toBeFocused();
+    await scan("tabs, a pane focused");
+    await page.getByRole("button", { name: "Open the last request from code" }).click();
+    await scan("tabs, a bar too narrow for its tabs");
+
     expect(found).toEqual([]);
   });
 }
@@ -172,6 +186,81 @@ test("menu: a row's menu opens at the pointer and at the row, for that row, and 
   await page.getByRole("button", { name: "Export" }).click();
   await expect(page.getByRole("menu")).toHaveCount(1);
   await expect(page.getByRole("menuitem").first()).toHaveText("Copy as cURL");
+});
+
+test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", async ({ page }) => {
+  await open(page, "light");
+  const parts = page.getByRole("tablist", { name: "Request parts" });
+  const tab = (name: string) => parts.getByRole("tab", { name, exact: true });
+  const shown = page.locator(".tabs", { has: parts }).getByRole("tabpanel");
+
+  // One tab is in the tab order: the chosen one. Its pane is the only one shown, and is labelled by it.
+  await expect(parts.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+  await tab("Headers").focus();
+  await expect(tab("Headers")).toHaveAttribute("aria-selected", "true");
+  await expect(shown).toHaveCount(1);
+  await expect(shown).toHaveAccessibleName("Headers");
+  await page.getByLabel("Header name").fill("Accept");
+
+  // A focused tab is chosen. The arrows wrap; Home and End go to the ends.
+  await tab("Headers").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(tab("Body")).toBeFocused();
+  await expect(tab("Body")).toHaveAttribute("aria-selected", "true");
+  await expect(shown).toHaveAccessibleName("Body");
+  await page.keyboard.press("End");
+  await expect(tab("Tests 2")).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(tab("Params")).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(tab("Tests 2")).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
+  await expect(parts.locator('[role="tab"][tabindex="0"]')).toHaveAccessibleName("Params");
+
+  // Tab goes on to the pane, then into it; a pane kept its field while another was shown.
+  await tab("Headers").click();
+  await expect(page.getByLabel("Header name")).toHaveValue("Accept");
+  await page.keyboard.press("Tab");
+  await expect(shown).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Header name")).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Shift+Tab");
+  await expect(tab("Headers")).toBeFocused();
+});
+
+test("tabs: a tab chosen by code takes the tab stop and is brought into a narrow bar", async ({ page }) => {
+  await open(page, "light");
+  const strip = page.getByRole("tablist", { name: "Open requests" });
+  const tab = (name: RegExp) => strip.getByRole("tab", { name });
+  await tab(/List users/).focus();
+  await page.getByRole("button", { name: "Open the last request from code" }).click();
+  await expect(tab(/Delete a customer/)).toHaveAttribute("aria-selected", "true");
+  await expect(strip.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+  await expect(strip.locator('[role="tab"][tabindex="0"]')).toHaveAccessibleName(/Delete a customer/);
+  const bar = (await strip.boundingBox())!;
+  const chosen = (await tab(/Delete a customer/).boundingBox())!;
+  expect(chosen.x + chosen.width).toBeLessThanOrEqual(bar.x + bar.width + 1);
+  // The arrows move from it, not from the tab that had focus before. (Shift+Tab back from the button
+  // is not used: WebKit left focus on a button focused by a script.)
+  await tab(/Delete a customer/).focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(tab(/Replay an event/)).toHaveAttribute("aria-selected", "true");
+});
+
+test("tabs: in forced colours the chosen tab is still marked", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const parts = page.getByRole("tablist", { name: "Request parts" });
+  const line = (name: string) =>
+    parts.getByRole("tab", { name, exact: true }).evaluate((el) => {
+      const after = getComputedStyle(el, "::after");
+      return after.content === "none" ? "none" : `${after.borderBottomStyle} ${after.borderBottomWidth}`;
+    });
+  await expect.poll(() => line("Headers")).toBe("solid 2px");
+  expect(await line("Body")).toBe("none");
 });
 
 test("tree: in forced colours the selected row is still marked", async ({ page }) => {

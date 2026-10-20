@@ -1,6 +1,8 @@
-<app-tab-strip class="request-tab-strip" [panel]="requestPanel" (opened)="focusUrl()" />
+<app-tab-strip class="request-tab-strip" (opened)="focusUrl()" />
 
-<mat-tab-nav-panel #requestPanel class="ds-panel p-6 w-full space-y-5" [class]="isMobile() ? 'block' : 'flex min-h-0 flex-1 flex-col overflow-y-auto'">
+<!-- The open tab's panel; the others' are empty, in the strip. -->
+<div ngTabPanel [value]="tabs.active().id" class="ds-panel p-6 w-full space-y-5" [class]="isMobile() ? 'block' : 'flex min-h-0 flex-1 flex-col overflow-y-auto'" [preserveContent]="true">
+<ng-template ngTabContent>
 
   @if (tabs.active().run; as run) {
   <app-run-view class="block space-y-5" [run]="run" />
@@ -147,58 +149,58 @@
       <div uiSplitterStart class="composer-pane">
         <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
           <div class="px-2 pt-1">
-            <div class="tabs">
+            <div ngTabs class="tabs">
               <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 w-full pr-2">
-                <div mat-tab-nav-bar class="tab-bar" [tabPanel]="composerPanel" [mat-stretch-tabs]="false" disablePagination>
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'params'" (click)="view.onActiveTabChange('params')" (focus)="view.onActiveTabChange('params')">Params</button>
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'headers'" (click)="view.onActiveTabChange('headers')" (focus)="view.onActiveTabChange('headers')">Headers</button>
+                <div uiTabList [selectedTab]="view.activeTab()" (selectedTabChange)="view.onActiveTabChange($event)">
+                  <button ngTab type="button" value="params">Params</button>
+                  <button ngTab type="button" value="headers">Headers</button>
                   @if (hasBody) {
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'body'" (click)="view.onActiveTabChange('body')" (focus)="view.onActiveTabChange('body')">Body</button>
+                  <button ngTab type="button" value="body">Body</button>
                   }
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'auth'" (click)="view.onActiveTabChange('auth')" (focus)="view.onActiveTabChange('auth')">Auth</button>
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'scripts'" (click)="view.onActiveTabChange('scripts')" (focus)="view.onActiveTabChange('scripts')">Scripts</button>
-                  <button mat-tab-link type="button" [active]="view.activeTab() === 'settings'" (click)="view.onActiveTabChange('settings')" (focus)="view.onActiveTabChange('settings')">Settings</button>
+                  <button ngTab type="button" value="auth">Auth</button>
+                  <button ngTab type="button" value="scripts">Scripts</button>
+                  <button ngTab type="button" value="settings">Settings</button>
                 </div>
 
               </div>
 
-              <mat-tab-nav-panel #composerPanel class="tab-panes">
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'params'">
+              <div class="tab-panes">
+                <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <app-params-panel class="flex flex-col gap-2" />
                   </div>
-                </div>
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'headers'">
+                </ng-template></div>
+                <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <app-headers-panel class="block" />
                   </div>
-                </div>
+                </ng-template></div>
                 @if (hasBody) {
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'body'">
+                <div ngTabPanel value="body" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <app-body-panel class="block" />
                   </div>
-                </div>
+                </ng-template></div>
                 }
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'auth'">
+                <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <app-auth-panel />
                   </div>
-                </div>
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'scripts'">
+                </ng-template></div>
+                <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <!-- Its editors are Monaco: made when the tab is first chosen, and kept mounted after (P7.2). -->
                     @defer (when view.activeTab() === 'scripts') {
                     <app-scripts-panel class="block space-y-6" />
                     }
                   </div>
-                </div>
-                <div class="tab-pane" [hidden]="view.activeTab() !== 'settings'">
+                </ng-template></div>
+                <div ngTabPanel value="settings" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
                   <div class="px-4 pb-5">
                     <app-browser-notes class="block space-y-4" />
                   </div>
-                </div>
-              </mat-tab-nav-panel>
+                </ng-template></div>
+              </div>
             </div>
           </div>
         </section>
@@ -217,7 +219,8 @@
   }
 
   }
-</mat-tab-nav-panel>
+</ng-template>
+</div>
 
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>

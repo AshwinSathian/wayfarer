@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { MenuTrigger } from "@angular/aria/menu";
+import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { MatButton } from "@angular/material/button";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
+import { UiTabList } from "../ui/tabs";
 import { Tree, UiTreeNode } from "../ui/tree";
 
 interface Row {
@@ -21,7 +23,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 @Component({
   // index.html's root element is the app's.
   selector: "app-root",
-  imports: [MatButton, MenuTrigger, Tree, UiMenu],
+  imports: [MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiMenu, UiTabList],
   template: `
     <main class="catalogue">
       <h1 class="type-title-2">Widget catalogue</h1>
@@ -47,6 +49,48 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <ui-menu #menu [trigger]="trigger" [items]="menuItems" />
         <p class="type-callout" role="status">{{ chosen() }}</p>
       </section>
+
+      <section aria-labelledby="catalogue-tabs">
+        <h2 id="catalogue-tabs" class="type-title-3">Tabs</h2>
+        <p class="type-callout text-label-secondary">A request's parts, one with a count; a pane with a field, kept while another is shown.</p>
+        <div ngTabs class="tabs">
+          <div uiTabList aria-label="Request parts" [selectedTab]="part()" (selectedTabChange)="part.set($event)">
+            <button ngTab type="button" value="params">Params</button>
+            <button ngTab type="button" value="headers">Headers</button>
+            <button ngTab type="button" value="body">Body</button>
+            <button ngTab type="button" value="tests">Tests <span class="catalogue-count type-footnote tabular-nums">2</span></button>
+          </div>
+          <div class="tab-panes">
+            <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><p class="type-callout">No parameters.</p></ng-template></div>
+            <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true">
+              <ng-template ngTabContent>
+                <label for="catalogue-header" class="type-callout">Header name</label>
+                <input id="catalogue-header" class="catalogue-input type-mono-body" />
+              </ng-template>
+            </div>
+            <div ngTabPanel value="body" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><p class="type-callout">This request has no body.</p></ng-template></div>
+            <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><p class="type-callout">2 tests passed.</p></ng-template></div>
+          </div>
+        </div>
+        <p class="type-callout text-label-secondary">The open requests, in a bar too narrow for them: it scrolls, and the open one is brought into it.</p>
+        <div ngTabs class="catalogue-narrow">
+          <div uiTabList class="request-tabs" aria-label="Open requests" [selectedTab]="request()" (selectedTabChange)="request.set($event)">
+            @for (open of openRequests; track open.id) {
+              <button ngTab type="button" [value]="open.id">
+                <span class="request-tab-method">{{ open.method }}</span>
+                <span class="request-tab-name">{{ open.name }}</span>
+                @if (open.unsaved) {
+                  <span class="request-tab-unsaved" role="img" aria-label="Unsaved changes"></span>
+                }
+              </button>
+            }
+          </div>
+          @for (open of openRequests; track open.id) {
+            <div ngTabPanel [value]="open.id" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><p class="type-callout">{{ open.name }}</p></ng-template></div>
+          }
+        </div>
+        <button matButton="outlined" class="btn-secondary" type="button" (click)="request.set('r4')">Open the last request from code</button>
+      </section>
     </main>
   `,
   styles: `
@@ -60,12 +104,35 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       display: block;
       max-width: 352px;
     }
+    .catalogue-narrow {
+      max-width: 240px;
+    }
+    .catalogue-count {
+      margin-inline-start: 4px;
+    }
+    .catalogue-input {
+      display: block;
+      margin-top: 4px;
+      padding: 4px 8px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--label-primary);
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Catalogue {
   protected readonly chosen = signal("Nothing chosen yet.");
   protected readonly row = signal("");
+  protected readonly part = signal("headers");
+  protected readonly request = signal("r1");
+  protected readonly openRequests = [
+    { id: "r1", method: "GET", name: "List users", unsaved: false },
+    { id: "r2", method: "POST", name: "Create a refund", unsaved: true },
+    { id: "r3", method: "PUT", name: "Replay an event", unsaved: false },
+    { id: "r4", method: "DELETE", name: "Delete a customer", unsaved: false },
+  ];
   protected readonly menuItems: UiMenuItem[] = [
     { label: "Copy as cURL", icon: "terminal", command: () => this.chosen.set("Chose Copy as cURL.") },
     { label: "Export as HAR…", icon: "download", command: () => this.chosen.set("Chose Export as HAR….") },

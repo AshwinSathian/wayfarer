@@ -107,15 +107,15 @@
 
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="response-tabs px-4 pt-1">
-      <div class="tabs">
-        <div mat-tab-nav-bar class="tab-bar" [tabPanel]="responsePanel" [mat-stretch-tabs]="false" disablePagination>
-          <button mat-tab-link type="button" [active]="activeTab() === 'body'" (click)="onTabChange('body')" (focus)="onTabChange('body')">Body</button>
-          <button mat-tab-link type="button" [active]="activeTab() === 'headers'" (click)="onTabChange('headers')" (focus)="onTabChange('headers')">Headers</button>
-          <button mat-tab-link type="button" [active]="activeTab() === 'timings'" (click)="onTabChange('timings')" (focus)="onTabChange('timings')">Timings</button>
+      <div ngTabs class="tabs">
+        <div uiTabList [selectedTab]="activeTab()" (selectedTabChange)="activeTab.set($event)">
+          <button ngTab type="button" value="body">Body</button>
+          <button ngTab type="button" value="headers">Headers</button>
+          <button ngTab type="button" value="timings">Timings</button>
           @if (eventCount()) {
-          <button mat-tab-link type="button" [active]="activeTab() === 'events'" (click)="onTabChange('events')" (focus)="onTabChange('events')">Events</button>
+          <button ngTab type="button" value="events">Events</button>
           }
-          <button mat-tab-link type="button" [active]="activeTab() === 'tests'" (click)="onTabChange('tests')" (focus)="onTabChange('tests')">
+          <button ngTab type="button" value="tests">
             Tests
             @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
@@ -130,9 +130,9 @@
           </button>
         </div>
 
-        <mat-tab-nav-panel #responsePanel class="tab-panes">
+        <div class="tab-panes">
           <!-- ── Body tab ───────────────────────────────────── -->
-          <div class="tab-pane response-body-pane" [hidden]="activeTab() !== 'body'">
+          <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"><ng-template ngTabContent>
             <div class="space-y-3 pb-4">
               @if (views().length > 1 || view() === 'json') {
               <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
@@ -272,10 +272,10 @@
                 }
               }
             </div>
-          </div>
+          </ng-template></div>
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <div class="tab-pane" [hidden]="activeTab() !== 'headers'">
+          <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
             <div class="pb-4">
               <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
               @if (headersLimited()) {
@@ -308,10 +308,10 @@
                 }
               </div>
             </div>
-          </div>
+          </ng-template></div>
 
           <!-- ── Timings tab ────────────────────────────────── -->
-          <div class="tab-pane" [hidden]="activeTab() !== 'timings'">
+          <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
             @let inspectionData = inspectionValue;
             @if (!inspectionData) {
             <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
@@ -420,15 +420,15 @@
               </div>
             </div>
             }
-          </div>
+          </ng-template></div>
 
           <!-- ── Tests tab ──────────────────────────────────── -->
           @if (eventCount()) {
-          <div class="tab-pane" [hidden]="activeTab() !== 'events'">
+          <div ngTabPanel value="events" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
             <app-event-list class="block space-y-3 p-4" [events]="events()" [count]="eventCount()" [note]="eventsNote()" (reconnect)="reconnectStream.emit()" />
-          </div>
+          </ng-template></div>
           }
-          <div class="tab-pane" [hidden]="activeTab() !== 'tests'">
+          <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
             <div class="space-y-2 pb-4">
               @if (scriptsSkipped()) {
               <p role="status" class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
@@ -489,8 +489,8 @@
               </section>
               }
             </div>
-          </div>
-        </mat-tab-nav-panel>
+          </ng-template></div>
+        </div>
       </div>
     </div>
   </div>

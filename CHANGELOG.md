@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **On a phone, a section of the composer or a past request opens at its
+  full height and fades in.** Before, it grew to its height over 0.2 s or
+  more, and what was under it slid down with it; the app's other panels
+  fade, and now these do too. The sections are built on Angular Aria; the
+  keys are the same: Enter or Space opens and closes the focused section,
+  and ArrowUp, ArrowDown, Home and End move between the headers. A section
+  is now built the first time you open it, then kept. The app's first
+  download is 11.8 kB smaller (1.7 kB compressed), and the size budgets are
+  reset to it: initial 1,362,009 B raw and 354,216 B gzip; budgets 1430kb,
+  1499kb and 389,638 B.
+
 - **Tabs are built on Angular Aria, and Tab from a tab now stops on its
   pane.** This covers the open requests, a request's parts, the response, an
   environment's editor and a collection's settings. The keys are the same:

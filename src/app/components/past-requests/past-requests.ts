@@ -2,7 +2,8 @@ import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
+import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
+import { UiAccordion, UiAccordionPanel } from "../../ui/accordion";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatCheckbox } from "@angular/material/checkbox";
@@ -38,7 +39,7 @@ export interface HistoryGroup {
     MatButton,
     MatTooltip,
     HoverCard,
-    MatAccordion, MatExpansionPanel, MatExpansionPanelHeader,
+    AccordionContent, AccordionPanel, AccordionTrigger, UiAccordion, UiAccordionPanel,
     MatCheckbox,
     HarExportDialog,
   ],

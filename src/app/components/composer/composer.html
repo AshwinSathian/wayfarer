@@ -63,73 +63,9 @@
   @if (socket.isSocket()) {
   <app-socket-view class="block space-y-5" />
   } @else if (isMobile()) {
-  <!-- Mobile: single-tab-at-a-time accordion (deliberately non-multiple —
-       see mobileActivePanels' doc comment in ComposerView), stacked above
-       the response panel. Only one of Params/Headers/Body/Auth/Scripts is
-       ever expanded — and therefore mounted-and-visible — at a time, so at
-       most one Monaco instance is ever live here. -->
+  <!-- Mobile: the parts of the request as sections, one open at a time, stacked above the response panel. -->
   <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-in">
-    <mat-accordion class="sections" displayMode="flat" hideToggle>
-      <mat-expansion-panel
-        #paramsSection
-        [expanded]="view.mobileActivePanels() === 'params'"
-        (opened)="view.onMobileIndexChange('params')"
-        (closed)="view.onMobilePanelClosed('params', paramsSection)"
-      >
-        <mat-expansion-panel-header>Params <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <app-params-panel class="flex flex-col gap-2" />
-      </mat-expansion-panel>
-      <mat-expansion-panel
-        #headersSection
-        [expanded]="view.mobileActivePanels() === 'headers'"
-        (opened)="view.onMobileIndexChange('headers')"
-        (closed)="view.onMobilePanelClosed('headers', headersSection)"
-      >
-        <mat-expansion-panel-header>Headers <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <app-headers-panel class="block" />
-      </mat-expansion-panel>
-      @if (hasBody) {
-      <mat-expansion-panel
-        #bodySection
-        [expanded]="view.mobileActivePanels() === 'body'"
-        (opened)="view.onMobileIndexChange('body')"
-        (closed)="view.onMobilePanelClosed('body', bodySection)"
-      >
-        <mat-expansion-panel-header>Body <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <app-body-panel class="block" />
-      </mat-expansion-panel>
-      }
-      <mat-expansion-panel
-        #authSection
-        [expanded]="view.mobileActivePanels() === 'auth'"
-        (opened)="view.onMobileIndexChange('auth')"
-        (closed)="view.onMobilePanelClosed('auth', authSection)"
-      >
-        <mat-expansion-panel-header>Auth <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <app-auth-panel />
-      </mat-expansion-panel>
-      <mat-expansion-panel
-        #scriptsSection
-        [expanded]="view.mobileActivePanels() === 'scripts'"
-        (opened)="view.onMobileIndexChange('scripts')"
-        (closed)="view.onMobilePanelClosed('scripts', scriptsSection)"
-      >
-        <mat-expansion-panel-header>Scripts <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <!-- Its editors are Monaco: made when the section first opens, and kept (P7.2: at load they cost 300 ms of the main thread). -->
-        @defer (when view.mobileActivePanels() === 'scripts') {
-        <app-scripts-panel class="block space-y-6" />
-        }
-      </mat-expansion-panel>
-      <mat-expansion-panel
-        #settingsSection
-        [expanded]="view.mobileActivePanels() === 'settings'"
-        (opened)="view.onMobileIndexChange('settings')"
-        (closed)="view.onMobilePanelClosed('settings', settingsSection)"
-      >
-        <mat-expansion-panel-header>Settings <app-icon class="section-chevron" name="keyboard_arrow_down" /></mat-expansion-panel-header>
-        <app-browser-notes class="block space-y-4" />
-      </mat-expansion-panel>
-    </mat-accordion>
+    <app-composer-sections />
   </section>
 
   @if (store.shouldShowResponsePanel) {

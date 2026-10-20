@@ -66,6 +66,19 @@ for (const theme of ["light", "dark"] as const) {
     await page.getByRole("button", { name: "Open the last request from code" }).click();
     await scan("tabs, a bar too narrow for its tabs");
 
+    const header = (name: string) => page.locator(".catalogue-accordion").getByRole("button", { name, exact: true });
+    await header("Auth").click();
+    await expect(header("Auth")).toHaveAttribute("aria-expanded", "true");
+    await scan("accordion, a section opened by a click");
+    await header("Auth").focus();
+    await page.keyboard.press("ArrowUp");
+    await expect(header("Headers")).toBeFocused();
+    await scan("accordion, a header focused from the keyboard");
+    await header("Params").hover();
+    await scan("accordion, a header under the pointer");
+    await page.getByLabel("Header value").focus();
+    await scan("accordion, a field in a section focused");
+
     expect(found).toEqual([]);
   });
 }
@@ -247,6 +260,70 @@ test("tabs: a tab chosen by code takes the tab stop and is brought into a narrow
   await tab(/Delete a customer/).focus();
   await page.keyboard.press("ArrowLeft");
   await expect(tab(/Replay an event/)).toHaveAttribute("aria-selected", "true");
+});
+
+test("accordion: the keys of WAI-ARIA's accordion pattern, and keys typed inside a section", async ({ page }) => {
+  await open(page, "light");
+  const accordion = page.locator(".catalogue-accordion");
+  const header = (name: string) => accordion.getByRole("button", { name, exact: true });
+
+  // Every header is in the tab order; each names the region it opens.
+  await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
+  await expect(header("Params")).toHaveAttribute("aria-expanded", "false");
+  await expect(accordion.getByRole("region")).toHaveCount(1);
+  await expect(accordion.getByRole("region")).toHaveAccessibleName("Headers");
+  await header("Params").focus();
+  await page.keyboard.press("Tab");
+  await expect(header("Headers")).toBeFocused();
+
+  // Enter and Space open and close; the arrows, Home and End move between headers, without wrapping.
+  await header("Params").focus();
+  await page.keyboard.press("Enter");
+  await expect(header("Params")).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press(" ");
+  await expect(header("Params")).toHaveAttribute("aria-expanded", "false");
+  await page.keyboard.press("ArrowDown");
+  await expect(header("Headers")).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(header("Auth")).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(header("Auth")).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(header("Params")).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(header("Params")).toBeFocused();
+
+  // What is typed in a section is the field's: Space and the arrows do not open, close or move.
+  const field = page.getByLabel("Header value");
+  await field.click();
+  await page.keyboard.type("text/plain; q=1");
+  await page.keyboard.press("Home");
+  await page.keyboard.type("x ");
+  await expect(field).toHaveValue("x text/plain; q=1");
+  await expect(field).toBeFocused();
+  await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
+  // Enter on a button in a section presses it.
+  await accordion.getByRole("button", { name: "Add header" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Pressed Add header.");
+  await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
+
+  // A section keeps what was typed while it was closed.
+  await header("Headers").click();
+  await expect(field).toBeHidden();
+  await header("Headers").click();
+  await expect(field).toHaveValue("x text/plain; q=1");
+});
+
+test("accordion: in forced colours an open section is still marked", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const chevron = (name: string) =>
+    page.locator(".catalogue-accordion").getByRole("button", { name, exact: true }).locator(".section-chevron").evaluate((el) => getComputedStyle(el).transform);
+  // Its colour is taken away; the chevron turned over is not.
+  await expect.poll(() => chevron("Headers")).not.toBe("none");
+  expect(await chevron("Params")).toBe("none");
 });
 
 test("tabs: in forced colours the chosen tab is still marked", async ({ page }) => {

@@ -1,6 +1,5 @@
 import { ImportRefused, ImportWorkerClient } from "../../shared/import/import-worker-client";
 import { Injectable, effect, inject, signal } from "@angular/core";
-import { MatExpansionPanel } from "@angular/material/expansion";
 import { emptyAuth, type AuthConfig, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -166,10 +165,11 @@ export class ComposerView {
    * A section was closed. If nothing else took its place the accordion goes
    * back to Headers; closing Headers itself therefore reopens it.
    */
-  onMobilePanelClosed(panel: string, section: MatExpansionPanel): void {
+  onMobilePanelClosed(panel: string, section: { expand(): void }): void {
     if (this.mobileActivePanels() !== panel) return;
     this.onMobileIndexChange(null);
-    if (this.mobileActivePanels() === panel) section.open();
+    // Its binding still says open, so Aria would not hear it again: it is told.
+    if (this.mobileActivePanels() === panel) section.expand();
   }
 
   private load(request: RequestContent): void {

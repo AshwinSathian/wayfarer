@@ -6,6 +6,7 @@ import { MatButton } from "@angular/material/button";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
+import { UiSegmented, type UiSegment } from "../ui/segmented";
 import { UiTabList } from "../ui/tabs";
 import { Tree, UiTreeNode } from "../ui/tree";
 import { Icon } from "../shared/icon/icon";
@@ -26,7 +27,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 @Component({
   // index.html's root element is the app's.
   selector: "app-root",
-  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiTabList],
+  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiSegmented, UiTabList],
   template: `
     <main class="catalogue">
       <h1 class="type-title-2">Widget catalogue</h1>
@@ -119,6 +120,16 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           }
         </div>
       </section>
+
+      <section aria-labelledby="catalogue-segmented">
+        <h2 id="catalogue-segmented" class="type-title-3">Segmented choice</h2>
+        <p class="type-callout text-label-secondary">A choice of a few, with icons and without; one chosen from code.</p>
+        <span id="catalogue-theme" class="type-callout">Theme</span>
+        <ui-segmented aria-labelledby="catalogue-theme" [options]="themes" [value]="theme()" (valueChange)="theme.set($event)" />
+        <span id="catalogue-route" class="type-callout">Route</span>
+        <ui-segmented aria-labelledby="catalogue-route" [options]="routes" [value]="route()" (valueChange)="route.set($event)" />
+        <button matButton="outlined" class="btn-secondary" type="button" (click)="route.set('bridge')">Choose Local Bridge from code</button>
+      </section>
     </main>
   `,
   styles: `
@@ -161,6 +172,18 @@ export class Catalogue {
     { id: "params", label: "Params" },
     { id: "headers", label: "Headers" },
     { id: "auth", label: "Auth" },
+  ];
+  protected readonly theme = signal("system");
+  protected readonly themes: UiSegment<string>[] = [
+    { value: "system", label: "System", icon: "settings" },
+    { value: "light", label: "Light", icon: "light_mode" },
+    { value: "dark", label: "Dark", icon: "dark_mode" },
+  ];
+  protected readonly route = signal("auto");
+  protected readonly routes: UiSegment<string>[] = [
+    { value: "auto", label: "Auto" },
+    { value: "direct", label: "Direct" },
+    { value: "bridge", label: "Local Bridge" },
   ];
   protected readonly request = signal("r1");
   protected readonly openRequests = [

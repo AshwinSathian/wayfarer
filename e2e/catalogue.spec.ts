@@ -15,17 +15,42 @@ async function open(page: Page, theme: "light" | "dark"): Promise<void> {
   await expect(page.getByRole("heading", { name: "Widget catalogue" })).toBeVisible();
 }
 
+/** Axe on the whole page; each state's violations are collected, not thrown. */
+function scanner(page: Page, found: string[]) {
+  return async (state: string) => {
+    await settled(page);
+    const results = await axe(page).analyze();
+    for (const violation of results.violations) {
+      for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")}`);
+    }
+  };
+}
+
 for (const theme of ["light", "dark"] as const) {
+  // A test of its own: with the other widgets' scans, Firefox on CI took more than the 30 s a test has.
+  test(`the segmented choice, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+
+    const choice = page.getByRole("radiogroup", { name: "Theme" });
+    await choice.getByRole("radio", { name: "Dark" }).click();
+    await expect(choice.getByRole("radio", { name: "Dark" })).toBeChecked();
+    await scan("segmented, one chosen by a click");
+    await choice.getByRole("radio", { name: "Dark" }).focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(choice.getByRole("radio", { name: "Light" })).toBeFocused();
+    await scan("segmented, one focused from the keyboard");
+    await choice.getByRole("radio", { name: "System" }).hover();
+    await scan("segmented, one under the pointer");
+
+    expect(found).toEqual([]);
+  });
+
   test(`every widget of the catalogue, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
-    const scan = async (state: string) => {
-      await settled(page);
-      const results = await axe(page).analyze();
-      for (const violation of results.violations) {
-        for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")}`);
-      }
-    };
+    const scan = scanner(page, found);
     const tree = page.getByRole("tree", { name: "Collections" });
     const row = (name: string) => tree.getByRole("treeitem", { name, exact: true });
 
@@ -313,6 +338,63 @@ test("accordion: the keys of WAI-ARIA's accordion pattern, and keys typed inside
   await expect(field).toBeHidden();
   await header("Headers").click();
   await expect(field).toHaveValue("x text/plain; q=1");
+});
+
+test("segmented: the keys of WAI-ARIA's radio group, one tab stop, and a choice made by code", async ({ page }) => {
+  await open(page, "light");
+  const theme = page.getByRole("radiogroup", { name: "Theme" });
+  const route = page.getByRole("radiogroup", { name: "Route" });
+  const option = (group: typeof theme, name: string) => group.getByRole("radio", { name, exact: true });
+  await expect(option(theme, "System")).toBeChecked();
+
+  // The arrows move and choose, and wrap at both ends.
+  await option(theme, "System").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(option(theme, "Light")).toBeFocused();
+  await expect(option(theme, "Light")).toBeChecked();
+  await page.keyboard.press("ArrowDown");
+  await expect(option(theme, "Dark")).toBeChecked();
+  await page.keyboard.press("ArrowRight");
+  await expect(option(theme, "System")).toBeChecked();
+  await page.keyboard.press("ArrowLeft");
+  await expect(option(theme, "Dark")).toBeFocused();
+  await expect(option(theme, "Dark")).toBeChecked();
+  // The option an arrow moved to shows its focus ring (WebKit's own arrows took it away).
+  await expect(option(theme, "Dark")).toHaveCSS("outline-style", "solid");
+  await page.keyboard.press("Space");
+  await expect(option(theme, "Dark")).toBeChecked();
+  await expect(theme.getByRole("radio", { checked: true })).toHaveCount(1);
+
+  // One tab stop a group, on its chosen option; the next group is apart from this one.
+  await page.keyboard.press("Tab");
+  await expect(option(route, "Auto")).toBeFocused();
+  await expect(option(theme, "Dark")).toBeChecked();
+  await page.keyboard.press("Tab");
+  const fromCode = page.getByRole("button", { name: "Choose Local Bridge from code" });
+  await expect(fromCode).toBeFocused();
+
+  // A choice made by code takes the tab stop.
+  await page.keyboard.press("Enter");
+  await expect(option(route, "Local Bridge")).toBeChecked();
+  await page.keyboard.press("Shift+Tab");
+  await expect(option(route, "Local Bridge")).toBeFocused();
+
+  // A click on an option's text chooses it: the text lets the pointer through to its radio button.
+  const text = await route.getByText("Direct", { exact: true }).boundingBox();
+  if (!text) throw new Error("Direct is not drawn");
+  await page.mouse.click(text.x + text.width / 2, text.y + text.height / 2);
+  await expect(option(route, "Direct")).toBeChecked();
+});
+
+test("segmented: in forced colours the chosen option is still marked", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const theme = page.getByRole("radiogroup", { name: "Theme" });
+  // The raised background is taken away; a border is not.
+  const mark = (name: string) => theme.getByRole("radio", { name, exact: true }).evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
+  await expect.poll(() => mark("System")).toBe("solid 2px");
+  expect(await mark("Light")).not.toContain("solid");
 });
 
 test("accordion: in forced colours an open section is still marked", async ({ page }) => {

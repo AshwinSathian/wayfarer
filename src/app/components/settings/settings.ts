@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, effect, inject, input, model, output, signal, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatButton } from "@angular/material/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
@@ -21,6 +20,7 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { Confirm } from "../../ui/confirm";
+import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { readImportText, serializeEnvironmentExport } from "@wayfarer/core";
 import { ImportPipeline } from "../../services/import-pipeline";
 
@@ -69,7 +69,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, FormsModule, MatButton, MatButtonToggle, MatButtonToggleGroup, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane, DiagnosticsPane],
+  imports: [Icon, FormsModule, MatButton, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane, DiagnosticsPane, UiSegmented],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   // The rules reach the Local Bridge pane, a component of its own; each starts at `.settings`.
@@ -97,7 +97,7 @@ export class Settings {
   protected readonly current = computed(() => SECTIONS.find((entry) => entry.id === this.section()) ?? SECTIONS[0]);
   /** On a phone: a pane is shown in place of the list. A wider dialog shows both and does not read this. */
   protected readonly paneOpen = signal(false);
-  protected readonly themeChoices: { value: ThemeChoice; label: string; icon: IconName }[] = [
+  protected readonly themeChoices: UiSegment<ThemeChoice>[] = [
     { value: "system", label: "System", icon: "settings" },
     { value: "light", label: "Light", icon: "light_mode" },
     { value: "dark", label: "Dark", icon: "dark_mode" },

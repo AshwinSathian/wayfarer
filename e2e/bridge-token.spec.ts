@@ -10,7 +10,7 @@ const TOKEN = "bridge-token-for-the-f83-e2e-0123456789";
 
 async function switchBridgeOn(page: Page, url: string): Promise<void> {
   const settings = await openSettings(page, "Local Bridge");
-  await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
+  await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
   await settings.locator("#bridge-url-input").fill(url);
   await settings.locator("#bridge-token-input").fill(TOKEN);
   await settings.getByRole("button", { name: "Save", exact: true }).click();

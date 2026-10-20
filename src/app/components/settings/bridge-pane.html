@@ -2,11 +2,7 @@
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary" id="bridge-route-label">Route</p>
     <p class="type-footnote text-label-tertiary">How a request leaves when neither it nor its collection says. <strong>Auto</strong> sends from the page, and through the bridge when the browser could not: a request the server cannot have received is sent again at once, and one it may have received is sent again only if you say so. <strong>Direct</strong> always sends from the page. <strong>Local Bridge</strong> sends every request from the bridge on this machine, where CORS and mixed content do not apply.</p>
-    <mat-button-toggle-group class="segmented bridge-route" hideSingleSelectionIndicator aria-labelledby="bridge-route-label" [value]="route()" (change)="route.set($event.value); edited()">
-      <mat-button-toggle value="auto">Auto</mat-button-toggle>
-      <mat-button-toggle value="direct">Direct</mat-button-toggle>
-      <mat-button-toggle value="bridge">Local Bridge</mat-button-toggle>
-    </mat-button-toggle-group>
+    <ui-segmented aria-labelledby="bridge-route-label" [options]="routes" [value]="route()" (valueChange)="route.set($event); edited()" />
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>

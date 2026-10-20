@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { MatButtonToggle, MatButtonToggleGroup } from "@angular/material/button-toggle";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import type { Route } from "@wayfarer/core";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Icon } from "../../shared/icon/icon";
+import { UiSegmented, type UiSegment } from "../../ui/segmented";
 
 /**
  * The Local Bridge's settings, as a pane of Settings: the device's route
@@ -16,7 +16,7 @@ import { Icon } from "../../shared/icon/icon";
  */
 @Component({
   selector: "app-bridge-pane",
-  imports: [FormsModule, Icon, MatButton, MatIconButton, MatButtonToggle, MatButtonToggleGroup, MatFormField, MatInput, MatProgressSpinner],
+  imports: [FormsModule, Icon, MatButton, MatIconButton, MatFormField, MatInput, MatProgressSpinner, UiSegmented],
   templateUrl: "./bridge-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },
@@ -24,6 +24,11 @@ import { Icon } from "../../shared/icon/icon";
 export class BridgePane {
   private readonly bridge = inject(BridgeSettings);
 
+  protected readonly routes: UiSegment<Route>[] = [
+    { value: "auto", label: "Auto" },
+    { value: "direct", label: "Direct" },
+    { value: "bridge", label: "Local Bridge" },
+  ];
   protected readonly route = signal<Route>(this.bridge.config().route);
   protected readonly url = signal(this.bridge.config().url);
   protected readonly token = signal(this.bridge.config().token);

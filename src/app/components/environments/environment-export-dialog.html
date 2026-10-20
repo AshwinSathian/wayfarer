@@ -2,10 +2,7 @@
   <div class="flex flex-col gap-4">
     <div>
       <span id="env-export-format-label" class="ds-form-label">File for</span>
-      <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator aria-labelledby="env-export-format-label" [value]="format()" (change)="setFormat($event.value)">
-        <mat-button-toggle value="wayfarer">Wayfarer</mat-button-toggle>
-        <mat-button-toggle value="postman">Postman</mat-button-toggle>
-      </mat-button-toggle-group>
+      <ui-segmented aria-labelledby="env-export-format-label" [options]="formats" [value]="format()" (valueChange)="setFormat($event)" />
     </div>
 
     @if (format() === 'postman') {
@@ -22,19 +19,7 @@
 
     <div>
       <span id="env-export-mode-label" class="ds-form-label">Protected variables</span>
-      <mat-button-toggle-group
-        class="segmented"
-        hideSingleSelectionIndicator
-        aria-labelledby="env-export-mode-label"
-        [value]="mode()"
-        (change)="mode.set($event.value); error.set('')"
-      >
-        <mat-button-toggle value="strip">Leave out</mat-button-toggle>
-        @if (format() === 'wayfarer') {
-        <mat-button-toggle value="references">With the vault</mat-button-toggle>
-        }
-        <mat-button-toggle value="plain">Plain text</mat-button-toggle>
-      </mat-button-toggle-group>
+      <ui-segmented aria-labelledby="env-export-mode-label" [options]="modes()" [value]="mode()" (valueChange)="mode.set($event); error.set('')" />
     </div>
 
     <p class="type-callout text-label-secondary">

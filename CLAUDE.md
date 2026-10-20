@@ -425,8 +425,10 @@ code errors.
   `docs/design/widget-bakeoff.md`).** The composite widgets (tree, select,
   menus, tabs, accordion, toolbars) move to Angular Aria with our own
   styles; dialogs, tooltips, buttons, inputs and checkboxes to the
-  platform (`<dialog>`, `popover`, the native elements); the CDK stays. D3.3
-  replaces one family per PR, with its keyboard e2e. Until a family has
+  platform (`<dialog>`, `popover`, the native elements); the CDK stays.
+  Nothing may look or feel like a native element (maintainer, 2026-10-20):
+  a platform element is the widget's base, with none of the browser's own
+  look. D3.3 replaces one family per PR, with its keyboard e2e. Until a family has
   moved, it stays Material and the rules below hold for it, also for a new
   use of it (a button in a new feature is still `matButton`, and moves with
   its family). A family the app does not use yet is not added from
@@ -438,6 +440,8 @@ code errors.
     `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`;
+  - the families D3.3 has moved to the platform (see "The platform"):
+    `ui-segmented`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
     `uiHoverCard` (a tooltip that takes a template), and the confirmation
     placed under a button.
@@ -459,8 +463,6 @@ code errors.
   a filled or outlined button. Colours are the `--btn-*` variables in
   `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
   button that clicks a hidden `<input type="file">`.
-- Segmented choice: `<mat-button-toggle-group class="segmented"
-  hideSingleSelectionIndicator>`.
 - Select: `<mat-select class="select">` with `mat-option` children, used
   without a form field (`controls.css` draws the box). Name it with
   `aria-label`, or `aria-labelledby` pointing at a `<span>`: a `<label for>`
@@ -542,6 +544,22 @@ code errors.
   pointer off the window's corner (`page.mouse.move`). A headless pointer
   rests at (0, 0), where the CDK first places an overlay, and Material hides
   a tooltip the pointer entered and left.
+
+## The platform
+
+- A family D3.3 moved to the platform is the browser's element with none
+  of its look, in a wrapper in `src/app/ui` with its own stylesheet, and in
+  the catalogue like an Aria family. What the browser does not do alike in
+  the three engines is ours, with a test each.
+- Segmented choice (a few options side by side): `<ui-segmented
+  aria-labelledby="…" [options]="…" [value]="…" (valueChange)="…" />`
+  (`src/app/ui/segmented.ts`), a radio group of the browser's radio
+  buttons, `appearance: none`, each under its option's text, which lets
+  the pointer through. Angular Aria has no radio group (22.2.3). Each
+  group's radios have a name of their own: with one name, two groups were
+  one. The arrows are the group's: WebKit's stopped at the ends, and took
+  the focus ring off the option they moved to. A test reaches an option
+  by `getByRole("radio", { name })`.
 
 ## Angular Aria
 

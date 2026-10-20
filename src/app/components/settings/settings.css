@@ -178,15 +178,6 @@
   gap: 8px;
 }
 
-/* The theme's three choices never push the card wider than the pane. */
-.settings .mat-button-toggle-group.segmented {
-  max-width: 100%;
-}
-
-.settings .segmented .mat-button-toggle-label-content {
-  gap: 6px;
-}
-
 .settings-list > li {
   padding: 9px 16px;
 }
@@ -286,20 +277,17 @@
     color: inherit;
   }
 
-  .settings .mat-button-toggle-group.segmented {
+  .settings .segmented {
     width: 100%;
   }
 
-  .settings .segmented .mat-button-toggle {
+  .settings .segment {
     flex: 1 1 0;
     min-width: 0;
-  }
-
-  .settings .segmented .mat-button-toggle-button {
     padding: 5px 2px;
   }
 
-  .settings .segmented .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
+  .settings .segment-label {
     padding: 0.25rem 0.25rem;
   }
 

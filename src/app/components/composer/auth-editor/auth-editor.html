@@ -2,17 +2,14 @@
 <div class="space-y-4">
   <div class="flex items-center gap-3">
     <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-type-select-label'">Type</span>
-    <mat-select
-      class="select w-48!"
+    <ui-select
+      class="w-48"
       [id]="idPrefix() + '-type-select'"
-      [aria-labelledby]="idPrefix() + '-type-select-label'"
-      [ngModel]="currentAuth.type"
-      (ngModelChange)="onAuthTypeChange($event)"
-    >
-      @for (option of authTypes(); track option.value) {
-      <mat-option [value]="option.value">{{ option.label }}</mat-option>
-      }
-    </mat-select>
+      [attr.aria-labelledby]="idPrefix() + '-type-select-label'"
+      [options]="authTypes()"
+      [value]="currentAuth.type"
+      (valueChange)="onAuthTypeChange($event)"
+    />
   </div>
 
   @if (currentAuth.type === 'bearer') {
@@ -91,17 +88,14 @@
     </div>
     <div class="flex items-center gap-3">
       <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
-      <mat-select
-        class="select w-40!"
+      <ui-select
+        class="w-40"
         [id]="idPrefix() + '-apikey-addto'"
-        [aria-labelledby]="idPrefix() + '-apikey-addto-label'"
-        [ngModel]="currentAuth.in"
-        (ngModelChange)="setApiKeyField({ in: $event })"
-      >
-        @for (option of apiKeyAddToOptions; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
+        [attr.aria-labelledby]="idPrefix() + '-apikey-addto-label'"
+        [options]="apiKeyAddToOptions"
+        [value]="currentAuth.in"
+        (valueChange)="setApiKeyField({ in: $event })"
+      />
     </div>
   </div>
   }
@@ -149,11 +143,7 @@
   <div class="flex flex-col gap-3">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
-      <mat-select class="select w-64! max-w-full!" [id]="idPrefix() + '-oauth-grant'" [aria-labelledby]="idPrefix() + '-oauth-grant-label'" [ngModel]="currentAuth.grant" (ngModelChange)="setOAuthField({ grant: $event })">
-        @for (option of oauthGrants; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
+      <ui-select class="w-64 max-w-full" [id]="idPrefix() + '-oauth-grant'" [attr.aria-labelledby]="idPrefix() + '-oauth-grant-label'" [options]="oauthGrants" [value]="currentAuth.grant" (valueChange)="setOAuthField({ grant: $event })" />
     </div>
     @if (currentAuth.grant === 'authorization_code') {
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -206,11 +196,7 @@
     }
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
-      <mat-select class="select w-56! max-w-full!" [id]="idPrefix() + '-oauth-client-auth'" [aria-labelledby]="idPrefix() + '-oauth-client-auth-label'" [ngModel]="currentAuth.clientAuth" (ngModelChange)="setOAuthField({ clientAuth: $event })">
-        @for (option of oauthClientAuth; track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
+      <ui-select class="w-56 max-w-full" [id]="idPrefix() + '-oauth-client-auth'" [attr.aria-labelledby]="idPrefix() + '-oauth-client-auth-label'" [options]="oauthClientAuth" [value]="currentAuth.clientAuth" (valueChange)="setOAuthField({ clientAuth: $event })" />
     </div>
     <mat-checkbox [id]="idPrefix() + '-oauth-retry'" [checked]="currentAuth.retryOn401" (change)="setOAuthField({ retryOn401: $event.checked })">On a 401, get a new token and send once more</mat-checkbox>
     @if (currentAuth.grant === 'authorization_code') {

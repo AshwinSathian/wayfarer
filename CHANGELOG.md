@@ -9,6 +9,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A select's list ticks the chosen option, and shows the one the keys
+  are on apart from it.** Before, the chosen option, the one under the
+  pointer and the one the arrow keys had reached had the same faint
+  background, so from the keyboard you could not tell where you were from
+  what was chosen. Selects are now built on Angular Aria, with Angular
+  Material's select gone. The keys are the same: on a closed select the
+  arrows, Home, End and a letter choose an option; Enter, Space and
+  Alt+ArrowDown open the list; there, Enter, Space, Tab and a click choose,
+  and Escape closes it with nothing changed. The app's first download is
+  40.6 kB smaller (11.2 kB compressed), and the size budgets are reset to
+  it: initial 1,300,487 B raw and 338,010 B gzip; budgets 1366kb, 1431kb and
+  371,812 B.
+
 - **On a phone, the export of environments fits its choices in the
   dialog.** Before, in a 390 px window the "Protected variables" choice ran
   past the dialog's edge and "Plain text" was cut off; in WebKit the dialog

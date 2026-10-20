@@ -3,8 +3,6 @@ import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { SecretsVault } from "../../services/secrets-vault";
 import { exportedValue, serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
@@ -13,6 +11,7 @@ import { Icon } from "../../shared/icon/icon";
 import { saveJsonFile } from "../../shared/save-file";
 import { Dialog } from "../../ui/dialog";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
+import { UiSelect } from "../../ui/select";
 
 type Mode = ProtectedValues["mode"];
 
@@ -22,7 +21,7 @@ export const PLAIN_TEXT_CONFIRMATION = "EXPORT SECRETS";
 /** Exports the environments, asking first what the file should hold of protected variables (P2.11). */
 @Component({
   selector: "app-environment-export-dialog",
-  imports: [Dialog, FormsModule, Icon, MatButton, MatFormField, MatInput, MatOption, MatSelect, UiSegmented],
+  imports: [Dialog, FormsModule, Icon, MatButton, MatFormField, MatInput, UiSelect, UiSegmented],
   templateUrl: "./environment-export-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -39,6 +38,7 @@ export class EnvironmentExportDialog {
   protected readonly format = signal<"wayfarer" | "postman">("wayfarer");
   /** The id of the environment a Postman file is written from. Blank: the first. */
   protected readonly chosen = signal("");
+  protected readonly environmentOptions = computed(() => this.environments().map((environment) => ({ value: environment.meta.id, label: environment.name })));
   protected readonly mode = signal<Mode>("strip");
   protected readonly formats: UiSegment<"wayfarer" | "postman">[] = [
     { value: "wayfarer", label: "Wayfarer" },

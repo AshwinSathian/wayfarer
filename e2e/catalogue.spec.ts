@@ -47,6 +47,34 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  // A test of its own, as the segmented choice's.
+  test(`the select, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    const route = page.getByRole("combobox", { name: "Request route" });
+
+    await expect(route).toHaveText("Inherit: Auto");
+    await scan("select, closed on its null choice");
+    await route.click();
+    await expect(page.getByRole("listbox", { name: "Request route" })).toBeVisible();
+    await scan("select, open");
+    await page.getByRole("option", { name: "Direct" }).hover();
+    await scan("select, an option under the pointer");
+    await page.getByRole("option", { name: "Direct" }).click();
+    await expect(route).toHaveText("Direct");
+    await expect(page.getByRole("listbox")).toHaveCount(0);
+    await scan("select, an option chosen");
+    const environment = page.getByRole("combobox", { name: "Environment" });
+    await environment.focus();
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("End");
+    await expect(page.getByRole("option", { name: "Demo" })).toHaveAttribute("data-active", "true");
+    await scan("select, a long list on its last option from the keyboard");
+
+    expect(found).toEqual([]);
+  });
+
   test(`every widget of the catalogue, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
@@ -384,6 +412,122 @@ test("segmented: the keys of WAI-ARIA's radio group, one tab stop, and a choice 
   if (!text) throw new Error("Direct is not drawn");
   await page.mouse.click(text.x + text.width / 2, text.y + text.height / 2);
   await expect(option(route, "Direct")).toBeChecked();
+});
+
+test("select: closed keys choose, the list's keys, and focus kept on the select", async ({ page }) => {
+  await open(page, "light");
+  const route = page.getByRole("combobox", { name: "Request route" });
+  const environment = page.getByRole("combobox", { name: "Environment" });
+  const listbox = page.getByRole("listbox");
+  const option = (name: string) => page.getByRole("option", { name, exact: true });
+
+  // Closed, the arrows, Home, End and a letter choose, as a native select does, and the list stays shut.
+  await route.focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(route).toHaveText("Auto");
+  await page.keyboard.press("End");
+  await expect(route).toHaveText("Local Bridge");
+  await page.keyboard.press("Home");
+  await expect(route).toHaveText("Inherit: Auto");
+  await page.keyboard.press("d");
+  await expect(route).toHaveText("Direct");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveAttribute("aria-expanded", "false");
+
+  // Enter opens it on the chosen option; focus stays on the select, which points at the option the keys are on.
+  await page.keyboard.press("Enter");
+  await expect(option("Direct")).toHaveAttribute("aria-selected", "true");
+  await expect(route).toHaveAttribute("aria-expanded", "true");
+  await expect(route).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(route).toHaveAttribute("aria-activedescendant", (await option("Local Bridge").getAttribute("id")) ?? "");
+  await page.keyboard.press("Enter");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveText("Local Bridge");
+  await expect(route).toBeFocused();
+
+  // Space opens it, Escape closes it with nothing changed.
+  await page.keyboard.press(" ");
+  await expect(listbox).toBeVisible();
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Escape");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveText("Local Bridge");
+  await expect(route).toBeFocused();
+
+  // Enter on the chosen option closes the list.
+  await page.keyboard.press("Enter");
+  await expect(listbox).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveText("Local Bridge");
+
+  // Keys sent at once after the one that opened it are kept.
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Home");
+  await page.keyboard.press("Enter");
+  await expect(route).toHaveText("Inherit: Auto");
+  await expect(listbox).toHaveCount(0);
+
+  // Alt+ArrowDown opens it; Tab chooses the option the keys are on, and goes on to the next.
+  await page.keyboard.press("Alt+ArrowDown");
+  await expect(listbox).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Tab");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveText("Auto");
+  await expect(environment).toBeFocused();
+
+  // A long list scrolls to the option the keys are on; a letter finds one in it.
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("End");
+  const shown = () =>
+    option("Demo").evaluate((el) => {
+      const list = el.closest('[role="listbox"]')!.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+      return box.top >= list.top && box.bottom <= list.bottom + 1;
+    });
+  await expect.poll(shown).toBe(true);
+  await page.keyboard.press("s");
+  await expect(option("Staging")).toHaveAttribute("data-active", "true");
+  await page.keyboard.press("Enter");
+  await expect(environment).toHaveText("Staging");
+
+  // A press in the list, held as a person holds it, keeps focus on the select, and its release chooses.
+  await route.click();
+  const direct = await option("Direct").boundingBox();
+  if (!direct) throw new Error("Direct is not drawn");
+  await page.mouse.move(direct.x + direct.width / 2, direct.y + direct.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+  await expect(route).toHaveText("Direct");
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toBeFocused();
+
+  // A click outside closes it.
+  await route.click();
+  await expect(listbox).toBeVisible();
+  await page.getByRole("heading", { name: "Widget catalogue" }).click();
+  await expect(listbox).toHaveCount(0);
+  await expect(route).toHaveText("Direct");
+});
+
+test("select: in forced colours the option the keys are on and the chosen one are still marked", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const route = page.getByRole("combobox", { name: "Request route" });
+  await route.focus();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ArrowDown");
+  const option = (name: string) => page.getByRole("option", { name, exact: true });
+  // The background that marks the option the keys are on is taken away; an outline is not.
+  await expect(option("Auto")).toHaveCSS("outline-style", "solid");
+  await expect(option("Inherit: Auto")).toHaveCSS("outline-style", "none");
+  // The chosen option keeps its tick.
+  await expect(option("Inherit: Auto").locator(".ui-select-check")).toBeVisible();
+  await expect(option("Auto").locator(".ui-select-check")).toBeHidden();
 });
 
 test("segmented: in forced colours the chosen option is still marked", async ({ page }) => {

@@ -139,16 +139,7 @@
               <div class="response-tools flex flex-wrap items-center gap-2">
               @if (views().length > 1) {
               <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
-              <mat-select
-                class="select w-28!"
-                aria-label="View the body as"
-                [value]="view()"
-                (selectionChange)="viewOverride.set($event.value)"
-              >
-                @for (option of views(); track option) {
-                <mat-option [value]="option">{{ viewLabels[option] }}</mat-option>
-                }
-              </mat-select>
+              <ui-select class="w-28" aria-label="View the body as" [options]="viewOptions()" [value]="view()" (valueChange)="viewOverride.set($event)" />
               }
 
               @if (view() === 'json') {

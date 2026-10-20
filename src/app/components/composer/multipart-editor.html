@@ -14,15 +14,7 @@
         [attr.aria-label]="'Part name, row ' + (index + 1)"
        />
     </mat-form-field>
-    <mat-select
-      class="select w-24!"
-      [aria-label]="'Part type, row ' + (index + 1)"
-      [ngModel]="part.kind"
-      (ngModelChange)="kindChange.emit({ index, kind: $event })"
-    >
-      <mat-option value="text">Text</mat-option>
-      <mat-option value="file">File</mat-option>
-    </mat-select>
+    <ui-select class="w-24" [attr.aria-label]="'Part type, row ' + (index + 1)" [options]="kinds" [value]="part.kind" (valueChange)="kindChange.emit({ index, kind: $event })" />
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-56 items-center gap-2">
     @if (part.kind === 'text') {

@@ -4,16 +4,7 @@
 </div>
 @for (test of store.draft().tests; track test.id; let i = $index) {
 <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
-  <mat-select
-    class="select w-36!"
-    aria-label="Assert on"
-    [(ngModel)]="test.target"
-    (ngModelChange)="store.edited()"
-  >
-    @for (option of assertionTargetOptions; track option.value) {
-    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-    }
-  </mat-select>
+  <ui-select class="w-36" aria-label="Assert on" [options]="assertionTargetOptions" [value]="test.target" (valueChange)="test.target = $event; store.edited()" />
   @if (needsKey(test.target)) {
   <mat-form-field class="field w-44">
     <input class="font-mono" matInput
@@ -23,16 +14,7 @@
      />
   </mat-form-field>
   }
-  <mat-select
-    class="select w-44!"
-    aria-label="Operator"
-    [(ngModel)]="test.operator"
-    (ngModelChange)="store.edited()"
-  >
-    @for (option of operatorsFor(test.target); track option.value) {
-    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-    }
-  </mat-select>
+  <ui-select class="w-44" aria-label="Operator" [options]="operatorsFor(test.target)" [value]="test.operator" (valueChange)="test.operator = $event; store.edited()" />
   @if (needsExpected(test.operator)) {
   <mat-form-field class="field flex-1 min-w-[120px]!">
     <input class="font-mono" matInput

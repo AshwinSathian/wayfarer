@@ -1,22 +1,9 @@
 @let current = body();
 <div class="flex flex-wrap items-center gap-3 pb-3">
   <span id="body-mode-label" class="ds-form-label">Body</span>
-  <mat-select class="select w-56!" aria-labelledby="body-mode-label" [ngModel]="current.mode" (ngModelChange)="setMode($event)">
-    @for (mode of modes; track mode.value) {
-    <mat-option [value]="mode.value">{{ mode.label }}</mat-option>
-    }
-  </mat-select>
+  <ui-select class="w-56" aria-labelledby="body-mode-label" [options]="modes" [value]="current.mode" (valueChange)="setMode($event)" />
   @if (current.mode === 'raw') {
-  <mat-select
-    class="select w-36!"
-    aria-label="Raw body language"
-    [ngModel]="current.raw?.language ?? 'json'"
-    (ngModelChange)="setRaw({ language: $event })"
-  >
-    @for (language of languages; track language.value) {
-    <mat-option [value]="language.value">{{ language.label }}</mat-option>
-    }
-  </mat-select>
+  <ui-select class="w-36" aria-label="Raw body language" [options]="languages" [value]="current.raw?.language ?? 'json'" (valueChange)="setRaw({ language: $event })" />
   }
 </div>
 

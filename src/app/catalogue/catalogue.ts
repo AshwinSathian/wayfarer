@@ -7,6 +7,7 @@ import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
 import { UiSegmented, type UiSegment } from "../ui/segmented";
+import { UiSelect, type UiSelectOption } from "../ui/select";
 import { UiTabList } from "../ui/tabs";
 import { Tree, UiTreeNode } from "../ui/tree";
 import { Icon } from "../shared/icon/icon";
@@ -27,7 +28,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 @Component({
   // index.html's root element is the app's.
   selector: "app-root",
-  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiSegmented, UiTabList],
+  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiSegmented, UiSelect, UiTabList],
   template: `
     <main class="catalogue">
       <h1 class="type-title-2">Widget catalogue</h1>
@@ -130,6 +131,14 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <ui-segmented aria-labelledby="catalogue-route" [options]="routes" [value]="route()" (valueChange)="route.set($event)" />
         <button matButton="outlined" class="btn-secondary" type="button" (click)="route.set('bridge')">Choose Local Bridge from code</button>
       </section>
+
+      <section aria-labelledby="catalogue-select">
+        <h2 id="catalogue-select" class="type-title-3">Select</h2>
+        <p class="type-callout text-label-secondary">An optional choice, whose null is an option; a list longer than its panel, with a placeholder.</p>
+        <span id="catalogue-request-route" class="type-callout">Request route</span>
+        <ui-select class="w-48" aria-labelledby="catalogue-request-route" [options]="requestRoutes" [value]="requestRoute()" (valueChange)="requestRoute.set($event)" />
+        <ui-select class="w-48" aria-label="Environment" placeholder="No environment" [options]="environments" [value]="environment()" (valueChange)="environment.set($event)" />
+      </section>
     </main>
   `,
   styles: `
@@ -185,6 +194,15 @@ export class Catalogue {
     { value: "direct", label: "Direct" },
     { value: "bridge", label: "Local Bridge" },
   ];
+  protected readonly requestRoute = signal<string | null>(null);
+  protected readonly requestRoutes: UiSelectOption<string | null>[] = [
+    { value: null, label: "Inherit: Auto" },
+    { value: "auto", label: "Auto" },
+    { value: "direct", label: "Direct" },
+    { value: "bridge", label: "Local Bridge" },
+  ];
+  protected readonly environment = signal<string | null>(null);
+  protected readonly environments: UiSelectOption<string>[] = ["Local", "Development", "Staging", "Production", "Sandbox", "Partner", "Load test", "Demo"].map((name) => ({ value: name.toLowerCase(), label: name }));
   protected readonly request = signal("r1");
   protected readonly openRequests = [
     { id: "r1", method: "GET", name: "List users", unsaved: false },

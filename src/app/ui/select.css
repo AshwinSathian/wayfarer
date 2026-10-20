@@ -1,0 +1,143 @@
+/* <ui-select>: the box, and its list in the overlay. Not encapsulated: the
+   list is drawn in the overlay, and the toolbar's select is a pill. */
+.ui-select {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: 40px;
+  padding-inline-start: 12px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-md);
+  background: var(--canvas-elevated);
+  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
+  color: var(--label-primary);
+  font-size: var(--type-body-size);
+  font-weight: 400;
+  letter-spacing: -0.003em;
+  line-height: 38px;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.ui-select:hover {
+  border-color: var(--fill-primary);
+}
+
+/* The select draws its own focus state: border and glow. */
+.ui-select:focus,
+.ui-select[aria-expanded="true"] {
+  border-color: var(--accent-border);
+  box-shadow: var(--glow-accent);
+  outline: none;
+}
+
+.ui-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select-chevron {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: 40px;
+  color: var(--ctl-chevron);
+  font-size: 24px;
+}
+
+/* The list, as wide as the CDK's pane, which is as wide as the select. */
+.ui-select-panel {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  /* A pixel off the select, where Material's list was. */
+  margin-block: 1px;
+  margin-inline-start: 1px;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
+  color: var(--label-primary);
+  font-size: var(--type-body-size);
+  font-weight: 400;
+  letter-spacing: -0.003em;
+  line-height: normal;
+  outline: none;
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+.ui-select-option {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-standard);
+}
+
+/* The list is as wide as the select: a longer label ends in an ellipsis. */
+.ui-select-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The option the keys are on, and the one under the pointer. */
+.ui-select-option[data-active="true"],
+.ui-select-option:hover {
+  background: var(--fill-hover);
+}
+
+/* The chosen option is ticked. */
+.ui-select-check {
+  flex: none;
+  color: var(--accent);
+  /* Under the text's line: a taller tick made each option a pixel taller. */
+  font-size: 16px;
+  visibility: hidden;
+}
+
+.ui-select-option[aria-selected="true"] .ui-select-check {
+  visibility: visible;
+}
+
+/* Forced colours take the backgrounds away: the option the keys are on keeps an outline. */
+@media (forced-colors: active) {
+  .ui-select-option[data-active="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+/* The environment in the toolbar: a pill that shrinks on a phone, so the
+   toolbar never outgrows the window. */
+.ui-select.env-switcher {
+  flex: 0 1 160px;
+  min-width: 96px;
+  max-width: 200px;
+  height: 32px;
+  padding-inline-start: 10px;
+  border-radius: var(--radius-full);
+  background: var(--fill-secondary);
+  font-size: var(--type-callout-size);
+}
+
+.ui-select.env-switcher .ui-select-chevron {
+  width: 28px;
+}

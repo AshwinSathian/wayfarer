@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import { ancestorsOf, effectiveAuth, emptyAuth, scriptsApproved, scriptsOf, variableChanges, type AuthConfig, type Route, type Row, type Scripts } from "@wayfarer/core";
@@ -11,6 +9,7 @@ import { Dialog } from "../../ui/dialog";
 import { AuthEditor } from "../composer/auth-editor/auth-editor";
 import { RowsEditor } from "../composer/rows-editor/rows-editor";
 import { ScriptEditor } from "../script-editor/script-editor";
+import { UiSelect, type UiSelectOption } from "../../ui/select";
 
 /** The collection, or the folder in it, whose settings are open. */
 export interface InheritedSettingsTarget {
@@ -26,7 +25,7 @@ export interface InheritedSettingsTarget {
  */
 @Component({
   selector: "app-inherited-settings-dialog",
-  imports: [AuthEditor, Dialog, FormsModule, MatButton, MatOption, MatSelect, Tab, TabContent, TabPanel, Tabs, UiTabList, RowsEditor, ScriptEditor],
+  imports: [AuthEditor, Dialog, FormsModule, MatButton, UiSelect, Tab, TabContent, TabPanel, Tabs, UiTabList, RowsEditor, ScriptEditor],
   templateUrl: "./inherited-settings-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -45,6 +44,12 @@ export class InheritedSettingsDialog {
   protected readonly scripts = signal<Scripts>({ pre: "", post: "" });
   /** A collection's own route; null: the device's. */
   protected readonly route = signal<Route | null>(null);
+  protected readonly routes: UiSelectOption<Route | null>[] = [
+    { value: null, label: "The device's (Settings, Local Bridge)" },
+    { value: "auto", label: "Auto" },
+    { value: "direct", label: "Direct" },
+    { value: "bridge", label: "Local Bridge" },
+  ];
   protected readonly saving = signal(false);
 
   private readonly tree = computed(() => this.collections.tree().find((entry) => entry.collection.meta.id === this.target()?.collectionId));

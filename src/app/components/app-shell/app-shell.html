@@ -169,17 +169,14 @@
           <!-- Right: actions cluster -->
           <div class="flex min-w-0 items-center gap-2">
             <!-- Environment selector -->
-            <mat-select
-              class="select env-switcher"
+            <ui-select
+              class="env-switcher"
               aria-label="Environment"
-              [ngModel]="selectedEnvironmentId()"
-              (ngModelChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
               placeholder="No environment"
-            >
-              @for (option of dropdownOptions(); track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-              }
-            </mat-select>
+              [options]="dropdownOptions()"
+              [value]="selectedEnvironmentId()"
+              (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
+            />
             <button type="button"
               matIconButton class="btn-plain"
               (click)="environmentsVisible.set(true)"

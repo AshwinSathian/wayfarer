@@ -437,7 +437,7 @@ code errors.
   - wrappers that give a Material component what this app needs from it:
     `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
-    `ui-tree`, `ui-menu`, `uiTabList`;
+    `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
     `uiHoverCard` (a tooltip that takes a template), and the confirmation
     placed under a button.
@@ -461,11 +461,6 @@ code errors.
   button that clicks a hidden `<input type="file">`.
 - Segmented choice: `<mat-button-toggle-group class="segmented"
   hideSingleSelectionIndicator>`.
-- Accordion: `<mat-accordion class="sections" displayMode="flat" hideToggle>`
-  with the app's `section-chevron` icon in each header. To hold one panel
-  open from a signal, bind `[expanded]` and handle `(opened)` and
-  `(closed)`: `(closed)` fires for the panel another one replaced, after
-  that one's `(opened)`.
 - Select: `<mat-select class="select">` with `mat-option` children, used
   without a form field (`controls.css` draws the box). Name it with
   `aria-label`, or `aria-labelledby` pointing at a `<span>`: a `<label for>`
@@ -610,6 +605,25 @@ code errors.
   - the bar scrolls sideways and brings the chosen tab into it;
   - a click, or a key Aria took, is drawn at once (`ApplicationRef.tick`):
     Chromium took a Tab before the next render, into the pane shown before.
+- Accordion: a `uiAccordion` (`src/app/ui/accordion.ts`, Aria's
+  `ngAccordionGroup` with the app's styles in `accordion.css`) of
+  `sections-item` divs, each a `<button ngAccordionTrigger
+  class="section-header" [panel]="p">` with the app's `section-chevron`, and
+  `<div ngAccordionPanel uiAccordionPanel #p="ngAccordionPanel"
+  class="section-body" [preserveContent]="true">` holding an `<ng-template
+  ngAccordionContent>`. A panel is made when it first opens and kept. A
+  header is a `<button>`: what is in it is phrasing content (a `<span>`,
+  not a `<div>`). To hold one section open from a signal, bind `[expanded]`
+  on each trigger and do not use Aria's `multiExpandable="false"`: it closes
+  the others first and sends their `expandedChange(false)` before the new
+  one's `true`. A section that must stay open when it is closed (the
+  composer's Headers) is opened again with the trigger's `expand()`: its
+  binding has not changed, so Aria would not hear it again. What
+  `uiAccordionPanel` does that Aria does not, with a test in
+  `accordion.spec.ts`: Aria's group reads every key that reaches it, also
+  one typed into a field or pressed on a button inside a panel (Space,
+  Enter, the arrows, Home, End: it took them, and the field never had
+  them); the panel keeps those keys, without a modifier, to itself.
 - Aria's trigger takes Escape on its button and stops it, also with the
   menu closed, so a Material tooltip there never hears it: the button hides
   its own (`(keydown.escape)="tip.hide(0)"`, the cURL button).

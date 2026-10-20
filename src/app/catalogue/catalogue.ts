@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { MatButton } from "@angular/material/button";
+import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
 import { UiTabList } from "../ui/tabs";
 import { Tree, UiTreeNode } from "../ui/tree";
+import { Icon } from "../shared/icon/icon";
 
 interface Row {
   method?: string;
@@ -23,7 +26,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 @Component({
   // index.html's root element is the app's.
   selector: "app-root",
-  imports: [MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiMenu, UiTabList],
+  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiTabList],
   template: `
     <main class="catalogue">
       <h1 class="type-title-2">Widget catalogue</h1>
@@ -91,6 +94,31 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         </div>
         <button matButton="outlined" class="btn-secondary" type="button" (click)="request.set('r4')">Open the last request from code</button>
       </section>
+
+      <section aria-labelledby="catalogue-accordion">
+        <h2 id="catalogue-accordion" class="type-title-3">Accordion</h2>
+        <p class="type-callout text-label-secondary">A request's parts on a phone: one open, one with a field and a button, one closed.</p>
+        <div uiAccordion class="catalogue-accordion">
+          @for (part of parts; track part.id) {
+            <div class="sections-item">
+              <button ngAccordionTrigger class="section-header" [panel]="panel" [expanded]="part.id === 'headers'">
+                {{ part.label }} <app-icon class="section-chevron" name="keyboard_arrow_down" />
+              </button>
+              <div ngAccordionPanel uiAccordionPanel #panel="ngAccordionPanel" class="section-body" [preserveContent]="true">
+                <ng-template ngAccordionContent>
+                  @if (part.id === "headers") {
+                    <label for="catalogue-section-field" class="type-callout">Header value</label>
+                    <input id="catalogue-section-field" class="catalogue-input type-mono-body" />
+                    <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="chosen.set('Pressed Add header.')">Add header</button>
+                  } @else {
+                    <p class="type-callout">{{ part.label }} of this request.</p>
+                  }
+                </ng-template>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
     </main>
   `,
   styles: `
@@ -103,6 +131,9 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     .catalogue-tree {
       display: block;
       max-width: 352px;
+    }
+    .catalogue-accordion {
+      max-width: 358px;
     }
     .catalogue-narrow {
       max-width: 240px;
@@ -126,6 +157,11 @@ export class Catalogue {
   protected readonly chosen = signal("Nothing chosen yet.");
   protected readonly row = signal("");
   protected readonly part = signal("headers");
+  protected readonly parts = [
+    { id: "params", label: "Params" },
+    { id: "headers", label: "Headers" },
+    { id: "auth", label: "Auth" },
+  ];
   protected readonly request = signal("r1");
   protected readonly openRequests = [
     { id: "r1", method: "GET", name: "List users", unsaved: false },

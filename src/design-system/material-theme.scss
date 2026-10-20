@@ -179,22 +179,6 @@ html {
   );
 }
 
-/* ── Accordion (expansion panel) ─────────────────────────── */
-html {
-  @include mat.expansion-overrides(
-    (
-      container-background-color: var(--ctl-surface),
-      container-text-color: var(--ctl-surface-text),
-      container-shape: 6px,
-      container-elevation-shadow: none,
-      header-collapsed-state-height: auto,
-      header-expanded-state-height: auto,
-      header-hover-state-layer-color: transparent,
-      header-focus-state-layer-color: transparent,
-    )
-  );
-}
-
 /* ── Select ──────────────────────────────────────────────── */
 html {
   @include mat.select-overrides(

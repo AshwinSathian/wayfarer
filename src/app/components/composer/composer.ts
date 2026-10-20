@@ -1,6 +1,5 @@
 import { NgTemplateOutlet } from "@angular/common";
 import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } from "@angular/core";
-import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader } from "@angular/material/expansion";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -21,6 +20,7 @@ import { BrowserNotes } from "./browser-notes";
 import { RequestWarnings } from "./request-warnings";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
+import { ComposerSections } from "./composer-sections";
 import { ComposerView } from "./composer-view";
 import { HeadersPanel } from "./headers-panel";
 import { ParamsPanel } from "./params-panel";
@@ -38,9 +38,7 @@ import { VariableChips } from "./variable-chips";
   selector: "app-composer",
   imports: [
     Icon,
-    MatAccordion,
-    MatExpansionPanel,
-    MatExpansionPanelHeader,
+    ComposerSections,
     AriaTabs,
     Tab,
     TabContent,

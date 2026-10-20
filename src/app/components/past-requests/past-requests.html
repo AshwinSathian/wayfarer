@@ -111,41 +111,45 @@
           <!-- Mobile accordion -->
           <div class="md:hidden flex items-start">
             <mat-checkbox class="shrink-0 mt-1" [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'" [checked]="isChosen(request)" (change)="choose(request, $event.checked)" />
-            <mat-accordion class="sections min-w-0 flex-1" displayMode="flat" hideToggle>
-              <mat-expansion-panel>
-                <mat-expansion-panel-header>
+            <div uiAccordion class="min-w-0 flex-1">
+              <div class="sections-item">
+                <button ngAccordionTrigger class="section-header" [panel]="entry">
                   <!-- min-w-0: a flex child is as wide as its text unless told it may be narrower, and a URL is one long word. -->
-                  <div class="flex min-w-0 flex-1 items-center gap-2">
+                  <span class="flex min-w-0 flex-1 items-center gap-2">
                     <span class="method-badge shrink-0 method-{{ request.sent.method.toLowerCase() }}">{{ request.sent.method }}</span>
                     <span class="type-mono-body text-label-secondary min-w-0 truncate">{{ request.sent.url }}</span>
-                  </div>
+                  </span>
                   <app-icon class="section-chevron" name="keyboard_arrow_down" />
-                </mat-expansion-panel-header>
-                <div class="space-y-2 type-callout text-label-secondary">
-                  @if (request.response) {
-                  <p>Status: <span class="font-semibold">{{ request.response.status }}</span></p>
-                  }
-                  @if (request.durationMs) {
-                  <p>Duration: {{ formatDuration(request.durationMs) }}</p>
-                  }
-                  <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
-                  <div class="flex items-center gap-2">
-                    <button
-                      matButton class="btn-secondary btn-sm"
-                      type="button"
-                      aria-label="Load request"
-                      (click)="load(request)"
-                    >Load</button>
-                    <button
-                      matButton class="btn-danger btn-sm"
-                      type="button"
-                      aria-label="Delete request"
-                      (click)="confirmDelete(request, $event)"
-                    >Delete</button>
+                </button>
+                <div ngAccordionPanel uiAccordionPanel #entry="ngAccordionPanel" class="section-body" [preserveContent]="true">
+                  <ng-template ngAccordionContent>
+                  <div class="space-y-2 type-callout text-label-secondary">
+                    @if (request.response) {
+                    <p>Status: <span class="font-semibold">{{ request.response.status }}</span></p>
+                    }
+                    @if (request.durationMs) {
+                    <p>Duration: {{ formatDuration(request.durationMs) }}</p>
+                    }
+                    <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+                    <div class="flex items-center gap-2">
+                      <button
+                        matButton class="btn-secondary btn-sm"
+                        type="button"
+                        aria-label="Load request"
+                        (click)="load(request)"
+                      >Load</button>
+                      <button
+                        matButton class="btn-danger btn-sm"
+                        type="button"
+                        aria-label="Delete request"
+                        (click)="confirmDelete(request, $event)"
+                      >Delete</button>
+                    </div>
                   </div>
+                  </ng-template>
                 </div>
-              </mat-expansion-panel>
-            </mat-accordion>
+              </div>
+            </div>
           </div>
 
         </div>

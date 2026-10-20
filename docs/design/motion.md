@@ -13,7 +13,7 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
 |---|---|---|
 | `--dur-micro` | 60 ms | A press: a chip or a button that dips, a row's background |
 | `--dur-quick` | 120 ms | A hover or a colour change, an overlay that appears; Tailwind's `transition-*` utilities |
-| `--dur-standard` | 240 ms | A tab's pane fading in, an accordion's chevron turning |
+| `--dur-standard` | 240 ms | A tab's pane or an accordion's section fading in, an accordion's chevron turning |
 | `--dur-enter` | 300 ms | A dialog, the drawer's slide, the shell and a response arriving |
 | `--dur-pulse` | 2,000 ms | A missing variable's chip, once each way |
 | `--dur-shimmer` | 1,200 ms | A loading skeleton's sweep |

@@ -415,63 +415,6 @@
   box-shadow: var(--shadow-overlay);
 }
 
-/* ── Accordion ───────────────────────────────────────────── */
-/* Markup: <mat-accordion class="sections" displayMode="flat"> of
-   mat-expansion-panel. Material keeps a closed panel's content mounted,
-   invisible and inert, so an editor inside keeps its state. */
-.sections .mat-expansion-panel {
-  border-bottom: 1px solid var(--ctl-surface-border);
-}
-
-.sections .mat-expansion-panel .mat-expansion-panel-content {
-  font: inherit;
-  letter-spacing: inherit;
-}
-
-.sections .mat-expansion-panel-header {
-  padding: 1.125rem;
-  font: inherit;
-  font-weight: 600;
-  letter-spacing: inherit;
-  color: var(--ctl-surface-muted);
-  transition:
-    background var(--dur-quick) var(--ease-standard),
-    color var(--dur-quick) var(--ease-standard);
-}
-
-.sections .mat-expansion-panel-header:hover,
-.sections .mat-expansion-panel-header.mat-expanded {
-  color: var(--ctl-surface-text);
-}
-
-.sections .mat-expansion-panel-header:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-/* The chevron is the app's own glyph (Material's is heavier); it turns
-   over when the panel opens. */
-.sections .mat-expansion-panel-header .mat-content {
-  align-items: center;
-  justify-content: space-between;
-  margin-right: 0;
-}
-
-.sections .section-chevron {
-  flex: none;
-  margin: -5px -5px -5px 0;
-  font-size: 26px;
-  transition: transform var(--dur-standard) var(--ease-standard);
-}
-
-.sections .mat-expansion-panel-header.mat-expanded .section-chevron {
-  transform: rotate(180deg);
-}
-
-.sections .mat-expansion-panel-body {
-  padding: 0 1.125rem 1.125rem;
-}
-
 /* ── Segmented control ───────────────────────────────────── */
 /* Markup: <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator>.
    Colours, type and shape come through Material's tokens

@@ -1,0 +1,82 @@
+/* The sections of [uiAccordion]. Not encapsulated: the sections are written
+   in the template that uses it. */
+.sections {
+  display: block;
+}
+
+.sections-item {
+  overflow: hidden;
+  border-bottom: 1px solid var(--ctl-surface-border);
+  background: var(--ctl-surface);
+  color: var(--ctl-surface-text);
+}
+
+/* Rounded at the ends of the list, and all round while open, as Material's
+   were (6px: no radius token is that size). */
+.sections-item:first-child {
+  border-start-start-radius: 6px;
+  border-start-end-radius: 6px;
+}
+
+.sections-item:last-child {
+  border-end-start-radius: 6px;
+  border-end-end-radius: 6px;
+}
+
+.sections-item:has(> [aria-expanded="true"]) {
+  border-radius: 6px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.125rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: var(--ctl-surface-muted);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--dur-quick) var(--ease-standard);
+}
+
+.section-header:hover,
+.section-header[aria-expanded="true"] {
+  color: var(--ctl-surface-text);
+}
+
+.section-header:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* The chevron is the app's own glyph; it turns over when the section opens. */
+.section-chevron {
+  flex: none;
+  margin: -5px -5px -5px 0;
+  font-size: 26px;
+  transition: transform var(--dur-standard) var(--ease-standard);
+}
+
+.section-header[aria-expanded="true"] .section-chevron {
+  transform: rotate(180deg);
+}
+
+.section-body {
+  padding: 0 1.125rem 1.125rem;
+}
+
+/* Aria makes a closed panel inert and leaves hiding it to us. Opacity only
+   when it opens: what is in it is pressed as soon as it shows (F48). */
+.section-body[inert] {
+  display: none;
+}
+
+.section-body:not([inert]) {
+  animation: fade-in var(--dur-standard) var(--ease-standard) both;
+}

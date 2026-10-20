@@ -66,12 +66,14 @@
       type="button"
       [disabled]="!store.draft().url"
       matTooltip="Copy as cURL"
+      #curlTip="matTooltip"
       matTooltipPosition="below"
       [matTooltipDisabled]="!store.draft().url"
       aria-label="Copy as cURL"
       ngMenuTrigger
       #curlTrigger="ngMenuTrigger"
       [softDisabled]="false"
+      (keydown.escape)="curlTip.hide(0)"
       [menu]="curlMenu.menu()"
       class="btn-secondary btn-square curl-btn"
     ><app-icon name="terminal" /></button>

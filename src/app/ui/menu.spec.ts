@@ -115,6 +115,21 @@ describe("ui-menu", () => {
     fixture.destroy();
   });
 
+  it("an item that comes up under a pointer that has not moved does not take focus from the first; a pointer that moves does", async () => {
+    const { fixture, items, settle, rightClick } = await setup();
+    await rightClick();
+    // Drawn under a still pointer, the browser sends mouseover with no move.
+    items()[1].dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    await settle();
+    expect(document.activeElement).toBe(items()[0]);
+
+    items()[1].dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+    items()[1].dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    await settle();
+    expect(document.activeElement).toBe(items()[1]);
+    fixture.destroy();
+  });
+
   it("a choice at the pointer closes it, hands focus back, then runs the item", async () => {
     const { fixture, host, items, settle, rightClick } = await setup();
     await rightClick();

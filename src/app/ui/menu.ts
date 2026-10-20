@@ -100,6 +100,24 @@ export class UiMenu {
       this.focusFirst = false;
       first.element.focus();
     });
+    // A menu that opens under a pointer that has not moved gets a mouseover from the browser,
+    // and Aria moves focus to the item there: opened from the keyboard after a click in the same
+    // place, the menu started at that item, not its first. Aria hears mouseover only after a move.
+    afterRenderEffect((onCleanup) => {
+      const element = this.menu()?.element;
+      if (!element) return;
+      let moved = false;
+      const move = () => (moved = true);
+      const over = (event: MouseEvent) => {
+        if (!moved) event.stopPropagation();
+      };
+      element.addEventListener("mousemove", move, true);
+      element.addEventListener("mouseover", over, true);
+      onCleanup(() => {
+        element.removeEventListener("mousemove", move, true);
+        element.removeEventListener("mouseover", over, true);
+      });
+    });
   }
 
   /** Opens the menu at the event's point, with focus on its first item. `restore` gives focus back when it closes. */

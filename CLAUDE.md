@@ -580,7 +580,14 @@ code errors.
   - opened at the pointer, the right button's release is not a click
     outside, and Escape, a choice and Tab hand focus back through
     `restore`; a click elsewhere leaves focus where it went;
-  - its host is `display: contents`: an element in a flex row took a gap.
+  - its host is `display: contents`: an element in a flex row took a gap;
+  - Aria hears `mouseover` only after the pointer moves in the menu: a
+    menu drawn under a still pointer gets one from the browser, and Aria
+    moved focus to the item there, not the first (Shift+F10 after a click
+    in the same place).
+- Aria's trigger takes Escape on its button and stops it, also with the
+  menu closed, so a Material tooltip there never hears it: the button hides
+  its own (`(keydown.escape)="tip.hide(0)"`, the cURL button).
 - On a button that Material's `matButton` also draws, `[disabled]` reaches
   Aria's trigger too, and Aria's default `softDisabled` writes no
   `disabled` attribute: give such a trigger `[softDisabled]="false"`, or

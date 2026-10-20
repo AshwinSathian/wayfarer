@@ -78,8 +78,9 @@ describe("Settings", () => {
 
   it("the theme is one of three choices, and the one chosen is kept", async () => {
     const theme = TestBed.inject(Theme);
-    const choice = (name: string) => [...dialog().querySelectorAll<HTMLButtonElement>(".segmented button")].find((button) => button.textContent?.trim() === name) as HTMLButtonElement;
-    expect([...dialog().querySelectorAll(".segmented button")].map((button) => button.textContent?.trim())).toEqual(["System", "Light", "Dark"]);
+    const options = () => [...dialog().querySelectorAll<HTMLLabelElement>(".segmented label")];
+    const choice = (name: string) => options().find((label) => label.textContent?.trim() === name)?.querySelector("input") as HTMLInputElement;
+    expect(options().map((label) => label.textContent?.trim())).toEqual(["System", "Light", "Dark"]);
     choice("Dark").click();
     await settle();
     expect([theme.choice(), document.documentElement.getAttribute("data-theme"), localStorage.getItem("wayfarer:theme")]).toEqual(["dark", "dark", "dark"]);
@@ -162,7 +163,7 @@ describe("Settings", () => {
     });
 
     it("the route Local Bridge with no address is refused, and says why", async () => {
-      [...dialog().querySelectorAll<HTMLButtonElement>(".bridge-route button")].find((candidate) => candidate.textContent?.trim() === "Local Bridge")?.click();
+      [...dialog().querySelectorAll("[aria-labelledby=\"bridge-route-label\"] label")].find((candidate) => candidate.textContent?.trim() === "Local Bridge")?.querySelector("input")?.click();
       await type("#bridge-url-input", "  ");
       expect(dialog().querySelector('[role="alert"]')?.textContent).toContain("Give the bridge's address, or choose another route.");
       expect(button("Save").disabled).toBe(true);

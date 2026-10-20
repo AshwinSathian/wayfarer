@@ -1,0 +1,112 @@
+/* <ui-segmented>: the track, and the chosen option raised on it. Each
+   option's radio button covers it; the text is above it and lets the
+   pointer through. Not encapsulated: Settings lays the options
+   out on a phone. */
+.segmented {
+  display: inline-flex;
+  gap: 1px;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--fill-secondary);
+  vertical-align: bottom;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.segment {
+  position: relative;
+  display: block;
+  padding: 5px 14px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--label-secondary-on-fill);
+  font-size: var(--type-footnote-size);
+  font-weight: 500;
+  letter-spacing: -0.002em;
+  line-height: normal;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+.segment + .segment {
+  border-inline-start: 1px solid var(--separator);
+}
+
+.segment:has(> .segment-input:checked) {
+  background: var(--canvas-overlay);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  color: var(--label-primary);
+}
+
+.segment:hover:not(:has(> .segment-input:checked)) {
+  background: var(--fill-hover);
+  color: var(--label-primary);
+}
+
+/* The option's own radio button, with none of its look: it takes the
+   pointer and the focus, and draws the focus ring. */
+.segment-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: inherit;
+  appearance: none;
+}
+
+.segment-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.segment-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.segment-input:checked + .segment-label {
+  background: var(--ctl-segment-checked);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Below 480 px a dialog is the window's width, and three options at their
+   own width did not fit in one: the track takes the row, and the options
+   their room less padding. */
+@media (width < 480px) {
+  .segmented {
+    display: flex;
+    width: 100%;
+  }
+
+  .segment {
+    flex: 1 1 auto;
+    padding-inline: 2px;
+  }
+
+  .segment-label {
+    padding-inline: 0.25rem;
+  }
+}
+
+/* Forced colours take the backgrounds and shadows away: the chosen option
+   keeps a border. */
+@media (forced-colors: active) {
+  .segment-input:checked {
+    border: 2px solid Highlight;
+  }
+}

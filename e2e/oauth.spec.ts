@@ -289,7 +289,7 @@ test("through the Local Bridge the same token endpoint answers, and the token re
     await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "Settings", exact: true });
     await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
-    await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
+    await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
     await settings.locator("#bridge-url-input").fill(`http://127.0.0.1:${port}`);
     await settings.locator("#bridge-token-input").fill(token);
     await settings.getByRole("button", { name: "Save", exact: true }).click();

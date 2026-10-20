@@ -415,62 +415,6 @@
   box-shadow: var(--shadow-overlay);
 }
 
-/* ── Segmented control ───────────────────────────────────── */
-/* Markup: <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator>.
-   Colours, type and shape come through Material's tokens
-   (material-theme.scss); this is the padded track and the raised option. */
-.mat-button-toggle-group.segmented {
-  gap: 1px;
-  padding: 3px;
-  overflow: visible;
-  border-color: var(--separator);
-  background: var(--fill-secondary);
-  user-select: none;
-  vertical-align: bottom;
-}
-
-.segmented .mat-button-toggle.mat-button-toggle-appearance-standard {
-  overflow: hidden;
-  border: 0;
-  border-radius: calc(var(--radius-sm) - 2px);
-  transition:
-    background var(--dur-quick) var(--ease-standard),
-    color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
-}
-
-.segmented .mat-button-toggle:hover:not(.mat-button-toggle-checked) {
-  background: var(--fill-hover);
-  color: var(--label-primary);
-}
-
-.segmented .mat-button-toggle-checked {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.40), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
-}
-
-.segmented .mat-button-toggle-button {
-  padding: 5px 14px;
-}
-
-.segmented .mat-button-toggle-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-  border-radius: inherit;
-}
-
-.segmented .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-}
-
-.segmented .mat-button-toggle-checked .mat-button-toggle-label-content {
-  background: var(--ctl-segment-checked);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
 /* ── Select ──────────────────────────────────────────────── */
 /* Markup: <mat-select class="select"> with mat-option children, used without
    a form field: the box is drawn here. Text colours and type come through

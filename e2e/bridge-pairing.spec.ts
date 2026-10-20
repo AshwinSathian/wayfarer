@@ -10,7 +10,7 @@ test.skip(({ browserName }) => browserName !== "chromium", "the Local Bridge is 
 async function openPane(page: Page, bridge: TestBridge) {
   await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
-  await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
+  await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
   await settings.locator("#bridge-url-input").fill(bridge.url);
   return settings;
 }

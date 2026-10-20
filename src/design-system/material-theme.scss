@@ -157,28 +157,6 @@ html {
   );
 }
 
-/* ── Segmented control (button toggle) ───────────────────── */
-html {
-  @include mat.button-toggle-overrides(
-    (
-      shape: var(--radius-sm),
-      divider-color: var(--separator),
-      background-color: transparent,
-      /* --label-secondary measures 4.27:1 on this control's background. */
-      text-color: var(--label-secondary-on-fill),
-      selected-state-background-color: var(--canvas-overlay),
-      selected-state-text-color: var(--label-primary),
-      label-text-size: 12px,
-      label-text-weight: 500,
-      label-text-tracking: -0.002em,
-      label-text-line-height: normal,
-      height: auto,
-      hover-state-layer-opacity: 0,
-      focus-state-layer-opacity: 0,
-    )
-  );
-}
-
 /* ── Select ──────────────────────────────────────────────── */
 html {
   @include mat.select-overrides(

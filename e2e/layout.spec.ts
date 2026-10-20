@@ -91,6 +91,33 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     });
   }
 
+  // D3.3e: in a 390 px window the export's three choices ran past the dialog's edge, and
+  // "Plain text" was cut off; fitted to the dialog by clipping, "With the vault" lost its edge.
+  for (const width of [360, 390]) {
+    test(`the export's choices fit in the dialog, each in its option, at ${width} px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/app/");
+      await openEnvironments(page);
+      await page.getByRole("button", { name: "New environment" }).click();
+      await page.locator("#new-env-name-input").fill("Phone");
+      await page.getByRole("button", { name: "Create environment" }).click();
+      await page.getByRole("button", { name: "Export environments" }).click();
+      const dialog = page.getByRole("dialog", { name: "Export environments" });
+      const choices = dialog.getByRole("radiogroup", { name: "Protected variables" });
+      await expect(choices.getByRole("radio", { name: "Leave out" })).toBeChecked();
+      const fits = await choices.evaluate((group) => {
+        const room = group.parentElement!.getBoundingClientRect();
+        const track = group.getBoundingClientRect();
+        const options = [...group.querySelectorAll(".segment")].map((option) => {
+          const [box, text] = [option.getBoundingClientRect(), option.querySelector(".segment-label")!.getBoundingClientRect()];
+          return text.left >= box.left && text.right <= box.right;
+        });
+        return { track: track.left >= room.left && track.right <= room.right, options };
+      });
+      expect(fits).toEqual({ track: true, options: [true, true, true] });
+    });
+  }
+
   // F80: the environments view was one grid column as wide as its widest text, so a long
   // name made the list 621 px wide in a 390 px window and its buttons could not be reached.
   test("a long environment name is cut short, and its row's buttons stay inside a 390 px window", async ({ page }) => {

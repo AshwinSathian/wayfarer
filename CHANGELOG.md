@@ -9,6 +9,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **On a phone, the export of environments fits its choices in the
+  dialog.** Before, in a 390 px window the "Protected variables" choice ran
+  past the dialog's edge and "Plain text" was cut off; in WebKit the dialog
+  scrolled sideways. Below 480 px each choice now fills its row. The theme,
+  the route and the export's choices are now the app's own, drawn over the
+  browser's radio buttons, with Angular Material's button toggles gone; they
+  look as before, and the keys are the same: the arrows move and choose,
+  wrapping at the ends, and Tab stops once on the chosen option. Behind
+  this, the app's first download is 21.0 kB smaller (5.0 kB compressed),
+  and the size budgets are reset to it: initial 1,341,010 B raw and
+  349,207 B gzip; budgets 1409kb, 1476kb and 384,128 B.
+
 - **On a phone, a section of the composer or a past request opens at its
   full height and fades in.** Before, it grew to its height over 0.2 s or
   more, and what was under it slid down with it; the app's other panels

@@ -33,11 +33,7 @@
               <p class="type-subhead text-label-primary" id="settings-theme-label">Theme</p>
               <p class="type-footnote text-label-tertiary">System follows your device, and changes with it. Now: {{ themeService.theme() === 'dark' ? 'dark' : 'light' }}.</p>
             </div>
-            <mat-button-toggle-group class="segmented" hideSingleSelectionIndicator aria-labelledby="settings-theme-label" [value]="themeService.choice()" (change)="themeService.choose($event.value)">
-              @for (choice of themeChoices; track choice.value) {
-              <mat-button-toggle [value]="choice.value"><app-icon [name]="choice.icon" class="icon-xs" /> {{ choice.label }}</mat-button-toggle>
-              }
-            </mat-button-toggle-group>
+            <ui-segmented aria-labelledby="settings-theme-label" [options]="themeChoices" [value]="themeService.choice()" (valueChange)="themeService.choose($event)" />
           </div>
         </div>
         }

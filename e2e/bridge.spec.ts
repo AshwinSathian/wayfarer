@@ -97,7 +97,7 @@ test("a request through a bridge that does not know the page's relay fails with 
     });
     await page.goto("/app/");
     const settings = await openSettings(page, "Local Bridge");
-    await settings.locator(".bridge-route").getByText("Local Bridge", { exact: true }).click();
+    await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
     await settings.locator("#bridge-url-input").fill(other.url);
     await settings.locator("#bridge-token-input").fill("a-token-of-sixteen-characters-or-more");
     await settings.getByRole("button", { name: "Save", exact: true }).click();

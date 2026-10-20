@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { MatCheckbox } from "@angular/material/checkbox";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
+import type { Route } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
+import { UiSelect, type UiSelectOption } from "../../ui/select";
 
 /**
  * The request's Settings tab: how it is sent (its route, P6.4; redirects,
@@ -12,12 +12,18 @@ import { WorkspaceStore } from "../../state/workspace-store";
  */
 @Component({
   selector: "app-browser-notes",
-  imports: [MatCheckbox, MatOption, MatSelect],
+  imports: [MatCheckbox, UiSelect],
   templateUrl: "./browser-notes.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BrowserNotes {
   protected readonly store = inject(WorkspaceStore);
-  protected readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
+  private readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
+  protected readonly routes = computed<UiSelectOption<Route | null>[]>(() => [
+    { value: null, label: `Inherit: ${this.routeNames[this.store.inheritedRoute()]}` },
+    { value: "auto", label: "Auto" },
+    { value: "direct", label: "Direct" },
+    { value: "bridge", label: "Local Bridge" },
+  ]);
   protected readonly docs = "https://github.com/AshwinSathian/wayfarer/blob/main/docs/browser-limits.md";
 }

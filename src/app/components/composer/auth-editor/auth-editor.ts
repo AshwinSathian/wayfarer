@@ -4,12 +4,11 @@ import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { MatIconButton } from "@angular/material/button";
 import { MatCheckbox } from "@angular/material/checkbox";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { emptyAuth, type AuthConfig, type OwnAuth } from "@wayfarer/core";
 import { oauthRedirectUri } from "../../../services/oauth-tokens";
 import { OAuthTokenPanel } from "../oauth-token/oauth-token";
 import { Icon } from "../../../shared/icon/icon";
+import { UiSelect } from "../../../ui/select";
 
 type AuthType = AuthConfig["type"];
 const AUTH_TYPES: { label: string; value: AuthType }[] = [
@@ -36,7 +35,7 @@ const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as cons
  */
 @Component({
   selector: "app-auth-editor",
-  imports: [MatFormField, MatInput, Icon, FormsModule, MatIconButton, MatSelect, MatOption, MatCheckbox, OAuthTokenPanel],
+  imports: [MatFormField, MatInput, Icon, FormsModule, MatIconButton, UiSelect, MatCheckbox, OAuthTokenPanel],
   templateUrl: "./auth-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -8,11 +8,7 @@
     @if (format() === 'postman') {
     <div class="flex flex-col gap-1.5">
       <span id="env-export-environment-label" class="ds-form-label">Environment</span>
-      <mat-select class="select w-full!" aria-labelledby="env-export-environment-label" [ngModel]="chosen() || environments()[0]?.meta?.id" (ngModelChange)="chosen.set($event)">
-        @for (environment of environments(); track environment.meta.id) {
-        <mat-option [value]="environment.meta.id">{{ environment.name }}</mat-option>
-        }
-      </mat-select>
+      <ui-select class="w-full" aria-labelledby="env-export-environment-label" [options]="environmentOptions()" [value]="chosen() || environments()[0]?.meta?.id" (valueChange)="chosen.set($event)" />
       <p class="type-footnote text-label-tertiary">A Postman environment file holds one environment.</p>
     </div>
     }

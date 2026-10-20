@@ -37,7 +37,7 @@ describe("BrowserNotes (P2.14)", () => {
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
-      return text(fixture.nativeElement as HTMLElement, ".request-route .mat-mdc-select-value");
+      return text(fixture.nativeElement as HTMLElement, ".request-route .ui-select-value");
     };
     expect(await shown()).toBe("Inherit: Auto");
 

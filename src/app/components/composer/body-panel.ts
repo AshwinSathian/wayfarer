@@ -2,8 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from "@angular/forms";
 import { MatButton } from "@angular/material/button";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { type BodyMode, type MultipartPart, type RawLanguage } from "@wayfarer/core";
 import { GraphqlSchemas } from "../../services/graphql-schemas";
 import { RequestFiles } from "../../services/request-files";
@@ -13,11 +11,12 @@ import { JsonEditor } from "../json-editor/json-editor";
 import { GraphqlExplorer } from "./graphql-explorer";
 import { MultipartEditor } from "./multipart-editor";
 import { RowsEditor } from "./rows-editor/rows-editor";
+import { UiSelect } from "../../ui/select";
 
 /** The request body: none, text in a language, form fields, multipart parts, one file, or a GraphQL query with its variables. */
 @Component({
   selector: "app-body-panel",
-  imports: [FormsModule, GraphqlExplorer, Icon, JsonEditor, MatButton, MatProgressSpinner, MatSelect, MatOption, MultipartEditor, RowsEditor],
+  imports: [FormsModule, GraphqlExplorer, Icon, JsonEditor, MatButton, MatProgressSpinner, UiSelect, MultipartEditor, RowsEditor],
   templateUrl: "./body-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

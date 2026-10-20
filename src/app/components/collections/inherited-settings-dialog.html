@@ -68,12 +68,7 @@
         <p class="type-footnote text-label-secondary mb-3" id="inherited-route-label">
           How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.
         </p>
-        <mat-select class="select collection-route w-64!" aria-labelledby="inherited-route-label" [value]="route()" (valueChange)="route.set($event)" placeholder="The device's (Settings, Local Bridge)">
-          <mat-option [value]="null">The device's (Settings, Local Bridge)</mat-option>
-          <mat-option value="auto">Auto</mat-option>
-          <mat-option value="direct">Direct</mat-option>
-          <mat-option value="bridge">Local Bridge</mat-option>
-        </mat-select>
+        <ui-select class="collection-route w-64" aria-labelledby="inherited-route-label" [options]="routes" [value]="route()" (valueChange)="route.set($event)" />
       </ng-template></div>
       }
     </div>

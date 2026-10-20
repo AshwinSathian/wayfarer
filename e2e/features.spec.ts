@@ -439,7 +439,7 @@ test("a history entry shows its details on keyboard focus and hides them on blur
 });
 
 
-// Material fades a select's placeholder to its colour over half a second.
+// Material's select faded its placeholder to its colour over half a second.
 // After a switch to the light theme "No environment" stayed white on the
 // light toolbar for that long.
 test("switching the theme recolours the environment select at once", async ({ page }) => {
@@ -450,7 +450,7 @@ test("switching the theme recolours the environment select at once", async ({ pa
   await expect(select).toHaveText("No environment");
   await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: "Switch to light mode" }).click();
   const colours = await select.evaluate((host) => {
-    const text = host.querySelector(".mat-mdc-select-min-line");
+    const text = host.querySelector(".ui-select-value");
     return { host: getComputedStyle(host).color, text: text && getComputedStyle(text).color };
   });
   expect(colours.text).toBe(colours.host);

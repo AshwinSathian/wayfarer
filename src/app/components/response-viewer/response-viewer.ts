@@ -10,8 +10,6 @@ import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -46,6 +44,7 @@ import { writeToClipboard } from "../../shared/http/clipboard";
 import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { parseJson, stringifyJson } from "@wayfarer/core";
+import { UiSelect } from "../../ui/select";
 
 export type { ResponseExportContext } from "../../shared/inspect/response-export-entry";
 
@@ -69,7 +68,7 @@ interface ResponseHeader {
     JsonEditor,
     HtmlPreview,
     MatButton, MatIconButton,
-    MatSelect, MatOption,
+    UiSelect,
     MenuTrigger, UiMenu,
   ],
   templateUrl: "./response-viewer.html",
@@ -225,6 +224,7 @@ export class ResponseViewer {
     });
   });
   /** The user's choice of view for this response. */
+  readonly viewOptions = computed(() => this.views().map((view) => ({ value: view, label: this.viewLabels[view] })));
   readonly viewOverride = signal<ResponseView | null>(null);
   readonly view = computed(() => {
     const chosen = this.viewOverride();

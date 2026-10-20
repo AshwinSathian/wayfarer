@@ -415,90 +415,6 @@
   box-shadow: var(--shadow-overlay);
 }
 
-/* ── Select ──────────────────────────────────────────────── */
-/* Markup: <mat-select class="select"> with mat-option children, used without
-   a form field: the box is drawn here. Text colours and type come through
-   Material's tokens. */
-.mat-mdc-select.select {
-  display: inline-flex;
-  align-items: center;
-  width: auto;
-  height: 40px;
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-md);
-  background: var(--canvas-elevated);
-  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
-  cursor: pointer;
-  transition:
-    border-color var(--dur-quick) var(--ease-standard),
-    box-shadow var(--dur-quick) var(--ease-standard);
-}
-
-.mat-mdc-select.select:not(.mat-mdc-select-disabled):hover {
-  border-color: var(--fill-primary);
-}
-
-/* The control draws its own focus state: border and glow. */
-.mat-mdc-select.select:not(.mat-mdc-select-disabled):focus,
-.mat-mdc-select.select.mat-select-open {
-  border-color: var(--accent-border);
-  box-shadow: var(--glow-accent);
-  outline: none;
-}
-
-.select .mat-mdc-select-trigger {
-  height: 100%;
-}
-
-.select .mat-mdc-select-value {
-  padding-inline-start: 12px;
-}
-
-/* The app's chevron glyph in place of Material's filled triangle. */
-.select .mat-mdc-select-arrow-wrapper {
-  justify-content: center;
-  width: 40px;
-  height: 100%;
-}
-
-.select .mat-mdc-select-arrow {
-  width: 24px;
-  height: 24px;
-  background: currentColor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M480-357.85 253.85-584l32.61-32.61L480-423.08l193.54-193.53L706.15-584 480-357.85Z'/%3E%3C/svg%3E") center / contain no-repeat;
-}
-
-.select.mat-select-open .mat-mdc-select-arrow {
-  transform: none;
-}
-
-.select .mat-mdc-select-arrow svg {
-  display: none;
-}
-
-/* The list. Material adds the panel to the overlay container, outside the
-   select, so these rules are not scoped to .select. */
-.cdk-overlay-pane div.mat-mdc-select-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 200px;
-  margin-block: 2px;
-  padding: 4px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-}
-
-.mat-mdc-select-panel .mat-mdc-option {
-  flex: none;
-  min-height: 0;
-  padding: 9px 14px;
-}
-
-.mat-mdc-select-panel .mat-mdc-option .mdc-list-item__primary-text {
-  white-space: nowrap;
-}
-
 /* Method field: mono, upper case, joined to the URL field on its right.
    A text field, so any HTTP method can be typed; .method-menu beside it
    lists the common ones. */
@@ -537,26 +453,6 @@
 .address-bar .mat-mdc-icon-button.method-menu {
   align-self: center;
   border-radius: 0;
-}
-
-/* Environment switcher: a pill in the toolbar */
-.mat-mdc-select.select.env-switcher {
-  /* Shrinks on a phone so the toolbar never outgrows the window. */
-  flex: 0 1 160px;
-  min-width: 96px;
-  max-width: 200px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: var(--fill-secondary);
-  font-size: 13px;
-}
-
-.env-switcher .mat-mdc-select-value {
-  padding-inline-start: 10px;
-}
-
-.env-switcher .mat-mdc-select-arrow-wrapper {
-  width: 28px;
 }
 
 /* ── Dialog ──────────────────────────────────────────────── */

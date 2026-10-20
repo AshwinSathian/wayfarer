@@ -7,8 +7,6 @@ import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { Confirm } from "../../ui/confirm";
 import { Dialog } from "../../ui/dialog";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { Tree, UiTreeNode } from "../../ui/tree";
 import { Folder, RequestDoc } from "../../models/collections";
 import { CollectionsStore } from "../../services/collections-store";
@@ -31,6 +29,7 @@ import { PostmanExportDialog } from "./postman-export-dialog";
 import { saveJsonFile } from "../../shared/save-file";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
+import { UiSelect } from "../../ui/select";
 
 type NodeData = CollectionNodeData;
 
@@ -49,7 +48,7 @@ export interface PaletteAction {
     UiMenu,
     MatButton,
     Dialog,
-    MatSelect, MatOption,
+    UiSelect,
     InheritedSettingsDialog,
     PostmanExportDialog,
   ],

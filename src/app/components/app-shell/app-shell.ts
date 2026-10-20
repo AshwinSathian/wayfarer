@@ -21,8 +21,6 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatToolbar } from "@angular/material/toolbar";
 import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/material/sidenav";
 import { Dialog } from "../../ui/dialog";
-import { MatOption } from "@angular/material/core";
-import { MatSelect } from "@angular/material/select";
 import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -43,6 +41,7 @@ import { Diagnostics } from "../../services/diagnostics";
 import { SwUpdate } from "../../services/sw-update";
 import type { RunTarget } from "../../state/run-state";
 import { VariableFocus } from "../../services/variable-focus";
+import { UiSelect } from "../../ui/select";
 
 @Component({
   selector: "app-shell",
@@ -52,7 +51,7 @@ import { VariableFocus } from "../../services/variable-focus";
     MatSidenav,
     MatSidenavContent,
     MatButton, MatIconButton,
-    MatSelect, MatOption,
+    UiSelect,
     Dialog,
     ImportDialog,
     MatTooltip,

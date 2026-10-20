@@ -27,35 +27,27 @@
     </div>
     <div class="flex flex-col gap-1.5">
       <span id="save-as-collection-label" class="type-footnote text-label-secondary">Collection</span>
-      <mat-select
-        class="select w-full!"
+      <ui-select
+        class="w-full"
         id="save-as-collection"
         aria-labelledby="save-as-collection-label"
-        [ngModel]="requestSave.saveAsCollectionId()"
-        (ngModelChange)="requestSave.onSaveAsCollectionChange($event)"
         placeholder="Choose a collection"
-      >
-        @for (option of requestSave.saveAsCollectionOptions(); track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
+        [options]="requestSave.saveAsCollectionOptions()"
+        [value]="requestSave.saveAsCollectionId()"
+        (valueChange)="requestSave.onSaveAsCollectionChange($event)"
+      />
     </div>
     @if (requestSave.saveAsFolderOptions().length) {
     <div class="flex flex-col gap-1.5">
       <span id="save-as-folder-label" class="type-footnote text-label-secondary">Folder (optional)</span>
-      <mat-select
-        class="select w-full!"
+      <ui-select
+        class="w-full"
         id="save-as-folder"
         aria-labelledby="save-as-folder-label"
-        [ngModel]="requestSave.saveAsFolderId()"
-        (ngModelChange)="requestSave.saveAsFolderId.set($event)"
-        placeholder="No folder"
-      >
-        <mat-option [value]="null">No folder</mat-option>
-        @for (option of requestSave.saveAsFolderOptions(); track option.value) {
-        <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
+        [options]="folderOptions()"
+        [value]="requestSave.saveAsFolderId()"
+        (valueChange)="requestSave.saveAsFolderId.set($event)"
+      />
     </div>
     }
     }

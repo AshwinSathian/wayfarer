@@ -56,7 +56,7 @@
     "check:readme": "node scripts/gen-readme.mjs --check",
     "check:links": "node scripts/check-links.mjs",
     "check:site-links": "node scripts/check-site-links.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=384128",
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=371813",
     "cli:test": "npm -w packages/cli test"
   },
   "dependencies": {
@@ -85,7 +85,8 @@
   },
   "overrides": {
     "dompurify": "^3.4.16",
-    "qs": "6.16.0"
+    "qs": "6.16.0",
+    "vite": "8.3.4"
   },
   "devDependencies": {
     "@angular-eslint/builder": "22.6.0",

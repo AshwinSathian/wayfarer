@@ -9,6 +9,19 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A select's list ticks the chosen option, and shows the one the keys
+  are on apart from it.** Before, the chosen option, the one under the
+  pointer and the one the arrow keys had reached had the same faint
+  background, so from the keyboard you could not tell where you were from
+  what was chosen. Selects are now built on Angular Aria, with Angular
+  Material's select gone. The keys are the same: on a closed select the
+  arrows, Home, End and a letter choose an option; Enter, Space and
+  Alt+ArrowDown open the list; there, Enter, Space, Tab and a click choose,
+  and Escape closes it with nothing changed. The app's first download is
+  40.6 kB smaller (11.2 kB compressed), and the size budgets are reset to
+  it: initial 1,300,487 B raw and 338,011 B gzip; budgets 1366kb, 1431kb and
+  371,813 B.
+
 - **On a phone, the export of environments fits its choices in the
   dialog.** Before, in a 390 px window the "Protected variables" choice ran
   past the dialog's edge and "Plain text" was cut off; in WebKit the dialog
@@ -118,6 +131,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   console.
 
 ### Fixed
+
+- **The development server's vite is 8.3.4.** 8.3.0, which the Angular
+  build pins, is in GHSA-698v-4r3x-3vcv (moderate: on Windows, opening a
+  file in an editor from the dev server's error overlay did not escape
+  `%`). It is not in the app you load; `npm audit` reports 0 again.
 
 - **The 6-hourly production check tests the release production runs.** It
   ran the newest release's tests, and a release is tagged before it is

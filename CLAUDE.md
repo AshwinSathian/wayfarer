@@ -439,7 +439,7 @@ code errors.
   - wrappers that give a Material component what this app needs from it:
     `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
-    `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`;
+    `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
     `ui-segmented`;
   - what Material has no component for, built on the CDK: `ui-splitter`,
@@ -463,15 +463,6 @@ code errors.
   a filled or outlined button. Colours are the `--btn-*` variables in
   `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
   button that clicks a hidden `<input type="file">`.
-- Select: `<mat-select class="select">` with `mat-option` children, used
-  without a form field (`controls.css` draws the box). Name it with
-  `aria-label`, or `aria-labelledby` pointing at a `<span>`: a `<label for>`
-  cannot name it. An optional choice gets a first `<mat-option
-  [value]="null">`; Material then shows the placeholder.
-- Material's select behaves like the native one: Enter or Space opens the
-  list, and an arrow key or a letter on the closed select changes the value.
-- An open select sits over a transparent backdrop. A test that clicks its
-  trigger a second time clicks the coordinates, not the element.
 - Dialog: `<ui-dialog>` (`src/app/ui/dialog.ts`) opens Material's dialog
   from a template and keeps it in step with `[visible]`; `Confirm` opens it
   from code. Both set `delayFocusTrap: false` and Material's enter and exit
@@ -528,7 +519,7 @@ code errors.
   resolved where it is declared.
 - A Tailwind utility on a Material host loses to Material for any property
   Material sets there (height, padding, min-width, font, colour, border, and
-  `display`, min-width on a form field, width on a select). Give the
+  `display`, min-width on a form field). Give the
   utility Tailwind's important modifier (`w-48!`, `max-lg:hidden!`), or
   change the property through a token. Margin utilities, and width on a
   button or a form field, are safe as they are. `max-lg:hidden` without
@@ -595,6 +586,35 @@ code errors.
     menu drawn under a still pointer gets one from the browser, and Aria
     moved focus to the item there, not the first (Shift+F10 after a click
     in the same place).
+- Select: `<ui-select aria-labelledby="…" [options]="…" [value]="…"
+  (valueChange)="…" />` (`src/app/ui/select.ts`), Aria's `ngCombobox` on
+  its own element and `ngListbox` in the CDK's overlay, styles in
+  `select.css`; `options` is a `UiSelectOption<T>[]`. Name it with
+  `aria-label` or `aria-labelledby` on a `<span>` (a `<label for>` cannot
+  name it); bound, write `[attr.aria-labelledby]`. An optional choice is an
+  option whose value is `null`, with its own label; `placeholder` is shown
+  for a value no option has. Focus stays on the select while the list is
+  open (`aria-activedescendant`). What it does that Aria does not, each with
+  a test in `select.spec.ts`:
+  - closed, the arrows, Home, End and a letter choose without opening the
+    list, as Material's and the native select did, and Alt+Arrow opens it
+    (Aria opens on ArrowDown): read in the capture phase, before Aria;
+  - Enter, Space, a click and Tab choose the option the list is on and
+    close it; Aria chooses nothing, and Enter on the chosen option unchose
+    it and left the list open;
+  - a key Aria took is drawn at once: it hands a key to the list at the
+    next render, and a key within 10 ms of the one that opened the list was
+    lost in Chromium (D1.5);
+  - the overlay is inside `ngComboboxPopup`, so the list is drawn with it:
+    the other way round the CDK placed an empty panel, below a select with
+    no room under it;
+  - the option the keys are on is scrolled into the list;
+  - a press in the list is prevented, so focus stays on the select: the list
+    took it, and left focus on nothing when it closed. Playwright's click is
+    too quick to show it; the e2e holds the button 150 ms;
+  - the popup is made in the first render (`@if (options().length)`):
+    Aria's popup reads its required input when it is destroyed, and a select
+    destroyed before a render threw (`app.spec.ts` found it).
 - Tabs: an `ngTabs` holding a `uiTabList` (`src/app/ui/tabs.ts`, Aria's
   `ngTabList` with the app's styles in `tabs.css`) of `<button ngTab
   value="…">`, and one `ngTabPanel` per tab (class `tab-pane`, in a

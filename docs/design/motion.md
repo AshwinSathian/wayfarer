@@ -32,8 +32,8 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
 - **Overlays move a little.** A dialog rises 8 px and grows from 96%; a
   small popover from 97%. They are placed before they are shown, and
   nothing is aimed at them earlier.
-- **Material's own motion** (its menus, select lists and tooltips) keeps
-  Material's timing. The drawer slides on the tokens' (`--dur-enter`,
+- **Material's own motion** (its tooltips) keeps Material's timing. The
+  menus and a select's list appear as a small popover does. The drawer slides on the tokens' (`--dur-enter`,
   `--ease-enter`), and Material's dialog animation is off (`ui/dialog.ts`),
   since it held focus back until it ended.
 - **A theme change is instant.** Every element of the page once had a

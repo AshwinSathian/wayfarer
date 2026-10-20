@@ -37,16 +37,14 @@
   </div>
   } @else {
   <!-- A right-click on a row, or Shift+F10 on it, reaches the tree first: it
-       selects the row, which sets the menu's items. Material then opens the
-       menu at the pointer. Focus goes back to the row, not to this element. -->
+       selects the row, which sets the menu's items. The menu then opens at the
+       pointer. Focus goes back to the row, not to this element. -->
   <ui-tree
     #tree
     ariaLabel="Collections"
     [nodes]="nodes()"
     [group]="nodeKind"
-    [matContextMenuTriggerFor]="contextMenu"
-    [matContextMenuTriggerRestoreFocus]="false"
-    (menuClosed)="tree.focusSelected()"
+    (contextmenu)="contextMenu.openAt($event, () => tree.focusSelected())"
     (selected)="handleNodeSelect($event)"
     (opened)="handleNodeOpen(tree, $event.node, $event.keyboard)"
     (edit)="beginRename($event)"
@@ -83,22 +81,7 @@
   }
 
   <!-- Built when the menu opens: its items depend on the row that was clicked. -->
-  <mat-menu #contextMenu="matMenu" class="menu-context">
-    <ng-template matMenuContent>
-      @for (item of contextItems(); track $index) {
-        @if ("separator" in item) {
-        <div class="menu-separator" role="separator"></div>
-        } @else {
-        <button mat-menu-item type="button" (click)="item.command()">
-          @if (item.icon; as icon) {
-          <app-icon class="menu-icon" [name]="icon" />
-          }
-          {{ item.label }}
-        </button>
-        }
-      }
-    </ng-template>
-  </mat-menu>
+  <ui-menu #contextMenu [items]="contextItems()" />
 </div>
 
 

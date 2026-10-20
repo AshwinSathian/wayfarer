@@ -41,6 +41,17 @@ for (const theme of ["light", "dark"] as const) {
     await row("PATCH Update a plan").hover();
     await scan("tree, a row under the pointer");
 
+    await page.getByRole("button", { name: "Export" }).click();
+    await expect(page.getByRole("menuitem").first()).toBeFocused();
+    await scan("menu, open from its button");
+    await page.getByRole("menuitem", { name: "Delete" }).hover();
+    await scan("menu, an item under the pointer");
+    await page.keyboard.press("Escape");
+    await row("HEAD Ping").click({ button: "right" });
+    await expect(page.getByRole("menuitem").first()).toBeFocused();
+    await scan("menu, a row's, at the pointer");
+    await page.keyboard.press("Escape");
+
     expect(found).toEqual([]);
   });
 }
@@ -87,6 +98,82 @@ test("tree: the keys of WAI-ARIA's tree pattern, typeahead, and one tab stop", a
   await expect(tree.locator('[role="treeitem"][tabindex="0"]')).toHaveAccessibleName("Payments API");
 });
 
+test("menu: a button's menu, by the keys of WAI-ARIA's menu button pattern", async ({ page }) => {
+  await open(page, "light");
+  const button = page.getByRole("button", { name: "Export" });
+  const item = (name: string) => page.getByRole("menuitem", { name, exact: true });
+  await expect(button).toHaveAttribute("aria-haspopup", "true");
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("menuitem")).toHaveText(["Copy as cURL", "Export as HAR…", "Delete"]);
+  await expect(item("Copy as cURL")).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await expect(item("Export as HAR…")).toBeFocused();
+  await page.keyboard.press("End");
+  await expect(item("Delete")).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(item("Copy as cURL")).toBeFocused();
+  // A letter goes to the next item that starts with it.
+  await page.keyboard.press("d");
+  await expect(item("Delete")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(button).toBeFocused();
+
+  // ArrowUp opens it at its last item; Enter runs one, and focus goes back to the button.
+  await page.keyboard.press("ArrowUp");
+  await expect(item("Delete")).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Chose Export as HAR….");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(button).toBeFocused();
+
+  // Space opens it too; Tab leaves and closes it.
+  await page.keyboard.press(" ");
+  await expect(item("Copy as cURL")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
+test("menu: a row's menu opens at the pointer and at the row, for that row, and gives focus back to it", async ({ page }) => {
+  await open(page, "light");
+  const tree = page.getByRole("tree", { name: "Collections" });
+  const row = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+
+  const box = (await row("HEAD Ping").boundingBox())!;
+  await page.mouse.click(box.x + 120, box.y + box.height / 2, { button: "right" });
+  const menu = page.getByRole("menu");
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  // At the pointer: its corner is where the button was released.
+  const at = (await menu.boundingBox())!;
+  expect(Math.abs(at.x - (box.x + 120))).toBeLessThan(5);
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Chose Duplicate for Ping.");
+  await expect(row("HEAD Ping")).toBeFocused();
+
+  // Shift+F10 opens it at the row; Escape closes it and focus goes back to the row.
+  await page.keyboard.press("ArrowUp");
+  await expect(row("PATCH Update a plan")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Shift+F10");
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+  await expect(row("PATCH Update a plan")).toBeFocused();
+
+  // A click outside closes it, and focus stays where the click put it.
+  await page.keyboard.press("Shift+F10");
+  await expect(menu).toBeVisible();
+  await page.getByRole("button", { name: "Export" }).click();
+  await expect(page.getByRole("menu")).toHaveCount(1);
+  await expect(page.getByRole("menuitem").first()).toHaveText("Copy as cURL");
+});
+
 test("tree: in forced colours the selected row is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
@@ -97,7 +184,8 @@ test("tree: in forced colours the selected row is still marked", async ({ page }
 
   // The background that marks it otherwise is taken away.
   const mark = (name: string) => row(name).evaluate((el) => getComputedStyle(el).borderInlineStartWidth);
-  expect(await mark("PATCH Update a plan")).toBe("4px");
+  // The class comes with the next render, not with the click.
+  await expect.poll(() => mark("PATCH Update a plan")).toBe("4px");
   expect(await mark("HEAD Ping")).toBe("0px");
 });
 

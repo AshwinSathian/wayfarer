@@ -70,22 +70,11 @@
           type="button"
           aria-label="Export response"
           title="Export response"
-          [matMenuTriggerFor]="exportMenu"
+          ngMenuTrigger
+          #exportTrigger="ngMenuTrigger"
+          [menu]="exportMenu.menu()"
         ><app-icon name="download" class="icon-md" /></button>
-        <mat-menu #exportMenu="matMenu">
-          @for (item of exportItems; track $index) {
-            @if ("separator" in item) {
-            <div class="menu-separator" role="separator"></div>
-            } @else {
-            <button mat-menu-item type="button" (click)="item.command()">
-              @if (item.icon; as icon) {
-              <app-icon class="menu-icon" [name]="icon" />
-              }
-              {{ item.label }}
-            </button>
-            }
-          }
-        </mat-menu>
+        <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
       </div>
       }
     </div>

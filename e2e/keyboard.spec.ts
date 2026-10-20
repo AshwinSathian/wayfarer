@@ -240,18 +240,7 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await expect(page.getByRole("tree").getByRole("textbox")).toBeVisible();
 });
 
-/**
- * Clicks where `trigger` is while its menu or list is open. Material puts a
- * transparent backdrop over the page, a frame after the panel, and that is
- * what a second click in the same place lands on.
- */
-async function clickAgain(page: Page, trigger: Locator): Promise<void> {
-  await expect(page.locator(".cdk-overlay-backdrop-showing")).toBeVisible();
-  const box = (await trigger.boundingBox())!;
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-}
-
-test("with the mouse: a second click on the Export button or on a select closes it again", async ({ page }) => {
+test("with the mouse: a second click on the Export button or on Common methods closes its menu again", async ({ page }) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?toggle=1`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -260,13 +249,14 @@ test("with the mouse: a second click on the Export button or on a select closes 
   const exportButton = page.getByRole("button", { name: "Export response" });
   await exportButton.click();
   await expect(page.getByRole("menu")).toBeVisible();
-  await clickAgain(page, exportButton);
+  // No backdrop covers the page: the second click lands on the button itself.
+  await exportButton.click();
   await expect(page.getByRole("menu")).toHaveCount(0);
 
   const methods = page.getByRole("button", { name: "Common methods" });
   await methods.click();
   await expect(page.getByRole("menu")).toBeVisible();
-  await clickAgain(page, methods);
+  await methods.click();
   await expect(page.getByRole("menu")).toHaveCount(0);
 });
 

@@ -1,0 +1,163 @@
+/* The platform's <dialog> (UiModal) with none of the browser's look: a
+   dialog of ui-dialog, a confirmation, the drawers. */
+dialog.ui-modal {
+  padding: 0;
+  margin: auto;
+  border: 1px solid var(--border-strong);
+  outline: none;
+  overflow: hidden;
+  background: var(--surface-dialog);
+  color: var(--ctl-surface-text);
+}
+
+/* No blur behind a dialog: the surface is opaque, and with a dialog over a
+   dialog (the environments' export) two blurs of the whole window left
+   WebKit without a GPU one frame in half a second. */
+dialog.ui-modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  animation: fade-in var(--dur-enter) var(--ease-enter) both;
+}
+
+dialog.ui-modal[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── ui-dialog and the centred confirmation ── */
+dialog.ui-dialog,
+dialog.ui-confirm {
+  max-width: calc(100vw - 32px);
+  max-height: 90vh;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-dialog);
+}
+
+dialog.ui-dialog[open],
+dialog.ui-confirm[open] {
+  animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
+}
+
+/* A page under a dialog does not scroll. */
+:root:has(dialog.ui-dialog:modal, dialog.ui-confirm:modal) {
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.dialog-title {
+  color: var(--label-primary);
+}
+
+.dialog-close.mat-mdc-icon-button {
+  flex: none;
+  height: 40px;
+}
+
+.dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 24px;
+  overflow: auto;
+}
+
+.dialog-footer {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--separator);
+}
+
+.dialog-footer:empty {
+  display: none;
+}
+
+.dialog-footer > [uiDialogFooter] {
+  display: contents;
+}
+
+/* 16 px between two buttons, as Material's dialog drew them. */
+.dialog-footer button + button {
+  margin-left: 8px;
+}
+
+/* ── The confirmation placed under a button ── */
+dialog.ui-confirm-popup {
+  inset: auto;
+  margin: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-overlay);
+}
+
+dialog.ui-confirm-popup[open] {
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+dialog.ui-confirm-popup::backdrop {
+  background: transparent;
+}
+
+/* The button a confirmation starts on shows its focus ring however the
+   confirmation was opened, so the default answer is visible before Enter. */
+dialog.ui-confirm .mat-mdc-button-base:focus,
+dialog.ui-confirm-popup .mat-mdc-button-base:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Drawer: a modal dialog at the window's edge ── */
+dialog.ui-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: auto;
+  max-width: 100vw;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  border-right: 1px solid var(--separator);
+  box-shadow: 4px 0 32px var(--ctl-drawer-shadow);
+}
+
+dialog.ui-drawer-end {
+  inset: 0 0 0 auto;
+  border-right: 0;
+  border-left: 1px solid var(--separator);
+  box-shadow: -4px 0 32px var(--ctl-drawer-shadow);
+}
+
+dialog.ui-drawer::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+dialog.ui-drawer[open] {
+  animation: drawer-in var(--dur-enter) var(--ease-enter) both;
+}
+
+dialog.ui-drawer-end[open] {
+  animation-name: drawer-in-end;
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes drawer-in-end {
+  from {
+    transform: translateX(100%);
+  }
+}

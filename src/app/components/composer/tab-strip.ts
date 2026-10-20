@@ -79,8 +79,7 @@ export class TabStrip {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     if (event.code !== "KeyT" && event.code !== "KeyW") return;
     // A dialog or a drawer over the page has the keyboard: the tab is not changed under it.
-    // A closed drawer is in the page too, and says `aria-modal` all the time.
-    if (document.querySelector('.cdk-overlay-container [aria-modal="true"], .mat-drawer-opened[aria-modal="true"]')) return;
+    if (document.querySelector("dialog:modal")) return;
     event.preventDefault();
     // The key may come in the same task as the last keystroke (#360), before the app has drawn it: `[ngModel]` would
     // then see the new tab's address as unchanged and leave the field holding the old tab's. Draw first.

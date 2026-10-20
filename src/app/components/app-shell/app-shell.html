@@ -1,306 +1,284 @@
-<!-- Both drawers slide over the page (Material's sidenav in "over" mode).
-     The container does not scroll: the window does, as before.
-     Focus is moved in by the shell (openDrawer) in the task that asks for
-     the drawer, and back at the start of the closing slide. Material moves
-     it at the end, which also took it from a dialog opened from the drawer
-     in the meantime; hence autoFocus false.
-     Escape and a click on the backdrop are handled here too (disableClose):
-     Material reports a close when the slide has ended, a frame after its
-     input can be told to open again, and that late "closed" shut a drawer
-     the user had just reopened. -->
-<mat-sidenav-container class="shell" (backdropClick)="closeDrawers()">
-  <!-- Collections sidebar content, shared between the mobile overlay drawer and the
-       desktop pinned panel below. -->
-  <ng-template #sidebarBody>
-    <div class="flex h-full flex-col">
-      <!-- Sidebar header -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
-        <!-- Brand logomark + name -->
-        <div class="flex items-center gap-2.5">
-          <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="26" height="26" />
-          <div class="flex flex-col">
-            <span class="type-title-3 text-label-primary" style="letter-spacing: -0.012em; line-height: 1.1;">
-              Wayfarer
-            </span>
-          </div>
+<!-- Both drawers are modal dialogs at the window's edge (UiModal), over the
+     page, which the window scrolls as before. The shell shows and closes them
+     in the task that asks (show, close), so focus is in the drawer before the
+     next key; the bindings then find them as they are. -->
+<!-- Collections sidebar content, shared between the mobile overlay drawer and the
+     desktop pinned panel below. -->
+<ng-template #sidebarBody>
+  <div class="flex h-full flex-col">
+    <!-- Sidebar header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-separator">
+      <!-- Brand logomark + name -->
+      <div class="flex items-center gap-2.5">
+        <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="26" height="26" />
+        <div class="flex flex-col">
+          <span class="type-title-3 text-label-primary" style="letter-spacing: -0.012em; line-height: 1.1;">
+            Wayfarer
+          </span>
         </div>
-        @if (sidebarOverlay()) {
-        <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="closeNavigation()">
-          <app-icon name="side_navigation" class="icon-md" />
-        </button>
-        }
       </div>
-
       @if (sidebarOverlay()) {
-      <div class="px-4 py-3">
-        <button
-          matButton="outlined"
-          type="button"
-          aria-label="New request"
-          (click)="handleNewRequest()"
-          class="w-full"
-        ><app-icon name="add_circle" /> New request</button>
-      </div>
+      <button type="button" matIconButton class="btn-plain" aria-label="Close navigation" (click)="closeNavigation()">
+        <app-icon name="side_navigation" class="icon-md" />
+      </button>
       }
+    </div>
 
-      <div class="flex-1 overflow-y-auto px-3 py-3">
-        <app-collections-sidebar
-          class="h-full w-full"
-          [externalActions]="sidebarPaletteActions"
-          (loadRequest)="handleLoadCollectionRequest($event)"
-          (run)="handleRun($event)"
-        ></app-collections-sidebar>
+    @if (sidebarOverlay()) {
+    <div class="px-4 py-3">
+      <button
+        matButton="outlined"
+        type="button"
+        aria-label="New request"
+        (click)="handleNewRequest()"
+        class="w-full"
+      ><app-icon name="add_circle" /> New request</button>
+    </div>
+    }
+
+    <div class="flex-1 overflow-y-auto px-3 py-3">
+      <app-collections-sidebar
+        class="h-full w-full"
+        [externalActions]="sidebarPaletteActions"
+        (loadRequest)="handleLoadCollectionRequest($event)"
+        (run)="handleRun($event)"
+      ></app-collections-sidebar>
+    </div>
+  </div>
+</ng-template>
+
+@if (sidebarOverlay()) {
+<!-- Below 1200 px: a true modal overlay — trapping keyboard focus inside it while open
+     is correct here, since it covers the whole screen and there's nothing else
+     to reach until it closes. -->
+<dialog
+  uiModal
+  #navigationDrawer="uiModal"
+  class="ui-drawer"
+  aria-label="Navigation"
+  [style.width]="drawerWidth"
+  [open]="drawerVisible()"
+  dismissable
+  (closeRequest)="closeNavigation()"
+>
+  <div class="h-full">
+    <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+  </div>
+</dialog>
+}
+
+<!-- History drawer -->
+<dialog
+  uiModal
+  #historyDrawer="uiModal"
+  class="ui-drawer ui-drawer-end"
+  aria-label="Request history"
+  style="width: 27rem"
+  [open]="historyDrawerVisible()"
+  dismissable
+  (closeRequest)="closeHistory()"
+>
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
+      <div class="flex items-center gap-2">
+        <app-icon name="history" class="icon-sm text-label-tertiary" />
+        <span class="type-title-3 text-label-primary">History</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button
+          matIconButton class="btn-danger btn-sm"
+          type="button"
+          [disabled]="historyLoading() || !pastRequests().length"
+          matTooltip="Clear all history"
+          matTooltipPosition="below"
+          aria-label="Clear all history"
+          (click)="confirmClear()"
+        ><app-icon name="delete" /></button>
+        <button type="button" matIconButton class="btn-plain" (click)="closeHistory()" title="Close" aria-label="Close history">
+          <app-icon name="close" class="icon-md" />
+        </button>
       </div>
     </div>
-  </ng-template>
-
-  @if (sidebarOverlay()) {
-  <!-- Below 1024 px: a true modal overlay — trapping keyboard focus inside it while open
-       is correct here, since it covers the whole screen and there's nothing else
-       to reach until it closes. -->
-  <mat-sidenav
-    #navigationDrawer
-    class="drawer"
-    mode="over"
-    position="start"
-    fixedInViewport
-    [autoFocus]="false"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Navigation"
-    [style.width]="drawerWidth"
-    [opened]="drawerVisible()"
-    disableClose
-    (keydown.escape)="closeNavigation()"
-    (closedStart)="restoreDrawerFocus()"
-  >
-    <div #navigation class="h-full">
-      <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+    <div class="flex-1 overflow-y-auto px-2 py-2">
+      <app-past-requests
+        [pastRequests]="pastRequests()"
+        [loading]="historyLoading()"
+        [displayHeader]="false"
+        (loadRequest)="handleLoadRequest($event)"
+        (deleteRequest)="deleteRequest.emit($event)"
+      ></app-past-requests>
     </div>
-  </mat-sidenav>
+  </div>
+</dialog>
+
+<!-- From 768 px the window is the workspace: panes of its height, each scrolling inside itself.
+     Below, the composer's sections stack and the window scrolls the page. -->
+<div [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'">
+  @if (!sidebarOverlay() && drawerVisible()) {
+  <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
+       focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
+       icons and left the Send button and the response viewer unreachable by
+       keyboard (Part D bug #2). A plain <aside> has no trap. -->
+  <aside class="app-sidebar-pinned" [style.width]="drawerWidth" aria-label="Collections sidebar">
+    <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+  </aside>
   }
 
-  <!-- History drawer -->
-  <mat-sidenav
-    #historyDrawer
-    class="drawer"
-    mode="over"
-    position="end"
-    fixedInViewport
-    [autoFocus]="false"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Request history"
-    style="width: 27rem"
-    [opened]="historyDrawerVisible()"
-    disableClose
-    (keydown.escape)="closeHistory()"
-    (closedStart)="restoreDrawerFocus()"
+  <!-- Main content area -->
+  <div
+    class="flex min-w-0 flex-1 flex-col"
+    style="transition: margin-left var(--dur-enter) var(--ease-standard);"
+    [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
   >
-    <div #history class="flex h-full flex-col">
-      <div class="flex items-center justify-between border-b border-separator px-5 py-3.5">
-        <div class="flex items-center gap-2">
-          <app-icon name="history" class="icon-sm text-label-tertiary" />
-          <span class="type-title-3 text-label-primary">History</span>
+    <!-- Top toolbar -->
+    <mat-toolbar class="ds-toolbar" role="banner">
+      <!-- Left: nav toggle + brand -->
+      <div class="flex items-center gap-2">
+        <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" title="Toggle sidebar" aria-label="Toggle sidebar">
+          <app-icon name="side_navigation" class="icon-md" />
+        </button>
+        <!-- The name once: the pinned sidebar carries it. -->
+        @if (sidebarOverlay() || !drawerVisible()) {
+        <div class="hidden lg:flex items-center gap-2">
+          <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="22" height="22" />
+          <span class="type-title-3 text-label-secondary" style="font-weight: 500; letter-spacing: -0.010em;">Wayfarer</span>
         </div>
-        <div class="flex items-center gap-1">
-          <button
-            matIconButton class="btn-danger btn-sm"
-            type="button"
-            [disabled]="historyLoading() || !pastRequests().length"
-            matTooltip="Clear all history"
-            matTooltipPosition="below"
-            aria-label="Clear all history"
-            (click)="confirmClear()"
-          ><app-icon name="delete" /></button>
-          <button type="button" matIconButton class="btn-plain" (click)="closeHistory()" title="Close" aria-label="Close history">
-            <app-icon name="close" class="icon-md" />
-          </button>
-        </div>
-      </div>
-      <div class="flex-1 overflow-y-auto px-2 py-2">
-        <app-past-requests
-          [pastRequests]="pastRequests()"
-          [loading]="historyLoading()"
-          [displayHeader]="false"
-          (loadRequest)="handleLoadRequest($event)"
-          (deleteRequest)="deleteRequest.emit($event)"
-        ></app-past-requests>
-      </div>
-    </div>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-    <!-- From 768 px the window is the workspace: panes of its height, each scrolling inside itself.
-         Below, the composer's sections stack and the window scrolls the page. -->
-    <div [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'">
-      @if (!sidebarOverlay() && drawerVisible()) {
-      <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
-           focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
-           icons and left the Send button and the response viewer unreachable by
-           keyboard (Part D bug #2). A plain <aside> has no trap. -->
-      <aside class="app-sidebar-pinned" [style.width]="drawerWidth" aria-label="Collections sidebar">
-        <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
-      </aside>
-      }
-
-      <!-- Main content area -->
-      <div
-        class="flex min-w-0 flex-1 flex-col"
-        style="transition: margin-left var(--dur-enter) var(--ease-standard);"
-        [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
-      >
-        <!-- Top toolbar -->
-        <mat-toolbar class="ds-toolbar" role="banner">
-          <!-- Left: nav toggle + brand -->
-          <div class="flex items-center gap-2">
-            <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" title="Toggle sidebar" aria-label="Toggle sidebar">
-              <app-icon name="side_navigation" class="icon-md" />
-            </button>
-            <!-- The name once: the pinned sidebar carries it. -->
-            @if (sidebarOverlay() || !drawerVisible()) {
-            <div class="hidden lg:flex items-center gap-2">
-              <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="22" height="22" />
-              <span class="type-title-3 text-label-secondary" style="font-weight: 500; letter-spacing: -0.010em;">Wayfarer</span>
-            </div>
-            }
-          </div>
-
-          <!-- Right: actions cluster -->
-          <div class="flex min-w-0 items-center gap-2">
-            <!-- Environment selector -->
-            <ui-select
-              class="env-switcher"
-              aria-label="Environment"
-              placeholder="No environment"
-              [options]="dropdownOptions()"
-              [value]="selectedEnvironmentId()"
-              (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
-            />
-            <button type="button"
-              matIconButton class="btn-plain"
-              (click)="environmentsVisible.set(true)"
-              title="Environments"
-              aria-label="Environments"
-            >
-              <app-icon name="dns" class="icon-md" />
-            </button>
-
-            <!-- Divider -->
-            <div class="w-px h-5 bg-separator hidden sm:block"></div>
-
-            <!-- From 768 px the vault, the secrets, the bridge and the theme are in the status bar; on a phone the
-                 lock stays here, and the rest is in Settings. -->
-            @if (isMobile()) {
-            <button type="button"
-              matIconButton class="btn-plain"
-              [class.text-status-success]="secretsUnlocked"
-              (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-              [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-              [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-            >
-              <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
-            </button>
-            }
-
-            <!-- History -->
-            <button type="button"
-              matIconButton class="btn-plain"
-              [class.bg-accent-fill]="historyDrawerVisible()"
-              (click)="openHistory()"
-              title="Request history"
-              aria-label="Request history"
-            >
-              <app-icon name="history" class="icon-md" />
-            </button>
-
-            <!-- Settings -->
-            <button type="button"
-              matIconButton class="btn-plain"
-              (click)="openSettings()"
-              title="Settings"
-              aria-label="Settings"
-            >
-              <app-icon name="settings" class="icon-md" />
-            </button>
-          </div>
-        </mat-toolbar>
-
-        <!-- Page content -->
-        <main [class]="isMobile() ? 'flex-1' : 'flex min-h-0 flex-1 flex-col'">
-          <div [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'">
-            @if (swUpdate.updateAvailable()) {
-            <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
-              <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
-              <button
-                matButton="filled" class="btn-secondary btn-sm"
-                type="button"
-                aria-label="Reload"
-                (click)="swUpdate.applyUpdate()"
-              >Reload</button>
-            </div>
-            }
-            @if (backup.reminderDue()) {
-            <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
-              <p class="type-callout text-label-secondary">It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.</p>
-              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="openSettings('data')">Back up now</button>
-              <button matButton class="btn-secondary btn-sm" type="button" aria-label="Dismiss backup reminder" (click)="backup.dismissReminder()">Not now</button>
-            </div>
-            }
-            @if (dataResetElsewhere()) {
-            <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-              <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
-              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
-            </div>
-            }
-            @if (storageUnavailable()) {
-            <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-              <p class="type-callout text-status-warning">This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p>
-            </div>
-            }
-            @if (resetError()) {
-            <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
-              <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
-              <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
-            </div>
-            }
-            <app-composer [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'" [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
-          </div>
-        </main>
-
-        @if (!isMobile()) {
-        <!-- Where a request goes and what holds its secrets, always in sight (S4). Each control is the
-             button it was in the toolbar, with its name; the state beside it is text. -->
-        <footer class="status-bar" aria-label="Status">
-          <span class="status-item">
-            <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" title="Local Bridge settings" aria-label="Local Bridge settings">
-              <app-icon name="router" class="icon-xs" />
-            </button>
-            <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
-          </span>
-          <span class="status-item">
-            <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
-              <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
-            </button>
-            <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
-          </span>
-          <span class="status-item">
-            <button type="button" matIconButton class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" title="Manage secrets" aria-label="Manage secrets">
-              <app-icon name="key" class="icon-xs" />
-            </button>
-            <span>Secrets</span>
-          </span>
-          <span class="flex-1"></span>
-          <span class="status-item">{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span>
-          <button type="button" matIconButton class="btn-plain status-button" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
-            <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
-          </button>
-        </footer>
         }
       </div>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+
+      <!-- Right: actions cluster -->
+      <div class="flex min-w-0 items-center gap-2">
+        <!-- Environment selector -->
+        <ui-select
+          class="env-switcher"
+          aria-label="Environment"
+          placeholder="No environment"
+          [options]="dropdownOptions()"
+          [value]="selectedEnvironmentId()"
+          (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
+        />
+        <button type="button"
+          matIconButton class="btn-plain"
+          (click)="environmentsVisible.set(true)"
+          title="Environments"
+          aria-label="Environments"
+        >
+          <app-icon name="dns" class="icon-md" />
+        </button>
+
+        <!-- Divider -->
+        <div class="w-px h-5 bg-separator hidden sm:block"></div>
+
+        <!-- From 768 px the vault, the secrets, the bridge and the theme are in the status bar; on a phone the
+             lock stays here, and the rest is in Settings. -->
+        @if (isMobile()) {
+        <button type="button"
+          matIconButton class="btn-plain"
+          [class.text-status-success]="secretsUnlocked"
+          (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
+          [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+        >
+          <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
+        </button>
+        }
+
+        <!-- History -->
+        <button type="button"
+          matIconButton class="btn-plain"
+          [class.bg-accent-fill]="historyDrawerVisible()"
+          (click)="openHistory()"
+          title="Request history"
+          aria-label="Request history"
+        >
+          <app-icon name="history" class="icon-md" />
+        </button>
+
+        <!-- Settings -->
+        <button type="button"
+          matIconButton class="btn-plain"
+          (click)="openSettings()"
+          title="Settings"
+          aria-label="Settings"
+        >
+          <app-icon name="settings" class="icon-md" />
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <!-- Page content -->
+    <main [class]="isMobile() ? 'flex-1' : 'flex min-h-0 flex-1 flex-col'">
+      <div [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'">
+        @if (swUpdate.updateAvailable()) {
+        <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
+          <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
+          <button
+            matButton="filled" class="btn-secondary btn-sm"
+            type="button"
+            aria-label="Reload"
+            (click)="swUpdate.applyUpdate()"
+          >Reload</button>
+        </div>
+        }
+        @if (backup.reminderDue()) {
+        <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
+          <p class="type-callout text-label-secondary">It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.</p>
+          <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="openSettings('data')">Back up now</button>
+          <button matButton class="btn-secondary btn-sm" type="button" aria-label="Dismiss backup reminder" (click)="backup.dismissReminder()">Not now</button>
+        </div>
+        }
+        @if (dataResetElsewhere()) {
+        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
+          <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
+        </div>
+        }
+        @if (storageUnavailable()) {
+        <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning">This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p>
+        </div>
+        }
+        @if (resetError()) {
+        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
+          <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
+          <button matButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
+        </div>
+        }
+        <app-composer [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'" [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
+      </div>
+    </main>
+
+    @if (!isMobile()) {
+    <!-- Where a request goes and what holds its secrets, always in sight (S4). Each control is the
+         button it was in the toolbar, with its name; the state beside it is text. -->
+    <footer class="status-bar" aria-label="Status">
+      <span class="status-item">
+        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" title="Local Bridge settings" aria-label="Local Bridge settings">
+          <app-icon name="router" class="icon-xs" />
+        </button>
+        <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
+      </span>
+      <span class="status-item">
+        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
+          <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
+        </button>
+        <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
+      </span>
+      <span class="status-item">
+        <button type="button" matIconButton class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" title="Manage secrets" aria-label="Manage secrets">
+          <app-icon name="key" class="icon-xs" />
+        </button>
+        <span>Secrets</span>
+      </span>
+      <span class="flex-1"></span>
+      <span class="status-item">{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span>
+      <button type="button" matIconButton class="btn-plain status-button" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+        <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
+      </button>
+    </footer>
+    }
+  </div>
+</div>
 
 <!-- Unlock / setup secrets dialog -->
 <ui-dialog

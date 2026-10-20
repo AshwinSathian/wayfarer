@@ -25,10 +25,11 @@ export async function writeToClipboard(text: string): Promise<void> {
     textarea.setAttribute("readonly", "");
     textarea.style.position = "fixed";
     textarea.style.top = "-9999px";
-    document.body.appendChild(textarea);
+    // In the modal dialog that has focus (the HAR export, Settings' diagnostics): outside it the page is inert.
+    (focused?.closest("dialog") ?? document.body).append(textarea);
     textarea.select();
     const copied = document.execCommand("copy");
-    document.body.removeChild(textarea);
+    textarea.remove();
     if (focused instanceof HTMLElement) focused.focus();
     if (!copied) recordDiagnostic(new Error("execCommand('copy') returned false"), "clipboard");
   } catch (error) {

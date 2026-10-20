@@ -29,13 +29,16 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
   a tab's pane, a response: opacity only. A panel that slid 10 px into place
   was somewhere else between a press and its release, so the press landed
   beside it (F48 of the remediation plan).
-- **Overlays move a little.** A dialog rises 8 px and grows from 96%; a
-  small popover from 97%. They are placed before they are shown, and
-  nothing is aimed at them earlier.
+- **Overlays move a little.** A dialog rises 8 px and grows from 96%, and
+  its backdrop fades in; a small popover grows from 97%. They are placed
+  before they are shown, and nothing is aimed at them earlier. Focus is in
+  a dialog from its first frame: the motion holds nothing back.
+- **What closes goes at once.** A dialog, a confirmation, a menu and the
+  drawer leave in one frame, and the page under them is free that frame.
+  The drawer slides in on the tokens' (`--dur-enter`, `--ease-enter`); it
+  no longer slides out (D3.3g), as a dialog does not shrink away.
 - **Material's own motion** (its tooltips) keeps Material's timing. The
-  menus and a select's list appear as a small popover does. The drawer slides on the tokens' (`--dur-enter`,
-  `--ease-enter`), and Material's dialog animation is off (`ui/dialog.ts`),
-  since it held focus back until it ended.
+  menus and a select's list appear as a small popover does.
 - **A theme change is instant.** Every element of the page once had a
   0.2 s colour transition for it: a switch animated thousands of elements
   at once, and a contrast scan could read a colour half-way.
@@ -52,7 +55,7 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
 
 When the system asks for reduced motion (`prefers-reduced-motion: reduce`),
 `animations.css` makes every animation and transition, of the app and of
-Material:
+Material, a dialog's `::backdrop` among them:
 
 - last `--dur-none`, 0.001 ms: nothing to see, but a length, so the
   `animationend` and `transitionend` events Material waits for are still

@@ -1,9 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import { MatButton } from "@angular/material/button";
+import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatTooltip } from "@angular/material/tooltip";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
+import { Confirm } from "../ui/confirm";
+import { Dialog } from "../ui/dialog";
+import { HoverCard } from "../ui/hover-card";
+import { UiModal } from "../ui/modal";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
 import { UiSegmented, type UiSegment } from "../ui/segmented";
@@ -28,7 +33,30 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 @Component({
   // index.html's root element is the app's.
   selector: "app-root",
-  imports: [AccordionContent, AccordionPanel, AccordionTrigger, Icon, MatButton, MenuTrigger, Tab, TabContent, TabPanel, Tabs, Tree, UiAccordion, UiAccordionPanel, UiMenu, UiSegmented, UiSelect, UiTabList],
+  imports: [
+    AccordionContent,
+    AccordionPanel,
+    AccordionTrigger,
+    Dialog,
+    HoverCard,
+    Icon,
+    MatButton,
+    MatIconButton,
+    MatTooltip,
+    MenuTrigger,
+    Tab,
+    TabContent,
+    TabPanel,
+    Tabs,
+    Tree,
+    UiAccordion,
+    UiAccordionPanel,
+    UiMenu,
+    UiModal,
+    UiSegmented,
+    UiSelect,
+    UiTabList,
+  ],
   template: `
     <main class="catalogue">
       <h1 class="type-title-2">Widget catalogue</h1>
@@ -139,6 +167,52 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <ui-select class="w-48" aria-labelledby="catalogue-request-route" [options]="requestRoutes" [value]="requestRoute()" (valueChange)="requestRoute.set($event)" />
         <ui-select class="w-48" aria-label="Environment" placeholder="No environment" [options]="environments" [value]="environment()" (valueChange)="environment.set($event)" />
       </section>
+
+      <section aria-labelledby="catalogue-dialogs">
+        <h2 id="catalogue-dialogs" class="type-title-3">Dialogs</h2>
+        <p class="type-callout text-label-secondary">
+          A dialog holding a field, a select, a menu and a button with a tooltip; a confirmation, centred and under a button; a drawer, with a confirmation, a menu at the pointer and a card on hover.
+        </p>
+        <div class="catalogue-row">
+          <button matButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(true)">Open the dialog</button>
+          <button matButton="outlined" class="btn-secondary" type="button" (click)="ask($event, true)">Delete this request</button>
+          <button matButton="outlined" class="btn-secondary" type="button" (click)="drawer.show(); drawerOpen.set(true)">Open the drawer</button>
+        </div>
+        <ui-dialog header="Edit request" [visible]="dialogOpen()" (visibleChange)="dialogOpen.set($event)" dismissableMask width="480px">
+          <div class="catalogue-dialog">
+            <label for="catalogue-dialog-name" class="type-callout">Name</label>
+            <input id="catalogue-dialog-name" class="catalogue-input type-body" value="List users" />
+            <span id="catalogue-dialog-environment" class="type-callout">Environment</span>
+            <ui-select class="w-48" aria-labelledby="catalogue-dialog-environment" placeholder="No environment" [options]="environments" [value]="environment()" (valueChange)="environment.set($event)" />
+            <div class="catalogue-row">
+              <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #dialogTrigger="ngMenuTrigger" [menu]="dialogMenu.menu()">Copy as</button>
+              <ui-menu #dialogMenu [trigger]="dialogTrigger" [items]="menuItems" />
+              <button matIconButton class="btn-plain" type="button" aria-label="Duplicate" matTooltip="Duplicate"><app-icon name="content_copy" /></button>
+              <button matButton="outlined" class="btn-danger" type="button" (click)="ask($event, false)">Delete…</button>
+            </div>
+          </div>
+          <div uiDialogFooter>
+            <button matButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(false)">Cancel</button>
+            <button matButton="filled" type="button" (click)="chosen.set('Saved the request.'); dialogOpen.set(false)">Save</button>
+          </div>
+        </ui-dialog>
+        <dialog uiModal #drawer="uiModal" class="ui-drawer" aria-label="History" [open]="drawerOpen()" dismissable (closeRequest)="drawer.close(); drawerOpen.set(false)">
+          <div class="catalogue-drawer">
+            <div class="catalogue-row">
+              <span class="type-title-3">History</span>
+              <button matIconButton class="btn-plain" type="button" aria-label="Close history" (click)="drawer.close(); drawerOpen.set(false)"><app-icon name="close" /></button>
+            </div>
+            <label for="catalogue-drawer-search" class="type-callout">Search history</label>
+            <input id="catalogue-drawer-search" class="catalogue-input type-body" />
+            <div class="catalogue-row" (contextmenu)="drawerMenu.openAt($event, focusEntry)">
+              <span class="type-mono-body" tabindex="0" [uiHoverCard]="details">GET /users</span>
+              <button matButton="outlined" class="btn-danger btn-sm" type="button" (click)="ask($event, true)">Delete entry</button>
+            </div>
+            <ng-template #details><p class="type-callout p-1">200 OK, in 84 ms</p></ng-template>
+            <ui-menu #drawerMenu [items]="rowItems" />
+          </div>
+        </dialog>
+      </section>
     </main>
   `,
   styles: `
@@ -161,6 +235,21 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     .catalogue-count {
       margin-inline-start: 4px;
     }
+    .catalogue-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .catalogue-dialog,
+    .catalogue-drawer {
+      display: grid;
+      gap: 8px;
+    }
+    .catalogue-drawer {
+      width: 18rem;
+      padding: 16px;
+    }
     .catalogue-input {
       display: block;
       margin-top: 4px;
@@ -174,6 +263,9 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Catalogue {
+  private readonly confirm = inject(Confirm);
+  protected readonly dialogOpen = signal(false);
+  protected readonly drawerOpen = signal(false);
   protected readonly chosen = signal("Nothing chosen yet.");
   protected readonly row = signal("");
   protected readonly part = signal("headers");
@@ -220,6 +312,17 @@ export class Catalogue {
     { label: "Rename", command: () => this.chosen.set(`Chose Rename for ${this.row()}.`) },
     { label: "Duplicate", command: () => this.chosen.set(`Chose Duplicate for ${this.row()}.`) },
   ];
+
+  /** A confirmation: under the button that asked, or centred. */
+  protected async ask(event: MouseEvent, under: boolean): Promise<void> {
+    const button = event.currentTarget as HTMLElement;
+    const yes = await this.confirm.confirm(
+      under ? { message: "Remove this request?", acceptLabel: "Delete", anchor: button } : { title: "Delete the request?", message: "It cannot be brought back.", acceptLabel: "Delete" }
+    );
+    this.chosen.set(yes ? "Deleted." : "Kept.");
+  }
+
+  protected readonly focusEntry = () => document.querySelector<HTMLElement>(".catalogue-drawer [tabindex='0']")?.focus();
 
   protected readonly kind = (node: UiTreeNode<Row>) => (node.data.method ? "request" : "folder");
   protected readonly nodes: UiTreeNode<Row>[] = [

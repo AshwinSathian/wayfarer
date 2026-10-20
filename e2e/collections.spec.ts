@@ -104,6 +104,8 @@ test.describe("Collections", () => {
     await page.getByRole("button", { name: "New collection" }).click();
     await nameInput.fill("One Click");
     await page.getByRole("button", { name: "Create", exact: true }).click();
+    // Until the dialog has closed, the page under it is inert: a field there takes no text.
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await page.getByLabel("HTTP method").fill("POST");
     await urlInput.fill(`${ECHO}/echo?one=click`);

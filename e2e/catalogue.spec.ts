@@ -75,6 +75,40 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  // A test of its own, as the segmented choice's: each scan reads the whole page.
+  test(`the dialogs, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+
+    await page.getByRole("button", { name: "Open the dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: "Edit request" });
+    await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
+    await scan("dialog, open");
+    await dialog.getByRole("textbox", { name: "Name" }).focus();
+    await scan("dialog, a field focused");
+    await dialog.getByRole("button", { name: "Delete…" }).click();
+    await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeFocused();
+    await scan("confirmation, centred, over the dialog");
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Delete this request" }).click();
+    await expect(page.getByRole("alertdialog").getByRole("button", { name: "Cancel" })).toBeFocused();
+    await scan("confirmation, under its button");
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "Open the drawer" }).click();
+    const drawer = page.getByRole("dialog", { name: "History" });
+    await expect(drawer.getByRole("button", { name: "Close history" })).toBeFocused();
+    await scan("drawer, open");
+    await drawer.getByRole("textbox", { name: "Search history" }).focus();
+    await scan("drawer, a field focused");
+
+    expect(found).toEqual([]);
+  });
+
   // Two tests, not one: each scan reads the whole page, and with every family in it one test took more than its 30 s in Firefox on CI.
   test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
@@ -260,6 +294,187 @@ test("menu: a row's menu opens at the pointer and at the row, for that row, and 
   await page.getByRole("button", { name: "Export" }).click();
   await expect(page.getByRole("menu")).toHaveCount(1);
   await expect(page.getByRole("menuitem").first()).toHaveText("Copy as cURL");
+});
+
+test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape closes it and focus goes back", async ({ page }) => {
+  await open(page, "light");
+  const opener = page.getByRole("button", { name: "Open the dialog" });
+  const dialog = page.getByRole("dialog", { name: "Edit request" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  const close = dialog.getByRole("button", { name: "Close" });
+  await expect(close).toBeFocused();
+
+  // Close, the name, the select, the menu's button, the tooltip's, Delete, Cancel, Save; then Close again.
+  for (let i = 0; i < 7; i++) await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "Save" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(dialog.getByRole("button", { name: "Save" })).toBeFocused();
+
+  // The page under it does not scroll.
+  const scrolled = await page.evaluate(() => scrollY);
+  await page.mouse.move(10, 10);
+  await page.mouse.wheel(0, -400);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => scrollY)).toBe(scrolled);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+
+  // A click on the backdrop closes it.
+  await page.keyboard.press("Enter");
+  await expect(close).toBeFocused();
+  await page.mouse.click(5, 5);
+  await expect(dialog).toHaveCount(0);
+});
+
+test("dialog: Escape closes a select's list or a menu inside it first, and a tooltip does not keep it open", async ({ page }) => {
+  await open(page, "light");
+  await page.getByRole("button", { name: "Open the dialog" }).click();
+  const dialog = page.getByRole("dialog", { name: "Edit request" });
+  const select = dialog.getByRole("combobox", { name: "Environment" });
+  // A list is placed when it opens: in a dialog still growing in, against where the select was then (as on Material's).
+  await dialog.evaluate((el) => Promise.all(el.getAnimations().map((animation) => animation.finished)));
+
+  // The list is drawn over the dialog: both are in the top layer, the list the later.
+  await select.focus();
+  await page.keyboard.press("Enter");
+  const list = page.getByRole("listbox", { name: "Environment" });
+  await expect(list).toBeVisible();
+  const box = (await list.boundingBox())!;
+  // Against the select, as outside a dialog: the dialog's entrance left nothing that moves it.
+  const field = (await select.boundingBox())!;
+  await expect.poll(async () => Math.abs((await list.boundingBox())!.x - field.x)).toBeLessThan(2);
+  expect(await list.evaluate((el, [x, y]) => el.contains(document.elementFromPoint(x, y)), [box.x + box.width / 2, box.y + 12])).toBe(true);
+  await page.getByRole("option", { name: "Staging" }).click();
+  await expect(select).toHaveText("Staging");
+  await page.keyboard.press("Enter");
+  await expect(list).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(list).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+  await expect(select).toBeFocused();
+
+  // A menu: its items take the pointer.
+  await dialog.getByRole("button", { name: "Copy as" }).click();
+  await page.getByRole("menuitem", { name: "Export as HAR…" }).click();
+  await expect(page.getByRole("status")).toHaveText("Chose Export as HAR….");
+  await dialog.getByRole("button", { name: "Copy as" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+
+  // A tooltip shown from the keyboard: Escape closes the dialog, and the tooltip with it.
+  await page.mouse.move(400, 400);
+  await dialog.getByRole("button", { name: "Copy as" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(dialog.getByRole("button", { name: "Duplicate" })).toBeFocused();
+  const tooltip = page.locator(".mat-mdc-tooltip", { hasText: "Duplicate" });
+  await expect(tooltip).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(tooltip).toHaveCount(0);
+});
+
+test("confirmation: over a dialog and under a button, focus on Cancel, Tab stays in, Escape or a click outside cancels, focus goes back", async ({ page }) => {
+  await open(page, "light");
+  await page.getByRole("button", { name: "Open the dialog" }).click();
+  const dialog = page.getByRole("dialog", { name: "Edit request" });
+  const ask = dialog.getByRole("button", { name: "Delete…" });
+  await ask.focus();
+  await page.keyboard.press("Enter");
+  const confirm = page.getByRole("alertdialog", { name: "Delete the request?" });
+  await expect(confirm).toHaveAccessibleDescription("It cannot be brought back.");
+  await expect(confirm.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(confirm.getByRole("button", { name: "Delete" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(confirm.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(confirm).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+  await expect(ask).toBeFocused();
+  await expect(page.getByRole("status")).toHaveText("Kept.");
+  await page.keyboard.press("Escape");
+
+  // Under its button, placed against it; a click outside is a no.
+  const button = page.getByRole("button", { name: "Delete this request" });
+  await button.click();
+  const popup = page.getByRole("alertdialog", { name: "Remove this request?" });
+  await expect(popup.getByRole("button", { name: "Cancel" })).toBeFocused();
+  // 10 px under it, or above it where there is no room under it, centred on it; measured as laid out, not as it grows in.
+  const place = await popup.evaluate((el, b) => {
+    const p = { y: el.offsetTop, height: el.offsetHeight, x: el.offsetLeft, width: el.offsetWidth };
+    return { gap: p.y > b.y ? p.y - (b.y + b.height) : b.y - (p.y + p.height), off: Math.abs(p.x + p.width / 2 - (b.x + b.width / 2)) };
+  }, (await button.boundingBox())!);
+  expect(Math.round(place.gap)).toBe(10);
+  expect(place.off).toBeLessThan(1);
+  await page.mouse.click(5, 5);
+  await expect(popup).toHaveCount(0);
+  await expect(page.getByRole("status")).toHaveText("Kept.");
+  await button.click();
+  await popup.getByRole("button", { name: "Delete" }).click();
+  await expect(page.getByRole("status")).toHaveText("Deleted.");
+});
+
+test("drawer: a modal dialog at the window's edge, and what opens from it takes the pointer", async ({ page }) => {
+  await open(page, "light");
+  const opener = page.getByRole("button", { name: "Open the drawer" });
+  const drawer = page.getByRole("dialog", { name: "History" });
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  await expect(drawer).toHaveAttribute("aria-modal", "true");
+  const close = drawer.getByRole("button", { name: "Close history" });
+  await expect(close).toBeFocused();
+  await expect.poll(async () => (await drawer.boundingBox())!.x).toBe(0);
+
+  // Close, the search, the entry, Delete entry; then Close again.
+  for (let i = 0; i < 3; i++) await page.keyboard.press("Tab");
+  await expect(drawer.getByRole("button", { name: "Delete entry" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(close).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(drawer.getByRole("button", { name: "Delete entry" })).toBeFocused();
+
+  // A confirmation from the drawer: over it, and its buttons take a click.
+  await drawer.getByRole("button", { name: "Delete entry" }).click();
+  const popup = page.getByRole("alertdialog", { name: "Remove this request?" });
+  await popup.getByRole("button", { name: "Delete" }).click();
+  await expect(page.getByRole("status")).toHaveText("Deleted.");
+  await expect(drawer).toBeVisible();
+
+  // A menu at the pointer, and a card on hover that stays while the pointer is on it: in the drawer, not in the inert page.
+  const entry = drawer.getByText("GET /users");
+  const at = (await entry.boundingBox())!;
+  await page.mouse.click(at.x + 10, at.y + at.height / 2, { button: "right" });
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  // At the pointer: the drawer's slide left nothing that moves a popup in it.
+  const menuBox = (await page.getByRole("menu").boundingBox())!;
+  expect(Math.abs(menuBox.x - (at.x + 10))).toBeLessThan(5);
+  await page.getByRole("menuitem", { name: "Duplicate" }).click();
+  await expect(page.getByRole("status")).toHaveText(/^Chose Duplicate/);
+  await expect(entry).toBeFocused();
+  await entry.hover();
+  const card = page.getByRole("tooltip").filter({ hasText: "200 OK" });
+  await expect(card).toBeVisible();
+  const c = (await card.boundingBox())!;
+  await page.mouse.move(c.x + 10, c.y + 5, { steps: 4 });
+  await page.waitForTimeout(200);
+  await expect(card).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  await expect(close).toBeFocused();
+  await page.mouse.click(600, 300);
+  await expect(drawer).toBeHidden();
 });
 
 test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", async ({ page }) => {
@@ -587,6 +802,26 @@ test("tree: in forced colours the selected row is still marked", async ({ page }
   // The class comes with the next render, not with the click.
   await expect.poll(() => mark("PATCH Update a plan")).toBe("4px");
   expect(await mark("HEAD Ping")).toBe("0px");
+});
+
+test("dialogs: in forced colours the edge of a dialog, a confirmation and the drawer still shows", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  // The shadow and the backdrop are taken away; a border is not.
+  const edge = (name: string, side: "Top" | "Right") =>
+    page.getByRole(name === "Remove this request?" ? "alertdialog" : "dialog", { name }).evaluate((el, s) => {
+      const style = getComputedStyle(el);
+      return `${style.getPropertyValue(`border-${s.toLowerCase()}-style`)} ${style.getPropertyValue(`border-${s.toLowerCase()}-width`)}`;
+    }, side);
+  await page.getByRole("button", { name: "Open the dialog" }).click();
+  expect(await edge("Edit request", "Top")).toBe("solid 1px");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Delete this request" }).click();
+  expect(await edge("Remove this request?", "Top")).toBe("solid 1px");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Open the drawer" }).click();
+  expect(await edge("History", "Right")).toBe("solid 1px");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

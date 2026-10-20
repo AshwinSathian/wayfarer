@@ -48,6 +48,14 @@ describe("HoverCard", () => {
     fixture.destroy();
   });
 
+  it("is drawn beside its host, not at the end of the body: in a modal dialog the page outside is inert", async () => {
+    const { fixture, row } = await setup();
+    fire(row, "mouseenter");
+    await fixture.whenStable();
+    expect(row.parentElement!.contains(card())).toBe(true);
+    fixture.destroy();
+  });
+
   it("stays open while the pointer is over the card itself", async () => {
     const { fixture, row } = await setup();
     fire(row, "mouseenter");

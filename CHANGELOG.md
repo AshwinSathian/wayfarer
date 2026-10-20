@@ -9,6 +9,25 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Dialogs and the side drawers are the browser's own modal dialogs, and
+  while one is open the page behind it is out of reach.** Before, the page
+  behind an open drawer was only marked as outside it: a script kept the
+  keyboard in the drawer, and the page itself stayed in reach of a screen
+  reader. Now the page behind any dialog or drawer is inert until it
+  closes. Focus starts where it did, Tab and Shift+Tab (and Option+Tab in
+  Safari) stay inside, Escape and a click outside close as before, and
+  focus goes back to the button that opened it. Escape now also closes a
+  dialog when nothing in it has focus, and the page takes the next key at
+  once. A drawer still slides in, and now closes at once, as a dialog does.
+  A dialog's title is set as the drawers' headings are (15 px, from 16 px).
+  A collection's menu opened in the navigation drawer, the details card of
+  a past request, and a copy that falls back to the browser's old copy
+  command now work from inside a dialog or a drawer. Angular Material's
+  dialog and drawer are gone, and the app's first download is 65.9 kB
+  smaller (14.4 kB compressed); the size budgets are reset to it: initial
+  1,234,615 B raw and 323,599 B gzip; budgets 1297kb, 1359kb and
+  355,959 B.
+
 - **A select's list ticks the chosen option, and shows the one the keys
   are on apart from it.** Before, the chosen option, the one under the
   pointer and the one the arrow keys had reached had the same faint

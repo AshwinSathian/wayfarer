@@ -1,13 +1,13 @@
 import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { afterEach, describe, expect, it } from "vitest";
-import { Dialog, keepFocusInDialogs } from "./dialog";
+import { describe, expect, it } from "vitest";
+import { Dialog } from "./dialog";
 
 @Component({
   imports: [Dialog],
   template: `
     <button id="opener" (click)="open.set(true)">Open</button>
-    <ui-dialog header="Settings" [visible]="open()" (visibleChange)="changes.push($event); open.set($event)" (hide)="hides = hides + 1" [dismissableMask]="dismissable()" width="320px">
+    <ui-dialog header="Settings" [visible]="open()" (visibleChange)="changes.push($event); open.set($event)" (hide)="hides = hides + 1; onHide()" [dismissableMask]="dismissable()" width="320px">
       <input id="first" />
       <div uiDialogFooter><button id="save">Save</button></div>
     </ui-dialog>
@@ -17,7 +17,9 @@ class TestHost {
   readonly open = signal(false);
   readonly dismissable = signal(false);
   readonly changes: boolean[] = [];
+  readonly shown = signal("");
   hides = 0;
+  onHide = () => undefined as void;
 }
 
 describe("ui-dialog", () => {
@@ -27,49 +29,31 @@ describe("ui-dialog", () => {
     await fixture.whenStable();
     const settle = async () => {
       await fixture.whenStable();
+      // The browser's close event comes in a task of its own.
       await new Promise((resolve) => setTimeout(resolve, 20));
       await fixture.whenStable();
     };
-    const dialog = () => document.querySelector<HTMLElement>('[role="dialog"]');
-    const backdrop = () => document.querySelector<HTMLElement>(".cdk-overlay-backdrop");
-    const escape = () => document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-    return { fixture, host: fixture.componentInstance, settle, dialog, backdrop, escape };
+    const dialog = () => document.querySelector<HTMLDialogElement>("dialog.ui-dialog")!;
+    const escape = () => document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    return { fixture, host: fixture.componentInstance, settle, dialog, escape };
   }
 
-  afterEach(() => {
-    document.querySelectorAll(".cdk-overlay-container").forEach((el) => el.remove());
-  });
-
-  it("renders nothing while closed, then a modal dialog named by its header, with body and footer", async () => {
+  it("holds nothing while closed, then a modal dialog named by its header, with body and footer", async () => {
     const { fixture, host, settle, dialog } = await setup();
-    expect(dialog()).toBeNull();
+    expect(dialog().open).toBe(false);
+    expect(dialog().querySelector("#first")).toBeNull();
 
     host.open.set(true);
     await settle();
 
-    const el = dialog()!;
-    expect(el.getAttribute("aria-modal")).toBe("true");
+    const el = dialog();
+    expect(el.matches(":modal")).toBe(true);
     expect(document.getElementById(el.getAttribute("aria-labelledby")!)?.textContent).toBe("Settings");
-    expect(el.querySelector("#first")).not.toBeNull();
+    expect(el.querySelector(".dialog-content #first")).not.toBeNull();
     expect(el.querySelector(".dialog-footer #save")).not.toBeNull();
-    expect(el.querySelector('button[aria-label="Close"]')).not.toBeNull();
-    fixture.destroy();
-  });
-
-  it("moves focus inside on open and gives it back to the opener on close", async () => {
-    const { fixture, host, settle, dialog } = await setup();
-    const opener = fixture.nativeElement.querySelector("#opener") as HTMLButtonElement;
-    opener.focus();
-    opener.click();
-    await settle();
-
-    expect(dialog()!.contains(document.activeElement)).toBe(true);
-
-    host.open.set(false);
-    await settle();
-    expect(dialog()).toBeNull();
-    expect(document.activeElement).toBe(opener);
-    expect(host.hides).toBe(1);
+    expect(el.style.width).toBe("320px");
+    // Its first element is the header's Close, as Material's was.
+    expect(document.activeElement).toBe(el.querySelector('button[aria-label="Close"]'));
     fixture.destroy();
   });
 
@@ -81,15 +65,46 @@ describe("ui-dialog", () => {
     escape();
     await settle();
     expect(host.changes).toEqual([false]);
-    expect(dialog()).toBeNull();
+    expect(dialog().open).toBe(false);
     expect(host.hides).toBe(1);
 
     host.open.set(true);
     await settle();
-    dialog()!.querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click();
+    dialog().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click();
     await settle();
     expect(host.changes).toEqual([false, false]);
     expect(host.hides).toBe(2);
+    fixture.destroy();
+  });
+
+  it("closes in the task of the Escape or the click that asked, so the page takes the next key", async () => {
+    const { fixture, host, settle, dialog, escape } = await setup();
+    host.open.set(true);
+    await settle();
+    escape();
+    expect(dialog().open).toBe(false);
+
+    host.open.set(true);
+    await settle();
+    dialog().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click();
+    expect(dialog().open).toBe(false);
+    fixture.destroy();
+  });
+
+  it("reports hide in the task that closed it, so an owner that reopens it at once keeps it open", async () => {
+    const { fixture, host, settle, dialog } = await setup();
+    host.open.set(true);
+    await settle();
+    // What the import does: its hide ends the import shown; a second file opens the dialog again at once.
+    host.onHide = () => host.shown.set("");
+    host.shown.set("first");
+    host.open.set(false);
+    await fixture.whenStable();
+    host.shown.set("second");
+    host.open.set(true);
+    await settle();
+    expect(dialog().open).toBe(true);
+    expect(host.shown()).toBe("second");
     fixture.destroy();
   });
 
@@ -103,91 +118,28 @@ describe("ui-dialog", () => {
     await settle();
 
     expect(host.open()).toBe(true);
-    expect(dialog()).not.toBeNull();
+    expect(dialog().open).toBe(true);
     fixture.destroy();
   });
 
   it("closes on a backdrop click only when dismissableMask is set", async () => {
-    const { fixture, host, settle, dialog, backdrop } = await setup();
+    const { fixture, host, settle, dialog } = await setup();
     host.open.set(true);
     await settle();
+    const backdrop = (type: string) => dialog().dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: 2, clientY: 2 }));
 
-    backdrop()!.click();
+    backdrop("pointerdown");
+    backdrop("click");
     await settle();
-    expect(dialog()).not.toBeNull();
+    expect(dialog().open).toBe(true);
 
     host.dismissable.set(true);
     await settle();
-    backdrop()!.click();
+    backdrop("pointerdown");
+    backdrop("click");
     await settle();
-    expect(dialog()).toBeNull();
+    expect(dialog().open).toBe(false);
     expect(host.changes).toEqual([false]);
     fixture.destroy();
-  });
-
-  it("closes on Escape pressed inside it while a tooltip above takes the key, and leaves any other overlay's Escape alone", async () => {
-    const { fixture, host, settle, dialog } = await setup();
-    host.open.set(true);
-    await settle();
-    // What the CDK does for the topmost listening overlay: the key never reaches the dialog's own overlay.
-    const container = document.querySelector(".cdk-overlay-container")!;
-    const swallow = (event: Event) => event.stopPropagation();
-    container.addEventListener("keydown", swallow);
-    const escape = () => dialog()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-
-    // An open select's list: its Escape closes the list, not the dialog.
-    escape();
-    await settle();
-    expect(host.changes).toEqual([]);
-    expect(dialog()).not.toBeNull();
-
-    const tooltip = document.createElement("div");
-    tooltip.className = "mat-mdc-tooltip-panel";
-    container.append(tooltip);
-    escape();
-    container.removeEventListener("keydown", swallow);
-    await settle();
-    expect(host.changes).toEqual([false]);
-    expect(dialog()).toBeNull();
-    fixture.destroy();
-  });
-
-  it("is removed with its owner", async () => {
-    const { fixture, host, settle, dialog } = await setup();
-    host.open.set(true);
-    await settle();
-
-    fixture.destroy();
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(dialog()).toBeNull();
-  });
-});
-
-describe("keepFocusInDialogs", () => {
-  it("gives focus that fell to the page to the topmost dialog still open, and leaves focus that is somewhere alone", () => {
-    const overlay = document.createElement("div");
-    overlay.className = "cdk-overlay-container";
-    const under = Object.assign(document.createElement("div"), { tabIndex: -1 });
-    under.setAttribute("role", "dialog");
-    const over = Object.assign(document.createElement("div"), { tabIndex: -1 });
-    over.setAttribute("role", "alertdialog");
-    overlay.append(under, over);
-    const field = document.createElement("input");
-    document.body.append(overlay, field);
-
-    field.focus();
-    keepFocusInDialogs();
-    expect(document.activeElement).toBe(field);
-
-    field.blur();
-    keepFocusInDialogs();
-    expect(document.activeElement).toBe(over);
-
-    over.remove();
-    (document.activeElement as HTMLElement).blur();
-    keepFocusInDialogs();
-    expect(document.activeElement).toBe(under);
-    overlay.remove();
-    field.remove();
   });
 });

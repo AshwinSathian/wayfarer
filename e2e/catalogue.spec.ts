@@ -15,17 +15,42 @@ async function open(page: Page, theme: "light" | "dark"): Promise<void> {
   await expect(page.getByRole("heading", { name: "Widget catalogue" })).toBeVisible();
 }
 
+/** Axe on the whole page; each state's violations are collected, not thrown. */
+function scanner(page: Page, found: string[]) {
+  return async (state: string) => {
+    await settled(page);
+    const results = await axe(page).analyze();
+    for (const violation of results.violations) {
+      for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")}`);
+    }
+  };
+}
+
 for (const theme of ["light", "dark"] as const) {
+  // A test of its own: with the other widgets' scans, Firefox on CI took more than the 30 s a test has.
+  test(`the segmented choice, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+
+    const choice = page.getByRole("radiogroup", { name: "Theme" });
+    await choice.getByRole("radio", { name: "Dark" }).click();
+    await expect(choice.getByRole("radio", { name: "Dark" })).toBeChecked();
+    await scan("segmented, one chosen by a click");
+    await choice.getByRole("radio", { name: "Dark" }).focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(choice.getByRole("radio", { name: "Light" })).toBeFocused();
+    await scan("segmented, one focused from the keyboard");
+    await choice.getByRole("radio", { name: "System" }).hover();
+    await scan("segmented, one under the pointer");
+
+    expect(found).toEqual([]);
+  });
+
   test(`every widget of the catalogue, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
-    const scan = async (state: string) => {
-      await settled(page);
-      const results = await axe(page).analyze();
-      for (const violation of results.violations) {
-        for (const node of violation.nodes) found.push(`${state}: ${violation.id}: ${node.target.join(" ")}`);
-      }
-    };
+    const scan = scanner(page, found);
     const tree = page.getByRole("tree", { name: "Collections" });
     const row = (name: string) => tree.getByRole("treeitem", { name, exact: true });
 
@@ -78,17 +103,6 @@ for (const theme of ["light", "dark"] as const) {
     await scan("accordion, a header under the pointer");
     await page.getByLabel("Header value").focus();
     await scan("accordion, a field in a section focused");
-
-    const choice = page.getByRole("radiogroup", { name: "Theme" });
-    await choice.getByRole("radio", { name: "Dark" }).click();
-    await expect(choice.getByRole("radio", { name: "Dark" })).toBeChecked();
-    await scan("segmented, one chosen by a click");
-    await choice.getByRole("radio", { name: "Dark" }).focus();
-    await page.keyboard.press("ArrowLeft");
-    await expect(choice.getByRole("radio", { name: "Light" })).toBeFocused();
-    await scan("segmented, one focused from the keyboard");
-    await choice.getByRole("radio", { name: "System" }).hover();
-    await scan("segmented, one under the pointer");
 
     expect(found).toEqual([]);
   });

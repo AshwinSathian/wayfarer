@@ -436,15 +436,12 @@ code errors.
 - Widgets are Angular Material components (maintainer, 2026-10-09; this
   reverses the "custom on CDK" default of decision D14 in the plan). A
   widget not yet moved by D3.3 is a Material component, themed as below. `src/app/ui` holds only:
-  - wrappers that give a Material component what this app needs from it:
-    `ui-dialog` (a dialog opened from a template), `Confirm`;
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
-    `ui-segmented`;
-  - what Material has no component for, built on the CDK: `ui-splitter`,
-    `uiHoverCard` (a tooltip that takes a template), and the confirmation
-    placed under a button.
+    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`;
+  - what Material has no component for, built on the CDK: `ui-splitter`
+    and `uiHoverCard` (a tooltip that takes a template).
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
   icon-led action buttons; Material's chip is a one-line pill), status and
@@ -463,37 +460,6 @@ code errors.
   a filled or outlined button. Colours are the `--btn-*` variables in
   `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
   button that clicks a hidden `<input type="file">`.
-- Dialog: `<ui-dialog>` (`src/app/ui/dialog.ts`) opens Material's dialog
-  from a template and keeps it in step with `[visible]`; `Confirm` opens it
-  from code. Both set `delayFocusTrap: false` and Material's enter and exit
-  animation to 0 ms: Material moves focus in only when its entrance ends,
-  and keeps the panel over the page until its exit does. The entrance is drawn in `animations.css`. Both
-  pass `ariaModal: true`; Material's default is false.
-- A `<ui-dialog>`'s content is projected, and Angular makes projected
-  content with the page, open or not: a Monaco editor in a closed dialog
-  loaded Monaco at every start (P7.2, 300 ms of the main thread). Put an
-  editor, or anything heavy, inside `@if` of the dialog's open state; the
-  footer (`uiDialogFooter`) stays outside it. A composer pane with an
-  editor is `@defer (when …)` its tab is first chosen, and stays.
-- The small confirmation under a button stays on the CDK's dialog:
-  Material's is placed in the window, not against an element.
-- Drawer: `<mat-sidenav class="drawer" mode="over" fixedInViewport
-  [autoFocus]="false">` in the shell's `<mat-sidenav-container
-  class="shell">`, with `role="dialog"`, `aria-modal` and an `aria-label`
-  (Material sets none). The container and its content are `overflow:
-  visible`: the window scrolls the page, so the toolbar stays stuck to it.
-- The shell moves focus into a drawer when it starts to open and back when
-  it starts to close (`focusDrawer`, `restoreDrawerFocus`). Material does
-  both when the slide ends: until then Tab walked the page, Escape did
-  nothing (a drawer reads it from its own element), and the late move took
-  focus from a dialog opened from the drawer.
-- The shell also closes a drawer itself (`disableClose`, with
-  `(keydown.escape)` on the sidenav and `(backdropClick)` on the
-  container). Do not set state from the sidenav's `openedChange`: it fires
-  when the slide ends, a frame after `[opened]` can be told to open again,
-  and the late "closed" shut a drawer the user had just reopened.
-- A drawer's content is in the page from the start, hidden while closed. A
-  dialog's is created when it opens.
 - Text input: `<mat-form-field class="field">` around `<input matInput>`.
   The outline appearance and `subscriptSizing: "dynamic"` are set app-wide
   (`app.config.ts`); the label is a `<label for>` outside the field. Width
@@ -524,10 +490,9 @@ code errors.
   change the property through a token. Margin utilities, and width on a
   button or a form field, are safe as they are. `max-lg:hidden` without
   the `!` put three hidden toolbar buttons back on a phone.
-- A Material tooltip is an overlay that takes Escape and stops it. A dialog
-  or drawer therefore also reads Escape from its own element while a
-  tooltip is showing; without that, a tooltip over a focused button keeps
-  the panel open.
+- A Material tooltip is an overlay that takes Escape on the page's body
+  and stops it there. A modal dialog reads Escape from its own element, so
+  it hears the key first (see "The platform").
 - Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
 - `matTooltip` takes text and watches focus on its host only. Put it on the
   focusable element, not on a wrapper.
@@ -551,6 +516,77 @@ code errors.
   one. The arrows are the group's: WebKit's stopped at the ends, and took
   the focus ring off the option they moved to. A test reaches an option
   by `getByRole("radio", { name })`.
+- Dialogs and drawers are the platform's modal `<dialog>`: `<dialog
+  uiModal [open]="…" (closeRequest)="…">` (`UiModal`,
+  `src/app/ui/modal.ts`), shown with `showModal()`, in the top layer, the
+  page outside it inert. Their styles are `src/app/ui/dialog.css`, imported
+  by `src/styles.css` (a directive has no stylesheet, and the drawers are
+  in the page from the start). What `UiModal` does that the browser does
+  not, each with a test in `modal.spec.ts` and the catalogue's e2e:
+  - focus starts on the element marked `cdkFocusInitial` (the linter
+    refuses `autofocus`), else the first one Tab reaches (Material's
+    rule). The browser gives it back to what had it on close, in all three
+    engines (an explicit return was tried and retired); if that is gone, it
+    goes to the dialog still open under it (`keepFocusInDialogs`: Safari does not
+    focus a button on a click);
+  - Tab and Shift+Tab wrap inside the dialog; the browser's went on to its
+    own toolbar after the last element;
+  - Escape is read from the dialog's own element, not left to the
+    browser's close (cancelled: the owner decides, through
+    `closeRequest`). A popup inside that took the key first (a select's
+    list, a menu) prevents it, and the dialog stays; a Material tooltip
+    takes Escape on the body, after the dialog has heard it. With focus on
+    the body (a field blurred), the topmost dialog hears it on the
+    document;
+  - a click on the backdrop asks to close only when `dismissable` is set,
+    and only when the press began there too;
+  - `show()` and `close()` act at once, for an owner that must move focus
+    in the task that asked (the shell's drawers, #223); the binding then
+    finds the dialog as it is. Opened and closed before a render, the
+    binding sees no change and the dialog is as it was left.
+- A modal dialog makes the rest of the page inert, the CDK's overlay
+  container at the end of the body too. A popup that must take the pointer
+  from inside a dialog is drawn inside it: the CDK's `usePopover: 'inline'`
+  (beside its origin: a select's list, a button's menu, `uiHoverCard`) or
+  `{ type: 'parent', element }` (`ui-menu` at the pointer, drawn in its
+  own element). A Material tooltip may stay in the container: it takes no
+  pointer. Both are in the top layer, the later one drawn over.
+- Dialog: `<ui-dialog header="…" [visible]="…" (visibleChange)="…">`
+  (`src/app/ui/dialog.ts`) is `UiModal` with a header (its title names the
+  dialog), a body and a footer (`uiDialogFooter`); `dismissableMask` lets
+  a click on the backdrop close it. Escape and Close ask the owner, which
+  sets `visible` to false, and the request is drawn at once, so the page
+  takes the next key: until a dialog has closed, the page under it is
+  inert, and a key typed straight after Escape went nowhere. `hide` comes
+  in the task that closed it (`UiModal.closed`), not with the browser's
+  `close` event a task later, which shut an import reopened at once. The
+  page under it does not scroll. A test that goes on in the page after a
+  footer button closed a dialog waits for it to close first: the page is
+  inert until the next render, and Playwright's `fill` types into an inert
+  field without an error. Its body is
+  in the page only while it is open, but Angular makes projected content
+  with the page, open or not: a Monaco editor in a closed dialog loaded
+  Monaco at every start (P7.2, 300 ms of the main thread). Put an editor,
+  or anything heavy, inside `@if` of the dialog's open state; the footer
+  stays outside it. A composer pane with an editor is `@defer (when …)`
+  its tab is first chosen, and stays.
+- `Confirm.confirm(options)` makes a `<dialog uiModal role="alertdialog">`
+  from code, with focus on the button that backs out (`cdkFocusInitial`):
+  centred, or with `anchor` a small one placed under that button (else
+  against its end, else above it), where the CDK's dialog put it. Escape,
+  the other button and a click outside resolve false.
+- Drawer: `<dialog uiModal class="ui-drawer">` (`ui-drawer-end` at the
+  right) in the shell, named by `aria-label`, its width set where it is
+  used. Its content is in the page from the start, hidden while closed; a
+  dialog's is made when it opens. It slides in (`--dur-enter`) and closes at
+  once, as a dialog does. The shell calls the drawer's `show()` and
+  `close()` from the click or key that asked.
+- A test finds a dialog by its role and name. A closed `<dialog>` is
+  hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
+  "closed". Playwright does not count the inert page as hidden: with a
+  dialog open, `page.getByRole` finds a name in the page and in the
+  dialog both (Material's dialog had the page `aria-hidden`). Look in the
+  dialog.
 
 ## Angular Aria
 

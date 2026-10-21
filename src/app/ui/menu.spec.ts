@@ -115,6 +115,14 @@ describe("ui-menu", () => {
     fixture.destroy();
   });
 
+  it("at the pointer, is drawn in its own element, not at the end of the body: in a modal dialog the page outside is inert", async () => {
+    const { fixture, items, rightClick } = await setup();
+    const root: HTMLElement = fixture.nativeElement;
+    await rightClick();
+    expect(root.querySelectorAll("ui-menu")[1].contains(items()[0])).toBe(true);
+    fixture.destroy();
+  });
+
   it("an item that comes up under a pointer that has not moved does not take focus from the first; a pointer that moves does", async () => {
     const { fixture, items, settle, rightClick } = await setup();
     await rightClick();

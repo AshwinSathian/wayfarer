@@ -8,8 +8,8 @@
   height: min(640px, calc(90vh - 110px));
 }
 
-/* To the dialog's edges: the list's rule runs the whole height. Material's own rule for the padding is as specific, and comes later. */
-.dialog-panel .mat-mdc-dialog-container .mat-mdc-dialog-content:has(> .settings) {
+/* To the dialog's edges: the list's rule runs the whole height. */
+.dialog-content:has(> .settings) {
   padding: 0;
 }
 

@@ -152,7 +152,7 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog").first(), opener).toBeVisible();
-    await expect.poll(() => page.evaluate(() => document.activeElement?.closest('[role="dialog"]') !== null), { message: opener }).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.activeElement?.closest('[role="dialog"], dialog') !== null), { message: opener }).toBe(true);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog"), opener).toHaveCount(0);
     await expect(button, opener).toBeFocused();

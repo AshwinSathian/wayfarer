@@ -59,6 +59,7 @@ test("a wrong passphrase is refused when the vault holds no secret", async ({ pa
   await unlock(page, "not the passphrase");
   await expect(page.getByText("Incorrect passphrase. Please try again.")).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(unlockButton(page)).toBeVisible();
 
   // Also after a reload, when nothing of the first unlock is left in memory.

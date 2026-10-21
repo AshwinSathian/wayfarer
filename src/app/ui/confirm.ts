@@ -1,11 +1,7 @@
-import { DIALOG_DATA, Dialog as CdkDialog, DialogRef } from "@angular/cdk/dialog";
-import { Overlay } from "@angular/cdk/overlay";
-import { ChangeDetectionStrategy, Component, Injectable, inject } from "@angular/core";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { firstValueFrom } from "rxjs";
-import { Icon } from "../shared/icon/icon";
-import { keepFocusInDialogs } from "./dialog";
+import { ApplicationRef, ChangeDetectionStrategy, Component, EnvironmentInjector, Injectable, createComponent, inject, viewChild } from "@angular/core";
 import { MatButton } from "@angular/material/button";
+import { Icon } from "../shared/icon/icon";
+import { UiModal } from "./modal";
 
 export interface ConfirmOptions {
   /** Heading of a centred confirmation. Omit it together with setting `anchor` for a small popup. */
@@ -21,116 +17,110 @@ export interface ConfirmOptions {
 
 let nextId = 0;
 
-/** What a confirmation is opened with: the caller's options, and the id prefix of its title and message. */
-interface ConfirmData {
-  options: ConfirmOptions;
-  id: string;
-}
+/** The space between the popup and its button, and between the popup and the window's edge. */
+const GAP = 10;
+const MARGIN = 8;
 
-/** The confirmation itself. Focus starts on the button that backs out. */
+/**
+ * The confirmation itself, a modal `<dialog>` (WAI-ARIA alert dialog
+ * pattern). Focus starts on the button that backs out.
+ */
 @Component({
   selector: "ui-confirm",
-  imports: [Icon, MatButton],
+  imports: [Icon, MatButton, UiModal],
   template: `
-    @if (options.anchor) {
-      <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
-        <span class="text-label-secondary-on-fill" [id]="id + '-message'">{{ options.message }}</span>
-        <div class="flex items-center gap-2 mt-3">
-          <button matButton class="btn-danger btn-sm" type="button" (click)="close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-          <button matButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="close(false)">
-            {{ options.rejectLabel ?? "Cancel" }}
-          </button>
+    <dialog
+      uiModal
+      dismissable
+      role="alertdialog"
+      [class]="options.anchor ? 'ui-confirm-popup' : 'ui-confirm'"
+      [attr.aria-labelledby]="id + (options.anchor ? '-message' : '-title')"
+      [attr.aria-describedby]="options.anchor ? null : id + '-message'"
+      (closeRequest)="answer(false)"
+    >
+      @if (options.anchor) {
+        <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
+          <span class="text-label-secondary-on-fill" [id]="id + '-message'">{{ options.message }}</span>
+          <div class="flex items-center gap-2 mt-3">
+            <button matButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button matButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="answer(false)">
+              {{ options.rejectLabel ?? "Cancel" }}
+            </button>
+          </div>
         </div>
-      </div>
-    } @else {
-      <div class="flex flex-col items-center p-8 bg-canvas-overlay rounded-2xl">
-        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4"><app-icon name="warning" class="icon-lg text-status-error" /></div>
-        <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
-        <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{ options.message }}</p>
-        <div class="flex items-center gap-3 mt-6">
-          <button matButton="filled" type="button" class="btn-danger w-28" (click)="close(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-          <button matButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="close(false)">
-            {{ options.rejectLabel ?? "Cancel" }}
-          </button>
+      } @else {
+        <div class="flex flex-col items-center p-8 bg-canvas-overlay">
+          <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4"><app-icon name="warning" class="icon-lg text-status-error" /></div>
+          <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
+          <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{ options.message }}</p>
+          <div class="flex items-center gap-3 mt-6">
+            <button matButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button matButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="answer(false)">
+              {{ options.rejectLabel ?? "Cancel" }}
+            </button>
+          </div>
         </div>
-      </div>
-    }
+      }
+    </dialog>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class ConfirmDialog {
-  private readonly data = inject<ConfirmData>(DIALOG_DATA);
-  protected readonly options = this.data.options;
-  protected readonly id = this.data.id;
-  /** The centred confirmation is Material's dialog; the popup under a button is the CDK's. */
-  private readonly ref = inject<MatDialogRef<ConfirmDialog, boolean>>(MatDialogRef, { optional: true }) ?? inject<DialogRef<boolean>>(DialogRef);
+  readonly id = `ui-confirm-${nextId++}`;
+  options: ConfirmOptions = { message: "" };
+  answer: (accepted: boolean) => void = () => undefined;
+  readonly modal = viewChild.required(UiModal);
+}
 
-  protected close(accepted: boolean): void {
-    this.ref.close(accepted);
+/**
+ * Asks the user to confirm something. Resolves true only when they choose
+ * the accept button; Escape, the other button and a click outside all
+ * resolve false.
+ */
+@Injectable({ providedIn: "root" })
+export class Confirm {
+  private readonly app = inject(ApplicationRef);
+  private readonly injector = inject(EnvironmentInjector);
+
+  confirm(options: ConfirmOptions): Promise<boolean> {
+    const ref = createComponent(ConfirmDialog, { environmentInjector: this.injector });
+    const dialog = ref.instance;
+    dialog.options = options;
+    document.body.append(ref.location.nativeElement as HTMLElement);
+    this.app.attachView(ref.hostView);
+    ref.changeDetectorRef.detectChanges();
+    const modal = dialog.modal();
+    modal.show();
+    if (options.anchor) place(modal.element, options.anchor);
+    return new Promise((resolve) => {
+      dialog.answer = (accepted) => {
+        dialog.answer = () => undefined;
+        modal.close();
+        ref.destroy();
+        resolve(accepted);
+      };
+    });
   }
 }
 
 /**
- * Asks the user to confirm something (WAI-ARIA alert dialog pattern).
- * Resolves true only when they choose the accept button; Escape, the other
- * button and a click outside all resolve false.
+ * Under the button and centred on it, else under it against its end, else
+ * above it, whichever is first to fit in the window: the places the CDK's
+ * popup took.
  */
-@Injectable({ providedIn: "root" })
-export class Confirm {
-  private readonly matDialog = inject(MatDialog);
-  private readonly dialog = inject(CdkDialog);
-  private readonly overlay = inject(Overlay);
-
-  async confirm(options: ConfirmOptions): Promise<boolean> {
-    const id = `ui-confirm-${nextId++}`;
-    const data: ConfirmData = { options, id };
-    const anchor = options.anchor;
-    if (!anchor) {
-      const ref = this.matDialog.open<ConfirmDialog, ConfirmData, boolean>(ConfirmDialog, {
-        data,
-        role: "alertdialog",
-        ariaModal: true,
-        ariaLabelledBy: `${id}-title`,
-        ariaDescribedBy: `${id}-message`,
-        autoFocus: "[cdkFocusInitial]",
-        backdropClass: "dialog-backdrop",
-        panelClass: "confirm-panel",
-        maxWidth: "calc(100vw - 32px)",
-        // As for ui-dialog: focus moves in at once, and the page is free the moment it closes.
-        delayFocusTrap: false,
-        enterAnimationDuration: "0ms",
-        exitAnimationDuration: "0ms",
-      });
-      const result = await firstValueFrom(ref.afterClosed());
-      keepFocusInDialogs();
-      return result === true;
-    }
-    // Material's dialog is placed in the window, not against an element, so
-    // the small popup under a button is the CDK's dialog, which Material's
-    // is built on.
-    const ref = this.dialog.open<boolean>(ConfirmDialog, {
-      data,
-      role: "alertdialog",
-      ariaModal: true,
-      ariaLabelledBy: `${id}-message`,
-      ariaDescribedBy: null,
-      autoFocus: "[cdkFocusInitial]",
-      restoreFocus: true,
-      hasBackdrop: true,
-      backdropClass: "ui-confirm-popup-backdrop",
-      panelClass: "ui-confirm-popup",
-      positionStrategy: this.overlay
-        .position()
-        .flexibleConnectedTo(anchor)
-        .withPositions([
-          { originX: "center", originY: "bottom", overlayX: "center", overlayY: "top", offsetY: 10 },
-          { originX: "end", originY: "bottom", overlayX: "end", overlayY: "top", offsetY: 10 },
-          { originX: "center", originY: "top", overlayX: "center", overlayY: "bottom", offsetY: -10 },
-        ])
-        .withViewportMargin(8),
-    });
-    const result = await firstValueFrom(ref.closed);
-    keepFocusInDialogs();
-    return result === true;
-  }
+function place(popup: HTMLElement, anchor: HTMLElement): void {
+  const at = anchor.getBoundingClientRect();
+  // Its size as laid out: it is still growing into place (overlay-appear).
+  const { offsetWidth: width, offsetHeight: height } = popup;
+  const centre = at.left + at.width / 2 - width / 2;
+  const places = [
+    { left: centre, top: at.bottom + GAP },
+    { left: at.right - width, top: at.bottom + GAP },
+    { left: centre, top: at.top - GAP - height },
+  ];
+  const fits = ({ left, top }: { left: number; top: number }) =>
+    left >= MARGIN && top >= MARGIN && left + width <= innerWidth - MARGIN && top + height <= innerHeight - MARGIN;
+  const { left, top } = places.find(fits) ?? places[0];
+  popup.style.left = `${left}px`;
+  popup.style.top = `${top}px`;
 }

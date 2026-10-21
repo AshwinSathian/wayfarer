@@ -1,37 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnDestroy,
-  TemplateRef,
-  ViewContainerRef,
-  booleanAttribute,
-  effect,
-  inject,
-  input,
-  output,
-  untracked,
-  viewChild,
-} from "@angular/core";
+import { ApplicationRef, ChangeDetectionStrategy, Component, booleanAttribute, inject, input, output } from "@angular/core";
 import { MatIconButton } from "@angular/material/button";
-import { MatDialog, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import { Icon } from "../shared/icon/icon";
+import { UiModal } from "./modal";
+
+let nextId = 0;
 
 /**
- * After a dialog closes, focus that went back to the page (the element it
- * came from is gone, or never had focus: Safari does not focus a button on
- * a click) goes to the dialog still open under it. Otherwise Escape and Tab
- * no longer reach that dialog.
- */
-export function keepFocusInDialogs(): void {
-  const active = document.activeElement;
-  if (active && active !== document.body) return;
-  const open = document.querySelectorAll<HTMLElement>('.cdk-overlay-container [role="dialog"], .cdk-overlay-container [role="alertdialog"]');
-  open[open.length - 1]?.focus();
-}
-
-/**
- * A modal dialog, named by its header. Material's dialog is opened from
- * code; this opens it from a template and keeps it in step with `visible`:
+ * A modal dialog, named by its header: the platform's `<dialog>` through
+ * `UiModal` (D3.3g), kept in step with `visible`:
  *
  *   <ui-dialog header="Settings" [visible]="open()" (visibleChange)="open.set($event)" width="540px">
  *     …body…
@@ -39,27 +15,40 @@ export function keepFocusInDialogs(): void {
  *   </ui-dialog>
  *
  * Escape and, if allowed, a click on the backdrop ask the owner to close by
- * emitting `visibleChange(false)`. Material provides the focus trap, the
- * return of focus to the element that had it, scroll blocking and aria-modal.
+ * emitting `visibleChange(false)`. The body is in the page only while the
+ * dialog is open, but Angular makes projected content with the page: keep
+ * anything heavy (an editor) inside `@if` of the open state.
  */
 @Component({
   selector: "ui-dialog",
-  imports: [Icon, MatIconButton, MatDialogTitle, MatDialogContent, MatDialogActions],
+  imports: [Icon, MatIconButton, UiModal],
   template: `
-    <ng-template #content>
-      <div class="dialog-header">
-        <span mat-dialog-title>{{ header() }}</span>
-        <button matIconButton type="button" class="btn-secondary dialog-close" aria-label="Close" (click)="requestClose()">
-          <app-icon name="close" />
-        </button>
-      </div>
-      <mat-dialog-content><ng-content /></mat-dialog-content>
-      <mat-dialog-actions class="dialog-footer"><ng-content select="[uiDialogFooter]" /></mat-dialog-actions>
-    </ng-template>
+    <dialog
+      uiModal
+      class="ui-dialog"
+      [open]="visible()"
+      [dismissable]="dismissableMask()"
+      [attr.aria-labelledby]="titleId"
+      [style.width]="width()"
+      [style.max-width]="maxWidth() ?? 'calc(100vw - 32px)'"
+      (closeRequest)="requestClose()"
+      (closed)="hide.emit()"
+    >
+      @if (visible()) {
+        <div class="dialog-header">
+          <span class="dialog-title type-title-3" [id]="titleId">{{ header() }}</span>
+          <button matIconButton type="button" class="btn-secondary dialog-close" aria-label="Close" (click)="requestClose()">
+            <app-icon name="close" />
+          </button>
+        </div>
+        <div class="dialog-content"><ng-content /></div>
+        <div class="dialog-footer"><ng-content select="[uiDialogFooter]" /></div>
+      }
+    </dialog>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Dialog implements OnDestroy {
+export class Dialog {
   readonly header = input("");
   readonly visible = input(false);
   readonly visibleChange = output<boolean>();
@@ -70,81 +59,19 @@ export class Dialog implements OnDestroy {
   /** A click on the backdrop closes the dialog. */
   readonly dismissableMask = input(false, { transform: booleanAttribute });
 
-  private readonly dialog = inject(MatDialog);
-  private readonly viewContainer = inject(ViewContainerRef);
-  private readonly content = viewChild.required<TemplateRef<unknown>>("content");
-  private ref: MatDialogRef<unknown> | null = null;
-
-  constructor() {
-    effect(() => {
-      const visible = this.visible();
-      untracked(() => (visible ? this.open() : this.dismiss()));
-    });
-  }
+  protected readonly titleId = `ui-dialog-title-${nextId++}`;
+  private readonly app = inject(ApplicationRef);
 
   /**
    * Asks the owner to close: it sets `visible` to false, which closes the
    * dialog. Closing here as well would leave it shut while `visible` is
-   * still true if the owner reopens before the change is rendered.
+   * still true if the owner reopens before the change is rendered. It is
+   * drawn at once (from a key or a click, never inside a render): until the
+   * dialog has closed, the page under it is inert, and a key typed straight
+   * after Escape went nowhere.
    */
   protected requestClose(): void {
     this.visibleChange.emit(false);
-  }
-
-  private open(): void {
-    if (this.ref) return;
-    const ref = this.dialog.open(this.content(), {
-      viewContainerRef: this.viewContainer,
-      // Closing is decided here, so the owner always hears about it.
-      disableClose: true,
-      ariaModal: true,
-      panelClass: "dialog-panel",
-      backdropClass: "dialog-backdrop",
-      width: this.width(),
-      maxWidth: this.maxWidth() ?? "calc(100vw - 32px)",
-      maxHeight: "90vh",
-      // Material moves focus in when its opening animation ends, and keeps
-      // the panel in place until its closing one does. A field typed into
-      // straight away lost its text and focus, and a click after closing
-      // hit the panel. Focus moves in at once, and the entrance is drawn in
-      // CSS (animations.css).
-      delayFocusTrap: false,
-      enterAnimationDuration: "0ms",
-      exitAnimationDuration: "0ms",
-    });
-    const onKeydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !event.defaultPrevented) {
-        event.preventDefault();
-        this.requestClose();
-      }
-    };
-    ref.keydownEvents().subscribe(onKeydown);
-    // The CDK sends a key only to the topmost overlay that listens. A
-    // Material tooltip open over a button in here is such an overlay: it
-    // takes Escape for itself and stops it. While one is showing, Escape is
-    // read from the dialog's own element, which hears it first.
-    ref.afterOpened().subscribe(() =>
-      document.getElementById(ref.id)?.addEventListener("keydown", (event) => {
-        if (document.querySelector(".mat-mdc-tooltip-panel")) onKeydown(event);
-      })
-    );
-    ref.backdropClick().subscribe(() => {
-      if (this.dismissableMask()) this.requestClose();
-    });
-    ref.afterClosed().subscribe(keepFocusInDialogs);
-    this.ref = ref;
-  }
-
-  private dismiss(): void {
-    const ref = this.ref;
-    if (!ref) return;
-    this.ref = null;
-    ref.close();
-    this.hide.emit();
-  }
-
-  ngOnDestroy(): void {
-    this.ref?.close();
-    this.ref = null;
+    this.app.tick();
   }
 }

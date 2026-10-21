@@ -43,15 +43,7 @@
 
 /* ── Applied animations ──────────────────────────────────── */
 
-/* Material's own dialog animation is off (see ui/dialog.ts): it holds back
-   the move of focus into the dialog until it ends. */
-.dialog-panel .mat-mdc-dialog-surface,
-.confirm-panel .mat-mdc-dialog-surface {
-  animation: dialog-appear var(--dur-enter) var(--ease-enter) both;
-}
-
 /* Material animates its own select lists; ui-menu animates in menu.css. */
-.ui-confirm-popup .cdk-dialog-container,
 .ui-popover {
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }
@@ -82,7 +74,8 @@
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after {
+  *::after,
+  *::backdrop {
     /* Not 0: a length, so the end events Material waits for are still sent. */
     animation-duration: var(--dur-none) !important;
     animation-delay: 0s !important;

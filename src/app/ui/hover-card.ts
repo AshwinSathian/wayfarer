@@ -47,7 +47,10 @@ export class HoverCard implements OnDestroy {
           { originX: "start", originY: "bottom", overlayX: "start", overlayY: "top", offsetY: 10 },
           { originX: "start", originY: "top", overlayX: "start", overlayY: "bottom", offsetY: -10 },
         ])
-        .withViewportMargin(8),
+        .withViewportMargin(8)
+        // Beside its host: in a modal dialog (the history drawer), the page outside it is inert, and
+        // a card there never heard the pointer that should keep it open.
+        .withPopoverLocation("inline"),
       scrollStrategy: this.overlay.scrollStrategies.close(),
       panelClass: "ui-popover",
     });

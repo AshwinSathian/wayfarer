@@ -15,7 +15,7 @@ describe("VariablesDialog", () => {
     fixture.componentInstance.save.subscribe((changes) => saved.push(changes));
     fixture.componentInstance.visibleChange.subscribe((visible) => closed.push(visible));
     await fixture.whenStable();
-    const dialog = document.querySelector<HTMLElement>("mat-dialog-container")!;
+    const dialog = document.querySelector<HTMLElement>("dialog[open]")!;
     const fields = () => [...dialog.querySelectorAll<HTMLInputElement>("input")];
     const type = async (input: HTMLInputElement, text: string) => {
       input.value = text;
@@ -63,6 +63,6 @@ describe("VariablesDialog", () => {
     await fixture.whenStable();
     fixture.componentRef.setInput("visible", true);
     await fixture.whenStable();
-    expect([...document.querySelectorAll<HTMLInputElement>("mat-dialog-container input")].map((input) => input.value)).toEqual(["a", "1"]);
+    expect([...document.querySelectorAll<HTMLInputElement>("dialog[open] input")].map((input) => input.value)).toEqual(["a", "1"]);
   });
 });

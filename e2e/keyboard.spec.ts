@@ -340,6 +340,18 @@ test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and f
   await expect(page.locator("input.address-url")).toBeFocused();
 });
 
+// While the drawer is open the page under it is inert: the shell closes it
+// before it moves focus to the address, or the field took none.
+test("phone navigation drawer: New request closes it and puts focus in the address", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/");
+  await page.getByRole("button", { name: "Toggle sidebar" }).click();
+  const drawer = page.getByRole("dialog", { name: "Navigation" });
+  await drawer.getByRole("button", { name: "New request" }).click();
+  await expect(drawer).toHaveCount(0);
+  await expect(page.locator("input.address-url")).toBeFocused();
+});
+
 // #223: the shell once moved focus in on Material's openedStart, a frame
 // after the key, and a Tab (or a check) inside that frame found it still on
 // the page. Focus is inside by the end of the task that asked for the drawer.
@@ -371,29 +383,25 @@ for (const [width, opener, name] of [
   });
 }
 
-// Material reports that a drawer has closed when its slide ends, by which
-// time the page may already have asked for it again. The shell once took
-// that late report as the state, and shut the drawer it had just opened.
-test("history drawer: asked for again as the last close is reported, it opens and stays open", async ({ page }) => {
+// The shell shows and closes a drawer in the task that asks (#223). Asked
+// for, closed and asked for again before Angular has drawn any of it, the
+// drawer is open, with focus in it.
+test("history drawer: opened, closed and opened again in one task, it is open and has focus", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  const opener = page.getByRole("button", { name: "Request history" });
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  await opener.click();
-  await expect(drawer).toBeVisible();
-  await page.getByRole("button", { name: "Close history" }).click();
-  await expect(drawer).toHaveCount(0);
-
-  // In one task: the click that asks for the drawer, then the event Material
-  // ends a slide on, before Angular has told Material about the click.
-  await page.evaluate(() => {
-    document.querySelector<HTMLElement>('button[aria-label="Request history"]')!.click();
-    document.querySelector("mat-sidenav.mat-drawer-end")!.dispatchEvent(new TransitionEvent("transitionend"));
+  const focused = await page.evaluate(() => {
+    const opener = document.querySelector<HTMLElement>('button[aria-label="Request history"]')!;
+    opener.click();
+    document.querySelector<HTMLElement>('button[aria-label="Close history"]')!.click();
+    opener.click();
+    return document.activeElement?.getAttribute("aria-label");
   });
-
+  expect(focused).toBe("Close history");
   await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Close history" })).toBeFocused();
+  await page.waitForTimeout(400);
   await expect(drawer).toBeVisible();
-  await expect(drawer.getByRole("button", { name: "Close history" })).toBeVisible();
 });
 
 test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and focus returns", async ({ page, browserName }) => {

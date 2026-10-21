@@ -157,50 +157,6 @@ html {
   );
 }
 
-/* ── Dialog ──────────────────────────────────────────────── */
-html {
-  @include mat.dialog-overrides(
-    (
-      container-color: var(--surface-dialog),
-      container-shape: var(--radius-2xl),
-      container-elevation-shadow: var(--shadow-dialog),
-      /* The caller sets a dialog's width; the window caps it. */
-      container-max-width: calc(100vw - 32px),
-      container-small-max-width: calc(100vw - 32px),
-      container-min-width: 0,
-      subhead-color: var(--label-primary),
-      subhead-size: 16px,
-      subhead-weight: 600,
-      subhead-line-height: 20px,
-      subhead-tracking: -0.01em,
-      headline-padding: 0,
-      supporting-text-color: var(--ctl-surface-text),
-      content-padding: 20px 24px,
-      with-actions-content-padding: 20px 24px,
-      actions-padding: 14px 24px,
-      actions-alignment: flex-end,
-    )
-  );
-}
-
-/* ── Drawer (sidenav) ────────────────────────────────────── */
-html {
-  @include mat.sidenav-overrides(
-    (
-      /* The dialog's surface, not the toolbar's: a translucent one let the
-         dimmed page show through, and small grey text on it fell to 4.19:1. */
-      container-background-color: var(--surface-dialog),
-      container-text-color: var(--ctl-surface-text),
-      container-shape: 0,
-      container-divider-color: transparent,
-      /* The page under the container shows through: the shell paints it. */
-      content-background-color: transparent,
-      content-text-color: var(--label-primary),
-      scrim-color: rgba(0, 0, 0, 0.6),
-    )
-  );
-}
-
 /* ── Text input (form field) ─────────────────────────────── */
 html {
   @include mat.form-field-overrides(

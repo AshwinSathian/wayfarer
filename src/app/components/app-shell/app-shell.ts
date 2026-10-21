@@ -3,7 +3,6 @@ import { NgTemplateOutlet } from "@angular/common";
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   OnInit,
   effect,
   inject,
@@ -19,8 +18,8 @@ import { MatTooltip } from "@angular/material/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatToolbar } from "@angular/material/toolbar";
-import { MatSidenav, MatSidenavContainer, MatSidenavContent } from "@angular/material/sidenav";
 import { Dialog } from "../../ui/dialog";
+import { UiModal } from "../../ui/modal";
 import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -47,9 +46,7 @@ import { UiSelect } from "../../ui/select";
   selector: "app-shell",
   imports: [MatToolbar, MatFormField, MatInput, NgTemplateOutlet,
     Icon,
-    MatSidenavContainer,
-    MatSidenav,
-    MatSidenavContent,
+    UiModal,
     MatButton, MatIconButton,
     UiSelect,
     Dialog,
@@ -231,66 +228,35 @@ export class AppShell implements OnInit {
       : undefined;
   }
 
-  /** What had focus when a drawer opened. */
-  private drawerOpener: HTMLElement | null = null;
+  private readonly navigationDrawer = viewChild<UiModal>("navigationDrawer");
+  private readonly historyDrawer = viewChild.required<UiModal>("historyDrawer");
 
-  private readonly navigationDrawer = viewChild<MatSidenav>("navigationDrawer");
-  private readonly navigationPanel = viewChild<ElementRef<HTMLElement>>("navigation");
-  private readonly historyDrawer = viewChild.required<MatSidenav>("historyDrawer");
-  private readonly historyPanel = viewChild.required<ElementRef<HTMLElement>>("history");
-
+  /**
+   * A drawer is shown and closed in the task that asks for it (#223), so
+   * focus is in it before the next key: the binding would do it a render
+   * later, and opened and closed before that render, it would see no change.
+   */
   protected openHistory(): void {
-    this.openDrawer(this.historyDrawer(), this.historyPanel().nativeElement);
+    this.historyDrawer().show();
     this.historyDrawerVisible.set(true);
   }
 
   protected closeHistory(): void {
-    void this.historyDrawer().close();
+    this.historyDrawer().close();
     this.historyDrawerVisible.set(false);
   }
 
   /** Pinned, the sidebar is no drawer: the app shows or hides it. */
   protected toggleNavigation(): void {
     const drawer = this.navigationDrawer();
-    const panel = this.navigationPanel();
-    if (drawer?.opened) void drawer.close();
-    else if (drawer && panel) this.openDrawer(drawer, panel.nativeElement);
+    if (drawer?.element.open) drawer.close();
+    else drawer?.show();
     this.toggleDrawer.emit();
   }
 
   protected closeNavigation(): void {
-    void this.navigationDrawer()?.close();
+    this.navigationDrawer()?.close();
     this.closeDrawer.emit();
-  }
-
-  /**
-   * Opens a drawer and moves focus into it in the task that asked for it
-   * (#223). Material shows the drawer at once but moves focus when the slide
-   * ends, and its openedStart comes a frame late: until then Tab walked the
-   * page underneath, and Escape, which a drawer reads from its own element,
-   * did nothing. A drawer is closed the same way, in the task: opened and
-   * closed before Angular ran, the [opened] binding saw no change and the
-   * drawer stayed open. The binding then finds the drawer as it was left.
-   */
-  private openDrawer(drawer: MatSidenav, panel: HTMLElement): void {
-    if (drawer.opened) return;
-    this.drawerOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    void drawer.open();
-    panel
-      .querySelector<HTMLElement>("button:not([disabled]), input:not([disabled]), [tabindex='0']")
-      ?.focus();
-  }
-
-  /** A click on the page behind an open drawer closes it. */
-  protected closeDrawers(): void {
-    if (this.historyDrawer().opened) this.closeHistory();
-    else if (this.navigationDrawer()?.opened) this.closeNavigation();
-  }
-
-  /** Material notes where focus was only once the slide has ended, by when it is inside the drawer. */
-  protected restoreDrawerFocus(): void {
-    this.drawerOpener?.focus();
-    this.drawerOpener = null;
   }
 
   get drawerWidth(): string {
@@ -304,12 +270,13 @@ export class AppShell implements OnInit {
     }
   }
 
+  /** The drawer closes first: while it is open, the address field is in the inert page and takes no focus. */
   handleLoadCollectionRequest(request: RequestDoc): void {
     this.composer().loadCollectionRequest(request);
-    this.composer().focusUrl();
     if (this.sidebarOverlay()) {
       this.closeNavigation();
     }
+    this.composer().focusUrl();
   }
 
   handleRun(target: RunTarget): void {
@@ -321,10 +288,10 @@ export class AppShell implements OnInit {
 
   handleNewRequest(): void {
     this.composer().clearComposer();
-    this.composer().focusUrl();
     if (this.sidebarOverlay()) {
       this.closeNavigation();
     }
+    this.composer().focusUrl();
   }
 
   async confirmClear(): Promise<void> {

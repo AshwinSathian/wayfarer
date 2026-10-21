@@ -89,12 +89,11 @@
           matIconButton class="btn-danger btn-sm"
           type="button"
           [disabled]="historyLoading() || !pastRequests().length"
-          matTooltip="Clear all history"
-          matTooltipPosition="below"
+          uiTooltip="Clear all history"
           aria-label="Clear all history"
           (click)="confirmClear()"
         ><app-icon name="delete" /></button>
-        <button type="button" matIconButton class="btn-plain" (click)="closeHistory()" title="Close" aria-label="Close history">
+        <button type="button" matIconButton class="btn-plain" (click)="closeHistory()" uiTooltip="Close" aria-label="Close history">
           <app-icon name="close" class="icon-md" />
         </button>
       </div>
@@ -134,7 +133,7 @@
     <mat-toolbar class="ds-toolbar" role="banner">
       <!-- Left: nav toggle + brand -->
       <div class="flex items-center gap-2">
-        <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <button type="button" matIconButton class="btn-plain" (click)="toggleNavigation()" uiTooltip="Toggle sidebar" aria-label="Toggle sidebar">
           <app-icon name="side_navigation" class="icon-md" />
         </button>
         <!-- The name once: the pinned sidebar carries it. -->
@@ -160,7 +159,7 @@
         <button type="button"
           matIconButton class="btn-plain"
           (click)="environmentsVisible.set(true)"
-          title="Environments"
+          uiTooltip="Environments"
           aria-label="Environments"
         >
           <app-icon name="dns" class="icon-md" />
@@ -176,7 +175,7 @@
           matIconButton class="btn-plain"
           [class.text-status-success]="secretsUnlocked"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+          [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
           [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
         >
           <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-md" />
@@ -188,7 +187,7 @@
           matIconButton class="btn-plain"
           [class.bg-accent-fill]="historyDrawerVisible()"
           (click)="openHistory()"
-          title="Request history"
+          uiTooltip="Request history"
           aria-label="Request history"
         >
           <app-icon name="history" class="icon-md" />
@@ -198,7 +197,7 @@
         <button type="button"
           matIconButton class="btn-plain"
           (click)="openSettings()"
-          title="Settings"
+          uiTooltip="Settings"
           aria-label="Settings"
         >
           <app-icon name="settings" class="icon-md" />
@@ -253,26 +252,26 @@
          button it was in the toolbar, with its name; the state beside it is text. -->
     <footer class="status-bar" aria-label="Status">
       <span class="status-item">
-        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" title="Local Bridge settings" aria-label="Local Bridge settings">
+        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" uiTooltip="Local Bridge settings" aria-label="Local Bridge settings">
           <app-icon name="router" class="icon-xs" />
         </button>
         <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
       </span>
       <span class="status-item">
-        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [title]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
+        <button type="button" matIconButton class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
           <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
         </button>
         <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
       </span>
       <span class="status-item">
-        <button type="button" matIconButton class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" title="Manage secrets" aria-label="Manage secrets">
+        <button type="button" matIconButton class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" uiTooltip="Manage secrets" aria-label="Manage secrets">
           <app-icon name="key" class="icon-xs" />
         </button>
         <span>Secrets</span>
       </span>
       <span class="flex-1"></span>
       <span class="status-item">{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span>
-      <button type="button" matIconButton class="btn-plain status-button" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+      <button type="button" matIconButton class="btn-plain status-button" (click)="themeService.toggle()" [uiTooltip]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
         <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
       </button>
     </footer>

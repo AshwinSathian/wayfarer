@@ -30,6 +30,7 @@ import { saveJsonFile } from "../../shared/save-file";
 import type { RunTarget } from "../../state/run-state";
 import { folderChain } from "@wayfarer/core";
 import { UiSelect } from "../../ui/select";
+import { UiTooltip } from "../../ui/tooltip";
 
 type NodeData = CollectionNodeData;
 
@@ -48,6 +49,7 @@ export interface PaletteAction {
     UiMenu,
     MatButton,
     Dialog,
+    UiTooltip,
     UiSelect,
     InheritedSettingsDialog,
     PostmanExportDialog,

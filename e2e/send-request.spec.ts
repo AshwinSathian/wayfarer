@@ -25,7 +25,7 @@ test.describe("Send request → view response", () => {
     // than what the status bar already reported (regression coverage for
     // the Timings/status-bar mismatch bug).
     const statusBarDurationText = await page
-      .locator("app-response-viewer .response-fact[title='Time']")
+      .locator("app-response-viewer .response-fact")
       .first()
       .textContent();
     await responseViewer.getByRole("tab", { name: "Timings" }).click();

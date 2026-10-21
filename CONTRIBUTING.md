@@ -108,16 +108,15 @@ When contributing:
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
   colors/spacing.
-- **Widgets are Angular Material components** (button, select, menu, dialog,
-  tabs, tree, form field, checkbox, tooltip), themed from the design tokens
-  in `src/design-system/material-theme.scss`. Do not build a widget
-  Material already has, and do not add a Material palette colour or a second
-  theme. `src/app/ui` holds only the wrappers the app needs (`ui-dialog`,
-  `Confirm`, `ui-tree`) and what Material has no component for
-  (`ui-splitter`, `uiHoverCard`). "Angular Material" in
-  [`CLAUDE.md`](CLAUDE.md) has the markup for each widget and the places
-  where Material's behaviour differs from what a test or a user expects;
-  read the entry for a widget before using it.
+- **Widgets are moving off Angular Material** (D3.3 of
+  [`PLAN-design.md`](PLAN-design.md)): the composite widgets to Angular
+  Aria, the others to the platform's own elements, each in `src/app/ui` with
+  its own styles and none of the browser's look. A family not yet moved is a
+  Material component, themed from the design tokens in
+  `src/design-system/material-theme.scss`. "Angular Material", "The
+  platform" and "Angular Aria" in [`CLAUDE.md`](CLAUDE.md) have the markup
+  for each widget and the places where it differs from what a test or a
+  user expects; read the entry for a widget before using it.
 
 ## Tests
 

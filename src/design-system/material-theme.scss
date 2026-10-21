@@ -82,33 +82,6 @@ html {
   );
 }
 
-/* ── Tooltip ─────────────────────────────────────────────── */
-html {
-  @include mat.tooltip-overrides(
-    (
-      container-color: var(--canvas-overlay),
-      container-shape: var(--radius-sm),
-      /* --label-secondary measures 4.27:1 on --canvas-overlay. */
-      supporting-text-color: var(--label-secondary-on-fill),
-      supporting-text-size: 12px,
-      supporting-text-line-height: normal,
-      supporting-text-tracking: -0.002em,
-    )
-  );
-}
-
-/* Material adds its component styles after this sheet, so a rule here needs
-   more specificity than the one it replaces. */
-.mat-mdc-tooltip .mat-mdc-tooltip-surface {
-  /* 12.5rem of text, as before: the surface is border-box. */
-  max-width: calc(12.5rem + 22px);
-  padding: 6px 10px;
-  border: 1px solid var(--separator);
-  box-shadow: var(--shadow-overlay);
-  text-align: start;
-  white-space: pre-line;
-}
-
 /* ── Button ──────────────────────────────────────────────── */
 /* Colours are the --btn-* variables a button's variant and tone classes set
    (controls.css). The state layer is off: hover and press change the

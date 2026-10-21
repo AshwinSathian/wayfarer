@@ -42,7 +42,7 @@
   <button
     matButton="outlined" class="btn-secondary btn-square"
     type="button"
-    title="New request"
+    uiTooltip="New request"
     aria-label="New request"
     (click)="view.clear()"
   ><app-icon name="add" /></button>
@@ -58,22 +58,17 @@
   <span
     class="curl-btn-wrap"
     [class.is-disabled]="!store.draft().url"
-    [matTooltip]="store.draft().url ? '' : 'Enter a URL first to copy as cURL'"
-    matTooltipPosition="below"
+    [uiTooltip]="store.draft().url ? '' : 'Enter a URL first to copy as cURL'"
   >
     <button
       matButton="outlined"
       type="button"
       [disabled]="!store.draft().url"
-      matTooltip="Copy as cURL"
-      #curlTip="matTooltip"
-      matTooltipPosition="below"
-      [matTooltipDisabled]="!store.draft().url"
+      [uiTooltip]="store.draft().url ? 'Copy as cURL' : ''"
       aria-label="Copy as cURL"
       ngMenuTrigger
       #curlTrigger="ngMenuTrigger"
       [softDisabled]="false"
-      (keydown.escape)="curlTip.hide(0)"
       [menu]="curlMenu.menu()"
       class="btn-secondary btn-square curl-btn"
     ><app-icon name="terminal" /></button>
@@ -83,7 +78,7 @@
     matButton="outlined" class="btn-secondary btn-square"
     type="button"
     [disabled]="!store.draft().url || savingRequest()"
-    [title]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
     [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
     (click)="save()"
   >

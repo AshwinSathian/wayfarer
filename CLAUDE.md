@@ -439,9 +439,8 @@ code errors.
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
-    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`;
-  - what Material has no component for, built on the CDK: `ui-splitter`
-    and `uiHoverCard` (a tooltip that takes a template).
+    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`;
+  - what Material has no component for, built on the CDK: `ui-splitter`.
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
   icon-led action buttons; Material's chip is a one-line pill), status and
@@ -453,7 +452,7 @@ code errors.
 - Restyle a component with its `mat.<name>-overrides` mixin in that file.
   For what has no token, write a rule there with more specificity than
   Material's own: its component styles load after the global sheet.
-- Import the one directive or component (`MatTooltip`), not its module.
+- Import the one directive or component (`MatCheckbox`), not its module.
 - Buttons: `matButton="filled"`, `matButton="outlined"`, `matButton` (text)
   or `matIconButton`, with `btn-secondary` / `btn-danger` / `btn-success`
   for the tone, `btn-sm` for the size and `btn-square` for an icon alone in
@@ -490,16 +489,7 @@ code errors.
   change the property through a token. Margin utilities, and width on a
   button or a form field, are safe as they are. `max-lg:hidden` without
   the `!` put three hidden toolbar buttons back on a phone.
-- A Material tooltip is an overlay that takes Escape on the page's body
-  and stops it there. A modal dialog reads Escape from its own element, so
-  it hears the key first (see "The platform").
 - Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
-- `matTooltip` takes text and watches focus on its host only. Put it on the
-  focusable element, not on a wrapper.
-- An e2e test that expects a tooltip from the keyboard first moves the
-  pointer off the window's corner (`page.mouse.move`). A headless pointer
-  rests at (0, 0), where the CDK first places an overlay, and Material hides
-  a tooltip the pointer entered and left.
 
 ## The platform
 
@@ -534,8 +524,8 @@ code errors.
   - Escape is read from the dialog's own element, not left to the
     browser's close (cancelled: the owner decides, through
     `closeRequest`). A popup inside that took the key first (a select's
-    list, a menu) prevents it, and the dialog stays; a Material tooltip
-    takes Escape on the body, after the dialog has heard it. With focus on
+    list, a menu) prevents it, and the dialog stays; a tooltip hears it
+    first and does not stop it, so both close. With focus on
     the body (a field blurred), the topmost dialog hears it on the
     document;
   - a click on the backdrop asks to close only when `dismissable` is set,
@@ -547,10 +537,10 @@ code errors.
 - A modal dialog makes the rest of the page inert, the CDK's overlay
   container at the end of the body too. A popup that must take the pointer
   from inside a dialog is drawn inside it: the CDK's `usePopover: 'inline'`
-  (beside its origin: a select's list, a button's menu, `uiHoverCard`) or
+  (beside its origin: a select's list, a button's menu) or
   `{ type: 'parent', element }` (`ui-menu` at the pointer, drawn in its
-  own element). A Material tooltip may stay in the container: it takes no
-  pointer. Both are in the top layer, the later one drawn over.
+  own element); a tooltip is drawn in its host's dialog. Both are in the top
+  layer, the later one drawn over.
 - Dialog: `<ui-dialog header="…" [visible]="…" (visibleChange)="…">`
   (`src/app/ui/dialog.ts`) is `UiModal` with a header (its title names the
   dialog), a body and a footer (`uiDialogFooter`); `dismissableMask` lets
@@ -581,6 +571,39 @@ code errors.
   dialog's is made when it opens. It slides in (`--dur-enter`) and closes at
   once, as a dialog does. The shell calls the drawer's `show()` and
   `close()` from the click or key that asked.
+- Tooltip: `uiTooltip="…"` on the element it explains
+  (`src/app/ui/tooltip.ts`, styles in `tooltip.css`, imported by
+  `src/styles.css`), with `uiTooltipPosition="above"` or below (the
+  default); a `TemplateRef` makes a card of details (a past request's). It
+  is the platform's `popover="manual"` with `role="tooltip"`, a child of
+  the body, moved into the dialog its host is in when it shows (a
+  `ui-dialog`'s projected content is made before the dialog holds it): in
+  a modal dialog it takes the pointer. Not beside its host: there it
+  changed what a rule of siblings found (`.response-fact +
+  .response-fact`, `space-y-*`). No
+  element has a `title`: that is the browser's own tooltip. What
+  it does, each with a test in `tooltip.spec.ts` and the catalogue's e2e:
+  - it shows on hover, not for a touch, and on focus from the keyboard as
+    the CDK's `FocusMonitor` tells it: not for a click's focus or focus set
+    by code (WebKit draws a ring on the first element of a dialog a click
+    opened). Put it on the focusable element: an icon that explains is a
+    `<span class="info-tip" tabindex="0" role="img">` named by the text;
+  - text describes its host (`aria-describedby`) from the first render,
+    unless it repeats the host's `aria-label` (a screen reader would say it
+    twice); a card while it is shown. Empty text is no tooltip:
+    `[uiTooltip]="url ? 'Copy as cURL' : ''"`;
+  - it stays while the pointer is on it (80 ms to get there), follows its
+    host on a scroll (Tab scrolls a host into view after it showed), and
+    goes on leave, blur, a press on the host and Escape;
+  - Escape is heard on the document in the capture phase and not stopped:
+    before Aria's menu trigger, which stops it on its button, and the
+    dialog it is in closes too;
+  - `placeTooltip` puts it 8 px from its host and inside the window, on the
+    other side when only that one has room, measured by its layout box
+    (`offsetWidth`: its entrance scales it). Nothing of it is ever at
+    (0, 0), where a headless pointer rests.
+  A test finds one by `getByRole("tooltip")` and its text; a hidden one is
+  not found.
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a
@@ -699,8 +722,8 @@ code errors.
   Enter, the arrows, Home, End: it took them, and the field never had
   them); the panel keeps those keys, without a modifier, to itself.
 - Aria's trigger takes Escape on its button and stops it, also with the
-  menu closed, so a Material tooltip there never hears it: the button hides
-  its own (`(keydown.escape)="tip.hide(0)"`, the cURL button).
+  menu closed: what must hear the key there listens on the document in the
+  capture phase (`uiTooltip`).
 - On a button that Material's `matButton` also draws, `[disabled]` reaches
   Aria's trigger too, and Aria's default `softDisabled` writes no
   `disabled` attribute: give such a trigger `[softDisabled]="false"`, or

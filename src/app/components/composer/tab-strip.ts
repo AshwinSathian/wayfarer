@@ -1,7 +1,7 @@
 import { ApplicationRef, ChangeDetectionStrategy, Component, inject, output } from "@angular/core";
 import { Tab, TabContent, TabPanel } from "@angular/aria/tabs";
 import { MatIconButton } from "@angular/material/button";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../../ui/tooltip";
 import { Icon } from "../../shared/icon/icon";
 import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
@@ -15,7 +15,7 @@ import { UiTabList } from "../../ui/tabs";
  */
 @Component({
   selector: "app-tab-strip",
-  imports: [Icon, MatIconButton, MatTooltip, Tab, TabContent, TabPanel, UiTabList],
+  imports: [Icon, MatIconButton, UiTooltip, Tab, TabContent, TabPanel, UiTabList],
   templateUrl: "./tab-strip.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { "(window:keydown)": "onKeydown($event)" },

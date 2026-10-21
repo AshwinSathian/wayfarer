@@ -9,8 +9,7 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
-import { MatTooltip } from "@angular/material/tooltip";
-import { HoverCard } from "../../ui/hover-card";
+import { UiTooltip } from "../../ui/tooltip";
 import { PastRequest } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
 
@@ -37,8 +36,7 @@ export interface HistoryGroup {
     DatePipe,
     Icon,
     MatButton,
-    MatTooltip,
-    HoverCard,
+    UiTooltip,
     AccordionContent, AccordionPanel, AccordionTrigger, UiAccordion, UiAccordionPanel,
     MatCheckbox,
     HarExportDialog,

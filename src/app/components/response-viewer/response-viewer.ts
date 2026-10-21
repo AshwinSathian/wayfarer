@@ -12,7 +12,7 @@ import { UiMenuItem } from "../../ui/menu-item";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../../ui/tooltip";
 import { exportRedactor } from "../../shared/inspect/export";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
@@ -64,7 +64,7 @@ interface ResponseHeader {
     Icon,
     FormsModule,
     Tab, TabContent, TabPanel, Tabs, UiTabList,
-    MatTooltip,
+    UiTooltip,
     JsonEditor,
     HtmlPreview,
     MatButton, MatIconButton,

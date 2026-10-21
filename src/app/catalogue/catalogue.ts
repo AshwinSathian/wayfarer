@@ -3,11 +3,10 @@ import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/ari
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { MatButton, MatIconButton } from "@angular/material/button";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../ui/tooltip";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { Confirm } from "../ui/confirm";
 import { Dialog } from "../ui/dialog";
-import { HoverCard } from "../ui/hover-card";
 import { UiModal } from "../ui/modal";
 import { UiMenu } from "../ui/menu";
 import { UiMenuItem } from "../ui/menu-item";
@@ -38,11 +37,10 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     AccordionPanel,
     AccordionTrigger,
     Dialog,
-    HoverCard,
     Icon,
     MatButton,
     MatIconButton,
-    MatTooltip,
+    UiTooltip,
     MenuTrigger,
     Tab,
     TabContent,
@@ -81,6 +79,22 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #trigger="ngMenuTrigger" [menu]="menu.menu()">Export</button>
         <ui-menu #menu [trigger]="trigger" [items]="menuItems" />
         <p class="type-callout" role="status">{{ chosen() }}</p>
+      </section>
+
+      <section aria-labelledby="catalogue-tooltips">
+        <h2 id="catalogue-tooltips" class="type-title-3">Tooltips</h2>
+        <p class="type-callout text-label-secondary">
+          Text that adds a key to a button's name, below and above; an icon that explains, at length; a menu button with one; a card of details; a button at the row's end.
+        </p>
+        <div class="catalogue-row">
+          <button matIconButton class="btn-plain" type="button" aria-label="New tab" uiTooltip="New tab (Alt+T)"><app-icon name="add" /></button>
+          <button matIconButton class="btn-plain" type="button" aria-label="Delete" uiTooltip="Delete" uiTooltipPosition="above"><app-icon name="delete" /></button>
+          <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="longTip" [uiTooltip]="longTip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
+          <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #tipTrigger="ngMenuTrigger" [menu]="tipMenu.menu()" uiTooltip="Copy the request">Copy as</button>
+          <ui-menu #tipMenu [trigger]="tipTrigger" [items]="menuItems" />
+          <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /orders</span>
+          <button matIconButton class="btn-plain catalogue-end" type="button" aria-label="Settings" uiTooltip="Settings (Ctrl+,)"><app-icon name="settings" /></button>
+        </div>
       </section>
 
       <section aria-labelledby="catalogue-tabs">
@@ -171,7 +185,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       <section aria-labelledby="catalogue-dialogs">
         <h2 id="catalogue-dialogs" class="type-title-3">Dialogs</h2>
         <p class="type-callout text-label-secondary">
-          A dialog holding a field, a select, a menu and a button with a tooltip; a confirmation, centred and under a button; a drawer, with a confirmation, a menu at the pointer and a card on hover.
+          A dialog holding a field, a select, a menu and a button with a tooltip; a confirmation, centred and under a button; a drawer, with a tooltip, a confirmation, a menu at the pointer and a card on hover.
         </p>
         <div class="catalogue-row">
           <button matButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(true)">Open the dialog</button>
@@ -187,7 +201,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <div class="catalogue-row">
               <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #dialogTrigger="ngMenuTrigger" [menu]="dialogMenu.menu()">Copy as</button>
               <ui-menu #dialogMenu [trigger]="dialogTrigger" [items]="menuItems" />
-              <button matIconButton class="btn-plain" type="button" aria-label="Duplicate" matTooltip="Duplicate"><app-icon name="content_copy" /></button>
+              <button matIconButton class="btn-plain" type="button" aria-label="Duplicate" uiTooltip="Duplicate"><app-icon name="content_copy" /></button>
               <button matButton="outlined" class="btn-danger" type="button" (click)="ask($event, false)">Delete…</button>
             </div>
           </div>
@@ -200,12 +214,12 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <div class="catalogue-drawer">
             <div class="catalogue-row">
               <span class="type-title-3">History</span>
-              <button matIconButton class="btn-plain" type="button" aria-label="Close history" (click)="drawer.close(); drawerOpen.set(false)"><app-icon name="close" /></button>
+              <button matIconButton class="btn-plain" type="button" aria-label="Close history" uiTooltip="Close history (Esc)" (click)="drawer.close(); drawerOpen.set(false)"><app-icon name="close" /></button>
             </div>
             <label for="catalogue-drawer-search" class="type-callout">Search history</label>
             <input id="catalogue-drawer-search" class="catalogue-input type-body" />
             <div class="catalogue-row" (contextmenu)="drawerMenu.openAt($event, focusEntry)">
-              <span class="type-mono-body" tabindex="0" [uiHoverCard]="details">GET /users</span>
+              <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /users</span>
               <button matButton="outlined" class="btn-danger btn-sm" type="button" (click)="ask($event, true)">Delete entry</button>
             </div>
             <ng-template #details><p class="type-callout p-1">200 OK, in 84 ms</p></ng-template>
@@ -241,6 +255,9 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       align-items: center;
       gap: 8px;
     }
+    .catalogue-end {
+      margin-inline-start: auto;
+    }
     .catalogue-dialog,
     .catalogue-drawer {
       display: grid;
@@ -267,6 +284,7 @@ export class Catalogue {
   protected readonly dialogOpen = signal(false);
   protected readonly drawerOpen = signal(false);
   protected readonly chosen = signal("Nothing chosen yet.");
+  protected readonly longTip = "Time to first byte: the server's processing and the network's latency, from the request's last byte to the response's first.";
   protected readonly row = signal("");
   protected readonly part = signal("headers");
   protected readonly parts = [

@@ -48,11 +48,14 @@
       (change)="setDelay($any($event.target).value)"
     />
   </div>
-  <mat-checkbox
-    [checked]="state.stopOnFailure()"
-    [disabled]="state.running()"
-    (change)="state.stopOnFailure.set($event.checked)"
-    >Stop on the first failure</mat-checkbox
+  <label class="ui-checkbox-label"
+    ><input
+      type="checkbox"
+      uiCheckbox
+      [checked]="state.stopOnFailure()"
+      [disabled]="state.running()"
+      (change)="state.stopOnFailure.set($any($event.target).checked)"
+    />Stop on the first failure</label
   >
   <div class="flex min-w-0 flex-wrap items-center gap-3">
     <button
@@ -127,7 +130,14 @@
   }
   <span class="flex-1"></span>
   @if (failed()) {
-  <mat-checkbox [checked]="failedOnly()" (change)="failedOnly.set($event.checked)">Failed only</mat-checkbox>
+  <label class="ui-checkbox-label"
+    ><input
+      type="checkbox"
+      uiCheckbox
+      [checked]="failedOnly()"
+      (change)="failedOnly.set($any($event.target).checked)"
+    />Failed only</label
+  >
   }
 </div>
 

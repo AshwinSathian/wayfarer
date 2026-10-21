@@ -9,6 +9,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Checkboxes are the browser's own, drawn by Wayfarer, and the app loads
+  5.6 kB less.** They look and behave as before: the same box, tick and
+  colours, the same focus ring, and Tab reaches each one in every browser,
+  Safari included. Three details differ. Each box sits 1 px lower and
+  1 px further right, in the middle of its space; before, it sat in the
+  space's top left corner. A checkbox's text is set like the rest of the
+  app's text, a little narrower; before, it kept the letter spacing of the
+  old widget library. In high-contrast mode a checked box is filled with
+  the system's highlight colour and its tick drawn in the highlight's text
+  colour; before, it was outlined.
+
 - **Text fields are the browser's own fields, drawn by Wayfarer, and the
   app loads 15 kB less.** They look and behave as before. Three details
   differ. A field of several lines (bulk headers, a WebSocket message)

@@ -24,7 +24,7 @@
     }
 
     <label
-      for="postman-export-credentials-input"
+      for="postman-export-credentials"
       class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
     >
       <div>
@@ -33,7 +33,9 @@
           >Without this, a token, password or key you typed is written as ***. A vault secret is never written.</p
         >
       </div>
-      <mat-checkbox
+      <input
+        type="checkbox"
+        uiCheckbox
         id="postman-export-credentials"
         aria-label="Include credentials"
         [ngModel]="credentials()"

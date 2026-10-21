@@ -3,6 +3,7 @@ import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/ari
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiButton } from "../ui/button";
+import { UiCheckbox } from "../ui/checkbox";
 import { UiInput } from "../ui/input";
 import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
@@ -46,6 +47,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     Dialog,
     Icon,
     UiButton,
+    UiCheckbox,
     UiInput,
     UiSpinner,
     UiTooltip,
@@ -278,6 +280,33 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         </div>
       </section>
 
+      <section aria-labelledby="catalogue-checkboxes">
+        <h2 id="catalogue-checkboxes" class="type-title-3">Checkboxes</h2>
+        <p class="type-callout text-label-secondary"
+          >With text, checked and not; disabled, checked and not; a row's, named without text; one a label points at.</p
+        >
+        <div class="catalogue-checks">
+          <label class="ui-checkbox-label"><input type="checkbox" uiCheckbox checked />Follow redirects</label>
+          <label class="ui-checkbox-label"
+            ><input type="checkbox" uiCheckbox />Do not verify the server's certificate</label
+          >
+          <label class="ui-checkbox-label"
+            ><input type="checkbox" uiCheckbox disabled />Stop on the first failure</label
+          >
+          <label class="ui-checkbox-label"><input type="checkbox" uiCheckbox disabled checked />With history</label>
+          <div class="catalogue-row">
+            <input type="checkbox" uiCheckbox checked aria-label="Send parameter 1" />
+            <input uiInput class="font-mono" aria-label="Parameter name, row 1" value="page" />
+          </div>
+          <div class="catalogue-row">
+            <label for="catalogue-check-hold" class="type-callout"
+              >Hold back a request with a variable that has no value</label
+            >
+            <input id="catalogue-check-hold" type="checkbox" uiCheckbox />
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="catalogue-tabs">
         <h2 id="catalogue-tabs" class="type-title-3">Tabs</h2>
         <p class="type-callout text-label-secondary"
@@ -457,6 +486,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <div class="catalogue-dialog">
             <label for="catalogue-dialog-name" class="type-callout">Name</label>
             <input uiInput id="catalogue-dialog-name" class="font-sans" value="List users" />
+            <label class="ui-checkbox-label"><input type="checkbox" uiCheckbox />Include credentials</label>
             <span id="catalogue-dialog-environment" class="type-callout">Environment</span>
             <ui-select
               class="w-48"
@@ -560,6 +590,11 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       grid-template-columns: max-content minmax(0, 24rem);
       align-items: center;
       gap: 8px 16px;
+    }
+    .catalogue-checks {
+      display: grid;
+      justify-items: start;
+      gap: 8px;
     }
     .catalogue-end {
       margin-inline-start: auto;

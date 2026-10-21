@@ -35,7 +35,7 @@ describe("VariablesDialog", () => {
     const { dialog, fields, type, press, saved, closed } = await open({ keep: "1", change: "old", gone: "x" });
 
     expect(fields().map((input) => input.value)).toEqual(["keep", "1", "change", "old", "gone", "x"]);
-    expect(dialog.querySelector("mat-checkbox")).toBeNull();
+    expect(dialog.querySelector("input[type=checkbox]")).toBeNull();
 
     await type(fields()[3], "new");
     await press("Remove global variables item");

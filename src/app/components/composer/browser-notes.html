@@ -14,10 +14,13 @@
   >
 </div>
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
-  <mat-checkbox
-    [checked]="store.draft().settings.followRedirects !== false"
-    (change)="store.setFollowRedirects($event.checked)"
-    >Follow redirects</mat-checkbox
+  <label class="ui-checkbox-label"
+    ><input
+      type="checkbox"
+      uiCheckbox
+      [checked]="store.draft().settings.followRedirects !== false"
+      (change)="store.setFollowRedirects($any($event.target).checked)"
+    />Follow redirects</label
   >
   @if (limits.route === 'bridge') {
   <span class="min-w-0">Through the Local Bridge each one is listed, 20 at most.</span>
@@ -29,8 +32,13 @@
   }
 </div>
 <div class="tls-insecure flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
-  <mat-checkbox [checked]="store.draft().settings.tlsInsecure === true" (change)="store.setTlsInsecure($event.checked)"
-    >Do not verify the server's certificate</mat-checkbox
+  <label class="ui-checkbox-label"
+    ><input
+      type="checkbox"
+      uiCheckbox
+      [checked]="store.draft().settings.tlsInsecure === true"
+      (change)="store.setTlsInsecure($any($event.target).checked)"
+    />Do not verify the server's certificate</label
   >
   @if (limits.route === 'bridge') {
   <span class="min-w-0"

@@ -66,11 +66,12 @@
         <div class="group overflow-hidden rounded-lg transition-colors hover:bg-fill-hover">
           <!-- Desktop row -->
           <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
-            <mat-checkbox
-              class="shrink-0"
-              [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
+            <input
+              type="checkbox"
+              uiCheckbox
+              [attr.aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
               [checked]="isChosen(request)"
-              (change)="choose(request, $event.checked)"
+              (change)="choose(request, $any($event.target).checked)"
             />
             <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0">
               {{ request.sent.method }}
@@ -141,11 +142,13 @@
 
           <!-- Mobile accordion -->
           <div class="md:hidden flex items-start">
-            <mat-checkbox
-              class="shrink-0 mt-1"
-              [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
+            <input
+              type="checkbox"
+              uiCheckbox
+              class="mt-1.5"
+              [attr.aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
               [checked]="isChosen(request)"
-              (change)="choose(request, $event.checked)"
+              (change)="choose(request, $any($event.target).checked)"
             />
             <div uiAccordion class="min-w-0 flex-1">
               <div class="sections-item">

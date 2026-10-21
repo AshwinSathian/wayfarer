@@ -84,7 +84,7 @@
         </div>
         <div class="settings-row settings-row-switch">
           <div class="min-w-0">
-            <label for="block-unresolved-input" class="type-subhead text-label-primary"
+            <label for="block-unresolved" class="type-subhead text-label-primary"
               >Hold back a request with a variable that has no value</label
             >
             <p class="type-footnote text-label-tertiary"
@@ -92,10 +92,12 @@
               Postman.</p
             >
           </div>
-          <mat-checkbox
+          <input
+            type="checkbox"
+            uiCheckbox
             id="block-unresolved"
             [checked]="requestSettings.blockUnresolved()"
-            (change)="requestSettings.setBlockUnresolved($event.checked)"
+            (change)="requestSettings.setBlockUnresolved($any($event.target).checked)"
           />
         </div>
       </div>
@@ -131,18 +133,18 @@
         </div>
         <div class="settings-row settings-row-switch">
           <div class="min-w-0">
-            <label for="history-bodies-input" class="type-subhead text-label-primary"
-              >Keep response bodies in history</label
-            >
+            <label for="history-bodies" class="type-subhead text-label-primary">Keep response bodies in history</label>
             <p class="type-footnote text-label-tertiary"
               >Text bodies, up to 1 MB each, with credentials and vault secrets masked. Off: history keeps the status
               and headers only.</p
             >
           </div>
-          <mat-checkbox
+          <input
+            type="checkbox"
+            uiCheckbox
             id="history-bodies"
             [checked]="requestSettings.historyBodies()"
-            (change)="requestSettings.setHistoryBodies($event.checked)"
+            (change)="requestSettings.setHistoryBodies($any($event.target).checked)"
           />
         </div>
         <div class="settings-row">
@@ -171,12 +173,14 @@
               >One file with every collection, request, environment, the global variables and the vault (still
               encrypted). Files of request bodies are not in it.</p
             >
-            <mat-checkbox
-              id="backup-history"
-              class="mt-1.5 -ml-2"
-              [checked]="backupHistory()"
-              (change)="backupHistory.set($event.checked)"
-              >With history</mat-checkbox
+            <label class="ui-checkbox-label mt-1.5 -ml-2"
+              ><input
+                type="checkbox"
+                uiCheckbox
+                id="backup-history"
+                [checked]="backupHistory()"
+                (change)="backupHistory.set($any($event.target).checked)"
+              />With history</label
             >
           </div>
           <div class="settings-actions">

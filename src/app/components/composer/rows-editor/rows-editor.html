@@ -4,8 +4,10 @@
   <!-- Wraps by its own room, not by the window's width: beside the pinned sidebar the composer is 391 px. -->
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     @if (switches()) {
-    <mat-checkbox
-      [aria-label]="'Send ' + context().toLowerCase() + ' row ' + (index + 1)"
+    <input
+      type="checkbox"
+      uiCheckbox
+      [attr.aria-label]="'Send ' + context().toLowerCase() + ' row ' + (index + 1)"
       [(ngModel)]="item.enabled"
       (ngModelChange)="itemChange.emit()"
     />

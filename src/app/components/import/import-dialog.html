@@ -76,14 +76,16 @@
     </div>
     @if (imported.report.format === 'wayfarer-collection') {
     <label
-      for="import-duplicate-checkbox-input"
+      for="import-duplicate-checkbox"
       class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
     >
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
         <p class="type-footnote text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
       </div>
-      <mat-checkbox
+      <input
+        type="checkbox"
+        uiCheckbox
         id="import-duplicate-checkbox"
         aria-label="Import as duplicate"
         [ngModel]="pipeline.duplicateAsNew()"

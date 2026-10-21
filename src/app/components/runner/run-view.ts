@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from "@angular/core";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import {
@@ -26,7 +26,7 @@ import { HarExportDialog } from "../har-export/har-export-dialog";
  */
 @Component({
   selector: "app-run-view",
-  imports: [Icon, UiButton, MatCheckbox, UiInput, UiSpinner, HarExportDialog],
+  imports: [Icon, UiButton, UiCheckbox, UiInput, UiSpinner, HarExportDialog],
   templateUrl: "./run-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

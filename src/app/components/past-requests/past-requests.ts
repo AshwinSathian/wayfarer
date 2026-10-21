@@ -1,11 +1,11 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { UiInput } from "../../ui/input";
+import { UiCheckbox } from "../../ui/checkbox";
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { UiAccordion, UiAccordionPanel } from "../../ui/accordion";
 import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
 import { UiTooltip } from "../../ui/tooltip";
@@ -42,7 +42,7 @@ export interface HistoryGroup {
     AccordionTrigger,
     UiAccordion,
     UiAccordionPanel,
-    MatCheckbox,
+    UiCheckbox,
     HarExportDialog,
   ],
   templateUrl: "./past-requests.html",

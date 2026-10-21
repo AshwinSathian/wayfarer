@@ -283,11 +283,14 @@
         (valueChange)="setOAuthField({ clientAuth: $event })"
       />
     </div>
-    <mat-checkbox
-      [id]="idPrefix() + '-oauth-retry'"
-      [checked]="currentAuth.retryOn401"
-      (change)="setOAuthField({ retryOn401: $event.checked })"
-      >On a 401, get a new token and send once more</mat-checkbox
+    <label class="ui-checkbox-label"
+      ><input
+        type="checkbox"
+        uiCheckbox
+        [id]="idPrefix() + '-oauth-retry'"
+        [checked]="currentAuth.retryOn401"
+        (change)="setOAuthField({ retryOn401: $any($event.target).checked })"
+      />On a 401, get a new token and send once more</label
     >
     @if (currentAuth.grant === 'authorization_code') {
     <p class="type-callout text-label-tertiary"

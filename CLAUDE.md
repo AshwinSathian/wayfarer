@@ -624,7 +624,8 @@ code errors.
   Material's had none. Tested in `input.spec.ts` and the catalogue's e2e.
 - Checkbox: `<input type="checkbox" uiCheckbox>` (`UiCheckbox`,
   `src/app/ui/checkbox.ts`, styles in `checkbox.css`, imported by
-  `src/styles.css`), a 16 px box in a 22 px slot with Material's tick. Its
+  `src/styles.css`), a 16 px box in a 22 px slot with Material's tick, drawn in
+  `--ctl-on-primary` (3:1 on `--accent` in both themes, `contrast.test.mjs`). Its
   text is a `<label class="ui-checkbox-label">` around it (the body type,
   and a click on the text checks it), or a `<label for>` that names its
   id; one with no text has an `aria-label` (bound, `[attr.aria-label]`). A

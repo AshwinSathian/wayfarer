@@ -7,6 +7,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Fixed
+
+- **A ticked checkbox's tick is readable in the dark theme.** It is now
+  dark on the light green box, 7:1; before, it was white, 2.6:1, below
+  the 3:1 a control's mark needs. The light theme is unchanged.
+
 ### Changed
 
 - **Checkboxes are the browser's own, drawn by Wayfarer, and the app loads

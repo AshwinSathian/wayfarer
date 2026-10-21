@@ -19,12 +19,13 @@
 }
 
 /* The tick, Material's path, drawn in the colour of ::before's background
-   so that forced colours can paint it. */
+   so that forced colours can paint it: --ctl-on-primary, white on this
+   theme's dark green and dark on the other's light one (white was 2.6:1). */
 .ui-checkbox::before {
   content: "";
   width: 14px;
   height: 14px;
-  background: #ffffff;
+  background: var(--ctl-on-primary);
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1.73 12.91 8.1 19.28 22.79 4.59' fill='none' stroke='black' stroke-width='3.12'/%3E%3C/svg%3E")
     center / 100% no-repeat;
   opacity: 0;

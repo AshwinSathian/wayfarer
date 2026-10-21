@@ -113,9 +113,14 @@ for (const name of ["dark", "light"]) {
     }
   });
 
-  test(`${name}: what sits on the primary colour (a checkbox's tick) reads on it`, () => {
+  test(`${name}: what sits on the primary colour reads on it`, () => {
     const ratio = contrast(colour("--ctl-on-primary"), colour("--ctl-primary"));
     assert.ok(ratio >= 4.5, `--ctl-on-primary on --ctl-primary: ${ratio.toFixed(2)}:1`);
+  });
+
+  test(`${name}: a checkbox's tick (--ctl-on-primary) stands out from its box (--accent)`, () => {
+    const ratio = contrast(colour("--ctl-on-primary"), colour("--accent"));
+    assert.ok(ratio >= 3, `--ctl-on-primary on --accent: ${ratio.toFixed(2)}:1`);
   });
 
   test(`${name}: selected text reads on its highlight, on every surface`, () => {

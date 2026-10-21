@@ -1,20 +1,18 @@
 <!-- Unified method + URL bar -->
 <div class="address-bar min-w-0 flex-[1_1_20rem]">
   <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. -->
-  <mat-form-field class="field method-field">
-    <input
-      class="font-mono"
-      matInput
-      #methodInput
-      aria-label="HTTP method"
-      maxlength="32"
-      spellcheck="false"
-      autocapitalize="characters"
-      autocomplete="off"
-      [value]="store.draft().method"
-      (input)="onMethodInput(methodInput)"
-    />
-  </mat-form-field>
+  <input
+    class="font-mono method-field"
+    uiInput
+    #methodInput
+    aria-label="HTTP method"
+    maxlength="32"
+    spellcheck="false"
+    autocapitalize="characters"
+    autocomplete="off"
+    [value]="store.draft().method"
+    (input)="onMethodInput(methodInput)"
+  />
   <button
     uiButton="icon"
     class="btn-plain address-method method-menu"
@@ -28,18 +26,16 @@
   <ui-menu #methods [trigger]="methodsTrigger" [items]="methodItems" />
 
   <!-- URL input -->
-  <mat-form-field class="field address-field">
-    <input
-      matInput
-      #urlInput
-      type="url"
-      class="address-url font-mono"
-      [ngModel]="store.draft().url"
-      (ngModelChange)="store.setUrl($event)"
-      (paste)="onPaste($event)"
-      placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
-    />
-  </mat-form-field>
+  <input
+    uiInput
+    #urlInput
+    type="url"
+    class="address-url font-mono address-field"
+    [ngModel]="store.draft().url"
+    (ngModelChange)="store.setUrl($event)"
+    (paste)="onPaste($event)"
+    placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
+  />
 </div>
 
 <!-- Action buttons -->

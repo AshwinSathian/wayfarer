@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Text fields are the browser's own fields, drawn by Wayfarer, and the
+  app loads 15 kB less.** They look and behave as before. Three details
+  differ. A field of several lines (bulk headers, a WebSocket message)
+  has its resize handle in its corner; before, it sat inside the padding.
+  The address bar is 41 px tall in every browser; Firefox and Safari drew
+  it half a pixel shorter. A field focused in a scrolled pane now comes
+  fully into view; before, only its text did. In high-contrast mode a
+  focused field is outlined in the system's highlight colour.
+
 - **The code is formatted by Prettier, and CI holds it there.** Nothing
   in the app or the site changes: compared build against build, the
   templates' text and the site's pages render as they did. Before, the code

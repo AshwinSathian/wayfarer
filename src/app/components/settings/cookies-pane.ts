@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import type { Cookie } from "@wayfarer/core";
 import { CookieJar } from "../../services/cookie-jar";
 import { TransportRouter } from "../../services/transport-router";
@@ -14,7 +13,7 @@ import { Confirm } from "../../ui/confirm";
  */
 @Component({
   selector: "app-cookies-pane",
-  imports: [Icon, UiButton, MatFormField, MatInput],
+  imports: [Icon, UiButton, UiInput],
   templateUrl: "./cookies-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },

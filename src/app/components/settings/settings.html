@@ -67,20 +67,18 @@
             >
           </div>
           <div class="settings-number">
-            <mat-form-field class="field w-28">
-              <input
-                class="font-sans"
-                matInput
-                id="request-timeout"
-                type="number"
-                min="0"
-                step="1000"
-                inputmode="numeric"
-                aria-describedby="request-timeout-unit"
-                [value]="requestSettings.timeoutMs()"
-                (change)="requestSettings.setTimeoutMs(+$any($event.target).value)"
-              />
-            </mat-form-field>
+            <input
+              class="font-sans w-28"
+              uiInput
+              id="request-timeout"
+              type="number"
+              min="0"
+              step="1000"
+              inputmode="numeric"
+              aria-describedby="request-timeout-unit"
+              [value]="requestSettings.timeoutMs()"
+              (change)="requestSettings.setTimeoutMs(+$any($event.target).value)"
+            />
             <span id="request-timeout-unit" class="type-footnote text-label-tertiary">ms</span>
           </div>
         </div>
@@ -115,21 +113,19 @@
             >
           </div>
           <div class="settings-number">
-            <mat-form-field class="field w-28">
-              <input
-                class="font-sans"
-                matInput
-                id="history-cap"
-                type="number"
-                min="1"
-                max="5000"
-                step="1"
-                inputmode="numeric"
-                aria-describedby="history-cap-unit"
-                [value]="requestSettings.historyCap()"
-                (change)="requestSettings.setHistoryCap(+$any($event.target).value)"
-              />
-            </mat-form-field>
+            <input
+              class="font-sans w-28"
+              uiInput
+              id="history-cap"
+              type="number"
+              min="1"
+              max="5000"
+              step="1"
+              inputmode="numeric"
+              aria-describedby="history-cap-unit"
+              [value]="requestSettings.historyCap()"
+              (change)="requestSettings.setHistoryCap(+$any($event.target).value)"
+            />
             <span id="history-cap-unit" class="type-footnote text-label-tertiary">requests</span>
           </div>
         </div>
@@ -310,21 +306,19 @@
             >
           </div>
           <div class="settings-number">
-            <mat-form-field class="field w-28">
-              <input
-                class="font-sans"
-                matInput
-                id="vault-idle-minutes"
-                type="number"
-                min="0"
-                max="240"
-                step="1"
-                inputmode="numeric"
-                aria-describedby="vault-idle-unit"
-                [value]="vault.idleMinutes()"
-                (change)="vault.setIdleMinutes(+$any($event.target).value)"
-              />
-            </mat-form-field>
+            <input
+              class="font-sans w-28"
+              uiInput
+              id="vault-idle-minutes"
+              type="number"
+              min="0"
+              max="240"
+              step="1"
+              inputmode="numeric"
+              aria-describedby="vault-idle-unit"
+              [value]="vault.idleMinutes()"
+              (change)="vault.setIdleMinutes(+$any($event.target).value)"
+            />
             <span id="vault-idle-unit" class="type-footnote text-label-tertiary">minutes</span>
           </div>
         </div>

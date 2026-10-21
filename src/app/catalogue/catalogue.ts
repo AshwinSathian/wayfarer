@@ -3,6 +3,7 @@ import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/ari
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiButton } from "../ui/button";
+import { UiInput } from "../ui/input";
 import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
@@ -45,6 +46,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     Dialog,
     Icon,
     UiButton,
+    UiInput,
     UiSpinner,
     UiTooltip,
     MenuTrigger,
@@ -233,6 +235,49 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         </div>
       </section>
 
+      <section aria-labelledby="catalogue-fields">
+        <h2 id="catalogue-fields" class="type-title-3">Text fields</h2>
+        <p class="type-callout text-label-secondary"
+          >A name and a value, a placeholder, a password, a number, a search, disabled, several lines, a rename in a
+          row, and the address bar's two halves.</p
+        >
+        <div class="catalogue-fields">
+          <label for="catalogue-field-name" class="type-callout">Name</label>
+          <input uiInput id="catalogue-field-name" class="font-sans" value="List users" />
+          <label for="catalogue-field-value" class="type-callout">Value</label>
+          <input uiInput id="catalogue-field-value" class="font-mono" placeholder="Bearer token" />
+          <label for="catalogue-field-password" class="type-callout">Passphrase</label>
+          <input uiInput id="catalogue-field-password" class="font-sans" type="password" value="correct horse" />
+          <label for="catalogue-field-number" class="type-callout">Timeout</label>
+          <input uiInput id="catalogue-field-number" class="font-sans w-28" type="number" min="0" value="30000" />
+          <label for="catalogue-field-search" class="type-callout">Search</label>
+          <input uiInput id="catalogue-field-search" class="font-sans" type="search" value="users" />
+          <label for="catalogue-field-disabled" class="type-callout">Subprotocols</label>
+          <input uiInput id="catalogue-field-disabled" class="font-mono" placeholder="None while connected" disabled />
+          <label for="catalogue-field-lines" class="type-callout">Message</label>
+          <textarea
+            uiInput
+            id="catalogue-field-lines"
+            class="font-mono"
+            rows="3"
+            placeholder="Shift+Enter is a new line"
+          ></textarea>
+          <span class="type-callout">Rename</span>
+          <input uiInput class="font-sans field-inline" aria-label="Rename Users" value="Users" />
+          <span class="type-callout">Address</span>
+          <div class="address-bar">
+            <input uiInput class="font-mono method-field" aria-label="HTTP method" value="GET" />
+            <input
+              uiInput
+              type="url"
+              class="font-mono address-field"
+              aria-label="Address"
+              placeholder="https://api.example.com/v1/endpoint"
+            />
+          </div>
+        </div>
+      </section>
+
       <section aria-labelledby="catalogue-tabs">
         <h2 id="catalogue-tabs" class="type-title-3">Tabs</h2>
         <p class="type-callout text-label-secondary"
@@ -254,7 +299,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true">
               <ng-template ngTabContent>
                 <label for="catalogue-header" class="type-callout">Header name</label>
-                <input id="catalogue-header" class="catalogue-input type-mono-body" />
+                <input uiInput id="catalogue-header" class="font-mono mt-1 block" />
               </ng-template>
             </div>
             <div ngTabPanel value="body" class="tab-pane" [preserveContent]="true"
@@ -320,7 +365,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
                 <ng-template ngAccordionContent>
                   @if (part.id === "headers") {
                     <label for="catalogue-section-field" class="type-callout">Header value</label>
-                    <input id="catalogue-section-field" class="catalogue-input type-mono-body" />
+                    <input uiInput id="catalogue-section-field" class="font-mono mt-1 block" />
                     <button
                       uiButton="outlined"
                       class="btn-secondary btn-sm"
@@ -411,7 +456,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         >
           <div class="catalogue-dialog">
             <label for="catalogue-dialog-name" class="type-callout">Name</label>
-            <input id="catalogue-dialog-name" class="catalogue-input type-body" value="List users" />
+            <input uiInput id="catalogue-dialog-name" class="font-sans" value="List users" />
             <span id="catalogue-dialog-environment" class="type-callout">Environment</span>
             <ui-select
               class="w-48"
@@ -470,7 +515,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
               /></button>
             </div>
             <label for="catalogue-drawer-search" class="type-callout">Search history</label>
-            <input id="catalogue-drawer-search" class="catalogue-input type-body" />
+            <input uiInput id="catalogue-drawer-search" class="font-sans" />
             <div class="catalogue-row" (contextmenu)="drawerMenu.openAt($event, focusEntry)">
               <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /users</span>
               <button uiButton="outlined" class="btn-danger btn-sm" type="button" (click)="ask($event, true)"
@@ -510,6 +555,12 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       align-items: center;
       gap: 8px;
     }
+    .catalogue-fields {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 24rem);
+      align-items: center;
+      gap: 8px 16px;
+    }
     .catalogue-end {
       margin-inline-start: auto;
     }
@@ -521,15 +572,6 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     .catalogue-drawer {
       width: 18rem;
       padding: 16px;
-    }
-    .catalogue-input {
-      display: block;
-      margin-top: 4px;
-      padding: 4px 8px;
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius-sm);
-      background: transparent;
-      color: var(--label-primary);
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

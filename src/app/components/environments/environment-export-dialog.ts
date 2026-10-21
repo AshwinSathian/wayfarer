@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { SecretsVault } from "../../services/secrets-vault";
 import { exportedValue, serializeEnvironmentExport, type ProtectedValues } from "@wayfarer/core";
@@ -21,7 +20,7 @@ export const PLAIN_TEXT_CONFIRMATION = "EXPORT SECRETS";
 /** Exports the environments, asking first what the file should hold of protected variables (P2.11). */
 @Component({
   selector: "app-environment-export-dialog",
-  imports: [Dialog, FormsModule, Icon, UiButton, MatFormField, MatInput, UiSelect, UiSegmented],
+  imports: [Dialog, FormsModule, Icon, UiButton, UiInput, UiSelect, UiSegmented],
   templateUrl: "./environment-export-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

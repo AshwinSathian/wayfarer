@@ -327,11 +327,9 @@ code errors.
   `text-[Npx]` under it, and `e2e/type-floor.spec.ts` on any drawn text.
 - A value a user typed, or one a server sent or will read (an address, a
   header, a variable, a credential, a body field), is monospace; a name,
-  prose, a passphrase or a number is not. Every Material input says which,
-  with `font-mono` (or a `type-mono-*` class) or `font-sans`
-  (`scripts/input-fonts.test.mjs` fails on one that says neither). On a
-  Material input `font-mono` works through the rule in `controls.css`:
-  Material's `font: inherit` loads later and beat the class alone.
+  prose, a passphrase or a number is not. Every text field (`uiInput`)
+  says which, with `font-mono` (or a `type-mono-*` class) or `font-sans`
+  (`scripts/input-fonts.test.mjs` fails on one that says neither).
 - Durations and easings are the `motion` tokens (`docs/design/motion.md`):
   no stylesheet or template writes its own (`0.2s`, `ease-in-out`,
   Tailwind's `duration-150`; the token test fails). Tailwind's transition
@@ -441,7 +439,7 @@ code errors.
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
     `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`,
-    `ui-spinner`, `uiButton`;
+    `ui-spinner`, `uiButton`, `uiInput`;
   - what Material has no component for, built on the CDK: `ui-splitter`.
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
@@ -455,11 +453,6 @@ code errors.
   For what has no token, write a rule there with more specificity than
   Material's own: its component styles load after the global sheet.
 - Import the one directive or component (`MatCheckbox`), not its module.
-- Text input: `<mat-form-field class="field">` around `<input matInput>`.
-  The outline appearance and `subscriptSizing: "dynamic"` are set app-wide
-  (`app.config.ts`); the label is a `<label for>` outside the field. Width
-  and flex utilities go on the form field, not on the input. A class a
-  test or a rule finds the input by (`address-url`) stays on the input.
 - Checkbox: `<mat-checkbox>`. Its input's id is the checkbox's id plus
   `-input`; that is what a `<label for>` outside it points at. One with no
   text inside takes an `aria-label`, bound as `[aria-label]`: that is
@@ -474,10 +467,10 @@ code errors.
   resolved where it is declared.
 - A Tailwind utility on a Material host loses to Material for any property
   Material sets there (height, padding, min-width, font, colour, border, and
-  `display`, min-width on a form field). Give the
+  `display`). Give the
   utility Tailwind's important modifier (`w-48!`, `max-lg:hidden!`), or
-  change the property through a token. Margin utilities, and width on a
-  button or a form field, are safe as they are. `max-lg:hidden` without
+  change the property through a token. Margin utilities are safe as they
+  are. `max-lg:hidden` without
   the `!` put three hidden toolbar buttons back on a phone.
 - Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
 
@@ -623,6 +616,17 @@ code errors.
   the ring. In forced colours a button keeps its border, Send gains one,
   and `btn-plain` has none. Tested in `button.spec.ts` and the catalogue's
   e2e.
+- Text field: `<input uiInput class="font-mono w-full">` or `<textarea
+  uiInput>` (`UiInput`, `src/app/ui/input.ts`, styles in `input.css`,
+  imported by `src/styles.css` before the type classes and the utilities).
+  The element is the box: width and flex utilities go on it, and a
+  `type-*` class or `font-mono` on it wins. The label is a `<label for>`
+  beside it, or an `aria-label`. `field-inline` is a tree row's rename;
+  `method-field` and `address-field` are the halves of the address bar,
+  which draws their box. Focus is its border and glow, no ring, and in
+  forced colours an outline (the glow is taken away there). Disabled, it
+  reads as an enabled one. A search field has no clear button, as
+  Material's had none. Tested in `input.spec.ts` and the catalogue's e2e.
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a

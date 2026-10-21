@@ -12,24 +12,20 @@
     [(ngModel)]="param.enabled"
     (ngModelChange)="store.paramsEdited()"
   />
-  <mat-form-field class="field w-full">
-    <input
-      class="font-mono"
-      matInput
-      [(ngModel)]="param.key"
-      (ngModelChange)="store.paramsEdited()"
-      placeholder="key"
-    />
-  </mat-form-field>
-  <mat-form-field class="field w-full">
-    <input
-      class="font-mono"
-      matInput
-      [(ngModel)]="param.value"
-      (ngModelChange)="store.paramsEdited()"
-      placeholder="value"
-    />
-  </mat-form-field>
+  <input
+    class="font-mono w-full"
+    uiInput
+    [(ngModel)]="param.key"
+    (ngModelChange)="store.paramsEdited()"
+    placeholder="key"
+  />
+  <input
+    class="font-mono w-full"
+    uiInput
+    [(ngModel)]="param.value"
+    (ngModelChange)="store.paramsEdited()"
+    placeholder="value"
+  />
   <div class="flex justify-end md:block">
     <button
       uiButton="icon"

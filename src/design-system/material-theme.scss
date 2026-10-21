@@ -81,30 +81,6 @@ html {
   );
 }
 
-/* ── Text input (form field) ─────────────────────────────── */
-html {
-  @include mat.form-field-overrides(
-    (
-      outlined-container-shape: var(--radius-md),
-      outlined-outline-color: var(--separator),
-      outlined-hover-outline-color: var(--fill-primary),
-      outlined-focus-outline-color: var(--accent-border),
-      outlined-outline-width: 1px,
-      outlined-focus-outline-width: 1px,
-      outlined-input-text-color: var(--label-primary),
-      outlined-input-text-placeholder-color: var(--label-placeholder),
-      outlined-caret-color: var(--accent),
-      /* A disabled field reads as before: same text, same outline. */
-        outlined-disabled-input-text-color: var(--label-primary),
-      outlined-disabled-outline-color: var(--separator),
-      container-text-size: 14px,
-      container-text-weight: 400,
-      container-text-tracking: -0.003em,
-      container-text-line-height: 20px,
-    )
-  );
-}
-
 /* ── Checkbox ────────────────────────────────────────────── */
 html {
   @include mat.checkbox-overrides(

@@ -10,28 +10,24 @@
       (ngModelChange)="itemChange.emit()"
     />
     }
-    <mat-form-field class="field min-w-0 flex-1 basis-40">
-      <input
-        class="font-mono"
-        matInput
-        placeholder="name"
-        [(ngModel)]="item.key"
-        (ngModelChange)="itemChange.emit()"
-        [attr.aria-label]="context() + ' name, row ' + (index + 1)"
-      />
-    </mat-form-field>
+    <input
+      class="font-mono min-w-0 flex-1 basis-40"
+      uiInput
+      placeholder="name"
+      [(ngModel)]="item.key"
+      (ngModelChange)="itemChange.emit()"
+      [attr.aria-label]="context() + ' name, row ' + (index + 1)"
+    />
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-48 items-center gap-2">
-      <mat-form-field class="field min-w-0 flex-1">
-        <input
-          class="font-mono"
-          matInput
-          placeholder="value"
-          [(ngModel)]="item.value"
-          (ngModelChange)="itemChange.emit()"
-          [attr.aria-label]="context() + ' value, row ' + (index + 1)"
-        />
-      </mat-form-field>
+      <input
+        class="font-mono min-w-0 flex-1"
+        uiInput
+        placeholder="value"
+        [(ngModel)]="item.value"
+        (ngModelChange)="itemChange.emit()"
+        [attr.aria-label]="context() + ' value, row ' + (index + 1)"
+      />
       <button
         uiButton="icon"
         class="btn-danger"

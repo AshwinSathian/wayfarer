@@ -14,8 +14,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { Theme, type ThemeChoice } from "../../services/theme";
@@ -117,8 +116,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
     FormsModule,
     UiButton,
     MatCheckbox,
-    MatFormField,
-    MatInput,
+    UiInput,
     Dialog,
     BridgePane,
     CookiesPane,

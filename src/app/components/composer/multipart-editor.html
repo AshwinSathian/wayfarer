@@ -6,16 +6,14 @@
       [(ngModel)]="part.enabled"
       (ngModelChange)="partChange.emit()"
     />
-    <mat-form-field class="field min-w-0 flex-1 basis-32">
-      <input
-        class="font-mono"
-        matInput
-        placeholder="name"
-        [(ngModel)]="part.key"
-        (ngModelChange)="partChange.emit()"
-        [attr.aria-label]="'Part name, row ' + (index + 1)"
-      />
-    </mat-form-field>
+    <input
+      class="font-mono min-w-0 flex-1 basis-32"
+      uiInput
+      placeholder="name"
+      [(ngModel)]="part.key"
+      (ngModelChange)="partChange.emit()"
+      [attr.aria-label]="'Part name, row ' + (index + 1)"
+    />
     <ui-select
       class="w-24"
       [attr.aria-label]="'Part type, row ' + (index + 1)"
@@ -26,16 +24,14 @@
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-56 items-center gap-2">
       @if (part.kind === 'text') {
-      <mat-form-field class="field min-w-0 flex-1">
-        <input
-          class="font-mono"
-          matInput
-          placeholder="value"
-          [(ngModel)]="part.value"
-          (ngModelChange)="partChange.emit()"
-          [attr.aria-label]="'Part value, row ' + (index + 1)"
-        />
-      </mat-form-field>
+      <input
+        class="font-mono min-w-0 flex-1"
+        uiInput
+        placeholder="value"
+        [(ngModel)]="part.value"
+        (ngModelChange)="partChange.emit()"
+        [attr.aria-label]="'Part value, row ' + (index + 1)"
+      />
       } @else {
       <div class="flex min-w-0 flex-1 items-center gap-2">
         <button uiButton="outlined" class="btn-secondary btn-sm shrink-0" type="button" (click)="file.click()"

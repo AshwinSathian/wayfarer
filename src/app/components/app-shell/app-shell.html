@@ -403,30 +403,26 @@
     </div>
 
     <div class="flex flex-col gap-3">
-      <mat-form-field class="field w-full">
-        <input
-          class="font-sans"
-          matInput
-          cdkFocusInitial
-          type="password"
-          [ngModel]="unlockPassphrase()"
-          (ngModelChange)="unlockPassphrase.set($event)"
-          [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
-          (keydown.enter)="unlockSecrets()"
-        />
-      </mat-form-field>
+      <input
+        class="font-sans w-full"
+        uiInput
+        cdkFocusInitial
+        type="password"
+        [ngModel]="unlockPassphrase()"
+        (ngModelChange)="unlockPassphrase.set($event)"
+        [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+        (keydown.enter)="unlockSecrets()"
+      />
       @if (isFirstVaultSetup()) {
-      <mat-form-field class="field w-full">
-        <input
-          class="font-sans"
-          matInput
-          type="password"
-          [ngModel]="confirmPassphrase()"
-          (ngModelChange)="confirmPassphrase.set($event)"
-          placeholder="Confirm passphrase"
-          (keydown.enter)="unlockSecrets()"
-        />
-      </mat-form-field>
+      <input
+        class="font-sans w-full"
+        uiInput
+        type="password"
+        [ngModel]="confirmPassphrase()"
+        (ngModelChange)="confirmPassphrase.set($event)"
+        placeholder="Confirm passphrase"
+        (keydown.enter)="unlockSecrets()"
+      />
       }
     </div>
 

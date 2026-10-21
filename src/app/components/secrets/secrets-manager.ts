@@ -13,8 +13,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
 import { UiSpinner } from "../../ui/spinner";
@@ -49,7 +48,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [VaultActions, UiSpinner, MatFormField, MatInput, Icon, FormsModule, UiButton, Dialog, UiTooltip],
+  imports: [VaultActions, UiSpinner, UiInput, Icon, FormsModule, UiButton, Dialog, UiTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

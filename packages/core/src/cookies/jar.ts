@@ -66,7 +66,8 @@ export function parseSetCookie(header: string, url: string, now: number): Cookie
   const name = pair.slice(0, Math.max(equals, 0)).trim();
   const value = pair.slice(equals + 1).trim();
   // eslint-disable-next-line no-control-regex -- a control character ends a cookie (RFC 6265, 5.2)
-  if (equals < 1 || !name || /[\u0000-\u001f\u007f]/.test(pair) || new TextEncoder().encode(name + value).length > MAX_COOKIE_BYTES) return undefined;
+  const control = /[\u0000-\u001f\u007f]/.test(pair);
+  if (equals < 1 || !name || control || new TextEncoder().encode(name + value).length > MAX_COOKIE_BYTES) return undefined;
 
   const host = from.hostname.toLowerCase();
   const cookie: Cookie = { name, value, domain: host, hostOnly: true, path: defaultPath(from.pathname), secure: false, httpOnly: false, created: now };

@@ -10,7 +10,8 @@ import { ECHO } from "./support/echo";
 
 const SECRET = "c057-secret-plaintext";
 
-async function json(download: Download): Promise<Record<string, any>> { // eslint-disable-line @typescript-eslint/no-explicit-any -- read as Postman reads it: by its keys.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- read as Postman reads it: by its keys.
+async function json(download: Download): Promise<Record<string, any>> {
   const chunks: Buffer[] = [];
   for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
   return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>;

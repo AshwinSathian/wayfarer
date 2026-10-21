@@ -39,12 +39,14 @@ export function parseLedger(text) {
 /** Titles of test(...), it(...), test.<modifier>(...) and it.each(table)(...) calls, skipping commented-out lines. */
 export function testTitles(source) {
   const titles = [];
-  // The title is the first argument, or for `.each` the first argument of the call its table is followed by, on the same line.
-  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
-  for (const line of source.split(/\r?\n/)) {
-    if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
-    for (const match of line.matchAll(call)) titles.push(match[2]);
-  }
+  // The title is the first argument, or for `.each` the first argument of the call its table is followed by,
+  // on that line or the next (a formatter breaks a long call there). The table itself is on one line.
+  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\\n])*)\1/g;
+  const code = source
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+    .join("\n");
+  for (const match of code.matchAll(call)) titles.push(match[2]);
   return titles;
 }
 

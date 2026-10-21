@@ -50,6 +50,11 @@ test("testTitles finds the title of a table-driven test, which follows the table
   assert.deepEqual(testTitles(src), ["@claim:C-040 %s", "n %d", "plain"]);
 });
 
+test("testTitles finds a title on the line after its call, where a formatter puts a long one", () => {
+  const src = 'it.each(cases)(\n  "@claim:C-061 %s: the signature is the suite\'s",\n  async (name) => {},\n);\ntest(\n  `@claim:C-007 long`,\n  () => {},\n);\n// test(\n//   "not a title",\n';
+  assert.deepEqual(testTitles(src), ["@claim:C-061 %s: the signature is the suite's", "@claim:C-007 long"]);
+});
+
 test("a consistent tree has no errors", () => {
   assert.deepEqual(checkClaims(fixture(GOOD)), []);
 });

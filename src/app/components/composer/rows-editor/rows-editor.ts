@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../../ui/checkbox";
 import { UiInput } from "../../../ui/input";
 import type { Row } from "@wayfarer/core";
 import { Icon } from "../../../shared/icon/icon";
@@ -9,7 +9,7 @@ import { Icon } from "../../../shared/icon/icon";
 /** Name and value rows, each with a switch for whether it is sent: headers, the fields of a form body, and (without the switch) variables. */
 @Component({
   selector: "app-rows-editor",
-  imports: [FormsModule, Icon, UiButton, MatCheckbox, UiInput],
+  imports: [FormsModule, Icon, UiButton, UiCheckbox, UiInput],
   templateUrl: "./rows-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

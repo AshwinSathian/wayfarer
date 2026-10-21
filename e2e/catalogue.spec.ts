@@ -177,6 +177,21 @@ for (const theme of ["light", "dark"] as const) {
   });
 
   // A test of its own, as the segmented choice's.
+  test(`the checkboxes, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    await page.getByRole("heading", { name: "Checkboxes" }).scrollIntoViewIfNeeded();
+    await scan("checkboxes, at rest");
+    await page.getByRole("checkbox", { name: "Do not verify the server's certificate" }).hover();
+    await scan("checkboxes, one under the pointer");
+    await page.getByRole("checkbox", { name: "Follow redirects" }).focus();
+    await page.keyboard.press("Space");
+    await scan("checkboxes, one focused and unchecked by Space");
+    expect(found).toEqual([]);
+  });
+
+  // A test of its own, as the segmented choice's.
   test(`the spinner is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
@@ -390,8 +405,8 @@ test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape 
   const close = dialog.getByRole("button", { name: "Close" });
   await expect(close).toBeFocused();
 
-  // Close, the name, the select, the menu's button, the tooltip's, Delete, Cancel, Save; then Close again.
-  for (let i = 0; i < 7; i++) await page.keyboard.press("Tab");
+  // Close, the name, the checkbox, the select, the menu's button, the tooltip's, Delete, Cancel, Save; then Close again.
+  for (let i = 0; i < 8; i++) await page.keyboard.press("Tab");
   await expect(dialog.getByRole("button", { name: "Save" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(close).toBeFocused();
@@ -1384,6 +1399,126 @@ test("text field: in forced colours each keeps its edge and a focused one shows 
     expect(await css(name, "outline-style"), name).toBe("solid");
     expect(await css(name, "outline-width"), name).toBe("2px");
   }
+});
+
+test("checkbox: Tab reaches each one in every engine and passes over a disabled one; Space and a click on its text check it", async ({
+  page,
+}) => {
+  await open(page, "light");
+  const box = (name: string) => page.getByRole("checkbox", { name, exact: true });
+  await box("Follow redirects").focus();
+  // Plain Tab, in WebKit too: without its tabindex, WebKit's Tab (Safari's by default) passed over a checkbox.
+  for (const name of ["Do not verify the server's certificate", "Send header 1"]) {
+    await page.keyboard.press("Tab");
+    await expect(box(name), name).toBeFocused();
+  }
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Header name, row 1")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(box("Hold back a request with a variable that has no value")).toBeFocused();
+  await expect(box("Stop on the first failure")).toBeDisabled();
+
+  const follow = box("Follow redirects");
+  await follow.focus();
+  await expect(follow).toBeChecked();
+  await page.keyboard.press("Space");
+  await expect(follow).not.toBeChecked();
+  // Enter is not a checkbox's key.
+  await page.keyboard.press("Enter");
+  await expect(follow).not.toBeChecked();
+  await page.getByText("Follow redirects", { exact: true }).click();
+  await expect(follow).toBeChecked();
+  // A label beside it, pointing at its id, names it and checks it.
+  await page.getByText("Hold back a request with a variable that has no value").click();
+  await expect(box("Hold back a request with a variable that has no value")).toBeChecked();
+  // A disabled one does not change.
+  await page.getByText("With history", { exact: true }).click({ force: true });
+  await expect(box("With history")).toBeChecked();
+});
+
+test("checkbox: none of the browser's look; under the pointer, focused, checked and disabled", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page, "light");
+  const box = (name: string) => page.getByRole("checkbox", { name, exact: true });
+  const css = (locator: Locator, property: string, pseudo: string | null = null) =>
+    locator.evaluate((el, [p, s]) => getComputedStyle(el, s).getPropertyValue(p as string), [property, pseudo]);
+  const token = (name: string) =>
+    page.evaluate((n) => {
+      const probe = document.createElement("i");
+      probe.style.color = `var(${n})`;
+      document.body.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    }, name);
+
+  const off = box("Do not verify the server's certificate");
+  const on = box("Follow redirects");
+  for (const one of [off, on]) {
+    expect(await css(one, "appearance")).toBe("none");
+    expect(await css(one, "width")).toBe("16px");
+    expect(await css(one, "border-top-style")).toBe("solid");
+  }
+  // Unchecked: an edge and no fill; checked: the accent, and the tick shows only then.
+  expect(await css(off, "border-top-color")).toBe(await token("--separator"));
+  expect(await css(off, "background-color")).toBe("rgba(0, 0, 0, 0)");
+  expect(await css(off, "opacity", "::before")).toBe("0");
+  expect(await css(on, "background-color")).toBe(await token("--accent"));
+  expect(await css(on, "opacity", "::before")).toBe("1");
+
+  await off.hover();
+  await expect.poll(() => css(off, "border-top-color")).toBe(await token("--accent-border"));
+  await page.mouse.move(0, 0);
+
+  // Focused from the keyboard: the ring, 2 px off the box, which keeps its corners.
+  const radius = await css(off, "border-top-left-radius");
+  await on.focus();
+  await page.keyboard.press("Tab");
+  await expect(off).toBeFocused();
+  expect(await css(off, "outline-style")).toBe("solid");
+  expect(await css(off, "outline-width")).toBe("2px");
+  expect(await css(off, "outline-offset")).toBe("2px");
+  expect(await css(off, "border-top-left-radius")).toBe(radius);
+  expect(await css(off, "border-top-color")).toBe(await token("--accent-border"));
+
+  // Disabled: the box and its text dimmed, and no pointer.
+  const disabled = box("Stop on the first failure");
+  expect(await css(disabled, "cursor")).toBe("default");
+  expect(await css(disabled, "border-top-color")).not.toBe(await token("--separator"));
+  expect(await css(box("With history"), "background-color")).not.toBe(await token("--accent"));
+  const text = (name: string) => page.getByText(name, { exact: true }).evaluate((el) => getComputedStyle(el).color);
+  expect(await text("Stop on the first failure")).not.toBe(await text("Follow redirects"));
+});
+
+test("checkbox: in forced colours each keeps its edge, a checked one is painted in the system's colours, and focus shows", async ({
+  page,
+}) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
+  const box = (name: string) => page.getByRole("checkbox", { name, exact: true });
+  const css = (name: string, property: string, pseudo: string | null = null) =>
+    box(name).evaluate((el, [p, s]) => getComputedStyle(el, s).getPropertyValue(p as string), [property, pseudo]);
+  const system = (colour: string) =>
+    page.evaluate((c) => {
+      const probe = document.createElement("i");
+      probe.style.cssText = `forced-color-adjust: none; color: ${c}`;
+      document.body.append(probe);
+      const value = getComputedStyle(probe).color;
+      probe.remove();
+      return value;
+    }, colour);
+  expect(await css("Do not verify the server's certificate", "border-top-style")).toBe("solid");
+  expect(await css("Do not verify the server's certificate", "border-top-color")).toBe(await system("CanvasText"));
+  // The fill is a state of its own: without forced-color-adjust it would be taken away, and the tick with it.
+  expect(await css("Follow redirects", "background-color")).toBe(await system("Highlight"));
+  expect(await css("Follow redirects", "background-color", "::before")).toBe(await system("HighlightText"));
+  await box("Follow redirects").focus();
+  await page.keyboard.press("Tab");
+  expect(await css("Do not verify the server's certificate", "outline-style")).toBe("solid");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

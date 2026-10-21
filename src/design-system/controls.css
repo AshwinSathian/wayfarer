@@ -12,7 +12,7 @@
   --ctl-primary: var(--accent-text);
   --ctl-primary-hover: var(--accent-text);
   --ctl-primary-active: var(--accent-text);
-  /* What sits on --ctl-primary as a fill (a checkbox's tick): dark on the light green of this theme. */
+  /* What sits on --ctl-primary as a fill: dark on the light green of this theme. */
   --ctl-on-primary: var(--canvas-app);
   --ctl-primary-fill: var(--accent-solid);
   --ctl-primary-fill-hover: var(--accent-solid-hover);
@@ -53,36 +53,6 @@
   --ctl-chevron: var(--label-tertiary);
   --ctl-menu-icon: var(--label-tertiary);
   --ctl-drawer-shadow: rgba(40, 30, 10, 0.12);
-}
-
-/* ── Checkbox ────────────────────────────────────────────── */
-/* Markup: <mat-checkbox>. A 16px box in a 20px slot, as before. */
-.mat-mdc-checkbox .mdc-checkbox {
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
-  margin: 2px;
-}
-
-.mat-mdc-checkbox .mdc-checkbox__background {
-  top: 0;
-  left: 0;
-  width: 16px;
-  height: 16px;
-  border-width: 1px;
-  border-radius: var(--radius-xs);
-}
-
-.mat-mdc-checkbox .mdc-checkbox__native-control {
-  top: -2px;
-  left: -2px;
-  width: 20px;
-  height: 20px;
-}
-
-.mat-mdc-checkbox .mdc-checkbox__native-control:focus-visible ~ .mdc-checkbox__background {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* ── Skeleton ────────────────────────────────────────────── */

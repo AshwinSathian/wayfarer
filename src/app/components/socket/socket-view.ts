@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import { SocketClient } from "../../services/socket-client";
@@ -15,7 +15,7 @@ import { Tabs } from "../../state/tabs";
  */
 @Component({
   selector: "app-socket-view",
-  imports: [DatePipe, Icon, UiButton, MatCheckbox, UiInput, UiSpinner],
+  imports: [DatePipe, Icon, UiButton, UiCheckbox, UiInput, UiSpinner],
   templateUrl: "./socket-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

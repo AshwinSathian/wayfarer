@@ -429,7 +429,7 @@ code errors.
   a platform element is the widget's base, with none of the browser's own
   look. D3.3 replaces one family per PR, with its keyboard e2e. Until a family has
   moved, it stays Material and the rules below hold for it, also for a new
-  use of it (a checkbox in a new feature is still `mat-checkbox`, and moves
+  use of it (a toolbar in a new feature is still `mat-toolbar`, and moves
   with its family). A family the app does not use yet is not added from
   Material.
 - Widgets are Angular Material components (maintainer, 2026-10-09; this
@@ -439,7 +439,7 @@ code errors.
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
     `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`,
-    `ui-spinner`, `uiButton`, `uiInput`;
+    `ui-spinner`, `uiButton`, `uiInput`, `uiCheckbox`;
   - what Material has no component for, built on the CDK: `ui-splitter`.
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
@@ -452,12 +452,7 @@ code errors.
 - Restyle a component with its `mat.<name>-overrides` mixin in that file.
   For what has no token, write a rule there with more specificity than
   Material's own: its component styles load after the global sheet.
-- Import the one directive or component (`MatCheckbox`), not its module.
-- Checkbox: `<mat-checkbox>`. Its input's id is the checkbox's id plus
-  `-input`; that is what a `<label for>` outside it points at. One with no
-  text inside takes an `aria-label`, bound as `[aria-label]`: that is
-  Material's input and reaches the real checkbox. `[attr.aria-label]` names
-  the wrapper and leaves the checkbox without a name.
+- Import the one directive or component (`MatToolbar`), not its module.
 - The top bar is `<mat-toolbar class="ds-toolbar" role="banner">`.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
@@ -627,6 +622,20 @@ code errors.
   forced colours an outline (the glow is taken away there). Disabled, it
   reads as an enabled one. A search field has no clear button, as
   Material's had none. Tested in `input.spec.ts` and the catalogue's e2e.
+- Checkbox: `<input type="checkbox" uiCheckbox>` (`UiCheckbox`,
+  `src/app/ui/checkbox.ts`, styles in `checkbox.css`, imported by
+  `src/styles.css`), a 16 px box in a 22 px slot with Material's tick. Its
+  text is a `<label class="ui-checkbox-label">` around it (the body type,
+  and a click on the text checks it), or a `<label for>` that names its
+  id; one with no text has an `aria-label` (bound, `[attr.aria-label]`). A
+  `<label>` holding more than the name (a title and a note) leaves the
+  name to `aria-label`. The checked state, Space, `disabled` and
+  `[(ngModel)]` are the element's own; read a change as
+  `$any($event.target).checked`. The directive gives it `tabindex="0"`, as
+  Material did: WebKit's Tab (Safari's by default) passes over a checkbox
+  without one. The focus ring is the global `:focus-visible` rule's. In
+  forced colours a checked box is `Highlight` with its tick in
+  `HighlightText`. Tested in `checkbox.spec.ts` and the catalogue's e2e.
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a

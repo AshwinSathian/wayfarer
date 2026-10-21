@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../ui/checkbox";
 import { writeToClipboard } from "../../shared/http/clipboard";
 import { Icon } from "../../shared/icon/icon";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
@@ -18,7 +18,7 @@ const PREVIEW_CHARS = 20_000;
  */
 @Component({
   selector: "app-har-export-dialog",
-  imports: [Dialog, FormsModule, Icon, UiButton, MatCheckbox],
+  imports: [Dialog, FormsModule, Icon, UiButton, UiCheckbox],
   templateUrl: "./har-export-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

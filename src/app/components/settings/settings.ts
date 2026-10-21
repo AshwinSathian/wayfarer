@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import { Dialog } from "../../ui/dialog";
 import { EnvironmentsStore } from "../../services/environments-store";
@@ -115,7 +115,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
     Icon,
     FormsModule,
     UiButton,
-    MatCheckbox,
+    UiCheckbox,
     UiInput,
     Dialog,
     BridgePane,

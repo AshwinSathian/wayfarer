@@ -81,29 +81,6 @@ html {
   );
 }
 
-/* ── Checkbox ────────────────────────────────────────────── */
-html {
-  @include mat.checkbox-overrides(
-    (
-      state-layer-size: 20px,
-      touch-target-display: none,
-      unselected-icon-color: var(--separator),
-      unselected-hover-icon-color: var(--accent-border),
-      unselected-focus-icon-color: var(--accent-border),
-      selected-icon-color: var(--accent),
-      selected-hover-icon-color: var(--accent),
-      selected-focus-icon-color: var(--accent),
-      selected-checkmark-color: #ffffff,
-      unselected-hover-state-layer-opacity: 0,
-      unselected-focus-state-layer-opacity: 0,
-      unselected-pressed-state-layer-opacity: 0,
-      selected-hover-state-layer-opacity: 0,
-      selected-focus-state-layer-opacity: 0,
-      selected-pressed-state-layer-opacity: 0,
-    )
-  );
-}
-
 /* ── Toolbar ─────────────────────────────────────────────── */
 html {
   @include mat.toolbar-overrides(

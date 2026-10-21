@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { MatCheckbox } from "@angular/material/checkbox";
 import type { Route } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiSelect, type UiSelectOption } from "../../ui/select";
 
 /**
@@ -12,7 +12,7 @@ import { UiSelect, type UiSelectOption } from "../../ui/select";
  */
 @Component({
   selector: "app-browser-notes",
-  imports: [MatCheckbox, UiSelect],
+  imports: [UiCheckbox, UiSelect],
   templateUrl: "./browser-notes.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

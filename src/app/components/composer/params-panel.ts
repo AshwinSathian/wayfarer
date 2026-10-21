@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatCheckbox } from "@angular/material/checkbox";
+import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
@@ -9,7 +9,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
 /** The query parameters as rows. They mirror the query of the URL field. */
 @Component({
   selector: "app-params-panel",
-  imports: [FormsModule, Icon, UiButton, MatCheckbox, UiInput],
+  imports: [FormsModule, Icon, UiButton, UiCheckbox, UiInput],
   templateUrl: "./params-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

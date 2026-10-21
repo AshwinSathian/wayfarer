@@ -55,7 +55,14 @@
       (click)="client.send()"
       >Send message</button
     >
-    <mat-checkbox [checked]="socket.json()" (change)="socket.json.set($event.checked)">Must be JSON</mat-checkbox>
+    <label class="ui-checkbox-label"
+      ><input
+        type="checkbox"
+        uiCheckbox
+        [checked]="socket.json()"
+        (change)="socket.json.set($any($event.target).checked)"
+      />Must be JSON</label
+    >
     <span class="flex-1"></span>
     <button uiButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])"
       >Clear log</button

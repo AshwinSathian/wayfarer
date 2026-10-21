@@ -261,14 +261,17 @@ pre,
 }
 
 /* ── Toolbar ─────────────────────────────────────────────── */
-/* Markup: <mat-toolbar class="ds-toolbar" role="banner">. Its colours and
-   height come through Material's tokens (material-theme.scss). */
-.mat-toolbar.ds-toolbar {
+/* Markup: <header class="ds-toolbar">, the page's banner. */
+.ds-toolbar {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  height: 56px;
   padding: 0 20px;
-  font: inherit;
-  letter-spacing: inherit;
+  white-space: nowrap;
+  background: var(--surface-toolbar);
+  color: var(--label-primary);
   border-bottom: 1px solid var(--separator);
   position: sticky;
   top: 0;
@@ -277,8 +280,15 @@ pre,
 
 /* Below the desktop width the toolbar shares the row with the pinned sidebar, or is on a phone. */
 @media (max-width: 1023px) {
-  .mat-toolbar.ds-toolbar {
+  .ds-toolbar {
     padding: 0 12px;
+  }
+}
+
+/* Forced colours take the background away: the outline keeps the toolbar's edge. */
+@media (forced-colors: active) {
+  .ds-toolbar {
+    outline: 1px solid;
   }
 }
 

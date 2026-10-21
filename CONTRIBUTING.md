@@ -109,15 +109,13 @@ When contributing:
 - Match the existing "Obsidian" design system (see `src/design-system/`) for
   any UI work. Use existing tokens rather than introducing new ad hoc
   colors/spacing.
-- **Widgets are moving off Angular Material** (D3.3 of
-  [`PLAN-design.md`](PLAN-design.md)): the composite widgets to Angular
-  Aria, the others to the platform's own elements, each in `src/app/ui` with
-  its own styles and none of the browser's look. A family not yet moved is a
-  Material component, themed from the design tokens in
-  `src/design-system/material-theme.scss`. "Angular Material", "The
-  platform" and "Angular Aria" in [`CLAUDE.md`](CLAUDE.md) have the markup
-  for each widget and the places where it differs from what a test or a
-  user expects; read the entry for a widget before using it.
+- **Widgets are the app's own** (D3.3 of [`PLAN-design.md`](PLAN-design.md);
+  Angular Material is gone): the composite widgets on Angular Aria, the
+  others on the platform's own elements, each in `src/app/ui` with its own
+  styles and none of the browser's look. "The platform" and "Angular Aria"
+  in [`CLAUDE.md`](CLAUDE.md) have the markup for each widget and the places
+  where it differs from what a test or a user expects; read the entry for a
+  widget before using it.
 
 ## Tests
 

@@ -16,7 +16,6 @@ import { UiInput } from "../../ui/input";
 import { UiTooltip } from "../../ui/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
-import { MatToolbar } from "@angular/material/toolbar";
 import { Dialog } from "../../ui/dialog";
 import { UiModal } from "../../ui/modal";
 import { PastRequest } from "@wayfarer/core";
@@ -44,7 +43,6 @@ import { UiSelect } from "../../ui/select";
 @Component({
   selector: "app-shell",
   imports: [
-    MatToolbar,
     UiInput,
     NgTemplateOutlet,
     Icon,

@@ -15,6 +15,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The top bar is the page's own header, and Angular Material is gone
+  from the app, which loads 18 kB less (5.0 kB compressed).** The bar looks
+  and behaves as before: the same height, colours, edge and controls, in
+  the same order for Tab, and in high-contrast mode it keeps its outline.
+  It was the last widget from the Material library; with it go the
+  library's theme and the 169 colour and shape settings it read. The size
+  budgets are reset to the new first download: initial 1,028,906 B raw
+  and 283,709 B gzip; budgets 1081kb, 1132kb and 312,080 B.
+
 - **Checkboxes are the browser's own, drawn by Wayfarer, and the app loads
   5.6 kB less.** They look and behave as before: the same box, tick and
   colours, the same focus ring, and Tab reaches each one in every browser,

@@ -137,7 +137,7 @@
     [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
   >
     <!-- Top toolbar -->
-    <mat-toolbar class="ds-toolbar" role="banner">
+    <header class="ds-toolbar">
       <!-- Left: nav toggle + brand -->
       <div class="flex items-center gap-2">
         <button
@@ -227,7 +227,7 @@
           <app-icon name="settings" class="icon-md" />
         </button>
       </div>
-    </mat-toolbar>
+    </header>
 
     <!-- Page content -->
     <main [class]="isMobile() ? 'flex-1' : 'flex min-h-0 flex-1 flex-col'">

@@ -1,214 +1,1186 @@
 <title>Wayfarer Redesign Directions</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500&display=swap">
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500&display=swap"
+/>
 <style>
-/* Layout: a working memo. Narrow reading column for findings, full-width scroll boxes for the three app mockups. */
-:root {
-  --bg: #f6f5f2; --surface: #ffffff; --ink: #1d1c1a; --muted: #6b6862; --line: #e2dfd8;
-  --accent: #2f6f62; --sev1: #b3261e; --sev2: #9a5b00; --sev3: #55606b;
-  --f-display: "Newsreader", Georgia, serif;
-  --f-body: "Geist", system-ui, sans-serif;
-  --f-mono: "Geist Mono", ui-monospace, monospace;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #161614; --surface: #1f1e1c; --ink: #ecebe7; --muted: #a29e96; --line: #33312d;
-  --accent: #7cc4b3; --sev1: #ff8a80; --sev2: #f0b45a; --sev3: #9aa6b2; color-scheme: dark } }
-:root[data-theme="dark"] {
-  --bg: #161614; --surface: #1f1e1c; --ink: #ecebe7; --muted: #a29e96; --line: #33312d;
-  --accent: #7cc4b3; --sev1: #ff8a80; --sev2: #f0b45a; --sev3: #9aa6b2; color-scheme: dark }
+  /* Layout: a working memo. Narrow reading column for findings, full-width scroll boxes for the three app mockups. */
+  :root {
+    --bg: #f6f5f2;
+    --surface: #ffffff;
+    --ink: #1d1c1a;
+    --muted: #6b6862;
+    --line: #e2dfd8;
+    --accent: #2f6f62;
+    --sev1: #b3261e;
+    --sev2: #9a5b00;
+    --sev3: #55606b;
+    --f-display: "Newsreader", Georgia, serif;
+    --f-body: "Geist", system-ui, sans-serif;
+    --f-mono: "Geist Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614;
+      --surface: #1f1e1c;
+      --ink: #ecebe7;
+      --muted: #a29e96;
+      --line: #33312d;
+      --accent: #7cc4b3;
+      --sev1: #ff8a80;
+      --sev2: #f0b45a;
+      --sev3: #9aa6b2;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614;
+    --surface: #1f1e1c;
+    --ink: #ecebe7;
+    --muted: #a29e96;
+    --line: #33312d;
+    --accent: #7cc4b3;
+    --sev1: #ff8a80;
+    --sev2: #f0b45a;
+    --sev3: #9aa6b2;
+    color-scheme: dark;
+  }
 
-* { box-sizing: border-box }
-body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--f-body);
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 80px }
-.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 56px }
-.prose { max-width: 68ch }
-h1 { font: 500 clamp(34px, 5vw, 52px)/1.05 var(--f-display); letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance }
-h2 { font: 500 28px/1.15 var(--f-display); margin: 0 0 12px; text-wrap: balance }
-h3 { font: 600 16px/1.3 var(--f-body); margin: 0 0 6px }
-p { margin: 0 0 12px }
-.lede { font-size: 18px; color: var(--muted) }
-.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px }
-code, .mono { font-family: var(--f-mono); font-size: 0.9em }
-a { color: var(--accent) }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.6 var(--f-body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 80px;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: grid;
+    gap: 56px;
+  }
+  .prose {
+    max-width: 68ch;
+  }
+  h1 {
+    font: 500 clamp(34px, 5vw, 52px)/1.05 var(--f-display);
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  h2 {
+    font: 500 28px/1.15 var(--f-display);
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  h3 {
+    font: 600 16px/1.3 var(--f-body);
+    margin: 0 0 6px;
+  }
+  p {
+    margin: 0 0 12px;
+  }
+  .lede {
+    font-size: 18px;
+    color: var(--muted);
+  }
+  .eyebrow {
+    font: 500 12px/1 var(--f-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  code,
+  .mono {
+    font-family: var(--f-mono);
+    font-size: 0.9em;
+  }
+  a {
+    color: var(--accent);
+  }
 
-.findings { display: grid; gap: 0; border-top: 1px solid var(--line) }
-.finding { display: grid; grid-template-columns: 76px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line) }
-.finding > div { min-width: 0 }
-.sev { font: 500 12px/1.8 var(--f-mono); white-space: nowrap }
-.sev[data-s="1"] { color: var(--sev1) } .sev[data-s="2"] { color: var(--sev2) } .sev[data-s="3"] { color: var(--sev3) }
-.finding p { margin: 0; color: var(--muted); font-size: 14px }
+  .findings {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+  .finding {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .finding > div {
+    min-width: 0;
+  }
+  .sev {
+    font: 500 12px/1.8 var(--f-mono);
+    white-space: nowrap;
+  }
+  .sev[data-s="1"] {
+    color: var(--sev1);
+  }
+  .sev[data-s="2"] {
+    color: var(--sev2);
+  }
+  .sev[data-s="3"] {
+    color: var(--sev3);
+  }
+  .finding p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
 
-.research { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px }
-.research div { border-top: 2px solid var(--ink); padding-top: 12px; min-width: 0 }
-.research p { font-size: 14px; color: var(--muted) }
+  .research {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .research div {
+    border-top: 2px solid var(--ink);
+    padding-top: 12px;
+    min-width: 0;
+  }
+  .research p {
+    font-size: 14px;
+    color: var(--muted);
+  }
 
-.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 16px }
-.tabs button { font: 500 14px var(--f-body); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer }
-.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
-.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.dirnote { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 18px }
-.dirnote > div { min-width: 0 }
-.dirnote p { font-size: 14px; color: var(--muted) }
-.scroll { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line) }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0 16px;
+  }
+  .tabs button {
+    font: 500 14px var(--f-body);
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .tabs button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .dirnote {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 18px;
+  }
+  .dirnote > div {
+    min-width: 0;
+  }
+  .dirnote p {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .scroll {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
 
-/* ---------- Mockups: each direction owns its tokens ---------- */
-.mock { width: 1120px; height: 640px; display: grid; font-size: 13px; overflow: hidden }
-.m-badge { font-family: var(--m-mono); font-weight: 500; font-size: 10.5px; letter-spacing: 0.02em }
-.get { color: var(--m-get) } .post { color: var(--m-post) } .put { color: var(--m-put) } .del { color: var(--m-del) }
+  /* ---------- Mockups: each direction owns its tokens ---------- */
+  .mock {
+    width: 1120px;
+    height: 640px;
+    display: grid;
+    font-size: 13px;
+    overflow: hidden;
+  }
+  .m-badge {
+    font-family: var(--m-mono);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+  }
+  .get {
+    color: var(--m-get);
+  }
+  .post {
+    color: var(--m-post);
+  }
+  .put {
+    color: var(--m-put);
+  }
+  .del {
+    color: var(--m-del);
+  }
 
-/* A: Workbench */
-.dir-a { --m-bg: #fbfaf8; --m-side: #f3f2ef; --m-ink: #22211f; --m-mute: #77736c; --m-line: #e6e3dd; --m-acc: #2f6f62; --m-acc-ink: #fff;
-  --m-get: #2f7a4a; --m-post: #9a5b00; --m-put: #2c5fa8; --m-del: #a8322b; --m-ok: #2f7a4a; --m-field: #ffffff;
-  --m-sans: "Geist", system-ui, sans-serif; --m-mono: "Geist Mono", ui-monospace, monospace;
-  background: var(--m-bg); color: var(--m-ink); font-family: var(--m-sans);
-  grid-template-columns: 248px 1fr; grid-template-rows: 40px 1fr 26px }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dir-a { --m-bg: #1b1a18; --m-side: #161513; --m-ink: #e9e7e2; --m-mute: #98948c; --m-line: #2c2a27; --m-acc: #7cc4b3; --m-acc-ink: #10201c; --m-get: #7fcf98; --m-post: #f0b45a; --m-put: #8db4ef; --m-del: #f08a80; --m-ok: #7fcf98; --m-field: #22211e } }
-:root[data-theme="dark"] .dir-a { --m-bg: #1b1a18; --m-side: #161513; --m-ink: #e9e7e2; --m-mute: #98948c; --m-line: #2c2a27; --m-acc: #7cc4b3; --m-acc-ink: #10201c; --m-get: #7fcf98; --m-post: #f0b45a; --m-put: #8db4ef; --m-del: #f08a80; --m-ok: #7fcf98; --m-field: #22211e }
-.dir-a .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--m-line); background: var(--m-side) }
-.dir-a .ws { font-weight: 600 } .dir-a .crumb { color: var(--m-mute) }
-.dir-a .search { margin-left: auto; margin-right: auto; width: 360px; height: 26px; border: 1px solid var(--m-line); border-radius: 6px; background: var(--m-field); color: var(--m-mute); display: flex; align-items: center; padding: 0 10px; justify-content: space-between }
-.dir-a kbd, .dir-b kbd, .dir-c kbd { font: 500 10.5px var(--m-mono); border: 1px solid var(--m-line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--m-mute) }
-.dir-a .envpill { border: 1px solid var(--m-line); border-radius: 6px; padding: 3px 10px; display: flex; gap: 6px; align-items: center }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--m-ok); display: inline-block }
-.dir-a .side { background: var(--m-side); border-right: 1px solid var(--m-line); padding: 10px 8px; display: grid; align-content: start; gap: 1px; color: var(--m-mute) }
-.dir-a .sec { font-size: 11px; font-weight: 500; padding: 10px 8px 4px; color: var(--m-mute) }
-.dir-a .row { display: grid; grid-template-columns: 34px 1fr; align-items: center; height: 26px; padding: 0 8px; border-radius: 5px; color: var(--m-ink); white-space: nowrap; overflow: hidden }
-.dir-a .row.f { grid-template-columns: 14px 1fr; gap: 6px; color: var(--m-mute) }
-.dir-a .row.in { padding-left: 22px }
-.dir-a .row.on { background: color-mix(in oklab, var(--m-acc) 14%, transparent) }
-.dir-a .main { display: grid; grid-template-rows: 34px 52px 1fr; min-width: 0 }
-.dir-a .tabstrip { display: flex; align-items: end; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--m-line) }
-.dir-a .tab { display: flex; gap: 8px; align-items: center; height: 30px; padding: 0 12px; border-radius: 6px 6px 0 0; color: var(--m-mute) }
-.dir-a .tab.on { background: var(--m-bg); color: var(--m-ink); box-shadow: inset 0 2px 0 var(--m-acc); border: 1px solid var(--m-line); border-bottom-color: var(--m-bg); margin-bottom: -1px }
-.dir-a .x { color: var(--m-mute); font-size: 11px }
-.dir-a .addr { display: flex; gap: 8px; align-items: center; padding: 0 12px }
-.dir-a .url { flex: 1; height: 34px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--m-line); border-radius: 7px; background: var(--m-field); padding: 0 10px; font-family: var(--m-mono); font-size: 12.5px; min-width: 0; white-space: nowrap; overflow: hidden }
-.dir-a .var { color: var(--m-acc); background: color-mix(in oklab, var(--m-acc) 12%, transparent); border-radius: 4px; padding: 0 3px }
-.dir-a .send { height: 34px; padding: 0 16px; border-radius: 7px; background: var(--m-acc); color: var(--m-acc-ink); font-weight: 600; display: flex; gap: 10px; align-items: center }
-.dir-a .send kbd { color: inherit; border-color: color-mix(in oklab, var(--m-acc-ink) 40%, transparent) }
-.dir-a .split { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--m-line); min-height: 0 }
-.dir-a .pane { display: grid; grid-template-rows: 32px 1fr; min-width: 0; min-height: 0 }
-.dir-a .pane + .pane { border-left: 1px solid var(--m-line) }
-.dir-a .ptabs { white-space: nowrap; overflow: hidden; display: flex; gap: 16px; align-items: center; padding: 0 12px; border-bottom: 1px solid var(--m-line); color: var(--m-mute) }
-.dir-a .ptabs .on { color: var(--m-ink); box-shadow: inset 0 -2px 0 var(--m-acc); height: 100%; display: flex; align-items: center }
-.dir-a .ptabs .n { font-family: var(--m-mono); font-size: 10.5px; color: var(--m-mute) }
-.dir-a .ptabs .stat { margin-left: auto; display: flex; gap: 12px; font-family: var(--m-mono); font-size: 11.5px }
-.dir-a .ok { color: var(--m-ok); font-weight: 500 }
-.dir-a table { border-collapse: collapse; width: 100%; font-family: var(--m-mono); font-size: 12px }
-.dir-a td { border-bottom: 1px solid var(--m-line); padding: 6px 12px; white-space: nowrap }
-.dir-a td:first-child { width: 28px; color: var(--m-acc) }
-.dir-a .code { font-family: var(--m-mono); font-size: 12px; line-height: 1.75; padding: 8px 0; white-space: pre; overflow: hidden }
-.dir-a .ln { display: inline-block; width: 36px; text-align: right; padding-right: 12px; color: var(--m-mute) }
-.dir-a .k { color: var(--m-put) } .dir-a .s { color: var(--m-get) } .dir-a .num { color: var(--m-post) }
-.dir-a .status { grid-column: 1 / -1; display: flex; gap: 16px; align-items: center; padding: 0 12px; border-top: 1px solid var(--m-line); background: var(--m-side); color: var(--m-mute); font-size: 11.5px }
-.dir-a .status .r { margin-left: auto; display: flex; gap: 16px }
+  /* A: Workbench */
+  .dir-a {
+    --m-bg: #fbfaf8;
+    --m-side: #f3f2ef;
+    --m-ink: #22211f;
+    --m-mute: #77736c;
+    --m-line: #e6e3dd;
+    --m-acc: #2f6f62;
+    --m-acc-ink: #fff;
+    --m-get: #2f7a4a;
+    --m-post: #9a5b00;
+    --m-put: #2c5fa8;
+    --m-del: #a8322b;
+    --m-ok: #2f7a4a;
+    --m-field: #ffffff;
+    --m-sans: "Geist", system-ui, sans-serif;
+    --m-mono: "Geist Mono", ui-monospace, monospace;
+    background: var(--m-bg);
+    color: var(--m-ink);
+    font-family: var(--m-sans);
+    grid-template-columns: 248px 1fr;
+    grid-template-rows: 40px 1fr 26px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dir-a {
+      --m-bg: #1b1a18;
+      --m-side: #161513;
+      --m-ink: #e9e7e2;
+      --m-mute: #98948c;
+      --m-line: #2c2a27;
+      --m-acc: #7cc4b3;
+      --m-acc-ink: #10201c;
+      --m-get: #7fcf98;
+      --m-post: #f0b45a;
+      --m-put: #8db4ef;
+      --m-del: #f08a80;
+      --m-ok: #7fcf98;
+      --m-field: #22211e;
+    }
+  }
+  :root[data-theme="dark"] .dir-a {
+    --m-bg: #1b1a18;
+    --m-side: #161513;
+    --m-ink: #e9e7e2;
+    --m-mute: #98948c;
+    --m-line: #2c2a27;
+    --m-acc: #7cc4b3;
+    --m-acc-ink: #10201c;
+    --m-get: #7fcf98;
+    --m-post: #f0b45a;
+    --m-put: #8db4ef;
+    --m-del: #f08a80;
+    --m-ok: #7fcf98;
+    --m-field: #22211e;
+  }
+  .dir-a .top {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--m-line);
+    background: var(--m-side);
+  }
+  .dir-a .ws {
+    font-weight: 600;
+  }
+  .dir-a .crumb {
+    color: var(--m-mute);
+  }
+  .dir-a .search {
+    margin-left: auto;
+    margin-right: auto;
+    width: 360px;
+    height: 26px;
+    border: 1px solid var(--m-line);
+    border-radius: 6px;
+    background: var(--m-field);
+    color: var(--m-mute);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    justify-content: space-between;
+  }
+  .dir-a kbd,
+  .dir-b kbd,
+  .dir-c kbd {
+    font: 500 10.5px var(--m-mono);
+    border: 1px solid var(--m-line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 5px;
+    color: var(--m-mute);
+  }
+  .dir-a .envpill {
+    border: 1px solid var(--m-line);
+    border-radius: 6px;
+    padding: 3px 10px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--m-ok);
+    display: inline-block;
+  }
+  .dir-a .side {
+    background: var(--m-side);
+    border-right: 1px solid var(--m-line);
+    padding: 10px 8px;
+    display: grid;
+    align-content: start;
+    gap: 1px;
+    color: var(--m-mute);
+  }
+  .dir-a .sec {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 10px 8px 4px;
+    color: var(--m-mute);
+  }
+  .dir-a .row {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: center;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 5px;
+    color: var(--m-ink);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .dir-a .row.f {
+    grid-template-columns: 14px 1fr;
+    gap: 6px;
+    color: var(--m-mute);
+  }
+  .dir-a .row.in {
+    padding-left: 22px;
+  }
+  .dir-a .row.on {
+    background: color-mix(in oklab, var(--m-acc) 14%, transparent);
+  }
+  .dir-a .main {
+    display: grid;
+    grid-template-rows: 34px 52px 1fr;
+    min-width: 0;
+  }
+  .dir-a .tabstrip {
+    display: flex;
+    align-items: end;
+    gap: 2px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--m-line);
+  }
+  .dir-a .tab {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 6px 6px 0 0;
+    color: var(--m-mute);
+  }
+  .dir-a .tab.on {
+    background: var(--m-bg);
+    color: var(--m-ink);
+    box-shadow: inset 0 2px 0 var(--m-acc);
+    border: 1px solid var(--m-line);
+    border-bottom-color: var(--m-bg);
+    margin-bottom: -1px;
+  }
+  .dir-a .x {
+    color: var(--m-mute);
+    font-size: 11px;
+  }
+  .dir-a .addr {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0 12px;
+  }
+  .dir-a .url {
+    flex: 1;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--m-line);
+    border-radius: 7px;
+    background: var(--m-field);
+    padding: 0 10px;
+    font-family: var(--m-mono);
+    font-size: 12.5px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .dir-a .var {
+    color: var(--m-acc);
+    background: color-mix(in oklab, var(--m-acc) 12%, transparent);
+    border-radius: 4px;
+    padding: 0 3px;
+  }
+  .dir-a .send {
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 7px;
+    background: var(--m-acc);
+    color: var(--m-acc-ink);
+    font-weight: 600;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .dir-a .send kbd {
+    color: inherit;
+    border-color: color-mix(in oklab, var(--m-acc-ink) 40%, transparent);
+  }
+  .dir-a .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--m-line);
+    min-height: 0;
+  }
+  .dir-a .pane {
+    display: grid;
+    grid-template-rows: 32px 1fr;
+    min-width: 0;
+    min-height: 0;
+  }
+  .dir-a .pane + .pane {
+    border-left: 1px solid var(--m-line);
+  }
+  .dir-a .ptabs {
+    white-space: nowrap;
+    overflow: hidden;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--m-line);
+    color: var(--m-mute);
+  }
+  .dir-a .ptabs .on {
+    color: var(--m-ink);
+    box-shadow: inset 0 -2px 0 var(--m-acc);
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .dir-a .ptabs .n {
+    font-family: var(--m-mono);
+    font-size: 10.5px;
+    color: var(--m-mute);
+  }
+  .dir-a .ptabs .stat {
+    margin-left: auto;
+    display: flex;
+    gap: 12px;
+    font-family: var(--m-mono);
+    font-size: 11.5px;
+  }
+  .dir-a .ok {
+    color: var(--m-ok);
+    font-weight: 500;
+  }
+  .dir-a table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: var(--m-mono);
+    font-size: 12px;
+  }
+  .dir-a td {
+    border-bottom: 1px solid var(--m-line);
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  .dir-a td:first-child {
+    width: 28px;
+    color: var(--m-acc);
+  }
+  .dir-a .code {
+    font-family: var(--m-mono);
+    font-size: 12px;
+    line-height: 1.75;
+    padding: 8px 0;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .dir-a .ln {
+    display: inline-block;
+    width: 36px;
+    text-align: right;
+    padding-right: 12px;
+    color: var(--m-mute);
+  }
+  .dir-a .k {
+    color: var(--m-put);
+  }
+  .dir-a .s {
+    color: var(--m-get);
+  }
+  .dir-a .num {
+    color: var(--m-post);
+  }
+  .dir-a .status {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 0 12px;
+    border-top: 1px solid var(--m-line);
+    background: var(--m-side);
+    color: var(--m-mute);
+    font-size: 11.5px;
+  }
+  .dir-a .status .r {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+  }
 
-/* B: Console */
-.dir-b { --m-bg: #f4f4f1; --m-ink: #121212; --m-mute: #6c6c66; --m-line: #d9d9d3; --m-acc: #d4ff3d; --m-acc-ink: #121212; --m-field: #ffffff; --m-hi: #121212; --m-hi-ink: #f4f4f1;
-  --m-get: #19713f; --m-post: #8a4b00; --m-put: #1d4fa0; --m-del: #b02a20; --m-ok: #19713f;
-  --m-sans: "JetBrains Mono", ui-monospace, monospace; --m-mono: "JetBrains Mono", ui-monospace, monospace;
-  background: var(--m-bg); color: var(--m-ink); font-family: var(--m-mono); font-size: 12px;
-  grid-template-columns: 220px 1fr; grid-template-rows: 44px 1fr 24px }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dir-b { --m-bg: #0f100e; --m-ink: #e6e6df; --m-mute: #8a8a82; --m-line: #2a2b27; --m-field: #171815; --m-hi: #e6e6df; --m-hi-ink: #0f100e; --m-get: #8fe0a8; --m-post: #f3b766; --m-put: #94b8f5; --m-del: #ff8f85; --m-ok: #8fe0a8 } }
-:root[data-theme="dark"] .dir-b { --m-bg: #0f100e; --m-ink: #e6e6df; --m-mute: #8a8a82; --m-line: #2a2b27; --m-field: #171815; --m-hi: #e6e6df; --m-hi-ink: #0f100e; --m-get: #8fe0a8; --m-post: #f3b766; --m-put: #94b8f5; --m-del: #ff8f85; --m-ok: #8fe0a8 }
-.dir-b .cmd { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-bottom: 1px solid var(--m-line) }
-.dir-b .cmd .box { flex: 1; height: 30px; display: flex; align-items: center; gap: 10px; background: var(--m-field); border: 1px solid var(--m-line); padding: 0 10px; min-width: 0; white-space: nowrap; overflow: hidden }
-.dir-b .cmd .prompt { color: var(--m-mute) }
-.dir-b .cmd .send { background: var(--m-acc); color: var(--m-acc-ink); padding: 0 14px; height: 30px; display: flex; align-items: center; gap: 8px; font-weight: 700 }
-.dir-b .cmd .send kbd { color: var(--m-acc-ink); border-color: var(--m-acc-ink) }
-.dir-b .side { border-right: 1px solid var(--m-line); padding: 6px 0; display: grid; align-content: start; color: var(--m-mute) }
-.dir-b .row { display: grid; grid-template-columns: 42px 1fr; height: 22px; align-items: center; padding: 0 10px; white-space: nowrap; overflow: hidden; color: var(--m-ink) }
-.dir-b .row.f { color: var(--m-mute); grid-template-columns: 1fr }
-.dir-b .row.in { padding-left: 18px }
-.dir-b .row.on { background: var(--m-hi); color: var(--m-hi-ink) }
-.dir-b .row.on .m-badge { color: var(--m-acc) }
-.dir-b .main { display: grid; grid-template-rows: 26px 1fr 1.2fr; min-width: 0; min-height: 0 }
-.dir-b .tabstrip { display: flex; border-bottom: 1px solid var(--m-line) }
-.dir-b .tab { padding: 0 12px; display: flex; align-items: center; gap: 8px; border-right: 1px solid var(--m-line); color: var(--m-mute) }
-.dir-b .tab.on { color: var(--m-ink); background: var(--m-field) }
-.dir-b .req, .dir-b .res { display: grid; grid-template-rows: 24px 1fr; min-height: 0; border-bottom: 1px solid var(--m-line) }
-.dir-b .ptabs { display: flex; gap: 0; border-bottom: 1px solid var(--m-line); color: var(--m-mute) }
-.dir-b .ptabs span { padding: 0 10px; display: flex; align-items: center }
-.dir-b .ptabs .on { color: var(--m-ink); background: var(--m-field) }
-.dir-b .ptabs .stat { margin-left: auto; gap: 14px; display: flex; padding-right: 10px }
-.dir-b .ok { color: var(--m-ok); font-weight: 700 }
-.dir-b .grid { display: grid; grid-template-columns: 24px 200px 1fr; align-content: start }
-.dir-b .grid span { padding: 3px 10px; border-bottom: 1px solid var(--m-line); white-space: nowrap; overflow: hidden }
-.dir-b .code { line-height: 1.7; padding: 6px 10px; white-space: pre; overflow: hidden }
-.dir-b .k { color: var(--m-put) } .dir-b .s { color: var(--m-get) } .dir-b .num { color: var(--m-post) }
-.dir-b .foot { grid-column: 1 / -1; display: flex; gap: 18px; align-items: center; padding: 0 10px; background: var(--m-hi); color: var(--m-hi-ink); font-size: 11px }
-.dir-b .foot kbd { color: var(--m-hi-ink); border-color: var(--m-hi-ink) }
+  /* B: Console */
+  .dir-b {
+    --m-bg: #f4f4f1;
+    --m-ink: #121212;
+    --m-mute: #6c6c66;
+    --m-line: #d9d9d3;
+    --m-acc: #d4ff3d;
+    --m-acc-ink: #121212;
+    --m-field: #ffffff;
+    --m-hi: #121212;
+    --m-hi-ink: #f4f4f1;
+    --m-get: #19713f;
+    --m-post: #8a4b00;
+    --m-put: #1d4fa0;
+    --m-del: #b02a20;
+    --m-ok: #19713f;
+    --m-sans: "JetBrains Mono", ui-monospace, monospace;
+    --m-mono: "JetBrains Mono", ui-monospace, monospace;
+    background: var(--m-bg);
+    color: var(--m-ink);
+    font-family: var(--m-mono);
+    font-size: 12px;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: 44px 1fr 24px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dir-b {
+      --m-bg: #0f100e;
+      --m-ink: #e6e6df;
+      --m-mute: #8a8a82;
+      --m-line: #2a2b27;
+      --m-field: #171815;
+      --m-hi: #e6e6df;
+      --m-hi-ink: #0f100e;
+      --m-get: #8fe0a8;
+      --m-post: #f3b766;
+      --m-put: #94b8f5;
+      --m-del: #ff8f85;
+      --m-ok: #8fe0a8;
+    }
+  }
+  :root[data-theme="dark"] .dir-b {
+    --m-bg: #0f100e;
+    --m-ink: #e6e6df;
+    --m-mute: #8a8a82;
+    --m-line: #2a2b27;
+    --m-field: #171815;
+    --m-hi: #e6e6df;
+    --m-hi-ink: #0f100e;
+    --m-get: #8fe0a8;
+    --m-post: #f3b766;
+    --m-put: #94b8f5;
+    --m-del: #ff8f85;
+    --m-ok: #8fe0a8;
+  }
+  .dir-b .cmd {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--m-line);
+  }
+  .dir-b .cmd .box {
+    flex: 1;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--m-field);
+    border: 1px solid var(--m-line);
+    padding: 0 10px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .dir-b .cmd .prompt {
+    color: var(--m-mute);
+  }
+  .dir-b .cmd .send {
+    background: var(--m-acc);
+    color: var(--m-acc-ink);
+    padding: 0 14px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+  .dir-b .cmd .send kbd {
+    color: var(--m-acc-ink);
+    border-color: var(--m-acc-ink);
+  }
+  .dir-b .side {
+    border-right: 1px solid var(--m-line);
+    padding: 6px 0;
+    display: grid;
+    align-content: start;
+    color: var(--m-mute);
+  }
+  .dir-b .row {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    height: 22px;
+    align-items: center;
+    padding: 0 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    color: var(--m-ink);
+  }
+  .dir-b .row.f {
+    color: var(--m-mute);
+    grid-template-columns: 1fr;
+  }
+  .dir-b .row.in {
+    padding-left: 18px;
+  }
+  .dir-b .row.on {
+    background: var(--m-hi);
+    color: var(--m-hi-ink);
+  }
+  .dir-b .row.on .m-badge {
+    color: var(--m-acc);
+  }
+  .dir-b .main {
+    display: grid;
+    grid-template-rows: 26px 1fr 1.2fr;
+    min-width: 0;
+    min-height: 0;
+  }
+  .dir-b .tabstrip {
+    display: flex;
+    border-bottom: 1px solid var(--m-line);
+  }
+  .dir-b .tab {
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-right: 1px solid var(--m-line);
+    color: var(--m-mute);
+  }
+  .dir-b .tab.on {
+    color: var(--m-ink);
+    background: var(--m-field);
+  }
+  .dir-b .req,
+  .dir-b .res {
+    display: grid;
+    grid-template-rows: 24px 1fr;
+    min-height: 0;
+    border-bottom: 1px solid var(--m-line);
+  }
+  .dir-b .ptabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--m-line);
+    color: var(--m-mute);
+  }
+  .dir-b .ptabs span {
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+  }
+  .dir-b .ptabs .on {
+    color: var(--m-ink);
+    background: var(--m-field);
+  }
+  .dir-b .ptabs .stat {
+    margin-left: auto;
+    gap: 14px;
+    display: flex;
+    padding-right: 10px;
+  }
+  .dir-b .ok {
+    color: var(--m-ok);
+    font-weight: 700;
+  }
+  .dir-b .grid {
+    display: grid;
+    grid-template-columns: 24px 200px 1fr;
+    align-content: start;
+  }
+  .dir-b .grid span {
+    padding: 3px 10px;
+    border-bottom: 1px solid var(--m-line);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .dir-b .code {
+    line-height: 1.7;
+    padding: 6px 10px;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .dir-b .k {
+    color: var(--m-put);
+  }
+  .dir-b .s {
+    color: var(--m-get);
+  }
+  .dir-b .num {
+    color: var(--m-post);
+  }
+  .dir-b .foot {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    padding: 0 10px;
+    background: var(--m-hi);
+    color: var(--m-hi-ink);
+    font-size: 11px;
+  }
+  .dir-b .foot kbd {
+    color: var(--m-hi-ink);
+    border-color: var(--m-hi-ink);
+  }
 
-/* C: Field guide */
-.dir-c { --m-bg: #fcfcfd; --m-side: #f4f5f8; --m-ink: #1b2030; --m-mute: #646b7d; --m-line: #e4e6ec; --m-acc: #3d4fd6; --m-acc-ink: #fff; --m-field: #fff; --m-note: #fff8e6; --m-note-ink: #6b4a00;
-  --m-get: #237a4b; --m-post: #9a5b00; --m-put: #3450b5; --m-del: #b3261e; --m-ok: #237a4b;
-  --m-sans: "Instrument Sans", system-ui, sans-serif; --m-mono: "Geist Mono", ui-monospace, monospace;
-  background: var(--m-bg); color: var(--m-ink); font-family: var(--m-sans); font-size: 14px;
-  grid-template-columns: 268px minmax(0, 1fr) 300px; grid-template-rows: 56px 1fr }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .dir-c { --m-bg: #14161c; --m-side: #101217; --m-ink: #e7e9ef; --m-mute: #9ca2b2; --m-line: #262a33; --m-acc: #8f9cff; --m-acc-ink: #10132a; --m-field: #1a1d24; --m-note: #2a2416; --m-note-ink: #f0cf87; --m-get: #86d3a3; --m-post: #f0b45a; --m-put: #9db0ff; --m-del: #ff8f85; --m-ok: #86d3a3 } }
-:root[data-theme="dark"] .dir-c { --m-bg: #14161c; --m-side: #101217; --m-ink: #e7e9ef; --m-mute: #9ca2b2; --m-line: #262a33; --m-acc: #8f9cff; --m-acc-ink: #10132a; --m-field: #1a1d24; --m-note: #2a2416; --m-note-ink: #f0cf87; --m-get: #86d3a3; --m-post: #f0b45a; --m-put: #9db0ff; --m-del: #ff8f85; --m-ok: #86d3a3 }
-.dir-c .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 0 20px; border-bottom: 1px solid var(--m-line) }
-.dir-c .ws { font-weight: 600; font-size: 15px }
-.dir-c .navs { display: flex; gap: 4px; margin-left: 16px }
-.dir-c .navs span { padding: 6px 12px; border-radius: 8px; color: var(--m-mute) }
-.dir-c .navs .on { background: var(--m-side); color: var(--m-ink) }
-.dir-c .r { margin-left: auto; display: flex; gap: 10px; align-items: center; color: var(--m-mute) }
-.dir-c .side { background: var(--m-side); padding: 14px 12px; display: grid; align-content: start; gap: 2px }
-.dir-c .row { display: grid; grid-template-columns: 40px 1fr; align-items: center; height: 32px; padding: 0 10px; border-radius: 8px; white-space: nowrap; overflow: hidden }
-.dir-c .row.f { grid-template-columns: 1fr; color: var(--m-mute); font-weight: 500 }
-.dir-c .row.on { background: var(--m-field); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06) }
-.dir-c .main { padding: 20px 24px; display: grid; grid-template-rows: auto auto auto 1fr; gap: 14px; min-width: 0; min-height: 0 }
-.dir-c .title { font-size: 20px; font-weight: 600 }
-.dir-c .title small { font-size: 13px; color: var(--m-mute); font-weight: 400; margin-left: 8px }
-.dir-c .addr { display: flex; gap: 10px }
-.dir-c .url { flex: 1; height: 42px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--m-line); border-radius: 10px; padding: 0 14px; background: var(--m-field); font-family: var(--m-mono); font-size: 13px; white-space: nowrap; overflow: hidden; min-width: 0 }
-.dir-c .send { height: 42px; padding: 0 22px; border-radius: 10px; background: var(--m-acc); color: var(--m-acc-ink); font-weight: 600; display: flex; align-items: center }
-.dir-c .ptabs { display: flex; gap: 20px; border-bottom: 1px solid var(--m-line); color: var(--m-mute); height: 34px; align-items: stretch }
-.dir-c .ptabs span { display: flex; align-items: center }
-.dir-c .ptabs .on { color: var(--m-ink); box-shadow: inset 0 -2px 0 var(--m-acc) }
-.dir-c .resp { border: 1px solid var(--m-line); border-radius: 12px; display: grid; grid-template-rows: 44px 1fr; min-height: 0; overflow: hidden }
-.dir-c .rhead { display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid var(--m-line); font-family: var(--m-mono); font-size: 12.5px; color: var(--m-mute) }
-.dir-c .ok { color: var(--m-ok); font-weight: 600; font-family: var(--m-sans); font-size: 14px }
-.dir-c .code { font-family: var(--m-mono); font-size: 12.5px; line-height: 1.8; padding: 10px 14px; white-space: pre; overflow: hidden }
-.dir-c .k { color: var(--m-put) } .dir-c .s { color: var(--m-get) } .dir-c .num { color: var(--m-post) }
-.dir-c .rail { border-left: 1px solid var(--m-line); padding: 20px; display: grid; align-content: start; gap: 14px; color: var(--m-mute); font-size: 13px }
-.dir-c .rail h4 { margin: 0; color: var(--m-ink); font-size: 14px }
-.dir-c .note { background: var(--m-note); color: var(--m-note-ink); border-radius: 10px; padding: 12px 14px; line-height: 1.5 }
-.dir-c .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px }
-.dir-c .kv b { color: var(--m-ink); font-weight: 500; font-family: var(--m-mono); font-size: 12px }
+  /* C: Field guide */
+  .dir-c {
+    --m-bg: #fcfcfd;
+    --m-side: #f4f5f8;
+    --m-ink: #1b2030;
+    --m-mute: #646b7d;
+    --m-line: #e4e6ec;
+    --m-acc: #3d4fd6;
+    --m-acc-ink: #fff;
+    --m-field: #fff;
+    --m-note: #fff8e6;
+    --m-note-ink: #6b4a00;
+    --m-get: #237a4b;
+    --m-post: #9a5b00;
+    --m-put: #3450b5;
+    --m-del: #b3261e;
+    --m-ok: #237a4b;
+    --m-sans: "Instrument Sans", system-ui, sans-serif;
+    --m-mono: "Geist Mono", ui-monospace, monospace;
+    background: var(--m-bg);
+    color: var(--m-ink);
+    font-family: var(--m-sans);
+    font-size: 14px;
+    grid-template-columns: 268px minmax(0, 1fr) 300px;
+    grid-template-rows: 56px 1fr;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dir-c {
+      --m-bg: #14161c;
+      --m-side: #101217;
+      --m-ink: #e7e9ef;
+      --m-mute: #9ca2b2;
+      --m-line: #262a33;
+      --m-acc: #8f9cff;
+      --m-acc-ink: #10132a;
+      --m-field: #1a1d24;
+      --m-note: #2a2416;
+      --m-note-ink: #f0cf87;
+      --m-get: #86d3a3;
+      --m-post: #f0b45a;
+      --m-put: #9db0ff;
+      --m-del: #ff8f85;
+      --m-ok: #86d3a3;
+    }
+  }
+  :root[data-theme="dark"] .dir-c {
+    --m-bg: #14161c;
+    --m-side: #101217;
+    --m-ink: #e7e9ef;
+    --m-mute: #9ca2b2;
+    --m-line: #262a33;
+    --m-acc: #8f9cff;
+    --m-acc-ink: #10132a;
+    --m-field: #1a1d24;
+    --m-note: #2a2416;
+    --m-note-ink: #f0cf87;
+    --m-get: #86d3a3;
+    --m-post: #f0b45a;
+    --m-put: #9db0ff;
+    --m-del: #ff8f85;
+    --m-ok: #86d3a3;
+  }
+  .dir-c .top {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--m-line);
+  }
+  .dir-c .ws {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .dir-c .navs {
+    display: flex;
+    gap: 4px;
+    margin-left: 16px;
+  }
+  .dir-c .navs span {
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: var(--m-mute);
+  }
+  .dir-c .navs .on {
+    background: var(--m-side);
+    color: var(--m-ink);
+  }
+  .dir-c .r {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    color: var(--m-mute);
+  }
+  .dir-c .side {
+    background: var(--m-side);
+    padding: 14px 12px;
+    display: grid;
+    align-content: start;
+    gap: 2px;
+  }
+  .dir-c .row {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    align-items: center;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .dir-c .row.f {
+    grid-template-columns: 1fr;
+    color: var(--m-mute);
+    font-weight: 500;
+  }
+  .dir-c .row.on {
+    background: var(--m-field);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  }
+  .dir-c .main {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr;
+    gap: 14px;
+    min-width: 0;
+    min-height: 0;
+  }
+  .dir-c .title {
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .dir-c .title small {
+    font-size: 13px;
+    color: var(--m-mute);
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  .dir-c .addr {
+    display: flex;
+    gap: 10px;
+  }
+  .dir-c .url {
+    flex: 1;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--m-line);
+    border-radius: 10px;
+    padding: 0 14px;
+    background: var(--m-field);
+    font-family: var(--m-mono);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .dir-c .send {
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 10px;
+    background: var(--m-acc);
+    color: var(--m-acc-ink);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+  }
+  .dir-c .ptabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid var(--m-line);
+    color: var(--m-mute);
+    height: 34px;
+    align-items: stretch;
+  }
+  .dir-c .ptabs span {
+    display: flex;
+    align-items: center;
+  }
+  .dir-c .ptabs .on {
+    color: var(--m-ink);
+    box-shadow: inset 0 -2px 0 var(--m-acc);
+  }
+  .dir-c .resp {
+    border: 1px solid var(--m-line);
+    border-radius: 12px;
+    display: grid;
+    grid-template-rows: 44px 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .dir-c .rhead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--m-line);
+    font-family: var(--m-mono);
+    font-size: 12.5px;
+    color: var(--m-mute);
+  }
+  .dir-c .ok {
+    color: var(--m-ok);
+    font-weight: 600;
+    font-family: var(--m-sans);
+    font-size: 14px;
+  }
+  .dir-c .code {
+    font-family: var(--m-mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    padding: 10px 14px;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .dir-c .k {
+    color: var(--m-put);
+  }
+  .dir-c .s {
+    color: var(--m-get);
+  }
+  .dir-c .num {
+    color: var(--m-post);
+  }
+  .dir-c .rail {
+    border-left: 1px solid var(--m-line);
+    padding: 20px;
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    color: var(--m-mute);
+    font-size: 13px;
+  }
+  .dir-c .rail h4 {
+    margin: 0;
+    color: var(--m-ink);
+    font-size: 14px;
+  }
+  .dir-c .note {
+    background: var(--m-note);
+    color: var(--m-note-ink);
+    border-radius: 10px;
+    padding: 12px 14px;
+    line-height: 1.5;
+  }
+  .dir-c .kv {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 14px;
+  }
+  .dir-c .kv b {
+    color: var(--m-ink);
+    font-weight: 500;
+    font-family: var(--m-mono);
+    font-size: 12px;
+  }
 
-.qs { display: grid; gap: 14px; counter-reset: q }
-.qs li { list-style: none; border-left: 2px solid var(--accent); padding-left: 14px }
-.qs { padding: 0; margin: 0 }
-@media (max-width: 640px) { .finding { grid-template-columns: 1fr; gap: 2px } }
+  .qs {
+    display: grid;
+    gap: 14px;
+    counter-reset: q;
+  }
+  .qs li {
+    list-style: none;
+    border-left: 2px solid var(--accent);
+    padding-left: 14px;
+  }
+  .qs {
+    padding: 0;
+    margin: 0;
+  }
+  @media (max-width: 640px) {
+    .finding {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+  }
 </style>
 
 <div class="wrap">
   <header class="prose">
     <div class="eyebrow">PLAN-design · D1.2 audit and D2 directions · 19 Oct 2026</div>
     <h1>Wayfarer feels old because it was never designed as a whole</h1>
-    <p class="lede">I reviewed the app on <code>main</code> at three widths in both themes and wrote 36 findings. Below are the ones that matter most, what the rivals do, and three directions for the overhaul. Pick one, or a mix, and I start on the foundations.</p>
+    <p class="lede"
+      >I reviewed the app on <code>main</code> at three widths in both themes and wrote 36 findings. Below are the ones
+      that matter most, what the rivals do, and three directions for the overhaul. Pick one, or a mix, and I start on
+      the foundations.</p
+    >
   </header>
 
   <section>
     <div class="prose">
       <h2>What is wrong, worst first</h2>
-      <p>Severity 1 blocks a task, 2 slows or misleads, 3 costs polish or trust. The full list with screenshots is <code>docs/design/audit.md</code>.</p>
+      <p
+        >Severity 1 blocks a task, 2 slows or misleads, 3 costs polish or trust. The full list with screenshots is
+        <code>docs/design/audit.md</code>.</p
+      >
     </div>
     <div class="findings">
-      <div class="finding"><span class="sev" data-s="1">U-001 · S1</span><div><h3>It scrolls like a web page, so the response is below the fold</h3><p>At 1440 × 900 the response body starts at y = 700. Environments live under the composer at y = 1,110. Every rival is a fixed shell of full-height panes.</p></div></div>
-      <div class="finding"><span class="sev" data-s="1">U-013 · S1</span><div><h3>The run report repeats one paragraph 42 times</h3><p>No pass/fail count, no progress bar, no failure filter, no diagnosis. A failed run makes the page 3,771 px tall.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-002 · S2</span><div><h3>Transport options sit above the request</h3><p>Route, redirects, certificate checks, each with a sentence of explanation, and a "What the browser does" accordion: 250 px that most requests never touch.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-008 · S2</span><div><h3>Clicking a request does nothing</h3><p>Opening takes a double click. Every rival opens on one click. A Postman user assumes it is broken.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-009 · S2</span><div><h3>The tree has no method badges</h3><p>Names only, in 40 px rows. GET and POST look the same.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-011 · S2</span><div><h3>The command palette is a dialog of buttons</h3><p>Titled modal, card rows, commands only. It cannot find a request, a collection, an environment or a history entry.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-006 · S2</span><div><h3>Six unlabelled toolbar icons</h3><p>Lock and key are both the vault; a router glyph is the Local Bridge. Half of them vanish below 1,024 px.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-022 · S2</span><div><h3>Empty states offer no way in</h3><p>Dashed boxes that say "nothing here". No "paste cURL", no "import from Postman", no example request.</p></div></div>
-      <div class="finding"><span class="sev" data-s="2">U-015 · S2</span><div><h3>Import review shows different names than it stores</h3><p>Shows "Status And Body", stores "Status and body". One 90 px card per request.</p></div></div>
-      <div class="finding"><span class="sev" data-s="3">U-004 · S3</span><div><h3>Cards in cards in cards</h3><p>11 border radii and 4 shadow styles on one screen; 8 font weights from 400 to 650; text down to 10 px; three different blues.</p></div></div>
-      <div class="finding"><span class="sev" data-s="3">U-019 · S3</span><div><h3>The Send button glows</h3><p>Indigo with a coloured shadow, lavender when disabled. Reads as a 2020 landing page, not a tool used all day.</p></div></div>
-      <div class="finding"><span class="sev" data-s="3">U-033 · S3</span><div><h3>Widget layer costs more than it gives</h3><p>1,490 lines of CSS and SCSS make Angular Material look like the tokens; 23 <code>!</code> overrides in templates.</p></div></div>
+      <div class="finding"
+        ><span class="sev" data-s="1">U-001 · S1</span
+        ><div
+          ><h3>It scrolls like a web page, so the response is below the fold</h3
+          ><p
+            >At 1440 × 900 the response body starts at y = 700. Environments live under the composer at y = 1,110. Every
+            rival is a fixed shell of full-height panes.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="1">U-013 · S1</span
+        ><div
+          ><h3>The run report repeats one paragraph 42 times</h3
+          ><p
+            >No pass/fail count, no progress bar, no failure filter, no diagnosis. A failed run makes the page 3,771 px
+            tall.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-002 · S2</span
+        ><div
+          ><h3>Transport options sit above the request</h3
+          ><p
+            >Route, redirects, certificate checks, each with a sentence of explanation, and a "What the browser does"
+            accordion: 250 px that most requests never touch.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-008 · S2</span
+        ><div
+          ><h3>Clicking a request does nothing</h3
+          ><p
+            >Opening takes a double click. Every rival opens on one click. A Postman user assumes it is broken.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-009 · S2</span
+        ><div
+          ><h3>The tree has no method badges</h3><p>Names only, in 40 px rows. GET and POST look the same.</p></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-011 · S2</span
+        ><div
+          ><h3>The command palette is a dialog of buttons</h3
+          ><p
+            >Titled modal, card rows, commands only. It cannot find a request, a collection, an environment or a history
+            entry.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-006 · S2</span
+        ><div
+          ><h3>Six unlabelled toolbar icons</h3
+          ><p
+            >Lock and key are both the vault; a router glyph is the Local Bridge. Half of them vanish below 1,024 px.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-022 · S2</span
+        ><div
+          ><h3>Empty states offer no way in</h3
+          ><p
+            >Dashed boxes that say "nothing here". No "paste cURL", no "import from Postman", no example request.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="2">U-015 · S2</span
+        ><div
+          ><h3>Import review shows different names than it stores</h3
+          ><p>Shows "Status And Body", stores "Status and body". One 90 px card per request.</p></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="3">U-004 · S3</span
+        ><div
+          ><h3>Cards in cards in cards</h3
+          ><p
+            >11 border radii and 4 shadow styles on one screen; 8 font weights from 400 to 650; text down to 10 px;
+            three different blues.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="3">U-019 · S3</span
+        ><div
+          ><h3>The Send button glows</h3
+          ><p
+            >Indigo with a coloured shadow, lavender when disabled. Reads as a 2020 landing page, not a tool used all
+            day.</p
+          ></div
+        ></div
+      >
+      <div class="finding"
+        ><span class="sev" data-s="3">U-033 · S3</span
+        ><div
+          ><h3>Widget layer costs more than it gives</h3
+          ><p
+            >1,490 lines of CSS and SCSS make Angular Material look like the tokens; 23 <code>!</code> overrides in
+            templates.</p
+          ></div
+        ></div
+      >
     </div>
   </section>
 
@@ -217,19 +1189,58 @@ a { color: var(--accent) }
       <h2>What the rivals teach</h2>
     </div>
     <div class="research">
-      <div><h3>Postman went desktop-and-Git</h3><p>v12 has Native Git: collections as files in your repo, desktop only. Free plan is one user since March 2026. Its weight is now agents, flows, catalogs: heavy for someone who wants to send one request.</p></div>
-      <div><h3>Bruno and Yaak won "your files"</h3><p>Plain-text collections, no account. Both are desktop installs. Yaak is the polish benchmark: quiet chrome, full-height panes, method-coloured tree, a status bar.</p></div>
-      <div><h3>Hoppscotch is the only browser rival</h3><p>No install, guest mode, but localhost needs an extension and its local story is partial. Wayfarer's Local Bridge and vault beat it, and the UI does not show that.</p></div>
-      <div><h3>Linear set the 2026 bar for dense tools</h3><p>Dimmer sidebar so content leads; fewer, smaller icons; softer separators; warmer greys. "Structure should be felt, not seen."</p></div>
-      <div><h3>⌘K is navigation now</h3><p>Linear, Raycast, VS Code, Zed: one floating list that finds things and runs commands, grouped, with keycaps on the right.</p></div>
-      <div><h3>Explain on demand, not in advance</h3><p>Rivals put transport and TLS in a request's Settings tab and say why a request failed after it fails. Wayfarer says it before anything is sent.</p></div>
+      <div
+        ><h3>Postman went desktop-and-Git</h3
+        ><p
+          >v12 has Native Git: collections as files in your repo, desktop only. Free plan is one user since March 2026.
+          Its weight is now agents, flows, catalogs: heavy for someone who wants to send one request.</p
+        ></div
+      >
+      <div
+        ><h3>Bruno and Yaak won "your files"</h3
+        ><p
+          >Plain-text collections, no account. Both are desktop installs. Yaak is the polish benchmark: quiet chrome,
+          full-height panes, method-coloured tree, a status bar.</p
+        ></div
+      >
+      <div
+        ><h3>Hoppscotch is the only browser rival</h3
+        ><p
+          >No install, guest mode, but localhost needs an extension and its local story is partial. Wayfarer's Local
+          Bridge and vault beat it, and the UI does not show that.</p
+        ></div
+      >
+      <div
+        ><h3>Linear set the 2026 bar for dense tools</h3
+        ><p
+          >Dimmer sidebar so content leads; fewer, smaller icons; softer separators; warmer greys. "Structure should be
+          felt, not seen."</p
+        ></div
+      >
+      <div
+        ><h3>⌘K is navigation now</h3
+        ><p
+          >Linear, Raycast, VS Code, Zed: one floating list that finds things and runs commands, grouped, with keycaps
+          on the right.</p
+        ></div
+      >
+      <div
+        ><h3>Explain on demand, not in advance</h3
+        ><p
+          >Rivals put transport and TLS in a request's Settings tab and say why a request failed after it fails.
+          Wayfarer says it before anything is sent.</p
+        ></div
+      >
     </div>
   </section>
 
   <section>
     <div class="prose">
       <h2>Three directions</h2>
-      <p>Same request, same data, three characters. All three fix the layout (fixed full-height panes), the tree, the palette and the response. They differ in density, voice and look.</p>
+      <p
+        >Same request, same data, three characters. All three fix the layout (fixed full-height panes), the tree, the
+        palette and the response. They differ in density, voice and look.</p
+      >
     </div>
     <div class="tabs" role="tablist" aria-label="Directions">
       <button role="tab" id="t-a" aria-selected="true" aria-controls="p-a">A · Workbench</button>
@@ -238,126 +1249,252 @@ a { color: var(--accent) }
     </div>
 
     <div id="p-a" role="tabpanel" aria-labelledby="t-a">
-      <div class="scroll"><div class="mock dir-a" aria-label="Workbench mockup">
-        <div class="top"><span class="ws">Payments team</span><span class="crumb">/ Checkout API / Orders</span>
-          <div class="search"><span>Search requests, environments, commands</span><kbd>⌘K</kbd></div>
-          <span class="envpill"><span class="dot"></span>staging</span><span class="crumb">⚙</span></div>
-        <nav class="side">
-          <div class="sec">Collections</div>
-          <div class="row f"><span>▾</span><span>Checkout API</span></div>
-          <div class="row f in"><span>▾</span><span>Orders</span></div>
-          <div class="row in on"><span class="m-badge post">POST</span><span>Create an order</span></div>
-          <div class="row in"><span class="m-badge post">POST</span><span>Cancel an order</span></div>
-          <div class="row in"><span class="m-badge get">GET</span><span>Order status</span></div>
-          <div class="row f in"><span>▸</span><span>Payments</span></div>
-          <div class="row f in"><span>▸</span><span>Refunds</span></div>
-          <div class="row f"><span>▸</span><span>Billing webhooks</span></div>
-          <div class="sec">Recent</div>
-          <div class="row"><span class="m-badge get">GET</span><span>/v72/paymentMethods</span></div>
-          <div class="row"><span class="m-badge del">DEL</span><span>/v72/storedPaymentMethods/9</span></div>
-        </nav>
-        <div class="main">
-          <div class="tabstrip">
-            <span class="tab on"><span class="m-badge post">POST</span>Create an order <span class="x">✕</span></span>
-            <span class="tab"><span class="m-badge get">GET</span>Order status <span class="x">✕</span></span>
-            <span class="tab">+</span></div>
-          <div class="addr">
-            <div class="url"><span class="m-badge post">POST</span><span><span class="var">{{baseUrl}}</span>/v72/orders</span></div>
-            <span class="send">Send <kbd>⌘↵</kbd></span></div>
-          <div class="split">
-            <div class="pane">
-              <div class="ptabs"><span>Params</span><span class="on">Body <span class="n">json</span></span><span>Headers <span class="n">3</span></span><span>Auth</span><span>Scripts</span><span>Settings</span></div>
-              <div class="code"><span class="ln">1</span>{
-<span class="ln">2</span>  <span class="k">"amount"</span>: { <span class="k">"currency"</span>: <span class="s">"EUR"</span>, <span class="k">"value"</span>: <span class="num">2500</span> },
-<span class="ln">3</span>  <span class="k">"reference"</span>: <span class="s">"order-{{$timestamp}}"</span>,
-<span class="ln">4</span>  <span class="k">"merchantAccount"</span>: <span class="s">"{{merchant}}"</span>
-<span class="ln">5</span>}</div></div>
-            <div class="pane">
-              <div class="ptabs"><span class="on">Body</span><span>Headers <span class="n">12</span></span><span>Timings</span><span>Tests <span class="n">2/2</span></span>
-                <span class="stat"><span class="ok">201 Created</span><span>184 ms</span><span>1.2 kB</span></span></div>
-              <div class="code"><span class="ln">1</span>{
-<span class="ln">2</span>  <span class="k">"pspReference"</span>: <span class="s">"QFQTPCQ8HXSKGK82"</span>,
-<span class="ln">3</span>  <span class="k">"orderData"</span>: <span class="s">"Ab02b4c0!BQABAgCW5sxB..."</span>,
-<span class="ln">4</span>  <span class="k">"remainingAmount"</span>: { <span class="k">"value"</span>: <span class="num">2500</span> },
-<span class="ln">5</span>  <span class="k">"expiresAt"</span>: <span class="s">"2026-10-20T10:12:00Z"</span>,
-<span class="ln">6</span>  <span class="k">"resultCode"</span>: <span class="s">"Success"</span>
-<span class="ln">7</span>}</div></div>
+      <div class="scroll"
+        ><div class="mock dir-a" aria-label="Workbench mockup">
+          <div class="top"
+            ><span class="ws">Payments team</span><span class="crumb">/ Checkout API / Orders</span>
+            <div class="search"><span>Search requests, environments, commands</span><kbd>⌘K</kbd></div>
+            <span class="envpill"><span class="dot"></span>staging</span><span class="crumb">⚙</span></div
+          >
+          <nav class="side">
+            <div class="sec">Collections</div>
+            <div class="row f"><span>▾</span><span>Checkout API</span></div>
+            <div class="row f in"><span>▾</span><span>Orders</span></div>
+            <div class="row in on"><span class="m-badge post">POST</span><span>Create an order</span></div>
+            <div class="row in"><span class="m-badge post">POST</span><span>Cancel an order</span></div>
+            <div class="row in"><span class="m-badge get">GET</span><span>Order status</span></div>
+            <div class="row f in"><span>▸</span><span>Payments</span></div>
+            <div class="row f in"><span>▸</span><span>Refunds</span></div>
+            <div class="row f"><span>▸</span><span>Billing webhooks</span></div>
+            <div class="sec">Recent</div>
+            <div class="row"><span class="m-badge get">GET</span><span>/v72/paymentMethods</span></div>
+            <div class="row"><span class="m-badge del">DEL</span><span>/v72/storedPaymentMethods/9</span></div>
+          </nav>
+          <div class="main">
+            <div class="tabstrip">
+              <span class="tab on"><span class="m-badge post">POST</span>Create an order <span class="x">✕</span></span>
+              <span class="tab"><span class="m-badge get">GET</span>Order status <span class="x">✕</span></span>
+              <span class="tab">+</span></div
+            >
+            <div class="addr">
+              <div class="url"
+                ><span class="m-badge post">POST</span><span><span class="var">{{baseUrl}}</span>/v72/orders</span></div
+              >
+              <span class="send">Send <kbd>⌘↵</kbd></span></div
+            >
+            <div class="split">
+              <div class="pane">
+                <div class="ptabs"
+                  ><span>Params</span><span class="on">Body <span class="n">json</span></span
+                  ><span>Headers <span class="n">3</span></span
+                  ><span>Auth</span><span>Scripts</span><span>Settings</span></div
+                >
+                <div class="code"
+                  ><span class="ln">1</span>{ <span class="ln">2</span> <span class="k">"amount"</span>: {
+                  <span class="k">"currency"</span>: <span class="s">"EUR"</span>, <span class="k">"value"</span>:
+                  <span class="num">2500</span> }, <span class="ln">3</span> <span class="k">"reference"</span>:
+                  <span class="s">"order-{{$timestamp}}"</span>, <span class="ln">4</span>
+                  <span class="k">"merchantAccount"</span>: <span class="s">"{{merchant}}"</span>
+                  <span class="ln">5</span>}</div
+                ></div
+              >
+              <div class="pane">
+                <div class="ptabs"
+                  ><span class="on">Body</span><span>Headers <span class="n">12</span></span
+                  ><span>Timings</span><span>Tests <span class="n">2/2</span></span>
+                  <span class="stat"
+                    ><span class="ok">201 Created</span><span>184 ms</span><span>1.2 kB</span></span
+                  ></div
+                >
+                <div class="code"
+                  ><span class="ln">1</span>{ <span class="ln">2</span> <span class="k">"pspReference"</span>:
+                  <span class="s">"QFQTPCQ8HXSKGK82"</span>, <span class="ln">3</span>
+                  <span class="k">"orderData"</span>: <span class="s">"Ab02b4c0!BQABAgCW5sxB..."</span>,
+                  <span class="ln">4</span> <span class="k">"remainingAmount"</span>: { <span class="k">"value"</span>:
+                  <span class="num">2500</span> }, <span class="ln">5</span> <span class="k">"expiresAt"</span>:
+                  <span class="s">"2026-10-20T10:12:00Z"</span>, <span class="ln">6</span>
+                  <span class="k">"resultCode"</span>: <span class="s">"Success"</span> <span class="ln">7</span>}</div
+                ></div
+              >
+            </div>
           </div>
-        </div>
-        <div class="status"><span>Sent from this tab</span><span>Vault locked</span><div class="r"><span>Local Bridge off</span><span>Saved</span></div></div>
-      </div></div>
+          <div class="status"
+            ><span>Sent from this tab</span><span>Vault locked</span
+            ><div class="r"><span>Local Bridge off</span><span>Saved</span></div></div
+          >
+        </div></div
+      >
       <div class="dirnote">
-        <div><h3>What it is</h3><p>A native professional tool, closest to Yaak and Linear. Warm graphite neutrals, one muted green accent, hairline separators instead of cards, a quiet sidebar, a status bar that says where the request went and whether the vault is open.</p></div>
-        <div><h3>What it gives up</h3><p>Personality. It looks like a well-made tool, not like Wayfarer. The privacy story lives in the status bar, not in the face of the app.</p></div>
-        <div><h3>Who it serves best</h3><p>The solo developer and the team leaving Postman: everything sits where they expect it.</p></div>
+        <div
+          ><h3>What it is</h3
+          ><p
+            >A native professional tool, closest to Yaak and Linear. Warm graphite neutrals, one muted green accent,
+            hairline separators instead of cards, a quiet sidebar, a status bar that says where the request went and
+            whether the vault is open.</p
+          ></div
+        >
+        <div
+          ><h3>What it gives up</h3
+          ><p
+            >Personality. It looks like a well-made tool, not like Wayfarer. The privacy story lives in the status bar,
+            not in the face of the app.</p
+          ></div
+        >
+        <div
+          ><h3>Who it serves best</h3
+          ><p>The solo developer and the team leaving Postman: everything sits where they expect it.</p></div
+        >
       </div>
     </div>
 
     <div id="p-b" role="tabpanel" aria-labelledby="t-b" hidden>
-      <div class="scroll"><div class="mock dir-b" aria-label="Console mockup">
-        <div class="cmd"><div class="box"><span class="prompt">❯</span><span class="post">POST</span><span>{{baseUrl}}/v72/orders</span><span class="prompt">· env staging · route auto</span></div><span class="send">SEND <kbd>⌘↵</kbd></span></div>
-        <nav class="side">
-          <div class="row f">checkout-api/</div>
-          <div class="row f in">orders/</div>
-          <div class="row in on"><span class="m-badge post">POST</span><span>create-order</span></div>
-          <div class="row in"><span class="m-badge post">POST</span><span>cancel-order</span></div>
-          <div class="row in"><span class="m-badge get">GET</span><span>order-status</span></div>
-          <div class="row f in">payments/</div>
-          <div class="row f in">refunds/</div>
-          <div class="row f">billing-webhooks/</div>
-          <div class="row f">— history —</div>
-          <div class="row"><span class="m-badge get">GET</span><span>paymentMethods</span></div>
-          <div class="row"><span class="m-badge del">DEL</span><span>storedPayment…</span></div>
-        </nav>
-        <div class="main">
-          <div class="tabstrip"><span class="tab on">create-order ●</span><span class="tab">order-status</span><span class="tab">+ ⌥T</span></div>
-          <div class="req"><div class="ptabs"><span>params</span><span class="on">body:json</span><span>headers[3]</span><span>auth</span><span>scripts</span><span>settings</span></div>
-            <div class="code">{ <span class="k">"amount"</span>: { <span class="k">"currency"</span>: <span class="s">"EUR"</span>, <span class="k">"value"</span>: <span class="num">2500</span> },
-  <span class="k">"reference"</span>: <span class="s">"order-{{$timestamp}}"</span>, <span class="k">"merchantAccount"</span>: <span class="s">"{{merchant}}"</span> }</div></div>
-          <div class="res"><div class="ptabs"><span class="on">body</span><span>headers[12]</span><span>timings</span><span>tests[2/2]</span><span class="stat"><span class="ok">201</span><span>184ms</span><span>1.2kB</span><span>direct</span></span></div>
-            <div class="grid"><span>1</span><span class="k">pspReference</span><span class="s">QFQTPCQ8HXSKGK82</span><span>2</span><span class="k">orderData</span><span class="s">Ab02b4c0!BQABAgCW5sxB…</span><span>3</span><span class="k">remainingAmount.value</span><span class="num">2500</span><span>4</span><span class="k">expiresAt</span><span class="s">2026-10-20T10:12:00Z</span><span>5</span><span class="k">resultCode</span><span class="s">Success</span></div></div>
-        </div>
-        <div class="foot"><span><kbd>⌘K</kbd> anything</span><span><kbd>⌘P</kbd> request</span><span><kbd>⌘E</kbd> env</span><span><kbd>⌘R</kbd> run</span><span style="margin-left:auto">vault: locked · bridge: off · saved</span></div>
-      </div></div>
+      <div class="scroll"
+        ><div class="mock dir-b" aria-label="Console mockup">
+          <div class="cmd"
+            ><div class="box"
+              ><span class="prompt">❯</span><span class="post">POST</span><span>{{baseUrl}}/v72/orders</span
+              ><span class="prompt">· env staging · route auto</span></div
+            ><span class="send">SEND <kbd>⌘↵</kbd></span></div
+          >
+          <nav class="side">
+            <div class="row f">checkout-api/</div>
+            <div class="row f in">orders/</div>
+            <div class="row in on"><span class="m-badge post">POST</span><span>create-order</span></div>
+            <div class="row in"><span class="m-badge post">POST</span><span>cancel-order</span></div>
+            <div class="row in"><span class="m-badge get">GET</span><span>order-status</span></div>
+            <div class="row f in">payments/</div>
+            <div class="row f in">refunds/</div>
+            <div class="row f">billing-webhooks/</div>
+            <div class="row f">— history —</div>
+            <div class="row"><span class="m-badge get">GET</span><span>paymentMethods</span></div>
+            <div class="row"><span class="m-badge del">DEL</span><span>storedPayment…</span></div>
+          </nav>
+          <div class="main">
+            <div class="tabstrip"
+              ><span class="tab on">create-order ●</span><span class="tab">order-status</span
+              ><span class="tab">+ ⌥T</span></div
+            >
+            <div class="req"
+              ><div class="ptabs"
+                ><span>params</span><span class="on">body:json</span><span>headers[3]</span><span>auth</span
+                ><span>scripts</span><span>settings</span></div
+              >
+              <div class="code"
+                >{ <span class="k">"amount"</span>: { <span class="k">"currency"</span>: <span class="s">"EUR"</span>,
+                <span class="k">"value"</span>: <span class="num">2500</span> }, <span class="k">"reference"</span>:
+                <span class="s">"order-{{$timestamp}}"</span>, <span class="k">"merchantAccount"</span>:
+                <span class="s">"{{merchant}}"</span> }</div
+              ></div
+            >
+            <div class="res"
+              ><div class="ptabs"
+                ><span class="on">body</span><span>headers[12]</span><span>timings</span><span>tests[2/2]</span
+                ><span class="stat"
+                  ><span class="ok">201</span><span>184ms</span><span>1.2kB</span><span>direct</span></span
+                ></div
+              >
+              <div class="grid"
+                ><span>1</span><span class="k">pspReference</span><span class="s">QFQTPCQ8HXSKGK82</span><span>2</span
+                ><span class="k">orderData</span><span class="s">Ab02b4c0!BQABAgCW5sxB…</span><span>3</span
+                ><span class="k">remainingAmount.value</span><span class="num">2500</span><span>4</span
+                ><span class="k">expiresAt</span><span class="s">2026-10-20T10:12:00Z</span><span>5</span
+                ><span class="k">resultCode</span><span class="s">Success</span></div
+              ></div
+            >
+          </div>
+          <div class="foot"
+            ><span><kbd>⌘K</kbd> anything</span><span><kbd>⌘P</kbd> request</span><span><kbd>⌘E</kbd> env</span
+            ><span><kbd>⌘R</kbd> run</span
+            ><span style="margin-left: auto">vault: locked · bridge: off · saved</span></div
+          >
+        </div></div
+      >
       <div class="dirnote">
-        <div><h3>What it is</h3><p>A dense, keyboard-first tool. Monospace everywhere, 22 px rows, response below the request so long URLs and long JSON both get full width. The address bar is a prompt that also shows environment and route. One loud accent, used only for Send.</p></div>
-        <div><h3>What it gives up</h3><p>Approachability. The occasional user and the QA tester meet a wall of mono text. Harder to keep at WCAG AA with small type.</p></div>
+        <div
+          ><h3>What it is</h3
+          ><p
+            >A dense, keyboard-first tool. Monospace everywhere, 22 px rows, response below the request so long URLs and
+            long JSON both get full width. The address bar is a prompt that also shows environment and route. One loud
+            accent, used only for Send.</p
+          ></div
+        >
+        <div
+          ><h3>What it gives up</h3
+          ><p
+            >Approachability. The occasional user and the QA tester meet a wall of mono text. Harder to keep at WCAG AA
+            with small type.</p
+          ></div
+        >
         <div><h3>Who it serves best</h3><p>The solo backend developer who lives in a terminal and the editor.</p></div>
       </div>
     </div>
 
     <div id="p-c" role="tabpanel" aria-labelledby="t-c" hidden>
-      <div class="scroll"><div class="mock dir-c" aria-label="Field guide mockup">
-        <div class="top"><span class="ws">Wayfarer</span>
-          <div class="navs"><span class="on">Requests</span><span>Environments</span><span>Runs</span><span>History</span></div>
-          <div class="r"><span>staging ▾</span><kbd>⌘K</kbd></div></div>
-        <nav class="side">
-          <div class="row f">Checkout API</div>
-          <div class="row"><span class="m-badge post">POST</span><span>Create an order</span></div>
-          <div class="row on"><span class="m-badge post">POST</span><span>Cancel an order</span></div>
-          <div class="row"><span class="m-badge get">GET</span><span>Order status</span></div>
-          <div class="row f">Payments</div>
-          <div class="row"><span class="m-badge post">POST</span><span>Make a payment</span></div>
-          <div class="row"><span class="m-badge get">GET</span><span>Payment methods</span></div>
-          <div class="row f">Billing webhooks</div>
-        </nav>
-        <div class="main">
-          <div class="title">Cancel an order<small>Checkout API · Orders</small></div>
-          <div class="addr"><div class="url"><span class="m-badge post">POST</span><span>https://checkout-test.adyen.com/v72/orders/cancel</span></div><span class="send">Send</span></div>
-          <div class="ptabs"><span>Params</span><span class="on">Body</span><span>Headers · 3</span><span>Auth</span><span>Scripts</span><span>Settings</span></div>
-          <div class="resp"><div class="rhead"><span class="ok">No response</span><span>after 168 ms</span></div>
-            <div class="code">The browser stopped this request before it reached the server.</div></div>
-        </div>
-        <aside class="rail">
-          <h4>Why it failed</h4>
-          <div class="note">checkout-test.adyen.com does not allow requests from a web page (CORS). Send it through the Local Bridge and it goes from your machine instead.</div>
-          <h4>Where it went</h4>
-          <div class="kv"><span>Route</span><b>from this tab</b><span>Secrets</span><b>none used</b><span>Saved</span><b>this browser only</b></div>
-        </aside>
-      </div></div>
+      <div class="scroll"
+        ><div class="mock dir-c" aria-label="Field guide mockup">
+          <div class="top"
+            ><span class="ws">Wayfarer</span>
+            <div class="navs"
+              ><span class="on">Requests</span><span>Environments</span><span>Runs</span><span>History</span></div
+            >
+            <div class="r"><span>staging ▾</span><kbd>⌘K</kbd></div></div
+          >
+          <nav class="side">
+            <div class="row f">Checkout API</div>
+            <div class="row"><span class="m-badge post">POST</span><span>Create an order</span></div>
+            <div class="row on"><span class="m-badge post">POST</span><span>Cancel an order</span></div>
+            <div class="row"><span class="m-badge get">GET</span><span>Order status</span></div>
+            <div class="row f">Payments</div>
+            <div class="row"><span class="m-badge post">POST</span><span>Make a payment</span></div>
+            <div class="row"><span class="m-badge get">GET</span><span>Payment methods</span></div>
+            <div class="row f">Billing webhooks</div>
+          </nav>
+          <div class="main">
+            <div class="title">Cancel an order<small>Checkout API · Orders</small></div>
+            <div class="addr"
+              ><div class="url"
+                ><span class="m-badge post">POST</span
+                ><span>https://checkout-test.adyen.com/v72/orders/cancel</span></div
+              ><span class="send">Send</span></div
+            >
+            <div class="ptabs"
+              ><span>Params</span><span class="on">Body</span><span>Headers · 3</span><span>Auth</span
+              ><span>Scripts</span><span>Settings</span></div
+            >
+            <div class="resp"
+              ><div class="rhead"><span class="ok">No response</span><span>after 168 ms</span></div>
+              <div class="code">The browser stopped this request before it reached the server.</div></div
+            >
+          </div>
+          <aside class="rail">
+            <h4>Why it failed</h4>
+            <div class="note"
+              >checkout-test.adyen.com does not allow requests from a web page (CORS). Send it through the Local Bridge
+              and it goes from your machine instead.</div
+            >
+            <h4>Where it went</h4>
+            <div class="kv"
+              ><span>Route</span><b>from this tab</b><span>Secrets</span><b>none used</b><span>Saved</span
+              ><b>this browser only</b></div
+            >
+          </aside>
+        </div></div
+      >
       <div class="dirnote">
-        <div><h3>What it is</h3><p>A calmer tool that explains, but only after something happens. Larger type, top-level sections instead of hidden drawers, and a right rail that says why a request failed and what left the machine. The privacy story is visible on every request.</p></div>
-        <div><h3>What it gives up</h3><p>Density. Fewer rows on screen, and the rail costs 300 px a power user may want back (it collapses).</p></div>
+        <div
+          ><h3>What it is</h3
+          ><p
+            >A calmer tool that explains, but only after something happens. Larger type, top-level sections instead of
+            hidden drawers, and a right rail that says why a request failed and what left the machine. The privacy story
+            is visible on every request.</p
+          ></div
+        >
+        <div
+          ><h3>What it gives up</h3
+          ><p
+            >Density. Fewer rows on screen, and the rail costs 300 px a power user may want back (it collapses).</p
+          ></div
+        >
         <div><h3>Who it serves best</h3><p>The privacy-bound engineer, the QA tester and the occasional user.</p></div>
       </div>
     </div>
@@ -365,29 +1502,49 @@ a { color: var(--accent) }
 
   <section class="prose">
     <h2>What I recommend</h2>
-    <p><strong>A, with C's rail.</strong> Workbench's layout, density and quiet look, plus Field guide's "why it failed / where it went" panel as a collapsible inspector. That keeps Wayfarer familiar to Postman users and makes its real difference, privacy you can see, visible without paragraphs above the request.</p>
-    <p>Widgets: drop Angular Material for Angular Aria plus platform primitives (popover, <code>&lt;dialog&gt;</code>, anchor positioning), proven first by the D1.5 bake-off on the tree, select and menu. That deletes about 1,500 lines of override CSS.</p>
+    <p
+      ><strong>A, with C's rail.</strong> Workbench's layout, density and quiet look, plus Field guide's "why it failed
+      / where it went" panel as a collapsible inspector. That keeps Wayfarer familiar to Postman users and makes its
+      real difference, privacy you can see, visible without paragraphs above the request.</p
+    >
+    <p
+      >Widgets: drop Angular Material for Angular Aria plus platform primitives (popover, <code>&lt;dialog&gt;</code>,
+      anchor positioning), proven first by the D1.5 bake-off on the tree, select and menu. That deletes about 1,500
+      lines of override CSS.</p
+    >
     <h2>Decisions I need from you</h2>
     <ol class="qs">
       <li>Which direction, or which mix.</li>
       <li>Whether Material goes, decided by the D1.5 bake-off, or stays for now.</li>
       <li>Whether to keep the name and the current mark during the overhaul.</li>
-      <li>Whether to start with the shell (fixed panes, tree, palette, status bar) or with the foundations (tokens, type, widgets).</li>
+      <li
+        >Whether to start with the shell (fixed panes, tree, palette, status bar) or with the foundations (tokens, type,
+        widgets).</li
+      >
     </ol>
   </section>
 </div>
 
 <script>
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-function pick(t) {
-  tabs.forEach(b => { const on = b === t; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; document.getElementById(b.getAttribute('aria-controls')).hidden = !on; });
-}
-tabs.forEach((t, i) => {
-  t.addEventListener('click', () => pick(t));
-  t.addEventListener('keydown', e => {
-    const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-    if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); }
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function pick(t) {
+    tabs.forEach((b) => {
+      const on = b === t;
+      b.setAttribute("aria-selected", on);
+      b.tabIndex = on ? 0 : -1;
+      document.getElementById(b.getAttribute("aria-controls")).hidden = !on;
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => pick(t));
+    t.addEventListener("keydown", (e) => {
+      const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (d) {
+        const n = tabs[(i + d + tabs.length) % tabs.length];
+        pick(n);
+        n.focus();
+      }
+    });
   });
-});
-pick(tabs[0]);
+  pick(tabs[0]);
 </script>

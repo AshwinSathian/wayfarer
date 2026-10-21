@@ -5,34 +5,14 @@
     "img-src data: is Pagefind's stylesheet, which draws its search and clear icons as data: SVGs."
   ],
   "directives": {
-    "default-src": [
-      "'none'"
-    ],
-    "script-src": [
-      "'self'",
-      "'wasm-unsafe-eval'"
-    ],
-    "style-src": [
-      "'self'"
-    ],
-    "img-src": [
-      "'self'",
-      "data:"
-    ],
-    "font-src": [
-      "'self'"
-    ],
-    "connect-src": [
-      "'self'"
-    ],
-    "base-uri": [
-      "'none'"
-    ],
-    "form-action": [
-      "'none'"
-    ],
-    "frame-ancestors": [
-      "'none'"
-    ]
+    "default-src": ["'none'"],
+    "script-src": ["'self'", "'wasm-unsafe-eval'"],
+    "style-src": ["'self'"],
+    "img-src": ["'self'", "data:"],
+    "font-src": ["'self'"],
+    "connect-src": ["'self'"],
+    "base-uri": ["'none'"],
+    "form-action": ["'none'"],
+    "frame-ancestors": ["'none'"]
   }
 }

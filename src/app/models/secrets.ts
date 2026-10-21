@@ -8,4 +8,3 @@ export interface SecretDoc {
   environmentId?: string;
   envelope: SecretEnvelope;
 }
-

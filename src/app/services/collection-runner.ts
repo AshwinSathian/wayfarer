@@ -48,7 +48,7 @@ export class CollectionRunner {
           stopOnFailure: run.stopOnFailure(),
           signal: controller.signal,
           onResult: (result) => run.results.update((results) => [...results, result]),
-        }
+        },
       );
       run.report.set(report);
     } finally {

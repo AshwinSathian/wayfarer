@@ -17,7 +17,9 @@ async function resetAllData(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
 }
 
-test("@claim:C-013 Reset All Data in one tab deletes the data and tells the other tab to reload", async ({ context }) => {
+test("@claim:C-013 Reset All Data in one tab deletes the data and tells the other tab to reload", async ({
+  context,
+}) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
   await pageA.goto("/app/");
@@ -38,7 +40,10 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
 test("Reset All Data also clears the bridge token and the other wayfarer: preferences", async ({ page }) => {
   await page.goto("/app/");
   await page.evaluate(() => {
-    localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "bridge", url: "http://127.0.0.1:7717", token: "secret" }));
+    localStorage.setItem(
+      "wayfarer:bridge",
+      JSON.stringify({ route: "bridge", url: "http://127.0.0.1:7717", token: "secret" }),
+    );
     localStorage.setItem("elsewhere", "kept");
   });
 

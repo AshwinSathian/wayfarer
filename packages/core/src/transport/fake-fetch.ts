@@ -6,7 +6,10 @@ export interface FakeCall {
 }
 
 /** A `fetch` for specs: records each call and answers with what `reply` returns. A reply that never settles rejects when the call is aborted, as `fetch` does. */
-export function fakeFetch(reply: (call: FakeCall) => Response | Promise<Response>): { fetch: FetchFn; calls: FakeCall[] } {
+export function fakeFetch(reply: (call: FakeCall) => Response | Promise<Response>): {
+  fetch: FetchFn;
+  calls: FakeCall[];
+} {
   const calls: FakeCall[] = [];
   return {
     calls,

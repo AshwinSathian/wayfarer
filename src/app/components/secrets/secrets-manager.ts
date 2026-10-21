@@ -206,7 +206,14 @@ export class SecretsManager {
     this.hideRevealed(id);
     await this.refresh();
     // The row whose button had focus is gone: focus stays in the dialog, on the next row or the vault's actions.
-    afterNextRender(() => (this.list()?.nativeElement.querySelector("button") ?? (this.actions()?.nativeElement as HTMLElement | undefined)?.querySelector("button"))?.focus(), { injector: this.injector });
+    afterNextRender(
+      () =>
+        (
+          this.list()?.nativeElement.querySelector("button") ??
+          (this.actions()?.nativeElement as HTMLElement | undefined)?.querySelector("button")
+        )?.focus(),
+      { injector: this.injector },
+    );
   }
 
   /** Closes this dialog and hands off to the Environments editor's existing variable-highlight flow (VariableFocus), reused as-is. */

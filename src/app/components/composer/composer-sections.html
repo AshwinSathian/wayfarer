@@ -7,8 +7,15 @@
       [panel]="paramsSection"
       [expanded]="view.mobileActivePanels() === 'params'"
       (expandedChange)="$event ? view.onMobileIndexChange('params') : view.onMobilePanelClosed('params', paramsTrigger)"
-    >Params <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #paramsSection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Params <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #paramsSection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <app-params-panel class="flex flex-col gap-2" />
       </ng-template>
@@ -22,8 +29,15 @@
       [panel]="headersSection"
       [expanded]="view.mobileActivePanels() === 'headers'"
       (expandedChange)="$event ? view.onMobileIndexChange('headers') : view.onMobilePanelClosed('headers', headersTrigger)"
-    >Headers <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #headersSection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Headers <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #headersSection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <app-headers-panel class="block" />
       </ng-template>
@@ -38,8 +52,15 @@
       [panel]="bodySection"
       [expanded]="view.mobileActivePanels() === 'body'"
       (expandedChange)="$event ? view.onMobileIndexChange('body') : view.onMobilePanelClosed('body', bodyTrigger)"
-    >Body <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #bodySection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Body <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #bodySection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <app-body-panel class="block" />
       </ng-template>
@@ -54,8 +75,15 @@
       [panel]="authSection"
       [expanded]="view.mobileActivePanels() === 'auth'"
       (expandedChange)="$event ? view.onMobileIndexChange('auth') : view.onMobilePanelClosed('auth', authTrigger)"
-    >Auth <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #authSection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Auth <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #authSection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <app-auth-panel />
       </ng-template>
@@ -69,8 +97,15 @@
       [panel]="scriptsSection"
       [expanded]="view.mobileActivePanels() === 'scripts'"
       (expandedChange)="$event ? view.onMobileIndexChange('scripts') : view.onMobilePanelClosed('scripts', scriptsTrigger)"
-    >Scripts <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #scriptsSection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Scripts <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #scriptsSection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <!-- Its editors are Monaco: made when the section first opens, and kept (P7.2: at load they cost 300 ms of the main thread). -->
         @defer (when view.mobileActivePanels() === 'scripts') {
@@ -87,8 +122,15 @@
       [panel]="settingsSection"
       [expanded]="view.mobileActivePanels() === 'settings'"
       (expandedChange)="$event ? view.onMobileIndexChange('settings') : view.onMobilePanelClosed('settings', settingsTrigger)"
-    >Settings <app-icon class="section-chevron" name="keyboard_arrow_down" /></button>
-    <div ngAccordionPanel uiAccordionPanel #settingsSection="ngAccordionPanel" class="section-body" [preserveContent]="true">
+      >Settings <app-icon class="section-chevron" name="keyboard_arrow_down"
+    /></button>
+    <div
+      ngAccordionPanel
+      uiAccordionPanel
+      #settingsSection="ngAccordionPanel"
+      class="section-body"
+      [preserveContent]="true"
+    >
       <ng-template ngAccordionContent>
         <app-browser-notes class="block space-y-4" />
       </ng-template>

@@ -19,8 +19,6 @@ test("@claim:C-012 @smoke no-edge-injection: page load triggers no CSP violation
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForLoadState("networkidle");
 
-  const violations = await page.evaluate(
-    () => (window as unknown as { __cspViolations: string[] }).__cspViolations
-  );
+  const violations = await page.evaluate(() => (window as unknown as { __cspViolations: string[] }).__cspViolations);
   expect(violations).toEqual([]);
 });

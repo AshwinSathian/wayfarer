@@ -56,14 +56,25 @@ export function parseCsv(text: string): string[][] {
 export function parseDataFile(text: string, fileName: string): Row[][] {
   if (/\.json$/i.test(fileName)) {
     const parsed = parseJson(text);
-    const isObject = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
-    if (!parsed.ok || !Array.isArray(parsed.value) || !parsed.value.every(isObject)) throw new DataFileError("A JSON data file is a list of objects, one for each iteration.");
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null && !Array.isArray(value);
+    if (!parsed.ok || !Array.isArray(parsed.value) || !parsed.value.every(isObject))
+      throw new DataFileError("A JSON data file is a list of objects, one for each iteration.");
     return parsed.value.map((entry) =>
-      Object.entries(entry).map(([key, value]): Row => (typeof value === "string" ? { key, value, enabled: true } : { key, value: stringifyJson(value) ?? "null", enabled: true, json: true }))
+      Object.entries(entry).map(([key, value]): Row =>
+        typeof value === "string"
+          ? { key, value, enabled: true }
+          : { key, value: stringifyJson(value) ?? "null", enabled: true, json: true },
+      ),
     );
   }
   const [names, ...records] = parseCsv(text);
-  if (!names?.some((name) => name)) throw new DataFileError("A CSV data file has the names of its values in its first line.");
+  if (!names?.some((name) => name))
+    throw new DataFileError("A CSV data file has the names of its values in its first line.");
   // A record of one empty field is an empty line.
-  return records.filter((record) => record.length > 1 || record[0] !== "").map((record) => names.flatMap((key, index): Row[] => (key ? [{ key, value: record[index] ?? "", enabled: true }] : [])));
+  return records
+    .filter((record) => record.length > 1 || record[0] !== "")
+    .map((record) =>
+      names.flatMap((key, index): Row[] => (key ? [{ key, value: record[index] ?? "", enabled: true }] : [])),
+    );
 }

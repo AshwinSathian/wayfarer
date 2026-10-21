@@ -1,5 +1,3 @@
-
-
 /**
  * A protected environment variable's value is replaced with a literal
  * `{{$secret.<id>}}` reference string, pointing at the encrypted row in the

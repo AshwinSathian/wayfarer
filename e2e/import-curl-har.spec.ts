@@ -36,16 +36,29 @@ async function pasteIntoAddress(page: Page, text: string): Promise<void> {
   await page.keyboard.press("ControlOrMeta+V");
 }
 
-test("@claim:C-056 a cURL command pasted into the address field fills the open tab, saves nothing to a collection or to history, and is sent as the command says", async ({ page }) => {
+test("@claim:C-056 a cURL command pasted into the address field fills the open tab, saves nothing to a collection or to history, and is sent as the command says", async ({
+  page,
+}) => {
   const violations: string[] = [];
   await page.exposeFunction("__violation", (text: string) => violations.push(text));
-  await page.addInitScript(() => document.addEventListener("securitypolicyviolation", (e) => void (window as unknown as { __violation: (text: string) => void }).__violation(`${e.effectiveDirective} ${e.blockedURI}`)));
+  await page.addInitScript(() =>
+    document.addEventListener(
+      "securitypolicyviolation",
+      (e) =>
+        void (window as unknown as { __violation: (text: string) => void }).__violation(
+          `${e.effectiveDirective} ${e.blockedURI}`,
+        ),
+    ),
+  );
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const before = await stored(page);
 
   // In the form Chrome writes for bash, with an option the app does not have.
-  await pasteIntoAddress(page, `curl '${ECHO}/echo?page=2' \\\n  -X 'PUT' \\\n  -H 'accept: application/json' \\\n  -H 'content-type: application/json' \\\n  -H 'x-trace: pasted' \\\n  --data-raw $'{"name":"it\\'s Ada"}' \\\n  --insecure`);
+  await pasteIntoAddress(
+    page,
+    `curl '${ECHO}/echo?page=2' \\\n  -X 'PUT' \\\n  -H 'accept: application/json' \\\n  -H 'content-type: application/json' \\\n  -H 'x-trace: pasted' \\\n  --data-raw $'{"name":"it\\'s Ada"}' \\\n  --insecure`,
+  );
 
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo?page=2`);
   await expect(page.getByRole("textbox", { name: "HTTP method" })).toHaveValue("PUT");
@@ -53,16 +66,25 @@ test("@claim:C-056 a cURL command pasted into the address field fills the open t
   // The tab holds it, and the tab is kept like any other (P5.1). Nothing else was written: no collection, no request, no history.
   await expect.poll(async () => ((await dumpIdb(page))["tabs"] ?? []).length).toBe(1);
   const after = await dumpIdb(page);
-  expect((after["tabs"] as { draft: { url: string; method: string } }[])[0].draft).toMatchObject({ url: `${ECHO}/echo?page=2`, method: "PUT" });
+  expect((after["tabs"] as { draft: { url: string; method: string } }[])[0].draft).toMatchObject({
+    url: `${ECHO}/echo?page=2`,
+    method: "PUT",
+  });
   expect(JSON.stringify({ ...after, tabs: [] })).toBe(before);
 
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   const echo = (await (await response).json()) as Echo;
   const header = (name: string) => echo.headers.find(([key]) => key === name)?.[1];
   expect(echo.method).toBe("PUT");
   expect(echo.url).toBe("/echo?page=2");
-  expect([header("accept"), header("content-type"), header("x-trace")]).toEqual(["application/json", "application/json", "pasted"]);
+  expect([header("accept"), header("content-type"), header("x-trace")]).toEqual([
+    "application/json",
+    "application/json",
+    "pasted",
+  ]);
   expect(echo.body).toBe(`{"name":"it's Ada"}`);
   await expect(page.locator(".paste-notes")).toHaveCount(0);
 
@@ -73,7 +95,9 @@ test("@claim:C-056 a cURL command pasted into the address field fills the open t
   expect(violations).toEqual([]);
 });
 
-test("@claim:C-056 a cURL command pasted into the import dialog goes down the import road: a report first, then a collection with the request", async ({ page }) => {
+test("@claim:C-056 a cURL command pasted into the import dialog goes down the import road: a report first, then a collection with the request", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
@@ -82,7 +106,11 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await page.getByRole("button", { name: "Import a cURL command", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: /^Import/ });
   // In the form Chrome writes for cmd.
-  await dialog.getByLabel("A cURL command").fill(`curl "https://api.example.test/users?page=2^&per_page=50" ^\r\n  -H "accept: application/json" ^\r\n  -b "session=abc123" ^\r\n  --data-raw "^{^\\^"name^\\^":^\\^"Ada^\\^"^}" ^\r\n  -H "content-type: application/json"`);
+  await dialog
+    .getByLabel("A cURL command")
+    .fill(
+      `curl "https://api.example.test/users?page=2^&per_page=50" ^\r\n  -H "accept: application/json" ^\r\n  -b "session=abc123" ^\r\n  --data-raw "^{^\\^"name^\\^":^\\^"Ada^\\^"^}" ^\r\n  -H "content-type: application/json"`,
+    );
   await dialog.getByRole("button", { name: "Read the command" }).click();
 
   await expect(dialog.locator(".import-report")).toContainText("cURL command");
@@ -98,7 +126,10 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
       name: "POST api.example.test/users",
       method: "POST",
       url: "https://api.example.test/users?page=2&per_page=50",
-      headers: [{ key: "accept", value: "application/json" }, { key: "Cookie", value: "session=abc123" }],
+      headers: [
+        { key: "accept", value: "application/json" },
+        { key: "Cookie", value: "session=abc123" },
+      ],
       body: { mode: "raw", raw: { language: "json", text: '{"name":"Ada"}' } },
     },
   ]);
@@ -119,7 +150,9 @@ test("@claim:C-056 a HAR 1.2 file with three entries imports as three requests",
   await expect(page.locator("input.address-url")).toBeVisible();
 
   const har = await readFile("packages/core/test/fixtures/har/three-entries.har.json");
-  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({ name: "session.har", mimeType: "application/json", buffer: har });
+  await page
+    .locator('app-collections-sidebar input[type="file"]')
+    .setInputFiles({ name: "session.har", mimeType: "application/json", buffer: har });
   const dialog = page.getByRole("dialog", { name: "Import collection" });
   await expect(dialog.locator(".import-report")).toContainText("HAR 1.2");
   await expect(dialog.locator(".import-report")).toContainText('"session.har" will add 1 collection and 3 requests.');
@@ -128,7 +161,16 @@ test("@claim:C-056 a HAR 1.2 file with three entries imports as three requests",
 
   const stores = await dumpIdb(page);
   expect(stores["collections"]).toMatchObject([{ name: "Imported from HAR" }]);
-  const requests = (stores["requests"] as { name: string; order: number; method: string; url: string; headers: { key: string }[]; body: unknown }[]).sort((a, b) => a.order - b.order);
+  const requests = (
+    stores["requests"] as {
+      name: string;
+      order: number;
+      method: string;
+      url: string;
+      headers: { key: string }[];
+      body: unknown;
+    }[]
+  ).sort((a, b) => a.order - b.order);
   expect(requests.map((request) => [request.name, request.method, request.url])).toEqual([
     ["GET /users", "GET", "https://api.example.test/users?page=2"],
     ["POST /users", "POST", "https://api.example.test/users"],
@@ -137,6 +179,13 @@ test("@claim:C-056 a HAR 1.2 file with three entries imports as three requests",
   // HTTP/2's pseudo-headers are gone; the form's fields are rows.
   expect(requests[0].headers.map((row) => row.key)).toEqual(["accept", "cookie"]);
   expect(requests[1].body).toEqual({ mode: "raw", raw: { language: "json", text: '{"name":"Ada"}' } });
-  expect(requests[2].body).toMatchObject({ mode: "urlencoded", urlencoded: [{ key: "user", value: "ada@example.test" }, { key: "remember", value: "on" }] });
-  for (const name of ["GET /users", "POST /users", "POST /login"]) await expect(page.getByRole("treeitem", { name })).toBeVisible();
+  expect(requests[2].body).toMatchObject({
+    mode: "urlencoded",
+    urlencoded: [
+      { key: "user", value: "ada@example.test" },
+      { key: "remember", value: "on" },
+    ],
+  });
+  for (const name of ["GET /users", "POST /users", "POST /login"])
+    await expect(page.getByRole("treeitem", { name })).toBeVisible();
 });

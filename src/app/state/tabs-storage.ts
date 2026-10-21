@@ -109,7 +109,9 @@ export class TabsStorage {
   flush(): Promise<void> {
     clearTimeout(this.timer);
     this.timer = undefined;
-    this.writing = this.writing.then(() => this.write()).catch((error: unknown) => recordDiagnostic(error, "tabs: could not store the tabs"));
+    this.writing = this.writing
+      .then(() => this.write())
+      .catch((error: unknown) => recordDiagnostic(error, "tabs: could not store the tabs"));
     return this.writing;
   }
 
@@ -145,7 +147,14 @@ export class TabsStorage {
       const text = JSON.stringify(this.record(tab, order));
       if (text === this.stored.get(tab.id)) continue;
       // An empty tab that was never stored is not worth a record: every page starts with one.
-      if (!this.stored.has(tab.id) && tabs.length === 1 && !tab.dirty() && !tab.bound() && tab.historyKey() === undefined) continue;
+      if (
+        !this.stored.has(tab.id) &&
+        tabs.length === 1 &&
+        !tab.dirty() &&
+        !tab.bound() &&
+        tab.historyKey() === undefined
+      )
+        continue;
       // Digests before the transaction is opened: WebCrypto is asynchronous.
       put.push({ ...record, scripts: (await this.digests(record.draft, tab)) ?? [] });
       written.set(tab.id, text);
@@ -188,7 +197,14 @@ export class TabsStorage {
     // What is here and not in the store: a tab not written yet stays; one that was stored was closed elsewhere.
     for (const { tab } of here.values()) {
       // The one empty tab a page starts with gives way to the stored ones, at the start and when another browser tab stores the first.
-      const pristine = here.size === 1 && this.tabs.tabs().length === 1 && !tab.run && !tab.dirty() && !tab.bound() && !tab.loadingState() && tab.responseStatusCode() === undefined;
+      const pristine =
+        here.size === 1 &&
+        this.tabs.tabs().length === 1 &&
+        !tab.run &&
+        !tab.dirty() &&
+        !tab.bound() &&
+        !tab.loadingState() &&
+        tab.responseStatusCode() === undefined;
       if (this.stored.has(tab.id) && !tab.loadingState()) this.stored.delete(tab.id);
       else if (!pristine) next.push(tab);
     }
@@ -223,18 +239,25 @@ export class TabsStorage {
       if (tab.bound() !== was) continue;
       tab.bound.set(this.requestOf(was.meta.id));
       // Never the other way: a hold is lifted by a review, not by a change of the tree.
-      if (!(await this.allowed({ draft, scripts }, tab.bound()))) tab.heldScripts.set({ ...draft.scripts, name: was.name });
+      if (!(await this.allowed({ draft, scripts }, tab.bound())))
+        tab.heldScripts.set({ ...draft.scripts, name: was.name });
     }
   }
 
   /** Makes `tab` what `record` says: its draft, its saved request, its scripts' standing, and the response history kept. */
   private async restore(tab: TabState, record: StoredTab): Promise<void> {
     const draft = structuredClone(record.draft);
-    tab.draft.set({ ...draft, params: draft.params.length ? draft.params : [blankRow()], headers: draft.headers.length ? draft.headers : [blankRow()] });
+    tab.draft.set({
+      ...draft,
+      params: draft.params.length ? draft.params : [blankRow()],
+      headers: draft.headers.length ? draft.headers : [blankRow()],
+    });
     tab.baseline.set(record.baseline);
     const bound = this.requestOf(record.requestId);
     tab.bound.set(bound);
-    tab.heldScripts.set((await this.allowed(record, bound)) ? null : { ...draft.scripts, name: "This tab, as it was stored" });
+    tab.heldScripts.set(
+      (await this.allowed(record, bound)) ? null : { ...draft.scripts, name: "This tab, as it was stored" },
+    );
     if (tab.historyKey() !== record.historyKey) {
       tab.historyKey.set(record.historyKey);
       const entry = record.historyKey === undefined ? null : await this.historyRepository.get(record.historyKey);

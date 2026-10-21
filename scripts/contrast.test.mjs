@@ -46,12 +46,16 @@ const SURFACES = ["--canvas-app", "--canvas-sidebar", "--canvas-panel", "--canva
 for (const name of ["dark", "light"]) {
   // The tokens come from packages/tokens; the controls' variables are built on them in controls.css.
   const vars = { ...cssValues(name), ...theme(controls, name) };
-  const colour = (token) => parse(resolve(vars, vars[token] ?? assert.fail(`${token} is not defined in the ${name} theme`)));
+  const colour = (token) =>
+    parse(resolve(vars, vars[token] ?? assert.fail(`${token} is not defined in the ${name} theme`)));
 
   test(`${name}: status and method text reads on its own fill, on every surface`, () => {
     const kinds = [
       ...["success", "warning", "error", "info"].map((k) => [`--status-${k}-text`, `--status-${k}-fill`]),
-      ...["get", "post", "put", "patch", "delete", "head", "options"].map((k) => [`--method-${k}-text`, `--method-${k}-fill`]),
+      ...["get", "post", "put", "patch", "delete", "head", "options"].map((k) => [
+        `--method-${k}-text`,
+        `--method-${k}-fill`,
+      ]),
     ];
     for (const [text, fill] of kinds) {
       for (const surface of SURFACES) {
@@ -80,7 +84,14 @@ for (const name of ["dark", "light"]) {
   });
 
   test(`${name}: every text token reads on every surface, placeholders included`, () => {
-    for (const text of ["--label-primary", "--label-secondary", "--label-secondary-on-fill", "--label-tertiary", "--label-placeholder", "--accent-text"]) {
+    for (const text of [
+      "--label-primary",
+      "--label-secondary",
+      "--label-secondary-on-fill",
+      "--label-tertiary",
+      "--label-placeholder",
+      "--accent-text",
+    ]) {
       for (const surface of SURFACES) {
         const ratio = contrast(colour(text), colour(surface));
         assert.ok(ratio >= 4.5, `${text} on ${surface}: ${ratio.toFixed(2)}:1`);

@@ -55,7 +55,10 @@ export class SwUpdate {
         // observer gives what is there already and what comes.
         const controlledAt = performance.now();
         new PerformanceObserver((list) => {
-          const loaded = list.getEntries().filter((entry) => entry.startTime < controlledAt).map((entry) => entry.name);
+          const loaded = list
+            .getEntries()
+            .filter((entry) => entry.startTime < controlledAt)
+            .map((entry) => entry.name);
           if (loaded.length) container.controller?.postMessage({ loaded });
         }).observe({ type: "resource", buffered: true });
       };

@@ -23,7 +23,12 @@ describe("GraphqlSchemas", () => {
     await fetched;
     expect(introspect.mock.calls[0][0]).toContain("__schema");
     expect(schemas.stateOf("https://a.test/graphql")?.status).toBe("ready");
-    expect(schemas.stateOf("https://a.test/graphql")?.outline?.types.map((type) => type.name)).toEqual(["Query", "Mutation", "Kind", "Pet"]);
+    expect(schemas.stateOf("https://a.test/graphql")?.outline?.types.map((type) => type.name)).toEqual([
+      "Query",
+      "Mutation",
+      "Kind",
+      "Pet",
+    ]);
     // Another address has none, and a name an object has of itself is no address.
     expect(schemas.stateOf("https://b.test/graphql")).toBeUndefined();
     expect(schemas.stateOf("constructor")).toBeUndefined();

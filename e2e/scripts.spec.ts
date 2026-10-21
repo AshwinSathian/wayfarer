@@ -15,7 +15,9 @@ async function watchViolations(page: Page): Promise<() => Promise<string[]>> {
   await page.addInitScript(() => {
     const seen: string[] = [];
     (window as unknown as { __violations: string[] }).__violations = seen;
-    document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
+    document.addEventListener("securitypolicyviolation", (e) =>
+      seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`),
+    );
   });
   return () => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 }
@@ -24,18 +26,26 @@ async function openTests(page: Page): Promise<void> {
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
 }
 
-test("@claim:C-006 a pre-request and a post-response script run under the production CSP, with no violation", async ({ page }) => {
+test("@claim:C-006 a pre-request and a post-response script run under the production CSP, with no violation", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const violations = await watchViolations(page);
   const hits = await captureTarget(page);
-  const response = await seedAndOpen(page, { stage: "before" }, {
-    method: "GET",
-    url: `${TARGET}/scripts`,
-    headers: { "X-Stage": "{{stage}}" },
-    preRequestScript: 'pm.environment.set("stage", "set-by-script"); pm.test("pre ran", () => pm.expect(pm.response).to.be.null);',
-    postRequestScript: "pm.test('t', () => pm.expect(1).to.equal(1)); pm.test('status', () => pm.expect(pm.response).to.have.status(200)); pm.test('body', () => pm.expect(pm.response.json().ok).to.equal(true));",
-  });
+  const response = await seedAndOpen(
+    page,
+    { stage: "before" },
+    {
+      method: "GET",
+      url: `${TARGET}/scripts`,
+      headers: { "X-Stage": "{{stage}}" },
+      preRequestScript:
+        'pm.environment.set("stage", "set-by-script"); pm.test("pre ran", () => pm.expect(pm.response).to.be.null);',
+      postRequestScript:
+        "pm.test('t', () => pm.expect(1).to.equal(1)); pm.test('status', () => pm.expect(pm.response).to.have.status(200)); pm.test('body', () => pm.expect(pm.response.json().ok).to.equal(true));",
+    },
+  );
   await expectProdParity(response);
   expect(response?.headers()["content-security-policy"]).toContain("script-src 'self' 'wasm-unsafe-eval';");
 
@@ -54,21 +64,29 @@ test("@claim:C-006 a pre-request and a post-response script run under the produc
   expect(errors).toEqual([]);
 });
 
-test("F76: a number and an object a script sets are a number and an object to the next script and in what is stored, and in the address they are their text", async ({ page }) => {
+test("F76: a number and an object a script sets are a number and an object to the next script and in what is stored, and in the address they are their text", async ({
+  page,
+}) => {
   const violations = await watchViolations(page);
   const hits = await captureTarget(page);
-  await seedAndOpen(page, { count: "old" }, {
-    method: "GET",
-    url: `${TARGET}/typed?count={{count}}&user={{user}}`,
-    preRequestScript: 'pm.environment.set("count", 0); pm.environment.set("user", { id: 7 }); pm.environment.set("text", "0");',
-    postRequestScript:
-      'pm.test("a number", () => pm.expect(pm.environment.get("count")).to.equal(0)); pm.test("an object", () => pm.expect(pm.environment.get("user")).to.eql({ id: 7 })); pm.test("text stays text", () => pm.expect(pm.environment.get("text")).to.equal("0")); pm.environment.set("count", pm.environment.get("count") + 1);',
-  });
+  await seedAndOpen(
+    page,
+    { count: "old" },
+    {
+      method: "GET",
+      url: `${TARGET}/typed?count={{count}}&user={{user}}`,
+      preRequestScript:
+        'pm.environment.set("count", 0); pm.environment.set("user", { id: 7 }); pm.environment.set("text", "0");',
+      postRequestScript:
+        'pm.test("a number", () => pm.expect(pm.environment.get("count")).to.equal(0)); pm.test("an object", () => pm.expect(pm.environment.get("user")).to.eql({ id: 7 })); pm.test("text stays text", () => pm.expect(pm.environment.get("text")).to.equal("0")); pm.environment.set("count", pm.environment.get("count") + 1);',
+    },
+  );
 
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
-  for (const name of ["a number", "an object", "text stays text"]) await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
+  for (const name of ["a number", "an object", "text stays text"])
+    await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
   await expect(page.locator(".test-result-fail")).toHaveCount(0);
   // In the address a value is its text: the number as written, the object as JSON.
   expect(hits).toHaveLength(1);
@@ -89,13 +107,17 @@ test("F76: a number and an object a script sets are a number and an object to th
 test("a script that fails says so in the Tests tab (F65), and the next one runs", async ({ page }) => {
   const violations = await watchViolations(page);
   await captureTarget(page);
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${TARGET}/scripts-error`,
-    // P3.9: the script that fails is the post-response one. A pre-request script that fails stops the send (the test after the next).
-    preRequestScript: "eval('1'); new Function('return 1')(); pm.test('the engine has its own eval', () => {});",
-    postRequestScript: "pm.test('before the error', () => {}); notDefined();",
-  });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${TARGET}/scripts-error`,
+      // P3.9: the script that fails is the post-response one. A pre-request script that fails stops the send (the test after the next).
+      preRequestScript: "eval('1'); new Function('return 1')(); pm.test('the engine has its own eval', () => {});",
+      postRequestScript: "pm.test('before the error', () => {}); notDefined();",
+    },
+  );
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
@@ -108,18 +130,26 @@ test("a script that fails says so in the Tests tab (F65), and the next one runs"
   expect(await violations()).toEqual([]);
 });
 
-test("P3.9: a pre-request script adds a header that reaches the server, and the time it waits is not the request's", async ({ page }) => {
+test("P3.9: a pre-request script adds a header that reaches the server, and the time it waits is not the request's", async ({
+  page,
+}) => {
   const violations = await watchViolations(page);
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${ECHO}/echo`,
-    preRequestScript: `(async () => {
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      preRequestScript: `(async () => {
       pm.request.headers.add({ key: "X-Signed", value: "by-the-script" });
       await new Promise((resolve) => setTimeout(resolve, 1500));
     })();`,
-    postRequestScript: "pm.test('after', () => {});",
-  });
-  const answered = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+      postRequestScript: "pm.test('after', () => {});",
+    },
+  );
+  const answered = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   const echo = (await (await answered).json()) as { headers: [string, string][] };
   expect(echo.headers.find(([name]) => name === "x-signed")?.[1]).toBe("by-the-script");
@@ -128,7 +158,9 @@ test("P3.9: a pre-request script adds a header that reaches the server, and the 
   await openTests(page);
   const timings = page.locator(".script-timings");
   await expect(timings).toHaveText(/^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/);
-  const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+) ms/g)].map((match) => Number(match[1]));
+  const [pre, request] = [...((await timings.textContent()) ?? "").matchAll(/(\d+) ms/g)].map((match) =>
+    Number(match[1]),
+  );
   // The script waited 1,500 ms of its own: that time is in its number and not in the request's. With 200 ms, a slow
   // runner's request to the echo server (412 ms, Firefox on CI) outlasted the script's 381 ms (e2e/FLAKES.md).
   expect(pre).toBeGreaterThanOrEqual(1500);
@@ -139,12 +171,16 @@ test("P3.9: a pre-request script adds a header that reaches the server, and the 
 test("P3.9: a pre-request script that fails stops the send, and the Tests tab shows what it did", async ({ page }) => {
   const violations = await watchViolations(page);
   const hits = await captureTarget(page);
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${TARGET}/not-sent`,
-    preRequestScript: "console.log('signing'); pm.test('before the error', () => {}); notDefined();",
-    postRequestScript: "pm.test('the post-response script ran', () => {});",
-  });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${TARGET}/not-sent`,
+      preRequestScript: "console.log('signing'); pm.test('before the error', () => {}); notDefined();",
+      postRequestScript: "pm.test('the post-response script ran', () => {});",
+    },
+  );
   await send(page);
   await expect(page.getByText("The pre-request script failed, so the request was not sent.")).toBeVisible();
   // The Tests tab is open by itself: there is no response to look at.
@@ -165,7 +201,11 @@ test("the engine is fetched on the first run, from the app's own origin, and onc
     if (/\.wasm(\?|$)/.test(request.url())) engine.push(request.url());
   });
   await captureTarget(page);
-  await seedAndOpen(page, {}, { method: "GET", url: `${TARGET}/scripts-lazy`, postRequestScript: "pm.test('ran', () => {});" });
+  await seedAndOpen(
+    page,
+    {},
+    { method: "GET", url: `${TARGET}/scripts-lazy`, postRequestScript: "pm.test('ran', () => {});" },
+  );
   // Loading the app and opening a request with a script fetches no engine.
   expect(engine).toEqual([]);
 
@@ -185,23 +225,29 @@ test("the engine is fetched on the first run, from the app's own origin, and onc
   expect(engine).toHaveLength(1);
 });
 
-test("require gives the five libraries under the production CSP, each from a file of its own that is fetched when a script names it", async ({ page, baseURL }) => {
+test("require gives the five libraries under the production CSP, each from a file of its own that is fetched when a script names it", async ({
+  page,
+  baseURL,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const violations = await watchViolations(page);
   const fetched: string[] = [];
   page.context().on("request", (request) => fetched.push(request.url()));
   await captureTarget(page);
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${TARGET}/scripts-require`,
-    preRequestScript: `
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${TARGET}/scripts-require`,
+      preRequestScript: `
       const _ = require("lodash"), CryptoJS = require("crypto-js");
       pm.test("lodash", () => pm.expect(_.chunk([1, 2, 3], 2).length).to.equal(2));
       pm.test("crypto-js, hashed by the host", () => pm.expect(CryptoJS.HmacSHA256("message", "key").toString()).to.equal("6e9ef29b75fffc5b7abae527d58fdadb2fe42e7219011976917343065f58ed4a"));
       pm.test("crypto-js has a random source", () => pm.expect(CryptoJS.AES.decrypt(CryptoJS.AES.encrypt("text", "pass").toString(), "pass").toString(CryptoJS.enc.Utf8)).to.equal("text"));
     `,
-    postRequestScript: `
+      postRequestScript: `
       const moment = require("moment"), uuid = require("uuid"), chai = require("chai");
       pm.test("moment", () => pm.expect(moment("2026-10-10T12:00:00Z").utc().add(1, "day").format("YYYY-MM-DD")).to.equal("2026-10-11"));
       pm.test("uuid", () => pm.expect(uuid.validate(uuid.v4())).to.equal(true));
@@ -209,12 +255,24 @@ test("require gives the five libraries under the production CSP, each from a fil
       pm.test("atob and btoa", () => pm.expect(require("atob")(require("btoa")("a"))).to.equal("a"));
       require("cheerio");
     `,
-  });
+    },
+  );
   // A library is one hashed file of the build, found by text only it holds.
   const dist = "dist/wayfarer/browser";
-  const files = await Promise.all((await readdir(dist)).filter((name) => /^chunk-.*\.js$/.test(name)).map(async (name) => [name, await readFile(`${dist}/${name}`, "utf8")] as const));
-  const fileOf = (marker: string) => files.filter(([, text]) => text.includes(marker)).map(([name]) => `${baseURL}/app/${name}`);
-  const libraries = { lodash: fileOf("__lodash_hash_undefined__"), "crypto-js": fileOf("Malformed UTF-8 data"), moment: fileOf("Moment<"), uuid: fileOf("Invalid UUID"), chai: fileOf("AssertionError") };
+  const files = await Promise.all(
+    (await readdir(dist))
+      .filter((name) => /^chunk-.*\.js$/.test(name))
+      .map(async (name) => [name, await readFile(`${dist}/${name}`, "utf8")] as const),
+  );
+  const fileOf = (marker: string) =>
+    files.filter(([, text]) => text.includes(marker)).map(([name]) => `${baseURL}/app/${name}`);
+  const libraries = {
+    lodash: fileOf("__lodash_hash_undefined__"),
+    "crypto-js": fileOf("Malformed UTF-8 data"),
+    moment: fileOf("Moment<"),
+    uuid: fileOf("Invalid UUID"),
+    chai: fileOf("AssertionError"),
+  };
   for (const [name, found] of Object.entries(libraries)) expect(found, name).toHaveLength(1);
   const all = Object.values(libraries).flat();
   // Opening the request fetched none of them.
@@ -223,7 +281,15 @@ test("require gives the five libraries under the production CSP, each from a fil
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
-  for (const name of ["lodash", "crypto-js, hashed by the host", "crypto-js has a random source", "moment", "uuid", "chai", "atob and btoa"]) {
+  for (const name of [
+    "lodash",
+    "crypto-js, hashed by the host",
+    "crypto-js has a random source",
+    "moment",
+    "uuid",
+    "chai",
+    "atob and btoa",
+  ]) {
     await expect(page.locator(".test-result-pass").getByText(name, { exact: true })).toBeVisible();
   }
   const failed = page.locator(".test-result-fail");
@@ -240,17 +306,23 @@ test("require gives the five libraries under the production CSP, each from a fil
   expect(errors).toEqual([]);
 });
 
-test("Postman's pm in the built app: a pre-request script fetches a token with pm.sendRequest, signs the request, and the post-response script checks the answer with chai", async ({ page }) => {
+test("Postman's pm in the built app: a pre-request script fetches a token with pm.sendRequest, signs the request, and the post-response script checks the answer with chai", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const violations = await watchViolations(page);
   const hits = await captureTarget(page, { contentType: "application/json", body: '{"token":"t-123","items":[1,2]}' });
-  await seedAndOpen(page, { host: "tripwire.test", stage: "before" }, {
-    method: "POST",
-    url: "https://{{host}}/items",
-    headers: { "X-Stage": "{{stage}}" },
-    body: { name: "a" },
-    preRequestScript: `
+  await seedAndOpen(
+    page,
+    { host: "tripwire.test", stage: "before" },
+    {
+      method: "POST",
+      url: "https://{{host}}/items",
+      headers: { "X-Stage": "{{stage}}" },
+      body: { name: "a" },
+      preRequestScript:
+        `
       const login = await pm.sendRequest({ url: "https://{{host}}/login", method: "POST", header: { "Content-Type": "application/json" }, body: { mode: "raw", raw: JSON.stringify({ user: "{{stage}}" }) } });
       pm.environment.set("token", login.json().token);
       pm.globals.set("seen", pm.info.eventName + " " + pm.info.requestName);
@@ -258,7 +330,7 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
       pm.request.headers.add({ key: "X-Signed", value: require("crypto-js").HmacSHA256(pm.request.body.raw, login.json().token).toString() });
       pm.request.url = pm.request.url.toString() + "?signed=1";
     `.replace(/^/, "(async () => {") + "})();",
-    postRequestScript: `
+      postRequestScript: `
       pm.test("status", () => pm.response.to.have.status(200));
       pm.test("chai", () => pm.expect(pm.response.json()).to.deep.include({ token: "t-123" }).and.to.have.property("items").that.has.lengthOf(2));
       pm.test("scopes", () => pm.expect([pm.variables.get("token"), pm.globals.get("seen"), pm.environment.name]).to.eql(["t-123", "prerequest Tripwire request", "Tripwire env"]));
@@ -266,7 +338,8 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
       pm.test("its variables replaced (P3.9)", () => pm.expect([pm.request.url.getHost(), pm.request.headers.get("Authorization"), pm.request.headers.get("X-Stage"), request.url]).to.eql(["tripwire.test", "Bearer t-123", "before", "https://tripwire.test/items?signed=1"]));
       pm.test("cookies are not there", () => { pm.cookies.get("session"); });
     `,
-  });
+    },
+  );
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);
@@ -275,11 +348,18 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
   }
   const failed = page.locator(".test-result-fail");
   await expect(failed).toHaveCount(1);
-  await expect(failed).toContainText("pm.cookies.get() is not supported — see docs/postman-compatibility.md#pm-cookies");
-  await expect(page.locator(".script-console")).toContainText("[pm.sendRequest] POST https://tripwire.test/login → 200");
+  await expect(failed).toContainText(
+    "pm.cookies.get() is not supported — see docs/postman-compatibility.md#pm-cookies",
+  );
+  await expect(page.locator(".script-console")).toContainText(
+    "[pm.sendRequest] POST https://tripwire.test/login → 200",
+  );
 
   // The script's own request went first, with its variables replaced; then the user's, as the script left it.
-  expect(hits.map((hit) => `${hit.method()} ${hit.url()}`)).toEqual(["POST https://tripwire.test/login", "POST https://tripwire.test/items?signed=1"]);
+  expect(hits.map((hit) => `${hit.method()} ${hit.url()}`)).toEqual([
+    "POST https://tripwire.test/login",
+    "POST https://tripwire.test/items?signed=1",
+  ]);
   expect(hits[0].postData()).toBe('{"user":"before"}');
   const sent = hits[1].headers();
   expect(sent["authorization"]).toBe("Bearer t-123");
@@ -291,15 +371,21 @@ test("Postman's pm in the built app: a pre-request script fetches a token with p
   expect(errors).toEqual([]);
 });
 
-test("a script written for Postman's older sandbox runs as it is: postman.*, tests[...], responseBody and the rest", async ({ page }) => {
+test("a script written for Postman's older sandbox runs as it is: postman.*, tests[...], responseBody and the rest", async ({
+  page,
+}) => {
   const violations = await watchViolations(page);
   const hits = await captureTarget(page);
-  await seedAndOpen(page, { stage: "before" }, {
-    method: "GET",
-    url: `${TARGET}/legacy`,
-    headers: { "X-Stage": "{{stage}}" },
-    preRequestScript: 'postman.setEnvironmentVariable("stage", "set-by-legacy-script"); postman.setGlobalVariable("legacy", "yes");',
-    postRequestScript: `
+  await seedAndOpen(
+    page,
+    { stage: "before" },
+    {
+      method: "GET",
+      url: `${TARGET}/legacy`,
+      headers: { "X-Stage": "{{stage}}" },
+      preRequestScript:
+        'postman.setEnvironmentVariable("stage", "set-by-legacy-script"); postman.setGlobalVariable("legacy", "yes");',
+      postRequestScript: `
       tests["status"] = responseCode.code === 200;
       tests["body"] = JSON.parse(responseBody).ok === true;
       tests["header"] = postman.getResponseHeader("Content-Type") === "application/json";
@@ -307,7 +393,8 @@ test("a script written for Postman's older sandbox runs as it is: postman.*, tes
       tests["request"] = request.method === "GET" && request.url.indexOf("/legacy") !== -1;
       tests["a test that fails"] = responseCode.code === 404;
     `,
-  });
+    },
+  );
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await openTests(page);

@@ -1,5 +1,21 @@
 import { NgTemplateOutlet } from "@angular/common";
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, TemplateRef, afterNextRender, computed, contentChild, effect, inject, input, output, signal, untracked, viewChild } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  TemplateRef,
+  afterNextRender,
+  computed,
+  contentChild,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from "@angular/core";
 import { Tree as AriaTree, TreeItem, TreeItemGroup } from "@angular/aria/tree";
 import { Icon } from "../shared/icon/icon";
 
@@ -49,7 +65,15 @@ interface Row<T> {
   selector: "ui-tree",
   imports: [AriaTree, TreeItem, TreeItemGroup, NgTemplateOutlet, Icon],
   template: `
-    <div ngTree #tree="ngTree" class="ui-tree" [wrap]="false" [attr.aria-label]="ariaLabel()" [value]="selectedValue()" (valueChange)="onValue($event)">
+    <div
+      ngTree
+      #tree="ngTree"
+      class="ui-tree"
+      [wrap]="false"
+      [attr.aria-label]="ariaLabel()"
+      [value]="selectedValue()"
+      (valueChange)="onValue($event)"
+    >
       <ng-container *ngTemplateOutlet="rows; context: { $implicit: nodes(), parent: tree }" />
     </div>
 
@@ -84,7 +108,9 @@ interface Row<T> {
           <span class="ui-tree-toggle" aria-hidden="true" [class.ui-tree-toggle--hidden]="!node.children?.length">
             <app-icon [name]="isExpanded(node) ? 'keyboard_arrow_down' : 'chevron_right'" />
           </span>
-          <span class="ui-tree-label"><ng-container *ngTemplateOutlet="rowTemplate(); context: { $implicit: node }" /></span>
+          <span class="ui-tree-label"
+            ><ng-container *ngTemplateOutlet="rowTemplate(); context: { $implicit: node }"
+          /></span>
         </div>
         @if (node.children?.length) {
           <div role="none" class="ui-tree-group">
@@ -229,7 +255,14 @@ export class Tree<T> {
       event.preventDefault();
       // A real event, so it goes the way a right-click does: to the row, then up to whatever opens the menu.
       const rect = target.getBoundingClientRect();
-      target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: rect.left + 24, clientY: rect.bottom }));
+      target.dispatchEvent(
+        new MouseEvent("contextmenu", {
+          bubbles: true,
+          cancelable: true,
+          clientX: rect.left + 24,
+          clientY: rect.bottom,
+        }),
+      );
     } else if (event.key === "F2") {
       event.preventDefault();
       this.edit.emit(node);
@@ -269,7 +302,12 @@ export class Tree<T> {
   /** A row accepts the dragged one only if both have the same parent and group. */
   private accepts(row: Row<T>): boolean {
     const dragged = this.dragged;
-    return !!dragged && dragged.node !== row.node && dragged.parent === row.parent && this.group()(dragged.node) === this.group()(row.node);
+    return (
+      !!dragged &&
+      dragged.node !== row.node &&
+      dragged.parent === row.parent &&
+      this.group()(dragged.node) === this.group()(row.node)
+    );
   }
 
   private isBefore(event: DragEvent): boolean {

@@ -36,7 +36,11 @@ export function theme(name) {
 /** A theme's tokens as CSS values, by custom property name; an alias (`{group.name}`) stays a `var()`. */
 export function cssValues(name) {
   const tokens = theme(name);
-  return Object.fromEntries([...tokens].flatMap(([key, token]) => (token.$type === "typography" ? typeValues(key, token) : [[`--${key}`, css(key, token, tokens)]])));
+  return Object.fromEntries(
+    [...tokens].flatMap(([key, token]) =>
+      token.$type === "typography" ? typeValues(key, token) : [[`--${key}`, css(key, token, tokens)]],
+    ),
+  );
 }
 
 /** A type style as the custom properties its class reads: `--type-body-size`, `-line`, `-weight`, `-tracking`. */
@@ -92,7 +96,13 @@ function css(key, token, tokens) {
     case "fontFamily":
       return value.map((family) => (/^[\w-]+$/.test(family) ? family : `'${family}'`)).join(", ");
     case "shadow":
-      return value.map((s) => [s.offsetX, s.offsetY, s.blur, s.spread].map((d) => (d.value ? `${d.value}${d.unit}` : "0")).join(" ") + ` ${colour(key, s.color)}`).join(", ");
+      return value
+        .map(
+          (s) =>
+            [s.offsetX, s.offsetY, s.blur, s.spread].map((d) => (d.value ? `${d.value}${d.unit}` : "0")).join(" ") +
+            ` ${colour(key, s.color)}`,
+        )
+        .join(", ");
     default:
       throw new Error(`${key}: no CSS for $type ${token.$type}`);
   }
@@ -118,9 +128,18 @@ export function hexColours(name) {
   for (const [key, token] of tokens) {
     const target = typeof token.$value === "string" ? tokens.get(token.$value.slice(1, -1).split(".").pop()) : token;
     if (target?.$type !== "color") continue;
-    const hex = toSrgb(target.$value.components, key).map((c) => c.toString(16).padStart(2, "0").toUpperCase()).join("");
+    const hex = toSrgb(target.$value.components, key)
+      .map((c) => c.toString(16).padStart(2, "0").toUpperCase())
+      .join("");
     const alpha = target.$value.alpha ?? 1;
-    out[key] = `#${hex}${alpha === 1 ? "" : Math.round(alpha * 255).toString(16).padStart(2, "0").toUpperCase()}`;
+    out[key] = `#${hex}${
+      alpha === 1
+        ? ""
+        : Math.round(alpha * 255)
+            .toString(16)
+            .padStart(2, "0")
+            .toUpperCase()
+    }`;
   }
   return out;
 }

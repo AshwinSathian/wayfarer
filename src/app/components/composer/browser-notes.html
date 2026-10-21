@@ -1,54 +1,85 @@
 @let limits = store.browserLimits();
 <div class="request-route flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
   <span id="request-route-label">Route</span>
-  <ui-select class="w-48" aria-labelledby="request-route-label" [options]="routes()" [value]="store.draft().settings.route ?? null" (valueChange)="store.setRoute($event)" />
-  <span class="min-w-0">Auto sends from the page, and through the Local Bridge when the browser could not. Inherit is the collection's, else the device's (Settings, Local Bridge).</span>
+  <ui-select
+    class="w-48"
+    aria-labelledby="request-route-label"
+    [options]="routes()"
+    [value]="store.draft().settings.route ?? null"
+    (valueChange)="store.setRoute($event)"
+  />
+  <span class="min-w-0"
+    >Auto sends from the page, and through the Local Bridge when the browser could not. Inherit is the collection's,
+    else the device's (Settings, Local Bridge).</span
+  >
 </div>
 <div class="follow-redirects flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
-  <mat-checkbox [checked]="store.draft().settings.followRedirects !== false" (change)="store.setFollowRedirects($event.checked)">Follow redirects</mat-checkbox>
+  <mat-checkbox
+    [checked]="store.draft().settings.followRedirects !== false"
+    (change)="store.setFollowRedirects($event.checked)"
+    >Follow redirects</mat-checkbox
+  >
   @if (limits.route === 'bridge') {
   <span class="min-w-0">Through the Local Bridge each one is listed, 20 at most.</span>
   } @else {
-  <span class="min-w-0">Sent directly, a request is always followed: the browser shows a page only where it ended. The Local Bridge can list each redirect, or not follow.</span>
+  <span class="min-w-0"
+    >Sent directly, a request is always followed: the browser shows a page only where it ended. The Local Bridge can
+    list each redirect, or not follow.</span
+  >
   }
 </div>
 <div class="tls-insecure flex flex-wrap items-center gap-x-3 gap-y-1 type-footnote text-label-secondary">
-  <mat-checkbox [checked]="store.draft().settings.tlsInsecure === true" (change)="store.setTlsInsecure($event.checked)">Do not verify the server's certificate</mat-checkbox>
+  <mat-checkbox [checked]="store.draft().settings.tlsInsecure === true" (change)="store.setTlsInsecure($event.checked)"
+    >Do not verify the server's certificate</mat-checkbox
+  >
   @if (limits.route === 'bridge') {
-  <span class="min-w-0">For this request the Local Bridge accepts any certificate: a self-signed one, an expired one, one for another name.</span>
+  <span class="min-w-0"
+    >For this request the Local Bridge accepts any certificate: a self-signed one, an expired one, one for another
+    name.</span
+  >
   } @else {
-  <span class="min-w-0">Only the Local Bridge can: sent directly, the browser verifies every certificate, whatever this says.</span>
+  <span class="min-w-0"
+    >Only the Local Bridge can: sent directly, the browser verifies every certificate, whatever this says.</span
+  >
   }
 </div>
 <section class="space-y-3 pt-2">
-      <h3 class="type-subhead text-label-primary">What the browser does to this request</h3>
-      <div class="space-y-3 type-footnote text-label-secondary">
-        @if (limits.route === 'bridge') {
-        <p class="browser-note-bridge">Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as <code>Cookie</code>, <code>Origin</code> and <code>Host</code> are sent as written, the bridge asks for a compressed response (<code>Accept-Encoding: gzip, deflate, br</code>) unless the request names its own, no server is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar (Settings, Cookies) and sent with later requests to its domain and path.</p>
-        } @else {
-        <p class="browser-note-preflight">
-          @if (limits.preflight.length) {
-          The browser asks the server first, with an <code>OPTIONS</code> request, because of
-          {{ limits.preflight.join(', ') }}. The request is sent only if the server's answer allows it.
-          } @else if (limits.crossOrigin) {
-          This request is sent without asking the server first. The response can be read only if the server allows this page's origin.
-          } @else {
-          This request is sent without asking the server first.
-          }
-        </p>
-        @if (limits.mixedContent === 'loopback') {
-        <p class="browser-note-mixed">This is an <code>http://</code> address on this machine, called from a page loaded over HTTPS: Chrome and Firefox allow that, Safari does not.</p>
-        }
-        <p class="browser-note-adds">
-          The browser adds
-          @for (name of limits.adds; track name) {<code>{{ name }}</code>{{ $last ? '.' : ', ' }}}
-        </p>
-        <p class="browser-note-suppresses">
-          Wayfarer tells it to send no
-          @for (name of limits.suppresses; track name) {<code>{{ name }}</code>{{ $last ? '' : ' and no ' }}}:
-          the request carries no address of this page and no cookies of the target's site. Cookies a response sets are not kept.
-        </p>
-        }
-        <p><a class="underline text-accent-text" [href]="docs" target="_blank" rel="noopener noreferrer">What each of these means, and what the Local Bridge changes</a></p>
-      </div>
+  <h3 class="type-subhead text-label-primary">What the browser does to this request</h3>
+  <div class="space-y-3 type-footnote text-label-secondary">
+    @if (limits.route === 'bridge') {
+    <p class="browser-note-bridge"
+      >Nothing: the Local Bridge is on, so this request leaves from your machine, not from the browser. Headers such as
+      <code>Cookie</code>, <code>Origin</code> and <code>Host</code> are sent as written, the bridge asks for a
+      compressed response (<code>Accept-Encoding: gzip, deflate, br</code>) unless the request names its own, no server
+      is asked first, and an <code>http://</code> address works. A cookie a response sets is kept in the app's jar
+      (Settings, Cookies) and sent with later requests to its domain and path.</p
+    >
+    } @else {
+    <p class="browser-note-preflight">
+      @if (limits.preflight.length) { The browser asks the server first, with an <code>OPTIONS</code> request, because
+      of {{ limits.preflight.join(', ') }}. The request is sent only if the server's answer allows it. } @else if
+      (limits.crossOrigin) { This request is sent without asking the server first. The response can be read only if the
+      server allows this page's origin. } @else { This request is sent without asking the server first. }
+    </p>
+    @if (limits.mixedContent === 'loopback') {
+    <p class="browser-note-mixed"
+      >This is an <code>http://</code> address on this machine, called from a page loaded over HTTPS: Chrome and Firefox
+      allow that, Safari does not.</p
+    >
+    }
+    <p class="browser-note-adds">
+      The browser adds @for (name of limits.adds; track name) {<code>{{ name }}</code>{{ $last ? '.' : ', ' }}}
+    </p>
+    <p class="browser-note-suppresses">
+      Wayfarer tells it to send no @for (name of limits.suppresses; track name) {<code>{{ name }}</code>{{ $last ? '' :
+      ' and no ' }}}: the request carries no address of this page and no cookies of the target's site. Cookies a
+      response sets are not kept.
+    </p>
+    }
+    <p
+      ><a class="underline text-accent-text" [href]="docs" target="_blank" rel="noopener noreferrer"
+        >What each of these means, and what the Local Bridge changes</a
+      ></p
+    >
+  </div>
 </section>

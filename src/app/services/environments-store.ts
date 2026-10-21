@@ -25,14 +25,10 @@ export class EnvironmentsStore {
     });
   }
 
-  readonly environments: Signal<EnvironmentDoc[]> = computed(() =>
-    this.environmentsState()
-  );
+  readonly environments: Signal<EnvironmentDoc[]> = computed(() => this.environmentsState());
   readonly activeEnvironment: Signal<EnvironmentDoc | null> = computed(() => {
     const id = this.activeIdState();
-    return id
-      ? this.environmentsState().find((env) => env.meta.id === id) ?? null
-      : null;
+    return id ? (this.environmentsState().find((env) => env.meta.id === id) ?? null) : null;
   });
   readonly loading: Signal<boolean> = computed(() => this.loadingState());
   /** The global variables: any request can use them, under any environment. */
@@ -65,11 +61,7 @@ export class EnvironmentsStore {
     }
   }
 
-  async createEnvironment(payload: {
-    name: string;
-    description?: string;
-    vars?: Row[];
-  }): Promise<EnvironmentDoc> {
+  async createEnvironment(payload: { name: string; description?: string; vars?: Row[] }): Promise<EnvironmentDoc> {
     const doc = await this.environmentsRepository.createEnvironment(payload);
     await this.refresh();
     return doc;
@@ -77,7 +69,7 @@ export class EnvironmentsStore {
 
   async updateEnvironment(
     id: string,
-    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
+    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>,
   ): Promise<EnvironmentDoc | null> {
     const doc = await this.environmentsRepository.updateEnvironment(id, updates);
     await this.refresh();
@@ -88,7 +80,7 @@ export class EnvironmentsStore {
   async changeEnvironment(
     id: string,
     changes: VariableChange[],
-    details?: Partial<Pick<EnvironmentDoc, "name" | "description">>
+    details?: Partial<Pick<EnvironmentDoc, "name" | "description">>,
   ): Promise<EnvironmentDoc | null> {
     const doc = await this.environmentsRepository.changeEnvironment(id, changes, details);
     await this.refresh();

@@ -34,14 +34,23 @@ describe("environment-io", () => {
 
     expect(validateEnvironmentExport(fileOf([withoutId])).payload?.[0].id).toBe("x");
     // A file of before 2.0: a bare array, or a wrapper with no $id.
-    const notThisFormat = { ok: false, errors: ['Not a Wayfarer environments file: "$id" must be "wayfarer/environments".'] };
+    const notThisFormat = {
+      ok: false,
+      errors: ['Not a Wayfarer environments file: "$id" must be "wayfarer/environments".'],
+    };
     expect(validateEnvironmentExport([withoutId])).toEqual(notThisFormat);
     expect(validateEnvironmentExport({ environments: [withoutId] })).toEqual(notThisFormat);
   });
 
   it("rejects text that is not JSON and JSON that is not a list of environments", () => {
-    expect(validateEnvironmentExport("{nope")).toEqual({ ok: false, errors: ["File does not contain a valid JSON payload."] });
-    expect(validateEnvironmentExport(fileOf("none"))).toEqual({ ok: false, errors: ["Expected an array of environments."] });
+    expect(validateEnvironmentExport("{nope")).toEqual({
+      ok: false,
+      errors: ["File does not contain a valid JSON payload."],
+    });
+    expect(validateEnvironmentExport(fileOf("none"))).toEqual({
+      ok: false,
+      errors: ["Expected an array of environments."],
+    });
   });
 
   it("rejects a variable whose value is not a string", () => {
@@ -57,7 +66,7 @@ describe("environment-io", () => {
             { key: "b", value: { nested: true }, enabled: true },
           ],
         },
-      ])
+      ]),
     );
 
     expect(result.errors).toEqual(["environments[0].vars[1].value: Value must be a string."]);
@@ -85,7 +94,8 @@ describe("environment-io", () => {
       vars: Object.entries(vars).map(([key, value]) => ({ key, value, enabled: true })),
     });
     const environments = [env({ host: "localhost", token: "{{$secret.s-1}}", header: "Bearer {{ $secret.s-2 }}" })];
-    const values = (json: string) => (JSON.parse(json) as { environments: EnvironmentDoc[] }).environments[0].vars.map((row) => row.value);
+    const values = (json: string) =>
+      (JSON.parse(json) as { environments: EnvironmentDoc[] }).environments[0].vars.map((row) => row.value);
 
     it("leaves them out unless told otherwise: no reference and no plaintext", () => {
       const json = serializeEnvironmentExport(environments);
@@ -95,18 +105,29 @@ describe("environment-io", () => {
     });
 
     it("writes the references with the vault beside them, still encrypted", () => {
-      const vault = { $id: "wayfarer/vault" as const, vault: { kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" }, secrets: [] };
+      const vault = {
+        $id: "wayfarer/vault" as const,
+        vault: { kdf: { alg: "PBKDF2-SHA256" as const, iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcA" },
+        secrets: [],
+      };
       const json = serializeEnvironmentExport(environments, { mode: "references", vault });
       expect(values(json)).toEqual(["localhost", "{{$secret.s-1}}", "Bearer {{ $secret.s-2 }}"]);
       expect((JSON.parse(json) as { vault: unknown }).vault).toEqual(vault);
       // The file still imports as environments.
       expect(validateEnvironmentExport(json).ok).toBe(true);
       // No vault yet: the references alone.
-      expect(Object.keys(JSON.parse(serializeEnvironmentExport(environments, { mode: "references", vault: null })) as object)).toEqual(["$id", "environments"]);
+      expect(
+        Object.keys(
+          JSON.parse(serializeEnvironmentExport(environments, { mode: "references", vault: null })) as object,
+        ),
+      ).toEqual(["$id", "environments"]);
     });
 
     it("writes plaintext only when given it, and nothing for a secret it was not given", () => {
-      const json = serializeEnvironmentExport(environments, { mode: "plain", plaintexts: new Map([["s-2", "real-token"]]) });
+      const json = serializeEnvironmentExport(environments, {
+        mode: "plain",
+        plaintexts: new Map([["s-2", "real-token"]]),
+      });
       expect(values(json)).toEqual(["localhost", "", "Bearer real-token"]);
     });
   });

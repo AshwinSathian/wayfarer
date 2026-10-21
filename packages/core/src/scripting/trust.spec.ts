@@ -9,7 +9,9 @@ describe("script trust", () => {
   });
 
   it("the digest changes when any character of a script changes", async () => {
-    const digests = await Promise.all(["pm.test('a')", "pm.test('a') ", "pm.test('b')", "PM.test('a')"].map(scriptDigest));
+    const digests = await Promise.all(
+      ["pm.test('a')", "pm.test('a') ", "pm.test('b')", "PM.test('a')"].map(scriptDigest),
+    );
     expect(new Set(digests).size).toBe(4);
   });
 

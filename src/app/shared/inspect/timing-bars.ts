@@ -9,12 +9,9 @@ export interface TimingBar {
 }
 
 export const TIMING_SUMMARY_TOOLTIPS = {
-  duration:
-    "Overall time between sending the request and receiving the last byte of the response.",
-  transferSize:
-    "Total bytes transferred over the network for this response, including headers if available.",
-  encodedBodySize:
-    "Size of the compressed response body as delivered over the network.",
+  duration: "Overall time between sending the request and receiving the last byte of the response.",
+  transferSize: "Total bytes transferred over the network for this response, including headers if available.",
+  encodedBodySize: "Size of the compressed response body as delivered over the network.",
   decodedBodySize: "Size of the response body after decompression in the browser.",
 };
 
@@ -49,8 +46,7 @@ export const TIMING_PHASE_ORDER: {
   {
     key: "request",
     label: "Request",
-    description:
-      "Time from finishing the connection to sending the first byte of the request body.",
+    description: "Time from finishing the connection to sending the first byte of the request body.",
   },
   {
     key: "ttfb",
@@ -64,9 +60,7 @@ export const TIMING_PHASE_ORDER: {
   },
 ];
 
-const PHASE_DESCRIPTION_MAP = new Map(
-  TIMING_PHASE_ORDER.map((phase) => [phase.key, phase.description])
-);
+const PHASE_DESCRIPTION_MAP = new Map(TIMING_PHASE_ORDER.map((phase) => [phase.key, phase.description]));
 
 /** Per-phase waterfall bars (redirect/dns/tcp/tls/request/ttfb/content), each with a percent-of-total width. Empty if the inspection has no phase breakdown. */
 export function getTimingBars(inspection: ResponseInspection | null): TimingBar[] {
@@ -75,10 +69,7 @@ export function getTimingBars(inspection: ResponseInspection | null): TimingBar[
   }
   return TIMING_PHASE_ORDER.map((phase) => {
     const duration = inspection.phases?.[phase.key] ?? 0;
-    const percent =
-      inspection.duration > 0
-        ? Math.min(100, Math.max((duration / inspection.duration) * 100, 0))
-        : 0;
+    const percent = inspection.duration > 0 ? Math.min(100, Math.max((duration / inspection.duration) * 100, 0)) : 0;
     return {
       key: phase.key,
       label: phase.label,

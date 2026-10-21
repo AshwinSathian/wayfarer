@@ -10,7 +10,9 @@ interface Echo {
 }
 
 async function sendAndEcho(page: Page): Promise<Echo> {
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   return (await (await response).json()) as Echo;
 }
@@ -18,21 +20,37 @@ async function sendAndEcho(page: Page): Promise<Echo> {
 const header = (echo: Echo, name: string) => echo.headers.find(([key]) => key === name)?.[1];
 const authTab = (page: Page) => page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).first();
 
-test("@claim:C-019 a collection's bearer auth reaches the server for a request set to inherit, and a folder's replaces it", async ({ page }) => {
+test("@claim:C-019 a collection's bearer auth reaches the server for a request set to inherit, and a folder's replaces it", async ({
+  page,
+}) => {
   // The collection's auth is stored; the folder's is set in its settings dialog below.
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: { type: "inherit" }, collection: { auth: { type: "bearer", token: "c019-collection-token" } }, folder: {} });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: { type: "inherit" },
+      collection: { auth: { type: "bearer", token: "c019-collection-token" } },
+      folder: {},
+    },
+  );
 
   const inherited = await sendAndEcho(page);
   expect(header(inherited, "authorization")).toBe("Bearer c019-collection-token");
   // The Auth tab says what will be sent, and where it comes from.
   await authTab(page).click();
-  await expect(page.locator(".auth-inherited")).toHaveText('Bearer Token is sent, from collection "Tripwire collection".');
+  await expect(page.locator(".auth-inherited")).toHaveText(
+    'Bearer Token is sent, from collection "Tripwire collection".',
+  );
 
   await page.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Settings" }).click();
   const settings = page.getByRole("dialog", { name: "Folder settings: Tripwire folder" });
   // A new folder inherits, and says what from.
-  await expect(settings.locator(".auth-inherited")).toHaveText('Bearer Token is sent, from collection "Tripwire collection".');
+  await expect(settings.locator(".auth-inherited")).toHaveText(
+    'Bearer Token is sent, from collection "Tripwire collection".',
+  );
   await settings.getByRole("combobox", { name: "Type" }).click();
   await page.getByRole("option", { name: "API Key" }).click();
   await settings.getByLabel("Key", { exact: true }).fill("X-C019-Folder");
@@ -46,14 +64,23 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   expect(header(replaced, "authorization")).toBeUndefined();
 });
 
-test("a request made in a collection starts with inherit; a collection's settings hold auth, variables and scripts, and keep them over a reload", async ({ page }) => {
+test("a request made in a collection starts with inherit; a collection's settings hold auth, variables and scripts, and keep them over a reload", async ({
+  page,
+}) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Settings" }).click();
   const settings = page.getByRole("dialog", { name: "Collection settings: Tripwire collection" });
   // A collection has nothing above it to inherit from.
   await settings.getByRole("combobox", { name: "Type" }).click();
-  await expect(page.getByRole("option")).toHaveText(["None", "Bearer Token", "Basic Auth", "API Key", "AWS Signature", "OAuth 2.0"]);
+  await expect(page.getByRole("option")).toHaveText([
+    "None",
+    "Bearer Token",
+    "Basic Auth",
+    "API Key",
+    "AWS Signature",
+    "OAuth 2.0",
+  ]);
   await page.getByRole("option", { name: "Bearer Token" }).click();
   await settings.getByLabel("Token", { exact: true }).fill("{{shopToken}}");
   await settings.getByRole("tab", { name: "Variables" }).click();
@@ -65,7 +92,10 @@ test("a request made in a collection starts with inherit; a collection's setting
 
   await page.reload();
   const stored = ((await dumpIdb(page))["collections"] as Record<string, unknown>[])[0];
-  expect(stored).toMatchObject({ auth: { type: "bearer", token: "{{shopToken}}" }, variables: [{ key: "shopToken", value: "from-the-collection", enabled: true }] });
+  expect(stored).toMatchObject({
+    auth: { type: "bearer", token: "{{shopToken}}" },
+    variables: [{ key: "shopToken", value: "from-the-collection", enabled: true }],
+  });
 
   // A request made in the collection inherits from the start.
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
@@ -74,7 +104,9 @@ test("a request made in a collection starts with inherit; a collection's setting
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("tree").getByText("Made here", { exact: true }).click();
   await authTab(page).click();
-  await expect(page.locator(".auth-inherited")).toHaveText('Bearer Token is sent, from collection "Tripwire collection".');
+  await expect(page.locator(".auth-inherited")).toHaveText(
+    'Bearer Token is sent, from collection "Tripwire collection".',
+  );
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   expect(header(await sendAndEcho(page), "authorization")).toBe("Bearer from-the-collection");
 });
@@ -92,8 +124,27 @@ const FILE = {
     JSON.stringify({
       $id: "wayfarer/collection",
       meta: meta("file"),
-      collection: { id: "col-in", meta: meta("col-in"), name: "Inherited collection", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: step("c"), post: 'pm.test("the collection\'s script ran after", () => {});' } },
-      folders: [{ id: "fol-in", meta: meta("fol-in"), collectionId: "col-in", name: "Inherited folder", order: 0, variables: [], auth: { type: "inherit" }, scripts: { pre: step("f"), post: 'pm.test("the folder\'s script ran after", () => {});' } }],
+      collection: {
+        id: "col-in",
+        meta: meta("col-in"),
+        name: "Inherited collection",
+        order: 0,
+        variables: [],
+        auth: { type: "none" },
+        scripts: { pre: step("c"), post: 'pm.test("the collection\'s script ran after", () => {});' },
+      },
+      folders: [
+        {
+          id: "fol-in",
+          meta: meta("fol-in"),
+          collectionId: "col-in",
+          name: "Inherited folder",
+          order: 0,
+          variables: [],
+          auth: { type: "inherit" },
+          scripts: { pre: step("f"), post: 'pm.test("the folder\'s script ran after", () => {});' },
+        },
+      ],
       requests: [
         {
           id: "req-in",
@@ -113,7 +164,7 @@ const FILE = {
           settings: {},
         },
       ],
-    })
+    }),
   ),
 };
 
@@ -121,11 +172,15 @@ test.describe("scripts of a collection and a folder", () => {
   // The target is a routed fake host, which the app's service worker would hide in WebKit.
   test.use({ serviceWorkers: "block" });
 
-  test("@claim:C-051 a collection script and a folder script written by an import do not run until reviewed, and run in order after", async ({ page }) => {
+  test("@claim:C-051 a collection script and a folder script written by an import do not run until reviewed, and run in order after", async ({
+    page,
+  }) => {
     await page.addInitScript(() => {
       const seen: string[] = [];
       (window as unknown as { __violations: string[] }).__violations = seen;
-      document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
+      document.addEventListener("securitypolicyviolation", (e) =>
+        seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`),
+      );
     });
     const hits = await captureTarget(page);
     // An active environment for the scripts to write to, and to give `order` a value while none of them runs.
@@ -164,7 +219,10 @@ test.describe("scripts of a collection and a folder", () => {
     await expect(page.locator(".status-badge")).toHaveText("200");
     expect(hits[1].headers()["x-order"]).toBe("ran:cfr");
     await tests.click();
-    await expect(page.locator(".test-result-pass")).toHaveText([/the collection's script ran after/, /the folder's script ran after/]);
+    await expect(page.locator(".test-result-pass")).toHaveText([
+      /the collection's script ran after/,
+      /the folder's script ran after/,
+    ]);
     await expect(page.locator(".scripts-skipped")).toHaveCount(0);
 
     expect(await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations)).toEqual([]);

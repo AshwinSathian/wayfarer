@@ -77,12 +77,16 @@ export function rewritePostmanFile(value, base = `http://127.0.0.1:${POSTMAN_ECH
   const { hostname, port } = new URL(base);
   const walk = (node, key) => {
     // With its scheme, or as the bare host some of the collections write.
-    if (typeof node === "string") return ["raw", "url", "value", "request"].includes(key) ? rewritePostmanEcho(node, base).replace(/^postman-echo\.com(?=[/?#]|$)/i, base) : node;
+    if (typeof node === "string")
+      return ["raw", "url", "value", "request"].includes(key)
+        ? rewritePostmanEcho(node, base).replace(/^postman-echo\.com(?=[/?#]|$)/i, base)
+        : node;
     if (Array.isArray(node)) return node.map((entry) => walk(entry, key));
     if (!node || typeof node !== "object" || key === "script") return node;
     const out = Object.fromEntries(Object.entries(node).map(([name, inner]) => [name, walk(inner, name)]));
     const host = Array.isArray(out.host) ? out.host.join(".") : out.host;
-    if (typeof host === "string" && host.toLowerCase() === "postman-echo.com") Object.assign(out, { protocol: "http", host: hostname.split("."), port });
+    if (typeof host === "string" && host.toLowerCase() === "postman-echo.com")
+      Object.assign(out, { protocol: "http", host: hostname.split("."), port });
     return out;
   };
   return walk(value, "");
@@ -91,7 +95,7 @@ export function rewritePostmanFile(value, base = `http://127.0.0.1:${POSTMAN_ECH
 // A 1×1 transparent PNG.
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-  "base64"
+  "base64",
 );
 
 // The answer to an introspection of /graphql's schema, written once from its SDL with the `graphql` package: the server itself has no dependency.
@@ -99,7 +103,10 @@ const GRAPHQL_SCHEMA = readFileSync(new URL("./graphql-schema.json", import.meta
 
 const CONTENT = {
   json: ["application/json; charset=utf-8", '{"userId":1,"id":1,"title":"echo fixture","completed":false}'],
-  html: ["text/html; charset=utf-8", "<!doctype html><html><head><title>Echo</title></head><body><h1>Echo fixture</h1></body></html>"],
+  html: [
+    "text/html; charset=utf-8",
+    "<!doctype html><html><head><title>Echo</title></head><body><h1>Echo fixture</h1></body></html>",
+  ],
   xml: ["application/xml; charset=utf-8", '<?xml version="1.0"?><fixture><name>echo</name></fixture>'],
   text: ["text/plain; charset=utf-8", "echo fixture\n"],
   csv: ["text/csv; charset=utf-8", "id,name\n1,echo\n"],
@@ -190,11 +197,14 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
   }
   if (path === "/cors-seen") {
     const asked = url.searchParams.get("url") ?? "";
-    const counts = [...corsSeen].filter(([key]) => key.slice(key.indexOf(" ") + 1) === asked).map(([key, n]) => [key.slice(0, key.indexOf(" ")), n]);
+    const counts = [...corsSeen]
+      .filter(([key]) => key.slice(key.indexOf(" ") + 1) === asked)
+      .map(([key, n]) => [key.slice(0, key.indexOf(" ")), n]);
     return json(res, 200, Object.fromEntries(counts), corsHeaders(req));
   }
   // A token endpoint as most are: it answers, and says nothing a browser needs to let a page read it.
-  if (path === "/oauth/token-no-cors") return req.method === "OPTIONS" ? send(res, 204, {}) : token(req, res, url, body, {});
+  if (path === "/oauth/token-no-cors")
+    return req.method === "OPTIONS" ? send(res, 204, {}) : token(req, res, url, body, {});
   const cors = corsHeaders(req);
   if (req.method === "OPTIONS") return send(res, 204, cors);
 
@@ -210,7 +220,10 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     return send(res, 302, { ...cors, location: n > 1 ? `/redirect/${n - 1}` : "/echo" });
   }
   if (path === "/redirect-to") {
-    return send(res, Number(url.searchParams.get("status")) || 302, { ...cors, location: url.searchParams.get("url") ?? "/echo" });
+    return send(res, Number(url.searchParams.get("status")) || 302, {
+      ...cors,
+      location: url.searchParams.get("url") ?? "/echo",
+    });
   }
   if (path === "/graphql") {
     let asked;
@@ -220,23 +233,49 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
       return json(res, 400, { errors: [{ message: "The body is not JSON." }] }, cors);
     }
     const query = typeof asked?.query === "string" ? asked.query : "";
-    if (query.includes("__schema")) return send(res, 200, { ...cors, "content-type": "application/json" }, GRAPHQL_SCHEMA);
-    const unknown = /\b(?!hello\b|pets?\b|adopt\b|id\b|name\b|kind\b|query\b|mutation\b)[a-z]\w*\b(?=\s*[{}\s(])/.exec(query.replace(/\([^)]*\)/g, " ").replace(/"[^"]*"/g, " "));
-    if (unknown) return json(res, 200, { errors: [{ message: `Cannot query field "${unknown[0]}" on type "Query".` }] }, cors);
-    return json(res, 200, { data: { hello: `Hello, ${asked?.variables?.name ?? "world"}` }, extensions: { authorization: req.headers.authorization ?? null } }, cors);
+    if (query.includes("__schema"))
+      return send(res, 200, { ...cors, "content-type": "application/json" }, GRAPHQL_SCHEMA);
+    const unknown = /\b(?!hello\b|pets?\b|adopt\b|id\b|name\b|kind\b|query\b|mutation\b)[a-z]\w*\b(?=\s*[{}\s(])/.exec(
+      query.replace(/\([^)]*\)/g, " ").replace(/"[^"]*"/g, " "),
+    );
+    if (unknown)
+      return json(res, 200, { errors: [{ message: `Cannot query field "${unknown[0]}" on type "Query".` }] }, cors);
+    return json(
+      res,
+      200,
+      {
+        data: { hello: `Hello, ${asked?.variables?.name ?? "world"}` },
+        extensions: { authorization: req.headers.authorization ?? null },
+      },
+      cors,
+    );
   }
   if (path === "/cookies/login") {
-    return send(res, 302, { ...cors, location: "/echo", "set-cookie": ["session=signed-in; Path=/; HttpOnly", "seen=Wed, 14 Oct; Path=/"] });
+    return send(res, 302, {
+      ...cors,
+      location: "/echo",
+      "set-cookie": ["session=signed-in; Path=/; HttpOnly", "seen=Wed, 14 Oct; Path=/"],
+    });
   }
   if (path === "/cookies/set") {
     const cookies = [...url.searchParams].map(([k, v]) => `${k}=${v}; Path=/; SameSite=Lax`);
     return json(res, 200, { set: Object.fromEntries(url.searchParams) }, { ...cors, "set-cookie": cookies });
   }
   if (path === "/gzip") {
-    return send(res, 200, { ...cors, "content-type": "application/json", "content-encoding": "gzip" }, gzipSync(JSON.stringify({ gzipped: true })));
+    return send(
+      res,
+      200,
+      { ...cors, "content-type": "application/json", "content-encoding": "gzip" },
+      gzipSync(JSON.stringify({ gzipped: true })),
+    );
   }
   if (path === "/deflate") {
-    return send(res, 200, { ...cors, "content-type": "application/json", "content-encoding": "deflate" }, deflateSync(JSON.stringify({ deflated: true })));
+    return send(
+      res,
+      200,
+      { ...cors, "content-type": "application/json", "content-encoding": "deflate" },
+      deflateSync(JSON.stringify({ deflated: true })),
+    );
   }
   if ((m = /^\/delay\/(\d+)$/.exec(path))) {
     const ms = clampInt(m[1], 0, MAX_DELAY_MS, 0);
@@ -253,7 +292,11 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     return until > Date.now() ? json(res, 200, { ok: true }, cors) : json(res, 401, { error: "invalid_token" }, cors);
   }
   if (path === "/oauth/issued") {
-    const answer = issued.find((entry) => entry.access_token === url.searchParams.get("token") || entry.refresh_token === url.searchParams.get("refresh_token"));
+    const answer = issued.find(
+      (entry) =>
+        entry.access_token === url.searchParams.get("token") ||
+        entry.refresh_token === url.searchParams.get("refresh_token"),
+    );
     return answer ? json(res, 200, answer, cors) : json(res, 404, { error: "not issued" }, cors);
   }
   if (path === "/oauth/revoke") {
@@ -333,7 +376,8 @@ function authorize(res, url, cors) {
   });
   const target = new URL(redirectUri);
   target.searchParams.set("code", code);
-  if (q.has("state")) target.searchParams.set("state", q.has("mock_wrong_state") ? `not-${q.get("state")}` : q.get("state"));
+  if (q.has("state"))
+    target.searchParams.set("state", q.has("mock_wrong_state") ? `not-${q.get("state")}` : q.get("state"));
   return send(res, 302, { ...cors, location: target.href });
 }
 
@@ -350,7 +394,12 @@ function issueToken(res, cors, clientId, scope, expiresIn) {
 function token(req, res, url, body, cors) {
   // The client in a Basic header (RFC 6749, 2.3.1) counts as the same two fields of the form.
   const basic = /^Basic (.+)$/.exec(req.headers.authorization ?? "");
-  const [id, secret] = basic ? Buffer.from(basic[1], "base64").toString("utf8").split(":").map((part) => new URLSearchParams(`k=${part}`).get("k")) : [];
+  const [id, secret] = basic
+    ? Buffer.from(basic[1], "base64")
+        .toString("utf8")
+        .split(":")
+        .map((part) => new URLSearchParams(`k=${part}`).get("k"))
+    : [];
   const form = { ...(basic && { client_id: id, client_secret: secret }), ...parseForm(body) };
   const expiresIn = clampInt(url.searchParams.get("expires_in"), 1, 86_400, 3600);
   const issue = (res, cors, clientId, scope) => issueToken(res, cors, clientId, scope, expiresIn);
@@ -359,7 +408,8 @@ function token(req, res, url, body, cors) {
     case "authorization_code": {
       const grant = authCodes.get(form.code);
       authCodes.delete(form.code); // single use
-      if (!grant || grant.redirectUri !== form.redirect_uri || grant.clientId !== form.client_id) return fail("invalid_grant");
+      if (!grant || grant.redirectUri !== form.redirect_uri || grant.clientId !== form.client_id)
+        return fail("invalid_grant");
       if (grant.challenge) {
         const verifier = form.code_verifier ?? "";
         const derived = grant.method === "S256" ? b64url(createHash("sha256").update(verifier).digest()) : verifier;
@@ -407,7 +457,11 @@ function postmanEcho(req, res, url, body, cors) {
   const headers = Object.fromEntries(pairs(req.rawHeaders).map(([k, v]) => [k.toLowerCase(), v]));
   const fullUrl = `https://postman-echo.com${path}${url.search}`;
   const cookies = Object.fromEntries(
-    (req.headers.cookie ?? "").split(";").map((c) => c.trim().split("=")).filter(([k]) => k).map(([k, ...v]) => [k, v.join("=")])
+    (req.headers.cookie ?? "")
+      .split(";")
+      .map((c) => c.trim().split("="))
+      .filter(([k]) => k)
+      .map(([k, ...v]) => [k, v.join("=")]),
   );
   let m;
 
@@ -427,7 +481,7 @@ function postmanEcho(req, res, url, body, cors) {
         }
       }
       Object.assign(out, {
-        data: /json/.test(type) ? parsed ?? text : /x-www-form-urlencoded/.test(type) ? "" : text,
+        data: /json/.test(type) ? (parsed ?? text) : /x-www-form-urlencoded/.test(type) ? "" : text,
         files: {},
         form: /x-www-form-urlencoded/.test(type) ? parseForm(body) : {},
         json: /x-www-form-urlencoded/.test(type) ? parseForm(body) : parsed,
@@ -448,7 +502,9 @@ function postmanEcho(req, res, url, body, cors) {
   }
   if (path === "/basic-auth") {
     const ok = req.headers.authorization === `Basic ${Buffer.from("postman:password").toString("base64")}`;
-    return ok ? json(res, 200, { authenticated: true }, cors) : send(res, 401, { ...cors, "www-authenticate": 'Basic realm="Users"' }, "Unauthorized");
+    return ok
+      ? json(res, 200, { authenticated: true }, cors)
+      : send(res, 401, { ...cors, "www-authenticate": 'Basic realm="Users"' }, "Unauthorized");
   }
   if ((m = /^\/status\/(\d{3})$/.exec(path))) return json(res, Number(m[1]), { status: Number(m[1]) }, cors);
   if ((m = /^\/delay\/(\d+)$/.exec(path))) {
@@ -458,13 +514,28 @@ function postmanEcho(req, res, url, body, cors) {
     return;
   }
   if (path === "/gzip") {
-    return send(res, 200, { ...cors, "content-type": "application/json", "content-encoding": "gzip" }, gzipSync(JSON.stringify({ gzipped: true, headers, method: req.method })));
+    return send(
+      res,
+      200,
+      { ...cors, "content-type": "application/json", "content-encoding": "gzip" },
+      gzipSync(JSON.stringify({ gzipped: true, headers, method: req.method })),
+    );
   }
   if (path === "/deflate") {
-    return send(res, 200, { ...cors, "content-type": "application/json", "content-encoding": "deflate" }, deflateSync(JSON.stringify({ deflated: true, headers, method: req.method })));
+    return send(
+      res,
+      200,
+      { ...cors, "content-type": "application/json", "content-encoding": "deflate" },
+      deflateSync(JSON.stringify({ deflated: true, headers, method: req.method })),
+    );
   }
   if (path === "/encoding/utf8") {
-    return send(res, 200, { ...cors, "content-type": "text/html; charset=utf-8" }, "<h1>Unicode Demo</h1><p>∮ E⋅da = Q, ⌈x⌉ = −⌊−x⌋, 𝄞 ǅ ÅΩ</p>");
+    return send(
+      res,
+      200,
+      { ...cors, "content-type": "text/html; charset=utf-8" },
+      "<h1>Unicode Demo</h1><p>∮ E⋅da = Q, ⌈x⌉ = −⌊−x⌋, 𝄞 ǅ ÅΩ</p>",
+    );
   }
   return json(res, 404, { error: "not found", path }, cors);
 }
@@ -476,11 +547,13 @@ function upgrade(req, socket) {
   const url = new URL(req.url ?? "/", "http://127.0.0.1");
   const key = req.headers["sec-websocket-key"];
   if (url.pathname !== "/ws" || !key) return socket.destroy();
-  const accept = createHash("sha1").update(key + WS_GUID).digest("base64");
+  const accept = createHash("sha1")
+    .update(key + WS_GUID)
+    .digest("base64");
   const protocol = (req.headers["sec-websocket-protocol"] ?? "").split(",")[0].trim();
   socket.write(
     "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n" +
-      `Sec-WebSocket-Accept: ${accept}\r\n${protocol ? `Sec-WebSocket-Protocol: ${protocol}\r\n` : ""}\r\n`
+      `Sec-WebSocket-Accept: ${accept}\r\n${protocol ? `Sec-WebSocket-Protocol: ${protocol}\r\n` : ""}\r\n`,
   );
   let buffer = Buffer.alloc(0);
   socket.on("data", (data) => {

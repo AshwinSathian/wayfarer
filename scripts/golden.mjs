@@ -38,7 +38,11 @@ const JOBS = [
   { collection: "postman-legacy.postman_collection.json", golden: "postman-legacy.golden.json" },
   { collection: "postman-export/shop.postman_collection.json", golden: "postman-export/shop.golden.json" },
   // P5.2: a run. Newman's order of requests, iteration by iteration, is what `runRequests` must give.
-  { collection: "run/data.postman_collection.json", golden: "run/data.golden.json", run: ["--iteration-data", join(FIXTURES, "run/data.csv")] },
+  {
+    collection: "run/data.postman_collection.json",
+    golden: "run/data.golden.json",
+    run: ["--iteration-data", join(FIXTURES, "run/data.csv")],
+  },
   { collection: "run/flow.postman_collection.json", golden: "run/flow.golden.json", run: ["--iteration-count", "3"] },
   // Requests before, between and after folders, at two depths: a run goes in the file's order.
   { collection: "run/order.postman_collection.json", golden: "run/order.golden.json", run: [] },
@@ -51,15 +55,34 @@ const ECHO_BASE = `http://127.0.0.1:${echo.address().port}`;
 const work = mkdtempSync(join(tmpdir(), "wayfarer-golden-"));
 const report = join(work, "report.json");
 // The file the exported collection's bodies name: `FILES["pixel.png"]` of packages/core/test/export/fixtures.ts.
-writeFileSync(join(work, "pixel.png"), Uint8Array.from({ length: 64 }, (_, index) => index));
+writeFileSync(
+  join(work, "pixel.png"),
+  Uint8Array.from({ length: 64 }, (_, index) => index),
+);
 try {
   for (const job of JOBS) {
-    const args = ["--yes", `newman@${NEWMAN}`, "run", join(FIXTURES, job.collection), "--env-var", `base=http://127.0.0.1:${server.address().port}`, ...(job.run ?? []), "--working-dir", work, "--reporters", "json", "--reporter-json-export", report];
+    const args = [
+      "--yes",
+      `newman@${NEWMAN}`,
+      "run",
+      join(FIXTURES, job.collection),
+      "--env-var",
+      `base=http://127.0.0.1:${server.address().port}`,
+      ...(job.run ?? []),
+      "--working-dir",
+      work,
+      "--reporters",
+      "json",
+      "--reporter-json-export",
+      report,
+    ];
     try {
       // From its own folder, so that npx takes nothing from this repository's
       // node_modules. Not the synchronous call: the echo server is in this
       // process and must go on answering.
-      await new Promise((done, failed) => execFile("npx", args, { cwd: work, timeout: 300_000 }, (error) => (error ? failed(error) : done())));
+      await new Promise((done, failed) =>
+        execFile("npx", args, { cwd: work, timeout: 300_000 }, (error) => (error ? failed(error) : done())),
+      );
     } catch (error) {
       // Newman exits with 1 when a test fails, and each fixture has tests that fail on purpose.
       if (error.code !== 1) throw error;
@@ -70,9 +93,14 @@ try {
       name: execution.item.name,
       tests: (execution.assertions ?? []).map((assertion) => ({ name: assertion.assertion, passed: !assertion.error })),
     }));
-    if (run.failures.some((failure) => failure.error.name !== "AssertionError")) throw new Error(`golden: a script of ${job.collection} failed in Newman: ${JSON.stringify(run.failures.map((failure) => failure.error.message))}`);
+    if (run.failures.some((failure) => failure.error.name !== "AssertionError"))
+      throw new Error(
+        `golden: a script of ${job.collection} failed in Newman: ${JSON.stringify(run.failures.map((failure) => failure.error.message))}`,
+      );
     writeFileSync(join(FIXTURES, job.golden), `${JSON.stringify({ runner: `newman@${NEWMAN}`, items }, null, 2)}\n`);
-    console.log(`golden: ${job.golden}: ${items.length} requests, ${items.reduce((sum, item) => sum + item.tests.length, 0)} tests`);
+    console.log(
+      `golden: ${job.golden}: ${items.length} requests, ${items.reduce((sum, item) => sum + item.tests.length, 0)} tests`,
+    );
   }
   await integration();
 } finally {
@@ -83,10 +111,26 @@ try {
 
 /** Newman on a collection file, from `work`. What it gave: each request with its tests, and the errors of scripts that are not failed tests. */
 async function newman(collection, extra) {
-  const args = ["--yes", `newman@${NEWMAN}`, "run", collection, ...extra, "--working-dir", work, "--timeout-request", "10000", "--reporters", "json", "--reporter-json-export", report];
+  const args = [
+    "--yes",
+    `newman@${NEWMAN}`,
+    "run",
+    collection,
+    ...extra,
+    "--working-dir",
+    work,
+    "--timeout-request",
+    "10000",
+    "--reporters",
+    "json",
+    "--reporter-json-export",
+    report,
+  ];
   rmSync(report, { force: true });
   try {
-    await new Promise((done, failed) => execFile("npx", args, { cwd: work, timeout: 120_000 }, (error) => (error ? failed(error) : done())));
+    await new Promise((done, failed) =>
+      execFile("npx", args, { cwd: work, timeout: 120_000 }, (error) => (error ? failed(error) : done())),
+    );
   } catch (error) {
     if (error.code !== 1) throw error;
   }
@@ -96,7 +140,9 @@ async function newman(collection, extra) {
       name: execution.item.name,
       tests: (execution.assertions ?? []).map((assertion) => ({ name: assertion.assertion, passed: !assertion.error })),
     })),
-    errors: run.failures.filter((failure) => failure.error.name !== "AssertionError").map((failure) => `${failure.source?.name ?? ""}: ${failure.error.message}`.replaceAll(ECHO_BASE, "<echo>")),
+    errors: run.failures
+      .filter((failure) => failure.error.name !== "AssertionError")
+      .map((failure) => `${failure.source?.name ?? ""}: ${failure.error.message}`.replaceAll(ECHO_BASE, "<echo>")),
   };
 }
 
@@ -104,14 +150,20 @@ async function newman(collection, extra) {
 function notRun(file, collection) {
   const dir = dirname(file);
   const stem = file.replace(/\.postman_collection\.json$/, "");
-  if (readdirSync(dir).some((name) => join(dir, name).startsWith(`${stem}.postman_data.`))) return "it is run with a data file, once per row: a run is P5.2";
+  if (readdirSync(dir).some((name) => join(dir, name).startsWith(`${stem}.postman_data.`)))
+    return "it is run with a data file, once per row: a run is P5.2";
   const text = JSON.stringify(collection);
   const hosts = new Set();
   const visit = (items) => {
     for (const item of items ?? []) {
       if (Array.isArray(item.item)) visit(item.item);
       else {
-        const url = typeof item.request === "string" ? item.request : typeof item.request?.url === "string" ? item.request.url : item.request?.url?.raw ?? "";
+        const url =
+          typeof item.request === "string"
+            ? item.request
+            : typeof item.request?.url === "string"
+              ? item.request.url
+              : (item.request?.url?.raw ?? "");
         const host = /^(?:[a-z]+:\/\/)?([^/?#]*)/i.exec(url)?.[1] ?? "";
         if (host && !host.includes("{{") && !host.startsWith("127.0.0.1")) hosts.add(host);
       }
@@ -119,7 +171,8 @@ function notRun(file, collection) {
   };
   visit(collection.item);
   if (hosts.size) return `it calls ${[...hosts].join(", ")}: a server these fixtures do not have`;
-  if (/"type":\s*"file"|"mode":\s*"file"/.test(text)) return "it uploads a file, which a collection of the app names and does not hold";
+  if (/"type":\s*"file"|"mode":\s*"file"/.test(text))
+    return "it uploads a file, which a collection of the app names and does not hold";
   if (/sendRequest[^;]*postman-echo\.com/.test(text)) return "a script of it calls postman-echo.com by name";
   if (/setNextRequest/.test(text)) return "its scripts choose the next request (setNextRequest): a run is P5.2";
   return null;
@@ -156,7 +209,10 @@ async function integration() {
       continue;
     }
     const extra = [];
-    for (const [kind, flag] of [["environment", "-e"], ["globals", "-g"]]) {
+    for (const [kind, flag] of [
+      ["environment", "-e"],
+      ["globals", "-g"],
+    ]) {
       const beside = file.replace(/\.postman_collection\.json$/, `.postman_${kind}.json`);
       if (!existsSync(beside)) continue;
       const copy = join(work, `${kind}.json`);
@@ -173,8 +229,15 @@ async function integration() {
       console.log(`golden: ${name}: not finished`);
       continue;
     }
-    console.log(`golden: ${name}: ${collections[name].items.length} requests, ${collections[name].items.reduce((sum, item) => sum + item.tests.length, 0)} tests${collections[name].errors.length ? `, ${collections[name].errors.length} script errors` : ""}`);
+    console.log(
+      `golden: ${name}: ${collections[name].items.length} requests, ${collections[name].items.reduce((sum, item) => sum + item.tests.length, 0)} tests${collections[name].errors.length ? `, ${collections[name].errors.length} script errors` : ""}`,
+    );
   }
-  writeFileSync(join(FIXTURES, "postman/newman-integration.golden.json"), `${JSON.stringify({ runner: `newman@${NEWMAN}`, collections }, null, 2)}\n`);
-  console.log(`golden: postman/newman-integration.golden.json: ${Object.values(collections).filter((entry) => entry.items).length} collections run, ${Object.values(collections).filter((entry) => entry.notRun).length} not run`);
+  writeFileSync(
+    join(FIXTURES, "postman/newman-integration.golden.json"),
+    `${JSON.stringify({ runner: `newman@${NEWMAN}`, collections }, null, 2)}\n`,
+  );
+  console.log(
+    `golden: postman/newman-integration.golden.json: ${Object.values(collections).filter((entry) => entry.items).length} collections run, ${Object.values(collections).filter((entry) => entry.notRun).length} not run`,
+  );
 }

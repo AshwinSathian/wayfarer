@@ -1,4 +1,12 @@
-import { ApplicationRef, ChangeDetectionStrategy, Component, booleanAttribute, inject, input, output } from "@angular/core";
+import {
+  ApplicationRef,
+  ChangeDetectionStrategy,
+  Component,
+  booleanAttribute,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { UiButton } from "./button";
 import { Icon } from "../shared/icon/icon";
 import { UiModal } from "./modal";
@@ -37,7 +45,13 @@ let nextId = 0;
       @if (visible()) {
         <div class="dialog-header">
           <span class="dialog-title type-title-3" [id]="titleId">{{ header() }}</span>
-          <button uiButton="icon" type="button" class="btn-secondary dialog-close" aria-label="Close" (click)="requestClose()">
+          <button
+            uiButton="icon"
+            type="button"
+            class="btn-secondary dialog-close"
+            aria-label="Close"
+            (click)="requestClose()"
+          >
             <app-icon name="close" />
           </button>
         </div>

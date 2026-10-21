@@ -2,7 +2,9 @@ import { test, expect } from "@playwright/test";
 import { ECHO } from "./support/echo";
 
 test.describe("Collections", () => {
-  test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({ page }) => {
+  test("@claim:C-024 creates a collection, creates a request inside it, and loads it into the composer", async ({
+    page,
+  }) => {
     await page.goto("/app/");
 
     // Create a collection via the sidebar header's "+" button.
@@ -38,7 +40,9 @@ test.describe("Collections", () => {
     await expect(page.locator("input.address-url")).toHaveValue("");
   });
 
-  test("saves the composer's current request into a collection, then reloads it with everything intact", async ({ page }) => {
+  test("saves the composer's current request into a collection, then reloads it with everything intact", async ({
+    page,
+  }) => {
     await page.goto("/app/");
 
     const urlInput = page.locator("input.address-url");

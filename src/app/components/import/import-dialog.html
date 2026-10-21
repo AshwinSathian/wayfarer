@@ -1,4 +1,10 @@
-<ui-dialog [header]="header()" [visible]="pipeline.dialogVisible()" (visibleChange)="pipeline.dialogVisible.set($event)" width="480px" (hide)="pipeline.close()">
+<ui-dialog
+  [header]="header()"
+  [visible]="pipeline.dialogVisible()"
+  (visibleChange)="pipeline.dialogVisible.set($event)"
+  width="480px"
+  (hide)="pipeline.close()"
+>
   @if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
@@ -11,9 +17,18 @@
       spellcheck="false"
       placeholder="curl 'https://api.example.com/v1/items' -H 'Accept: application/json'"
     ></textarea>
-    <p class="type-footnote text-label-tertiary">As a browser's "Copy as cURL" writes it, for bash or for cmd. The command is read, not run: no file it names is opened and nothing is sent.</p>
+    <p class="type-footnote text-label-tertiary"
+      >As a browser's "Copy as cURL" writes it, for bash or for cmd. The command is read, not run: no file it names is
+      opened and nothing is sent.</p
+    >
     <div class="flex justify-end">
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="pipeline.stage('the pasted command', pasted.value)">Read the command</button>
+      <button
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        type="button"
+        (click)="pipeline.stage('the pasted command', pasted.value)"
+        >Read the command</button
+      >
     </div>
   </div>
   } @else if (pipeline.refused(); as refused) {
@@ -37,27 +52,33 @@
       <p class="type-footnote text-label-tertiary mt-0.5">Nothing is stored until you choose Import.</p>
     </div>
     @if (imported.report.warnings.length) {
-    <div role="status" class="import-warnings rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-      <p class="type-subhead text-status-warning">{{ imported.report.warnings.length }} {{ imported.report.warnings.length === 1 ? "thing" : "things" }} to know before you import</p>
+    <div
+      role="status"
+      class="import-warnings rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
+    >
+      <p class="type-subhead text-status-warning"
+        >{{ imported.report.warnings.length }} {{ imported.report.warnings.length === 1 ? "thing" : "things" }} to know
+        before you import</p
+      >
       <ul class="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-footnote text-label-primary">
         @for (warning of imported.report.warnings; track $index) {
         <li><span class="font-semibold">{{ warning.item }}.</span> {{ warning.message }}</li>
         }
       </ul>
     </div>
-    }
-
-    @for (entry of imported.collections; track entry.payload.collection.meta.id) {
+    } @for (entry of imported.collections; track entry.payload.collection.meta.id) {
     <div>
       <p class="ds-section-label mb-1.5">Collection</p>
       <p class="type-title-3 text-label-primary">{{ entry.payload.collection.name }}</p>
       <p class="type-footnote text-label-tertiary mt-0.5">
-        {{ entry.payload.folders.length }} folders ·
-        {{ entry.payload.requests.length }} requests
+        {{ entry.payload.folders.length }} folders · {{ entry.payload.requests.length }} requests
       </p>
     </div>
     @if (imported.report.format === 'wayfarer-collection') {
-    <label for="import-duplicate-checkbox-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label
+      for="import-duplicate-checkbox-input"
+      class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
+    >
       <div>
         <p class="type-subhead text-label-primary">Import as duplicate</p>
         <p class="type-footnote text-label-tertiary mt-0.5">Keeps the original intact and remaps every ID.</p>
@@ -78,27 +99,30 @@
       <div class="flex items-center justify-between rounded-lg bg-canvas-elevated px-3 py-2.5">
         <div>
           <p class="type-subhead text-label-primary capitalize">{{ item.type }} · {{ item.name }}</p>
-          <p class="type-footnote text-label-tertiary">{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p>
+          <p class="type-footnote text-label-tertiary"
+            >{{ item.action === 'create' ? 'create new' : 'overwrite existing' }}</p
+          >
         </div>
         <span
           class="rounded-full px-2.5 py-0.5 type-footnote uppercase font-semibold"
           [class]="item.action === 'create'
             ? 'bg-status-success-fill border border-status-success-border text-status-success'
             : 'bg-status-warning-fill border border-status-warning-border text-status-warning'"
-        >{{ item.action }}</span>
+          >{{ item.action }}</span
+        >
       </div>
       }
     </div>
     } @else {
     <p class="type-footnote text-label-tertiary">
-      {{ entry.plan[0].action === 'create' ? 'Every document is created new.' : 'A document here with the same id is overwritten.' }}
+      {{ entry.plan[0].action === 'create' ? 'Every document is created new.' : 'A document here with the same id is
+      overwritten.' }}
     </p>
-    }
-    }
-
-    @if (pipeline.environmentEntries().length) {
+    } } @if (pipeline.environmentEntries().length) {
     <div class="space-y-3">
-      <p class="type-callout text-label-secondary">{{ pipeline.environmentEntries().length }} environment(s) detected.</p>
+      <p class="type-callout text-label-secondary"
+        >{{ pipeline.environmentEntries().length }} environment(s) detected.</p
+      >
       @for (entry of pipeline.environmentEntries(); track entry.doc.meta.id; let idx = $index) {
       <div class="rounded-xl border border-separator bg-canvas-elevated p-4">
         <div class="flex items-center justify-between gap-2">
@@ -107,7 +131,10 @@
             <p class="type-footnote text-label-tertiary">{{ entry.doc.vars.length }} variable(s)</p>
           </div>
           @if (entry.targetId) {
-          <span class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-footnote font-semibold text-status-warning">Existing</span>
+          <span
+            class="rounded-full bg-status-warning-fill border border-status-warning-border px-2.5 py-0.5 type-footnote font-semibold text-status-warning"
+            >Existing</span
+          >
           }
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
@@ -118,7 +145,8 @@
               ? 'border-accent-border bg-accent-fill text-accent-text'
               : 'border-separator bg-transparent text-label-secondary hover:bg-fill-hover'"
             (click)="pipeline.setEntryAction(idx, 'merge')"
-          >Merge as new</button>
+            >Merge as new</button
+          >
           <button
             type="button"
             class="rounded-lg border px-3 py-1.5 type-footnote font-medium transition-colors"
@@ -129,7 +157,8 @@
             [class.opacity-40]="!entry.targetId"
             [class.cursor-not-allowed]="!entry.targetId"
             (click)="pipeline.setEntryAction(idx, 'replace')"
-          >Replace existing</button>
+            >Replace existing</button
+          >
         </div>
       </div>
       }
@@ -144,13 +173,16 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()"
+        >Cancel</button
+      >
       <button
         uiButton="filled"
         aria-label="Confirm import"
         [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
         (click)="pipeline.confirm()"
-      >Import</button>
+        >Import</button
+      >
     </div>
   </div>
 </ui-dialog>

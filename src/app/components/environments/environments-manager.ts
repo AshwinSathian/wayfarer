@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit, effect, signal, untracked, WritableSignal, inject, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  effect,
+  signal,
+  untracked,
+  WritableSignal,
+  inject,
+  output,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -13,23 +23,27 @@ import { SecretsVault } from "../../services/secrets-vault";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { ImportPipeline } from "../../services/import-pipeline";
-import {
-  buildSecretReference,
-  extractSecretId,
-  isSecretReference,
-} from "../../shared/secrets/secret-reference";
+import { buildSecretReference, extractSecretId, isSecretReference } from "../../shared/secrets/secret-reference";
 import { Icon } from "../../shared/icon/icon";
 import { VariablesDialog } from "../variables/variables-dialog";
 import { EnvironmentExportDialog } from "./environment-export-dialog";
 import { StoragePersistence } from "../../services/storage-persistence";
-import { MIN_SECRET_LENGTH, applyVariableChanges, variableChanges, type Row, type VariableChange } from "@wayfarer/core";
+import {
+  MIN_SECRET_LENGTH,
+  applyVariableChanges,
+  variableChanges,
+  type Row,
+  type VariableChange,
+} from "@wayfarer/core";
 
 /** The JSON view's text: the variables the rows give, by name. A switched-off row or one without a name is not in it. */
 function jsonOf(rows: Row[]): string {
   return JSON.stringify(
-    Object.fromEntries(rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value ?? ""])),
+    Object.fromEntries(
+      rows.filter((row) => row.enabled && row.key.trim()).map((row) => [row.key.trim(), row.value ?? ""]),
+    ),
     null,
-    2
+    2,
   );
 }
 
@@ -46,10 +60,17 @@ interface EnvironmentDraft {
 
 @Component({
   selector: "app-environments-manager",
-  imports: [MatFormField, MatInput, 
+  imports: [
+    MatFormField,
+    MatInput,
     Icon,
     FormsModule,
-    UiButton, Tab, TabContent, TabPanel, Tabs, UiTabList,
+    UiButton,
+    Tab,
+    TabContent,
+    TabPanel,
+    Tabs,
+    UiTabList,
     Dialog,
     UiTooltip,
     JsonEditor,
@@ -299,9 +320,11 @@ export class EnvironmentsManager implements OnInit {
     // in the JSON view changes rows, and only the rows of the names it
     // changed: a blank row, a switched-off row and a repeated name stay (F59).
     if (valid && value && typeof value === "object" && text !== jsonOf(draft.vars)) {
-      const typed = Object.entries(value as Record<string, string>).map(
-        ([key, val]) => ({ key, value: String(val ?? ""), enabled: true })
-      );
+      const typed = Object.entries(value as Record<string, string>).map(([key, val]) => ({
+        key,
+        value: String(val ?? ""),
+        enabled: true,
+      }));
       draft.vars = applyVariableChanges(draft.vars, variableChanges(draft.vars, typed));
     }
     this.updateDraft(draft);

@@ -38,7 +38,9 @@ export class EnvironmentExportDialog {
   protected readonly format = signal<"wayfarer" | "postman">("wayfarer");
   /** The id of the environment a Postman file is written from. Blank: the first. */
   protected readonly chosen = signal("");
-  protected readonly environmentOptions = computed(() => this.environments().map((environment) => ({ value: environment.meta.id, label: environment.name })));
+  protected readonly environmentOptions = computed(() =>
+    this.environments().map((environment) => ({ value: environment.meta.id, label: environment.name })),
+  );
   protected readonly mode = signal<Mode>("strip");
   protected readonly formats: UiSegment<"wayfarer" | "postman">[] = [
     { value: "wayfarer", label: "Wayfarer" },
@@ -73,11 +75,15 @@ export class EnvironmentExportDialog {
     const protectedValues = await this.protectedValues();
     if (!protectedValues) return;
     if (this.format() === "postman") {
-      const environment = this.environments().find((entry) => entry.meta.id === this.chosen()) ?? this.environments()[0];
+      const environment =
+        this.environments().find((entry) => entry.meta.id === this.chosen()) ?? this.environments()[0];
       if (!environment) return;
       const { postmanEnvironment } = await import("@wayfarer/core/postman");
       const file = postmanEnvironment(environment, exportedValue(protectedValues));
-      saveJsonFile(`${environment.name.replace(/\s+/g, "-").toLowerCase()}.postman_environment.json`, JSON.stringify(file, null, 2));
+      saveJsonFile(
+        `${environment.name.replace(/\s+/g, "-").toLowerCase()}.postman_environment.json`,
+        JSON.stringify(file, null, 2),
+      );
     } else {
       saveJsonFile("environments-export.json", serializeEnvironmentExport(this.environments(), protectedValues));
     }

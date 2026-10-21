@@ -9,7 +9,14 @@ import { AuthEditor } from "./auth-editor";
   template: `<app-auth-editor [auth]="auth()" (authChange)="auth.set($event)" />`,
 })
 class Host {
-  readonly auth = signal<AuthConfig>({ type: "awsv4", accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" });
+  readonly auth = signal<AuthConfig>({
+    type: "awsv4",
+    accessKey: "",
+    secretKey: "",
+    sessionToken: "",
+    region: "",
+    service: "",
+  });
 }
 
 // Two fields filled in one frame, as a password manager fills them: the

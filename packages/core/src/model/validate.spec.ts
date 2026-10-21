@@ -1,6 +1,17 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { ASSERTION_OPERATORS, ASSERTION_TARGETS, BODY_MODES, HTTP_METHODS, RAW_LANGUAGES, emptyAuth, emptyRequest, type AuthConfig, type RequestBody, type RequestContent } from "./request";
+import {
+  ASSERTION_OPERATORS,
+  ASSERTION_TARGETS,
+  BODY_MODES,
+  HTTP_METHODS,
+  RAW_LANGUAGES,
+  emptyAuth,
+  emptyRequest,
+  type AuthConfig,
+  type RequestBody,
+  type RequestContent,
+} from "./request";
 import { validateInherited, validateRequestContent, validateRows } from "./validate";
 
 const full = (): RequestContent => ({
@@ -33,22 +44,36 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
         urlencoded: fc.array(row, { maxLength: 3 }),
         multipart: fc.array(
           fc.oneof(
-            fc.record({ kind: fc.constant("text" as const), key: fc.string(), value: fc.string(), enabled: fc.boolean() }),
-            fc.record({ kind: fc.constant("file" as const), key: fc.string(), fileId: fc.uuid(), fileName: fc.string(), enabled: fc.boolean() })
+            fc.record({
+              kind: fc.constant("text" as const),
+              key: fc.string(),
+              value: fc.string(),
+              enabled: fc.boolean(),
+            }),
+            fc.record({
+              kind: fc.constant("file" as const),
+              key: fc.string(),
+              fileId: fc.uuid(),
+              fileName: fc.string(),
+              enabled: fc.boolean(),
+            }),
           ),
-          { maxLength: 3 }
+          { maxLength: 3 },
         ),
-        binary: fc.record({ fileId: fc.uuid(), fileName: fc.string(), contentType: fc.string() }, { requiredKeys: ["fileId", "fileName"] }),
+        binary: fc.record(
+          { fileId: fc.uuid(), fileName: fc.string(), contentType: fc.string() },
+          { requiredKeys: ["fileId", "fileName"] },
+        ),
         graphql: fc.record({ query: fc.string(), variables: fc.string() }),
       },
-      { requiredKeys: [] }
+      { requiredKeys: [] },
     )
     // The part the mode names is always there, except a binary body with no file chosen.
     .chain((parts) =>
       fc
         .constantFrom(...BODY_MODES)
         .filter((mode) => mode === "none" || mode === "binary" || parts[mode] !== undefined)
-        .map((mode): RequestBody => ({ mode, ...parts }))
+        .map((mode): RequestBody => ({ mode, ...parts })),
     ),
   auth: fc.oneof(
     fc.constant<AuthConfig>({ type: "none" }),
@@ -59,7 +84,7 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
       key: fc.string(),
       value: fc.string(),
       in: fc.constantFrom("header" as const, "query" as const),
-    })
+    }),
   ),
   scripts: fc.record({ pre: fc.string(), post: fc.string() }),
   tests: fc.array(
@@ -71,9 +96,9 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
         key: fc.string(),
         expected: fc.string(),
       },
-      { requiredKeys: ["id", "target", "operator"] }
+      { requiredKeys: ["id", "target", "operator"] },
     ),
-    { maxLength: 3 }
+    { maxLength: 3 },
   ),
   settings: fc.record(
     {
@@ -82,7 +107,7 @@ const anyRequest: fc.Arbitrary<RequestContent> = fc.record({
       tlsInsecure: fc.boolean(),
       route: fc.constantFrom("auto" as const, "direct" as const, "bridge" as const),
     },
-    { requiredKeys: [] }
+    { requiredKeys: [] },
   ),
 });
 
@@ -103,13 +128,23 @@ describe("validateRequestContent", () => {
         expect(validateRequestContent(JSON.parse(JSON.stringify(request)), "r")).toEqual([]);
       }),
       // A fixed seed: a failure in CI is the same failure here.
-      { numRuns: 200, seed: 20261009 }
+      { numRuns: 200, seed: 20261009 },
     );
   });
 
   it("names each field that is missing or of the wrong type", () => {
     expect(paths(null)).toEqual(["r"]);
-    expect(paths({})).toEqual(["r.method", "r.url", "r.params", "r.headers", "r.body", "r.auth", "r.scripts", "r.tests", "r.settings"]);
+    expect(paths({})).toEqual([
+      "r.method",
+      "r.url",
+      "r.params",
+      "r.headers",
+      "r.body",
+      "r.auth",
+      "r.scripts",
+      "r.tests",
+      "r.settings",
+    ]);
     expect(
       paths({
         ...full(),
@@ -122,7 +157,7 @@ describe("validateRequestContent", () => {
         scripts: { pre: 1 },
         tests: [{ id: "t", target: "moon", operator: "equals", key: 1 }],
         settings: { timeoutMs: -1, followRedirects: "no", route: "proxy", tlsInsecure: "yes" },
-      })
+      }),
     ).toEqual([
       "r.method",
       "r.url",
@@ -161,7 +196,7 @@ describe("validateRequestContent", () => {
           ],
           binary: { fileId: "f-1", contentType: 3 },
         },
-      })
+      }),
     ).toEqual([
       "r.body.urlencoded[0].value",
       "r.body.multipart[0].value",
@@ -181,25 +216,57 @@ describe("validateRequestContent", () => {
     for (const method of ["PURGE", "PROPFIND", "M-SEARCH", "X_1", "A".repeat(32), "TRACE"]) {
       expect(paths({ ...full(), method }), method).toEqual([]);
     }
-    for (const method of ["", "get", "Patch", "GET; rm -rf ~", "GET POST", "GET\r\nX: 1", "GÉT", "A".repeat(33), 7, null]) {
+    for (const method of [
+      "",
+      "get",
+      "Patch",
+      "GET; rm -rf ~",
+      "GET POST",
+      "GET\r\nX: 1",
+      "GÉT",
+      "A".repeat(33),
+      7,
+      null,
+    ]) {
       expect(paths({ ...full(), method }), String(method)).toEqual(["r.method"]);
     }
   });
 
   it("reads own fields only: an inherited name is a missing field", () => {
     // Every object has a `constructor`; none of these has its own.
-    expect(paths({ ...full(), scripts: Object.create({ pre: "", post: "" }) as object })).toEqual(["r.scripts.pre", "r.scripts.post"]);
+    expect(paths({ ...full(), scripts: Object.create({ pre: "", post: "" }) as object })).toEqual([
+      "r.scripts.pre",
+      "r.scripts.post",
+    ]);
     expect(validateRows([{ key: "__proto__", value: "x", enabled: true }], "vars")).toEqual([]);
     // F76: the mark of a value a script set is `true` and nothing else, and only on a value that is JSON.
-    expect(validateRows([{ key: "n", value: "0", enabled: true, json: true }, { key: "o", value: '{"a":[1]}', enabled: true, json: true }], "vars")).toEqual([]);
-    expect(validateRows([{ key: "n", value: "{not json", enabled: true, json: true }, { key: "m", value: "0", enabled: true, json: "yes" }, { key: "f", value: "0", enabled: true, json: false }], "vars")).toEqual(
-      [0, 1, 2].map((index) => ({ path: `vars[${index}].json`, message: "Value must be true, on a value that is JSON." }))
+    expect(
+      validateRows(
+        [
+          { key: "n", value: "0", enabled: true, json: true },
+          { key: "o", value: '{"a":[1]}', enabled: true, json: true },
+        ],
+        "vars",
+      ),
+    ).toEqual([]);
+    expect(
+      validateRows(
+        [
+          { key: "n", value: "{not json", enabled: true, json: true },
+          { key: "m", value: "0", enabled: true, json: "yes" },
+          { key: "f", value: "0", enabled: true, json: false },
+        ],
+        "vars",
+      ),
+    ).toEqual(
+      [0, 1, 2].map((index) => ({
+        path: `vars[${index}].json`,
+        message: "Value must be true, on a value that is JSON.",
+      })),
     );
-    expect(validateRows([Object.create({ key: "k", value: "v", enabled: true })], "vars").map((issue) => issue.path)).toEqual([
-      "vars[0].key",
-      "vars[0].value",
-      "vars[0].enabled",
-    ]);
+    expect(
+      validateRows([Object.create({ key: "k", value: "v", enabled: true })], "vars").map((issue) => issue.path),
+    ).toEqual(["vars[0].key", "vars[0].value", "vars[0].enabled"]);
   });
 });
 
@@ -207,8 +274,16 @@ describe("validateInherited (P4.9)", () => {
   const scripts = { pre: "", post: "" };
 
   it("accepts what the app writes for a collection and for a folder", () => {
-    expect(validateInherited({ auth: { type: "bearer", token: "t" }, scripts }, "collection", "collection")).toEqual([]);
-    expect(validateInherited({ auth: { type: "inherit" }, scripts, variables: [{ key: "a", value: "1", enabled: true }] }, "folders[0]", "folder")).toEqual([]);
+    expect(validateInherited({ auth: { type: "bearer", token: "t" }, scripts }, "collection", "collection")).toEqual(
+      [],
+    );
+    expect(
+      validateInherited(
+        { auth: { type: "inherit" }, scripts, variables: [{ key: "a", value: "1", enabled: true }] },
+        "folders[0]",
+        "folder",
+      ),
+    ).toEqual([]);
   });
 
   it("refuses a collection that inherits: nothing is above it", () => {
@@ -218,36 +293,81 @@ describe("validateInherited (P4.9)", () => {
   });
 
   it("AWS Signature holds five texts, each of which must be one (P4.8)", () => {
-    const aws = { type: "awsv4", accessKey: "AKID", secretKey: "{{secret}}", sessionToken: "", region: "us-east-1", service: "s3" };
+    const aws = {
+      type: "awsv4",
+      accessKey: "AKID",
+      secretKey: "{{secret}}",
+      sessionToken: "",
+      region: "us-east-1",
+      service: "s3",
+    };
     expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: aws }, "r")).toEqual([]);
-    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...aws, secretKey: 1, sessionToken: undefined, region: null } }, "r").map((issue) => issue.path)).toEqual(["r.auth.secretKey", "r.auth.sessionToken", "r.auth.region"]);
+    expect(
+      validateRequestContent(
+        {
+          ...emptyRequest(),
+          url: "https://a.test",
+          auth: { ...aws, secretKey: 1, sessionToken: undefined, region: null },
+        },
+        "r",
+      ).map((issue) => issue.path),
+    ).toEqual(["r.auth.secretKey", "r.auth.sessionToken", "r.auth.region"]);
   });
 
   it("OAuth 2.0 holds a grant the app has, seven texts, where the client is named, and the switch for a 401 (P4.7)", () => {
     const oauth = emptyAuth("oauth2");
     expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: oauth }, "r")).toEqual([]);
-    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...oauth, grant: "password", clientAuth: "body", retryOn401: true } }, "r")).toEqual([]);
-    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { ...oauth, grant: "implicit", tokenUrl: 1, clientSecret: undefined, clientAuth: "query", retryOn401: "yes" } }, "r").map((issue) => issue.path)).toEqual([
-      "r.auth.grant",
-      "r.auth.tokenUrl",
-      "r.auth.clientSecret",
-      "r.auth.clientAuth",
-      "r.auth.retryOn401",
-    ]);
-    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "oauth2" } }, "r")).toHaveLength(10);
+    expect(
+      validateRequestContent(
+        {
+          ...emptyRequest(),
+          url: "https://a.test",
+          auth: { ...oauth, grant: "password", clientAuth: "body", retryOn401: true },
+        },
+        "r",
+      ),
+    ).toEqual([]);
+    expect(
+      validateRequestContent(
+        {
+          ...emptyRequest(),
+          url: "https://a.test",
+          auth: {
+            ...oauth,
+            grant: "implicit",
+            tokenUrl: 1,
+            clientSecret: undefined,
+            clientAuth: "query",
+            retryOn401: "yes",
+          },
+        },
+        "r",
+      ).map((issue) => issue.path),
+    ).toEqual(["r.auth.grant", "r.auth.tokenUrl", "r.auth.clientSecret", "r.auth.clientAuth", "r.auth.retryOn401"]);
+    expect(
+      validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "oauth2" } }, "r"),
+    ).toHaveLength(10);
   });
 
   it("names each field that is missing or of the wrong type", () => {
-    expect(validateInherited({ auth: { type: "basic", username: 1 }, scripts: { pre: "" } }, "folders[2]", "folder").map((issue) => issue.path)).toEqual([
+    expect(
+      validateInherited({ auth: { type: "basic", username: 1 }, scripts: { pre: "" } }, "folders[2]", "folder").map(
+        (issue) => issue.path,
+      ),
+    ).toEqual([
       "folders[2].auth.username",
       "folders[2].auth.password",
       "folders[2].scripts.post",
       "folders[2].variables",
     ]);
-    expect(validateInherited(null, "collection", "collection")).toEqual([{ path: "collection", message: "Value must be an object." }]);
+    expect(validateInherited(null, "collection", "collection")).toEqual([
+      { path: "collection", message: "Value must be an object." },
+    ]);
   });
 
   it("a request's auth may be inherit", () => {
-    expect(validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "inherit" } }, "r")).toEqual([]);
+    expect(
+      validateRequestContent({ ...emptyRequest(), url: "https://a.test", auth: { type: "inherit" } }, "r"),
+    ).toEqual([]);
   });
 });

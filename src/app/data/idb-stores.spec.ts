@@ -149,9 +149,16 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     ]);
 
     expect((await collections.listCollections()).map((c) => c.name)).toEqual(["Second", "Billing"]);
-    expect((await folders.listFolders(collection.meta.id)).map((f) => [f.name, f.order])).toEqual([["Zed", 0], ["Auth", 2]]);
-    expect((await requests.listRequests(collection.meta.id)).filter((r) => !r.folderId).map((r) => [r.name, r.order])).toEqual([["Ping", 1]]);
-    expect((await requests.listRequests(collection.meta.id)).find((r) => r.meta.id === inFolder.meta.id)?.order).toBe(inFolder.order);
+    expect((await folders.listFolders(collection.meta.id)).map((f) => [f.name, f.order])).toEqual([
+      ["Zed", 0],
+      ["Auth", 2],
+    ]);
+    expect(
+      (await requests.listRequests(collection.meta.id)).filter((r) => !r.folderId).map((r) => [r.name, r.order]),
+    ).toEqual([["Ping", 1]]);
+    expect((await requests.listRequests(collection.meta.id)).find((r) => r.meta.id === inFolder.meta.id)?.order).toBe(
+      inFolder.order,
+    );
   });
 
   it("a new folder and a new request each go after every folder and request there is: the two share one order", async () => {
@@ -159,7 +166,12 @@ describe("collections, folders and requests (real IndexedDB)", () => {
 
     const after = await folders.createFolder({ collectionId: collection.meta.id, name: "After the request" });
     expect(after.order).toBeGreaterThan(atRoot.order);
-    const last = await requests.createRequest({ collectionId: collection.meta.id, name: "Last", method: "GET", url: "/l" });
+    const last = await requests.createRequest({
+      collectionId: collection.meta.id,
+      name: "Last",
+      method: "GET",
+      url: "/l",
+    });
     expect(last.order).toBeGreaterThan(after.order);
     const copy = await requests.duplicateRequest(atRoot.meta.id);
     expect(copy!.order).toBeGreaterThan(last.order);
@@ -169,12 +181,28 @@ describe("collections, folders and requests (real IndexedDB)", () => {
 
   it("a copy of a folder holds its requests in the places they had", async () => {
     const { collection, folder, inFolder } = await seed();
-    const second = await requests.createRequest({ collectionId: collection.meta.id, folderId: folder.meta.id, name: "Second", method: "GET", url: "/2" });
-    await folders.reorderChildren([{ id: second.meta.id, order: 1 }, { id: inFolder.meta.id, order: 2 }]);
+    const second = await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: folder.meta.id,
+      name: "Second",
+      method: "GET",
+      url: "/2",
+    });
+    await folders.reorderChildren([
+      { id: second.meta.id, order: 1 },
+      { id: inFolder.meta.id, order: 2 },
+    ]);
 
     const twin = await folders.duplicateFolder(folder.meta.id);
 
-    expect((await requests.listRequests(collection.meta.id)).filter((r) => r.folderId === twin!.meta.id).map((r) => [r.name, r.order])).toEqual([["Second", 1], ["Login", 2]]);
+    expect(
+      (await requests.listRequests(collection.meta.id))
+        .filter((r) => r.folderId === twin!.meta.id)
+        .map((r) => [r.name, r.order]),
+    ).toEqual([
+      ["Second", 1],
+      ["Login", 2],
+    ]);
   });
 
   it("deleting a folder removes its requests; deleting a collection removes everything under it", async () => {
@@ -202,11 +230,37 @@ describe("collections, folders and requests (real IndexedDB)", () => {
   it("deleting a folder deletes the folders inside it and their requests, at every depth", async () => {
     const { collection, atRoot } = await seed();
     const outer = await folders.createFolder({ collectionId: collection.meta.id, name: "Outer" });
-    const middle = await folders.createFolder({ collectionId: collection.meta.id, name: "Middle", parentFolderId: outer.meta.id });
-    const inner = await folders.createFolder({ collectionId: collection.meta.id, name: "Inner", parentFolderId: middle.meta.id });
-    const beside = await requests.createRequest({ collectionId: collection.meta.id, folderId: outer.meta.id, name: "Beside", method: "GET", url: "/b" });
-    await requests.createRequest({ collectionId: collection.meta.id, folderId: middle.meta.id, name: "In the middle", method: "GET", url: "/m" });
-    await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "Deepest", method: "GET", url: "/d" });
+    const middle = await folders.createFolder({
+      collectionId: collection.meta.id,
+      name: "Middle",
+      parentFolderId: outer.meta.id,
+    });
+    const inner = await folders.createFolder({
+      collectionId: collection.meta.id,
+      name: "Inner",
+      parentFolderId: middle.meta.id,
+    });
+    const beside = await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: outer.meta.id,
+      name: "Beside",
+      method: "GET",
+      url: "/b",
+    });
+    await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: middle.meta.id,
+      name: "In the middle",
+      method: "GET",
+      url: "/m",
+    });
+    await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: inner.meta.id,
+      name: "Deepest",
+      method: "GET",
+      url: "/d",
+    });
 
     await folders.deleteFolder(middle.meta.id);
 
@@ -214,16 +268,44 @@ describe("collections, folders and requests (real IndexedDB)", () => {
       ["Auth", undefined],
       ["Outer", undefined],
     ]);
-    expect((await requests.listRequests(collection.meta.id)).map((r) => r.name).sort()).toEqual(["Beside", "Login", "Ping"]);
-    expect((await requests.listRequests(collection.meta.id)).some((r) => r.meta.id === beside.meta.id || r.meta.id === atRoot.meta.id)).toBe(true);
+    expect((await requests.listRequests(collection.meta.id)).map((r) => r.name).sort()).toEqual([
+      "Beside",
+      "Login",
+      "Ping",
+    ]);
+    expect(
+      (await requests.listRequests(collection.meta.id)).some(
+        (r) => r.meta.id === beside.meta.id || r.meta.id === atRoot.meta.id,
+      ),
+    ).toBe(true);
   });
 
   it("a copy of a folder holds the folders inside it and their requests, each under a new id and in its place", async () => {
     const { collection, folder } = await seed();
-    const inner = await folders.createFolder({ collectionId: collection.meta.id, name: "Inner", parentFolderId: folder.meta.id });
-    const deepest = await folders.createFolder({ collectionId: collection.meta.id, name: "Deepest", parentFolderId: inner.meta.id });
-    await requests.createRequest({ collectionId: collection.meta.id, folderId: inner.meta.id, name: "In inner", method: "GET", url: "/i" });
-    await requests.createRequest({ collectionId: collection.meta.id, folderId: deepest.meta.id, name: "In deepest", method: "GET", url: "/d" });
+    const inner = await folders.createFolder({
+      collectionId: collection.meta.id,
+      name: "Inner",
+      parentFolderId: folder.meta.id,
+    });
+    const deepest = await folders.createFolder({
+      collectionId: collection.meta.id,
+      name: "Deepest",
+      parentFolderId: inner.meta.id,
+    });
+    await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: inner.meta.id,
+      name: "In inner",
+      method: "GET",
+      url: "/i",
+    });
+    await requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: deepest.meta.id,
+      name: "In deepest",
+      method: "GET",
+      url: "/d",
+    });
 
     const twin = await folders.duplicateFolder(folder.meta.id);
 
@@ -237,9 +319,13 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     expect(allRequests.filter((r) => r.folderId === twinInner!.meta.id).map((r) => r.name)).toEqual(["In inner"]);
     expect(allRequests.filter((r) => r.folderId === twinDeepest!.meta.id).map((r) => r.name)).toEqual(["In deepest"]);
     // The original keeps what it had.
-    expect(allFolders.filter((f) => f.parentFolderId === folder.meta.id).map((f) => f.meta.id)).toEqual([inner.meta.id]);
+    expect(allFolders.filter((f) => f.parentFolderId === folder.meta.id).map((f) => f.meta.id)).toEqual([
+      inner.meta.id,
+    ]);
     expect(allFolders).toHaveLength(6);
-    expect(new Set([...allFolders, ...allRequests].map((doc) => doc.meta.id)).size).toBe(allFolders.length + allRequests.length);
+    expect(new Set([...allFolders, ...allRequests].map((doc) => doc.meta.id)).size).toBe(
+      allFolders.length + allRequests.length,
+    );
   });
 
   it("exports a collection with its folders and requests, and imports it back over the existing one", async () => {
@@ -278,8 +364,14 @@ describe("collections, folders and requests (real IndexedDB)", () => {
     it("stores a request's files with it, and deletes them with the request", async () => {
       const { collection } = await seed();
       const request = await requests.createRequest(
-        { collectionId: collection.meta.id, name: "Upload", method: "POST", url: "https://api.test/up", body: binary("f-1") },
-        new Map([["f-1", new Blob(["one"], { type: "text/x-one" })]])
+        {
+          collectionId: collection.meta.id,
+          name: "Upload",
+          method: "POST",
+          url: "https://api.test/up",
+          body: binary("f-1"),
+        },
+        new Map([["f-1", new Blob(["one"], { type: "text/x-one" })]]),
       );
       expect(await fileIds()).toEqual(["f-1"]);
       const read = await requests.readFile("f-1");
@@ -312,7 +404,11 @@ describe("collections, folders and requests (real IndexedDB)", () => {
 
     it("deletes the files of the requests that go with a folder or a collection", async () => {
       const { collection, folder, inFolder, atRoot } = await seed();
-      await requests.updateRequest(inFolder.meta.id, { body: binary("in-folder") }, new Map([["in-folder", blob("a")]]));
+      await requests.updateRequest(
+        inFolder.meta.id,
+        { body: binary("in-folder") },
+        new Map([["in-folder", blob("a")]]),
+      );
       await requests.updateRequest(atRoot.meta.id, { body: binary("at-root") }, new Map([["at-root", blob("b")]]));
 
       await folders.deleteFolder(folder.meta.id);
@@ -371,7 +467,10 @@ describe("collections, folders and requests (real IndexedDB)", () => {
   it("refuses an import whose collection has no identifier, and writes nothing", async () => {
     const { collection } = await seed();
     const payload = structuredClone((await collections.getCollectionExport(collection.meta.id))!);
-    const broken = { ...payload, collection: { ...payload.collection, id: "", meta: { ...payload.collection.meta, id: "" } } };
+    const broken = {
+      ...payload,
+      collection: { ...payload.collection, id: "", meta: { ...payload.collection.meta, id: "" } },
+    };
 
     await expect(collections.importCollectionExport(broken)).rejects.toThrow();
     expect((await collections.listCollections()).map((c) => c.name)).toEqual(["Billing"]);
@@ -408,7 +507,10 @@ describe("environments (real IndexedDB)", () => {
     expect(first?.vars.map((row) => row.key)).toEqual(["base", "fromA"]);
     expect(second?.vars.map((row) => row.key)).toEqual(["base", "fromA", "fromB"]);
 
-    await environments.changeEnvironment(env.meta.id, [{ key: "base", value: null }, { key: "fromA", value: "one" }]);
+    await environments.changeEnvironment(env.meta.id, [
+      { key: "base", value: null },
+      { key: "fromA", value: "one" },
+    ]);
     expect((await environments.listEnvironments())[0].vars).toEqual(rowsOf({ fromA: "one", fromB: "2" }));
     expect(await environments.changeEnvironment("missing", [{ key: "a", value: "1" }])).toBeNull();
   });
@@ -458,7 +560,11 @@ describe("environments (real IndexedDB)", () => {
   });
 
   it("creates, updates, duplicates and reorders environments", async () => {
-    const dev = await environments.createEnvironment({ name: " Dev ", description: " local ", vars: rowsOf({ host: "localhost" }) });
+    const dev = await environments.createEnvironment({
+      name: " Dev ",
+      description: " local ",
+      vars: rowsOf({ host: "localhost" }),
+    });
     const prod = await environments.createEnvironment({ name: "Prod" });
     expect(dev).toMatchObject({ name: "Dev", description: "local", vars: rowsOf({ host: "localhost" }) });
     expect(prod.vars).toEqual([]);
@@ -509,7 +615,10 @@ describe("secrets (real IndexedDB)", () => {
   let core: Repositories;
   let secrets: SecretsRepository;
   const envelope = (tag: string): SecretEnvelope => ({ iv: `iv-${tag}`, ct: `ct-${tag}` });
-  const vault = (tag: string): VaultRecord => ({ kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` }, wrappedDek: `dek-${tag}` });
+  const vault = (tag: string): VaultRecord => ({
+    kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: `salt-${tag}` },
+    wrappedDek: `dek-${tag}`,
+  });
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -603,8 +712,19 @@ describe("history (real IndexedDB)", () => {
 
   it("returns entries newest first with what they recorded, and deletes one or all", async () => {
     const first = await idb.add(historyEntry({ url: "https://api.test/a", createdAt: 100, status: 200 }), 500);
-    const second = await idb.add(historyEntry({ method: "POST", url: "https://api.test/b", createdAt: 200, template: { body: jsonBody({ x: 1 }) } }), 500);
-    const third = await idb.add(historyEntry({ url: "https://api.test/a", createdAt: 300, error: "Network error" }), 500);
+    const second = await idb.add(
+      historyEntry({
+        method: "POST",
+        url: "https://api.test/b",
+        createdAt: 200,
+        template: { body: jsonBody({ x: 1 }) },
+      }),
+      500,
+    );
+    const third = await idb.add(
+      historyEntry({ url: "https://api.test/a", createdAt: 300, error: "Network error" }),
+      500,
+    );
     expect(new Set([first, second, third]).size).toBe(3);
 
     expect((await idb.getLatest()).map((h) => h.createdAt)).toEqual([300, 200, 100]);

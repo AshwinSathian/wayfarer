@@ -4,7 +4,14 @@ import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { UiSpinner } from "../../ui/spinner";
-import { IMPORT_TOO_LARGE, isOversizedImport, readImportText, requestsInOrder, runFailed, type RunResult } from "@wayfarer/core";
+import {
+  IMPORT_TOO_LARGE,
+  isOversizedImport,
+  readImportText,
+  requestsInOrder,
+  runFailed,
+  type RunResult,
+} from "@wayfarer/core";
 import { CollectionRunner } from "../../services/collection-runner";
 import { CollectionsStore } from "../../services/collections-store";
 import { Icon } from "../../shared/icon/icon";
@@ -37,8 +44,18 @@ export class RunView {
     return tree ? requestsInOrder(tree, folderId) : [];
   });
   protected readonly failed = computed(() => this.run().results().filter(runFailed).length);
-  protected readonly passed = computed(() => this.run().results().filter((result) => !result.skipped && !runFailed(result)).length);
-  protected readonly skipped = computed(() => this.run().results().filter((result) => result.skipped).length);
+  protected readonly passed = computed(
+    () =>
+      this.run()
+        .results()
+        .filter((result) => !result.skipped && !runFailed(result)).length,
+  );
+  protected readonly skipped = computed(
+    () =>
+      this.run()
+        .results()
+        .filter((result) => result.skipped).length,
+  );
   /** How many results the run should give: its requests once an iteration. A script can send more or fewer. */
   protected readonly expected = computed(() => {
     const run = this.run();
@@ -51,8 +68,12 @@ export class RunView {
    */
   protected readonly sharedErrors = computed(() => {
     const counts = new Map<string, number>();
-    for (const { error } of this.run().results()) if (error !== undefined) counts.set(error, (counts.get(error) ?? 0) + 1);
-    return [...counts].filter(([, count]) => count >= 2).sort((a, b) => b[1] - a[1]).map(([error, count]) => ({ error, count }));
+    for (const { error } of this.run().results())
+      if (error !== undefined) counts.set(error, (counts.get(error) ?? 0) + 1);
+    return [...counts]
+      .filter(([, count]) => count >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .map(([error, count]) => ({ error, count }));
   });
   protected readonly failedOnly = signal(false);
   /** The rows of the table, each with its number in the run. */
@@ -60,9 +81,13 @@ export class RunView {
     this.run()
       .results()
       .map((result, index) => ({ result, number: index + 1 }))
-      .filter(({ result }) => !this.failedOnly() || runFailed(result))
+      .filter(({ result }) => !this.failedOnly() || runFailed(result)),
   );
-  protected readonly tests = computed(() => this.run().results().flatMap((result) => result.tests));
+  protected readonly tests = computed(() =>
+    this.run()
+      .results()
+      .flatMap((result) => result.tests),
+  );
   protected readonly failedTests = computed(() => this.tests().filter((test) => !test.passed).length);
   /** How the run ended, in a sentence. */
   protected readonly ending = computed(() => {
@@ -149,9 +174,15 @@ export class RunView {
   protected problems(result: RunResult): string[] {
     const shared = this.sharedErrors();
     const index = shared.findIndex(({ error }) => error === result.error);
-    const said = index < 0 ? result.error : shared.length === 1 ? "Same error as above" : `Same error as ${index + 1} above`;
+    const said =
+      index < 0 ? result.error : shared.length === 1 ? "Same error as above" : `Same error as ${index + 1} above`;
     const error = said === undefined ? [] : [said];
-    return [...error, ...result.tests.filter((test) => !test.passed).map((test) => (test.error ? `${test.name}: ${test.error}` : test.name))];
+    return [
+      ...error,
+      ...result.tests
+        .filter((test) => !test.passed)
+        .map((test) => (test.error ? `${test.name}: ${test.error}` : test.name)),
+    ];
   }
 
   /** The reports are fetched when one is first asked for. */
@@ -161,7 +192,8 @@ export class RunView {
     if (!report) return;
     const { junitXml, runReportJson } = await import("@wayfarer/core/run-report");
     const info = { name: run.target.name, startedAt: run.startedAt() };
-    if (format === "json") saveFile("wayfarer-run.json", `${JSON.stringify(runReportJson(report, info), null, 2)}\n`, "application/json");
+    if (format === "json")
+      saveFile("wayfarer-run.json", `${JSON.stringify(runReportJson(report, info), null, 2)}\n`, "application/json");
     else saveFile("wayfarer-run.junit.xml", junitXml(report, info), "application/xml");
   }
 

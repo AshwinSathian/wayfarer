@@ -15,11 +15,13 @@ describe("FetchTransport", () => {
   });
 
   it("should perform GET requests with provided headers", async () => {
-    const { fetch, calls } = fakeFetch(() => new Response('{"ok":true}', { status: 200, statusText: "OK", headers: json }));
+    const { fetch, calls } = fakeFetch(
+      () => new Response('{"ok":true}', { status: 200, statusText: "OK", headers: json }),
+    );
 
     const response = await new FetchTransport(fetch).send(
       { method: "GET", url: "https://example.com/data", headers: [["Accept", "application/json"]] },
-      open()
+      open(),
     );
 
     expect(response.status).toBe(200);
@@ -33,7 +35,11 @@ describe("FetchTransport", () => {
   // D2, D23: nothing of the app's own goes with a user's request.
   it("sends without cache, cookies or a referrer, follows redirects, and keeps header order and duplicates", async () => {
     const { fetch, calls } = fakeFetch(() => new Response(null, { status: 204 }));
-    const headers: [string, string][] = [["X-B", "1"], ["X-A", "2"], ["X-B", "3"]];
+    const headers: [string, string][] = [
+      ["X-B", "1"],
+      ["X-A", "2"],
+      ["X-B", "3"],
+    ];
 
     await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/", headers }, open());
 
@@ -53,8 +59,13 @@ describe("FetchTransport", () => {
     ["text/plain", "User-agent: *"],
   ]) {
     it(`returns a ${contentType} body as text`, async () => {
-      const { fetch } = fakeFetch(() => new Response(text, { status: 200, statusText: "OK", headers: { "Content-Type": contentType } }));
-      const response = await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/t", headers: [] }, open());
+      const { fetch } = fakeFetch(
+        () => new Response(text, { status: 200, statusText: "OK", headers: { "Content-Type": contentType } }),
+      );
+      const response = await new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/t", headers: [] },
+        open(),
+      );
       expect(decodeEnvelope(response)).toBe(text);
     });
   }
@@ -62,18 +73,32 @@ describe("FetchTransport", () => {
   // P0.4 (F05, #62)
   it("returns an image body as BinaryBody with its exact bytes", async () => {
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]).buffer;
-    const { fetch } = fakeFetch(() => new Response(png, { status: 200, statusText: "OK", headers: { "Content-Type": "image/png" } }));
+    const { fetch } = fakeFetch(
+      () => new Response(png, { status: 200, statusText: "OK", headers: { "Content-Type": "image/png" } }),
+    );
 
-    const body = decodeEnvelope(await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/i.png", headers: [] }, open()));
+    const body = decodeEnvelope(
+      await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/i.png", headers: [] }, open()),
+    );
 
     expect(body).toBeInstanceOf(BinaryBody);
     expect(new Uint8Array((body as BinaryBody).bytes as ArrayBuffer)).toEqual(new Uint8Array(png));
   });
 
   it("decodes an HTTP error body instead of exposing the raw ArrayBuffer", async () => {
-    const { fetch } = fakeFetch(() => new Response("<p>Not here</p>", { status: 404, statusText: "Not Found", headers: { "Content-Type": "text/html" } }));
+    const { fetch } = fakeFetch(
+      () =>
+        new Response("<p>Not here</p>", {
+          status: 404,
+          statusText: "Not Found",
+          headers: { "Content-Type": "text/html" },
+        }),
+    );
 
-    const response = await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/missing", headers: [] }, open());
+    const response = await new FetchTransport(fetch).send(
+      { method: "GET", url: "https://example.com/missing", headers: [] },
+      open(),
+    );
 
     expect(response.status).toBe(404);
     expect(decodeEnvelope(response)).toBe("<p>Not here</p>");
@@ -89,7 +114,7 @@ describe("FetchTransport", () => {
         headers: [["Content-Type", "application/json"]],
         body: JSON.stringify({ displayName: "Jane" }),
       },
-      open()
+      open(),
     );
 
     expect(response.status).toBe(204);
@@ -99,11 +124,13 @@ describe("FetchTransport", () => {
   });
 
   it("should surface errors for DELETE requests", async () => {
-    const { fetch, calls } = fakeFetch(() => new Response('{"message":"missing"}', { status: 404, statusText: "Not Found", headers: json }));
+    const { fetch, calls } = fakeFetch(
+      () => new Response('{"message":"missing"}', { status: 404, statusText: "Not Found", headers: json }),
+    );
 
     const response = await new FetchTransport(fetch).send(
       { method: "DELETE", url: "https://example.com/resource/1", headers: [["Authorization", "Bearer token"]] },
-      open()
+      open(),
     );
 
     expect(response.status).toBe(404);
@@ -117,7 +144,10 @@ describe("FetchTransport", () => {
     Object.defineProperty(final, "url", { value: "https://example.com/end" });
     const { fetch } = fakeFetch(() => final);
 
-    const response = await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/start", headers: [] }, open());
+    const response = await new FetchTransport(fetch).send(
+      { method: "GET", url: "https://example.com/start", headers: [] },
+      open(),
+    );
 
     expect(response).toMatchObject({ redirected: true, finalUrl: "https://example.com/end", route: "direct" });
     expect(response.sizes.decoded).toBe(2);
@@ -131,9 +161,14 @@ describe("FetchTransport", () => {
         controller.close();
       },
     });
-    const { fetch } = fakeFetch(() => new Response(stream, { status: 200, headers: { "Content-Type": "text/plain; charset=utf-8" } }));
+    const { fetch } = fakeFetch(
+      () => new Response(stream, { status: 200, headers: { "Content-Type": "text/plain; charset=utf-8" } }),
+    );
 
-    const response = await new FetchTransport(fetch, 2048).send({ method: "GET", url: "https://example.com/big", headers: [] }, open());
+    const response = await new FetchTransport(fetch, 2048).send(
+      { method: "GET", url: "https://example.com/big", headers: [] },
+      open(),
+    );
 
     expect(response.body).toBeInstanceOf(Blob);
     expect(response.sizes.decoded).toBe(5 * 1024);
@@ -148,7 +183,9 @@ describe("FetchTransport", () => {
     const hang = new FetchTransport(fakeFetch(never).fetch);
     const request = { method: "GET", url: "https://example.com/slow", headers: [] };
 
-    const timedOut = await hang.send(request, { signal: new AbortController().signal, timeoutMs: 20 }).catch((e: unknown) => e);
+    const timedOut = await hang
+      .send(request, { signal: new AbortController().signal, timeoutMs: 20 })
+      .catch((e: unknown) => e);
     expect(timedOut).toBeInstanceOf(TransportError);
     expect(timedOut).toMatchObject({ kind: "timeout", message: "Timed out after 20 ms" });
 
@@ -165,9 +202,16 @@ describe("FetchTransport", () => {
 
     // Node's fetch names the reason in its cause's code; the cause's message, which holds the address, is not kept.
     const refused = new FetchTransport(() =>
-      Promise.reject(new TypeError("fetch failed", { cause: Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:9"), { code: "ECONNREFUSED" }) }))
+      Promise.reject(
+        new TypeError("fetch failed", {
+          cause: Object.assign(new Error("connect ECONNREFUSED 10.0.0.1:9"), { code: "ECONNREFUSED" }),
+        }),
+      ),
     );
-    expect(await refused.send(request, open()).catch((e: unknown) => e)).toMatchObject({ kind: "network", message: "fetch failed (ECONNREFUSED)" });
+    expect(await refused.send(request, open()).catch((e: unknown) => e)).toMatchObject({
+      kind: "network",
+      message: "fetch failed (ECONNREFUSED)",
+    });
   });
 
   // P5.6: a response that is an event stream is read as it arrives, when the caller asks for its events.
@@ -177,7 +221,12 @@ describe("FetchTransport", () => {
     function body() {
       let controller!: ReadableStreamDefaultController<Uint8Array>;
       const stream = new ReadableStream<Uint8Array>({ start: (given) => void (controller = given) });
-      return { stream, write: (text: string) => controller.enqueue(new TextEncoder().encode(text)), close: () => controller.close(), fail: (error: Error) => controller.error(error) };
+      return {
+        stream,
+        write: (text: string) => controller.enqueue(new TextEncoder().encode(text)),
+        close: () => controller.close(),
+        fail: (error: Error) => controller.error(error),
+      };
     }
     const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -185,7 +234,10 @@ describe("FetchTransport", () => {
       const source = body();
       const { fetch } = fakeFetch(() => new Response(source.stream, { status: 200, headers: sse }));
       const events: unknown[] = [];
-      const sent = new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { ...open(), onEvent: (event) => events.push(event) });
+      const sent = new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/events", headers: [] },
+        { ...open(), onEvent: (event) => events.push(event) },
+      );
 
       source.write("id: 1\nevent: tick\ndata: one\n\n");
       await tick();
@@ -207,7 +259,10 @@ describe("FetchTransport", () => {
       const source = body();
       const { fetch } = fakeFetch(() => new Response(source.stream, { status: 200, headers: sse }));
       const events: string[] = [];
-      const sent = new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { signal: new AbortController().signal, timeoutMs: 20, onEvent: (event) => events.push(event.data) });
+      const sent = new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/events", headers: [] },
+        { signal: new AbortController().signal, timeoutMs: 20, onEvent: (event) => events.push(event.data) },
+      );
       await new Promise((resolve) => setTimeout(resolve, 60));
       source.write("data: late\n\n");
       source.close();
@@ -217,7 +272,12 @@ describe("FetchTransport", () => {
 
     it("a stream that never starts is ended by the timeout, as any request is", async () => {
       const { fetch } = fakeFetch(never);
-      await expect(new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { signal: new AbortController().signal, timeoutMs: 20, onEvent: () => undefined })).rejects.toMatchObject({ kind: "timeout" });
+      await expect(
+        new FetchTransport(fetch).send(
+          { method: "GET", url: "https://example.com/events", headers: [] },
+          { signal: new AbortController().signal, timeoutMs: 20, onEvent: () => undefined },
+        ),
+      ).rejects.toMatchObject({ kind: "timeout" });
     });
 
     it("stopped by the caller, it is a response with what had arrived, not a failure", async () => {
@@ -225,7 +285,10 @@ describe("FetchTransport", () => {
       const controller = new AbortController();
       const { fetch } = fakeFetch(() => new Response(source.stream, { status: 200, statusText: "OK", headers: sse }));
       const events: string[] = [];
-      const sent = new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { signal: controller.signal, timeoutMs: 0, onEvent: (event) => events.push(event.data) });
+      const sent = new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/events", headers: [] },
+        { signal: controller.signal, timeoutMs: 0, onEvent: (event) => events.push(event.data) },
+      );
       source.write("data: one\n\ndata: half");
       await tick();
       controller.abort();
@@ -240,7 +303,10 @@ describe("FetchTransport", () => {
     it("a stream that breaks is a network failure", async () => {
       const source = body();
       const { fetch } = fakeFetch(() => new Response(source.stream, { status: 200, headers: sse }));
-      const sent = new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { ...open(), onEvent: () => undefined });
+      const sent = new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/events", headers: [] },
+        { ...open(), onEvent: () => undefined },
+      );
       await tick();
       source.fail(new TypeError("network error"));
       await expect(sent).rejects.toMatchObject({ kind: "network" });
@@ -250,7 +316,10 @@ describe("FetchTransport", () => {
       const source = body();
       const { fetch } = fakeFetch(() => new Response(source.stream, { status: 200, headers: sse }));
       let events = 0;
-      const sent = new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, { ...open(), onEvent: () => events++ });
+      const sent = new FetchTransport(fetch).send(
+        { method: "GET", url: "https://example.com/events", headers: [] },
+        { ...open(), onEvent: () => events++ },
+      );
       const event = `data: ${"x".repeat(1017)}\n\n`;
       for (let written = 0; written < 1100; written++) source.write(event);
       source.close();
@@ -262,10 +331,24 @@ describe("FetchTransport", () => {
 
     it("without a caller for its events, and for any other type, the body is read whole as before", async () => {
       const { fetch } = fakeFetch(() => new Response("data: a\n\n", { status: 200, headers: sse }));
-      expect((await new FetchTransport(fetch).send({ method: "GET", url: "https://example.com/events", headers: [] }, open())).stream).toBeUndefined();
+      expect(
+        (
+          await new FetchTransport(fetch).send(
+            { method: "GET", url: "https://example.com/events", headers: [] },
+            open(),
+          )
+        ).stream,
+      ).toBeUndefined();
       const other = fakeFetch(() => new Response("data: a\n\n", { status: 200, headers: json }));
       const events: unknown[] = [];
-      expect((await new FetchTransport(other.fetch).send({ method: "GET", url: "https://example.com/x", headers: [] }, { ...open(), onEvent: (event) => events.push(event) })).stream).toBeUndefined();
+      expect(
+        (
+          await new FetchTransport(other.fetch).send(
+            { method: "GET", url: "https://example.com/x", headers: [] },
+            { ...open(), onEvent: (event) => events.push(event) },
+          )
+        ).stream,
+      ).toBeUndefined();
       expect(events).toEqual([]);
     });
   });

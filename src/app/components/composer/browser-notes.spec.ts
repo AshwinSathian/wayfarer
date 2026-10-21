@@ -9,16 +9,24 @@ import { BrowserNotes } from "./browser-notes";
 // against real browsers in e2e/browser-limits.spec.ts. Here: what the panel
 // says for the cases no e2e page can be in, since the e2e origin is http://.
 describe("BrowserNotes (P2.14)", () => {
-  const limits = signal<BrowserLimits>(browserLimits({ method: "GET", url: "", headers: [] }, { origin: "https://app.example", route: "direct" }));
-  const show = (request: { method?: string; url: string; headers?: [string, string][] }, route: "direct" | "bridge" = "direct") => {
+  const limits = signal<BrowserLimits>(
+    browserLimits({ method: "GET", url: "", headers: [] }, { origin: "https://app.example", route: "direct" }),
+  );
+  const show = (
+    request: { method?: string; url: string; headers?: [string, string][] },
+    route: "direct" | "bridge" = "direct",
+  ) => {
     limits.set(browserLimits({ method: "GET", headers: [], ...request }, { origin: "https://app.example", route }));
     const fixture = TestBed.createComponent(BrowserNotes);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   };
-  const text = (element: HTMLElement, selector: string) => element.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim();
+  const text = (element: HTMLElement, selector: string) =>
+    element.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim();
 
-  const settings = signal<{ followRedirects?: boolean; tlsInsecure?: boolean; route?: "auto" | "direct" | "bridge" }>({});
+  const settings = signal<{ followRedirects?: boolean; tlsInsecure?: boolean; route?: "auto" | "direct" | "bridge" }>(
+    {},
+  );
   const setFollowRedirects = vi.fn();
   const setTlsInsecure = vi.fn();
 
@@ -27,7 +35,19 @@ describe("BrowserNotes (P2.14)", () => {
     setFollowRedirects.mockClear();
     TestBed.configureTestingModule({
       imports: [BrowserNotes],
-      providers: [{ provide: WorkspaceStore, useValue: { browserLimits: limits, draft: () => ({ settings: settings() }), inheritedRoute: () => "auto", setFollowRedirects, setTlsInsecure, setRoute: vi.fn() } }],
+      providers: [
+        {
+          provide: WorkspaceStore,
+          useValue: {
+            browserLimits: limits,
+            draft: () => ({ settings: settings() }),
+            inheritedRoute: () => "auto",
+            setFollowRedirects,
+            setTlsInsecure,
+            setRoute: vi.fn(),
+          },
+        },
+      ],
     });
   });
 
@@ -74,7 +94,9 @@ describe("BrowserNotes (P2.14)", () => {
   });
 
   it("says that an http:// address on this machine works in some browsers", () => {
-    expect(text(show({ url: "http://localhost:3000/" }), ".browser-note-mixed")).toContain("Chrome and Firefox allow that, Safari does not");
+    expect(text(show({ url: "http://localhost:3000/" }), ".browser-note-mixed")).toContain(
+      "Chrome and Firefox allow that, Safari does not",
+    );
   });
 
   it("gives every reason for a preflight", () => {
@@ -85,7 +107,12 @@ describe("BrowserNotes (P2.14)", () => {
   it("says nothing of the browser's limits when the Local Bridge sends the request", () => {
     const element = show({ method: "PUT", url: "http://example.invalid/", headers: [["Cookie", "a"]] }, "bridge");
     expect(text(element, ".browser-note-bridge")).toContain("the Local Bridge is on");
-    for (const selector of [".browser-note-mixed", ".browser-note-dropped", ".browser-note-preflight", ".browser-note-adds"]) {
+    for (const selector of [
+      ".browser-note-mixed",
+      ".browser-note-dropped",
+      ".browser-note-preflight",
+      ".browser-note-adds",
+    ]) {
       expect(element.querySelector(selector)).toBeNull();
     }
   });

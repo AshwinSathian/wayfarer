@@ -11,13 +11,20 @@ interface Echo {
 }
 
 async function sendAndEcho(page: Page): Promise<Echo> {
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   return (await (await response).json()) as Echo;
 }
 
 /** Adds the variables in the dialog that is open, and saves. */
-async function addVariables(page: Page, dialogName: string | RegExp, variables: Record<string, string>, save = "Save variables"): Promise<void> {
+async function addVariables(
+  page: Page,
+  dialogName: string | RegExp,
+  variables: Record<string, string>,
+  save = "Save variables",
+): Promise<void> {
   const dialog = page.getByRole("dialog", { name: dialogName });
   let rows = 0;
   for (const [name, value] of Object.entries(variables)) {
@@ -32,7 +39,9 @@ async function addVariables(page: Page, dialogName: string | RegExp, variables: 
   await expect(dialog).toBeHidden();
 }
 
-test("a collection variable and a global reach the server, an environment's value wins, and both are kept over a reload", async ({ page }) => {
+test("a collection variable and a global reach the server, an environment's value wins, and both are kept over a reload", async ({
+  page,
+}) => {
   // Two dialogs of rows, a send, a reload and a second send: 29 to 30 s on GitHub's WebKit runner when it passes (#228).
   test.slow();
   await seedAndOpen(
@@ -42,7 +51,7 @@ test("a collection variable and a global reach the server, an environment's valu
       method: "GET",
       url: `${ECHO}/echo?c={{fromCollection}}`,
       headers: { "X-Global": "{{fromGlobal}}", "X-Winner": "{{winner}}", "X-Second": "{{second}}" },
-    }
+    },
   );
 
   await openEnvironments(page);
@@ -53,14 +62,24 @@ test("a collection variable and a global reach the server, an environment's valu
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   // A collection's variables are in its settings since P4.9, with its auth and its scripts.
   await page.getByRole("menuitem", { name: "Settings" }).click();
-  await page.getByRole("dialog", { name: /^Collection settings/ }).getByRole("tab", { name: "Variables" }).click();
-  await addVariables(page, /^Collection settings/, { fromCollection: "c-1", winner: "from-collection", second: "from-collection" }, "Save settings");
+  await page
+    .getByRole("dialog", { name: /^Collection settings/ })
+    .getByRole("tab", { name: "Variables" })
+    .click();
+  await addVariables(
+    page,
+    /^Collection settings/,
+    { fromCollection: "c-1", winner: "from-collection", second: "from-collection" },
+    "Save settings",
+  );
 
   // The chips name where each value comes from.
   const chips = page.locator("app-variable-chips");
   await expect(chips.getByRole("button", { name: "Variable fromCollection, source collection" })).toContainText("c-1");
   await expect(chips.getByRole("button", { name: "Variable fromGlobal, source global" })).toContainText("g-1");
-  await expect(chips.getByRole("button", { name: "Variable winner, source environment" })).toContainText("from-environment");
+  await expect(chips.getByRole("button", { name: "Variable winner, source environment" })).toContainText(
+    "from-environment",
+  );
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 
   const check = (echo: Echo) => {
@@ -78,11 +97,17 @@ test("a collection variable and a global reach the server, an environment's valu
   check(await sendAndEcho(page));
 });
 
-test("F74: a variable whose name holds a slash or a space reaches the server, and another language's template in a header is sent as written, unasked", async ({ page }) => {
+test("F74: a variable whose name holds a slash or a space reaches the server, and another language's template in a header is sent as written, unasked", async ({
+  page,
+}) => {
   await seedAndOpen(
     page,
     { "api/key": "k-1", "first name": "Ada" },
-    { method: "GET", url: `${ECHO}/echo?name={{first name}}`, headers: { "X-Key": "{{api/key}}", "X-Template": "{{ user.name | upper }}" } }
+    {
+      method: "GET",
+      url: `${ECHO}/echo?name={{first name}}`,
+      headers: { "X-Key": "{{api/key}}", "X-Template": "{{ user.name | upper }}" },
+    },
   );
   const chips = page.locator("app-variable-chips");
   await expect(chips.getByRole("button", { name: "Variable api/key, source environment" })).toContainText("k-1");
@@ -90,7 +115,10 @@ test("F74: a variable whose name holds a slash or a space reaches the server, an
   // What is between braces and is no plain name is not a missing variable: nothing asks for it.
   await expect(page.getByText(/Missing:/)).toHaveCount(0);
 
-  const [response] = await Promise.all([page.waitForResponse((candidate) => candidate.url().startsWith(`${ECHO}/echo`)), send(page)]);
+  const [response] = await Promise.all([
+    page.waitForResponse((candidate) => candidate.url().startsWith(`${ECHO}/echo`)),
+    send(page),
+  ]);
   const echo = (await response.json()) as Echo;
   expect(echo.query).toEqual({ name: "Ada" });
   expect(echo.headers).toContainEqual(["x-key", "k-1"]);
@@ -98,7 +126,11 @@ test("F74: a variable whose name holds a slash or a space reaches the server, an
 });
 
 test("variables that refer to each other are not sent: the composer says which", async ({ page }) => {
-  await seedAndOpen(page, { a: "{{b}}", b: "{{a}}" }, { method: "GET", url: `${ECHO}/echo`, headers: { "X-A": "{{a}}" } });
+  await seedAndOpen(
+    page,
+    { a: "{{b}}", b: "{{a}}" },
+    { method: "GET", url: `${ECHO}/echo`, headers: { "X-A": "{{a}}" } },
+  );
   let requests = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(ECHO)) requests += 1;
@@ -106,6 +138,8 @@ test("variables that refer to each other are not sent: the composer says which",
 
   await send(page);
 
-  await expect(page.getByText("Variables refer to each other in a circle: {{a}} → {{b}} → {{a}}.").first()).toBeVisible();
+  await expect(
+    page.getByText("Variables refer to each other in a circle: {{a}} → {{b}} → {{a}}.").first(),
+  ).toBeVisible();
   expect(requests).toBe(0);
 });

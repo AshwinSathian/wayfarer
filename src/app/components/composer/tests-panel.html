@@ -4,34 +4,49 @@
 </div>
 @for (test of store.draft().tests; track test.id; let i = $index) {
 <div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
-  <ui-select class="w-36" aria-label="Assert on" [options]="assertionTargetOptions" [value]="test.target" (valueChange)="test.target = $event; store.edited()" />
+  <ui-select
+    class="w-36"
+    aria-label="Assert on"
+    [options]="assertionTargetOptions"
+    [value]="test.target"
+    (valueChange)="test.target = $event; store.edited()"
+  />
   @if (needsKey(test.target)) {
   <mat-form-field class="field w-44">
-    <input class="font-mono" matInput
+    <input
+      class="font-mono"
+      matInput
       [(ngModel)]="test.key"
       (ngModelChange)="store.edited()"
       [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
-     />
+    />
   </mat-form-field>
   }
-  <ui-select class="w-44" aria-label="Operator" [options]="operatorsFor(test.target)" [value]="test.operator" (valueChange)="test.operator = $event; store.edited()" />
+  <ui-select
+    class="w-44"
+    aria-label="Operator"
+    [options]="operatorsFor(test.target)"
+    [value]="test.operator"
+    (valueChange)="test.operator = $event; store.edited()"
+  />
   @if (needsExpected(test.operator)) {
   <mat-form-field class="field flex-1 min-w-[120px]!">
-    <input class="font-mono" matInput
+    <input
+      class="font-mono"
+      matInput
       [(ngModel)]="test.expected"
       (ngModelChange)="store.edited()"
       placeholder="expected value"
-     />
+    />
   </mat-form-field>
   }
-  <button
-    uiButton="icon" class="btn-danger"
-    type="button"
-    aria-label="Remove test"
-    (click)="store.removeTest(i)"
-  ><app-icon name="close" /></button>
+  <button uiButton="icon" class="btn-danger" type="button" aria-label="Remove test" (click)="store.removeTest(i)"
+    ><app-icon name="close"
+  /></button>
 </div>
 }
 <div>
-  <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"><app-icon name="add" /> Add Test</button>
+  <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"
+    ><app-icon name="add" /> Add Test</button
+  >
 </div>

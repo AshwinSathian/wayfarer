@@ -10,7 +10,8 @@ import { emptyRequest, type RequestContent } from "../../src/model/request";
 const meta = (id: string): Meta => ({ id, createdAt: 0, updatedAt: 0 });
 
 const ECHO = `const echo = pm.response.json(); const header = (name) => (echo.headers.find(([key]) => key === name) || [])[1];`;
-const add = (letter: string) => `pm.collectionVariables.set("order", pm.collectionVariables.get("order") + "${letter}");`;
+const add = (letter: string) =>
+  `pm.collectionVariables.set("order", pm.collectionVariables.get("order") + "${letter}");`;
 const row = (key: string, value: string, enabled = true) => ({ key, value, enabled });
 
 const folder = (id: string, name: string, order: number, rest: Partial<Folder> = {}): Folder => ({
@@ -25,7 +26,13 @@ const folder = (id: string, name: string, order: number, rest: Partial<Folder> =
   ...rest,
 });
 
-const request = (id: string, name: string, order: number, folderId: string | undefined, content: Partial<RequestContent>): RequestDoc => ({
+const request = (
+  id: string,
+  name: string,
+  order: number,
+  folderId: string | undefined,
+  content: Partial<RequestContent>,
+): RequestDoc => ({
   id,
   meta: meta(id),
   collectionId: "shop",
@@ -57,7 +64,10 @@ export const SHOP: CollectionExport = {
   folders: [
     folder("admin", "Admin", 0, {
       auth: { type: "basic", username: "admin", password: "p@ss" },
-      scripts: { pre: add("f"), post: `${ECHO}\npm.test("folder Admin: its basic auth arrived", () => pm.expect(header("authorization")).to.eql("Basic YWRtaW46cEBzcw=="));` },
+      scripts: {
+        pre: add("f"),
+        post: `${ECHO}\npm.test("folder Admin: its basic auth arrived", () => pm.expect(header("authorization")).to.eql("Basic YWRtaW46cEBzcw=="));`,
+      },
     }),
     folder("deep", "Deep", 0, { parentFolderId: "admin", scripts: { pre: add("d"), post: "" } }),
     folder("bodies", "Bodies", 1),
@@ -66,7 +76,10 @@ export const SHOP: CollectionExport = {
     request("form", "Form", 0, "deep", {
       method: "POST",
       url: "{{base}}/echo",
-      body: { mode: "urlencoded", urlencoded: [row("q", "a b&c"), row("greeting", "{{greeting}}"), row("off", "1", false)] },
+      body: {
+        mode: "urlencoded",
+        urlencoded: [row("q", "a b&c"), row("greeting", "{{greeting}}"), row("off", "1", false)],
+      },
       scripts: {
         pre: add("r"),
         post: `${ECHO}

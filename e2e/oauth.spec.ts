@@ -30,7 +30,15 @@ const oauth = (patch: Record<string, unknown> = {}) => ({
 async function violationsOf(context: BrowserContext): Promise<string[]> {
   const violations: string[] = [];
   await context.exposeFunction("reportViolation", (directive: string) => violations.push(directive));
-  await context.addInitScript(() => addEventListener("securitypolicyviolation", (event) => void (window as unknown as { reportViolation: (directive: string) => void }).reportViolation(event.violatedDirective)));
+  await context.addInitScript(() =>
+    addEventListener(
+      "securitypolicyviolation",
+      (event) =>
+        void (window as unknown as { reportViolation: (directive: string) => void }).reportViolation(
+          event.violatedDirective,
+        ),
+    ),
+  );
   return violations;
 }
 
@@ -38,7 +46,8 @@ async function violationsOf(context: BrowserContext): Promise<string[]> {
 function tokenRequests(page: Page): Record<string, string>[] {
   const forms: Record<string, string>[] = [];
   page.on("request", (request) => {
-    if (request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST") forms.push(Object.fromEntries(new URLSearchParams(request.postData() ?? "")));
+    if (request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST")
+      forms.push(Object.fromEntries(new URLSearchParams(request.postData() ?? "")));
   });
   return forms;
 }
@@ -67,7 +76,9 @@ async function openAuth(page: Page): Promise<void> {
 }
 
 async function sendAndEcho(page: Page, path = "/echo"): Promise<Echo> {
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}${path}`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}${path}`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   return (await (await response).json()) as Echo;
 }
@@ -77,7 +88,10 @@ const bearer = (echo: Echo) => echo.headers.find(([name]) => name === "authoriza
 const tokenOf = (echo: Echo) => bearer(echo).replace(/^Bearer /, "");
 const status = (page: Page) => page.locator(".oauth-token-status");
 
-test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over a channel, the code is exchanged with its verifier, and the token reaches the server", async ({ page, context }) => {
+test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over a channel, the code is exchanged with its verifier, and the token reaches the server", async ({
+  page,
+  context,
+}) => {
   const violations = await violationsOf(context);
   const tokens = tokenRequests(page);
   await expectProdParity(await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` }));
@@ -94,7 +108,10 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   await expect(status(page)).toContainText("No token yet.");
 
   const authorize = context.waitForEvent("request", (request) => request.url().startsWith(`${ECHO}/oauth/authorize`));
-  const [popup] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
+  const [popup] = await Promise.all([
+    context.waitForEvent("page"),
+    page.getByRole("button", { name: "Get token", exact: true }).click(),
+  ]);
   await expect(status(page)).toContainText("There is a token, good until");
   // The window was told its answer had arrived, and closed itself.
   if (!popup.isClosed()) await popup.waitForEvent("close");
@@ -106,7 +123,11 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   expect(asked.get("state")).toMatch(/^[0-9a-f-]{36}$/);
   // One exchange: the code with the verifier, the client named in the form (it has no secret).
   expect(tokens).toHaveLength(1);
-  expect(tokens[0]).toMatchObject({ grant_type: "authorization_code", redirect_uri: "http://localhost:4200/app/oauth/callback", client_id: "wayfarer-e2e" });
+  expect(tokens[0]).toMatchObject({
+    grant_type: "authorization_code",
+    redirect_uri: "http://localhost:4200/app/oauth/callback",
+    client_id: "wayfarer-e2e",
+  });
   expect(tokens[0]["code_verifier"]).toMatch(/^[A-Za-z0-9._~-]{43,128}$/);
 
   // The request arrives with a token, and it is the one the identity provider issued for that code and scope.
@@ -120,7 +141,10 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
   // No vault: the token is in this tab's memory, and in nothing stored. The server sent it back, and history holds a mask.
   await expect(status(page)).toContainText("kept in this tab's memory only");
   await expect.poll(async () => (await dumpIdb(page))["history"]?.length ?? 0).toBe(1);
-  const stored = JSON.stringify([await dumpIdb(page), await page.evaluate(() => [{ ...localStorage }, { ...sessionStorage }])]);
+  const stored = JSON.stringify([
+    await dumpIdb(page),
+    await page.evaluate(() => [{ ...localStorage }, { ...sessionStorage }]),
+  ]);
   expect(stored).not.toContain(token);
   expect(stored).not.toContain(tokens[0]["code_verifier"]);
   expect(violations).toEqual([]);
@@ -128,15 +152,36 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
 
 for (const [grant, auth, sentAs] of [
   // A client with a secret is named in a Basic header, each part form-encoded (RFC 6749, 2.3.1).
-  ["Client Credentials", oauth({ grant: "client_credentials", clientSecret: "s3:cret" }), { form: { grant_type: "client_credentials", scope: "read" }, basic: "wayfarer-e2e:s3%3Acret" }],
-  ["Password", oauth({ grant: "password", username: "alice", password: "correct-password", clientAuth: "body" }), { form: { grant_type: "password", username: "alice", password: "correct-password", scope: "read", client_id: "wayfarer-e2e" }, basic: null }],
+  [
+    "Client Credentials",
+    oauth({ grant: "client_credentials", clientSecret: "s3:cret" }),
+    { form: { grant_type: "client_credentials", scope: "read" }, basic: "wayfarer-e2e:s3%3Acret" },
+  ],
+  [
+    "Password",
+    oauth({ grant: "password", username: "alice", password: "correct-password", clientAuth: "body" }),
+    {
+      form: {
+        grant_type: "password",
+        username: "alice",
+        password: "correct-password",
+        scope: "read",
+        client_id: "wayfarer-e2e",
+      },
+      basic: null,
+    },
+  ],
 ] as const) {
-  test(`@claim:C-062 ${grant}: the token is asked for when the request is sent, and reaches the server`, async ({ page, context }) => {
+  test(`@claim:C-062 ${grant}: the token is asked for when the request is sent, and reaches the server`, async ({
+    page,
+    context,
+  }) => {
     const violations = await violationsOf(context);
     const tokens = tokenRequests(page);
     const headers: (string | null)[] = [];
     page.on("request", (request) => {
-      if (request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST") headers.push(request.headers()["authorization"] ?? null);
+      if (request.url().startsWith(`${ECHO}/oauth/token`) && request.method() === "POST")
+        headers.push(request.headers()["authorization"] ?? null);
     });
     await expectProdParity(await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth }));
     await openAuth(page);
@@ -149,7 +194,9 @@ for (const [grant, auth, sentAs] of [
     expect(await issuedWith(page, { token })).toMatchObject({ access_token: token, scope: "read" });
     await expect(page.locator(".status-badge")).toHaveText("200");
     expect(tokens).toEqual([sentAs.form]);
-    expect(headers.map((value) => value && Buffer.from(value.slice("Basic ".length), "base64").toString("utf8"))).toEqual([sentAs.basic]);
+    expect(
+      headers.map((value) => value && Buffer.from(value.slice("Basic ".length), "base64").toString("utf8")),
+    ).toEqual([sentAs.basic]);
     await expect(status(page)).toContainText("There is a token, good until");
 
     // The token is held: a second send asks for none. Forgotten, the next send asks again.
@@ -168,13 +215,25 @@ for (const [grant, auth, sentAs] of [
   });
 }
 
-test("@claim:C-062 an answer with a state the app did not issue is not taken: no code is exchanged, and the wait ends with Cancel", async ({ page, context }) => {
+test("@claim:C-062 an answer with a state the app did not issue is not taken: no code is exchanged, and the wait ends with Cancel", async ({
+  page,
+  context,
+}) => {
   const tokens = tokenRequests(page);
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ authUrl: `${ECHO}/oauth/authorize?mock_wrong_state=1` }) });
+  await seedAndOpen(
+    page,
+    {},
+    { method: "GET", url: `${ECHO}/echo`, auth: oauth({ authUrl: `${ECHO}/oauth/authorize?mock_wrong_state=1` }) },
+  );
   await openAuth(page);
 
-  const [popup] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
-  await expect(page.locator(".oauth-token-notice")).toHaveText("An answer came back with a state this app did not issue, and was ignored.");
+  const [popup] = await Promise.all([
+    context.waitForEvent("page"),
+    page.getByRole("button", { name: "Get token", exact: true }).click(),
+  ]);
+  await expect(page.locator(".oauth-token-notice")).toHaveText(
+    "An answer came back with a state this app did not issue, and was ignored.",
+  );
   // The window was told nothing, and says so. The app still waits.
   await expect(popup.getByText("Wayfarer has not answered.")).toBeVisible();
   // It had no opener to post to (COOP): the channel is the only way back. And the code is gone from its address.
@@ -193,15 +252,26 @@ test("@claim:C-062 an answer with a state the app did not issue is not taken: no
     if (request.url().startsWith(`${ECHO}/echo`)) arrived += 1;
   });
   await send(page);
-  await expect(page.getByText("There is no OAuth 2.0 token yet. Choose Get token in the Auth tab. Nothing was sent.")).toBeVisible();
+  await expect(
+    page.getByText("There is no OAuth 2.0 token yet. Choose Get token in the Auth tab. Nothing was sent."),
+  ).toBeVisible();
   expect(arrived).toBe(0);
 });
 
-test("@claim:C-062 a token that has expired is renewed once, with its refresh token, when the request is sent", async ({ page }) => {
+test("@claim:C-062 a token that has expired is renewed once, with its refresh token, when the request is sent", async ({
+  page,
+}) => {
   const tokens = tokenRequests(page);
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ tokenUrl: `${ECHO}/oauth/token?expires_in=1` }) });
+  await seedAndOpen(
+    page,
+    {},
+    { method: "GET", url: `${ECHO}/echo`, auth: oauth({ tokenUrl: `${ECHO}/oauth/token?expires_in=1` }) },
+  );
   await openAuth(page);
-  await Promise.all([page.context().waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
+  await Promise.all([
+    page.context().waitForEvent("page"),
+    page.getByRole("button", { name: "Get token", exact: true }).click(),
+  ]);
   // The server's second passes; the panel says so by itself.
   await expect(status(page)).toContainText("The token expired at");
   await expect(status(page)).toContainText("A new one is asked for when the request is sent.");
@@ -219,17 +289,30 @@ test("@claim:C-062 a token that has expired is renewed once, with its refresh to
   expect(next?.refresh_token).not.toBe(first?.refresh_token);
 });
 
-test("@claim:C-062 a 401 gets one more send with a renewed token when the auth asks for it, and is the response when it does not", async ({ page }) => {
+test("@claim:C-062 a 401 gets one more send with a renewed token when the auth asks for it, and is the response when it does not", async ({
+  page,
+}) => {
   const tokens = tokenRequests(page);
   let resource = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(`${ECHO}/oauth/resource`) && request.method() === "GET") resource += 1;
   });
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/oauth/resource`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/oauth/resource`,
+      auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }),
+    },
+  );
   await openAuth(page);
   await page.getByRole("button", { name: "Get token", exact: true }).click();
   await expect(status(page)).toContainText("There is a token, good until");
-  const [sent] = await Promise.all([page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/resource`) && request.method() === "GET"), send(page)]);
+  const [sent] = await Promise.all([
+    page.waitForRequest((request) => request.url().startsWith(`${ECHO}/oauth/resource`) && request.method() === "GET"),
+    send(page),
+  ]);
   const token = ((await sent.allHeaders())["authorization"] ?? "").replace(/^Bearer /, "");
   expect(await issuedWith(page, { token })).not.toBeNull();
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -249,12 +332,22 @@ test("@claim:C-062 a 401 gets one more send with a renewed token when the auth a
   expect(resource).toBe(4);
 });
 
-test("@claim:C-062 a token endpoint without CORS headers: sent from the page, the error names Access-Control-Allow-Origin and the Local Bridge", async ({ page }) => {
+test("@claim:C-062 a token endpoint without CORS headers: sent from the page, the error names Access-Control-Allow-Origin and the Local Bridge", async ({
+  page,
+}) => {
   let arrived = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(`${ECHO}/echo`)) arrived += 1;
   });
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }) });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }),
+    },
+  );
   await openAuth(page);
   const message =
     "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: send it through the Local Bridge (Settings, Local Bridge, Route), which has no such limit. See docs/browser-limits.md#oauth.";
@@ -267,12 +360,19 @@ test("@claim:C-062 a token endpoint without CORS headers: sent from the page, th
   expect(arrived).toBe(0);
 });
 
-test("through the Local Bridge the same token endpoint answers, and the token reaches the server", async ({ page, browserName }) => {
+test("through the Local Bridge the same token endpoint answers, and the token reaches the server", async ({
+  page,
+  browserName,
+}) => {
   // The bridge is a Node process: what it does is the same from any browser. Phase 6 runs it in three.
   test.skip(browserName !== "chromium", "the Local Bridge is started for Chromium only (plan P4.7)");
   const port = 7700 + test.info().parallelIndex;
   const token = "bridge-token-for-the-oauth-e2e-0123456789";
-  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"], { stdio: ["ignore", "pipe", "inherit"] });
+  const bridge = spawn(
+    process.execPath,
+    ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200"],
+    { stdio: ["ignore", "pipe", "inherit"] },
+  );
   try {
     await new Promise<void>((resolve, reject) => {
       bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));
@@ -284,12 +384,23 @@ test("through the Local Bridge the same token endpoint answers, and the token re
     page.on("request", (request) => {
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
-    await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }) });
+    await seedAndOpen(
+      page,
+      {},
+      {
+        method: "GET",
+        url: `${ECHO}/echo`,
+        auth: oauth({ grant: "client_credentials", clientSecret: "s3cret", tokenUrl: `${ECHO}/oauth/token-no-cors` }),
+      },
+    );
     // Switched on as a user does: the toolbar's bridge button opens Settings at the bridge's pane.
     await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
     const settings = page.getByRole("dialog", { name: "Settings", exact: true });
     await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
-    await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
+    await settings
+      .getByRole("radiogroup", { name: "Route" })
+      .getByRole("radio", { name: "Local Bridge", exact: true })
+      .click();
     await settings.locator("#bridge-url-input").fill(`http://127.0.0.1:${port}`);
     await settings.locator("#bridge-token-input").fill(token);
     await settings.getByRole("button", { name: "Save", exact: true }).click();
@@ -303,7 +414,9 @@ test("through the Local Bridge the same token endpoint answers, and the token re
     await send(page);
     await expect(page.locator(".status-badge")).toHaveText("200");
     // The echo's answer, as the page shows it: the request arrived with a token of the mock's.
-    await expect.poll(async () => (await page.locator("app-response-viewer").innerText()).replace(/\s+/g, "")).toMatch(/"Bearerat-[A-Za-z0-9_-]{16}"/);
+    await expect
+      .poll(async () => (await page.locator("app-response-viewer").innerText()).replace(/\s+/g, ""))
+      .toMatch(/"Bearerat-[A-Za-z0-9_-]{16}"/);
     // Neither the token request nor the user's own left from the page.
     expect(direct).toEqual([]);
   } finally {
@@ -311,9 +424,20 @@ test("through the Local Bridge the same token endpoint answers, and the token re
   }
 });
 
-test("a request that inherits OAuth 2.0 from its collection gets its token in its own Auth tab, and is sent with it", async ({ page }) => {
+test("a request that inherits OAuth 2.0 from its collection gets its token in its own Auth tab, and is sent with it", async ({
+  page,
+}) => {
   const tokens = tokenRequests(page);
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: { type: "inherit" }, collection: { auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) } });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: { type: "inherit" },
+      collection: { auth: oauth({ grant: "client_credentials", clientSecret: "s3cret" }) },
+    },
+  );
   await openAuth(page);
   await expect(page.locator(".auth-inherited")).toHaveText('OAuth 2.0 is sent, from collection "Tripwire collection".');
   await page.getByRole("button", { name: "Get token", exact: true }).click();
@@ -322,18 +446,34 @@ test("a request that inherits OAuth 2.0 from its collection gets its token in it
   expect(tokens).toHaveLength(1);
 });
 
-test("@claim:C-001 an OAuth 2.0 sign-in talks to the app, to the two addresses the user gave for it, and to the request's own target: nothing else", async ({ page, context, baseURL }) => {
+test("@claim:C-001 an OAuth 2.0 sign-in talks to the app, to the two addresses the user gave for it, and to the request's own target: nothing else", async ({
+  page,
+  context,
+  baseURL,
+}) => {
   // The identity provider on one origin and the API on another, so that each request can be told from the others.
   const IDP = "http://127.0.0.1:4301";
   const app = new URL(baseURL ?? "http://localhost:4200").origin;
   const elsewhere: string[] = [];
   context.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.origin !== app && !/^(blob|data):$/.test(url.protocol)) elsewhere.push(`${request.method()} ${url.origin}${url.pathname}`);
+    if (url.origin !== app && !/^(blob|data):$/.test(url.protocol))
+      elsewhere.push(`${request.method()} ${url.origin}${url.pathname}`);
   });
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ authUrl: `${IDP}/oauth/authorize`, tokenUrl: `${IDP}/oauth/token` }) });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: oauth({ authUrl: `${IDP}/oauth/authorize`, tokenUrl: `${IDP}/oauth/token` }),
+    },
+  );
   await openAuth(page);
-  await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Get token", exact: true }).click()]);
+  await Promise.all([
+    context.waitForEvent("page"),
+    page.getByRole("button", { name: "Get token", exact: true }).click(),
+  ]);
   await expect(status(page)).toContainText("There is a token, good until");
   await sendAndEcho(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
@@ -342,19 +482,33 @@ test("@claim:C-001 an OAuth 2.0 sign-in talks to the app, to the two addresses t
   expect(elsewhere.sort()).toEqual([`GET ${ECHO}/echo`, `GET ${IDP}/oauth/authorize`, `POST ${IDP}/oauth/token`]);
 });
 
-test("a variable without a value in the OAuth 2.0 auth: no token is asked for with its name in its place, at Get token or at Send", async ({ page }) => {
+test("a variable without a value in the OAuth 2.0 auth: no token is asked for with its name in its place, at Get token or at Send", async ({
+  page,
+}) => {
   const tokens = tokenRequests(page);
   let arrived = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(`${ECHO}/echo`)) arrived += 1;
   });
-  await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth: oauth({ grant: "client_credentials", clientId: "{{CLIENT}}", clientSecret: "s3cret" }) });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: oauth({ grant: "client_credentials", clientId: "{{CLIENT}}", clientSecret: "s3cret" }),
+    },
+  );
   await openAuth(page);
   await page.getByRole("button", { name: "Get token", exact: true }).click();
   await expect(page.locator(".oauth-token-error")).toHaveText("{{CLIENT}} has no value. No token was asked for.");
 
   await send(page);
-  await expect(page.getByText("The OAuth 2.0 auth uses {{CLIENT}}, which has no value. No token was asked for, and nothing was sent.")).toBeVisible();
+  await expect(
+    page.getByText(
+      "The OAuth 2.0 auth uses {{CLIENT}}, which has no value. No token was asked for, and nothing was sent.",
+    ),
+  ).toBeVisible();
   expect(tokens).toEqual([]);
   expect(arrived).toBe(0);
 });

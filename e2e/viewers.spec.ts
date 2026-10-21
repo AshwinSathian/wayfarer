@@ -14,7 +14,9 @@ async function watchViolations(page: Page): Promise<void> {
   await page.addInitScript(() => {
     const seen: string[] = [];
     (window as unknown as { __violations: string[] }).__violations = seen;
-    document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
+    document.addEventListener("securitypolicyviolation", (e) =>
+      seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`),
+    );
   });
 }
 
@@ -42,12 +44,20 @@ async function chooseView(page: Page, offered: string[], choice: string): Promis
 }
 
 /** The text Monaco has drawn, without the non-breaking spaces it writes for indentation. */
-const editorText = async (page: Page) => ((await viewer(page).locator(".view-lines").textContent()) ?? "").replace(/\s+/g, "");
+const editorText = async (page: Page) =>
+  ((await viewer(page).locator(".view-lines").textContent()) ?? "").replace(/\s+/g, "");
 
 test("JSON is formatted, can be filtered by path, and is searched with the editor's find", async ({ page }) => {
   await captureTarget(page, {
     contentType: "application/json",
-    body: JSON.stringify({ data: { items: [{ id: 11, name: "first" }, { id: 22, name: "second" }] } }),
+    body: JSON.stringify({
+      data: {
+        items: [
+          { id: 11, name: "first" },
+          { id: 22, name: "second" },
+        ],
+      },
+    }),
   });
   await open(page, `${TARGET}/json`);
 
@@ -69,7 +79,9 @@ test("JSON is formatted, can be filtered by path, and is searched with the edito
 
   // Monaco reads the platform from the user agent, which a Playwright device sets: not always the host's.
   await viewer(page).locator(".view-lines").click();
-  await page.keyboard.press((await page.evaluate(() => navigator.userAgent.includes("Macintosh"))) ? "Meta+f" : "Control+f");
+  await page.keyboard.press(
+    (await page.evaluate(() => navigator.userAgent.includes("Macintosh"))) ? "Meta+f" : "Control+f",
+  );
   await expect(viewer(page).locator(".find-widget.visible")).toBeVisible();
   await page.keyboard.press("Escape");
   await chooseView(page, ["JSON", "Text", "XML", "Preview"], "Text");
@@ -89,14 +101,21 @@ test("@claim:C-009 XML is indented, and Text shows it as it was sent", async ({ 
   await open(page, `${ECHO}/content/xml`);
   await expect(viewSelect(page)).toHaveText("XML");
   // One line per element: the fixture is a single line.
-  await expect(viewer(page).locator(".view-line")).toHaveText(['<?xml version="1.0"?>', "<fixture>", /^\s+<name>echo<\/name>$/, "</fixture>"]);
+  await expect(viewer(page).locator(".view-line")).toHaveText([
+    '<?xml version="1.0"?>',
+    "<fixture>",
+    /^\s+<name>echo<\/name>$/,
+    "</fixture>",
+  ]);
 
   await chooseView(page, ["XML", "Text", "Preview"], "Text");
   await expect(viewer(page).locator("pre")).toHaveText('<?xml version="1.0"?><fixture><name>echo</name></fixture>');
   await expectNoViolations(page);
 });
 
-test("@claim:C-048 the HTML preview draws the page and nothing else: no script runs, nothing is loaded, and a link goes nowhere", async ({ page }) => {
+test("@claim:C-048 the HTML preview draws the page and nothing else: no script runs, nothing is loaded, and a link goes nowhere", async ({
+  page,
+}) => {
   const LEAK = "https://preview-leak.test";
   const isLeak = (url: string) => URL.parse(url)?.origin === LEAK;
   const html = `<!doctype html><html><head>
@@ -160,7 +179,11 @@ test("@claim:C-048 the HTML preview draws the page and nothing else: no script r
   expect(popups).toEqual([]);
   // The preview is still the document it was given. (The frame inside it is counted apart: it was refused and holds an error page or nothing.)
   const frames = () => page.frames().map((candidate) => candidate.url());
-  const preview = () => page.mainFrame().childFrames().map((candidate) => candidate.url());
+  const preview = () =>
+    page
+      .mainFrame()
+      .childFrames()
+      .map((candidate) => candidate.url());
   expect(preview()).toEqual([previewUrl]);
   expect(frames().some(isLeak)).toBe(false);
   await expect(frame.getByRole("heading", { name: "Preview heading" })).toBeVisible();
@@ -190,7 +213,11 @@ test("no other origin can put the app in a frame", async ({ page, baseURL }) => 
   expect(policy).toContain("frame-ancestors 'self'");
   expect(policy).toContain("frame-src blob:;");
 
-  const framer = { status: 200, contentType: "text/html", body: `<h1>framer</h1><iframe src="${baseURL}/app/"></iframe>` };
+  const framer = {
+    status: 200,
+    contentType: "text/html",
+    body: `<h1>framer</h1><iframe src="${baseURL}/app/"></iframe>`,
+  };
   const framed = () => page.mainFrame().childFrames()[0]?.locator("input.address-url");
 
   // The app's own origin may: this is what "the app was drawn in the frame" looks like.
@@ -205,7 +232,9 @@ test("no other origin can put the app in a frame", async ({ page, baseURL }) => 
   await page.waitForTimeout(2_000);
   // A refused frame may have no document to ask (Firefox never answers for it): that is "not drawn" too.
   const drawn = await Promise.race([
-    framed()?.isVisible().catch(() => false),
+    framed()
+      ?.isVisible()
+      .catch(() => false),
     new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3_000)),
   ]);
   expect(drawn).not.toBe(true);
@@ -256,16 +285,23 @@ test("@claim:C-009 an image is shown from a blob: URL that is revoked when the r
 test("@claim:C-009 other binary is a hex dump with the exact bytes to download", async ({ page }) => {
   await open(page, `${ECHO}/content/octet`);
   await expect(viewSelect(page)).toHaveCount(0);
-  await expect(viewer(page).locator("pre.hex-dump")).toHaveText(`00000000  00 01 02 03 fe ff${" ".repeat(30)}  |......|`);
+  await expect(viewer(page).locator("pre.hex-dump")).toHaveText(
+    `00000000  00 01 02 03 fe ff${" ".repeat(30)}  |......|`,
+  );
 
-  const [download] = await Promise.all([page.waitForEvent("download"), viewer(page).getByRole("button", { name: "Download response body" }).click()]);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    viewer(page).getByRole("button", { name: "Download response body" }).click(),
+  ]);
   const chunks: Buffer[] = [];
   for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
   expect(Buffer.concat(chunks)).toEqual(Buffer.from([0, 1, 2, 3, 254, 255]));
   await expectNoViolations(page);
 });
 
-test("the Headers tab says once that the browser withholds headers of a response from another origin", async ({ page }) => {
+test("the Headers tab says once that the browser withholds headers of a response from another origin", async ({
+  page,
+}) => {
   await open(page, `${ECHO}/cors/full`);
   await viewer(page).getByRole("tab", { name: "Headers" }).click();
   const note = viewer(page).locator(".headers-note");

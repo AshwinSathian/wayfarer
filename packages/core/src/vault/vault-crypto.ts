@@ -73,14 +73,20 @@ async function deriveKek(passphrase: string, kdf: VaultRecord["kdf"]): Promise<V
     material,
     AES,
     false,
-    ["wrapKey", "unwrapKey"]
+    ["wrapKey", "unwrapKey"],
   );
 }
 
 async function wrap(dek: VaultKey, passphrase: string): Promise<VaultRecord> {
-  const kdf: VaultRecord["kdf"] = { alg: "PBKDF2-SHA256", iterations: KDF_ITERATIONS, salt: toBase64Url(randomBytes(SALT_BYTES)) };
+  const kdf: VaultRecord["kdf"] = {
+    alg: "PBKDF2-SHA256",
+    iterations: KDF_ITERATIONS,
+    salt: toBase64Url(randomBytes(SALT_BYTES)),
+  };
   const iv = randomBytes(IV_BYTES);
-  const wrapped = new Uint8Array(await crypto.subtle.wrapKey("raw", dek, await deriveKek(passphrase, kdf), { name: "AES-GCM", iv }));
+  const wrapped = new Uint8Array(
+    await crypto.subtle.wrapKey("raw", dek, await deriveKek(passphrase, kdf), { name: "AES-GCM", iv }),
+  );
   return { kdf, wrappedDek: toBase64Url(new Uint8Array([...iv, ...wrapped])) };
 }
 
@@ -96,7 +102,7 @@ async function unwrap(record: VaultRecord, passphrase: string, extractable: bool
       { name: "AES-GCM", iv: bytes.slice(0, IV_BYTES) },
       AES,
       extractable,
-      ["encrypt", "decrypt"]
+      ["encrypt", "decrypt"],
     );
   } catch (error) {
     // AES-GCM authentication failed: the passphrase is wrong. Anything else is a real error.
@@ -140,7 +146,7 @@ export async function decryptSecret(dek: VaultKey, id: string, envelope: SecretE
   const plain = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: fromBase64Url(envelope.iv), additionalData: utf8(id) },
     dek,
-    fromBase64Url(envelope.ct)
+    fromBase64Url(envelope.ct),
   );
   return new TextDecoder().decode(plain);
 }
@@ -177,7 +183,11 @@ export function validateVaultFile(value: unknown): ValidationIssue[] {
     } else {
       if (field(kdf, "alg") !== "PBKDF2-SHA256") fail("vault.kdf.alg", 'Value must be "PBKDF2-SHA256".');
       const iterations = field(kdf, "iterations");
-      if (!(Number.isInteger(iterations) && (iterations as number) >= KDF_ITERATIONS && (iterations as number) <= MAX_KDF_ITERATIONS)) {
+      if (!(
+        Number.isInteger(iterations) &&
+        (iterations as number) >= KDF_ITERATIONS &&
+        (iterations as number) <= MAX_KDF_ITERATIONS
+      )) {
         fail("vault.kdf.iterations", `Value must be a whole number from ${KDF_ITERATIONS} to ${MAX_KDF_ITERATIONS}.`);
       }
       if (!isBase64Url(field(kdf, "salt"))) fail("vault.kdf.salt", "Value must be base64url text.");
@@ -200,7 +210,8 @@ export function validateVaultFile(value: unknown): ValidationIssue[] {
     if (typeof id !== "string" || !id) fail(`${path}.id`, "Value must be a non-empty string.");
     if (typeof field(secret, "name") !== "string") fail(`${path}.name`, "Value must be a string.");
     const environmentId = field(secret, "environmentId");
-    if (environmentId !== undefined && typeof environmentId !== "string") fail(`${path}.environmentId`, "Value must be a string.");
+    if (environmentId !== undefined && typeof environmentId !== "string")
+      fail(`${path}.environmentId`, "Value must be a string.");
     const envelope = field(secret, "envelope");
     if (typeof envelope !== "object" || envelope === null) {
       fail(`${path}.envelope`, "Value must be an object.");

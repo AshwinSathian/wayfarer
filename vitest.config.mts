@@ -19,7 +19,8 @@ const WORKER_REQUEST = /(?:^|\/)(worker-[A-Z0-9]+\.js)\?worker_file\b/;
 // Vitest's browser mode rewrites every `import()` to go through a helper it
 // installs on the page. A worker has no such helper, so a worker that
 // imports on demand (the QuickJS engine does) would fail here and only here.
-const DYNAMIC_IMPORT_IN_A_WORKER = "globalThis.__vitest_browser_runner__ ??= { wrapDynamicImport: (load) => load() };\n";
+const DYNAMIC_IMPORT_IN_A_WORKER =
+  "globalThis.__vitest_browser_runner__ ??= { wrapDynamicImport: (load) => load() };\n";
 
 function builtWorkers(): Plugin {
   let provider: Plugin | undefined;
@@ -72,7 +73,9 @@ function engineModule(): Plugin {
     name: "wayfarer:quickjs-engine-module",
     enforce: "pre",
     load(id) {
-      return id.split("?")[0].endsWith("/emscripten-module.wasm") ? { code: "export default undefined;", map: null } : undefined;
+      return id.split("?")[0].endsWith("/emscripten-module.wasm")
+        ? { code: "export default undefined;", map: null }
+        : undefined;
     },
   };
 }

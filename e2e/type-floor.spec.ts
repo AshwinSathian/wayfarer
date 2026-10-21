@@ -21,7 +21,9 @@ const smallText = (page: Page) =>
   });
 
 for (const width of [1440, 390]) {
-  test(`no text is drawn under 12 px at ${width} px: the composer with a response, every Settings section, the environments`, async ({ page }) => {
+  test(`no text is drawn under 12 px at ${width} px: the composer with a response, every Settings section, the environments`, async ({
+    page,
+  }) => {
     test.slow();
     // Seeded wide: below 1200 px the tree it opens the request from is a closed drawer.
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
@@ -53,7 +55,8 @@ test("what a user typed or a server sent is monospace; names and prose are not",
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
-  const family = (locator: ReturnType<Page["locator"]>) => locator.first().evaluate((el) => getComputedStyle(el).fontFamily);
+  const family = (locator: ReturnType<Page["locator"]>) =>
+    locator.first().evaluate((el) => getComputedStyle(el).fontFamily);
   const mono = /^"?JetBrains Mono/;
   expect(await family(page.locator("input.address-url")), "the address").toMatch(mono);
   expect(await family(page.getByLabel("HTTP method")), "the method").toMatch(mono);
@@ -63,7 +66,10 @@ test("what a user typed or a server sent is monospace; names and prose are not",
   expect(await family(page.getByLabel(/name, row 1$/)), "a header's name").toMatch(mono);
   expect(await family(page.getByLabel(/value, row 1$/)), "a header's value").toMatch(mono);
   const environments = await openEnvironments(page);
-  await environments.getByRole("button", { name: /New environment|Create/ }).first().click();
+  await environments
+    .getByRole("button", { name: /New environment|Create/ })
+    .first()
+    .click();
   expect(await family(page.locator("#new-env-name-input")), "an environment's name").not.toMatch(mono);
 });
 
@@ -77,7 +83,10 @@ test("a bare form control takes the font of the text around it, not the browser'
     // Made one by one: the page's Trusted Types policy is not asked to take HTML.
     for (const tag of ["button", "input", "select", "textarea"]) host.append(document.createElement(tag));
     document.body.append(host);
-    const out = [...host.children].map((el) => `${el.tagName} ${getComputedStyle(el).fontSize} ${getComputedStyle(el).fontFamily === getComputedStyle(host).fontFamily}`);
+    const out = [...host.children].map(
+      (el) =>
+        `${el.tagName} ${getComputedStyle(el).fontSize} ${getComputedStyle(el).fontFamily === getComputedStyle(host).fontFamily}`,
+    );
     host.remove();
     return out;
   });

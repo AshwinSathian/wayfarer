@@ -47,17 +47,31 @@ export function exportBody(body: RequestBody, method: string, resolve: (text: st
     case "raw":
       return { mode: "raw", text: resolve(body.raw?.text ?? "") };
     case "urlencoded":
-      return { mode: "urlencoded", fields: (body.urlencoded ?? []).filter((row) => row.enabled).map((row) => [resolve(row.key), resolve(row.value)]) };
+      return {
+        mode: "urlencoded",
+        fields: (body.urlencoded ?? [])
+          .filter((row) => row.enabled)
+          .map((row) => [resolve(row.key), resolve(row.value)]),
+      };
     case "multipart":
       return {
         mode: "multipart",
-        parts: (body.multipart ?? []).filter((part) => part.enabled).map((part) => (part.kind === "text" ? { name: resolve(part.key), value: resolve(part.value) } : { name: resolve(part.key), fileName: part.fileName })),
+        parts: (body.multipart ?? [])
+          .filter((part) => part.enabled)
+          .map((part) =>
+            part.kind === "text"
+              ? { name: resolve(part.key), value: resolve(part.value) }
+              : { name: resolve(part.key), fileName: part.fileName },
+          ),
       };
     case "binary":
       return { mode: "binary", fileName: body.binary?.fileName ?? "" };
     case "graphql":
       // As it is sent: one JSON text. A command or a file needs no word for GraphQL.
-      return { mode: "raw", text: graphqlText(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? "")) };
+      return {
+        mode: "raw",
+        text: graphqlText(resolve(body.graphql?.query ?? ""), resolve(body.graphql?.variables ?? "")),
+      };
   }
 }
 
@@ -80,7 +94,14 @@ export function redactExport(source: ExportSource, options: RedactOptions = {}):
         : body.mode === "urlencoded"
           ? { mode: "urlencoded", fields: body.fields.map(([name, value]) => [text(name), text(value)]) }
           : body.mode === "multipart"
-            ? { mode: "multipart", parts: body.parts.map((part) => ("value" in part ? { name: text(part.name), value: text(part.value) } : { name: text(part.name), fileName: text(part.fileName) })) }
+            ? {
+                mode: "multipart",
+                parts: body.parts.map((part) =>
+                  "value" in part
+                    ? { name: text(part.name), value: text(part.value) }
+                    : { name: text(part.name), fileName: text(part.fileName) },
+                ),
+              }
             : body.mode === "binary"
               ? { mode: "binary", fileName: text(body.fileName) }
               : body,

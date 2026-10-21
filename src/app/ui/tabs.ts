@@ -1,4 +1,16 @@
-import { ApplicationRef, ChangeDetectionStrategy, Component, ElementRef, ViewEncapsulation, afterRenderEffect, effect, inject, input, output, untracked } from "@angular/core";
+import {
+  ApplicationRef,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  ViewEncapsulation,
+  afterRenderEffect,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from "@angular/core";
 import { TabList } from "@angular/aria/tabs";
 
 /**
@@ -46,7 +58,12 @@ import { TabList } from "@angular/aria/tabs";
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   // After Aria's own listeners: a host directive's come first.
-  host: { class: "tab-bar", "(focusin)": "followFocus($event)", "(click)": "drawNow()", "(keydown)": "drawNow($event)" },
+  host: {
+    class: "tab-bar",
+    "(focusin)": "followFocus($event)",
+    "(click)": "drawNow()",
+    "(keydown)": "drawNow($event)",
+  },
 })
 export class UiTabList<T extends string> {
   private readonly list = inject(TabList);

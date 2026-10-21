@@ -10,7 +10,14 @@ const EVERY = "\u0000";
  * find one.
  */
 export function evaluatePath(value: unknown, path: string): unknown {
-  return walk(value, path.replace(/\[\*\]/g, `.${EVERY}`).replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean));
+  return walk(
+    value,
+    path
+      .replace(/\[\*\]/g, `.${EVERY}`)
+      .replace(/\[(\d+)\]/g, ".$1")
+      .split(".")
+      .filter(Boolean),
+  );
 }
 
 function walk(value: unknown, segments: string[]): unknown {
@@ -21,7 +28,11 @@ function walk(value: unknown, segments: string[]): unknown {
     }
     if (segment === EVERY) {
       const rest = segments.slice(index + 1);
-      const items: unknown[] = Array.isArray(current) ? current : typeof current === "object" ? Object.values(current) : [];
+      const items: unknown[] = Array.isArray(current)
+        ? current
+        : typeof current === "object"
+          ? Object.values(current)
+          : [];
       return items.flatMap((item) => {
         const found = walk(item, rest);
         return found === undefined ? [] : rest.includes(EVERY) ? (found as unknown[]) : [found];

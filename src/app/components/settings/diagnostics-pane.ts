@@ -43,8 +43,18 @@ export class DiagnosticsPane {
   protected readonly testing = signal(false);
   protected readonly copied = signal(false);
   /** Newest first. */
-  protected readonly errors = computed(() => this.diagnostics.entries().filter((entry) => entry.context !== "csp").reverse());
-  protected readonly violations = computed(() => this.diagnostics.entries().filter((entry) => entry.context === "csp").reverse());
+  protected readonly errors = computed(() =>
+    this.diagnostics
+      .entries()
+      .filter((entry) => entry.context !== "csp")
+      .reverse(),
+  );
+  protected readonly violations = computed(() =>
+    this.diagnostics
+      .entries()
+      .filter((entry) => entry.context === "csp")
+      .reverse(),
+  );
 
   protected readonly facts = computed<[string, string][]>(() => {
     const estimate = this.storage.estimate();
@@ -53,7 +63,10 @@ export class DiagnosticsPane {
       ["Version", version],
       ["Commit", COMMIT],
       ["Browser", navigator.userAgent],
-      ["Storage", `${persisted === null ? "persistence unknown" : persisted ? "persisted" : "not persisted"}${estimate ? `, ${bytes(estimate.usage)} of ${bytes(estimate.quota)}` : ""}`],
+      [
+        "Storage",
+        `${persisted === null ? "persistence unknown" : persisted ? "persisted" : "not persisted"}${estimate ? `, ${bytes(estimate.usage)} of ${bytes(estimate.quota)}` : ""}`,
+      ],
       ["Database", this.core.memoryOnly() ? "none: memory only" : `IndexedDB "${DB_NAME}", version ${DB_VERSION}`],
       ["Service worker", this.worker()],
       ["Local Bridge", `route ${this.bridge.config().route}`],
@@ -63,7 +76,10 @@ export class DiagnosticsPane {
   protected readonly report = computed(() => diagnosticsReport(this.facts(), this.tests(), this.diagnostics.entries()));
   protected readonly issueHref = computed(() => {
     const body = this.report();
-    const cut = body.length > MAX_ISSUE_BODY ? `${body.slice(0, MAX_ISSUE_BODY)}\n\n(cut: copy the whole report from Settings → Diagnostics)` : body;
+    const cut =
+      body.length > MAX_ISSUE_BODY
+        ? `${body.slice(0, MAX_ISSUE_BODY)}\n\n(cut: copy the whole report from Settings → Diagnostics)`
+        : body;
     return `${ISSUES}?title=${encodeURIComponent("Diagnostics report")}&body=${encodeURIComponent(cut)}`;
   });
 
@@ -92,7 +108,11 @@ export class DiagnosticsPane {
       try {
         results.push({ name, ...(await test()) });
       } catch (error) {
-        results.push({ name, ok: false, detail: error instanceof Error ? `${error.name}: ${error.message}` : String(error) });
+        results.push({
+          name,
+          ok: false,
+          detail: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        });
       }
       this.tests.set([...results]);
     }
@@ -100,15 +120,25 @@ export class DiagnosticsPane {
   }
 
   private async quickJs(): Promise<Omit<SelfTest, "name">> {
-    const result = await this.sandbox.execute("pm.test('sum', function () { if (1 + 1 !== 2) throw new Error('1 + 1 is ' + (1 + 1)); });", []);
+    const result = await this.sandbox.execute(
+      "pm.test('sum', function () { if (1 + 1 !== 2) throw new Error('1 + 1 is ' + (1 + 1)); });",
+      [],
+    );
     const test = result.testResults[0];
-    return test?.passed ? { ok: true, detail: "1 + 1 = 2" } : { ok: false, detail: result.error ?? test?.error ?? "the script did not run" };
+    return test?.passed
+      ? { ok: true, detail: "1 + 1 = 2" }
+      : { ok: false, detail: result.error ?? test?.error ?? "the script did not run" };
   }
 
   private async vaultCrypto(): Promise<Omit<SelfTest, "name">> {
-    const key = (await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"])) as VaultKey;
+    const key = (await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, [
+      "encrypt",
+      "decrypt",
+    ])) as VaultKey;
     const back = await decryptSecret(key, "probe", await encryptSecret(key, "probe", "round trip"));
-    return back === "round trip" ? { ok: true, detail: "encrypted and decrypted with AES-GCM" } : { ok: false, detail: "the text that came back differs" };
+    return back === "round trip"
+      ? { ok: true, detail: "encrypted and decrypted with AES-GCM" }
+      : { ok: false, detail: "the text that came back differs" };
   }
 
   private async indexedDb(): Promise<Omit<SelfTest, "name">> {
@@ -119,7 +149,9 @@ export class DiagnosticsPane {
     const read = await db.get("files", key);
     await db.delete("files", key);
     const gone = (await db.get("files", key)) === undefined;
-    return read?.bytes.byteLength === 3 && gone ? { ok: true, detail: "wrote, read and deleted a record" } : { ok: false, detail: "the record did not come back as written" };
+    return read?.bytes.byteLength === 3 && gone
+      ? { ok: true, detail: "wrote, read and deleted a record" }
+      : { ok: false, detail: "the record did not come back as written" };
   }
 
   private async fetchOwn(): Promise<Omit<SelfTest, "name">> {
@@ -129,9 +161,12 @@ export class DiagnosticsPane {
 
   private async localBridge(): Promise<Omit<SelfTest, "name">> {
     const { route, token } = this.bridge.config();
-    if (route === "direct" || (route === "auto" && !token)) return { ok: true, detail: "not used: requests go from the page" };
+    if (route === "direct" || (route === "auto" && !token))
+      return { ok: true, detail: "not used: requests go from the page" };
     const { problem, version } = await this.bridge.health();
-    return problem ? { ok: false, detail: problem } : { ok: true, detail: `answers${version ? `, version ${version}` : ""}` };
+    return problem
+      ? { ok: false, detail: problem }
+      : { ok: true, detail: `answers${version ? `, version ${version}` : ""}` };
   }
 
   private async readWorker(): Promise<void> {

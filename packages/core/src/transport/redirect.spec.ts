@@ -5,10 +5,16 @@ import type { ResolvedRequest } from "./transport";
 const post: ResolvedRequest = {
   method: "POST",
   url: "https://api.test/v1/start?x=1",
-  headers: [["Authorization", "Bearer t"], ["cookie", "sid=1"], ["Content-Type", "text/plain"], ["X-Probe", "kept"]],
+  headers: [
+    ["Authorization", "Bearer t"],
+    ["cookie", "sid=1"],
+    ["Content-Type", "text/plain"],
+    ["X-Probe", "kept"],
+  ],
   body: "payload",
 };
-const hop = (request: ResolvedRequest, status: number, location: string | undefined, stayOnHost = false) => nextHop(request, status, location, stayOnHost);
+const hop = (request: ResolvedRequest, status: number, location: string | undefined, stayOnHost = false) =>
+  nextHop(request, status, location, stayOnHost);
 const followed = (request: ResolvedRequest, status: number, location: string, stayOnHost = false) => {
   const next = hop(request, status, location, stayOnHost);
   if (!next || "stopped" in next) throw new Error(`not followed: ${JSON.stringify(next)}`);
@@ -32,7 +38,15 @@ describe("nextHop (P5.4)", () => {
 
   it("301, 302 and 303 make a GET of a POST, without its body and the headers that described it; 307 and 308 repeat the request", () => {
     for (const status of [301, 302, 303]) {
-      expect(followed(post, status, "/next"), String(status)).toEqual({ method: "GET", url: "https://api.test/next", headers: [["Authorization", "Bearer t"], ["cookie", "sid=1"], ["X-Probe", "kept"]] });
+      expect(followed(post, status, "/next"), String(status)).toEqual({
+        method: "GET",
+        url: "https://api.test/next",
+        headers: [
+          ["Authorization", "Bearer t"],
+          ["cookie", "sid=1"],
+          ["X-Probe", "kept"],
+        ],
+      });
     }
     for (const status of [307, 308]) {
       expect(followed(post, status, "/next"), String(status)).toEqual({ ...post, url: "https://api.test/next" });
@@ -48,8 +62,14 @@ describe("nextHop (P5.4)", () => {
   });
 
   it("a hop to another origin goes without Authorization and Cookie; every other header goes along", () => {
-    expect(followed(post, 307, "https://other.test/a").headers).toEqual([["Content-Type", "text/plain"], ["X-Probe", "kept"]]);
-    expect(followed(post, 307, "https://api.test:8443/a").headers).toEqual([["Content-Type", "text/plain"], ["X-Probe", "kept"]]);
+    expect(followed(post, 307, "https://other.test/a").headers).toEqual([
+      ["Content-Type", "text/plain"],
+      ["X-Probe", "kept"],
+    ]);
+    expect(followed(post, 307, "https://api.test:8443/a").headers).toEqual([
+      ["Content-Type", "text/plain"],
+      ["X-Probe", "kept"],
+    ]);
     expect(followed(post, 307, "https://api.test/a").headers).toEqual(post.headers);
   });
 
@@ -67,6 +87,8 @@ describe("nextHop (P5.4)", () => {
     // On its own host it is followed, and from http to https there too.
     expect(followed(post, 307, "/a", true).url).toBe("https://api.test/a");
     expect(followed(post, 307, "https://API.test/a", true).url).toBe("https://api.test/a");
-    expect(followed({ ...post, url: "http://api.test/v1" }, 307, "https://api.test/a", true).url).toBe("https://api.test/a");
+    expect(followed({ ...post, url: "http://api.test/v1" }, 307, "https://api.test/a", true).url).toBe(
+      "https://api.test/a",
+    );
   });
 });

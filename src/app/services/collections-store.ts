@@ -8,7 +8,16 @@ import {
   RequestDoc,
   RequestPatch,
 } from "../models/collections";
-import { Redactor, scriptDigest, scriptsOf, serializeDeterministic, type CollectionTree, type ExportNote, type RedactOptions, type VariableChange } from "@wayfarer/core";
+import {
+  Redactor,
+  scriptDigest,
+  scriptsOf,
+  serializeDeterministic,
+  type CollectionTree,
+  type ExportNote,
+  type RedactOptions,
+  type VariableChange,
+} from "@wayfarer/core";
 import { CollectionsRepository } from "../data/collections-repository";
 import { FoldersRepository } from "../data/folders-repository";
 import { IdbCore } from "../data/idb-core";
@@ -75,9 +84,7 @@ export class CollectionsStore {
    * top-level list shape and are comparatively rare.
    */
   private async refreshCollectionEntry(collectionId: string): Promise<void> {
-    const index = this.treeState().findIndex(
-      (entry) => entry.collection.meta.id === collectionId
-    );
+    const index = this.treeState().findIndex((entry) => entry.collection.meta.id === collectionId);
     if (index === -1) {
       // Not in the current snapshot — fall back to a full reload rather than
       // silently doing nothing.
@@ -111,19 +118,13 @@ export class CollectionsStore {
     return undefined;
   }
 
-  async createCollection(payload: {
-    name: string;
-    description?: string;
-  }): Promise<Collection> {
+  async createCollection(payload: { name: string; description?: string }): Promise<Collection> {
     const created = await this.collectionsRepository.createCollection(payload);
     await this.refresh();
     return created;
   }
 
-  async renameCollection(
-    id: string,
-    updates: { name?: string; description?: string }
-  ): Promise<Collection | null> {
+  async renameCollection(id: string, updates: { name?: string; description?: string }): Promise<Collection | null> {
     const updated = await this.collectionsRepository.renameCollection(id, updates);
     await this.refresh();
     return updated;
@@ -147,13 +148,28 @@ export class CollectionsStore {
    * collection is trusted (D6; the rule of a request's save). Approved
    * before they are written, so that none is stored not yet approved.
    */
-  async saveInherited(target: { collectionId: string; folderId?: string }, patch: InheritedPatch<Folder> & Pick<Collection, "route">, scriptsAllowed: boolean): Promise<void> {
+  async saveInherited(
+    target: { collectionId: string; folderId?: string },
+    patch: InheritedPatch<Folder> & Pick<Collection, "route">,
+    scriptsAllowed: boolean,
+  ): Promise<void> {
     const { auth } = patch;
-    if (!target.folderId && auth.type === "inherit") throw new Error("A collection has nothing to inherit its auth from.");
+    if (!target.folderId && auth.type === "inherit")
+      throw new Error("A collection has nothing to inherit its auth from.");
     const scripts = scriptsOf(patch);
-    if (scriptsAllowed && scripts.length) await this.collectionsRepository.approveScripts(target.collectionId, await Promise.all(scripts.map(scriptDigest)), false);
+    if (scriptsAllowed && scripts.length)
+      await this.collectionsRepository.approveScripts(
+        target.collectionId,
+        await Promise.all(scripts.map(scriptDigest)),
+        false,
+      );
     if (target.folderId) await this.foldersRepository.setFolderInherited(target.folderId, patch);
-    else if (auth.type !== "inherit") await this.collectionsRepository.setCollectionInherited(target.collectionId, { auth, scripts: patch.scripts, route: patch.route });
+    else if (auth.type !== "inherit")
+      await this.collectionsRepository.setCollectionInherited(target.collectionId, {
+        auth,
+        scripts: patch.scripts,
+        route: patch.route,
+      });
     await this.refresh();
   }
 
@@ -179,11 +195,7 @@ export class CollectionsStore {
     await this.refresh();
   }
 
-  async createFolder(payload: {
-    collectionId: string;
-    name: string;
-    parentFolderId?: string;
-  }): Promise<Folder> {
+  async createFolder(payload: { collectionId: string; name: string; parentFolderId?: string }): Promise<Folder> {
     const folder = await this.foldersRepository.createFolder(payload);
     await this.refreshCollectionEntry(payload.collectionId);
     return folder;
@@ -217,7 +229,9 @@ export class CollectionsStore {
 
   /** The new places of a parent's folders and requests, which share one order. */
   async reorderChildren(order: { id: string | string; order: number }[]): Promise<void> {
-    const collectionId = order[0] ? (this.findFolderCollectionId(order[0].id) ?? this.findRequestCollectionId(order[0].id)) : undefined;
+    const collectionId = order[0]
+      ? (this.findFolderCollectionId(order[0].id) ?? this.findRequestCollectionId(order[0].id))
+      : undefined;
     await this.foldersRepository.reorderChildren(order);
     if (collectionId) {
       await this.refreshCollectionEntry(collectionId);
@@ -287,7 +301,10 @@ export class CollectionsStore {
   }
 
   /** The collection as a Postman Collection v2.1 file, masked as the app's own file is, with what Postman's format has no place for. */
-  async exportCollectionPostman(id: string, options: RedactOptions = {}): Promise<{ json: string; notes: ExportNote[] } | null> {
+  async exportCollectionPostman(
+    id: string,
+    options: RedactOptions = {},
+  ): Promise<{ json: string; notes: ExportNote[] } | null> {
     const snapshot = await this.redacted(id, options);
     if (!snapshot) return null;
     const { postmanCollection } = await import("@wayfarer/core/postman");
@@ -304,15 +321,23 @@ export class CollectionsStore {
     const redactor = new Redactor([]);
     return {
       ...snapshot,
-      collection: { ...snapshot.collection, variables: redactor.rows(snapshot.collection.variables, options), auth: redactor.auth(snapshot.collection.auth, options) },
-      folders: snapshot.folders.map((folder) => ({ ...folder, variables: redactor.rows(folder.variables, options), auth: redactor.auth(folder.auth, options) })),
+      collection: {
+        ...snapshot.collection,
+        variables: redactor.rows(snapshot.collection.variables, options),
+        auth: redactor.auth(snapshot.collection.auth, options),
+      },
+      folders: snapshot.folders.map((folder) => ({
+        ...folder,
+        variables: redactor.rows(folder.variables, options),
+        auth: redactor.auth(folder.auth, options),
+      })),
       requests: snapshot.requests.map((request) => ({ ...request, ...redactor.template(request, options) })),
     };
   }
 
   async importCollection(
     payload: CollectionExport,
-    options?: { duplicateAsNew?: boolean }
+    options?: { duplicateAsNew?: boolean },
   ): Promise<Collection | null> {
     const collection = await this.collectionsRepository.importCollectionExport(payload, options);
     await this.refresh();

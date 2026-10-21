@@ -35,7 +35,12 @@ describe("CookieJar", () => {
   beforeEach(async () => {
     repository = new CookiesRepositoryFake();
     idb = new IdbFake();
-    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: IdbCore, useValue: idb }] });
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CookiesRepository, useValue: repository },
+        { provide: IdbCore, useValue: idb },
+      ],
+    });
     jar = TestBed.inject(CookieJar);
     await jar.start();
   });
@@ -56,7 +61,12 @@ describe("CookieJar", () => {
   it("reads the stored cookies when the page starts", async () => {
     await jar.store(URL, ["sid=abc; Path=/"], []);
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [{ provide: CookiesRepository, useValue: repository }, { provide: IdbCore, useValue: idb }] });
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CookiesRepository, useValue: repository },
+        { provide: IdbCore, useValue: idb },
+      ],
+    });
     const again = TestBed.inject(CookieJar);
     expect(again.cookies()).toEqual([]);
     await again.start();
@@ -101,7 +111,17 @@ describe("CookieJar", () => {
   });
 
   it("reads again when another browser tab changed the store", async () => {
-    repository.records.set("api.test|/|late", { key: "api.test|/|late", name: "late", value: "1", domain: "api.test", hostOnly: true, path: "/", secure: false, httpOnly: false, created: 1 });
+    repository.records.set("api.test|/|late", {
+      key: "api.test|/|late",
+      name: "late",
+      value: "1",
+      domain: "api.test",
+      hostOnly: true,
+      path: "/",
+      secure: false,
+      httpOnly: false,
+      created: 1,
+    });
     idb.listener?.(["history"]);
     await Promise.resolve();
     expect(jar.cookies()).toEqual([]);

@@ -10,7 +10,7 @@ import {
   inject,
   input,
   output,
-  viewChild
+  viewChild,
 } from "@angular/core";
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from "@angular/forms";
 import { Theme } from "../../services/theme";
@@ -40,12 +40,11 @@ const noop = () => {};
          editor permanently stuck on the placeholder below. -->
     <div [style.height.px]="height() ?? 200">
       @defer (on viewport; on timer(400ms)) {
-        <div
-          #editorHost
-          class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"
-        ></div>
+        <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
       } @placeholder {
-        <div class="flex h-full w-full items-center justify-center rounded-md bg-canvas-elevated type-callout text-label-tertiary">
+        <div
+          class="flex h-full w-full items-center justify-center rounded-md bg-canvas-elevated type-callout text-label-tertiary"
+        >
           Loading editor…
         </div>
       }
@@ -60,9 +59,7 @@ const noop = () => {};
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ScriptEditor
-  implements ControlValueAccessor, OnChanges, OnDestroy
-{
+export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy {
   readonly height = input<number | null>(null);
   readonly readOnly = input(false);
   readonly valueChange = output<string>();
@@ -143,10 +140,7 @@ export class ScriptEditor
     }
     const hostEl = host.nativeElement;
 
-    const [monacoModule] = await Promise.all([
-      loadMonaco(),
-      waitForNonZeroWidth(hostEl),
-    ]);
+    const [monacoModule] = await Promise.all([loadMonaco(), waitForNonZeroWidth(hostEl)]);
     if (this.destroyed || this.editorInstance || !this.editorHost()) {
       // Disposed, or a concurrent call already initialized, while awaiting.
       return;
@@ -156,9 +150,7 @@ export class ScriptEditor
 
     defineSandboxThemes(monaco);
 
-    this.model =
-      this.model ??
-      monaco.editor.createModel(this.internalValue, "javascript", undefined);
+    this.model = this.model ?? monaco.editor.createModel(this.internalValue, "javascript", undefined);
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
       model: this.model,

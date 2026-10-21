@@ -1,5 +1,12 @@
 import { newId } from "../id";
-import { COLLECTION_FORMAT, type Collection, type CollectionExport, type CollectionTree, type Folder, type RequestDoc } from "../model/collection";
+import {
+  COLLECTION_FORMAT,
+  type Collection,
+  type CollectionExport,
+  type CollectionTree,
+  type Folder,
+  type RequestDoc,
+} from "../model/collection";
 import { validateInherited, validateRequestContent, validateRows } from "../model/validate";
 import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../safe-json";
 
@@ -26,16 +33,16 @@ export interface CollectionImportResult {
   errors?: ValidationResult[];
 }
 
-export function serializeDeterministic(
-  source: CollectionTree | CollectionExport
-): string {
+export function serializeDeterministic(source: CollectionTree | CollectionExport): string {
   const payload = normalizeExport(toExport(source));
   return JSON.stringify(sortKeys(payload), null, 2);
 }
 
-export function validateCollection(
-  input: string | object
-): { ok: boolean; errors?: ValidationResult[]; payload?: CollectionExport } {
+export function validateCollection(input: string | object): {
+  ok: boolean;
+  errors?: ValidationResult[];
+  payload?: CollectionExport;
+} {
   if (isOversizedImport(input)) {
     return { ok: false, errors: [{ path: "root", message: IMPORT_TOO_LARGE }] };
   }
@@ -65,17 +72,13 @@ export function validateCollection(
   if (!Array.isArray(value.folders)) {
     errors.push({ path: "folders", message: "Folders must be an array." });
   } else {
-    value.folders.forEach((folder, index) =>
-      validateFolderDoc(folder, `folders[${index}]`, errors)
-    );
+    value.folders.forEach((folder, index) => validateFolderDoc(folder, `folders[${index}]`, errors));
   }
 
   if (!Array.isArray(value.requests)) {
     errors.push({ path: "requests", message: "Requests must be an array." });
   } else {
-    value.requests.forEach((request, index) =>
-      validateRequestDoc(request, `requests[${index}]`, errors)
-    );
+    value.requests.forEach((request, index) => validateRequestDoc(request, `requests[${index}]`, errors));
   }
 
   if (!value.meta) {
@@ -93,7 +96,7 @@ export function validateCollection(
 
 export function importCollection(
   input: string | object,
-  options: { duplicateAsNew?: boolean } = {}
+  options: { duplicateAsNew?: boolean } = {},
 ): CollectionImportResult {
   const validation = validateCollection(input);
   if (!validation.ok || !validation.payload) {
@@ -102,9 +105,7 @@ export function importCollection(
 
   const normalized = normalizeExport(validation.payload);
   const duplicate = options.duplicateAsNew ?? false;
-  const { payload, idRemap } = duplicate
-    ? remapIdentifiers(normalized)
-    : { payload: normalized, idRemap: undefined };
+  const { payload, idRemap } = duplicate ? remapIdentifiers(normalized) : { payload: normalized, idRemap: undefined };
 
   const plan = buildPlan(payload, duplicate);
 
@@ -119,9 +120,7 @@ export function importCollection(
   };
 }
 
-export function sortByOrder<T extends { order?: number; meta?: { id?: string }; id?: string }>(
-  items: T[]
-): T[] {
+export function sortByOrder<T extends { order?: number; meta?: { id?: string }; id?: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => {
     const orderA = typeof a.order === "number" ? a.order : 0;
     const orderB = typeof b.order === "number" ? b.order : 0;
@@ -145,19 +144,14 @@ export function sortKeys<T>(value: T): T {
   }
 
   if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
-      a.localeCompare(b)
-    );
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
     return Object.fromEntries(entries.map(([key, val]) => [key, sortKeys(val)])) as T;
   }
 
   return value;
 }
 
-function buildPlan(
-  payload: CollectionExport,
-  duplicate: boolean
-): CollectionImportPlanEntry[] {
+function buildPlan(payload: CollectionExport, duplicate: boolean): CollectionImportPlanEntry[] {
   const action = duplicate ? "create" : "overwrite";
   const entries: CollectionImportPlanEntry[] = [
     {
@@ -189,9 +183,7 @@ function buildPlan(
   return entries;
 }
 
-function remapIdentifiers(
-  payload: CollectionExport
-): { payload: CollectionExport; idRemap: Record<string, string> } {
+function remapIdentifiers(payload: CollectionExport): { payload: CollectionExport; idRemap: Record<string, string> } {
   const clone = structuredClone(payload);
   // Keyed by ids the file gave: without a prototype, "constructor" is an id like any other.
   const idMap = Object.create(null) as Record<string, string>;
@@ -262,11 +254,7 @@ function isCollectionTree(value: unknown): value is CollectionTree {
   return Boolean(value && typeof value === "object" && !("$id" in value));
 }
 
-function validateCollectionDoc(
-  doc: Partial<Collection>,
-  path: string,
-  errors: ValidationResult[]
-): void {
+function validateCollectionDoc(doc: Partial<Collection>, path: string, errors: ValidationResult[]): void {
   validateMeta(doc?.meta, `${path}.meta`, errors);
   validateRequiredString(doc?.id ?? doc?.meta?.id, `${path}.id`, errors);
   validateRequiredString(doc?.name, `${path}.name`, errors);
@@ -275,11 +263,7 @@ function validateCollectionDoc(
   errors.push(...validateRows(doc?.variables, `${path}.variables`), ...validateInherited(doc, path, "collection"));
 }
 
-function validateFolderDoc(
-  folder: Partial<Folder>,
-  path: string,
-  errors: ValidationResult[]
-): void {
+function validateFolderDoc(folder: Partial<Folder>, path: string, errors: ValidationResult[]): void {
   validateMeta(folder?.meta, `${path}.meta`, errors);
   validateRequiredString(folder?.id ?? folder?.meta?.id, `${path}.id`, errors);
   validateRequiredString(folder?.collectionId, `${path}.collectionId`, errors);
@@ -289,11 +273,7 @@ function validateFolderDoc(
   errors.push(...validateInherited(folder, path, "folder"));
 }
 
-function validateRequestDoc(
-  request: Partial<RequestDoc>,
-  path: string,
-  errors: ValidationResult[]
-): void {
+function validateRequestDoc(request: Partial<RequestDoc>, path: string, errors: ValidationResult[]): void {
   validateMeta(request?.meta, `${path}.meta`, errors);
   validateRequiredString(request?.id ?? request?.meta?.id, `${path}.id`, errors);
   validateRequiredString(request?.collectionId, `${path}.collectionId`, errors);
@@ -317,11 +297,7 @@ function validateMeta(meta: unknown, path: string, errors: ValidationResult[]): 
   }
 }
 
-function validateRequiredString(
-  value: unknown,
-  path: string,
-  errors: ValidationResult[]
-): void {
+function validateRequiredString(value: unknown, path: string, errors: ValidationResult[]): void {
   if (typeof value !== "string" || !value.trim()) {
     errors.push({ path, message: "Value must be a non-empty string." });
   }

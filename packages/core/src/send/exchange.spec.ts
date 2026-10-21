@@ -7,8 +7,23 @@ import type { RequestContent, Route, Row } from "../model/request";
 import { applyVariableChanges, type VariableChange } from "../model/variables";
 import type { ScriptResult } from "../scripting/host";
 import type { RoutePolicy } from "../transport/route";
-import { TransportError, type ResolvedRequest, type ResponseEnvelope, type TransportOptions } from "../transport/transport";
-import { PreRequestScriptError, RequestSkipped, SendBlockedError, SendDeclinedError, exchange, type BuiltRequest, type ExchangePorts, type RequestExecutionSpec, type ScriptRunExtras } from "./exchange";
+import {
+  TransportError,
+  type ResolvedRequest,
+  type ResponseEnvelope,
+  type TransportOptions,
+} from "../transport/transport";
+import {
+  PreRequestScriptError,
+  RequestSkipped,
+  SendBlockedError,
+  SendDeclinedError,
+  exchange,
+  type BuiltRequest,
+  type ExchangePorts,
+  type RequestExecutionSpec,
+  type ScriptRunExtras,
+} from "./exchange";
 
 /** A value with a getter and a setter, as the app's signals are. */
 function cell<T>(value: T): (() => T) & { set(next: T): void } {
@@ -16,10 +31,17 @@ function cell<T>(value: T): (() => T) & { set(next: T): void } {
 }
 
 const bytes = (value: unknown): ArrayBuffer =>
-  value === undefined ? new ArrayBuffer(0) : new TextEncoder().encode(typeof value === "string" ? value : JSON.stringify(value)).buffer;
+  value === undefined
+    ? new ArrayBuffer(0)
+    : new TextEncoder().encode(typeof value === "string" ? value : JSON.stringify(value)).buffer;
 
 /** A response as the transport returns it, with a JSON body by default. */
-function envelope(status: number, statusText: string, body?: unknown, contentType = "application/json"): ResponseEnvelope {
+function envelope(
+  status: number,
+  statusText: string,
+  body?: unknown,
+  contentType = "application/json",
+): ResponseEnvelope {
   const buffer = body instanceof ArrayBuffer ? body : bytes(body);
   return {
     status,
@@ -45,7 +67,11 @@ class TransportStub {
   /** The policy of the last send (P6.4). */
   policy: RoutePolicy | undefined;
 
-  send(request: ResolvedRequest, options: TransportOptions, policy: RoutePolicy = { route: this.route() }): Promise<ResponseEnvelope> {
+  send(
+    request: ResolvedRequest,
+    options: TransportOptions,
+    policy: RoutePolicy = { route: this.route() },
+  ): Promise<ResponseEnvelope> {
     this.options = options;
     this.policy = policy;
     // As the router does: the policy says where the request went.
@@ -55,7 +81,7 @@ class TransportStub {
       request.method,
       request.url,
       Object.fromEntries(request.headers),
-      typeof request.body === "string" ? (JSON.parse(request.body) as unknown) : request.body
+      typeof request.body === "string" ? (JSON.parse(request.body) as unknown) : request.body,
     );
     return this.outcome instanceof TransportError ? Promise.reject(this.outcome) : Promise.resolve(this.outcome);
   }
@@ -82,14 +108,17 @@ class EnvironmentsServiceStub {
   private readonly activeEnvSignal = cell<EnvironmentDoc | null>(null);
   readonly activeEnvironment = (): EnvironmentDoc | null => this.activeEnvSignal();
   readonly globals = cell<Row[]>([]);
-  changeGlobals = vi.fn().mockImplementation(async (changes: VariableChange[]) => this.globals.set(applyVariableChanges(this.globals(), changes)));
-  changeEnvironment = vi.fn()
-    .mockImplementation(async (id: string, changes: VariableChange[]) => {
-      const current = this.activeEnvSignal();
-      if (current && current.meta.id === id) {
-        this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
-      }
-    });
+  changeGlobals = vi
+    .fn()
+    .mockImplementation(async (changes: VariableChange[]) =>
+      this.globals.set(applyVariableChanges(this.globals(), changes)),
+    );
+  changeEnvironment = vi.fn().mockImplementation(async (id: string, changes: VariableChange[]) => {
+    const current = this.activeEnvSignal();
+    if (current && current.meta.id === id) {
+      this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
+    }
+  });
 
   setActiveEnvironment(env: EnvironmentDoc | null): void {
     this.activeEnvSignal.set(env);
@@ -97,7 +126,11 @@ class EnvironmentsServiceStub {
 }
 
 class ScriptSandboxServiceStub {
-  private nextResult: ScriptResult = { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
+  private nextResult: ScriptResult = {
+    logs: [],
+    changes: { environment: [], collection: [], global: [] },
+    testResults: [],
+  };
 
   execute = vi.fn().mockImplementation(async () => this.nextResult);
 
@@ -154,15 +187,27 @@ describe("exchange", () => {
     const ports = (): ExchangePorts => ({
       page,
       // As the app's script worker is called.
-      runScript: (script, environment, response, extras) => scriptSandbox.execute(script, environment, response, undefined, extras) as Promise<ScriptResult>,
+      runScript: (script, environment, response, extras) =>
+        scriptSandbox.execute(script, environment, response, undefined, extras) as Promise<ScriptResult>,
       transport,
       environment: () => {
         const active = environmentsService.activeEnvironment();
-        return active ? { name: active.name, vars: active.vars, change: (changes: VariableChange[]) => environmentsService.changeEnvironment(active.meta.id, changes) as Promise<unknown> } : undefined;
+        return active
+          ? {
+              name: active.name,
+              vars: active.vars,
+              change: (changes: VariableChange[]) =>
+                environmentsService.changeEnvironment(active.meta.id, changes) as Promise<unknown>,
+            }
+          : undefined;
       },
       globals: () => environmentsService.globals(),
       changeGlobals: (changes) => environmentsService.changeGlobals(changes) as Promise<unknown>,
-      vault: { isUnlocked: () => false, readSecret: () => Promise.resolve(null), replaceSecret: () => Promise.resolve(false) },
+      vault: {
+        isUnlocked: () => false,
+        readSecret: () => Promise.resolve(null),
+        replaceSecret: () => Promise.resolve(false),
+      },
       cookies: cookieJar,
       timeoutMs: () => settings.timeoutMs,
       historyBodies: () => true,
@@ -172,9 +217,25 @@ describe("exchange", () => {
   });
 
   describe("the cookie jar (P5.3)", () => {
-    const cookie = (name: string, value: string): Cookie => ({ name, value, domain: "example.com", hostOnly: true, path: "/", secure: false, httpOnly: false, created: 1 });
+    const cookie = (name: string, value: string): Cookie => ({
+      name,
+      value,
+      domain: "example.com",
+      hostOnly: true,
+      path: "/",
+      secure: false,
+      httpOnly: false,
+      created: 1,
+    });
     const run = (built: Partial<BuiltRequest> = {}) =>
-      service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(built) });
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(built),
+      });
 
     it("hands the route the jar: its cookies for an address, and what a response set, with the request's vault secrets", async () => {
       cookieJar.for.mockReturnValue([cookie("sid", "jar-value-1")]);
@@ -190,7 +251,9 @@ describe("exchange", () => {
     });
 
     it("a cookie the jar sent is a credential: history has the Cookie header masked, and the value masked where the server sent it back", async () => {
-      cookieJar.for.mockImplementation((url: string) => (url.endsWith("/data") ? [cookie("sid", "jar-value-1")] : [cookie("later", "jar-value-2")]));
+      cookieJar.for.mockImplementation((url: string) =>
+        url.endsWith("/data") ? [cookie("sid", "jar-value-1")] : [cookie("later", "jar-value-2")],
+      );
       transport.during = (options) => {
         options.cookies?.for("https://example.com/data");
         // A later hop of a redirect.
@@ -198,7 +261,10 @@ describe("exchange", () => {
       };
       transport.setResponse(envelope(200, "OK", { echoed: "sid=jar-value-1; later=jar-value-2" }));
       const result = await run({ headers: [["Accept", "*/*"]] });
-      expect(result.history.sent.headers).toEqual([["Accept", "*/*"], ["Cookie", "***"]]);
+      expect(result.history.sent.headers).toEqual([
+        ["Accept", "*/*"],
+        ["Cookie", "***"],
+      ]);
       expect(result.history.response?.body?.text).toBe('{"echoed":"sid=***; later=***"}');
       expect(result.cookieValues).toEqual(["jar-value-1", "jar-value-2"]);
     });
@@ -211,7 +277,11 @@ describe("exchange", () => {
     });
 
     it("@claim:C-007 a cookie that holds a vault secret's reference is not sent: a cookie is never a template", async () => {
-      cookieJar.for.mockReturnValue([cookie("a", "{{$secret.id-1}}"), cookie("{{ $secret.id-2 }}", "b"), cookie("ok", "1")]);
+      cookieJar.for.mockReturnValue([
+        cookie("a", "{{$secret.id-1}}"),
+        cookie("{{ $secret.id-2 }}", "b"),
+        cookie("ok", "1"),
+      ]);
       let given: Cookie[] | undefined;
       transport.during = (options) => void (given = options.cookies?.for("https://example.com/data"));
       await run();
@@ -222,19 +292,16 @@ describe("exchange", () => {
   it("sends the request built by buildRequest() and shapes a successful JSON response", async () => {
     transport.setResponse(envelope(200, "OK", { hello: "world" }));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
       buildRequest: () => builtRequest({ url: "https://example.com/hello" }),
     });
 
-    expect(transport.sendRequest).toHaveBeenCalledWith(
-      "GET",
-      "https://example.com/hello",
-      {},
-      undefined
-    );
+    expect(transport.sendRequest).toHaveBeenCalledWith("GET", "https://example.com/hello", {}, undefined);
     expect(result.response.isError).toBe(false);
     expect(result.response.statusCode).toBe(200);
     expect(result.response.bodyIsJson).toBe(true);
@@ -244,7 +311,9 @@ describe("exchange", () => {
   });
 
   it("marks request/response with the URL from buildRequest(), not a placeholder", async () => {
-    await service.execute({ template: TEMPLATE, runScripts: true,
+    await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -256,37 +325,30 @@ describe("exchange", () => {
   });
 
   it("includes a text body in the sent request and in history", async () => {
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
-      buildRequest: () =>
-        builtRequest({ method: "POST", body: JSON.stringify({ name: "widget" }) }),
+      buildRequest: () => builtRequest({ method: "POST", body: JSON.stringify({ name: "widget" }) }),
     });
     expect(result.history.sent.bodyPreview).toBe('{"name":"widget"}');
 
-    expect(transport.sendRequest).toHaveBeenCalledWith(
-      "POST",
-      expect.any(String),
-      {},
-      { name: "widget" }
-    );
+    expect(transport.sendRequest).toHaveBeenCalledWith("POST", expect.any(String), {}, { name: "widget" });
   });
 
   it("omits the body from the send call and history when the request has none", async () => {
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
       buildRequest: () => builtRequest({ method: "DELETE" }),
     });
 
-    expect(transport.sendRequest).toHaveBeenCalledWith(
-      "DELETE",
-      expect.any(String),
-      {},
-      undefined
-    );
+    expect(transport.sendRequest).toHaveBeenCalledWith("DELETE", expect.any(String), {}, undefined);
     expect(result.history.sent.bodyPreview).toBeUndefined();
   });
 
@@ -294,7 +356,16 @@ describe("exchange", () => {
     const askRoute = vi.fn(() => Promise.resolve(false));
     transport.setResponse(new TransportError("network", "Failed to fetch"));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), route: "bridge", askRoute });
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+      route: "bridge",
+      askRoute,
+    });
 
     expect(transport.policy?.route).toBe("bridge");
     expect(transport.policy?.ask).toBe(askRoute);
@@ -305,7 +376,14 @@ describe("exchange", () => {
   it("a response says the route it came by, for the badge (P6.4)", async () => {
     transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge" });
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
 
     expect(result.response.route).toBe("bridge");
     expect(transport.policy).toEqual({ route: "direct", took: "direct" });
@@ -316,7 +394,9 @@ describe("exchange", () => {
     page = "https://wayfarer.example/app/";
     transport.setResponse(new TransportError("network", "Failed to fetch"));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -335,16 +415,27 @@ describe("exchange", () => {
   it("without a page (the CLI), a network error gives the runtime's reason and says nothing of a browser", async () => {
     transport.setResponse(new TransportError("network", "fetch failed (ECONNREFUSED)"));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
 
-    expect(result.response.errorText).toMatch(/^Network error — no response was received: fetch failed \(ECONNREFUSED\)\./);
+    expect(result.response.errorText).toMatch(
+      /^Network error — no response was received: fetch failed \(ECONNREFUSED\)\./,
+    );
     expect(result.response.errorText).not.toMatch(/browser|CORS|cross-origin|Local Bridge/i);
   });
 
   it("shapes a JSON error body from a real HTTP error response", async () => {
     transport.setResponse(envelope(500, "Server Error", { message: "boom" }));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -366,12 +457,16 @@ describe("exchange", () => {
     });
 
     let capturedEnvDuringBuild: string | undefined;
-    await service.execute({ template: TEMPLATE, runScripts: true,
+    await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "pm.environment.set('authToken', 'fetched-token');",
       postRequestScript: "",
       tests: [],
       buildRequest: () => {
-        capturedEnvDuringBuild = environmentsService.activeEnvironment()?.vars.find((row) => row.key === "authToken")?.value;
+        capturedEnvDuringBuild = environmentsService
+          .activeEnvironment()
+          ?.vars.find((row) => row.key === "authToken")?.value;
         return builtRequest();
       },
     });
@@ -392,16 +487,16 @@ describe("exchange", () => {
       return { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
     });
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "pre script",
       postRequestScript: "",
       tests: [],
       buildRequest: () => builtRequest(),
     });
 
-    expect(result.testResults).toEqual([
-      expect.objectContaining({ label: "pre check", passed: true }),
-    ]);
+    expect(result.testResults).toEqual([expect.objectContaining({ label: "pre check", passed: true })]);
   });
 
   it("runs the post-response script with response context and merges its test results", async () => {
@@ -412,7 +507,9 @@ describe("exchange", () => {
       testResults: [{ label: "post check", passed: true, source: "script" as const }],
     });
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "pm.test('post check', () => true);",
       tests: [],
@@ -427,15 +524,15 @@ describe("exchange", () => {
       undefined,
       expect.objectContaining({ info: expect.objectContaining({ eventName: "test" }) }),
     );
-    expect(result.testResults).toEqual([
-      expect.objectContaining({ label: "post check", passed: true }),
-    ]);
+    expect(result.testResults).toEqual([expect.objectContaining({ label: "post check", passed: true })]);
   });
 
   it("runs visual test assertions against the response and merges them into testResults", async () => {
     transport.setResponse(envelope(200, "OK", {}));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [{ id: "t1", target: "status", operator: "equals", expected: "200" }],
@@ -454,7 +551,9 @@ describe("exchange", () => {
       testResults: [],
     });
 
-    await service.execute({ template: TEMPLATE, runScripts: true,
+    await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "increment",
       tests: [],
@@ -462,13 +561,21 @@ describe("exchange", () => {
     });
 
     // The change alone, for the store to apply to what is stored: not this tab's copy of the variables.
-    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "counter", value: "2", keepSecret: true }]);
+    expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [
+      { key: "counter", value: "2", keepSecret: true },
+    ]);
     expect(environmentsService.activeEnvironment()?.vars).toEqual([{ key: "counter", value: "2", enabled: true }]);
   });
 
   it("runs both scripts in every build, sends, and runs Tests-tab assertions (C-006)", async () => {
-    scriptSandbox.setNextResult({ logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [{ label: "t", passed: true, source: "script" }] });
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    scriptSandbox.setNextResult({
+      logs: [],
+      changes: { environment: [], collection: [], global: [] },
+      testResults: [{ label: "t", passed: true, source: "script" }],
+    });
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "pm.test('t', () => {});",
       postRequestScript: "pm.test('t', () => {});",
       tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
@@ -490,7 +597,9 @@ describe("exchange", () => {
       changes: { environment: [], collection: [], global: [] },
       testResults: [],
     }));
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "console.log('before'); console.warn('careful')",
       postRequestScript: "console.log('after')",
       tests: [],
@@ -503,11 +612,20 @@ describe("exchange", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ token: "typed-credential-1" }));
     scriptSandbox.setNextResult({
       logs: ["echoed vault-secret-42 and typed-credential-1"],
-      changes: { environment: [{ key: "leaked", value: "prefix vault-secret-42" }, { key: "token", value: "typed-credential-1" }], collection: [], global: [] },
+      changes: {
+        environment: [
+          { key: "leaked", value: "prefix vault-secret-42" },
+          { key: "token", value: "typed-credential-1" },
+        ],
+        collection: [],
+        global: [],
+      },
       testResults: [{ label: "saw vault-secret-42", passed: false, error: "got typed-credential-1", source: "script" }],
       error: "threw vault-secret-42",
     });
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "leak()",
       tests: [],
@@ -527,7 +645,9 @@ describe("exchange", () => {
   });
 
   it("skips both scripts when they are not approved, and still sends and runs the assertions (D6)", async () => {
-    const result = await service.execute({ template: TEMPLATE, runScripts: false,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: false,
       preRequestScript: "pm.environment.set('a', '1');",
       postRequestScript: "pm.test('t', () => {});",
       tests: [{ id: "a1", target: "status", operator: "equals", expected: "200" }],
@@ -547,7 +667,9 @@ describe("exchange", () => {
       testResults: [{ label: "ran first", passed: true, source: "script" }],
       error: "'notDefined' is not defined",
     });
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "pm.test('ran first', () => {}); notDefined();",
       tests: [],
@@ -574,7 +696,14 @@ describe("exchange", () => {
       });
       const buildRequest = vi.fn(() => builtRequest());
       const failure: unknown = await service
-        .execute({ template: TEMPLATE, runScripts: true, preRequestScript: "pm.test('ran first', () => {}); notDefined();", postRequestScript: "after()", tests: [], buildRequest })
+        .execute({
+          template: TEMPLATE,
+          runScripts: true,
+          preRequestScript: "pm.test('ran first', () => {}); notDefined();",
+          postRequestScript: "after()",
+          tests: [],
+          buildRequest,
+        })
         .catch((error: unknown) => error);
 
       expect(failure).toBeInstanceOf(PreRequestScriptError);
@@ -595,8 +724,19 @@ describe("exchange", () => {
     });
 
     it("a pre-request test that fails does not stop the send: only an error does", async () => {
-      scriptSandbox.setNextResult({ logs: [], changes: NO_CHANGES, testResults: [{ label: "expects too much", passed: false, error: "no", source: "script" }] });
-      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "pm.test(...)", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      scriptSandbox.setNextResult({
+        logs: [],
+        changes: NO_CHANGES,
+        testResults: [{ label: "expects too much", passed: false, error: "no", source: "script" }],
+      });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "pm.test(...)",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
       expect(transport.sendRequest).toHaveBeenCalledTimes(1);
       expect(result.testResults).toEqual([{ label: "expects too much", passed: false, error: "no", source: "script" }]);
     });
@@ -614,7 +754,14 @@ describe("exchange", () => {
         clock += 340;
         return send(request, options);
       };
-      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "wait()", postRequestScript: "check()", tests: [], buildRequest: () => builtRequest() });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "wait()",
+        postRequestScript: "check()",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
       vi.restoreAllMocks();
 
       expect(result.timings).toEqual({ preScriptMs: 200, requestMs: 340, postScriptMs: 8 });
@@ -622,7 +769,14 @@ describe("exchange", () => {
     });
 
     it("gives no duration for a script that did not run", async () => {
-      const result = await service.execute({ template: TEMPLATE, runScripts: false, preRequestScript: "a()", postRequestScript: "b()", tests: [], buildRequest: () => builtRequest() });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: false,
+        preRequestScript: "a()",
+        postRequestScript: "b()",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
       expect(Object.keys(result.timings)).toEqual(["requestMs"]);
     });
 
@@ -630,7 +784,12 @@ describe("exchange", () => {
       scriptSandbox.setNextResult({ logs: [], changes: NO_CHANGES, testResults: [] });
       // The stub reads a text body as JSON; this one is a form.
       transport.send = () => Promise.resolve(envelope(200, "OK", { ok: true }));
-      const template = requestContent({ method: "POST", url: "https://{{host}}/items?k={{API_KEY}}", headers: rowsOf({ "X-Key": "{{API_KEY}}" }), body: { mode: "urlencoded", urlencoded: [{ key: "key", value: "{{API_KEY}}", enabled: true }] } });
+      const template = requestContent({
+        method: "POST",
+        url: "https://{{host}}/items?k={{API_KEY}}",
+        headers: rowsOf({ "X-Key": "{{API_KEY}}" }),
+        body: { mode: "urlencoded", urlencoded: [{ key: "key", value: "{{API_KEY}}", enabled: true }] },
+      });
       await service.execute({
         template,
         runScripts: true,
@@ -641,7 +800,10 @@ describe("exchange", () => {
           builtRequest({
             method: "POST",
             url: "https://api.test/items?k=vault-secret-42",
-            headers: [["X-Key", "vault-secret-42"], ["Authorization", "Bearer typed-credential-1"]],
+            headers: [
+              ["X-Key", "vault-secret-42"],
+              ["Authorization", "Bearer typed-credential-1"],
+            ],
             body: "key=vault-secret-42&plain=a+b",
             secrets: ["vault-secret-42"],
             credentials: ["typed-credential-1"],
@@ -651,8 +813,17 @@ describe("exchange", () => {
       expect(given.request).toEqual({
         method: "POST",
         url: "https://api.test/items?k=***",
-        headers: [["X-Key", "***"], ["Authorization", "Bearer typed-credential-1"]],
-        body: { mode: "urlencoded", urlencoded: [["key", "***"], ["plain", "a b"]] },
+        headers: [
+          ["X-Key", "***"],
+          ["Authorization", "Bearer typed-credential-1"],
+        ],
+        body: {
+          mode: "urlencoded",
+          urlencoded: [
+            ["key", "***"],
+            ["plain", "a b"],
+          ],
+        },
       });
       expect(JSON.stringify(scriptSandbox.execute.mock.calls)).not.toContain("vault-secret-42");
     });
@@ -661,10 +832,19 @@ describe("exchange", () => {
       environmentsService.setActiveEnvironment(buildEnvironment({ host: "api.test", kept: "1" }));
       environmentsService.globals.set(rowsOf({ g: "1" }));
       const stored = new Map<string, string>([["base", "https://api.test"]]);
-      const change = vi.fn(async (changes: VariableChange[]) => changes.forEach(({ key, value }) => (value === null ? stored.delete(key) : stored.set(key, value))));
+      const change = vi.fn(async (changes: VariableChange[]) =>
+        changes.forEach(({ key, value }) => (value === null ? stored.delete(key) : stored.set(key, value))),
+      );
       scriptSandbox.setNextResult({
         logs: [],
-        changes: { environment: [{ key: "host", value: "elsewhere.test" }, { key: "fresh", value: "x" }], collection: [{ key: "base", value: "https://elsewhere.test" }], global: [{ key: "g", value: null }] },
+        changes: {
+          environment: [
+            { key: "host", value: "elsewhere.test" },
+            { key: "fresh", value: "x" },
+          ],
+          collection: [{ key: "base", value: "https://elsewhere.test" }],
+          global: [{ key: "g", value: null }],
+        },
         testResults: [],
       });
       const failure: unknown = await service
@@ -677,7 +857,9 @@ describe("exchange", () => {
           collection: { variables: () => rowsOf(Object.fromEntries(stored)), change },
           buildRequest: () => {
             // The script's changes were stored when the request is built.
-            expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ host: "elsewhere.test", kept: "1", fresh: "x" }));
+            expect(environmentsService.activeEnvironment()?.vars).toEqual(
+              rowsOf({ host: "elsewhere.test", kept: "1", fresh: "x" }),
+            );
             throw new SendDeclinedError("declined");
           },
         })
@@ -706,17 +888,24 @@ describe("exchange", () => {
     ];
     /** Each script that ran, with the environment it was given. */
     // The sandbox is given the environment as a script is: name, value, and the mark of a value that is JSON (F76).
-    const ran = () => scriptSandbox.execute.mock.calls.map(([script, env]) => [script, Object.fromEntries(env as [string, string][])] as [string, Record<string, string>]);
+    const ran = () =>
+      scriptSandbox.execute.mock.calls.map(
+        ([script, env]) => [script, Object.fromEntries(env as [string, string][])] as [string, Record<string, string>],
+      );
     /** Every script sets `last` to its own text, logs it, and has one test; `fail` names a script that ends in an error. */
     const scripted = (fail?: string) =>
-      scriptSandbox.execute.mockImplementation(
-        async (script: string): Promise<ScriptResult> => ({
-          logs: [script],
-          changes: { ...NO_CHANGES, environment: [{ key: "last", value: script }, { key: script, value: "ran" }] },
-          testResults: [{ label: `test of ${script}`, passed: true, source: "script" }],
-          ...(script === fail && { error: "boom" }),
-        })
-      );
+      scriptSandbox.execute.mockImplementation(async (script: string): Promise<ScriptResult> => ({
+        logs: [script],
+        changes: {
+          ...NO_CHANGES,
+          environment: [
+            { key: "last", value: script },
+            { key: script, value: "ran" },
+          ],
+        },
+        testResults: [{ label: `test of ${script}`, passed: true, source: "script" }],
+        ...(script === fail && { error: "boom" }),
+      }));
     const spec = (buildRequest: () => BuiltRequest = () => builtRequest()) => ({
       template: TEMPLATE,
       runScripts: true,
@@ -736,17 +925,55 @@ describe("exchange", () => {
       scriptSandbox.execute.mock.calls.length = 0;
       const result = await service.execute(spec(() => (order.push("build"), builtRequest())));
 
-      expect(ran().map(([script]) => script)).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"]);
+      expect(ran().map(([script]) => script)).toEqual([
+        "collectionPre()",
+        "outerPre()",
+        "requestPre()",
+        "collectionPost()",
+        "innerPost()",
+        "requestPost()",
+      ]);
       // Built and sent after the last pre-request script and before the first post-response script.
       expect(order).toEqual(["build", "send"]);
-      expect(ran().map(([, env]) => env["last"])).toEqual([undefined, "collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()"]);
-      expect(result.scriptLogs).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"]);
-      expect(result.testResults.map((row) => row.label)).toEqual(["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"].map((script) => `test of ${script}`));
+      expect(ran().map(([, env]) => env["last"])).toEqual([
+        undefined,
+        "collectionPre()",
+        "outerPre()",
+        "requestPre()",
+        "collectionPost()",
+        "innerPost()",
+      ]);
+      expect(result.scriptLogs).toEqual([
+        "collectionPre()",
+        "outerPre()",
+        "requestPre()",
+        "collectionPost()",
+        "innerPost()",
+        "requestPost()",
+      ]);
+      expect(result.testResults.map((row) => row.label)).toEqual(
+        ["collectionPre()", "outerPre()", "requestPre()", "collectionPost()", "innerPost()", "requestPost()"].map(
+          (script) => `test of ${script}`,
+        ),
+      );
       // A script reads the folders' variables and is told which event it is, for the request being sent.
-      const extras = scriptSandbox.execute.mock.calls.map((call) => call[4] as { folder: unknown; info: { eventName: string } });
-      expect(extras.map((given) => given.info.eventName)).toEqual(["prerequest", "prerequest", "prerequest", "test", "test", "test"]);
+      const extras = scriptSandbox.execute.mock.calls.map(
+        (call) => call[4] as { folder: unknown; info: { eventName: string } },
+      );
+      expect(extras.map((given) => given.info.eventName)).toEqual([
+        "prerequest",
+        "prerequest",
+        "prerequest",
+        "test",
+        "test",
+        "test",
+      ]);
       expect(extras[0].folder).toEqual([["inFolder", "f"]]);
-      expect(result.timings).toEqual({ preScriptMs: expect.any(Number) as number, requestMs: expect.any(Number) as number, postScriptMs: expect.any(Number) as number });
+      expect(result.timings).toEqual({
+        preScriptMs: expect.any(Number) as number,
+        requestMs: expect.any(Number) as number,
+        postScriptMs: expect.any(Number) as number,
+      });
     });
 
     it("an error in a folder's pre-request script stops the send: no later script runs, nothing is built, and the row and the message name the folder", async () => {
@@ -773,8 +1000,17 @@ describe("exchange", () => {
       scripted("collectionPost()");
       const result = await service.execute(spec());
 
-      expect(ran().map(([script]) => script).slice(3)).toEqual(["collectionPost()", "innerPost()", "requestPost()"]);
-      expect(result.testResults).toContainEqual({ label: 'Post-response script of collection "Shop"', passed: false, error: "boom", source: "script" });
+      expect(
+        ran()
+          .map(([script]) => script)
+          .slice(3),
+      ).toEqual(["collectionPost()", "innerPost()", "requestPost()"]);
+      expect(result.testResults).toContainEqual({
+        label: 'Post-response script of collection "Shop"',
+        passed: false,
+        error: "boom",
+        source: "script",
+      });
     });
 
     it("not approved, none of them runs", async () => {
@@ -793,8 +1029,8 @@ describe("exchange", () => {
         service.execute(
           spec(() => {
             throw new SendDeclinedError("declined");
-          })
-        )
+          }),
+        ),
       ).rejects.toBeInstanceOf(SendDeclinedError);
 
       expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ last: "before" }));
@@ -808,7 +1044,10 @@ describe("exchange", () => {
       ["header value", { headers: [["X-Api-Key", secret]] }],
       ["header name", { headers: [[secret, "1"]] }],
       ["nested body", { method: "POST", body: JSON.stringify({ a: { b: [secret] } }) }],
-      ["form body, percent-encoded", { method: "POST", body: new URLSearchParams([["key", "{{ $secret.abc }}"]]).toString() }],
+      [
+        "form body, percent-encoded",
+        { method: "POST", body: new URLSearchParams([["key", "{{ $secret.abc }}"]]).toString() },
+      ],
       ["multipart field value", { method: "POST", body: form(["key", secret]) }],
       ["multipart field name", { method: "POST", body: form([secret, "1"]) }],
       ["multipart file name", { method: "POST", body: form(["file", new File(["x"], `${secret}.txt`)]) }],
@@ -820,19 +1059,23 @@ describe("exchange", () => {
     for (const [where, overrides] of cases) {
       it(`blocks the send when the ${where} still holds one`, async () => {
         await expect(
-          service.execute({ template: TEMPLATE, runScripts: true,
+          service.execute({
+            template: TEMPLATE,
+            runScripts: true,
             preRequestScript: "",
             postRequestScript: "",
             tests: [],
             buildRequest: () => builtRequest(overrides),
-          })
+          }),
         ).rejects.toThrow(SendBlockedError);
         expect(transport.sendRequest).not.toHaveBeenCalled();
       });
     }
 
     it("still sends an ordinary {{var}} left unresolved", async () => {
-      await service.execute({ template: TEMPLATE, runScripts: true,
+      await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
         preRequestScript: "",
         postRequestScript: "",
         tests: [],
@@ -846,7 +1089,9 @@ describe("exchange", () => {
     const png = new BinaryBody(new Uint8Array([0x89, 0x50]).buffer, "image/png");
     transport.setResponse(envelope(200, "OK", png.bytes, "image/png"));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "",
       postRequestScript: "",
       tests: [],
@@ -864,9 +1109,22 @@ describe("exchange", () => {
     settings.timeoutMs = 1500;
     const controller = new AbortController();
 
-    await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(), signal: controller.signal });
+    await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+      signal: controller.signal,
+    });
 
-    expect(transport.options).toEqual({ signal: controller.signal, timeoutMs: 1500, redirects: { follow: true, stayOnHost: false }, cookies: { for: expect.any(Function), store: expect.any(Function) } });
+    expect(transport.options).toEqual({
+      signal: controller.signal,
+      timeoutMs: 1500,
+      redirects: { follow: true, stayOnHost: false },
+      cookies: { for: expect.any(Function), store: expect.any(Function) },
+    });
   });
 
   it("measures the duration around the transport call only, not the pre-request script (F11)", async () => {
@@ -882,7 +1140,9 @@ describe("exchange", () => {
       return send(request, options);
     };
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true,
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
       preRequestScript: "pm.environment.set('a', '1');",
       postRequestScript: "",
       tests: [],
@@ -901,10 +1161,17 @@ describe("exchange", () => {
       new TransportError("aborted", "The request was cancelled."),
     ]) {
       transport.setResponse(failure);
-      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
 
       expect(result.response).toEqual(
-        expect.objectContaining({ isError: true, statusCode: undefined, errorText: failure.message, dataText: "" })
+        expect.objectContaining({ isError: true, statusCode: undefined, errorText: failure.message, dataText: "" }),
       );
       expect(result.history.response?.status).toBeUndefined();
       expect(result.history.error).toBe(failure.message);
@@ -914,16 +1181,30 @@ describe("exchange", () => {
   it("shows the Local Bridge's own failure with the status it answered", async () => {
     transport.setResponse(new TransportError("bridge", "invalid or missing bridge token", 401));
 
-    const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
 
     expect(result.response).toEqual(
-      expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" })
+      expect.objectContaining({ isError: true, statusCode: 401, errorText: "invalid or missing bridge token" }),
     );
   });
 
   describe("what only the Local Bridge can do (P6.1)", () => {
     const run = (template: RequestContent) =>
-      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      service.execute({
+        template,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
 
     it("asks the route not to verify the certificate only when the request's settings say so, and the response says it was got so", async () => {
       expect((await run(TEMPLATE)).response.tlsInsecure).toBeUndefined();
@@ -936,7 +1217,11 @@ describe("exchange", () => {
     });
 
     it("the timings of a request through the bridge are the bridge's: the connection was its own", async () => {
-      transport.setResponse({ ...envelope(200, "OK", {}), route: "bridge", timings: { dns: 1, tcp: 2, tls: 3, ttfb: 40, content: 5 } });
+      transport.setResponse({
+        ...envelope(200, "OK", {}),
+        route: "bridge",
+        timings: { dns: 1, tcp: 2, tls: 3, ttfb: 40, content: 5 },
+      });
       const result = await run(TEMPLATE);
       expect(result.relayTimings).toEqual({ dns: 1, tcp: 2, tls: 3, ttfb: 40, content: 5 });
     });
@@ -944,7 +1229,14 @@ describe("exchange", () => {
 
   describe("redirects (P5.4)", () => {
     const run = (template: RequestContent, built: Partial<BuiltRequest> = {}) =>
-      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(built) });
+      service.execute({
+        template,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(built),
+      });
 
     it("asks the route to follow redirects unless the request's settings say not to", async () => {
       await run(TEMPLATE);
@@ -960,20 +1252,46 @@ describe("exchange", () => {
     });
 
     it("gives the chain the route followed, and why it stopped", async () => {
-      const redirects = { chain: [{ status: 302, url: "https://example.com/data", location: "/next" }], stopped: "other-host" as const };
-      transport.setResponse({ ...envelope(307, "Temporary Redirect"), redirected: true, finalUrl: "https://example.com/next", redirects });
+      const redirects = {
+        chain: [{ status: 302, url: "https://example.com/data", location: "/next" }],
+        stopped: "other-host" as const,
+      };
+      transport.setResponse({
+        ...envelope(307, "Temporary Redirect"),
+        redirected: true,
+        finalUrl: "https://example.com/next",
+        redirects,
+      });
       const result = await run(TEMPLATE);
       expect(result.response.redirects).toEqual(redirects);
     });
   });
 
   it("reports the final URL of a redirected request, and an error status with no body by its status line", async () => {
-    transport.setResponse({ ...envelope(200, "OK", { ok: true }), redirected: true, finalUrl: "https://example.com/end" });
-    const redirected = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    transport.setResponse({
+      ...envelope(200, "OK", { ok: true }),
+      redirected: true,
+      finalUrl: "https://example.com/end",
+    });
+    const redirected = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
     expect(redirected.response.redirectedTo).toBe("https://example.com/end");
 
     transport.setResponse(envelope(404, "Not Found"));
-    const missing = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+    const missing = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
     expect(missing.response.redirectedTo).toBeUndefined();
     expect(missing.response.errorText).toBe("Http failure response for https://example.com/data: 404 Not Found");
     expect(missing.history.error).toBe("Http failure response for https://example.com/data: 404 Not Found");
@@ -981,12 +1299,24 @@ describe("exchange", () => {
 
   describe("history (P2.9): what is stored of an exchange", () => {
     const run = (request: Partial<BuiltRequest>, template = TEMPLATE) =>
-      service.execute({ template, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest(request) });
+      service.execute({
+        template,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(request),
+      });
 
     it("masks every vault secret and credential in what was sent, in the request as composed and in the response", async () => {
       transport.setResponse({
         ...envelope(200, "OK", { echoed: "vault-plaintext", basic: btoa("bob:typed-password") }),
-        headers: [["content-type", "application/json"], ["x-echo", "vault-plaintext"], ["set-cookie", "a=1"], ["set-cookie", "b=2"]],
+        headers: [
+          ["content-type", "application/json"],
+          ["x-echo", "vault-plaintext"],
+          ["set-cookie", "a=1"],
+          ["set-cookie", "b=2"],
+        ],
         route: "bridge",
       });
 
@@ -994,12 +1324,19 @@ describe("exchange", () => {
         {
           method: "POST",
           url: "https://example.com/data?k=vault-plaintext",
-          headers: [["Authorization", `Basic ${btoa("bob:typed-password")}`], ["X-Trace", "vault-plaintext"]],
+          headers: [
+            ["Authorization", `Basic ${btoa("bob:typed-password")}`],
+            ["X-Trace", "vault-plaintext"],
+          ],
           body: '{"token":"vault-plaintext"}',
           secrets: ["vault-plaintext"],
           credentials: ["typed-password"],
         },
-        requestContent({ method: "POST", url: "https://example.com/data?k={{k}}", auth: { type: "basic", username: "bob", password: "typed-password" } })
+        requestContent({
+          method: "POST",
+          url: "https://example.com/data?k={{k}}",
+          auth: { type: "basic", username: "bob", password: "typed-password" },
+        }),
       );
 
       const stored = JSON.stringify(history);
@@ -1008,13 +1345,21 @@ describe("exchange", () => {
       expect(history.sent).toEqual({
         method: "POST",
         url: "https://example.com/data?k=***",
-        headers: [["Authorization", "***"], ["X-Trace", "***"]],
+        headers: [
+          ["Authorization", "***"],
+          ["X-Trace", "***"],
+        ],
         bodyPreview: '{"token":"***"}',
       });
       expect(history.template.url).toBe("https://example.com/data?k={{k}}");
       expect(history.template.auth).toEqual({ type: "basic", username: "bob", password: "***" });
       // A repeated header is kept once per value; a credential header is masked whole.
-      expect(history.response?.headers).toEqual([["content-type", "application/json"], ["x-echo", "***"], ["set-cookie", "***"], ["set-cookie", "***"]]);
+      expect(history.response?.headers).toEqual([
+        ["content-type", "application/json"],
+        ["x-echo", "***"],
+        ["set-cookie", "***"],
+        ["set-cookie", "***"],
+      ]);
       expect(history.response?.body?.text).toContain('"echoed":"***"');
       expect(history.route).toBe("bridge");
     });
@@ -1026,7 +1371,11 @@ describe("exchange", () => {
       form.append("upload", new File([new Uint8Array(3)], "key.pem", { type: "application/x-pem-file" }));
 
       const withForm = await run({ method: "POST", body: form });
-      expect(withForm.history.response).toEqual({ status: 200, statusText: "OK", headers: [["content-type", "image/png"]] });
+      expect(withForm.history.response).toEqual({
+        status: 200,
+        statusText: "OK",
+        headers: [["content-type", "image/png"]],
+      });
       expect(withForm.history.sent.bodyPreview).toBe("note=hello\nupload=@key.pem (3 bytes, application/x-pem-file)");
 
       const withFile = await run({ method: "PUT", body: new Blob([new Uint8Array(5)]) });
@@ -1035,7 +1384,10 @@ describe("exchange", () => {
 
     it("records the route a failed request would have taken, masks its error text, and has no response", async () => {
       transport.setResponse(new TransportError("network", "failed"));
-      const { history } = await run({ url: "https://example.com/data?k=vault-plaintext", secrets: ["vault-plaintext"] });
+      const { history } = await run({
+        url: "https://example.com/data?k=vault-plaintext",
+        secrets: ["vault-plaintext"],
+      });
 
       expect(history.response).toBeUndefined();
       expect(history.route).toBe("direct");
@@ -1046,7 +1398,14 @@ describe("exchange", () => {
   it("rethrows what is not a transport failure", async () => {
     transport.send = () => Promise.reject(new RangeError("bug"));
     await expect(
-      service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "", tests: [], buildRequest: () => builtRequest() })
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      }),
     ).rejects.toThrow(RangeError);
   });
 
@@ -1059,12 +1418,24 @@ describe("exchange", () => {
     it("gives a script the request as composed, the three scopes and the saved request's name; what a pre-request script left of the request is what is built", async () => {
       environmentsService.setActiveEnvironment(buildEnvironment({ host: "api.test" }));
       environmentsService.globals.set(rowsOf({ g: "1" }));
-      const template = requestContent({ method: "POST", url: "https://{{host}}/items", headers: rowsOf({ "X-A": "1" }) });
+      const template = requestContent({
+        method: "POST",
+        url: "https://{{host}}/items",
+        headers: rowsOf({ "X-A": "1" }),
+      });
       scriptSandbox.setNextResult({
         logs: [],
         changes: NO_CHANGES,
         testResults: [],
-        request: { method: "PUT", url: "https://{{host}}/signed", headers: [["X-A", "1"], ["X-Signed", "abc"]], body: { mode: "raw", raw: "signed" } },
+        request: {
+          method: "PUT",
+          url: "https://{{host}}/signed",
+          headers: [
+            ["X-A", "1"],
+            ["X-Signed", "abc"],
+          ],
+          body: { mode: "raw", raw: "signed" },
+        },
       });
       const built: unknown[] = [];
       const result = await service.execute({
@@ -1088,9 +1459,20 @@ describe("exchange", () => {
         request: { method: "POST", url: "https://{{host}}/items", headers: [["X-A", "1"]], body: { mode: "none" } },
         info: { eventName: "prerequest", requestName: "Create item", requestId: "req-1" },
       });
-      expect(built).toEqual([{ ...template, method: "PUT", url: "https://{{host}}/signed", headers: rowsOf({ "X-A": "1", "X-Signed": "abc" }), body: { mode: "raw", raw: { language: "text", text: "signed" } } }]);
+      expect(built).toEqual([
+        {
+          ...template,
+          method: "PUT",
+          url: "https://{{host}}/signed",
+          headers: rowsOf({ "X-A": "1", "X-Signed": "abc" }),
+          body: { mode: "raw", raw: { language: "text", text: "signed" } },
+        },
+      ]);
       // The post-response script sees the request that was sent (P3.9: as built, not as composed), and history keeps the one the user composed.
-      expect(extras(1)).toMatchObject({ request: { method: "GET", url: "https://example.com/data" }, info: { eventName: "test" } });
+      expect(extras(1)).toMatchObject({
+        request: { method: "GET", url: "https://example.com/data" },
+        info: { eventName: "test" },
+      });
       expect(result.history.template).toEqual(template);
     });
 
@@ -1099,13 +1481,31 @@ describe("exchange", () => {
       const change = vi.fn().mockResolvedValue(null);
       scriptSandbox.setNextResult({
         logs: [],
-        changes: { environment: [{ key: "token", value: "" }, { key: "old", value: null }], collection: [{ key: "base", value: "https://b.test" }], global: [{ key: "g", value: "2" }] },
+        changes: {
+          environment: [
+            { key: "token", value: "" },
+            { key: "old", value: null },
+          ],
+          collection: [{ key: "base", value: "https://b.test" }],
+          global: [{ key: "g", value: "2" }],
+        },
         testResults: [],
       });
-      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "set()", postRequestScript: "", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest() });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "set()",
+        postRequestScript: "",
+        tests: [],
+        collection: { variables: () => [], change },
+        buildRequest: () => builtRequest(),
+      });
 
       // An empty value is a value (it removed the variable before P3.3).
-      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "token", value: "", keepSecret: true }, { key: "old", value: null, keepSecret: true }]);
+      expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", [
+        { key: "token", value: "", keepSecret: true },
+        { key: "old", value: null, keepSecret: true },
+      ]);
       expect(environmentsService.activeEnvironment()?.vars).toEqual(rowsOf({ token: "" }));
       expect(environmentsService.changeGlobals).toHaveBeenCalledWith([{ key: "g", value: "2", keepSecret: true }]);
       expect(change).toHaveBeenCalledWith([{ key: "base", value: "https://b.test", keepSecret: true }]);
@@ -1113,8 +1513,19 @@ describe("exchange", () => {
     });
 
     it("says so in the console when what a script set has nowhere to be kept", async () => {
-      scriptSandbox.setNextResult({ logs: ["from the script"], changes: { environment: [{ key: "a", value: "1" }], collection: [{ key: "b", value: "2" }], global: [] }, testResults: [] });
-      const result = await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "set()", postRequestScript: "", tests: [], buildRequest: () => builtRequest() });
+      scriptSandbox.setNextResult({
+        logs: ["from the script"],
+        changes: { environment: [{ key: "a", value: "1" }], collection: [{ key: "b", value: "2" }], global: [] },
+        testResults: [],
+      });
+      const result = await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "set()",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
       expect(environmentsService.changeEnvironment).not.toHaveBeenCalled();
       expect(result.scriptLogs).toEqual([
         "from the script",
@@ -1126,24 +1537,57 @@ describe("exchange", () => {
     it("a vault secret is masked in a variable a post-response script sets, in every scope", async () => {
       environmentsService.setActiveEnvironment(buildEnvironment({}));
       const change = vi.fn().mockResolvedValue(null);
-      const leaked = [{ key: "leaked", value: "got vault-secret-42" }, { key: "gone", value: null }];
-      scriptSandbox.setNextResult({ logs: [], changes: { environment: leaked, collection: leaked, global: leaked }, testResults: [] });
-      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "leak()", tests: [], collection: { variables: () => [], change }, buildRequest: () => builtRequest({ secrets: ["vault-secret-42"] }) });
-      const masked = [{ key: "leaked", value: "got ***", keepSecret: true }, { key: "gone", value: null, keepSecret: true }];
+      const leaked = [
+        { key: "leaked", value: "got vault-secret-42" },
+        { key: "gone", value: null },
+      ];
+      scriptSandbox.setNextResult({
+        logs: [],
+        changes: { environment: leaked, collection: leaked, global: leaked },
+        testResults: [],
+      });
+      await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "leak()",
+        tests: [],
+        collection: { variables: () => [], change },
+        buildRequest: () => builtRequest({ secrets: ["vault-secret-42"] }),
+      });
+      const masked = [
+        { key: "leaked", value: "got ***", keepSecret: true },
+        { key: "gone", value: null, keepSecret: true },
+      ];
       expect(environmentsService.changeEnvironment).toHaveBeenCalledWith("env-1", masked);
       expect(environmentsService.changeGlobals).toHaveBeenCalledWith(masked);
       expect(change).toHaveBeenCalledWith(masked);
     });
 
     /** Runs a send whose post-response script makes `request` with pm.sendRequest, and gives what the script got. */
-    async function scriptSends(request: Parameters<NonNullable<Extras["send"]>>[0], signal?: AbortSignal, route?: Route): Promise<unknown> {
+    async function scriptSends(
+      request: Parameters<NonNullable<Extras["send"]>>[0],
+      signal?: AbortSignal,
+      route?: Route,
+    ): Promise<unknown> {
       let outcome: unknown;
-      scriptSandbox.execute.mockImplementation(async (_script: string, _env: unknown, _response: unknown, _timeout: unknown, given: Extras) => {
-        transport.sendRequest.mockClear();
-        outcome = await given.send?.(request).catch((error: unknown) => error);
-        return { logs: [], changes: NO_CHANGES, testResults: [] };
+      scriptSandbox.execute.mockImplementation(
+        async (_script: string, _env: unknown, _response: unknown, _timeout: unknown, given: Extras) => {
+          transport.sendRequest.mockClear();
+          outcome = await given.send?.(request).catch((error: unknown) => error);
+          return { logs: [], changes: NO_CHANGES, testResults: [] };
+        },
+      );
+      await service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "send()",
+        tests: [],
+        buildRequest: () => builtRequest(),
+        signal,
+        ...(route && { route, askRoute: () => Promise.resolve(true) }),
       });
-      await service.execute({ template: TEMPLATE, runScripts: true, preRequestScript: "", postRequestScript: "send()", tests: [], buildRequest: () => builtRequest(), signal, ...(route && { route, askRoute: () => Promise.resolve(true) }) });
       return outcome;
     }
 
@@ -1151,12 +1595,26 @@ describe("exchange", () => {
       settings.timeoutMs = 1500;
       transport.setResponse(envelope(201, "Created", { token: "t-1" }));
       const controller = new AbortController();
-      const outcome = await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [["X-A", "1"]], body: '{"grant":"x"}' }, controller.signal);
+      const outcome = await scriptSends(
+        { method: "POST", url: "https://auth.test/token", headers: [["X-A", "1"]], body: '{"grant":"x"}' },
+        controller.signal,
+      );
 
-      expect(transport.sendRequest).toHaveBeenCalledExactlyOnceWith("POST", "https://auth.test/token", { "X-A": "1" }, { grant: "x" });
+      expect(transport.sendRequest).toHaveBeenCalledExactlyOnceWith(
+        "POST",
+        "https://auth.test/token",
+        { "X-A": "1" },
+        { grant: "x" },
+      );
       expect(transport.options?.timeoutMs).toBe(1500);
       expect(transport.options?.signal).toBe(controller.signal);
-      expect(outcome).toMatchObject({ code: 201, status: "Created", headers: { "content-type": "application/json" }, body: '{"token":"t-1"}', responseSize: 15 });
+      expect(outcome).toMatchObject({
+        code: 201,
+        status: "Created",
+        headers: { "content-type": "application/json" },
+        body: '{"token":"t-1"}',
+        responseSize: 15,
+      });
     });
 
     it("pm.sendRequest goes by the route of the request whose script sends it, and nothing is asked in the middle of a script (P6.4)", async () => {
@@ -1175,27 +1633,54 @@ describe("exchange", () => {
       ["the address", { url: "https://auth.test/?k={{$secret.abc}}" }],
       ["the address, percent-encoded", { url: "https://auth.test/?k=%7B%7B%24secret.abc%7D%7D" }],
       ["a header", { headers: [["X-Key", "{{ $secret.abc }}"]] as [string, string][] }],
-      ["a Basic header, inside the base64", { headers: [["Authorization", `Basic ${btoa("user:{{$secret.abc}}")}`]] as [string, string][] }],
+      [
+        "a Basic header, inside the base64",
+        { headers: [["Authorization", `Basic ${btoa("user:{{$secret.abc}}")}`]] as [string, string][] },
+      ],
       ["the body", { body: '{"key":"{{$secret.abc}}"}' }],
       ["a form body, encoded", { body: "key=%7B%7B%24secret.abc%7D%7D" }],
-    ])("@claim:C-007 pm.sendRequest sends nothing when %s holds a secret's placeholder, and names the error", async (_where, part) => {
-      const outcome = await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [], ...part });
-      expect(transport.sendRequest).not.toHaveBeenCalled();
-      expect(outcome).toMatchObject({ name: "WayfarerUnsupportedError", message: "pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest" });
-    });
+    ])(
+      "@claim:C-007 pm.sendRequest sends nothing when %s holds a secret's placeholder, and names the error",
+      async (_where, part) => {
+        const outcome = await scriptSends({ method: "POST", url: "https://auth.test/token", headers: [], ...part });
+        expect(transport.sendRequest).not.toHaveBeenCalled();
+        expect(outcome).toMatchObject({
+          name: "WayfarerUnsupportedError",
+          message:
+            "pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest",
+        });
+      },
+    );
   });
 
   // P5.2: a request of a collection run.
   describe("as a request of a run", () => {
     const empty = { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] };
-    const iteration = { index: 2, count: 5, data: [{ key: "user", value: "ann", enabled: true }, { key: "n", value: "3", enabled: true, json: true as const }] };
-    const spec = { template: TEMPLATE, runScripts: true, preRequestScript: "x()", postRequestScript: "y()", tests: [], buildRequest: () => builtRequest() };
+    const iteration = {
+      index: 2,
+      count: 5,
+      data: [
+        { key: "user", value: "ann", enabled: true },
+        { key: "n", value: "3", enabled: true, json: true as const },
+      ],
+    };
+    const spec = {
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "x()",
+      postRequestScript: "y()",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    };
 
     it("gives each script the iteration and the data file's row", async () => {
       await service.execute({ ...spec, iteration });
       const extras = scriptSandbox.execute.mock.calls.map((call) => call[4] as { data: unknown; info: unknown });
       expect(extras).toHaveLength(2);
-      expect(extras[0].data).toEqual([["user", "ann"], ["n", "3", true]]);
+      expect(extras[0].data).toEqual([
+        ["user", "ann"],
+        ["n", "3", true],
+      ]);
       expect(extras[1].info).toMatchObject({ eventName: "test", iteration: 2, iterationCount: 5 });
     });
 
@@ -1207,10 +1692,20 @@ describe("exchange", () => {
     });
 
     it("skipRequest in a pre-request script holds the request back, and says what the scripts did and where the run goes next", async () => {
-      scriptSandbox.setNextResult({ ...empty, logs: ["skipping"], testResults: [{ label: "before", passed: true, source: "script" }], skipRequest: true, nextRequest: "Later" });
+      scriptSandbox.setNextResult({
+        ...empty,
+        logs: ["skipping"],
+        testResults: [{ label: "before", passed: true, source: "script" }],
+        skipRequest: true,
+        nextRequest: "Later",
+      });
       const outcome = await service.execute({ ...spec, iteration }).catch((error: unknown) => error);
       expect(outcome).toBeInstanceOf(RequestSkipped);
-      expect(outcome).toMatchObject({ nextRequest: "Later", scriptLogs: ["skipping"], testResults: [{ label: "before", passed: true }] });
+      expect(outcome).toMatchObject({
+        nextRequest: "Later",
+        scriptLogs: ["skipping"],
+        testResults: [{ label: "before", passed: true }],
+      });
       expect(transport.sendRequest).not.toHaveBeenCalled();
       // Only the pre-request script ran.
       expect(scriptSandbox.execute).toHaveBeenCalledTimes(1);
@@ -1224,9 +1719,13 @@ describe("exchange", () => {
     });
 
     it("says what the scripts gave setNextRequest: the last of them that called it, null included", async () => {
-      scriptSandbox.execute.mockResolvedValueOnce({ ...empty, nextRequest: "From the pre-request script" }).mockResolvedValueOnce(empty);
+      scriptSandbox.execute
+        .mockResolvedValueOnce({ ...empty, nextRequest: "From the pre-request script" })
+        .mockResolvedValueOnce(empty);
       expect((await service.execute({ ...spec, iteration })).nextRequest).toBe("From the pre-request script");
-      scriptSandbox.execute.mockResolvedValueOnce({ ...empty, nextRequest: "First" }).mockResolvedValueOnce({ ...empty, nextRequest: null });
+      scriptSandbox.execute
+        .mockResolvedValueOnce({ ...empty, nextRequest: "First" })
+        .mockResolvedValueOnce({ ...empty, nextRequest: null });
       expect((await service.execute({ ...spec, iteration })).nextRequest).toBeNull();
       scriptSandbox.execute.mockResolvedValue(empty);
       expect(Object.hasOwn(await service.execute({ ...spec, iteration }), "nextRequest")).toBe(false);

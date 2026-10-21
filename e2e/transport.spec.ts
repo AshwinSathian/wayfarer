@@ -103,12 +103,14 @@ test.describe("Transport on fetch (P2.3)", () => {
     await open(page);
     await sendTo(page, `${ECHO}/big/${megabytes}`);
 
-    await expect(page.getByText(`Binary response (${megabytes * 1024 * 1024} bytes, application/octet-stream)`)).toBeVisible({
+    await expect(
+      page.getByText(`Binary response (${megabytes * 1024 * 1024} bytes, application/octet-stream)`),
+    ).toBeVisible({
       timeout: 90_000,
     });
     await expect(page.getByRole("button", { name: "Download response body" })).toBeVisible();
     // Still answering: a click is handled within the usual time.
-    await page.getByRole("button", { name: "New request" , exact: true }).click();
+    await page.getByRole("button", { name: "New request", exact: true }).click();
     await expect(page.locator("input.address-url")).toHaveValue("");
     expect(await violations(page)).toEqual([]);
   });

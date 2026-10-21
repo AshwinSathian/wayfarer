@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PastRequest } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
-import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from "../../../testing/composer-setup";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  buildEnvironment,
+  jsonBytes,
+  rows,
+  setupComposer,
+} from "../../../testing/composer-setup";
 
 // P2.5 with P2.8 and P2.9: a vault secret reaches the wire, and nothing
 // that is stored or copied holds it (D4, D5, D21).
@@ -46,12 +53,15 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     expect(req.request.headers.get("X-Token")).toBe(SECRET);
     expect(atob(req.request.headers.get("Authorization")!.slice("Basic ".length))).toBe(`alice:${SECRET}`);
     // The server sends everything back, as an echo endpoint does.
-    req.flush(jsonBytes({ header: SECRET, basic: btoa(`alice:${SECRET}`), url: `/echo?k=${encodeURIComponent(SECRET)}` }), {
-      status: 200,
-      statusText: "OK",
-      // (`fetch` never shows a page `Set-Cookie`.)
-      headers: { ...JSON_HEADERS, "x-auth-token": "issued-by-the-server", "x-echo": `you sent ${SECRET}` },
-    });
+    req.flush(
+      jsonBytes({ header: SECRET, basic: btoa(`alice:${SECRET}`), url: `/echo?k=${encodeURIComponent(SECRET)}` }),
+      {
+        status: 200,
+        statusText: "OK",
+        // (`fetch` never shows a page `Set-Cookie`.)
+        headers: { ...JSON_HEADERS, "x-auth-token": "issued-by-the-server", "x-echo": `you sent ${SECRET}` },
+      },
+    );
     expect(await pending).toBe(true);
 
     const entry = recorded();
@@ -123,13 +133,21 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
 
     const pending = store.send();
     // Still built in the same task as the call.
-    httpMock.expectOne("https://api.test/plain").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://api.test/plain")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
     expect(vault.ensureUnlocked).not.toHaveBeenCalled();
   });
 
   it("holds back a request with a variable that has no value; Send anyway sends it as written, but never a secret's reference", async () => {
-    store.patch({ url: "https://api.test/", headers: rows([{ key: "X-A", value: "{{nowhere}}" }, { key: "X-B", value: "{{ alsoNowhere }}" }]) });
+    store.patch({
+      url: "https://api.test/",
+      headers: rows([
+        { key: "X-A", value: "{{nowhere}}" },
+        { key: "X-B", value: "{{ alsoNowhere }}" },
+      ]),
+    });
 
     expect(await store.send()).toBe(false);
     expect(store.endpointError()).toBe("{{nowhere}}, {{alsoNowhere}} have no value. The request was not sent.");
@@ -144,7 +162,12 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     expect(store.unresolvedBlocked()).toEqual([]);
 
     // A reference to a secret the vault does not have is not a variable without a value: it is never sent.
-    store.patch({ headers: rows([{ key: "X-A", value: "{{nowhere}}" }, { key: "X-S", value: "{{$secret.gone}}" }]) });
+    store.patch({
+      headers: rows([
+        { key: "X-A", value: "{{nowhere}}" },
+        { key: "X-S", value: "{{$secret.gone}}" },
+      ]),
+    });
     expect(await store.send({ allowUnresolved: true })).toBe(false);
     expect(store.endpointError()).toContain("refers to a vault secret that could not be read");
   });
@@ -154,7 +177,9 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     store.patch({ url: "https://api.test/{{nowhere}}" });
 
     const pending = store.send();
-    httpMock.expectOne("https://api.test/{{nowhere}}").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://api.test/{{nowhere}}")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     expect(await pending).toBe(true);
     settings.setBlockUnresolved(true);
   });
@@ -173,9 +198,15 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
 
     settings.setHistoryBodies(false);
     pending = store.send();
-    httpMock.expectOne("https://api.test/big").flush(jsonBytes({ a: 1 }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://api.test/big")
+      .flush(jsonBytes({ a: 1 }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
-    expect(recorded().response).toEqual({ status: 200, statusText: "OK", headers: [["content-type", "application/json"]] });
+    expect(recorded().response).toEqual({
+      status: 200,
+      statusText: "OK",
+      headers: [["content-type", "application/json"]],
+    });
     settings.setHistoryBodies(true);
   });
 
@@ -183,12 +214,17 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     store.patch({ method: "POST", url: "https://api.test/form" });
     store.setBody({
       mode: "urlencoded",
-      urlencoded: rows([{ key: "user", value: "alice" }, { key: "pass", value: "{{token}}" }]),
+      urlencoded: rows([
+        { key: "user", value: "alice" },
+        { key: "pass", value: "{{token}}" },
+      ]),
     });
 
     const pending = store.send();
     await vi.waitFor(() => httpMock.expectOne("https://api.test/form"));
-    httpMock.expectOne("https://api.test/form").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://api.test/form")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
 
     expect(recorded().sent.bodyPreview).toBe("user=alice&pass=***");
@@ -198,7 +234,10 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
   it("Copy as cURL masks credentials unless asked for them, and leaves a secret's reference as written", async () => {
     store.patch({
       url: "https://api.test/items?key=typed-api-key",
-      headers: rows([{ key: "X-Token", value: "{{token}}" }, { key: "Accept", value: "*/*" }]),
+      headers: rows([
+        { key: "X-Token", value: "{{token}}" },
+        { key: "Accept", value: "*/*" },
+      ]),
       auth: { type: "bearer", token: "typed-bearer-token" },
     });
 
@@ -219,7 +258,10 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     store.patch({
       method: "POST",
       url: "https://api.test/items?key=typed-api-key",
-      headers: rows([{ key: "X-Token", value: "{{token}}" }, { key: "Accept", value: "*/*" }]),
+      headers: rows([
+        { key: "X-Token", value: "{{token}}" },
+        { key: "Accept", value: "*/*" },
+      ]),
       auth: { type: "bearer", token: "typed-bearer-token" },
       body: { mode: "raw", raw: { language: "json", text: '{"t":"{{token}}"}' } },
     });

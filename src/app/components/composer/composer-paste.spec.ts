@@ -27,7 +27,9 @@ describe("Composer: a cURL command pasted into the address field", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    ({ store, fixture, httpMock, idbService } = await setupComposer([{ provide: ImportWorkerClient, useValue: worker }]));
+    ({ store, fixture, httpMock, idbService } = await setupComposer([
+      { provide: ImportWorkerClient, useValue: worker },
+    ]));
   });
 
   afterEach(() => {
@@ -41,13 +43,19 @@ describe("Composer: a cURL command pasted into the address field", () => {
     clipboardData.setData("text/plain", text);
     const event = new ClipboardEvent("paste", { clipboardData, cancelable: true, bubbles: true });
     input.dispatchEvent(event);
-    await vi.waitFor(() => expect(worker.curl.mock.results.length === 0 || store.draft().url !== "" || store.endpointError() !== "").toBe(true));
+    await vi.waitFor(() =>
+      expect(worker.curl.mock.results.length === 0 || store.draft().url !== "" || store.endpointError() !== "").toBe(
+        true,
+      ),
+    );
     await fixture.whenStable();
     return event.defaultPrevented;
   }
 
   it("@claim:C-056 fills the composer with the method, the address, the headers, the body and the auth, and stores nothing", async () => {
-    const stopped = await paste(`curl 'https://api.test/users?page=2' \\\n  -X PUT \\\n  -H 'Accept: application/json' \\\n  -H 'content-type: application/json' \\\n  -u ada:secret \\\n  --data-raw '{"name":"Ada"}'`);
+    const stopped = await paste(
+      `curl 'https://api.test/users?page=2' \\\n  -X PUT \\\n  -H 'Accept: application/json' \\\n  -H 'content-type: application/json' \\\n  -u ada:secret \\\n  --data-raw '{"name":"Ada"}'`,
+    );
 
     expect(stopped).toBe(true);
     expect(store.draft()).toMatchObject({

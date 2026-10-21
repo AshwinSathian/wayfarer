@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewEncapsulation, inject, input, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  ViewEncapsulation,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { Icon } from "../shared/icon/icon";
 import { IconName } from "../shared/icon/icon-paths";
 
@@ -33,7 +41,14 @@ let nextId = 0;
   template: `
     @for (option of options(); track option.value) {
       <label class="segment">
-        <input type="radio" class="segment-input" [name]="name" [value]="option.value" [checked]="option.value === value()" (change)="valueChange.emit(option.value)" />
+        <input
+          type="radio"
+          class="segment-input"
+          [name]="name"
+          [value]="option.value"
+          [checked]="option.value === value()"
+          (change)="valueChange.emit(option.value)"
+        />
         <span class="segment-label">
           @if (option.icon; as icon) {
             <app-icon [name]="icon" class="icon-xs" />

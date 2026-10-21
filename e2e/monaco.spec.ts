@@ -8,7 +8,9 @@ import { expect, test } from "@playwright/test";
 // "depends on UNKNOWN service ICodeLensCache" when Monaco got round to it:
 // on a timer, some seconds after an editor mounted. The loader now registers
 // the feature before the first editor.
-test("F71: nothing of Monaco's throws once its language services have loaded and its timers have run", async ({ page }) => {
+test("F71: nothing of Monaco's throws once its language services have loaded and its timers have run", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {

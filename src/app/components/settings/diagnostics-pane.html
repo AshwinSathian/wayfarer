@@ -2,7 +2,9 @@
   @for (fact of facts(); track fact[0]) {
   <div class="settings-row">
     <p class="type-subhead text-label-primary shrink-0">{{ fact[0] }}</p>
-    <span class="diagnostics-fact type-callout text-label-secondary font-mono min-w-0 break-words text-right">{{ fact[1] }}</span>
+    <span class="diagnostics-fact type-callout text-label-secondary font-mono min-w-0 break-words text-right"
+      >{{ fact[1] }}</span
+    >
   </div>
   }
 </div>
@@ -11,17 +13,34 @@
   <div class="settings-row settings-row-stacked">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="type-subhead text-label-primary">Self-tests</p>
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="testing()" (click)="runTests()">
+      <button
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        type="button"
+        [disabled]="testing()"
+        (click)="runTests()"
+      >
         @if (testing()) { <ui-spinner /> } Run self-tests
       </button>
     </div>
-    <p class="type-footnote text-label-tertiary">Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the Local Bridge, if one is used. Nothing leaves this machine.</p>
+    <p class="type-footnote text-label-tertiary"
+      >Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the
+      Local Bridge, if one is used. Nothing leaves this machine.</p
+    >
     @if (tests().length) {
     <ul class="diagnostics-tests space-y-1" aria-live="polite">
       @for (test of tests(); track test.name) {
       <li class="flex items-start gap-2 type-callout">
-        <app-icon [name]="test.ok ? 'check_circle' : 'error'" [class]="test.ok ? 'icon-sm text-status-success shrink-0' : 'icon-sm text-status-error shrink-0'" />
-        <span class="min-w-0"><span class="text-label-primary">{{ test.name }} </span><span [class]="test.ok ? 'text-label-secondary' : 'text-status-error'">{{ test.ok ? "passed" : "failed" }}: {{ test.detail }}</span></span>
+        <app-icon
+          [name]="test.ok ? 'check_circle' : 'error'"
+          [class]="test.ok ? 'icon-sm text-status-success shrink-0' : 'icon-sm text-status-error shrink-0'"
+        />
+        <span class="min-w-0"
+          ><span class="text-label-primary">{{ test.name }} </span
+          ><span [class]="test.ok ? 'text-label-secondary' : 'text-status-error'"
+            >{{ test.ok ? "passed" : "failed" }}: {{ test.detail }}</span
+          ></span
+        >
       </li>
       }
     </ul>
@@ -32,7 +51,10 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary">Errors</p>
-    <p class="type-footnote text-label-tertiary">The last 200 of this page, newest first, kept in memory only. An address, quoted text and anything that looks like a key or a token are left out.</p>
+    <p class="type-footnote text-label-tertiary"
+      >The last 200 of this page, newest first, kept in memory only. An address, quoted text and anything that looks
+      like a key or a token are left out.</p
+    >
     @if (errors().length) {
     <ul class="diagnostics-errors space-y-1 type-footnote font-mono text-label-secondary">
       @for (entry of errors(); track $index) {
@@ -59,7 +81,11 @@
 
 <div class="flex flex-wrap items-center gap-2">
   <button uiButton="filled" class="btn-sm" type="button" (click)="copy()">Copy report</button>
-  <a uiButton="outlined" class="btn-secondary btn-sm" [href]="issueHref()" target="_blank" rel="noopener noreferrer">Open GitHub issue</a>
+  <a uiButton="outlined" class="btn-secondary btn-sm" [href]="issueHref()" target="_blank" rel="noopener noreferrer"
+    >Open GitHub issue</a
+  >
   <span class="type-footnote text-label-secondary" role="status">{{ copied() ? "Copied." : "" }}</span>
 </div>
-<p class="settings-note">The report holds what is above: no address, header or body of a request you sent. Read it before you share it.</p>
+<p class="settings-note"
+  >The report holds what is above: no address, header or body of a request you sent. Read it before you share it.</p
+>

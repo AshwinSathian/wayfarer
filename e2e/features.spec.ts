@@ -13,7 +13,9 @@ interface Echo {
 
 /** Clicks Send and returns what the echo-server received. */
 async function sendAndEcho(page: Page): Promise<Echo> {
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   return (await (await response).json()) as Echo;
 }
@@ -33,7 +35,9 @@ async function recordClipboard(page: Page): Promise<() => Promise<string[]>> {
   return () => page.evaluate(() => (window as unknown as { __clipboard: string[] }).__clipboard);
 }
 
-test("@claim:C-017 any HTTP method can be typed and is sent in upper case, and the seven common ones are offered", async ({ page }) => {
+test("@claim:C-017 any HTTP method can be typed and is sent in upper case, and the seven common ones are offered", async ({
+  page,
+}) => {
   await page.goto("/app/");
   const method = page.getByRole("textbox", { name: "HTTP method" });
   await page.getByRole("button", { name: "Common methods" }).click();
@@ -60,18 +64,34 @@ test("TRACE is not sent from the browser, and the page says why", async ({ page 
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   await send(page);
 
-  await expect(page.getByText("Browsers do not send TRACE requests. Choose the route Local Bridge to send one.")).toBeVisible();
+  await expect(
+    page.getByText("Browsers do not send TRACE requests. Choose the route Local Bridge to send one."),
+  ).toBeVisible();
   expect(sent).toEqual([]);
 });
 
 for (const [name, auth, check] of [
-  ["Bearer", { type: "bearer", token: "c019-token" }, (e: Echo) => expect(header(e, "authorization")).toBe("Bearer c019-token")],
-  ["Basic", { type: "basic", username: "c019-user", password: "c019-pass" }, (e: Echo) =>
-    expect(header(e, "authorization")).toBe(`Basic ${Buffer.from("c019-user:c019-pass").toString("base64")}`)],
-  ["API key (header)", { type: "apikey", key: "X-C019-Key", value: "c019-value", in: "header" }, (e: Echo) =>
-    expect(header(e, "x-c019-key")).toBe("c019-value")],
-  ["API key (query)", { type: "apikey", key: "c019key", value: "c019-value", in: "query" }, (e: Echo) =>
-    expect(new URL(e.url, ECHO).searchParams.get("c019key")).toBe("c019-value")],
+  [
+    "Bearer",
+    { type: "bearer", token: "c019-token" },
+    (e: Echo) => expect(header(e, "authorization")).toBe("Bearer c019-token"),
+  ],
+  [
+    "Basic",
+    { type: "basic", username: "c019-user", password: "c019-pass" },
+    (e: Echo) =>
+      expect(header(e, "authorization")).toBe(`Basic ${Buffer.from("c019-user:c019-pass").toString("base64")}`),
+  ],
+  [
+    "API key (header)",
+    { type: "apikey", key: "X-C019-Key", value: "c019-value", in: "header" },
+    (e: Echo) => expect(header(e, "x-c019-key")).toBe("c019-value"),
+  ],
+  [
+    "API key (query)",
+    { type: "apikey", key: "c019key", value: "c019-value", in: "query" },
+    (e: Echo) => expect(new URL(e.url, ECHO).searchParams.get("c019key")).toBe("c019-value"),
+  ],
 ] as const) {
   test(`@claim:C-019 ${name} auth from the Auth tab reaches the server`, async ({ page }) => {
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, auth });
@@ -93,18 +113,24 @@ test("@claim:C-020 Copy as cURL copies a runnable command once a URL is entered"
   expect(curl).toContain(`${ECHO}/echo?c020=1`);
 });
 
-test("@claim:C-021 visual assertions on status, headers, body and duration report in the Tests tab", async ({ page }) => {
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${ECHO}/content/json?c021=1`,
-    tests: [
-      { id: "t1", target: "status", operator: "equals", expected: "200" },
-      { id: "t2", target: "header", key: "content-type", operator: "contains", expected: "json" },
-      { id: "t3", target: "body", key: "title", operator: "equals", expected: "echo fixture" },
-      { id: "t4", target: "duration", operator: "less-than", expected: "60000" },
-      { id: "t5", target: "body", key: "userId", operator: "greater-than", expected: "5" },
-    ],
-  });
+test("@claim:C-021 visual assertions on status, headers, body and duration report in the Tests tab", async ({
+  page,
+}) => {
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/content/json?c021=1`,
+      tests: [
+        { id: "t1", target: "status", operator: "equals", expected: "200" },
+        { id: "t2", target: "header", key: "content-type", operator: "contains", expected: "json" },
+        { id: "t3", target: "body", key: "title", operator: "equals", expected: "echo fixture" },
+        { id: "t4", target: "duration", operator: "less-than", expected: "60000" },
+        { id: "t5", target: "body", key: "userId", operator: "greater-than", expected: "5" },
+      ],
+    },
+  );
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ }).click();
@@ -163,7 +189,13 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
 
   // The tabs', a drawer's slide and a dialog's entrance, with its backdrop's fade, all end at once.
   const seconds = (selector: string, property: "transitionDuration" | "animationDuration", pseudo?: string) =>
-    page.locator(selector).first().evaluate((el, [p, pseudo]) => Math.max(...getComputedStyle(el, pseudo)[p as typeof property].split(",").map(parseFloat)), [property, pseudo]);
+    page
+      .locator(selector)
+      .first()
+      .evaluate(
+        (el, [p, pseudo]) => Math.max(...getComputedStyle(el, pseudo)[p as typeof property].split(",").map(parseFloat)),
+        [property, pseudo],
+      );
   expect(await seconds('.tab-bar [role="tab"]', "transitionDuration")).toBeLessThan(0.01);
   await page.getByRole("button", { name: "Request history", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Request history" })).toBeVisible();
@@ -175,11 +207,19 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   expect(await seconds("dialog.ui-dialog[open]", "animationDuration", "::backdrop")).toBeLessThan(0.01);
 });
 
-test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange, with a body of text whatever its type", async ({ page }) => {
+test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange, with a body of text whatever its type", async ({
+  page,
+}) => {
   const clipboard = await recordClipboard(page);
   await page.goto("/app/");
   interface Har {
-    log: { version: string; entries: { request: { url: string; cookies: unknown[] }; response: { status: number; redirectURL: string; content: { mimeType: string; text?: string } } }[] };
+    log: {
+      version: string;
+      entries: {
+        request: { url: string; cookies: unknown[] };
+        response: { status: number; redirectURL: string; content: { mimeType: string; text?: string } };
+      }[];
+    };
   }
   // P4.6 (c): JSON, and three bodies that are text and not JSON, which were left out with a comment before.
   for (const [index, type] of ["json", "xml", "csv", "text"].entries()) {
@@ -202,7 +242,10 @@ test("@claim:C-035 Export → Copy as HAR produces a HAR 1.2 log of the exchange
   }
 });
 
-test("@claim:C-036 the app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons", async ({ page, request }) => {
+test("@claim:C-036 the app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons", async ({
+  page,
+  request,
+}) => {
   await page.goto("/app/");
   const href = await page.locator('link[rel="manifest"]').getAttribute("href");
   const at = new URL(href ?? "", page.url());
@@ -217,20 +260,36 @@ test("@claim:C-036 the app is installable: a web app manifest with name, start U
   }
 });
 
-test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({ page }) => {
+test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({
+  page,
+}) => {
   await page.goto("/app/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
   const method = page.getByRole("textbox", { name: "HTTP method" });
   // A new request is a GET.
   await expect(bodyTab).toHaveCount(0);
-  for (const [name, tabs] of [["HEAD", 0], ["DELETE", 1], ["OPTIONS", 1], ["PATCH", 1], ["PUT", 1], ["POST", 1]] as const) {
+  for (const [name, tabs] of [
+    ["HEAD", 0],
+    ["DELETE", 1],
+    ["OPTIONS", 1],
+    ["PATCH", 1],
+    ["PUT", 1],
+    ["POST", 1],
+  ] as const) {
     await method.fill(name);
     await expect(bodyTab, name).toHaveCount(tabs);
   }
 
   await bodyTab.first().click();
   await page.getByRole("combobox", { name: "Body", exact: true }).click();
-  await expect(page.getByRole("option")).toHaveText(["None", "Raw", "Form (URL-encoded)", "Multipart", "Binary file", "GraphQL"]);
+  await expect(page.getByRole("option")).toHaveText([
+    "None",
+    "Raw",
+    "Form (URL-encoded)",
+    "Multipart",
+    "Binary file",
+    "GraphQL",
+  ]);
   await page.getByRole("option", { name: "Raw", exact: true }).click();
   await page.getByRole("combobox", { name: "Raw body language" }).click();
   await expect(page.getByRole("option")).toHaveText(["JSON", "Text", "XML", "HTML", "JavaScript"]);
@@ -246,7 +305,9 @@ async function createCollection(page: Page, name: string): Promise<void> {
 const treeItem = (page: Page, name: string) => treeRow(page, name);
 /** Names of the tree's rows, top to bottom, limited to those starting with `prefix`. */
 const treeOrder = (page: Page, prefix: string) => async () =>
-  (await page.getByRole("treeitem").evaluateAll((items) => items.map((item) => item.getAttribute("aria-label") ?? ""))).map(withoutMethod).filter((name) => name.startsWith(prefix));
+  (await page.getByRole("treeitem").evaluateAll((items) => items.map((item) => item.getAttribute("aria-label") ?? "")))
+    .map(withoutMethod)
+    .filter((name) => name.startsWith(prefix));
 
 /** Opens a row's context menu (`size` items once it shows that row's actions), picks an item, and fills the creation dialog. */
 async function createUnder(page: Page, parent: string, size: number, item: string, name: string): Promise<void> {
@@ -258,7 +319,9 @@ async function createUnder(page: Page, parent: string, size: number, item: strin
   await expect(page.getByRole("dialog")).toHaveCount(0);
 }
 
-test("@claim:C-024 collections can be renamed inline and reordered by drag and drop, and both survive a reload", async ({ page }) => {
+test("@claim:C-024 collections can be renamed inline and reordered by drag and drop, and both survive a reload", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await createCollection(page, "C024 Alpha");
   await createCollection(page, "C024 Beta");
@@ -280,7 +343,9 @@ test("@claim:C-024 collections can be renamed inline and reordered by drag and d
   await expect.poll(order).toEqual(["C024 Beta", "C024 Gamma"]);
 });
 
-test("folders and requests are reordered by drag and drop among each other: a request dropped on a folder's row goes after or before that folder, not into it", async ({ page }) => {
+test("folders and requests are reordered by drag and drop among each other: a request dropped on a folder's row goes after or before that folder, not into it", async ({
+  page,
+}) => {
   // A collection, two folders, two requests, four drags and a reload: on CI's WebKit each dialog took 2 to 3 s and
   // the test passed 30 s at its last step (e2e/FLAKES.md, #357).
   test.slow();
@@ -313,7 +378,10 @@ test("folders and requests are reordered by drag and drop among each other: a re
   await expect.poll(order).toEqual(["Drag Col", "Drag Req 2", "Drag Folder B", "Drag Folder A", "Drag Req 1"]);
 });
 
-test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({ page, browser }) => {
+test("@claim:C-033 Settings exports environments to a file and imports them back into a fresh browser", async ({
+  page,
+  browser,
+}) => {
   // Two browsers, a seeded database, a download and an import: 4 s on a laptop, and past 30 s on CI's WebKit runner five times (#228).
   test.slow();
   await seedAndOpen(page, { c033: "value-c033" }, { method: "GET", url: `${ECHO}/echo` });
@@ -335,7 +403,11 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   await report.getByRole("button", { name: "Confirm import" }).click();
   await expect(report).toHaveCount(0);
   // Closed by its button: this claim is about the file, and dialog-focus.spec holds Escape after an import.
-  await other.getByRole("dialog", { name: "Settings", exact: true }).getByRole("button", { name: "Close", exact: true }).first().click();
+  await other
+    .getByRole("dialog", { name: "Settings", exact: true })
+    .getByRole("button", { name: "Close", exact: true })
+    .first()
+    .click();
   await expect(other.getByRole("dialog")).toHaveCount(0);
   await openEnvironments(other);
   await expect(other.locator(".env-item", { hasText: "Tripwire env" })).toBeVisible();
@@ -351,7 +423,10 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByRole("button", { name: /^Load request .*c029clear=1/ })).toBeVisible();
   await page.getByRole("button", { name: "Clear all history" }).click();
-  const confirm = page.getByRole("alertdialog").or(page.getByRole("dialog")).filter({ hasText: "Your entire history will be cleared" });
+  const confirm = page
+    .getByRole("alertdialog")
+    .or(page.getByRole("dialog"))
+    .filter({ hasText: "Your entire history will be cleared" });
   await confirm.getByRole("button", { name: "Proceed", exact: true }).click();
   await expect(drawer.getByRole("button", { name: /^Load request / })).toHaveCount(0);
 });
@@ -378,7 +453,8 @@ test("a tooltip opens on keyboard focus, describes its button, and closes on Esc
   const curl = page.getByRole("button", { name: "Copy as cURL" });
   await page.locator("input.address-url").focus();
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  for (let i = 0; i < 4 && !(await curl.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+  for (let i = 0; i < 4 && !(await curl.evaluate((el) => el === document.activeElement)); i++)
+    await page.keyboard.press(tab);
   await expect(curl).toBeFocused();
   const tooltip = page.getByRole("tooltip").filter({ hasText: "Copy as cURL" });
   await expect(tooltip).toBeVisible();
@@ -411,7 +487,8 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // The drawer takes focus when it opens; walk on from there. Since P4.6 (c) two more stops come
   // before the entry: "Select all" and the entry's own box.
   const tabToEntry = async () => {
-    for (let i = 0; i < 6 && !(await entry.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+    for (let i = 0; i < 6 && !(await entry.evaluate((el) => el === document.activeElement)); i++)
+      await page.keyboard.press(tab);
     await expect(entry).toBeFocused();
   };
   await tabToEntry();
@@ -431,7 +508,6 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   await page.keyboard.press("Escape");
   await expect(card).toHaveCount(0);
 });
-
 
 // Material's select faded its placeholder to its colour over half a second.
 // After a switch to the light theme "No environment" stayed white on the

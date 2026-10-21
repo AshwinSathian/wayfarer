@@ -1,13 +1,20 @@
-<ui-dialog header="Export for Postman" [visible]="collection() !== null" (visibleChange)="$event ? null : closed.emit()" width="520px">
+<ui-dialog
+  header="Export for Postman"
+  [visible]="collection() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  width="520px"
+>
   <div class="flex flex-col gap-4">
     <p class="type-callout text-label-secondary">
-      A Postman Collection v2.1 file of <span class="font-semibold text-label-primary">{{ collection()?.name }}</span>: its folders, variables, auth
-      and scripts, and every request with its body.
+      A Postman Collection v2.1 file of <span class="font-semibold text-label-primary">{{ collection()?.name }}</span>:
+      its folders, variables, auth and scripts, and every request with its body.
     </p>
 
     @if (notes().length) {
     <div role="status" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-      <p class="type-subhead text-status-warning">{{ notes().length }} {{ notes().length === 1 ? "thing" : "things" }} Postman's format has no place for</p>
+      <p class="type-subhead text-status-warning"
+        >{{ notes().length }} {{ notes().length === 1 ? "thing" : "things" }} Postman's format has no place for</p
+      >
       <ul class="mt-1.5 max-h-40 space-y-1 overflow-y-auto type-footnote text-label-primary">
         @for (note of notes(); track $index) {
         <li><span class="font-semibold">{{ note.item }}.</span> {{ note.message }}</li>
@@ -16,12 +23,22 @@
     </div>
     }
 
-    <label for="postman-export-credentials-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label
+      for="postman-export-credentials-input"
+      class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
+    >
       <div>
         <p class="type-subhead text-label-primary">Include credentials</p>
-        <p class="type-footnote text-label-tertiary mt-0.5">Without this, a token, password or key you typed is written as ***. A vault secret is never written.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5"
+          >Without this, a token, password or key you typed is written as ***. A vault secret is never written.</p
+        >
       </div>
-      <mat-checkbox id="postman-export-credentials" aria-label="Include credentials" [ngModel]="credentials()" (ngModelChange)="credentials.set($event)" />
+      <mat-checkbox
+        id="postman-export-credentials"
+        aria-label="Include credentials"
+        [ngModel]="credentials()"
+        (ngModelChange)="credentials.set($event)"
+      />
     </label>
   </div>
   <div uiDialogFooter>

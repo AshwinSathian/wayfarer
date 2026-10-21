@@ -11,14 +11,22 @@ import { settled } from "./support/settled";
 
 /** How often each method reached `path` on the echo server. */
 async function seen(page: Page, path: string): Promise<Record<string, number>> {
-  return (await (await page.request.get(`${ECHO}/cors-seen?url=${encodeURIComponent(path)}`)).json()) as Record<string, number>;
+  return (await (await page.request.get(`${ECHO}/cors-seen?url=${encodeURIComponent(path)}`)).json()) as Record<
+    string,
+    number
+  >;
 }
 
 test.describe("through a Local Bridge", () => {
   // The bridge is a Node process: what it does is the same from any browser.
-  test.skip(({ browserName }) => browserName !== "chromium", "the Local Bridge is started for Chromium only (plan P5.4)");
+  test.skip(
+    ({ browserName }) => browserName !== "chromium",
+    "the Local Bridge is started for Chromium only (plan P5.4)",
+  );
 
-  test("@claim:C-064 a JSON POST the browser stopped at its preflight is sent through the bridge at once, and reaches the server once", async ({ page }) => {
+  test("@claim:C-064 a JSON POST the browser stopped at its preflight is sent through the bridge at once, and reaches the server once", async ({
+    page,
+  }) => {
     const path = `/cors/none?id=${randomUUID()}`;
     const bridge = await startBridge();
     try {
@@ -30,7 +38,7 @@ test.describe("through a Local Bridge", () => {
           url: `${ECHO}${path}`,
           headers: { "Content-Type": "application/json" },
           body: { order: 1 },
-        }
+        },
       );
       await routeThroughBridge(page, bridge, "Auto");
 
@@ -48,7 +56,9 @@ test.describe("through a Local Bridge", () => {
     }
   });
 
-  test("@claim:C-064 a simple form POST the browser may have sent asks first: no sends nothing more, yes sends it through the bridge", async ({ page }) => {
+  test("@claim:C-064 a simple form POST the browser may have sent asks first: no sends nothing more, yes sends it through the bridge", async ({
+    page,
+  }) => {
     const path = `/cors/none?id=${randomUUID()}`;
     const bridge = await startBridge();
     try {
@@ -62,7 +72,7 @@ test.describe("through a Local Bridge", () => {
             mode: "urlencoded",
             urlencoded: [{ key: "order", value: "1", enabled: true }],
           },
-        }
+        },
       );
       await routeThroughBridge(page, bridge, "Auto");
 
@@ -115,16 +125,17 @@ for (const theme of ["light", "dark"] as const) {
       await settled(page);
       const results = await axe(page).analyze();
       expect(
-        results.violations
-          
-          .flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))
+        results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`)),
       ).toEqual([]);
     };
     const fits = async (where: string, ...shown: Locator[]) => {
       for (const width of [360, 390, 820, 1440]) {
         await page.setViewportSize({ width, height: 900 });
         await expect
-          .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `${where} at ${width} px` })
+          .poll(
+            () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            { message: `${where} at ${width} px` },
+          )
           .toBeLessThanOrEqual(0);
         for (const locator of shown) {
           // Crossing 768 px draws the composer's other layout: the element may be made again under the call.
@@ -135,7 +146,7 @@ for (const theme of ["light", "dark"] as const) {
                 const box = await locator.boundingBox();
                 return !!box && box.x >= 0 && box.x + box.width <= width;
               },
-              { message: `${where} at ${width} px` }
+              { message: `${where} at ${width} px` },
             )
             .toBe(true);
         }
@@ -162,14 +173,18 @@ for (const theme of ["light", "dark"] as const) {
       await collection.getByRole("tab", { name: "Route" }).click();
       const choice = collection.getByRole("combobox", { name: /How the requests of this collection are sent/ });
       await expect(choice).toBeVisible();
-      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `the collection's settings at ${width} px` }).toBeLessThanOrEqual(0);
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), {
+          message: `the collection's settings at ${width} px`,
+        })
+        .toBeLessThanOrEqual(0);
       await expect
         .poll(
           async () => {
             const box = await choice.boundingBox();
             return !!box && box.x >= 0 && box.x + box.width <= width;
           },
-          { message: `the collection's route at ${width} px` }
+          { message: `the collection's route at ${width} px` },
         )
         .toBe(true);
       await scan(`the collection's settings at ${width} px`);

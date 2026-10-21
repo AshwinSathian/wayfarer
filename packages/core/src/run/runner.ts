@@ -112,17 +112,26 @@ function wait(ms: number, signal?: AbortSignal): Promise<void> {
  * have it; `null`, or a name no request has, ends the iteration and not the
  * run; what one iteration stored is there for the next.
  */
-export async function runRequests(requests: RunRequest[], send: (request: RunRequest, iteration: RunIteration, signal: AbortSignal) => Promise<RunOutcome>, options: RunOptions = {}): Promise<RunReport> {
+export async function runRequests(
+  requests: RunRequest[],
+  send: (request: RunRequest, iteration: RunIteration, signal: AbortSignal) => Promise<RunOutcome>,
+  options: RunOptions = {},
+): Promise<RunReport> {
   const data = options.data ?? [];
   const count = options.iterations ?? (data.length || 1);
   const signal = options.signal ?? new AbortController().signal;
   const results: RunResult[] = [];
-  const report = (ended: RunReport["ended"], reason?: string): RunReport => ({ iterations: count, results, ended, ...(reason !== undefined && { reason }) });
+  const report = (ended: RunReport["ended"], reason?: string): RunReport => ({
+    iterations: count,
+    results,
+    ended,
+    ...(reason !== undefined && { reason }),
+  });
   let first = true;
 
   for (let index = 0; index < count; index++) {
     const iteration: RunIteration = { index, count, data: data[Math.min(index, data.length - 1)] ?? [] };
-    for (let at = 0; at >= 0 && at < requests.length; ) {
+    for (let at = 0; at >= 0 && at < requests.length;) {
       if (!first && options.delayMs) await wait(options.delayMs, signal);
       if (signal.aborted) return report("cancelled");
       first = false;
@@ -135,7 +144,12 @@ export async function runRequests(requests: RunRequest[], send: (request: RunReq
       if (signal.aborted) return report("cancelled");
       if (end !== undefined) return report("ended", end);
       if (options.stopOnFailure && runFailed(result)) return report("failed");
-      at = nextRequest === undefined ? at + 1 : nextRequest === null ? -1 : requests.map((entry) => entry.id === nextRequest || entry.name === nextRequest).lastIndexOf(true);
+      at =
+        nextRequest === undefined
+          ? at + 1
+          : nextRequest === null
+            ? -1
+            : requests.map((entry) => entry.id === nextRequest || entry.name === nextRequest).lastIndexOf(true);
     }
   }
   return report("completed");

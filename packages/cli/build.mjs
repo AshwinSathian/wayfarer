@@ -23,7 +23,9 @@ const result = await build({
   external: Object.keys(pkg.dependencies),
   define: { VERSION: JSON.stringify(pkg.version) },
   // A bundled CommonJS module (yaml) asks for Node's own modules with `require`.
-  banner: { js: '#!/usr/bin/env node\nimport { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);' },
+  banner: {
+    js: '#!/usr/bin/env node\nimport { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);',
+  },
   legalComments: "none",
   metafile: true,
   logLevel: "warning",
@@ -44,4 +46,7 @@ const notices = [...packages].sort().map((name) => {
   return `${"-".repeat(80)}\n${name}@${version} (${license})\n\n${readFileSync(file, "utf8").trim()}\n`;
 });
 const vmLibraries = readFileSync(join(root, "packages/core/src/scripting/vm-libs/licenses.txt"), "utf8");
-writeFileSync(join(dist, "THIRD_PARTY_LICENSES.txt"), `wayfarer-cli bundles the packages below. The script engine (quickjs-emscripten) is a dependency and carries its own.\n\n${notices.join("\n")}\n${vmLibraries}`);
+writeFileSync(
+  join(dist, "THIRD_PARTY_LICENSES.txt"),
+  `wayfarer-cli bundles the packages below. The script engine (quickjs-emscripten) is a dependency and carries its own.\n\n${notices.join("\n")}\n${vmLibraries}`,
+);

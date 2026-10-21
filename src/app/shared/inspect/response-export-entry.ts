@@ -75,16 +75,13 @@ export function buildExportEntry(input: BuildExportEntryInput): InspectorExportE
       ? inspection.duration
       : Math.max(0, (inspection?.endTime ?? 0) - (inspection?.startTime ?? 0));
 
-  const responseHeadersRecord = input.responseHeaders.reduce<Record<string, string>>(
-    (acc, header) => {
-      if (!header?.name) {
-        return acc;
-      }
-      acc[header.name] = header.value ?? "";
+  const responseHeadersRecord = input.responseHeaders.reduce<Record<string, string>>((acc, header) => {
+    if (!header?.name) {
       return acc;
-    },
-    {}
-  );
+    }
+    acc[header.name] = header.value ?? "";
+    return acc;
+  }, {});
 
   return {
     id: inspection?.id ?? context.id ?? newId(),

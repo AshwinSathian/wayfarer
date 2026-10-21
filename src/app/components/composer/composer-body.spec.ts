@@ -2,17 +2,24 @@ import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { RequestFiles } from "../../services/request-files";
-import { WorkspaceStore } from '../../state/workspace-store';
-import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from '../../../testing/composer-setup';
-import { Composer } from './composer';
-import { ComposerView } from './composer-view';
+import { WorkspaceStore } from "../../state/workspace-store";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  buildEnvironment,
+  jsonBytes,
+  rows,
+  setupComposer,
+} from "../../../testing/composer-setup";
+import { Composer } from "./composer";
+import { ComposerView } from "./composer-view";
 
-describe('Composer: methods and body modes', () => {
+describe("Composer: methods and body modes", () => {
   let component: Composer;
   let store: WorkspaceStore;
   let view: ComposerView;
-  let httpMock: ComposerHarness['httpMock'];
-  let environmentsService: ComposerHarness['environmentsService'];
+  let httpMock: ComposerHarness["httpMock"];
+  let environmentsService: ComposerHarness["environmentsService"];
 
   beforeEach(async () => {
     ({ component, store, view, httpMock, environmentsService } = await setupComposer());
@@ -22,30 +29,30 @@ describe('Composer: methods and body modes', () => {
     httpMock.verify();
   });
 
-  describe('any HTTP method (P2.16)', () => {
-    it('upper-cases a typed method and sends it, a body with it', async () => {
-      store.patch({ url: 'https://a.test/cache', headers: [] });
-      view.onRequestMethodChange(' purge ');
-      expect(store.draft().method).toBe('PURGE');
-      store.setBody({ mode: 'raw', raw: { language: 'text', text: 'all' } });
+  describe("any HTTP method (P2.16)", () => {
+    it("upper-cases a typed method and sends it, a body with it", async () => {
+      store.patch({ url: "https://a.test/cache", headers: [] });
+      view.onRequestMethodChange(" purge ");
+      expect(store.draft().method).toBe("PURGE");
+      store.setBody({ mode: "raw", raw: { language: "text", text: "all" } });
 
       const pending = component.sendRequest();
-      const req = httpMock.expectOne('https://a.test/cache');
-      expect(req.request.init.method).toBe('PURGE');
-      expect(req.request.init.body).toBe('all');
-      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      const req = httpMock.expectOne("https://a.test/cache");
+      expect(req.request.init.method).toBe("PURGE");
+      expect(req.request.init.body).toBe("all");
+      req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
       await pending;
 
-      view.onRequestMethodChange('patch');
-      expect(store.draft().method).toBe('PATCH');
+      view.onRequestMethodChange("patch");
+      expect(store.draft().method).toBe("PATCH");
     });
 
-    it('does not send a method that is not one, and says what a method is', async () => {
-      store.patch({ url: 'https://a.test/x' });
+    it("does not send a method that is not one, and says what a method is", async () => {
+      store.patch({ url: "https://a.test/x" });
       for (const [typed, message] of [
-        ['', 'Enter a method, such as GET.'],
-        ['GET; rm -rf', '"GET; RM -RF" is not an HTTP method.'],
-        ['A'.repeat(33), 'is not an HTTP method.'],
+        ["", "Enter a method, such as GET."],
+        ["GET; rm -rf", '"GET; RM -RF" is not an HTTP method.'],
+        ["A".repeat(33), "is not an HTTP method."],
       ]) {
         view.onRequestMethodChange(typed);
         await component.sendRequest();
@@ -54,31 +61,40 @@ describe('Composer: methods and body modes', () => {
       httpMock.verify();
     });
 
-    it('does not send CONNECT, TRACE or TRACK from the browser, and says the Local Bridge can', async () => {
-      store.patch({ url: 'https://a.test/x' });
-      for (const method of ['CONNECT', 'trace', 'TRACK']) {
+    it("does not send CONNECT, TRACE or TRACK from the browser, and says the Local Bridge can", async () => {
+      store.patch({ url: "https://a.test/x" });
+      for (const method of ["CONNECT", "trace", "TRACK"]) {
         view.onRequestMethodChange(method);
         await component.sendRequest();
-        expect(store.endpointError()).toBe(`Browsers do not send ${method.toUpperCase()} requests. Choose the route Local Bridge to send one.`);
+        expect(store.endpointError()).toBe(
+          `Browsers do not send ${method.toUpperCase()} requests. Choose the route Local Bridge to send one.`,
+        );
       }
 
       // Through the bridge the request is made: the bridge is not a browser.
-      TestBed.inject(BridgeSettings).config.set({ route: 'bridge', url: 'http://127.0.0.1:7717', token: 't'.repeat(16) });
-      view.onRequestMethodChange('TRACE');
+      TestBed.inject(BridgeSettings).config.set({
+        route: "bridge",
+        url: "http://127.0.0.1:7717",
+        token: "t".repeat(16),
+      });
+      view.onRequestMethodChange("TRACE");
       const pending = component.sendRequest();
-      const relay = await vi.waitFor(() => httpMock.expectOne('http://127.0.0.1:7717/relay'));
-      expect(relay.request.body).toMatchObject({ method: 'TRACE', url: 'https://a.test/x' });
-      relay.flush(JSON.stringify({ status: 200, statusText: 'OK', headers: [], bodyB64: '', encodedSize: 0, decodedSize: 0 }), { status: 200 });
+      const relay = await vi.waitFor(() => httpMock.expectOne("http://127.0.0.1:7717/relay"));
+      expect(relay.request.body).toMatchObject({ method: "TRACE", url: "https://a.test/x" });
+      relay.flush(
+        JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }),
+        { status: 200 },
+      );
       await pending;
-      expect(store.endpointError()).toBe('');
+      expect(store.endpointError()).toBe("");
     });
   });
 
-  describe('body modes (P2.12)', () => {
+  describe("body modes (P2.12)", () => {
     const send = async (url: string) => {
       const pending = component.sendRequest();
       const req = httpMock.expectOne(url);
-      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
       await pending;
       return req.request.init;
     };
@@ -86,238 +102,298 @@ describe('Composer: methods and body modes', () => {
     const sendWithFile = async (url: string) => {
       const pending = component.sendRequest();
       const req = await vi.waitFor(() => httpMock.expectOne(url));
-      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
       await pending;
       return req.request.init;
     };
-    const contentType = (init: RequestInit) => new Headers(init.headers).get('content-type');
+    const contentType = (init: RequestInit) => new Headers(init.headers).get("content-type");
 
     beforeEach(() => {
-      store.patch({ method: 'POST', url: 'https://a.test/body', headers: [] });
-      environmentsService.setActiveEnvironment(buildEnvironment({ v: 'a b&c', name: 'who' }));
+      store.patch({ method: "POST", url: "https://a.test/body", headers: [] });
+      environmentsService.setActiveEnvironment(buildEnvironment({ v: "a b&c", name: "who" }));
     });
 
-    it('sends raw text as written, with the Content-Type of its language unless the request sets one', async () => {
+    it("sends raw text as written, with the Content-Type of its language unless the request sets one", async () => {
       for (const [language, type] of [
-        ['json', 'application/json'],
-        ['text', 'text/plain'],
-        ['xml', 'application/xml'],
-        ['html', 'text/html'],
-        ['javascript', 'application/javascript'],
+        ["json", "application/json"],
+        ["text", "text/plain"],
+        ["xml", "application/xml"],
+        ["html", "text/html"],
+        ["javascript", "application/javascript"],
       ] as const) {
-        store.setBody({ mode: 'raw', raw: { language, text: '<a b="{{v}}">\n</a>' } });
-        const init = await send('https://a.test/body');
+        store.setBody({ mode: "raw", raw: { language, text: '<a b="{{v}}">\n</a>' } });
+        const init = await send("https://a.test/body");
         expect(init.body, language).toBe('<a b="a b&c">\n</a>');
         expect(contentType(init), language).toBe(type);
       }
 
-      store.patch({ headers: rows([{ key: 'content-type', value: 'application/vnd.api+json' }]) });
-      const own = await send('https://a.test/body');
-      expect(own.headers).toEqual([['content-type', 'application/vnd.api+json']]);
+      store.patch({ headers: rows([{ key: "content-type", value: "application/vnd.api+json" }]) });
+      const own = await send("https://a.test/body");
+      expect(own.headers).toEqual([["content-type", "application/vnd.api+json"]]);
     });
 
-    it('sends a GraphQL body as one JSON object, its variables replaced before it is made JSON, as application/json (P5.5)', async () => {
-      environmentsService.setActiveEnvironment(buildEnvironment({ who: 'Ada "the first"', petId: '7' }));
-      store.setBody({ mode: 'graphql', graphql: { query: 'query Q($id: ID!) { hello(name: "{{who}}") pet(id: $id) { name } }', variables: '{ "id": "{{petId}}" }' } });
-      const init = await send('https://a.test/body');
-      expect(JSON.parse(init.body as string)).toEqual({ query: 'query Q($id: ID!) { hello(name: "Ada "the first"") pet(id: $id) { name } }', variables: { id: '7' } });
-      expect(contentType(init)).toBe('application/json');
+    it("sends a GraphQL body as one JSON object, its variables replaced before it is made JSON, as application/json (P5.5)", async () => {
+      environmentsService.setActiveEnvironment(buildEnvironment({ who: 'Ada "the first"', petId: "7" }));
+      store.setBody({
+        mode: "graphql",
+        graphql: {
+          query: 'query Q($id: ID!) { hello(name: "{{who}}") pet(id: $id) { name } }',
+          variables: '{ "id": "{{petId}}" }',
+        },
+      });
+      const init = await send("https://a.test/body");
+      expect(JSON.parse(init.body as string)).toEqual({
+        query: 'query Q($id: ID!) { hello(name: "Ada "the first"") pet(id: $id) { name } }',
+        variables: { id: "7" },
+      });
+      expect(contentType(init)).toBe("application/json");
 
-      store.setBody({ graphql: { query: '{ hello }', variables: '' } });
-      expect((await send('https://a.test/body')).body).toBe('{"query":"{ hello }"}');
+      store.setBody({ graphql: { query: "{ hello }", variables: "" } });
+      expect((await send("https://a.test/body")).body).toBe('{"query":"{ hello }"}');
     });
 
-    it('does not send a GraphQL body whose variables are no JSON object, and says so', async () => {
-      store.setBody({ mode: 'graphql', graphql: { query: '{ hello }', variables: '{ id: 7 }' } });
+    it("does not send a GraphQL body whose variables are no JSON object, and says so", async () => {
+      store.setBody({ mode: "graphql", graphql: { query: "{ hello }", variables: "{ id: 7 }" } });
       await component.sendRequest();
-      expect(store.endpointError()).toBe('The GraphQL variables are not JSON.');
-      store.setBody({ graphql: { query: '{ hello }', variables: '[1]' } });
+      expect(store.endpointError()).toBe("The GraphQL variables are not JSON.");
+      store.setBody({ graphql: { query: "{ hello }", variables: "[1]" } });
       await component.sendRequest();
-      expect(store.endpointError()).toBe('The GraphQL variables must be a JSON object.');
+      expect(store.endpointError()).toBe("The GraphQL variables must be a JSON object.");
       httpMock.verify();
     });
 
-    it('sends no body and no Content-Type for mode none, for empty raw text, and for GET and HEAD whatever the body', async () => {
-      store.setBody({ mode: 'none', raw: { language: 'json', text: '{"kept":true}' } });
-      expect(await send('https://a.test/body')).toMatchObject({ body: undefined, headers: [] });
+    it("sends no body and no Content-Type for mode none, for empty raw text, and for GET and HEAD whatever the body", async () => {
+      store.setBody({ mode: "none", raw: { language: "json", text: '{"kept":true}' } });
+      expect(await send("https://a.test/body")).toMatchObject({ body: undefined, headers: [] });
 
-      store.setBody({ mode: 'raw', raw: { language: 'json', text: '' } });
-      expect(await send('https://a.test/body')).toMatchObject({ body: undefined, headers: [] });
+      store.setBody({ mode: "raw", raw: { language: "json", text: "" } });
+      expect(await send("https://a.test/body")).toMatchObject({ body: undefined, headers: [] });
 
-      store.setBody({ mode: 'raw', raw: { language: 'json', text: '{"kept":true}' } });
-      for (const method of ['GET', 'HEAD']) {
+      store.setBody({ mode: "raw", raw: { language: "json", text: '{"kept":true}' } });
+      for (const method of ["GET", "HEAD"]) {
         store.patch({ method });
-        expect(await send('https://a.test/body'), method).toMatchObject({ body: undefined, headers: [] });
+        expect(await send("https://a.test/body"), method).toMatchObject({ body: undefined, headers: [] });
       }
-      store.patch({ method: 'DELETE' });
-      expect((await send('https://a.test/body')).body).toBe('{"kept":true}');
+      store.patch({ method: "DELETE" });
+      expect((await send("https://a.test/body")).body).toBe('{"kept":true}');
     });
 
-    it('encodes form fields: enabled rows in order, a name twice, variables resolved before encoding', async () => {
+    it("encodes form fields: enabled rows in order, a name twice, variables resolved before encoding", async () => {
       store.setBody({
-        mode: 'urlencoded',
+        mode: "urlencoded",
         urlencoded: [
-          { key: 'q', value: '{{v}}', enabled: true },
-          { key: 'off', value: '1', enabled: false },
-          { key: '{{name}}', value: 'é=1', enabled: true },
-          { key: 'q', value: 'again', enabled: true },
+          { key: "q", value: "{{v}}", enabled: true },
+          { key: "off", value: "1", enabled: false },
+          { key: "{{name}}", value: "é=1", enabled: true },
+          { key: "q", value: "again", enabled: true },
         ],
       });
 
-      const init = await send('https://a.test/body');
+      const init = await send("https://a.test/body");
 
-      expect(init.body).toBe('q=a+b%26c&who=%C3%A9%3D1&q=again');
-      expect(contentType(init)).toBe('application/x-www-form-urlencoded');
+      expect(init.body).toBe("q=a+b%26c&who=%C3%A9%3D1&q=again");
+      expect(contentType(init)).toBe("application/x-www-form-urlencoded");
     });
 
-    it('sends multipart parts as a form, files with their bytes and names, and leaves the Content-Type to the browser', async () => {
-      const picked = TestBed.inject(RequestFiles).pick(new File([new Uint8Array([0, 255, 10, 13])], 'bytes.bin'));
-      if (typeof picked === 'string') throw new Error(picked);
+    it("sends multipart parts as a form, files with their bytes and names, and leaves the Content-Type to the browser", async () => {
+      const picked = TestBed.inject(RequestFiles).pick(new File([new Uint8Array([0, 255, 10, 13])], "bytes.bin"));
+      if (typeof picked === "string") throw new Error(picked);
       store.setBody({
-        mode: 'multipart',
+        mode: "multipart",
         multipart: [
-          { kind: 'text', key: 'note', value: '{{v}}', enabled: true },
-          { kind: 'text', key: 'off', value: 'x', enabled: false },
-          { kind: 'file', key: 'upload', enabled: true, ...picked },
+          { kind: "text", key: "note", value: "{{v}}", enabled: true },
+          { kind: "text", key: "off", value: "x", enabled: false },
+          { kind: "file", key: "upload", enabled: true, ...picked },
         ],
       });
 
-      const init = await sendWithFile('https://a.test/body');
+      const init = await sendWithFile("https://a.test/body");
 
       const form = init.body as FormData;
       expect(form).toBeInstanceOf(FormData);
-      expect([...form.keys()]).toEqual(['note', 'upload']);
-      expect(form.get('note')).toBe('a b&c');
-      const file = form.get('upload') as File;
-      expect(file.name).toBe('bytes.bin');
+      expect([...form.keys()]).toEqual(["note", "upload"]);
+      expect(form.get("note")).toBe("a b&c");
+      const file = form.get("upload") as File;
+      expect(file.name).toBe("bytes.bin");
       expect([...new Uint8Array(await file.arrayBuffer())]).toEqual([0, 255, 10, 13]);
       // fetch writes "multipart/form-data; boundary=…" itself.
       expect(init.headers).toEqual([]);
     });
 
-    it('sends a binary body as the file, typed by the file unless the request sets a Content-Type', async () => {
-      const picked = TestBed.inject(RequestFiles).pick(new File(['%PDF-'], 'doc.pdf', { type: 'application/pdf' }));
-      if (typeof picked === 'string') throw new Error(picked);
-      store.setBody({ mode: 'binary', binary: { ...picked, contentType: 'application/pdf' } });
+    it("sends a binary body as the file, typed by the file unless the request sets a Content-Type", async () => {
+      const picked = TestBed.inject(RequestFiles).pick(new File(["%PDF-"], "doc.pdf", { type: "application/pdf" }));
+      if (typeof picked === "string") throw new Error(picked);
+      store.setBody({ mode: "binary", binary: { ...picked, contentType: "application/pdf" } });
 
-      const init = await sendWithFile('https://a.test/body');
+      const init = await sendWithFile("https://a.test/body");
 
-      expect(await (init.body as Blob).text()).toBe('%PDF-');
-      expect(contentType(init)).toBe('application/pdf');
+      expect(await (init.body as Blob).text()).toBe("%PDF-");
+      expect(contentType(init)).toBe("application/pdf");
 
       store.setBody({ binary: picked });
-      expect(contentType(await sendWithFile('https://a.test/body'))).toBe('application/pdf');
+      expect(contentType(await sendWithFile("https://a.test/body"))).toBe("application/pdf");
     });
 
-    it('AWS Signature signs a file body by its bytes, with its type, and refuses a multipart form (P4.8)', async () => {
-      const picked = TestBed.inject(RequestFiles).pick(new File(['%PDF-'], 'doc.pdf', { type: 'application/pdf' }));
-      if (typeof picked === 'string') throw new Error(picked);
-      store.setBody({ mode: 'binary', binary: picked });
-      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: 'secret', sessionToken: '', region: 'us-east-1', service: 's3' } });
+    it("AWS Signature signs a file body by its bytes, with its type, and refuses a multipart form (P4.8)", async () => {
+      const picked = TestBed.inject(RequestFiles).pick(new File(["%PDF-"], "doc.pdf", { type: "application/pdf" }));
+      if (typeof picked === "string") throw new Error(picked);
+      store.setBody({ mode: "binary", binary: picked });
+      store.patch({
+        auth: {
+          type: "awsv4",
+          accessKey: "AKID",
+          secretKey: "secret",
+          sessionToken: "",
+          region: "us-east-1",
+          service: "s3",
+        },
+      });
 
-      const init = await sendWithFile('https://a.test/body');
+      const init = await sendWithFile("https://a.test/body");
 
       const sent = new Headers(init.headers);
       // S3 is given the body's hash as a header: SHA-256 of "%PDF-".
-      expect(sent.get('X-Amz-Content-Sha256')).toBe('38523c087796e5d5dd1cf9bad1fb026781a838dd9dd2cf8af58b9f6502a46778');
-      expect(sent.get('Authorization')).toContain('SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date,');
-      expect(await (init.body as Blob).text()).toBe('%PDF-');
+      expect(sent.get("X-Amz-Content-Sha256")).toBe("38523c087796e5d5dd1cf9bad1fb026781a838dd9dd2cf8af58b9f6502a46778");
+      expect(sent.get("Authorization")).toContain("SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date,");
+      expect(await (init.body as Blob).text()).toBe("%PDF-");
     });
 
-    it('does not send when a body names a file this browser does not have, or a binary body has no file', async () => {
-      store.setBody({ mode: 'binary' });
+    it("does not send when a body names a file this browser does not have, or a binary body has no file", async () => {
+      store.setBody({ mode: "binary" });
       expect(await component.sendRequest()).toBeUndefined();
-      expect(store.endpointError()).toBe('Choose a file for the body, or set the body to None.');
+      expect(store.endpointError()).toBe("Choose a file for the body, or set the body to None.");
 
-      store.setBody({ mode: 'multipart', multipart: [{ kind: 'file', key: 'f', enabled: true, fileId: 'gone', fileName: 'report.csv' }] });
+      store.setBody({
+        mode: "multipart",
+        multipart: [{ kind: "file", key: "f", enabled: true, fileId: "gone", fileName: "report.csv" }],
+      });
       await component.sendRequest();
       expect(store.endpointError()).toBe('The file "report.csv" is not stored in this browser. Choose it again.');
       expect(store.loadingState()).toBe(false);
       httpMock.verify();
     });
 
-    it('never sends a protected-variable placeholder inside a form or a multipart body (C-007)', async () => {
-      const secret = '{{ $secret.0b6f1c2e-0000-4000-8000-000000000001 }}';
+    it("never sends a protected-variable placeholder inside a form or a multipart body (C-007)", async () => {
+      const secret = "{{ $secret.0b6f1c2e-0000-4000-8000-000000000001 }}";
       for (const body of [
-        { mode: 'urlencoded' as const, urlencoded: rows([{ key: 'k', value: secret }]) },
-        { mode: 'multipart' as const, multipart: [{ kind: 'text' as const, key: secret, value: '1', enabled: true }] },
+        { mode: "urlencoded" as const, urlencoded: rows([{ key: "k", value: secret }]) },
+        { mode: "multipart" as const, multipart: [{ kind: "text" as const, key: secret, value: "1", enabled: true }] },
       ]) {
         store.setBody(body);
         await component.sendRequest();
         // The vault is open and does not have this secret: the reference stays, and is refused.
-        expect(store.endpointError(), body.mode).toContain('refers to a vault secret that could not be read');
+        expect(store.endpointError(), body.mode).toContain("refers to a vault secret that could not be read");
       }
       httpMock.verify();
     });
 
-    it('lists the variables of the mode that is sent', () => {
+    it("lists the variables of the mode that is sent", () => {
       store.setBody({
-        mode: 'urlencoded',
-        raw: { language: 'json', text: '{{rawOnly}}' },
-        urlencoded: rows([{ key: '{{name}}', value: '{{v}}' }]),
+        mode: "urlencoded",
+        raw: { language: "json", text: "{{rawOnly}}" },
+        urlencoded: rows([{ key: "{{name}}", value: "{{v}}" }]),
       });
-      expect(store.variableTokens().map((token) => token.key)).toEqual(['name', 'v']);
+      expect(store.variableTokens().map((token) => token.key)).toEqual(["name", "v"]);
 
-      store.setBody({ mode: 'raw' });
-      expect(store.variableTokens().map((token) => token.key)).toEqual(['rawOnly']);
+      store.setBody({ mode: "raw" });
+      expect(store.variableTokens().map((token) => token.key)).toEqual(["rawOnly"]);
     });
   });
   // F31: a multipart form and a file were left out of the command without a word.
-  describe('Copy as cURL carries the body in every mode, and HEAD (P4.6 a)', () => {
+  describe("Copy as cURL carries the body in every mode, and HEAD (P4.6 a)", () => {
     let copied: string[];
     beforeEach(() => {
       copied = [];
-      vi.spyOn(navigator.clipboard, 'writeText').mockImplementation(async (text: string) => void copied.push(text));
-      environmentsService.setActiveEnvironment(buildEnvironment({ who: 'world' }));
-      store.patch({ method: 'POST', url: 'https://a.test/upload', headers: [] });
+      vi.spyOn(navigator.clipboard, "writeText").mockImplementation(async (text: string) => void copied.push(text));
+      environmentsService.setActiveEnvironment(buildEnvironment({ who: "world" }));
+      store.patch({ method: "POST", url: "https://a.test/upload", headers: [] });
     });
     afterEach(() => vi.restoreAllMocks());
     const lines = async () => {
       await store.copyAsCurl();
-      return copied.at(-1)!.split(' \\\n  ');
+      return copied.at(-1)!.split(" \\\n  ");
     };
 
-    it('a form: one --data-urlencode per field that is switched on, variables replaced', async () => {
-      store.setBody({ mode: 'urlencoded', urlencoded: [{ key: 'hello', value: '{{who}} & co', enabled: true }, { key: 'off', value: 'x', enabled: false }] });
+    it("a form: one --data-urlencode per field that is switched on, variables replaced", async () => {
+      store.setBody({
+        mode: "urlencoded",
+        urlencoded: [
+          { key: "hello", value: "{{who}} & co", enabled: true },
+          { key: "off", value: "x", enabled: false },
+        ],
+      });
 
-      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: application/x-www-form-urlencoded'", "--data-urlencode 'hello=world & co'"]);
+      expect(await lines()).toEqual([
+        "curl",
+        "-X POST",
+        "'https://a.test/upload'",
+        "-H 'Content-Type: application/x-www-form-urlencoded'",
+        "--data-urlencode 'hello=world & co'",
+      ]);
     });
 
-    it('@claim:C-020 a multipart form: text as --form-string, a file as -F with its name, and no Content-Type of the app\'s own', async () => {
+    it("@claim:C-020 a multipart form: text as --form-string, a file as -F with its name, and no Content-Type of the app's own", async () => {
       store.setBody({
-        mode: 'multipart',
+        mode: "multipart",
         multipart: [
-          { kind: 'text', key: 'note', value: '@{{who}}', enabled: true },
-          { kind: 'file', key: 'upload', fileId: 'file-1', fileName: 'report.pdf', enabled: true },
+          { kind: "text", key: "note", value: "@{{who}}", enabled: true },
+          { kind: "file", key: "upload", fileId: "file-1", fileName: "report.pdf", enabled: true },
         ],
       });
       const files = TestBed.inject(RequestFiles);
-      const read = vi.spyOn(files, 'read');
+      const read = vi.spyOn(files, "read");
 
-      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "--form-string 'note=@world'", `-F 'upload=@"report.pdf"'`]);
+      expect(await lines()).toEqual([
+        "curl",
+        "-X POST",
+        "'https://a.test/upload'",
+        "--form-string 'note=@world'",
+        `-F 'upload=@"report.pdf"'`,
+      ]);
       // The file is named, not read.
       expect(read).not.toHaveBeenCalled();
     });
 
-    it('AWS Signature: the command carries no signature and no key, since a signature is of one moment (P4.8)', async () => {
-      store.setBody({ mode: 'raw', raw: { language: 'json', text: '{}' } });
-      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: 'typed-secret', sessionToken: 'typed-token', region: 'us-east-1', service: 's3' } });
+    it("AWS Signature: the command carries no signature and no key, since a signature is of one moment (P4.8)", async () => {
+      store.setBody({ mode: "raw", raw: { language: "json", text: "{}" } });
+      store.patch({
+        auth: {
+          type: "awsv4",
+          accessKey: "AKID",
+          secretKey: "typed-secret",
+          sessionToken: "typed-token",
+          region: "us-east-1",
+          service: "s3",
+        },
+      });
 
-      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: application/json'", "--data-raw '{}'"]);
+      expect(await lines()).toEqual([
+        "curl",
+        "-X POST",
+        "'https://a.test/upload'",
+        "-H 'Content-Type: application/json'",
+        "--data-raw '{}'",
+      ]);
     });
 
-    it('a file: --data-binary with its name and its type', async () => {
-      store.setBody({ mode: 'binary', binary: { fileId: 'file-2', fileName: 'pixel.png', contentType: 'image/png' } });
+    it("a file: --data-binary with its name and its type", async () => {
+      store.setBody({ mode: "binary", binary: { fileId: "file-2", fileName: "pixel.png", contentType: "image/png" } });
 
-      expect(await lines()).toEqual(['curl', '-X POST', "'https://a.test/upload'", "-H 'Content-Type: image/png'", "--data-binary '@pixel.png'"]);
+      expect(await lines()).toEqual([
+        "curl",
+        "-X POST",
+        "'https://a.test/upload'",
+        "-H 'Content-Type: image/png'",
+        "--data-binary '@pixel.png'",
+      ]);
     });
 
-    it('HEAD is --head, and GET and HEAD carry no body', async () => {
-      store.setBody({ mode: 'raw', raw: { language: 'text', text: 'kept for POST' } });
-      store.setMethod('HEAD');
-      expect(await lines()).toEqual(['curl', '--head', "'https://a.test/upload'"]);
-      store.setMethod('GET');
-      expect(await lines()).toEqual(['curl', "'https://a.test/upload'"]);
+    it("HEAD is --head, and GET and HEAD carry no body", async () => {
+      store.setBody({ mode: "raw", raw: { language: "text", text: "kept for POST" } });
+      store.setMethod("HEAD");
+      expect(await lines()).toEqual(["curl", "--head", "'https://a.test/upload'"]);
+      store.setMethod("GET");
+      expect(await lines()).toEqual(["curl", "'https://a.test/upload'"]);
     });
   });
 });

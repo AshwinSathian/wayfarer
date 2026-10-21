@@ -89,12 +89,21 @@ type TreeChild<F, R> = { folder: F; request?: undefined } | { request: R; folder
  * they share, as a Postman file has its items. Two of one number: a folder
  * before a request, then by id.
  */
-export function childrenInOrder<F extends Pick<Folder, "id" | "order" | "parentFolderId">, R extends Pick<RequestDoc, "id" | "order" | "folderId">>(tree: { folders: readonly F[]; requests: readonly R[] }, parent?: string): TreeChild<F, R>[] {
+export function childrenInOrder<
+  F extends Pick<Folder, "id" | "order" | "parentFolderId">,
+  R extends Pick<RequestDoc, "id" | "order" | "folderId">,
+>(tree: { folders: readonly F[]; requests: readonly R[] }, parent?: string): TreeChild<F, R>[] {
   const entries = [
-    ...tree.folders.filter((folder) => folder.parentFolderId === parent).map((folder) => ({ order: folder.order, kind: 0, id: folder.id, child: { folder } as TreeChild<F, R> })),
-    ...tree.requests.filter((request) => request.folderId === parent).map((request) => ({ order: request.order, kind: 1, id: request.id, child: { request } as TreeChild<F, R> })),
+    ...tree.folders
+      .filter((folder) => folder.parentFolderId === parent)
+      .map((folder) => ({ order: folder.order, kind: 0, id: folder.id, child: { folder } as TreeChild<F, R> })),
+    ...tree.requests
+      .filter((request) => request.folderId === parent)
+      .map((request) => ({ order: request.order, kind: 1, id: request.id, child: { request } as TreeChild<F, R> })),
   ];
-  return entries.sort((a, b) => a.order - b.order || a.kind - b.kind || a.id.localeCompare(b.id)).map((entry) => entry.child);
+  return entries
+    .sort((a, b) => a.order - b.order || a.kind - b.kind || a.id.localeCompare(b.id))
+    .map((entry) => entry.child);
 }
 
 /**
@@ -105,7 +114,12 @@ export function childrenInOrder<F extends Pick<Folder, "id" | "order" | "parentF
 export type Ancestor = Pick<Collection | Folder, "name" | "variables" | "auth" | "scripts">;
 
 export function ancestorsOf(collection: Ancestor, folders: Folder[], folderId: string | undefined): Ancestor[] {
-  const named = (kind: string, { name, variables, auth, scripts }: Ancestor): Ancestor => ({ name: `${kind} "${name}"`, variables, auth, scripts });
+  const named = (kind: string, { name, variables, auth, scripts }: Ancestor): Ancestor => ({
+    name: `${kind} "${name}"`,
+    variables,
+    auth,
+    scripts,
+  });
   return [named("collection", collection), ...folderChain(folders, folderId).map((folder) => named("folder", folder))];
 }
 

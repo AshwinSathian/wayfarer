@@ -36,7 +36,8 @@ export function placeTooltip(
   const below = host.bottom + GAP;
   const roomAbove = above >= GAP;
   const roomBelow = below + size.height <= window.height - GAP;
-  const top = position === "above" ? (roomAbove || !roomBelow ? above : below) : roomBelow || !roomAbove ? below : above;
+  const top =
+    position === "above" ? (roomAbove || !roomBelow ? above : below) : roomBelow || !roomAbove ? below : above;
   const left = align === "start" ? host.left : host.left + (host.width - size.width) / 2;
   const clamp = (value: number, max: number) => Math.max(GAP, Math.min(value, max - GAP));
   return { left: clamp(left, window.width - size.width), top: clamp(top, window.height - size.height) };
@@ -109,7 +110,9 @@ export class UiTooltip {
     // Focus from the keyboard, as the CDK tells it: not a click's, and not focus set by code (a
     // dialog's first element: WebKit draws a ring there after a click too). Blur hides it.
     const focusMonitor = inject(FocusMonitor);
-    const focus = focusMonitor.monitor(this.host).subscribe((origin) => (origin === "keyboard" ? this.show() : this.hide()));
+    const focus = focusMonitor
+      .monitor(this.host)
+      .subscribe((origin) => (origin === "keyboard" ? this.show() : this.hide()));
 
     inject(DestroyRef).onDestroy(() => {
       focus.unsubscribe();

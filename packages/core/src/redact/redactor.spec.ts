@@ -15,7 +15,10 @@ const binary = (bytes: Uint8Array) => Array.from(bytes, (byte) => String.fromCha
  */
 function survivesInBase64(redacted: string, secret: string): boolean {
   const needle = binary(utf8(secret));
-  for (const run of redacted.replace(/-/g, "+").replace(/_/g, "/").split(/[^A-Za-z0-9+/]+/)) {
+  for (const run of redacted
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .split(/[^A-Za-z0-9+/]+/)) {
     for (let start = 0; start < 4; start++) {
       // Read to the end of the run: a single character left over holds no whole byte, the rest is padded.
       const piece = run.slice(start);
@@ -89,7 +92,7 @@ describe("Redactor", () => {
           expect(redactor.text(`"path": "/${inPath}"`)).toBe(`"path": "/${MASK}"`);
         }
       }),
-      { numRuns: 300 }
+      { numRuns: 300 },
     );
   });
 
@@ -131,16 +134,21 @@ describe("Redactor", () => {
 
   it("finds 0 survivors of a random secret at a random offset inside base64 and base64url text (property)", () => {
     fc.assert(
-      fc.property(secret, fc.uint8Array({ maxLength: 12 }), fc.uint8Array({ maxLength: 12 }), (value, before, after) => {
-        const bytes = new Uint8Array([...before, ...utf8(value), ...after]);
-        const redactor = new Redactor([value]);
-        for (const encoded of [base64(bytes), base64url(bytes)]) {
-          const redacted = redactor.text(`data:${encoded};`);
-          expect(redacted).toContain(MASK);
-          expect(survivesInBase64(redacted, value)).toBe(false);
-        }
-      }),
-      { numRuns: 500 }
+      fc.property(
+        secret,
+        fc.uint8Array({ maxLength: 12 }),
+        fc.uint8Array({ maxLength: 12 }),
+        (value, before, after) => {
+          const bytes = new Uint8Array([...before, ...utf8(value), ...after]);
+          const redactor = new Redactor([value]);
+          for (const encoded of [base64(bytes), base64url(bytes)]) {
+            const redacted = redactor.text(`data:${encoded};`);
+            expect(redacted).toContain(MASK);
+            expect(survivesInBase64(redacted, value)).toBe(false);
+          }
+        },
+      ),
+      { numRuns: 500 },
     );
   });
 
@@ -154,7 +162,9 @@ describe("Redactor", () => {
           encodeURIComponent(before) + encodeURIComponent(value) + encodeURIComponent(after),
           new URLSearchParams({ k: whole }).toString(),
           JSON.stringify({ k: whole }),
-          JSON.stringify(JSON.stringify({ k: whole })).slice(1, -1).replace(/\\\\/g, "\\"),
+          JSON.stringify(JSON.stringify({ k: whole }))
+            .slice(1, -1)
+            .replace(/\\\\/g, "\\"),
         ];
         const [plain, component, form, json] = forms.map((text) => redactor.text(text));
         expect(plain).not.toContain(value);
@@ -162,17 +172,26 @@ describe("Redactor", () => {
         expect(new URLSearchParams(form.replaceAll(MASK, "")).get("k") ?? "").not.toContain(value);
         expect(json).not.toContain(JSON.stringify(value).slice(1, -1));
       }),
-      { numRuns: 500 }
+      { numRuns: 500 },
     );
   });
 
   describe("headers", () => {
-    it.each(["Authorization", "proxy-authorization", "Cookie", "Set-Cookie", "X-API-Key", "X-Auth-Token", "x-client-secret", "Api-Key", "X-Password"])(
-      "%s is a credential header",
-      (name) => expect(isCredentialHeader(name)).toBe(true)
-    );
+    it.each([
+      "Authorization",
+      "proxy-authorization",
+      "Cookie",
+      "Set-Cookie",
+      "X-API-Key",
+      "X-Auth-Token",
+      "x-client-secret",
+      "Api-Key",
+      "X-Password",
+    ])("%s is a credential header", (name) => expect(isCredentialHeader(name)).toBe(true));
 
-    it.each(["Content-Type", "Accept", "X-Request-Id", "User-Agent"])("%s is not", (name) => expect(isCredentialHeader(name)).toBe(false));
+    it.each(["Content-Type", "Accept", "X-Request-Id", "User-Agent"])("%s is not", (name) =>
+      expect(isCredentialHeader(name)).toBe(false),
+    );
 
     it("masks the whole value of a credential header, and a secret inside any other value", () => {
       const redactor = new Redactor(["s3cr3t-value"]);
@@ -183,7 +202,7 @@ describe("Redactor", () => {
           ["Set-Cookie", "theme=dark"],
           ["X-Echo", "you sent s3cr3t-value"],
           ["Accept", "*/*"],
-        ])
+        ]),
       ).toEqual([
         ["Authorization", MASK],
         ["Set-Cookie", MASK],
@@ -195,7 +214,15 @@ describe("Redactor", () => {
 
     it("keeps credential headers when the user asks for them, and still masks vault secrets", () => {
       const redactor = new Redactor(["s3cr3t-value"]);
-      expect(redactor.headers([["Authorization", "Bearer typed-by-hand"], ["X-Key", "s3cr3t-value"]], { credentials: true })).toEqual([
+      expect(
+        redactor.headers(
+          [
+            ["Authorization", "Bearer typed-by-hand"],
+            ["X-Key", "s3cr3t-value"],
+          ],
+          { credentials: true },
+        ),
+      ).toEqual([
         ["Authorization", "Bearer typed-by-hand"],
         ["X-Key", MASK],
       ]);
@@ -248,26 +275,69 @@ describe("Redactor", () => {
       const redactor = new Redactor([]);
       expect(redactor.auth({ type: "bearer", token: "typed-token" })).toEqual({ type: "bearer", token: MASK });
       expect(redactor.auth({ type: "bearer", token: "{{token}}" })).toEqual({ type: "bearer", token: "{{token}}" });
-      expect(redactor.auth({ type: "basic", username: "alice", password: "typed" })).toEqual({ type: "basic", username: "alice", password: MASK });
-      expect(redactor.auth({ type: "basic", username: "alice", password: "" })).toEqual({ type: "basic", username: "alice", password: "" });
-      expect(redactor.auth({ type: "apikey", key: "X-Key", value: "typed", in: "query" })).toEqual({ type: "apikey", key: "X-Key", value: MASK, in: "query" });
-      const aws = { type: "awsv4", accessKey: "AKID", secretKey: "typed-secret", sessionToken: "typed-token", region: "us-east-1", service: "s3" } as const;
+      expect(redactor.auth({ type: "basic", username: "alice", password: "typed" })).toEqual({
+        type: "basic",
+        username: "alice",
+        password: MASK,
+      });
+      expect(redactor.auth({ type: "basic", username: "alice", password: "" })).toEqual({
+        type: "basic",
+        username: "alice",
+        password: "",
+      });
+      expect(redactor.auth({ type: "apikey", key: "X-Key", value: "typed", in: "query" })).toEqual({
+        type: "apikey",
+        key: "X-Key",
+        value: MASK,
+        in: "query",
+      });
+      const aws = {
+        type: "awsv4",
+        accessKey: "AKID",
+        secretKey: "typed-secret",
+        sessionToken: "typed-token",
+        region: "us-east-1",
+        service: "s3",
+      } as const;
       expect(redactor.auth(aws)).toEqual({ ...aws, secretKey: MASK, sessionToken: MASK });
-      expect(redactor.auth({ ...aws, secretKey: "{{secret}}", sessionToken: "" })).toEqual({ ...aws, secretKey: "{{secret}}", sessionToken: "" });
+      expect(redactor.auth({ ...aws, secretKey: "{{secret}}", sessionToken: "" })).toEqual({
+        ...aws,
+        secretKey: "{{secret}}",
+        sessionToken: "",
+      });
       expect(redactor.auth(aws, { credentials: true })).toEqual(aws);
-      const oauth = { type: "oauth2", grant: "password", authUrl: "", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "typed-secret", scope: "read", username: "alice", password: "typed", clientAuth: "header", retryOn401: false } as const;
+      const oauth = {
+        type: "oauth2",
+        grant: "password",
+        authUrl: "",
+        tokenUrl: "https://idp.test/token",
+        clientId: "client",
+        clientSecret: "typed-secret",
+        scope: "read",
+        username: "alice",
+        password: "typed",
+        clientAuth: "header",
+        retryOn401: false,
+      } as const;
       expect(redactor.auth(oauth)).toEqual({ ...oauth, clientSecret: MASK, password: MASK });
-      expect(redactor.auth({ ...oauth, clientSecret: "{{secret}}", password: "" })).toEqual({ ...oauth, clientSecret: "{{secret}}", password: "" });
+      expect(redactor.auth({ ...oauth, clientSecret: "{{secret}}", password: "" })).toEqual({
+        ...oauth,
+        clientSecret: "{{secret}}",
+        password: "",
+      });
       expect(redactor.auth(oauth, { credentials: true })).toEqual(oauth);
       expect(redactor.auth({ type: "none" })).toEqual({ type: "none" });
-      expect(redactor.auth({ type: "bearer", token: "typed-token" }, { credentials: true })).toEqual({ type: "bearer", token: "typed-token" });
+      expect(redactor.auth({ type: "bearer", token: "typed-token" }, { credentials: true })).toEqual({
+        type: "bearer",
+        token: "typed-token",
+      });
 
       expect(
         redactor.rows([
           { key: "Authorization", value: "Bearer typed", enabled: true },
           { key: "Authorization", value: "Bearer {{token}}", enabled: false },
           { key: "Accept", value: "*/*", enabled: true },
-        ])
+        ]),
       ).toEqual([
         { key: "Authorization", value: MASK, enabled: true },
         { key: "Authorization", value: "Bearer {{token}}", enabled: false },

@@ -129,7 +129,10 @@ export class Splitter implements OnInit {
     try {
       const value: unknown = JSON.parse(localStorage.getItem(key) ?? "null");
       const valid =
-        Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === "number" && Number.isFinite(n) && n > 0) && value[0] + value[1] <= 100.5;
+        Array.isArray(value) &&
+        value.length === 2 &&
+        value.every((n) => typeof n === "number" && Number.isFinite(n) && n > 0) &&
+        value[0] + value[1] <= 100.5;
       return valid ? [value[0], value[1]] : null;
     } catch (error) {
       recordDiagnostic(error, "splitter: stored sizes unreadable, using the defaults");

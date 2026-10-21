@@ -28,7 +28,9 @@ function scanner(page: Page, found: string[]) {
 
 for (const theme of ["light", "dark"] as const) {
   // A test of its own: with the other widgets' scans, Firefox on CI took more than the 30 s a test has.
-  test(`the segmented choice, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+  test(`the segmented choice, in each state, is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
     await open(page, theme);
     const found: string[] = [];
     const scan = scanner(page, found);
@@ -168,7 +170,9 @@ for (const theme of ["light", "dark"] as const) {
   });
 
   // Two tests, not one: each scan reads the whole page, and with every family in it one test took more than its 30 s in Firefox on CI.
-  test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+  test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
     await open(page, theme);
     const found: string[] = [];
     const scan = scanner(page, found);
@@ -201,7 +205,9 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
-  test(`the tabs and the accordion, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+  test(`the tabs and the accordion, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+  }) => {
     await open(page, theme);
     const found: string[] = [];
     const scan = scanner(page, found);
@@ -319,7 +325,9 @@ test("menu: a button's menu, by the keys of WAI-ARIA's menu button pattern", asy
   await expect(page.getByRole("menu")).toHaveCount(0);
 });
 
-test("menu: a row's menu opens at the pointer and at the row, for that row, and gives focus back to it", async ({ page }) => {
+test("menu: a row's menu opens at the pointer and at the row, for that row, and gives focus back to it", async ({
+  page,
+}) => {
   await open(page, "light");
   const tree = page.getByRole("tree", { name: "Collections" });
   const row = (name: string) => tree.getByRole("treeitem", { name, exact: true });
@@ -354,7 +362,9 @@ test("menu: a row's menu opens at the pointer and at the row, for that row, and 
   await expect(page.getByRole("menuitem").first()).toHaveText("Copy as cURL");
 });
 
-test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape closes it and focus goes back", async ({ page }) => {
+test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape closes it and focus goes back", async ({
+  page,
+}) => {
   await open(page, "light");
   const opener = page.getByRole("button", { name: "Open the dialog" });
   const dialog = page.getByRole("dialog", { name: "Edit request" });
@@ -390,7 +400,9 @@ test("dialog: focus starts on its first element, Tab and Shift+Tab wrap, Escape 
   await expect(dialog).toHaveCount(0);
 });
 
-test("dialog: Escape closes a select's list or a menu inside it first, and a tooltip does not keep it open", async ({ page }) => {
+test("dialog: Escape closes a select's list or a menu inside it first, and a tooltip does not keep it open", async ({
+  page,
+}) => {
   await open(page, "light");
   await page.getByRole("button", { name: "Open the dialog" }).click();
   const dialog = page.getByRole("dialog", { name: "Edit request" });
@@ -407,7 +419,12 @@ test("dialog: Escape closes a select's list or a menu inside it first, and a too
   // Against the select, as outside a dialog: the dialog's entrance left nothing that moves it.
   const field = (await select.boundingBox())!;
   await expect.poll(async () => Math.abs((await list.boundingBox())!.x - field.x)).toBeLessThan(2);
-  expect(await list.evaluate((el, [x, y]) => el.contains(document.elementFromPoint(x, y)), [box.x + box.width / 2, box.y + 12])).toBe(true);
+  expect(
+    await list.evaluate(
+      (el, [x, y]) => el.contains(document.elementFromPoint(x, y)),
+      [box.x + box.width / 2, box.y + 12],
+    ),
+  ).toBe(true);
   await page.getByRole("option", { name: "Staging" }).click();
   await expect(select).toHaveText("Staging");
   await page.keyboard.press("Enter");
@@ -440,7 +457,9 @@ test("dialog: Escape closes a select's list or a menu inside it first, and a too
   await expect(tooltip).toHaveCount(0);
 });
 
-test("confirmation: over a dialog and under a button, focus on Cancel, Tab stays in, Escape or a click outside cancels, focus goes back", async ({ page }) => {
+test("confirmation: over a dialog and under a button, focus on Cancel, Tab stays in, Escape or a click outside cancels, focus goes back", async ({
+  page,
+}) => {
   await open(page, "light");
   await page.getByRole("button", { name: "Open the dialog" }).click();
   const dialog = page.getByRole("dialog", { name: "Edit request" });
@@ -467,10 +486,16 @@ test("confirmation: over a dialog and under a button, focus on Cancel, Tab stays
   const popup = page.getByRole("alertdialog", { name: "Remove this request?" });
   await expect(popup.getByRole("button", { name: "Cancel" })).toBeFocused();
   // 10 px under it, or above it where there is no room under it, centred on it; measured as laid out, not as it grows in.
-  const place = await popup.evaluate((el, b) => {
-    const p = { y: el.offsetTop, height: el.offsetHeight, x: el.offsetLeft, width: el.offsetWidth };
-    return { gap: p.y > b.y ? p.y - (b.y + b.height) : b.y - (p.y + p.height), off: Math.abs(p.x + p.width / 2 - (b.x + b.width / 2)) };
-  }, (await button.boundingBox())!);
+  const place = await popup.evaluate(
+    (el, b) => {
+      const p = { y: el.offsetTop, height: el.offsetHeight, x: el.offsetLeft, width: el.offsetWidth };
+      return {
+        gap: p.y > b.y ? p.y - (b.y + b.height) : b.y - (p.y + p.height),
+        off: Math.abs(p.x + p.width / 2 - (b.x + b.width / 2)),
+      };
+    },
+    (await button.boundingBox())!,
+  );
   // The button may sit at a fraction of a pixel: WebKit measured 9.5 on CI.
   expect(Math.abs(place.gap - 10)).toBeLessThan(1);
   expect(place.off).toBeLessThan(1);
@@ -537,16 +562,26 @@ test("drawer: a modal dialog at the window's edge, and what opens from it takes 
 });
 
 /** Where a tooltip is, by its layout box: its entrance scales it. */
-const layout = (tip: Locator) => tip.evaluate((el: HTMLElement) => ({ left: el.offsetLeft, top: el.offsetTop, right: el.offsetLeft + el.offsetWidth, bottom: el.offsetTop + el.offsetHeight }));
+const layout = (tip: Locator) =>
+  tip.evaluate((el: HTMLElement) => ({
+    left: el.offsetLeft,
+    top: el.offsetTop,
+    right: el.offsetLeft + el.offsetWidth,
+    bottom: el.offsetTop + el.offsetHeight,
+  }));
 
-test("tooltip: from the keyboard, described, above or below, and Escape hides it and goes on", async ({ page, browserName }) => {
+test("tooltip: from the keyboard, described, above or below, and Escape hides it and goes on", async ({
+  page,
+  browserName,
+}) => {
   await open(page, "light");
   // The pointer stays at (0, 0): nothing of a tooltip is ever drawn there.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
   const tip = (text: string) => page.getByRole("tooltip").filter({ hasText: text });
   const newTab = page.getByRole("button", { name: "New tab", exact: true });
   await page.getByRole("button", { name: "Export" }).focus();
-  for (let i = 0; i < 4 && !(await newTab.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+  for (let i = 0; i < 4 && !(await newTab.evaluate((el) => el === document.activeElement)); i++)
+    await page.keyboard.press(tab);
   await expect(newTab).toBeFocused();
   await expect(tip("New tab (Alt+T)")).toBeVisible();
   // It adds a key to the name, so it describes the button; Delete's repeats the name, and does not.
@@ -598,7 +633,9 @@ test("tooltip: from the keyboard, described, above or below, and Escape hides it
   expect(await page.evaluate(() => (window as unknown as { escapes: number }).escapes)).toBe(1);
 });
 
-test("tooltip: the pointer shows it, may rest on it, and a press or leaving hides it; a click's focus and a touch do not", async ({ page }) => {
+test("tooltip: the pointer shows it, may rest on it, and a press or leaving hides it; a click's focus and a touch do not", async ({
+  page,
+}) => {
   await open(page, "light");
   const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
   const newTab = page.getByRole("button", { name: "New tab", exact: true });
@@ -606,7 +643,12 @@ test("tooltip: the pointer shows it, may rest on it, and a press or leaving hide
   await expect(tip).toBeVisible();
   // The gap to the button is the tooltip's: a pointer crossing it is never on neither, however slow its moves.
   const n = (await newTab.boundingBox())!;
-  expect(await tip.evaluate((el, [x, y]) => el.contains(document.elementFromPoint(x, y)), [n.x + n.width / 2, n.y + n.height + 4])).toBe(true);
+  expect(
+    await tip.evaluate(
+      (el, [x, y]) => el.contains(document.elementFromPoint(x, y)),
+      [n.x + n.width / 2, n.y + n.height + 4],
+    ),
+  ).toBe(true);
   const t = await layout(tip);
   await page.mouse.move(t.left + 10, t.top + 5, { steps: 4 });
   await page.waitForTimeout(200);
@@ -656,7 +698,9 @@ test("tooltip: at the window's edge it takes the other side and stays inside", a
   // Below, at the window's bottom: above. Above, at the window's top: below.
   const newTab = page.getByRole("button", { name: "New tab", exact: true });
   await page.mouse.move(0, 0);
-  await newTab.evaluate((el) => window.scrollBy({ top: el.getBoundingClientRect().bottom - innerHeight + 2, behavior: "instant" }));
+  await newTab.evaluate((el) =>
+    window.scrollBy({ top: el.getBoundingClientRect().bottom - innerHeight + 2, behavior: "instant" }),
+  );
   await newTab.hover();
   const n = (await newTab.boundingBox())!;
   expect((await layout(tip("New tab (Alt+T)"))).bottom).toBeLessThanOrEqual(n.y - 7);
@@ -676,7 +720,9 @@ test("tooltip: in the drawer it is in the drawer, and Escape closes the drawer a
   const drawer = page.getByRole("dialog", { name: "History" });
   const tip = drawer.getByRole("tooltip").filter({ hasText: "Close history (Esc)" });
   await expect(tip).toBeVisible();
-  await expect(drawer.getByRole("button", { name: "Close history" })).toHaveAccessibleDescription("Close history (Esc)");
+  await expect(drawer.getByRole("button", { name: "Close history" })).toHaveAccessibleDescription(
+    "Close history (Esc)",
+  );
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
   await expect(page.getByRole("tooltip")).toHaveCount(0);
@@ -694,7 +740,9 @@ test("tooltip: with reduced motion it appears at once", async ({ page }) => {
   await page.getByRole("button", { name: "New tab", exact: true }).hover();
   const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
   await expect(tip).toBeVisible();
-  const durations = await tip.evaluate((el) => el.getAnimations().map((animation) => Number(animation.effect?.getComputedTiming().duration)));
+  const durations = await tip.evaluate((el) =>
+    el.getAnimations().map((animation) => Number(animation.effect?.getComputedTiming().duration)),
+  );
   expect(durations.every((ms) => ms <= 0.001)).toBe(true);
 });
 
@@ -960,7 +1008,10 @@ test("select: closed keys choose, the list's keys, and focus kept on the select"
 test("select: in forced colours the option the keys are on and the chosen one are still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const route = page.getByRole("combobox", { name: "Request route" });
   await route.focus();
   await page.keyboard.press("Enter");
@@ -977,10 +1028,16 @@ test("select: in forced colours the option the keys are on and the chosen one ar
 test("segmented: in forced colours the chosen option is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const theme = page.getByRole("radiogroup", { name: "Theme" });
   // The raised background is taken away; a border is not.
-  const mark = (name: string) => theme.getByRole("radio", { name, exact: true }).evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
+  const mark = (name: string) =>
+    theme
+      .getByRole("radio", { name, exact: true })
+      .evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
   await expect.poll(() => mark("System")).toBe("solid 2px");
   expect(await mark("Light")).not.toContain("solid");
 });
@@ -988,9 +1045,16 @@ test("segmented: in forced colours the chosen option is still marked", async ({ 
 test("accordion: in forced colours an open section is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const chevron = (name: string) =>
-    page.locator(".catalogue-accordion").getByRole("button", { name, exact: true }).locator(".section-chevron").evaluate((el) => getComputedStyle(el).transform);
+    page
+      .locator(".catalogue-accordion")
+      .getByRole("button", { name, exact: true })
+      .locator(".section-chevron")
+      .evaluate((el) => getComputedStyle(el).transform);
   // Its colour is taken away; the chevron turned over is not.
   await expect.poll(() => chevron("Headers")).not.toBe("none");
   expect(await chevron("Params")).toBe("none");
@@ -999,7 +1063,10 @@ test("accordion: in forced colours an open section is still marked", async ({ pa
 test("tabs: in forced colours the chosen tab is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const parts = page.getByRole("tablist", { name: "Request parts" });
   const line = (name: string) =>
     parts.getByRole("tab", { name, exact: true }).evaluate((el) => {
@@ -1013,7 +1080,10 @@ test("tabs: in forced colours the chosen tab is still marked", async ({ page }) 
 test("tree: in forced colours the selected row is still marked", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const tree = page.getByRole("tree", { name: "Collections" });
   const row = (name: string) => tree.getByRole("treeitem", { name, exact: true });
   await row("PATCH Update a plan").click();
@@ -1028,7 +1098,10 @@ test("tree: in forced colours the selected row is still marked", async ({ page }
 test("dialogs: in forced colours the edge of a dialog, a confirmation and the drawer still shows", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   // The shadow and the backdrop are taken away; a border is not.
   const edge = (name: string, side: "Top" | "Right") =>
     page.getByRole(name === "Remove this request?" ? "alertdialog" : "dialog", { name }).evaluate((el, s) => {
@@ -1048,15 +1121,23 @@ test("dialogs: in forced colours the edge of a dialog, a confirmation and the dr
 test("tooltip: in forced colours its edge still shows", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   await page.getByRole("button", { name: "New tab", exact: true }).hover();
   const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
   await expect(tip).toBeVisible();
   // The shadow is taken away; the border is not.
-  expect(await tip.evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`)).toBe("solid 1px");
+  expect(
+    await tip.evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`),
+  ).toBe("solid 1px");
 });
 
-test("spinner: named only on its own, takes no focus, and is a ring in forced colours and with reduced motion", async ({ page, browserName }) => {
+test("spinner: named only on its own, takes no focus, and is a ring in forced colours and with reduced motion", async ({
+  page,
+  browserName,
+}) => {
   await open(page, "light");
   // In a button the button's text says it; on its own it is a named progressbar.
   await expect(page.getByRole("progressbar")).toHaveCount(1);
@@ -1070,7 +1151,10 @@ test("spinner: named only on its own, takes no focus, and is a ring in forced co
   await expect(inButton).not.toBeFocused();
 
   // In the button's colour: white on the filled button.
-  const colours = await inButton.evaluate((el) => [getComputedStyle(el.querySelector("circle")!).stroke, getComputedStyle(el).color]);
+  const colours = await inButton.evaluate((el) => [
+    getComputedStyle(el.querySelector("circle")!).stroke,
+    getComputedStyle(el).color,
+  ]);
   expect(colours[0]).toBe(colours[1]);
 
   // Reduced motion: it stands still, still a ring with a gap (Material's shrank to a dot).
@@ -1086,14 +1170,23 @@ test("spinner: named only on its own, takes no focus, and is a ring in forced co
 test("spinner: in forced colours it is drawn in the text's colour", async ({ page }) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
   const spinner = page.getByRole("progressbar", { name: "Loading secrets" });
-  const [stroke, color] = await spinner.evaluate((el) => [getComputedStyle(el.querySelector("circle")!).stroke, getComputedStyle(el).color]);
+  const [stroke, color] = await spinner.evaluate((el) => [
+    getComputedStyle(el.querySelector("circle")!).stroke,
+    getComputedStyle(el).color,
+  ]);
   expect(stroke).toBe(color);
   expect(stroke).not.toBe("rgba(0, 0, 0, 0)");
 });
 
-test("button: Enter and Space press it, Tab passes over a disabled one, and Enter follows a link", async ({ page, browserName }) => {
+test("button: Enter and Space press it, Tab passes over a disabled one, and Enter follows a link", async ({
+  page,
+  browserName,
+}) => {
   await open(page, "light");
   const status = page.getByRole("status");
   const filled = page.getByRole("button", { name: "Filled", exact: true });
@@ -1112,10 +1205,14 @@ test("button: Enter and Space press it, Tab passes over a disabled one, and Ente
   await expect(page.getByRole("button", { name: "Filled disabled" })).toBeDisabled();
 });
 
-test("button: none of the browser's look; under the pointer, focused from the keyboard, pressed and disabled", async ({ page, browserName }) => {
+test("button: none of the browser's look; under the pointer, focused from the keyboard, pressed and disabled", async ({
+  page,
+  browserName,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await open(page, "light");
-  const css = (locator: Locator, property: string) => locator.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+  const css = (locator: Locator, property: string) =>
+    locator.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
   for (const name of ["Filled", "Outlined", "Text", "Icon", "Plain", "Send"]) {
     expect(await css(page.getByRole("button", { name, exact: true }), "appearance"), name).toBe("none");
   }
@@ -1159,12 +1256,21 @@ test("button: an icon alone sits in its middle, square or not", async ({ page })
   }
 });
 
-test("button: in forced colours each keeps an edge but the plain icon, and the send button gains one", async ({ page }) => {
+test("button: in forced colours each keeps an edge but the plain icon, and the send button gains one", async ({
+  page,
+}) => {
   await page.emulateMedia({ forcedColors: "active" });
   await open(page, "light");
-  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
-  const edge = (name: string) => page.getByRole("button", { name, exact: true }).evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
-  for (const name of ["Filled", "Outlined", "Text", "Square", "Icon", "Send"]) expect(await edge(name), name).toBe("solid 1px");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
+  const edge = (name: string) =>
+    page
+      .getByRole("button", { name, exact: true })
+      .evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
+  for (const name of ["Filled", "Outlined", "Text", "Square", "Icon", "Send"])
+    expect(await edge(name), name).toBe("solid 1px");
   expect(await edge("Plain")).toBe("none 0px");
 });
 

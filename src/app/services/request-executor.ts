@@ -30,15 +30,26 @@ export class RequestExecutor {
   private readonly cookieJar = inject(CookieJar);
 
   private readonly ports: ExchangePorts = {
-    runScript: (script, environment, response, extras) => this.scriptSandbox.execute(script, environment, response, undefined, extras),
+    runScript: (script, environment, response, extras) =>
+      this.scriptSandbox.execute(script, environment, response, undefined, extras),
     transport: this.transport,
     environment: () => {
       const active = this.environments.activeEnvironment();
-      return active ? { name: active.name, vars: active.vars, change: (changes) => this.environments.changeEnvironment(active.meta.id, changes) } : undefined;
+      return active
+        ? {
+            name: active.name,
+            vars: active.vars,
+            change: (changes) => this.environments.changeEnvironment(active.meta.id, changes),
+          }
+        : undefined;
     },
     globals: () => this.environments.globals(),
     changeGlobals: (changes) => this.environments.changeGlobals(changes),
-    vault: { isUnlocked: () => this.vault.isUnlocked(), readSecret: (id) => this.vault.readSecret(id), replaceSecret: (id, plaintext) => this.vault.replaceSecret(id, plaintext) },
+    vault: {
+      isUnlocked: () => this.vault.isUnlocked(),
+      readSecret: (id) => this.vault.readSecret(id),
+      replaceSecret: (id, plaintext) => this.vault.replaceSecret(id, plaintext),
+    },
     cookies: this.cookieJar,
     timeoutMs: () => this.settings.timeoutMs(),
     historyBodies: () => this.settings.historyBodies(),

@@ -1,25 +1,25 @@
-import { TestBed } from '@angular/core/testing';
-import { signal, type Provider } from '@angular/core';
-import { Composer } from '../app/components/composer/composer';
-import { ComposerView } from '../app/components/composer/composer-view';
-import { RequestSave } from '../app/services/request-save';
-import { WorkspaceStore } from '../app/state/workspace-store';
+import { TestBed } from "@angular/core/testing";
+import { signal, type Provider } from "@angular/core";
+import { Composer } from "../app/components/composer/composer";
+import { ComposerView } from "../app/components/composer/composer-view";
+import { RequestSave } from "../app/services/request-save";
+import { WorkspaceStore } from "../app/state/workspace-store";
 import { provideRepositories } from "./repositories";
-import { ResponseInspection, ResponseInspector } from '../app/shared/inspect/response-inspector';
-import { EnvironmentsStore } from '../app/services/environments-store';
-import { RequestSettings } from '../app/services/request-settings';
-import { SecretsVault } from '../app/services/secrets-vault';
+import { ResponseInspection, ResponseInspector } from "../app/shared/inspect/response-inspector";
+import { EnvironmentsStore } from "../app/services/environments-store";
+import { RequestSettings } from "../app/services/request-settings";
+import { SecretsVault } from "../app/services/secrets-vault";
 import { EnvironmentDoc } from "@wayfarer/core";
-import { CollectionsStore, CollectionTree } from '../app/services/collections-store';
-import { Meta, NewRequest, RequestDoc } from '../app/models/collections';
-import { requestContent, rowsOf } from './request-fixtures';
-import { applyVariableChanges, type Row, type VariableChange } from '@wayfarer/core';
+import { CollectionsStore, CollectionTree } from "../app/services/collections-store";
+import { Meta, NewRequest, RequestDoc } from "../app/models/collections";
+import { requestContent, rowsOf } from "./request-fixtures";
+import { applyVariableChanges, type Row, type VariableChange } from "@wayfarer/core";
 import { vi } from "vitest";
-import { FetchMock } from './fetch-mock';
+import { FetchMock } from "./fetch-mock";
 
 // Fixtures flush what the wire carries: bytes.
 export const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.stringify(value)).buffer;
-export const JSON_HEADERS = { 'Content-Type': 'application/json' };
+export const JSON_HEADERS = { "Content-Type": "application/json" };
 
 class IdbServiceMock {
   init = vi.fn().mockReturnValue(Promise.resolve());
@@ -33,7 +33,14 @@ class IdbServiceMock {
 class ResponseInspectorServiceStub {
   markRequest = vi.fn();
   /** As the service: the timings of the exchange that just ended. */
-  markResponse = vi.fn().mockImplementation((id: string, url: string): ResponseInspection => ({ id, url, startTime: 0, startEpoch: 0, endTime: 1, duration: 1 }));
+  markResponse = vi.fn().mockImplementation((id: string, url: string): ResponseInspection => ({
+    id,
+    url,
+    startTime: 0,
+    startEpoch: 0,
+    endTime: 1,
+    duration: 1,
+  }));
 }
 
 class EnvironmentsServiceStub {
@@ -43,20 +50,24 @@ class EnvironmentsServiceStub {
   readonly loading = signal(false).asReadonly();
   readonly globals = signal<Row[]>([]);
   ensureLoaded = vi.fn().mockReturnValue(Promise.resolve());
-  updateEnvironment = vi.fn()
-    .mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
-      const current = this.activeEnvSignal();
-      if (current && current.meta.id === id) {
-        this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
-      }
-    });
+  updateEnvironment = vi.fn().mockImplementation(async (id: string, patch: Partial<EnvironmentDoc>) => {
+    const current = this.activeEnvSignal();
+    if (current && current.meta.id === id) {
+      this.activeEnvSignal.set({ ...current, ...patch } as EnvironmentDoc);
+    }
+  });
 
   /** As the store does it: the changes applied to the rows that are there. */
   changeEnvironment = vi.fn().mockImplementation(async (id: string, changes: VariableChange[]) => {
     const current = this.activeEnvSignal();
-    if (current && current.meta.id === id) this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
+    if (current && current.meta.id === id)
+      this.activeEnvSignal.set({ ...current, vars: applyVariableChanges(current.vars, changes) });
   });
-  changeGlobals = vi.fn().mockImplementation(async (changes: VariableChange[]) => this.globals.set(applyVariableChanges(this.globals(), changes)));
+  changeGlobals = vi
+    .fn()
+    .mockImplementation(async (changes: VariableChange[]) =>
+      this.globals.set(applyVariableChanges(this.globals(), changes)),
+    );
 
   setActiveEnvironment(env: EnvironmentDoc | null): void {
     this.activeEnvSignal.set(env);
@@ -68,14 +79,14 @@ export function meta(id: string): Meta {
 }
 
 export function makeRequestDoc(overrides: Partial<RequestDoc> = {}): RequestDoc {
-  const id = overrides.id ?? 'r1';
+  const id = overrides.id ?? "r1";
   return {
     id,
     meta: meta(id),
-    collectionId: 'c1',
-    name: 'Saved request',
+    collectionId: "c1",
+    name: "Saved request",
     order: 0,
-    ...requestContent({ url: 'https://saved.example.com', headers: rowsOf({ Accept: 'application/json' }) }),
+    ...requestContent({ url: "https://saved.example.com", headers: rowsOf({ Accept: "application/json" }) }),
     ...overrides,
   };
 }
@@ -92,7 +103,9 @@ class SecretsVaultStub {
     if (!this.unlocked() && this.answer) this.unlocked.set(true);
     return this.unlocked();
   });
-  readSecret = vi.fn().mockImplementation(async (id: string) => (this.unlocked() ? this.secrets.get(id) ?? null : null));
+  readSecret = vi
+    .fn()
+    .mockImplementation(async (id: string) => (this.unlocked() ? (this.secrets.get(id) ?? null) : null));
   /** What `OAuthTokens` looks through for a kept token: none here. */
   listSecrets = async () => [];
 }
@@ -102,14 +115,17 @@ class CollectionsServiceStub {
   readonly tree = this.treeSignal.asReadonly();
   readonly loading = signal(false).asReadonly();
 
-  createRequest = vi.fn().mockImplementation(
-    async (payload: NewRequest): Promise<RequestDoc> => makeRequestDoc({ ...payload, id: 'new-id' })
-  );
+  createRequest = vi
+    .fn()
+    .mockImplementation(async (payload: NewRequest): Promise<RequestDoc> =>
+      makeRequestDoc({ ...payload, id: "new-id" }),
+    );
 
-  updateRequest = vi.fn().mockImplementation(
-    async (id: string, patch: Partial<RequestDoc>): Promise<RequestDoc> =>
-      makeRequestDoc({ id, ...patch })
-  );
+  updateRequest = vi
+    .fn()
+    .mockImplementation(async (id: string, patch: Partial<RequestDoc>): Promise<RequestDoc> =>
+      makeRequestDoc({ id, ...patch }),
+    );
 
   setTree(trees: CollectionTree[]): void {
     this.treeSignal.set(trees);
@@ -120,9 +136,9 @@ class CollectionsServiceStub {
 
 export function buildEnvironment(vars: Record<string, string>): EnvironmentDoc {
   return {
-    id: 'env-1',
-    meta: { id: 'env-1', createdAt: 1, updatedAt: 1 },
-    name: 'Test env',
+    id: "env-1",
+    meta: { id: "env-1", createdAt: 1, updatedAt: 1 },
+    name: "Test env",
     order: 1,
     vars: rowsOf(vars),
   } as EnvironmentDoc;

@@ -1,5 +1,16 @@
 import { computed, signal } from "@angular/core";
-import { emptyRequest, newId, parseJson, type BinaryBody, type Draft, type RequestContent, type ResponseEnvelope, type Row, type RunIteration, type StreamEvent } from "@wayfarer/core";
+import {
+  emptyRequest,
+  newId,
+  parseJson,
+  type BinaryBody,
+  type Draft,
+  type RequestContent,
+  type ResponseEnvelope,
+  type Row,
+  type RunIteration,
+  type StreamEvent,
+} from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { TestResult } from "@wayfarer/core";

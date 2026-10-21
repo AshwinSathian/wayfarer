@@ -3,12 +3,25 @@ import { cookieHeader, cookiesFor, parseSetCookie, storeCookie, withJarCookies, 
 
 const NOW = Date.UTC(2026, 9, 13);
 const parse = (header: string, url = "https://api.test/v1/login") => parseSetCookie(header, url, NOW);
-const jarOf = (...headers: [string, string?][]) => headers.reduce<Cookie[]>((jar, [header, url]) => { const cookie = parse(header, url); return cookie ? storeCookie(jar, cookie, NOW) : jar; }, []);
+const jarOf = (...headers: [string, string?][]) =>
+  headers.reduce<Cookie[]>((jar, [header, url]) => {
+    const cookie = parse(header, url);
+    return cookie ? storeCookie(jar, cookie, NOW) : jar;
+  }, []);
 const sent = (jar: Cookie[], url: string, now = NOW) => cookieHeader(cookiesFor(jar, url, now));
 
 describe("parseSetCookie", () => {
   it("reads a name and a value, and gives a cookie without attributes the request's host and default path", () => {
-    expect(parse("sid=abc123")).toEqual({ name: "sid", value: "abc123", domain: "api.test", hostOnly: true, path: "/v1", secure: false, httpOnly: false, created: NOW });
+    expect(parse("sid=abc123")).toEqual({
+      name: "sid",
+      value: "abc123",
+      domain: "api.test",
+      hostOnly: true,
+      path: "/v1",
+      secure: false,
+      httpOnly: false,
+      created: NOW,
+    });
   });
 
   it("reads the attributes, in any case and order", () => {
@@ -56,7 +69,10 @@ describe("parseSetCookie", () => {
     expect(parse("a=1; Domain=test", "https://sub.api.test/")).toBeUndefined();
     expect(parse("a=1; Domain=api.test", "https://sub.api.test/")?.domain).toBe("api.test");
     // A host with no dot may name itself: the cookie is then that host's alone.
-    expect(parse("a=1; Domain=localhost", "http://localhost:3000/")).toMatchObject({ domain: "localhost", hostOnly: true });
+    expect(parse("a=1; Domain=localhost", "http://localhost:3000/")).toMatchObject({
+      domain: "localhost",
+      hostOnly: true,
+    });
     // An IP address is never a suffix of anything.
     expect(parse("a=1; Domain=0.0.1", "http://127.0.0.1/")).toBeUndefined();
     expect(parse("a=1; Domain=127.0.0.1", "http://127.0.0.1/")).toMatchObject({ domain: "127.0.0.1", hostOnly: true });
@@ -144,12 +160,17 @@ describe("withJarCookies", () => {
   const cookies = cookiesFor(jar, "https://api.test/", NOW);
 
   it("adds a Cookie header when the request has none, and none when the jar has nothing for it", () => {
-    expect(withJarCookies([["Accept", "*/*"]], cookies)).toEqual([["Accept", "*/*"], ["Cookie", "sid=1; theme=dark"]]);
+    expect(withJarCookies([["Accept", "*/*"]], cookies)).toEqual([
+      ["Accept", "*/*"],
+      ["Cookie", "sid=1; theme=dark"],
+    ]);
     expect(withJarCookies([["Accept", "*/*"]], [])).toEqual([["Accept", "*/*"]]);
   });
 
   it("adds to the request's own Cookie header, whose names win over the jar's", () => {
-    expect(withJarCookies([["cookie", "theme=light; mine=1"]], cookies)).toEqual([["cookie", "theme=light; mine=1; sid=1"]]);
+    expect(withJarCookies([["cookie", "theme=light; mine=1"]], cookies)).toEqual([
+      ["cookie", "theme=light; mine=1; sid=1"],
+    ]);
     expect(withJarCookies([["Cookie", "sid=x; theme=y"]], cookies)).toEqual([["Cookie", "sid=x; theme=y"]]);
   });
 });

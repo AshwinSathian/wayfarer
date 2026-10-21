@@ -30,7 +30,8 @@ const GOOD = {
   "docs/x.md": "Secrets are encrypted. <!-- claim:C-002 -->\n",
   "e2e/a.spec.ts": 'test("@claim:C-001 no third-party requests", async () => {});\n',
   "src/app/x.spec.ts": "it('encrypts @claim:C-002', () => {});\n",
-  "docs/threat-model.md": "| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n| Page and network | I | Telemetry | None is sent | C-001 |\n",
+  "docs/threat-model.md":
+    "| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n| Page and network | I | Telemetry | None is sent | C-001 |\n",
 };
 
 test("parseLedger reads ID, source and test columns", () => {
@@ -41,17 +42,20 @@ test("parseLedger reads ID, source and test columns", () => {
 });
 
 test("testTitles finds test/it titles in any quote style, including modifiers", () => {
-  const src = "test('a @claim:C-001', f);\nit(\"b\", f);\ntest.skip(`c @claim:C-002`, f);\ntest.describe('d', f);\n// test('e @claim:C-003')\n";
+  const src =
+    "test('a @claim:C-001', f);\nit(\"b\", f);\ntest.skip(`c @claim:C-002`, f);\ntest.describe('d', f);\n// test('e @claim:C-003')\n";
   assert.deepEqual(testTitles(src), ["a @claim:C-001", "b", "c @claim:C-002", "d"]);
 });
 
 test("testTitles finds the title of a table-driven test, which follows the table", () => {
-  const src = 'it.each(ROWS.map((row) => [row.api, row] as const))("@claim:C-040 %s", async (_api, row) => {});\ntest.each([1, 2])(`n %d`, () => {});\nit("plain", () => { each(a)("not a title"); });';
+  const src =
+    'it.each(ROWS.map((row) => [row.api, row] as const))("@claim:C-040 %s", async (_api, row) => {});\ntest.each([1, 2])(`n %d`, () => {});\nit("plain", () => { each(a)("not a title"); });';
   assert.deepEqual(testTitles(src), ["@claim:C-040 %s", "n %d", "plain"]);
 });
 
 test("testTitles finds a title on the line after its call, where a formatter puts a long one", () => {
-  const src = 'it.each(cases)(\n  "@claim:C-061 %s: the signature is the suite\'s",\n  async (name) => {},\n);\ntest(\n  `@claim:C-007 long`,\n  () => {},\n);\n// test(\n//   "not a title",\n';
+  const src =
+    'it.each(cases)(\n  "@claim:C-061 %s: the signature is the suite\'s",\n  async (name) => {},\n);\ntest(\n  `@claim:C-007 long`,\n  () => {},\n);\n// test(\n//   "not a title",\n';
   assert.deepEqual(testTitles(src), ["@claim:C-061 %s: the signature is the suite's", "@claim:C-007 long"]);
 });
 
@@ -65,10 +69,22 @@ test("the threat model must exist (P7.4)", () => {
 });
 
 test("a threat model row with no claim, or a claim with no ledger row, fails (P7.4)", () => {
-  const model = (row) => ({ ...GOOD, "docs/threat-model.md": `| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n${row}\n` });
-  assert.match(checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | |"))).join("\n"), /threat-model\.md: the row "Page and bridge \/ S" links no claim/);
-  assert.match(checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | C-009 |"))).join("\n"), /threat-model\.md: the row "Page and bridge \/ S" links C-009, which has no row/);
-  assert.deepEqual(checkClaims(fixture(model("| Page and bridge | S, T | Another site | Origin check | C-001, C-002 |"))), []);
+  const model = (row) => ({
+    ...GOOD,
+    "docs/threat-model.md": `| Boundary | STRIDE | Threat | Mitigation | Claims |\n|---|---|---|---|---|\n${row}\n`,
+  });
+  assert.match(
+    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | |"))).join("\n"),
+    /threat-model\.md: the row "Page and bridge \/ S" links no claim/,
+  );
+  assert.match(
+    checkClaims(fixture(model("| Page and bridge | S | Another site | Origin check | C-009 |"))).join("\n"),
+    /threat-model\.md: the row "Page and bridge \/ S" links C-009, which has no row/,
+  );
+  assert.deepEqual(
+    checkClaims(fixture(model("| Page and bridge | S, T | Another site | Origin check | C-001, C-002 |"))),
+    [],
+  );
 });
 
 test("a doc marker with no ledger row fails", () => {
@@ -111,8 +127,9 @@ test("duplicate ledger IDs fail", () => {
 test("the CLI exits 1 with the errors on stderr", () => {
   const dir = fixture({ ...GOOD, "README.md": "" });
   assert.throws(
-    () => execFileSync(process.execPath, [join(process.cwd(), "scripts/check-claims.mjs")], { cwd: dir, stdio: "pipe" }),
-    (error) => error.status === 1 && /no doc marker/.test(String(error.stderr))
+    () =>
+      execFileSync(process.execPath, [join(process.cwd(), "scripts/check-claims.mjs")], { cwd: dir, stdio: "pipe" }),
+    (error) => error.status === 1 && /no doc marker/.test(String(error.stderr)),
   );
 });
 

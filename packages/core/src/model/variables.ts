@@ -40,7 +40,8 @@ export function applyVariableChanges(rows: Row[], changes: VariableChange[]): Ro
   for (const { key, value, keepSecret, json } of changes) {
     const made = (): Row => ({ key, value: value ?? "", enabled: true, ...(json && { json }) });
     const first = next.findIndex((row) => row.key === key);
-    if (value !== null && keepSecret && next.some((row) => row.key === key && SECRET_REFERENCE.test(row.value))) continue;
+    if (value !== null && keepSecret && next.some((row) => row.key === key && SECRET_REFERENCE.test(row.value)))
+      continue;
     if (value === null) {
       next = next.filter((row) => row.key !== key);
     } else if (first === -1) {
@@ -63,7 +64,8 @@ export type ScriptVariable = [name: string, value: string, json?: true];
 /** The enabled variables as a script is given them. A later row wins over an earlier one of the same name. */
 export function scriptVariables(rows: Row[]): ScriptVariable[] {
   const byName = new Map<string, ScriptVariable>();
-  for (const row of rows) if (row.enabled && row.key) byName.set(row.key, row.json ? [row.key, row.value, true] : [row.key, row.value]);
+  for (const row of rows)
+    if (row.enabled && row.key) byName.set(row.key, row.json ? [row.key, row.value, true] : [row.key, row.value]);
   return [...byName.values()];
 }
 

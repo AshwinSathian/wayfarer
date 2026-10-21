@@ -14,7 +14,15 @@ export function pageMeta(path: string, title: string, description: string): Meta
     description,
     // A page's own alternates replace the layout's, so every page names the feed itself.
     alternates: { canonical: path, types: { "application/rss+xml": "/blog/rss.xml" } },
-    openGraph: { type: "website", siteName: "Wayfarer", locale: "en_GB", url: path, title, description, images: [image] },
+    openGraph: {
+      type: "website",
+      siteName: "Wayfarer",
+      locale: "en_GB",
+      url: path,
+      title,
+      description,
+      images: [image],
+    },
     twitter: { card: "summary_large_image", title, description, images: [image.url] },
   };
 }

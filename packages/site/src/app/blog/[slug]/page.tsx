@@ -37,7 +37,9 @@ export default async function BlogPost({ params }: Props) {
           </a>
           , <time dateTime={post.date}>{longDate(post.date)}</time>
         </p>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl">{post.title}</h1>
+        <h1 className="mt-3 max-w-3xl font-display text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl">
+          {post.title}
+        </h1>
         <p className="mt-5 max-w-2xl text-lg text-ink-muted">{post.description}</p>
         <article className="prose mt-10" dangerouslySetInnerHTML={{ __html: postHtml(post) }} />
       </main>

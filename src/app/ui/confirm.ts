@@ -1,4 +1,13 @@
-import { ApplicationRef, ChangeDetectionStrategy, Component, EnvironmentInjector, Injectable, createComponent, inject, viewChild } from "@angular/core";
+import {
+  ApplicationRef,
+  ChangeDetectionStrategy,
+  Component,
+  EnvironmentInjector,
+  Injectable,
+  createComponent,
+  inject,
+  viewChild,
+} from "@angular/core";
 import { UiButton } from "./button";
 import { Icon } from "../shared/icon/icon";
 import { UiModal } from "./modal";
@@ -42,7 +51,9 @@ const MARGIN = 8;
         <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
           <span class="text-label-secondary-on-fill" [id]="id + '-message'">{{ options.message }}</span>
           <div class="flex items-center gap-2 mt-3">
-            <button uiButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button uiButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{
+              options.acceptLabel ?? "Proceed"
+            }}</button>
             <button uiButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
             </button>
@@ -50,11 +61,17 @@ const MARGIN = 8;
         </div>
       } @else {
         <div class="flex flex-col items-center p-8 bg-canvas-overlay">
-          <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4"><app-icon name="warning" class="icon-lg text-status-error" /></div>
+          <div class="flex items-center justify-center w-12 h-12 rounded-full bg-status-error/10 mb-4"
+            ><app-icon name="warning" class="icon-lg text-status-error"
+          /></div>
           <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
-          <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{ options.message }}</p>
+          <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{
+            options.message
+          }}</p>
           <div class="flex items-center gap-3 mt-6">
-            <button uiButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button uiButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{
+              options.acceptLabel ?? "Proceed"
+            }}</button>
             <button uiButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
             </button>

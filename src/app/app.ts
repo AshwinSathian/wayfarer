@@ -1,19 +1,19 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { AppShell } from './components/app-shell/app-shell';
-import { HistoryRepository } from './data/history-repository';
-import { IdbCore } from './data/idb-core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from "@angular/core";
+import { AppShell } from "./components/app-shell/app-shell";
+import { HistoryRepository } from "./data/history-repository";
+import { IdbCore } from "./data/idb-core";
 import { PastRequest } from "@wayfarer/core";
-import { RequestSettings } from './services/request-settings';
-import { TabsStorage } from './state/tabs-storage';
+import { RequestSettings } from "./services/request-settings";
+import { TabsStorage } from "./state/tabs-storage";
 import { CookieJar } from "./services/cookie-jar";
 
 @Component({
-    selector: 'app-root',
-    imports: [AppShell],
-    templateUrl: './app.html',
-    styleUrl: './app.css',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    host: { '(window:resize)': 'onWindowResize()' },
+  selector: "app-root",
+  imports: [AppShell],
+  templateUrl: "./app.html",
+  styleUrl: "./app.css",
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { "(window:resize)": "onWindowResize()" },
 })
 export class App implements OnInit {
   private readonly history = inject(HistoryRepository);

@@ -36,12 +36,19 @@ export class OAuthTokenPanel {
 
   protected readonly status = computed(() => {
     const token = this.token();
-    if (!token) return this.interactive() ? "No token yet. Get token opens the sign-in in a window." : "No token yet. One is asked for when the request is sent.";
-    const kept = this.vault.isUnlocked() ? "It is kept in the vault." : "It is kept in this tab's memory only: the vault is locked.";
+    if (!token)
+      return this.interactive()
+        ? "No token yet. Get token opens the sign-in in a window."
+        : "No token yet. One is asked for when the request is sent.";
+    const kept = this.vault.isUnlocked()
+      ? "It is kept in the vault."
+      : "It is kept in this tab's memory only: the vault is locked.";
     if (token.expiresAt === null) return `There is a token. The server named no expiry. ${kept}`;
     const when = new Date(token.expiresAt).toLocaleTimeString();
     if (!tokenExpired(token, this.now())) return `There is a token, good until ${when}. ${kept}`;
-    return token.refreshToken || !this.interactive() ? `The token expired at ${when}. A new one is asked for when the request is sent.` : `The token expired at ${when}. Get a new one.`;
+    return token.refreshToken || !this.interactive()
+      ? `The token expired at ${when}. A new one is asked for when the request is sent.`
+      : `The token expired at ${when}. Get a new one.`;
   });
 
   constructor() {

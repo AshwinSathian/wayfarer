@@ -10,6 +10,6 @@ self.addEventListener("activate", (event) => {
       for (const key of await caches.keys()) await caches.delete(key);
       await self.registration.unregister();
       for (const client of await self.clients.matchAll({ type: "window" })) client.navigate(client.url);
-    })()
+    })(),
   );
 });

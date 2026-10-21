@@ -25,10 +25,16 @@ test("no report is a failure, not a pass", () => {
 });
 
 // W2.1 (PLAN-design.md, section 1): the site, on Lighthouse's mobile preset.
-const site = (performance, accessibility, seo) => ({ categories: { performance: { score: performance }, accessibility: { score: accessibility }, seo: { score: seo } } });
+const site = (performance, accessibility, seo) => ({
+  categories: { performance: { score: performance }, accessibility: { score: accessibility }, seo: { score: seo } },
+});
 
 test("the site needs 95 for performance and 100 for accessibility and search, by the median", () => {
   assert.deepEqual(judgeSite([site(0.99, 1, 1), site(0.5, 0.8, 0.9), site(0.96, 1, 1)]).failures, []);
-  assert.deepEqual(judgeSite([site(0.94, 0.98, 0.92)]).failures, ["performance 94 is under 95", "accessibility 98 is under 100", "seo 92 is under 100"]);
+  assert.deepEqual(judgeSite([site(0.94, 0.98, 0.92)]).failures, [
+    "performance 94 is under 95",
+    "accessibility 98 is under 100",
+    "seo 92 is under 100",
+  ]);
   assert.deepEqual(judgeSite([]).failures, ["no Lighthouse report to judge"]);
 });

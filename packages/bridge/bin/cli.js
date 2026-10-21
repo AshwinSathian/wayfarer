@@ -1,34 +1,38 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-const crypto = require('node:crypto');
-const fs = require('node:fs');
-const { createServer } = require('../src/server');
-const { loadOrCreateToken, TOKEN_FILE } = require('../src/token-store');
-const pkg = require('../package.json');
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const { createServer } = require("../src/server");
+const { loadOrCreateToken, TOKEN_FILE } = require("../src/token-store");
+const pkg = require("../package.json");
 
 const DEFAULT_PORT = 7717;
 const DEFAULT_ALLOWED_ORIGINS = [
-  'http://localhost:4200',
-  'http://127.0.0.1:4200',
-  'https://wayfarer.ashwinsathian.com',
+  "http://localhost:4200",
+  "http://127.0.0.1:4200",
+  "https://wayfarer.ashwinsathian.com",
 ];
 
 const MIN_TOKEN_LENGTH = 16;
 // No 0/O, 1/I/L: a code is read off a terminal and typed.
-const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 /** A one-time pairing code: eight characters, shown as two halves. */
 function pairingCode() {
   const chars = Array.from({ length: 8 }, () => CODE_ALPHABET[crypto.randomInt(CODE_ALPHABET.length)]);
-  return `${chars.slice(0, 4).join('')}-${chars.slice(4).join('')}`;
+  return `${chars.slice(0, 4).join("")}-${chars.slice(4).join("")}`;
 }
 
 /** A PEM file's text when it holds `marker`; otherwise the reason it does not do. */
 function readPem(file, marker, option) {
   try {
-    const pem = fs.readFileSync(file, 'utf8');
-    return pem.includes(marker) ? { pem } : { problem: `${option} must name a PEM file with ${marker.replace(/-/g, '').trim().toLowerCase()}, and ${file} has none` };
+    const pem = fs.readFileSync(file, "utf8");
+    return pem.includes(marker)
+      ? { pem }
+      : {
+          problem: `${option} must name a PEM file with ${marker.replace(/-/g, "").trim().toLowerCase()}, and ${file} has none`,
+        };
   } catch (err) {
     return { problem: `${option}: ${file} could not be read (${err.code ?? err.message})` };
   }
@@ -45,42 +49,42 @@ function parseArgs(argv, env = process.env) {
     const arg = argv[i];
     const value = () => {
       const next = argv[(i += 1)];
-      if (next === undefined || next.startsWith('--')) fail(`${arg} needs a value`);
+      if (next === undefined || next.startsWith("--")) fail(`${arg} needs a value`);
       return next;
     };
     switch (arg) {
-      case '--port': {
+      case "--port": {
         const port = Number(value());
         if (Number.isInteger(port) && port > 0 && port < 65536) args.port = port;
-        else fail('--port must be a whole number from 1 to 65535');
+        else fail("--port must be a whole number from 1 to 65535");
         break;
       }
-      case '--token':
+      case "--token":
         args.token = value();
         break;
-      case '--rotate-token':
+      case "--rotate-token":
         args.rotateToken = true;
         break;
-      case '--allow-origin': {
+      case "--allow-origin": {
         const origin = value();
         // An Origin header is scheme://host[:port], nothing after it.
         if (origin && URL.canParse(origin) && new URL(origin).origin === origin) args.allowOrigin.push(origin);
         else fail(`--allow-origin must be an origin like https://example.com, got: ${origin}`);
         break;
       }
-      case '--ca':
-      case '--cert':
-      case '--key': {
+      case "--ca":
+      case "--cert":
+      case "--key": {
         const file = value();
         if (file === undefined) break;
-        const read = readPem(file, arg === '--key' ? 'PRIVATE KEY-----' : '-----BEGIN CERTIFICATE-----', arg);
+        const read = readPem(file, arg === "--key" ? "PRIVATE KEY-----" : "-----BEGIN CERTIFICATE-----", arg);
         if (read.problem) fail(read.problem);
-        else if (arg === '--ca') args.ca = read.pem;
+        else if (arg === "--ca") args.ca = read.pem;
         else (args.tls ??= {})[arg.slice(2)] = read.pem;
         break;
       }
-      case '--help':
-      case '-h':
+      case "--help":
+      case "-h":
         args.help = true;
         break;
       default:
@@ -88,7 +92,7 @@ function parseArgs(argv, env = process.env) {
     }
   }
   if (args.tls && !(args.tls.cert && args.tls.key)) {
-    fail('--cert and --key go together: the certificate and its private key');
+    fail("--cert and --key go together: the certificate and its private key");
   }
   if (args.token !== undefined && args.token.length < MIN_TOKEN_LENGTH) {
     fail(`The token must be at least ${MIN_TOKEN_LENGTH} characters`);
@@ -146,45 +150,45 @@ function main() {
 
   const code = pairingCode();
   const server = createServer({ token, allowedOrigins, ca: args.ca, tls: args.tls, pairing: { code } });
-  const scheme = args.tls ? 'https' : 'http';
+  const scheme = args.tls ? "https" : "http";
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
       console.error(`Port ${port} is already in use. Pass --port <n> to use a different one.`);
     } else {
-      console.error('Failed to start wayfarer-bridge:', err.message);
+      console.error("Failed to start wayfarer-bridge:", err.message);
     }
     process.exitCode = 1;
   });
 
-  server.listen(port, '127.0.0.1', () => {
-    console.log('');
+  server.listen(port, "127.0.0.1", () => {
+    console.log("");
     console.log(`  wayfarer-bridge v${pkg.version} — listening on ${scheme}://127.0.0.1:${port}`);
-    console.log('');
+    console.log("");
     console.log(`  Pairing code: ${code}`);
     console.log("  (enter it in Wayfarer's Local Bridge settings and press Pair; it works once)");
-    console.log('');
+    console.log("");
     console.log(`  Bridge token: ${token}`);
     console.log(`  (persisted at ${TOKEN_FILE} — reused across restarts unless you pass --rotate-token)`);
-    console.log('');
-    console.log('  Allowed origins:');
+    console.log("");
+    console.log("  Allowed origins:");
     for (const origin of allowedOrigins) {
       console.log(`    - ${origin}`);
     }
-    console.log('');
+    console.log("");
     console.log("  Or paste the address and the token into Wayfarer's Local Bridge settings.");
-    console.log('  Anyone with this token who can reach an allowed origin can make this process');
+    console.log("  Anyone with this token who can reach an allowed origin can make this process");
     console.log("  issue HTTP requests on your behalf — stop it (Ctrl+C) when you're done, and");
-    console.log('  only add origins you trust with --allow-origin.');
-    console.log('');
+    console.log("  only add origins you trust with --allow-origin.");
+    console.log("");
   });
 
   const shutdown = () => {
-    console.log('\nShutting down wayfarer-bridge...');
+    console.log("\nShutting down wayfarer-bridge...");
     server.close(() => process.exit(0));
   };
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 if (require.main === module) main();

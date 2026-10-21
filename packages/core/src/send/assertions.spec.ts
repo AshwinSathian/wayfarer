@@ -3,7 +3,6 @@ import type { TestAssertion } from "../model/request";
 import { runAssertions, type AssertionResponseContext } from "./assertions";
 
 describe("runAssertions", () => {
-
   function assertion(overrides: Partial<TestAssertion>): TestAssertion {
     return {
       id: "t1",
@@ -17,20 +16,14 @@ describe("runAssertions", () => {
   describe("target resolution", () => {
     it("reads the response status code", () => {
       const response: AssertionResponseContext = { statusCode: 404, body: null, headers: {} };
-      const [result] = runAssertions(
-        [assertion({ target: "status", operator: "equals", expected: "404" })],
-        response
-      );
+      const [result] = runAssertions([assertion({ target: "status", operator: "equals", expected: "404" })], response);
       expect(result.passed).toBe(true);
       expect(result.actual).toBe(404);
     });
 
     it("reads response duration, defaulting to 0 when not provided", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = runAssertions(
-        [assertion({ target: "duration", operator: "equals", expected: "0" })],
-        response
-      );
+      const [result] = runAssertions([assertion({ target: "duration", operator: "equals", expected: "0" })], response);
       expect(result.actual).toBe(0);
       expect(result.passed).toBe(true);
     });
@@ -50,7 +43,7 @@ describe("runAssertions", () => {
             expected: "json",
           }),
         ],
-        response
+        response,
       );
       expect(result.passed).toBe(true);
       expect(result.actual).toBe("application/json");
@@ -60,7 +53,7 @@ describe("runAssertions", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
       const [result] = runAssertions(
         [assertion({ target: "header", key: "X-Missing", operator: "not-exists" })],
-        response
+        response,
       );
       expect(result.passed).toBe(true);
       expect(result.actual).toBeUndefined();
@@ -81,7 +74,7 @@ describe("runAssertions", () => {
             expected: "42",
           }),
         ],
-        response
+        response,
       );
       expect(result.passed).toBe(true);
       expect(result.actual).toBe(42);
@@ -95,7 +88,7 @@ describe("runAssertions", () => {
       };
       const [result] = runAssertions(
         [assertion({ target: "body", key: "name", operator: "equals", expected: "widget" })],
-        response
+        response,
       );
       expect(result.passed).toBe(true);
     });
@@ -106,10 +99,7 @@ describe("runAssertions", () => {
         body: { ok: true },
         headers: {},
       };
-      const [result] = runAssertions(
-        [assertion({ target: "body", operator: "is-object" })],
-        response
-      );
+      const [result] = runAssertions([assertion({ target: "body", operator: "is-object" })], response);
       expect(result.passed).toBe(true);
       expect(result.actual).toEqual({ ok: true });
     });
@@ -122,7 +112,7 @@ describe("runAssertions", () => {
       };
       const [result] = runAssertions(
         [assertion({ target: "body", operator: "equals", expected: "not json" })],
-        response
+        response,
       );
       expect(result.passed).toBe(true);
     });
@@ -132,29 +122,23 @@ describe("runAssertions", () => {
     const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
 
     it("@claim:C-021 equals / not-equals coerce numeric and boolean-looking strings before comparing", () => {
-      const [eq] = runAssertions(
-        [assertion({ target: "status", operator: "equals", expected: "200" })],
-        response
-      );
+      const [eq] = runAssertions([assertion({ target: "status", operator: "equals", expected: "200" })], response);
       expect(eq.passed).toBe(true);
 
-      const [neq] = runAssertions(
-        [assertion({ target: "status", operator: "not-equals", expected: "201" })],
-        response
-      );
+      const [neq] = runAssertions([assertion({ target: "status", operator: "not-equals", expected: "201" })], response);
       expect(neq.passed).toBe(true);
     });
 
     it("@claim:C-021 contains / not-contains do substring matching on stringified values", () => {
       const [contains] = runAssertions(
         [assertion({ target: "status", operator: "contains", expected: "0" })],
-        response
+        response,
       );
       expect(contains.passed).toBe(true);
 
       const [notContains] = runAssertions(
         [assertion({ target: "status", operator: "not-contains", expected: "9" })],
-        response
+        response,
       );
       expect(notContains.passed).toBe(true);
     });
@@ -167,13 +151,13 @@ describe("runAssertions", () => {
       };
       const [exists] = runAssertions(
         [assertion({ target: "header", key: "X-Present", operator: "exists" })],
-        withHeader
+        withHeader,
       );
       expect(exists.passed).toBe(true);
 
       const [notExists] = runAssertions(
         [assertion({ target: "header", key: "X-Absent", operator: "not-exists" })],
-        withHeader
+        withHeader,
       );
       expect(notExists.passed).toBe(true);
     });
@@ -184,16 +168,10 @@ describe("runAssertions", () => {
         body: [1, 2, 3],
         headers: {},
       };
-      const [isArray] = runAssertions(
-        [assertion({ target: "body", operator: "is-array" })],
-        arrayResponse
-      );
+      const [isArray] = runAssertions([assertion({ target: "body", operator: "is-array" })], arrayResponse);
       expect(isArray.passed).toBe(true);
 
-      const [notObject] = runAssertions(
-        [assertion({ target: "body", operator: "is-object" })],
-        arrayResponse
-      );
+      const [notObject] = runAssertions([assertion({ target: "body", operator: "is-object" })], arrayResponse);
       expect(notObject.passed).toBe(false);
     });
 
@@ -206,19 +184,19 @@ describe("runAssertions", () => {
       };
       const [lt] = runAssertions(
         [assertion({ target: "duration", operator: "less-than", expected: "200" })],
-        durationResponse
+        durationResponse,
       );
       expect(lt.passed).toBe(true);
 
       const [gt] = runAssertions(
         [assertion({ target: "duration", operator: "greater-than", expected: "100" })],
-        durationResponse
+        durationResponse,
       );
       expect(gt.passed).toBe(true);
 
       const [ltOnString] = runAssertions(
         [assertion({ target: "header", key: "x", operator: "less-than", expected: "5" })],
-        durationResponse
+        durationResponse,
       );
       expect(ltOnString.passed).toBe(false);
     });
@@ -231,10 +209,7 @@ describe("runAssertions", () => {
         body: "just a string",
         headers: {},
       };
-      const [result] = runAssertions(
-        [assertion({ target: "body", key: "deep.path", operator: "exists" })],
-        response
-      );
+      const [result] = runAssertions([assertion({ target: "body", key: "deep.path", operator: "exists" })], response);
       // Resolving a path into a primitive string yields undefined rather than
       // throwing, so this specifically exercises the "no match" branch, not
       // the catch block — resolvePath is defensive by construction.
@@ -246,7 +221,7 @@ describe("runAssertions", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: { name: "widget" }, headers: {} };
       const results = runAssertions(
         ["constructor", "toString", "__proto__"].map((key) => assertion({ target: "body", key, operator: "exists" })),
-        response
+        response,
       );
       expect(results.map((result) => result.passed)).toEqual([false, false, false]);
     });
@@ -262,17 +237,14 @@ describe("runAssertions", () => {
             expected: "abc",
           }),
         ],
-        response
+        response,
       );
       expect(result.label).toBe('Header "X-Trace" contains abc');
     });
 
     it("omits the expected value from the label for operators that don't need one", () => {
       const response: AssertionResponseContext = { statusCode: 200, body: null, headers: {} };
-      const [result] = runAssertions(
-        [assertion({ target: "status", operator: "exists" })],
-        response
-      );
+      const [result] = runAssertions([assertion({ target: "status", operator: "exists" })], response);
       expect(result.label).toBe("Status code exists");
     });
 
@@ -283,7 +255,7 @@ describe("runAssertions", () => {
           assertion({ target: "status", operator: "equals", expected: "200" }),
           assertion({ target: "status", operator: "equals", expected: "500" }),
         ],
-        response
+        response,
       );
       expect(results.length).toBe(2);
       expect(results[0].passed).toBe(true);

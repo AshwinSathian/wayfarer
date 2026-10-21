@@ -11,7 +11,14 @@ type Route = "auto" | "direct" | "bridge";
   template: `
     <span id="route-label">Route</span>
     <ui-select aria-labelledby="route-label" [options]="routes" [value]="route()" (valueChange)="choose($event)" />
-    <ui-select class="env" aria-label="Environment" placeholder="No environment" [options]="environments" [value]="environment()" (valueChange)="environment.set($event)" />
+    <ui-select
+      class="env"
+      aria-label="Environment"
+      placeholder="No environment"
+      [options]="environments"
+      [value]="environment()"
+      (valueChange)="environment.set($event)"
+    />
     <button type="button" class="after">After</button>
   `,
   styles: ":host { display: block; padding-top: 8px; }",
@@ -25,7 +32,10 @@ class TestHost {
   ];
   readonly route = signal<Route | null>(null);
   readonly chosen: (Route | null)[] = [];
-  readonly environments: UiSelectOption<string | null>[] = Array.from({ length: 12 }, (_, i) => ({ value: `e${i}`, label: `Environment ${i}` }));
+  readonly environments: UiSelectOption<string | null>[] = Array.from({ length: 12 }, (_, i) => ({
+    value: `e${i}`,
+    label: `Environment ${i}`,
+  }));
   readonly environment = signal<string | null>(null);
 
   choose(route: Route | null): void {
@@ -43,7 +53,10 @@ describe("ui-select", () => {
     const select = root.querySelector<HTMLElement>("ui-select")!;
     const options = () => [...document.querySelectorAll<HTMLElement>('[role="option"]')];
     const labels = () => options().map((option) => option.textContent?.trim());
-    const active = () => options().find((option) => option.getAttribute("data-active") === "true")?.textContent?.trim();
+    const active = () =>
+      options()
+        .find((option) => option.getAttribute("data-active") === "true")
+        ?.textContent?.trim();
     const settle = async () => {
       await fixture.whenStable();
       await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));

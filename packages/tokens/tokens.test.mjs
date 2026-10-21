@@ -45,13 +45,17 @@ test("the app uses every token", () => {
     .join("\n");
   // A type style is used by its class (`type-body`); any other token by its custom property.
   const used = (key, token) =>
-    token.$type === "typography" ? new RegExp(`(?<![\\w-])${key}(?![\\w-])|--${key}-`).test(files) : new RegExp(`--${key}(?![\\w-])`).test(files);
+    token.$type === "typography"
+      ? new RegExp(`(?<![\\w-])${key}(?![\\w-])|--${key}-`).test(files)
+      : new RegExp(`--${key}(?![\\w-])`).test(files);
   const unused = [...theme("dark")].filter(([key, token]) => !used(key, token)).map(([key]) => key);
   assert.deepEqual(unused, [], "tokens nothing reads: delete them");
 });
 
 test("no text is under 12 px: the scale, every font-size in the stylesheets, and Tailwind sizes", () => {
-  for (const [key, token] of theme("dark")) if (token.$type === "typography") assert.ok(token.$value.fontSize.value >= 12, `${key} is ${token.$value.fontSize.value} px`);
+  for (const [key, token] of theme("dark"))
+    if (token.$type === "typography")
+      assert.ok(token.$value.fontSize.value >= 12, `${key} is ${token.$value.fontSize.value} px`);
   const small = [];
   for (const [file, text] of sources(/\.(css|scss)$/)) {
     for (const [line, n] of text.split("\n").map((line, i) => [line, i + 1])) {
@@ -61,7 +65,8 @@ test("no text is under 12 px: the scale, every font-size in the stylesheets, and
       if (m && Number(m[1]) * (m[2] === "rem" ? 16 : 1) < 12) small.push(`${file}:${n}: ${line.trim()}`);
     }
   }
-  for (const [file, text] of sources(/\.(html|ts)$/)) for (const m of text.matchAll(/text-\[([\d.]+)px\]/g)) if (Number(m[1]) < 12) small.push(`${file}: ${m[0]}`);
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/text-\[([\d.]+)px\]/g)) if (Number(m[1]) < 12) small.push(`${file}: ${m[0]}`);
   assert.deepEqual(small, []);
 });
 
@@ -72,9 +77,16 @@ test("no stylesheet or template writes a duration or an easing of its own: they 
     for (const m of text.matchAll(/\b(transition|animation)(-[a-z-]+)?\s*:([^;{}]*);/g)) {
       const value = m[3].replace(/var\(--[\w-]+\)/g, "");
       // 0s is no time at all, which needs no token.
-      if (/(?<![\w.-])(?!0s\b)[\d.]+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)\b|cubic-bezier|steps\(/.test(value)) own.push(`${file}: ${m[0].replace(/\s+/g, " ").trim()}`);
+      if (
+        /(?<![\w.-])(?!0s\b)[\d.]+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)\b|cubic-bezier|steps\(/.test(
+          value,
+        )
+      )
+        own.push(`${file}: ${m[0].replace(/\s+/g, " ").trim()}`);
     }
   }
-  for (const [file, text] of sources(/\.(html|ts)$/)) for (const m of text.matchAll(/(?<![\w-])(duration|delay|ease)-(\d+|in|out|in-out|linear)(?![\w-])/g)) own.push(`${file}: ${m[0]}`);
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/(?<![\w-])(duration|delay|ease)-(\d+|in|out|in-out|linear)(?![\w-])/g))
+      own.push(`${file}: ${m[0]}`);
   assert.deepEqual(own, []);
 });

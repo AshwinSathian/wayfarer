@@ -19,7 +19,14 @@ function sender(answers: Record<string, RunOutcome | ((iteration: RunIteration) 
 
 describe("runRequests", () => {
   it("sends every request once, in order, and reports each result as it is there", async () => {
-    const { send, sent } = sender({ B: { status: 404, statusText: "Not Found", durationMs: 12, tests: [{ name: "found", passed: false, error: "404" }] } });
+    const { send, sent } = sender({
+      B: {
+        status: 404,
+        statusText: "Not Found",
+        durationMs: 12,
+        tests: [{ name: "found", passed: false, error: "404" }],
+      },
+    });
     const seen: string[] = [];
 
     const report = await runRequests(requests, send, { onResult: (result) => seen.push(result.name) });
@@ -31,7 +38,15 @@ describe("runRequests", () => {
       ended: "completed",
       results: [
         { id: "id-A", name: "A", iteration: 0, status: 200, tests: [] },
-        { id: "id-B", name: "B", iteration: 0, status: 404, statusText: "Not Found", durationMs: 12, tests: [{ name: "found", passed: false, error: "404" }] },
+        {
+          id: "id-B",
+          name: "B",
+          iteration: 0,
+          status: 404,
+          statusText: "Not Found",
+          durationMs: 12,
+          tests: [{ name: "found", passed: false, error: "404" }],
+        },
         { id: "id-C", name: "C", iteration: 0, status: 200, tests: [] },
       ],
     });
@@ -42,7 +57,10 @@ describe("runRequests", () => {
     const { send } = sender();
     const report = await runRequests(requests.slice(0, 1), send, { data: rows });
     expect(report.iterations).toBe(2);
-    expect(send.mock.calls.map(([, iteration]) => iteration)).toEqual([{ index: 0, count: 2, data: rows[0] }, { index: 1, count: 2, data: rows[1] }]);
+    expect(send.mock.calls.map(([, iteration]) => iteration)).toEqual([
+      { index: 0, count: 2, data: rows[0] },
+      { index: 1, count: 2, data: rows[1] },
+    ]);
   });
 
   it("with fewer iterations than rows the rest are not used, and with more the last row is used again", async () => {
@@ -61,7 +79,11 @@ describe("runRequests", () => {
     await runRequests(requests.slice(0, 1), send, { iterations: 2 });
     expect(send.mock.calls.map(([, iteration]) => iteration.data)).toEqual([[], []]);
     const none = sender();
-    expect(await runRequests(requests, none.send, { iterations: 0 })).toEqual({ iterations: 0, results: [], ended: "completed" });
+    expect(await runRequests(requests, none.send, { iterations: 0 })).toEqual({
+      iterations: 0,
+      results: [],
+      ended: "completed",
+    });
     expect(none.sent).toEqual([]);
   });
 
@@ -77,13 +99,20 @@ describe("runRequests", () => {
 
   it("setNextRequest may go back, and to the request itself", async () => {
     let times = 0;
-    const { send, sent } = sender({ B: () => (++times < 3 ? { ...ok, nextRequest: "B" } : times === 3 ? { ...ok, nextRequest: "A" } : ok) });
+    const { send, sent } = sender({
+      B: () => (++times < 3 ? { ...ok, nextRequest: "B" } : times === 3 ? { ...ok, nextRequest: "A" } : ok),
+    });
     await runRequests(requests, send);
     expect(sent).toEqual(["0:A", "0:B", "0:B", "0:B", "0:A", "0:B", "0:C"]);
   });
 
   it("of several requests of one name the last is meant", async () => {
-    const twice: RunRequest[] = [{ id: "1", name: "A" }, { id: "2", name: "X" }, { id: "3", name: "X" }, { id: "4", name: "Z" }];
+    const twice: RunRequest[] = [
+      { id: "1", name: "A" },
+      { id: "2", name: "X" },
+      { id: "3", name: "X" },
+      { id: "4", name: "Z" },
+    ];
     const { send } = sender({ A: { ...ok, nextRequest: "X" } });
     await runRequests(twice, send);
     expect(send.mock.calls.map(([request]) => request.id)).toEqual(["1", "3", "4"]);
@@ -101,23 +130,36 @@ describe("runRequests", () => {
   it("a skipped request is in the results as skipped, and the run goes on", async () => {
     const { send } = sender({ B: { skipped: true, tests: [] } });
     const report = await runRequests(requests, send);
-    expect(report.results.map((result) => [result.name, result.skipped ?? false])).toEqual([["A", false], ["B", true], ["C", false]]);
+    expect(report.results.map((result) => [result.name, result.skipped ?? false])).toEqual([
+      ["A", false],
+      ["B", true],
+      ["C", false],
+    ]);
   });
 
   it("stop on first failure ends the run at a failed test or at a request without a response, not at a status", async () => {
     const failedTest = sender({ B: { status: 200, tests: [{ name: "t", passed: false }] } });
-    expect(await runRequests(requests, failedTest.send, { stopOnFailure: true, iterations: 2 })).toMatchObject({ ended: "failed", results: [{ name: "A" }, { name: "B" }] });
+    expect(await runRequests(requests, failedTest.send, { stopOnFailure: true, iterations: 2 })).toMatchObject({
+      ended: "failed",
+      results: [{ name: "A" }, { name: "B" }],
+    });
     const noResponse = sender({ A: { error: "Network error", tests: [] } });
     expect((await runRequests(requests, noResponse.send, { stopOnFailure: true })).results).toHaveLength(1);
     const status = sender({ A: { status: 500, tests: [] } });
     expect((await runRequests(requests, status.send, { stopOnFailure: true })).ended).toBe("completed");
     // Without the option a failure is a result like another.
-    expect((await runRequests(requests, sender({ B: { status: 200, tests: [{ name: "t", passed: false }] } }).send)).results).toHaveLength(3);
+    expect(
+      (await runRequests(requests, sender({ B: { status: 200, tests: [{ name: "t", passed: false }] } }).send)).results,
+    ).toHaveLength(3);
   });
 
   it("the sender may end the run, and the report says why", async () => {
     const { send, sent } = sender({ B: { tests: [], error: "not sent", end: "You chose not to send to other.test." } });
-    expect(await runRequests(requests, send, { iterations: 3 })).toMatchObject({ ended: "ended", reason: "You chose not to send to other.test.", results: [{ name: "A" }, { name: "B", error: "not sent" }] });
+    expect(await runRequests(requests, send, { iterations: 3 })).toMatchObject({
+      ended: "ended",
+      reason: "You chose not to send to other.test.",
+      results: [{ name: "A" }, { name: "B", error: "not sent" }],
+    });
     expect(sent).toEqual(["0:A", "0:B"]);
   });
 
@@ -128,7 +170,9 @@ describe("runRequests", () => {
       signals.push(signal);
       if (request.name !== "B") return Promise.resolve(ok);
       // As a transport does: the request ends when its signal aborts.
-      return new Promise((done) => signal.addEventListener("abort", () => done({ error: "The request was cancelled.", tests: [] })));
+      return new Promise((done) =>
+        signal.addEventListener("abort", () => done({ error: "The request was cancelled.", tests: [] })),
+      );
     });
     const running = runRequests(requests, send, { iterations: 5, signal: controller.signal });
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(2));
@@ -145,7 +189,11 @@ describe("runRequests", () => {
     const controller = new AbortController();
     controller.abort();
     const { send, sent } = sender();
-    expect(await runRequests(requests, send, { signal: controller.signal })).toEqual({ iterations: 1, results: [], ended: "cancelled" });
+    expect(await runRequests(requests, send, { signal: controller.signal })).toEqual({
+      iterations: 1,
+      results: [],
+      ended: "cancelled",
+    });
     expect(sent).toEqual([]);
   });
 
@@ -175,7 +223,14 @@ describe("runFailed", () => {
   it("a failed test or an error, and nothing else", () => {
     expect(runFailed({ tests: [] })).toBe(false);
     expect(runFailed({ tests: [{ name: "t", passed: true }] })).toBe(false);
-    expect(runFailed({ tests: [{ name: "t", passed: true }, { name: "u", passed: false }] })).toBe(true);
+    expect(
+      runFailed({
+        tests: [
+          { name: "t", passed: true },
+          { name: "u", passed: false },
+        ],
+      }),
+    ).toBe(true);
     expect(runFailed({ tests: [], error: "" })).toBe(true);
   });
 });
@@ -186,11 +241,29 @@ describe("requestsInOrder", () => {
   // One order for a parent's folders and requests together, as a Postman file has its items.
   const tree = {
     folders: [folder("f2", 4), folder("f1", 2), folder("f1a", 2, "f1")],
-    requests: [request("top-b", 3), request("top-a", 1), request("top-c", 5), request("in-f1-b", 3, "f1"), request("in-f1-a", 1, "f1"), request("in-f1a-2", 2, "f1a"), request("in-f1a-1", 1, "f1a"), request("in-f2", 1, "f2")],
+    requests: [
+      request("top-b", 3),
+      request("top-a", 1),
+      request("top-c", 5),
+      request("in-f1-b", 3, "f1"),
+      request("in-f1-a", 1, "f1"),
+      request("in-f1a-2", 2, "f1a"),
+      request("in-f1a-1", 1, "f1a"),
+      request("in-f2", 1, "f2"),
+    ],
   };
 
   it("a collection's requests in the order of the list: a request before a folder is sent before that folder's", () => {
-    expect(requestsInOrder(tree).map((doc) => doc.id)).toEqual(["top-a", "in-f1-a", "in-f1a-1", "in-f1a-2", "in-f1-b", "top-b", "in-f2", "top-c"]);
+    expect(requestsInOrder(tree).map((doc) => doc.id)).toEqual([
+      "top-a",
+      "in-f1-a",
+      "in-f1a-1",
+      "in-f1a-2",
+      "in-f1-b",
+      "top-b",
+      "in-f2",
+      "top-c",
+    ]);
   });
 
   it("a folder's requests, those of its folders among them", () => {
@@ -199,10 +272,16 @@ describe("requestsInOrder", () => {
   });
 
   it("a folder and a request of one place: the folder first", () => {
-    expect(requestsInOrder({ folders: [folder("z", 1)], requests: [request("a", 1), request("in-z", 1, "z")] }).map((doc) => doc.id)).toEqual(["in-z", "a"]);
+    expect(
+      requestsInOrder({ folders: [folder("z", 1)], requests: [request("a", 1), request("in-z", 1, "z")] }).map(
+        (doc) => doc.id,
+      ),
+    ).toEqual(["in-z", "a"]);
   });
 
   it("two of one place are in the order of their ids", () => {
-    expect(requestsInOrder({ folders: [], requests: [request("b", 1), request("a", 1)] }).map((doc) => doc.id)).toEqual(["a", "b"]);
+    expect(requestsInOrder({ folders: [], requests: [request("b", 1), request("a", 1)] }).map((doc) => doc.id)).toEqual(
+      ["a", "b"],
+    );
   });
 });

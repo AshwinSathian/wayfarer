@@ -34,7 +34,14 @@ export type Repositories = ReturnType<typeof repositories>;
 
 /** One stand-in object for the database and every repository: a test's fake answers whichever a service asks. */
 export function provideRepositories(fake: object): Provider[] {
-  return [IdbCore, HistoryRepository, CollectionsRepository, FoldersRepository, CollectionRequestsRepository, EnvironmentsRepository, SecretsRepository, WorkspaceRepository].map(
-    (token) => ({ provide: token, useValue: fake })
-  );
+  return [
+    IdbCore,
+    HistoryRepository,
+    CollectionsRepository,
+    FoldersRepository,
+    CollectionRequestsRepository,
+    EnvironmentsRepository,
+    SecretsRepository,
+    WorkspaceRepository,
+  ].map((token) => ({ provide: token, useValue: fake }));
 }

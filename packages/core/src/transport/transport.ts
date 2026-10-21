@@ -126,7 +126,7 @@ export class TransportError extends Error {
   constructor(
     readonly kind: TransportErrorKind,
     message: string,
-    readonly status?: number
+    readonly status?: number,
   ) {
     super(message);
   }
@@ -145,7 +145,10 @@ export type FetchFn = (input: string, init: RequestInit) => Promise<Response>;
  * AbortSignal.timeout(ms)])`: in WebKit a signal made by `any` that only
  * `fetch` refers to never aborted, so a timeout never ended the request.
  */
-export async function withDeadline<T>(options: TransportOptions, run: (signal: AbortSignal, arrived: () => void) => Promise<T>): Promise<T> {
+export async function withDeadline<T>(
+  options: TransportOptions,
+  run: (signal: AbortSignal, arrived: () => void) => Promise<T>,
+): Promise<T> {
   const controller = new AbortController();
   let timedOut = false;
   const cancel = () => controller.abort();
@@ -212,7 +215,11 @@ const FOLD_BYTES = 8 * 1024 * 1024;
  * when `signal` aborts: that is the caller's stop, and what had arrived is
  * the response. Any other failure is thrown.
  */
-export async function readEventStream(response: Response, signal: AbortSignal, onEvent: (event: StreamEvent) => void): Promise<{ body: ArrayBuffer; stream: NonNullable<ResponseEnvelope["stream"]> }> {
+export async function readEventStream(
+  response: Response,
+  signal: AbortSignal,
+  onEvent: (event: StreamEvent) => void,
+): Promise<{ body: ArrayBuffer; stream: NonNullable<ResponseEnvelope["stream"]> }> {
   const started = Date.now();
   const parser = new SseParser();
   const decoder = new TextDecoder();
@@ -229,7 +236,8 @@ export async function readEventStream(response: Response, signal: AbortSignal, o
       kept.set(chunk.value.subarray(0, room), size);
       size += Math.min(room, chunk.value.byteLength);
       if (chunk.value.byteLength > room) truncated = true;
-      for (const event of parser.push(decoder.decode(chunk.value, { stream: true }))) onEvent({ ...event, timeMs: Date.now() - started });
+      for (const event of parser.push(decoder.decode(chunk.value, { stream: true })))
+        onEvent({ ...event, timeMs: Date.now() - started });
     }
   } catch (error) {
     if (!signal.aborted) throw error;

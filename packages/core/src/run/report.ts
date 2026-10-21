@@ -20,7 +20,15 @@ const counts = (results: RunResult[]) => ({
 
 /** A run as a JSON document: what the table showed, and its totals. */
 export function runReportJson(report: RunReport, info: RunInfo): Record<string, unknown> {
-  return { $id: RUN_REPORT_FORMAT, ...info, iterations: report.iterations, ended: report.ended, ...(report.reason !== undefined && { reason: report.reason }), totals: counts(report.results), results: report.results };
+  return {
+    $id: RUN_REPORT_FORMAT,
+    ...info,
+    iterations: report.iterations,
+    ended: report.ended,
+    ...(report.reason !== undefined && { reason: report.reason }),
+    totals: counts(report.results),
+    results: report.results,
+  };
 }
 
 /**
@@ -31,7 +39,12 @@ export function runReportJson(report: RunReport, info: RunInfo): Record<string, 
 function xml(text: string): string {
   return text
     .replace(/[^\t\n\r -퟿-�\u{10000}-\u{10FFFF}]/gu, "�")
-    .replace(/[&<>"\t\n\r]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\t": "&#9;", "\n": "&#10;", "\r": "&#13;" })[char] ?? char);
+    .replace(
+      /[&<>"\t\n\r]/g,
+      (char) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "\t": "&#9;", "\n": "&#10;", "\r": "&#13;" })[char] ??
+        char,
+    );
 }
 
 const seconds = (ms: number | undefined) => ((ms ?? 0) / 1000).toFixed(3);
@@ -46,10 +59,18 @@ export function junitXml(report: RunReport, info: RunInfo): string {
   const suites = report.results.map((result) => {
     const classname = xml(result.name);
     const cases = result.tests.map((test) =>
-      test.passed ? `    <testcase name="${xml(test.name)}" classname="${classname}"/>` : `    <testcase name="${xml(test.name)}" classname="${classname}">\n      <failure type="AssertionFailure" message="${xml(test.error ?? "")}"/>\n    </testcase>`
+      test.passed
+        ? `    <testcase name="${xml(test.name)}" classname="${classname}"/>`
+        : `    <testcase name="${xml(test.name)}" classname="${classname}">\n      <failure type="AssertionFailure" message="${xml(test.error ?? "")}"/>\n    </testcase>`,
     );
-    if (result.error !== undefined) cases.push(`    <testcase name="${classname}" classname="${classname}">\n      <error type="Error" message="${xml(result.error)}"/>\n    </testcase>`);
-    if (result.skipped) cases.push(`    <testcase name="${classname}" classname="${classname}">\n      <skipped message="pm.execution.skipRequest()"/>\n    </testcase>`);
+    if (result.error !== undefined)
+      cases.push(
+        `    <testcase name="${classname}" classname="${classname}">\n      <error type="Error" message="${xml(result.error)}"/>\n    </testcase>`,
+      );
+    if (result.skipped)
+      cases.push(
+        `    <testcase name="${classname}" classname="${classname}">\n      <skipped message="pm.execution.skipRequest()"/>\n    </testcase>`,
+      );
     const totals = counts([result]);
     const name = xml(report.iterations > 1 ? `${result.name} (iteration ${result.iteration + 1})` : result.name);
     const open = `  <testsuite name="${name}" id="${xml(result.id)}" tests="${cases.length}" failures="${totals.failedTests}" errors="${totals.errors}" skipped="${totals.skipped}" time="${seconds(result.durationMs)}"`;

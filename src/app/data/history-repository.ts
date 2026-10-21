@@ -27,7 +27,11 @@ export class HistoryRepository {
       const tx = db.transaction("history", "readwrite");
       const key = await tx.store.add(req as HistoryRecord);
       let excess = (await tx.store.count()) - cap;
-      for (let cursor = await tx.store.index("by-createdAt").openCursor(); cursor && excess > 0; cursor = await cursor.continue(), excess--) {
+      for (
+        let cursor = await tx.store.index("by-createdAt").openCursor();
+        cursor && excess > 0;
+        cursor = await cursor.continue(), excess--
+      ) {
         await cursor.delete();
       }
       await tx.done;

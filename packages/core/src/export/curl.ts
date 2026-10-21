@@ -23,10 +23,16 @@ function bodyArguments(body: ExportBody): string[] {
     case "urlencoded":
       // curl encodes what follows the first "=" and takes the name as already encoded.
       // A field without a name has no "=" of its own for curl to split at: it is written whole.
-      return body.fields.map(([name, value]) => (name ? `--data-urlencode ${shellQuote(`${formEncode(name)}=${value}`)}` : `--data-raw ${shellQuote(`=${formEncode(value)}`)}`));
+      return body.fields.map(([name, value]) =>
+        name
+          ? `--data-urlencode ${shellQuote(`${formEncode(name)}=${value}`)}`
+          : `--data-raw ${shellQuote(`=${formEncode(value)}`)}`,
+      );
     case "multipart":
       return body.parts.map((part) =>
-        "value" in part ? `--form-string ${shellQuote(`${part.name}=${part.value}`)}` : `-F ${shellQuote(`${part.name}=@"${part.fileName.replace(/[\\"]/g, "\\$&")}"`)}`
+        "value" in part
+          ? `--form-string ${shellQuote(`${part.name}=${part.value}`)}`
+          : `-F ${shellQuote(`${part.name}=@"${part.fileName.replace(/[\\"]/g, "\\$&")}"`)}`,
       );
     case "binary":
       return body.fileName ? [`--data-binary ${shellQuote(`@${body.fileName}`)}`] : [];
@@ -48,7 +54,8 @@ export const commentName = (name: string) => shellQuote(JSON.stringify(name));
 export function buildCurl(request: ExportRequest): string {
   // curl splits a form part at its first "=", and what follows is then read by curl's own rules: a part
   // named `x=@/etc/passwd;` would send that file. Such a name cannot be said, so no command is written.
-  const unsayable = request.body.mode === "multipart" ? request.body.parts.find((part) => /[=;"\r\n]/.test(part.name)) : undefined;
+  const unsayable =
+    request.body.mode === "multipart" ? request.body.parts.find((part) => /[=;"\r\n]/.test(part.name)) : undefined;
   if (unsayable) {
     return `# curl cannot say this request: the name of the form part ${commentName(unsayable.name)} holds "=", ";", a quote or a line break, which curl reads as the end of the name.`;
   }

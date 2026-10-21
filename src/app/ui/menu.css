@@ -43,7 +43,6 @@
   background: var(--fill-hover);
 }
 
-
 /* Forced colours take the background away: the item that has focus keeps an outline. */
 @media (forced-colors: active) {
   .ui-menu-item:focus {

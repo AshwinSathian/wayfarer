@@ -3,7 +3,11 @@ import { afterDirectSend, routeOf } from "./route";
 
 const page = "https://app.test";
 // A JSON body makes the browser ask the server first (a preflight); a form body does not.
-const json = (method: string) => ({ method, url: "https://api.test/items", headers: [["Content-Type", "application/json"]] as [string, string][] });
+const json = (method: string) => ({
+  method,
+  url: "https://api.test/items",
+  headers: [["Content-Type", "application/json"]] as [string, string][],
+});
 const plain = (method: string) => ({
   method,
   url: "https://api.test/items",

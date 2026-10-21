@@ -95,7 +95,9 @@ export class Redactor {
   /** `secrets` are the plaintexts to look for: vault values that went into the request, and its credentials. */
   constructor(secrets: Iterable<string>) {
     const forms = [...secrets].filter((secret) => secret.length >= MIN_SECRET_LENGTH).flatMap(formsOf);
-    this.needles = [...new Set(forms)].filter((form) => form.length >= MIN_SECRET_LENGTH - 1).sort((a, b) => b.length - a.length);
+    this.needles = [...new Set(forms)]
+      .filter((form) => form.length >= MIN_SECRET_LENGTH - 1)
+      .sort((a, b) => b.length - a.length);
   }
 
   text(text: string): string {
@@ -104,7 +106,10 @@ export class Redactor {
 
   /** Headers as sent or received: a credential header's value is masked whole. */
   headers(headers: [string, string][], options: RedactOptions = {}): [string, string][] {
-    return headers.map(([name, value]) => [this.text(name), !options.credentials && isCredentialHeader(name) ? MASK : this.text(value)]);
+    return headers.map(([name, value]) => [
+      this.text(name),
+      !options.credentials && isCredentialHeader(name) ? MASK : this.text(value),
+    ]);
   }
 
   /**
@@ -113,7 +118,10 @@ export class Redactor {
    * credential but a reference to one, and is kept.
    */
   rows(rows: Row[], options: RedactOptions = {}): Row[] {
-    return rows.map((row) => ({ ...row, value: isCredentialHeader(row.key) ? this.credential(row.value, options) : this.text(row.value) }));
+    return rows.map((row) => ({
+      ...row,
+      value: isCredentialHeader(row.key) ? this.credential(row.value, options) : this.text(row.value),
+    }));
   }
 
   auth<T extends AuthConfig>(auth: T, options?: RedactOptions): T;
@@ -126,9 +134,17 @@ export class Redactor {
       case "apikey":
         return { ...auth, value: this.credential(auth.value, options) };
       case "awsv4":
-        return { ...auth, secretKey: this.credential(auth.secretKey, options), sessionToken: this.credential(auth.sessionToken, options) };
+        return {
+          ...auth,
+          secretKey: this.credential(auth.secretKey, options),
+          sessionToken: this.credential(auth.sessionToken, options),
+        };
       case "oauth2":
-        return { ...auth, clientSecret: this.credential(auth.clientSecret, options), password: this.credential(auth.password, options) };
+        return {
+          ...auth,
+          clientSecret: this.credential(auth.clientSecret, options),
+          password: this.credential(auth.password, options),
+        };
       case "none":
       case "inherit":
         return auth;
@@ -151,9 +167,15 @@ export class Redactor {
     return {
       ...body,
       ...(body.raw && { raw: { ...body.raw, text: this.text(body.raw.text) } }),
-      ...(body.graphql && { graphql: { query: this.text(body.graphql.query), variables: this.text(body.graphql.variables) } }),
+      ...(body.graphql && {
+        graphql: { query: this.text(body.graphql.query), variables: this.text(body.graphql.variables) },
+      }),
       ...(body.urlencoded && { urlencoded: body.urlencoded.map((row) => ({ ...row, value: this.text(row.value) })) }),
-      ...(body.multipart && { multipart: body.multipart.map((part) => (part.kind === "text" ? { ...part, value: this.text(part.value) } : part)) }),
+      ...(body.multipart && {
+        multipart: body.multipart.map((part) =>
+          part.kind === "text" ? { ...part, value: this.text(part.value) } : part,
+        ),
+      }),
     };
   }
 

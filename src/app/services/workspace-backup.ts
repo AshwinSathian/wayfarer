@@ -1,5 +1,11 @@
 import { Injectable, inject, signal } from "@angular/core";
-import { IMPORT_TOO_LARGE, WORKSPACE_FORMAT, isOversizedImport, parseJson, validateWorkspaceFile } from "@wayfarer/core";
+import {
+  IMPORT_TOO_LARGE,
+  WORKSPACE_FORMAT,
+  isOversizedImport,
+  parseJson,
+  validateWorkspaceFile,
+} from "@wayfarer/core";
 import { WorkspaceRepository } from "../data/workspace-repository";
 import { WorkspaceStores } from "../data/workspace-repository";
 import { Diagnostics } from "./diagnostics";
@@ -31,7 +37,11 @@ export class WorkspaceBackup {
    * in a collection file.
    */
   async exportJson(options: { history?: boolean } = {}): Promise<string> {
-    const file: WorkspaceFile = { $id: WORKSPACE_FORMAT, exportedAt: Date.now(), stores: await this.workspaceRepository.readAll(options.history ?? false) };
+    const file: WorkspaceFile = {
+      $id: WORKSPACE_FORMAT,
+      exportedAt: Date.now(),
+      stores: await this.workspaceRepository.readAll(options.history ?? false),
+    };
     this.remember(LAST_BACKUP_KEY);
     this.reminderDue.set(false);
     return JSON.stringify(file, null, 2);
@@ -65,7 +75,10 @@ export class WorkspaceBackup {
 
   private isReminderDue(): boolean {
     try {
-      const from = Math.max(Number(localStorage.getItem(LAST_BACKUP_KEY)) || 0, Number(localStorage.getItem(REMINDER_FROM_KEY)) || 0);
+      const from = Math.max(
+        Number(localStorage.getItem(LAST_BACKUP_KEY)) || 0,
+        Number(localStorage.getItem(REMINDER_FROM_KEY)) || 0,
+      );
       if (!from) {
         // First use: the 14 days start now.
         localStorage.setItem(REMINDER_FROM_KEY, String(Date.now()));

@@ -36,8 +36,10 @@ interface Pair {
 }
 
 const pairs = (entries: [string, string][]): Pair[] => entries.map(([name, value]) => ({ name, value }));
-const headerOf = (headers: [string, string][], name: string): string | undefined => headers.find(([key]) => key.toLowerCase() === name)?.[1];
-const known = (value: number | undefined): number => (typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : -1);
+const headerOf = (headers: [string, string][], name: string): string | undefined =>
+  headers.find(([key]) => key.toLowerCase() === name)?.[1];
+const known = (value: number | undefined): number =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : -1;
 
 /** The cookies of a request's `Cookie` headers, as HAR lists them. A header that was masked holds no pair and gives none. */
 function sentCookies(headers: [string, string][]): Pair[] {
@@ -46,7 +48,10 @@ function sentCookies(headers: [string, string][]): Pair[] {
     .flatMap(([, value]) => value.split(";"))
     .map((pair) => pair.trim())
     .filter((pair) => pair.indexOf("=") > 0)
-    .map((pair) => ({ name: pair.slice(0, pair.indexOf("=")).trim(), value: pair.slice(pair.indexOf("=") + 1).trim() }));
+    .map((pair) => ({
+      name: pair.slice(0, pair.indexOf("=")).trim(),
+      value: pair.slice(pair.indexOf("=") + 1).trim(),
+    }));
 }
 
 /** The cookies of a response's `Set-Cookie` headers, each with the attributes HAR has a field for. */
@@ -55,7 +60,8 @@ function setCookies(headers: [string, string][]): Record<string, unknown>[] {
     .filter(([name, value]) => name.toLowerCase() === "set-cookie" && value.split(";")[0].indexOf("=") > 0)
     .map(([, value]) => {
       const [pair, ...attributes] = value.split(";").map((part) => part.trim());
-      const attribute = (name: string) => attributes.find((text) => text.toLowerCase().startsWith(`${name}=`))?.slice(name.length + 1);
+      const attribute = (name: string) =>
+        attributes.find((text) => text.toLowerCase().startsWith(`${name}=`))?.slice(name.length + 1);
       const flag = (name: string) => attributes.some((text) => text.toLowerCase() === name);
       const expires = Date.parse(attribute("expires") ?? "");
       return {
@@ -82,14 +88,34 @@ function postData(body: ExportBody, headers: [string, string][]): Record<string,
     case "none":
       return undefined;
     case "raw":
-      if (body.text.length > HAR_MAX_BODY_CHARS) return { mimeType: type ?? "text/plain", text: "", comment: `The body is left out: it is longer than ${HAR_MAX_BODY_CHARS / 1024} KB.` };
+      if (body.text.length > HAR_MAX_BODY_CHARS)
+        return {
+          mimeType: type ?? "text/plain",
+          text: "",
+          comment: `The body is left out: it is longer than ${HAR_MAX_BODY_CHARS / 1024} KB.`,
+        };
       return { mimeType: type ?? "text/plain", text: body.text };
     case "urlencoded":
-      return { mimeType: type ?? "application/x-www-form-urlencoded", params: body.fields.map(([name, value]) => ({ name, value })), text: new URLSearchParams(body.fields).toString() };
+      return {
+        mimeType: type ?? "application/x-www-form-urlencoded",
+        params: body.fields.map(([name, value]) => ({ name, value })),
+        text: new URLSearchParams(body.fields).toString(),
+      };
     case "multipart":
-      return { mimeType: type ?? "multipart/form-data", params: body.parts.map((part) => ("fileName" in part ? { name: part.name, fileName: part.fileName } : { name: part.name, value: part.value })), text: "", comment: "A file part is named, not included." };
+      return {
+        mimeType: type ?? "multipart/form-data",
+        params: body.parts.map((part) =>
+          "fileName" in part ? { name: part.name, fileName: part.fileName } : { name: part.name, value: part.value },
+        ),
+        text: "",
+        comment: "A file part is named, not included.",
+      };
     case "binary":
-      return { mimeType: type ?? "application/octet-stream", text: "", comment: `The body is the file "${body.fileName}", which is named, not included.` };
+      return {
+        mimeType: type ?? "application/octet-stream",
+        text: "",
+        comment: `The body is the file "${body.fileName}", which is named, not included.`,
+      };
   }
 }
 
@@ -98,7 +124,10 @@ function postData(body: ExportBody, headers: [string, string][]): Record<string,
  * format requires. What is not known is `-1`, as the format says. Cookies
  * are not listed apart: one that was sent is in the `Cookie` header.
  */
-export function buildHar(exchanges: HarExchange[], creator: { name: string; version: string }): { log: Record<string, unknown> } {
+export function buildHar(
+  exchanges: HarExchange[],
+  creator: { name: string; version: string },
+): { log: Record<string, unknown> } {
   return {
     log: {
       version: "1.2",
@@ -145,7 +174,15 @@ export function buildHar(exchanges: HarExchange[], creator: { name: string; vers
             bodySize: known(response?.size),
           },
           cache: {},
-          timings: { blocked: -1, dns: known(timings?.dns), connect: known(timings?.connect), send: known(timings?.send), wait: known(timings?.wait), receive: known(timings?.receive), ssl: known(timings?.ssl) },
+          timings: {
+            blocked: -1,
+            dns: known(timings?.dns),
+            connect: known(timings?.connect),
+            send: known(timings?.send),
+            wait: known(timings?.wait),
+            receive: known(timings?.receive),
+            ssl: known(timings?.ssl),
+          },
           ...(exchange.comment && { comment: exchange.comment }),
         };
       }),

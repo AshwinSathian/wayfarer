@@ -22,7 +22,9 @@ export interface PastedRequest {
   warnings: string[];
 }
 
-export type ImportAnswer = { id: string } & ({ imported: Imported } | { request: PastedRequest } | { refused: { message: string; issues: ValidationIssue[] } });
+export type ImportAnswer = { id: string } & (
+  { imported: Imported } | { request: PastedRequest } | { refused: { message: string; issues: ValidationIssue[] } }
+);
 
 addEventListener("message", (event: MessageEvent<ImportJob>) => {
   const { id, text, options, curl } = event.data;

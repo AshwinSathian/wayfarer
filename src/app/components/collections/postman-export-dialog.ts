@@ -47,7 +47,8 @@ export class PostmanExportDialog {
     const collection = this.collection();
     if (!collection) return;
     const exported = await this.collections.exportCollectionPostman(collection.id, { credentials: this.credentials() });
-    if (exported) saveJsonFile(`${collection.name.replace(/\s+/g, "-").toLowerCase()}.postman_collection.json`, exported.json);
+    if (exported)
+      saveJsonFile(`${collection.name.replace(/\s+/g, "-").toLowerCase()}.postman_collection.json`, exported.json);
     this.closed.emit();
   }
 }

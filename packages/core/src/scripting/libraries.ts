@@ -20,7 +20,11 @@ export function librariesOf(source: string): VmLibrary[] {
  * `load` fetches one (`loadLibrary` in `library-loader.ts`); `cache` is the
  * caller's, kept between runs.
  */
-export async function loadLibraries(source: string, load: (name: VmLibrary) => Promise<string>, cache: Map<string, string>): Promise<Map<string, string>> {
+export async function loadLibraries(
+  source: string,
+  load: (name: VmLibrary) => Promise<string>,
+  cache: Map<string, string>,
+): Promise<Map<string, string>> {
   const loaded = new Map<string, string>();
   for (const name of librariesOf(source)) {
     const text = cache.get(name) ?? (await load(name));

@@ -9,7 +9,17 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".angular", "test-results", "playwright-report", "coverage", "fixtures", "vm-libs"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  ".git",
+  ".angular",
+  "test-results",
+  "playwright-report",
+  "coverage",
+  "fixtures",
+  "vm-libs",
+]);
 // History: written as it was, about files that may since have gone (CLAUDE.md: do not rewrite history).
 const HISTORY = new Set(["CHANGELOG.md", "PLAN-airtight-remediation.md", "e2e/FLAKES.md"]);
 // Written by the build next to the file that links it (THIRD_PARTY_NOTICES.md is served beside it).
@@ -38,12 +48,16 @@ export function checkLinks(root) {
     for (const target of linkTargets(readFileSync(join(root, file), "utf8"))) {
       if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("#")) continue;
       const path = normalize(join(dirname(file), decodeURIComponent(target.split("#")[0]))).replaceAll("\\", "/");
-      if (!BUILT.has(path) && !existsSync(join(root, path))) errors.push(`${file}: links ${path}, which does not exist`);
+      if (!BUILT.has(path) && !existsSync(join(root, path)))
+        errors.push(`${file}: links ${path}, which does not exist`);
     }
   }
   const readme = existsSync(join(root, "README.md")) ? linkTargets(readFileSync(join(root, "README.md"), "utf8")) : [];
   const linked = new Set(readme.map((target) => normalize(target.split("#")[0]).replaceAll("\\", "/")));
-  const docs = existsSync(join(root, "docs")) && statSync(join(root, "docs")).isDirectory() ? files.filter((file) => file.startsWith("docs/") && !file.startsWith("docs/archive/")) : [];
+  const docs =
+    existsSync(join(root, "docs")) && statSync(join(root, "docs")).isDirectory()
+      ? files.filter((file) => file.startsWith("docs/") && !file.startsWith("docs/archive/"))
+      : [];
   for (const doc of docs) if (!linked.has(doc)) errors.push(`README.md does not link ${doc}`);
   return errors;
 }

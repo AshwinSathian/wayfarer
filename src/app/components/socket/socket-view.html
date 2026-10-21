@@ -1,45 +1,79 @@
-@let socket = state();
-@let status = socket.status();
+@let socket = state(); @let status = socket.status();
 <div class="flex flex-wrap items-end gap-x-6 gap-y-3">
   <div class="flex min-w-0 flex-[1_1_16rem] flex-col gap-1">
     <label for="socket-protocols" class="type-footnote text-label-secondary">Subprotocols</label>
     <mat-form-field class="field w-full">
-      <input class="font-mono" matInput id="socket-protocols" spellcheck="false" autocomplete="off" placeholder="None. Names parted by commas, such as graphql-ws" [value]="socket.protocols()" [disabled]="status !== 'closed'" (input)="socket.protocols.set($any($event.target).value)" />
+      <input
+        class="font-mono"
+        matInput
+        id="socket-protocols"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder="None. Names parted by commas, such as graphql-ws"
+        [value]="socket.protocols()"
+        [disabled]="status !== 'closed'"
+        (input)="socket.protocols.set($any($event.target).value)"
+      />
     </mat-form-field>
   </div>
   <div role="status" class="type-callout text-label-secondary flex items-center gap-2 pb-2">
-    @switch (status) {
-    @case ('connecting') { <ui-spinner /> <span>Connecting…</span> }
-    @case ('open') { <span class="text-status-success">Connected</span> }
-    @default { <span>Not connected</span> }
-    }
+    @switch (status) { @case ('connecting') { <ui-spinner /> <span>Connecting…</span> } @case ('open') {
+    <span class="text-status-success">Connected</span> } @default { <span>Not connected</span> } }
   </div>
 </div>
 
 <p class="type-footnote text-label-tertiary">
-  A browser opens a WebSocket itself and lets a page add no header to its handshake: this request's headers and auth do not go with it, and the Local Bridge does not carry it.
-  A <span class="font-mono">{{ '{' + '{variable}' + '}' }}</span> in the address or in a message is replaced; a vault secret cannot be sent.
+  A browser opens a WebSocket itself and lets a page add no header to its handshake: this request's headers and auth do
+  not go with it, and the Local Bridge does not carry it. A
+  <span class="font-mono">{{ '{' + '{variable}' + '}' }}</span> in the address or in a message is replaced; a vault
+  secret cannot be sent.
 </p>
 
 @if (socket.error()) {
-<p class="type-footnote text-status-error flex items-center gap-1.5" role="alert"><app-icon name="error" class="icon-xs" /> {{ socket.error() }}</p>
+<p class="type-footnote text-status-error flex items-center gap-1.5" role="alert"
+  ><app-icon name="error" class="icon-xs" /> {{ socket.error() }}</p
+>
 }
 
 <div class="flex flex-col gap-2">
   <label for="socket-message" class="type-footnote text-label-secondary">Message</label>
   <mat-form-field class="field w-full">
-    <textarea matInput id="socket-message" rows="3" spellcheck="false" class="font-mono" placeholder="Text to send. Enter sends, Shift+Enter is a new line" [value]="socket.message()" (input)="socket.message.set($any($event.target).value)" (keydown)="onKeydown($event)"></textarea>
+    <textarea
+      matInput
+      id="socket-message"
+      rows="3"
+      spellcheck="false"
+      class="font-mono"
+      placeholder="Text to send. Enter sends, Shift+Enter is a new line"
+      [value]="socket.message()"
+      (input)="socket.message.set($any($event.target).value)"
+      (keydown)="onKeydown($event)"
+    ></textarea>
   </mat-form-field>
   <div class="flex flex-wrap items-center gap-4">
-    <button uiButton="filled" class="btn-sm" type="button" [disabled]="status !== 'open' || !socket.message()" (click)="client.send()">Send message</button>
+    <button
+      uiButton="filled"
+      class="btn-sm"
+      type="button"
+      [disabled]="status !== 'open' || !socket.message()"
+      (click)="client.send()"
+      >Send message</button
+    >
     <mat-checkbox [checked]="socket.json()" (change)="socket.json.set($event.checked)">Must be JSON</mat-checkbox>
     <span class="flex-1"></span>
-    <button uiButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])">Clear log</button>
+    <button uiButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])"
+      >Clear log</button
+    >
   </div>
 </div>
 
 @if (socket.log().length) {
-<div class="max-h-[28rem] overflow-auto rounded-xl border border-separator" role="region" aria-label="WebSocket log" tabindex="0">
+<div
+  class="max-h-[28rem] overflow-auto rounded-xl border border-separator"
+  role="region"
+  aria-label="WebSocket log"
+  tabindex="0"
+>
   <table class="ds-table">
     <thead>
       <tr>
@@ -54,8 +88,15 @@
       @for (entry of socket.log(); track $index) {
       <tr>
         <td class="whitespace-nowrap">{{ entry.at | date: 'HH:mm:ss.SSS' }}</td>
-        <td class="whitespace-nowrap">{{ entry.direction === 'in' ? 'Received' : entry.direction === 'out' ? 'Sent' : '—' }}</td>
-        <td class="break-all whitespace-pre-wrap" [class.font-mono]="entry.direction !== 'info'" [class.text-label-secondary]="entry.direction === 'info'">{{ entry.text }}</td>
+        <td class="whitespace-nowrap"
+          >{{ entry.direction === 'in' ? 'Received' : entry.direction === 'out' ? 'Sent' : '—' }}</td
+        >
+        <td
+          class="break-all whitespace-pre-wrap"
+          [class.font-mono]="entry.direction !== 'info'"
+          [class.text-label-secondary]="entry.direction === 'info'"
+          >{{ entry.text }}</td
+        >
         <td class="whitespace-nowrap">{{ entry.bytes === undefined ? '—' : entry.bytes + ' B' }}</td>
       </tr>
       }

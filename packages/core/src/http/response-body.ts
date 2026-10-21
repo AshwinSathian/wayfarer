@@ -10,7 +10,7 @@ export class BinaryBody {
   constructor(
     /** A `Blob` when the body was over the display cap and never held as one buffer. */
     readonly bytes: ArrayBuffer | Blob,
-    readonly contentType: string
+    readonly contentType: string,
   ) {}
 
   get byteLength(): number {
@@ -31,7 +31,13 @@ const TEXT_WORDS = ["javascript", "ecmascript", "x-www-form-urlencoded", "graphq
 function isTextType(mediaType: string): boolean {
   const type = mediaType.toLowerCase();
   const subtype = type.slice(type.indexOf("/") + 1);
-  return type.startsWith("text/") || subtype === "xml" || subtype.startsWith("xml-") || subtype.endsWith("+xml") || TEXT_WORDS.some((word) => type.includes(word));
+  return (
+    type.startsWith("text/") ||
+    subtype === "xml" ||
+    subtype.startsWith("xml-") ||
+    subtype.endsWith("+xml") ||
+    TEXT_WORDS.some((word) => type.includes(word))
+  );
 }
 
 /**
@@ -45,7 +51,7 @@ function isTextType(mediaType: string): boolean {
  */
 export function decodeResponseBody(
   bytes: ArrayBuffer | null | undefined,
-  contentType: string | null | undefined
+  contentType: string | null | undefined,
 ): unknown {
   if (!bytes || bytes.byteLength === 0) {
     return null;

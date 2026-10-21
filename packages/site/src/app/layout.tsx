@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   // The app's own icons: one mark for the site and the app.
   icons: {
-    icon: [{ url: "/app/favicon.ico", sizes: "any" }, { url: "/app/icons/logo.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/app/favicon.ico", sizes: "any" },
+      { url: "/app/icons/logo.svg", type: "image/svg+xml" },
+    ],
     apple: "/app/icons/icon-192x192.png",
   },
 };

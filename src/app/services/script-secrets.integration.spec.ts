@@ -29,12 +29,34 @@ describe("a script sets a protected variable (P3.12)", () => {
   beforeEach(async () => {
     localStorage.removeItem("wayfarer:vault-idle-minutes");
     const body = new TextEncoder().encode("{}").buffer;
-    const answer: ResponseEnvelope = { status: 200, statusText: "OK", headers: [], body, redirected: false, finalUrl: "", route: "direct", sizes: { decoded: 2 } };
+    const answer: ResponseEnvelope = {
+      status: 200,
+      statusText: "OK",
+      headers: [],
+      body,
+      redirected: false,
+      finalUrl: "",
+      route: "direct",
+      sizes: { decoded: 2 },
+    };
     TestBed.configureTestingModule({
       providers: [
         { provide: ScriptSandbox, useValue: { execute: async () => script } },
         { provide: TransportRouter, useValue: { send: async () => answer, route: () => "direct" } },
-        { provide: ResponseInspector, useValue: { markRequest: () => undefined, markResponse: (id: string, url: string) => ({ id, url, startTime: 0, startEpoch: 0, endTime: 0, duration: 0 }) } },
+        {
+          provide: ResponseInspector,
+          useValue: {
+            markRequest: () => undefined,
+            markResponse: (id: string, url: string) => ({
+              id,
+              url,
+              startTime: 0,
+              startEpoch: 0,
+              endTime: 0,
+              duration: 0,
+            }),
+          },
+        },
       ],
     });
     executor = TestBed.inject(RequestExecutor);
@@ -59,7 +81,11 @@ describe("a script sets a protected variable (P3.12)", () => {
     await idb.resetDatabase();
   });
 
-  const sets = (...environment: VariableChange[]): ScriptResult => ({ logs: [], changes: { environment, collection: [], global: [] }, testResults: [] });
+  const sets = (...environment: VariableChange[]): ScriptResult => ({
+    logs: [],
+    changes: { environment, collection: [], global: [] },
+    testResults: [],
+  });
   const run = (when: "pre" | "post") =>
     executor.execute({
       template: requestContent(),
@@ -69,7 +95,8 @@ describe("a script sets a protected variable (P3.12)", () => {
       tests: [],
       buildRequest: () => ({ method: "GET", url: "https://api.test/", headers: [], secrets: [OLD], credentials: [] }),
     });
-  const variables = () => Object.fromEntries((environments.activeEnvironment()?.vars ?? []).map((row) => [row.key, row.value]));
+  const variables = () =>
+    Object.fromEntries((environments.activeEnvironment()?.vars ?? []).map((row) => [row.key, row.value]));
 
   /** Everything every store holds, as text. */
   async function everythingStored(): Promise<string> {
@@ -80,10 +107,28 @@ describe("a script sets a protected variable (P3.12)", () => {
     });
     const names = [...db.objectStoreNames];
     const stores = await Promise.all(
-      names.map((name) => new Promise<unknown[]>((resolve) => (db.transaction(name).objectStore(name).getAll().onsuccess = (event) => resolve((event.target as IDBRequest<unknown[]>).result))))
+      names.map(
+        (name) =>
+          new Promise<unknown[]>(
+            (resolve) =>
+              (db.transaction(name).objectStore(name).getAll().onsuccess = (event) =>
+                resolve((event.target as IDBRequest<unknown[]>).result)),
+          ),
+      ),
     );
     db.close();
-    expect(names.sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+    expect(names.sort()).toEqual([
+      "collections",
+      "cookies",
+      "environments",
+      "files",
+      "folders",
+      "history",
+      "meta",
+      "requests",
+      "secrets",
+      "tabs",
+    ]);
     return JSON.stringify(stores);
   }
 
@@ -110,7 +155,9 @@ describe("a script sets a protected variable (P3.12)", () => {
     script = sets({ key: "token", value: NEW }, { key: "plain", value: "after" });
     const result = await run("pre");
 
-    expect(result.scriptLogs).toEqual(['[warn] pm.environment.set("token"): this variable is protected and the vault is locked, so its value was not changed.']);
+    expect(result.scriptLogs).toEqual([
+      '[warn] pm.environment.set("token"): this variable is protected and the vault is locked, so its value was not changed.',
+    ]);
     expect(variables()).toEqual({ token: buildSecretReference(secretId), plain: "after" });
     expect(await everythingStored()).not.toContain(NEW);
     expect(await vault.unlock(PASSPHRASE)).toBe(true);
@@ -129,7 +176,9 @@ describe("a script sets a protected variable (P3.12)", () => {
     await vault.deleteSecret(secretId);
     script = sets({ key: "token", value: NEW });
     const result = await run("pre");
-    expect(result.scriptLogs).toEqual(['[warn] pm.environment.set("token"): the secret this variable refers to is not in the vault, so its value was not changed.']);
+    expect(result.scriptLogs).toEqual([
+      '[warn] pm.environment.set("token"): the secret this variable refers to is not in the vault, so its value was not changed.',
+    ]);
     expect(variables()["token"]).toBe(buildSecretReference(secretId));
     expect(await everythingStored()).not.toContain(NEW);
   });

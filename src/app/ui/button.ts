@@ -27,5 +27,8 @@ export type ButtonVariant = "filled" | "outlined" | "text" | "icon";
 })
 export class UiButton {
   /** `uiButton` with no value is a text button. */
-  readonly variant = input<ButtonVariant, ButtonVariant | "">("text", { alias: "uiButton", transform: (value) => value || "text" });
+  readonly variant = input<ButtonVariant, ButtonVariant | "">("text", {
+    alias: "uiButton",
+    transform: (value) => value || "text",
+  });
 }

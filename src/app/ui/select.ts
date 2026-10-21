@@ -1,5 +1,18 @@
 import { CdkConnectedOverlay, ConnectedPosition } from "@angular/cdk/overlay";
-import { ApplicationRef, ChangeDetectionStrategy, Component, ElementRef, ViewEncapsulation, afterRenderEffect, computed, inject, input, output, viewChild, viewChildren } from "@angular/core";
+import {
+  ApplicationRef,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  ViewEncapsulation,
+  afterRenderEffect,
+  computed,
+  inject,
+  input,
+  output,
+  viewChild,
+  viewChildren,
+} from "@angular/core";
 import { Combobox, ComboboxPopup, ComboboxWidget } from "@angular/aria/combobox";
 import { Listbox, Option } from "@angular/aria/listbox";
 import { Icon } from "../shared/icon/icon";
@@ -121,7 +134,9 @@ export class UiSelect<T> {
   private readonly items = viewChildren<Option<T>>(Option);
 
   protected readonly chosen = computed(() => [this.value()]);
-  protected readonly shown = computed(() => this.options().find((option) => option.value === this.value())?.label ?? this.placeholder());
+  protected readonly shown = computed(
+    () => this.options().find((option) => option.value === this.value())?.label ?? this.placeholder(),
+  );
 
   private typed = "";
   private typedAt = 0;

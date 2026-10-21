@@ -12,23 +12,32 @@ const LAZY = {
   "the YAML parser": "YAMLParseError",
 };
 
-test("the page the server sends, and the scripts it loads first, hold none of Monaco, QuickJS, GraphQL, the OpenAPI importer or YAML", async ({ request }) => {
+test("the page the server sends, and the scripts it loads first, hold none of Monaco, QuickJS, GraphQL, the OpenAPI importer or YAML", async ({
+  request,
+}) => {
   const html = await (await request.get("/app/")).text();
-  const first = [...html.matchAll(/<script[^>]+src="([^"]+)"|<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g)].map((match) => match[1] ?? match[2]);
+  const first = [...html.matchAll(/<script[^>]+src="([^"]+)"|<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g)].map(
+    (match) => match[1] ?? match[2],
+  );
   expect(first.length).toBeGreaterThan(0);
   // What those import at once (`import … from "./x.js"`) loads first too; an `import()` does not.
   const seen = new Set<string>();
   const texts: string[] = [];
-  for (let queue = [...first]; queue.length; ) {
+  for (let queue = [...first]; queue.length;) {
     const path = queue.shift() ?? "";
     if (seen.has(path)) continue;
     seen.add(path);
     const text = await (await request.get(`/app/${path.replace(/^\.?\//, "")}`)).text();
     texts.push(text);
-    queue.push(...[...text.matchAll(/(?:^|[;}\s])import(?:[^("']*?from)?\s*["']\.\/([^"']+\.js)["']/g)].map((match) => match[1]));
+    queue.push(
+      ...[...text.matchAll(/(?:^|[;}\s])import(?:[^("']*?from)?\s*["']\.\/([^"']+\.js)["']/g)].map((match) => match[1]),
+    );
   }
   for (const [library, marker] of Object.entries(LAZY)) {
-    expect(texts.some((text) => text.includes(marker)), library).toBe(false);
+    expect(
+      texts.some((text) => text.includes(marker)),
+      library,
+    ).toBe(false);
   }
 });
 
@@ -70,23 +79,35 @@ test("typing into the address with five tabs open answers each key within 100 ms
     if ("PerformanceEventTiming" in window) {
       // An interaction under 16 ms is not reported, and counts as answered at once.
       new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as PerformanceEventTiming[]) if (entry.interactionId && entry.name === "keydown") record.slow.push(entry.processingEnd - entry.startTime);
+        for (const entry of list.getEntries() as PerformanceEventTiming[])
+          if (entry.interactionId && entry.name === "keydown") record.slow.push(entry.processingEnd - entry.startTime);
       }).observe({ type: "event", durationThreshold: 16 } as PerformanceObserverInit);
     } else {
-      document.addEventListener("keydown", (event) => {
-        const start = event.timeStamp;
-        requestAnimationFrame(() => setTimeout(() => record.slow.push(performance.now() - start), 0));
-      }, true);
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          const start = event.timeStamp;
+          requestAnimationFrame(() => setTimeout(() => record.slow.push(performance.now() - start), 0));
+        },
+        true,
+      );
     }
   });
   // At 120 ms a key, a quick typist's pace: slower would hide the cost, faster measures a queue of keys rather than one.
   const text = "https://api.example.com/v1/users/{{id}}/orders?page=2&size=50";
   await page.keyboard.type(text, { delay: 120 });
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __keys: { keys: number } }).__keys.keys)).toBe(text.length);
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __keys: { keys: number } }).__keys.keys))
+    .toBe(text.length);
   await page.waitForTimeout(500);
-  const { keys, slow } = await page.evaluate(() => (window as unknown as { __keys: { keys: number; slow: number[] } }).__keys);
+  const { keys, slow } = await page.evaluate(
+    () => (window as unknown as { __keys: { keys: number; slow: number[] } }).__keys,
+  );
   // INP: the worst interaction, leaving out one for every 50.
   const worst = [...slow].sort((a, b) => b - a);
   const inp = worst[Math.floor(keys / 50)] ?? 0;
-  expect(inp, `the slowest key interactions (ms): ${worst.slice(0, 10).map(Math.round).join(", ")}`).toBeLessThanOrEqual(100);
+  expect(
+    inp,
+    `the slowest key interactions (ms): ${worst.slice(0, 10).map(Math.round).join(", ")}`,
+  ).toBeLessThanOrEqual(100);
 });

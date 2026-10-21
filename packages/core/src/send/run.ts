@@ -1,9 +1,17 @@
 import type { RunOutcome } from "../run/runner";
 import { VariableNestingError } from "../variables/resolver";
 import type { TestResult } from "./assertions";
-import { PreRequestScriptError, RequestSkipped, SendBlockedError, SendDeclinedError, type ExchangeResult, type PastRequest } from "./exchange";
+import {
+  PreRequestScriptError,
+  RequestSkipped,
+  SendBlockedError,
+  SendDeclinedError,
+  type ExchangeResult,
+  type PastRequest,
+} from "./exchange";
 
-const tests = (rows: TestResult[]): RunOutcome["tests"] => rows.map((row) => ({ name: row.label, passed: row.passed, ...(row.error !== undefined && { error: row.error }) }));
+const tests = (rows: TestResult[]): RunOutcome["tests"] =>
+  rows.map((row) => ({ name: row.label, passed: row.passed, ...(row.error !== undefined && { error: row.error }) }));
 
 /**
  * One request of a collection run (P5.2), sent by `send` (an `exchange`),
@@ -12,7 +20,10 @@ const tests = (rows: TestResult[]): RunOutcome["tests"] => rows.map((row) => ({ 
  * `declined` is why the run ends when C-053's question was answered no.
  * Anything else that `send` throws is thrown.
  */
-export async function runOutcome(send: () => Promise<ExchangeResult>, declined: string): Promise<{ outcome: RunOutcome; exchange?: PastRequest }> {
+export async function runOutcome(
+  send: () => Promise<ExchangeResult>,
+  declined: string,
+): Promise<{ outcome: RunOutcome; exchange?: PastRequest }> {
   try {
     const result = await send();
     const { response } = result;
@@ -30,10 +41,19 @@ export async function runOutcome(send: () => Promise<ExchangeResult>, declined: 
       exchange: result.history,
     };
   } catch (error) {
-    if (error instanceof RequestSkipped) return { outcome: { skipped: true, tests: tests(error.testResults), ...(error.nextRequest !== undefined && { nextRequest: error.nextRequest }) } };
+    if (error instanceof RequestSkipped)
+      return {
+        outcome: {
+          skipped: true,
+          tests: tests(error.testResults),
+          ...(error.nextRequest !== undefined && { nextRequest: error.nextRequest }),
+        },
+      };
     if (error instanceof SendDeclinedError) return { outcome: { error: error.message, tests: [], end: declined } };
-    if (error instanceof PreRequestScriptError) return { outcome: { error: error.message, tests: tests(error.testResults) } };
-    if (error instanceof SendBlockedError || error instanceof VariableNestingError) return { outcome: { error: error.message, tests: [] } };
+    if (error instanceof PreRequestScriptError)
+      return { outcome: { error: error.message, tests: tests(error.testResults) } };
+    if (error instanceof SendBlockedError || error instanceof VariableNestingError)
+      return { outcome: { error: error.message, tests: [] } };
     throw error;
   }
 }

@@ -74,7 +74,9 @@ export class ImportPipeline {
   setEntryAction(index: number, action: "merge" | "replace"): void {
     const current = this.environmentEntries()[index];
     if (!current || (action === "replace" && !current.targetId)) return;
-    this.environmentEntries.update((entries) => entries.map((entry, i) => (i === index ? { ...current, action } : entry)));
+    this.environmentEntries.update((entries) =>
+      entries.map((entry, i) => (i === index ? { ...current, action } : entry)),
+    );
   }
 
   /** Stores what the report showed: each collection in a transaction of its own, scripts unapproved (D6). */

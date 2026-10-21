@@ -84,8 +84,17 @@ function textOf(body: BuiltRequest["body"]): string | undefined {
  */
 function sentExportBody(sent: BuiltRequest["body"], composed: RequestBody): ExportBody {
   if (sent === undefined) return { mode: "none" };
-  if (typeof sent === "string") return composed.mode === "urlencoded" ? { mode: "urlencoded", fields: [...new URLSearchParams(sent)] } : { mode: "raw", text: sent };
-  if (sent instanceof FormData) return { mode: "multipart", parts: [...sent].map(([name, value]) => (typeof value === "string" ? { name, value } : { name, fileName: value.name })) };
+  if (typeof sent === "string")
+    return composed.mode === "urlencoded"
+      ? { mode: "urlencoded", fields: [...new URLSearchParams(sent)] }
+      : { mode: "raw", text: sent };
+  if (sent instanceof FormData)
+    return {
+      mode: "multipart",
+      parts: [...sent].map(([name, value]) =>
+        typeof value === "string" ? { name, value } : { name, fileName: value.name },
+      ),
+    };
   return { mode: "binary", fileName: composed.binary?.fileName ?? "" };
 }
 
@@ -204,15 +213,19 @@ export class WorkspaceStore {
         return text;
       }
     };
-    const headers = [...sentHeaders(draft.headers), ...Object.entries(buildAuthHeaders(resolveAuth(this.sentAuth(draft.auth, this.tabs.active()), resolve)))].map(
-      ([name, value]): [string, string] => [resolve(name), resolve(value)]
-    );
+    const headers = [
+      ...sentHeaders(draft.headers),
+      ...Object.entries(buildAuthHeaders(resolveAuth(this.sentAuth(draft.auth, this.tabs.active()), resolve))),
+    ].map(([name, value]): [string, string] => [resolve(name), resolve(value)]);
     const contentType = isBodyMethod(draft.method) ? bodyContentType(draft.body) : undefined;
     if (contentType && !headers.some(([name]) => name.toLowerCase() === "content-type")) {
       headers.push(["Content-Type", contentType]);
     }
     const url = draft.url.trim();
-    return browserLimits({ method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers }, { origin: location.origin, route: this.firstRoute() });
+    return browserLimits(
+      { method: draft.method, url: url ? normalizeUrl(resolve(url)) : "", headers },
+      { origin: location.origin, route: this.firstRoute() },
+    );
   });
 
   constructor() {
@@ -384,7 +397,12 @@ export class WorkspaceStore {
    * The send holds its tab (session 5B): from here to its last step it reads
    * and writes `tab`, never "the open tab", which may be another by then.
    */
-  async send(options: { allowUnresolved?: boolean; /** Reconnects an event stream: sent as `Last-Event-ID` (P5.6). */ lastEventId?: string } = {}): Promise<boolean> {
+  async send(
+    options: {
+      allowUnresolved?: boolean;
+      /** Reconnects an event stream: sent as `Last-Event-ID` (P5.6). */ lastEventId?: string;
+    } = {},
+  ): Promise<boolean> {
     const tab = this.tabs.active();
     tab.endpointError.set("");
     tab.pasteNotes.set([]);
@@ -445,7 +463,10 @@ export class WorkspaceStore {
     this.applyExecutionResponse(tab, result.response);
     this.applyStream(tab, result);
     // The jar's cookies that went out (P5.3) are credentials to an export of this exchange, as they are to history.
-    if (result.cookieValues.length) tab.responseExportContext.update((context) => context && { ...context, credentials: [...context.credentials, ...result.cookieValues] });
+    if (result.cookieValues.length)
+      tab.responseExportContext.update(
+        (context) => context && { ...context, credentials: [...context.credentials, ...result.cookieValues] },
+      );
     // Where the response is kept: a reload shows it again from there (P5.1).
     tab.historyKey.set((await this.historyRepository.add(result.history, this.settings.historyCap())) ?? undefined);
     return true;
@@ -463,7 +484,9 @@ export class WorkspaceStore {
     const methodError = this.methodError(method);
     if (methodError) return methodError;
     try {
-      return validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(url.trim())) ? "" : "Please enter a valid URL";
+      return validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(url.trim()))
+        ? ""
+        : "Please enter a valid URL";
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       return error.message;
@@ -477,11 +500,15 @@ export class WorkspaceStore {
 
   private collectionRoute(tab: TabState): Route | undefined {
     const bound = tab.bound();
-    return bound ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId)?.collection.route : undefined;
+    return bound
+      ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId)?.collection.route
+      : undefined;
   }
 
   /** The route the open tab's request has when it names none: its collection's, else the device's. */
-  readonly inheritedRoute = computed(() => routeOf(undefined, this.collectionRoute(this.tabs.active()), this.router.route()));
+  readonly inheritedRoute = computed(() =>
+    routeOf(undefined, this.collectionRoute(this.tabs.active()), this.router.route()),
+  );
 
   /** Where the open tab's request goes first, for what the composer says of it. */
   readonly firstRoute = computed(() => this.router.first(this.routeOf(this.tabs.active())));
@@ -491,7 +518,10 @@ export class WorkspaceStore {
    * and sent. A send and a request of a run are both this. Throws what
    * `RequestExecutor.execute` throws.
    */
-  private async exchange(tab: TabState, options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend; onEvent?: (event: StreamEvent) => void }): Promise<RequestExecutionResult> {
+  private async exchange(
+    tab: TabState,
+    options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend; onEvent?: (event: StreamEvent) => void },
+  ): Promise<RequestExecutionResult> {
     const draft = tab.draft();
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
     const inherited = this.saved.ancestorsFor(tab.bound());
@@ -502,7 +532,11 @@ export class WorkspaceStore {
     // What a pre-request script may move the request away from (plan Q6): the request before the first of them, an inherited one included.
     // In a run it is the request under the variables the run started with: a script of an earlier request may have set the host of this one (C-053).
     const composed: Composed | undefined = options.run
-      ? { url: draft.url, scopes: { ...options.run.baseline, folder: this.scopesOf(tab).folder, data: tab.iteration?.data }, accepted: options.run.acceptedHosts }
+      ? {
+          url: draft.url,
+          scopes: { ...options.run.baseline, folder: this.scopesOf(tab).folder, data: tab.iteration?.data },
+          accepted: options.run.acceptedHosts,
+        }
       : runScripts && [...inherited, draft].some((holder) => holder.scripts.pre.trim())
         ? { url: draft.url, scopes: this.scopesOf(tab) }
         : undefined;
@@ -542,7 +576,12 @@ export class WorkspaceStore {
   async introspect(query: string): Promise<string> {
     // A copy keeps the binding and the held scripts: its scripts are trusted exactly as the open tab's are.
     const tab = this.tabs.active().copy();
-    tab.draft.update((draft) => ({ ...draft, method: "POST", body: { mode: "graphql", graphql: { query, variables: "" } }, tests: [] }));
+    tab.draft.update((draft) => ({
+      ...draft,
+      method: "POST",
+      body: { mode: "graphql", graphql: { query, variables: "" } },
+      tests: [],
+    }));
     const refusal = this.refusal(tab);
     if (refusal) throw new Error(refusal);
     const controller = new AbortController();
@@ -558,7 +597,8 @@ export class WorkspaceStore {
     return {
       baseline: {
         environment: this.environments.activeEnvironment()?.vars,
-        collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables,
+        collection: this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection
+          .variables,
         global: this.environments.globals(),
       },
       acceptedHosts: new Set(),
@@ -572,7 +612,12 @@ export class WorkspaceStore {
    * Says how it went in the run's words, with the exchange as history would
    * have kept it (masked), for the run's HAR.
    */
-  async sendForRun(doc: RequestDoc, iteration: RunIteration, signal: AbortSignal, run: RunSend): Promise<{ outcome: RunOutcome; exchange?: PastRequest; scriptsSkipped: boolean }> {
+  async sendForRun(
+    doc: RequestDoc,
+    iteration: RunIteration,
+    signal: AbortSignal,
+    run: RunSend,
+  ): Promise<{ outcome: RunOutcome; exchange?: PastRequest; scriptsSkipped: boolean }> {
     const tab = new TabState();
     tab.draft.set({ ...structuredClone(doc), params: parseParamsFromUrl(doc.url) });
     tab.bound.set(doc);
@@ -584,7 +629,7 @@ export class WorkspaceStore {
     if (refusal) return { outcome: { error: refusal, tests: [] }, scriptsSkipped: false };
     const { outcome, exchange } = await runOutcome(
       () => this.exchange(tab, { allowUnresolved: false, signal: controller.signal, run }),
-      "You chose not to send a request with a vault secret to a host a script had changed."
+      "You chose not to send a request with a vault secret to a host a script had changed.",
     );
     return { outcome, exchange, scriptsSkipped: tab.scriptsSkipped() };
   }
@@ -597,7 +642,9 @@ export class WorkspaceStore {
     return {
       info: { requestName: bound.name, requestId: bound.meta.id },
       collection: {
-        variables: () => this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables ?? [],
+        variables: () =>
+          this.collections.tree().find((entry) => entry.collection.meta.id === collectionId)?.collection.variables ??
+          [],
         change: (changes) => this.collections.changeCollectionVariables(collectionId, changes),
       },
     };
@@ -618,7 +665,9 @@ export class WorkspaceStore {
    * name its token is kept under (`oauthTokenKey`): made with the variables
    * replaced and no vault secret read, so the name holds none.
    */
-  readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() => this.oauthOf(this.draft().auth, this.tabs.active()));
+  readonly oauth = computed<{ auth: OAuth2Auth; key: string } | null>(() =>
+    this.oauthOf(this.draft().auth, this.tabs.active()),
+  );
 
   private oauthOf(own: AuthConfig, tab: TabState): { auth: OAuth2Auth; key: string } | null {
     return oauthOf(own, this.saved.ancestorsFor(tab.bound()), this.scopesOf(tab));
@@ -635,10 +684,15 @@ export class WorkspaceStore {
     if (!oauth) return;
     const probe = new VariableResolver(this.scopes());
     resolveAuth(oauth.auth, (text) => probe.resolve(text));
-    const secrets = probe.lockedSecrets.size ? await this.readSecrets([...probe.lockedSecrets]) : new Map<string, string>();
+    const secrets = probe.lockedSecrets.size
+      ? await this.readSecrets([...probe.lockedSecrets])
+      : new Map<string, string>();
     const resolver = new VariableResolver(this.scopes(), (id) => secrets.get(id));
     const auth = resolveAuth(oauth.auth, (text) => resolver.resolve(text));
-    if (resolver.unresolved.size) throw new OAuthError(`${[...resolver.unresolved].map((name) => `{{${name}}}`).join(", ")} ${resolver.unresolved.size === 1 ? "has" : "have"} no value. No token was asked for.`);
+    if (resolver.unresolved.size)
+      throw new OAuthError(
+        `${[...resolver.unresolved].map((name) => `{{${name}}}`).join(", ")} ${resolver.unresolved.size === 1 ? "has" : "have"} no value. No token was asked for.`,
+      );
     await this.oauthTokens.get(auth, oauth.key);
   }
 
@@ -698,10 +752,23 @@ export class WorkspaceStore {
     try {
       const body = exportBody(content.body, content.method, (text) => resolver.resolve(text));
       // The type the body's mode implies, as a send adds it. A multipart form has none: its sender writes the boundary.
-      const contentType = body.mode === "none" || body.mode === "multipart" || (body.mode === "raw" && !body.text) ? undefined : bodyContentType(content.body);
+      const contentType =
+        body.mode === "none" || body.mode === "multipart" || (body.mode === "raw" && !body.text)
+          ? undefined
+          : bodyContentType(content.body);
       const tab = this.tabs.active();
-      const built = assemble(content, contentType ? { data: "", contentType } : undefined, resolver, { ancestors: this.saved.ancestorsFor(tab.bound()), lastEventId: tab.lastEventId });
-      return { method: built.method, url: built.url, headers: built.headers, body, secrets: built.secrets, credentials: built.credentials };
+      const built = assemble(content, contentType ? { data: "", contentType } : undefined, resolver, {
+        ancestors: this.saved.ancestorsFor(tab.bound()),
+        lastEventId: tab.lastEventId,
+      });
+      return {
+        method: built.method,
+        url: built.url,
+        headers: built.headers,
+        body,
+        secrets: built.secrets,
+        credentials: built.credentials,
+      };
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       this.endpointError.set(error.message);
@@ -734,7 +801,13 @@ export class WorkspaceStore {
    * {{var}} resolution has to reflect any pm.environment.set() the script
    * just made, so it reads a fresh variable context.
    */
-  private buildRequestForExecution(tab: TabState, content: RequestContent, allowUnresolved: boolean, composed?: Composed, renewToken = false): BuiltRequest | Promise<BuiltRequest> {
+  private buildRequestForExecution(
+    tab: TabState,
+    content: RequestContent,
+    allowUnresolved: boolean,
+    composed?: Composed,
+    renewToken = false,
+  ): BuiltRequest | Promise<BuiltRequest> {
     const built = buildRequest(content, {
       // Read at each use: a pre-request script, or a vault unlock, may have come between.
       scopes: () => this.scopesOf(tab),
@@ -756,7 +829,9 @@ export class WorkspaceStore {
       renewToken,
       ...(tab.lastEventId !== undefined && { lastEventId: tab.lastEventId }),
     });
-    return built instanceof Promise ? built.then((request) => this.recordForExport(tab, request, content)) : this.recordForExport(tab, built, content);
+    return built instanceof Promise
+      ? built.then((request) => this.recordForExport(tab, request, content))
+      : this.recordForExport(tab, built, content);
   }
 
   /**
@@ -764,7 +839,11 @@ export class WorkspaceStore {
    * send a 401 gets when the auth asks for it. `null` when the auth does not,
    * or when no token could be had: the 401 is then the response.
    */
-  private async withRenewedToken(tab: TabState, content: RequestContent, allowUnresolved: boolean): Promise<BuiltRequest | null> {
+  private async withRenewedToken(
+    tab: TabState,
+    content: RequestContent,
+    allowUnresolved: boolean,
+  ): Promise<BuiltRequest | null> {
     const auth = this.sentAuth(content.auth, tab);
     if (auth.type !== "oauth2" || !auth.retryOn401) return null;
     try {
@@ -799,7 +878,9 @@ export class WorkspaceStore {
    */
   private async readSecrets(ids: string[]): Promise<Map<string, string>> {
     if (!(await this.vault.ensureUnlocked())) {
-      throw new SendBlockedError("This request uses a vault secret and the vault is locked. Unlock it to send. Nothing was sent.");
+      throw new SendBlockedError(
+        "This request uses a vault secret and the vault is locked. Unlock it to send. Nothing was sent.",
+      );
     }
     const secrets = new Map<string, string>();
     for (const id of ids) {
@@ -827,11 +908,15 @@ export class WorkspaceStore {
       const events = parseEventStream(response.dataText || response.errorText);
       tab.streamEvents.set(events.slice(-SHOWN_EVENTS));
       tab.streamCount.set(events.length);
-      if (result.history.route === "bridge") notes.push("Sent through the Local Bridge, which relays a response when it has ended: these events arrived together, and a stream that does not end is not shown.");
+      if (result.history.route === "bridge")
+        notes.push(
+          "Sent through the Local Bridge, which relays a response when it has ended: these events arrived together, and a stream that does not end is not shown.",
+        );
     }
     if (response.stream?.stopped) notes.push("You stopped the stream.");
     if (response.stream?.truncated) notes.push("The Body tab holds the first megabyte of the stream.");
-    if (tab.streamCount() > tab.streamEvents().length) notes.push(`The list holds the newest ${tab.streamEvents().length} of ${tab.streamCount()} events.`);
+    if (tab.streamCount() > tab.streamEvents().length)
+      notes.push(`The list holds the newest ${tab.streamEvents().length} of ${tab.streamCount()} events.`);
     tab.streamNote.set(notes.join(" "));
     if (tab.streamCount()) tab.responseTab.set("events");
   }

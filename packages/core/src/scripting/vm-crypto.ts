@@ -20,7 +20,8 @@ export type VmEncoding = (typeof VM_ENCODINGS)[number];
 
 function fromWords(json: string): Uint8Array {
   const list: unknown = JSON.parse(json);
-  if (!Array.isArray(list) || !list.every((entry) => typeof entry === "number")) throw new TypeError("Expected a WordArray.");
+  if (!Array.isArray(list) || !list.every((entry) => typeof entry === "number"))
+    throw new TypeError("Expected a WordArray.");
   const [length, ...words] = list as number[];
   const bytes = new Uint8Array(Math.max(0, Math.min(length, words.length * 4)));
   for (let i = 0; i < bytes.length; i++) bytes[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
@@ -51,7 +52,10 @@ export function vmHmac(name: VmHash, keyFormat: string, key: string, format: str
 /** `enc.<X>.parse`: text to a WordArray. As lenient as crypto-js: what is not a hex digit counts as 0, base64 may lack its padding. */
 export function vmEncode(encoding: VmEncoding, text: string): string {
   if (encoding === "utf8") return toWords(new TextEncoder().encode(text));
-  if (encoding === "hex") return toWords(Uint8Array.from({ length: text.length >>> 1 }, (_, i) => parseInt(text.slice(i * 2, i * 2 + 2), 16) || 0));
+  if (encoding === "hex")
+    return toWords(
+      Uint8Array.from({ length: text.length >>> 1 }, (_, i) => parseInt(text.slice(i * 2, i * 2 + 2), 16) || 0),
+    );
   return toWords(Uint8Array.from(atob(text.replace(/=+$/, "")), (char) => char.charCodeAt(0)));
 }
 
@@ -72,5 +76,7 @@ export function vmDecode(encoding: VmEncoding, words: string): string {
 /** Random bytes for the libraries that need them (uuid, crypto-js salts), as hex. */
 export function vmRandom(count: number): string {
   if (!Number.isInteger(count) || count < 0 || count > 65536) throw new RangeError("Expected up to 65536 bytes.");
-  return Array.from(crypto.getRandomValues(new Uint8Array(count)), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(crypto.getRandomValues(new Uint8Array(count)), (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
 }

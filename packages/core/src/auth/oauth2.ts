@@ -26,10 +26,20 @@ export const OAUTH_CHANNEL = "wayfarer:oauth";
  * so that it holds no secret: it is the name the token is stored under.
  */
 export function oauthTokenKey(auth: OAuth2Auth): string {
-  return JSON.stringify([auth.grant, auth.tokenUrl, auth.clientId, auth.scope, auth.grant === "password" ? auth.username : ""]);
+  return JSON.stringify([
+    auth.grant,
+    auth.tokenUrl,
+    auth.clientId,
+    auth.scope,
+    auth.grant === "password" ? auth.username : "",
+  ]);
 }
 
-const base64url = (bytes: Uint8Array): string => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const base64url = (bytes: Uint8Array): string =>
+  btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 
 /** A PKCE pair (RFC 7636, S256): 244 random bits as the verifier, and its SHA-256 as the challenge. */
 export async function pkcePair(): Promise<{ verifier: string; challenge: string }> {
@@ -56,7 +66,8 @@ export function authorizationUrl(auth: OAuth2Auth, redirectUri: string, state: s
 }
 
 /** What is exchanged for a token: the code the popup brought back, a refresh token, or the auth's own grant. */
-export type OAuthExchange = { code: string; verifier: string; redirectUri: string } | { refreshToken: string } | "grant";
+export type OAuthExchange =
+  { code: string; verifier: string; redirectUri: string } | { refreshToken: string } | "grant";
 
 /**
  * The request to the token endpoint (RFC 6749): a form, with the client
@@ -67,12 +78,18 @@ export type OAuthExchange = { code: string; verifier: string; redirectUri: strin
 export function tokenRequest(auth: OAuth2Auth, exchange: OAuthExchange): ResolvedRequest & { body: string } {
   const form: [string, string][] = [];
   if (exchange === "grant") {
-    if (auth.grant === "authorization_code") throw new OAuthError("This grant needs a sign-in: choose Get token in the Auth tab.");
+    if (auth.grant === "authorization_code")
+      throw new OAuthError("This grant needs a sign-in: choose Get token in the Auth tab.");
     form.push(["grant_type", auth.grant]);
     if (auth.grant === "password") form.push(["username", auth.username], ["password", auth.password]);
     if (auth.scope) form.push(["scope", auth.scope]);
   } else if ("code" in exchange) {
-    form.push(["grant_type", "authorization_code"], ["code", exchange.code], ["redirect_uri", exchange.redirectUri], ["code_verifier", exchange.verifier]);
+    form.push(
+      ["grant_type", "authorization_code"],
+      ["code", exchange.code],
+      ["redirect_uri", exchange.redirectUri],
+      ["code_verifier", exchange.verifier],
+    );
   } else {
     form.push(["grant_type", "refresh_token"], ["refresh_token", exchange.refreshToken]);
   }
@@ -91,7 +108,10 @@ export function tokenRequest(auth: OAuth2Auth, exchange: OAuthExchange): Resolve
   return { method: "POST", url: auth.tokenUrl, headers, body: new URLSearchParams(form).toString() };
 }
 
-const own = (value: unknown, key: string): unknown => (typeof value === "object" && value !== null && Object.hasOwn(value, key) ? (value as Record<string, unknown>)[key] : undefined);
+const own = (value: unknown, key: string): unknown =>
+  typeof value === "object" && value !== null && Object.hasOwn(value, key)
+    ? (value as Record<string, unknown>)[key]
+    : undefined;
 
 /**
  * The token of a token endpoint's answer, or an `OAuthError` that says what
@@ -109,12 +129,16 @@ export function readTokenResponse(status: number, body: string, now: number, pre
   const error = own(answer, "error");
   if (status < 200 || status > 299 || typeof error === "string") {
     const description = own(answer, "error_description");
-    throw new OAuthError(`The token endpoint refused: ${typeof error === "string" ? error.slice(0, 200) : status}${typeof description === "string" ? ` (${description.slice(0, 300)})` : ""}.`);
+    throw new OAuthError(
+      `The token endpoint refused: ${typeof error === "string" ? error.slice(0, 200) : status}${typeof description === "string" ? ` (${description.slice(0, 300)})` : ""}.`,
+    );
   }
   const accessToken = own(answer, "access_token");
-  if (typeof accessToken !== "string" || !accessToken) throw new OAuthError("The token endpoint's answer holds no access token.");
+  if (typeof accessToken !== "string" || !accessToken)
+    throw new OAuthError("The token endpoint's answer holds no access token.");
   const type = own(answer, "token_type");
-  if (typeof type === "string" && type.toLowerCase() !== "bearer") throw new OAuthError(`The token is of a type the app cannot send (${type.slice(0, 40)}): only Bearer tokens are.`);
+  if (typeof type === "string" && type.toLowerCase() !== "bearer")
+    throw new OAuthError(`The token is of a type the app cannot send (${type.slice(0, 40)}): only Bearer tokens are.`);
   const expiresIn = Number(own(answer, "expires_in"));
   const refreshToken = own(answer, "refresh_token");
   return {
@@ -136,8 +160,14 @@ export function parseStoredToken(text: string): OAuthToken | null {
   const accessToken = own(value, "accessToken");
   const refreshToken = own(value, "refreshToken");
   const expiresAt = own(value, "expiresAt");
-  if (typeof accessToken !== "string" || typeof refreshToken !== "string" || (expiresAt !== null && typeof expiresAt !== "number")) return null;
+  if (
+    typeof accessToken !== "string" ||
+    typeof refreshToken !== "string" ||
+    (expiresAt !== null && typeof expiresAt !== "number")
+  )
+    return null;
   return { accessToken, refreshToken, expiresAt };
 }
 
-export const tokenExpired = (token: OAuthToken, now: number): boolean => token.expiresAt !== null && token.expiresAt <= now;
+export const tokenExpired = (token: OAuthToken, now: number): boolean =>
+  token.expiresAt !== null && token.expiresAt <= now;

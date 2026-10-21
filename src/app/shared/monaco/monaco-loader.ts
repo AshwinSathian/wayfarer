@@ -47,12 +47,9 @@ interface MonacoWorkerFactories {
  * point — the actual worker code is still monaco-editor's own.
  */
 const workerFactories: MonacoWorkerFactories = {
-  editor: () =>
-    new Worker(new URL("./workers/editor.worker", import.meta.url), { type: "module" }),
-  json: () =>
-    new Worker(new URL("./workers/json.worker", import.meta.url), { type: "module" }),
-  typescript: () =>
-    new Worker(new URL("./workers/typescript.worker", import.meta.url), { type: "module" }),
+  editor: () => new Worker(new URL("./workers/editor.worker", import.meta.url), { type: "module" }),
+  json: () => new Worker(new URL("./workers/json.worker", import.meta.url), { type: "module" }),
+  typescript: () => new Worker(new URL("./workers/typescript.worker", import.meta.url), { type: "module" }),
 };
 
 let monacoLoader: Promise<MonacoEditorModule> | null = null;
@@ -162,7 +159,8 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
         "editorLineNumber.activeForeground": t["label-secondary"],
         "editor.selectionBackground": withAlpha(t["accent"], 0.25),
         "editor.inactiveSelectionBackground": withAlpha(t["accent"], 0.12),
-        "editor.lineHighlightBackground": theme === "dark" ? withAlpha(t["canvas-elevated"], 0.5) : t["canvas-elevated"],
+        "editor.lineHighlightBackground":
+          theme === "dark" ? withAlpha(t["canvas-elevated"], 0.5) : t["canvas-elevated"],
         "editorCursor.foreground": theme === "dark" ? t["accent-text"] : t["accent"],
         "scrollbarSlider.background": t["scrollbar-thumb"],
         "scrollbarSlider.hoverBackground": t["scrollbar-thumb-hover"],
@@ -174,7 +172,13 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
 
 /** `#RRGGBB` with an alpha, as Monaco writes it: `#RRGGBBAA`. */
 function withAlpha(hex: string, alpha: number): string {
-  return hex.slice(0, 7) + Math.round(alpha * 255).toString(16).padStart(2, "0").toUpperCase();
+  return (
+    hex.slice(0, 7) +
+    Math.round(alpha * 255)
+      .toString(16)
+      .padStart(2, "0")
+      .toUpperCase()
+  );
 }
 
 export function monacoThemeName(theme: "dark" | "light"): string {
@@ -198,10 +202,7 @@ export function monacoThemeName(theme: "dark" | "light"): string {
  * is ever called, sidesteps the failure structurally instead of trying to
  * patch it up after the fact.
  */
-export function waitForNonZeroWidth(
-  host: HTMLElement,
-  timeoutMs = 4000
-): Promise<void> {
+export function waitForNonZeroWidth(host: HTMLElement, timeoutMs = 4000): Promise<void> {
   if (host.getBoundingClientRect().width > 0) {
     return Promise.resolve();
   }
@@ -217,8 +218,7 @@ export function waitForNonZeroWidth(
       resolve();
     };
     const observer = new ResizeObserver((entries) => {
-      const width =
-        entries[0]?.contentRect.width ?? host.getBoundingClientRect().width;
+      const width = entries[0]?.contentRect.width ?? host.getBoundingClientRect().width;
       if (width > 0) {
         finish();
       }

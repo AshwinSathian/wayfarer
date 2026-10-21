@@ -28,15 +28,16 @@ test("applyToHeaders rewrites only the CSP line of the /* rule", () => {
   const before = "/*\n  Content-Security-Policy: old\n  X-A: 1\n/other\n  Content-Security-Policy: keep\n";
   assert.equal(
     applyToHeaders(before, "new"),
-    "/*\n  Content-Security-Policy: new\n  X-A: 1\n/other\n  Content-Security-Policy: keep\n"
+    "/*\n  Content-Security-Policy: new\n  X-A: 1\n/other\n  Content-Security-Policy: keep\n",
   );
 });
 
 test("applyToHeaders rewrites the CSP line of the rule it is given, after a detach", () => {
-  const before = "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: old\n";
+  const before =
+    "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: old\n";
   assert.equal(
     applyToHeaders(before, "new", "/app/*"),
-    "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: new\n"
+    "/*\n  Content-Security-Policy: site\n/app/*\n  ! Content-Security-Policy\n  Content-Security-Policy: new\n",
   );
   assert.throws(() => applyToHeaders(before, "x", "/docs/*"), /under \/docs\/\*/);
 });
@@ -44,7 +45,7 @@ test("applyToHeaders rewrites the CSP line of the rule it is given, after a deta
 test("applyToHeaders keeps CRLF line endings and is linear on pathological input", () => {
   assert.equal(
     applyToHeaders("/*\r\n  X-A: 1\r\n  Content-Security-Policy: old\r\n", "new"),
-    "/*\r\n  X-A: 1\r\n  Content-Security-Policy: new\r\n"
+    "/*\r\n  X-A: 1\r\n  Content-Security-Policy: new\r\n",
   );
   const evil = "/*\n" + "\t\t\n".repeat(50_000);
   const start = performance.now();
@@ -54,7 +55,10 @@ test("applyToHeaders keeps CRLF line endings and is linear on pathological input
 
 test("applyToIndex rewrites the CSP meta content attribute", () => {
   const before = '<meta\n  http-equiv="Content-Security-Policy"\n  content="old"\n/>';
-  assert.equal(applyToIndex(before, "a 'self'"), '<meta\n  http-equiv="Content-Security-Policy"\n  content="a \'self\'"\n/>');
+  assert.equal(
+    applyToIndex(before, "a 'self'"),
+    '<meta\n  http-equiv="Content-Security-Policy"\n  content="a \'self\'"\n/>',
+  );
 });
 
 test("applyToHeaders and applyToIndex throw when their anchor is missing", () => {
@@ -68,7 +72,14 @@ test("the committed files match security/csp.json", () => {
 
 test("--check fails when either file is hand-edited, and a write fixes it", () => {
   const dir = mkdtempSync(join(tmpdir(), "csp-"));
-  for (const path of ["security/csp.json", "security/csp-site.json", "security/csp-docs.json", "packages/site/public/_headers", "src/index.html", "scripts/gen-csp.mjs"]) {
+  for (const path of [
+    "security/csp.json",
+    "security/csp-site.json",
+    "security/csp-docs.json",
+    "packages/site/public/_headers",
+    "src/index.html",
+    "scripts/gen-csp.mjs",
+  ]) {
     mkdirSync(join(dir, path, ".."), { recursive: true });
     cpSync(path, join(dir, path));
   }

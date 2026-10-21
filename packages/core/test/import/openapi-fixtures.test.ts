@@ -29,14 +29,18 @@ const REFUSED: Record<string, string> = {
 const descriptions = files.filter((file) => !Object.hasOwn(REFUSED, file));
 
 type Loose = Record<string, unknown>;
-const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
+const isObject = (value: unknown): value is Loose =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 const METHODS = ["get", "put", "post", "delete", "options", "head", "patch", "trace"];
 
 /** The operations of a file, counted from the file itself and not by the importer: each method of each path. */
 function operations(file: string): number {
   const value = parse(read(file)) as Loose;
   const paths = isObject(value["paths"]) ? value["paths"] : {};
-  return Object.values(paths).reduce<number>((sum, item) => sum + (isObject(item) ? METHODS.filter((method) => isObject(item[method])).length : 0), 0);
+  return Object.values(paths).reduce<number>(
+    (sum, item) => sum + (isObject(item) ? METHODS.filter((method) => isObject(item[method])).length : 0),
+    0,
+  );
 }
 
 /** The three files the plan names: the Petstore as Swagger 2.0, OpenAPI 3.0 and OpenAPI 3.1. */
@@ -50,27 +54,34 @@ describe("OpenAPI descriptions other people wrote (P4.3)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("the set is here, with its licences: 13 files, 12 of them with operations", () => {
-    for (const source of ["oai", "swagger-codegen", "swagger-petstore"]) expect(statSync(join(ROOT, source, "LICENSE")).size).toBeGreaterThan(1000);
+    for (const source of ["oai", "swagger-codegen", "swagger-petstore"])
+      expect(statSync(join(ROOT, source, "LICENSE")).size).toBeGreaterThan(1000);
     expect(files).toHaveLength(13);
     expect(descriptions).toHaveLength(12);
   });
 
-  it.each(PETSTORES)("@claim:C-060 the Petstore of %s (version %s) imports as %i requests, one per operation", (file, version, count) => {
-    const value = parse(read(file)) as Loose;
-    expect(value["swagger"] ?? value["openapi"]).toBe(version);
-    expect(operations(file)).toBe(count);
-    const imported = importText(read(file));
-    expect(imported.report.formatName).toBe("OpenAPI description");
-    expect(imported.report.counts).toMatchObject({ collections: 1, requests: count, environments: 0 });
-    expect(imported.collections[0].payload.requests).toHaveLength(count);
-  });
+  it.each(PETSTORES)(
+    "@claim:C-060 the Petstore of %s (version %s) imports as %i requests, one per operation",
+    (file, version, count) => {
+      const value = parse(read(file)) as Loose;
+      expect(value["swagger"] ?? value["openapi"]).toBe(version);
+      expect(operations(file)).toBe(count);
+      const imported = importText(read(file));
+      expect(imported.report.formatName).toBe("OpenAPI description");
+      expect(imported.report.counts).toMatchObject({ collections: 1, requests: count, environments: 0 });
+      expect(imported.collections[0].payload.requests).toHaveLength(count);
+    },
+  );
 
   it.each(descriptions)("%s imports, with a request for each operation of the file", (file) => {
     let imported: Imported;
     try {
       imported = importText(read(file));
     } catch (error) {
-      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`, { cause: error });
+      throw new Error(
+        `${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`,
+        { cause: error },
+      );
     }
     expect(imported.report.formatName).toBe("OpenAPI description");
     expect(imported.report.counts.requests).toBe(operations(file));
@@ -101,7 +112,10 @@ describe("OpenAPI descriptions other people wrote (P4.3)", () => {
       for (const key of Object.keys(total) as (keyof typeof total)[]) total[key] += report.counts[key];
       // A warning's kind is its words without the names it quotes.
       for (const { message } of report.warnings) {
-        const kind = message.replace(/\([^)]*\)/g, "(…)").replace(/"[^"]*"/g, '"…"').replace(/\d+/g, "N");
+        const kind = message
+          .replace(/\([^)]*\)/g, "(…)")
+          .replace(/"[^"]*"/g, '"…"')
+          .replace(/\d+/g, "N");
         kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
       }
     }

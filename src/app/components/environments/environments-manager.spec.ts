@@ -56,7 +56,7 @@ class EnvironmentsServiceStub {
 
   async updateEnvironment(
     id: string,
-    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
+    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>,
   ): Promise<EnvironmentDoc | null> {
     this.updateCalls.push({ id, updates });
     return null;
@@ -96,11 +96,7 @@ class SecretsServiceStub {
   savedSecrets: { name: string; environmentId: string; plaintext: string }[] = [];
   private nextId = 1;
 
-  async saveSecret(request: {
-    name: string;
-    environmentId: string;
-    plaintext: string;
-  }): Promise<string> {
+  async saveSecret(request: { name: string; environmentId: string; plaintext: string }): Promise<string> {
     this.savedSecrets.push(request);
     return `secret-${this.nextId++}`;
   }
@@ -197,7 +193,9 @@ describe("EnvironmentsManager", () => {
       await component.save();
 
       // A is as it was loaded and the added row has no name: nothing to change.
-      expect(envService.changeCalls).toEqual([{ id: "e1", changes: [], details: { name: "Renamed", description: "" } }]);
+      expect(envService.changeCalls).toEqual([
+        { id: "e1", changes: [], details: { name: "Renamed", description: "" } },
+      ]);
       expect(envService.updateCalls).toEqual([]);
     });
 
@@ -313,9 +311,7 @@ describe("EnvironmentsManager", () => {
 
       await component.protectVariable(0);
 
-      expect(secretsService.savedSecrets).toEqual([
-        { name: "TOKEN", environmentId: "e1", plaintext: "raw-value" },
-      ]);
+      expect(secretsService.savedSecrets).toEqual([{ name: "TOKEN", environmentId: "e1", plaintext: "raw-value" }]);
       expect(component.draft()?.vars[0].value).toMatch(/^\{\{\$secret\.secret-1\}\}$/);
     });
 

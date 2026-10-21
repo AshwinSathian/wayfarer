@@ -28,7 +28,9 @@ function arrived(echo: Echo, named: string[]) {
   return {
     method: echo.method,
     url: echo.url,
-    headers: named.filter((name) => name !== "content-type" || !boundary).map((name) => [name, echo.headers.find(([key]) => key === name)?.[1]]),
+    headers: named
+      .filter((name) => name !== "content-type" || !boundary)
+      .map((name) => [name, echo.headers.find(([key]) => key === name)?.[1]]),
     body: boundary
       ? Buffer.from(echo.bodyBase64 ?? Buffer.from(echo.body ?? "").toString("base64"), "base64")
           .toString("latin1")
@@ -63,7 +65,8 @@ describe("generated code (P4.6 a)", () => {
         expect(generateCode(target, request), `${target}: ${name}`).toMatchSnapshot(`${target}: ${name}`);
       }
     }
-    for (const { name, request } of exportFixtures("http://api.test")) expect(buildCurl(request), name).toMatchSnapshot(`curl: ${name}`);
+    for (const { name, request } of exportFixtures("http://api.test"))
+      expect(buildCurl(request), name).toMatchSnapshot(`curl: ${name}`);
   });
 
   it("the fetch code, run by Node, and the cURL command, run by bash, send the same request as each other, for all twelve", async () => {
@@ -93,25 +96,54 @@ describe("generated code (P4.6 a)", () => {
   }, 60_000);
 
   it("HTTPie: a value it would read as a file is not written as a command", () => {
-    const request = exportFixtures("http://api.test").find((fixture) => fixture.name === "POST multipart text")!.request;
+    const request = exportFixtures("http://api.test").find(
+      (fixture) => fixture.name === "POST multipart text",
+    )!.request;
     const trap = { ...request, body: { mode: "multipart" as const, parts: [{ name: "trap", value: "@/etc/passwd" }] } };
 
-    expect(generateCode("httpie", trap)).toBe('# HTTPie cannot say this request: the value of the form part \'"trap"\' starts with "@" or "=", which HTTPie reads as a file or as another kind of item. Copy it as cURL instead.');
-    expect(generateCode("httpie", { ...request, headers: [["X-At", "@secret-file"]] })).toMatch(/^# HTTPie cannot say this request: the value of the header '"X-At"'/);
-    expect(generateCode("httpie", { ...request, headers: [["X-Empty", ""], ["We:ird", "v"]], body: { mode: "none" } })).toBe("http \\\n  --ignore-stdin \\\n  'POST' \\\n  'http://api.test/echo' \\\n  'X-Empty;' \\\n  'We\\:ird:v'");
+    expect(generateCode("httpie", trap)).toBe(
+      '# HTTPie cannot say this request: the value of the form part \'"trap"\' starts with "@" or "=", which HTTPie reads as a file or as another kind of item. Copy it as cURL instead.',
+    );
+    expect(generateCode("httpie", { ...request, headers: [["X-At", "@secret-file"]] })).toMatch(
+      /^# HTTPie cannot say this request: the value of the header '"X-At"'/,
+    );
+    expect(
+      generateCode("httpie", {
+        ...request,
+        headers: [
+          ["X-Empty", ""],
+          ["We:ird", "v"],
+        ],
+        body: { mode: "none" },
+      }),
+    ).toBe("http \\\n  --ignore-stdin \\\n  'POST' \\\n  'http://api.test/echo' \\\n  'X-Empty;' \\\n  'We\\:ird:v'");
     // A method, an address or a name that starts with "-" would be an option of HTTPie's.
     const plain = { ...request, body: { mode: "none" as const } };
-    expect(generateCode("httpie", { ...plain, method: "--DOWNLOAD" })).toMatch(/^# HTTPie cannot say this request: the method does not start with a letter/);
-    expect(generateCode("httpie", { ...plain, url: "--output=/tmp/owned" })).toMatch(/^# HTTPie cannot say this request: the address starts with "-"/);
-    expect(generateCode("httpie", { ...plain, headers: [["--offline", "1"]] })).toMatch(/^# HTTPie cannot say this request: the name '"--offline"' starts with "-"/);
-    expect(generateCode("httpie", { ...request, body: { mode: "multipart", parts: [{ name: "-o", value: "x" }] } })).toMatch(/^# HTTPie cannot say this request: the name '"-o"' starts with "-"/);
+    expect(generateCode("httpie", { ...plain, method: "--DOWNLOAD" })).toMatch(
+      /^# HTTPie cannot say this request: the method does not start with a letter/,
+    );
+    expect(generateCode("httpie", { ...plain, url: "--output=/tmp/owned" })).toMatch(
+      /^# HTTPie cannot say this request: the address starts with "-"/,
+    );
+    expect(generateCode("httpie", { ...plain, headers: [["--offline", "1"]] })).toMatch(
+      /^# HTTPie cannot say this request: the name '"--offline"' starts with "-"/,
+    );
+    expect(
+      generateCode("httpie", { ...request, body: { mode: "multipart", parts: [{ name: "-o", value: "x" }] } }),
+    ).toMatch(/^# HTTPie cannot say this request: the name '"-o"' starts with "-"/);
     // The refusal is one comment line whatever the name holds: pasted into a shell, it runs nothing.
     for (const target of ["httpie"] as const) {
-      const refusal = generateCode(target, { ...request, body: { mode: "multipart", parts: [{ name: "-x\nrm -rf ~", value: "v" }] } });
+      const refusal = generateCode(target, {
+        ...request,
+        body: { mode: "multipart", parts: [{ name: "-x\nrm -rf ~", value: "v" }] },
+      });
       expect(refusal.split("\n")).toHaveLength(1);
       expect(refusal.startsWith("# ")).toBe(true);
     }
-    const curlRefusal = buildCurl({ ...request, body: { mode: "multipart", parts: [{ name: "a=\nrm -rf ~", value: "v" }] } });
+    const curlRefusal = buildCurl({
+      ...request,
+      body: { mode: "multipart", parts: [{ name: "a=\nrm -rf ~", value: "v" }] },
+    });
     expect(curlRefusal.split("\n")).toHaveLength(1);
     expect(curlRefusal.startsWith("# ")).toBe(true);
   });
@@ -119,17 +151,26 @@ describe("generated code (P4.6 a)", () => {
   it("F70: a refusal runs nothing in a shell that does not read # as a comment", async () => {
     // zsh at a prompt, the default shell of macOS, runs "#" as a command, and expands its arguments first.
     // bash does the same with interactive_comments off, and is on every machine that runs the tests.
-    const request = exportFixtures("http://api.test").find((fixture) => fixture.name === "POST multipart text")!.request;
+    const request = exportFixtures("http://api.test").find(
+      (fixture) => fixture.name === "POST multipart text",
+    )!.request;
     const names = ["a=$(touch pwned-1)", "a=`touch pwned-2`", 'a"$(touch pwned-3)"', "-a=`touch pwned-4`"];
     const refusals = names.flatMap((name) => {
       const trap = { ...request, body: { mode: "multipart" as const, parts: [{ name, value: "@v" }] } };
-      return [buildCurl(trap), generateCode("httpie", trap), generateCode("httpie", { ...request, headers: [[name, "@v"]] })];
+      return [
+        buildCurl(trap),
+        generateCode("httpie", trap),
+        generateCode("httpie", { ...request, headers: [[name, "@v"]] }),
+      ];
     });
 
     for (const refusal of refusals) {
       expect(refusal).toMatch(/^# (curl|HTTPie) cannot say this request/);
-      await expect(run("bash", ["--norc", "-i", "-c", `shopt -u interactive_comments\n${refusal}`], { cwd: dir }), refusal).rejects.toMatchObject({
-        stderr: expect.stringContaining("#: command not found") as string
+      await expect(
+        run("bash", ["--norc", "-i", "-c", `shopt -u interactive_comments\n${refusal}`], { cwd: dir }),
+        refusal,
+      ).rejects.toMatchObject({
+        stderr: expect.stringContaining("#: command not found") as string,
       });
     }
     await expect(run("ls", [dir])).resolves.toMatchObject({ stdout: expect.not.stringContaining("pwned") as string });

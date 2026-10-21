@@ -43,7 +43,9 @@ export class CollectionRequestsRepository {
         id: meta.id,
         meta,
         name: payload.name.trim(),
-        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"), tx.objectStore("folders").index("by-order"))),
+        order:
+          payload.order ??
+          (await this.core.nextOrder(store.index("by-order"), tx.objectStore("folders").index("by-order"))),
       };
       this.core.ensureId(doc);
       await store.add(doc);
@@ -109,7 +111,7 @@ export class CollectionRequestsRepository {
 
   private async storeFiles(
     tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">,
-    files: [string, StoredFile][]
+    files: [string, StoredFile][],
   ): Promise<void> {
     for (const [id, file] of files) {
       await tx.objectStore("files").put(file, id);
@@ -147,7 +149,6 @@ export class CollectionRequestsRepository {
       await sweepFiles(tx);
     });
   }
-
 }
 
 /**
@@ -156,6 +157,9 @@ export class CollectionRequestsRepository {
  */
 function readFiles(files: ReadonlyMap<string, Blob> | undefined): Promise<[string, StoredFile][]> {
   return Promise.all(
-    [...(files ?? [])].map(async ([id, blob]): Promise<[string, StoredFile]> => [id, { bytes: await blob.arrayBuffer(), type: blob.type }])
+    [...(files ?? [])].map(async ([id, blob]): Promise<[string, StoredFile]> => [
+      id,
+      { bytes: await blob.arrayBuffer(), type: blob.type },
+    ]),
   );
 }

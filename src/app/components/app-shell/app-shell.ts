@@ -9,7 +9,7 @@ import {
   input,
   signal,
   viewChild,
-  output
+  output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
@@ -44,10 +44,15 @@ import { UiSelect } from "../../ui/select";
 
 @Component({
   selector: "app-shell",
-  imports: [MatToolbar, MatFormField, MatInput, NgTemplateOutlet,
+  imports: [
+    MatToolbar,
+    MatFormField,
+    MatInput,
+    NgTemplateOutlet,
     Icon,
     UiModal,
-    UiButton, UiSelect,
+    UiButton,
+    UiSelect,
     Dialog,
     ImportDialog,
     UiTooltip,
@@ -96,12 +101,8 @@ export class AppShell implements OnInit {
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();
-    this.dropdownOptions.set(
-      envs.map((env) => ({ label: env.name, value: env.meta.id }))
-    );
-    this.selectedEnvironmentId.set(
-      this.environmentsService.activeEnvironment()?.meta.id ?? null
-    );
+    this.dropdownOptions.set(envs.map((env) => ({ label: env.name, value: env.meta.id })));
+    this.selectedEnvironmentId.set(this.environmentsService.activeEnvironment()?.meta.id ?? null);
   });
 
   readonly dropdownOptions = signal<{ label: string; value: string }[]>([]);
@@ -222,9 +223,7 @@ export class AppShell implements OnInit {
 
   get historyBadge(): string | undefined {
     const pastRequests = this.pastRequests();
-    return pastRequests?.length
-      ? String(pastRequests.length)
-      : undefined;
+    return pastRequests?.length ? String(pastRequests.length) : undefined;
   }
 
   private readonly navigationDrawer = viewChild<UiModal>("navigationDrawer");
@@ -404,7 +403,7 @@ export class AppShell implements OnInit {
       this.resetError.set(
         error instanceof DatabaseResetBlockedError
           ? error.message
-          : "Reset failed; your data was not deleted. Reload the page and try again."
+          : "Reset failed; your data was not deleted. Reload the page and try again.",
       );
       this.resettingAll = false;
       return;

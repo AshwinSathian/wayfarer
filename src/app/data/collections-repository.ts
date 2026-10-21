@@ -110,16 +110,19 @@ export class CollectionsRepository {
         return null;
       }
       const { route: _was, ...rest } = existing;
-      const updated: Collection = { ...rest, auth: patch.auth, scripts: patch.scripts, ...(patch.route && { route: patch.route }), meta: this.core.touchMeta(existing.meta) };
+      const updated: Collection = {
+        ...rest,
+        auth: patch.auth,
+        scripts: patch.scripts,
+        ...(patch.route && { route: patch.route }),
+        meta: this.core.touchMeta(existing.meta),
+      };
       await store.put(updated);
       return updated;
     });
   }
 
-  async renameCollection(
-    id: string,
-    updates: { name?: string; description?: string }
-  ): Promise<Collection | null> {
+  async renameCollection(id: string, updates: { name?: string; description?: string }): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections"]);
     const store = tx.objectStore("collections");
@@ -167,10 +170,10 @@ export class CollectionsRepository {
       const folderIndex = folderStore.index("by-collectionId");
       const requestIndex = requestStore.index("by-collectionId");
       const sourceFolders = (await folderIndex.getAll(id)).sort(
-        (a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id)
+        (a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id),
       );
       const sourceRequests = (await requestIndex.getAll(id)).sort(
-        (a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id)
+        (a, b) => a.order - b.order || a.meta.id.localeCompare(b.meta.id),
       );
 
       const folderIdMap = new Map<string, string>();
@@ -255,10 +258,7 @@ export class CollectionsRepository {
     }
     const folderIndex = tx.objectStore("folders").index("by-collectionId");
     const requestIndex = tx.objectStore("requests").index("by-collectionId");
-    const [folders, requests] = await Promise.all([
-      folderIndex.getAll(id),
-      requestIndex.getAll(id),
-    ]);
+    const [folders, requests] = await Promise.all([folderIndex.getAll(id), requestIndex.getAll(id)]);
     await tx.done;
     const { scriptTrust: _trust, ...content } = this.core.ensureId(collection);
     return {
@@ -272,7 +272,7 @@ export class CollectionsRepository {
 
   async importCollectionExport(
     payload: CollectionExport,
-    options?: { duplicateAsNew?: boolean }
+    options?: { duplicateAsNew?: boolean },
   ): Promise<Collection | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["collections", "folders", "requests", "files"]);
@@ -317,9 +317,7 @@ export class CollectionsRepository {
         request.collectionId = collectionId;
         if (
           request.folderId &&
-          !data.folders.some(
-            (folder) => folder.meta.id === request.folderId || folder.id === request.folderId
-          )
+          !data.folders.some((folder) => folder.meta.id === request.folderId || folder.id === request.folderId)
         ) {
           request.folderId = undefined;
         }

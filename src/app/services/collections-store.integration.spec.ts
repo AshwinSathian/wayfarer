@@ -50,7 +50,12 @@ describe("CollectionsStore with real storage", () => {
       method: "POST",
       url: "https://api.test/login",
     });
-    const ping = await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });
+    const ping = await service.createRequest({
+      collectionId: billing.meta.id,
+      name: "Ping",
+      method: "GET",
+      url: "https://api.test/ping",
+    });
 
     // The top of the collection: its two folders and its one request, moved among each other.
     await service.reorderChildren([
@@ -103,7 +108,12 @@ describe("CollectionsStore with real storage", () => {
 
   it("exports a collection and imports the file back, as the original or as a copy", async () => {
     const billing = await service.createCollection({ name: "Billing" });
-    await service.createRequest({ collectionId: billing.meta.id, name: "Ping", method: "GET", url: "https://api.test/ping" });
+    await service.createRequest({
+      collectionId: billing.meta.id,
+      name: "Ping",
+      method: "GET",
+      url: "https://api.test/ping",
+    });
 
     const json = await service.exportCollectionJson(billing.meta.id);
     expect(JSON.parse(json!).collection.name).toBe("Billing");
@@ -130,7 +140,10 @@ describe("CollectionsStore with real storage", () => {
       name: "Typed",
       method: "GET",
       url: "https://api.test/a",
-      headers: [{ key: "X-Api-Key", value: "typed-header-key", enabled: true }, { key: "Accept", value: "*/*", enabled: true }],
+      headers: [
+        { key: "X-Api-Key", value: "typed-header-key", enabled: true },
+        { key: "Accept", value: "*/*", enabled: true },
+      ],
       auth: { type: "bearer", token: "typed-bearer-token" },
     });
     await service.createRequest({
@@ -142,13 +155,29 @@ describe("CollectionsStore with real storage", () => {
     });
 
     // What the collection and a folder hold for their requests (P4.9).
-    await service.saveInherited({ collectionId: collection.meta.id }, { auth: { type: "apikey", key: "X-Shop", value: "typed-collection-auth", in: "header" }, scripts: { pre: "", post: "" } }, true);
+    await service.saveInherited(
+      { collectionId: collection.meta.id },
+      {
+        auth: { type: "apikey", key: "X-Shop", value: "typed-collection-auth", in: "header" },
+        scripts: { pre: "", post: "" },
+      },
+      true,
+    );
     const folder = await service.createFolder({ collectionId: collection.meta.id, name: "Admin" });
-    await service.saveInherited({ collectionId: collection.meta.id, folderId: folder.meta.id }, { auth: { type: "basic", username: "admin", password: "typed-folder-password" }, scripts: { pre: "", post: "" } }, true);
-    await service.changeFolderVariables(folder.meta.id, [{ key: "admin_token", value: "typed-folder-variable" }, { key: "region", value: "eu" }]);
+    await service.saveInherited(
+      { collectionId: collection.meta.id, folderId: folder.meta.id },
+      { auth: { type: "basic", username: "admin", password: "typed-folder-password" }, scripts: { pre: "", post: "" } },
+      true,
+    );
+    await service.changeFolderVariables(folder.meta.id, [
+      { key: "admin_token", value: "typed-folder-variable" },
+      { key: "region", value: "eu" },
+    ]);
 
     const masked = (await service.exportCollectionJson(collection.meta.id))!;
-    expect(masked).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/);
+    expect(masked).not.toMatch(
+      /typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/,
+    );
     expect(masked).toContain('"username": "admin"');
     expect(masked).toContain('"value": "eu"');
     expect(masked).toContain('"token": "***"');
@@ -157,21 +186,46 @@ describe("CollectionsStore with real storage", () => {
     expect(masked).toContain('"value": "*/*"');
 
     const whole = (await service.exportCollectionJson(collection.meta.id, { credentials: true }))!;
-    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token", "typed-collection-auth", "typed-folder-password", "typed-folder-variable"]) {
+    for (const credential of [
+      "typed-collection-key",
+      "typed-header-key",
+      "typed-bearer-token",
+      "typed-collection-auth",
+      "typed-folder-password",
+      "typed-folder-variable",
+    ]) {
       expect(whole).toContain(credential);
     }
     // The Postman file is written from the same masked collection (P4.6 b).
     const postman = (await service.exportCollectionPostman(collection.meta.id))!;
     expect(postman.json).toContain('"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"');
-    expect(postman.json).not.toMatch(/typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/);
+    expect(postman.json).not.toMatch(
+      /typed-collection-key|typed-header-key|typed-bearer-token|typed-collection-auth|typed-folder-password|typed-folder-variable/,
+    );
     expect(postman.json).toContain('"value": "{{password}}"');
-    expect(postman.notes).toEqual([{ item: 'folder "Admin"', message: "Its variables are written, but Postman does not read a folder's variables: move them to the collection or to an environment there." }]);
+    expect(postman.notes).toEqual([
+      {
+        item: 'folder "Admin"',
+        message:
+          "Its variables are written, but Postman does not read a folder's variables: move them to the collection or to an environment there.",
+      },
+    ]);
     const wholePostman = (await service.exportCollectionPostman(collection.meta.id, { credentials: true }))!;
-    for (const credential of ["typed-collection-key", "typed-header-key", "typed-bearer-token", "typed-collection-auth", "typed-folder-password", "typed-folder-variable"]) {
+    for (const credential of [
+      "typed-collection-key",
+      "typed-header-key",
+      "typed-bearer-token",
+      "typed-collection-auth",
+      "typed-folder-password",
+      "typed-folder-variable",
+    ]) {
       expect(wholePostman.json).toContain(credential);
     }
     expect(await service.exportCollectionPostman("missing")).toBeNull();
     // What is stored is not changed by an export.
-    expect(tree(collection.meta.id).requests.find((request) => request.name === "Typed")?.auth).toEqual({ type: "bearer", token: "typed-bearer-token" });
+    expect(tree(collection.meta.id).requests.find((request) => request.name === "Typed")?.auth).toEqual({
+      type: "bearer",
+      token: "typed-bearer-token",
+    });
   });
 });

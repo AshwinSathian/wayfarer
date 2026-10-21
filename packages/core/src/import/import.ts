@@ -1,5 +1,11 @@
 import { newId } from "../id";
-import { COLLECTION_FORMAT, ENVIRONMENTS_FORMAT, type CollectionExport, type EnvironmentDoc, type Meta } from "../model/collection";
+import {
+  COLLECTION_FORMAT,
+  ENVIRONMENTS_FORMAT,
+  type CollectionExport,
+  type EnvironmentDoc,
+  type Meta,
+} from "../model/collection";
 import type { RequestContent, Scripts } from "../model/request";
 import { validateRequestContent, validateRows } from "../model/validate";
 import { IMPORT_TOO_LARGE, isOversizedImport, parseJson } from "../safe-json";
@@ -9,7 +15,13 @@ import { isHar, parseHar } from "./har";
 import { ImportError } from "./import-error";
 import { insomniaExport, isInsomnia } from "./insomnia";
 import { isOpenApi, openApiCollection } from "./openapi";
-import { isPostmanCollection, isPostmanEnvironment, isPostmanV1, postmanCollection, postmanEnvironment } from "./postman";
+import {
+  isPostmanCollection,
+  isPostmanEnvironment,
+  isPostmanV1,
+  postmanCollection,
+  postmanEnvironment,
+} from "./postman";
 import { unsupportedApis } from "./script-scan";
 import { importCollection, type CollectionImportPlanEntry } from "./wayfarer-collection";
 import { validateEnvironmentExport } from "./wayfarer-environments";
@@ -98,7 +110,12 @@ function scriptWarnings(item: string, scripts: Scripts): ImportWarning[] {
     const found = unsupportedApis(scripts[kind]);
     if (!found.length) return [];
     const names = found.length > 1 ? `${found.slice(0, -1).join(", ")} and ${found.at(-1)}` : found[0];
-    return [{ item, message: `Its ${kind === "pre" ? "pre-request" : "post-response"} script uses ${names}, which Wayfarer does not have. The script will end in an error there.` }];
+    return [
+      {
+        item,
+        message: `Its ${kind === "pre" ? "pre-request" : "post-response"} script uses ${names}, which Wayfarer does not have. The script will end in an error there.`,
+      },
+    ];
   });
 }
 
@@ -125,7 +142,11 @@ export function curlToRequest(text: string): { name: string; content: RequestCon
   const issues = validateRequestContent(content, "request");
   if (issues.length) throw new ImportError("The cURL command does not make a request the app can hold.", issues);
   const address = URL.parse(parsed.request.url);
-  return { name: `${content.method} ${address ? address.host + address.pathname : parsed.request.url}`, content, warnings };
+  return {
+    name: `${content.method} ${address ? address.host + address.pathname : parsed.request.url}`,
+    content,
+    warnings,
+  };
 }
 
 /**
@@ -133,14 +154,26 @@ export function curlToRequest(text: string): { name: string; content: RequestCon
  * collection of the app: ids from `newId()`, no auth and no scripts of its
  * own, the requests in the order given. Checked like a collection file.
  */
-function built(format: ImportFormat, name: string, requests: { name: string; content: RequestContent; warnings: string[] }[]): Imported {
+function built(
+  format: ImportFormat,
+  name: string,
+  requests: { name: string; content: RequestContent; warnings: string[] }[],
+): Imported {
   const now = Date.now();
   const meta = (): Meta => ({ id: newId(), createdAt: now, updatedAt: now });
   const top = meta();
   const payload: CollectionExport = {
     $id: COLLECTION_FORMAT,
     meta: top,
-    collection: { id: top.id, meta: top, name, order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } },
+    collection: {
+      id: top.id,
+      meta: top,
+      name,
+      order: 0,
+      variables: [],
+      auth: { type: "none" },
+      scripts: { pre: "", post: "" },
+    },
     folders: [],
     requests: requests.map(({ name: requestName, content }, order) => {
       const own = meta();
@@ -152,7 +185,9 @@ function built(format: ImportFormat, name: string, requests: { name: string; con
       format,
       formatName: IMPORT_FORMATS[format],
       counts: { collections: 1, folders: 0, requests: requests.length, environments: 0 },
-      warnings: requests.flatMap(({ name: requestName, warnings }) => warnings.map((message) => ({ item: `request "${requestName}"`, message }))),
+      warnings: requests.flatMap(({ name: requestName, warnings }) =>
+        warnings.map((message) => ({ item: `request "${requestName}"`, message })),
+      ),
     },
     collections: [added(payload)],
     environments: [],
@@ -185,8 +220,12 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
   if (!json.ok && (typeof value !== "object" || value === null)) throw new ImportError(NOT_READABLE);
   const format = detectFormat(value);
   if (!format) {
-    if (of(idOf(value), "wayfarer/workspace")) throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
-    if (isPostmanV1(value)) throw new ImportError("This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.");
+    if (of(idOf(value), "wayfarer/workspace"))
+      throw new ImportError("This is a workspace backup, which replaces everything. Restore it in Settings.");
+    if (isPostmanV1(value))
+      throw new ImportError(
+        "This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.",
+      );
     throw new ImportError(UNKNOWN);
   }
   const report = (counts: Partial<ImportReport["counts"]>, warnings: ImportWarning[]): ImportReport => ({
@@ -197,7 +236,10 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
   });
 
   if (format === "har") {
-    const requests = parseHar(value).map(({ name, request, warnings }) => ({ name, ...curlRequest({ request, warnings }) }));
+    const requests = parseHar(value).map(({ name, request, warnings }) => ({
+      name,
+      ...curlRequest({ request, warnings }),
+    }));
     return built("har", "Imported from HAR", requests);
   }
   if (format === "postman-collection" || format === "openapi") {
@@ -206,7 +248,11 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
     const { payload, warnings } = postmanCollection(source.collection);
     const collection = added(payload);
     return {
-      report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, [...source.warnings, ...warnings, ...inheritedScriptWarnings(collection.payload)]),
+      report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, [
+        ...source.warnings,
+        ...warnings,
+        ...inheritedScriptWarnings(collection.payload),
+      ]),
       collections: [collection],
       environments: [],
     };
@@ -217,12 +263,18 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
     const collections = read.map(({ payload }) => added(payload));
     const issues = environments.flatMap((environment) => validateRows(environment.vars, "data"));
     if (issues.length) throw new ImportError("The file's environments are not ones the app can hold.", issues);
-    const count = (of: (payload: CollectionExport) => unknown[]): number => collections.reduce((sum, { payload }) => sum + of(payload).length, 0);
+    const count = (of: (payload: CollectionExport) => unknown[]): number =>
+      collections.reduce((sum, { payload }) => sum + of(payload).length, 0);
     return {
-      report: report({ collections: collections.length, folders: count((payload) => payload.folders), requests: count((payload) => payload.requests), environments: environments.length }, [
-        ...warnings,
-        ...read.flatMap((collection) => collection.warnings),
-      ]),
+      report: report(
+        {
+          collections: collections.length,
+          folders: count((payload) => payload.folders),
+          requests: count((payload) => payload.requests),
+          environments: environments.length,
+        },
+        [...warnings, ...read.flatMap((collection) => collection.warnings)],
+      ),
       collections,
       environments,
     };
@@ -235,11 +287,26 @@ export function importText(text: string, options: ImportOptions = {}): Imported 
   }
   if (format === "wayfarer-environments") {
     const result = validateEnvironmentExport(value as object);
-    if (!result.payload) throw new ImportError("The file is not a valid Wayfarer environments file.", (result.errors ?? []).map((message) => ({ path: "", message })));
-    return { report: report({ environments: result.payload.length }, []), collections: [], environments: result.payload };
+    if (!result.payload)
+      throw new ImportError(
+        "The file is not a valid Wayfarer environments file.",
+        (result.errors ?? []).map((message) => ({ path: "", message })),
+      );
+    return {
+      report: report({ environments: result.payload.length }, []),
+      collections: [],
+      environments: result.payload,
+    };
   }
 
   const { payload, plan, errors } = importCollection(value as object, options);
   if (!payload || !plan) throw new ImportError("The file is not a valid Wayfarer collection.", errors ?? []);
-  return { report: report({ collections: 1, folders: payload.folders.length, requests: payload.requests.length }, inheritedScriptWarnings(payload)), collections: [{ payload, plan }], environments: [] };
+  return {
+    report: report(
+      { collections: 1, folders: payload.folders.length, requests: payload.requests.length },
+      inheritedScriptWarnings(payload),
+    ),
+    collections: [{ payload, plan }],
+    environments: [],
+  };
 }

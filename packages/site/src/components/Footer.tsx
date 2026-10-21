@@ -2,9 +2,36 @@ import { REPO } from "../lib/content";
 import { Mark } from "./Mark";
 
 const COLUMNS = [
-  ["Product", [["The app", "/app/"], ["Docs", "/docs/"], ["Command line", "/docs/cli/"], ["Compare", "/compare/"], ["Moving from Postman", "/compare/moving-from-postman/"], ["Blog", "/blog/"], ["Changelog", "/changelog/"], ["Roadmap", "/roadmap/"]]],
-  ["Trust", [["Claims ledger", "/docs/claims/"], ["Trust center", "/docs/trust-center/"], ["Threat model", "/docs/threat-model/"], ["Security policy", `${REPO}/blob/main/SECURITY.md`]]],
-  ["Project", [["Source on GitHub", REPO], ["Host it yourself", "/docs/self-hosting/"], ["MIT licence", `${REPO}/blob/main/LICENSE`]]],
+  [
+    "Product",
+    [
+      ["The app", "/app/"],
+      ["Docs", "/docs/"],
+      ["Command line", "/docs/cli/"],
+      ["Compare", "/compare/"],
+      ["Moving from Postman", "/compare/moving-from-postman/"],
+      ["Blog", "/blog/"],
+      ["Changelog", "/changelog/"],
+      ["Roadmap", "/roadmap/"],
+    ],
+  ],
+  [
+    "Trust",
+    [
+      ["Claims ledger", "/docs/claims/"],
+      ["Trust center", "/docs/trust-center/"],
+      ["Threat model", "/docs/threat-model/"],
+      ["Security policy", `${REPO}/blob/main/SECURITY.md`],
+    ],
+  ],
+  [
+    "Project",
+    [
+      ["Source on GitHub", REPO],
+      ["Host it yourself", "/docs/self-hosting/"],
+      ["MIT licence", `${REPO}/blob/main/LICENSE`],
+    ],
+  ],
 ] as const;
 
 export function Footer() {
@@ -16,7 +43,9 @@ export function Footer() {
             <Mark className="size-7" />
             Wayfarer
           </a>
-          <p className="mt-3 text-sm text-ink-muted">An API client that runs in your browser. No account, no server of its own, no analytics on this site.</p>
+          <p className="mt-3 text-sm text-ink-muted">
+            An API client that runs in your browser. No account, no server of its own, no analytics on this site.
+          </p>
         </div>
         {COLUMNS.map(([title, links]) => (
           <nav key={title} aria-label={title}>

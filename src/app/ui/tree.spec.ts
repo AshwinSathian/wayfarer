@@ -4,19 +4,50 @@ import { describe, expect, it } from "vitest";
 import { Tree, UiTreeNode } from "./tree";
 
 type Kind = "folder" | "file";
-const node = (key: string, data: Kind, children?: UiTreeNode<Kind>[], expanded?: boolean): UiTreeNode<Kind> => ({ key, label: key, data, children, expanded });
+const node = (key: string, data: Kind, children?: UiTreeNode<Kind>[], expanded?: boolean): UiTreeNode<Kind> => ({
+  key,
+  label: key,
+  data,
+  children,
+  expanded,
+});
 
 @Component({
   imports: [Tree],
   template: `
-    <ui-tree ariaLabel="Files" [nodes]="nodes()" [group]="kind" (selected)="selected.push($event.key)" (opened)="opened.push($event.node.key + ($event.keyboard ? ' by key' : ''))" (contextmenu)="menus.push($event)" (edit)="edits.push($event.key)" (reorder)="onReorder($event)">
-      <ng-template let-node><span class="name">{{ node.label }}</span>@if (node.key === "b.ts") {<input aria-label="Rename" />}</ng-template>
+    <ui-tree
+      ariaLabel="Files"
+      [nodes]="nodes()"
+      [group]="kind"
+      (selected)="selected.push($event.key)"
+      (opened)="opened.push($event.node.key + ($event.keyboard ? ' by key' : ''))"
+      (contextmenu)="menus.push($event)"
+      (edit)="edits.push($event.key)"
+      (reorder)="onReorder($event)"
+    >
+      <ng-template let-node
+        ><span class="name">{{ node.label }}</span>
+        @if (node.key === "b.ts") {
+          <input aria-label="Rename" />
+        }
+      </ng-template>
     </ui-tree>
   `,
 })
 class TestHost {
   readonly nodes = signal<UiTreeNode<Kind>[]>([
-    node("src", "folder", [node("app", "folder", [node("main.ts", "file")]), node("lib", "folder"), node("a.ts", "file"), node("b.ts", "file"), node("c.ts", "file")], true),
+    node(
+      "src",
+      "folder",
+      [
+        node("app", "folder", [node("main.ts", "file")]),
+        node("lib", "folder"),
+        node("a.ts", "file"),
+        node("b.ts", "file"),
+        node("c.ts", "file"),
+      ],
+      true,
+    ),
     node("docs", "folder"),
   ]);
   readonly kind = (n: UiTreeNode<Kind>) => n.data;
@@ -100,9 +131,17 @@ describe("ui-tree", () => {
     expect(row("src").getAttribute("aria-expanded")).toBe("true");
     expect(row("app").getAttribute("aria-expanded")).toBe("false");
     expect(row("lib").hasAttribute("aria-expanded")).toBe(false);
-    expect(["aria-level", "aria-posinset", "aria-setsize"].map((a) => row("a.ts").getAttribute(a))).toEqual(["2", "3", "5"]);
+    expect(["aria-level", "aria-posinset", "aria-setsize"].map((a) => row("a.ts").getAttribute(a))).toEqual([
+      "2",
+      "3",
+      "5",
+    ]);
     expect(row("docs").getAttribute("aria-level")).toBe("1");
-    expect(rows().filter((r) => r.tabIndex === 0).map((r) => r.getAttribute("aria-label"))).toEqual(["src"]);
+    expect(
+      rows()
+        .filter((r) => r.tabIndex === 0)
+        .map((r) => r.getAttribute("aria-label")),
+    ).toEqual(["src"]);
     expect(row("a.ts").querySelector(".name")?.textContent).toBe("a.ts");
     fixture.destroy();
   });
@@ -206,7 +245,9 @@ describe("ui-tree", () => {
     expect(host.menus[0].target).toBe(row("c.ts"));
     expect(host.menus[0].clientY).toBeCloseTo(row("c.ts").getBoundingClientRect().bottom, 0);
 
-    row("lib").dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }));
+    row("lib").dispatchEvent(
+      new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 5, clientY: 6 }),
+    );
     expect(host.menus).toHaveLength(2);
     expect(host.selected.at(-1)).toBe("lib");
     fixture.destroy();

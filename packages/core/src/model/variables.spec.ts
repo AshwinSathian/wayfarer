@@ -10,7 +10,11 @@ describe("variable changes", () => {
   it("sets a value where the name stood, adds a new name at the end, and removes every row of a name", () => {
     const rows = [row("a", "1"), row("off", "x", false), row("a", "old"), row("b", "2")];
 
-    expect(applyVariableChanges(rows, [{ key: "a", value: "new" }])).toEqual([row("a", "new"), row("off", "x", false), row("b", "2")]);
+    expect(applyVariableChanges(rows, [{ key: "a", value: "new" }])).toEqual([
+      row("a", "new"),
+      row("off", "x", false),
+      row("b", "2"),
+    ]);
     expect(applyVariableChanges(rows, [{ key: "c", value: "3" }])).toEqual([...rows, row("c", "3")]);
     expect(applyVariableChanges(rows, [{ key: "a", value: null }])).toEqual([row("off", "x", false), row("b", "2")]);
     // Setting a row that was switched off switches it on: the caller set it to be used.
@@ -20,13 +24,31 @@ describe("variable changes", () => {
   });
 
   it("F76: a script's value that is not text is stored as its JSON with the mark; an edit of the value makes it text again", () => {
-    const stored = applyVariableChanges([row("count", "old"), row("name", "n")], [{ key: "count", value: "0", json: true }, { key: "user", value: '{"id":7}', json: true }]);
-    expect(stored).toEqual([{ key: "count", value: "0", enabled: true, json: true }, row("name", "n"), { key: "user", value: '{"id":7}', enabled: true, json: true }]);
+    const stored = applyVariableChanges(
+      [row("count", "old"), row("name", "n")],
+      [
+        { key: "count", value: "0", json: true },
+        { key: "user", value: '{"id":7}', json: true },
+      ],
+    );
+    expect(stored).toEqual([
+      { key: "count", value: "0", enabled: true, json: true },
+      row("name", "n"),
+      { key: "user", value: '{"id":7}', enabled: true, json: true },
+    ]);
     // What a script is given of them: the mark with the value, the later of two rows of one name, nothing that is switched off.
-    expect(scriptVariables([...stored, row("name", "later"), row("off", "x", false), row("", "nameless")])).toEqual([["count", "0", true], ["name", "later"], ["user", '{"id":7}', true]]);
+    expect(scriptVariables([...stored, row("name", "later"), row("off", "x", false), row("", "nameless")])).toEqual([
+      ["count", "0", true],
+      ["name", "later"],
+      ["user", '{"id":7}', true],
+    ]);
     // The editor saves the difference it made. A row it left alone keeps its mark; one whose value it changed is a new row, without it.
     const edited = stored.map((entry) => (entry.key === "user" ? { ...entry, value: "ada" } : entry));
-    expect(applyVariableChanges(stored, variableChanges(stored, edited))).toEqual([{ key: "count", value: "0", enabled: true, json: true }, row("name", "n"), row("user", "ada")]);
+    expect(applyVariableChanges(stored, variableChanges(stored, edited))).toEqual([
+      { key: "count", value: "0", enabled: true, json: true },
+      row("name", "n"),
+      row("user", "ada"),
+    ]);
     // Text set over it by a script is text too.
     expect(applyVariableChanges(stored, [{ key: "count", value: "seven" }])[0]).toEqual(row("count", "seven"));
   });
@@ -45,10 +67,13 @@ describe("variable changes", () => {
 
   // The two-tab case: each tab edited the rows it loaded; the second save lands on what the first one stored.
   it("two editors that changed different names both keep their change, whichever saves first (200 generated)", () => {
-    const rows = fc.uniqueArray(fc.record({ key: fc.string({ minLength: 1, maxLength: 3 }), value: fc.string(), enabled: fc.constant(true) }), {
-      selector: (r) => r.key,
-      maxLength: 5,
-    });
+    const rows = fc.uniqueArray(
+      fc.record({ key: fc.string({ minLength: 1, maxLength: 3 }), value: fc.string(), enabled: fc.constant(true) }),
+      {
+        selector: (r) => r.key,
+        maxLength: 5,
+      },
+    );
     fc.assert(
       fc.property(rows, fc.string(), fc.string(), (loaded, valueA, valueB) => {
         const editA = [...loaded, row("only-in-a", valueA)];
@@ -63,7 +88,7 @@ describe("variable changes", () => {
         expect(names(aThenB)).toEqual(expected);
         expect(names(bThenA)).toEqual(expected);
       }),
-      { numRuns: 200, seed: 20261009 }
+      { numRuns: 200, seed: 20261009 },
     );
   });
 
@@ -71,8 +96,12 @@ describe("variable changes", () => {
     const reference = "{{$secret.0b1c2d3e-0000-4000-8000-000000000001}}";
     const rows = [row("token", reference), row("mixed", `Bearer ${reference}`), row("plain", "1")];
     const fromScript = (key: string, value: string | null) => ({ key, value, keepSecret: true as const });
-    expect(applyVariableChanges(rows, [fromScript("token", "leaked"), fromScript("mixed", "m"), fromScript("plain", "2")])).toEqual([row("token", reference), row("mixed", "m"), row("plain", "2")]);
-    expect(applyVariableChanges([row("token", ` {{ $secret.ab-1 }} `, false)], [fromScript("token", "leaked")])).toEqual([row("token", ` {{ $secret.ab-1 }} `, false)]);
+    expect(
+      applyVariableChanges(rows, [fromScript("token", "leaked"), fromScript("mixed", "m"), fromScript("plain", "2")]),
+    ).toEqual([row("token", reference), row("mixed", "m"), row("plain", "2")]);
+    expect(
+      applyVariableChanges([row("token", ` {{ $secret.ab-1 }} `, false)], [fromScript("token", "leaked")]),
+    ).toEqual([row("token", ` {{ $secret.ab-1 }} `, false)]);
     // The editor unprotects a variable by saving its text; a script may remove one.
     expect(applyVariableChanges(rows, [{ key: "token", value: "typed" }])[0]).toEqual(row("token", "typed"));
     expect(applyVariableChanges(rows, [fromScript("token", null)]).map((r) => r.key)).toEqual(["mixed", "plain"]);

@@ -11,7 +11,13 @@ import { chromium } from "@playwright/test";
 
 const base = process.argv[2] ?? "http://localhost:4200";
 const ADDRESS = "https://api.example.com/v1/users/42";
-const BODY = { id: 42, name: "Ada Lovelace", email: "ada@example.com", roles: ["admin", "editor"], created: "2026-10-01T09:30:00Z" };
+const BODY = {
+  id: 42,
+  name: "Ada Lovelace",
+  email: "ada@example.com",
+  roles: ["admin", "editor"],
+  created: "2026-10-01T09:30:00Z",
+};
 const OUT = "packages/site/public/app";
 
 const browser = await chromium.launch();
@@ -23,7 +29,12 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: width / 1440 });
     await page.addInitScript(() => localStorage.setItem("wayfarer:theme", "dark"));
     await page.route(ADDRESS, (route) =>
-      route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(BODY) })
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: JSON.stringify(BODY),
+      }),
     );
     await page.goto(`${base}/app/`);
     await page.locator("input.address-url").fill(ADDRESS);

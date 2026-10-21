@@ -30,23 +30,33 @@ describe("BridgeSettings", () => {
     expect(service.config()).toEqual({ route: "bridge", url: "http://localhost:9999", token: "abc123" });
 
     expect(localStorage.getItem("wayfarer:bridge")).not.toContain("abc123");
-    expect(JSON.parse(localStorage.getItem("wayfarer:bridge") ?? "{}")).toEqual({ route: "bridge", url: "http://localhost:9999" });
+    expect(JSON.parse(localStorage.getItem("wayfarer:bridge") ?? "{}")).toEqual({
+      route: "bridge",
+      url: "http://localhost:9999",
+    });
   });
 
   it("loads what is stored, and removes a token an older version left there as plain text (F83)", () => {
-    localStorage.setItem("wayfarer:bridge", JSON.stringify({ route: "direct", url: "http://localhost:1234", token: "xyz" }));
+    localStorage.setItem(
+      "wayfarer:bridge",
+      JSON.stringify({ route: "direct", url: "http://localhost:1234", token: "xyz" }),
+    );
 
     // A fresh instance re-reads localStorage in its constructor.
     const fresh = TestBed.runInInjectionContext(() => new BridgeSettings());
 
     expect(fresh.config()).toEqual({ route: "direct", url: "http://localhost:1234", token: "" });
-    expect(localStorage.getItem("wayfarer:bridge")).toBe(JSON.stringify({ route: "direct", url: "http://localhost:1234" }));
+    expect(localStorage.getItem("wayfarer:bridge")).toBe(
+      JSON.stringify({ route: "direct", url: "http://localhost:1234" }),
+    );
   });
 
   it("reads the switch of a version before P6.4: on is the route bridge, and the route is written in its place", () => {
     localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: true, url: "http://localhost:1234" }));
     expect(TestBed.runInInjectionContext(() => new BridgeSettings()).config().route).toBe("bridge");
-    expect(localStorage.getItem("wayfarer:bridge")).toBe(JSON.stringify({ route: "bridge", url: "http://localhost:1234" }));
+    expect(localStorage.getItem("wayfarer:bridge")).toBe(
+      JSON.stringify({ route: "bridge", url: "http://localhost:1234" }),
+    );
 
     localStorage.setItem("wayfarer:bridge", JSON.stringify({ enabled: false, url: "http://localhost:1234" }));
     expect(TestBed.runInInjectionContext(() => new BridgeSettings()).config().route).toBe("auto");
@@ -104,7 +114,9 @@ describe("BridgeSettings", () => {
       service.update({ token: "to-be-removed" });
       await vi.waitFor(async () => expect(await inVault()).toBe("to-be-removed"));
       service.update({ token: "" });
-      await vi.waitFor(async () => expect((await vault.listSecrets()).some((entry) => entry.name === NAME)).toBe(false));
+      await vi.waitFor(async () =>
+        expect((await vault.listSecrets()).some((entry) => entry.name === NAME)).toBe(false),
+      );
     });
 
     it("for a send: the token held; with none held and one in a locked vault, the user is asked to unlock, and a no gives none", async () => {
@@ -145,7 +157,11 @@ describe("BridgeSettings", () => {
   });
 
   it("checkHealth probes the given URL, trailing slash removed, without saving it", async () => {
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 200 }));
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 200 }),
+      );
 
     await expect(service.checkHealth("http://localhost:9999/")).resolves.toBeUndefined();
 
@@ -156,7 +172,9 @@ describe("BridgeSettings", () => {
 
   it("checkHealth finds nothing wrong with a bridge that answers ok", async () => {
     service.update({ url: "http://localhost:7717" });
-    vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.3.0" }), { status: 200 }));
+    vi.spyOn(window, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.3.0" }), { status: 200 }),
+    );
 
     await expect(service.checkHealth()).resolves.toBeUndefined();
   });
@@ -165,7 +183,9 @@ describe("BridgeSettings", () => {
     service.update({ url: "http://localhost:7717" });
     const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValue(new Response("<html>", { status: 200 }));
     await expect(service.checkHealth()).resolves.toBe("What answered at this address is not a Local Bridge.");
-    fetchSpy.mockResolvedValue(new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 500 }));
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, name: "wayfarer-bridge", version: "2.0.0" }), { status: 500 }),
+    );
     await expect(service.checkHealth()).resolves.toBe("What answered at this address is not a Local Bridge.");
   });
 
@@ -182,14 +202,22 @@ describe("BridgeSettings", () => {
   });
 
   describe("pairing (P6.2)", () => {
-    const answer = (status: number, body: unknown) => vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status }));
+    const answer = (status: number, body: unknown) =>
+      vi.spyOn(window, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status }));
 
     it("exchanges the code for the token at the given address, as a request of the page's own, and gives the token", async () => {
       const fetchSpy = answer(200, { token: "a-token-of-the-bridge-0123456789" });
-      await expect(service.pair("http://127.0.0.1:7717/", " abcd-2345 ")).resolves.toEqual({ token: "a-token-of-the-bridge-0123456789" });
+      await expect(service.pair("http://127.0.0.1:7717/", " abcd-2345 ")).resolves.toEqual({
+        token: "a-token-of-the-bridge-0123456789",
+      });
       expect(fetchSpy.mock.calls[0][0]).toBe("http://127.0.0.1:7717/pair");
       const init = fetchSpy.mock.calls[0][1] as RequestInit;
-      expect(init).toMatchObject({ method: "POST", cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer" });
+      expect(init).toMatchObject({
+        method: "POST",
+        cache: "no-store",
+        credentials: "omit",
+        referrerPolicy: "no-referrer",
+      });
       expect(JSON.parse(init.body as string)).toEqual({ code: "abcd-2345" });
       // Nothing is saved by it: the pane saves.
       expect(service.config().token).toBe("");
@@ -197,23 +225,32 @@ describe("BridgeSettings", () => {
 
     it("says what went wrong: a wrong code, a lock with its seconds, a code already used, no bridge, an answer that is no token", async () => {
       answer(401, { error: "wrong pairing code" });
-      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute." });
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({
+        problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute.",
+      });
       vi.restoreAllMocks();
-      vi.spyOn(window, "fetch").mockResolvedValue(new Response("{}", { status: 429, headers: { "Retry-After": "42" } }));
-      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "Three wrong codes: the bridge takes no code for 42 s." });
+      vi.spyOn(window, "fetch").mockResolvedValue(
+        new Response("{}", { status: 429, headers: { "Retry-After": "42" } }),
+      );
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({
+        problem: "Three wrong codes: the bridge takes no code for 42 s.",
+      });
       vi.restoreAllMocks();
       answer(410, { error: "used" });
-      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "This bridge's code was used. Start the bridge again for a new one." });
+      await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({
+        problem: "This bridge's code was used. Start the bridge again for a new one.",
+      });
       vi.restoreAllMocks();
       vi.spyOn(window, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
       await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: BRIDGE_UNREACHABLE });
       vi.restoreAllMocks();
       for (const body of [{ token: 5 }, { token: "short" }, "no", {}]) {
         answer(200, body);
-        await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({ problem: "What answered at this address is not a Local Bridge." });
+        await expect(service.pair("http://127.0.0.1:7717", "x")).resolves.toEqual({
+          problem: "What answered at this address is not a Local Bridge.",
+        });
         vi.restoreAllMocks();
       }
     });
   });
 });
-

@@ -11,7 +11,12 @@ type Mode = "strip" | "references" | "plain";
   imports: [UiSegmented],
   template: `
     <ui-segmented aria-label="File for" [options]="formats" [value]="format()" (valueChange)="setFormat($event)" />
-    <ui-segmented aria-label="Protected variables" [options]="modes()" [value]="mode()" (valueChange)="mode.set($event)" />
+    <ui-segmented
+      aria-label="Protected variables"
+      [options]="modes()"
+      [value]="mode()"
+      (valueChange)="mode.set($event)"
+    />
   `,
 })
 class TestHost {
@@ -40,8 +45,14 @@ describe("ui-segmented", () => {
     const root: HTMLElement = fixture.nativeElement;
     await fixture.whenStable();
     const group = (name: string) => root.querySelector(`[aria-label="${name}"]`) as HTMLElement;
-    const radio = (group: HTMLElement, label: string) => [...group.querySelectorAll("label")].find((option) => option.textContent?.trim() === label)?.querySelector("input") as HTMLInputElement;
-    const checked = (group: HTMLElement) => [...group.querySelectorAll("label")].filter((option) => option.querySelector("input")?.checked).map((option) => option.textContent?.trim());
+    const radio = (group: HTMLElement, label: string) =>
+      [...group.querySelectorAll("label")]
+        .find((option) => option.textContent?.trim() === label)
+        ?.querySelector("input") as HTMLInputElement;
+    const checked = (group: HTMLElement) =>
+      [...group.querySelectorAll("label")]
+        .filter((option) => option.querySelector("input")?.checked)
+        .map((option) => option.textContent?.trim());
     return { fixture, host: fixture.componentInstance, group, radio, checked };
   }
 
@@ -91,13 +102,21 @@ describe("ui-segmented", () => {
     };
     expect(press(radio(modes, "Plain text"), "ArrowRight")).toBe(true);
     await fixture.whenStable();
-    expect([host.mode(), checked(modes), document.activeElement]).toEqual(["strip", ["Leave out"], radio(modes, "Leave out")]);
+    expect([host.mode(), checked(modes), document.activeElement]).toEqual([
+      "strip",
+      ["Leave out"],
+      radio(modes, "Leave out"),
+    ]);
     expect(press(radio(modes, "Leave out"), "ArrowUp")).toBe(true);
     await fixture.whenStable();
     expect([host.mode(), checked(modes)]).toEqual(["plain", ["Plain text"]]);
     expect(press(radio(modes, "Plain text"), "ArrowLeft")).toBe(true);
     await fixture.whenStable();
-    expect([host.mode(), checked(modes), document.activeElement]).toEqual(["references", ["With the vault"], radio(modes, "With the vault")]);
+    expect([host.mode(), checked(modes), document.activeElement]).toEqual([
+      "references",
+      ["With the vault"],
+      radio(modes, "With the vault"),
+    ]);
     // A modified key is not the group's.
     expect(press(radio(modes, "With the vault"), "ArrowRight", true)).toBe(false);
     await fixture.whenStable();

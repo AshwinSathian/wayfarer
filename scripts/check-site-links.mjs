@@ -10,10 +10,15 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, posix, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const page = (root, path) => [path, join(path, "index.html"), `${path}.html`].map((p) => join(root, p)).find((p) => existsSync(p) && statSync(p).isFile());
+const page = (root, path) =>
+  [path, join(path, "index.html"), `${path}.html`]
+    .map((p) => join(root, p))
+    .find((p) => existsSync(p) && statSync(p).isFile());
 
 export function brokenLinks(root) {
-  const pages = readdirSync(root, { recursive: true }).map(String).filter((name) => name.endsWith(".html") && !name.startsWith(`app/`) && !name.startsWith("app\\"));
+  const pages = readdirSync(root, { recursive: true })
+    .map(String)
+    .filter((name) => name.endsWith(".html") && !name.startsWith(`app/`) && !name.startsWith("app\\"));
   const broken = [];
   for (const name of pages) {
     const from = `/${name.split("\\").join("/")}`;
@@ -28,7 +33,8 @@ export function brokenLinks(root) {
         broken.push(`${from}: ${url} (no such page)`);
         continue;
       }
-      if (hash && !readFileSync(file, "utf8").includes(`id="${hash}"`)) broken.push(`${from}: ${url} (no id "${hash}")`);
+      if (hash && !readFileSync(file, "utf8").includes(`id="${hash}"`))
+        broken.push(`${from}: ${url} (no id "${hash}")`);
     }
   }
   return broken;

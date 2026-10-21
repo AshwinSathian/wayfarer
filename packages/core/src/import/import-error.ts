@@ -10,7 +10,7 @@ export class ImportError extends Error {
 
   constructor(
     message: string,
-    readonly issues: ValidationIssue[] = []
+    readonly issues: ValidationIssue[] = [],
   ) {
     super(message);
   }

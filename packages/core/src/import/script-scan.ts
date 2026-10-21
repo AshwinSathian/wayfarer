@@ -20,31 +20,61 @@ interface ScanEntry {
 const START = String.raw`(?<![\w$.])`;
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 
-const member = (name: string): ScanEntry => ({ api: name, finds: [[name, new RegExp(`${START}${escape(name)}(?![\\w$])`)]] });
-const required = (module: string): [string, RegExp] => [`require('${module}')`, new RegExp(`${START}require\\(\\s*["']${escape(module)}["']\\s*\\)`)];
+const member = (name: string): ScanEntry => ({
+  api: name,
+  finds: [[name, new RegExp(`${START}${escape(name)}(?![\\w$])`)]],
+});
+const required = (module: string): [string, RegExp] => [
+  `require('${module}')`,
+  new RegExp(`${START}require\\(\\s*["']${escape(module)}["']\\s*\\)`),
+];
 const called = (name: string): [string, RegExp] => [name, new RegExp(`${START}${escape(name)}\\s*\\(`)];
 const used = (name: string): [string, RegExp] => [name, new RegExp(`${START}${escape(name)}\\s*[.(]`)];
 
 export const SCRIPT_SCAN: ScanEntry[] = [
-  ...["pm.cookies.get", "pm.cookies.has", "pm.cookies.toObject", "pm.cookies.jar", "pm.visualizer.set", "pm.vault.get", "pm.require", "postman.getResponseCookie"].map(member),
-  { api: "legacy library globals (_, CryptoJS, tv4, cheerio, xml2Json, Backbone)", finds: ["tv4", "cheerio", "xml2Json", "Backbone"].map(used) },
-  { api: "clearTimeout, setInterval, clearInterval", finds: ["clearTimeout", "setInterval", "clearInterval"].map(called) },
-  ...["ajv", "cheerio", "csv-parse/lib/sync", "postman-collection", "tv4", "xml2js"].map((module): ScanEntry => ({ api: `require('${module}')`, finds: [required(module)] })),
+  ...[
+    "pm.cookies.get",
+    "pm.cookies.has",
+    "pm.cookies.toObject",
+    "pm.cookies.jar",
+    "pm.visualizer.set",
+    "pm.vault.get",
+    "pm.require",
+    "postman.getResponseCookie",
+  ].map(member),
+  {
+    api: "legacy library globals (_, CryptoJS, tv4, cheerio, xml2Json, Backbone)",
+    finds: ["tv4", "cheerio", "xml2Json", "Backbone"].map(used),
+  },
+  {
+    api: "clearTimeout, setInterval, clearInterval",
+    finds: ["clearTimeout", "setInterval", "clearInterval"].map(called),
+  },
+  ...["ajv", "cheerio", "csv-parse/lib/sync", "postman-collection", "tv4", "xml2js"].map((module): ScanEntry => ({
+    api: `require('${module}')`,
+    finds: [required(module)],
+  })),
   {
     api: "require of a Node module (buffer, events, path, querystring, stream, string_decoder, timers, url, util)",
-    finds: ["buffer", "events", "path", "querystring", "stream", "string_decoder", "timers", "url", "util"].map(required),
+    finds: ["buffer", "events", "path", "querystring", "stream", "string_decoder", "timers", "url", "util"].map(
+      required,
+    ),
   },
 ];
 
 /** Unsupported rows the scan does not look for, each with the reason. */
 export const NOT_SCANNED: Record<string, string> = {
-  "pm.sendRequest (formdata, file or graphql body)": "pm.sendRequest is supported; which body a call gives it is not known from the text.",
-  "legacy additions to built-in objects ([].none, (56).hex, fn.once and the rest of Sugar)": "A method's name does not say what it is called on: `.format(` is moment's too, and `.any(` and `.has(` are many things'.",
+  "pm.sendRequest (formdata, file or graphql body)":
+    "pm.sendRequest is supported; which body a call gives it is not known from the text.",
+  "legacy additions to built-in objects ([].none, (56).hex, fn.once and the rest of Sugar)":
+    "A method's name does not say what it is called on: `.format(` is moment's too, and `.any(` and `.has(` are many things'.",
 };
 // Of the legacy globals, `_` and `CryptoJS` are not looked for: a script that
 // requires lodash or crypto-js gives them those very names, and it works.
 
 /** The names of what `script` uses that the app does not have, each once, in the list's order. */
 export function unsupportedApis(script: string): string[] {
-  return SCRIPT_SCAN.flatMap((entry) => entry.finds).filter(([, pattern]) => pattern.test(script)).map(([label]) => label);
+  return SCRIPT_SCAN.flatMap((entry) => entry.finds)
+    .filter(([, pattern]) => pattern.test(script))
+    .map(([label]) => label);
 }

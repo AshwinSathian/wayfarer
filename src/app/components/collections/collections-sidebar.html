@@ -3,20 +3,43 @@
   <div class="flex items-center justify-between gap-2">
     <span class="type-overline text-label-tertiary">Collections</span>
     <div class="flex items-center gap-0.5">
-      <button type="button" uiButton="icon" class="btn-plain" (click)="openCommandPalette()" uiTooltip="Command palette (⌘K)" aria-label="Open command palette">
+      <button
+        type="button"
+        uiButton="icon"
+        class="btn-plain"
+        (click)="openCommandPalette()"
+        uiTooltip="Command palette (⌘K)"
+        aria-label="Open command palette"
+      >
         <app-icon name="bolt" class="icon-sm" />
       </button>
-      <button type="button" uiButton="icon" class="btn-plain" (click)="fileInput.click()" uiTooltip="Import collection" aria-label="Import collection">
+      <button
+        type="button"
+        uiButton="icon"
+        class="btn-plain"
+        (click)="fileInput.click()"
+        uiTooltip="Import collection"
+        aria-label="Import collection"
+      >
         <app-icon name="upload" class="icon-sm" />
       </button>
-      <button type="button" uiButton="icon" class="btn-plain" (click)="importPipeline.openPaste()" uiTooltip="Import a cURL command" aria-label="Import a cURL command">
+      <button
+        type="button"
+        uiButton="icon"
+        class="btn-plain"
+        (click)="importPipeline.openPaste()"
+        uiTooltip="Import a cURL command"
+        aria-label="Import a cURL command"
+      >
         <app-icon name="terminal" class="icon-sm" />
       </button>
       <button
-        uiButton="filled" class="btn-secondary btn-sm btn-square"
+        uiButton="filled"
+        class="btn-secondary btn-sm btn-square"
         aria-label="New collection"
         (click)="handleCreateCollection()"
-      ><app-icon name="add" /></button>
+        ><app-icon name="add"
+      /></button>
     </div>
   </div>
 
@@ -32,8 +55,20 @@
   <span class="ui-skeleton h-[160px] w-full" aria-hidden="true"></span>
   } @else if (!nodes().length) {
   <div class="ds-empty-state">
-    <app-icon name="folder_open" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
-    <p class="type-callout text-label-tertiary max-w-[180px] text-center">No collections yet. Create one to organise your requests.</p>
+    <app-icon
+      name="folder_open"
+      class="icon-xl text-label-tertiary"
+      style="
+        font-variation-settings:
+          &quot;FILL&quot; 0,
+          &quot;wght&quot; 200,
+          &quot;GRAD&quot; -25,
+          &quot;opsz&quot; 48;
+      "
+    />
+    <p class="type-callout text-label-tertiary max-w-[180px] text-center"
+      >No collections yet. Create one to organise your requests.</p
+    >
   </div>
   } @else {
   <!-- A right-click on a row, or Shift+F10 on it, reaches the tree first: it
@@ -54,7 +89,9 @@
       <div class="flex w-full items-center gap-2 min-w-0">
         @if (editingKey() === node.key) {
         <mat-form-field class="field field-inline w-full">
-          <input class="font-sans" matInput
+          <input
+            class="font-sans"
+            matInput
             [attr.aria-label]="'Rename ' + node.label"
             #renameField
             [value]="editingValue()"
@@ -62,18 +99,17 @@
             (keydown.enter)="endRename(tree, node, $event, true)"
             (keydown.escape)="endRename(tree, node, $event, false)"
             (blur)="commitRename(node)"
-           />
+          />
         </mat-form-field>
-        } @else {
-          @if (node.data.type === 'collection') {
-          <app-icon name="folder_open" class="icon-sm text-label-tertiary shrink-0" />
-          } @else if (node.data.type === 'folder') {
-          <app-icon name="folder" class="icon-sm text-label-tertiary shrink-0" />
-          }
-          @if (node.data.type === 'request') {
-          <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [uiTooltip]="node.data.ref.method">{{ methodLabel(node.data.ref.method) }}</span>&ngsp;
-          }
-          <span class="type-body text-label-primary truncate">{{ node.label }}</span>
+        } @else { @if (node.data.type === 'collection') {
+        <app-icon name="folder_open" class="icon-sm text-label-tertiary shrink-0" />
+        } @else if (node.data.type === 'folder') {
+        <app-icon name="folder" class="icon-sm text-label-tertiary shrink-0" />
+        } @if (node.data.type === 'request') {
+        <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [uiTooltip]="node.data.ref.method"
+          >{{ methodLabel(node.data.ref.method) }}</span
+        >&ngsp; }
+        <span class="type-body text-label-primary truncate">{{ node.label }}</span>
         }
       </div>
     </ng-template>
@@ -83,7 +119,6 @@
   <!-- Built when the menu opens: its items depend on the row that was clicked. -->
   <ui-menu #contextMenu [items]="contextItems()" />
 </div>
-
 
 <!-- Create collection/folder/request dialog -->
 <ui-dialog
@@ -95,23 +130,20 @@
 >
   <div class="flex flex-col gap-3">
     <label for="creation-name-input" class="ds-form-label">
-      {{
-        creationContext()?.type === 'collection'
-          ? 'Collection name'
-          : creationContext()?.type === 'folder'
-            ? 'Folder name'
-            : 'Request name'
-      }}
+      {{ creationContext()?.type === 'collection' ? 'Collection name' : creationContext()?.type === 'folder' ? 'Folder
+      name' : 'Request name' }}
     </label>
     <mat-form-field class="field w-full">
-      <input class="font-sans" matInput
+      <input
+        class="font-sans"
+        matInput
         cdkFocusInitial
         id="creation-name-input"
         [ngModel]="creationModel().name"
         (ngModelChange)="onCreationNameChange($event)"
         (keydown.enter)="creationDisabled || submitCreation()"
         placeholder="Enter name"
-       />
+      />
     </mat-form-field>
     @if (creationContext()?.type === 'request') {
     <div class="flex flex-col gap-1.5">
@@ -129,8 +161,12 @@
   </div>
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeCreationDialog()">Cancel</button>
-      <button uiButton="filled" aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()">Create</button>
+      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeCreationDialog()"
+        >Cancel</button
+      >
+      <button uiButton="filled" aria-label="Create" [disabled]="creationDisabled" (click)="submitCreation()"
+        >Create</button
+      >
     </div>
   </div>
 </ui-dialog>
@@ -145,25 +181,26 @@
 >
   <div class="flex flex-col gap-3">
     <mat-form-field class="field w-full">
-      <input class="font-sans" matInput
+      <input
+        class="font-sans"
+        matInput
         cdkFocusInitial
         placeholder="Type a command…"
         [ngModel]="commandPaletteQuery()"
         (ngModelChange)="commandPaletteQuery.set($event)"
         [ngModelOptions]="{ standalone: true }"
         (keydown.enter)="executeFirstPaletteAction()"
-       />
+      />
     </mat-form-field>
     <div class="max-h-64 space-y-1 overflow-y-auto">
-      @if (filteredPaletteActions.length) {
-      @for (action of filteredPaletteActions; track action.id) {
+      @if (filteredPaletteActions.length) { @for (action of filteredPaletteActions; track action.id) {
       <button
         type="button"
         class="w-full rounded-xl bg-canvas-elevated border border-separator px-4 py-3 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
         (click)="executePaletteAction(action)"
-      >{{ action.label }}</button>
-      }
-      } @else {
+        >{{ action.label }}</button
+      >
+      } } @else {
       <div class="ds-empty-state py-6">
         <app-icon name="search_off" class="icon-md text-label-tertiary" />
         <p class="type-callout text-label-tertiary">No matching commands.</p>
@@ -173,12 +210,6 @@
   </div>
 </ui-dialog>
 
-<app-inherited-settings-dialog
-  [target]="settingsOf()"
-  (closed)="settingsOf.set(null)"
-/>
+<app-inherited-settings-dialog [target]="settingsOf()" (closed)="settingsOf.set(null)" />
 
-<app-postman-export-dialog
-  [collection]="postmanExportOf()"
-  (closed)="postmanExportOf.set(null)"
-/>
+<app-postman-export-dialog [collection]="postmanExportOf()" (closed)="postmanExportOf.set(null)" />

@@ -55,7 +55,9 @@ export class BridgePane {
     return this.route() !== stored.route || this.url().trim() !== stored.url || this.token().trim() !== stored.token;
   });
   /** The bridge with nowhere to send to: the route would fall back to the page without a word. */
-  protected readonly problem = computed(() => (this.route() === "bridge" && !this.url().trim() ? "Give the bridge's address, or choose another route." : ""));
+  protected readonly problem = computed(() =>
+    this.route() === "bridge" && !this.url().trim() ? "Give the bridge's address, or choose another route." : "",
+  );
 
   protected edited(): void {
     this.test.set("idle");

@@ -19,7 +19,15 @@ function collectionFile(post: string) {
       JSON.stringify({
         $id: "wayfarer/collection",
         meta: meta("file"),
-        collection: { id: "col-shared", meta: meta("col-shared"), name: "Shared collection", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } },
+        collection: {
+          id: "col-shared",
+          meta: meta("col-shared"),
+          name: "Shared collection",
+          order: 0,
+          variables: [],
+          auth: { type: "none" },
+          scripts: { pre: "", post: "" },
+        },
         folders: [],
         requests: [
           {
@@ -39,7 +47,7 @@ function collectionFile(post: string) {
             settings: {},
           },
         ],
-      })
+      }),
     ),
   };
 }
@@ -57,11 +65,15 @@ async function importFile(page: Page, post: string): Promise<void> {
 const row = (page: Page, label: string) => page.locator(".test-result-pass, .test-result-fail", { hasText: label });
 const tests = (page: Page) => page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ });
 
-test("@claim:C-051 an imported collection's scripts do not run until they are reviewed; a re-import with a changed script asks again", async ({ page }) => {
+test("@claim:C-051 an imported collection's scripts do not run until they are reviewed; a re-import with a changed script asks again", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     const seen: string[] = [];
     (window as unknown as { __violations: string[] }).__violations = seen;
-    document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
+    document.addEventListener("securitypolicyviolation", (e) =>
+      seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`),
+    );
   });
   const hits = await captureTarget(page);
   await page.goto("/app/");
@@ -117,7 +129,9 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   expect(await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations)).toEqual([]);
 });
 
-test("a script written here runs without a review, also after it is saved into a collection made here", async ({ page }) => {
+test("a script written here runs without a review, also after it is saved into a collection made here", async ({
+  page,
+}) => {
   await captureTarget(page);
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
@@ -130,7 +144,16 @@ test("a script written here runs without a review, also after it is saved into a
     });
     const now = Date.now();
     const tx = db.transaction(["collections"], "readwrite");
-    tx.objectStore("collections").put({ id: "col-mine", meta: { id: "col-mine", createdAt: now, updatedAt: now }, name: "Mine", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true } });
+    tx.objectStore("collections").put({
+      id: "col-mine",
+      meta: { id: "col-mine", createdAt: now, updatedAt: now },
+      name: "Mine",
+      order: 0,
+      variables: [],
+      auth: { type: "none" },
+      scripts: { pre: "", post: "" },
+      scriptTrust: { trusted: true },
+    });
     await new Promise<void>((resolve) => (tx.oncomplete = () => resolve()));
     db.close();
   });

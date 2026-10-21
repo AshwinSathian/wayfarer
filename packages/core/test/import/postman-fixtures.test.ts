@@ -43,8 +43,15 @@ const imported = files.filter((file) => !Object.hasOwn(NOT_IMPORTED, file));
 function shape(payload: CollectionExport): unknown {
   const byOrder = <T extends { order: number }>(list: T[]) => [...list].sort((a, b) => a.order - b.order);
   const level = (parent: string | undefined): unknown => ({
-    folders: byOrder(payload.folders.filter((folder) => folder.parentFolderId === parent)).map(({ id, meta: _meta, collectionId: _collection, parentFolderId: _parent, order: _order, ...folder }) => ({ ...folder, ...(level(id) as object) })),
-    requests: byOrder(payload.requests.filter((request) => request.folderId === parent)).map(({ id: _id, meta: _meta, collectionId: _collection, folderId: _folder, order: _order, ...request }) => request),
+    folders: byOrder(payload.folders.filter((folder) => folder.parentFolderId === parent)).map(
+      ({ id, meta: _meta, collectionId: _collection, parentFolderId: _parent, order: _order, ...folder }) => ({
+        ...folder,
+        ...(level(id) as object),
+      }),
+    ),
+    requests: byOrder(payload.requests.filter((request) => request.folderId === parent)).map(
+      ({ id: _id, meta: _meta, collectionId: _collection, folderId: _folder, order: _order, ...request }) => request,
+    ),
   });
   const { id: _id, meta: _meta, order: _order, ...collection } = payload.collection;
   return { ...collection, ...(level(undefined) as object) };
@@ -55,7 +62,8 @@ describe("Postman files other people wrote (P4.2)", () => {
     expect(readdirSync(join(ROOT, "newman/integration"))).toHaveLength(42);
     expect(files.filter((file) => file.startsWith("adyen/"))).toHaveLength(6);
     expect(files.filter((file) => file.startsWith("msgraph/"))).toHaveLength(3);
-    for (const set of ["newman/LICENSE.md", "adyen/LICENSE", "msgraph/LICENSE"]) expect(statSync(join(ROOT, set)).size).toBeGreaterThan(1000);
+    for (const set of ["newman/LICENSE.md", "adyen/LICENSE", "msgraph/LICENSE"])
+      expect(statSync(join(ROOT, set)).size).toBeGreaterThan(1000);
     expect(files).toHaveLength(71);
     expect(imported).toHaveLength(63);
     const formats = imported.map((file) => importText(read(file)).report.format);
@@ -77,15 +85,20 @@ describe("Postman files other people wrote (P4.2)", () => {
   });
 
   it("the one v1 collection is refused by name, with what to do", () => {
-    expect(() => importText(read("newman/integration/multi-level-folders-v1.postman_collection.json"))).toThrow("This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.");
+    expect(() => importText(read("newman/integration/multi-level-folders-v1.postman_collection.json"))).toThrow(
+      "This is a Postman Collection v1 file, which Wayfarer does not read. In Postman, export the collection as Collection v2.1 and import that.",
+    );
   });
 
-  it.each(imported.filter((file) => importText(read(file)).collections.length))("@claim:C-057 exported as a Postman v2.1 file and imported again, it is the same collection: %s", (file) => {
-    const first: Imported = importText(read(file));
-    const exported = postmanCollection(first.collections[0].payload);
-    const second = importText(JSON.stringify(exported.file));
+  it.each(imported.filter((file) => importText(read(file)).collections.length))(
+    "@claim:C-057 exported as a Postman v2.1 file and imported again, it is the same collection: %s",
+    (file) => {
+      const first: Imported = importText(read(file));
+      const exported = postmanCollection(first.collections[0].payload);
+      const second = importText(JSON.stringify(exported.file));
 
-    expect(shape(second.collections[0].payload)).toEqual(shape(first.collections[0].payload));
-    expect(second.report.counts).toEqual(first.report.counts);
-  });
+      expect(shape(second.collections[0].payload)).toEqual(shape(first.collections[0].payload));
+      expect(second.report.counts).toEqual(first.report.counts);
+    },
+  );
 });

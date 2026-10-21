@@ -39,13 +39,17 @@ describe("ui-menu", () => {
     };
     const items = () => Array.from(document.querySelectorAll<HTMLElement>('[role="menuitem"]'));
     const press = async (key: string) => {
-      (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+      (document.activeElement as HTMLElement).dispatchEvent(
+        new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }),
+      );
       await settle();
     };
     const rightClick = async (button = 2) => {
       const area = root.querySelector<HTMLElement>(".area")!;
       area.focus();
-      area.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 20, clientY: 30, button }));
+      area.dispatchEvent(
+        new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 20, clientY: 30, button }),
+      );
       await settle();
     };
     return { fixture, host: fixture.componentInstance, root, settle, items, press, rightClick };

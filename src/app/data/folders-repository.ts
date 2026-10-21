@@ -42,7 +42,9 @@ export class FoldersRepository {
         collectionId: payload.collectionId,
         parentFolderId: payload.parentFolderId,
         name: payload.name.trim(),
-        order: payload.order ?? (await this.core.nextOrder(store.index("by-order"), tx.objectStore("requests").index("by-order"))),
+        order:
+          payload.order ??
+          (await this.core.nextOrder(store.index("by-order"), tx.objectStore("requests").index("by-order"))),
         variables: [],
         auth: { type: "inherit" },
         scripts: { pre: "", post: "" },
@@ -116,9 +118,20 @@ export class FoldersRepository {
         copies.set(folder.meta.id, meta.id);
         const clone: Folder =
           folder === original
-            ? { ...structuredClone(folder), id: meta.id, meta, name: `${folder.name} copy`, order: await this.core.nextOrder(folderStore.index("by-order"), requestStore.index("by-order")) }
+            ? {
+                ...structuredClone(folder),
+                id: meta.id,
+                meta,
+                name: `${folder.name} copy`,
+                order: await this.core.nextOrder(folderStore.index("by-order"), requestStore.index("by-order")),
+              }
             : // A folder inside keeps its name and its place, in the copy of its parent.
-              { ...structuredClone(folder), id: meta.id, meta, parentFolderId: copies.get(folder.parentFolderId ?? "") };
+              {
+                ...structuredClone(folder),
+                id: meta.id,
+                meta,
+                parentFolderId: copies.get(folder.parentFolderId ?? ""),
+              };
         this.core.ensureId(clone);
         await folderStore.add(clone);
         top ??= clone;
@@ -126,7 +139,13 @@ export class FoldersRepository {
         for (const request of await requestStore.index("by-folderId").getAll(folder.meta.id)) {
           const reqMeta = this.core.createMeta();
           // Its place in the folder, as the original's.
-          const copy: RequestDoc = { ...structuredClone(request), id: reqMeta.id, meta: reqMeta, folderId: meta.id, collectionId: original.collectionId };
+          const copy: RequestDoc = {
+            ...structuredClone(request),
+            id: reqMeta.id,
+            meta: reqMeta,
+            folderId: meta.id,
+            collectionId: original.collectionId,
+          };
           this.core.ensureId(copy);
           await requestStore.add(copy);
         }
@@ -143,7 +162,12 @@ export class FoldersRepository {
     const requestStore = tx.objectStore("requests");
 
     await this.core.commitOrRollback(tx, async () => {
-      for (const folderId of [id, ...(await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id)).map((folder) => folder.meta.id)]) {
+      for (const folderId of [
+        id,
+        ...(await this.subtree((parent) => folderStore.index("by-parentFolderId").getAll(parent), id)).map(
+          (folder) => folder.meta.id,
+        ),
+      ]) {
         await folderStore.delete(folderId);
         for (const key of await requestStore.index("by-folderId").getAllKeys(folderId)) await requestStore.delete(key);
       }
@@ -175,11 +199,16 @@ export class FoldersRepository {
       for (const entry of order) {
         const folder = await tx.objectStore("folders").get(entry.id);
         if (folder) {
-          await tx.objectStore("folders").put({ ...folder, order: entry.order, meta: this.core.touchMeta(folder.meta) });
+          await tx
+            .objectStore("folders")
+            .put({ ...folder, order: entry.order, meta: this.core.touchMeta(folder.meta) });
           continue;
         }
         const request = await tx.objectStore("requests").get(entry.id);
-        if (request) await tx.objectStore("requests").put({ ...request, order: entry.order, meta: this.core.touchMeta(request.meta) });
+        if (request)
+          await tx
+            .objectStore("requests")
+            .put({ ...request, order: entry.order, meta: this.core.touchMeta(request.meta) });
       }
     });
   }

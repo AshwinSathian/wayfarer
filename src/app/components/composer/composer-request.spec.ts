@@ -1,18 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { sentHeaders } from '@wayfarer/core';
-import { WorkspaceStore } from '../../state/workspace-store';
-import { headerLines } from '../../shared/http/header-lines';
-import { historyEntry, jsonBody, requestContent } from '../../../testing/request-fixtures';
-import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from '../../../testing/composer-setup';
-import { Composer } from './composer';
-import { ComposerView } from './composer-view';
+import { sentHeaders } from "@wayfarer/core";
+import { WorkspaceStore } from "../../state/workspace-store";
+import { headerLines } from "../../shared/http/header-lines";
+import { historyEntry, jsonBody, requestContent } from "../../../testing/request-fixtures";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  buildEnvironment,
+  jsonBytes,
+  rows,
+  setupComposer,
+} from "../../../testing/composer-setup";
+import { Composer } from "./composer";
+import { ComposerView } from "./composer-view";
 
-describe('Composer: rows, payloads and variables', () => {
+describe("Composer: rows, payloads and variables", () => {
   let component: Composer;
   let store: WorkspaceStore;
   let view: ComposerView;
-  let httpMock: ComposerHarness['httpMock'];
-  let environmentsService: ComposerHarness['environmentsService'];
+  let httpMock: ComposerHarness["httpMock"];
+  let environmentsService: ComposerHarness["environmentsService"];
 
   beforeEach(async () => {
     ({ component, store, view, httpMock, environmentsService } = await setupComposer());
@@ -22,294 +29,336 @@ describe('Composer: rows, payloads and variables', () => {
     httpMock.verify();
   });
 
-  it('adds and removes header rows, and keeps the body when the method changes to one that sends none', () => {
-    store.patch({ headers: rows([{ key: 'Accept', value: 'application/json' }]) });
+  it("adds and removes header rows, and keeps the body when the method changes to one that sends none", () => {
+    store.patch({ headers: rows([{ key: "Accept", value: "application/json" }]) });
 
     store.addHeader();
-    expect(store.draft().headers).toEqual(rows([{ key: 'Accept', value: 'application/json' }, { key: '', value: '' }]));
+    expect(store.draft().headers).toEqual(
+      rows([
+        { key: "Accept", value: "application/json" },
+        { key: "", value: "" },
+      ]),
+    );
     store.removeHeader(1);
     expect(store.draft().headers.length).toBe(1);
 
-    view.onRequestMethodChange('POST');
+    view.onRequestMethodChange("POST");
     store.setBody(jsonBody({ kept: true }));
-    view.onRequestMethodChange('GET');
-    view.onRequestMethodChange('POST');
+    view.onRequestMethodChange("GET");
+    view.onRequestMethodChange("POST");
     expect(store.draft().body).toEqual(jsonBody({ kept: true }));
   });
 
-  it('builds headers and body payloads with appropriate conversions', () => {
-    store.patch({ headers: rows([
-      { key: 'Authorization', value: 'Bearer token' },
-      { key: '', value: 'ignore-me' }
-    ]) });
+  it("builds headers and body payloads with appropriate conversions", () => {
+    store.patch({
+      headers: rows([
+        { key: "Authorization", value: "Bearer token" },
+        { key: "", value: "ignore-me" },
+      ]),
+    });
     const headers = store.snapshot().headers;
-    expect(headers).toEqual(rows([{ key: 'Authorization', value: 'Bearer token' }]));
+    expect(headers).toEqual(rows([{ key: "Authorization", value: "Bearer token" }]));
 
-    store.setBody({ mode: 'urlencoded', urlencoded: rows([
-      { key: 'count', value: '42' },
-      { key: ' enabled ', value: 'false' },
-      { key: '', value: 'skip' }
-    ]) });
-    store.setBody({ multipart: [
-      { kind: 'text', key: 'note', value: 'hi', enabled: true },
-      { kind: 'file', key: '', fileId: 'f-1', fileName: 'unnamed.bin', enabled: true },
-    ] });
+    store.setBody({
+      mode: "urlencoded",
+      urlencoded: rows([
+        { key: "count", value: "42" },
+        { key: " enabled ", value: "false" },
+        { key: "", value: "skip" },
+      ]),
+    });
+    store.setBody({
+      multipart: [
+        { kind: "text", key: "note", value: "hi", enabled: true },
+        { kind: "file", key: "", fileId: "f-1", fileName: "unnamed.bin", enabled: true },
+      ],
+    });
     const body = store.snapshot().body;
-    expect(body.urlencoded).toEqual(rows([{ key: 'count', value: '42' }, { key: 'enabled', value: 'false' }]));
-    expect(body.multipart).toEqual([{ kind: 'text', key: 'note', value: 'hi', enabled: true }]);
+    expect(body.urlencoded).toEqual(
+      rows([
+        { key: "count", value: "42" },
+        { key: "enabled", value: "false" },
+      ]),
+    );
+    expect(body.multipart).toEqual([{ kind: "text", key: "note", value: "hi", enabled: true }]);
   });
 
-  it('saves rows as written: a switched-off row is kept, names are trimmed, a row with no name is left out', () => {
-    store.patch({ headers: [
-      { key: ' Accept ', value: '*/*', enabled: true },
-      { key: 'X-Off', value: '1', enabled: false },
-      { key: 'Accept', value: 'text/plain', enabled: true },
-      { key: '__proto__', value: 'x', enabled: true },
-      { key: '  ', value: 'no name', enabled: true },
-    ] });
+  it("saves rows as written: a switched-off row is kept, names are trimmed, a row with no name is left out", () => {
+    store.patch({
+      headers: [
+        { key: " Accept ", value: "*/*", enabled: true },
+        { key: "X-Off", value: "1", enabled: false },
+        { key: "Accept", value: "text/plain", enabled: true },
+        { key: "__proto__", value: "x", enabled: true },
+        { key: "  ", value: "no name", enabled: true },
+      ],
+    });
 
     const { headers } = store.snapshot();
 
     expect(headers).toEqual([
-      { key: 'Accept', value: '*/*', enabled: true },
-      { key: 'X-Off', value: '1', enabled: false },
-      { key: 'Accept', value: 'text/plain', enabled: true },
-      { key: '__proto__', value: 'x', enabled: true },
+      { key: "Accept", value: "*/*", enabled: true },
+      { key: "X-Off", value: "1", enabled: false },
+      { key: "Accept", value: "text/plain", enabled: true },
+      { key: "__proto__", value: "x", enabled: true },
     ]);
-    expect('responseId' in store.snapshot()).toBe(false);
+    expect("responseId" in store.snapshot()).toBe(false);
     // Only enabled rows are sent.
-    expect(sentHeaders(headers).map(([name]) => name)).toEqual(['Accept', 'Accept', '__proto__']);
+    expect(sentHeaders(headers).map(([name]) => name)).toEqual(["Accept", "Accept", "__proto__"]);
   });
 
-  it('keeps a body that is not an object when a request is loaded, and sends it as written (F58)', async () => {
-    const array = { mode: 'raw' as const, raw: { language: 'json' as const, text: '[1, 2]' } };
-    const text = { mode: 'raw' as const, raw: { language: 'json' as const, text: '{"n": {{count}}}' } };
+  it("keeps a body that is not an object when a request is loaded, and sends it as written (F58)", async () => {
+    const array = { mode: "raw" as const, raw: { language: "json" as const, text: "[1, 2]" } };
+    const text = { mode: "raw" as const, raw: { language: "json" as const, text: '{"n": {{count}}}' } };
 
-    store.load(requestContent({ method: 'POST', url: 'https://a.test/array', body: array }));
+    store.load(requestContent({ method: "POST", url: "https://a.test/array", body: array }));
     expect(store.snapshot().body).toEqual(array);
     let pending = component.sendRequest();
-    let req = httpMock.expectOne('https://a.test/array');
-    expect(req.request.init.body).toBe('[1, 2]');
-    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    let req = httpMock.expectOne("https://a.test/array");
+    expect(req.request.init.body).toBe("[1, 2]");
+    req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
 
     // Not JSON until its variable is filled in.
-    environmentsService.setActiveEnvironment(buildEnvironment({ count: '3' }));
-    store.load(requestContent({ method: 'POST', url: 'https://a.test/text', body: text }));
+    environmentsService.setActiveEnvironment(buildEnvironment({ count: "3" }));
+    store.load(requestContent({ method: "POST", url: "https://a.test/text", body: text }));
     expect(store.snapshot().body).toEqual(text);
     pending = component.sendRequest();
-    req = httpMock.expectOne('https://a.test/text');
+    req = httpMock.expectOne("https://a.test/text");
     expect(req.request.init.body).toBe('{"n": 3}');
-    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
   });
 
-  it('loads a history entry as the request it was composed as: variables not resolved, with its own scripts, and shows the response it recorded', () => {
-    store.patch({ scripts: { pre: 'mine', post: '' } });
+  it("loads a history entry as the request it was composed as: variables not resolved, with its own scripts, and shows the response it recorded", () => {
+    store.patch({ scripts: { pre: "mine", post: "" } });
     const entry = historyEntry({
-      method: 'POST',
-      url: 'https://{{host}}/x?a=1',
+      method: "POST",
+      url: "https://{{host}}/x?a=1",
       status: 201,
-      template: { headers: rows([{ key: 'A', value: '{{v}}' }]), body: jsonBody({ n: 1 }), scripts: { pre: 'theirs', post: '' } },
+      template: {
+        headers: rows([{ key: "A", value: "{{v}}" }]),
+        body: jsonBody({ n: 1 }),
+        scripts: { pre: "theirs", post: "" },
+      },
     });
     entry.response!.body = { text: '{"made":true}', truncated: false };
-    entry.response!.headers = [['Set-Cookie', '***']];
+    entry.response!.headers = [["Set-Cookie", "***"]];
 
     component.loadPastRequest(entry);
 
     const draft = store.snapshot();
-    expect([draft.method, draft.url]).toEqual(['POST', 'https://{{host}}/x?a=1']);
-    expect(draft.headers).toEqual(rows([{ key: 'A', value: '{{v}}' }]));
-    expect(draft.params).toEqual(rows([{ key: 'a', value: '1' }]));
+    expect([draft.method, draft.url]).toEqual(["POST", "https://{{host}}/x?a=1"]);
+    expect(draft.headers).toEqual(rows([{ key: "A", value: "{{v}}" }]));
+    expect(draft.params).toEqual(rows([{ key: "a", value: "1" }]));
     expect(draft.body).toEqual(jsonBody({ n: 1 }));
-    expect(draft.auth).toEqual({ type: 'none' });
-    expect(draft.scripts.pre).toBe('theirs');
+    expect(draft.auth).toEqual({ type: "none" });
+    expect(draft.scripts.pre).toBe("theirs");
     expect(store.responseStatusCode()).toBe(201);
     expect(store.responseData()).toBe('{"made":true}');
     expect(store.responseBodyIsJson()).toBe(true);
-    expect(store.responseHeadersView()).toEqual([{ name: 'Set-Cookie', value: '***' }]);
+    expect(store.responseHeadersView()).toEqual([{ name: "Set-Cookie", value: "***" }]);
 
     // An entry with no response shows the error it recorded; one with an error status shows its body as the error.
-    component.loadPastRequest(historyEntry({ error: 'Timed out after 1000 ms' }));
-    expect([store.responseStatusCode(), store.responseIsError(), store.responseError()]).toEqual([undefined, true, 'Timed out after 1000 ms']);
+    component.loadPastRequest(historyEntry({ error: "Timed out after 1000 ms" }));
+    expect([store.responseStatusCode(), store.responseIsError(), store.responseError()]).toEqual([
+      undefined,
+      true,
+      "Timed out after 1000 ms",
+    ]);
     const failed = historyEntry({ status: 500 });
-    failed.response!.body = { text: 'boom', truncated: false };
+    failed.response!.body = { text: "boom", truncated: false };
     component.loadPastRequest(failed);
-    expect([store.responseStatusCode(), store.responseData(), store.responseError()]).toEqual([500, '', 'boom']);
+    expect([store.responseStatusCode(), store.responseData(), store.responseError()]).toEqual([500, "", "boom"]);
   });
 
-  it('resolves {{var}} placeholders from the active environment into the actual outgoing request', async () => {
+  it("resolves {{var}} placeholders from the active environment into the actual outgoing request", async () => {
     environmentsService.setActiveEnvironment(
-      buildEnvironment({ baseHost: 'jsonplaceholder.typicode.com', authToken: 'secret-token' })
+      buildEnvironment({ baseHost: "jsonplaceholder.typicode.com", authToken: "secret-token" }),
     );
 
-    store.patch({ url: 'https://{{baseHost}}/todos/1' });
-    store.patch({ headers: rows([
-      { key: 'Authorization', value: 'Bearer {{authToken}}' },
-    ]) });
+    store.patch({ url: "https://{{baseHost}}/todos/1" });
+    store.patch({ headers: rows([{ key: "Authorization", value: "Bearer {{authToken}}" }]) });
 
     const pending = component.sendRequest();
 
-    const req = httpMock.expectOne('https://jsonplaceholder.typicode.com/todos/1');
-    expect(req.request.headers.get('Authorization')).toBe('Bearer secret-token');
-    req.flush(jsonBytes({ id: 1 }), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    const req = httpMock.expectOne("https://jsonplaceholder.typicode.com/todos/1");
+    expect(req.request.headers.get("Authorization")).toBe("Bearer secret-token");
+    req.flush(jsonBytes({ id: 1 }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
   });
 
-  it('sends a {{var}} query param once, resolved, whether typed in the URL or in the Params tab', async () => {
-    environmentsService.setActiveEnvironment(buildEnvironment({ baseUrl: 'api.test', token: 'abc' }));
+  it("sends a {{var}} query param once, resolved, whether typed in the URL or in the Params tab", async () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ baseUrl: "api.test", token: "abc" }));
 
-    store.setUrl('{{baseUrl}}/users?token={{token}}');
-    store.patch({ params: [...store.draft().params, { key: 'page', value: '{{token}}', enabled: true }] });
+    store.setUrl("{{baseUrl}}/users?token={{token}}");
+    store.patch({ params: [...store.draft().params, { key: "page", value: "{{token}}", enabled: true }] });
     store.paramsEdited();
-    expect(store.draft().url).toBe('{{baseUrl}}/users?token={{token}}&page={{token}}');
+    expect(store.draft().url).toBe("{{baseUrl}}/users?token={{token}}&page={{token}}");
 
     const pending = component.sendRequest();
 
-    const req = httpMock.expectOne('https://api.test/users?token=abc&page=abc');
-    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    const req = httpMock.expectOne("https://api.test/users?token=abc&page=abc");
+    req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
   });
 
-  it('leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it', async () => {
+  it("leaves an unresolvable {{var}} placeholder as literal text in headers/body rather than blanking it", async () => {
     environmentsService.setActiveEnvironment(buildEnvironment({}));
 
-    store.patch({ url: 'https://example.com/data' });
-    store.patch({ headers: rows([
-      { key: 'X-Missing', value: '{{doesNotExist}}' },
-    ]) });
+    store.patch({ url: "https://example.com/data" });
+    store.patch({ headers: rows([{ key: "X-Missing", value: "{{doesNotExist}}" }]) });
 
     // Held back first (D3); sent as written once the user says so.
     await component.sendRequest();
-    expect(store.unresolvedBlocked()).toEqual(['doesNotExist']);
+    expect(store.unresolvedBlocked()).toEqual(["doesNotExist"]);
     const pending = store.send({ allowUnresolved: true });
 
-    const req = httpMock.expectOne('https://example.com/data');
-    expect(req.request.headers.get('X-Missing')).toBe('{{doesNotExist}}');
-    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    const req = httpMock.expectOne("https://example.com/data");
+    expect(req.request.headers.get("X-Missing")).toBe("{{doesNotExist}}");
+    req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
   });
 
-  describe('{{var}} resolution in nested bodies and auth (P0.6, #64 #65)', () => {
+  describe("{{var}} resolution in nested bodies and auth (P0.6, #64 #65)", () => {
     async function sendAndCapture(url: string) {
       const pending = component.sendRequest();
       const req = httpMock.expectOne((r) => r.url.startsWith(url));
       const captured = { body: req.request.body, headers: req.request.headers, url: req.request.urlWithParams };
-      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
       await pending;
       return captured;
     }
 
     beforeEach(() => {
       environmentsService.setActiveEnvironment(
-        buildEnvironment({ v: 'resolved', user: 'ada', pass: 'pw', keyName: 'X-Key' })
+        buildEnvironment({ v: "resolved", user: "ada", pass: "pw", keyName: "X-Key" }),
       );
     });
 
-    it('resolves variables at depth 3 and inside arrays, keeping non-string types', async () => {
-      view.onRequestMethodChange('POST');
-      store.patch({ url: 'https://example.com/nested' });
-      store.setBody(jsonBody({
-        a: { b: { c: '{{v}}' } },
-        list: ['{{v}}', { deep: ['x-{{v}}'] }],
-        n: 1,
-        flag: false,
-        nothing: null,
-      }));
+    it("resolves variables at depth 3 and inside arrays, keeping non-string types", async () => {
+      view.onRequestMethodChange("POST");
+      store.patch({ url: "https://example.com/nested" });
+      store.setBody(
+        jsonBody({
+          a: { b: { c: "{{v}}" } },
+          list: ["{{v}}", { deep: ["x-{{v}}"] }],
+          n: 1,
+          flag: false,
+          nothing: null,
+        }),
+      );
 
-      const { body } = await sendAndCapture('https://example.com/nested');
+      const { body } = await sendAndCapture("https://example.com/nested");
 
       expect(body).toEqual({
-        a: { b: { c: 'resolved' } },
-        list: ['resolved', { deep: ['x-resolved'] }],
+        a: { b: { c: "resolved" } },
+        list: ["resolved", { deep: ["x-resolved"] }],
         n: 1,
         flag: false,
         nothing: null,
       });
     });
 
-    it('resolves a bearer token', async () => {
-      store.patch({ url: 'https://example.com/bearer' });
-      store.patch({ auth: { type: 'bearer', token: '{{v}}' } });
-      const { headers } = await sendAndCapture('https://example.com/bearer');
-      expect(headers.get('Authorization')).toBe('Bearer resolved');
+    it("resolves a bearer token", async () => {
+      store.patch({ url: "https://example.com/bearer" });
+      store.patch({ auth: { type: "bearer", token: "{{v}}" } });
+      const { headers } = await sendAndCapture("https://example.com/bearer");
+      expect(headers.get("Authorization")).toBe("Bearer resolved");
     });
 
-    it('resolves basic username and password before encoding', async () => {
-      store.patch({ url: 'https://example.com/basic' });
-      store.patch({ auth: { type: 'basic', username: '{{user}}', password: '{{pass}}' } });
-      const { headers } = await sendAndCapture('https://example.com/basic');
-      expect(headers.get('Authorization')).toBe(`Basic ${btoa('ada:pw')}`);
+    it("resolves basic username and password before encoding", async () => {
+      store.patch({ url: "https://example.com/basic" });
+      store.patch({ auth: { type: "basic", username: "{{user}}", password: "{{pass}}" } });
+      const { headers } = await sendAndCapture("https://example.com/basic");
+      expect(headers.get("Authorization")).toBe(`Basic ${btoa("ada:pw")}`);
     });
 
-    it('signs with AWS Signature once the request is built: its own headers, the variables resolved, the typed date replaced (P4.8)', async () => {
-      store.patch({ url: 'https://example.com/aws?b=2&a=1', headers: [{ key: 'X-Amz-Date', value: 'typed', enabled: true }] });
-      store.patch({ auth: { type: 'awsv4', accessKey: 'AKID', secretKey: '{{v}}', sessionToken: 'token-1', region: 'us-east-1', service: 'execute-api' } });
+    it("signs with AWS Signature once the request is built: its own headers, the variables resolved, the typed date replaced (P4.8)", async () => {
+      store.patch({
+        url: "https://example.com/aws?b=2&a=1",
+        headers: [{ key: "X-Amz-Date", value: "typed", enabled: true }],
+      });
+      store.patch({
+        auth: {
+          type: "awsv4",
+          accessKey: "AKID",
+          secretKey: "{{v}}",
+          sessionToken: "token-1",
+          region: "us-east-1",
+          service: "execute-api",
+        },
+      });
       // The signature is made with WebCrypto, so the request leaves a moment after Send.
       const pending = component.sendRequest();
-      const req = await vi.waitFor(() => httpMock.expectOne('https://example.com/aws?b=2&a=1'));
+      const req = await vi.waitFor(() => httpMock.expectOne("https://example.com/aws?b=2&a=1"));
       const { headers } = req.request;
-      req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+      req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
       await pending;
-      expect(headers.get('Authorization')).toMatch(/^AWS4-HMAC-SHA256 Credential=AKID\/\d{8}\/us-east-1\/execute-api\/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=[0-9a-f]{64}$/);
-      expect(headers.get('X-Amz-Date')).toMatch(/^\d{8}T\d{6}Z$/);
-      expect(headers.get('X-Amz-Security-Token')).toBe('token-1');
+      expect(headers.get("Authorization")).toMatch(
+        /^AWS4-HMAC-SHA256 Credential=AKID\/\d{8}\/us-east-1\/execute-api\/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=[0-9a-f]{64}$/,
+      );
+      expect(headers.get("X-Amz-Date")).toMatch(/^\d{8}T\d{6}Z$/);
+      expect(headers.get("X-Amz-Security-Token")).toBe("token-1");
     });
 
-    it('resolves API-key name and value, in a header and in the query', async () => {
-      store.patch({ url: 'https://example.com/key' });
-      store.patch({ auth: { type: 'apikey', key: '{{keyName}}', value: '{{v}}', in: 'header' } });
-      const header = await sendAndCapture('https://example.com/key');
-      expect(header.headers.get('X-Key')).toBe('resolved');
+    it("resolves API-key name and value, in a header and in the query", async () => {
+      store.patch({ url: "https://example.com/key" });
+      store.patch({ auth: { type: "apikey", key: "{{keyName}}", value: "{{v}}", in: "header" } });
+      const header = await sendAndCapture("https://example.com/key");
+      expect(header.headers.get("X-Key")).toBe("resolved");
 
-      store.patch({ url: 'https://example.com/query' });
-      store.patch({ auth: { type: 'apikey', key: '{{keyName}}', value: '{{v}}', in: 'query' } });
-      const query = await sendAndCapture('https://example.com/query');
-      expect(query.url).toContain('X-Key=resolved');
+      store.patch({ url: "https://example.com/query" });
+      store.patch({ auth: { type: "apikey", key: "{{keyName}}", value: "{{v}}", in: "query" } });
+      const query = await sendAndCapture("https://example.com/query");
+      expect(query.url).toContain("X-Key=resolved");
     });
   });
 
-  it('keeps the headers as text showing the literal {{var}} template, not a resolved snapshot', () => {
-    environmentsService.setActiveEnvironment(buildEnvironment({ baseHost: 'example.com' }));
-    store.patch({ headers: rows([{ key: 'X-Host', value: '{{baseHost}}' }]) });
+  it("keeps the headers as text showing the literal {{var}} template, not a resolved snapshot", () => {
+    environmentsService.setActiveEnvironment(buildEnvironment({ baseHost: "example.com" }));
+    store.patch({ headers: rows([{ key: "X-Host", value: "{{baseHost}}" }]) });
 
     const text = headerLines(store.draft().headers);
 
-    expect(text).toContain('{{baseHost}}');
-    expect(text).not.toContain('example.com');
+    expect(text).toContain("{{baseHost}}");
+    expect(text).not.toContain("example.com");
   });
 
   // F56 (#178): built by assignment on a plain object, a header named __proto__ was dropped.
-  it('sends a header named __proto__ like any other, once per name whatever its case', async () => {
-    store.patch({ url: 'https://example.com/data' });
+  it("sends a header named __proto__ like any other, once per name whatever its case", async () => {
+    store.patch({ url: "https://example.com/data" });
     store.patch({
       headers: rows([
-        { key: '__proto__', value: 'kept' },
-        { key: 'x-trace', value: 'first' },
-        { key: 'X-Trace', value: 'second' },
+        { key: "__proto__", value: "kept" },
+        { key: "x-trace", value: "first" },
+        { key: "X-Trace", value: "second" },
       ]),
     });
 
     const pending = component.sendRequest();
 
-    const req = httpMock.expectOne('https://example.com/data');
-    expect(req.request.init.headers).toEqual([['__proto__', 'kept'], ['X-Trace', 'second']]);
-    req.flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    const req = httpMock.expectOne("https://example.com/data");
+    expect(req.request.init.headers).toEqual([
+      ["__proto__", "kept"],
+      ["X-Trace", "second"],
+    ]);
+    req.flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await pending;
   });
 
   // P2.3 (F10)
-  it('cancel ends the request in flight: the response says so and Send is available again', async () => {
-    store.patch({ url: 'https://example.com/slow' });
+  it("cancel ends the request in flight: the response says so and Send is available again", async () => {
+    store.patch({ url: "https://example.com/slow" });
     const pending = component.sendRequest();
-    httpMock.expectOne('https://example.com/slow');
+    httpMock.expectOne("https://example.com/slow");
     expect(store.loadingState()).toBe(true);
 
     store.cancel();
     await pending;
 
     expect(store.loadingState()).toBe(false);
-    expect(store.responseError()).toBe('The request was cancelled.');
+    expect(store.responseError()).toBe("The request was cancelled.");
     expect(store.responseStatusCode()).toBeUndefined();
     expect(store.shouldShowResponsePanel).toBe(true);
   });
@@ -322,19 +371,21 @@ describe('Composer: rows, payloads and variables', () => {
     expect(store.snapshot().settings).toEqual({});
   });
 
-  it('shows where a redirected response came from, and forgets it on the next send', async () => {
-    store.patch({ url: 'https://example.com/start' });
+  it("shows where a redirected response came from, and forgets it on the next send", async () => {
+    store.patch({ url: "https://example.com/start" });
     const pending = component.sendRequest();
-    const response = new Response('{}', { status: 200, headers: JSON_HEADERS });
-    Object.defineProperty(response, 'redirected', { value: true });
-    Object.defineProperty(response, 'url', { value: 'https://example.com/end' });
-    httpMock.expectOne('https://example.com/start').respond(response);
+    const response = new Response("{}", { status: 200, headers: JSON_HEADERS });
+    Object.defineProperty(response, "redirected", { value: true });
+    Object.defineProperty(response, "url", { value: "https://example.com/end" });
+    httpMock.expectOne("https://example.com/start").respond(response);
     await pending;
-    expect(store.responseRedirectedTo()).toBe('https://example.com/end');
+    expect(store.responseRedirectedTo()).toBe("https://example.com/end");
 
     const again = component.sendRequest();
     expect(store.responseRedirectedTo()).toBeUndefined();
-    httpMock.expectOne('https://example.com/start').flush(jsonBytes({}), { status: 200, statusText: 'OK', headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://example.com/start")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     await again;
   });
 });

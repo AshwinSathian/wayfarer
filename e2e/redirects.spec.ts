@@ -15,7 +15,10 @@ const OTHER = "http://127.0.0.1:4301";
 const address = (page: Page): Locator => page.locator("input.address-url");
 const viewer = (page: Page): Locator => page.locator("app-response-viewer");
 const chain = (page: Page): Locator => viewer(page).getByRole("region", { name: "Redirects" });
-const hops = (page: Page) => chain(page).locator(".redirect-hop").evaluateAll((rows) => rows.map((row) => row.textContent?.replace(/\s+/g, " ").trim()));
+const hops = (page: Page) =>
+  chain(page)
+    .locator(".redirect-hop")
+    .evaluateAll((rows) => rows.map((row) => row.textContent?.replace(/\s+/g, " ").trim()));
 
 test("/redirect/3 through the bridge lists three hops, and the response is where they ended", async ({ page }) => {
   const bridge = await startBridge();
@@ -32,7 +35,11 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
     await send(page);
 
     await expect(page.locator(".status-badge").first()).toHaveText("200");
-    expect(await hops(page)).toEqual([`302 ${ECHO}/redirect/3 to /redirect/2`, `302 ${ECHO}/redirect/2 to /redirect/1`, `302 ${ECHO}/redirect/1 to /echo`]);
+    expect(await hops(page)).toEqual([
+      `302 ${ECHO}/redirect/3 to /redirect/2`,
+      `302 ${ECHO}/redirect/2 to /redirect/1`,
+      `302 ${ECHO}/redirect/1 to /echo`,
+    ]);
     await expect(chain(page)).toContainText("Followed 3 redirects through the Local Bridge:");
     await expect(viewer(page).locator(".redirect-note")).toContainText(`Redirected to ${ECHO}/echo`);
     await expect(chain(page).getByRole("status")).toHaveCount(0);
@@ -42,7 +49,9 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
   }
 });
 
-test("with Follow redirects off the 302 is the response as it came, and the tab says why it went no further", async ({ page }) => {
+test("with Follow redirects off the 302 is the response as it came, and the tab says why it went no further", async ({
+  page,
+}) => {
   const bridge = await startBridge();
   try {
     await page.goto("/app/");
@@ -62,13 +71,19 @@ test("with Follow redirects off the 302 is the response as it came, and the tab 
   }
 });
 
-test("@claim:C-063 a request with a vault secret is not followed to another host: the redirect is the response", async ({ page }) => {
+test("@claim:C-063 a request with a vault secret is not followed to another host: the redirect is the response", async ({
+  page,
+}) => {
   test.slow();
   const SECRET = "redirect-vault-secret-51f0c2";
   const away = `${ECHO}/redirect-to?status=307&url=${encodeURIComponent(`${OTHER}/echo?arrived=1`)}`;
   const bridge = await startBridge();
   try {
-    await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/redirect/1`, headers: { "X-Api-Key": "{{API_TOKEN}}" } });
+    await seedAndOpen(
+      page,
+      {},
+      { method: "GET", url: `${ECHO}/redirect/1`, headers: { "X-Api-Key": "{{API_TOKEN}}" } },
+    );
     await protectVariable(page, "API_TOKEN", SECRET);
     await routeThroughBridge(page, bridge);
 
@@ -76,13 +91,17 @@ test("@claim:C-063 a request with a vault secret is not followed to another host
     await send(page);
     await expect(page.locator(".status-badge").first()).toHaveText("200");
     expect(await hops(page)).toEqual([`302 ${ECHO}/redirect/1 to /echo`]);
-    await expect.poll(async () => (await viewer(page).innerText()).replace(/\s+/g, "")).toContain(`["x-api-key","${SECRET}"]`);
+    await expect
+      .poll(async () => (await viewer(page).innerText()).replace(/\s+/g, ""))
+      .toContain(`["x-api-key","${SECRET}"]`);
 
     // To another host it is not.
     await address(page).fill(away);
     await send(page);
     await expect(page.locator(".status-badge").first()).toHaveText("307");
-    await expect(chain(page).getByRole("status")).toContainText("Not followed: this redirect leaves the host, and the request holds a vault secret");
+    await expect(chain(page).getByRole("status")).toContainText(
+      "Not followed: this redirect leaves the host, and the request holds a vault secret",
+    );
     expect(await hops(page)).toEqual([]);
     // What is shown is the first host's 307, not the other host's echo of a request (core's C-063 test counts the relays: one).
     await viewer(page).getByRole("tab", { name: "Headers" }).click();
@@ -94,7 +113,9 @@ test("@claim:C-063 a request with a vault secret is not followed to another host
 });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`the list of redirects has no critical or serious violation in the ${theme} theme, followed and stopped, and is not wider than the window at four widths`, async ({ page }) => {
+  test(`the list of redirects has no critical or serious violation in the ${theme} theme, followed and stopped, and is not wider than the window at four widths`, async ({
+    page,
+  }) => {
     test.slow();
     const bridge = await startBridge();
     try {
@@ -107,7 +128,9 @@ for (const theme of ["light", "dark"] as const) {
         // Once the page has stopped animating: a colour half way through a fade is not the colour.
         await settled(page);
         const results = await axe(page).analyze();
-        expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+        expect(
+          results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`)),
+        ).toEqual([]);
       };
       await address(page).fill(`${ECHO}/redirect/3`);
       await openRequestSettings(page);
@@ -123,15 +146,23 @@ for (const theme of ["light", "dark"] as const) {
       for (const width of [360, 390, 820, 1440]) {
         await page.setViewportSize({ width, height: 900 });
         await expect(chain(page).locator(".redirect-hop")).toHaveCount(3);
-        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `at ${width} px` }).toBeLessThanOrEqual(0);
+        await expect
+          .poll(
+            () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            { message: `at ${width} px` },
+          )
+          .toBeLessThanOrEqual(0);
         // Polled, like the width: the drawer's change of layout takes a moment.
         await expect
           .poll(
             async () => {
-              const boxes = await Promise.all([chain(page).boundingBox(), page.getByRole("checkbox", { name: "Follow redirects" }).boundingBox()]);
+              const boxes = await Promise.all([
+                chain(page).boundingBox(),
+                page.getByRole("checkbox", { name: "Follow redirects" }).boundingBox(),
+              ]);
               return boxes.every((box) => !!box && box.x >= 0 && box.x + box.width <= width);
             },
-            { message: `the list and the checkbox at ${width} px` }
+            { message: `the list and the checkbox at ${width} px` },
           )
           .toBe(true);
       }

@@ -8,7 +8,10 @@ import { settled } from "./support/settled";
 const address = (page: Page): Locator => page.locator("input.address-url");
 const viewer = (page: Page): Locator => page.locator("app-response-viewer");
 const eventRows = (page: Page): Locator => viewer(page).getByRole("region", { name: "Events" }).locator("tbody tr");
-const cells = (page: Page) => eventRows(page).evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent?.trim() ?? "")));
+const cells = (page: Page) =>
+  eventRows(page).evaluateAll((rows) =>
+    rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.textContent?.trim() ?? "")),
+  );
 
 test("the five events of a stream are listed with their id, event, data and time", async ({ page }) => {
   await page.goto("/app/");
@@ -20,7 +23,9 @@ test("the five events of a stream are listed with their id, event, data and time
   await expect(viewer(page).getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "true");
   await expect(eventRows(page)).toHaveCount(5);
   const rows = await cells(page);
-  expect(rows.map(([id, event, data]) => [id, event, data])).toEqual([1, 2, 3, 4, 5].map((n) => [String(n), "tick", `{"n":${n}}`]));
+  expect(rows.map(([id, event, data]) => [id, event, data])).toEqual(
+    [1, 2, 3, 4, 5].map((n) => [String(n), "tick", `{"n":${n}}`]),
+  );
   // Each arrived after the one before it: the times are the stream's, not the end of the response's.
   const times = rows.map(([, , , time]) => Number(/^\+(\d+) ms$/.exec(time)?.[1]));
   expect(times.every((time) => Number.isFinite(time))).toBe(true);
@@ -32,7 +37,9 @@ test("the five events of a stream are listed with their id, event, data and time
   await expect(viewer(page)).toContainText("event: tick");
 });
 
-test("an open stream shows its events as they come, is stopped with Stop, and Reconnect goes on from the last id", async ({ page }) => {
+test("an open stream shows its events as they come, is stopped with Stop, and Reconnect goes on from the last id", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await address(page).fill(`${ECHO}/sse?count=1000&interval=200`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -78,7 +85,9 @@ test("a stream goes on in its tab while another tab is open", async ({ page }) =
 });
 
 for (const theme of ["dark", "light"] as const) {
-  test(`the list of events has no critical or serious violation in the ${theme} theme, open and ended, and is not wider than the window at four widths`, async ({ page }) => {
+  test(`the list of events has no critical or serious violation in the ${theme} theme, open and ended, and is not wider than the window at four widths`, async ({
+    page,
+  }) => {
     test.slow();
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -88,7 +97,9 @@ for (const theme of ["dark", "light"] as const) {
       // Once the page has stopped animating: a colour half way through a fade is not the colour.
       await settled(page);
       const results = await axe(page).analyze();
-      expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+      expect(
+        results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`)),
+      ).toEqual([]);
     };
     await address(page).fill(`${ECHO}/sse?count=1000&interval=200`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -101,9 +112,21 @@ for (const theme of ["dark", "light"] as const) {
     for (const width of [360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await expect(viewer(page).getByRole("button", { name: "Reconnect" })).toBeVisible();
-      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `at ${width} px` }).toBeLessThanOrEqual(0);
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), {
+          message: `at ${width} px`,
+        })
+        .toBeLessThanOrEqual(0);
       // Polled, like the width: the drawer's change of layout takes a moment.
-      await expect.poll(async () => { const box = await viewer(page).getByRole("button", { name: "Reconnect" }).boundingBox(); return !!box && box.x >= 0 && box.x + box.width <= width; }, { message: `Reconnect at ${width} px` }).toBe(true);
+      await expect
+        .poll(
+          async () => {
+            const box = await viewer(page).getByRole("button", { name: "Reconnect" }).boundingBox();
+            return !!box && box.x >= 0 && box.x + box.width <= width;
+          },
+          { message: `Reconnect at ${width} px` },
+        )
+        .toBe(true);
     }
   });
 }

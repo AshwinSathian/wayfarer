@@ -3,7 +3,15 @@ import { buildAuthHeaders, buildAuthQueryParam, credentialsOf, effectiveAuth, re
 import { signV4 } from "../auth/sigv4";
 import { graphqlPayload } from "../http/graphql";
 import type { Ancestor } from "../model/collection";
-import { RAW_CONTENT_TYPES, type AuthConfig, type FileRef, type MultipartPart, type RequestBody, type RequestContent, type Row } from "../model/request";
+import {
+  RAW_CONTENT_TYPES,
+  type AuthConfig,
+  type FileRef,
+  type MultipartPart,
+  type RequestBody,
+  type RequestContent,
+  type Row,
+} from "../model/request";
 import { isCredentialHeader } from "../redact/redactor";
 import { VariableNestingError, VariableResolver, type ScopeStack } from "../variables/resolver";
 import { SendBlockedError, SendDeclinedError, type BuiltRequest } from "./exchange";
@@ -11,7 +19,9 @@ import { SendBlockedError, SendDeclinedError, type BuiltRequest } from "./exchan
 /** A request that has a `{{variable}}` with no value, held back until the user says to send it as written (plan D3). */
 export class UnresolvedVariablesError extends SendBlockedError {
   constructor(readonly names: string[]) {
-    super(`${names.map((name) => `{{${name}}}`).join(", ")} ${names.length === 1 ? "has" : "have"} no value. The request was not sent.`);
+    super(
+      `${names.map((name) => `{{${name}}}`).join(", ")} ${names.length === 1 ? "has" : "have"} no value. The request was not sent.`,
+    );
   }
 }
 
@@ -149,7 +159,11 @@ export function sentAuth(own: AuthConfig, ancestors: Ancestor[]): AuthConfig {
  * replaced and no vault secret read, so the name holds none. `null` for
  * another auth, or for variables that refer to each other.
  */
-export function oauthOf(own: AuthConfig, ancestors: Ancestor[], scopes: ScopeStack): { auth: OAuth2Auth; key: string } | null {
+export function oauthOf(
+  own: AuthConfig,
+  ancestors: Ancestor[],
+  scopes: ScopeStack,
+): { auth: OAuth2Auth; key: string } | null {
   const auth = sentAuth(own, ancestors);
   if (auth.type !== "oauth2") return null;
   const probe = new VariableResolver(scopes);
@@ -194,31 +208,45 @@ export function buildRequest(content: RequestContent, context: BuildContext): Bu
   };
   // Nothing to read from the vault: the request is built at once, in the same task as the click.
   if (!probe.lockedSecrets.size) return checked(new VariableResolver(scopes()));
-  const withSecrets = () => context.readSecrets([...probe.lockedSecrets]).then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
+  const withSecrets = () =>
+    context
+      .readSecrets([...probe.lockedSecrets])
+      .then((secrets) => checked(new VariableResolver(scopes(), (id) => secrets.get(id))));
   const from = composed && hostOf(composed.url, composed.scopes);
   const to = hostOf(endpointText, scopes());
   if (from === undefined || from === to || composed?.accepted?.has(to)) return withSecrets();
   return (context.askHost?.(from, to) ?? Promise.resolve(false)).then((accepted) => {
-    if (!accepted) throw new SendDeclinedError("The request was not sent, and what the pre-request script set was undone.");
+    if (!accepted)
+      throw new SendDeclinedError("The request was not sent, and what the pre-request script set was undone.");
     composed?.accepted?.add(to);
     return withSecrets();
   });
 }
 
 /** A promise only when a file has to be read: everything else is built at once. */
-function build(content: RequestContent, resolver: VariableResolver, context: BuildContext): BuiltRequest | Promise<BuiltRequest> {
+function build(
+  content: RequestContent,
+  resolver: VariableResolver,
+  context: BuildContext,
+): BuiltRequest | Promise<BuiltRequest> {
   const resolve = (text: string): string => resolver.resolve(text);
   const auth = resolveAuth(sentAuth(content.auth, context.ancestors), resolve);
   // Read before anything else is resolved: these are the auth's own.
   const withoutValue = [...resolver.unresolved];
   const sent = isBodyMethod(content.method) ? resolveBody(content.body, resolve, context) : undefined;
   const finish = (body: SentBody | undefined, token?: string): BuiltRequest | Promise<BuiltRequest> =>
-    sign(assemble(content, body, resolver, { ancestors: context.ancestors, token, lastEventId: context.lastEventId }), auth);
+    sign(
+      assemble(content, body, resolver, { ancestors: context.ancestors, token, lastEventId: context.lastEventId }),
+      auth,
+    );
   const oauth = auth.type === "oauth2" ? oauthOf(content.auth, context.ancestors, context.scopes()) : null;
-  if (auth.type !== "oauth2" || !oauth) return sent instanceof Promise ? sent.then((body) => finish(body)) : finish(sent);
+  if (auth.type !== "oauth2" || !oauth)
+    return sent instanceof Promise ? sent.then((body) => finish(body)) : finish(sent);
   // A token is not asked for with a variable's name where its value should be, whatever "Send anyway" says of the request itself.
   if (withoutValue.length) {
-    throw new SendBlockedError(`The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`);
+    throw new SendBlockedError(
+      `The OAuth 2.0 auth uses ${withoutValue.map((name) => `{{${name}}}`).join(", ")}, which ${withoutValue.length === 1 ? "has" : "have"} no value. No token was asked for, and nothing was sent.`,
+    );
   }
   if (!context.oauthToken) throw new SendBlockedError("OAuth 2.0 tokens are not fetched here. Nothing was sent.");
   // OAuth 2.0 (P4.7): the token held, or a renewed one. Fetched before the request is put together, and never by a copy or an export.
@@ -238,18 +266,30 @@ function build(content: RequestContent, resolver: VariableResolver, context: Bui
 function sign(built: BuiltRequest, auth: AuthConfig): BuiltRequest | Promise<BuiltRequest> {
   if (auth.type !== "awsv4" || !URL.canParse(built.url)) return built;
   if (built.body instanceof FormData) {
-    throw new SendBlockedError("AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign. Send a file as a File body, or the fields as a URL-encoded form. Nothing was sent.");
+    throw new SendBlockedError(
+      "AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign. Send a file as a File body, or the fields as a URL-encoded form. Nothing was sent.",
+    );
   }
-  if (!(globalThis.crypto as typeof globalThis.crypto | undefined)?.subtle) throw new SendBlockedError("AWS Signature needs the browser's cryptography, which a page has only over https or from localhost. Nothing was sent.");
+  if (!(globalThis.crypto as typeof globalThis.crypto | undefined)?.subtle)
+    throw new SendBlockedError(
+      "AWS Signature needs the browser's cryptography, which a page has only over https or from localhost. Nothing was sent.",
+    );
   const add = async (body: string | Uint8Array | undefined): Promise<BuiltRequest> => {
     const own = built.headers.filter(([name]) => /^(content-type$|x-amz-)/i.test(name));
-    const { headers: signature } = await signV4({ method: built.method, url: built.url, headers: own, body }, auth, new Date());
+    const { headers: signature } = await signV4(
+      { method: built.method, url: built.url, headers: own, body },
+      auth,
+      new Date(),
+    );
     const replaced = new Set(signature.map(([name]) => name.toLowerCase()));
     return {
       ...built,
       headers: [...built.headers.filter(([name]) => !replaced.has(name.toLowerCase())), ...signature],
       // The signature's header too: a server may send it back.
-      credentials: [...built.credentials, ...signature.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)],
+      credentials: [
+        ...built.credentials,
+        ...signature.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value),
+      ],
     };
   };
   if (built.body instanceof Blob) return built.body.arrayBuffer().then((bytes) => add(new Uint8Array(bytes)));
@@ -271,7 +311,7 @@ export function assemble(
     token?: string;
     /** The id of an event is the server's text, not a template: a `{{variable}}` in it is not replaced, or a server could name one and be sent its value. */
     lastEventId?: string;
-  }
+  },
 ): BuiltRequest {
   const resolve = (text: string): string => resolver.resolve(text);
   const auth = resolveAuth(sentAuth(content.auth, extra.ancestors), resolve);
@@ -304,7 +344,10 @@ export function assemble(
     // An OAuth 2.0 token is kept like a vault secret and masked like one: in history, in every export, and in what a script is shown.
     secrets: [...resolver.taint, ...(extra.token ? [extra.token] : [])],
     // Also what a credential header carries, typed by hand or built from the Auth tab: a server may send it back.
-    credentials: [...credentialsOf(auth), ...headers.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value)].filter((value) => value),
+    credentials: [
+      ...credentialsOf(auth),
+      ...headers.filter(([name]) => isCredentialHeader(name)).map(([, value]) => value),
+    ].filter((value) => value),
   };
 }
 
@@ -312,7 +355,11 @@ export function assemble(
  * The body as it is sent, by mode, with the `Content-Type` it implies. A
  * form has none here: `fetch` writes the multipart type with its boundary.
  */
-function resolveBody(body: RequestBody, resolve: (text: string) => string, context: BuildContext): SentBody | undefined | Promise<SentBody> {
+function resolveBody(
+  body: RequestBody,
+  resolve: (text: string) => string,
+  context: BuildContext,
+): SentBody | undefined | Promise<SentBody> {
   switch (body.mode) {
     case "none":
       return undefined;
@@ -327,17 +374,27 @@ function resolveBody(body: RequestBody, resolve: (text: string) => string, conte
       return { data: payload.text, contentType: "application/json" };
     }
     case "urlencoded": {
-      const pairs = (body.urlencoded ?? []).filter((row) => row.enabled).map((row): [string, string] => [resolve(row.key), resolve(row.value)]);
+      const pairs = (body.urlencoded ?? [])
+        .filter((row) => row.enabled)
+        .map((row): [string, string] => [resolve(row.key), resolve(row.value)]);
       return { data: new URLSearchParams(pairs).toString(), contentType: "application/x-www-form-urlencoded" };
     }
     case "multipart":
-      return multipartForm((body.multipart ?? []).filter((item) => item.enabled), resolve, context);
+      return multipartForm(
+        (body.multipart ?? []).filter((item) => item.enabled),
+        resolve,
+        context,
+      );
     case "binary":
       return binaryFile(body.binary, context);
   }
 }
 
-async function multipartForm(parts: MultipartPart[], resolve: (text: string) => string, context: BuildContext): Promise<SentBody> {
+async function multipartForm(
+  parts: MultipartPart[],
+  resolve: (text: string) => string,
+  context: BuildContext,
+): Promise<SentBody> {
   const form = new FormData();
   for (const part of parts) {
     if (part.kind === "text") {

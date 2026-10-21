@@ -26,14 +26,23 @@ export class CookiesPane {
 
   /** By domain, then path, then name: the order a person looks one up in. */
   protected readonly cookies = computed(() =>
-    [...this.jar.cookies()].sort((a, b) => a.domain.localeCompare(b.domain) || a.path.localeCompare(b.path) || a.name.localeCompare(b.name))
+    [...this.jar.cookies()].sort(
+      (a, b) => a.domain.localeCompare(b.domain) || a.path.localeCompare(b.path) || a.name.localeCompare(b.name),
+    ),
   );
   /** The device's route (P6.4): what it says of the jar. */
   protected readonly route = computed(() => this.transport.route());
 
   /** What there is to say of a cookie besides its value, in the words of its attributes. */
   protected about(cookie: Cookie): string {
-    return [cookie.hostOnly ? "this host only" : "and its subdomains", cookie.secure && "Secure", cookie.httpOnly && "HttpOnly", cookie.sameSite && `SameSite=${cookie.sameSite}`].filter(Boolean).join(" · ");
+    return [
+      cookie.hostOnly ? "this host only" : "and its subdomains",
+      cookie.secure && "Secure",
+      cookie.httpOnly && "HttpOnly",
+      cookie.sameSite && `SameSite=${cookie.sameSite}`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
   }
 
   /** When a cookie ends, in the reader's own format. Not Angular's `DatePipe`: it brought 20 kB of date formatting into the first bundle. */
@@ -43,7 +52,14 @@ export class CookiesPane {
 
   protected async clear(): Promise<void> {
     const count = this.cookies().length;
-    if (await this.confirm.confirm({ title: "Delete all cookies?", message: `The jar holds ${count === 1 ? "1 cookie" : `${count} cookies`}. Requests sent after this carry none of them.`, acceptLabel: "Delete all", rejectLabel: "Cancel" })) {
+    if (
+      await this.confirm.confirm({
+        title: "Delete all cookies?",
+        message: `The jar holds ${count === 1 ? "1 cookie" : `${count} cookies`}. Requests sent after this carry none of them.`,
+        acceptLabel: "Delete all",
+        rejectLabel: "Cancel",
+      })
+    ) {
       await this.jar.clear();
     }
   }

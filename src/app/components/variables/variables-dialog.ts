@@ -25,7 +25,9 @@ import { RowsEditor } from "../composer/rows-editor/rows-editor";
       />
       <div uiDialogFooter>
         <div class="flex justify-end gap-2">
-          <button uiButton="outlined" class="btn-secondary" type="button" (click)="visibleChange.emit(false)">Cancel</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="visibleChange.emit(false)"
+            >Cancel</button
+          >
           <button uiButton="filled" type="button" (click)="submit()">Save variables</button>
         </div>
       </div>

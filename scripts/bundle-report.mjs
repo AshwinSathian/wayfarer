@@ -24,7 +24,10 @@ const size = (file) => {
 };
 const all = readdirSync(root).filter((f) => /\.(js|css)$/.test(f) && f !== "sw.js");
 const initialFiles = all.filter((f) => initial.has(f)).map(size);
-const lazyFiles = all.filter((f) => !initial.has(f)).map(size).sort((a, b) => b.raw - a.raw);
+const lazyFiles = all
+  .filter((f) => !initial.has(f))
+  .map(size)
+  .sort((a, b) => b.raw - a.raw);
 const sum = (files, key, ext) => files.filter((f) => !ext || f.file.endsWith(ext)).reduce((s, f) => s + f[key], 0);
 
 const report = {
@@ -39,10 +42,15 @@ const report = {
 };
 writeFileSync(out, JSON.stringify(report, null, 2) + "\n");
 const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
-console.log(`initial: ${kb(report.initial.raw)} raw, ${kb(report.initial.gzip)} gzip (JS ${kb(report.initial.js.gzip)}, CSS ${kb(report.initial.css.gzip)} gzip)`);
-for (const f of initialFiles) console.log(`  ${f.file.padEnd(28)} ${kb(f.raw).padStart(10)} ${kb(f.gzip).padStart(10)}`);
+console.log(
+  `initial: ${kb(report.initial.raw)} raw, ${kb(report.initial.gzip)} gzip (JS ${kb(report.initial.js.gzip)}, CSS ${kb(report.initial.css.gzip)} gzip)`,
+);
+for (const f of initialFiles)
+  console.log(`  ${f.file.padEnd(28)} ${kb(f.raw).padStart(10)} ${kb(f.gzip).padStart(10)}`);
 console.log(`lazy: ${lazyFiles.length} files, largest ${lazyFiles[0]?.file} ${kb(lazyFiles[0]?.raw ?? 0)}`);
 if (report.initial.gzip > maxGzip) {
-  console.error(`Initial bundle is ${report.initial.gzip} bytes gzip, over the ${maxGzip}-byte budget (PLAN Appendix A baseline x 1.10).`);
+  console.error(
+    `Initial bundle is ${report.initial.gzip} bytes gzip, over the ${maxGzip}-byte budget (PLAN Appendix A baseline x 1.10).`,
+  );
   process.exit(1);
 }

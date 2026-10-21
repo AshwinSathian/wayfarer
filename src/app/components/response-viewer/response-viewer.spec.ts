@@ -7,18 +7,15 @@ import { JsonWorkerClient } from "../../shared/json-worker/json-worker-client";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
 class JsonWorkerServiceStub {
-  parsePretty = vi.fn()
-    .mockImplementation(async (input: string, indent = 4) => {
-      const parsed = parseJson(input);
-      return parsed.ok ? JSON.stringify(parsed.value, null, indent) : input;
-    });
-  minify = vi.fn()
-    .mockImplementation(async (input: string) => input);
-  search = vi.fn()
-    .mockImplementation(async (_input: string, _query: string) => ({
-      count: 0,
-      excerpts: [],
-    }));
+  parsePretty = vi.fn().mockImplementation(async (input: string, indent = 4) => {
+    const parsed = parseJson(input);
+    return parsed.ok ? JSON.stringify(parsed.value, null, indent) : input;
+  });
+  minify = vi.fn().mockImplementation(async (input: string) => input);
+  search = vi.fn().mockImplementation(async (_input: string, _query: string) => ({
+    count: 0,
+    excerpts: [],
+  }));
 }
 
 describe("ResponseViewer", () => {
@@ -65,21 +62,31 @@ describe("ResponseViewer", () => {
       fixture.detectChanges();
       const element = fixture.nativeElement as HTMLElement;
       const text = (node: Element | null) => node?.textContent?.replace(/\s+/g, " ").trim();
-      return { hops: [...element.querySelectorAll(".redirect-hop")].map(text), note: text(element.querySelector(".redirect-stopped")), section: element.querySelector(".redirect-chain") };
+      return {
+        hops: [...element.querySelectorAll(".redirect-hop")].map(text),
+        note: text(element.querySelector(".redirect-stopped")),
+        section: element.querySelector(".redirect-chain"),
+      };
     };
     const hop = (n: number) => ({ status: 302, url: `https://a.test/${n}`, location: `/${n + 1}` });
 
     it("lists each hop that was followed: status, address, Location as the server wrote it", () => {
-      const { hops, note } = shown({ chain: [hop(1), { status: 307, url: "https://a.test/2", location: "https://a.test/{{token}}" }] });
+      const { hops, note } = shown({
+        chain: [hop(1), { status: 307, url: "https://a.test/2", location: "https://a.test/{{token}}" }],
+      });
       expect(hops).toEqual(["302 https://a.test/1 to /2", "307 https://a.test/2 to https://a.test/{{token}}"]);
       expect(note).toBeUndefined();
     });
 
     it("says why a redirect was not followed", () => {
-      expect(shown({ chain: [hop(1)], stopped: "other-host" }).note).toContain("leaves the host, and the request holds a vault secret");
+      expect(shown({ chain: [hop(1)], stopped: "other-host" }).note).toContain(
+        "leaves the host, and the request holds a vault secret",
+      );
       expect(shown({ chain: [], stopped: "location" }).note).toContain("not an http or https address");
       expect(shown({ chain: [], stopped: "off" }).note).toContain("Follow redirects is off");
-      expect(shown({ chain: Array.from({ length: 20 }, (_, n) => hop(n)), stopped: "limit" }).note).toContain("20 redirects are followed at most");
+      expect(shown({ chain: Array.from({ length: 20 }, (_, n) => hop(n)), stopped: "limit" }).note).toContain(
+        "20 redirects are followed at most",
+      );
     });
 
     it("shows nothing for a response without a redirect, by either route", () => {
@@ -89,7 +96,7 @@ describe("ResponseViewer", () => {
   });
 
   it("returns empty timing bars when inspection is missing", () => {
-    fixture.componentRef.setInput('inspection', signal<ResponseInspection | null>(null));
+    fixture.componentRef.setInput("inspection", signal<ResponseInspection | null>(null));
 
     expect(component.hasGranularTimings()).toBe(false);
     expect(component.getFallbackBars()).toEqual([]);
@@ -110,7 +117,7 @@ describe("ResponseViewer", () => {
       },
     };
 
-    fixture.componentRef.setInput('inspection', signal(inspection));
+    fixture.componentRef.setInput("inspection", signal(inspection));
 
     const bars = component.getTimingBars();
     expect(bars.length).toBe(3);
@@ -135,11 +142,18 @@ describe("ResponseViewer", () => {
           { name: "set-cookie", value: "b=2" },
         ],
       });
-      expect([...element().querySelectorAll("table.ds-table td")].map((cell) => cell.textContent)).toEqual(["a=1", "b=2"]);
+      expect([...element().querySelectorAll("table.ds-table td")].map((cell) => cell.textContent)).toEqual([
+        "a=1",
+        "b=2",
+      ]);
     });
 
     it("says that the browser withheld headers only when it did", () => {
-      set({ responseStatusCode: 200, activeTab: "headers", responseHeaders: [{ name: "content-type", value: "text/plain" }] });
+      set({
+        responseStatusCode: 200,
+        activeTab: "headers",
+        responseHeaders: [{ name: "content-type", value: "text/plain" }],
+      });
       expect(element().querySelector(".headers-note")).toBeNull();
       set({ headersLimited: true });
       expect(element().querySelectorAll(".headers-note").length).toBe(1);
@@ -157,13 +171,23 @@ describe("ResponseViewer", () => {
     });
 
     it("shows the body of an error status in the view of its type", () => {
-      set({ responseStatusCode: 404, isError: true, responseError: "<h1>Not found</h1>", responseContentType: "text/html" });
+      set({
+        responseStatusCode: 404,
+        isError: true,
+        responseError: "<h1>Not found</h1>",
+        responseContentType: "text/html",
+      });
       expect(component.view()).toBe("html");
       expect(element().querySelector("iframe.html-preview")?.getAttribute("sandbox")).toBe("");
     });
 
     it("filters a JSON body by path", () => {
-      set({ responseStatusCode: 200, responseBodyIsJson: true, responseData: '{"items":[{"id":1},{"id":2}]}', responseContentType: "application/json" });
+      set({
+        responseStatusCode: 200,
+        responseBodyIsJson: true,
+        responseData: '{"items":[{"id":1},{"id":2}]}',
+        responseContentType: "application/json",
+      });
       expect(component.filteredJson()).toBeNull();
       component.jsonFilter.set("items[*].id");
       expect(JSON.parse(component.filteredJson() ?? "")).toEqual([1, 2]);
@@ -199,7 +223,10 @@ describe("ResponseViewer", () => {
     });
 
     it("never gives a binary body to the page as HTML or SVG", () => {
-      set({ responseStatusCode: 200, responseBinary: new BinaryBody(new Uint8Array([60, 104, 49, 62]).buffer, "text/html") });
+      set({
+        responseStatusCode: 200,
+        responseBinary: new BinaryBody(new Uint8Array([60, 104, 49, 62]).buffer, "text/html"),
+      });
       expect(component.views()).toEqual(["hex"]);
       expect(component.imageUrl()).toBeNull();
     });

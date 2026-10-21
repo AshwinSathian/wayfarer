@@ -11,7 +11,13 @@ test("a post's slug is its file name after the date", () => {
 
 test("a file name that would make a slug of anything but a-z, 0-9 and - is refused", () => {
   // The slug goes into the page's links and the feed's <link> and <guid> as it is.
-  for (const file of ["2026-10-19-a b.md", '2026-10-19-x"><script>.md', "2026-10-19-Upper.md", "2026-10-19-.md", "2026-10-19-a/b.md"]) {
+  for (const file of [
+    "2026-10-19-a b.md",
+    '2026-10-19-x"><script>.md',
+    "2026-10-19-Upper.md",
+    "2026-10-19-.md",
+    "2026-10-19-a/b.md",
+  ]) {
     assert.throws(() => parse(file, head), /slug/, file);
   }
 });

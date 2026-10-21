@@ -8,7 +8,10 @@ import { deployedRelease } from "./deployed-release.mjs";
 const answer = (body, type) => async () => new Response(body, { headers: { "content-type": type } });
 
 test("the release is the one production's /version.json names", async () => {
-  assert.equal(await deployedRelease("https://example.test", answer('{"version":"2.7.0"}', "application/json")), "v2.7.0");
+  assert.equal(
+    await deployedRelease("https://example.test", answer('{"version":"2.7.0"}', "application/json")),
+    "v2.7.0",
+  );
 });
 
 test("a version that is not one is refused, not checked out", async () => {
@@ -21,7 +24,8 @@ test("a version that is not one is refused, not checked out", async () => {
 });
 
 test("production that names no release is v2.6.0 (the site's 404) or v2.5.0 (the app's shell at any path)", async () => {
-  const notFound = async () => new Response("<!doctype html>", { status: 404, headers: { "content-type": "text/html" } });
+  const notFound = async () =>
+    new Response("<!doctype html>", { status: 404, headers: { "content-type": "text/html" } });
   assert.equal(await deployedRelease("https://example.test", notFound), "v2.6.0");
   assert.equal(await deployedRelease("https://example.test", answer("<!doctype html>", "text/html")), "v2.5.0");
 });

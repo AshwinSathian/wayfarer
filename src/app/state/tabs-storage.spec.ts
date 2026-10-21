@@ -13,7 +13,8 @@ import { WorkspaceStore } from "./workspace-store";
 class TabsRepositoryFake {
   records = new Map<string, StoredTab>();
   writes = 0;
-  readAll = async (): Promise<StoredTab[]> => [...this.records.values()].sort((a, b) => a.order - b.order).map((record) => structuredClone(record));
+  readAll = async (): Promise<StoredTab[]> =>
+    [...this.records.values()].sort((a, b) => a.order - b.order).map((record) => structuredClone(record));
   write = async (put: StoredTab[], remove: string[]): Promise<void> => {
     this.writes++;
     for (const record of put) this.records.set(record.id, structuredClone(record));
@@ -85,7 +86,9 @@ describe("TabsStorage", () => {
     await vi.waitFor(() => expect(repository.records.get(first.id)?.draft.url).toBe("https://first.test"));
     // Then the second alone.
     second.draft.update((draft) => ({ ...draft, url: "https://second.test" }));
-    await vi.waitFor(() => expect(repository.records.get(second.id)?.draft.url).toBe("https://second.test"), { timeout: 2000 });
+    await vi.waitFor(() => expect(repository.records.get(second.id)?.draft.url).toBe("https://second.test"), {
+      timeout: 2000,
+    });
   });
 
   it("stores the digest of each script that may run, and none of a script that waits for a review", async () => {
@@ -114,7 +117,10 @@ describe("TabsStorage", () => {
 
       // Read again by a page that has none either: the script is held, not run and not lost.
       const [first] = tabs.tabs();
-      repository.records.set(first.id, { ...stored[0], draft: { ...stored[0].draft, url: "https://one.test/changed-elsewhere" } });
+      repository.records.set(first.id, {
+        ...stored[0],
+        draft: { ...stored[0].draft, url: "https://one.test/changed-elsewhere" },
+      });
       await storage.changedElsewhere();
       expect(first.draft().url).toBe("https://one.test/changed-elsewhere");
       expect(first.heldScripts()).toMatchObject({ pre: "typed()" });
@@ -154,12 +160,23 @@ describe("TabsStorage", () => {
     expect(trust.check([], first)).toBe(true);
     expect(trust.check([], second)).toBe(false);
     tabs.activate(second.id);
-    expect(trust.toReview()).toEqual([{ kind: "request", name: "This tab, as it was stored", pre: "putThereByWhoKnows()", post: "" }]);
+    expect(trust.toReview()).toEqual([
+      { kind: "request", name: "This tab, as it was stored", pre: "putThereByWhoKnows()", post: "" },
+    ]);
   });
 
   it("a restored tab of a saved request is bound to it again, and the collection decides about scripts it did not change", async () => {
     const doc = makeRequestDoc({ id: "r-9", scripts: { pre: "saved()", post: "" } });
-    const collection = { id: "c1", meta: meta("c1"), name: "Imported", order: 0, variables: [], auth: { type: "none" as const }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: false } };
+    const collection = {
+      id: "c1",
+      meta: meta("c1"),
+      name: "Imported",
+      order: 0,
+      variables: [],
+      auth: { type: "none" as const },
+      scripts: { pre: "", post: "" },
+      scriptTrust: { trusted: false },
+    };
     harness.collectionsService.setTree([{ collection, folders: [], requests: [doc] }]);
     const bound = record("one", { requestId: "r-9" });
     bound.draft.scripts = { pre: "saved()", post: "" };
@@ -178,7 +195,14 @@ describe("TabsStorage", () => {
   // "What session 5A left for 5B", item 5: a tab's saved request was a copy, stale after a rename, a move or a delete in the tree.
   describe("when the saved request of an open tab changes in the tree", () => {
     const none = { auth: { type: "none" as const }, scripts: { pre: "", post: "" }, variables: [] };
-    const collection = (approved: string[] = []) => ({ id: "c1", meta: meta("c1"), name: "C", order: 0, ...none, scriptTrust: { trusted: true, approved } });
+    const collection = (approved: string[] = []) => ({
+      id: "c1",
+      meta: meta("c1"),
+      name: "C",
+      order: 0,
+      ...none,
+      scriptTrust: { trusted: true, approved },
+    });
     const folder = (id: string) => ({ id, meta: meta(id), collectionId: "c1", name: id, order: 0, ...none });
     const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
     /** A tab that holds `doc`, opened as the tree opens one. */
@@ -192,11 +216,19 @@ describe("TabsStorage", () => {
 
     it("a rename is the tab's name, and a move its place: what it inherits is the new folder's", async () => {
       const doc = makeRequestDoc({ id: "r-1", name: "Before" });
-      harness.collectionsService.setTree([{ collection: collection(), folders: [folder("f-old"), folder("f-new")], requests: [doc] }]);
+      harness.collectionsService.setTree([
+        { collection: collection(), folders: [folder("f-old"), folder("f-new")], requests: [doc] },
+      ]);
       await storage.start();
       const tab = openTab(doc);
 
-      harness.collectionsService.setTree([{ collection: collection(), folders: [folder("f-old"), folder("f-new")], requests: [{ ...doc, name: "After", folderId: "f-new" }] }]);
+      harness.collectionsService.setTree([
+        {
+          collection: collection(),
+          folders: [folder("f-old"), folder("f-new")],
+          requests: [{ ...doc, name: "After", folderId: "f-new" }],
+        },
+      ]);
       await settle();
       expect(tab.bound()?.name).toBe("After");
       expect(tab.bound()?.folderId).toBe("f-new");
@@ -234,12 +266,16 @@ describe("TabsStorage", () => {
 
     it("a deleted request's scripts that were allowed to run still run", async () => {
       const doc = makeRequestDoc({ id: "r-1", scripts: { pre: "written.here()", post: "" } });
-      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [doc] }]);
+      harness.collectionsService.setTree([
+        { collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [doc] },
+      ]);
       await storage.start();
       const tab = openTab(doc);
       expect(await TestBed.inject(ScriptTrust).check(undefined, tab)).toBe(true);
 
-      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [] }]);
+      harness.collectionsService.setTree([
+        { collection: collection([await scriptDigest("written.here()")]), folders: [], requests: [] },
+      ]);
       await settle();
       expect(tab.bound()).toBeNull();
       expect(tab.heldScripts()).toBeNull();
@@ -247,12 +283,20 @@ describe("TabsStorage", () => {
 
     it("scripts stored for the request since, that nobody approved, do not ride on the tab's own: the tab's scripts wait", async () => {
       const doc = makeRequestDoc({ id: "r-1", scripts: { pre: "mine()", post: "" } });
-      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("mine()")]), folders: [], requests: [doc] }]);
+      harness.collectionsService.setTree([
+        { collection: collection([await scriptDigest("mine()")]), folders: [], requests: [doc] },
+      ]);
       await storage.start();
       const tab = openTab(doc);
 
       // An import replaced the saved request: its script is another, and approved by nobody.
-      harness.collectionsService.setTree([{ collection: collection([await scriptDigest("mine()")]), folders: [], requests: [{ ...doc, scripts: { pre: "replaced()", post: "" } }] }]);
+      harness.collectionsService.setTree([
+        {
+          collection: collection([await scriptDigest("mine()")]),
+          folders: [],
+          requests: [{ ...doc, scripts: { pre: "replaced()", post: "" } }],
+        },
+      ]);
       await settle();
       expect(tab.bound()?.scripts.pre).toBe("replaced()");
       // The tab still holds and would run its own script, which was allowed; the stored one is not what runs.

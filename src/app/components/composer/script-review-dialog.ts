@@ -24,7 +24,11 @@ export class ScriptReviewDialog {
   readonly visibleChange = output<boolean>();
 
   protected readonly saving = signal(false);
-  protected readonly count = computed(() => this.trust.toReview().reduce((sum, request) => sum + (request.pre.trim() ? 1 : 0) + (request.post.trim() ? 1 : 0), 0));
+  protected readonly count = computed(() =>
+    this.trust
+      .toReview()
+      .reduce((sum, request) => sum + (request.pre.trim() ? 1 : 0) + (request.post.trim() ? 1 : 0), 0),
+  );
   /** Where the scripts are: "the collection, 1 folder and 2 requests". */
   protected readonly places = computed(() => {
     const count = (kind: string) => this.trust.toReview().filter((entry) => entry.kind === kind).length;
@@ -39,7 +43,7 @@ export class ScriptReviewDialog {
         ...(request.pre.trim() ? [`// ---- ${request.name}: pre-request script ----\n${request.pre}`] : []),
         ...(request.post.trim() ? [`// ---- ${request.name}: post-response script ----\n${request.post}`] : []),
       ])
-      .join("\n\n")
+      .join("\n\n"),
   );
 
   protected async approve(): Promise<void> {

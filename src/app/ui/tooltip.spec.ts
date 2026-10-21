@@ -27,7 +27,8 @@ class TestHost {
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const enter = (el: Element, pointerType = "mouse") => el.dispatchEvent(new PointerEvent("pointerenter", { pointerType }));
+const enter = (el: Element, pointerType = "mouse") =>
+  el.dispatchEvent(new PointerEvent("pointerenter", { pointerType }));
 const leave = (el: Element) => el.dispatchEvent(new PointerEvent("pointerleave", { pointerType: "mouse" }));
 
 let hosts: (host: HTMLElement) => HTMLElement;

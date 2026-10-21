@@ -2,46 +2,62 @@
   <div class="flex flex-col gap-4">
     <div>
       <span id="env-export-format-label" class="ds-form-label">File for</span>
-      <ui-segmented aria-labelledby="env-export-format-label" [options]="formats" [value]="format()" (valueChange)="setFormat($event)" />
+      <ui-segmented
+        aria-labelledby="env-export-format-label"
+        [options]="formats"
+        [value]="format()"
+        (valueChange)="setFormat($event)"
+      />
     </div>
 
     @if (format() === 'postman') {
     <div class="flex flex-col gap-1.5">
       <span id="env-export-environment-label" class="ds-form-label">Environment</span>
-      <ui-select class="w-full" aria-labelledby="env-export-environment-label" [options]="environmentOptions()" [value]="chosen() || environments()[0]?.meta?.id" (valueChange)="chosen.set($event)" />
+      <ui-select
+        class="w-full"
+        aria-labelledby="env-export-environment-label"
+        [options]="environmentOptions()"
+        [value]="chosen() || environments()[0]?.meta?.id"
+        (valueChange)="chosen.set($event)"
+      />
       <p class="type-footnote text-label-tertiary">A Postman environment file holds one environment.</p>
     </div>
     }
 
     <div>
       <span id="env-export-mode-label" class="ds-form-label">Protected variables</span>
-      <ui-segmented aria-labelledby="env-export-mode-label" [options]="modes()" [value]="mode()" (valueChange)="mode.set($event); error.set('')" />
+      <ui-segmented
+        aria-labelledby="env-export-mode-label"
+        [options]="modes()"
+        [value]="mode()"
+        (valueChange)="mode.set($event); error.set('')"
+      />
     </div>
 
     <p class="type-callout text-label-secondary">
-      @switch (mode()) {
-        @case ('strip') {
-          A protected variable is written with an empty value. The file holds no secret and nothing that refers to one. Other variables are written as they are.
-        }
-        @case ('references') {
-          A protected variable is written as its reference, and the vault goes into the file beside it, still encrypted. To use the file elsewhere, import it in Environments, then in Secrets, "Import vault", with this vault's passphrase.
-        }
-        @case ('plain') {
-          Every protected variable is written with its real value. Anyone who reads the file reads your secrets.
-        }
-      }
+      @switch (mode()) { @case ('strip') { A protected variable is written with an empty value. The file holds no secret
+      and nothing that refers to one. Other variables are written as they are. } @case ('references') { A protected
+      variable is written as its reference, and the vault goes into the file beside it, still encrypted. To use the file
+      elsewhere, import it in Environments, then in Secrets, "Import vault", with this vault's passphrase. } @case
+      ('plain') { Every protected variable is written with its real value. Anyone who reads the file reads your secrets.
+      } }
     </p>
 
     @if (mode() === 'plain') {
     <div>
       <label for="env-export-confirm" class="ds-form-label">Type {{ confirmation }} to confirm</label>
       <mat-form-field class="field w-full">
-        <input class="font-sans" matInput id="env-export-confirm" autocomplete="off" [ngModel]="typed()" (ngModelChange)="typed.set($event)" />
+        <input
+          class="font-sans"
+          matInput
+          id="env-export-confirm"
+          autocomplete="off"
+          [ngModel]="typed()"
+          (ngModelChange)="typed.set($event)"
+        />
       </mat-form-field>
     </div>
-    }
-
-    @if (error()) {
+    } @if (error()) {
     <p role="alert" class="type-footnote text-status-error flex items-center gap-1.5">
       <app-icon name="error" class="icon-xs" />
       {{ error() }}

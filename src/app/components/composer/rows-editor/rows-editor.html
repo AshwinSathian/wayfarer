@@ -11,40 +11,48 @@
     />
     }
     <mat-form-field class="field min-w-0 flex-1 basis-40">
-      <input class="font-mono" matInput
+      <input
+        class="font-mono"
+        matInput
         placeholder="name"
         [(ngModel)]="item.key"
         (ngModelChange)="itemChange.emit()"
         [attr.aria-label]="context() + ' name, row ' + (index + 1)"
-       />
+      />
     </mat-form-field>
     <!-- The value and its remove button wrap together: the button never stands on a line alone. -->
     <div class="flex min-w-0 flex-1 basis-48 items-center gap-2">
-    <mat-form-field class="field min-w-0 flex-1">
-      <input class="font-mono" matInput
-        placeholder="value"
-        [(ngModel)]="item.value"
-        (ngModelChange)="itemChange.emit()"
-        [attr.aria-label]="context() + ' value, row ' + (index + 1)"
-       />
-    </mat-form-field>
-    <button
-      uiButton="icon" class="btn-danger"
-      type="button"
-      [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
-      (click)="remove.emit(index)"
-    ><app-icon name="close" /></button>
+      <mat-form-field class="field min-w-0 flex-1">
+        <input
+          class="font-mono"
+          matInput
+          placeholder="value"
+          [(ngModel)]="item.value"
+          (ngModelChange)="itemChange.emit()"
+          [attr.aria-label]="context() + ' value, row ' + (index + 1)"
+        />
+      </mat-form-field>
+      <button
+        uiButton="icon"
+        class="btn-danger"
+        type="button"
+        [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
+        (click)="remove.emit(index)"
+        ><app-icon name="close"
+      /></button>
     </div>
   </div>
   }
 
   <div class="pt-2">
     <button
-      uiButton="filled" class="btn-secondary"
+      uiButton="filled"
+      class="btn-secondary"
       type="button"
       [attr.aria-label]="addLabel()"
       [disabled]="addDisabled()"
       (click)="add.emit()"
-    ><app-icon name="add" /> {{ addLabel() }}</button>
+      ><app-icon name="add" /> {{ addLabel() }}</button
+    >
   </div>
 </div>

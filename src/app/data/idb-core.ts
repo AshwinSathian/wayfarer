@@ -1,15 +1,7 @@
 import { Injectable, signal } from "@angular/core";
 import { IDBPDatabase, IDBPTransaction, openDB } from "idb";
 import { Meta } from "../models/collections";
-import {
-  WayfarerDB,
-  DB_NAME,
-  DB_VERSION,
-  MetaState,
-  META_STATE_KEY,
-  StoreCollection,
-  StoreName,
-} from "./idb-schema";
+import { WayfarerDB, DB_NAME, DB_VERSION, MetaState, META_STATE_KEY, StoreCollection, StoreName } from "./idb-schema";
 import { createStores } from "./idb-stores";
 import { keepDiagnostic, recordDiagnostic } from "../services/diagnostics";
 import { newId } from "@wayfarer/core";
@@ -71,8 +63,7 @@ export class IdbCore {
    */
   readonly memoryOnly = signal(false);
 
-  private readonly lifecycle =
-    new BroadcastChannel(LIFECYCLE_CHANNEL);
+  private readonly lifecycle = new BroadcastChannel(LIFECYCLE_CHANNEL);
 
   /** Carries "these stores changed" between the tabs of this origin. */
   private readonly data = new BroadcastChannel(DATA_CHANNEL);
@@ -122,9 +113,7 @@ export class IdbCore {
 
   private async open(): Promise<void> {
     if (typeof indexedDB === "undefined") {
-      this.logError(
-        "indexedDB is not available in this environment. Falling back to in-memory store."
-      );
+      this.logError("indexedDB is not available in this environment. Falling back to in-memory store.");
       this.enableMemoryFallback();
       return;
     }
@@ -138,10 +127,7 @@ export class IdbCore {
 
       await this.dbPromise;
     } catch (error) {
-      this.logError(
-        "Failed to open IndexedDB. Falling back to in-memory store.",
-        error
-      );
+      this.logError("Failed to open IndexedDB. Falling back to in-memory store.", error);
       this.enableMemoryFallback();
     }
   }
@@ -168,10 +154,7 @@ export class IdbCore {
     try {
       return await this.dbPromise!;
     } catch (error) {
-      this.logError(
-        "Failed to resolve database instance. Switching to in-memory store.",
-        error
-      );
+      this.logError("Failed to resolve database instance. Switching to in-memory store.", error);
       this.enableMemoryFallback();
       return null;
     }
@@ -184,9 +167,7 @@ export class IdbCore {
     }
   }
 
-  async txReadWrite(
-    storeNames: StoreName[]
-  ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">> {
+  async txReadWrite(storeNames: StoreName[]): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">> {
     return (await this.openTransaction(storeNames as StoreCollection, "readwrite")) as IDBPTransaction<
       WayfarerDB,
       StoreCollection,
@@ -194,9 +175,7 @@ export class IdbCore {
     >;
   }
 
-  async txReadonly(
-    storeNames: StoreName[]
-  ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readonly">> {
+  async txReadonly(storeNames: StoreName[]): Promise<IDBPTransaction<WayfarerDB, StoreCollection, "readonly">> {
     return (await this.openTransaction(storeNames as StoreCollection, "readonly")) as IDBPTransaction<
       WayfarerDB,
       StoreCollection,
@@ -206,7 +185,7 @@ export class IdbCore {
 
   private async openTransaction(
     storeNames: StoreCollection,
-    mode: IDBTransactionMode
+    mode: IDBTransactionMode,
   ): Promise<IDBPTransaction<WayfarerDB, StoreCollection, IDBTransactionMode>> {
     const db = await this.getDatabase();
     if (!db) {
@@ -217,7 +196,7 @@ export class IdbCore {
 
   async commitOrRollback<T>(
     tx: IDBPTransaction<WayfarerDB, StoreCollection, "readwrite">,
-    work: () => Promise<T>
+    work: () => Promise<T>,
   ): Promise<T> {
     try {
       const result = await work();
@@ -360,7 +339,9 @@ export class IdbCore {
   }
 
   /** The place after the last of every `by-order` index given. Folders and requests share one order: for either, give both. */
-  async nextOrder(...indexes: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }[]): Promise<number> {
+  async nextOrder(
+    ...indexes: { openCursor: (range: null, direction: "prev") => Promise<{ value: unknown } | null> }[]
+  ): Promise<number> {
     let last = 0;
     for (const index of indexes) {
       const cursor = await index.openCursor(null, "prev");

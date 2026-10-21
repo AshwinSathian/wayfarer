@@ -40,11 +40,24 @@ describe("WorkspaceBackup", () => {
     const collection = await idb.collections.createCollection({ name: "Billing" });
     await idb.collections.changeCollectionVariables(collection.meta.id, [{ key: "base", value: "https://api.test" }]);
     const folder = await idb.folders.createFolder({ collectionId: collection.meta.id, name: "Auth" });
-    await idb.requests.createRequest({ collectionId: collection.meta.id, folderId: folder.meta.id, name: "Login", method: "POST", url: "{{base}}/login", body: jsonBody({ user: "a" }) });
+    await idb.requests.createRequest({
+      collectionId: collection.meta.id,
+      folderId: folder.meta.id,
+      name: "Login",
+      method: "POST",
+      url: "{{base}}/login",
+      body: jsonBody({ user: "a" }),
+    });
     await vault.create("correct horse");
     const environment = await idb.environments.createEnvironment({ name: "Dev" });
-    const secret = await vault.saveSecret({ name: "token", environmentId: environment.meta.id, plaintext: "backup-plaintext-1" });
-    await idb.environments.updateEnvironment(environment.meta.id, { vars: rowsOf({ host: "localhost", token: `{{$secret.${secret}}}` }) });
+    const secret = await vault.saveSecret({
+      name: "token",
+      environmentId: environment.meta.id,
+      plaintext: "backup-plaintext-1",
+    });
+    await idb.environments.updateEnvironment(environment.meta.id, {
+      vars: rowsOf({ host: "localhost", token: `{{$secret.${secret}}}` }),
+    });
     await idb.environments.setActiveEnvironment(environment.meta.id);
     await idb.environments.changeGlobals([{ key: "region", value: "eu" }]);
     await idb.history.add(historyEntry({ url: "https://api.test/sent", createdAt: 5, status: 200 }), 500);
@@ -60,7 +73,15 @@ describe("WorkspaceBackup", () => {
     expect(json).not.toContain("correct horse");
     const file = JSON.parse(json) as WorkspaceFile;
     expect(file.$id).toBe(WORKSPACE_FORMAT);
-    expect(Object.keys(file.stores).sort()).toEqual(["collections", "environments", "folders", "history", "meta", "requests", "secrets"]);
+    expect(Object.keys(file.stores).sort()).toEqual([
+      "collections",
+      "environments",
+      "folders",
+      "history",
+      "meta",
+      "requests",
+      "secrets",
+    ]);
     expect(file.stores.meta.map((record) => record.key).sort()).toEqual(["globals", "state", "vault"]);
 
     vault.lock();
@@ -71,7 +92,10 @@ describe("WorkspaceBackup", () => {
     const after = await idb.workspace.readAll(true);
     // A file cannot grant itself trust (D6): that is the one difference.
     expect(before.collections[0].scriptTrust).toEqual({ trusted: true });
-    expect(after).toEqual({ ...before, collections: before.collections.map((c) => ({ ...c, scriptTrust: { trusted: false } })) });
+    expect(after).toEqual({
+      ...before,
+      collections: before.collections.map((c) => ({ ...c, scriptTrust: { trusted: false } })),
+    });
     // The vault came back with its passphrase and opens the secret it held.
     expect(await vault.unlock("correct horse")).toBe(true);
     expect(await vault.readSecret(secret)).toBe("backup-plaintext-1");
@@ -86,7 +110,10 @@ describe("WorkspaceBackup", () => {
 
     await idb.history.add(historyEntry({ url: "https://api.test/later", createdAt: 9 }), 500);
     expect(await backup.restore(json)).toEqual([]);
-    expect((await idb.history.getLatest()).map((entry) => entry.sent.url)).toEqual(["https://api.test/later", "https://api.test/sent"]);
+    expect((await idb.history.getLatest()).map((entry) => entry.sent.url)).toEqual([
+      "https://api.test/later",
+      "https://api.test/sent",
+    ]);
   });
 
   it("replaces what is stored: a collection made after the backup is gone after the restore", async () => {
@@ -116,19 +143,72 @@ describe("WorkspaceBackup", () => {
 
     const cases: [string, (file: WorkspaceFile) => void, RegExp][] = [
       ["a method that is not one", (f) => (f.stores.requests[0].method = "GET; rm -rf ~"), /requests\[0\]\.method/],
-      ["a request of no collection", (f) => (f.stores.requests[0].collectionId = "elsewhere"), /belongs to a collection that is not in the file/],
-      ["a collection without variables", (f) => delete (f.stores.collections[0] as { variables?: unknown }).variables, /collection\.variables/],
-      ["a collection without trust", (f) => delete (f.stores.collections[0] as { scriptTrust?: unknown }).scriptTrust, /scriptTrust is missing/],
-      ["an environment variable that is not a row", (f) => (f.stores.environments[0].vars = [{ key: 1 }] as never), /environments\[0\]\.vars/],
-      ["a meta record the app does not keep", (f) => f.stores.meta.push({ key: "extra" } as never), /"extra" is not a record the app keeps/],
-      ["an active environment that is not an id", (f) => ((f.stores.meta.find((r) => r.key === "state") as { activeEnvironmentId: unknown }).activeEnvironmentId = 7), /active environment/],
-      ["globals that are not rows", (f) => ((f.stores.meta.find((r) => r.key === "globals") as { variables: unknown }).variables = "x"), /globals\.variables/],
-      ["a vault with a cheap key derivation", (f) => ((f.stores.meta.find((r) => r.key === "vault") as { kdf: { iterations: number } }).kdf.iterations = 1), /vault\.kdf\.iterations/],
-      ["secrets with no vault", (f) => (f.stores.meta = f.stores.meta.filter((r) => r.key !== "vault")), /vault: vault/],
-      ["a secret whose meta names another", (f) => (f.stores.secrets[0].meta.id = "other"), /meta\.id must be the secret's id/],
-      ["history without what was sent", (f) => delete (f.stores.history![0] as { sent?: unknown }).sent, /history\[0\]\.sent/],
-      ["history with a bad route and time", (f) => Object.assign(f.stores.history![0], { route: "pigeon", createdAt: "now" }), /history\[0\]\.(createdAt|route)/],
-      ["history whose request is not one", (f) => (f.stores.history![0].template = { method: "GET" } as never), /history\[0\]\.template/],
+      [
+        "a request of no collection",
+        (f) => (f.stores.requests[0].collectionId = "elsewhere"),
+        /belongs to a collection that is not in the file/,
+      ],
+      [
+        "a collection without variables",
+        (f) => delete (f.stores.collections[0] as { variables?: unknown }).variables,
+        /collection\.variables/,
+      ],
+      [
+        "a collection without trust",
+        (f) => delete (f.stores.collections[0] as { scriptTrust?: unknown }).scriptTrust,
+        /scriptTrust is missing/,
+      ],
+      [
+        "an environment variable that is not a row",
+        (f) => (f.stores.environments[0].vars = [{ key: 1 }] as never),
+        /environments\[0\]\.vars/,
+      ],
+      [
+        "a meta record the app does not keep",
+        (f) => f.stores.meta.push({ key: "extra" } as never),
+        /"extra" is not a record the app keeps/,
+      ],
+      [
+        "an active environment that is not an id",
+        (f) =>
+          ((f.stores.meta.find((r) => r.key === "state") as { activeEnvironmentId: unknown }).activeEnvironmentId = 7),
+        /active environment/,
+      ],
+      [
+        "globals that are not rows",
+        (f) => ((f.stores.meta.find((r) => r.key === "globals") as { variables: unknown }).variables = "x"),
+        /globals\.variables/,
+      ],
+      [
+        "a vault with a cheap key derivation",
+        (f) => ((f.stores.meta.find((r) => r.key === "vault") as { kdf: { iterations: number } }).kdf.iterations = 1),
+        /vault\.kdf\.iterations/,
+      ],
+      [
+        "secrets with no vault",
+        (f) => (f.stores.meta = f.stores.meta.filter((r) => r.key !== "vault")),
+        /vault: vault/,
+      ],
+      [
+        "a secret whose meta names another",
+        (f) => (f.stores.secrets[0].meta.id = "other"),
+        /meta\.id must be the secret's id/,
+      ],
+      [
+        "history without what was sent",
+        (f) => delete (f.stores.history![0] as { sent?: unknown }).sent,
+        /history\[0\]\.sent/,
+      ],
+      [
+        "history with a bad route and time",
+        (f) => Object.assign(f.stores.history![0], { route: "pigeon", createdAt: "now" }),
+        /history\[0\]\.(createdAt|route)/,
+      ],
+      [
+        "history whose request is not one",
+        (f) => (f.stores.history![0].template = { method: "GET" } as never),
+        /history\[0\]\.template/,
+      ],
     ];
     for (const [name, change, expected] of cases) {
       const errors = await backup.restore(broken(change));

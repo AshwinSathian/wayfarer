@@ -2,7 +2,11 @@ import { pageMeta } from "../../lib/meta";
 import { DocsFrame } from "../../components/DocsFrame";
 import { docs } from "../../lib/content";
 
-export const metadata = pageMeta("/docs/", "Docs: Wayfarer", "Wayfarer's documentation: variables, auth, scripts, import and export, the vault, storage, the Local Bridge, the command line and the claims ledger.");
+export const metadata = pageMeta(
+  "/docs/",
+  "Docs: Wayfarer",
+  "Wayfarer's documentation: variables, auth, scripts, import and export, the vault, storage, the Local Bridge, the command line and the claims ledger.",
+);
 
 export default function DocsIndex() {
   return (

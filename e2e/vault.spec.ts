@@ -83,7 +83,9 @@ test("locking the vault in one tab locks it in the other within a second", async
   await expect(unlockButton(pageB)).toBeVisible({ timeout: 1000 });
 });
 
-test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, it is locked 61 seconds later", async ({ page }) => {
+test("@claim:C-005 the vault locks itself after the idle time: set to 1 minute, it is locked 61 seconds later", async ({
+  page,
+}) => {
   await page.clock.install();
   await page.goto("/app/");
   await openSettings(page, "Vault");
@@ -143,7 +145,9 @@ test("the passphrase can be changed: the old one stops working and the secret is
   expect(await violations(page)).toEqual([]);
 });
 
-test("the vault is exported as a file without any plaintext, and a secret deleted since comes back from it", async ({ page }) => {
+test("the vault is exported as a file without any plaintext, and a secret deleted since comes back from it", async ({
+  page,
+}) => {
   await watchViolations(page);
   await page.goto("/app/");
   await createVault(page);
@@ -153,7 +157,10 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   const secrets = page.getByRole("dialog", { name: "Secrets", exact: true });
   await secrets.getByRole("button", { name: "Export vault" }).click();
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
-  const [download] = await Promise.all([page.waitForEvent("download"), secrets.getByRole("button", { name: "Export", exact: true }).click()]);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    secrets.getByRole("button", { name: "Export", exact: true }).click(),
+  ]);
   const chunks: Buffer[] = [];
   for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
   const file = Buffer.concat(chunks).toString("utf8");
@@ -168,7 +175,9 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await expect(secrets.getByRole("button", { name: "Change passphrase" })).toBeFocused();
 
   await secrets.getByRole("button", { name: "Import vault" }).click();
-  await secrets.getByLabel("Vault file").setInputFiles({ name: "wayfarer-vault.json", mimeType: "application/json", buffer: Buffer.from(file) });
+  await secrets
+    .getByLabel("Vault file")
+    .setInputFiles({ name: "wayfarer-vault.json", mimeType: "application/json", buffer: Buffer.from(file) });
   await secrets.getByLabel("Passphrase of the file").fill(PASSPHRASE);
   await secrets.getByRole("button", { name: "Import", exact: true }).click();
   await expect(secrets.getByText("Imported 1 secret.")).toBeVisible();

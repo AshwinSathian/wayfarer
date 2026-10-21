@@ -5,7 +5,9 @@ describe("writeToClipboard", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("leaves focus where it was when it has to fall back to a hidden textarea (F49)", async () => {
-    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new DOMException("Document is not focused.", "NotAllowedError"));
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("Document is not focused.", "NotAllowedError"),
+    );
     const button = document.createElement("button");
     document.body.append(button);
     button.focus();
@@ -18,7 +20,9 @@ describe("writeToClipboard", () => {
   });
 
   it("selects its textarea inside the modal dialog that has focus, where the page outside is inert", async () => {
-    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new DOMException("Document is not focused.", "NotAllowedError"));
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(
+      new DOMException("Document is not focused.", "NotAllowedError"),
+    );
     const dialog = document.createElement("dialog");
     const button = document.createElement("button");
     dialog.append(button);

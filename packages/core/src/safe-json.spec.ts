@@ -18,7 +18,11 @@ describe("safe-json", () => {
   });
 
   it("stringifyJson rethrows what is not a serialization failure", () => {
-    const failing = { toJSON: () => { throw new RangeError("no"); } };
+    const failing = {
+      toJSON: () => {
+        throw new RangeError("no");
+      },
+    };
     expect(() => stringifyJson(failing)).toThrow(RangeError);
   });
 

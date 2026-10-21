@@ -9,7 +9,7 @@ people; `PLAN-airtight-remediation.md` is the roadmap.
 
 ```bash
 npm run lint            # ESLint, type-aware
-npm run format:check    # Prettier, 120 columns (npm run format writes it); Markdown is not formatted
+npm run format:check    # Prettier (npm run format writes it); see "TypeScript"
 npm run test:ci         # Vitest in headless Chromium, with the coverage gate
 npm run build           # production build + service worker
 CI=1 npx playwright test --project=chromium --project=claims-chromium   # e2e against the built app (run the build first)
@@ -988,6 +988,16 @@ code errors.
   with `recordDiagnostic`.
 - Prefer deleting code. No scaffolding for later, no fallback for an
   environment the app cannot run in.
+- Prettier formats the code (`.prettierrc.json`, 120 columns; CI runs
+  `npm run format:check`). Templates are formatted with
+  `htmlWhitespaceSensitivity: "strict"`: Angular renders the whitespace
+  between inline elements and text, and the default added and removed
+  some. Prettier still puts a control-flow block on lines of its own, so
+  text right after a block's `}` begins with a space: put punctuation that
+  must touch the block's last output inside the block
+  (`{{ $last ? ":" : ", " }}` in `request-warnings.ts`). An
+  `eslint-disable-line` at the end of a line that Prettier may break goes
+  above it as `eslint-disable-next-line`. Markdown is not formatted.
 
 ## Security
 

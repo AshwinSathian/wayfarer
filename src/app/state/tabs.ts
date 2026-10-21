@@ -11,7 +11,7 @@ export function forwarded<T>(pick: () => WritableSignal<T>): Forwarded<T> {
     {
       set: (value: T) => pick().set(value),
       update: (change: (value: T) => T) => pick().update(change),
-    }
+    },
   );
 }
 

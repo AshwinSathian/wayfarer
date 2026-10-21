@@ -7,7 +7,14 @@ import { UiModal, keepFocusInDialogs } from "./modal";
   imports: [UiModal],
   template: `
     <button id="opener" type="button">Open</button>
-    <dialog uiModal #modal="uiModal" id="modal" [open]="open()" [dismissable]="dismissable()" (closeRequest)="requests = requests + 1; open.set(false)">
+    <dialog
+      uiModal
+      #modal="uiModal"
+      id="modal"
+      [open]="open()"
+      [dismissable]="dismissable()"
+      (closeRequest)="requests = requests + 1; open.set(false)"
+    >
       <span tabindex="-1">Not in the tab order</span>
       <button id="first" type="button">First</button>
       <input id="field" />
@@ -195,8 +202,12 @@ describe("keepFocusInDialogs", () => {
   @Component({
     imports: [UiModal],
     template: `
-      <dialog uiModal #under="uiModal" (closeRequest)="asked.push('under')"><button type="button">Under</button></dialog>
-      <dialog uiModal #over="uiModal" (closeRequest)="asked.push('over')"><button id="over-button" type="button">Over</button></dialog>
+      <dialog uiModal #under="uiModal" (closeRequest)="asked.push('under')"
+        ><button type="button">Under</button></dialog
+      >
+      <dialog uiModal #over="uiModal" (closeRequest)="asked.push('over')"
+        ><button id="over-button" type="button">Over</button></dialog
+      >
     `,
   })
   class Stack {

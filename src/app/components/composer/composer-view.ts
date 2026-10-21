@@ -83,7 +83,11 @@ export class ComposerView {
 
   /** Opens the tab of a run of `target` (P5.2): the one that is open already, or a new one. Nothing is sent until Run. */
   openRun(target: RunTarget): void {
-    const open = this.tabs.tabs().find((tab) => tab.run?.target.collectionId === target.collectionId && tab.run.target.folderId === target.folderId);
+    const open = this.tabs
+      .tabs()
+      .find(
+        (tab) => tab.run?.target.collectionId === target.collectionId && tab.run.target.folderId === target.folderId,
+      );
     if (open) {
       this.tabs.activate(open.id);
       return;

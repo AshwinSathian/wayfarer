@@ -31,9 +31,14 @@ export async function harText(exchanges: HarExchange[]): Promise<string> {
 export function historyExchange(entry: PastRequest): HarExchange {
   const mode = entry.template.body.mode;
   const kept = mode === "raw" || mode === "urlencoded";
-  const body: ExportBody = kept && entry.sent.bodyPreview ? { mode: "raw", text: entry.sent.bodyPreview } : { mode: "none" };
+  const body: ExportBody =
+    kept && entry.sent.bodyPreview ? { mode: "raw", text: entry.sent.bodyPreview } : { mode: "none" };
   const notes = [
-    ...(!kept && mode !== "none" ? [`The request's body (${mode === "multipart" ? "a multipart form" : "a file"}) is not in history and is left out.`] : []),
+    ...(!kept && mode !== "none"
+      ? [
+          `The request's body (${mode === "multipart" ? "a multipart form" : "a file"}) is not in history and is left out.`,
+        ]
+      : []),
     ...(entry.response ? [] : [`No response${entry.error ? `: ${entry.error}` : "."}`]),
   ];
   return {
@@ -41,7 +46,12 @@ export function historyExchange(entry: PastRequest): HarExchange {
     timeMs: entry.durationMs ?? -1,
     request: { method: entry.sent.method, url: entry.sent.url, headers: entry.sent.headers, body },
     ...(entry.response && {
-      response: { status: entry.response.status, statusText: entry.response.statusText, headers: entry.response.headers, text: entry.response.body?.text },
+      response: {
+        status: entry.response.status,
+        statusText: entry.response.statusText,
+        headers: entry.response.headers,
+        text: entry.response.body?.text,
+      },
     }),
     ...(notes.length && { comment: notes.join(" ") }),
   };

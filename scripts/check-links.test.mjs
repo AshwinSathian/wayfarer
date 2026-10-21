@@ -27,7 +27,10 @@ test("a tree whose links all lead to files, with every doc linked from the READM
 
 test("a link to a file that is not there fails, with the file that holds it", () => {
   const dir = fixture({ ...GOOD, "docs/a.md": "See [gone](gone.md) and [also](../docs/missing.md#x).\n" });
-  assert.deepEqual(checkLinks(dir), ["docs/a.md: links docs/gone.md, which does not exist", "docs/a.md: links docs/missing.md, which does not exist"]);
+  assert.deepEqual(checkLinks(dir), [
+    "docs/a.md: links docs/gone.md, which does not exist",
+    "docs/a.md: links docs/missing.md, which does not exist",
+  ]);
 });
 
 test("a doc under docs/ that the README does not link fails", () => {

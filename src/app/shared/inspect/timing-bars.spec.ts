@@ -26,7 +26,9 @@ describe("timing-bars", () => {
   it("falls back to a single full-width Total bar when only the duration is known", () => {
     expect(getFallbackBars(null)).toEqual([]);
     expect(getFallbackBars(inspection({ duration: 0 }))).toEqual([]);
-    expect(getFallbackBars(inspection({ duration: 80 }))).toMatchObject([{ label: "Total", duration: 80, percent: 100 }]);
+    expect(getFallbackBars(inspection({ duration: 80 }))).toMatchObject([
+      { label: "Total", duration: 80, percent: 100 },
+    ]);
   });
 
   it("formats durations with more precision the smaller they are", () => {

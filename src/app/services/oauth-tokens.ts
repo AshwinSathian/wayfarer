@@ -74,26 +74,37 @@ export class OAuthTokens {
    * one. `renew` asks for a new one whatever the held one says (a 401).
    * `auth` is resolved, secrets included; `key` is its `oauthTokenKey`.
    */
-  async tokenFor(auth: OAuth2Auth, key: string, options: { renew?: boolean; signal?: AbortSignal } = {}): Promise<string> {
+  async tokenFor(
+    auth: OAuth2Auth,
+    key: string,
+    options: { renew?: boolean; signal?: AbortSignal } = {},
+  ): Promise<string> {
     let token = this.token(key);
     // Not held by this tab: the vault may have it. Read here and waited for, not left to the effect that follows an unlock.
     const secret = token ? undefined : await this.stored(key);
     if (secret) {
-      if (!(await this.vault.ensureUnlocked())) throw new OAuthError("The OAuth 2.0 token is in the vault, which is locked. Unlock it to send.");
+      if (!(await this.vault.ensureUnlocked()))
+        throw new OAuthError("The OAuth 2.0 token is in the vault, which is locked. Unlock it to send.");
       token = parseStoredToken((await this.vault.readSecret(secret.id)) ?? "") ?? undefined;
       if (token) this.hold(key, token);
     }
     if (token && !options.renew && !tokenExpired(token, Date.now())) return token.accessToken;
     if (token?.refreshToken) {
       try {
-        return (await this.exchange(auth, key, { refreshToken: token.refreshToken }, token, options.signal)).accessToken;
+        return (await this.exchange(auth, key, { refreshToken: token.refreshToken }, token, options.signal))
+          .accessToken;
       } catch (error) {
         // A refresh token the server no longer takes: a grant that needs no user asks again, below.
         if (!(error instanceof OAuthError) || auth.grant === "authorization_code") throw error;
       }
     }
-    if (auth.grant !== "authorization_code") return (await this.exchange(auth, key, "grant", undefined, options.signal)).accessToken;
-    throw new OAuthError(token ? "The OAuth 2.0 token has expired and cannot be renewed. Choose Get token in the Auth tab." : "There is no OAuth 2.0 token yet. Choose Get token in the Auth tab.");
+    if (auth.grant !== "authorization_code")
+      return (await this.exchange(auth, key, "grant", undefined, options.signal)).accessToken;
+    throw new OAuthError(
+      token
+        ? "The OAuth 2.0 token has expired and cannot be renewed. Choose Get token in the Auth tab."
+        : "There is no OAuth 2.0 token yet. Choose Get token in the Auth tab.",
+    );
   }
 
   /**
@@ -108,7 +119,10 @@ export class OAuthTokens {
       await this.exchange(auth, key, "grant");
       return;
     }
-    if (!globalThis.crypto?.subtle) throw new OAuthError("OAuth 2.0 sign-in needs the browser's cryptography, which a page has only over https or from localhost.");
+    if (!globalThis.crypto?.subtle)
+      throw new OAuthError(
+        "OAuth 2.0 sign-in needs the browser's cryptography, which a page has only over https or from localhost.",
+      );
     this.signIn?.abort("Another sign-in was started.");
     const abort = new AbortController();
     this.signIn = abort;
@@ -123,10 +137,12 @@ export class OAuthTokens {
     try {
       const answer = new Promise<Record<string, unknown>>((resolve, reject) => {
         channel.onmessage = (event: MessageEvent<unknown>) => {
-          const data = typeof event.data === "object" && event.data !== null ? (event.data as Record<string, unknown>) : {};
+          const data =
+            typeof event.data === "object" && event.data !== null ? (event.data as Record<string, unknown>) : {};
           if (data["state"] !== state) {
             // Another tab's sign-in, or something that is not ours at all. It is not taken.
-            if (data["code"] || data["error"]) this.notice.set("An answer came back with a state this app did not issue, and was ignored.");
+            if (data["code"] || data["error"])
+              this.notice.set("An answer came back with a state this app did not issue, and was ignored.");
             return;
           }
           // Tells the callback page it may close.
@@ -141,7 +157,9 @@ export class OAuthTokens {
       }
       const { code, error, description } = await answer;
       if (typeof code !== "string" || !code) {
-        throw new OAuthError(`The sign-in ended without a code: ${typeof error === "string" ? error.slice(0, 200) : "the answer held none"}${typeof description === "string" ? ` (${description.slice(0, 300)})` : ""}.`);
+        throw new OAuthError(
+          `The sign-in ended without a code: ${typeof error === "string" ? error.slice(0, 200) : "the answer held none"}${typeof description === "string" ? ` (${description.slice(0, 300)})` : ""}.`,
+        );
       }
       await this.exchange(auth, key, { code, verifier, redirectUri }, undefined, abort.signal);
     } finally {
@@ -167,23 +185,37 @@ export class OAuthTokens {
   }
 
   /** One request to the token endpoint, and the token it gave, kept. */
-  private async exchange(auth: OAuth2Auth, key: string, exchange: OAuthExchange, previous?: OAuthToken, signal?: AbortSignal): Promise<OAuthToken> {
+  private async exchange(
+    auth: OAuth2Auth,
+    key: string,
+    exchange: OAuthExchange,
+    previous?: OAuthToken,
+    signal?: AbortSignal,
+  ): Promise<OAuthToken> {
     const request = tokenRequest(auth, exchange);
     if (!URL.canParse(request.url)) throw new OAuthError("The token URL is not an address. No token was asked for.");
     if (containsSecretPlaceholder(request)) {
-      throw new OAuthError("The token request refers to a vault secret that could not be read (it may have been deleted), so it was not sent.");
+      throw new OAuthError(
+        "The token request refers to a vault secret that could not be read (it may have been deleted), so it was not sent.",
+      );
     }
     let status: number;
     let body: string;
     // The device's route; nothing is asked: a token request the browser may have sent is not sent again (D7).
     const policy: RoutePolicy = { route: this.transport.route() };
     try {
-      const envelope = await this.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() }, policy);
+      const envelope = await this.transport.send(
+        request,
+        { signal: signal ?? new AbortController().signal, timeoutMs: this.settings.timeoutMs() },
+        policy,
+      );
       status = envelope.status;
       body = await new Response(envelope.body).text();
     } catch (error) {
       if (!(error instanceof TransportError)) throw error;
-      throw new OAuthError(error.kind === "network" && policy.took === "direct" ? NO_ANSWER : `The token request failed: ${error.message}`);
+      throw new OAuthError(
+        error.kind === "network" && policy.took === "direct" ? NO_ANSWER : `The token request failed: ${error.message}`,
+      );
     }
     const token = readTokenResponse(status, body, Date.now(), previous);
     this.hold(key, token);
@@ -205,7 +237,8 @@ export class OAuthTokens {
   private async store(key: string, token: OAuthToken): Promise<void> {
     const secret = await this.stored(key);
     const plaintext = JSON.stringify(token);
-    if (!secret || !(await this.vault.replaceSecret(secret.id, plaintext))) await this.vault.saveSecret({ name: SECRET_NAME + key, plaintext });
+    if (!secret || !(await this.vault.replaceSecret(secret.id, plaintext)))
+      await this.vault.saveSecret({ name: SECRET_NAME + key, plaintext });
   }
 
   /** Brings this tab and the vault into step. `mine`: what this tab holds is the newer and is written; otherwise the vault's is. */

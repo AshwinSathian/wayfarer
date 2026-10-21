@@ -22,7 +22,8 @@ const CLOSE_CODES: Record<number, string> = {
 /** How long after an error a close event is waited for before the socket itself is asked. In Chromium and Firefox the two come together. */
 const ERROR_WITHOUT_CLOSE_MS = 500;
 
-const NO_SECRET = "A WebSocket cannot carry a vault secret: the reference would go out as text, so nothing was sent. Type the value, or use a variable that is not protected.";
+const NO_SECRET =
+  "A WebSocket cannot carry a vault secret: the reference would go out as text, so nothing was sent. Type the value, or use a variable that is not protected.";
 
 /**
  * The open tab's WebSocket (P5.7): a tab whose address starts with `ws:` or
@@ -61,9 +62,14 @@ export class SocketClient {
     if (state.status() !== "closed") return;
     state.error.set("");
     const url = this.resolved(tab.draft().url.trim());
-    if (url === undefined) return state.error.set("The address uses variables that refer to each other, so nothing was opened.");
+    if (url === undefined)
+      return state.error.set("The address uses variables that refer to each other, so nothing was opened.");
     if (containsSecretPlaceholder({ url, headers: [] })) return state.error.set(NO_SECRET);
-    const protocols = state.protocols().split(",").map((name) => name.trim()).filter((name) => name);
+    const protocols = state
+      .protocols()
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name);
     let socket: WebSocket;
     try {
       socket = new WebSocket(url, protocols);
@@ -115,7 +121,8 @@ export class SocketClient {
     if (state.status() !== "open" || !state.connection) return;
     state.error.set("");
     const text = this.resolved(state.message());
-    if (text === undefined) return state.error.set("The message uses variables that refer to each other, so it was not sent.");
+    if (text === undefined)
+      return state.error.set("The message uses variables that refer to each other, so it was not sent.");
     if (containsSecretPlaceholder({ url: "", headers: [], body: text })) return state.error.set(NO_SECRET);
     if (state.json() && !parseJson(text).ok) return state.error.set("The message is not JSON, so it was not sent.");
     state.connection.send(text);

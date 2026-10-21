@@ -53,17 +53,30 @@ describe("ScriptSandbox", () => {
         info: { eventName: "prerequest", requestName: "Login", requestId: "r" },
         send: (request) => {
           seen.push(request);
-          if (request.url.endsWith("/refused")) return Promise.reject(Object.assign(new Error("not this one"), { name: "WayfarerUnsupportedError" }));
-          return Promise.resolve({ code: 200, status: "OK", headers: {}, body: '{"token":"t-1"}', responseTime: 1, responseSize: 15 });
+          if (request.url.endsWith("/refused"))
+            return Promise.reject(Object.assign(new Error("not this one"), { name: "WayfarerUnsupportedError" }));
+          return Promise.resolve({
+            code: 200,
+            status: "OK",
+            headers: {},
+            body: '{"token":"t-1"}',
+            responseTime: 1,
+            responseSize: 15,
+          });
         },
-      }
+      },
     );
     expect(result.error).toBeUndefined();
     expect(seen).toEqual([
       { method: "POST", url: "https://api.test/login", headers: [], body: "user" },
       { method: "GET", url: "https://api.test/refused", headers: [] },
     ]);
-    expect(result.logs).toEqual(["[pm.sendRequest] POST https://api.test/login → 200", "200 t-1 1 b Login PATCH", "[pm.sendRequest] GET https://api.test/refused → not this one", "WayfarerUnsupportedError not this one"]);
+    expect(result.logs).toEqual([
+      "[pm.sendRequest] POST https://api.test/login → 200",
+      "200 t-1 1 b Login PATCH",
+      "[pm.sendRequest] GET https://api.test/refused → not this one",
+      "WayfarerUnsupportedError not this one",
+    ]);
   });
 
   it("@claim:C-040 gives scripts read/write access to the environment it was handed", async () => {
@@ -74,7 +87,7 @@ describe("ScriptSandbox", () => {
         });
         pm.environment.set("TOKEN", "minted-by-script");
       `,
-      { API_KEY: "abc123" }
+      { API_KEY: "abc123" },
     );
     expect(result.testResults[0].passed).toBe(true);
     expect(result.changes.environment).toEqual([{ key: "TOKEN", value: "minted-by-script" }]);
@@ -101,7 +114,10 @@ describe("ScriptSandbox", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
+      if (!test.passed) {
+        throw new Error(test.label + ": " + test.error);
+      }
+      expect(test.passed).toBe(true);
     }
   });
 
@@ -112,7 +128,10 @@ describe("ScriptSandbox", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
+      if (!test.passed) {
+        throw new Error(test.label + ": " + test.error);
+      }
+      expect(test.passed).toBe(true);
     }
   });
 
@@ -142,7 +161,10 @@ describe("ScriptSandbox", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
+      if (!test.passed) {
+        throw new Error(test.label + ": " + test.error);
+      }
+      expect(test.passed).toBe(true);
     }
   });
 
@@ -170,7 +192,10 @@ describe("ScriptSandbox", () => {
     `);
     expect(result.error).toBeUndefined();
     for (const test of result.testResults) {
-      if (!test.passed) { throw new Error(test.label + ": " + test.error); } expect(test.passed).toBe(true);
+      if (!test.passed) {
+        throw new Error(test.label + ": " + test.error);
+      }
+      expect(test.passed).toBe(true);
     }
   });
 
@@ -183,7 +208,7 @@ describe("ScriptSandbox", () => {
           if (pm.environment.get("SECRET_NOT_PASSED") !== undefined) throw new Error("leaked something not passed in");
         });
       `,
-      { VISIBLE: "yes" }
+      { VISIBLE: "yes" },
     );
     expect(result.testResults.every((t) => t.passed)).toBe(true);
   });
@@ -245,14 +270,24 @@ describe("ScriptSandbox", () => {
       await vi.advanceTimersByTimeAsync(1299);
       expect(settled).toBe(false);
       await vi.advanceTimersByTimeAsync(2);
-      expect(await run).toEqual({ logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [], error: "Script timed out after 300 ms", limit: "timeout" });
+      expect(await run).toEqual({
+        logs: [],
+        changes: { environment: [], collection: [], global: [] },
+        testResults: [],
+        error: "Script timed out after 300 ms",
+        limit: "timeout",
+      });
       expect(FakeWorker.made).toHaveLength(1);
       expect(FakeWorker.made[0].terminated).toBe(true);
 
       const next = service.execute("next()", {});
       await vi.advanceTimersByTimeAsync(0);
       expect(FakeWorker.made).toHaveLength(2);
-      FakeWorker.made[1].say({ id: FakeWorker.made[1].runs[0], type: "result", result: { logs: ["ran"], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      FakeWorker.made[1].say({
+        id: FakeWorker.made[1].runs[0],
+        type: "result",
+        result: { logs: ["ran"], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       expect((await next).logs).toEqual(["ran"]);
       // A run that ended normally keeps its worker.
       expect(FakeWorker.made[1].terminated).toBe(false);
@@ -264,12 +299,26 @@ describe("ScriptSandbox", () => {
       await vi.advanceTimersByTimeAsync(0);
       expect(FakeWorker.made).toHaveLength(2);
       const [one, two] = FakeWorker.made;
-      one.say({ id: one.runs[0], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [], error: "Script exceeded memory limit (64 MB)", limit: "memory" } });
+      one.say({
+        id: one.runs[0],
+        type: "result",
+        result: {
+          logs: [],
+          changes: { environment: [], collection: [], global: [] },
+          testResults: [],
+          error: "Script exceeded memory limit (64 MB)",
+          limit: "memory",
+        },
+      });
       expect((await first).limit).toBe("memory");
       expect(one.terminated).toBe(true);
       // The other tab's script is not stopped with it.
       expect(two.terminated).toBe(false);
-      two.say({ id: two.runs[0], type: "result", result: { logs: ["ran on"], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      two.say({
+        id: two.runs[0],
+        type: "result",
+        result: { logs: ["ran on"], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       expect((await second).logs).toEqual(["ran on"]);
     });
 
@@ -330,7 +379,11 @@ describe("ScriptSandbox", () => {
       const request = { method: "GET", url: "https://api.test/a", headers: [] };
       worker.say({ id: worker.runs[0], type: "send", call: 1, request });
       await vi.advanceTimersByTimeAsync(0);
-      worker.say({ id: worker.runs[0], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      worker.say({
+        id: worker.runs[0],
+        type: "result",
+        result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       await first;
 
       const second = service.execute("pm.sendRequest(...)", {});
@@ -341,16 +394,27 @@ describe("ScriptSandbox", () => {
         { type: "sent", call: 1, error: { name: "WayfarerUnsupportedError", message: "not this one" } },
         { type: "sent", call: 2, error: { name: "Error", message: "pm.sendRequest is not available here." } },
       ]);
-      worker.say({ id: worker.runs[1], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      worker.say({
+        id: worker.runs[1],
+        type: "result",
+        result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       await second;
     });
 
     it("pm.sendRequest: an answer that arrives after the run has ended is not sent to the next worker", async () => {
       let answer: (response: unknown) => void = () => undefined;
-      const run = service.execute("pm.sendRequest(...)", {}, undefined, 300, { send: () => new Promise((resolve) => (answer = resolve as (response: unknown) => void)) });
+      const run = service.execute("pm.sendRequest(...)", {}, undefined, 300, {
+        send: () => new Promise((resolve) => (answer = resolve as (response: unknown) => void)),
+      });
       await vi.advanceTimersByTimeAsync(0);
       const worker = FakeWorker.made[0];
-      worker.say({ id: worker.runs[0], type: "send", call: 1, request: { method: "GET", url: "https://api.test/a", headers: [] } });
+      worker.say({
+        id: worker.runs[0],
+        type: "send",
+        call: 1,
+        request: { method: "GET", url: "https://api.test/a", headers: [] },
+      });
       worker.say({ id: worker.runs[0], type: "failed", message: "the engine did not load" });
       expect((await run).error).toBe("the engine did not load");
       const next = service.execute("next()", {});
@@ -358,7 +422,11 @@ describe("ScriptSandbox", () => {
       answer({ code: 200 });
       await vi.advanceTimersByTimeAsync(0);
       expect(FakeWorker.made[1].answers).toEqual([]);
-      FakeWorker.made[1].say({ id: FakeWorker.made[1].runs[0], type: "result", result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      FakeWorker.made[1].say({
+        id: FakeWorker.made[1].runs[0],
+        type: "result",
+        result: { logs: [], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       await next;
     });
 
@@ -366,8 +434,20 @@ describe("ScriptSandbox", () => {
       const run = service.execute("real()", {});
       await vi.advanceTimersByTimeAsync(0);
       const worker = FakeWorker.made[0];
-      worker.say({ id: "forged", type: "result", result: { logs: ["forged"], changes: { environment: [{ key: "token", value: "forged" }], collection: [], global: [] }, testResults: [] } });
-      worker.say({ id: worker.runs[0], type: "result", result: { logs: ["real"], changes: { environment: [], collection: [], global: [] }, testResults: [] } });
+      worker.say({
+        id: "forged",
+        type: "result",
+        result: {
+          logs: ["forged"],
+          changes: { environment: [{ key: "token", value: "forged" }], collection: [], global: [] },
+          testResults: [],
+        },
+      });
+      worker.say({
+        id: worker.runs[0],
+        type: "result",
+        result: { logs: ["real"], changes: { environment: [], collection: [], global: [] }, testResults: [] },
+      });
       expect((await run).logs).toEqual(["real"]);
     });
   });

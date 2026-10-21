@@ -37,7 +37,10 @@ export class AddressRow {
 
   private readonly urlInput = viewChild<ElementRef<HTMLInputElement>>("urlInput");
 
-  protected readonly methodItems: UiMenuItem[] = HTTP_METHODS.map((method) => ({ label: method, command: () => this.view.onRequestMethodChange(method) }));
+  protected readonly methodItems: UiMenuItem[] = HTTP_METHODS.map((method) => ({
+    label: method,
+    command: () => this.view.onRequestMethodChange(method),
+  }));
   /** Credentials are masked unless asked for; a vault secret's reference stays as written. The code is masked as the first cURL item is (P4.6 a). */
   protected readonly curlItems: UiMenuItem[] = [
     { label: "Copy as cURL", command: () => void this.store.copyAsCurl() },

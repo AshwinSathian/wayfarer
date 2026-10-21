@@ -19,7 +19,9 @@ let base: string;
 test.beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), "wayfarer-sw-"));
   await cp(DIST, root, { recursive: true });
-  server = spawn(process.execPath, ["e2e/support/prod-server.mjs", root, "0"], { stdio: ["ignore", "pipe", "inherit"] });
+  server = spawn(process.execPath, ["e2e/support/prod-server.mjs", root, "0"], {
+    stdio: ["ignore", "pipe", "inherit"],
+  });
   base = await new Promise<string>((resolve, reject) => {
     server.once("exit", (code) => reject(new Error(`prod-server exited with ${code}`)));
     server.stdout?.on("data", (chunk: Buffer) => {
@@ -58,7 +60,11 @@ test("@claim:C-015 the app loads with the network disabled after one visit", asy
   await expect(page.getByRole("button", { name: "Send request" })).toBeVisible();
 });
 
-test("@claim:C-015 offline after one visit, every script that visit loaded is there, the lazy ones too: the editor opens (F84)", async ({ page, context, browserName }) => {
+test("@claim:C-015 offline after one visit, every script that visit loaded is there, the lazy ones too: the editor opens (F84)", async ({
+  page,
+  context,
+  browserName,
+}) => {
   await loadControlled(page);
   // The editor's files are not in index.html: the page asks for them when an editor is first shown (P7.2:
   // not at load), here the Scripts tab's. Firefox mounts it some seconds in.
@@ -71,7 +77,11 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
     page.evaluate(async () => {
       const loaded = performance.getEntriesByType("resource").map((entry) => new URL(entry.name));
       // Every script but the worker's own file, which a browser never takes from a worker's cache.
-      const paths = loaded.filter((url) => url.origin === location.origin && url.pathname.endsWith(".js") && url.pathname !== "/app/sw.js").map((url) => url.pathname);
+      const paths = loaded
+        .filter(
+          (url) => url.origin === location.origin && url.pathname.endsWith(".js") && url.pathname !== "/app/sw.js",
+        )
+        .map((url) => url.pathname);
       const kept = await Promise.all(paths.map((path) => caches.match(path)));
       return { loaded: paths, notKept: paths.filter((_, index) => !kept[index]) };
     });
@@ -91,7 +101,11 @@ test("@claim:C-015 offline after one visit, every script that visit loaded is th
   expect(failed.filter((path) => loaded.includes(path))).toEqual([]);
 });
 
-test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell",async ({ page, context, browserName }) => {
+test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app shell", async ({
+  page,
+  context,
+  browserName,
+}) => {
   await loadControlled(page);
   // Served same-origin as text/markdown and text/plain, in the worker's scope: never the app shell.
   await page.goto(`${base}/app/THIRD_PARTY_NOTICES.md`);
@@ -105,7 +119,11 @@ test("@claim:C-015 navigating to a non-HTML file doesn't replace the offline app
 
 // F69: every HTML answer to a navigation was stored as the app's shell. The
 // OAuth callback page (P4.7) is the app's second HTML page.
-test("@claim:C-015 after an OAuth sign-in came back to the callback page, the offline app is still the app", async ({ page, context, browserName }) => {
+test("@claim:C-015 after an OAuth sign-in came back to the callback page, the offline app is still the app", async ({
+  page,
+  context,
+  browserName,
+}) => {
   await loadControlled(page);
   await page.goto(`${base}/app/oauth/callback?code=c-1&state=s-1`);
   await expect(page.getByText("Wayfarer has not answered.")).toBeVisible();
@@ -116,8 +134,17 @@ test("@claim:C-015 after an OAuth sign-in came back to the callback page, the of
   await expect(page.locator("input.address-url")).toBeVisible();
 });
 
-test("@claim:C-015 a script runs with the network disabled after one run online", async ({ page, context, browserName }) => {
-  const script = { method: "GET", url: "http://127.0.0.1:4300/content/json?c015=script", preRequestScript: "pm.test('ran in the engine', () => pm.expect(require('lodash').chunk([1, 2, 3], 2).length).to.equal(2));" };
+test("@claim:C-015 a script runs with the network disabled after one run online", async ({
+  page,
+  context,
+  browserName,
+}) => {
+  const script = {
+    method: "GET",
+    url: "http://127.0.0.1:4300/content/json?c015=script",
+    preRequestScript:
+      "pm.test('ran in the engine', () => pm.expect(require('lodash').chunk([1, 2, 3], 2).length).to.equal(2));",
+  };
   await loadControlled(page);
   await seedAndOpen(page, {}, script, base);
   const tests = page.locator("app-response-viewer").getByRole("tab", { name: /Tests/ });
@@ -126,7 +153,9 @@ test("@claim:C-015 a script runs with the network disabled after one run online"
   await tests.click();
   await expect(ran).toBeVisible();
   // The engine, its worker, the worker's chunks and the library the script requires were fetched once and are in the worker's cache now.
-  const cached = await page.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).map((r) => new URL(r.url).pathname));
+  const cached = await page.evaluate(async () =>
+    (await (await caches.open((await caches.keys())[0])).keys()).map((r) => new URL(r.url).pathname),
+  );
   expect(cached.filter((path) => /^\/app\/media\/emscripten-module-[A-Z0-9]{8}\.wasm$/.test(path))).toHaveLength(1);
 
   server.kill();
@@ -141,7 +170,9 @@ test("@claim:C-015 a script runs with the network disabled after one run online"
   await expect(ran).toBeVisible();
 });
 
-test("@claim:C-010 with the service worker in control, a DNS failure shows the real network error, not a 504", async ({ page }) => {
+test("@claim:C-010 with the service worker in control, a DNS failure shows the real network error, not a 504", async ({
+  page,
+}) => {
   await loadControlled(page);
   await page.locator("input.address-url").fill("https://wayfarer-sw-dns.invalid/");
   await page.getByRole("button", { name: "Send request" }).click();
@@ -203,6 +234,8 @@ test("the kill switch (scripts/sw-kill.js deployed as sw.js) removes the worker 
   // The browser looks for a new worker on its own schedule after a navigation: about 3 s on a laptop, longer on a
   // CI runner, and a second more when the page changes its theme as it starts (F85). The outcome is what is
   // asserted, not the time (plan R6), so the wait is long.
-  await expect.poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length), { timeout: 30_000 }).toBe(0);
+  await expect
+    .poll(() => settled(async () => (await navigator.serviceWorker.getRegistrations()).length), { timeout: 30_000 })
+    .toBe(0);
   await expect.poll(() => settled(() => caches.keys()), { timeout: 30_000 }).toEqual([]);
 });

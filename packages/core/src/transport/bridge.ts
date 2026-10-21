@@ -39,12 +39,14 @@ interface RelayErrorBody {
  * the user, or undefined when it is a Local Bridge (P6.3).
  */
 export function bridgeHealthProblem(health: unknown): string | undefined {
-  const ok = health !== null && typeof health === "object" && !Array.isArray(health) && (health as { ok?: unknown }).ok === true;
+  const ok =
+    health !== null && typeof health === "object" && !Array.isArray(health) && (health as { ok?: unknown }).ok === true;
   return ok ? undefined : "What answered at this address is not a Local Bridge.";
 }
 
 /** The bridge did not understand the page's request, or the page its answer: the two are of different versions. */
-export const BRIDGE_MISMATCH = "The Local Bridge that answered does not understand this page. Update the Local Bridge and reload Wayfarer, then start the bridge again.";
+export const BRIDGE_MISMATCH =
+  "The Local Bridge that answered does not understand this page. Update the Local Bridge and reload Wayfarer, then start the bridge again.";
 
 /**
  * Sends the request through the Local Bridge: one POST to `/relay`, with the request's headers as a list and its body as bytes,
@@ -62,7 +64,7 @@ export const BRIDGE_MISMATCH = "The Local Bridge that answered does not understa
 export class BridgeTransport implements Transport {
   constructor(
     private readonly bridge: { url: string; token: string },
-    private readonly fetchFn: FetchFn = (input, init) => fetch(input, init)
+    private readonly fetchFn: FetchFn = (input, init) => fetch(input, init),
   ) {}
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
@@ -70,12 +72,24 @@ export class BridgeTransport implements Transport {
       const { redirects } = options;
       const insecure = options.tlsInsecure === true;
       const chain: RedirectHop[] = [];
-      for (let hop = request; ; ) {
+      for (let hop = request; ;) {
         // The jar's cookies are added to what is relayed, not to `hop`: the next hop asks the jar again.
-        const envelope = await this.relay(options.cookies ? { ...hop, headers: withJarCookies(hop.headers, options.cookies.for(hop.url)) } : hop, signal, options.timeoutMs, insecure);
-        options.cookies?.store(hop.url, envelope.headers.filter(([name]) => name === "set-cookie").map(([, value]) => value));
+        const envelope = await this.relay(
+          options.cookies ? { ...hop, headers: withJarCookies(hop.headers, options.cookies.for(hop.url)) } : hop,
+          signal,
+          options.timeoutMs,
+          insecure,
+        );
+        options.cookies?.store(
+          hop.url,
+          envelope.headers.filter(([name]) => name === "set-cookie").map(([, value]) => value),
+        );
         if (!redirects) return envelope;
-        const ended = (stopped?: RedirectStop): ResponseEnvelope => ({ ...envelope, redirected: chain.length > 0, redirects: { chain, ...(stopped && { stopped }) } });
+        const ended = (stopped?: RedirectStop): ResponseEnvelope => ({
+          ...envelope,
+          redirected: chain.length > 0,
+          redirects: { chain, ...(stopped && { stopped }) },
+        });
         const location = envelope.headers.find(([name]) => name.toLowerCase() === "location")?.[1];
         if (location === undefined) return ended();
         const next = nextHop(hop, envelope.status, location, redirects.stayOnHost);
@@ -93,13 +107,25 @@ export class BridgeTransport implements Transport {
     return this.bridge.url.replace(/\/+$/, "");
   }
 
-  private async relay(request: ResolvedRequest, signal: AbortSignal, timeoutMs: number, insecure: boolean): Promise<ResponseEnvelope> {
+  private async relay(
+    request: ResolvedRequest,
+    signal: AbortSignal,
+    timeoutMs: number,
+    insecure: boolean,
+  ): Promise<ResponseEnvelope> {
     const { headers, bytes } = await wireBody(request);
     const response = await this.fetchFn(`${this.base}/relay`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Wayfarer-Bridge-Token": this.bridge.token },
       // Only the fields the bridge reads: it refuses one it does not know.
-      body: JSON.stringify({ method: request.method, url: request.url, headers, ...(bytes && { bodyB64: toBase64(bytes) }), ...(timeoutMs > 0 && { timeoutMs }), ...(insecure && { tls: { insecure: true } }) }),
+      body: JSON.stringify({
+        method: request.method,
+        url: request.url,
+        headers,
+        ...(bytes && { bodyB64: toBase64(bytes) }),
+        ...(timeoutMs > 0 && { timeoutMs }),
+        ...(insecure && { tls: { insecure: true } }),
+      }),
       cache: "no-store",
       credentials: "omit",
       referrerPolicy: "no-referrer",
@@ -108,7 +134,11 @@ export class BridgeTransport implements Transport {
     const text = await response.text();
     if (response.status === 404) throw new TransportError("bridge", BRIDGE_MISMATCH, 404);
     if (!response.ok) {
-      throw new TransportError("bridge", describeError(text) ?? `The bridge answered ${response.status}.`, response.status);
+      throw new TransportError(
+        "bridge",
+        describeError(text) ?? `The bridge answered ${response.status}.`,
+        response.status,
+      );
     }
     const relay = parseEnvelope(text);
     if (!relay) throw new TransportError("bridge", BRIDGE_MISMATCH);
@@ -130,7 +160,10 @@ async function wireBody(request: ResolvedRequest): Promise<{ headers: [string, s
   const bytes = new Uint8Array(await written.arrayBuffer());
   const type = written.headers.get("content-type");
   if (!(body instanceof FormData) || type === null) return { headers, bytes };
-  return { headers: [...headers.filter(([name]) => name.toLowerCase() !== "content-type"), ["Content-Type", type]], bytes };
+  return {
+    headers: [...headers.filter(([name]) => name.toLowerCase() !== "content-type"), ["Content-Type", type]],
+    bytes,
+  };
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -145,8 +178,21 @@ function parseEnvelope(text: string): RelayEnvelope | undefined {
   const value = jsonOf(text);
   if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined;
   const { status, statusText, headers, bodyB64, encodedSize, decodedSize } = value as Record<string, unknown>;
-  const pairs = Array.isArray(headers) && headers.every((pair): pair is [string, string] => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string");
-  if (typeof status !== "number" || typeof statusText !== "string" || !pairs || typeof bodyB64 !== "string" || typeof encodedSize !== "number" || typeof decodedSize !== "number") return undefined;
+  const pairs =
+    Array.isArray(headers) &&
+    headers.every(
+      (pair): pair is [string, string] =>
+        Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string",
+    );
+  if (
+    typeof status !== "number" ||
+    typeof statusText !== "string" ||
+    !pairs ||
+    typeof bodyB64 !== "string" ||
+    typeof encodedSize !== "number" ||
+    typeof decodedSize !== "number"
+  )
+    return undefined;
   const timings = readTimings((value as Record<string, unknown>)["timings"]);
   return { status, statusText, headers, bodyB64, encodedSize, decodedSize, ...(timings && { timings }) };
 }

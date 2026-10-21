@@ -15,7 +15,7 @@ export function GET() {
       <guid>${SITE}/blog/${post.slug}/</guid>
       <pubDate>${new Date(`${post.date}T00:00:00Z`).toUTCString()}</pubDate>
       <description>${escape(post.description)}</description>
-    </item>`
+    </item>`,
     )
     .join("\n");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

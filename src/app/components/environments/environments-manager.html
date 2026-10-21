@@ -4,20 +4,43 @@
     <div class="mb-3 flex items-center justify-between gap-2">
       <span class="type-overline text-label-tertiary">Environments</span>
       <div class="flex items-center gap-0.5">
-        <button type="button" uiButton="icon" class="btn-plain" (click)="globalsVisible.set(true)" uiTooltip="Global variables" aria-label="Global variables">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          (click)="globalsVisible.set(true)"
+          uiTooltip="Global variables"
+          aria-label="Global variables"
+        >
           <app-icon name="data_object" class="icon-sm" />
         </button>
-        <button type="button" uiButton="icon" class="btn-plain" (click)="envImportInput.click()" uiTooltip="Import" aria-label="Import environments">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          (click)="envImportInput.click()"
+          uiTooltip="Import"
+          aria-label="Import environments"
+        >
           <app-icon name="upload" class="icon-sm" />
         </button>
-        <button type="button" uiButton="icon" class="btn-plain" (click)="exportDialogVisible.set(true)" uiTooltip="Export" aria-label="Export environments">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          (click)="exportDialogVisible.set(true)"
+          uiTooltip="Export"
+          aria-label="Export environments"
+        >
           <app-icon name="download" class="icon-sm" />
         </button>
         <button
-          uiButton="filled" class="btn-secondary btn-sm btn-square"
+          uiButton="filled"
+          class="btn-secondary btn-sm btn-square"
           aria-label="New environment"
           (click)="openNewEnvironmentDialog()"
-        ><app-icon name="add" /></button>
+          ><app-icon name="add"
+        /></button>
       </div>
     </div>
 
@@ -34,14 +57,17 @@
       <app-icon name="dns" class="icon-lg text-label-tertiary" />
       <p class="type-footnote text-label-tertiary text-center">No environments yet.</p>
     </div>
-    } @else {
-    @let activeEnv = activeEnvironment();
-    @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
+    } @else { @let activeEnv = activeEnvironment(); @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
     <div class="space-y-1">
       @for (env of environments(); track env.meta.id) {
       <!-- A row is not a button: it holds one that selects it, stretched over the row, and the row's own buttons beside it. -->
       <div class="env-item" [class.active]="selectedId() === env.meta.id" [class.current]="activeEnvId === env.meta.id">
-        <button type="button" class="env-item-select" [attr.aria-current]="selectedId() === env.meta.id ? 'true' : null" (click)="selectEnvironment(env.meta.id)">
+        <button
+          type="button"
+          class="env-item-select"
+          [attr.aria-current]="selectedId() === env.meta.id ? 'true' : null"
+          (click)="selectEnvironment(env.meta.id)"
+        >
           <span class="type-body font-semibold text-label-primary truncate max-w-full">{{ env.name }}</span>
           @if (activeEnvId === env.meta.id) {
           <span class="env-active-tag mt-1">
@@ -52,23 +78,25 @@
         </button>
         <div class="env-item-actions flex items-center gap-0.5 shrink-0">
           <button
-            uiButton="icon" class="btn-success btn-sm"
+            uiButton="icon"
+            class="btn-success btn-sm"
             [disabled]="activeEnvId === env.meta.id"
             (click)="setActive(env)"
             uiTooltip="Use for requests"
             uiTooltipPosition="above"
             aria-label="Use for requests"
-          ><app-icon name="check" /></button>
+            ><app-icon name="check"
+          /></button>
+          <button uiButton="icon" class="btn-sm" [attr.aria-label]="'Duplicate ' + env.name" (click)="duplicate(env)"
+            ><app-icon name="content_copy"
+          /></button>
           <button
-            uiButton="icon" class="btn-sm"
-            [attr.aria-label]="'Duplicate ' + env.name"
-            (click)="duplicate(env)"
-          ><app-icon name="content_copy" /></button>
-          <button
-            uiButton="icon" class="btn-danger btn-sm"
+            uiButton="icon"
+            class="btn-danger btn-sm"
             [attr.aria-label]="'Delete ' + env.name"
             (click)="remove(env)"
-          ><app-icon name="delete" /></button>
+            ><app-icon name="delete"
+          /></button>
         </div>
       </div>
       }
@@ -83,18 +111,26 @@
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
         <mat-form-field class="field w-full">
-          <input class="font-sans" matInput id="env-name-input" [(ngModel)]="form.name" (ngModelChange)="syncDraft(form)" />
+          <input
+            class="font-sans"
+            matInput
+            id="env-name-input"
+            [(ngModel)]="form.name"
+            (ngModelChange)="syncDraft(form)"
+          />
         </mat-form-field>
       </div>
       <div>
         <label for="env-description-input" class="ds-form-label">Description</label>
         <mat-form-field class="field w-full">
-          <input class="font-sans" matInput
+          <input
+            class="font-sans"
+            matInput
             id="env-description-input"
             [(ngModel)]="form.description"
             (ngModelChange)="syncDraft(form)"
             placeholder="Optional"
-           />
+          />
         </mat-form-field>
       </div>
     </div>
@@ -106,93 +142,122 @@
           <button ngTab type="button" value="json">JSON</button>
         </div>
         <div class="tab-panes">
-          <div ngTabPanel value="pairs" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <div class="flex flex-col gap-2">
-              @for (item of form.vars; track $index) {
-              <div
-                class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all"
-                [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
-              >
-                <mat-form-field class="field">
-                  <input class="font-mono" matInput
-                    placeholder="KEY"
-                    [(ngModel)]="form.vars[$index].key"
-                    (ngModelChange)="onPairsChange()"
-                   />
-                </mat-form-field>
-                @if (!isSecretValue(form.vars[$index].value)) {
-                <mat-form-field class="field">
-                  <input class="font-mono" matInput
-                    placeholder="Value"
-                    [(ngModel)]="form.vars[$index].value"
-                    (ngModelChange)="onPairsChange()"
-                   />
-                </mat-form-field>
-                } @else {
-                <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
-                  <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
-                  <div class="type-footnote text-label-tertiary mt-0.5">
-                    @if (!secretsUnlocked) {
-                    Unlock to reveal
-                    } @else if (getSecretPreview(form.vars[$index].value)) {
-                    {{ getSecretPreview(form.vars[$index].value) }}
-                    } @else {
-                    <button type="button" class="underline text-accent-text bg-transparent" (click)="revealSecret($index)">Reveal</button>
-                    }
+          <div ngTabPanel value="pairs" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div class="flex flex-col gap-2">
+                @for (item of form.vars; track $index) {
+                <div
+                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all"
+                  [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
+                >
+                  <mat-form-field class="field">
+                    <input
+                      class="font-mono"
+                      matInput
+                      placeholder="KEY"
+                      [(ngModel)]="form.vars[$index].key"
+                      (ngModelChange)="onPairsChange()"
+                    />
+                  </mat-form-field>
+                  @if (!isSecretValue(form.vars[$index].value)) {
+                  <mat-form-field class="field">
+                    <input
+                      class="font-mono"
+                      matInput
+                      placeholder="Value"
+                      [(ngModel)]="form.vars[$index].value"
+                      (ngModelChange)="onPairsChange()"
+                    />
+                  </mat-form-field>
+                  } @else {
+                  <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
+                    <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
+                    <div class="type-footnote text-label-tertiary mt-0.5">
+                      @if (!secretsUnlocked) { Unlock to reveal } @else if (getSecretPreview(form.vars[$index].value)) {
+                      {{ getSecretPreview(form.vars[$index].value) }} } @else {
+                      <button
+                        type="button"
+                        class="underline text-accent-text bg-transparent"
+                        (click)="revealSecret($index)"
+                        >Reveal</button
+                      >
+                      }
+                    </div>
                   </div>
+                  }
+                  <button
+                    uiButton="icon"
+                    class="btn-secondary"
+                    [disabled]="isSecretValue(form.vars[$index].value)"
+                    aria-label="Mark variable as secret"
+                    (click)="protectVariable($index)"
+                    ><app-icon name="lock"
+                  /></button>
+                  <button
+                    uiButton="icon"
+                    class="btn-secondary"
+                    aria-label="Remove variable"
+                    (click)="removeVariable($index)"
+                    ><app-icon name="close"
+                  /></button>
                 </div>
+                } @if (shortSecretWarning(); as short) {
+                <p role="status" class="type-footnote text-status-warning flex items-center gap-1.5">
+                  <app-icon name="warning" class="icon-xs" />
+                  "{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be
+                  found and masked where a server sends it back.
+                </p>
                 }
-                <button
-                  uiButton="icon" class="btn-secondary"
-                  [disabled]="isSecretValue(form.vars[$index].value)"
-                  aria-label="Mark variable as secret"
-                  (click)="protectVariable($index)"
-                ><app-icon name="lock" /></button>
-                <button
-                  uiButton="icon" class="btn-secondary"
-                  aria-label="Remove variable"
-                  (click)="removeVariable($index)"
-                ><app-icon name="close" /></button>
+                <button uiButton="filled" class="btn-secondary btn-sm" aria-label="Add variable" (click)="addVariable()"
+                  ><app-icon name="add" /> Add Variable</button
+                >
               </div>
-              }
-              @if (shortSecretWarning(); as short) {
-              <p role="status" class="type-footnote text-status-warning flex items-center gap-1.5">
-                <app-icon name="warning" class="icon-xs" />
-                "{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be found and masked where a server sends it back.
-              </p>
-              }
-              <button uiButton="filled" class="btn-secondary btn-sm" aria-label="Add variable" (click)="addVariable()"><app-icon name="add" /> Add Variable</button>
-            </div>
-          </ng-template></div>
-          <div ngTabPanel value="json" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <div class="space-y-2">
-              @if (!form.jsonValid) {
-              <p class="type-footnote text-status-error flex items-center gap-1">
-                <app-icon name="error" class="icon-xs" />
-                Invalid JSON
-              </p>
-              }
-              <app-json-editor
-                name="env-json"
-                [(ngModel)]="form.jsonText"
-                (jsonValidChange)="form.jsonValid = $event"
-                (parsedChange)="onJsonChange(form.jsonText, form.jsonValid, $event)"
-                [height]="240"
-              ></app-json-editor>
-            </div>
-          </ng-template></div>
+            </ng-template></div
+          >
+          <div ngTabPanel value="json" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div class="space-y-2">
+                @if (!form.jsonValid) {
+                <p class="type-footnote text-status-error flex items-center gap-1">
+                  <app-icon name="error" class="icon-xs" />
+                  Invalid JSON
+                </p>
+                }
+                <app-json-editor
+                  name="env-json"
+                  [(ngModel)]="form.jsonText"
+                  (jsonValidChange)="form.jsonValid = $event"
+                  (parsedChange)="onJsonChange(form.jsonText, form.jsonValid, $event)"
+                  [height]="240"
+                ></app-json-editor>
+              </div> </ng-template
+          ></div>
         </div>
       </div>
     </div>
 
     <div class="mt-5 flex justify-end">
-      <button uiButton="filled" aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()">Save changes</button>
+      <button uiButton="filled" aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"
+        >Save changes</button
+      >
     </div>
   </div>
   } @else {
   <div class="ds-empty-state">
-    <app-icon name="dns" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
-    <p class="type-callout text-label-tertiary max-w-[220px] text-center">Select or create an environment to begin editing.</p>
+    <app-icon
+      name="dns"
+      class="icon-xl text-label-tertiary"
+      style="
+        font-variation-settings:
+          &quot;FILL&quot; 0,
+          &quot;wght&quot; 200,
+          &quot;GRAD&quot; -25,
+          &quot;opsz&quot; 48;
+      "
+    />
+    <p class="type-callout text-label-tertiary max-w-[220px] text-center"
+      >Select or create an environment to begin editing.</p
+    >
   </div>
   }
 </div>
@@ -209,40 +274,46 @@
     <div>
       <label for="new-env-name-input" class="ds-form-label">Name</label>
       <mat-form-field class="field w-full">
-        <input class="font-sans" matInput
+        <input
+          class="font-sans"
+          matInput
           cdkFocusInitial
           id="new-env-name-input"
           [ngModel]="newEnvForm().name"
           (ngModelChange)="onNewEnvNameChange($event)"
           placeholder="Environment name"
-         />
+        />
       </mat-form-field>
     </div>
     <div>
       <label for="new-env-description-input" class="ds-form-label">Description</label>
       <mat-form-field class="field w-full">
-        <input class="font-sans" matInput
+        <input
+          class="font-sans"
+          matInput
           id="new-env-description-input"
           [ngModel]="newEnvForm().description"
           (ngModelChange)="onNewEnvDescriptionChange($event)"
           placeholder="Optional"
-         />
+        />
       </mat-form-field>
     </div>
   </div>
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeNewEnvironmentDialog()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="closeNewEnvironmentDialog()"
+        >Cancel</button
+      >
       <button
         uiButton="filled"
         aria-label="Create environment"
         [disabled]="!newEnvForm().name.trim()"
         (click)="submitNewEnvironment()"
-      >Create</button>
+        >Create</button
+      >
     </div>
   </div>
 </ui-dialog>
-
 
 <app-variables-dialog
   header="Global variables"

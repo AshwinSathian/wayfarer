@@ -17,7 +17,11 @@ test("a built file's path is the page's address, and the image of that address i
 });
 
 test("the card's text is the page's title without the site's suffix, and its description, unescaped", () => {
-  const html = '<title>Auth: Wayfarer docs</title><meta name="description" content="Sign in &amp; send: &quot;Basic&quot;"/>';
+  const html =
+    '<title>Auth: Wayfarer docs</title><meta name="description" content="Sign in &amp; send: &quot;Basic&quot;"/>';
   assert.deepEqual(cardText(html), { title: "Auth", description: 'Sign in & send: "Basic"' });
-  assert.equal(cardText("<title>Wayfarer: an API client in your browser</title>").title, "Wayfarer: an API client in your browser");
+  assert.equal(
+    cardText("<title>Wayfarer: an API client in your browser</title>").title,
+    "Wayfarer: an API client in your browser",
+  );
 });

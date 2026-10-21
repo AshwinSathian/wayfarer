@@ -6,7 +6,15 @@ import { UiButton } from "./button";
 @Component({
   imports: [UiButton],
   template: `
-    <button id="filled" uiButton="filled" class="btn-sm" type="button" [disabled]="off()" (click)="pressed.set(pressed() + 1)">Save</button>
+    <button
+      id="filled"
+      uiButton="filled"
+      class="btn-sm"
+      type="button"
+      [disabled]="off()"
+      (click)="pressed.set(pressed() + 1)"
+      >Save</button
+    >
     <button id="outlined" uiButton="outlined" type="button">Cancel</button>
     <button id="text" uiButton type="button">Clear</button>
     <button id="icon" uiButton="icon" type="button" aria-label="Close">x</button>
@@ -29,7 +37,12 @@ describe("UiButton", () => {
 
   it("names its variant in a class, a text button when it names none, and keeps the element's own classes", async () => {
     const { fixture, el } = await setup();
-    const variants = ["filled", "outlined", "text", "icon", "link"].map((id) => [...el(id).classList].filter((name) => name.startsWith("ui-button")).sort().join(" "));
+    const variants = ["filled", "outlined", "text", "icon", "link"].map((id) =>
+      [...el(id).classList]
+        .filter((name) => name.startsWith("ui-button"))
+        .sort()
+        .join(" "),
+    );
     expect(variants).toEqual([
       "ui-button ui-button-filled",
       "ui-button ui-button-outlined",

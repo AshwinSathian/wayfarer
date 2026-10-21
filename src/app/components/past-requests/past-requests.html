@@ -13,31 +13,50 @@
   </div>
   } @else if (!pastRequests().length) {
   <div class="flex flex-col items-center gap-2.5 p-6 text-center">
-    <app-icon name="history" class="icon-xl text-label-tertiary"  style="font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' -25, 'opsz' 48;" />
+    <app-icon
+      name="history"
+      class="icon-xl text-label-tertiary"
+      style="
+        font-variation-settings:
+          &quot;FILL&quot; 0,
+          &quot;wght&quot; 200,
+          &quot;GRAD&quot; -25,
+          &quot;opsz&quot; 48;
+      "
+    />
     <p class="type-footnote text-label-tertiary">No history yet.</p>
   </div>
   } @else {
   <div class="flex flex-col gap-4">
     <mat-form-field class="field w-full">
-      <input class="font-sans" matInput
+      <input
+        class="font-sans"
+        matInput
         type="search"
         aria-label="Search history"
         placeholder="Search by URL, method or status"
         [value]="query()"
         (input)="query.set($any($event.target).value)"
-       />
+      />
     </mat-form-field>
     @if (!groups().length) {
     <p class="type-footnote text-label-tertiary px-2">No request in history matches.</p>
     } @else {
     <div class="history-export flex flex-wrap items-center gap-2 px-2">
-      <button uiButton type="button" class="btn-sm" (click)="chooseShown()">{{ allShownChosen() ? "Select none" : "Select all" }}</button>
-      <button uiButton="outlined" type="button" class="btn-secondary btn-sm" [disabled]="!chosen().length" (click)="exportChosen()">
+      <button uiButton type="button" class="btn-sm" (click)="chooseShown()"
+        >{{ allShownChosen() ? "Select none" : "Select all" }}</button
+      >
+      <button
+        uiButton="outlined"
+        type="button"
+        class="btn-secondary btn-sm"
+        [disabled]="!chosen().length"
+        (click)="exportChosen()"
+      >
         <app-icon name="download" /> Export {{ chosen().length || "" }} as HAR…
       </button>
     </div>
-    }
-    @for (group of groups(); track group.label) {
+    } @for (group of groups(); track group.label) {
     <div>
       <!-- Group date label -->
       <div class="px-2 pb-1.5">
@@ -47,10 +66,14 @@
       <div class="flex flex-col gap-0.5">
         @for (request of group.requests; track trackById($index, request)) {
         <div class="group overflow-hidden rounded-lg transition-colors hover:bg-fill-hover">
-
           <!-- Desktop row -->
           <div class="hidden md:flex items-center gap-2.5 px-2.5 py-2">
-            <mat-checkbox class="shrink-0" [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'" [checked]="isChosen(request)" (change)="choose(request, $event.checked)" />
+            <mat-checkbox
+              class="shrink-0"
+              [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
+              [checked]="isChosen(request)"
+              (change)="choose(request, $event.checked)"
+            />
             <span class="method-badge method-{{ request.sent.method.toLowerCase() }} shrink-0">
               {{ request.sent.method }}
             </span>
@@ -63,7 +86,8 @@
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"
               [uiTooltip]="details"
-            >{{ request.sent.url }}</span>
+              >{{ request.sent.url }}</span
+            >
 
             @if (request.response) {
             <span
@@ -73,19 +97,25 @@
                 'text-status-warning': request.response.status >= 300 && request.response.status < 500,
                 'text-status-error':   request.response.status >= 500 || request.response.status === 0
               }"
-            >{{ request.response.status }}</span>
+              >{{ request.response.status }}</span
+            >
+            } @if (request.durationMs) {
+            <span class="type-footnote text-label-tertiary shrink-0 tabular-nums"
+              >{{ formatDuration(request.durationMs) }}</span
+            >
             }
 
-            @if (request.durationMs) {
-            <span class="type-footnote text-label-tertiary shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
-            }
-
-            <span class="type-footnote text-label-tertiary shrink-0" [uiTooltip]="(request.createdAt | date:'medium') ?? ''">
+            <span
+              class="type-footnote text-label-tertiary shrink-0"
+              [uiTooltip]="(request.createdAt | date:'medium') ?? ''"
+            >
               {{ relativeTime(request.createdAt) }}
             </span>
 
-            <button type="button"
-              uiButton="icon" class="btn-plain w-7! h-7! shrink-0 opacity-0 group-hover:opacity-100"
+            <button
+              type="button"
+              uiButton="icon"
+              class="btn-plain w-7! h-7! shrink-0 opacity-0 group-hover:opacity-100"
               uiTooltip="Delete"
               uiTooltipPosition="above"
               aria-label="Delete history entry"
@@ -98,10 +128,13 @@
               <div class="space-y-1.5 min-w-[180px] max-w-xs type-callout p-1">
                 <p class="text-label-primary truncate font-mono text-xs">{{ request.sent.url }}</p>
                 @if (request.response) {
-                <p class="text-label-secondary">Status: <span class="font-semibold">{{ request.response.status }}</span></p>
-                }
-                @if (request.durationMs) {
-                <p class="text-label-secondary">Duration: <span class="font-semibold">{{ formatDuration(request.durationMs) }}</span></p>
+                <p class="text-label-secondary"
+                  >Status: <span class="font-semibold">{{ request.response.status }}</span></p
+                >
+                } @if (request.durationMs) {
+                <p class="text-label-secondary"
+                  >Duration: <span class="font-semibold">{{ formatDuration(request.durationMs) }}</span></p
+                >
                 }
                 <p class="text-label-tertiary text-xs">{{ request.createdAt | date:'medium' }}</p>
               </div>
@@ -110,48 +143,63 @@
 
           <!-- Mobile accordion -->
           <div class="md:hidden flex items-start">
-            <mat-checkbox class="shrink-0 mt-1" [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'" [checked]="isChosen(request)" (change)="choose(request, $event.checked)" />
+            <mat-checkbox
+              class="shrink-0 mt-1"
+              [aria-label]="'Select ' + request.sent.method + ' ' + request.sent.url + ' for export'"
+              [checked]="isChosen(request)"
+              (change)="choose(request, $event.checked)"
+            />
             <div uiAccordion class="min-w-0 flex-1">
               <div class="sections-item">
                 <button ngAccordionTrigger class="section-header" [panel]="entry">
                   <!-- min-w-0: a flex child is as wide as its text unless told it may be narrower, and a URL is one long word. -->
                   <span class="flex min-w-0 flex-1 items-center gap-2">
-                    <span class="method-badge shrink-0 method-{{ request.sent.method.toLowerCase() }}">{{ request.sent.method }}</span>
+                    <span class="method-badge shrink-0 method-{{ request.sent.method.toLowerCase() }}"
+                      >{{ request.sent.method }}</span
+                    >
                     <span class="type-mono-body text-label-secondary min-w-0 truncate">{{ request.sent.url }}</span>
                   </span>
                   <app-icon class="section-chevron" name="keyboard_arrow_down" />
                 </button>
-                <div ngAccordionPanel uiAccordionPanel #entry="ngAccordionPanel" class="section-body" [preserveContent]="true">
+                <div
+                  ngAccordionPanel
+                  uiAccordionPanel
+                  #entry="ngAccordionPanel"
+                  class="section-body"
+                  [preserveContent]="true"
+                >
                   <ng-template ngAccordionContent>
-                  <div class="space-y-2 type-callout text-label-secondary">
-                    @if (request.response) {
-                    <p>Status: <span class="font-semibold">{{ request.response.status }}</span></p>
-                    }
-                    @if (request.durationMs) {
-                    <p>Duration: {{ formatDuration(request.durationMs) }}</p>
-                    }
-                    <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
-                    <div class="flex items-center gap-2">
-                      <button
-                        uiButton class="btn-secondary btn-sm"
-                        type="button"
-                        aria-label="Load request"
-                        (click)="load(request)"
-                      >Load</button>
-                      <button
-                        uiButton class="btn-danger btn-sm"
-                        type="button"
-                        aria-label="Delete request"
-                        (click)="confirmDelete(request, $event)"
-                      >Delete</button>
+                    <div class="space-y-2 type-callout text-label-secondary">
+                      @if (request.response) {
+                      <p>Status: <span class="font-semibold">{{ request.response.status }}</span></p>
+                      } @if (request.durationMs) {
+                      <p>Duration: {{ formatDuration(request.durationMs) }}</p>
+                      }
+                      <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
+                      <div class="flex items-center gap-2">
+                        <button
+                          uiButton
+                          class="btn-secondary btn-sm"
+                          type="button"
+                          aria-label="Load request"
+                          (click)="load(request)"
+                          >Load</button
+                        >
+                        <button
+                          uiButton
+                          class="btn-danger btn-sm"
+                          type="button"
+                          aria-label="Delete request"
+                          (click)="confirmDelete(request, $event)"
+                          >Delete</button
+                        >
+                      </div>
                     </div>
-                  </div>
                   </ng-template>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
         }
       </div>

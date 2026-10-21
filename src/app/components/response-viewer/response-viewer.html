@@ -1,7 +1,16 @@
-<div class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden" [class.response-fill]="fill()">
+<div
+  class="w-full rounded-xl bg-canvas-elevated border border-separator overflow-hidden"
+  [class.response-fill]="fill()"
+>
   @if (loading() && events().length) {
   <!-- An event stream that is open (P5.6): its events as they arrive. The rest of the response is here when it ends. -->
-  <app-event-list class="block space-y-3 p-6" [events]="events()" [count]="eventCount()" [live]="true" (stop)="stopStream.emit()" />
+  <app-event-list
+    class="block space-y-3 p-6"
+    [events]="events()"
+    [count]="eventCount()"
+    [live]="true"
+    (stop)="stopStream.emit()"
+  />
   } @else if (loading()) {
   <div class="space-y-3 p-6">
     <span class="ui-skeleton h-9 w-full" aria-hidden="true"></span>
@@ -11,14 +20,15 @@
   } @else {
   <div class="response-main">
     <!-- ── Status bar ─────────────────────────────────────── -->
-    @let statusCode = responseStatusCode();
-    @if (statusCode !== undefined) {
+    @let statusCode = responseStatusCode(); @if (statusCode !== undefined) {
     <!-- This whole @else branch (and therefore this status bar) is destroyed
          and recreated on every send — sendRequest() always toggles
          loading() true then false around each request, so this animation
          genuinely replays per response rather than only on first mount. -->
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
-    <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2 animate-response-arrive">
+    <div
+      class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2 animate-response-arrive"
+    >
       <!-- Status code badge -->
       <span
         class="status-badge"
@@ -29,7 +39,8 @@
           'status-5xx': statusCode >= 500,
           'status-err': isError() && statusCode === 0
         }"
-      >{{ statusCode }}</span>
+        >{{ statusCode }}</span
+      >
 
       <!-- Status text -->
       <span class="type-callout text-label-secondary">{{ responseStatusText() }}</span>
@@ -38,25 +49,27 @@
       <span class="redirect-note type-footnote text-label-secondary min-w-0 break-all">
         Redirected to <span class="font-mono">{{ finalUrl }}</span>
       </span>
-      }
-
-      @let inspData = inspectionValue;
+      } @let inspData = inspectionValue;
 
       <!-- The facts wrap as one line, not one by one. -->
       <span class="inline-flex flex-wrap items-center gap-x-2.5">
-      @if (inspData && inspData.duration) {
-      <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
-      }
-      @if (responseContentLength()) {
-      <span class="response-fact" uiTooltip="Size">{{ formatBytes(responseContentLength()) }}</span>
-      }
-      @if (route(); as route) {
-      <span class="response-fact route-badge" uiTooltip="Route">{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span>
-      }
+        @if (inspData && inspData.duration) {
+        <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
+        } @if (responseContentLength()) {
+        <span class="response-fact" uiTooltip="Size">{{ formatBytes(responseContentLength()) }}</span>
+        } @if (route(); as route) {
+        <span class="response-fact route-badge" uiTooltip="Route"
+          >{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span
+        >
+        }
       </span>
 
       @if (tlsInsecure()) {
-      <span class="tls-off-pill" tabindex="0" uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
+      <span
+        class="tls-off-pill"
+        tabindex="0"
+        uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names."
+      >
         <app-icon name="warning" class="icon-xs" />
         TLS verification off
       </span>
@@ -66,44 +79,46 @@
       @if (canExport) {
       <div class="ml-auto">
         <button
-          uiButton="icon" class="btn-plain"
+          uiButton="icon"
+          class="btn-plain"
           type="button"
           aria-label="Export response"
           uiTooltip="Export response"
           ngMenuTrigger
           #exportTrigger="ngMenuTrigger"
           [menu]="exportMenu.menu()"
-        ><app-icon name="download" class="icon-md" /></button>
+          ><app-icon name="download" class="icon-md"
+        /></button>
         <ui-menu #exportMenu [trigger]="exportTrigger" [items]="exportItems" />
       </div>
       }
     </div>
-    }
-
-    @if (redirects(); as hops) {
-    @if (hops.chain.length || redirectNote()) {
+    } @if (redirects(); as hops) { @if (hops.chain.length || redirectNote()) {
     <!-- The redirects followed through the Local Bridge (P5.4). A direct request has none to show: the browser follows them unseen. -->
-    <section class="redirect-chain space-y-2 border-b border-separator px-5 py-3 type-footnote text-label-secondary" aria-label="Redirects">
+    <section
+      class="redirect-chain space-y-2 border-b border-separator px-5 py-3 type-footnote text-label-secondary"
+      aria-label="Redirects"
+    >
       @if (hops.chain.length) {
-      <p>Followed {{ hops.chain.length === 1 ? '1 redirect' : hops.chain.length + ' redirects' }} through the Local Bridge:</p>
+      <p
+        >Followed {{ hops.chain.length === 1 ? '1 redirect' : hops.chain.length + ' redirects' }} through the Local
+        Bridge:</p
+      >
       <ol class="m-0 list-none space-y-1 p-0">
         @for (hop of hops.chain; track $index) {
         <li class="redirect-hop flex flex-wrap items-baseline gap-x-2 gap-y-0.5 min-w-0">
           <!-- &ngsp;: the gaps are drawn by the flex row, and a copy or a screen reader needs the words apart too. -->
           <span class="status-badge status-3xx">{{ hop.status }}</span>&ngsp;
-          <span class="font-mono min-w-0 break-all">{{ hop.url }}</span>&ngsp;
-          <span>to</span>&ngsp;
+          <span class="font-mono min-w-0 break-all">{{ hop.url }}</span>&ngsp; <span>to</span>&ngsp;
           <span class="font-mono min-w-0 break-all">{{ hop.location }}</span>
         </li>
         }
       </ol>
-      }
-      @if (redirectNote(); as note) {
+      } @if (redirectNote(); as note) {
       <p class="redirect-stopped text-status-warning" role="status">{{ note }}</p>
       }
     </section>
-    }
-    }
+    } }
 
     <!-- ── Response tabs ──────────────────────────────────── -->
     <div class="response-tabs px-4 pt-1">
@@ -116,14 +131,20 @@
           <button ngTab type="button" value="events">Events</button>
           }
           <button ngTab type="button" value="tests">
-            Tests
-            @if (testResults().length) {
+            Tests @if (testResults().length) {
             <span class="ml-2 inline-flex items-center gap-1">
               @if (testPassCount) {
-              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-success tabular-nums" style="background: var(--status-success-fill); border: 1px solid var(--status-success-border);">{{ testPassCount }}</span>
-              }
-              @if (testFailCount) {
-              <span class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-error tabular-nums" style="background: var(--status-error-fill); border: 1px solid var(--status-error-border);">{{ testFailCount }}</span>
+              <span
+                class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-success tabular-nums"
+                style="background: var(--status-success-fill); border: 1px solid var(--status-success-border)"
+                >{{ testPassCount }}</span
+              >
+              } @if (testFailCount) {
+              <span
+                class="inline-flex items-center rounded-full px-1.5 py-0.5 type-footnote text-status-error tabular-nums"
+                style="background: var(--status-error-fill); border: 1px solid var(--status-error-border)"
+                >{{ testFailCount }}</span
+              >
               }
             </span>
             }
@@ -132,353 +153,440 @@
 
         <div class="tab-panes">
           <!-- ── Body tab ───────────────────────────────────── -->
-          <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <div class="space-y-3 pb-4">
-              @if (views().length > 1 || view() === 'json') {
-              <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
-              <div class="response-tools flex flex-wrap items-center gap-2">
-              @if (views().length > 1) {
-              <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
-              <ui-select class="w-28" aria-label="View the body as" [options]="viewOptions()" [value]="view()" (valueChange)="viewOverride.set($event)" />
-              }
-
-              @if (view() === 'json') {
-                <!-- The search, its count and its arrows wrap together. -->
-                <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
-                <mat-form-field class="field min-w-0 flex-1">
-                  <input class="font-mono" matInput
-                    [value]="searchQuery()"
-                    (input)="onSearchQueryChange($any($event.target).value)"
-                    aria-label="Search the response"
-                    placeholder="Search"
-                   />
-                </mat-form-field>
-                <span class="type-footnote text-label-tertiary tabular-nums">
-                  {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count || 0 }}
-                </span>
-                <div class="flex items-center gap-0.5">
-                  <button
-                    uiButton="icon" class="btn-sm"
-                    type="button"
-                    aria-label="Previous search match"
-                    [disabled]="!searchResult()?.count"
-                    (click)="stepSearch(-1)"
-                  ><app-icon name="keyboard_arrow_up" /></button>
-                  <button
-                    uiButton="icon" class="btn-sm"
-                    type="button"
-                    aria-label="Next search match"
-                    [disabled]="!searchResult()?.count"
-                    (click)="stepSearch(1)"
-                  ><app-icon name="keyboard_arrow_down" /></button>
-                </div>
-                </div>
-                <mat-form-field class="field min-w-0 flex-1 basis-56">
-                  <input matInput
-                    class="font-mono"
-                    aria-label="Filter the JSON by path"
-                    [value]="jsonFilter()"
-                    (input)="jsonFilter.set($any($event.target).value)"
-                    placeholder="Path: data.items[*].id"
-                    spellcheck="false"
-                    autocomplete="off"
-                   />
-                </mat-form-field>
-              }
-              </div>
-              }
-              @if (view() === 'json' && filteredJson() === '') {
-              <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
-              }
-
-              @if (currentSearchExcerpt) {
-              <div class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-footnote text-label-secondary font-mono">
-                …{{ currentSearchExcerpt }}…
-              </div>
-              }
-
-              @if (responseBinary(); as binary) {
-              <div class="flex flex-wrap items-center gap-3 rounded-xl bg-canvas-panel border border-separator p-4">
-                <p class="type-callout text-label-secondary">
-                  Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }})
-                </p>
-                <button
-                  uiButton="filled" class="btn-secondary btn-sm"
-                  type="button"
-                  aria-label="Download response body"
-                  (click)="downloadBinary()"
-                ><app-icon name="download" /> Download</button>
-              </div>
-              }
-
-              @switch (view()) {
-                @case ('image') {
-                  @if (imageUrl(); as url) {
-                  <div class="overflow-auto rounded-xl bg-canvas-panel border border-separator p-4">
-                    <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
+          <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div class="space-y-3 pb-4">
+                @if (views().length > 1 || view() === 'json') {
+                <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
+                <div class="response-tools flex flex-wrap items-center gap-2">
+                  @if (views().length > 1) {
+                  <!-- A select, not a segmented control: beside the pinned sidebar the pane is too narrow for four options. -->
+                  <ui-select
+                    class="w-28"
+                    aria-label="View the body as"
+                    [options]="viewOptions()"
+                    [value]="view()"
+                    (valueChange)="viewOverride.set($event)"
+                  />
+                  } @if (view() === 'json') {
+                  <!-- The search, its count and its arrows wrap together. -->
+                  <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
+                    <mat-form-field class="field min-w-0 flex-1">
+                      <input
+                        class="font-mono"
+                        matInput
+                        [value]="searchQuery()"
+                        (input)="onSearchQueryChange($any($event.target).value)"
+                        aria-label="Search the response"
+                        placeholder="Search"
+                      />
+                    </mat-form-field>
+                    <span class="type-footnote text-label-tertiary tabular-nums">
+                      {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count
+                      || 0 }}
+                    </span>
+                    <div class="flex items-center gap-0.5">
+                      <button
+                        uiButton="icon"
+                        class="btn-sm"
+                        type="button"
+                        aria-label="Previous search match"
+                        [disabled]="!searchResult()?.count"
+                        (click)="stepSearch(-1)"
+                        ><app-icon name="keyboard_arrow_up"
+                      /></button>
+                      <button
+                        uiButton="icon"
+                        class="btn-sm"
+                        type="button"
+                        aria-label="Next search match"
+                        [disabled]="!searchResult()?.count"
+                        (click)="stepSearch(1)"
+                        ><app-icon name="keyboard_arrow_down"
+                      /></button>
+                    </div>
                   </div>
+                  <mat-form-field class="field min-w-0 flex-1 basis-56">
+                    <input
+                      matInput
+                      class="font-mono"
+                      aria-label="Filter the JSON by path"
+                      [value]="jsonFilter()"
+                      (input)="jsonFilter.set($any($event.target).value)"
+                      placeholder="Path: data.items[*].id"
+                      spellcheck="false"
+                      autocomplete="off"
+                    />
+                  </mat-form-field>
                   }
+                </div>
+                } @if (view() === 'json' && filteredJson() === '') {
+                <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
+                } @if (currentSearchExcerpt) {
+                <div
+                  class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-footnote text-label-secondary font-mono"
+                >
+                  …{{ currentSearchExcerpt }}…
+                </div>
+                } @if (responseBinary(); as binary) {
+                <div class="flex flex-wrap items-center gap-3 rounded-xl bg-canvas-panel border border-separator p-4">
+                  <p class="type-callout text-label-secondary">
+                    Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : ''
+                    }})
+                  </p>
+                  <button
+                    uiButton="filled"
+                    class="btn-secondary btn-sm"
+                    type="button"
+                    aria-label="Download response body"
+                    (click)="downloadBinary()"
+                    ><app-icon name="download" /> Download</button
+                  >
+                </div>
+                } @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
+                <div class="overflow-auto rounded-xl bg-canvas-panel border border-separator p-4">
+                  <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
+                </div>
+                } } @case ('hex') { @if (responseBinary(); as binary) { @if (binary.byteLength > hexViewBytes) {
+                <p class="type-footnote text-label-secondary"
+                  >The first {{ hexViewBytes }} of {{ binary.byteLength }} bytes. Download the body for the rest.</p
+                >
+                } }
+                <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
+                <pre
+                  class="hex-dump max-h-[300px] overflow-auto rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
+                  role="region"
+                  aria-label="Response body as hex"
+                  tabindex="0"
+                >
+{{ hexText() }}</pre>
+                } @case ('json') {
+                <app-json-editor
+                  name="responseJson"
+                  [readOnly]="true"
+                  [ngModel]="filteredJson() || formattedResponseBody"
+                  [ngModelOptions]="{ standalone: true }"
+                  [height]="300"
+                  [fill]="fill()"
+                ></app-json-editor>
+                } @case ('xml') {
+                <app-json-editor
+                  name="responseXml"
+                  language="xml"
+                  [readOnly]="true"
+                  [ngModel]="xmlText()"
+                  [ngModelOptions]="{ standalone: true }"
+                  [height]="300"
+                  [fill]="fill()"
+                ></app-json-editor>
+                } @case ('html') {
+                <app-html-preview [html]="bodyText()" />
+                } @default { @if (responseBodyIsJson()) {
+                <p class="type-footnote text-label-secondary"
+                  >This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p
+                >
                 }
-                @case ('hex') {
-                  @if (responseBinary(); as binary) {
-                    @if (binary.byteLength > hexViewBytes) {
-                    <p class="type-footnote text-label-secondary">The first {{ hexViewBytes }} of {{ binary.byteLength }} bytes. Download the body for the rest.</p>
-                    }
-                  }
-                  <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
-                  <pre class="hex-dump max-h-[300px] overflow-auto rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary" role="region" aria-label="Response body as hex" tabindex="0">{{ hexText() }}</pre>
-                }
-                @case ('json') {
-                  <app-json-editor
-                    name="responseJson"
-                    [readOnly]="true"
-                    [ngModel]="filteredJson() || formattedResponseBody"
-                    [ngModelOptions]="{ standalone: true }"
-                    [height]="300"
-                    [fill]="fill()"
-                  ></app-json-editor>
-                }
-                @case ('xml') {
-                  <app-json-editor
-                    name="responseXml"
-                    language="xml"
-                    [readOnly]="true"
-                    [ngModel]="xmlText()"
-                    [ngModelOptions]="{ standalone: true }"
-                    [height]="300"
-                    [fill]="fill()"
-                  ></app-json-editor>
-                }
-                @case ('html') {
-                  <app-html-preview [html]="bodyText()" />
-                }
-                @default {
-                  @if (responseBodyIsJson()) {
-                  <p class="type-footnote text-label-secondary">This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p>
-                  }
-                  <pre class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body"
-                    [class.text-status-success]="!isError()"
-                    [class.text-status-error]="isError()"
-                  >{{ bodyText() || 'No body returned.' }}</pre>
-                }
-              }
-            </div>
-          </ng-template></div>
+                <pre
+                  class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body"
+                  [class.text-status-success]="!isError()"
+                  [class.text-status-error]="isError()"
+                >
+{{ bodyText() || 'No body returned.' }}</pre>
+                } }
+              </div>
+            </ng-template></div
+          >
 
           <!-- ── Headers tab ────────────────────────────────── -->
-          <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <div class="pb-4">
-              <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
-              @if (headersLimited()) {
-              <p class="headers-note mb-3 type-footnote text-label-secondary">
-                The browser shows a page only some headers of a response from another origin: the CORS-safelisted ones
-                (<span class="font-mono">Cache-Control</span>, <span class="font-mono">Content-Language</span>,
-                <span class="font-mono">Content-Length</span>, <span class="font-mono">Content-Type</span>,
-                <span class="font-mono">Expires</span>, <span class="font-mono">Last-Modified</span>,
-                <span class="font-mono">Pragma</span>) and those the server names in
-                <span class="font-mono">Access-Control-Expose-Headers</span>. The server may have sent more.
-              </p>
-              }
-              <div class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden" role="region" aria-label="Response headers" tabindex="0">
-                @if (responseHeaders().length) {
-                <table class="ds-table">
-                  <tbody>
-                    <!-- By position: a name sent twice is two rows. -->
-                    @for (header of responseHeaders(); track $index) {
-                    <tr>
-                      <th>{{ header.name }}</th>
-                      <td class="break-all font-mono">{{ header.value || '—' }}</td>
-                    </tr>
-                    }
-                  </tbody>
-                </table>
-                } @else {
-                <div class="p-5 type-callout text-label-tertiary text-center">
-                  No response headers available.
-                </div>
-                }
-              </div>
-            </div>
-          </ng-template></div>
-
-          <!-- ── Timings tab ────────────────────────────────── -->
-          <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            @let inspectionData = inspectionValue;
-            @if (!inspectionData) {
-            <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4">
-              <app-icon name="timer" class="icon-md text-label-tertiary" />
-              <p class="type-callout text-label-tertiary">Timing data will appear after you send a request.</p>
-            </div>
-            } @else {
-            <div class="space-y-5 pb-4">
-              <!-- Summary cards -->
-              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="ds-section-label">Duration</span>
-                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.duration"
-                      [uiTooltip]="timingSummaryTooltips.duration" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                  </div>
-                  <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
-                </div>
-                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="ds-section-label">Transfer</span>
-                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.transferSize"
-                      [uiTooltip]="timingSummaryTooltips.transferSize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                  </div>
-                  <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
-                </div>
-                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="ds-section-label">Encoded</span>
-                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.encodedBodySize"
-                      [uiTooltip]="timingSummaryTooltips.encodedBodySize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                  </div>
-                  <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
-                </div>
-                <div class="rounded-xl bg-canvas-panel border border-separator p-4">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="ds-section-label">Decoded</span>
-                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.decodedBodySize"
-                      [uiTooltip]="timingSummaryTooltips.decodedBodySize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                  </div>
-                  <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
-                </div>
-              </div>
-
-              <!-- Waterfall -->
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5">
-                    <span class="ds-section-label">Waterfall</span>
-                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="waterfallTooltip"
-                      [uiTooltip]="waterfallTooltip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                  </div>
-                  @if (inspectionData.limitedByCors) {
-                  <span class="type-footnote text-status-warning flex items-center gap-1">
-                    <app-icon name="warning" class="icon-xs" />
-                    CORS-limited timings
-                  </span>
-                  }
-                </div>
-
-                @if (hasGranularTimings()) {
-                <div class="flex flex-col gap-2.5">
-                  @for (phase of getTimingBars(); track phase.key) {
-                  <div class="flex items-center gap-3">
-                    <div class="flex w-24 items-center gap-1.5">
-                      <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
-                      @if (phase.tooltip) {
-                      <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="phase.tooltip"
-                        [uiTooltip]="phase.tooltip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-                      }
-                    </div>
-                    <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
-                      <div
-                        class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
-                        [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
-                      ></div>
-                    </div>
-                    <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                      {{ formatMs(phase.duration) }}
-                    </span>
-                  </div>
-                  }
-                </div>
-                } @else {
-                <div class="flex flex-col gap-2.5">
-                  @for (bar of getFallbackBars(); track bar.label) {
-                  <div class="flex items-center gap-3">
-                    <div class="flex w-24 items-center gap-1.5">
-                      <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
-                    </div>
-                    <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
-                      <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
-                    </div>
-                    <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
-                      {{ formatMs(bar.duration) }}
-                    </span>
-                  </div>
-                  }
-                </div>
-                <p class="type-footnote text-label-tertiary">
-                  Detailed phase breakdown unavailable for this response.
+          <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div class="pb-4">
+                <!-- A region that scrolls must be reachable by keyboard to be scrolled. -->
+                @if (headersLimited()) {
+                <p class="headers-note mb-3 type-footnote text-label-secondary">
+                  The browser shows a page only some headers of a response from another origin: the CORS-safelisted ones
+                  (<span class="font-mono">Cache-Control</span>, <span class="font-mono">Content-Language</span>,
+                  <span class="font-mono">Content-Length</span>, <span class="font-mono">Content-Type</span>,
+                  <span class="font-mono">Expires</span>, <span class="font-mono">Last-Modified</span>,
+                  <span class="font-mono">Pragma</span>) and those the server names in
+                  <span class="font-mono">Access-Control-Expose-Headers</span>. The server may have sent more.
                 </p>
                 }
+                <div
+                  class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden"
+                  role="region"
+                  aria-label="Response headers"
+                  tabindex="0"
+                >
+                  @if (responseHeaders().length) {
+                  <table class="ds-table">
+                    <tbody>
+                      <!-- By position: a name sent twice is two rows. -->
+                      @for (header of responseHeaders(); track $index) {
+                      <tr>
+                        <th>{{ header.name }}</th>
+                        <td class="break-all font-mono">{{ header.value || '—' }}</td>
+                      </tr>
+                      }
+                    </tbody>
+                  </table>
+                  } @else {
+                  <div class="p-5 type-callout text-label-tertiary text-center"> No response headers available. </div>
+                  }
+                </div>
               </div>
-            </div>
-            }
-          </ng-template></div>
+            </ng-template></div
+          >
+
+          <!-- ── Timings tab ────────────────────────────────── -->
+          <div ngTabPanel value="timings" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              @let inspectionData = inspectionValue; @if (!inspectionData) {
+              <div
+                class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4"
+              >
+                <app-icon name="timer" class="icon-md text-label-tertiary" />
+                <p class="type-callout text-label-tertiary">Timing data will appear after you send a request.</p>
+              </div>
+              } @else {
+              <div class="space-y-5 pb-4">
+                <!-- Summary cards -->
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <span class="ds-section-label">Duration</span>
+                      <span
+                        class="info-tip"
+                        tabindex="0"
+                        role="img"
+                        [attr.aria-label]="timingSummaryTooltips.duration"
+                        [uiTooltip]="timingSummaryTooltips.duration"
+                        uiTooltipPosition="above"
+                        ><app-icon name="info" class="icon-xs"
+                      /></span>
+                    </div>
+                    <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
+                  </div>
+                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <span class="ds-section-label">Transfer</span>
+                      <span
+                        class="info-tip"
+                        tabindex="0"
+                        role="img"
+                        [attr.aria-label]="timingSummaryTooltips.transferSize"
+                        [uiTooltip]="timingSummaryTooltips.transferSize"
+                        uiTooltipPosition="above"
+                        ><app-icon name="info" class="icon-xs"
+                      /></span>
+                    </div>
+                    <div class="type-title-3 text-label-primary"
+                      >{{ formatBytes(inspectionData.sizes?.transferSize) }}</div
+                    >
+                  </div>
+                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <span class="ds-section-label">Encoded</span>
+                      <span
+                        class="info-tip"
+                        tabindex="0"
+                        role="img"
+                        [attr.aria-label]="timingSummaryTooltips.encodedBodySize"
+                        [uiTooltip]="timingSummaryTooltips.encodedBodySize"
+                        uiTooltipPosition="above"
+                        ><app-icon name="info" class="icon-xs"
+                      /></span>
+                    </div>
+                    <div class="type-title-3 text-label-primary"
+                      >{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div
+                    >
+                  </div>
+                  <div class="rounded-xl bg-canvas-panel border border-separator p-4">
+                    <div class="flex items-center gap-1.5 mb-2">
+                      <span class="ds-section-label">Decoded</span>
+                      <span
+                        class="info-tip"
+                        tabindex="0"
+                        role="img"
+                        [attr.aria-label]="timingSummaryTooltips.decodedBodySize"
+                        [uiTooltip]="timingSummaryTooltips.decodedBodySize"
+                        uiTooltipPosition="above"
+                        ><app-icon name="info" class="icon-xs"
+                      /></span>
+                    </div>
+                    <div class="type-title-3 text-label-primary"
+                      >{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div
+                    >
+                  </div>
+                </div>
+
+                <!-- Waterfall -->
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <span class="ds-section-label">Waterfall</span>
+                      <span
+                        class="info-tip"
+                        tabindex="0"
+                        role="img"
+                        [attr.aria-label]="waterfallTooltip"
+                        [uiTooltip]="waterfallTooltip"
+                        uiTooltipPosition="above"
+                        ><app-icon name="info" class="icon-xs"
+                      /></span>
+                    </div>
+                    @if (inspectionData.limitedByCors) {
+                    <span class="type-footnote text-status-warning flex items-center gap-1">
+                      <app-icon name="warning" class="icon-xs" />
+                      CORS-limited timings
+                    </span>
+                    }
+                  </div>
+
+                  @if (hasGranularTimings()) {
+                  <div class="flex flex-col gap-2.5">
+                    @for (phase of getTimingBars(); track phase.key) {
+                    <div class="flex items-center gap-3">
+                      <div class="flex w-24 items-center gap-1.5">
+                        <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
+                        @if (phase.tooltip) {
+                        <span
+                          class="info-tip"
+                          tabindex="0"
+                          role="img"
+                          [attr.aria-label]="phase.tooltip"
+                          [uiTooltip]="phase.tooltip"
+                          uiTooltipPosition="above"
+                          ><app-icon name="info" class="icon-xs"
+                        /></span>
+                        }
+                      </div>
+                      <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
+                        <div
+                          class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
+                          [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
+                        ></div>
+                      </div>
+                      <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
+                        {{ formatMs(phase.duration) }}
+                      </span>
+                    </div>
+                    }
+                  </div>
+                  } @else {
+                  <div class="flex flex-col gap-2.5">
+                    @for (bar of getFallbackBars(); track bar.label) {
+                    <div class="flex items-center gap-3">
+                      <div class="flex w-24 items-center gap-1.5">
+                        <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
+                      </div>
+                      <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
+                        <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
+                      </div>
+                      <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
+                        {{ formatMs(bar.duration) }}
+                      </span>
+                    </div>
+                    }
+                  </div>
+                  <p class="type-footnote text-label-tertiary">
+                    Detailed phase breakdown unavailable for this response.
+                  </p>
+                  }
+                </div>
+              </div>
+              }
+            </ng-template></div
+          >
 
           <!-- ── Tests tab ──────────────────────────────────── -->
           @if (eventCount()) {
-          <div ngTabPanel value="events" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <app-event-list class="block space-y-3 p-4" [events]="events()" [count]="eventCount()" [note]="eventsNote()" (reconnect)="reconnectStream.emit()" />
-          </ng-template></div>
+          <div ngTabPanel value="events" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <app-event-list
+                class="block space-y-3 p-4"
+                [events]="events()"
+                [count]="eventCount()"
+                [note]="eventsNote()"
+                (reconnect)="reconnectStream.emit()"
+              /> </ng-template
+          ></div>
           }
-          <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-            <div class="space-y-2 pb-4">
-              @if (scriptsSkipped()) {
-              <p role="status" class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-                This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.
-              </p>
-              }
-              @if (!testResults().length) {
-              <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5">
-                <app-icon name="rule" class="icon-md text-label-tertiary" />
-                <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
-              </div>
-              } @else {
-              <div class="space-y-1.5">
-                @for (result of testResults(); track result.label + result.source) {
-                <div
-                  class="flex items-start gap-3 rounded-xl px-4 py-3"
-                  [class.test-result-pass]="result.passed"
-                  [class.test-result-fail]="!result.passed"
+          <div ngTabPanel value="tests" class="tab-pane" [preserveContent]="true"
+            ><ng-template ngTabContent>
+              <div class="space-y-2 pb-4">
+                @if (scriptsSkipped()) {
+                <p
+                  role="status"
+                  class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
                 >
-                  <app-icon [name]="result.passed ? 'check_circle' : 'cancel'" class="mt-0.5 shrink-0 icon-sm" 
-                    [class.text-status-success]="result.passed"
-                    [class.text-status-error]="!result.passed" />
-                  <div class="flex-1 min-w-0">
-                    <div class="type-callout"
+                  This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.
+                </p>
+                } @if (!testResults().length) {
+                <div
+                  class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5"
+                >
+                  <app-icon name="rule" class="icon-md text-label-tertiary" />
+                  <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
+                </div>
+                } @else {
+                <div class="space-y-1.5">
+                  @for (result of testResults(); track result.label + result.source) {
+                  <div
+                    class="flex items-start gap-3 rounded-xl px-4 py-3"
+                    [class.test-result-pass]="result.passed"
+                    [class.test-result-fail]="!result.passed"
+                  >
+                    <app-icon
+                      [name]="result.passed ? 'check_circle' : 'cancel'"
+                      class="mt-0.5 shrink-0 icon-sm"
                       [class.text-status-success]="result.passed"
                       [class.text-status-error]="!result.passed"
-                    >{{ result.label }}</div>
-                    @if (!result.passed && result.error) {
-                    <div class="type-footnote text-label-tertiary mt-0.5">{{ result.error }}</div>
-                    }
-                    @if (!result.passed && result.actual !== undefined) {
-                    <div class="type-footnote text-label-tertiary mt-0.5 font-mono">Actual: {{ result.actual | json }}</div>
-                    }
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div
+                        class="type-callout"
+                        [class.text-status-success]="result.passed"
+                        [class.text-status-error]="!result.passed"
+                        >{{ result.label }}</div
+                      >
+                      @if (!result.passed && result.error) {
+                      <div class="type-footnote text-label-tertiary mt-0.5">{{ result.error }}</div>
+                      } @if (!result.passed && result.actual !== undefined) {
+                      <div class="type-footnote text-label-tertiary mt-0.5 font-mono"
+                        >Actual: {{ result.actual | json }}</div
+                      >
+                      }
+                    </div>
+                    <span class="type-footnote text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
                   </div>
-                  <span class="type-footnote text-label-tertiary shrink-0 capitalize">{{ result.source }}</span>
+                  }
                 </div>
+
+                <div class="flex items-center gap-4 pt-3 border-t border-separator">
+                  <span class="type-subhead text-status-success flex items-center gap-1.5">
+                    <app-icon name="check_circle" class="icon-xs" />
+                    {{ testPassCount }} passed
+                  </span>
+                  <span class="type-subhead text-status-error flex items-center gap-1.5">
+                    <app-icon name="cancel" class="icon-xs" />
+                    {{ testFailCount }} failed
+                  </span>
+                </div>
+                } @if (scriptTimings()) {
+                <p class="script-timings type-footnote text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
+                } @if (scriptLogs().length) {
+                <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
+                  <h3 class="ds-section-label">Console</h3>
+                  <pre
+                    class="type-footnote font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words"
+                  >
+{{ scriptLogs().join("\n") }}</pre>
+                </section>
                 }
               </div>
-
-              <div class="flex items-center gap-4 pt-3 border-t border-separator">
-                <span class="type-subhead text-status-success flex items-center gap-1.5">
-                  <app-icon name="check_circle" class="icon-xs" />
-                  {{ testPassCount }} passed
-                </span>
-                <span class="type-subhead text-status-error flex items-center gap-1.5">
-                  <app-icon name="cancel" class="icon-xs" />
-                  {{ testFailCount }} failed
-                </span>
-              </div>
-              }
-              @if (scriptTimings()) {
-              <p class="script-timings type-footnote text-label-tertiary tabular-nums pt-1">{{ scriptTimings() }}</p>
-              }
-              @if (scriptLogs().length) {
-              <section class="script-console space-y-1.5 pt-3" aria-label="Script console">
-                <h3 class="ds-section-label">Console</h3>
-                <pre class="type-footnote font-mono text-label-secondary rounded-xl bg-canvas-panel border border-separator px-4 py-3 max-h-64 overflow-auto whitespace-pre-wrap break-words">{{ scriptLogs().join("\n") }}</pre>
-              </section>
-              }
-            </div>
-          </ng-template></div>
+            </ng-template></div
+          >
         </div>
       </div>
     </div>

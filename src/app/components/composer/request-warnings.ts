@@ -27,7 +27,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
       <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
       <span>
         {{ limits.route === 'bridge' ? 'The Local Bridge' : 'The browser' }} will not send
-        @for (name of limits.dropped; track $index) {<code>{{ name }}</code>{{ $last ? '' : ', ' }}}:
+        @for (name of limits.dropped; track $index) {<code>{{ name }}</code>{{ $last ? ':' : ', ' }}}
         @if (limits.route === 'bridge') {
         the Local Bridge sets {{ limits.dropped.length === 1 ? 'this header' : 'these headers' }} itself, for the connection it makes.
         } @else {

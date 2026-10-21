@@ -12,7 +12,7 @@
   --ctl-primary: var(--accent-text);
   --ctl-primary-hover: var(--accent-text);
   --ctl-primary-active: var(--accent-text);
-  /* What sits on --ctl-primary as a fill: dark on the light green of this theme. */
+  /* What sits on --ctl-primary or --accent as a fill (a checkbox's tick): dark on the light green of this theme. */
   --ctl-on-primary: var(--canvas-app);
   --ctl-primary-fill: var(--accent-solid);
   --ctl-primary-fill-hover: var(--accent-solid-hover);

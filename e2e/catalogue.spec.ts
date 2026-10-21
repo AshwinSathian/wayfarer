@@ -1491,6 +1491,28 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   expect(await text("Stop on the first failure")).not.toBe(await text("Follow redirects"));
 });
 
+for (const theme of ["light", "dark"] as const) {
+  test(`checkbox: the tick stands out from its box (3:1, WCAG 1.4.11) in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const box = page.getByRole("checkbox", { name: "Follow redirects", exact: true });
+    const ratio = await box.evaluate((el) => {
+      const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+      const luminance = (value: string) => {
+        const [r, g, b] = rgb(value).map((c) => {
+          const v = c / 255;
+          return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const [a, b] = [getComputedStyle(el, "::before").backgroundColor, getComputedStyle(el).backgroundColor].map(
+        luminance,
+      );
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    });
+    expect(ratio).toBeGreaterThanOrEqual(3);
+  });
+}
+
 test("checkbox: in forced colours each keeps its edge, a checked one is painted in the system's colours, and focus shows", async ({
   page,
 }) => {

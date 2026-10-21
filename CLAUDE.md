@@ -335,7 +335,7 @@ code errors.
   Tailwind's `duration-150`; the token test fails). Tailwind's transition
   utilities take `--dur-quick` and `--ease-standard` from `@theme`. With
   reduced motion `animations.css` makes everything last `--dur-none`
-  (0.001 ms, not 0: Material waits for the end events), with no delay and
+  (0.001 ms, not 0: a length, so the end events are still sent), with no delay and
   one run; do not give a transition `!important` on a class, or it beats
   that rule. A script that moves something (`scrollIntoView` with
   `smooth`) asks `prefers-reduced-motion` itself. Nothing loops but a
@@ -418,56 +418,32 @@ code errors.
 - Review what an upgrade tool writes line by line. The Tailwind tool turned
   preflight on, changed the cascade and rewrote words in test titles.
 
-## Angular Material
+## Angular Material (history)
 
-- **Material is on its way out (D1.5, maintainer, 2026-10-19;
-  `docs/design/widget-bakeoff.md`).** The composite widgets (tree, select,
-  menus, tabs, accordion, toolbars) move to Angular Aria with our own
-  styles; dialogs, tooltips, buttons, inputs and checkboxes to the
-  platform (`<dialog>`, `popover`, the native elements); the CDK stays.
-  Nothing may look or feel like a native element (maintainer, 2026-10-20):
-  a platform element is the widget's base, with none of the browser's own
-  look. D3.3 replaces one family per PR, with its keyboard e2e. Until a family has
-  moved, it stays Material and the rules below hold for it, also for a new
-  use of it (a toolbar in a new feature is still `mat-toolbar`, and moves
-  with its family). A family the app does not use yet is not added from
-  Material.
-- Widgets are Angular Material components (maintainer, 2026-10-09; this
-  reverses the "custom on CDK" default of decision D14 in the plan). A
-  widget not yet moved by D3.3 is a Material component, themed as below. `src/app/ui` holds only:
-  - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
-    `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
-  - the families D3.3 has moved to the platform (see "The platform"):
-    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`,
-    `ui-spinner`, `uiButton`, `uiInput`, `uiCheckbox`;
-  - what Material has no component for, built on the CDK: `ui-splitter`.
-- Not Material, and why: loading skeletons (Material has none; a progress
-  bar says something else), the variable and usage chips (two-line and
-  icon-led action buttons; Material's chip is a one-line pill), status and
-  method badges, and the banners.
-- The theme is `src/design-system/material-theme.scss`, listed before
-  `src/styles.css` in `angular.json`. It maps Material's `--mat-sys-*`
-  variables onto the design tokens, so `[data-theme]` switches both. No
-  second theme, no Material palette colour in the UI, no Roboto.
-- Restyle a component with its `mat.<name>-overrides` mixin in that file.
-  For what has no token, write a rule there with more specificity than
-  Material's own: its component styles load after the global sheet.
-- Import the one directive or component (`MatToolbar`), not its module.
-- The top bar is `<mat-toolbar class="ds-toolbar" role="banner">`.
-- A token cannot be `inherit` (or `initial`, `unset`): as a custom
-  property's value that word acts on the variable, and Material falls back
-  to its default. Write a rule with `font: inherit` instead.
-- A token whose value is a variable set on the component must be
-  overridden on the component's class, not on `html`: a variable is
-  resolved where it is declared.
-- A Tailwind utility on a Material host loses to Material for any property
-  Material sets there (height, padding, min-width, font, colour, border, and
-  `display`). Give the
-  utility Tailwind's important modifier (`w-48!`, `max-lg:hidden!`), or
-  change the property through a token. Margin utilities are safe as they
-  are. `max-lg:hidden` without
-  the `!` put three hidden toolbar buttons back on a phone.
-- Ripples are off (`MAT_RIPPLE_GLOBAL_OPTIONS` in `app.config.ts`).
+- **Material has left the app (D3.3, plan row 1.34).** The maintainer
+  decided on 2026-10-19 (D1.5, `docs/design/widget-bakeoff.md`) that the
+  composite widgets (tree, select, menus, tabs, accordion) move to Angular
+  Aria with our own styles, and dialogs, tooltips, buttons, inputs,
+  checkboxes and the toolbar to the platform (`<dialog>`, `popover`, the
+  native elements). The CDK stays (overlay, a11y, drag). `@angular/material`
+  is not a dependency: a new widget is an Angular Aria pattern or a
+  platform element in `src/app/ui`, with its catalogue state and keyboard
+  e2e. Nothing may look or feel like a native element (maintainer,
+  2026-10-20): a platform element is the widget's base, with none of the
+  browser's own look.
+- `src/app/ui` holds:
+  - on Angular Aria (see "Angular Aria"): `ui-tree`, `ui-menu`,
+    `uiTabList`, `uiAccordion`, `ui-select`;
+  - on the platform (see "The platform"): `ui-segmented`, `UiModal` with
+    `ui-dialog` and `Confirm`, `uiTooltip`, `ui-spinner`, `uiButton`,
+    `uiInput`, `uiCheckbox`;
+  - on the CDK: `ui-splitter`.
+- Built in place, without a wrapper: loading skeletons, the variable and
+  usage chips (two-line and icon-led action buttons), status and method
+  badges, the banners, and the top bar, `<header class="ds-toolbar">` in
+  the shell (styles in `components.css`), the page's banner.
+- Where a moved widget's text or the plan says "as Material's", that is the
+  look it was matched to when it moved, not a rule to follow Material.
 
 ## The platform
 

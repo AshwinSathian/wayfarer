@@ -498,3 +498,36 @@ test.describe("the response's height", () => {
     expect(status?.height ?? 0).toBeLessThanOrEqual(56);
   });
 });
+
+// D3.3m: the toolbar is a <header>, no longer Material's toolbar; what Material gave it is the stylesheet's.
+test.describe("the toolbar", () => {
+  for (const width of [390, 1440]) {
+    test(`at ${width} px it is the page's banner, 56 px tall, and stays at the top of the page`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 700 });
+      await page.goto("/app/");
+      const banner = page.getByRole("banner");
+      await expect(banner).toHaveCount(1);
+      await expect(banner).toHaveJSProperty("tagName", "HEADER");
+      const box = await banner.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { height: el.getBoundingClientRect().height, position: style.position, top: style.top };
+      });
+      expect(box).toEqual({ height: 56, position: "sticky", top: "0px" });
+      // Its row does not wrap: each control sits on the centre line of the 55 px above its border.
+      for (const control of await banner.getByRole("button").all()) {
+        if (!(await control.isVisible())) continue;
+        const rect = await control.boundingBox();
+        expect(rect && rect.y + rect.height / 2).toBe(27.5);
+      }
+    });
+  }
+
+  test("in forced colours it keeps an edge", async ({ page }) => {
+    await page.emulateMedia({ forcedColors: "active" });
+    await page.goto("/app/");
+    const outline = await page
+      .getByRole("banner")
+      .evaluate((el) => `${getComputedStyle(el).outlineStyle} ${getComputedStyle(el).outlineWidth}`);
+    expect(outline).toBe("solid 1px");
+  });
+});

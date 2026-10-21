@@ -32,7 +32,6 @@
               }
             ],
             "styles": [
-              "src/design-system/material-theme.scss",
               "src/styles.css",
               {
                 "input": "node_modules/monaco-editor/min/vs/editor/editor.main.css",
@@ -65,8 +64,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1100kb",
-                  "maximumError": "1152kb"
+                  "maximumWarning": "1081kb",
+                  "maximumError": "1132kb"
                 },
                 {
                   "type": "anyComponentStyle",

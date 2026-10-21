@@ -78,7 +78,7 @@
   *::before,
   *::after,
   *::backdrop {
-    /* Not 0: a length, so the end events Material waits for are still sent. */
+    /* Not 0: a length, so the end events are still sent. */
     animation-duration: var(--dur-none) !important;
     animation-delay: 0s !important;
     animation-iteration-count: 1 !important;

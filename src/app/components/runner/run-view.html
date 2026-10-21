@@ -60,7 +60,7 @@
 
 <div role="status" class="type-callout text-label-secondary flex flex-wrap items-center gap-2">
   @if (state.running()) {
-  <mat-spinner diameter="18" aria-hidden="true" />
+  <ui-spinner />
   <span>Running: {{ results.length }} {{ results.length === 1 ? "request" : "requests" }} done.</span>
   } @else if (state.report(); as report) {
   <span>{{ ending() }}</span>

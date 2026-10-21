@@ -1,0 +1,28 @@
+/* A ring of 3/4 that turns once in --dur-shimmer, the loading loop. With
+   reduced motion (animations.css) it stands still as that ring. */
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: ui-spinner-turn var(--dur-shimmer) var(--ease-linear) infinite;
+}
+
+circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  /* 2πr = 50.27: three quarters drawn, one left open. */
+  stroke-dasharray: 37.7 50.27;
+}
+
+@keyframes ui-spinner-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}

@@ -1,6 +1,6 @@
 <div class="flex flex-wrap items-center gap-3" role="status">
   @if (live()) {
-  <mat-spinner diameter="18" aria-hidden="true" />
+  <ui-spinner />
   <span class="type-callout text-label-secondary">The stream is open: {{ count() }} {{ count() === 1 ? "event" : "events" }} so far.</span>
   <span class="flex-1"></span>
   <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="stop.emit()">Stop</button>

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from "@angular/core";
 import { MatButton } from "@angular/material/button";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { UiSpinner } from "../../../ui/spinner";
 import { tokenExpired } from "@wayfarer/core";
 import { OAuthTokens } from "../../../services/oauth-tokens";
 import { SecretsVault } from "../../../services/secrets-vault";
@@ -13,7 +13,7 @@ import { WorkspaceStore } from "../../../state/workspace-store";
  */
 @Component({
   selector: "app-oauth-token",
-  imports: [MatButton, MatProgressSpinner],
+  imports: [MatButton, UiSpinner],
   templateUrl: "./oauth-token.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "oauth-token block rounded-xl bg-canvas-panel border border-separator p-3.5" },

@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { UiSpinner } from "../../ui/spinner";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiTooltip } from "../../ui/tooltip";
 import { HTTP_METHODS } from "@wayfarer/core";
@@ -20,7 +20,7 @@ import { ComposerView } from "./composer-view";
 /** The method and URL bar with New, Copy as cURL, Save and Send. */
 @Component({
   selector: "app-address-row",
-  imports: [FormsModule, Icon, MatButton, MatFormField, MatInput, MatIconButton, MatProgressSpinner, MenuTrigger, UiMenu, UiTooltip],
+  imports: [FormsModule, Icon, MatButton, MatFormField, MatInput, MatIconButton, UiSpinner, MenuTrigger, UiMenu, UiTooltip],
   templateUrl: "./address-row.html",
   styleUrl: "./address-row.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

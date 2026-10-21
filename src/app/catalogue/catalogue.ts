@@ -3,6 +3,7 @@ import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/ari
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
 import { Confirm } from "../ui/confirm";
@@ -40,6 +41,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     Icon,
     MatButton,
     MatIconButton,
+    UiSpinner,
     UiTooltip,
     MenuTrigger,
     Tab,
@@ -94,6 +96,16 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <ui-menu #tipMenu [trigger]="tipTrigger" [items]="menuItems" />
           <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /orders</span>
           <button matIconButton class="btn-plain catalogue-end" type="button" aria-label="Settings" uiTooltip="Settings (Ctrl+,)"><app-icon name="settings" /></button>
+        </div>
+      </section>
+
+      <section aria-labelledby="catalogue-spinner">
+        <h2 id="catalogue-spinner" class="type-title-3">Spinner</h2>
+        <p class="type-callout text-label-secondary">In place of a button's icon, filled and outlined; on its own, named, at 28 px.</p>
+        <div class="catalogue-row">
+          <button matButton="filled" type="button"><ui-spinner /> Saving</button>
+          <button matButton="outlined" class="btn-secondary" type="button"><ui-spinner /> Test connection</button>
+          <ui-spinner [diameter]="28" label="Loading secrets" />
         </div>
       </section>
 

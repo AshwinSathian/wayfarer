@@ -98,6 +98,10 @@
       "$type": "cubicBezier",
       "$value": [0.42, 0, 0.58, 1]
     },
+    "ease-linear": {
+      "$type": "cubicBezier",
+      "$value": [0, 0, 1, 1]
+    },
     "dur-pulse": {
       "$type": "duration",
       "$value": {

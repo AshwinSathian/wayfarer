@@ -16,12 +16,13 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
 | `--dur-standard` | 240 ms | A tab's pane or an accordion's section fading in, an accordion's chevron turning |
 | `--dur-enter` | 300 ms | A dialog, the drawer's slide, the shell and a response arriving |
 | `--dur-pulse` | 2,000 ms | A missing variable's chip, once each way |
-| `--dur-shimmer` | 1,200 ms | A loading skeleton's sweep |
+| `--dur-shimmer` | 1,200 ms | A loading skeleton's sweep, a spinner's turn |
 | `--dur-none` | 0.001 ms | Everything, with reduced motion |
 | `--ease-standard` | `cubic-bezier(0.25, 0, 0, 1)` | Most things: quick off the mark, a soft landing |
 | `--ease-enter` | `cubic-bezier(0, 0, 0, 1)` | What enters: dialogs, the drawer and the shell |
 | `--ease-spring` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | A press that springs back |
 | `--ease-in-out` | `cubic-bezier(0.42, 0, 0.58, 1)` | Loops: the pulse and the shimmer |
+| `--ease-linear` | `cubic-bezier(0, 0, 1, 1)` | A turn at one speed: the spinner |
 
 ## What moves, and how
 
@@ -43,7 +44,7 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
   0.2 s colour transition for it: a switch animated thousands of elements
   at once, and a contrast scan could read a colour half-way.
 - **Nothing loops but what loads.** The loading skeleton sweeps until the
-  content is there. A missing variable's chip pulses twice and then holds
+  content is there, and a spinner turns until its work is done. A missing variable's chip pulses twice and then holds
   still: a loop that runs past five seconds needs a way to stop it (WCAG
   2.2.2).
 - **A script's motion asks too.** CSS cannot reach a scroll a script
@@ -61,7 +62,8 @@ Material, a dialog's `::backdrop` among them:
   `animationend` and `transitionend` events Material waits for are still
   sent (at 0 some are not);
 - start at once: no delay;
-- run once: nothing loops, the skeleton included;
+- run once: nothing loops, the skeleton included, and a spinner stands
+  still as its ring;
 - scroll without smoothing.
 
 `e2e/motion.spec.ts` holds the app to it in Chromium, Firefox and WebKit:

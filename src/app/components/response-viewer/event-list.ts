@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { MatButton } from "@angular/material/button";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { UiSpinner } from "../../ui/spinner";
 import type { ShownEvent } from "../../state/tab-state";
 
 /**
@@ -10,7 +10,7 @@ import type { ShownEvent } from "../../state/tab-state";
  */
 @Component({
   selector: "app-event-list",
-  imports: [MatButton, MatProgressSpinner],
+  imports: [MatButton, UiSpinner],
   templateUrl: "./event-list.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -14,7 +14,7 @@ import {
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../../ui/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatToolbar } from "@angular/material/toolbar";
@@ -51,7 +51,7 @@ import { UiSelect } from "../../ui/select";
     UiSelect,
     Dialog,
     ImportDialog,
-    MatTooltip,
+    UiTooltip,
     FormsModule,
     Composer,
     PastRequests,

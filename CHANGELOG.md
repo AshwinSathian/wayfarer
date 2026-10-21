@@ -9,6 +9,28 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Tooltips are the app's own, everywhere, and reach the keyboard and a
+  screen reader where they did not.** Before, more than half of the app's
+  tooltips were the browser's own (the toolbar's buttons, the status bar,
+  the environments' and collections' headers), shown after a wait
+  in the system's look, and the explanations beside the response's
+  Timings (Duration, Transfer, Encoded, Decoded, Waterfall, each phase)
+  and on the "TLS verification off" pill showed only under the pointer:
+  the Tab key never reached them. Now every tooltip is one kind, shown at
+  once on hover and when a key moves focus to what it explains, and the
+  Timings' info icons and the pill are tab stops whose text a screen
+  reader reads. A tooltip stays while the pointer is on it, follows its
+  button when the page scrolls, and closes on Escape, a press, or the
+  pointer or focus leaving; Escape inside a dialog closes the dialog too,
+  as before, and elsewhere is no longer swallowed by an open tooltip. A
+  tap shows none. Its text is the app's footnote size (12 px on a 16 px
+  line), and a past request's details card sits 8 px under its entry,
+  inside the window's edge. The bars of the Timings no longer repeat in a
+  tooltip the time printed beside them. Angular Material's tooltip is
+  gone, and the app's first download is 25.9 kB smaller (7.3 kB
+  compressed); the size budgets are reset to it: initial 1,208,742 B raw
+  and 316,329 B gzip; budgets 1270kb, 1330kb and 347,962 B.
+
 - **Dialogs and the side drawers are the browser's own modal dialogs, and
   while one is open the page behind it is out of reach.** Before, the page
   behind an open drawer was only marked as outside it: a script kept the

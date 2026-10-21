@@ -3,13 +3,13 @@
   <div class="flex items-center justify-between gap-2">
     <span class="type-overline text-label-tertiary">Collections</span>
     <div class="flex items-center gap-0.5">
-      <button type="button" matIconButton class="btn-plain" (click)="openCommandPalette()" title="Command palette (⌘K)" aria-label="Open command palette">
+      <button type="button" matIconButton class="btn-plain" (click)="openCommandPalette()" uiTooltip="Command palette (⌘K)" aria-label="Open command palette">
         <app-icon name="bolt" class="icon-sm" />
       </button>
-      <button type="button" matIconButton class="btn-plain" (click)="fileInput.click()" title="Import collection" aria-label="Import collection">
+      <button type="button" matIconButton class="btn-plain" (click)="fileInput.click()" uiTooltip="Import collection" aria-label="Import collection">
         <app-icon name="upload" class="icon-sm" />
       </button>
-      <button type="button" matIconButton class="btn-plain" (click)="importPipeline.openPaste()" title="Import a cURL command" aria-label="Import a cURL command">
+      <button type="button" matIconButton class="btn-plain" (click)="importPipeline.openPaste()" uiTooltip="Import a cURL command" aria-label="Import a cURL command">
         <app-icon name="terminal" class="icon-sm" />
       </button>
       <button
@@ -71,7 +71,7 @@
           <app-icon name="folder" class="icon-sm text-label-tertiary shrink-0" />
           }
           @if (node.data.type === 'request') {
-          <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [title]="node.data.ref.method">{{ methodLabel(node.data.ref.method) }}</span>&ngsp;
+          <span [class]="'method-tag method-' + node.data.ref.method.toLowerCase()" [uiTooltip]="node.data.ref.method">{{ methodLabel(node.data.ref.method) }}</span>&ngsp;
           }
           <span class="type-body text-label-primary truncate">{{ node.label }}</span>
         }

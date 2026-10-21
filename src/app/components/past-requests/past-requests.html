@@ -62,7 +62,7 @@
               (click)="load(request)"
               (keydown.enter)="load(request)"
               (keydown.space)="$event.preventDefault(); load(request)"
-              [uiHoverCard]="details"
+              [uiTooltip]="details"
             >{{ request.sent.url }}</span>
 
             @if (request.response) {
@@ -80,14 +80,14 @@
             <span class="type-footnote text-label-tertiary shrink-0 tabular-nums">{{ formatDuration(request.durationMs) }}</span>
             }
 
-            <span class="type-footnote text-label-tertiary shrink-0" [title]="(request.createdAt | date:'medium') ?? ''">
+            <span class="type-footnote text-label-tertiary shrink-0" [uiTooltip]="(request.createdAt | date:'medium') ?? ''">
               {{ relativeTime(request.createdAt) }}
             </span>
 
             <button type="button"
               matIconButton class="btn-plain w-7! h-7! shrink-0 opacity-0 group-hover:opacity-100"
-              matTooltip="Delete"
-              matTooltipPosition="above"
+              uiTooltip="Delete"
+              uiTooltipPosition="above"
               aria-label="Delete history entry"
               (click)="confirmDelete(request, $event)"
             >

@@ -19,7 +19,7 @@ import { Confirm } from "../../ui/confirm";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { Dialog } from "../../ui/dialog";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../../ui/tooltip";
 import { SecretDoc } from "../../models/secrets";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
@@ -49,7 +49,7 @@ interface SecretRow {
  */
 @Component({
   selector: "app-secrets-manager",
-  imports: [VaultActions, MatProgressSpinner, MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, MatTooltip],
+  imports: [VaultActions, MatProgressSpinner, MatFormField, MatInput, Icon, FormsModule, MatButton, MatIconButton, Dialog, UiTooltip],
   templateUrl: "./secrets-manager.html",
   styleUrl: "./secrets-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

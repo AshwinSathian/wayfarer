@@ -37,8 +37,8 @@ literal `0.2s`, an `ease-in-out` or a Tailwind `duration-150`.
   drawer leave in one frame, and the page under them is free that frame.
   The drawer slides in on the tokens' (`--dur-enter`, `--ease-enter`); it
   no longer slides out (D3.3g), as a dialog does not shrink away.
-- **Material's own motion** (its tooltips) keeps Material's timing. The
-  menus and a select's list appear as a small popover does.
+- **Tooltips, the menus and a select's list** appear as a small popover
+  does, and go at once.
 - **A theme change is instant.** Every element of the page once had a
   0.2 s colour transition for it: a switch animated thousands of elements
   at once, and a contrast scan could read a colour half-way.

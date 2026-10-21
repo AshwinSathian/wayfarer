@@ -6,7 +6,7 @@ import { MatButton, MatIconButton } from "@angular/material/button";
 import { Dialog } from "../../ui/dialog";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
-import { MatTooltip } from "@angular/material/tooltip";
+import { UiTooltip } from "../../ui/tooltip";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault } from "../../services/secrets-vault";
@@ -52,7 +52,7 @@ interface EnvironmentDraft {
     MatButton, MatIconButton,
     Tab, TabContent, TabPanel, Tabs, UiTabList,
     Dialog,
-    MatTooltip,
+    UiTooltip,
     JsonEditor,
     VariablesDialog,
     EnvironmentExportDialog,

@@ -372,33 +372,24 @@ test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async
 // reachable with the keyboard alone, and dismissible.
 test("a tooltip opens on keyboard focus, describes its button, and closes on Escape", async ({ page, browserName }) => {
   await page.goto("/app/");
-  // Off the window's corner: a headless pointer rests at (0, 0), which is
-  // where the CDK first places an overlay before positioning it. Material
-  // hides a tooltip the pointer has entered and then left.
-  await page.mouse.move(640, 600);
   await page.locator("input.address-url").fill(`${ECHO}/content/json?tooltip=1`);
 
-  // Reach the button with the keyboard: Material shows a tooltip for
-  // keyboard focus only. Safari tabs to non-inputs with Option+Tab.
+  // Reach the button with the keyboard: a tooltip shows for keyboard focus only. Safari tabs to non-inputs with Option+Tab.
   const curl = page.getByRole("button", { name: "Copy as cURL" });
   await page.locator("input.address-url").focus();
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
   for (let i = 0; i < 4 && !(await curl.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
   await expect(curl).toBeFocused();
-  const tooltip = page.locator(".mat-mdc-tooltip");
-  await expect(tooltip).toHaveText("Copy as cURL");
-  // The element and its text are there before Material shows it (a
-  // setTimeout later). Escape before then is not the tooltip's to take, and
-  // the show that follows left it open (F67, #222). Wait until it is shown.
-  await expect(tooltip).toHaveClass(/mat-mdc-tooltip-show/);
-  // The tooltip repeats the button's name, so Material adds no description:
-  // a screen reader would say the same words twice.
+  const tooltip = page.getByRole("tooltip").filter({ hasText: "Copy as cURL" });
+  await expect(tooltip).toBeVisible();
+  // The tooltip repeats the button's name, so it adds no description: a screen reader would say the same words twice.
   await expect(curl).toHaveAccessibleName("Copy as cURL");
   await expect(curl).not.toHaveAttribute("aria-describedby");
 
   await page.keyboard.press("Escape");
-  await expect(tooltip).toHaveCount(0);
+  await expect(tooltip).toBeHidden();
   await expect(curl).toBeFocused();
+  await expect(page.getByRole("menu")).toHaveCount(0);
 
   // The app is still usable: the next button takes the click.
   await page.getByRole("button", { name: "Send request" }).click();

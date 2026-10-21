@@ -41,13 +41,6 @@
   }
 }
 
-/* ── Applied animations ──────────────────────────────────── */
-
-/* Material animates its own select lists; ui-menu animates in menu.css. */
-.ui-popover {
-  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
-}
-
 /* ── Utility classes ─────────────────────────────────────── */
 
 /* What appears in the page fades in and does not move (F48). A panel that

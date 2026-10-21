@@ -4,13 +4,13 @@
     <div class="mb-3 flex items-center justify-between gap-2">
       <span class="type-overline text-label-tertiary">Environments</span>
       <div class="flex items-center gap-0.5">
-        <button type="button" matIconButton class="btn-plain" (click)="globalsVisible.set(true)" title="Global variables" aria-label="Global variables">
+        <button type="button" matIconButton class="btn-plain" (click)="globalsVisible.set(true)" uiTooltip="Global variables" aria-label="Global variables">
           <app-icon name="data_object" class="icon-sm" />
         </button>
-        <button type="button" matIconButton class="btn-plain" (click)="envImportInput.click()" title="Import" aria-label="Import environments">
+        <button type="button" matIconButton class="btn-plain" (click)="envImportInput.click()" uiTooltip="Import" aria-label="Import environments">
           <app-icon name="upload" class="icon-sm" />
         </button>
-        <button type="button" matIconButton class="btn-plain" (click)="exportDialogVisible.set(true)" title="Export" aria-label="Export environments">
+        <button type="button" matIconButton class="btn-plain" (click)="exportDialogVisible.set(true)" uiTooltip="Export" aria-label="Export environments">
           <app-icon name="download" class="icon-sm" />
         </button>
         <button
@@ -55,8 +55,8 @@
             matIconButton class="btn-success btn-sm"
             [disabled]="activeEnvId === env.meta.id"
             (click)="setActive(env)"
-            matTooltip="Use for requests"
-            matTooltipPosition="above"
+            uiTooltip="Use for requests"
+            uiTooltipPosition="above"
             aria-label="Use for requests"
           ><app-icon name="check" /></button>
           <button

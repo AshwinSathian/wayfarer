@@ -128,6 +128,15 @@ pre,
   border: 1px solid var(--status-error-border);
 }
 
+/* An icon that explains what is beside it in a tooltip: a tab stop of its
+   own, named by that text, so the keyboard reaches it too. */
+.info-tip {
+  display: inline-flex;
+  border-radius: var(--radius-sm);
+  color: var(--label-tertiary);
+  cursor: help;
+}
+
 /* ── Panel / Card ────────────────────────────────────────── */
 .ds-panel {
   background: var(--canvas-panel);

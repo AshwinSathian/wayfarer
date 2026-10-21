@@ -1,0 +1,39 @@
+/* The platform's popover (UiTooltip) with none of the browser's look: a
+   tooltip of text, and a card of details (.ui-tooltip-card). In the top
+   layer, placed by the directive; it inherits from where it sits in the page,
+   so the font is set here. */
+.ui-tooltip {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  max-width: calc(12.5rem + 22px);
+  padding: 6px 10px;
+  overflow: visible;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-overlay);
+  box-shadow: var(--shadow-overlay);
+  /* --label-secondary measures 4.27:1 on --canvas-overlay. */
+  color: var(--label-secondary-on-fill);
+  font-family: var(--font-sans);
+  font-size: var(--type-footnote-size);
+  font-weight: var(--type-footnote-weight);
+  line-height: var(--type-footnote-line);
+  letter-spacing: var(--type-footnote-tracking);
+  text-align: start;
+  white-space: pre-line;
+}
+
+.ui-tooltip:popover-open {
+  animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
+}
+
+.ui-tooltip.ui-tooltip-card {
+  max-width: none;
+  padding: 0.75rem;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+  color: var(--label-primary);
+  white-space: normal;
+}

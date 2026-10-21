@@ -2,7 +2,7 @@
 // development builds only. Every widget in each state passes axe in both
 // themes, and in forced colours what is selected is still marked.
 import { readdir, readFile } from "node:fs/promises";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { axe } from "./support/axe";
 import { settled } from "./support/settled";
 
@@ -105,6 +105,39 @@ for (const theme of ["light", "dark"] as const) {
     await scan("drawer, open");
     await drawer.getByRole("textbox", { name: "Search history" }).focus();
     await scan("drawer, a field focused");
+
+    expect(found).toEqual([]);
+  });
+
+  // A test of its own, as the segmented choice's: each scan reads the whole page.
+  test(`the tooltips, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    const tip = (text: string) => page.getByRole("tooltip").filter({ hasText: text });
+
+    await page.getByRole("button", { name: "New tab", exact: true }).hover();
+    await expect(tip("New tab (Alt+T)")).toBeVisible();
+    await scan("tooltip, under the pointer");
+    await page.getByRole("button", { name: "Delete", exact: true }).focus();
+    await page.keyboard.press("Tab");
+    await expect(tip("Time to first byte")).toBeVisible();
+    await scan("tooltip, long, from the keyboard");
+    await page.getByText("GET /orders").hover();
+    await expect(tip("200 OK")).toBeVisible();
+    await scan("tooltip, a card");
+    await page.mouse.move(0, 0);
+
+    await page.getByRole("button", { name: "Open the drawer" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(tip("Close history (Esc)")).toBeVisible();
+    await scan("tooltip, in the drawer");
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Open the dialog" }).click();
+    const dialog = page.getByRole("dialog", { name: "Edit request" });
+    await dialog.getByRole("button", { name: "Duplicate" }).hover();
+    await expect(tip("Duplicate")).toBeVisible();
+    await scan("tooltip, in a dialog");
 
     expect(found).toEqual([]);
   });
@@ -375,7 +408,7 @@ test("dialog: Escape closes a select's list or a menu inside it first, and a too
   await dialog.getByRole("button", { name: "Copy as" }).focus();
   await page.keyboard.press("Tab");
   await expect(dialog.getByRole("button", { name: "Duplicate" })).toBeFocused();
-  const tooltip = page.locator(".mat-mdc-tooltip", { hasText: "Duplicate" });
+  const tooltip = dialog.getByRole("tooltip").filter({ hasText: "Duplicate" });
   await expect(tooltip).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
@@ -475,6 +508,165 @@ test("drawer: a modal dialog at the window's edge, and what opens from it takes 
   await expect(close).toBeFocused();
   await page.mouse.click(600, 300);
   await expect(drawer).toBeHidden();
+});
+
+/** Where a tooltip is, by its layout box: its entrance scales it. */
+const layout = (tip: Locator) => tip.evaluate((el: HTMLElement) => ({ left: el.offsetLeft, top: el.offsetTop, right: el.offsetLeft + el.offsetWidth, bottom: el.offsetTop + el.offsetHeight }));
+
+test("tooltip: from the keyboard, described, above or below, and Escape hides it and goes on", async ({ page, browserName }) => {
+  await open(page, "light");
+  // The pointer stays at (0, 0): nothing of a tooltip is ever drawn there.
+  const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
+  const tip = (text: string) => page.getByRole("tooltip").filter({ hasText: text });
+  const newTab = page.getByRole("button", { name: "New tab", exact: true });
+  await page.getByRole("button", { name: "Export" }).focus();
+  for (let i = 0; i < 4 && !(await newTab.evaluate((el) => el === document.activeElement)); i++) await page.keyboard.press(tab);
+  await expect(newTab).toBeFocused();
+  await expect(tip("New tab (Alt+T)")).toBeVisible();
+  // It adds a key to the name, so it describes the button; Delete's repeats the name, and does not.
+  await expect(newTab).toHaveAccessibleDescription("New tab (Alt+T)");
+  const host = (await newTab.boundingBox())!;
+  expect(Math.abs((await layout(tip("New tab (Alt+T)"))).top - (host.y + host.height + 8))).toBeLessThan(1);
+
+  await page.keyboard.press(tab);
+  const del = page.getByRole("button", { name: "Delete", exact: true });
+  await expect(del).toBeFocused();
+  await expect(tip("New tab (Alt+T)")).toBeHidden();
+  await expect(tip("Delete")).toBeVisible();
+  await expect(del).toHaveAccessibleDescription("");
+  const d = (await del.boundingBox())!;
+  expect(Math.abs((await layout(tip("Delete"))).bottom - (d.y - 8))).toBeLessThan(1);
+
+  // A long text wraps at its width.
+  await page.keyboard.press(tab);
+  const long = await layout(tip("Time to first byte"));
+  expect(long.right - long.left).toBeLessThanOrEqual(222);
+  expect(long.bottom - long.top).toBeGreaterThan(40);
+
+  // A menu button stops Escape on itself: its tooltip hears the key first, and the menu stays closed.
+  await page.keyboard.press(tab);
+  const copy = page.getByRole("button", { name: "Copy as" }).first();
+  await expect(copy).toBeFocused();
+  await expect(tip("Copy the request")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tip("Copy the request")).toBeHidden();
+  await expect(copy).toBeFocused();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("menuitem").first()).toBeFocused();
+  await expect(tip("Copy the request")).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(copy).toBeFocused();
+
+  // Elsewhere the key goes on to the page: a tooltip does not stop it.
+  await page.keyboard.press(`Shift+${tab}`);
+  await expect(tip("Time to first byte")).toBeVisible();
+  await page.evaluate(() => {
+    (window as unknown as { escapes: number }).escapes = 0;
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") (window as unknown as { escapes: number }).escapes++;
+    });
+  });
+  await page.keyboard.press("Escape");
+  await expect(tip("Time to first byte")).toBeHidden();
+  expect(await page.evaluate(() => (window as unknown as { escapes: number }).escapes)).toBe(1);
+});
+
+test("tooltip: the pointer shows it, may rest on it, and a press or leaving hides it; a click's focus and a touch do not", async ({ page }) => {
+  await open(page, "light");
+  const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
+  const newTab = page.getByRole("button", { name: "New tab", exact: true });
+  await newTab.hover();
+  await expect(tip).toBeVisible();
+  const t = await layout(tip);
+  await page.mouse.move(t.left + 10, t.top + 5, { steps: 4 });
+  await page.waitForTimeout(200);
+  await expect(tip).toBeVisible();
+  await page.mouse.move(400, 10);
+  await expect(tip).toBeHidden();
+
+  await newTab.hover();
+  await expect(tip).toBeVisible();
+  await page.mouse.down();
+  await expect(tip).toBeHidden();
+  await page.mouse.up();
+  await page.mouse.move(400, 10);
+  await page.waitForTimeout(200);
+  await expect(tip).toBeHidden();
+
+  // A card: the pointer on it keeps it.
+  await page.getByText("GET /orders").hover();
+  const card = page.getByRole("tooltip").filter({ hasText: "200 OK" });
+  await expect(card).toBeVisible();
+  const c = await layout(card);
+  await page.mouse.move(c.left + 10, c.top + 5, { steps: 4 });
+  await page.waitForTimeout(200);
+  await expect(card).toBeVisible();
+});
+
+test.describe("tooltip on a touch screen", () => {
+  test.use({ hasTouch: true });
+  test("a tap does not show it", async ({ page }) => {
+    await open(page, "light");
+    await page.getByRole("button", { name: "New tab", exact: true }).tap();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+  });
+});
+
+test("tooltip: at the window's edge it takes the other side and stays inside", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  await open(page, "light");
+  const tip = (text: string) => page.getByRole("tooltip").filter({ hasText: text });
+
+  const settings = page.getByRole("button", { name: "Settings", exact: true });
+  await settings.hover();
+  const s = await layout(tip("Settings (Ctrl+,)"));
+  expect(s.right).toBeLessThanOrEqual(360 - 8);
+
+  // Below, at the window's bottom: above. Above, at the window's top: below.
+  const newTab = page.getByRole("button", { name: "New tab", exact: true });
+  await page.mouse.move(0, 0);
+  await newTab.evaluate((el) => window.scrollBy({ top: el.getBoundingClientRect().bottom - innerHeight + 2, behavior: "instant" }));
+  await newTab.hover();
+  const n = (await newTab.boundingBox())!;
+  expect((await layout(tip("New tab (Alt+T)"))).bottom).toBeLessThanOrEqual(n.y - 7);
+
+  const del = page.getByRole("button", { name: "Delete", exact: true });
+  await page.mouse.move(0, 0);
+  await del.evaluate((el) => window.scrollBy({ top: el.getBoundingClientRect().top - 2, behavior: "instant" }));
+  await del.hover();
+  const d = (await del.boundingBox())!;
+  expect((await layout(tip("Delete"))).top).toBeGreaterThanOrEqual(d.y + d.height + 7);
+});
+
+test("tooltip: in the drawer it is in the drawer, and Escape closes the drawer and the tooltip", async ({ page }) => {
+  await open(page, "light");
+  await page.getByRole("button", { name: "Open the drawer" }).focus();
+  await page.keyboard.press("Enter");
+  const drawer = page.getByRole("dialog", { name: "History" });
+  const tip = drawer.getByRole("tooltip").filter({ hasText: "Close history (Esc)" });
+  await expect(tip).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Close history" })).toHaveAccessibleDescription("Close history (Esc)");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+
+  // Opened by a click, the first element's focus is not the keyboard's: no tooltip.
+  await page.getByRole("button", { name: "Open the drawer" }).click();
+  await expect(drawer.getByRole("button", { name: "Close history" })).toBeFocused();
+  await page.waitForTimeout(200);
+  await expect(page.getByRole("tooltip")).toHaveCount(0);
+});
+
+test("tooltip: with reduced motion it appears at once", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page, "light");
+  await page.getByRole("button", { name: "New tab", exact: true }).hover();
+  const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
+  await expect(tip).toBeVisible();
+  const durations = await tip.evaluate((el) => el.getAnimations().map((animation) => Number(animation.effect?.getComputedTiming().duration)));
+  expect(durations.every((ms) => ms <= 0.001)).toBe(true);
 });
 
 test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", async ({ page }) => {
@@ -822,6 +1014,17 @@ test("dialogs: in forced colours the edge of a dialog, a confirmation and the dr
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Open the drawer" }).click();
   expect(await edge("History", "Right")).toBe("solid 1px");
+});
+
+test("tooltip: in forced colours its edge still shows", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  await page.getByRole("button", { name: "New tab", exact: true }).hover();
+  const tip = page.getByRole("tooltip").filter({ hasText: "New tab (Alt+T)" });
+  await expect(tip).toBeVisible();
+  // The shadow is taken away; the border is not.
+  expect(await tip.evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`)).toBe("solid 1px");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

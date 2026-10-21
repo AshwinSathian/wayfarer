@@ -406,15 +406,6 @@
     transform: translateX(100%);
   }
 }
-/* ── Popover: a card of details under its trigger ────────── */
-.ui-popover {
-  padding: 0.75rem;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--surface-overlay);
-  box-shadow: var(--shadow-overlay);
-}
-
 /* Method field: mono, upper case, joined to the URL field on its right.
    A text field, so any HTTP method can be typed; .method-menu beside it
    lists the common ones. */

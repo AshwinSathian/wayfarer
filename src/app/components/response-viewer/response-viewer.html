@@ -45,18 +45,18 @@
       <!-- The facts wrap as one line, not one by one. -->
       <span class="inline-flex flex-wrap items-center gap-x-2.5">
       @if (inspData && inspData.duration) {
-      <span class="response-fact" title="Time">{{ formatMs(inspData.duration) }}</span>
+      <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
       }
       @if (responseContentLength()) {
-      <span class="response-fact" title="Size">{{ formatBytes(responseContentLength()) }}</span>
+      <span class="response-fact" uiTooltip="Size">{{ formatBytes(responseContentLength()) }}</span>
       }
       @if (route(); as route) {
-      <span class="response-fact route-badge" title="Route">{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span>
+      <span class="response-fact route-badge" uiTooltip="Route">{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span>
       }
       </span>
 
       @if (tlsInsecure()) {
-      <span class="tls-off-pill" matTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
+      <span class="tls-off-pill" tabindex="0" uiTooltip="The Local Bridge did not verify the server's certificate for this request: what answered may not be the server the address names.">
         <app-icon name="warning" class="icon-xs" />
         TLS verification off
       </span>
@@ -69,7 +69,7 @@
           matIconButton class="btn-plain"
           type="button"
           aria-label="Export response"
-          title="Export response"
+          uiTooltip="Export response"
           ngMenuTrigger
           #exportTrigger="ngMenuTrigger"
           [menu]="exportMenu.menu()"
@@ -316,32 +316,32 @@
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Duration</span>
-                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [matTooltip]="timingSummaryTooltips.duration" matTooltipPosition="above" />
+                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.duration"
+                      [uiTooltip]="timingSummaryTooltips.duration" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatMs(inspectionData.duration) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Transfer</span>
-                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [matTooltip]="timingSummaryTooltips.transferSize" matTooltipPosition="above" />
+                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.transferSize"
+                      [uiTooltip]="timingSummaryTooltips.transferSize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.transferSize) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Encoded</span>
-                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [matTooltip]="timingSummaryTooltips.encodedBodySize" matTooltipPosition="above" />
+                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.encodedBodySize"
+                      [uiTooltip]="timingSummaryTooltips.encodedBodySize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.encodedBodySize) }}</div>
                 </div>
                 <div class="rounded-xl bg-canvas-panel border border-separator p-4">
                   <div class="flex items-center gap-1.5 mb-2">
                     <span class="ds-section-label">Decoded</span>
-                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [matTooltip]="timingSummaryTooltips.decodedBodySize" matTooltipPosition="above" />
+                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="timingSummaryTooltips.decodedBodySize"
+                      [uiTooltip]="timingSummaryTooltips.decodedBodySize" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                   </div>
                   <div class="type-title-3 text-label-primary">{{ formatBytes(inspectionData.sizes?.decodedBodySize) }}</div>
                 </div>
@@ -352,8 +352,8 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="ds-section-label">Waterfall</span>
-                    <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                      [matTooltip]="waterfallTooltip" matTooltipPosition="above" />
+                    <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="waterfallTooltip"
+                      [uiTooltip]="waterfallTooltip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                   </div>
                   @if (inspectionData.limitedByCors) {
                   <span class="type-footnote text-status-warning flex items-center gap-1">
@@ -370,15 +370,14 @@
                     <div class="flex w-24 items-center gap-1.5">
                       <span class="type-subhead text-label-secondary truncate">{{ phase.label }}</span>
                       @if (phase.tooltip) {
-                      <app-icon name="info" class="icon-xs text-label-tertiary cursor-help" 
-                        [matTooltip]="phase.tooltip" matTooltipPosition="above" />
+                      <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="phase.tooltip"
+                        [uiTooltip]="phase.tooltip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
                       }
                     </div>
                     <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
                       <div
                         class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill"
                         [style.width.%]="phase.percent < 2 ? 2 : phase.percent"
-                        [attr.title]="formatMs(phase.duration)"
                       ></div>
                     </div>
                     <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
@@ -395,8 +394,7 @@
                       <span class="type-subhead text-label-secondary truncate">{{ bar.label }}</span>
                     </div>
                     <div class="relative h-2.5 flex-1 rounded-full bg-fill-secondary">
-                      <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"
-                        [attr.title]="formatMs(bar.duration)"></div>
+                      <div class="absolute left-0 top-0 h-2.5 rounded-full timing-bar-fill" style="width: 100%"></div>
                     </div>
                     <span class="w-14 text-right type-footnote text-label-secondary tabular-nums">
                       {{ formatMs(bar.duration) }}

@@ -28,17 +28,17 @@
     </mat-form-field>
     } @else {
     <div class="flex min-w-0 flex-1 items-center gap-2">
-      <button matButton="outlined" class="btn-secondary btn-sm shrink-0" type="button" (click)="file.click()">Choose file</button>
+      <button uiButton="outlined" class="btn-secondary btn-sm shrink-0" type="button" (click)="file.click()">Choose file</button>
       <span class="type-footnote text-label-secondary truncate">{{ part.fileName || "No file chosen" }}</span>
       <input #file type="file" class="hidden" [attr.aria-label]="'File for part ' + (index + 1)" (change)="onFile(index, file)" />
     </div>
     }
-    <button matIconButton class="btn-danger" type="button" aria-label="Remove part" (click)="remove.emit(index)"><app-icon name="close" /></button>
+    <button uiButton="icon" class="btn-danger" type="button" aria-label="Remove part" (click)="remove.emit(index)"><app-icon name="close" /></button>
     </div>
   </div>
   }
 
   <div class="pt-2">
-    <button matButton="filled" class="btn-secondary" type="button" aria-label="Add part" (click)="add.emit()"><app-icon name="add" /> Add Part</button>
+    <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add part" (click)="add.emit()"><app-icon name="add" /> Add Part</button>
   </div>
 </div>

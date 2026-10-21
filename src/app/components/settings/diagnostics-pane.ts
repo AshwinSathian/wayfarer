@@ -1,6 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { UiSpinner } from "../../ui/spinner";
 import { decryptSecret, encryptSecret, newId, type VaultKey } from "@wayfarer/core";
 import { version } from "../../../../package.json";
@@ -26,7 +26,7 @@ const MAX_ISSUE_BODY = 6000;
  */
 @Component({
   selector: "app-diagnostics-pane",
-  imports: [DatePipe, Icon, MatButton, UiSpinner],
+  imports: [DatePipe, Icon, UiButton, UiSpinner],
   templateUrl: "./diagnostics-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },

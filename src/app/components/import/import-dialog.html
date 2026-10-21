@@ -13,7 +13,7 @@
     ></textarea>
     <p class="type-footnote text-label-tertiary">As a browser's "Copy as cURL" writes it, for bash or for cmd. The command is read, not run: no file it names is opened and nothing is sent.</p>
     <div class="flex justify-end">
-      <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="pipeline.stage('the pasted command', pasted.value)">Read the command</button>
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="pipeline.stage('the pasted command', pasted.value)">Read the command</button>
     </div>
   </div>
   } @else if (pipeline.refused(); as refused) {
@@ -144,9 +144,9 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()">Cancel</button>
       <button
-        matButton="filled"
+        uiButton="filled"
         aria-label="Confirm import"
         [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
         (click)="pipeline.confirm()"

@@ -12,6 +12,7 @@
 @import "./design-system/typography.css";
 @import "./design-system/components.css";
 @import "./design-system/controls.css";
+@import "./app/ui/button.css";
 @import "./design-system/animations.css";
 @import "./app/ui/dialog.css";
 @import "./app/ui/tooltip.css";

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from "@angular/core";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -20,7 +20,7 @@ import { HarExportDialog } from "../har-export/har-export-dialog";
  */
 @Component({
   selector: "app-run-view",
-  imports: [Icon, MatButton, MatCheckbox, MatFormField, MatInput, UiSpinner, HarExportDialog],
+  imports: [Icon, UiButton, MatCheckbox, MatFormField, MatInput, UiSpinner, HarExportDialog],
   templateUrl: "./run-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

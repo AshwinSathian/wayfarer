@@ -19,7 +19,7 @@
 
     <!-- Focusable: a pane with nothing to tab to (Shortcuts) is still scrolled from the keyboard. -->
     <section class="settings-pane" tabindex="0" aria-labelledby="settings-pane-title">
-      <button matButton type="button" class="settings-back btn-sm" (click)="back()"><app-icon name="chevron_right" class="rotate-180" /> All settings</button>
+      <button uiButton type="button" class="settings-back btn-sm" (click)="back()"><app-icon name="chevron_right" class="rotate-180" /> All settings</button>
       <header class="settings-pane-header">
         <h3 id="settings-pane-title" class="type-title-3 text-label-primary" [class.text-status-error]="section() === 'danger'">{{ current().label }}</h3>
         <p class="type-callout text-label-tertiary mt-1">{{ current().about }}</p>
@@ -89,7 +89,7 @@
               <p class="type-subhead text-label-primary">Clear history</p>
               <p class="type-footnote text-label-tertiary">Removes every entry. Collections and saved requests are not touched.</p>
             </div>
-            <button matButton class="btn-danger btn-sm" type="button" aria-label="Clear history" (click)="clearHistory.emit()">Clear…</button>
+            <button uiButton class="btn-danger btn-sm" type="button" aria-label="Clear history" (click)="clearHistory.emit()">Clear…</button>
           </div>
         </div>
         }
@@ -103,8 +103,8 @@
               <mat-checkbox id="backup-history" class="mt-1.5 -ml-2" [checked]="backupHistory()" (change)="backupHistory.set($event.checked)">With history</mat-checkbox>
             </div>
             <div class="settings-actions">
-              <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Back up workspace" (click)="exportBackup()"><app-icon name="download" /> Back up</button>
-              <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Restore workspace" (click)="backupFile.click()"><app-icon name="upload" /> Restore</button>
+              <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Back up workspace" (click)="exportBackup()"><app-icon name="download" /> Back up</button>
+              <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Restore workspace" (click)="backupFile.click()"><app-icon name="upload" /> Restore</button>
               <input #backupFile type="file" accept="application/json" class="hidden" aria-label="Restore workspace from file" (change)="restoreBackup($event)" />
             </div>
           </div>
@@ -124,8 +124,8 @@
               <p class="type-footnote text-label-tertiary">Every environment as one JSON file, or bring one back in.</p>
             </div>
             <div class="settings-actions">
-              <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Export environments" (click)="exportEnvironments()"><app-icon name="download" /> Export</button>
-              <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="environmentFile.click()"><app-icon name="upload" /> Import</button>
+              <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Export environments" (click)="exportEnvironments()"><app-icon name="download" /> Export</button>
+              <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="environmentFile.click()"><app-icon name="upload" /> Import</button>
               <input #environmentFile type="file" accept="application/json,.json,.yaml,.yml" class="hidden" aria-label="Import environments from file" (change)="handleEnvironmentImport($event)" />
             </div>
           </div>
@@ -165,7 +165,7 @@
               <p class="type-subhead text-label-primary">Secrets</p>
               <p class="type-footnote text-label-tertiary">View, reveal, rename and delete the secrets of every environment. The vault is {{ vault.isUnlocked() ? 'unlocked in this tab' : 'locked' }}.</p>
             </div>
-            <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Manage secrets" (click)="openSecrets.emit(); close()">Manage…</button>
+            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Manage secrets" (click)="openSecrets.emit(); close()">Manage…</button>
           </div>
           <div class="settings-row">
             <div class="min-w-0">
@@ -239,7 +239,7 @@
               <p class="type-subhead text-label-primary">Reset all data</p>
               <p class="type-footnote text-label-tertiary">Deletes every collection, environment, secret and history entry, and every setting on this page. Cannot be undone: back up first.</p>
             </div>
-            <button matButton="filled" class="btn-danger btn-sm" type="button" aria-label="Reset all data" (click)="resetAllData.emit()">Reset…</button>
+            <button uiButton="filled" class="btn-danger btn-sm" type="button" aria-label="Reset all data" (click)="resetAllData.emit()">Reset…</button>
           </div>
         </div>
         }

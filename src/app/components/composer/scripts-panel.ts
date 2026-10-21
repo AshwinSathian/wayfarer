@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { FormsModule } from "@angular/forms";
 import { Icon } from "../../shared/icon/icon";
 import { WorkspaceStore } from "../../state/workspace-store";
@@ -10,7 +10,7 @@ import { TestsPanel } from "./tests-panel";
 /** The pre-request and post-response scripts, and the test assertions below them. */
 @Component({
   selector: "app-scripts-panel",
-  imports: [FormsModule, Icon, MatButton, ScriptEditor, ScriptReviewDialog, TestsPanel],
+  imports: [FormsModule, Icon, UiButton, ScriptEditor, ScriptReviewDialog, TestsPanel],
   templateUrl: "./scripts-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

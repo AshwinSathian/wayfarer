@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, input, output, signal, untracked } from "@angular/core";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { variableChanges, type Row, type VariableChange } from "@wayfarer/core";
 import { Dialog } from "../../ui/dialog";
 import { RowsEditor } from "../composer/rows-editor/rows-editor";
@@ -11,7 +11,7 @@ import { RowsEditor } from "../composer/rows-editor/rows-editor";
  */
 @Component({
   selector: "app-variables-dialog",
-  imports: [Dialog, MatButton, RowsEditor],
+  imports: [Dialog, UiButton, RowsEditor],
   template: `
     <ui-dialog [header]="header()" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="560px">
       <p class="type-footnote text-label-secondary mb-3">{{ hint() }}</p>
@@ -25,8 +25,8 @@ import { RowsEditor } from "../composer/rows-editor/rows-editor";
       />
       <div uiDialogFooter>
         <div class="flex justify-end gap-2">
-          <button matButton="outlined" class="btn-secondary" type="button" (click)="visibleChange.emit(false)">Cancel</button>
-          <button matButton="filled" type="button" (click)="submit()">Save variables</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="visibleChange.emit(false)">Cancel</button>
+          <button uiButton="filled" type="button" (click)="submit()">Save variables</button>
         </div>
       </div>
     </ui-dialog>

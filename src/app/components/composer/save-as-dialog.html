@@ -53,8 +53,8 @@
     }
 
     <div class="flex justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="requestSave.closeSaveAsDialog()">Cancel</button>
-      <button matButton="filled" aria-label="Save" [disabled]="requestSave.isSaveAsDisabled || requestSave.savingRequest()" (click)="confirm()">{{ requestSave.savingRequest() ? 'Saving…' : 'Save' }}</button>
+      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel" (click)="requestSave.closeSaveAsDialog()">Cancel</button>
+      <button uiButton="filled" aria-label="Save" [disabled]="requestSave.isSaveAsDisabled || requestSave.savingRequest()" (click)="confirm()">{{ requestSave.savingRequest() ? 'Saving…' : 'Save' }}</button>
     </div>
   </div>
 </ui-dialog>

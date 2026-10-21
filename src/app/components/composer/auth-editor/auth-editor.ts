@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output } f
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { emptyAuth, type AuthConfig, type OwnAuth } from "@wayfarer/core";
 import { oauthRedirectUri } from "../../../services/oauth-tokens";
@@ -35,7 +35,7 @@ const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as cons
  */
 @Component({
   selector: "app-auth-editor",
-  imports: [MatFormField, MatInput, Icon, FormsModule, MatIconButton, UiSelect, MatCheckbox, OAuthTokenPanel],
+  imports: [MatFormField, MatInput, Icon, FormsModule, UiButton, UiSelect, MatCheckbox, OAuthTokenPanel],
   templateUrl: "./auth-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

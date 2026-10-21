@@ -1,5 +1,5 @@
 import { ApplicationRef, ChangeDetectionStrategy, Component, EnvironmentInjector, Injectable, createComponent, inject, viewChild } from "@angular/core";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "./button";
 import { Icon } from "../shared/icon/icon";
 import { UiModal } from "./modal";
 
@@ -27,7 +27,7 @@ const MARGIN = 8;
  */
 @Component({
   selector: "ui-confirm",
-  imports: [Icon, MatButton, UiModal],
+  imports: [Icon, UiButton, UiModal],
   template: `
     <dialog
       uiModal
@@ -42,8 +42,8 @@ const MARGIN = 8;
         <div class="rounded-xl p-4 type-callout bg-canvas-overlay border border-separator">
           <span class="text-label-secondary-on-fill" [id]="id + '-message'">{{ options.message }}</span>
           <div class="flex items-center gap-2 mt-3">
-            <button matButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-            <button matButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="answer(false)">
+            <button uiButton class="btn-danger btn-sm" type="button" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button uiButton class="btn-secondary btn-sm" type="button" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
             </button>
           </div>
@@ -54,8 +54,8 @@ const MARGIN = 8;
           <span class="type-title-2 text-label-primary mb-2" [id]="id + '-title'">{{ options.title }}</span>
           <p class="type-body text-label-secondary-on-fill text-center max-w-xs" [id]="id + '-message'">{{ options.message }}</p>
           <div class="flex items-center gap-3 mt-6">
-            <button matButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
-            <button matButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="answer(false)">
+            <button uiButton="filled" type="button" class="btn-danger w-28" (click)="answer(true)">{{ options.acceptLabel ?? "Proceed" }}</button>
+            <button uiButton type="button" class="btn-secondary w-28" cdkFocusInitial (click)="answer(false)">
               {{ options.rejectLabel ?? "Cancel" }}
             </button>
           </div>

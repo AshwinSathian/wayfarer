@@ -5,7 +5,7 @@ import { MatInput } from "@angular/material/input";
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { UiAccordion, UiAccordionPanel } from "../../ui/accordion";
 import { Confirm } from "../../ui/confirm";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { historyExchange, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
@@ -32,10 +32,9 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [MatIconButton, MatFormField, MatInput,
+  imports: [UiButton, MatFormField, MatInput,
     DatePipe,
     Icon,
-    MatButton,
     UiTooltip,
     AccordionContent, AccordionPanel, AccordionTrigger, UiAccordion, UiAccordionPanel,
     MatCheckbox,

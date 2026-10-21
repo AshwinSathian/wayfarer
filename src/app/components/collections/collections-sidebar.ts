@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, O
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { Confirm } from "../../ui/confirm";
@@ -42,12 +42,11 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [MatIconButton, MatFormField, MatInput, 
+  imports: [UiButton, MatFormField, MatInput, 
     Icon,
     FormsModule,
     Tree,
     UiMenu,
-    MatButton,
     Dialog,
     UiTooltip,
     UiSelect,

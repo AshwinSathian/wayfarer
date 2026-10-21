@@ -8,17 +8,15 @@
   >Headers, one <code>Name: value</code> per line. Start a line with <code>#</code> to keep it without sending
   it.</label
 >
-<mat-form-field class="field w-full">
-  <textarea
-    matInput
-    id="headers-bulk"
-    class="type-mono-body"
-    rows="8"
-    spellcheck="false"
-    [value]="bulkText()"
-    (input)="onBulkInput($any($event.target).value)"
-  ></textarea>
-</mat-form-field>
+<textarea
+  uiInput
+  id="headers-bulk"
+  class="font-mono w-full"
+  rows="8"
+  spellcheck="false"
+  [value]="bulkText()"
+  (input)="onBulkInput($any($event.target).value)"
+></textarea>
 } @else {
 <app-rows-editor
   context="Headers"

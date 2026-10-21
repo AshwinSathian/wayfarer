@@ -12,8 +12,7 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { UiTooltip } from "../../ui/tooltip";
 import { Confirm } from "../../ui/confirm";
 import { UiButton } from "../../ui/button";
@@ -46,8 +45,7 @@ import { UiSelect } from "../../ui/select";
   selector: "app-shell",
   imports: [
     MatToolbar,
-    MatFormField,
-    MatInput,
+    UiInput,
     NgTemplateOutlet,
     Icon,
     UiModal,

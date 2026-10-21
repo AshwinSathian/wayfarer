@@ -14,8 +14,7 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { UiButton } from "../../ui/button";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
@@ -55,8 +54,7 @@ export interface PaletteAction {
   selector: "app-collections-sidebar",
   imports: [
     UiButton,
-    MatFormField,
-    MatInput,
+    UiInput,
     Icon,
     FormsModule,
     Tree,

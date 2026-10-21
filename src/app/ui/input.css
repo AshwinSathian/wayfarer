@@ -1,0 +1,128 @@
+/* The platform's text field (UiInput, D3.3k) with none of the browser's look.
+   The element is the box. Imported before the type classes and the Tailwind
+   utilities, so `font-mono`, a `type-*` class and a width on the element win. */
+.ui-input {
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  padding: 9px 12px;
+  appearance: none;
+  border: 1px solid var(--separator);
+  background: var(--canvas-elevated);
+  box-shadow: 0 1px 2px rgba(18, 18, 23, 0.05);
+  color: var(--label-primary);
+  caret-color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.003em;
+  vertical-align: middle;
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard);
+}
+
+/* The global :focus-visible rule (styles.css) comes later and sets a radius
+   of its own: the field keeps its shape. */
+.ui-input,
+.ui-input:focus-visible {
+  border-radius: var(--radius-md);
+}
+
+textarea.ui-input {
+  display: block;
+  height: auto;
+  overflow: auto;
+  resize: vertical;
+}
+
+.ui-input::placeholder {
+  color: var(--label-placeholder);
+  opacity: 1;
+}
+
+.ui-input:hover:not(:disabled) {
+  border-color: var(--fill-primary);
+}
+
+/* The field draws its own focus: the border and the glow, no ring. */
+.ui-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: var(--glow-accent);
+  outline: none;
+}
+
+/* Forced colours take the glow away: the focus is an outline, as Material's was. */
+@media (forced-colors: active) {
+  .ui-input:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  /* Inside the address bar, which clips what is outside it. */
+  .ui-input.address-field:focus,
+  .ui-input.method-field:focus {
+    outline-offset: -3px;
+  }
+}
+
+/* A disabled field reads as before: the same text and border. */
+.ui-input:disabled {
+  /* WebKit greys a disabled field's text through the fill colour. */
+  -webkit-text-fill-color: currentColor;
+  color: var(--label-primary);
+  caret-color: currentColor;
+  opacity: 1;
+}
+
+.ui-input:disabled::placeholder {
+  color: color-mix(in srgb, var(--label-primary), transparent 62%);
+}
+
+/* The browser's own parts that Material's field hid: a search field's clear
+   button and a date's picker. A number keeps its arrows. */
+.ui-input::-webkit-search-cancel-button,
+.ui-input::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+/* A field inside a tree row, for renaming it in place. */
+.ui-input.field-inline {
+  height: 28px;
+  padding-block: 3px;
+  background: transparent;
+}
+
+/* The halves of the address bar, which draws the box. 41 px, as Material's
+   method field was, with the text where it was: the bar keeps its height. */
+.ui-input.address-field,
+.ui-input.method-field {
+  height: 41px;
+  padding-block: 10px 11px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-input.address-field {
+  flex: 1;
+  /* Never squeezed out of sight between the method and the buttons. */
+  min-width: 44px;
+  padding-inline: 14px;
+}
+
+/* Mono, upper case: any HTTP method can be typed; .method-menu beside it
+   lists the common ones. */
+.ui-input.method-field {
+  flex: 0 0 76px;
+  min-width: 76px;
+  padding-block: 11px 10px;
+  padding-inline: 14px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}

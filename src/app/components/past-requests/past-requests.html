@@ -28,17 +28,15 @@
   </div>
   } @else {
   <div class="flex flex-col gap-4">
-    <mat-form-field class="field w-full">
-      <input
-        class="font-sans"
-        matInput
-        type="search"
-        aria-label="Search history"
-        placeholder="Search by URL, method or status"
-        [value]="query()"
-        (input)="query.set($any($event.target).value)"
-      />
-    </mat-form-field>
+    <input
+      class="font-sans w-full"
+      uiInput
+      type="search"
+      aria-label="Search history"
+      placeholder="Search by URL, method or status"
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+    />
     @if (!groups().length) {
     <p class="type-footnote text-label-tertiary px-2">No request in history matches.</p>
     } @else {

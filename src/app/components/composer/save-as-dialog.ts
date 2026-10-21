@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { RequestSave } from "../../services/request-save";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { Dialog } from "../../ui/dialog";
@@ -11,7 +10,7 @@ import { UiSelect } from "../../ui/select";
 /** "Save to Collection": names the draft and picks where it goes. `RequestSave` holds its state. */
 @Component({
   selector: "app-save-as-dialog",
-  imports: [FormsModule, Dialog, UiButton, MatFormField, MatInput, UiSelect],
+  imports: [FormsModule, Dialog, UiButton, UiInput, UiSelect],
   templateUrl: "./save-as-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

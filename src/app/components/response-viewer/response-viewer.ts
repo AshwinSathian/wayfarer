@@ -15,8 +15,7 @@ import {
 import type { ShownEvent } from "../../state/tab-state";
 import { EventList } from "./event-list";
 import { FormsModule } from "@angular/forms";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
@@ -75,8 +74,7 @@ interface ResponseHeader {
 @Component({
   selector: "app-response-viewer",
   imports: [
-    MatFormField,
-    MatInput,
+    UiInput,
     EventList,
     HarExportDialog,
     JsonPipe,

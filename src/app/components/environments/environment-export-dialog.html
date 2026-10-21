@@ -46,16 +46,14 @@
     @if (mode() === 'plain') {
     <div>
       <label for="env-export-confirm" class="ds-form-label">Type {{ confirmation }} to confirm</label>
-      <mat-form-field class="field w-full">
-        <input
-          class="font-sans"
-          matInput
-          id="env-export-confirm"
-          autocomplete="off"
-          [ngModel]="typed()"
-          (ngModelChange)="typed.set($event)"
-        />
-      </mat-form-field>
+      <input
+        class="font-sans w-full"
+        uiInput
+        id="env-export-confirm"
+        autocomplete="off"
+        [ngModel]="typed()"
+        (ngModelChange)="typed.set($event)"
+      />
     </div>
     } @if (error()) {
     <p role="alert" class="type-footnote text-status-error flex items-center gap-1.5">

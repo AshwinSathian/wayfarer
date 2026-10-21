@@ -58,7 +58,7 @@
     "check:readme": "node scripts/gen-readme.mjs --check",
     "check:links": "node scripts/check-links.mjs",
     "check:site-links": "node scripts/check-site-links.mjs",
-    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=340221",
+    "bundle:report": "node scripts/bundle-report.mjs dist/wayfarer/browser bundle-report.json --max-initial-gzip=323727",
     "cli:test": "npm -w packages/cli test"
   },
   "dependencies": {

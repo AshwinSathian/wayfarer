@@ -171,16 +171,14 @@
                   } @if (view() === 'json') {
                   <!-- The search, its count and its arrows wrap together. -->
                   <div class="flex min-w-0 flex-1 basis-56 items-center gap-1">
-                    <mat-form-field class="field min-w-0 flex-1">
-                      <input
-                        class="font-mono"
-                        matInput
-                        [value]="searchQuery()"
-                        (input)="onSearchQueryChange($any($event.target).value)"
-                        aria-label="Search the response"
-                        placeholder="Search"
-                      />
-                    </mat-form-field>
+                    <input
+                      class="font-mono min-w-0 flex-1"
+                      uiInput
+                      [value]="searchQuery()"
+                      (input)="onSearchQueryChange($any($event.target).value)"
+                      aria-label="Search the response"
+                      placeholder="Search"
+                    />
                     <span class="type-footnote text-label-tertiary tabular-nums">
                       {{ searchResult()?.count ? searchActiveIndex() + 1 : 0 }}&thinsp;/&thinsp;{{ searchResult()?.count
                       || 0 }}
@@ -206,18 +204,16 @@
                       /></button>
                     </div>
                   </div>
-                  <mat-form-field class="field min-w-0 flex-1 basis-56">
-                    <input
-                      matInput
-                      class="font-mono"
-                      aria-label="Filter the JSON by path"
-                      [value]="jsonFilter()"
-                      (input)="jsonFilter.set($any($event.target).value)"
-                      placeholder="Path: data.items[*].id"
-                      spellcheck="false"
-                      autocomplete="off"
-                    />
-                  </mat-form-field>
+                  <input
+                    uiInput
+                    class="font-mono min-w-0 flex-1 basis-56"
+                    aria-label="Filter the JSON by path"
+                    [value]="jsonFilter()"
+                    (input)="jsonFilter.set($any($event.target).value)"
+                    placeholder="Path: data.items[*].id"
+                    spellcheck="false"
+                    autocomplete="off"
+                  />
                   }
                 </div>
                 } @if (view() === 'json' && filteredJson() === '') {

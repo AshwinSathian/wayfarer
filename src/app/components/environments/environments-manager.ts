@@ -10,8 +10,7 @@ import {
   output,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { UiButton } from "../../ui/button";
 import { Dialog } from "../../ui/dialog";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
@@ -61,8 +60,7 @@ interface EnvironmentDraft {
 @Component({
   selector: "app-environments-manager",
   imports: [
-    MatFormField,
-    MatInput,
+    UiInput,
     Icon,
     FormsModule,
     UiButton,

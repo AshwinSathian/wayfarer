@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { readImportText } from "@wayfarer/core";
 import { SecretsVault } from "../../services/secrets-vault";
 import { Icon } from "../../shared/icon/icon";
@@ -12,7 +11,7 @@ type Mode = "passphrase" | "export" | "import";
 /** What the vault itself can do, apart from its secrets: change its passphrase, and go to and come from a file. */
 @Component({
   selector: "app-vault-actions",
-  imports: [FormsModule, Icon, UiButton, MatFormField, MatInput],
+  imports: [FormsModule, Icon, UiButton, UiInput],
   templateUrl: "./vault-actions.html",
   host: { class: "block" },
   changeDetection: ChangeDetectionStrategy.OnPush,

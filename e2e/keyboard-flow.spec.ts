@@ -5,7 +5,7 @@ import { ECHO } from "./support/echo";
 // stop Tab reaches. No click, no fill: keys only, as a user without a
 // pointer has them.
 
-/** Whether what has focus shows it: its own outline, or the field or checkbox it belongs to. */
+/** Whether what has focus shows it: its own outline or glow, or the address bar or checkbox it belongs to. */
 async function focusShown(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const element = document.activeElement;
@@ -19,8 +19,9 @@ async function focusShown(page: Page): Promise<string | null> {
     const editor = element.closest(".monaco-editor");
     if (editor) return ringed(editor) ? null : "a Monaco editor has focus and shows no ring";
     if (ringed(element)) return null;
-    // A text field draws its focus on the field's outline, a checkbox on its box.
-    if (element.closest(".mat-focused")) return null;
+    // The halves of the address bar show their focus on the bar, a checkbox on its box.
+    const bar = element.closest(".address-bar");
+    if (bar && ringed(bar)) return null;
     const box = element.closest(".mat-mdc-checkbox")?.querySelector(".mdc-checkbox__background");
     if (box && ringed(box)) return null;
     const name = element.getAttribute("aria-label") ?? element.textContent?.trim().slice(0, 40) ?? "";

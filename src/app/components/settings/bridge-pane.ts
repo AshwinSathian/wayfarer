@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import type { Route } from "@wayfarer/core";
 import { BridgeSettings } from "../../services/bridge-settings";
@@ -16,7 +15,7 @@ import { UiSegmented, type UiSegment } from "../../ui/segmented";
  */
 @Component({
   selector: "app-bridge-pane",
-  imports: [FormsModule, Icon, UiButton, MatFormField, MatInput, UiSpinner, UiSegmented],
+  imports: [FormsModule, Icon, UiButton, UiInput, UiSpinner, UiSegmented],
   templateUrl: "./bridge-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },

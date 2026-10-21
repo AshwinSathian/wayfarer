@@ -161,6 +161,22 @@ for (const theme of ["light", "dark"] as const) {
   });
 
   // A test of its own, as the segmented choice's.
+  test(`the text fields, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    await page.getByRole("heading", { name: "Text fields" }).scrollIntoViewIfNeeded();
+    await scan("text fields, at rest");
+    await page.getByLabel("Name", { exact: true }).hover();
+    await scan("text fields, one under the pointer");
+    await page.getByLabel("Value", { exact: true }).focus();
+    await scan("text fields, one focused");
+    await page.getByLabel("Message", { exact: true }).fill("hello");
+    await scan("text fields, several lines typed");
+    expect(found).toEqual([]);
+  });
+
+  // A test of its own, as the segmented choice's.
   test(`the spinner is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
@@ -1272,6 +1288,102 @@ test("button: in forced colours each keeps an edge but the plain icon, and the s
   for (const name of ["Filled", "Outlined", "Text", "Square", "Icon", "Send"])
     expect(await edge(name), name).toBe("solid 1px");
   expect(await edge("Plain")).toBe("none 0px");
+});
+
+test("text field: Tab reaches each one and passes over a disabled one, and what is typed is its value", async ({
+  page,
+}) => {
+  await open(page, "light");
+  const field = (name: string) => page.getByLabel(name, { exact: true });
+  await field("Name").focus();
+  for (const name of [
+    "Value",
+    "Passphrase",
+    "Timeout",
+    "Search",
+    "Message",
+    "Rename Users",
+    "HTTP method",
+    "Address",
+  ]) {
+    await page.keyboard.press("Tab");
+    await expect(field(name), name).toBeFocused();
+  }
+  await expect(field("Subprotocols")).toBeDisabled();
+  await field("Value").fill("Bearer abc");
+  await expect(field("Value")).toHaveValue("Bearer abc");
+  // Enter in a text area is a new line; the arrows in a number step it.
+  await field("Message").fill("one");
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("two");
+  await expect(field("Message")).toHaveValue("one\ntwo");
+  await field("Timeout").focus();
+  await page.keyboard.press("ArrowUp");
+  await expect(field("Timeout")).toHaveValue("30001");
+});
+
+test("text field: none of the browser's look; under the pointer, focused and disabled", async ({
+  page,
+  browserName,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page, "light");
+  const css = (locator: Locator, property: string) =>
+    locator.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+  const field = (name: string) => page.getByLabel(name, { exact: true });
+  for (const name of ["Name", "Value", "Passphrase", "Timeout", "Search", "Subprotocols", "Message"]) {
+    expect(await css(field(name), "appearance"), name).toBe("none");
+    expect(await css(field(name), "border-top-style"), name).toBe("solid");
+  }
+  // A value is monospace, a name is not.
+  expect(await css(field("Value"), "font-family")).toContain("JetBrains Mono");
+  expect(await css(field("Name"), "font-family")).not.toContain("JetBrains Mono");
+
+  const name = field("Name");
+  const rest = await css(name, "border-top-color");
+  await name.hover();
+  await expect.poll(() => css(name, "border-top-color")).not.toBe(rest);
+
+  // Focused, it draws its border and glow and keeps its corners: the global :focus-visible rule sets another radius.
+  const radius = await css(name, "border-top-left-radius");
+  await name.focus();
+  await expect.poll(() => css(name, "box-shadow")).not.toBe("none");
+  expect(await css(name, "border-top-left-radius")).toBe(radius);
+  expect(await css(name, "outline-style")).toBe("none");
+
+  // Disabled, it reads as an enabled one, and the pointer changes nothing.
+  const disabled = field("Subprotocols");
+  expect(await css(disabled, "color")).toBe(await css(field("Value"), "color"));
+  expect(await css(disabled, "-webkit-text-fill-color")).toBe(await css(field("Value"), "color"));
+  const edge = await css(disabled, "border-top-color");
+  await disabled.hover({ force: true });
+  await page.waitForTimeout(200);
+  expect(await css(disabled, "border-top-color")).toBe(edge);
+
+  // The address bar's halves draw no box of their own: the bar does.
+  for (const half of ["HTTP method", "Address"]) {
+    expect(await css(field(half), "border-top-width"), half).toBe("0px");
+    expect(await css(field(half), "box-shadow"), half).toBe("none");
+  }
+});
+
+test("text field: in forced colours each keeps its edge and a focused one shows its outline", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(
+    !(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)),
+    "this engine does not emulate forced colours",
+  );
+  const css = (name: string, property: string) =>
+    page.getByLabel(name, { exact: true }).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+  for (const name of ["Name", "Subprotocols", "Message"])
+    expect(await css(name, "border-top-style"), name).toBe("solid");
+  // The glow is taken away; the outline is painted in the system's colour.
+  for (const name of ["Name", "Address"]) {
+    await page.getByLabel(name, { exact: true }).focus();
+    expect(await css(name, "outline-style"), name).toBe("solid");
+    expect(await css(name, "outline-width"), name).toBe("2px");
+  }
 });
 
 test("the production build holds nothing of the catalogue", async () => {

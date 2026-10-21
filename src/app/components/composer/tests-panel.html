@@ -12,15 +12,13 @@
     (valueChange)="test.target = $event; store.edited()"
   />
   @if (needsKey(test.target)) {
-  <mat-form-field class="field w-44">
-    <input
-      class="font-mono"
-      matInput
-      [(ngModel)]="test.key"
-      (ngModelChange)="store.edited()"
-      [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
-    />
-  </mat-form-field>
+  <input
+    class="font-mono w-44"
+    uiInput
+    [(ngModel)]="test.key"
+    (ngModelChange)="store.edited()"
+    [placeholder]="test.target === 'body' ? 'data.items[0].id' : 'Content-Type'"
+  />
   }
   <ui-select
     class="w-44"
@@ -30,15 +28,13 @@
     (valueChange)="test.operator = $event; store.edited()"
   />
   @if (needsExpected(test.operator)) {
-  <mat-form-field class="field flex-1 min-w-[120px]!">
-    <input
-      class="font-mono"
-      matInput
-      [(ngModel)]="test.expected"
-      (ngModelChange)="store.edited()"
-      placeholder="expected value"
-    />
-  </mat-form-field>
+  <input
+    class="font-mono flex-1 min-w-[120px]!"
+    uiInput
+    [(ngModel)]="test.expected"
+    (ngModelChange)="store.edited()"
+    placeholder="expected value"
+  />
   }
   <button uiButton="icon" class="btn-danger" type="button" aria-label="Remove test" (click)="store.removeTest(i)"
     ><app-icon name="close"

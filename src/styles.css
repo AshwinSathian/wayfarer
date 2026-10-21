@@ -9,6 +9,7 @@
 /* ── Design system ──────────────────────────────────────── */
 @import "@angular/cdk/overlay-prebuilt.css";
 @import "./design-system/tokens.css";
+@import "./app/ui/input.css";
 @import "./design-system/typography.css";
 @import "./design-system/components.css";
 @import "./design-system/controls.css";

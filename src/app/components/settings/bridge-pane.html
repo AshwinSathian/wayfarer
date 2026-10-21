@@ -18,20 +18,18 @@
   <div class="settings-row settings-row-stacked">
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
     <p class="type-footnote text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
-    <mat-form-field class="field w-full">
-      <input
-        class="font-mono"
-        matInput
-        id="bridge-url-input"
-        type="text"
-        inputmode="url"
-        autocomplete="off"
-        spellcheck="false"
-        [ngModel]="url()"
-        (ngModelChange)="url.set($event); edited()"
-        placeholder="http://127.0.0.1:7717"
-      />
-    </mat-form-field>
+    <input
+      class="font-mono w-full"
+      uiInput
+      id="bridge-url-input"
+      type="text"
+      inputmode="url"
+      autocomplete="off"
+      spellcheck="false"
+      [ngModel]="url()"
+      (ngModelChange)="url.set($event); edited()"
+      placeholder="http://127.0.0.1:7717"
+    />
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-pairing-input" class="type-subhead text-label-primary">Pairing code</label>
@@ -40,20 +38,18 @@
       works once; after three wrong ones the bridge waits a minute.</p
     >
     <div class="flex flex-wrap items-center gap-2">
-      <mat-form-field class="field min-w-0 flex-1 basis-40">
-        <input
-          class="font-mono"
-          matInput
-          id="bridge-pairing-input"
-          type="text"
-          autocomplete="off"
-          spellcheck="false"
-          autocapitalize="characters"
-          [ngModel]="pairingCode()"
-          (ngModelChange)="pairingCode.set($event); pairing.set('idle')"
-          placeholder="ABCD-2345"
-        />
-      </mat-form-field>
+      <input
+        class="font-mono min-w-0 flex-1 basis-40"
+        uiInput
+        id="bridge-pairing-input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        autocapitalize="characters"
+        [ngModel]="pairingCode()"
+        (ngModelChange)="pairingCode.set($event); pairing.set('idle')"
+        placeholder="ABCD-2345"
+      />
       <button
         uiButton="outlined"
         class="btn-secondary btn-sm"
@@ -82,19 +78,17 @@
       unlocked; otherwise only in this tab, until it reloads.</p
     >
     <div class="flex items-center gap-2">
-      <mat-form-field class="field min-w-0 flex-1">
-        <input
-          class="font-mono"
-          matInput
-          id="bridge-token-input"
-          [type]="showToken() ? 'text' : 'password'"
-          autocomplete="off"
-          spellcheck="false"
-          [ngModel]="token()"
-          (ngModelChange)="token.set($event); edited()"
-          placeholder="Paste the token"
-        />
-      </mat-form-field>
+      <input
+        class="font-mono min-w-0 flex-1"
+        uiInput
+        id="bridge-token-input"
+        [type]="showToken() ? 'text' : 'password'"
+        autocomplete="off"
+        spellcheck="false"
+        [ngModel]="token()"
+        (ngModelChange)="token.set($event); edited()"
+        placeholder="Paste the token"
+      />
       <button
         uiButton="icon"
         type="button"

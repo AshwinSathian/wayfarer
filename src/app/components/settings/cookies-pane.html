@@ -28,18 +28,16 @@
         ><app-icon name="delete"
       /></button>
     </div>
-    <mat-form-field class="field w-full">
-      <input
-        matInput
-        [id]="'cookie-value-' + i"
-        type="text"
-        autocomplete="off"
-        spellcheck="false"
-        class="font-mono"
-        [value]="cookie.value"
-        (change)="jar.setValue(cookie, $any($event.target).value)"
-      />
-    </mat-form-field>
+    <input
+      uiInput
+      [id]="'cookie-value-' + i"
+      type="text"
+      autocomplete="off"
+      spellcheck="false"
+      class="font-mono w-full"
+      [value]="cookie.value"
+      (change)="jar.setValue(cookie, $any($event.target).value)"
+    />
     <p class="type-footnote text-label-tertiary">
       @if (cookie.expires === undefined) { Kept until you delete it: the server gave it no end. } @else { Until {{
       until(cookie.expires) }}. } @if (jar.inMemoryOnly(cookie)) {

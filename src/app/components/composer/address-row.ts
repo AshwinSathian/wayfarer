@@ -2,8 +2,7 @@ import { isCurlCommand } from "@wayfarer/core";
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
-import { MatFormField } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
+import { UiInput } from "../../ui/input";
 import { UiSpinner } from "../../ui/spinner";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiTooltip } from "../../ui/tooltip";
@@ -20,7 +19,7 @@ import { ComposerView } from "./composer-view";
 /** The method and URL bar with New, Copy as cURL, Save and Send. */
 @Component({
   selector: "app-address-row",
-  imports: [FormsModule, Icon, UiButton, MatFormField, MatInput, UiSpinner, MenuTrigger, UiMenu, UiTooltip],
+  imports: [FormsModule, Icon, UiButton, UiInput, UiSpinner, MenuTrigger, UiMenu, UiTooltip],
   templateUrl: "./address-row.html",
   styleUrl: "./address-row.css",
   changeDetection: ChangeDetectionStrategy.OnPush,

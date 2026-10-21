@@ -3,7 +3,7 @@
    transform/shadow); the "why" is surfaced via the tooltip bound on the
    wrapping .curl-btn-wrap span in the template (a real not-allowed cursor
    needs that wrapper too — see the template comment). */
-.curl-btn.mat-mdc-button-base:disabled {
+.curl-btn.ui-button:disabled {
   opacity: 0.4 !important;
   box-shadow: none !important;
 }

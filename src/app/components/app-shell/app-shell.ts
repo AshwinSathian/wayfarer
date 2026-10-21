@@ -16,7 +16,7 @@ import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
 import { UiTooltip } from "../../ui/tooltip";
 import { Confirm } from "../../ui/confirm";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatToolbar } from "@angular/material/toolbar";
 import { Dialog } from "../../ui/dialog";
 import { UiModal } from "../../ui/modal";
@@ -47,8 +47,7 @@ import { UiSelect } from "../../ui/select";
   imports: [MatToolbar, MatFormField, MatInput, NgTemplateOutlet,
     Icon,
     UiModal,
-    MatButton, MatIconButton,
-    UiSelect,
+    UiButton, UiSelect,
     Dialog,
     ImportDialog,
     UiTooltip,

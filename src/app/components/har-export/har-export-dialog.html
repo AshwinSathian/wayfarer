@@ -28,9 +28,9 @@
   </div>
   <div uiDialogFooter>
     <div class="flex flex-wrap justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
-      <button matButton="outlined" class="btn-secondary" type="button" [disabled]="!ready()" (click)="copy()"><app-icon name="content_copy" /> Copy</button>
-      <button matButton="filled" type="button" [disabled]="!ready()" (click)="save()"><app-icon name="download" /> Save file</button>
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button uiButton="outlined" class="btn-secondary" type="button" [disabled]="!ready()" (click)="copy()"><app-icon name="content_copy" /> Copy</button>
+      <button uiButton="filled" type="button" [disabled]="!ready()" (click)="save()"><app-icon name="download" /> Save file</button>
     </div>
   </div>
 </ui-dialog>

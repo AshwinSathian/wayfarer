@@ -18,7 +18,7 @@
       <mat-form-field class="field min-w-0 flex-1 basis-40">
         <input class="font-mono" matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
       </mat-form-field>
-      <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
         @if (pairing() === 'pairing') { <ui-spinner /> } Pair
       </button>
     </div>
@@ -37,7 +37,7 @@
       <mat-form-field class="field min-w-0 flex-1">
         <input class="font-mono" matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
       </mat-form-field>
-      <button matIconButton type="button" [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'" (click)="showToken.set(!showToken())"><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'" /></button>
+      <button uiButton="icon" type="button" [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'" (click)="showToken.set(!showToken())"><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'" /></button>
     </div>
   </div>
 </div>
@@ -47,7 +47,7 @@
 }
 
 <div class="mt-4 flex flex-wrap items-center gap-2">
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Test connection" [disabled]="!url().trim() || test() === 'testing'" (click)="testConnection()">
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Test connection" [disabled]="!url().trim() || test() === 'testing'" (click)="testConnection()">
     @if (test() === 'testing') { <ui-spinner /> } Test connection
   </button>
   <span class="bridge-test type-footnote flex items-center gap-1" role="status">
@@ -64,9 +64,9 @@
   <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" role="status"><app-icon name="check" class="icon-xs" /> Saved</span>
   }
   @if (dirty()) {
-  <button matButton class="btn-sm" type="button" (click)="discard()">Discard</button>
+  <button uiButton class="btn-sm" type="button" (click)="discard()">Discard</button>
   }
-  <button matButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
+  <button uiButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
 </div>
 
 <p class="bridge-lna type-footnote text-label-tertiary mt-4">

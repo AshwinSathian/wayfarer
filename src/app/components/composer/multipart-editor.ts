@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -11,7 +11,7 @@ import { UiSelect, type UiSelectOption } from "../../ui/select";
 /** The parts of a multipart body: each a name with a text value or a file. */
 @Component({
   selector: "app-multipart-editor",
-  imports: [FormsModule, Icon, MatButton, MatIconButton, MatCheckbox, MatFormField, MatInput, UiSelect],
+  imports: [FormsModule, Icon, UiButton, MatCheckbox, MatFormField, MatInput, UiSelect],
   templateUrl: "./multipart-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

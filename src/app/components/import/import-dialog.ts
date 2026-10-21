@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { UiSpinner } from "../../ui/spinner";
 import { ImportPipeline } from "../../services/import-pipeline";
@@ -13,7 +13,7 @@ import { Dialog } from "../../ui/dialog";
  */
 @Component({
   selector: "app-import-dialog",
-  imports: [Dialog, FormsModule, MatButton, MatCheckbox, UiSpinner],
+  imports: [Dialog, FormsModule, UiButton, MatCheckbox, UiSpinner],
   templateUrl: "./import-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

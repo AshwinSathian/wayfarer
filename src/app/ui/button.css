@@ -1,0 +1,262 @@
+/* The platform's button (UiButton, D3.3j) with none of the browser's look.
+   Variant classes come from the directive (ui-button-filled, -outlined, -text,
+   -icon); the tone is btn-secondary, btn-danger or btn-success, the size
+   btn-sm, btn-square an icon alone in a filled or outlined button. Each
+   variant and tone sets the --btn-* colours below. */
+.ui-button {
+  --btn-bg: var(--ctl-primary-fill);
+  --btn-border: var(--ctl-primary-fill);
+  --btn-fg: #ffffff;
+  --btn-bg-hover: var(--ctl-primary-fill-hover);
+  --btn-border-hover: var(--ctl-primary-fill-hover);
+  --btn-bg-active: var(--ctl-primary-fill-active);
+  --btn-border-active: var(--ctl-primary-fill-active);
+  --btn-radius: var(--radius-md);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+  overflow: hidden;
+  appearance: none;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.004em;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur-quick) var(--ease-standard),
+    border-color var(--dur-quick) var(--ease-standard),
+    color var(--dur-quick) var(--ease-standard),
+    transform var(--dur-micro) var(--ease-standard),
+    box-shadow var(--dur-quick) var(--ease-standard),
+    opacity var(--dur-quick) var(--ease-standard);
+}
+
+/* The global :focus-visible rule (styles.css) comes later and sets a radius
+   of its own: the button keeps its shape with its ring. */
+.ui-button,
+.ui-button:focus-visible {
+  border-radius: var(--btn-radius);
+}
+
+/* Material Symbols glyphs sit inside their em box with a margin, so they
+   are drawn larger than the 16px (small: 14px) slot they occupy in the layout. */
+.ui-button:not(.btn-plain) .app-icon {
+  margin: -3px;
+  font-size: 22px;
+}
+
+.ui-button:not(:disabled):hover {
+  background: var(--btn-bg-hover);
+  border-color: var(--btn-border-hover);
+}
+
+.ui-button:not(:disabled):active {
+  background: var(--btn-bg-active);
+  border-color: var(--btn-border-active);
+  transform: scale(0.96);
+}
+
+/* A disabled button takes no pointer: a press goes to what is under it, and
+   a tooltip that explains why sits on a wrapper (address-row.html). */
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Sizes */
+.ui-button.btn-sm {
+  padding: 6px 10px;
+}
+
+.ui-button.btn-sm .app-icon {
+  font-size: 20px;
+}
+
+.ui-button.btn-square,
+.ui-button.ui-button-icon {
+  gap: 0;
+  width: 40px;
+  padding-inline: 0;
+  font-size: 14px;
+}
+
+/* An icon alone reads as an icon, not a word: no label's weight or spacing,
+   and it keeps its width in a row that is short of room. */
+.ui-button-icon {
+  flex-shrink: 0;
+  font-weight: 400;
+  letter-spacing: normal;
+  vertical-align: baseline;
+}
+
+/* An icon-only button is as tall as one with a label: a zero-width
+   character gives it the same line box. */
+.ui-button.btn-square::after,
+.ui-button-icon::after {
+  content: "\00a0";
+  width: 0;
+  visibility: hidden;
+}
+
+.ui-button.btn-square.btn-sm,
+.ui-button-icon.btn-sm {
+  width: 32px;
+}
+
+/* Tones (filled) */
+.btn-secondary {
+  --btn-bg: var(--fill-secondary);
+  --btn-border: var(--separator);
+  --btn-fg: var(--label-primary);
+  --btn-bg-hover: var(--fill-hover);
+  --btn-border-hover: var(--separator);
+  --btn-bg-active: var(--fill-hover);
+  --btn-border-active: var(--separator);
+}
+
+.btn-danger {
+  --btn-bg: var(--status-error-fill);
+  --btn-border: var(--status-error-border);
+  --btn-fg: var(--ctl-danger-on-fill);
+  --btn-bg-hover: var(--status-error-fill);
+  --btn-border-hover: var(--status-error-border);
+  --btn-bg-active: var(--status-error-fill);
+  --btn-border-active: var(--status-error-border);
+}
+
+/* Outlined */
+.ui-button-outlined {
+  --btn-bg: transparent;
+  --btn-border: var(--ctl-primary-border);
+  --btn-fg: var(--ctl-primary);
+  --btn-bg-hover: var(--ctl-primary-tint);
+  --btn-border-hover: var(--ctl-primary-border);
+  --btn-bg-active: var(--ctl-primary-tint-strong);
+  --btn-border-active: var(--ctl-primary-border);
+}
+
+.ui-button-outlined.btn-secondary {
+  --btn-bg: transparent;
+  --btn-border: var(--separator);
+  --btn-fg: var(--label-primary);
+  --btn-bg-hover: var(--fill-hover);
+  --btn-border-hover: var(--fill-primary);
+  --btn-bg-active: var(--fill-hover);
+  --btn-border-active: var(--fill-primary);
+}
+
+/* Text, and an icon alone */
+.ui-button-text,
+.ui-button-icon {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--ctl-primary);
+  --btn-bg-hover: var(--ctl-primary-tint);
+  --btn-border-hover: transparent;
+  --btn-bg-active: var(--ctl-primary-tint-strong);
+  --btn-border-active: transparent;
+}
+
+.ui-button-text.btn-secondary,
+.ui-button-icon.btn-secondary {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--ctl-neutral);
+  --btn-bg-hover: var(--ctl-neutral-tint);
+  --btn-border-hover: transparent;
+  --btn-bg-active: var(--ctl-neutral-tint-strong);
+  --btn-border-active: transparent;
+}
+
+.ui-button-text.btn-danger,
+.ui-button-icon.btn-danger {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-fg: var(--ctl-danger);
+  --btn-bg-hover: var(--ctl-danger-tint);
+  --btn-border-hover: transparent;
+  --btn-bg-active: var(--ctl-danger-tint-strong);
+  --btn-border-active: transparent;
+}
+
+.ui-button-text.btn-success,
+.ui-button-icon.btn-success {
+  --btn-fg: var(--ctl-success);
+  --btn-bg-hover: var(--ctl-success-tint);
+  --btn-bg-active: var(--ctl-success-tint-strong);
+}
+
+/* Plain: an icon in the toolbar or a panel's header. Smaller, grey until
+   hovered, and its icon keeps the size its own class gives it. */
+.ui-button-icon.btn-plain {
+  --btn-fg: var(--label-secondary);
+  --btn-bg-hover: var(--fill-primary);
+  --btn-bg-active: var(--fill-active);
+  --btn-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+}
+
+.ui-button-icon.btn-plain:not(:disabled):hover {
+  --btn-fg: var(--label-primary);
+}
+
+.ui-button-icon.btn-plain:not(:disabled):active {
+  transform: scale(0.91);
+}
+
+.ui-button-icon.btn-plain::after {
+  content: none;
+}
+
+/* Send: the call to action */
+.ui-button.send-btn {
+  --btn-radius: var(--radius-lg);
+  height: 40px;
+  padding: 0 22px;
+  border: none;
+  background: var(--accent-solid);
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: -0.006em;
+}
+
+/* No glow and no lift: the button the app is used for, all day (audit U-019). */
+.ui-button.send-btn:not(:disabled):hover {
+  background: var(--accent-solid-hover);
+}
+
+.ui-button.send-btn:not(:disabled):active {
+  background: var(--accent-solid-active);
+}
+
+.ui-button.send-btn:disabled {
+  opacity: 0.4;
+  transform: none;
+  box-shadow: none;
+}
+
+/* In forced colours a fill is taken away, and the send button has no border:
+   it keeps an edge, so it still reads as the button it is. */
+@media (forced-colors: active) {
+  .ui-button.send-btn {
+    border: 1px solid ButtonBorder;
+  }
+}

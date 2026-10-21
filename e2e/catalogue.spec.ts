@@ -143,6 +143,22 @@ for (const theme of ["light", "dark"] as const) {
   });
 
   // A test of its own, as the segmented choice's.
+  test(`the buttons, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    await page.getByRole("heading", { name: "Buttons" }).scrollIntoViewIfNeeded();
+    await scan("buttons, at rest");
+    await page.getByRole("button", { name: "Outlined secondary" }).hover();
+    await scan("buttons, one under the pointer");
+    await page.getByRole("button", { name: "Text secondary" }).focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await scan("buttons, one focused from the keyboard");
+    expect(found).toEqual([]);
+  });
+
+  // A test of its own, as the segmented choice's.
   test(`the spinner is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
     const found: string[] = [];
@@ -1075,6 +1091,81 @@ test("spinner: in forced colours it is drawn in the text's colour", async ({ pag
   const [stroke, color] = await spinner.evaluate((el) => [getComputedStyle(el.querySelector("circle")!).stroke, getComputedStyle(el).color]);
   expect(stroke).toBe(color);
   expect(stroke).not.toBe("rgba(0, 0, 0, 0)");
+});
+
+test("button: Enter and Space press it, Tab passes over a disabled one, and Enter follows a link", async ({ page, browserName }) => {
+  await open(page, "light");
+  const status = page.getByRole("status");
+  const filled = page.getByRole("button", { name: "Filled", exact: true });
+  await filled.focus();
+  await page.keyboard.press("Enter");
+  await expect(status).toHaveText("Pressed Filled.");
+  await page.getByRole("button", { name: "Send", exact: true }).focus();
+  await page.keyboard.press("Space");
+  await expect(status).toHaveText("Pressed Send.");
+  // The send button's disabled twin is passed over, to the link (Option+Tab is Safari's key for every button and link).
+  await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
+  await expect(page.getByRole("link", { name: "A link" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(status).toHaveText("Followed the link.");
+  // A disabled one is in the tree as disabled, and is not pressed.
+  await expect(page.getByRole("button", { name: "Filled disabled" })).toBeDisabled();
+});
+
+test("button: none of the browser's look; under the pointer, focused from the keyboard, pressed and disabled", async ({ page, browserName }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await open(page, "light");
+  const css = (locator: Locator, property: string) => locator.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+  for (const name of ["Filled", "Outlined", "Text", "Icon", "Plain", "Send"]) {
+    expect(await css(page.getByRole("button", { name, exact: true }), "appearance"), name).toBe("none");
+  }
+  const outlined = page.getByRole("button", { name: "Outlined secondary" });
+  const rest = await css(outlined, "background-color");
+  await outlined.hover();
+  await expect.poll(() => css(outlined, "background-color")).not.toBe(rest);
+
+  // The ring is the app's, and the button keeps its own corners with it: the global :focus-visible rule sets another radius.
+  const plain = page.getByRole("button", { name: "Plain", exact: true });
+  const radius = await css(plain, "border-top-left-radius");
+  await page.getByRole("button", { name: "Small icon success" }).focus();
+  await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
+  await expect(plain).toBeFocused();
+  expect(await css(plain, "outline-style")).toBe("solid");
+  expect(await css(plain, "outline-width")).toBe("2px");
+  expect(await css(plain, "border-top-left-radius")).toBe(radius);
+
+  // Pressed, it is drawn smaller.
+  const filled = page.getByRole("button", { name: "Filled", exact: true });
+  const box = (await filled.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await expect.poll(() => css(filled, "transform")).not.toBe("none");
+  await page.mouse.up();
+
+  // Disabled: faded, and a press goes through it to what is under it.
+  const disabled = page.getByRole("button", { name: "Filled disabled" });
+  expect(await css(disabled, "opacity")).toBe("0.6");
+  expect(await css(disabled, "pointer-events")).toBe("none");
+  expect(await css(page.getByRole("button", { name: "Send disabled" }), "opacity")).toBe("0.4");
+});
+
+test("button: an icon alone sits in its middle, square or not", async ({ page }) => {
+  await open(page, "light");
+  for (const name of ["Square", "Small square", "Icon", "Small icon", "Plain"]) {
+    const button = page.getByRole("button", { name, exact: true });
+    const [outer, inner] = [(await button.boundingBox())!, (await button.locator(".app-icon").boundingBox())!];
+    expect(Math.abs(inner.x + inner.width / 2 - (outer.x + outer.width / 2)), name).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(inner.y + inner.height / 2 - (outer.y + outer.height / 2)), name).toBeLessThanOrEqual(1);
+  }
+});
+
+test("button: in forced colours each keeps an edge but the plain icon, and the send button gains one", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const edge = (name: string) => page.getByRole("button", { name, exact: true }).evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`);
+  for (const name of ["Filled", "Outlined", "Text", "Square", "Icon", "Send"]) expect(await edge(name), name).toBe("solid 1px");
+  expect(await edge("Plain")).toBe("none 0px");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

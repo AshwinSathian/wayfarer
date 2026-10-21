@@ -15,7 +15,7 @@
         <label [for]="'cookie-value-' + i" class="type-subhead text-label-primary font-mono break-all">{{ cookie.name }}</label>
         <p class="type-footnote text-label-tertiary break-all"><span class="font-mono">{{ cookie.domain }}{{ cookie.path }}</span> · {{ about(cookie) }}</p>
       </div>
-      <button matIconButton type="button" class="btn-plain shrink-0" [attr.aria-label]="'Delete cookie ' + cookie.name + ' of ' + cookie.domain" (click)="jar.remove(cookie)"><app-icon name="delete" /></button>
+      <button uiButton="icon" type="button" class="btn-plain shrink-0" [attr.aria-label]="'Delete cookie ' + cookie.name + ' of ' + cookie.domain" (click)="jar.remove(cookie)"><app-icon name="delete" /></button>
     </div>
     <mat-form-field class="field w-full">
       <input matInput [id]="'cookie-value-' + i" type="text" autocomplete="off" spellcheck="false" class="font-mono" [value]="cookie.value" (change)="jar.setValue(cookie, $any($event.target).value)" />
@@ -28,7 +28,7 @@
   }
 </ul>
 <div class="mt-3 flex justify-end">
-  <button matButton class="btn-danger btn-sm" type="button" (click)="clear()">Delete all…</button>
+  <button uiButton class="btn-danger btn-sm" type="button" (click)="clear()">Delete all…</button>
 </div>
 } @else {
 <p class="cookies-empty type-footnote text-label-secondary">The jar is empty.</p>

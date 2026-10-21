@@ -66,7 +66,7 @@
       @if (canExport) {
       <div class="ml-auto">
         <button
-          matIconButton class="btn-plain"
+          uiButton="icon" class="btn-plain"
           type="button"
           aria-label="Export response"
           uiTooltip="Export response"
@@ -158,14 +158,14 @@
                 </span>
                 <div class="flex items-center gap-0.5">
                   <button
-                    matIconButton class="btn-sm"
+                    uiButton="icon" class="btn-sm"
                     type="button"
                     aria-label="Previous search match"
                     [disabled]="!searchResult()?.count"
                     (click)="stepSearch(-1)"
                   ><app-icon name="keyboard_arrow_up" /></button>
                   <button
-                    matIconButton class="btn-sm"
+                    uiButton="icon" class="btn-sm"
                     type="button"
                     aria-label="Next search match"
                     [disabled]="!searchResult()?.count"
@@ -203,7 +203,7 @@
                   Binary response ({{ binary.byteLength }} bytes{{ binary.contentType ? ', ' + binary.contentType : '' }})
                 </p>
                 <button
-                  matButton="filled" class="btn-secondary btn-sm"
+                  uiButton="filled" class="btn-secondary btn-sm"
                   type="button"
                   aria-label="Download response body"
                   (click)="downloadBinary()"

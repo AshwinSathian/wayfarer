@@ -9,6 +9,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The icon in a square button sits in its middle, and Send keeps its
+  edge in high-contrast mode.** Before, the icon of the outlined square
+  buttons (New request, Copy as cURL and Save beside the address, New
+  collection, New environment) sat 4 px left of the button's centre, and
+  with Windows' high contrast (forced colours) the Send button lost its
+  fill and with it any sign of being a button. Now the icon is centred and
+  Send has a border there. Every button is now the browser's own, drawn
+  by the app, in place of Angular Material's, and looks and behaves as
+  before otherwise. The app's first download is 44 kB smaller (5.7 kB
+  compressed); the size budgets are reset to it: initial 1,156,487 B raw
+  and 309,291 B gzip; budgets 1215kb, 1273kb and 340,221 B.
+
 - **A busy spinner still looks busy when you ask your system for less
   motion.** Before, with reduced motion the spinner in a button (Save,
   Pair, Test connection, Run self-tests) and beside a live stream, a run or

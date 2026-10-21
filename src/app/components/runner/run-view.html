@@ -5,9 +5,9 @@
   <span class="type-footnote text-label-tertiary">{{ requests().length }} {{ requests().length === 1 ? "request" : "requests" }}, in the order of the list</span>
   <span class="flex-1"></span>
   @if (state.running()) {
-  <button matButton="filled" class="btn-danger" type="button" (click)="cancel()">Cancel run</button>
+  <button uiButton="filled" class="btn-danger" type="button" (click)="cancel()">Cancel run</button>
   } @else {
-  <button matButton="filled" type="button" [disabled]="!requests().length" (click)="start()">{{ state.report() ? "Run again" : "Run" }}</button>
+  <button uiButton="filled" type="button" [disabled]="!requests().length" (click)="start()">{{ state.report() ? "Run again" : "Run" }}</button>
   }
 </div>
 
@@ -38,10 +38,10 @@
   </div>
   <mat-checkbox [checked]="state.stopOnFailure()" [disabled]="state.running()" (change)="state.stopOnFailure.set($event.checked)">Stop on the first failure</mat-checkbox>
   <div class="flex min-w-0 flex-wrap items-center gap-3">
-    <button matButton="outlined" class="btn-secondary" type="button" [disabled]="state.running()" (click)="dataFile.click()">Data file…</button>
+    <button uiButton="outlined" class="btn-secondary" type="button" [disabled]="state.running()" (click)="dataFile.click()">Data file…</button>
     @if (state.dataFile(); as data) {
     <span class="type-callout text-label-secondary min-w-0 break-all">{{ data.name }}: {{ data.rows.length }} {{ data.rows.length === 1 ? "row" : "rows" }}</span>
-    <button matButton class="btn-sm" type="button" [disabled]="state.running()" (click)="removeData()">Remove</button>
+    <button uiButton class="btn-sm" type="button" [disabled]="state.running()" (click)="removeData()">Remove</button>
     } @else {
     <span class="type-footnote text-label-tertiary">CSV with a header line, or a JSON list of objects</span>
     }
@@ -136,9 +136,9 @@
 @if (state.report() && !state.running()) {
 <div class="flex flex-wrap items-center gap-3">
   <span class="type-footnote text-label-secondary">Save the report:</span>
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('json')">JSON</button>
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('junit')">JUnit XML</button>
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="!state.exchanges.length" (click)="saveHar()">HAR…</button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('json')">JSON</button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="save('junit')">JUnit XML</button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="!state.exchanges.length" (click)="saveHar()">HAR…</button>
 </div>
 }
 

@@ -32,6 +32,7 @@ jobs:
       # P1.14: registry signatures of every installed package.
       - run: npm audit signatures
       - run: npm run lint
+      - run: npm run format:check
       # P1.2: e2e targets the local echo-server only, never the internet.
       - name: No third-party targets in e2e
         run: "! grep -rnE 'jsonplaceholder|httpbin' e2e playwright.config.ts"

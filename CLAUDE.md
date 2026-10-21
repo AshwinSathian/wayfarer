@@ -9,6 +9,7 @@ people; `PLAN-airtight-remediation.md` is the roadmap.
 
 ```bash
 npm run lint            # ESLint, type-aware
+npm run format:check    # Prettier, 120 columns (npm run format writes it); Markdown is not formatted
 npm run test:ci         # Vitest in headless Chromium, with the coverage gate
 npm run build           # production build + service worker
 CI=1 npx playwright test --project=chromium --project=claims-chromium   # e2e against the built app (run the build first)

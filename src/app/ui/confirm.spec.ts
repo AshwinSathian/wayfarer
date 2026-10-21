@@ -57,7 +57,8 @@ describe("Confirm", () => {
     expect(el.hasAttribute("aria-describedby")).toBe(false);
     // Where it is laid out: it is still growing into place.
     expect(el.offsetTop).toBe(130);
-    expect(Math.round(el.offsetLeft + el.offsetWidth / 2)).toBe(220);
+    // offsetLeft is whole pixels: half the width may not be.
+    expect(Math.abs(el.offsetLeft + el.offsetWidth / 2 - 220)).toBeLessThanOrEqual(1);
     button("Delete").click();
     expect(await answer).toBe(true);
 

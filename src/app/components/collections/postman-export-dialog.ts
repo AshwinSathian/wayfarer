@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import type { ExportNote } from "@wayfarer/core";
 import { CollectionsStore } from "../../services/collections-store";
@@ -14,7 +14,7 @@ import { Dialog } from "../../ui/dialog";
  */
 @Component({
   selector: "app-postman-export-dialog",
-  imports: [Dialog, FormsModule, Icon, MatButton, MatCheckbox],
+  imports: [Dialog, FormsModule, Icon, UiButton, MatCheckbox],
   templateUrl: "./postman-export-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

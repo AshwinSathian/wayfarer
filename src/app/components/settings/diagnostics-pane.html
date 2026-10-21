@@ -11,7 +11,7 @@
   <div class="settings-row settings-row-stacked">
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="type-subhead text-label-primary">Self-tests</p>
-      <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="testing()" (click)="runTests()">
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="testing()" (click)="runTests()">
         @if (testing()) { <ui-spinner /> } Run self-tests
       </button>
     </div>
@@ -58,8 +58,8 @@
 </div>
 
 <div class="flex flex-wrap items-center gap-2">
-  <button matButton="filled" class="btn-sm" type="button" (click)="copy()">Copy report</button>
-  <a matButton="outlined" class="btn-secondary btn-sm" [href]="issueHref()" target="_blank" rel="noopener noreferrer">Open GitHub issue</a>
+  <button uiButton="filled" class="btn-sm" type="button" (click)="copy()">Copy report</button>
+  <a uiButton="outlined" class="btn-secondary btn-sm" [href]="issueHref()" target="_blank" rel="noopener noreferrer">Open GitHub issue</a>
   <span class="type-footnote text-label-secondary" role="status">{{ copied() ? "Copied." : "" }}</span>
 </div>
 <p class="settings-note">The report holds what is above: no address, header or body of a request you sent. Read it before you share it.</p>

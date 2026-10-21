@@ -76,8 +76,8 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button matButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
-      <button matButton="filled" type="button" [disabled]="saving()" (click)="save()">Save settings</button>
+      <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
+      <button uiButton="filled" type="button" [disabled]="saving()" (click)="save()">Save settings</button>
     </div>
   </div>
 </ui-dialog>

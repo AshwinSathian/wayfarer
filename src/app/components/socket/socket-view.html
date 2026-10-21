@@ -31,10 +31,10 @@
     <textarea matInput id="socket-message" rows="3" spellcheck="false" class="font-mono" placeholder="Text to send. Enter sends, Shift+Enter is a new line" [value]="socket.message()" (input)="socket.message.set($any($event.target).value)" (keydown)="onKeydown($event)"></textarea>
   </mat-form-field>
   <div class="flex flex-wrap items-center gap-4">
-    <button matButton="filled" class="btn-sm" type="button" [disabled]="status !== 'open' || !socket.message()" (click)="client.send()">Send message</button>
+    <button uiButton="filled" class="btn-sm" type="button" [disabled]="status !== 'open' || !socket.message()" (click)="client.send()">Send message</button>
     <mat-checkbox [checked]="socket.json()" (change)="socket.json.set($event.checked)">Must be JSON</mat-checkbox>
     <span class="flex-1"></span>
-    <button matButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])">Clear log</button>
+    <button uiButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])">Clear log</button>
   </div>
 </div>
 

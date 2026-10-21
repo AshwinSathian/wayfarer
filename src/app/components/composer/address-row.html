@@ -14,7 +14,7 @@
      />
   </mat-form-field>
   <button
-    matIconButton class="btn-plain address-method method-menu"
+    uiButton="icon" class="btn-plain address-method method-menu"
     type="button"
     aria-label="Common methods"
     ngMenuTrigger
@@ -40,7 +40,7 @@
 <!-- Action buttons -->
 <div class="flex shrink-0 items-center gap-2">
   <button
-    matButton="outlined" class="btn-secondary btn-square"
+    uiButton="outlined" class="btn-secondary btn-square"
     type="button"
     uiTooltip="New request"
     aria-label="New request"
@@ -61,7 +61,7 @@
     [uiTooltip]="store.draft().url ? '' : 'Enter a URL first to copy as cURL'"
   >
     <button
-      matButton="outlined"
+      uiButton="outlined"
       type="button"
       [disabled]="!store.draft().url"
       [uiTooltip]="store.draft().url ? 'Copy as cURL' : ''"
@@ -75,7 +75,7 @@
   </span>
   <ui-menu #curlMenu [trigger]="curlTrigger" [items]="curlItems" />
   <button
-    matButton="outlined" class="btn-secondary btn-square"
+    uiButton="outlined" class="btn-secondary btn-square"
     type="button"
     [disabled]="!store.draft().url || savingRequest()"
     [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
@@ -91,10 +91,10 @@
   <!-- One button each, whose label and action change: a button swapped for another took focus with it. -->
   @if (socket.isSocket()) {
   <!-- An address of a WebSocket (P5.7): it is connected to, not sent. -->
-  <button matButton="filled" type="button" class="send-btn" (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()">{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button>
+  <button uiButton="filled" type="button" class="send-btn" (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()">{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button>
   } @else {
   <button
-    matButton="filled"
+    uiButton="filled"
     type="button"
     [disabled]="!store.loadingState() && !store.draft().url"
     [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"

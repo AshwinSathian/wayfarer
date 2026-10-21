@@ -3,11 +3,11 @@
   <ui-spinner />
   <span class="type-callout text-label-secondary">The stream is open: {{ count() }} {{ count() === 1 ? "event" : "events" }} so far.</span>
   <span class="flex-1"></span>
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="stop.emit()">Stop</button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="stop.emit()">Stop</button>
   } @else {
   <span class="type-callout text-label-secondary">{{ count() }} {{ count() === 1 ? "event" : "events" }}. {{ note() }}</span>
   <span class="flex-1"></span>
-  <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="reconnect.emit()">Reconnect</button>
+  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="reconnect.emit()">Reconnect</button>
   }
 </div>
 @if (events().length) {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { ScriptTrust } from "../../services/script-trust";
 import { Dialog } from "../../ui/dialog";
 import { ScriptEditor } from "../script-editor/script-editor";
@@ -13,7 +13,7 @@ import { ScriptEditor } from "../script-editor/script-editor";
  */
 @Component({
   selector: "app-script-review-dialog",
-  imports: [Dialog, FormsModule, MatButton, ScriptEditor],
+  imports: [Dialog, FormsModule, UiButton, ScriptEditor],
   templateUrl: "./script-review-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

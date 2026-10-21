@@ -31,8 +31,8 @@
     <p class="type-footnote text-label-tertiary px-2">No request in history matches.</p>
     } @else {
     <div class="history-export flex flex-wrap items-center gap-2 px-2">
-      <button matButton type="button" class="btn-sm" (click)="chooseShown()">{{ allShownChosen() ? "Select none" : "Select all" }}</button>
-      <button matButton="outlined" type="button" class="btn-secondary btn-sm" [disabled]="!chosen().length" (click)="exportChosen()">
+      <button uiButton type="button" class="btn-sm" (click)="chooseShown()">{{ allShownChosen() ? "Select none" : "Select all" }}</button>
+      <button uiButton="outlined" type="button" class="btn-secondary btn-sm" [disabled]="!chosen().length" (click)="exportChosen()">
         <app-icon name="download" /> Export {{ chosen().length || "" }} as HAR…
       </button>
     </div>
@@ -85,7 +85,7 @@
             </span>
 
             <button type="button"
-              matIconButton class="btn-plain w-7! h-7! shrink-0 opacity-0 group-hover:opacity-100"
+              uiButton="icon" class="btn-plain w-7! h-7! shrink-0 opacity-0 group-hover:opacity-100"
               uiTooltip="Delete"
               uiTooltipPosition="above"
               aria-label="Delete history entry"
@@ -133,13 +133,13 @@
                     <p class="text-label-tertiary">{{ request.createdAt | date:'medium' }}</p>
                     <div class="flex items-center gap-2">
                       <button
-                        matButton class="btn-secondary btn-sm"
+                        uiButton class="btn-secondary btn-sm"
                         type="button"
                         aria-label="Load request"
                         (click)="load(request)"
                       >Load</button>
                       <button
-                        matButton class="btn-danger btn-sm"
+                        uiButton class="btn-danger btn-sm"
                         type="button"
                         aria-label="Delete request"
                         (click)="confirmDelete(request, $event)"

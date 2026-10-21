@@ -29,7 +29,7 @@
        />
     </mat-form-field>
     <button
-      matIconButton class="btn-danger"
+      uiButton="icon" class="btn-danger"
       type="button"
       [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
       (click)="remove.emit(index)"
@@ -40,7 +40,7 @@
 
   <div class="pt-2">
     <button
-      matButton="filled" class="btn-secondary"
+      uiButton="filled" class="btn-secondary"
       type="button"
       [attr.aria-label]="addLabel()"
       [disabled]="addDisabled()"

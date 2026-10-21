@@ -430,8 +430,8 @@ code errors.
   a platform element is the widget's base, with none of the browser's own
   look. D3.3 replaces one family per PR, with its keyboard e2e. Until a family has
   moved, it stays Material and the rules below hold for it, also for a new
-  use of it (a button in a new feature is still `matButton`, and moves with
-  its family). A family the app does not use yet is not added from
+  use of it (a checkbox in a new feature is still `mat-checkbox`, and moves
+  with its family). A family the app does not use yet is not added from
   Material.
 - Widgets are Angular Material components (maintainer, 2026-10-09; this
   reverses the "custom on CDK" default of decision D14 in the plan). A
@@ -440,7 +440,7 @@ code errors.
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
     `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`,
-    `ui-spinner`;
+    `ui-spinner`, `uiButton`;
   - what Material has no component for, built on the CDK: `ui-splitter`.
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
@@ -454,12 +454,6 @@ code errors.
   For what has no token, write a rule there with more specificity than
   Material's own: its component styles load after the global sheet.
 - Import the one directive or component (`MatCheckbox`), not its module.
-- Buttons: `matButton="filled"`, `matButton="outlined"`, `matButton` (text)
-  or `matIconButton`, with `btn-secondary` / `btn-danger` / `btn-success`
-  for the tone, `btn-sm` for the size and `btn-square` for an icon alone in
-  a filled or outlined button. Colours are the `--btn-*` variables in
-  `controls.css`. Only `<button>` and `<a>` can be one: a file picker is a
-  button that clicks a hidden `<input type="file">`.
 - Text input: `<mat-form-field class="field">` around `<input matInput>`.
   The outline appearance and `subscriptSizing: "dynamic"` are set app-wide
   (`app.config.ts`); the label is a `<label for>` outside the field. Width
@@ -470,15 +464,12 @@ code errors.
   text inside takes an `aria-label`, bound as `[aria-label]`: that is
   Material's input and reaches the real checkbox. `[attr.aria-label]` names
   the wrapper and leaves the checkbox without a name.
-- Icon button in a toolbar or a panel's header: `matIconButton
-  class="btn-plain"` (34 px, grey until hovered; its icon keeps its own
-  size class).
 - The top bar is `<mat-toolbar class="ds-toolbar" role="banner">`.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
   to its default. Write a rule with `font: inherit` instead.
-- A token whose value is a variable set on the component (`--btn-fg`) must
-  be overridden on the component's class, not on `html`: a variable is
+- A token whose value is a variable set on the component must be
+  overridden on the component's class, not on `html`: a variable is
   resolved where it is declared.
 - A Tailwind utility on a Material host loses to Material for any property
   Material sets there (height, padding, min-width, font, colour, border, and
@@ -612,6 +603,25 @@ code errors.
   it takes no focus (Material's had `tabindex="-1"`, which a click can
   focus), and with reduced motion it is still a ring (Material's arc
   shrank to a dot).
+- Button: `<button uiButton="filled">`, `uiButton="outlined"`, `uiButton`
+  (text) or `uiButton="icon"` (`UiButton`, `src/app/ui/button.ts`, styles
+  in `button.css`, imported by `src/styles.css`), with `btn-secondary` /
+  `btn-danger` / `btn-success` for the tone, `btn-sm` for the size and
+  `btn-square` for an icon alone in a filled or outlined button; an icon
+  in a toolbar or a panel's header is `uiButton="icon" class="btn-plain"`
+  (34 px, grey until hovered; its icon keeps its own size class). Colours
+  are the `--btn-*` variables each variant and tone sets in `button.css`.
+  Only `<button>` and `<a>` can be one: a file picker is a button that
+  clicks a hidden `<input type="file">`. The role, focus, Enter and Space
+  and `disabled` are the element's own; the directive only names the
+  variant in a class. A disabled one takes no pointer (a press goes
+  through it), as Material's did: a tooltip that says why it is disabled
+  goes on a wrapper (`curl-btn-wrap` in `address-row.html`). The global
+  `:focus-visible` rule sets a radius of its own after `button.css`: a
+  rule there that shapes a button sets `--btn-radius`, which holds with
+  the ring. In forced colours a button keeps its border, Send gains one,
+  and `btn-plain` has none. Tested in `button.spec.ts` and the catalogue's
+  e2e.
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a
@@ -732,10 +742,9 @@ code errors.
 - Aria's trigger takes Escape on its button and stops it, also with the
   menu closed: what must hear the key there listens on the document in the
   capture phase (`uiTooltip`).
-- On a button that Material's `matButton` also draws, `[disabled]` reaches
-  Aria's trigger too, and Aria's default `softDisabled` writes no
-  `disabled` attribute: give such a trigger `[softDisabled]="false"`, or
-  the two fight over the attribute.
+- On a menu trigger, `[disabled]` is Aria's input, not the button's
+  property, and Aria's default `softDisabled` writes no `disabled`
+  attribute: give such a trigger `[softDisabled]="false"`.
 - In forced colours a background is taken away: a state shown only by one
   (a selected row) needs another mark there, tested with
   `page.emulateMedia({ forcedColors: "active" })`.

@@ -79,7 +79,7 @@
 
 /* A way in on a phone, where the list is all there is. */
 .settings-nav-chevron,
-.settings-back.mat-mdc-button-base {
+.settings-back.ui-button {
   display: none;
 }
 
@@ -301,7 +301,7 @@
     padding: 12px 18px 22px;
   }
 
-  .settings-back.mat-mdc-button-base {
+  .settings-back.ui-button {
     display: inline-flex;
     margin: 0 0 10px -10px;
   }

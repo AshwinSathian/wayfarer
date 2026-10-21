@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, effect, inject, input, model, output, signal, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -69,7 +69,7 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, FormsModule, MatButton, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane, DiagnosticsPane, UiSegmented],
+  imports: [Icon, FormsModule, UiButton, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane, DiagnosticsPane, UiSegmented],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   // The rules reach the Local Bridge pane, a component of its own; each starts at `.settings`.

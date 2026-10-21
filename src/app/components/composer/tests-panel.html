@@ -25,7 +25,7 @@
   </mat-form-field>
   }
   <button
-    matIconButton class="btn-danger"
+    uiButton="icon" class="btn-danger"
     type="button"
     aria-label="Remove test"
     (click)="store.removeTest(i)"
@@ -33,5 +33,5 @@
 </div>
 }
 <div>
-  <button matButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"><app-icon name="add" /> Add Test</button>
+  <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"><app-icon name="add" /> Add Test</button>
 </div>

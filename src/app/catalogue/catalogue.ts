@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
 import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../ui/button";
 import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
 import { UiAccordion, UiAccordionPanel } from "../ui/accordion";
@@ -39,8 +39,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     AccordionTrigger,
     Dialog,
     Icon,
-    MatButton,
-    MatIconButton,
+    UiButton,
     UiSpinner,
     UiTooltip,
     MenuTrigger,
@@ -78,7 +77,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       <section aria-labelledby="catalogue-menu">
         <h2 id="catalogue-menu" class="type-title-3">Menu</h2>
         <p class="type-callout text-label-secondary">A menu button with icons and a separator; a tree row's menu, by a right-click or Shift+F10.</p>
-        <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #trigger="ngMenuTrigger" [menu]="menu.menu()">Export</button>
+        <button uiButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #trigger="ngMenuTrigger" [menu]="menu.menu()">Export</button>
         <ui-menu #menu [trigger]="trigger" [items]="menuItems" />
         <p class="type-callout" role="status">{{ chosen() }}</p>
       </section>
@@ -89,13 +88,50 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           Text that adds a key to a button's name, below and above; an icon that explains, at length; a menu button with one; a card of details; a button at the row's end.
         </p>
         <div class="catalogue-row">
-          <button matIconButton class="btn-plain" type="button" aria-label="New tab" uiTooltip="New tab (Alt+T)"><app-icon name="add" /></button>
-          <button matIconButton class="btn-plain" type="button" aria-label="Delete" uiTooltip="Delete" uiTooltipPosition="above"><app-icon name="delete" /></button>
+          <button uiButton="icon" class="btn-plain" type="button" aria-label="New tab" uiTooltip="New tab (Alt+T)"><app-icon name="add" /></button>
+          <button uiButton="icon" class="btn-plain" type="button" aria-label="Delete" uiTooltip="Delete" uiTooltipPosition="above"><app-icon name="delete" /></button>
           <span class="info-tip" tabindex="0" role="img" [attr.aria-label]="longTip" [uiTooltip]="longTip" uiTooltipPosition="above"><app-icon name="info" class="icon-xs" /></span>
-          <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #tipTrigger="ngMenuTrigger" [menu]="tipMenu.menu()" uiTooltip="Copy the request">Copy as</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #tipTrigger="ngMenuTrigger" [menu]="tipMenu.menu()" uiTooltip="Copy the request">Copy as</button>
           <ui-menu #tipMenu [trigger]="tipTrigger" [items]="menuItems" />
           <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /orders</span>
-          <button matIconButton class="btn-plain catalogue-end" type="button" aria-label="Settings" uiTooltip="Settings (Ctrl+,)"><app-icon name="settings" /></button>
+          <button uiButton="icon" class="btn-plain catalogue-end" type="button" aria-label="Settings" uiTooltip="Settings (Ctrl+,)"><app-icon name="settings" /></button>
+        </div>
+      </section>
+
+      <section aria-labelledby="catalogue-buttons">
+        <h2 id="catalogue-buttons" class="type-title-3">Buttons</h2>
+        <p class="type-callout text-label-secondary">Filled, outlined and text in the tones the app uses; small; an icon alone, square and plain; disabled; the send button; a link drawn as a button.</p>
+        <div class="catalogue-row">
+          <button uiButton="filled" type="button" (click)="chosen.set('Pressed Filled.')">Filled</button>
+          <button uiButton="filled" class="btn-secondary" type="button">Filled secondary</button>
+          <button uiButton="filled" class="btn-danger" type="button">Filled danger</button>
+        </div>
+        <div class="catalogue-row">
+          <button uiButton="outlined" type="button">Outlined</button>
+          <button uiButton="outlined" class="btn-secondary" type="button">Outlined secondary</button>
+        </div>
+        <div class="catalogue-row">
+          <button uiButton type="button">Text</button>
+          <button uiButton class="btn-secondary" type="button">Text secondary</button>
+          <button uiButton class="btn-danger" type="button">Text danger</button>
+        </div>
+        <div class="catalogue-row">
+          <button uiButton="filled" class="btn-sm" type="button"><app-icon name="content_copy" /> Small filled</button>
+          <button uiButton="outlined" class="btn-secondary btn-sm" type="button"><app-icon name="add" /> Small outlined</button>
+          <button uiButton="outlined" class="btn-secondary btn-square" type="button" aria-label="Square"><app-icon name="terminal" /></button>
+          <button uiButton="outlined" class="btn-secondary btn-square btn-sm" type="button" aria-label="Small square"><app-icon name="add" /></button>
+          <button uiButton="icon" class="btn-secondary" type="button" aria-label="Icon"><app-icon name="close" /></button>
+          <button uiButton="icon" class="btn-danger btn-sm" type="button" aria-label="Small icon"><app-icon name="delete" /></button>
+          <button uiButton="icon" class="btn-success btn-sm" type="button" aria-label="Small icon success"><app-icon name="check" /></button>
+          <button uiButton="icon" class="btn-plain" type="button" aria-label="Plain"><app-icon name="settings" class="icon-sm" /></button>
+        </div>
+        <div class="catalogue-row">
+          <button uiButton="filled" type="button" disabled>Filled disabled</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" disabled>Outlined disabled</button>
+          <button uiButton="icon" class="btn-plain" type="button" aria-label="Plain disabled" disabled><app-icon name="delete" class="icon-sm" /></button>
+          <button uiButton="filled" class="send-btn" type="button" (click)="chosen.set('Pressed Send.')">Send</button>
+          <button uiButton="filled" class="send-btn" type="button" disabled>Send disabled</button>
+          <a uiButton="outlined" class="btn-secondary btn-sm" href="#catalogue-buttons" (click)="$event.preventDefault(); chosen.set('Followed the link.')">A link</a>
         </div>
       </section>
 
@@ -103,8 +139,8 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <h2 id="catalogue-spinner" class="type-title-3">Spinner</h2>
         <p class="type-callout text-label-secondary">In place of a button's icon, filled and outlined; on its own, named, at 28 px.</p>
         <div class="catalogue-row">
-          <button matButton="filled" type="button"><ui-spinner /> Saving</button>
-          <button matButton="outlined" class="btn-secondary" type="button"><ui-spinner /> Test connection</button>
+          <button uiButton="filled" type="button"><ui-spinner /> Saving</button>
+          <button uiButton="outlined" class="btn-secondary" type="button"><ui-spinner /> Test connection</button>
           <ui-spinner [diameter]="28" label="Loading secrets" />
         </div>
       </section>
@@ -148,7 +184,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <div ngTabPanel [value]="open.id" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><p class="type-callout">{{ open.name }}</p></ng-template></div>
           }
         </div>
-        <button matButton="outlined" class="btn-secondary" type="button" (click)="request.set('r4')">Open the last request from code</button>
+        <button uiButton="outlined" class="btn-secondary" type="button" (click)="request.set('r4')">Open the last request from code</button>
       </section>
 
       <section aria-labelledby="catalogue-accordion">
@@ -165,7 +201,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
                   @if (part.id === "headers") {
                     <label for="catalogue-section-field" class="type-callout">Header value</label>
                     <input id="catalogue-section-field" class="catalogue-input type-mono-body" />
-                    <button matButton="outlined" class="btn-secondary btn-sm" type="button" (click)="chosen.set('Pressed Add header.')">Add header</button>
+                    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="chosen.set('Pressed Add header.')">Add header</button>
                   } @else {
                     <p class="type-callout">{{ part.label }} of this request.</p>
                   }
@@ -183,7 +219,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
         <ui-segmented aria-labelledby="catalogue-theme" [options]="themes" [value]="theme()" (valueChange)="theme.set($event)" />
         <span id="catalogue-route" class="type-callout">Route</span>
         <ui-segmented aria-labelledby="catalogue-route" [options]="routes" [value]="route()" (valueChange)="route.set($event)" />
-        <button matButton="outlined" class="btn-secondary" type="button" (click)="route.set('bridge')">Choose Local Bridge from code</button>
+        <button uiButton="outlined" class="btn-secondary" type="button" (click)="route.set('bridge')">Choose Local Bridge from code</button>
       </section>
 
       <section aria-labelledby="catalogue-select">
@@ -200,9 +236,9 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           A dialog holding a field, a select, a menu and a button with a tooltip; a confirmation, centred and under a button; a drawer, with a tooltip, a confirmation, a menu at the pointer and a card on hover.
         </p>
         <div class="catalogue-row">
-          <button matButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(true)">Open the dialog</button>
-          <button matButton="outlined" class="btn-secondary" type="button" (click)="ask($event, true)">Delete this request</button>
-          <button matButton="outlined" class="btn-secondary" type="button" (click)="drawer.show(); drawerOpen.set(true)">Open the drawer</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(true)">Open the dialog</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="ask($event, true)">Delete this request</button>
+          <button uiButton="outlined" class="btn-secondary" type="button" (click)="drawer.show(); drawerOpen.set(true)">Open the drawer</button>
         </div>
         <ui-dialog header="Edit request" [visible]="dialogOpen()" (visibleChange)="dialogOpen.set($event)" dismissableMask width="480px">
           <div class="catalogue-dialog">
@@ -211,28 +247,28 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             <span id="catalogue-dialog-environment" class="type-callout">Environment</span>
             <ui-select class="w-48" aria-labelledby="catalogue-dialog-environment" placeholder="No environment" [options]="environments" [value]="environment()" (valueChange)="environment.set($event)" />
             <div class="catalogue-row">
-              <button matButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #dialogTrigger="ngMenuTrigger" [menu]="dialogMenu.menu()">Copy as</button>
+              <button uiButton="outlined" class="btn-secondary" type="button" ngMenuTrigger #dialogTrigger="ngMenuTrigger" [menu]="dialogMenu.menu()">Copy as</button>
               <ui-menu #dialogMenu [trigger]="dialogTrigger" [items]="menuItems" />
-              <button matIconButton class="btn-plain" type="button" aria-label="Duplicate" uiTooltip="Duplicate"><app-icon name="content_copy" /></button>
-              <button matButton="outlined" class="btn-danger" type="button" (click)="ask($event, false)">Delete…</button>
+              <button uiButton="icon" class="btn-plain" type="button" aria-label="Duplicate" uiTooltip="Duplicate"><app-icon name="content_copy" /></button>
+              <button uiButton="outlined" class="btn-danger" type="button" (click)="ask($event, false)">Delete…</button>
             </div>
           </div>
           <div uiDialogFooter>
-            <button matButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(false)">Cancel</button>
-            <button matButton="filled" type="button" (click)="chosen.set('Saved the request.'); dialogOpen.set(false)">Save</button>
+            <button uiButton="outlined" class="btn-secondary" type="button" (click)="dialogOpen.set(false)">Cancel</button>
+            <button uiButton="filled" type="button" (click)="chosen.set('Saved the request.'); dialogOpen.set(false)">Save</button>
           </div>
         </ui-dialog>
         <dialog uiModal #drawer="uiModal" class="ui-drawer" aria-label="History" [open]="drawerOpen()" dismissable (closeRequest)="drawer.close(); drawerOpen.set(false)">
           <div class="catalogue-drawer">
             <div class="catalogue-row">
               <span class="type-title-3">History</span>
-              <button matIconButton class="btn-plain" type="button" aria-label="Close history" uiTooltip="Close history (Esc)" (click)="drawer.close(); drawerOpen.set(false)"><app-icon name="close" /></button>
+              <button uiButton="icon" class="btn-plain" type="button" aria-label="Close history" uiTooltip="Close history (Esc)" (click)="drawer.close(); drawerOpen.set(false)"><app-icon name="close" /></button>
             </div>
             <label for="catalogue-drawer-search" class="type-callout">Search history</label>
             <input id="catalogue-drawer-search" class="catalogue-input type-body" />
             <div class="catalogue-row" (contextmenu)="drawerMenu.openAt($event, focusEntry)">
               <span class="type-mono-body" tabindex="0" [uiTooltip]="details">GET /users</span>
-              <button matButton="outlined" class="btn-danger btn-sm" type="button" (click)="ask($event, true)">Delete entry</button>
+              <button uiButton="outlined" class="btn-danger btn-sm" type="button" (click)="ask($event, true)">Delete entry</button>
             </div>
             <ng-template #details><p class="type-callout p-1">200 OK, in 84 ms</p></ng-template>
             <ui-menu #drawerMenu [items]="rowItems" />

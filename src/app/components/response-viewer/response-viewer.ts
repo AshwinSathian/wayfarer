@@ -9,7 +9,7 @@ import { MatInput } from "@angular/material/input";
 import { MenuTrigger } from "@angular/aria/menu";
 import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import { UiTooltip } from "../../ui/tooltip";
@@ -67,8 +67,7 @@ interface ResponseHeader {
     UiTooltip,
     JsonEditor,
     HtmlPreview,
-    MatButton, MatIconButton,
-    UiSelect,
+    UiButton, UiSelect,
     MenuTrigger, UiMenu,
   ],
   templateUrl: "./response-viewer.html",

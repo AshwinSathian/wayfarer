@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { MatButton } from "@angular/material/button";
+import { UiButton } from "../../ui/button";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiTabList } from "../../ui/tabs";
 import { ancestorsOf, effectiveAuth, emptyAuth, scriptsApproved, scriptsOf, variableChanges, type AuthConfig, type Route, type Row, type Scripts } from "@wayfarer/core";
@@ -25,7 +25,7 @@ export interface InheritedSettingsTarget {
  */
 @Component({
   selector: "app-inherited-settings-dialog",
-  imports: [AuthEditor, Dialog, FormsModule, MatButton, UiSelect, Tab, TabContent, TabPanel, Tabs, UiTabList, RowsEditor, ScriptEditor],
+  imports: [AuthEditor, Dialog, FormsModule, UiButton, UiSelect, Tab, TabContent, TabPanel, Tabs, UiTabList, RowsEditor, ScriptEditor],
   templateUrl: "./inherited-settings-dialog.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

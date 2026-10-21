@@ -5,15 +5,19 @@ import { ECHO } from "./support/echo";
 // stop Tab reaches. No click, no fill: keys only, as a user without a
 // pointer has them.
 
-/** Whether what has focus shows it: its own outline or glow, or the address bar or checkbox it belongs to. */
+/** Whether what has focus shows it: its own outline or glow, or the address bar or checkbox it belongs to. A glow fades in, and Linux WebKit, short of frames while the app starts, finished it more than 1 s late: poll it. */
 async function focusShown(page: Page): Promise<string | null> {
   return page.evaluate(() => {
     const element = document.activeElement;
     // Past the page's last stop focus leaves for the browser's own UI: the document has none.
     if (!(element instanceof HTMLElement) || element === document.body) return null;
+    // A ring is an outline or a shadow with a spread (a glow). A field's drop shadow at rest has none, and is not one.
     const ringed = (node: Element) => {
       const style = getComputedStyle(node);
-      return (style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0) || style.boxShadow !== "none";
+      if (style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0) return true;
+      return [...style.boxShadow.matchAll(/(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px\s+(-?[\d.]+)px/g)].some(
+        (shadow) => parseFloat(shadow[4]) >= 1,
+      );
     };
     // Monaco types into a hidden text area: the editor around it shows the focus.
     const editor = element.closest(".monaco-editor");
@@ -55,7 +59,7 @@ async function tabTo(page: Page, target: Locator, max = 120): Promise<void> {
   const key = before ? `Shift+${TAB}` : TAB;
   for (let stop = 0; stop < max; stop++) {
     await page.keyboard.press(key);
-    expect(await focusShown(page)).toBeNull();
+    await expect.poll(() => focusShown(page)).toBeNull();
     if (await has()) return;
   }
   throw new Error(`Tab did not reach ${target} in ${max} stops`);
@@ -70,7 +74,7 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
     const seen = new Set<string>();
     for (let stop = 0; stop < 60; stop++) {
       await page.keyboard.press(TAB);
-      expect(await focusShown(page), `${theme}, stop ${stop}`).toBeNull();
+      await expect.poll(() => focusShown(page), { message: `${theme}, stop ${stop}` }).toBeNull();
       seen.add(await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 60) ?? ""));
     }
     // The walk went somewhere: not one element over and over. Since the

@@ -24,6 +24,15 @@
   white-space: pre-line;
 }
 
+/* The gap to the host is the tooltip's: the pointer on its way from the host
+   onto it is never on neither, whatever the time between two moves (a slow
+   runner took longer than the directive's 80 ms over 8 px in WebKit). */
+.ui-tooltip::before {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+
 .ui-tooltip:popover-open {
   animation: overlay-appear var(--dur-quick) var(--ease-enter) both;
 }

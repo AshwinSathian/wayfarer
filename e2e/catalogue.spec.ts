@@ -446,7 +446,8 @@ test("confirmation: over a dialog and under a button, focus on Cancel, Tab stays
     const p = { y: el.offsetTop, height: el.offsetHeight, x: el.offsetLeft, width: el.offsetWidth };
     return { gap: p.y > b.y ? p.y - (b.y + b.height) : b.y - (p.y + p.height), off: Math.abs(p.x + p.width / 2 - (b.x + b.width / 2)) };
   }, (await button.boundingBox())!);
-  expect(Math.round(place.gap)).toBe(10);
+  // The button may sit at a fraction of a pixel: WebKit measured 9.5 on CI.
+  expect(Math.abs(place.gap - 10)).toBeLessThan(1);
   expect(place.off).toBeLessThan(1);
   await page.mouse.click(5, 5);
   await expect(popup).toHaveCount(0);
@@ -578,6 +579,9 @@ test("tooltip: the pointer shows it, may rest on it, and a press or leaving hide
   const newTab = page.getByRole("button", { name: "New tab", exact: true });
   await newTab.hover();
   await expect(tip).toBeVisible();
+  // The gap to the button is the tooltip's: a pointer crossing it is never on neither, however slow its moves.
+  const n = (await newTab.boundingBox())!;
+  expect(await tip.evaluate((el, [x, y]) => el.contains(document.elementFromPoint(x, y)), [n.x + n.width / 2, n.y + n.height + 4])).toBe(true);
   const t = await layout(tip);
   await page.mouse.move(t.left + 10, t.top + 5, { steps: 4 });
   await page.waitForTimeout(200);

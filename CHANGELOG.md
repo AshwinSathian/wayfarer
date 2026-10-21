@@ -27,9 +27,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   line), and a past request's details card sits 8 px under its entry,
   inside the window's edge. The bars of the Timings no longer repeat in a
   tooltip the time printed beside them. Angular Material's tooltip is
-  gone, and the app's first download is 25.9 kB smaller (7.3 kB
-  compressed); the size budgets are reset to it: initial 1,208,742 B raw
-  and 316,329 B gzip; budgets 1270kb, 1330kb and 347,962 B.
+  gone, and the app's first download is 25.8 kB smaller (7.3 kB
+  compressed); the size budgets are reset to it: initial 1,208,803 B raw
+  and 316,342 B gzip; budgets 1270kb, 1330kb and 347,977 B.
 
 - **Dialogs and the side drawers are the browser's own modal dialogs, and
   while one is open the page behind it is out of reach.** Before, the page

@@ -88,7 +88,9 @@ test("headers and body: Bulk edit and the body type are driven from the keyboard
   await expect(page.getByLabel("Body name, row 1")).toBeVisible();
 });
 
-test("phone composer: Enter and Space open a section, one at a time, and a closed section is out of reach", async ({ page }) => {
+test("phone composer: Enter and Space open a section, one at a time, and a closed section is out of reach", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
   const header = (name: string) => page.getByRole("button", { name, exact: true });
@@ -112,7 +114,9 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
 
 // The method was a select of seven until P2.16. It is a text field now, so
 // any method can be typed, with the common ones in a menu beside it.
-test("method: any one can be typed and is upper-cased; the menu of common ones is driven from the keyboard", async ({ page }) => {
+test("method: any one can be typed and is upper-cased; the menu of common ones is driven from the keyboard", async ({
+  page,
+}) => {
   await page.goto("/app/");
   const method = page.getByRole("textbox", { name: "HTTP method" });
   await expect(method).toHaveValue("GET");
@@ -175,7 +179,9 @@ test("a select inside a dialog: Escape closes the list first, the dialog second"
   await expect(collection).toContainText("Keys");
 });
 
-test("export menu: opens from the keyboard, arrows move, Escape returns focus, Enter runs an item", async ({ page }) => {
+test("export menu: opens from the keyboard, arrows move, Escape returns focus, Enter runs an item", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?menu=1`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -200,8 +206,14 @@ test("export menu: opens from the keyboard, arrows move, Escape returns focus, E
   await expect(page.getByRole("menu")).toHaveCount(0);
   await expect(trigger).toBeFocused();
   // The app is usable after the menu closes.
-  await page.locator("app-response-viewer").getByRole("tab", { name: /^Headers/ }).click();
-  await expect(page.locator("app-response-viewer").getByRole("tab", { name: /^Headers/ })).toHaveAttribute("aria-selected", "true");
+  await page
+    .locator("app-response-viewer")
+    .getByRole("tab", { name: /^Headers/ })
+    .click();
+  await expect(page.locator("app-response-viewer").getByRole("tab", { name: /^Headers/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
 });
 
 test("collection context menu: arrow keys reach every action and Escape closes it", async ({ page }) => {
@@ -215,7 +227,18 @@ test("collection context menu: arrow keys reach every action and Escape closes i
 
   await node.click({ button: "right" });
   const items = page.getByRole("menuitem");
-  await expect(items).toHaveText(["Run…", "New Folder", "New Request", "Settings", "Rename", "Duplicate", "Export", "Export with credentials", "Export for Postman…", "Delete"]);
+  await expect(items).toHaveText([
+    "Run…",
+    "New Folder",
+    "New Request",
+    "Settings",
+    "Rename",
+    "Duplicate",
+    "Export",
+    "Export with credentials",
+    "Export for Postman…",
+    "Delete",
+  ]);
   await expect(items.first()).toBeFocused();
   await page.keyboard.press("End");
   await expect(page.getByRole("menuitem", { name: "Delete" })).toBeFocused();
@@ -240,7 +263,9 @@ test("collection context menu: arrow keys reach every action and Escape closes i
   await expect(page.getByRole("tree").getByRole("textbox")).toBeVisible();
 });
 
-test("with the mouse: a second click on the Export button or on Common methods closes its menu again", async ({ page }) => {
+test("with the mouse: a second click on the Export button or on Common methods closes its menu again", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?toggle=1`);
   await page.getByRole("button", { name: "Send request" }).click();
@@ -277,7 +302,10 @@ async function expectFocusTrapped(page: Page, surface: Locator, browserName: str
   }
 }
 
-test("settings dialog: focus moves in, Tab stays in, Escape closes at once and focus returns", async ({ page, browserName }) => {
+test("settings dialog: focus moves in, Tab stays in, Escape closes at once and focus returns", async ({
+  page,
+  browserName,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const opener = page.getByRole("banner").getByRole("button", { name: "Settings", exact: true });
@@ -322,7 +350,10 @@ test("history drawer: focus moves in, Tab stays in, Escape closes and focus retu
   await expect(page.locator("input.address-url")).toBeFocused();
 });
 
-test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({ page, browserName }) => {
+test("phone navigation drawer: focus moves in, Tab stays in, Escape closes and focus returns", async ({
+  page,
+  browserName,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
   const opener = page.getByRole("button", { name: "Toggle sidebar" });
@@ -363,10 +394,13 @@ for (const [width, opener, name] of [
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/app/");
     await expect(page.getByRole("button", { name: opener })).toBeVisible();
-    const inside = await page.evaluate(([label, dialog]) => {
-      document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
-      return document.activeElement?.closest(`[aria-label="${dialog}"]`) !== null;
-    }, [opener, name]);
+    const inside = await page.evaluate(
+      ([label, dialog]) => {
+        document.querySelector<HTMLElement>(`button[aria-label="${label}"]`)!.click();
+        return document.activeElement?.closest(`[aria-label="${dialog}"]`) !== null;
+      },
+      [opener, name],
+    );
     expect(inside).toBe(true);
   });
 
@@ -404,7 +438,10 @@ test("history drawer: opened, closed and opened again in one task, it is open an
   await expect(drawer).toBeVisible();
 });
 
-test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and focus returns", async ({ page, browserName }) => {
+test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and focus returns", async ({
+  page,
+  browserName,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?confirm=1`);
@@ -447,7 +484,9 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await expect(drawer).toHaveCount(0);
 });
 
-test("composer and response split: the gutter is a focusable separator moved by arrow keys, Home and End, and the result is kept", async ({ page }) => {
+test("composer and response split: the gutter is a focusable separator moved by arrow keys, Home and End, and the result is kept", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const gutter = page.getByRole("separator", { name: "Resize the composer and the response" });
@@ -467,7 +506,9 @@ test("composer and response split: the gutter is a focusable separator moved by 
   await expect(gutter).toHaveAttribute("aria-valuenow", "28");
   await expect.poll(async () => Math.abs((await width()) - total * 0.28)).toBeLessThan(2);
   await page.keyboard.press("End");
-  await expect.poll(async () => Math.abs((await page.locator(".response-pane").boundingBox())!.width - total * 0.22)).toBeLessThan(2);
+  await expect
+    .poll(async () => Math.abs((await page.locator(".response-pane").boundingBox())!.width - total * 0.22))
+    .toBeLessThan(2);
   const atEnd = await width();
 
   await page.reload();
@@ -483,7 +524,9 @@ async function createUnder(page: Page, parent: string, item: string, name: strin
   await expect(page.getByRole("dialog")).toHaveCount(0);
 }
 
-test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reorders, Shift+F10 opens the menu", async ({ page }) => {
+test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reorders, Shift+F10 opens the menu", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await page.getByRole("button", { name: "New collection" }).click();
@@ -494,7 +537,10 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
   await createUnder(page, "Tree Col", "New Request", "Tree Req 2");
   await createUnder(page, "Tree Folder", "New Request", "Tree Inner");
   const item = (name: string) => treeRow(page, name);
-  const order = async () => (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? ""))).map(withoutMethod).filter((n) => n.startsWith("Tree "));
+  const order = async () =>
+    (await page.getByRole("treeitem").evaluateAll((items) => items.map((i) => i.getAttribute("aria-label") ?? "")))
+      .map(withoutMethod)
+      .filter((n) => n.startsWith("Tree "));
 
   // Exactly one row is in the tab order.
   await expect(page.locator('[role="treeitem"][tabindex="0"]')).toHaveCount(1);
@@ -557,7 +603,9 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
   await expect.poll(order).toEqual(["Tree Col", "Tree Folder", "Tree Req Two", "Tree Req 1"]);
 });
 
-test("phone: Escape with a tree row's menu open closes the menu and leaves the navigation drawer open", async ({ page }) => {
+test("phone: Escape with a tree row's menu open closes the menu and leaves the navigation drawer open", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
   await page.getByRole("button", { name: "Toggle sidebar" }).click();

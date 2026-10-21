@@ -23,7 +23,9 @@ async function addVariable(page: Page, key: string, value: string): Promise<void
   await page.locator("input[placeholder='Value']").last().fill(value);
 }
 
-test("what one tab saves appears in the other within a second: a collection, an environment, a sent request", async ({ context }) => {
+test("what one tab saves appears in the other within a second: a collection, an environment, a sent request", async ({
+  context,
+}) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
   await pageA.goto("/app/");
@@ -46,7 +48,9 @@ test("what one tab saves appears in the other within a second: a collection, an 
   await expect(pageB.getByText(`${ECHO}/echo?from=a`).first()).toBeVisible({ timeout: 1000 });
 });
 
-test("two tabs save different variables of one environment at the same moment, and both are kept", async ({ context }) => {
+test("two tabs save different variables of one environment at the same moment, and both are kept", async ({
+  context,
+}) => {
   const pageA = await context.newPage();
   const pageB = await context.newPage();
   await pageA.goto("/app/");

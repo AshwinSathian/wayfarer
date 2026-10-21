@@ -85,10 +85,18 @@
 /* Status colours as text use their text shade (tokens.css). Tailwind's
    text-status-* utilities above read the fill colour, which is also right
    for bg-status-* and border-status-*; these come after them and win. */
-.text-status-success { color: var(--status-success-text); }
-.text-status-warning { color: var(--status-warning-text); }
-.text-status-error   { color: var(--status-error-text); }
-.text-status-info    { color: var(--status-info-text); }
+.text-status-success {
+  color: var(--status-success-text);
+}
+.text-status-warning {
+  color: var(--status-warning-text);
+}
+.text-status-error {
+  color: var(--status-error-text);
+}
+.text-status-info {
+  color: var(--status-info-text);
+}
 
 /* ── Global resets ──────────────────────────────────────── */
 /* Every Tailwind size utility assumes border-box (it is in Tailwind's reset,
@@ -171,7 +179,11 @@ body {
 
 /* Controls fade their colours on hover and focus. Nothing else has a colour
    transition, so a theme change is instant (docs/design/motion.md). */
-button, a, input, select, textarea {
+button,
+a,
+input,
+select,
+textarea {
   transition:
     background-color var(--dur-quick) var(--ease-standard),
     border-color var(--dur-quick) var(--ease-standard),

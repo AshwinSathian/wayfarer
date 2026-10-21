@@ -32,7 +32,13 @@ for (let i = 0; i < 49; i++) {
 function megabyte(): string {
   const items: unknown[] = [];
   for (let id = 0, size = 0; size < 2 ** 20; id++) {
-    const item = { id, name: `item ${id}`, tags: ["a", "b", "c"], nested: { ok: true, score: id / 7 }, note: "x".repeat(120) };
+    const item = {
+      id,
+      name: `item ${id}`,
+      tags: ["a", "b", "c"],
+      nested: { ok: true, score: id / 7 },
+      note: "x".repeat(120),
+    };
     size += JSON.stringify(item).length + 1;
     items.push(item);
   }
@@ -45,7 +51,11 @@ const median = (times: number[]): number => [...times].sort((a, b) => a - b)[Mat
 
 /** The engine as the app's worker loads it: new each time, with the memory that is its limit. */
 function load(): Promise<QuickJSWASMModule> {
-  const { Memory } = (globalThis as unknown as { WebAssembly: { Memory: new (size: { initial: number; maximum: number }) => { buffer: ArrayBufferLike } } }).WebAssembly;
+  const { Memory } = (
+    globalThis as unknown as {
+      WebAssembly: { Memory: new (size: { initial: number; maximum: number }) => { buffer: ArrayBufferLike } };
+    }
+  ).WebAssembly;
   return newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmMemory: new Memory(scriptMemory()) }));
 }
 
@@ -53,7 +63,14 @@ it("the benchmark script, and the engine's cold load", async () => {
   const body = megabyte();
   const context: ScriptContext = {
     environment: [["payload", "p".repeat(1024)]],
-    response: { code: 200, status: "OK", headers: { "content-type": "application/json" }, body, responseTime: 1, responseSize: body.length },
+    response: {
+      code: 200,
+      status: "OK",
+      headers: { "content-type": "application/json" },
+      body,
+      responseTime: 1,
+      responseSize: body.length,
+    },
   };
   const libraries = await loadLibraries(SCRIPT, loadLibrary, new Map());
 
@@ -83,7 +100,9 @@ it("the benchmark script, and the engine's cold load", async () => {
   for (let i = 0; i < RUNS; i++) times.push(await run());
 
   const round = (ms: number) => Math.round(ms * 10) / 10;
-  console.log(`script-bench ${JSON.stringify({ runs: RUNS, bodyBytes: body.length, p95: round(p95(times)), median: round(median(times)), min: round(Math.min(...times)), max: round(Math.max(...times)), load: { cold: round(cold), again: round(median(warm)) } })}`);
+  console.log(
+    `script-bench ${JSON.stringify({ runs: RUNS, bodyBytes: body.length, p95: round(p95(times)), median: round(median(times)), min: round(Math.min(...times)), max: round(Math.max(...times)), load: { cold: round(cold), again: round(median(warm)) } })}`,
+  );
   // The gate (plan R3, as decided in P3.10): a ceiling, not a comparison with the last run. On GitHub's runners the same
   // commit gave a p95 of 64 to 88 ms from one job to the next, so "25% slower than before" would fail without a cause.
   // What this catches is the regression R3 is about: a hash or the JSON of a response done by the interpreter costs seconds.

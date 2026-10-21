@@ -33,7 +33,8 @@ const OUTSIDE_BY_DESIGN: Record<string, string> = {
   "request-name-in-script.postman_collection.json":
     "its scripts read `request.name` and `request.description` of the legacy `request` (matrix: partial), and its pre-request script then ends in an error: Postman sends anyway, the app stops the send (P3.9)",
   // The report cannot warn of these: a method's name does not say what it is called on (`NOT_SCANNED`).
-  "prototype-check.postman_collection.json": "its script calls the older sandbox's additions to the built-in objects, `['a'].none('d')` and `(56).hex()` (matrix: legacy additions to built-in objects, unsupported)",
+  "prototype-check.postman_collection.json":
+    "its script calls the older sandbox's additions to the built-in objects, `['a'].none('d')` and `(56).hex()` (matrix: legacy additions to built-in objects, unsupported)",
 };
 
 /**
@@ -59,7 +60,9 @@ describe("Newman's integration collections, imported, against Newman", () => {
     const imported = importText(JSON.stringify(rewritePostmanFile(read(file), base)));
     const beside = (kind: string) => {
       const path = file.replace(/\.postman_collection\.json$/, `.postman_${kind}.json`);
-      return existsSync(path) ? importText(JSON.stringify(rewritePostmanFile(read(path), base))).environments[0].vars : [];
+      return existsSync(path)
+        ? importText(JSON.stringify(rewritePostmanFile(read(path), base))).environments[0].vars
+        : [];
     };
     return { imported, environment: beside("environment"), globals: beside("globals") };
   };
@@ -72,15 +75,26 @@ describe("Newman's integration collections, imported, against Newman", () => {
     const warning = imported.report.warnings.find(({ message }) => OUTSIDE.some((pattern) => pattern.test(message)));
     if (warning) return `${warning.item}: ${warning.message}`;
     const { collection, folders, requests } = imported.collections[0].payload;
-    const legacy = [collection, ...folders, ...requests].flatMap((holder) => [holder.scripts.pre, holder.scripts.post]).map((script) => LEGACY_GLOBAL.exec(script)?.[0]).find(Boolean);
-    return legacy ? `a script uses the legacy global ${legacy.replace(".", "")} (matrix: legacy library globals, unsupported)` : null;
+    const legacy = [collection, ...folders, ...requests]
+      .flatMap((holder) => [holder.scripts.pre, holder.scripts.post])
+      .map((script) => LEGACY_GLOBAL.exec(script)?.[0])
+      .find(Boolean);
+    return legacy
+      ? `a script uses the legacy global ${legacy.replace(".", "")} (matrix: legacy library globals, unsupported)`
+      : null;
   };
   /** The harness's results beside Newman's. Newman names a request that has no name by nothing at all. */
   const compare = async (name: string, entry: Golden): Promise<{ ours: unknown; newman: unknown }> => {
     if ("notRun" in entry) throw new Error("not run");
     const { imported, environment, globals } = load(name);
     const results = await runCollection(quickjs, imported.collections[0].payload, { environment, globals });
-    return { ours: results.map((item, index) => ({ ...item, name: entry.items[index]?.name === undefined ? undefined : item.name })), newman: entry.items.map((item) => ({ ...item, name: item.name })) };
+    return {
+      ours: results.map((item, index) => ({
+        ...item,
+        name: entry.items[index]?.name === undefined ? undefined : item.name,
+      })),
+      newman: entry.items.map((item) => ({ ...item, name: item.name })),
+    };
   };
 
   it("the golden file was written by Newman, and has every collection of the set: run, or not run and why", () => {
@@ -137,7 +151,7 @@ describe("Newman's integration collections, imported, against Newman", () => {
     expect(outside(name, entry as Golden)).toBeNull();
     const result = await compare(name, entry as Golden).then(
       ({ ours, newman }) => (JSON.stringify(ours) === JSON.stringify(newman) ? "the same" : "differs"),
-      () => "a script ended in an error"
+      () => "a script ended in an error",
     );
     expect(result).not.toBe("the same");
   });

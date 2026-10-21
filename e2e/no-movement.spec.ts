@@ -30,58 +30,83 @@ interface Recording {
  * opacity, a colour, a shadow) and not where it is or how big.
  */
 async function sampleAfterResponse(page: Page, status: string, duration: number): Promise<() => Promise<Recording>> {
-  await page.evaluate(({ status, ms }) => {
-    const samples: Sample[] = [];
-    const targets = (): [string, Element][] => [
-      ...[...document.querySelectorAll("app-response-viewer [role='tab']")].map((tab, index): [string, Element] => [`tab ${index} ${tab.textContent?.trim().split(/\s+/)[0]}`, tab]),
-      ...[...document.querySelectorAll(".composer-response-splitter [role='separator']")].map((gutter): [string, Element] => ["gutter", gutter]),
-      // What the open pane holds: the view select, the editor, a Download button.
-      ...[...document.querySelectorAll("app-response-viewer .tab-pane:not([inert]) > div > *")].map((element, index): [string, Element] => [`body ${index}`, element]),
-      // What a person presses next: the composer's tabs, and what sits in the status bar.
-      ...[...document.querySelectorAll("app-composer .composer-pane [role='tab']")].map((tab, index): [string, Element] => [`composer tab ${index}`, tab]),
-      ...[...document.querySelectorAll("app-response-viewer .status-badge, app-response-viewer [aria-label='Export response']")].map(
-        (element): [string, Element] => [element.matches(".status-badge") ? "status badge" : "Export", element]
-      ),
-    ];
-    const box = (element: Element) => {
-      const { x, y, width, height } = element.getBoundingClientRect();
-      return [x, y, width, height].map((value) => Math.round(value * 100) / 100).join(",");
-    };
-    const animated: string[] = [];
-    const readAnimations = () => {
-      const sampled = targets().map(([, element]) => element);
-      for (const animation of document.getAnimations()) {
-        const effect = animation.effect;
-        const target = effect instanceof KeyframeEffect ? effect.target : null;
-        if (!effect || !target || !sampled.some((element) => target.contains(element))) continue;
-        const properties = new Set((effect as KeyframeEffect).getKeyframes().flatMap((keyframe) => Object.keys(keyframe)));
-        for (const property of ["offset", "computedOffset", "easing", "composite"]) properties.delete(property);
-        // Paint only: the status badge fades between colours, and that moves nothing.
-        for (const property of [...properties]) if (/^(opacity|boxShadow|.*[cC]olor)$/.test(property)) properties.delete(property);
-        for (const property of properties) animated.push(`${property} on <${target.tagName.toLowerCase()} class="${target.getAttribute("class") ?? ""}">`);
+  await page.evaluate(
+    ({ status, ms }) => {
+      const samples: Sample[] = [];
+      const targets = (): [string, Element][] => [
+        ...[...document.querySelectorAll("app-response-viewer [role='tab']")].map((tab, index): [string, Element] => [
+          `tab ${index} ${tab.textContent?.trim().split(/\s+/)[0]}`,
+          tab,
+        ]),
+        ...[...document.querySelectorAll(".composer-response-splitter [role='separator']")].map(
+          (gutter): [string, Element] => ["gutter", gutter],
+        ),
+        // What the open pane holds: the view select, the editor, a Download button.
+        ...[...document.querySelectorAll("app-response-viewer .tab-pane:not([inert]) > div > *")].map(
+          (element, index): [string, Element] => [`body ${index}`, element],
+        ),
+        // What a person presses next: the composer's tabs, and what sits in the status bar.
+        ...[...document.querySelectorAll("app-composer .composer-pane [role='tab']")].map(
+          (tab, index): [string, Element] => [`composer tab ${index}`, tab],
+        ),
+        ...[
+          ...document.querySelectorAll(
+            "app-response-viewer .status-badge, app-response-viewer [aria-label='Export response']",
+          ),
+        ].map((element): [string, Element] => [element.matches(".status-badge") ? "status badge" : "Export", element]),
+      ];
+      const box = (element: Element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return [x, y, width, height].map((value) => Math.round(value * 100) / 100).join(",");
+      };
+      const animated: string[] = [];
+      const readAnimations = () => {
+        const sampled = targets().map(([, element]) => element);
+        for (const animation of document.getAnimations()) {
+          const effect = animation.effect;
+          const target = effect instanceof KeyframeEffect ? effect.target : null;
+          if (!effect || !target || !sampled.some((element) => target.contains(element))) continue;
+          const properties = new Set(
+            (effect as KeyframeEffect).getKeyframes().flatMap((keyframe) => Object.keys(keyframe)),
+          );
+          for (const property of ["offset", "computedOffset", "easing", "composite"]) properties.delete(property);
+          // Paint only: the status badge fades between colours, and that moves nothing.
+          for (const property of [...properties])
+            if (/^(opacity|boxShadow|.*[cC]olor)$/.test(property)) properties.delete(property);
+          for (const property of properties)
+            animated.push(
+              `${property} on <${target.tagName.toLowerCase()} class="${target.getAttribute("class") ?? ""}">`,
+            );
+        }
+      };
+      let started = 0;
+      const tick = (now: number) => {
+        if (!started && document.querySelector("app-response-viewer .status-badge")?.textContent?.trim() === status) {
+          started = now;
+          readAnimations();
+        }
+        if (started)
+          samples.push({
+            frame: samples.length,
+            ms: Math.round(now - started),
+            boxes: Object.fromEntries(targets().map(([name, element]) => [name, box(element)])),
+          });
+        if (!started || now - started < ms) requestAnimationFrame(tick);
+        else (window as unknown as { __recording: Recording }).__recording = { samples, animated };
+      };
+      requestAnimationFrame(tick);
+      interface Sample {
+        frame: number;
+        ms: number;
+        boxes: Record<string, string>;
       }
-    };
-    let started = 0;
-    const tick = (now: number) => {
-      if (!started && document.querySelector("app-response-viewer .status-badge")?.textContent?.trim() === status) {
-        started = now;
-        readAnimations();
+      interface Recording {
+        samples: Sample[];
+        animated: string[];
       }
-      if (started) samples.push({ frame: samples.length, ms: Math.round(now - started), boxes: Object.fromEntries(targets().map(([name, element]) => [name, box(element)])) });
-      if (!started || now - started < ms) requestAnimationFrame(tick);
-      else (window as unknown as { __recording: Recording }).__recording = { samples, animated };
-    };
-    requestAnimationFrame(tick);
-    interface Sample {
-      frame: number;
-      ms: number;
-      boxes: Record<string, string>;
-    }
-    interface Recording {
-      samples: Sample[];
-      animated: string[];
-    }
-  }, { status, ms: duration });
+    },
+    { status, ms: duration },
+  );
   return async () => {
     await page.waitForFunction(() => !!(window as unknown as { __recording?: unknown }).__recording);
     return page.evaluate(() => (window as unknown as { __recording: Recording }).__recording);
@@ -94,7 +119,8 @@ function movements(samples: Sample[]): string[] {
   const moved = new Map<string, string>();
   for (const sample of samples) {
     for (const [name, box] of Object.entries(sample.boxes)) {
-      if (name in first && box !== first[name] && !moved.has(name)) moved.set(name, `${name}: ${first[name]} -> ${box} at ${sample.ms} ms`);
+      if (name in first && box !== first[name] && !moved.has(name))
+        moved.set(name, `${name}: ${first[name]} -> ${box} at ${sample.ms} ms`);
     }
     for (const name of Object.keys(first)) {
       if (!(name in sample.boxes) && !moved.has(name)) moved.set(name, `${name}: gone at ${sample.ms} ms`);
@@ -118,7 +144,17 @@ for (const [name, path, status] of [
     // The sampling saw the response from its first frame, for the whole time, with the tabs and the gutter in it.
     expect(recorded.length).toBeGreaterThanOrEqual(2);
     expect(recorded.at(-1)?.ms).toBeGreaterThanOrEqual(500);
-    expect(Object.keys(recorded[0].boxes)).toEqual(expect.arrayContaining(["tab 0 Body", "tab 1 Headers", "tab 2 Timings", "tab 3 Tests", "gutter", "status badge", "Export"]));
+    expect(Object.keys(recorded[0].boxes)).toEqual(
+      expect.arrayContaining([
+        "tab 0 Body",
+        "tab 1 Headers",
+        "tab 2 Timings",
+        "tab 3 Tests",
+        "gutter",
+        "status badge",
+        "Export",
+      ]),
+    );
     // Soft, so that a failure shows both what moved and which animation moved it.
     expect.soft(movements(recorded)).toEqual([]);
     expect(animated).toEqual([]);

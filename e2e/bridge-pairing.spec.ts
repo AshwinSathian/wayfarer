@@ -10,17 +10,24 @@ test.skip(({ browserName }) => browserName !== "chromium", "the Local Bridge is 
 async function openPane(page: Page, bridge: TestBridge) {
   await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
-  await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: "Local Bridge", exact: true }).click();
+  await settings
+    .getByRole("radiogroup", { name: "Route" })
+    .getByRole("radio", { name: "Local Bridge", exact: true })
+    .click();
   await settings.locator("#bridge-url-input").fill(bridge.url);
   return settings;
 }
 
-test("the code the bridge printed pairs the page: the token is saved without being typed, and a request goes through", async ({ page }) => {
+test("the code the bridge printed pairs the page: the token is saved without being typed, and a request goes through", async ({
+  page,
+}) => {
   const bridge = await startBridge();
   try {
     await page.goto("/app/");
     const settings = await openPane(page, bridge);
-    await expect(settings.locator(".bridge-lna")).toContainText("may ask whether this site may look for and connect to devices on your local network");
+    await expect(settings.locator(".bridge-lna")).toContainText(
+      "may ask whether this site may look for and connect to devices on your local network",
+    );
     expect(bridge.pairingCode).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
 
     // Typed in lower case, as a user might.
@@ -43,7 +50,9 @@ test("the code the bridge printed pairs the page: the token is saved without bei
   }
 });
 
-test("three wrong codes lock pairing: the page says so, with the seconds, and the right code waits too", async ({ page }) => {
+test("three wrong codes lock pairing: the page says so, with the seconds, and the right code waits too", async ({
+  page,
+}) => {
   const bridge = await startBridge();
   try {
     await page.goto("/app/");
@@ -57,7 +66,9 @@ test("three wrong codes lock pairing: the page says so, with the seconds, and th
     }
     await field.fill(bridge.pairingCode);
     await pair.click();
-    await expect(settings.locator(".bridge-pair-problem")).toContainText(/Three wrong codes: the bridge takes no code for (59|60) s\./);
+    await expect(settings.locator(".bridge-pair-problem")).toContainText(
+      /Three wrong codes: the bridge takes no code for (59|60) s\./,
+    );
     await expect(settings.locator("#bridge-token-input")).toHaveValue("");
   } finally {
     bridge.stop();
@@ -69,8 +80,15 @@ test.describe("over HTTPS", () => {
   // user made would be once trusted.
   test.use({ ignoreHTTPSErrors: true });
 
-  test("with --cert and --key the bridge answers over HTTPS: the page tests it, pairs and sends through it", async ({ page }) => {
-    const bridge = await startBridge(["--cert", "packages/bridge/test/fixtures/cert.pem", "--key", "packages/bridge/test/fixtures/key.pem"]);
+  test("with --cert and --key the bridge answers over HTTPS: the page tests it, pairs and sends through it", async ({
+    page,
+  }) => {
+    const bridge = await startBridge([
+      "--cert",
+      "packages/bridge/test/fixtures/cert.pem",
+      "--key",
+      "packages/bridge/test/fixtures/key.pem",
+    ]);
     try {
       expect(bridge.url).toMatch(/^https:\/\/127\.0\.0\.1:/);
       await page.goto("/app/");

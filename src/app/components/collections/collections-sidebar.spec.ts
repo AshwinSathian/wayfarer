@@ -16,7 +16,15 @@ function makeCollection(id: string, name = `Collection ${id}`, order = 0): Colle
 }
 
 function makeFolder(id: string, collectionId: string, order = 0, parentFolderId?: string): Folder {
-  return { id, meta: meta(id), collectionId, ...(parentFolderId && { parentFolderId }), name: `Folder ${id}`, order, ...inFolder };
+  return {
+    id,
+    meta: meta(id),
+    collectionId,
+    ...(parentFolderId && { parentFolderId }),
+    name: `Folder ${id}`,
+    order,
+    ...inFolder,
+  };
 }
 
 function makeRequest(id: string, collectionId: string, folderId?: string, order = 0): RequestDoc {
@@ -103,9 +111,7 @@ describe("CollectionsSidebar", () => {
 
     await TestBed.configureTestingModule({
       imports: [CollectionsSidebar],
-      providers: [
-        { provide: CollectionsStore, useValue: collectionsService },
-      ],
+      providers: [{ provide: CollectionsStore, useValue: collectionsService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CollectionsSidebar);
@@ -119,9 +125,7 @@ describe("CollectionsSidebar", () => {
       const rootRequest = makeRequest("r1", "c1");
       const folderedRequest = makeRequest("r2", "c1", "f1");
 
-      collectionsService.setTree([
-        { collection, folders: [folder], requests: [rootRequest, folderedRequest] },
-      ]);
+      collectionsService.setTree([{ collection, folders: [folder], requests: [rootRequest, folderedRequest] }]);
 
       const nodes = component.nodes();
       expect(nodes.length).toBe(1);
@@ -141,16 +145,34 @@ describe("CollectionsSidebar", () => {
         {
           collection: makeCollection("c1"),
           folders: [makeFolder("f2", "c1", 4), makeFolder("f1", "c1", 2), makeFolder("deep", "c1", 2, "f1")],
-          requests: [makeRequest("r3", "c1", undefined, 3), makeRequest("r1", "c1", undefined, 1), makeRequest("in-b", "c1", "f1", 3), makeRequest("in-a", "c1", "f1", 1), makeRequest("deepest", "c1", "deep", 1)],
+          requests: [
+            makeRequest("r3", "c1", undefined, 3),
+            makeRequest("r1", "c1", undefined, 1),
+            makeRequest("in-b", "c1", "f1", 3),
+            makeRequest("in-a", "c1", "f1", 1),
+            makeRequest("deepest", "c1", "deep", 1),
+          ],
         },
       ]);
 
-      const keys = (nodes: ReturnType<typeof component.nodes>): unknown[] => nodes.map((node) => (node.children ? [node.key, keys(node.children)] : node.key));
-      expect(keys(component.nodes()[0].children!)).toEqual(["request:r1", ["folder:f1", ["request:in-a", ["folder:deep", ["request:deepest"]], "request:in-b"]], "request:r3", ["folder:f2", []]]);
+      const keys = (nodes: ReturnType<typeof component.nodes>): unknown[] =>
+        nodes.map((node) => (node.children ? [node.key, keys(node.children)] : node.key));
+      expect(keys(component.nodes()[0].children!)).toEqual([
+        "request:r1",
+        ["folder:f1", ["request:in-a", ["folder:deep", ["request:deepest"]], "request:in-b"]],
+        "request:r3",
+        ["folder:f2", []],
+      ]);
     });
 
     it("a folder whose parent is not there, and folders that name each other, are at the top: none is hidden", () => {
-      collectionsService.setTree([{ collection: makeCollection("c1"), folders: [makeFolder("lost", "c1", 1, "gone"), makeFolder("a", "c1", 2, "b"), makeFolder("b", "c1", 3, "a")], requests: [makeRequest("r1", "c1")] }]);
+      collectionsService.setTree([
+        {
+          collection: makeCollection("c1"),
+          folders: [makeFolder("lost", "c1", 1, "gone"), makeFolder("a", "c1", 2, "b"), makeFolder("b", "c1", 3, "a")],
+          requests: [makeRequest("r1", "c1")],
+        },
+      ]);
 
       const [collection] = component.nodes();
       expect(collection.children!.map((node) => node.key)).toEqual(["request:r1", "folder:lost", "folder:a"]);
@@ -160,14 +182,24 @@ describe("CollectionsSidebar", () => {
   });
 
   describe("the rendered tree", () => {
-    const rows = () => Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[role="treeitem"]'));
+    const rows = () =>
+      Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[role="treeitem"]'));
     // A request's row is named as it reads, its method first: found here by what it is called.
-    const row = (name: string) => rows().find((r) => r.getAttribute("aria-label")?.replace(/^(GET|POST|PUT|PATCH|DEL|HEAD|OPT) /, "") === name)!;
+    const row = (name: string) =>
+      rows().find((r) => r.getAttribute("aria-label")?.replace(/^(GET|POST|PUT|PATCH|DEL|HEAD|OPT) /, "") === name)!;
 
     beforeEach(async () => {
       document.body.append(fixture.nativeElement);
       collectionsService.setTree([
-        { collection: makeCollection("c1"), folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2)], requests: [makeRequest("r1", "c1", undefined, 3), makeRequest("r2", "c1", undefined, 4), makeRequest("r3", "c1", "f1")] },
+        {
+          collection: makeCollection("c1"),
+          folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2)],
+          requests: [
+            makeRequest("r1", "c1", undefined, 3),
+            makeRequest("r2", "c1", undefined, 4),
+            makeRequest("r3", "c1", "f1"),
+          ],
+        },
         { collection: makeCollection("c2"), folders: [], requests: [] },
       ]);
       await fixture.whenStable();
@@ -193,17 +225,43 @@ describe("CollectionsSidebar", () => {
       await component.handleReorder({ node: r2, siblings: [r2, f1, f2, r1] });
 
       expect(collectionsService.reorderCalls).toEqual([
-        { kind: "collections", order: [{ id: "c2", order: 1 }, { id: "c1", order: 2 }] },
-        { kind: "children", order: [{ id: "r2", order: 1 }, { id: "f1", order: 2 }, { id: "f2", order: 3 }, { id: "r1", order: 4 }] },
+        {
+          kind: "collections",
+          order: [
+            { id: "c2", order: 1 },
+            { id: "c1", order: 2 },
+          ],
+        },
+        {
+          kind: "children",
+          order: [
+            { id: "r2", order: 1 },
+            { id: "f1", order: 2 },
+            { id: "f2", order: 3 },
+            { id: "r1", order: 4 },
+          ],
+        },
       ]);
     });
 
     it("Alt+ArrowUp on a request moves it among the folders and requests around it: the first request goes above the folder before it", async () => {
       row("Request r1").focus();
-      row("Request r1").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true, bubbles: true, cancelable: true }));
+      row("Request r1").dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowUp", altKey: true, bubbles: true, cancelable: true }),
+      );
       await fixture.whenStable();
 
-      expect(collectionsService.reorderCalls).toEqual([{ kind: "children", order: [{ id: "f1", order: 1 }, { id: "r1", order: 2 }, { id: "f2", order: 3 }, { id: "r2", order: 4 }] }]);
+      expect(collectionsService.reorderCalls).toEqual([
+        {
+          kind: "children",
+          order: [
+            { id: "f1", order: 1 },
+            { id: "r1", order: 2 },
+            { id: "f2", order: 3 },
+            { id: "r2", order: 4 },
+          ],
+        },
+      ]);
     });
 
     it("a single-key shortcut pressed on a row reaches the panel: the tree's own keys do not swallow it", async () => {
@@ -301,9 +359,9 @@ describe("CollectionsSidebar", () => {
       expect(requestNode).toBeDefined();
 
       let answer: (accepted: boolean) => void = () => undefined;
-      const confirm = vi.spyOn(TestBed.inject(Confirm), "confirm").mockImplementation(
-        () => new Promise<boolean>((resolve) => (answer = resolve))
-      );
+      const confirm = vi
+        .spyOn(TestBed.inject(Confirm), "confirm")
+        .mockImplementation(() => new Promise<boolean>((resolve) => (answer = resolve)));
 
       const pending = component.handleAction("delete", requestNode!);
       await Promise.resolve();
@@ -319,14 +377,28 @@ describe("CollectionsSidebar", () => {
 
     it("the question before a folder is deleted says how many folders and requests go with it", async () => {
       const collection = makeCollection("c1");
-      const requests = [makeRequest("r1", "c1", "f1", 1), makeRequest("r2", "c1", "f2", 1), makeRequest("r3", "c1", undefined, 3)];
-      collectionsService.setTree([{ collection, folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2, "f1"), makeFolder("f3", "c1", 2)], requests }]);
+      const requests = [
+        makeRequest("r1", "c1", "f1", 1),
+        makeRequest("r2", "c1", "f2", 1),
+        makeRequest("r3", "c1", undefined, 3),
+      ];
+      collectionsService.setTree([
+        {
+          collection,
+          folders: [makeFolder("f1", "c1", 1), makeFolder("f2", "c1", 2, "f1"), makeFolder("f3", "c1", 2)],
+          requests,
+        },
+      ]);
       const confirm = vi.spyOn(TestBed.inject(Confirm), "confirm").mockResolvedValue(true);
       const folderNode = component.nodes()[0].children!.find((node) => node.key === "folder:f1");
 
       await component.handleAction("delete", folderNode!);
 
-      expect(confirm).toHaveBeenCalledWith({ title: "Delete item?", message: 'Folder "Folder f1" is deleted with the 1 folder and 2 requests in it. This action cannot be undone. Continue?' });
+      expect(confirm).toHaveBeenCalledWith({
+        title: "Delete item?",
+        message:
+          'Folder "Folder f1" is deleted with the 1 folder and 2 requests in it. This action cannot be undone. Continue?',
+      });
       expect(collectionsService.deleteFolderCalls).toEqual(["f1"]);
     });
 

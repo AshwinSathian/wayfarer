@@ -5,11 +5,25 @@ import type { RequestContent, Route, Row, Scripts, TestAssertion } from "../mode
 import { protectedSecretId, scriptVariables, type ScriptVariable, type VariableChange } from "../model/variables";
 import { Redactor } from "../redact/redactor";
 import type { RunIteration } from "../run/runner";
-import { emptyChanges, type ScriptContext, type ScriptRequest, type ScriptResponse, type ScriptResult, type ScriptSendRequest } from "../scripting/host";
+import {
+  emptyChanges,
+  type ScriptContext,
+  type ScriptRequest,
+  type ScriptResponse,
+  type ScriptResult,
+  type ScriptSendRequest,
+} from "../scripting/host";
 import { scriptRequestOf, sentScriptRequest, withScriptRequest } from "../scripting/request-view";
 import { parseJson, stringifyJson } from "../safe-json";
 import type { RoutePolicy } from "../transport/route";
-import { TransportError, type RelayTimings, type ResolvedRequest, type ResponseEnvelope, type StreamEvent, type TransportOptions } from "../transport/transport";
+import {
+  TransportError,
+  type RelayTimings,
+  type ResolvedRequest,
+  type ResponseEnvelope,
+  type StreamEvent,
+  type TransportOptions,
+} from "../transport/transport";
 import { runAssertions, type TestResult } from "./assertions";
 import { containsSecretPlaceholder } from "./wire";
 
@@ -81,7 +95,7 @@ export class PreRequestScriptError extends SendBlockedError {
     readonly scriptLogs: string[],
     readonly timings: SendTimings,
     /** Which script it was: the request's own, or one of its collection or of a folder. */
-    script = "Pre-request script"
+    script = "Pre-request script",
   ) {
     super(`The ${script[0].toLowerCase()}${script.slice(1)} failed, so the request was not sent.`);
   }
@@ -103,7 +117,7 @@ export class RequestSkipped extends SendBlockedError {
   constructor(
     readonly testResults: TestResult[],
     readonly scriptLogs: string[],
-    readonly nextRequest: string | null | undefined
+    readonly nextRequest: string | null | undefined,
   ) {
     super("A pre-request script skipped this request: it was not sent.");
   }
@@ -131,7 +145,11 @@ function sentBodyPreview(body: BuiltRequest["body"]): string | undefined {
   if (body === undefined || typeof body === "string") return body;
   const file = (blob: Blob) => `(${blob.size} bytes${blob.type ? `, ${blob.type}` : ""})`;
   if (body instanceof FormData) {
-    return [...body].map(([name, value]) => (typeof value === "string" ? `${name}=${value}` : `${name}=@${value.name} ${file(value)}`)).join("\n");
+    return [...body]
+      .map(([name, value]) =>
+        typeof value === "string" ? `${name}=${value}` : `${name}=@${value.name} ${file(value)}`,
+      )
+      .join("\n");
   }
   return `@file ${file(body)}`;
 }
@@ -148,7 +166,10 @@ export interface ScriptResponseContext {
 }
 
 /** What a script is given besides the active environment's variables and the response: the other scopes, the request, and a way to make requests. */
-export interface ScriptRunExtras extends Pick<ScriptContext, "environmentName" | "folder" | "collection" | "globals" | "request" | "info" | "data"> {
+export interface ScriptRunExtras extends Pick<
+  ScriptContext,
+  "environmentName" | "folder" | "collection" | "globals" | "request" | "info" | "data"
+> {
   /** Makes a request for `pm.sendRequest`. Without it a script that calls it is told it cannot. */
   send?: (request: ScriptSendRequest) => Promise<ScriptResponse>;
 }
@@ -179,7 +200,12 @@ function bodyText(body: unknown): string {
  */
 export interface ExchangePorts {
   /** Runs one script and gives its result. A script that is blank is not given. */
-  runScript(script: string, environment: ScriptVariable[], response: ScriptResponseContext | undefined, extras: ScriptRunExtras): Promise<ScriptResult>;
+  runScript(
+    script: string,
+    environment: ScriptVariable[],
+    response: ScriptResponseContext | undefined,
+    extras: ScriptRunExtras,
+  ): Promise<ScriptResult>;
   /** Sends by a route, and says in `policy.took` where the request went. */
   transport: {
     send(request: ResolvedRequest, options: TransportOptions, policy: RoutePolicy): Promise<ResponseEnvelope>;
@@ -193,7 +219,11 @@ export interface ExchangePorts {
   globals(): Row[];
   changeGlobals(changes: VariableChange[]): Promise<unknown>;
   /** What a script's `set` on a protected variable needs (P3.12). */
-  vault: { isUnlocked(): boolean; readSecret(id: string): Promise<string | null>; replaceSecret(id: string, plaintext: string): Promise<boolean> };
+  vault: {
+    isUnlocked(): boolean;
+    readSecret(id: string): Promise<string | null>;
+    replaceSecret(id: string, plaintext: string): Promise<boolean>;
+  };
   /** The cookie jar (P5.3), for the route that sends what it is given. Absent: no jar. */
   cookies?: { for(url: string): Cookie[]; store(url: string, setCookies: string[], secrets: string[]): unknown };
   timeoutMs(): number;
@@ -266,7 +296,10 @@ interface ScriptRun {
 
 /** What the scripts that ran gave `pm.execution.setNextRequest`: the last of them that called it. */
 function lastNext(runs: ScriptRun[]): string | null | undefined {
-  return runs.reduce<string | null | undefined>((last, run) => (run.result.nextRequest !== undefined ? run.result.nextRequest : last), undefined);
+  return runs.reduce<string | null | undefined>(
+    (last, run) => (run.result.nextRequest !== undefined ? run.result.nextRequest : last),
+    undefined,
+  );
 }
 
 /** The scripts of one kind a send runs, in order, the blank ones left out. An inherited script is named for where it is from. */
@@ -325,8 +358,15 @@ interface Shaped {
  */
 function scriptRows(result: ScriptResult | undefined, name: string, redactor: Redactor): TestResult[] {
   if (!result) return [];
-  const rows: TestResult[] = result.error === undefined ? result.testResults : [...result.testResults, { label: name, passed: false, error: result.error, source: "script" }];
-  return rows.map((row) => ({ ...row, label: redactor.text(row.label), ...(row.error !== undefined && { error: redactor.text(row.error) }) }));
+  const rows: TestResult[] =
+    result.error === undefined
+      ? result.testResults
+      : [...result.testResults, { label: name, passed: false, error: result.error, source: "script" }];
+  return rows.map((row) => ({
+    ...row,
+    label: redactor.text(row.label),
+    ...(row.error !== undefined && { error: redactor.text(row.error) }),
+  }));
 }
 
 export interface ExchangeResult {
@@ -365,7 +405,11 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   let undo = (): Promise<void> => Promise.resolve();
   const preScripts = spec.runScripts ? scriptsToRun(spec, "pre") : [];
   if (preScripts.length) {
-    const before = { environment: ports.environment()?.vars ?? [], global: ports.globals(), collection: spec.collection?.variables() ?? [] };
+    const before = {
+      environment: ports.environment()?.vars ?? [],
+      global: ports.globals(),
+      collection: spec.collection?.variables() ?? [],
+    };
     const touched = emptyChanges();
     const restoreSecrets: (() => Promise<void>)[] = [];
     // Each name a script touched gets the value it had, or is removed again; a secret one replaced gets its old value.
@@ -375,14 +419,28 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
         return { key, value, ...(json && { json }) };
       });
     undo = async () => {
-      await applyChanges(ports, spec, { environment: was(before.environment, touched.environment), global: was(before.global, touched.global), collection: was(before.collection, touched.collection) }, []);
+      await applyChanges(
+        ports,
+        spec,
+        {
+          environment: was(before.environment, touched.environment),
+          global: was(before.global, touched.global),
+          collection: was(before.collection, touched.collection),
+        },
+        [],
+      );
       for (const restore of restoreSecrets.reverse()) await restore();
     };
     timings.preScriptMs = 0;
     // The collection's, each folder's from the outside in, the request's own (P4.9): each a run of its own, with the variables the one before left.
     for (const { name, text } of preScripts) {
       const scriptStarted = performance.now();
-      const result = await ports.runScript(text, environmentSnapshot(ports), undefined, scriptExtras(ports, spec, "prerequest", scriptRequestOf(template)));
+      const result = await ports.runScript(
+        text,
+        environmentSnapshot(ports),
+        undefined,
+        scriptExtras(ports, spec, "prerequest", scriptRequestOf(template)),
+      );
       timings.preScriptMs += Math.round(performance.now() - scriptStarted);
       preRuns.push({ name, result });
       const { changes } = result;
@@ -394,7 +452,12 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
       if (result.error !== undefined) {
         // No secret was read for this send, and the script was given none: there is nothing to mask.
         const nothing = new Redactor([]);
-        throw new PreRequestScriptError(preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)), [...preRuns.flatMap((run) => run.result.logs), ...notes], timings, name);
+        throw new PreRequestScriptError(
+          preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)),
+          [...preRuns.flatMap((run) => run.result.logs), ...notes],
+          timings,
+          name,
+        );
       }
       // What the script did to pm.request is sent, and is what the next script sees. The request as composed is what history keeps.
       if (result.request) template = withScriptRequest(template, result.request);
@@ -402,7 +465,11 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
     // In a run, as in Postman: the request is not sent and its post-response scripts do not run. What the scripts set stays.
     if (spec.iteration && preRuns.some((run) => run.result.skipRequest)) {
       const nothing = new Redactor([]);
-      throw new RequestSkipped(preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)), [...preRuns.flatMap((run) => run.result.logs), ...notes], lastNext(preRuns));
+      throw new RequestSkipped(
+        preRuns.flatMap((run) => scriptRows(run.result, run.name, nothing)),
+        [...preRuns.flatMap((run) => run.result.logs), ...notes],
+        lastNext(preRuns),
+      );
     }
   }
 
@@ -436,14 +503,21 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   const cookies: TransportOptions["cookies"] = jar && {
     for: (url) => {
       // A cookie is the server's text and never a template. One that holds a secret's reference would go out as that text (C-007): it is left out.
-      const found = jar.for(url).filter((cookie) => !containsSecretPlaceholder({ url: "", headers: [["Cookie", `${cookie.name}=${cookie.value}`]] }));
+      const found = jar
+        .for(url)
+        .filter(
+          (cookie) => !containsSecretPlaceholder({ url: "", headers: [["Cookie", `${cookie.name}=${cookie.value}`]] }),
+        );
       sentCookies ??= found;
       for (const cookie of found) cookieValues.add(cookie.value);
       return found;
     },
     store: (url, setCookies) => void jar.store(url, setCookies, request.secrets),
   };
-  const policy: RoutePolicy = { route: spec.route ?? ports.transport.route(), ...(spec.askRoute && { ask: spec.askRoute }) };
+  const policy: RoutePolicy = {
+    route: spec.route ?? ports.transport.route(),
+    ...(spec.askRoute && { ask: spec.askRoute }),
+  };
   const transmit = async (): Promise<ResponseEnvelope | TransportError> => {
     startedAt = performance.now();
     sentCookies = undefined;
@@ -466,7 +540,7 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
           // The request's own setting, for the route that can (the Local Bridge): a browser always verifies.
           ...(template.settings.tlsInsecure === true && { tlsInsecure: true }),
         },
-        policy
+        policy,
       );
     } catch (error) {
       if (!(error instanceof TransportError)) throw error;
@@ -486,7 +560,10 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
   timings.requestMs = durationMs;
   ports.watch?.received(request.url);
 
-  const shaped = outcome instanceof TransportError ? shapeFailure(outcome, request.url, ports.page) : shapeResponse(outcome, request.url, ports.page);
+  const shaped =
+    outcome instanceof TransportError
+      ? shapeFailure(outcome, request.url, ports.page)
+      : shapeResponse(outcome, request.url, ports.page);
   // What a script writes is masked like everything else the app shows or
   // keeps of this exchange (D5): a post-response script reads the response,
   // and a server may send a secret back.
@@ -510,7 +587,14 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
     notes,
     secrets,
     timings,
-    { statusCode: shaped.response.statusCode ?? 0, statusText: shaped.response.statusText ?? "", body: shaped.body, headers: shaped.headers, durationMs, sizeBytes: outcome instanceof TransportError ? undefined : outcome.sizes.decoded }
+    {
+      statusCode: shaped.response.statusCode ?? 0,
+      statusText: shaped.response.statusText ?? "",
+      body: shaped.body,
+      headers: shaped.headers,
+      durationMs,
+      sizeBytes: outcome instanceof TransportError ? undefined : outcome.sizes.decoded,
+    },
   );
   const runs = [...preRuns, ...post.scripts];
   const testResults = [...runs.flatMap((run) => scriptRows(run.result, run.name, redactor)), ...post.assertions];
@@ -567,7 +651,7 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
   const body = decodeEnvelope(envelope);
   const isError = envelope.status < 200 || envelope.status >= 300;
   const failureText = `Http failure response for ${url}: ${envelope.status} ${envelope.statusText}`;
-  const shown = isError ? body ?? failureText : body;
+  const shown = isError ? (body ?? failureText) : body;
   const bodyIsJson = isJsonPayload(shown);
   const text = bodyIsJson ? serializeJsonPayload(shown) : stringifyPayload(shown);
   const header = (name: string) => envelope.headers.find(([key]) => key.toLowerCase() === name)?.[1];
@@ -585,14 +669,19 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
       bodyIsJson,
       dataText: isError ? "" : text,
       errorText: isError ? text : "",
-      headersView: envelope.headers.map(([name, value]) => ({ name, value })).sort((a, b) => a.name.localeCompare(b.name)),
+      headersView: envelope.headers
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
       contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
       binary: body instanceof BinaryBody ? body : undefined,
       redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
       route: envelope.route,
       contentType: header("content-type"),
       // Outside a page nothing is withheld: no browser stands between.
-      headersLimited: page !== undefined && envelope.route === "direct" && URL.parse(envelope.finalUrl, page)?.origin !== URL.parse(page)?.origin,
+      headersLimited:
+        page !== undefined &&
+        envelope.route === "direct" &&
+        URL.parse(envelope.finalUrl, page)?.origin !== URL.parse(page)?.origin,
       ...(envelope.stream && { stream: envelope.stream }),
       ...(envelope.redirects && { redirects: envelope.redirects }),
       ...(envelope.tlsInsecure && { tlsInsecure: true as const }),
@@ -608,7 +697,7 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
  */
 function shapeFailure(failure: TransportError, url: string, page: string | undefined): Shaped {
   const network = failure.kind === "network";
-  const statusCode = network ? 0 : failure.kind === "bridge" ? failure.status ?? 0 : undefined;
+  const statusCode = network ? 0 : failure.kind === "bridge" ? (failure.status ?? 0) : undefined;
   return {
     body: network ? undefined : failure.message,
     headers: {},
@@ -620,7 +709,11 @@ function shapeFailure(failure: TransportError, url: string, page: string | undef
       statusText: network ? "Unknown Error" : "",
       bodyIsJson: false,
       dataText: "",
-      errorText: !network ? failure.message : page === undefined ? networkErrorWithoutPage(failure.message) : NETWORK_ERROR_TEXT,
+      errorText: !network
+        ? failure.message
+        : page === undefined
+          ? networkErrorWithoutPage(failure.message)
+          : NETWORK_ERROR_TEXT,
       headersView: [],
     },
   };
@@ -633,19 +726,27 @@ async function runPostScriptAndAssertions(
   notes: string[],
   variables: Redactor,
   timings: SendTimings,
-  response: ScriptResponseContext & { durationMs: number }
+  response: ScriptResponseContext & { durationMs: number },
 ): Promise<{ scripts: ScriptRun[]; assertions: TestResult[] }> {
   const scripts: ScriptRun[] = [];
   // In the order of the pre-request scripts. One that ends in an error is a failed row, and the next still runs: the response is here either way.
   for (const { name, text } of spec.runScripts ? scriptsToRun(spec, "post") : []) {
     const scriptStarted = performance.now();
-    const result = await ports.runScript(text, environmentSnapshot(ports), response, scriptExtras(ports, spec, "test", sent));
+    const result = await ports.runScript(
+      text,
+      environmentSnapshot(ports),
+      response,
+      scriptExtras(ports, spec, "test", sent),
+    );
     timings.postScriptMs = (timings.postScriptMs ?? 0) + Math.round(performance.now() - scriptStarted);
     scripts.push({ name, result });
     await applyChanges(ports, spec, result.changes, notes, variables);
   }
   const { statusCode, body, headers, durationMs } = response;
-  return { scripts, assertions: spec.tests.length ? runAssertions(spec.tests, { statusCode, body, headers, durationMs }) : [] };
+  return {
+    scripts,
+    assertions: spec.tests.length ? runAssertions(spec.tests, { statusCode, body, headers, durationMs }) : [],
+  };
 }
 
 function environmentSnapshot(ports: ExchangePorts): ScriptVariable[] {
@@ -653,7 +754,12 @@ function environmentSnapshot(ports: ExchangePorts): ScriptVariable[] {
 }
 
 /** What a script is given besides the active environment's variables: the other scopes, the request, and `pm.sendRequest`. */
-function scriptExtras(ports: ExchangePorts, spec: RequestExecutionSpec, eventName: "prerequest" | "test", request: ScriptRequest): ScriptRunExtras {
+function scriptExtras(
+  ports: ExchangePorts,
+  spec: RequestExecutionSpec,
+  eventName: "prerequest" | "test",
+  request: ScriptRequest,
+): ScriptRunExtras {
   return {
     environmentName: ports.environment()?.name ?? "",
     globals: scriptVariables(ports.globals()),
@@ -661,7 +767,12 @@ function scriptExtras(ports: ExchangePorts, spec: RequestExecutionSpec, eventNam
     ...(spec.iteration && { data: scriptVariables(spec.iteration.data) }),
     collection: scriptVariables(spec.collection?.variables() ?? []),
     request,
-    info: { eventName, requestName: spec.info?.requestName ?? "", requestId: spec.info?.requestId ?? "", ...(spec.iteration && { iteration: spec.iteration.index, iterationCount: spec.iteration.count }) },
+    info: {
+      eventName,
+      requestName: spec.info?.requestName ?? "",
+      requestId: spec.info?.requestId ?? "",
+      ...(spec.iteration && { iteration: spec.iteration.index, iterationCount: spec.iteration.count }),
+    },
     send: (request) => sendForScript(ports, request, spec.signal, spec.route),
   };
 }
@@ -677,13 +788,27 @@ function scriptExtras(ports: ExchangePorts, spec: RequestExecutionSpec, eventNam
  * script can change the user's own request (`pm.request`), which is then
  * built with its secrets. Approval (`ScriptTrust`) is the control for that.
  */
-async function sendForScript(ports: ExchangePorts, request: ScriptSendRequest, signal?: AbortSignal, route = ports.transport.route()): Promise<ScriptResponse> {
+async function sendForScript(
+  ports: ExchangePorts,
+  request: ScriptSendRequest,
+  signal?: AbortSignal,
+  route = ports.transport.route(),
+): Promise<ScriptResponse> {
   if (containsSecretPlaceholder(request)) {
-    throw Object.assign(new Error("pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest"), { name: "WayfarerUnsupportedError" });
+    throw Object.assign(
+      new Error(
+        "pm.sendRequest with a vault secret is not supported — see docs/postman-compatibility.md#pm-sendrequest",
+      ),
+      { name: "WayfarerUnsupportedError" },
+    );
   }
   const startedAt = performance.now();
   // By the route of the request whose script sends it. Nothing is asked in the middle of a script: a request the browser may have sent is not sent again (D7).
-  const envelope = await ports.transport.send(request, { signal: signal ?? new AbortController().signal, timeoutMs: ports.timeoutMs() }, { route });
+  const envelope = await ports.transport.send(
+    request,
+    { signal: signal ?? new AbortController().signal, timeoutMs: ports.timeoutMs() },
+    { route },
+  );
   const shaped = shapeResponse(envelope, request.url, ports.page);
   return scriptResponse({
     statusCode: envelope.status,
@@ -707,13 +832,24 @@ async function sendForScript(ports: ExchangePorts, request: ScriptSendRequest, s
  * Gives back a function that puts the old value back into each vault
  * secret these changes replaced.
  */
-async function applyChanges(ports: ExchangePorts, spec: RequestExecutionSpec, changes: ScriptResult["changes"], notes: string[], secrets?: Redactor): Promise<() => Promise<void>> {
+async function applyChanges(
+  ports: ExchangePorts,
+  spec: RequestExecutionSpec,
+  changes: ScriptResult["changes"],
+  notes: string[],
+  secrets?: Redactor,
+): Promise<() => Promise<void>> {
   const active = ports.environment();
   /** The plaintext each replaced secret had, by id. Held for this send only, in memory. */
   const replaced = new Map<string, string>();
   // Marked as a script's: the stored rows are what counts, and a reference in them is never replaced with text (`applyVariableChanges`).
   const kept = async (api: string, rows: Row[], scope: VariableChange[]): Promise<VariableChange[]> =>
-    (await intoVault(ports, api, rows, scope, notes, replaced)).map(({ key, value, json }) => ({ key, value: value === null || !secrets ? value : secrets.text(value), keepSecret: true, ...(json && { json }) }));
+    (await intoVault(ports, api, rows, scope, notes, replaced)).map(({ key, value, json }) => ({
+      key,
+      value: value === null || !secrets ? value : secrets.text(value),
+      keepSecret: true,
+      ...(json && { json }),
+    }));
   const environment = await kept("pm.environment", active?.vars ?? [], changes.environment);
   const global = await kept("pm.globals", ports.globals(), changes.global);
   const collection = await kept("pm.collectionVariables", spec.collection?.variables() ?? [], changes.collection);
@@ -724,7 +860,10 @@ async function applyChanges(ports: ExchangePorts, spec: RequestExecutionSpec, ch
   if (global.length) await ports.changeGlobals(global);
   if (collection.length) {
     if (spec.collection) await spec.collection.change(collection);
-    else notes.push("[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.");
+    else
+      notes.push(
+        "[warn] pm.collectionVariables: this request is in no collection, so what the script set was not kept.",
+      );
   }
   return async () => {
     for (const [id, plaintext] of replaced) await ports.vault.replaceSecret(id, plaintext);
@@ -742,7 +881,14 @@ async function applyChanges(ports: ExchangePorts, spec: RequestExecutionSpec, ch
  * copy be a moment old, the value is not encrypted, and it is not stored
  * either: the changes are marked `keepSecret`.
  */
-async function intoVault(ports: ExchangePorts, api: string, rows: Row[], changes: VariableChange[], notes: string[], replaced: Map<string, string>): Promise<VariableChange[]> {
+async function intoVault(
+  ports: ExchangePorts,
+  api: string,
+  rows: Row[],
+  changes: VariableChange[],
+  notes: string[],
+  replaced: Map<string, string>,
+): Promise<VariableChange[]> {
   const rest: VariableChange[] = [];
   for (const change of changes) {
     const reference = rows.find((row) => row.key === change.key && protectedSecretId(row.value) !== null)?.value;
@@ -751,13 +897,15 @@ async function intoVault(ports: ExchangePorts, api: string, rows: Row[], changes
       rest.push(change);
       // Its own reference written back, as a script that copies every variable does: nothing to do.
     } else if (change.value.trim() !== reference?.trim()) {
-      const refused = (why: string) => notes.push(`[warn] ${api}.set(${JSON.stringify(change.key)}): ${why}, so its value was not changed.`);
+      const refused = (why: string) =>
+        notes.push(`[warn] ${api}.set(${JSON.stringify(change.key)}): ${why}, so its value was not changed.`);
       if (!ports.vault.isUnlocked()) {
         refused("this variable is protected and the vault is locked");
         continue;
       }
       const old = await ports.vault.readSecret(id);
-      if (old === null || !(await ports.vault.replaceSecret(id, change.value))) refused("the secret this variable refers to is not in the vault");
+      if (old === null || !(await ports.vault.replaceSecret(id, change.value)))
+        refused("the secret this variable refers to is not in the vault");
       // The first value is the one to go back to, should the script set the variable twice in one run.
       else if (!replaced.has(id)) replaced.set(id, old);
     }
@@ -800,4 +948,3 @@ function stringifyPayload(payload: unknown): string {
   }
   return stringifyJson(payload, 4) ?? String(payload);
 }
-

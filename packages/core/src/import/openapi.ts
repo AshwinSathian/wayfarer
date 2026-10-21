@@ -49,7 +49,8 @@ const decoded = (part: string): string => {
     return part;
   }
 };
-const named = (names: string[]): string => `${names.slice(0, 3).join(", ")}${names.length > 3 ? `, and ${names.length - 3} more` : ""}`;
+const named = (names: string[]): string =>
+  `${names.slice(0, 3).join(", ")}${names.length > 3 ? `, and ${names.length - 3} more` : ""}`;
 
 /**
  * An OpenAPI 3.0 or 3.1 description, or a Swagger 2.0 one, as a Postman
@@ -66,13 +67,19 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
   const swagger = field(root, "swagger") !== undefined;
   const version = text(field(root, swagger ? "swagger" : "openapi")).slice(0, 20);
   if (swagger ? !/^2(\.0)?$/.test(version) : !/^3(\.|$)/.test(version)) {
-    throw new ImportError(`This is ${swagger ? "a Swagger" : "an OpenAPI"} description of version ${version || "none"}, which Wayfarer does not read. It reads OpenAPI 3.0 and 3.1 and Swagger 2.0.`);
+    throw new ImportError(
+      `This is ${swagger ? "a Swagger" : "an OpenAPI"} description of version ${version || "none"}, which Wayfarer does not read. It reads OpenAPI 3.0 and 3.1 and Swagger 2.0.`,
+    );
   }
   const warnings: Warning[] = [];
   const info = field(root, "info");
   const name = text(isObject(info) ? field(info, "title") : "").trim() || UNNAMED;
   const top = `collection "${name}"`;
-  if (!swagger && !/^3(\.[01](\.|$)|$)/.test(version)) warnings.push({ item: top, message: `The file is written for OpenAPI ${version}: it is read as OpenAPI 3.1, and what is newer is left out.` });
+  if (!swagger && !/^3(\.[01](\.|$)|$)/.test(version))
+    warnings.push({
+      item: top,
+      message: `The file is written for OpenAPI ${version}: it is read as OpenAPI 3.1, and what is newer is left out.`,
+    });
 
   /** What is being read, for a warning to name; and the references met there that lead nowhere the app goes. */
   let item = top;
@@ -137,7 +144,8 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
     const of = (raw: unknown, depth: number): unknown => {
       const schema = resolve(raw);
       if (!isObject(schema) || left-- <= 0 || depth > MAX_DEPTH || open.has(schema)) return null;
-      for (const key of ["example", "default", "const"]) if (field(schema, key) !== undefined) return field(schema, key);
+      for (const key of ["example", "default", "const"])
+        if (field(schema, key) !== undefined) return field(schema, key);
       for (const key of ["examples", "enum"]) if (list(field(schema, key)).length) return list(field(schema, key))[0];
       open.add(schema);
       try {
@@ -151,7 +159,10 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
           });
           parts.push(Object.fromEntries(sent.map((key) => [key, of(field(properties, key), depth + 1)])));
         }
-        if (parts.length) return parts.some(isObject) ? Object.fromEntries(parts.filter(isObject).flatMap((part) => Object.entries(part))) : parts[0];
+        if (parts.length)
+          return parts.some(isObject)
+            ? Object.fromEntries(parts.filter(isObject).flatMap((part) => Object.entries(part)))
+            : parts[0];
         const choice = [...list(field(schema, "oneOf")), ...list(field(schema, "anyOf"))][0];
         if (choice !== undefined) return of(choice, depth + 1);
         const types = field(schema, "type");
@@ -183,7 +194,12 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
   /** A form's fields as Postman writes them. A file is named by nothing: the file holds its type, not a file. */
   const form = (type: string, fields: { key: string; schema: unknown; value: unknown }[]): Loose =>
     type.startsWith("multipart/")
-      ? { mode: "formdata", formdata: fields.map(({ key, schema, value }) => (isFile(schema) ? { key, type: "file", src: "" } : { key, type: "text", value: said(value) })) }
+      ? {
+          mode: "formdata",
+          formdata: fields.map(({ key, schema, value }) =>
+            isFile(schema) ? { key, type: "file", src: "" } : { key, type: "text", value: said(value) },
+          ),
+        }
       : { mode: "urlencoded", urlencoded: fields.map(({ key, value }) => ({ key, value: said(value) })) };
 
   /** A body of one media type, with the header it needs when the app would send another type for it. */
@@ -193,18 +209,49 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
     const value = example(media) ?? sample(schema, true);
     if (kind.startsWith("multipart/") || kind === "application/x-www-form-urlencoded") {
       const properties = isObject(schema) ? field(schema, "properties") : undefined;
-      return { body: form(kind, Object.keys(isObject(value) ? value : {}).map((key) => ({ key, schema: isObject(properties) ? field(properties, key) : undefined, value: (value as Loose)[key] }))), header: [] };
+      return {
+        body: form(
+          kind,
+          Object.keys(isObject(value) ? value : {}).map((key) => ({
+            key,
+            schema: isObject(properties) ? field(properties, key) : undefined,
+            value: (value as Loose)[key],
+          })),
+        ),
+        header: [],
+      };
     }
-    if (kind === "application/octet-stream" || isFile(schema)) return { body: { mode: "file", file: { src: "" } }, header: [] };
-    const language: RawLanguage = /json|\*/.test(kind) ? "json" : kind.includes("xml") ? "xml" : kind.includes("html") ? "html" : kind.includes("javascript") ? "javascript" : "text";
+    if (kind === "application/octet-stream" || isFile(schema))
+      return { body: { mode: "file", file: { src: "" } }, header: [] };
+    const language: RawLanguage = /json|\*/.test(kind)
+      ? "json"
+      : kind.includes("xml")
+        ? "xml"
+        : kind.includes("html")
+          ? "html"
+          : kind.includes("javascript")
+            ? "javascript"
+            : "text";
     // Only JSON is written from a schema: an example that is text is kept for any type.
-    const raw = typeof value === "string" ? value : language === "json" && value !== null ? JSON.stringify(value, null, 2) : "";
-    if (!raw) warnings.push({ item, message: `Its body (${type.slice(0, 80)}) has no example in the file that the app can write out: the body is empty.` });
-    return { body: { mode: "raw", raw, options: { raw: { language } } }, header: kind.includes("*") || RAW_CONTENT_TYPES[language] === kind ? [] : [{ key: "Content-Type", value: type }] };
+    const raw =
+      typeof value === "string" ? value : language === "json" && value !== null ? JSON.stringify(value, null, 2) : "";
+    if (!raw)
+      warnings.push({
+        item,
+        message: `Its body (${type.slice(0, 80)}) has no example in the file that the app can write out: the body is empty.`,
+      });
+    return {
+      body: { mode: "raw", raw, options: { raw: { language } } },
+      header: kind.includes("*") || RAW_CONTENT_TYPES[language] === kind ? [] : [{ key: "Content-Type", value: type }],
+    };
   };
 
   const components = field(root, "components");
-  const schemes = swagger ? field(root, "securityDefinitions") : isObject(components) ? field(components, "securitySchemes") : undefined;
+  const schemes = swagger
+    ? field(root, "securityDefinitions")
+    : isObject(components)
+      ? field(components, "securitySchemes")
+      : undefined;
   /**
    * `security` as Postman's `auth`: the first way in that the file lists.
    * None said takes the level above, an empty one is no auth. A value is a
@@ -214,36 +261,65 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
     if (!Array.isArray(requirements)) return {};
     const names = Object.keys(requirements.find(isObject) ?? {});
     if (!names.length) return { auth: { type: "noauth" } };
-    if (names.length > 1) warnings.push({ item, message: `It needs ${names.length} security schemes together (${named(names)}): only the first is set.` });
+    if (names.length > 1)
+      warnings.push({
+        item,
+        message: `It needs ${names.length} security schemes together (${named(names)}): only the first is set.`,
+      });
     const scheme = resolve(isObject(schemes) ? field(schemes, names[0]) : undefined);
     if (!isObject(scheme)) return { auth: { type: `${names[0].slice(0, 60)}, which the file does not describe` } };
     const type = text(field(scheme, "type"));
     const how = text(field(scheme, "scheme")).toLowerCase();
-    if (type === "basic" || (type === "http" && how === "basic")) return { auth: { type: "basic", basic: { username: "{{authUsername}}", password: "{{authPassword}}" } } };
+    if (type === "basic" || (type === "http" && how === "basic"))
+      return { auth: { type: "basic", basic: { username: "{{authUsername}}", password: "{{authPassword}}" } } };
     if (type === "http" && how === "bearer") return { auth: { type: "bearer", bearer: { token: "{{bearerToken}}" } } };
     if (type === "apiKey") {
       const place = text(field(scheme, "in"));
-      if (place !== "header" && place !== "query") return { auth: { type: `an API key in a ${place.slice(0, 20) || "place the file does not say"}` } };
+      if (place !== "header" && place !== "query")
+        return { auth: { type: `an API key in a ${place.slice(0, 20) || "place the file does not say"}` } };
       return { auth: { type: "apikey", apikey: { key: text(field(scheme, "name")), value: "{{apiKey}}", in: place } } };
     }
     if (type === "oauth2") {
       // OpenAPI 3 lists flows, Swagger 2.0 names one on the scheme itself. The first the app has; a client and its user are variables to fill in.
       const flows = field(scheme, "flows");
-      const flow = (name: string, old: string): unknown => (swagger ? (field(scheme, "flow") === old ? scheme : undefined) : isObject(flows) ? resolve(field(flows, name)) : undefined);
+      const flow = (name: string, old: string): unknown =>
+        swagger
+          ? field(scheme, "flow") === old
+            ? scheme
+            : undefined
+          : isObject(flows)
+            ? resolve(field(flows, name))
+            : undefined;
       const code = flow("authorizationCode", "accessCode");
       const client = flow("clientCredentials", "application");
       const password = flow("password", "password");
       const chosen = code ?? client ?? password;
       // Only a flow the app does not have (implicit), or none: the Postman importer says it is left out, by this name.
-      if (!isObject(chosen)) return { auth: { type, oauth2: { grant_type: (swagger ? text(field(scheme, "flow")) : Object.keys(isObject(flows) ? flows : {})[0]) || "none said" } } };
+      if (!isObject(chosen))
+        return {
+          auth: {
+            type,
+            oauth2: {
+              grant_type:
+                (swagger ? text(field(scheme, "flow")) : Object.keys(isObject(flows) ? flows : {})[0]) || "none said",
+            },
+          },
+        };
       const asked = field(requirements.find(isObject) ?? {}, names[0]);
       const scopes = field(chosen, "scopes");
-      const scope = (Array.isArray(asked) && asked.length ? asked.map(text) : isObject(scopes) ? Object.keys(scopes) : []).join(" ");
+      const scope = (
+        Array.isArray(asked) && asked.length ? asked.map(text) : isObject(scopes) ? Object.keys(scopes) : []
+      ).join(" ");
       return {
         auth: {
           type,
           oauth2: {
-            grant_type: chosen === code ? "authorization_code_with_pkce" : chosen === client ? "client_credentials" : "password_credentials",
+            grant_type:
+              chosen === code
+                ? "authorization_code_with_pkce"
+                : chosen === client
+                  ? "client_credentials"
+                  : "password_credentials",
             authUrl: text(field(chosen, "authorizationUrl")),
             accessTokenUrl: text(field(chosen, "tokenUrl")),
             clientId: "{{clientId}}",
@@ -265,21 +341,35 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
     const variables = field(first, "variables");
     const filled = text(field(first, "url")).replace(/\{([^{}]+)\}/g, (_whole, key: string) => {
       const variable = isObject(variables) ? field(variables, key) : undefined;
-      return isObject(variable) && field(variable, "default") !== undefined ? text(field(variable, "default")) : `{{${key}}}`;
+      return isObject(variable) && field(variable, "default") !== undefined
+        ? text(field(variable, "default"))
+        : `{{${key}}}`;
     });
     return withoutEndSlash(filled);
   };
   const host = text(field(root, "host"));
-  const base = swagger ? withoutEndSlash(`${host && `${text(list(field(root, "schemes"))[0] ?? "https")}://${host}`}${text(field(root, "basePath"))}`) : (server(field(root, "servers")) ?? "");
+  const base = swagger
+    ? withoutEndSlash(
+        `${host && `${text(list(field(root, "schemes"))[0] ?? "https")}://${host}`}${text(field(root, "basePath"))}`,
+      )
+    : (server(field(root, "servers")) ?? "");
   if (!/^([a-z][a-z0-9+.-]*:\/\/|\{\{)/i.test(base)) {
-    warnings.push({ item: top, message: `The file gives no full address for its server (${base.slice(0, 80) || "it names none"}): give the collection's variable baseUrl the server's address before you send.` });
+    warnings.push({
+      item: top,
+      message: `The file gives no full address for its server (${base.slice(0, 80) || "it names none"}): give the collection's variable baseUrl the server's address before you send.`,
+    });
   }
   const others = list(field(root, "servers")).length - 1;
-  if (!swagger && others > 0) warnings.push({ item: top, message: `The file names ${others + 1} servers: the collection's variable baseUrl holds the first (${base.slice(0, 80)}).` });
+  if (!swagger && others > 0)
+    warnings.push({
+      item: top,
+      message: `The file names ${others + 1} servers: the collection's variable baseUrl holds the first (${base.slice(0, 80)}).`,
+    });
 
   // A folder per tag: those the file lists, in its order, then the others as they are met.
   const folders = new Map<string, { description: unknown; item: Loose[] }>();
-  for (const tag of list(field(root, "tags")).filter(isObject)) folders.set(text(field(tag, "name")), { description: field(tag, "description"), item: [] });
+  for (const tag of list(field(root, "tags")).filter(isObject))
+    folders.set(text(field(tag, "name")), { description: field(tag, "description"), item: [] });
   const loose: Loose[] = [];
 
   const paths = field(root, "paths");
@@ -290,12 +380,16 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
     for (const method of METHODS) {
       const operation = field(pathItem, method);
       if (!isObject(operation)) continue;
-      const requestName = text(field(operation, "summary")).trim() || text(field(operation, "operationId")).trim() || `${method.toUpperCase()} ${path}`;
+      const requestName =
+        text(field(operation, "summary")).trim() ||
+        text(field(operation, "operationId")).trim() ||
+        `${method.toUpperCase()} ${path}`;
       item = `request "${requestName}"`;
 
       // The path's parameters, and over them the operation's of the same name and place.
       const parameters = new Map<string, Loose>();
-      for (const parameter of [...resolved(field(pathItem, "parameters")), ...resolved(field(operation, "parameters"))]) parameters.set(`${text(field(parameter, "in"))}:${text(field(parameter, "name"))}`, parameter);
+      for (const parameter of [...resolved(field(pathItem, "parameters")), ...resolved(field(operation, "parameters"))])
+        parameters.set(`${text(field(parameter, "in"))}:${text(field(parameter, "name"))}`, parameter);
       const query: Loose[] = [];
       const header: Loose[] = [];
       const cookies: string[] = [];
@@ -309,12 +403,19 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
         const content = field(parameter, "content");
         const media = isObject(content) ? Object.values(content).find(isObject) : undefined;
         // A Swagger 2.0 parameter is its own schema: `type`, `default`, `enum`.
-        const value = example(parameter) ?? sample(field(parameter, "schema") ?? (media ? field(media, "schema") : parameter), false);
+        const value =
+          example(parameter) ??
+          sample(field(parameter, "schema") ?? (media ? field(media, "schema") : parameter), false);
         if (place === "formData") fields.push({ key, schema: parameter, value });
         else if (place === "query") query.push({ key, value: said(value) });
         else if (place === "cookie") cookies.push(`${key}=${said(value)}`);
         // The three that OpenAPI says a parameter does not set: the body's type and the auth do.
-        else if (place === "header" && !/^(accept|content-type|authorization)$/i.test(key)) header.push({ key, value: said(value), ...(field(parameter, "required") !== true && said(value) === "" && { disabled: true }) });
+        else if (place === "header" && !/^(accept|content-type|authorization)$/i.test(key))
+          header.push({
+            key,
+            value: said(value),
+            ...(field(parameter, "required") !== true && said(value) === "" && { disabled: true }),
+          });
       }
       if (cookies.length) header.push({ key: "Cookie", value: cookies.join("; ") });
 
@@ -323,12 +424,25 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
       const requestBody = resolve(field(operation, "requestBody"));
       const content = isObject(requestBody) ? field(requestBody, "content") : undefined;
       if (fields.length) {
-        body = form(consumes.some((type) => type.startsWith("multipart/")) || fields.some(({ schema }) => isFile(schema)) ? "multipart/form-data" : "application/x-www-form-urlencoded", fields);
+        body = form(
+          consumes.some((type) => type.startsWith("multipart/")) || fields.some(({ schema }) => isFile(schema))
+            ? "multipart/form-data"
+            : "application/x-www-form-urlencoded",
+          fields,
+        );
       } else if (inBody || isObject(content)) {
-        const types = inBody ? (consumes.length ? consumes : ["application/json"]) : Object.keys(content as Loose).filter((type) => isObject(field(content as Loose, type)));
+        const types = inBody
+          ? consumes.length
+            ? consumes
+            : ["application/json"]
+          : Object.keys(content as Loose).filter((type) => isObject(field(content as Loose, type)));
         const type = types.find((entry) => /json/i.test(entry)) ?? types[0];
         if (type !== undefined) {
-          if (!inBody && types.length > 1) warnings.push({ item, message: `Its body is described in ${types.length} media types (${named(types)}): the request has the ${type.slice(0, 80)} one.` });
+          if (!inBody && types.length > 1)
+            warnings.push({
+              item,
+              message: `Its body is described in ${types.length} media types (${named(types)}): the request has the ${type.slice(0, 80)} one.`,
+            });
           const made = bodyOf(type, inBody ?? (field(content as Loose, type) as Loose));
           body = made.body;
           header.push(...made.header);
@@ -336,7 +450,11 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
       }
 
       const tags = list(field(operation, "tags")).map(text).filter(Boolean);
-      if (tags.length > 1) warnings.push({ item, message: `It has ${tags.length} tags (${named(tags)}): it is in the folder of the first.` });
+      if (tags.length > 1)
+        warnings.push({
+          item,
+          message: `It has ${tags.length} tags (${named(tags)}): it is in the folder of the first.`,
+        });
       const own = server(field(operation, "servers")) ?? server(field(pathItem, "servers"));
       const request = {
         name: requestName,
@@ -344,7 +462,14 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
           method: method.toUpperCase(),
           description: field(operation, "description"),
           // A `{name}` of the path is the variable `{{name}}`, which the composer asks for before it sends.
-          url: { host: [own ?? "{{baseUrl}}"], path: path.replace(/^\//, "").split("/").map((part) => part.replace(/\{([^{}]+)\}/g, "{{$1}}")), query },
+          url: {
+            host: [own ?? "{{baseUrl}}"],
+            path: path
+              .replace(/^\//, "")
+              .split("/")
+              .map((part) => part.replace(/\{([^{}]+)\}/g, "{{$1}}")),
+            query,
+          },
           header,
           ...(body && { body }),
           ...auth(field(operation, "security")),
@@ -357,13 +482,28 @@ export function openApiCollection(root: unknown): { collection: Loose; warnings:
   }
 
   item = top;
-  const made = { info: { name, description: isObject(info) ? field(info, "description") : undefined }, variable: [{ key: "baseUrl", value: base }], ...auth(field(root, "security")) };
-  const tagged = [...folders].filter(([, folder]) => folder.item.length).map(([folderName, folder]) => ({ name: folderName, description: folder.description, item: folder.item }));
-  if (!tagged.length && !loose.length) throw new ImportError("This OpenAPI file describes no operation under `paths`, so there is no request to import.");
+  const made = {
+    info: { name, description: isObject(info) ? field(info, "description") : undefined },
+    variable: [{ key: "baseUrl", value: base }],
+    ...auth(field(root, "security")),
+  };
+  const tagged = [...folders]
+    .filter(([, folder]) => folder.item.length)
+    .map(([folderName, folder]) => ({ name: folderName, description: folder.description, item: folder.item }));
+  if (!tagged.length && !loose.length)
+    throw new ImportError("This OpenAPI file describes no operation under `paths`, so there is no request to import.");
 
   for (const [where, { outside, missing }] of unread) {
-    if (outside.size) warnings.push({ item: where, message: `It refers to ${outside.size === 1 ? "another file or an address" : `${outside.size} other files or addresses`} (${named([...outside])}). An import fetches nothing: what ${outside.size === 1 ? "it describes" : "they describe"} is left out.` });
-    if (missing.size) warnings.push({ item: where, message: `It refers to ${missing.size === 1 ? "a part" : `${missing.size} parts`} of the file that ${missing.size === 1 ? "is" : "are"} not there or ${missing.size === 1 ? "leads" : "lead"} back to ${missing.size === 1 ? "itself" : "themselves"} (${named([...missing])}), and ${missing.size === 1 ? "that is" : "those are"} left out.` });
+    if (outside.size)
+      warnings.push({
+        item: where,
+        message: `It refers to ${outside.size === 1 ? "another file or an address" : `${outside.size} other files or addresses`} (${named([...outside])}). An import fetches nothing: what ${outside.size === 1 ? "it describes" : "they describe"} is left out.`,
+      });
+    if (missing.size)
+      warnings.push({
+        item: where,
+        message: `It refers to ${missing.size === 1 ? "a part" : `${missing.size} parts`} of the file that ${missing.size === 1 ? "is" : "are"} not there or ${missing.size === 1 ? "leads" : "lead"} back to ${missing.size === 1 ? "itself" : "themselves"} (${named([...missing])}), and ${missing.size === 1 ? "that is" : "those are"} left out.`,
+      });
   }
   // Folders first: the app lists a folder's folders before its requests.
   return { collection: { ...made, item: [...tagged, ...loose] }, warnings };

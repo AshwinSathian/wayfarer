@@ -38,7 +38,8 @@ export function applyToHeaders(text, policy, rule = "/*") {
 /** Replaces the content attribute of the CSP <meta> in index.html. */
 export function applyToIndex(text, policy) {
   const pattern = /(http-equiv="Content-Security-Policy"\s+content=")[^"]*(")/;
-  if (!pattern.test(text)) throw new Error('src/index.html: no <meta http-equiv="Content-Security-Policy" content="…">');
+  if (!pattern.test(text))
+    throw new Error('src/index.html: no <meta http-equiv="Content-Security-Policy" content="…">');
   return text.replace(pattern, (_, head, tail) => `${head}${policy}${tail}`);
 }
 
@@ -48,7 +49,16 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const site = JSON.parse(readFileSync("security/csp-site.json", "utf8"));
   const docs = JSON.parse(readFileSync("security/csp-docs.json", "utf8"));
   const targets = [
-    ["packages/site/public/_headers", (text) => [["/*", site], ["/docs/*", docs], ["/pagefind/*", docs], ["/app/*", spec]].reduce((headers, [rule, policy]) => applyToHeaders(headers, serialize(policy), rule), text)],
+    [
+      "packages/site/public/_headers",
+      (text) =>
+        [
+          ["/*", site],
+          ["/docs/*", docs],
+          ["/pagefind/*", docs],
+          ["/app/*", spec],
+        ].reduce((headers, [rule, policy]) => applyToHeaders(headers, serialize(policy), rule), text),
+    ],
     ["src/index.html", (text) => applyToIndex(text, serialize(spec, { meta: true }).replaceAll('"', "&quot;"))],
   ];
   let stale = [];
@@ -60,7 +70,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     if (!check) writeFileSync(path, next);
   }
   if (check && stale.length) {
-    console.error(`CSP out of sync with security/csp.json, csp-site.json or csp-docs.json: ${stale.join(", ")}. Run npm run gen:csp.`);
+    console.error(
+      `CSP out of sync with security/csp.json, csp-site.json or csp-docs.json: ${stale.join(", ")}. Run npm run gen:csp.`,
+    );
     process.exit(1);
   }
   console.log(check ? "CSP in sync." : stale.length ? `Updated ${stale.join(", ")}.` : "CSP already in sync.");

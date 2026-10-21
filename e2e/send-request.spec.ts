@@ -24,10 +24,7 @@ test.describe("Send request → view response", () => {
     // Timings tab shows a duration, and it isn't a wildly different number
     // than what the status bar already reported (regression coverage for
     // the Timings/status-bar mismatch bug).
-    const statusBarDurationText = await page
-      .locator("app-response-viewer .response-fact")
-      .first()
-      .textContent();
+    const statusBarDurationText = await page.locator("app-response-viewer .response-fact").first().textContent();
     await responseViewer.getByRole("tab", { name: "Timings" }).click();
     await expect(page.getByText("Duration", { exact: true })).toBeVisible();
     expect(statusBarDurationText).toBeTruthy();

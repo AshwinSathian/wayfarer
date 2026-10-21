@@ -32,6 +32,9 @@ export class SocketState {
   connection: WebSocket | null = null;
 
   add(direction: SocketEntry["direction"], text: string, bytes?: number): void {
-    this.log.update((log) => [...log.slice(1 - SOCKET_LOG_LINES), { direction, text, at: Date.now(), ...(bytes !== undefined && { bytes }) }]);
+    this.log.update((log) => [
+      ...log.slice(1 - SOCKET_LOG_LINES),
+      { direction, text, at: Date.now(), ...(bytes !== undefined && { bytes }) },
+    ]);
   }
 }

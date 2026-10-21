@@ -11,11 +11,14 @@ const root = new URL("../src/app/", import.meta.url).pathname;
 
 test("every Material input says whether it holds a value (monospace) or words", () => {
   const unmarked = [];
-  for (const file of readdirSync(root, { recursive: true }).filter((f) => /\.(html|ts)$/.test(f) && !f.endsWith(".spec.ts"))) {
+  for (const file of readdirSync(root, { recursive: true }).filter(
+    (f) => /\.(html|ts)$/.test(f) && !f.endsWith(".spec.ts"),
+  )) {
     const text = readFileSync(join(root, file), "utf8");
     for (const tag of text.match(/<(?:input|textarea)\b[^>]*>/gs) ?? []) {
       if (!/\bmatInput\b/.test(tag)) continue;
-      if (!/\b(font-mono|font-sans|type-mono-[\w-]+)\b/.test(tag)) unmarked.push(`${file}: ${tag.replace(/\s+/g, " ").slice(0, 90)}`);
+      if (!/\b(font-mono|font-sans|type-mono-[\w-]+)\b/.test(tag))
+        unmarked.push(`${file}: ${tag.replace(/\s+/g, " ").slice(0, 90)}`);
     }
   }
   assert.deepEqual(unmarked, []);

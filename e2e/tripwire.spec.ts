@@ -23,11 +23,15 @@ test.describe("Phase 0 tripwires", () => {
 
   test("F01 @claim:C-006: a script runs under the production CSP", async ({ page }) => {
     await captureTarget(page);
-    const response = await seedAndOpen(page, {}, {
-      method: "GET",
-      url: `${TARGET}/f01`,
-      postRequestScript: 'pm.test("tripwire F01 script ran", function () { pm.expect(1).to.equal(1); });',
-    });
+    const response = await seedAndOpen(
+      page,
+      {},
+      {
+        method: "GET",
+        url: `${TARGET}/f01`,
+        postRequestScript: 'pm.test("tripwire F01 script ran", function () { pm.expect(1).to.equal(1); });',
+      },
+    );
     await expectProdParity(response);
 
     await send(page);
@@ -49,11 +53,15 @@ test.describe("Phase 0 tripwires", () => {
       const wire = [request.url(), JSON.stringify(request.headers()), request.postData() ?? ""].join("\n");
       if (/\{\{\s*\$secret\./.test(wire)) leaks.push(request.url());
     });
-    await seedAndOpen(page, { apiKey: "{{$secret.00000000-0000-4000-8000-0000000000f3}}" }, {
-      method: "GET",
-      url: `${TARGET}/f03`,
-      headers: { "X-Api-Key": "{{apiKey}}" },
-    });
+    await seedAndOpen(
+      page,
+      { apiKey: "{{$secret.00000000-0000-4000-8000-0000000000f3}}" },
+      {
+        method: "GET",
+        url: `${TARGET}/f03`,
+        headers: { "X-Api-Key": "{{apiKey}}" },
+      },
+    );
 
     // The vault is not open: the app asks for it, and closing the dialog sends nothing (D4).
     await send(page);
@@ -83,7 +91,9 @@ test.describe("Phase 0 tripwires", () => {
     ["application/xml", "<tripwire>F04 xml</tripwire>"],
     ["text/plain; charset=utf-8", "tripwire F04 plain text"],
   ]) {
-    test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response can be read as text, not the HttpClient parse-error wrapper`, async ({ page }) => {
+    test(`F04 @claim:C-009: a ${contentType.split(";")[0]} response can be read as text, not the HttpClient parse-error wrapper`, async ({
+      page,
+    }) => {
       await captureTarget(page, { contentType, body });
       await page.goto("/app/");
       await page.locator("input.address-url").fill(`${TARGET}/f04`);
@@ -105,7 +115,9 @@ test.describe("Phase 0 tripwires", () => {
     });
   }
 
-  test("F05 @claim:C-009: an image/png response shows the binary notice and downloads the exact bytes", async ({ page }) => {
+  test("F05 @claim:C-009: an image/png response shows the binary notice and downloads the exact bytes", async ({
+    page,
+  }) => {
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff]);
     await captureTarget(page, { contentType: "image/png", body: png });
     await page.goto("/app/");
@@ -128,11 +140,15 @@ test.describe("Phase 0 tripwires", () => {
 
   test("F07: {{vars}} in the Auth tab are resolved before sending", async ({ page }) => {
     const hits = await captureTarget(page);
-    await seedAndOpen(page, { token: "f07-token-value" }, {
-      method: "GET",
-      url: `${TARGET}/f07`,
-      auth: { type: "bearer", token: "{{token}}" },
-    });
+    await seedAndOpen(
+      page,
+      { token: "f07-token-value" },
+      {
+        method: "GET",
+        url: `${TARGET}/f07`,
+        auth: { type: "bearer", token: "{{token}}" },
+      },
+    );
 
     await send(page);
 
@@ -142,12 +158,16 @@ test.describe("Phase 0 tripwires", () => {
 
   test("F08: {{vars}} nested in a JSON body (objects and arrays) are resolved before sending", async ({ page }) => {
     const hits = await captureTarget(page);
-    await seedAndOpen(page, { token: "f08-value" }, {
-      method: "POST",
-      url: `${TARGET}/f08`,
-      headers: { "Content-Type": "application/json" },
-      body: { outer: { inner: "{{token}}", list: ["{{token}}", { deep: "{{token}}" }] } },
-    });
+    await seedAndOpen(
+      page,
+      { token: "f08-value" },
+      {
+        method: "POST",
+        url: `${TARGET}/f08`,
+        headers: { "Content-Type": "application/json" },
+        body: { outer: { inner: "{{token}}", list: ["{{token}}", { deep: "{{token}}" }] } },
+      },
+    );
 
     await send(page);
 
@@ -185,4 +205,3 @@ test.describe("Tripwires found by the Phase 1 rails", () => {
     expect(new URL(hits[0].url()).search).toBe("?a=1&b=two");
   });
 });
-

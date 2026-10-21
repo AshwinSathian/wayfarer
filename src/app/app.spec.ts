@@ -1,10 +1,10 @@
-import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { App } from './app';
+import { signal } from "@angular/core";
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { App } from "./app";
 import { provideRepositories } from "../testing/repositories";
 import { PastRequest } from "@wayfarer/core";
 import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
-import { historyEntry } from '../testing/request-fixtures';
+import { historyEntry } from "../testing/request-fixtures";
 
 class IdbServiceMock {
   /** The listeners registered for writes made in another tab: the app's for history, the tabs' for theirs. */
@@ -38,7 +38,7 @@ function setWidth(width: number): void {
   });
 }
 
-describe('App', () => {
+describe("App", () => {
   let fixture: ComponentFixture<App>;
   let component: App;
   let idbService: IdbServiceMock;
@@ -47,9 +47,7 @@ describe('App', () => {
     idbService = new IdbServiceMock();
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        ...provideRepositories(idbService),
-      ],
+      providers: [...provideRepositories(idbService)],
     }).compileComponents();
   });
 
@@ -57,26 +55,26 @@ describe('App', () => {
     vi.restoreAllMocks();
   });
 
-  it('should create the app', () => {
+  it("should create the app", () => {
     fixture = TestBed.createComponent(App);
     component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 
-  it('reads history again when another tab sends a request, and not for other stores', async () => {
+  it("reads history again when another tab sends a request, and not for other stores", async () => {
     fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(1));
 
-    idbService.changedElsewhere(['collections', 'meta']);
-    idbService.changedElsewhere(['history']);
+    idbService.changedElsewhere(["collections", "meta"]);
+    idbService.changedElsewhere(["history"]);
 
     await vi.waitFor(() => expect(idbService.getLatest).toHaveBeenCalledTimes(2));
   });
 
-  it('loads history on init', async () => {
+  it("loads history on init", async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: 'https://example.com/api', createdAt: 1 }) }];
+    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: "https://example.com/api", createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);
@@ -95,9 +93,9 @@ describe('App', () => {
     expect(component.historyLoading()).toBe(false);
   });
 
-  it('clears history via the service', async () => {
+  it("clears history via the service", async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: 'https://example.com', createdAt: 1 }) }];
+    const history: PastRequest[] = [{ id: 1, ...historyEntry({ url: "https://example.com", createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);
@@ -114,9 +112,9 @@ describe('App', () => {
     expect(component.pastRequests()).toEqual([]);
   });
 
-  it('deletes history entries', async () => {
+  it("deletes history entries", async () => {
     setWidth(1400);
-    const history: PastRequest[] = [{ id: 5, ...historyEntry({ url: 'https://delete.me', createdAt: 1 }) }];
+    const history: PastRequest[] = [{ id: 5, ...historyEntry({ url: "https://delete.me", createdAt: 1 }) }];
     idbService.getLatest.mockReturnValue(Promise.resolve(history));
 
     fixture = TestBed.createComponent(App);
@@ -133,7 +131,7 @@ describe('App', () => {
     expect(component.pastRequests()).toEqual([]);
   });
 
-  it('controls drawer visibility state', async () => {
+  it("controls drawer visibility state", async () => {
     setWidth(1400);
     idbService.getLatest.mockReturnValue(Promise.resolve([]));
 
@@ -151,7 +149,7 @@ describe('App', () => {
     expect(component.drawerVisible()).toBe(false);
   });
 
-  it('pins the sidebar open from 1200 px, and keeps it a closed drawer below that; the stacked composer starts below 768 px', async () => {
+  it("pins the sidebar open from 1200 px, and keeps it a closed drawer below that; the stacked composer starts below 768 px", async () => {
     idbService.getLatest.mockReturnValue(Promise.resolve([]));
     const at = async (width: number) => {
       setWidth(width);

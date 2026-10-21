@@ -43,7 +43,8 @@ export class BridgeSettings {
     this.config.set(this.load());
     // Unlocked: a token typed while the vault was locked goes in; with none typed, the vault's comes out.
     effect(() => {
-      if (this.vault.isUnlocked()) untracked(() => this.inBackground(() => (this.config().token ? this.store(this.config().token) : this.read())));
+      if (this.vault.isUnlocked())
+        untracked(() => this.inBackground(() => (this.config().token ? this.store(this.config().token) : this.read())));
     });
     // Another tab saved a token.
     inject(IdbCore).onChangeElsewhere((stores) => {
@@ -94,7 +95,11 @@ export class BridgeSettings {
 
   /** One after another: a save that overtook a delete would put the token back. */
   private inBackground(work: () => Promise<void>): void {
-    this.pending = this.pending.then(work).catch((error: unknown) => this.diagnostics.record(error, "bridge: the token could not be kept in the vault or read from it"));
+    this.pending = this.pending
+      .then(work)
+      .catch((error: unknown) =>
+        this.diagnostics.record(error, "bridge: the token could not be kept in the vault or read from it"),
+      );
   }
 
   /**
@@ -128,7 +133,9 @@ export class BridgeSettings {
     if (problem) return { problem };
     // Another program's text: repeated only when it is a version, and short.
     const version = (value as { version?: unknown }).version;
-    return typeof version === "string" && version.length <= 40 && /^\d+\.\d+\.\d+[0-9A-Za-z.+-]*$/.test(version) ? { version } : {};
+    return typeof version === "string" && version.length <= 40 && /^\d+\.\d+\.\d+[0-9A-Za-z.+-]*$/.test(version)
+      ? { version }
+      : {};
   }
 
   /**
@@ -151,13 +158,23 @@ export class BridgeSettings {
       this.diagnostics.record(error, "bridge: pairing failed");
       return { problem: BRIDGE_UNREACHABLE };
     }
-    if (response.status === 401) return { problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute." };
-    if (response.status === 429) return { problem: `Three wrong codes: the bridge takes no code for ${Number.parseInt(response.headers.get("Retry-After") ?? "", 10) || 60} s.` };
-    if (response.status === 410) return { problem: "This bridge's code was used. Start the bridge again for a new one." };
+    if (response.status === 401)
+      return { problem: "That is not the code the bridge shows. After three wrong codes the bridge waits a minute." };
+    if (response.status === 429)
+      return {
+        problem: `Three wrong codes: the bridge takes no code for ${Number.parseInt(response.headers.get("Retry-After") ?? "", 10) || 60} s.`,
+      };
+    if (response.status === 410)
+      return { problem: "This bridge's code was used. Start the bridge again for a new one." };
     const answer = parseJson(response.ok ? await response.text() : "");
-    const token = answer.ok && answer.value !== null && typeof answer.value === "object" ? (answer.value as { token?: unknown }).token : undefined;
+    const token =
+      answer.ok && answer.value !== null && typeof answer.value === "object"
+        ? (answer.value as { token?: unknown }).token
+        : undefined;
     // The bridge takes no token shorter than 16 characters.
-    return typeof token === "string" && token.length >= 16 ? { token } : { problem: "What answered at this address is not a Local Bridge." };
+    return typeof token === "string" && token.length >= 16
+      ? { token }
+      : { problem: "What answered at this address is not a Local Bridge." };
   }
 
   private load(): BridgeConfig {
@@ -168,7 +185,12 @@ export class BridgeSettings {
       }
       const parsed = JSON.parse(stored) as Partial<BridgeConfig>;
       // Before P6.4 the route was a switch: on reads as "bridge", off as the default.
-      const route = typeof parsed.route === "string" && ROUTES.includes(parsed.route) ? (parsed.route as Route) : (parsed as { enabled?: unknown }).enabled === true ? "bridge" : "auto";
+      const route =
+        typeof parsed.route === "string" && ROUTES.includes(parsed.route)
+          ? (parsed.route as Route)
+          : (parsed as { enabled?: unknown }).enabled === true
+            ? "bridge"
+            : "auto";
       const config = { route, url: typeof parsed.url === "string" && parsed.url ? parsed.url : DEFAULT_URL, token: "" };
       // A version before F83 kept the token here as plain text: it is not read, and it is taken out.
       if ("token" in parsed || "enabled" in parsed) this.persist(config);

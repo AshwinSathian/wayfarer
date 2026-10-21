@@ -14,7 +14,20 @@ export interface TestBridge {
 export async function startBridge(extra: string[] = []): Promise<TestBridge> {
   const port = 7720 + test.info().parallelIndex;
   const token = "bridge-token-for-an-e2e-0123456789abcdef";
-  const bridge = spawn(process.execPath, ["packages/bridge/bin/cli.js", "--port", String(port), "--token", token, "--allow-origin", "http://localhost:4200", ...extra], { stdio: ["ignore", "pipe", "inherit"] });
+  const bridge = spawn(
+    process.execPath,
+    [
+      "packages/bridge/bin/cli.js",
+      "--port",
+      String(port),
+      "--token",
+      token,
+      "--allow-origin",
+      "http://localhost:4200",
+      ...extra,
+    ],
+    { stdio: ["ignore", "pipe", "inherit"] },
+  );
   let printed = "";
   const scheme = await new Promise<string>((resolve, reject) => {
     bridge.once("exit", (code) => reject(new Error(`the bridge exited with ${code}`)));
@@ -29,7 +42,11 @@ export async function startBridge(extra: string[] = []): Promise<TestBridge> {
 }
 
 /** Sets the device's route (P6.4) and the bridge as a user does: the toolbar's button opens Settings at the bridge's pane. */
-export async function routeThroughBridge(page: Page, bridge: TestBridge, route: "Local Bridge" | "Auto" = "Local Bridge"): Promise<void> {
+export async function routeThroughBridge(
+  page: Page,
+  bridge: TestBridge,
+  route: "Local Bridge" | "Auto" = "Local Bridge",
+): Promise<void> {
   await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();

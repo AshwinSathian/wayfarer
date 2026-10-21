@@ -7,7 +7,9 @@ import { settled } from "./support/settled";
 // the only default policy. A session through the main views must trigger no
 // CSP violation, and an HTML string must still be rejected by innerHTML.
 
-test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flows trigger no violation", async ({ page }) => {
+test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flows trigger no violation", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => {
     if (!/^ResizeObserver loop/.test(e.message)) errors.push(e.message);
@@ -50,7 +52,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
       } catch (error) {
         return error instanceof TypeError;
       }
-    })
+    }),
   );
   expect(blocked).toEqual([true, true]);
 });

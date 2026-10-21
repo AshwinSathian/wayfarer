@@ -4,18 +4,26 @@ import { Confirm } from "./confirm";
 
 describe("Confirm", () => {
   const alert = () => document.querySelector<HTMLDialogElement>('dialog[role="alertdialog"]');
-  const button = (name: string) => Array.from(alert()!.querySelectorAll("button")).find((b) => b.textContent?.trim() === name)!;
-  const outside = (type: string) => alert()!.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: 1, clientY: 1 }));
+  const button = (name: string) =>
+    Array.from(alert()!.querySelectorAll("button")).find((b) => b.textContent?.trim() === name)!;
+  const outside = (type: string) =>
+    alert()!.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: 1, clientY: 1 }));
 
   it("shows a modal alert dialog named by its title and described by its message, with focus on the button that backs out, and gives focus back", async () => {
     const opener = document.body.appendChild(document.createElement("button"));
     opener.focus();
-    const answer = TestBed.inject(Confirm).confirm({ title: "Delete item?", message: "This action cannot be undone. Continue?", acceptLabel: "Delete" });
+    const answer = TestBed.inject(Confirm).confirm({
+      title: "Delete item?",
+      message: "This action cannot be undone. Continue?",
+      acceptLabel: "Delete",
+    });
 
     const el = alert()!;
     expect(el.matches(":modal")).toBe(true);
     expect(document.getElementById(el.getAttribute("aria-labelledby")!)?.textContent).toBe("Delete item?");
-    expect(document.getElementById(el.getAttribute("aria-describedby")!)?.textContent).toBe("This action cannot be undone. Continue?");
+    expect(document.getElementById(el.getAttribute("aria-describedby")!)?.textContent).toBe(
+      "This action cannot be undone. Continue?",
+    );
     expect(document.activeElement).toBe(button("Cancel"));
 
     button("Delete").click();
@@ -34,7 +42,9 @@ describe("Confirm", () => {
     expect(await answer).toBe(false);
 
     answer = service.confirm({ title: "Are you sure?", message: "m" });
-    document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    document.activeElement!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+    );
     expect(await answer).toBe(false);
 
     answer = service.confirm({ title: "Are you sure?", message: "m" });
@@ -53,7 +63,9 @@ describe("Confirm", () => {
     let answer = service.confirm({ message: "Remove this request from history?", acceptLabel: "Delete", anchor });
     const el = alert()!;
     expect(el.classList).toContain("ui-confirm-popup");
-    expect(document.getElementById(el.getAttribute("aria-labelledby")!)?.textContent).toBe("Remove this request from history?");
+    expect(document.getElementById(el.getAttribute("aria-labelledby")!)?.textContent).toBe(
+      "Remove this request from history?",
+    );
     expect(el.hasAttribute("aria-describedby")).toBe(false);
     // Where it is laid out: it is still growing into place.
     expect(el.offsetTop).toBe(130);

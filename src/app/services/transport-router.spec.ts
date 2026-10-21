@@ -22,7 +22,10 @@ describe("TransportRouter", () => {
   });
 
   it("sends straight from the page, and adds no header of its own: the composer names the body's type", async () => {
-    const pending = router.send({ method: "POST", url: "https://example.com/a", headers: [["X-A", "1"]], body: '{"a":1}' }, open());
+    const pending = router.send(
+      { method: "POST", url: "https://example.com/a", headers: [["X-A", "1"]], body: '{"a":1}' },
+      open(),
+    );
 
     const req = fetchMock.expectOne("https://example.com/a");
     expect(req.request.init.headers).toEqual([["X-A", "1"]]);
@@ -33,7 +36,7 @@ describe("TransportRouter", () => {
   it("leaves the user's own Content-Type alone, and adds none to a request without a body", async () => {
     const withType = router.send(
       { method: "POST", url: "https://example.com/b", headers: [["content-type", "text/plain"]], body: '"x"' },
-      open()
+      open(),
     );
     const first = fetchMock.expectOne("https://example.com/b");
     expect(first.request.init.headers).toEqual([["content-type", "text/plain"]]);
@@ -56,26 +59,52 @@ describe("TransportRouter", () => {
     const req = await vi.waitFor(() => fetchMock.expectOne("http://127.0.0.1:7717/relay"));
     expect(req.request.headers.get("X-Wayfarer-Bridge-Token")).toBe("test-token");
     expect(req.request.body).toEqual({ method: "GET", url: "https://internal.example.com/data", headers: [] });
-    req.flush(JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }), { status: 200 });
+    req.flush(
+      JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }),
+      { status: 200 },
+    );
     expect((await pending).route).toBe("bridge");
   });
 
   it("with the bridge on and no token in the tab or the vault, nothing is sent and the error says where the token is kept (F83)", async () => {
     TestBed.inject(BridgeSettings).update({ route: "bridge", url: "http://127.0.0.1:7717", token: "" });
 
-    await expect(router.send({ method: "GET", url: "https://internal.example.com/data", headers: [] }, open())).rejects.toThrow(
-      "The Local Bridge is on, and its token is not in this tab."
-    );
+    await expect(
+      router.send({ method: "GET", url: "https://internal.example.com/data", headers: [] }, open()),
+    ).rejects.toThrow("The Local Bridge is on, and its token is not in this tab.");
     fetchMock.verify();
   });
 
   describe("auto (P6.4, D7)", () => {
     const relay = "http://127.0.0.1:7717/relay";
-    const answer = (req: MockRequest) => req.flush(JSON.stringify({ status: 201, statusText: "Created", headers: [], bodyB64: "", encodedSize: 0, decodedSize: 0 }), { status: 200 });
-    const json = { method: "POST", url: "https://api.example.com/items", headers: [["Content-Type", "application/json"]] as [string, string][], body: "{}" };
-    const form = { method: "POST", url: "https://api.example.com/items", headers: [["Content-Type", "application/x-www-form-urlencoded"]] as [string, string][], body: "a=1" };
+    const answer = (req: MockRequest) =>
+      req.flush(
+        JSON.stringify({
+          status: 201,
+          statusText: "Created",
+          headers: [],
+          bodyB64: "",
+          encodedSize: 0,
+          decodedSize: 0,
+        }),
+        { status: 200 },
+      );
+    const json = {
+      method: "POST",
+      url: "https://api.example.com/items",
+      headers: [["Content-Type", "application/json"]] as [string, string][],
+      body: "{}",
+    };
+    const form = {
+      method: "POST",
+      url: "https://api.example.com/items",
+      headers: [["Content-Type", "application/x-www-form-urlencoded"]] as [string, string][],
+      body: "a=1",
+    };
 
-    beforeEach(() => TestBed.inject(BridgeSettings).update({ route: "auto", url: "http://127.0.0.1:7717", token: "test-token" }));
+    beforeEach(() =>
+      TestBed.inject(BridgeSettings).update({ route: "auto", url: "http://127.0.0.1:7717", token: "test-token" }),
+    );
 
     it("is the device's route when nothing else is set, with no bridge configured too", () => {
       localStorage.removeItem("wayfarer:bridge");

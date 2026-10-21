@@ -44,14 +44,25 @@ describe("responseViews (P2.13)", () => {
 
 describe("indentXml (P2.13, D19: no DOMParser)", () => {
   it("puts each element on its own line, indented by depth, with a text-only element on one line", () => {
-    expect(indentXml('<?xml version="1.0"?><fixture><name>echo</name><empty/><list><item>1</item></list></fixture>')).toBe(
-      ['<?xml version="1.0"?>', "<fixture>", "  <name>echo</name>", "  <empty/>", "  <list>", "    <item>1</item>", "  </list>", "</fixture>"].join("\n")
+    expect(
+      indentXml('<?xml version="1.0"?><fixture><name>echo</name><empty/><list><item>1</item></list></fixture>'),
+    ).toBe(
+      [
+        '<?xml version="1.0"?>',
+        "<fixture>",
+        "  <name>echo</name>",
+        "  <empty/>",
+        "  <list>",
+        "    <item>1</item>",
+        "  </list>",
+        "</fixture>",
+      ].join("\n"),
     );
   });
 
   it("keeps a comment, a CDATA section and a '>' inside an attribute whole", () => {
     expect(indentXml('<a b="x>y"><!-- <not a tag> --><![CDATA[<raw>]]></a>')).toBe(
-      ['<a b="x>y">', "  <!-- <not a tag> -->", "  <![CDATA[<raw>]]>", "</a>"].join("\n")
+      ['<a b="x>y">', "  <!-- <not a tag> -->", "  <![CDATA[<raw>]]>", "</a>"].join("\n"),
     );
   });
 
@@ -62,10 +73,30 @@ describe("indentXml (P2.13, D19: no DOMParser)", () => {
   it("changes nothing but whitespace, whatever the text", () => {
     const squeeze = (value: string) => value.replace(/\s+/g, "");
     fc.assert(
-      fc.property(fc.array(fc.constantFrom("<a>", "</a>", "<b x='>'/>", "<", ">", '"', "text", " ", "\n", "<!--", "-->", "<![CDATA[", "]]>", "<?p?>")), (parts) => {
-        const input = parts.join("");
-        expect(squeeze(indentXml(input))).toBe(squeeze(input));
-      })
+      fc.property(
+        fc.array(
+          fc.constantFrom(
+            "<a>",
+            "</a>",
+            "<b x='>'/>",
+            "<",
+            ">",
+            '"',
+            "text",
+            " ",
+            "\n",
+            "<!--",
+            "-->",
+            "<![CDATA[",
+            "]]>",
+            "<?p?>",
+          ),
+        ),
+        (parts) => {
+          const input = parts.join("");
+          expect(squeeze(indentXml(input))).toBe(squeeze(input));
+        },
+      ),
     );
   });
 });
@@ -92,9 +123,14 @@ describe("indentXml reads its text once, whatever a server sends", () => {
 
 describe("hexDump (P2.13)", () => {
   it("writes offset, 16 bytes in hex and their printable characters per line", () => {
-    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 1, 2, 3, 0x7e, 0x7f, 0xff, 0x20, 0x41]);
+    const bytes = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 1, 2, 3, 0x7e, 0x7f, 0xff, 0x20, 0x41,
+    ]);
     expect(hexDump(bytes)).toBe(
-      ["00000000  89 50 4e 47 0d 0a 1a 0a 00 01 02 03 7e 7f ff 20  |.PNG........~.. |", `00000010  41${" ".repeat(45)}  |A|`].join("\n")
+      [
+        "00000000  89 50 4e 47 0d 0a 1a 0a 00 01 02 03 7e 7f ff 20  |.PNG........~.. |",
+        `00000010  41${" ".repeat(45)}  |A|`,
+      ].join("\n"),
     );
   });
 
@@ -105,7 +141,9 @@ describe("hexDump (P2.13)", () => {
 
 describe("previewDocument (P2.13, D19)", () => {
   it("places its policy before anything the response wrote", () => {
-    const page = previewDocument('<script>alert(1)</script><meta http-equiv="Content-Security-Policy" content="default-src *">');
+    const page = previewDocument(
+      '<script>alert(1)</script><meta http-equiv="Content-Security-Policy" content="default-src *">',
+    );
     expect(page.indexOf(PREVIEW_CSP)).toBeGreaterThan(-1);
     expect(page.indexOf(PREVIEW_CSP)).toBeLessThan(page.indexOf("<script>"));
     expect(page.indexOf('<base target="_blank">')).toBeLessThan(page.indexOf("<script>"));
@@ -116,7 +154,9 @@ describe("previewDocument (P2.13, D19)", () => {
   });
 
   it("keeps a doctype first, so the page is not drawn in quirks mode, and nothing else", () => {
-    expect(previewDocument("<!DOCTYPE html><h1>hi</h1>")).toMatch(/^<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy"/);
+    expect(previewDocument("<!DOCTYPE html><h1>hi</h1>")).toMatch(
+      /^<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy"/,
+    );
     expect(previewDocument("<!-- x --><!doctype html>")).toMatch(/^<meta charset/);
   });
 });

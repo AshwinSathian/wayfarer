@@ -26,20 +26,37 @@ describe("effectiveAuth: collection, then folders from the outside in, then the 
   });
 
   it("5. a folder's auth replaces the collection's", () => {
-    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", bearer("f"))])).toEqual({ auth: bearer("f"), from: "F" });
+    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", bearer("f"))])).toEqual({
+      auth: bearer("f"),
+      from: "F",
+    });
   });
 
   it("6. a folder that inherits is passed through", () => {
-    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", inherit)])).toEqual({ auth: bearer("c"), from: "C" });
+    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", inherit)])).toEqual({
+      auth: bearer("c"),
+      from: "C",
+    });
   });
 
   it("7. of several folders the nearest that does not inherit wins", () => {
-    const chain = [from("C", bearer("c")), from("Outer", bearer("outer")), from("Middle", { type: "basic", username: "u", password: "p" }), from("Inner", inherit)];
-    expect(effectiveAuth(inherit, chain)).toEqual({ auth: { type: "basic", username: "u", password: "p" }, from: "Middle" });
+    const chain = [
+      from("C", bearer("c")),
+      from("Outer", bearer("outer")),
+      from("Middle", { type: "basic", username: "u", password: "p" }),
+      from("Inner", inherit),
+    ];
+    expect(effectiveAuth(inherit, chain)).toEqual({
+      auth: { type: "basic", username: "u", password: "p" },
+      from: "Middle",
+    });
   });
 
   it("8. a folder set to none stops there: the collection's auth is not sent", () => {
-    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", { type: "none" })])).toEqual({ auth: { type: "none" }, from: "F" });
+    expect(effectiveAuth(inherit, [from("C", bearer("c")), from("F", { type: "none" })])).toEqual({
+      auth: { type: "none" },
+      from: "F",
+    });
   });
 });
 
@@ -64,10 +81,25 @@ describe("folderChain", () => {
   });
 
   it("ancestorsOf: the collection, then the folders from the outside in, each named as a person reads it", () => {
-    const collection: Collection = { id: "c", meta: folder("c").meta, name: "Shop", order: 0, variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" }, scriptTrust: { trusted: true } };
+    const collection: Collection = {
+      id: "c",
+      meta: folder("c").meta,
+      name: "Shop",
+      order: 0,
+      variables: [],
+      auth: { type: "none" },
+      scripts: { pre: "", post: "" },
+      scriptTrust: { trusted: true },
+    };
     const folders = [folder("inner", "outer"), folder("outer")];
-    expect(ancestorsOf(collection, folders, "inner").map((ancestor) => ancestor.name)).toEqual(['collection "Shop"', 'folder "outer"', 'folder "inner"']);
-    expect(ancestorsOf(collection, folders, undefined)).toEqual([{ name: 'collection "Shop"', variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } }]);
+    expect(ancestorsOf(collection, folders, "inner").map((ancestor) => ancestor.name)).toEqual([
+      'collection "Shop"',
+      'folder "outer"',
+      'folder "inner"',
+    ]);
+    expect(ancestorsOf(collection, folders, undefined)).toEqual([
+      { name: 'collection "Shop"', variables: [], auth: { type: "none" }, scripts: { pre: "", post: "" } },
+    ]);
   });
 
   it("ends when a file's folders name each other as parents", () => {

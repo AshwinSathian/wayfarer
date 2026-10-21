@@ -12,7 +12,7 @@
       <div class="flex items-center gap-2.5">
         <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="26" height="26" />
         <div class="flex flex-col">
-          <span class="type-title-3 text-label-primary" style="letter-spacing: -0.012em; line-height: 1.1;">
+          <span class="type-title-3 text-label-primary" style="letter-spacing: -0.012em; line-height: 1.1">
             Wayfarer
           </span>
         </div>
@@ -26,13 +26,9 @@
 
     @if (sidebarOverlay()) {
     <div class="px-4 py-3">
-      <button
-        uiButton="outlined"
-        type="button"
-        aria-label="New request"
-        (click)="handleNewRequest()"
-        class="w-full"
-      ><app-icon name="add_circle" /> New request</button>
+      <button uiButton="outlined" type="button" aria-label="New request" (click)="handleNewRequest()" class="w-full"
+        ><app-icon name="add_circle" /> New request</button
+      >
     </div>
     }
 
@@ -86,14 +82,23 @@
       </div>
       <div class="flex items-center gap-1">
         <button
-          uiButton="icon" class="btn-danger btn-sm"
+          uiButton="icon"
+          class="btn-danger btn-sm"
           type="button"
           [disabled]="historyLoading() || !pastRequests().length"
           uiTooltip="Clear all history"
           aria-label="Clear all history"
           (click)="confirmClear()"
-        ><app-icon name="delete" /></button>
-        <button type="button" uiButton="icon" class="btn-plain" (click)="closeHistory()" uiTooltip="Close" aria-label="Close history">
+          ><app-icon name="delete"
+        /></button>
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          (click)="closeHistory()"
+          uiTooltip="Close"
+          aria-label="Close history"
+        >
           <app-icon name="close" class="icon-md" />
         </button>
       </div>
@@ -112,7 +117,9 @@
 
 <!-- From 768 px the window is the workspace: panes of its height, each scrolling inside itself.
      Below, the composer's sections stack and the window scrolls the page. -->
-<div [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'">
+<div
+  [class]="isMobile() ? 'flex min-h-screen bg-canvas-app text-label-primary' : 'flex h-dvh overflow-hidden bg-canvas-app text-label-primary'"
+>
   @if (!sidebarOverlay() && drawerVisible()) {
   <!-- Desktop: persistent pinned chrome, not an overlay. It must not trap keyboard
        focus: a drawer does, which once made Tab loop inside the sidebar's 3 header
@@ -126,21 +133,30 @@
   <!-- Main content area -->
   <div
     class="flex min-w-0 flex-1 flex-col"
-    style="transition: margin-left var(--dur-enter) var(--ease-standard);"
+    style="transition: margin-left var(--dur-enter) var(--ease-standard)"
     [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
   >
     <!-- Top toolbar -->
     <mat-toolbar class="ds-toolbar" role="banner">
       <!-- Left: nav toggle + brand -->
       <div class="flex items-center gap-2">
-        <button type="button" uiButton="icon" class="btn-plain" (click)="toggleNavigation()" uiTooltip="Toggle sidebar" aria-label="Toggle sidebar">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
+          (click)="toggleNavigation()"
+          uiTooltip="Toggle sidebar"
+          aria-label="Toggle sidebar"
+        >
           <app-icon name="side_navigation" class="icon-md" />
         </button>
         <!-- The name once: the pinned sidebar carries it. -->
         @if (sidebarOverlay() || !drawerVisible()) {
         <div class="hidden lg:flex items-center gap-2">
           <img class="brand-logo-icon" src="icons/logo.svg" alt="" width="22" height="22" />
-          <span class="type-title-3 text-label-secondary" style="font-weight: 500; letter-spacing: -0.010em;">Wayfarer</span>
+          <span class="type-title-3 text-label-secondary" style="font-weight: 500; letter-spacing: -0.01em"
+            >Wayfarer</span
+          >
         </div>
         }
       </div>
@@ -156,8 +172,10 @@
           [value]="selectedEnvironmentId()"
           (valueChange)="selectedEnvironmentId.set($event); handleEnvironmentChange($event)"
         />
-        <button type="button"
-          uiButton="icon" class="btn-plain"
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
           (click)="environmentsVisible.set(true)"
           uiTooltip="Environments"
           aria-label="Environments"
@@ -171,8 +189,10 @@
         <!-- From 768 px the vault, the secrets, the bridge and the theme are in the status bar; on a phone the
              lock stays here, and the rest is in Settings. -->
         @if (isMobile()) {
-        <button type="button"
-          uiButton="icon" class="btn-plain"
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
           [class.text-status-success]="secretsUnlocked"
           (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
           [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
@@ -183,8 +203,10 @@
         }
 
         <!-- History -->
-        <button type="button"
-          uiButton="icon" class="btn-plain"
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
           [class.bg-accent-fill]="historyDrawerVisible()"
           (click)="openHistory()"
           uiTooltip="Request history"
@@ -194,8 +216,10 @@
         </button>
 
         <!-- Settings -->
-        <button type="button"
-          uiButton="icon" class="btn-plain"
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain"
           (click)="openSettings()"
           uiTooltip="Settings"
           aria-label="Settings"
@@ -207,43 +231,90 @@
 
     <!-- Page content -->
     <main [class]="isMobile() ? 'flex-1' : 'flex min-h-0 flex-1 flex-col'">
-      <div [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'">
+      <div
+        [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'"
+      >
         @if (swUpdate.updateAvailable()) {
-        <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
+        <div
+          role="status"
+          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator"
+        >
           <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
           <button
-            uiButton="filled" class="btn-secondary btn-sm"
+            uiButton="filled"
+            class="btn-secondary btn-sm"
             type="button"
             aria-label="Reload"
             (click)="swUpdate.applyUpdate()"
-          >Reload</button>
+            >Reload</button
+          >
         </div>
-        }
-        @if (backup.reminderDue()) {
-        <div role="status" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
-          <p class="type-callout text-label-secondary">It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.</p>
-          <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Back up now" (click)="openSettings('data')">Back up now</button>
-          <button uiButton class="btn-secondary btn-sm" type="button" aria-label="Dismiss backup reminder" (click)="backup.dismissReminder()">Not now</button>
+        } @if (backup.reminderDue()) {
+        <div
+          role="status"
+          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator"
+        >
+          <p class="type-callout text-label-secondary"
+            >It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can
+            delete it.</p
+          >
+          <button
+            uiButton="filled"
+            class="btn-secondary btn-sm"
+            type="button"
+            aria-label="Back up now"
+            (click)="openSettings('data')"
+            >Back up now</button
+          >
+          <button
+            uiButton
+            class="btn-secondary btn-sm"
+            type="button"
+            aria-label="Dismiss backup reminder"
+            (click)="backup.dismissReminder()"
+            >Not now</button
+          >
         </div>
-        }
-        @if (dataResetElsewhere()) {
-        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-          <p class="type-callout text-status-warning">Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p>
-          <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()">Reload</button>
+        } @if (dataResetElsewhere()) {
+        <div
+          role="alert"
+          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
+        >
+          <p class="type-callout text-status-warning"
+            >Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p
+          >
+          <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()"
+            >Reload</button
+          >
         </div>
-        }
-        @if (storageUnavailable()) {
+        } @if (storageUnavailable()) {
         <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-          <p class="type-callout text-status-warning">This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p>
+          <p class="type-callout text-status-warning"
+            >This browser is not letting Wayfarer store data (a private window, or storage blocked for this site).
+            History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p
+          >
         </div>
-        }
-        @if (resetError()) {
-        <div role="alert" class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border">
+        } @if (resetError()) {
+        <div
+          role="alert"
+          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border"
+        >
           <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
-          <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Dismiss" (click)="resetError.set('')">Dismiss</button>
+          <button
+            uiButton="filled"
+            class="btn-secondary btn-sm"
+            type="button"
+            aria-label="Dismiss"
+            (click)="resetError.set('')"
+            >Dismiss</button
+          >
         </div>
         }
-        <app-composer [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'" [isMobile]="isMobile()" (newRequest)="newRequest.emit()"></app-composer>
+        <app-composer
+          [class]="isMobile() ? '' : 'flex min-h-0 flex-1 flex-col'"
+          [isMobile]="isMobile()"
+          (newRequest)="newRequest.emit()"
+        ></app-composer>
       </div>
     </main>
 
@@ -252,26 +323,58 @@
          button it was in the toolbar, with its name; the state beside it is text. -->
     <footer class="status-bar" aria-label="Status">
       <span class="status-item">
-        <button type="button" uiButton="icon" class="btn-plain status-button" [class.text-status-success]="bridgeService.config().route === 'bridge'" (click)="openBridgeSettings()" uiTooltip="Local Bridge settings" aria-label="Local Bridge settings">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain status-button"
+          [class.text-status-success]="bridgeService.config().route === 'bridge'"
+          (click)="openBridgeSettings()"
+          uiTooltip="Local Bridge settings"
+          aria-label="Local Bridge settings"
+        >
           <app-icon name="router" class="icon-xs" />
         </button>
         <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
       </span>
       <span class="status-item">
-        <button type="button" uiButton="icon" class="btn-plain status-button" [class.text-status-success]="secretsUnlocked" (click)="secretsUnlocked ? lockSecrets() : openLockDialog()" [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'" [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain status-button"
+          [class.text-status-success]="secretsUnlocked"
+          (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
+          [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
+        >
           <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
         </button>
         <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
       </span>
       <span class="status-item">
-        <button type="button" uiButton="icon" class="btn-plain status-button" (click)="secretsDialogVisible.set(true)" uiTooltip="Manage secrets" aria-label="Manage secrets">
+        <button
+          type="button"
+          uiButton="icon"
+          class="btn-plain status-button"
+          (click)="secretsDialogVisible.set(true)"
+          uiTooltip="Manage secrets"
+          aria-label="Manage secrets"
+        >
           <app-icon name="key" class="icon-xs" />
         </button>
         <span>Secrets</span>
       </span>
       <span class="flex-1"></span>
-      <span class="status-item">{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span>
-      <button type="button" uiButton="icon" class="btn-plain status-button" (click)="themeService.toggle()" [uiTooltip]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'" [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+      <span class="status-item"
+        >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span
+      >
+      <button
+        type="button"
+        uiButton="icon"
+        class="btn-plain status-button"
+        (click)="themeService.toggle()"
+        [uiTooltip]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
         <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
       </button>
     </footer>
@@ -289,36 +392,40 @@
 >
   <div class="flex flex-col gap-4">
     <div class="flex items-start gap-3 rounded-xl bg-canvas-elevated p-3.5 border border-separator">
-      <app-icon [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'" class="icon-md text-label-tertiary mt-0.5 shrink-0" />
+      <app-icon
+        [name]="isFirstVaultSetup() ? 'shield_lock' : 'lock'"
+        class="icon-md text-label-tertiary mt-0.5 shrink-0"
+      />
       <p class="type-callout text-label-secondary leading-relaxed">
-        @if (isFirstVaultSetup()) {
-        Create a passphrase to encrypt your secrets. You'll need it to access them in future sessions.
-        } @else {
-        Enter your passphrase to unlock encrypted secrets for this session.
-        }
+        @if (isFirstVaultSetup()) { Create a passphrase to encrypt your secrets. You'll need it to access them in future
+        sessions. } @else { Enter your passphrase to unlock encrypted secrets for this session. }
       </p>
     </div>
 
     <div class="flex flex-col gap-3">
       <mat-form-field class="field w-full">
-        <input class="font-sans" matInput
+        <input
+          class="font-sans"
+          matInput
           cdkFocusInitial
           type="password"
           [ngModel]="unlockPassphrase()"
           (ngModelChange)="unlockPassphrase.set($event)"
           [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
           (keydown.enter)="unlockSecrets()"
-         />
+        />
       </mat-form-field>
       @if (isFirstVaultSetup()) {
       <mat-form-field class="field w-full">
-        <input class="font-sans" matInput
+        <input
+          class="font-sans"
+          matInput
           type="password"
           [ngModel]="confirmPassphrase()"
           (ngModelChange)="confirmPassphrase.set($event)"
           placeholder="Confirm passphrase"
           (keydown.enter)="unlockSecrets()"
-         />
+        />
       </mat-form-field>
       }
     </div>
@@ -337,7 +444,8 @@
         [attr.aria-label]="isFirstVaultSetup() ? 'Create vault' : 'Unlock secrets'"
         [disabled]="!unlockPassphrase()"
         (click)="unlockSecrets()"
-      >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button>
+        >{{ isFirstVaultSetup() ? 'Create vault' : 'Unlock' }}</button
+      >
     </div>
   </div>
 </ui-dialog>
@@ -355,10 +463,7 @@
 </ui-dialog>
 
 <!-- Secrets management dialog -->
-<app-secrets-manager
-  [(visible)]="secretsDialogVisible"
-  (requestUnlock)="openLockDialog()"
-></app-secrets-manager>
+<app-secrets-manager [(visible)]="secretsDialogVisible" (requestUnlock)="openLockDialog()"></app-secrets-manager>
 
 <!-- The one import dialog: opened by every Import button, through ImportPipeline -->
 <app-import-dialog />

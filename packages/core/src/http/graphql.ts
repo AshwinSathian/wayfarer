@@ -9,7 +9,8 @@ export function graphqlPayload(query: string, variables: string): { text: string
   if (!variables.trim()) return { text: JSON.stringify({ query }) };
   const parsed = parseJson(variables);
   if (!parsed.ok) return { error: "The GraphQL variables are not JSON." };
-  if (typeof parsed.value !== "object" || parsed.value === null || Array.isArray(parsed.value)) return { error: "The GraphQL variables must be a JSON object." };
+  if (typeof parsed.value !== "object" || parsed.value === null || Array.isArray(parsed.value))
+    return { error: "The GraphQL variables must be a JSON object." };
   return { text: JSON.stringify({ query, variables: parsed.value }) };
 }
 

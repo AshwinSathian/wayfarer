@@ -54,12 +54,15 @@ export class AuthEditor {
   /** Starts the ids of the fields: two editors may be on the page, one in a dialog. */
   readonly idPrefix = input("auth");
 
-  readonly authTypes = computed(() => AUTH_TYPES.filter((type) => type.value !== "inherit" || this.subject() !== "collection"));
+  readonly authTypes = computed(() =>
+    AUTH_TYPES.filter((type) => type.value !== "inherit" || this.subject() !== "collection"),
+  );
 
   /** What a request (or a folder's requests) will be sent with while this is set to inherit. */
   protected readonly inheritedLine = computed(() => {
     const { auth, from } = this.inherited();
-    if (!from) return `This ${this.subject()} is in no collection, so there is nothing to inherit. No authentication is sent.`;
+    if (!from)
+      return `This ${this.subject()} is in no collection, so there is nothing to inherit. No authentication is sent.`;
     if (auth.type === "none") return `No authentication is sent: ${from} sets none.`;
     return `${AUTH_TYPES.find((type) => type.value === auth.type)?.label} is sent, from ${from}.`;
   });

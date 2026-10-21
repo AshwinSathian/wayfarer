@@ -3,11 +3,23 @@ import { buildExportEntry, BuildExportEntryInput } from "./response-export-entry
 import { ResponseInspection } from "./response-inspector";
 
 const base: BuildExportEntryInput = {
-  context: { id: "ctx-1", method: "POST", url: "https://api.test/items", headers: { Accept: "*/*", "": "dropped" }, body: { a: 1 }, exportBody: { mode: "none" }, secrets: [], credentials: [] },
+  context: {
+    id: "ctx-1",
+    method: "POST",
+    url: "https://api.test/items",
+    headers: { Accept: "*/*", "": "dropped" },
+    body: { a: 1 },
+    exportBody: { mode: "none" },
+    secrets: [],
+    credentials: [],
+  },
   inspection: null,
   statusCode: 201,
   statusText: "Created",
-  responseHeaders: [{ name: "Content-Type", value: "application/json" }, { name: "", value: "dropped" }],
+  responseHeaders: [
+    { name: "Content-Type", value: "application/json" },
+    { name: "", value: "dropped" },
+  ],
   isError: false,
   responseData: '{"ok":true}',
   responseError: "boom",
@@ -26,8 +38,18 @@ describe("buildExportEntry", () => {
     expect(entry.id).toBe("ctx-1");
     expect(entry.time).toBe(0);
     expect(Number.isNaN(Date.parse(entry.startedDateTime))).toBe(false);
-    expect(entry.req).toEqual({ method: "POST", url: "https://api.test/items", headers: { Accept: "*/*" }, body: { a: 1 } });
-    expect(entry.res).toMatchObject({ status: 201, statusText: "Created", headers: { "Content-Type": "application/json" }, body: '{"ok":true}' });
+    expect(entry.req).toEqual({
+      method: "POST",
+      url: "https://api.test/items",
+      headers: { Accept: "*/*" },
+      body: { a: 1 },
+    });
+    expect(entry.res).toMatchObject({
+      status: 201,
+      statusText: "Created",
+      headers: { "Content-Type": "application/json" },
+      body: '{"ok":true}',
+    });
   });
 
   it("prefers the browser's timing, and exports the error text for a failed response", () => {
@@ -53,9 +75,14 @@ describe("buildExportEntry", () => {
     expect(entry.phases).toEqual(inspection.phases);
 
     // Without a usable duration, the time is the span between start and end.
-    const spanned = buildExportEntry({ ...base, inspection: { ...inspection, duration: Number.NaN } as ResponseInspection })!;
+    const spanned = buildExportEntry({
+      ...base,
+      inspection: { ...inspection, duration: Number.NaN } as ResponseInspection,
+    })!;
     expect(spanned.time).toBe(50);
     // The snapshot's URL is empty: the URL the browser timed is used.
-    expect(buildExportEntry({ ...base, inspection, context: { ...base.context!, url: "" } })!.req.url).toBe("https://api.test/from-timing");
+    expect(buildExportEntry({ ...base, inspection, context: { ...base.context!, url: "" } })!.req.url).toBe(
+      "https://api.test/from-timing",
+    );
   });
 });

@@ -13,7 +13,8 @@ export const META_GLOBALS_KEY = "globals";
 export const META_VAULT_KEY = "vault";
 
 type Fields = Record<string, unknown>;
-const isObject = (value: unknown): value is Fields => typeof value === "object" && value !== null && !Array.isArray(value);
+const isObject = (value: unknown): value is Fields =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 const own = (value: Fields, key: string): unknown => (Object.hasOwn(value, key) ? value[key] : undefined);
 
 /**
@@ -35,7 +36,14 @@ export function validateWorkspaceFile(value: unknown): string[] {
     }
     return records as Fields[];
   };
-  const [collections, folders, requests, environments, secrets, meta] = ["collections", "folders", "requests", "environments", "secrets", "meta"].map(list);
+  const [collections, folders, requests, environments, secrets, meta] = [
+    "collections",
+    "folders",
+    "requests",
+    "environments",
+    "secrets",
+    "meta",
+  ].map(list);
   if (errors.length) return errors;
 
   // Each collection with its folders and requests, as a collection file would hold them.
@@ -50,12 +58,21 @@ export function validateWorkspaceFile(value: unknown): string[] {
       folders: folders.filter((folder) => folder["collectionId"] === id),
       requests: requests.filter((request) => request["collectionId"] === id),
     });
-    errors.push(...(result.errors ?? []).map((issue) => `collection "${String(collection["name"])}": ${issue.path}: ${issue.message}`));
-    if (!isObject(collection["scriptTrust"])) errors.push(`collection "${String(collection["name"])}": scriptTrust is missing.`);
+    errors.push(
+      ...(result.errors ?? []).map(
+        (issue) => `collection "${String(collection["name"])}": ${issue.path}: ${issue.message}`,
+      ),
+    );
+    if (!isObject(collection["scriptTrust"]))
+      errors.push(`collection "${String(collection["name"])}": scriptTrust is missing.`);
   }
-  for (const [kind, docs] of [["folders", folders], ["requests", requests]] as const) {
+  for (const [kind, docs] of [
+    ["folders", folders],
+    ["requests", requests],
+  ] as const) {
     docs.forEach((doc, index) => {
-      if (!known.has(doc["collectionId"])) errors.push(`stores.${kind}[${index}]: belongs to a collection that is not in the file.`);
+      if (!known.has(doc["collectionId"]))
+        errors.push(`stores.${kind}[${index}]: belongs to a collection that is not in the file.`);
     });
   }
   errors.push(...(validateEnvironmentExport({ $id: ENVIRONMENTS_FORMAT, environments }).errors ?? []));
@@ -66,9 +83,14 @@ export function validateWorkspaceFile(value: unknown): string[] {
     const key = record["key"];
     if (key === META_STATE_KEY) {
       const active = record["activeEnvironmentId"];
-      if (active !== null && active !== undefined && typeof active !== "string") errors.push("stores.meta: the active environment must be an id or null.");
+      if (active !== null && active !== undefined && typeof active !== "string")
+        errors.push("stores.meta: the active environment must be an id or null.");
     } else if (key === META_GLOBALS_KEY) {
-      errors.push(...validateRows(record["variables"], "stores.meta.globals.variables").map((issue) => `${issue.path}: ${issue.message}`));
+      errors.push(
+        ...validateRows(record["variables"], "stores.meta.globals.variables").map(
+          (issue) => `${issue.path}: ${issue.message}`,
+        ),
+      );
     } else if (key === META_VAULT_KEY) {
       vault = record;
     } else {
@@ -79,7 +101,8 @@ export function validateWorkspaceFile(value: unknown): string[] {
     const issues = validateVaultFile({ $id: VAULT_FILE_FORMAT, vault, secrets });
     errors.push(...issues.map((issue) => `vault: ${issue.path}: ${issue.message}`));
     secrets.forEach((secret, index) => {
-      if (!isObject(secret["meta"]) || secret["meta"]["id"] !== secret["id"]) errors.push(`stores.secrets[${index}]: meta.id must be the secret's id.`);
+      if (!isObject(secret["meta"]) || secret["meta"]["id"] !== secret["id"])
+        errors.push(`stores.secrets[${index}]: meta.id must be the secret's id.`);
     });
   }
 
@@ -89,13 +112,22 @@ export function validateWorkspaceFile(value: unknown): string[] {
       const path = `stores.history[${index}]`;
       const sent = entry["sent"];
       if (typeof entry["createdAt"] !== "number") errors.push(`${path}.createdAt: Value must be a number.`);
-      if (entry["route"] !== "direct" && entry["route"] !== "bridge") errors.push(`${path}.route: Value must be direct or bridge.`);
-      if (!isObject(sent) || typeof sent["method"] !== "string" || typeof sent["url"] !== "string" || !Array.isArray(sent["headers"])) {
+      if (entry["route"] !== "direct" && entry["route"] !== "bridge")
+        errors.push(`${path}.route: Value must be direct or bridge.`);
+      if (
+        !isObject(sent) ||
+        typeof sent["method"] !== "string" ||
+        typeof sent["url"] !== "string" ||
+        !Array.isArray(sent["headers"])
+      ) {
         errors.push(`${path}.sent: Value must hold a method, a URL and headers.`);
       }
-      errors.push(...validateRequestContent(entry["template"], `${path}.template`).map((issue) => `${issue.path}: ${issue.message}`));
+      errors.push(
+        ...validateRequestContent(entry["template"], `${path}.template`).map(
+          (issue) => `${issue.path}: ${issue.message}`,
+        ),
+      );
     });
   }
   return errors;
 }
-

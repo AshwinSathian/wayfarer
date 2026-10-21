@@ -3,7 +3,17 @@ import { UiTreeNode } from "../../ui/tree";
 import { CollectionNodeData } from "./collection-tree-nodes";
 
 /** Names of the sidebar actions a context menu / keyboard shortcut / command palette entry can dispatch through `handleAction`. */
-export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "duplicate" | "delete" | "export" | "export-credentials" | "export-postman" | "settings" | "run";
+export type CollectionNodeAction =
+  | "new-folder"
+  | "new-request"
+  | "rename"
+  | "duplicate"
+  | "delete"
+  | "export"
+  | "export-credentials"
+  | "export-postman"
+  | "settings"
+  | "run";
 
 /**
  * Builds the right-click context menu for a collection/folder/request tree
@@ -13,7 +23,7 @@ export type CollectionNodeAction = "new-folder" | "new-request" | "rename" | "du
  */
 export function buildContextItems(
   node: UiTreeNode<CollectionNodeData>,
-  dispatch: (action: CollectionNodeAction, node: UiTreeNode<CollectionNodeData>) => void
+  dispatch: (action: CollectionNodeAction, node: UiTreeNode<CollectionNodeData>) => void,
 ): UiMenuItem[] {
   const data = node.data as CollectionNodeData;
 

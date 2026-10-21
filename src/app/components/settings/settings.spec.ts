@@ -9,7 +9,10 @@ describe("Settings", () => {
   let fixture: ComponentFixture<Settings>;
   /** The dialog is drawn in an overlay, outside the fixture's element. */
   const dialog = () => document.querySelector<HTMLElement>(".settings") as HTMLElement;
-  const item = (name: string) => [...dialog().querySelectorAll<HTMLButtonElement>(".settings-nav-item")].find((button) => button.textContent?.trim() === name) as HTMLButtonElement;
+  const item = (name: string) =>
+    [...dialog().querySelectorAll<HTMLButtonElement>(".settings-nav-item")].find(
+      (button) => button.textContent?.trim() === name,
+    ) as HTMLButtonElement;
   const heading = () => dialog().querySelector("#settings-pane-title")?.textContent?.trim();
   const settle = async () => {
     fixture.detectChanges();
@@ -21,7 +24,9 @@ describe("Settings", () => {
     localStorage.removeItem("wayfarer:theme");
     await TestBed.configureTestingModule({
       imports: [Settings],
-      providers: [...provideRepositories({ onChangeElsewhere: vi.fn(), listAll: async () => [], memoryOnly: () => false })],
+      providers: [
+        ...provideRepositories({ onChangeElsewhere: vi.fn(), listAll: async () => [], memoryOnly: () => false }),
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(Settings);
     fixture.componentRef.setInput("visible", true);
@@ -29,7 +34,19 @@ describe("Settings", () => {
   });
 
   it("lists eleven sections, the danger zone last, and opens at General", () => {
-    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual(["General", "Requests", "History", "Data and storage", "Vault", "Local Bridge", "Cookies", "Shortcuts", "Diagnostics", "About", "Danger zone"]);
+    expect([...dialog().querySelectorAll(".settings-nav-item")].map((button) => button.textContent?.trim())).toEqual([
+      "General",
+      "Requests",
+      "History",
+      "Data and storage",
+      "Vault",
+      "Local Bridge",
+      "Cookies",
+      "Shortcuts",
+      "Diagnostics",
+      "About",
+      "Danger zone",
+    ]);
     expect(heading()).toBe("General");
     expect(item("General").getAttribute("aria-current")).toBe("page");
     expect(item("Requests").getAttribute("aria-current")).toBeNull();
@@ -61,7 +78,8 @@ describe("Settings", () => {
   });
 
   it("Up, Down, Home and End walk the list, round its ends", () => {
-    const press = (key: string) => (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+    const press = (key: string) =>
+      (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
     item("General").focus();
     press("ArrowDown");
     expect(document.activeElement).toBe(item("Requests"));
@@ -79,19 +97,31 @@ describe("Settings", () => {
   it("the theme is one of three choices, and the one chosen is kept", async () => {
     const theme = TestBed.inject(Theme);
     const options = () => [...dialog().querySelectorAll<HTMLLabelElement>(".segmented label")];
-    const choice = (name: string) => options().find((label) => label.textContent?.trim() === name)?.querySelector("input") as HTMLInputElement;
+    const choice = (name: string) =>
+      options()
+        .find((label) => label.textContent?.trim() === name)
+        ?.querySelector("input") as HTMLInputElement;
     expect(options().map((label) => label.textContent?.trim())).toEqual(["System", "Light", "Dark"]);
     choice("Dark").click();
     await settle();
-    expect([theme.choice(), document.documentElement.getAttribute("data-theme"), localStorage.getItem("wayfarer:theme")]).toEqual(["dark", "dark", "dark"]);
+    expect([
+      theme.choice(),
+      document.documentElement.getAttribute("data-theme"),
+      localStorage.getItem("wayfarer:theme"),
+    ]).toEqual(["dark", "dark", "dark"]);
     choice("System").click();
     await settle();
     expect(theme.choice()).toBe("system");
   });
 
   it("a size is written as a person reads it, and the bar is never empty once something is stored", () => {
-    const settings = fixture.componentInstance as unknown as { size: (bytes: number) => string; used: (estimate: { usage: number; quota: number }) => number };
-    expect([0, 512, 1536, 3.6 * 1024 ** 2, 10 * 1024 ** 3, 250 * 1024 ** 3].map((bytes) => settings.size(bytes))).toEqual(["0 B", "512 B", "1.5 kB", "3.6 MB", "10 GB", "250 GB"]);
+    const settings = fixture.componentInstance as unknown as {
+      size: (bytes: number) => string;
+      used: (estimate: { usage: number; quota: number }) => number;
+    };
+    expect(
+      [0, 512, 1536, 3.6 * 1024 ** 2, 10 * 1024 ** 3, 250 * 1024 ** 3].map((bytes) => settings.size(bytes)),
+    ).toEqual(["0 B", "512 B", "1.5 kB", "3.6 MB", "10 GB", "250 GB"]);
     expect(settings.used({ usage: 0, quota: 100 })).toBe(0);
     expect(settings.used({ usage: 1, quota: 1e9 })).toBe(1);
     expect(settings.used({ usage: 50, quota: 100 })).toBe(50);
@@ -101,7 +131,8 @@ describe("Settings", () => {
 
   describe("the Local Bridge pane", () => {
     const input = (id: string) => dialog().querySelector<HTMLInputElement>(id) as HTMLInputElement;
-    const button = (label: string) => dialog().querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`) as HTMLButtonElement;
+    const button = (label: string) =>
+      dialog().querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`) as HTMLButtonElement;
     const type = async (id: string, value: string) => {
       input(id).value = value;
       input(id).dispatchEvent(new Event("input"));
@@ -127,7 +158,9 @@ describe("Settings", () => {
     });
 
     it("explains the browser's question about the local network before it is asked (P6.2)", () => {
-      expect(dialog().querySelector(".bridge-lna")?.textContent?.replace(/\s+/g, " ")).toContain("may ask whether this site may look for and connect to devices on your local network");
+      expect(dialog().querySelector(".bridge-lna")?.textContent?.replace(/\s+/g, " ")).toContain(
+        "may ask whether this site may look for and connect to devices on your local network",
+      );
     });
 
     it("pairs with the code the bridge shows: the token it gives is saved, and the code field is emptied (P6.2)", async () => {
@@ -149,13 +182,17 @@ describe("Settings", () => {
       button("Pair").click();
       await settle();
       await settle();
-      expect(dialog().querySelector(".bridge-pair-problem")?.textContent).toContain("That is not the code the bridge shows.");
+      expect(dialog().querySelector(".bridge-pair-problem")?.textContent).toContain(
+        "That is not the code the bridge shows.",
+      );
       expect(bridge.config().token).toBe("a-token-of-the-bridge-0123456789");
     });
 
     it("Discard puts back what is stored", async () => {
       await type("#bridge-url-input", "http://127.0.0.1:9999");
-      const discard = [...dialog().querySelectorAll("button")].find((candidate) => candidate.textContent?.trim() === "Discard") as HTMLButtonElement;
+      const discard = [...dialog().querySelectorAll("button")].find(
+        (candidate) => candidate.textContent?.trim() === "Discard",
+      ) as HTMLButtonElement;
       discard.click();
       await settle();
       expect(input("#bridge-url-input").value).toBe("http://127.0.0.1:7717");
@@ -163,9 +200,14 @@ describe("Settings", () => {
     });
 
     it("the route Local Bridge with no address is refused, and says why", async () => {
-      [...dialog().querySelectorAll("[aria-labelledby=\"bridge-route-label\"] label")].find((candidate) => candidate.textContent?.trim() === "Local Bridge")?.querySelector("input")?.click();
+      [...dialog().querySelectorAll('[aria-labelledby="bridge-route-label"] label')]
+        .find((candidate) => candidate.textContent?.trim() === "Local Bridge")
+        ?.querySelector("input")
+        ?.click();
       await type("#bridge-url-input", "  ");
-      expect(dialog().querySelector('[role="alert"]')?.textContent).toContain("Give the bridge's address, or choose another route.");
+      expect(dialog().querySelector('[role="alert"]')?.textContent).toContain(
+        "Give the bridge's address, or choose another route.",
+      );
       expect(button("Save").disabled).toBe(true);
       expect(button("Test connection").disabled).toBe(true);
     });
@@ -173,7 +215,11 @@ describe("Settings", () => {
     it("Test connection asks the address that is typed, not the one stored, and says what came back", async () => {
       const bridge = TestBed.inject(BridgeSettings);
       const notBridge = "What answered at this address is not a Local Bridge.";
-      const health = vi.spyOn(bridge, "checkHealth").mockResolvedValueOnce(undefined).mockResolvedValueOnce("Not reachable. Is the bridge running, and is this page's origin one it allows?").mockResolvedValueOnce(notBridge);
+      const health = vi
+        .spyOn(bridge, "checkHealth")
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce("Not reachable. Is the bridge running, and is this page's origin one it allows?")
+        .mockResolvedValueOnce(notBridge);
       await type("#bridge-url-input", "http://127.0.0.1:9999 ");
       const verdict = async (text: string) =>
         vi.waitFor(async () => {

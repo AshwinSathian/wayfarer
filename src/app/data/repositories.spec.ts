@@ -1,13 +1,13 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 import { repositories, type Repositories } from "../../testing/repositories";
-import { IdbCore } from './idb-core';
+import { IdbCore } from "./idb-core";
 import { PastRequest } from "@wayfarer/core";
-import { historyEntry } from '../../testing/request-fixtures';
+import { historyEntry } from "../../testing/request-fixtures";
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
 const createRequest = (fields: Parameters<typeof historyEntry>[0] = {}): PastRequest => historyEntry(fields);
 
-describe('the repositories over IdbCore', () => {
+describe("the repositories over IdbCore", () => {
   let service: Repositories;
   let core: IdbCore;
 
@@ -31,24 +31,24 @@ describe('the repositories over IdbCore', () => {
     await core.resetDatabase();
   });
 
-  it('adds and retrieves requests by id', async () => {
-    const key = await service.history.add(createRequest({ url: 'https://example.com/1' }), 500);
-    expect(typeof key).toBe('number');
+  it("adds and retrieves requests by id", async () => {
+    const key = await service.history.add(createRequest({ url: "https://example.com/1" }), 500);
+    expect(typeof key).toBe("number");
 
     const stored = await service.history.get(key!);
-    expect(stored?.sent.url).toBe('https://example.com/1');
+    expect(stored?.sent.url).toBe("https://example.com/1");
   });
 
-  it('returns latest requests ordered by createdAt', async () => {
-    await service.history.add(createRequest({ url: 'https://example.com/old', createdAt: 1 }), 500);
-    await service.history.add(createRequest({ url: 'https://example.com/new', createdAt: 5 }), 500);
+  it("returns latest requests ordered by createdAt", async () => {
+    await service.history.add(createRequest({ url: "https://example.com/old", createdAt: 1 }), 500);
+    await service.history.add(createRequest({ url: "https://example.com/new", createdAt: 5 }), 500);
 
     const latest = await service.history.getLatest();
-    expect(latest[0]?.sent.url).toBe('https://example.com/new');
-    expect(latest[1]?.sent.url).toBe('https://example.com/old');
+    expect(latest[0]?.sent.url).toBe("https://example.com/new");
+    expect(latest[1]?.sent.url).toBe("https://example.com/old");
   });
 
-  it('keeps no more than the cap: the oldest entries go when a new one is written', async () => {
+  it("keeps no more than the cap: the oldest entries go when a new one is written", async () => {
     for (const createdAt of [3, 1, 2, 4]) {
       await service.history.add(createRequest({ url: `https://example.com/${createdAt}`, createdAt }), 3);
     }
@@ -59,17 +59,17 @@ describe('the repositories over IdbCore', () => {
     expect((await service.history.getLatest()).map((entry) => entry.createdAt)).toEqual([5]);
   });
 
-  it('deletes and clears requests', async () => {
-    const key = await service.history.add(createRequest({ url: 'https://delete.me' }), 500);
+  it("deletes and clears requests", async () => {
+    const key = await service.history.add(createRequest({ url: "https://delete.me" }), 500);
     await service.history.delete(key!);
     expect(await service.history.get(key!)).toBeNull();
 
-    await service.history.add(createRequest({ url: 'https://clear.me' }), 500);
+    await service.history.add(createRequest({ url: "https://clear.me" }), 500);
     await service.history.clear();
     expect(await service.history.getLatest()).toEqual([]);
   });
 
-  it('delegates collections/environments/secrets calls to the respective repositories', async () => {
+  it("delegates collections/environments/secrets calls to the respective repositories", async () => {
     // Full CRUD round-trips against a real IndexedDB per aggregate are
     // covered directly on each repository (collections-repository.spec.ts
     // etc.) where each spec owns and cleans up only its own store — sharing
@@ -78,20 +78,20 @@ describe('the repositories over IdbCore', () => {
     // cross-test contamination that made the old single database class risky to
     // extend. This just proves the facade methods actually reach the doc
     // the repository produces, once, narrowly.
-    const collection = await service.collections.createCollection({ name: 'Smoke test collection' });
-    expect(collection.name).toBe('Smoke test collection');
+    const collection = await service.collections.createCollection({ name: "Smoke test collection" });
+    expect(collection.name).toBe("Smoke test collection");
     await service.collections.deleteCollection(collection.meta.id);
   });
 });
 
-describe('the repositories (memory fallback, indexedDB unavailable)', () => {
+describe("the repositories (memory fallback, indexedDB unavailable)", () => {
   const originalIndexedDB = globalThis.indexedDB;
 
   afterEach(() => {
     (globalThis as { indexedDB: IDBFactory }).indexedDB = originalIndexedDB;
   });
 
-  it('uses in-memory storage end-to-end when indexedDB is unavailable', async () => {
+  it("uses in-memory storage end-to-end when indexedDB is unavailable", async () => {
     delete (globalThis as unknown as Record<string, unknown>)["indexedDB"];
 
     TestBed.configureTestingModule({});
@@ -101,12 +101,12 @@ describe('the repositories (memory fallback, indexedDB unavailable)', () => {
     await service.core.init();
     expect(core.useMemoryFallback).toBe(true);
 
-    const key = await service.history.add(createRequest({ url: 'https://memory-only', createdAt: 42 }), 500);
+    const key = await service.history.add(createRequest({ url: "https://memory-only", createdAt: 42 }), 500);
     expect(key).toBe(1);
 
     const latest = await service.history.getLatest();
     expect(latest.length).toBe(1);
-    expect(latest[0]?.sent.url).toBe('https://memory-only');
+    expect(latest[0]?.sent.url).toBe("https://memory-only");
 
     // The cap holds in memory too.
     await service.history.add(createRequest({ createdAt: 50 }), 1);

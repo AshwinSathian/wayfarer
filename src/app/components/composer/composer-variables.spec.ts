@@ -2,7 +2,16 @@ import { TestBed } from "@angular/core/testing";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { inCollection, rowsOf } from "../../../testing/request-fixtures";
-import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, makeRequestDoc, meta, rows, setupComposer } from "../../../testing/composer-setup";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  buildEnvironment,
+  jsonBytes,
+  makeRequestDoc,
+  meta,
+  rows,
+  setupComposer,
+} from "../../../testing/composer-setup";
 import { Composer } from "./composer";
 
 // P2.4: where a {{variable}} gets its value, as the request that leaves shows it.
@@ -24,7 +33,15 @@ describe("Composer: variable scopes", () => {
 
   function collection(id: string, variables: Record<string, string>) {
     return {
-      collection: { id, meta: meta(id), name: id, order: 1, variables: rowsOf(variables), ...inCollection, scriptTrust: { trusted: true } },
+      collection: {
+        id,
+        meta: meta(id),
+        name: id,
+        order: 1,
+        variables: rowsOf(variables),
+        ...inCollection,
+        scriptTrust: { trusted: true },
+      },
       folders: [],
       requests: [],
     };
@@ -40,7 +57,10 @@ describe("Composer: variable scopes", () => {
 
   it("uses the environment's value, then the collection's, then the global one", async () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ all: "env" }));
-    collectionsService.setTree([collection("c1", { all: "collection", two: "collection" }), collection("other", { three: "wrong" })]);
+    collectionsService.setTree([
+      collection("c1", { all: "collection", two: "collection" }),
+      collection("other", { three: "wrong" }),
+    ]);
     environmentsService.globals.set(rowsOf({ all: "global", two: "global", three: "global" }));
     requestSave.bind(makeRequestDoc({ collectionId: "c1" }));
 

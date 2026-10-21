@@ -35,20 +35,34 @@ const SITE = { performance: 95, accessibility: 100, seo: 100 };
 
 export function judgeSite(reports) {
   if (!reports.length) return { failures: ["no Lighthouse report to judge"] };
-  const scores = Object.fromEntries(Object.keys(SITE).map((name) => [name, Math.round(median(reports.map((report) => report.categories[name].score)) * 100)]));
-  return { ...scores, failures: Object.entries(SITE).flatMap(([name, least]) => (scores[name] < least ? [`${name} ${scores[name]} is under ${least}`] : [])) };
+  const scores = Object.fromEntries(
+    Object.keys(SITE).map((name) => [
+      name,
+      Math.round(median(reports.map((report) => report.categories[name].score)) * 100),
+    ]),
+  );
+  return {
+    ...scores,
+    failures: Object.entries(SITE).flatMap(([name, least]) =>
+      scores[name] < least ? [`${name} ${scores[name]} is under ${least}`] : [],
+    ),
+  };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href && process.argv[2] === "--site") {
   const result = judgeSite(process.argv.slice(3).map((file) => JSON.parse(readFileSync(file, "utf8"))));
-  console.log(`Lighthouse, the site (mobile, median of ${process.argv.length - 3}): performance ${result.performance}, accessibility ${result.accessibility}, seo ${result.seo}`);
+  console.log(
+    `Lighthouse, the site (mobile, median of ${process.argv.length - 3}): performance ${result.performance}, accessibility ${result.accessibility}, seo ${result.seo}`,
+  );
   if (result.failures.length) {
     console.error(`Site budget broken:\n${result.failures.map((failure) => `  - ${failure}`).join("\n")}`);
     process.exit(1);
   }
 } else if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const result = judge(process.argv.slice(2).map((file) => JSON.parse(readFileSync(file, "utf8"))));
-  console.log(`Lighthouse (desktop, median of ${process.argv.length - 2}): performance ${result.performance}, LCP ${result.lcp} ms, TBT ${result.tbt} ms`);
+  console.log(
+    `Lighthouse (desktop, median of ${process.argv.length - 2}): performance ${result.performance}, LCP ${result.lcp} ms, TBT ${result.tbt} ms`,
+  );
   if (result.failures.length) {
     console.error(`Performance budget broken:\n${result.failures.map((failure) => `  - ${failure}`).join("\n")}`);
     process.exit(1);

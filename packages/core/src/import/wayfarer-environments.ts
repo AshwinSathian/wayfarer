@@ -29,13 +29,19 @@ export function exportedValue(protectedValues: ProtectedValues): (text: string) 
     protectedValues.mode === "references"
       ? text
       : text.replace(/\{\{\s*\$secret\.([a-z0-9-]+)\s*\}\}/gi, (_reference, id: string) =>
-          protectedValues.mode === "plain" ? protectedValues.plaintexts.get(id) ?? "" : ""
+          protectedValues.mode === "plain" ? (protectedValues.plaintexts.get(id) ?? "") : "",
         );
 }
 
-export function serializeEnvironmentExport(environments: EnvironmentDoc[], protectedValues: ProtectedValues = { mode: "strip" }): string {
+export function serializeEnvironmentExport(
+  environments: EnvironmentDoc[],
+  protectedValues: ProtectedValues = { mode: "strip" },
+): string {
   const value = exportedValue(protectedValues);
-  const prepared = prepareEnvironments(environments).map((env) => ({ ...env, vars: env.vars.map((row) => ({ ...row, value: value(row.value) })) }));
+  const prepared = prepareEnvironments(environments).map((env) => ({
+    ...env,
+    vars: env.vars.map((row) => ({ ...row, value: value(row.value) })),
+  }));
   return JSON.stringify(
     sortKeys({
       $id: ENVIRONMENTS_FORMAT,
@@ -43,13 +49,11 @@ export function serializeEnvironmentExport(environments: EnvironmentDoc[], prote
       ...(protectedValues.mode === "references" && protectedValues.vault && { vault: protectedValues.vault }),
     }),
     null,
-    2
+    2,
   );
 }
 
-export function validateEnvironmentExport(
-  input: string | object
-): EnvironmentValidationResult {
+export function validateEnvironmentExport(input: string | object): EnvironmentValidationResult {
   if (isOversizedImport(input)) {
     return { ok: false, errors: [IMPORT_TOO_LARGE] };
   }

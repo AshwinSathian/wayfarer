@@ -40,11 +40,16 @@ test.beforeEach(({ browserName }) => {
  * checking the ring at every stop on the way.
  */
 async function tabTo(page: Page, target: Locator, max = 120): Promise<void> {
-  const has = () => target.evaluate((element) => element === document.activeElement || element.contains(document.activeElement));
+  const has = () =>
+    target.evaluate((element) => element === document.activeElement || element.contains(document.activeElement));
   if (await has()) return;
   const before = await target.evaluate((element) => {
     const active = document.activeElement;
-    return !!active && active !== document.body && (element.compareDocumentPosition(active) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+    return (
+      !!active &&
+      active !== document.body &&
+      (element.compareDocumentPosition(active) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+    );
   });
   const key = before ? `Shift+${TAB}` : TAB;
   for (let stop = 0; stop < max; stop++) {
@@ -73,7 +78,9 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
   }
 });
 
-test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an address, a header, send, save, run", async ({ page }) => {
+test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an address, a header, send, save, run", async ({
+  page,
+}) => {
   test.slow();
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
@@ -98,7 +105,8 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   // A header: to the composer's tabs (one stop: the open one), arrows to Headers, then its first row.
   const headers = page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true });
   await tabTo(page, page.locator('.composer-pane [role="tab"][tabindex="0"]'));
-  for (let step = 0; step < 6 && !(await headers.evaluate((element) => element === document.activeElement)); step++) await page.keyboard.press("ArrowLeft");
+  for (let step = 0; step < 6 && !(await headers.evaluate((element) => element === document.activeElement)); step++)
+    await page.keyboard.press("ArrowLeft");
   await expect(headers).toBeFocused();
   await tabTo(page, page.getByLabel("Headers name, row 1"));
   await page.keyboard.type("X-By");
@@ -132,7 +140,8 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   await page.keyboard.press("Shift+F10");
   const run = page.getByRole("menuitem", { name: "Run…" });
   await expect(page.getByRole("menuitem").first()).toBeFocused();
-  for (let item = 0; item < 12 && !(await run.evaluate((element) => element === document.activeElement)); item++) await page.keyboard.press("ArrowDown");
+  for (let item = 0; item < 12 && !(await run.evaluate((element) => element === document.activeElement)); item++)
+    await page.keyboard.press("ArrowDown");
   await expect(run).toBeFocused();
   await page.keyboard.press("Enter");
   const view = page.locator("app-run-view");
@@ -143,16 +152,31 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   await expect(view).toContainText("By keys");
 });
 
-test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to its button when Escape closes it", async ({ page }) => {
+test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to its button when Escape closes it", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  for (const opener of ["Request history", "Settings", "Local Bridge settings", "Manage secrets", "Environments", "New collection", "Import a cURL command", "Open command palette"]) {
+  for (const opener of [
+    "Request history",
+    "Settings",
+    "Local Bridge settings",
+    "Manage secrets",
+    "Environments",
+    "New collection",
+    "Import a cURL command",
+    "Open command palette",
+  ]) {
     const button = page.getByRole("button", { name: opener, exact: true });
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog").first(), opener).toBeVisible();
-    await expect.poll(() => page.evaluate(() => document.activeElement?.closest('[role="dialog"], dialog') !== null), { message: opener }).toBe(true);
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.closest('[role="dialog"], dialog') !== null), {
+        message: opener,
+      })
+      .toBe(true);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog"), opener).toHaveCount(0);
     await expect(button, opener).toBeFocused();

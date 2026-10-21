@@ -2,7 +2,9 @@
 <div class="address-bar min-w-0 flex-[1_1_20rem]">
   <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. -->
   <mat-form-field class="field method-field">
-    <input class="font-mono" matInput
+    <input
+      class="font-mono"
+      matInput
       #methodInput
       aria-label="HTTP method"
       maxlength="32"
@@ -11,21 +13,24 @@
       autocomplete="off"
       [value]="store.draft().method"
       (input)="onMethodInput(methodInput)"
-     />
+    />
   </mat-form-field>
   <button
-    uiButton="icon" class="btn-plain address-method method-menu"
+    uiButton="icon"
+    class="btn-plain address-method method-menu"
     type="button"
     aria-label="Common methods"
     ngMenuTrigger
     #methodsTrigger="ngMenuTrigger"
     [menu]="methods.menu()"
-  ><app-icon name="keyboard_arrow_down" class="icon-sm" /></button>
+    ><app-icon name="keyboard_arrow_down" class="icon-sm"
+  /></button>
   <ui-menu #methods [trigger]="methodsTrigger" [items]="methodItems" />
 
   <!-- URL input -->
   <mat-form-field class="field address-field">
-    <input matInput
+    <input
+      matInput
       #urlInput
       type="url"
       class="address-url font-mono"
@@ -33,19 +38,21 @@
       (ngModelChange)="store.setUrl($event)"
       (paste)="onPaste($event)"
       placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
-     />
+    />
   </mat-form-field>
 </div>
 
 <!-- Action buttons -->
 <div class="flex shrink-0 items-center gap-2">
   <button
-    uiButton="outlined" class="btn-secondary btn-square"
+    uiButton="outlined"
+    class="btn-secondary btn-square"
     type="button"
     uiTooltip="New request"
     aria-label="New request"
     (click)="view.clear()"
-  ><app-icon name="add" /></button>
+    ><app-icon name="add"
+  /></button>
   <!--
     Disabled native buttons ignore an author-specified `cursor` in most
     browsers (the UA always paints the default arrow over a genuinely
@@ -71,11 +78,13 @@
       [softDisabled]="false"
       [menu]="curlMenu.menu()"
       class="btn-secondary btn-square curl-btn"
-    ><app-icon name="terminal" /></button>
+      ><app-icon name="terminal"
+    /></button>
   </span>
   <ui-menu #curlMenu [trigger]="curlTrigger" [items]="curlItems" />
   <button
-    uiButton="outlined" class="btn-secondary btn-square"
+    uiButton="outlined"
+    class="btn-secondary btn-square"
     type="button"
     [disabled]="!store.draft().url || savingRequest()"
     [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
@@ -91,7 +100,13 @@
   <!-- One button each, whose label and action change: a button swapped for another took focus with it. -->
   @if (socket.isSocket()) {
   <!-- An address of a WebSocket (P5.7): it is connected to, not sent. -->
-  <button uiButton="filled" type="button" class="send-btn" (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()">{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button>
+  <button
+    uiButton="filled"
+    type="button"
+    class="send-btn"
+    (click)="socketStatus() === 'closed' ? socket.connect() : socket.disconnect()"
+    >{{ socketStatus() === 'closed' ? "Connect" : "Disconnect" }}</button
+  >
   } @else {
   <button
     uiButton="filled"
@@ -100,6 +115,7 @@
     [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
     (click)="store.loadingState() ? store.cancel() : send.emit()"
     class="send-btn"
-  >{{ store.loadingState() ? "Cancel" : "Send" }}</button>
+    >{{ store.loadingState() ? "Cancel" : "Send" }}</button
+  >
   }
 </div>

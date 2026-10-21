@@ -40,7 +40,7 @@ sw.addEventListener("install", (event) => {
       await cache.addAll(PRECACHE.map((path) => new Request(path, { cache: "reload" })));
       // A first install takes over at once; a new build waits for the page's go-ahead.
       if (!sw.registration.active) await sw.skipWaiting();
-    })()
+    })(),
   );
 });
 
@@ -52,13 +52,14 @@ sw.addEventListener("activate", (event) => {
         if (key.startsWith(CACHE_PREFIX) && key !== CACHE) await caches.delete(key);
       }
       await sw.clients.claim();
-    })()
+    })(),
   );
 });
 
 sw.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") void sw.skipWaiting();
-  else if (Array.isArray((event.data as { loaded?: unknown } | null)?.loaded)) event.waitUntil(keep((event.data as { loaded: unknown[] }).loaded));
+  else if (Array.isArray((event.data as { loaded?: unknown } | null)?.loaded))
+    event.waitUntil(keep((event.data as { loaded: unknown[] }).loaded));
 });
 
 /**

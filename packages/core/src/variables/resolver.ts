@@ -69,7 +69,7 @@ export class VariableNestingError extends Error {
     super(
       chain.indexOf(chain[chain.length - 1]) < chain.length - 1
         ? `Variables refer to each other in a circle: ${path}.`
-        : `Variables are nested more than ${MAX_VARIABLE_DEPTH} deep: ${path}.`
+        : `Variables are nested more than ${MAX_VARIABLE_DEPTH} deep: ${path}.`,
     );
   }
 }
@@ -115,7 +115,7 @@ export class VariableResolver {
 
   constructor(
     stack: ScopeStack,
-    private readonly secret: (id: string) => string | undefined = () => undefined
+    private readonly secret: (id: string) => string | undefined = () => undefined,
   ) {
     this.scopes = VARIABLE_SCOPES.map((scope) => [scope, variablesByName(stack[scope] ?? [])]);
   }
@@ -137,7 +137,9 @@ export class VariableResolver {
 
   private tokensOf(text: string, location: VariableToken["location"], field: string): VariableToken[] {
     const names = new Set([...text.matchAll(PLACEHOLDER)].map((match) => match[1].trim()));
-    return [...names].filter((key) => PLAIN_NAME.test(key) || this.find(key)).map((key) => ({ key, ...this.describe(key), location, field }));
+    return [...names]
+      .filter((key) => PLAIN_NAME.test(key) || this.find(key))
+      .map((key) => ({ key, ...this.describe(key), location, field }));
   }
 
   private describe(name: string): Pick<VariableToken, "value" | "source" | "error"> {

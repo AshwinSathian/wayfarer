@@ -14,7 +14,9 @@ Each thing Wayfarer says it does is a row of the claims ledger, with the test th
 ## Docs
 
 ${docs()
-  .map((doc) => `- [${doc.title}](${SITE}/docs/${doc.id}/)${docDescription(doc.id) ? `: ${docDescription(doc.id)}` : ""}`)
+  .map(
+    (doc) => `- [${doc.title}](${SITE}/docs/${doc.id}/)${docDescription(doc.id) ? `: ${docDescription(doc.id)}` : ""}`,
+  )
   .join("\n")}
 
 ## More

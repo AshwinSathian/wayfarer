@@ -79,9 +79,11 @@ export interface Claim {
 
 /** The rows of the claims ledger, docs/claims.md. */
 export function claims(): Claim[] {
-  return [...read("docs/claims.md").matchAll(/^\| (C-\d{3}) \| (.+?) \| .+? \| (.+?) \|$/gm)].map(([, id, text, tests]) => ({
-    id,
-    text: text.replace(/`/g, ""),
-    tests: tests.split(", "),
-  }));
+  return [...read("docs/claims.md").matchAll(/^\| (C-\d{3}) \| (.+?) \| .+? \| (.+?) \|$/gm)].map(
+    ([, id, text, tests]) => ({
+      id,
+      text: text.replace(/`/g, ""),
+      tests: tests.split(", "),
+    }),
+  );
 }

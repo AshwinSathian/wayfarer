@@ -15,7 +15,8 @@ interface Echo {
 }
 
 const header = (echo: Echo, name: string) => echo.headers.find(([key]) => key === name)?.[1];
-const bytesOf = (echo: Echo) => (echo.body === null ? Buffer.from(echo.bodyBase64 ?? "", "base64") : Buffer.from(echo.body, "utf8"));
+const bytesOf = (echo: Echo) =>
+  echo.body === null ? Buffer.from(echo.bodyBase64 ?? "", "base64") : Buffer.from(echo.body, "utf8");
 
 async function watchViolations(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -27,7 +28,9 @@ async function watchViolations(page: Page): Promise<void> {
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 
 async function sendAndEcho(page: Page): Promise<Echo> {
-  const response = page.waitForResponse((r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS");
+  const response = page.waitForResponse(
+    (r) => r.url().startsWith(`${ECHO}/echo`) && r.request().method() !== "OPTIONS",
+  );
   await send(page);
   return (await (await response).json()) as Echo;
 }
@@ -71,11 +74,15 @@ function parseMultipart(body: Buffer, contentType: string): { name: string; file
 test("raw: the text is sent as written, typed by its language; a root-level JSON array is sent", async ({ page }) => {
   await watchViolations(page);
   const text = '[1, {"a": "é"},\n  null]';
-  await seedAndOpen(page, {}, {
-    method: "POST",
-    url: `${ECHO}/echo`,
-    storedBody: { mode: "raw", raw: { language: "json", text } },
-  });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "POST",
+      url: `${ECHO}/echo`,
+      storedBody: { mode: "raw", raw: { language: "json", text } },
+    },
+  );
 
   const json = await sendAndEcho(page);
   expect(json.body).toBe(text);
@@ -97,11 +104,15 @@ test("raw: the text is sent as written, typed by its language; a root-level JSON
 
 test("none: a POST is sent with no body and no Content-Type, and the text typed earlier is kept", async ({ page }) => {
   await watchViolations(page);
-  await seedAndOpen(page, {}, {
-    method: "POST",
-    url: `${ECHO}/echo`,
-    storedBody: { mode: "raw", raw: { language: "text", text: "kept" } },
-  });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "POST",
+      url: `${ECHO}/echo`,
+      storedBody: { mode: "raw", raw: { language: "text", text: "kept" } },
+    },
+  );
   await choose(page, "Body", "None");
 
   const none = await sendAndEcho(page);
@@ -132,7 +143,9 @@ test("form: fields are URL-encoded in order, a switched-off row is left out", as
   expect(await violations(page)).toEqual([]);
 });
 
-test("multipart: a text part and a 1 MB file arrive byte for byte, also after the request is saved and the page reloaded", async ({ page }) => {
+test("multipart: a text part and a 1 MB file arrive byte for byte, also after the request is saved and the page reloaded", async ({
+  page,
+}) => {
   const file = randomBytes(1 << 20);
   await postWithBody(page, "Multipart");
   await page.getByLabel("Part name, row 1").fill("note");
@@ -140,14 +153,19 @@ test("multipart: a text part and a 1 MB file arrive byte for byte, also after th
   await page.getByRole("button", { name: "Add part" }).click();
   await page.getByLabel("Part name, row 2").fill("upload");
   await choose(page, "Part type, row 2", "File");
-  await page.getByLabel("File for part 2").setInputFiles({ name: "one-megabyte.bin", mimeType: "application/octet-stream", buffer: file });
+  await page
+    .getByLabel("File for part 2")
+    .setInputFiles({ name: "one-megabyte.bin", mimeType: "application/octet-stream", buffer: file });
   await expect(page.getByText("one-megabyte.bin")).toBeVisible();
 
   const check = (echo: Echo) => {
     const type = header(echo, "content-type") ?? "";
     expect(type).toMatch(/^multipart\/form-data; boundary=/);
     const parts = parseMultipart(bytesOf(echo), type);
-    expect(parts.map((part) => [part.name, part.fileName])).toEqual([["note", undefined], ["upload", "one-megabyte.bin"]]);
+    expect(parts.map((part) => [part.name, part.fileName])).toEqual([
+      ["note", undefined],
+      ["upload", "one-megabyte.bin"],
+    ]);
     expect(parts[0].data.toString("utf8")).toBe("héllo");
     expect(parts[1].data.equals(file)).toBe(true);
   };
@@ -194,7 +212,9 @@ test("binary: the file is the body, byte for byte, with the file's type", async 
   await send(page);
   await expect(page.getByText("Choose a file for the body, or set the body to None.")).toBeVisible();
 
-  await page.getByLabel("File to send as the body").setInputFiles({ name: "pixel.png", mimeType: "image/png", buffer: file });
+  await page
+    .getByLabel("File to send as the body")
+    .setInputFiles({ name: "pixel.png", mimeType: "image/png", buffer: file });
   await expect(page.getByText("pixel.png")).toBeVisible();
   const echo = await sendAndEcho(page);
 

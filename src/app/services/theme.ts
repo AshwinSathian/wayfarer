@@ -20,7 +20,9 @@ export class Theme {
 
   readonly choice = signal<ThemeChoice>("system");
   /** The theme that is drawn. */
-  readonly theme = computed<"dark" | "light">(() => (this.choice() === "system" ? this.system() : (this.choice() as "dark" | "light")));
+  readonly theme = computed<"dark" | "light">(() =>
+    this.choice() === "system" ? this.system() : (this.choice() as "dark" | "light"),
+  );
 
   constructor() {
     try {

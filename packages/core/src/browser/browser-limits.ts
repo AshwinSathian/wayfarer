@@ -60,7 +60,10 @@ const FORBIDDEN_METHOD = /\b(connect|trace|track)\b/i;
 function isForbidden(name: string, value: string): boolean {
   const lower = name.toLowerCase();
   return (
-    FORBIDDEN.has(lower) || lower.startsWith("proxy-") || lower.startsWith("sec-") || (METHOD_OVERRIDES.has(lower) && FORBIDDEN_METHOD.test(value))
+    FORBIDDEN.has(lower) ||
+    lower.startsWith("proxy-") ||
+    lower.startsWith("sec-") ||
+    (METHOD_OVERRIDES.has(lower) && FORBIDDEN_METHOD.test(value))
   );
 }
 
@@ -97,11 +100,26 @@ function unsafeHeader(name: string, value: string): string | null {
 }
 
 function isLoopback(hostname: string): boolean {
-  return hostname === "localhost" || hostname.endsWith(".localhost") || hostname === "[::1]" || /^127(\.\d{1,3}){3}$/.test(hostname);
+  return (
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname === "[::1]" ||
+    /^127(\.\d{1,3}){3}$/.test(hostname)
+  );
 }
 
 // What the Local Bridge does not pass on (`HOP_BY_HOP_HEADERS` in packages/bridge/src/server.js): Node sets these for the connection it makes.
-const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade", "content-length"]);
+const BRIDGE_SETS = new Set([
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "content-length",
+]);
 
 /**
  * What the browser will do to this request when the page at `origin` sends
@@ -113,10 +131,21 @@ const BRIDGE_SETS = new Set(["connection", "keep-alive", "proxy-authenticate", "
  * It reads the request as text: a URL it cannot parse (a `{{variable}}` left
  * in it) gets no statement about origins.
  */
-export function browserLimits(request: LimitsRequest, page: { origin: string; route: "direct" | "bridge" }): BrowserLimits {
+export function browserLimits(
+  request: LimitsRequest,
+  page: { origin: string; route: "direct" | "bridge" },
+): BrowserLimits {
   if (page.route === "bridge") {
     const dropped = request.headers.filter(([name]) => BRIDGE_SETS.has(name.toLowerCase())).map(([name]) => name);
-    return { route: "bridge", dropped, crossOrigin: false, preflight: [], mixedContent: null, adds: [], suppresses: [] };
+    return {
+      route: "bridge",
+      dropped,
+      crossOrigin: false,
+      preflight: [],
+      mixedContent: null,
+      adds: [],
+      suppresses: [],
+    };
   }
   const dropped = request.headers.filter(([name, value]) => isForbidden(name, value)).map(([name]) => name);
   const sent = request.headers.filter(([name, value]) => !isForbidden(name, value));
@@ -139,7 +168,11 @@ export function browserLimits(request: LimitsRequest, page: { origin: string; ro
   }
 
   const mixedContent =
-    target && page.origin.startsWith("https:") && target.protocol === "http:" ? (isLoopback(target.hostname) ? "loopback" : "blocked") : null;
+    target && page.origin.startsWith("https:") && target.protocol === "http:"
+      ? isLoopback(target.hostname)
+        ? "loopback"
+        : "blocked"
+      : null;
 
   return {
     route: "direct",

@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The code is formatted by Prettier, and CI holds it there.** Nothing
+  in the app or the site changes: compared build against build, the
+  templates' text and the site's pages render as they did. Before, the code
+  had no formatter, and line lengths and wrapping varied from file to
+  file. `npm run format` writes it; `npm run format:check` runs in CI.
+
 - **The icon in a square button sits in its middle, and Send keeps its
   edge in high-contrast mode.** Before, the icon of the outlined square
   buttons (New request, Copy as cURL and Save beside the address, New

@@ -41,12 +41,7 @@ export function validateUrl(text: string): boolean {
   // as *some* hostname but was never actually a URL — that's exactly the input
   // that used to slip through and resolve against the app's own origin.
   const hostname = parsed.hostname;
-  return (
-    hostname === "localhost" ||
-    hostname.includes(".") ||
-    hostname.includes(":") ||
-    !!parsed.port
-  );
+  return hostname === "localhost" || hostname.includes(".") || hostname.includes(":") || !!parsed.port;
 }
 
 /** `base?query#hash`, split as text: the endpoint field may hold `{{variables}}` and need not parse as a URL. */
@@ -74,7 +69,11 @@ function encodeQueryPart(text: string): string {
  * there is no query.
  */
 export function parseParamsFromUrl(url: string): QueryParamRow[] {
-  const entries = [...new URLSearchParams(splitEndpoint(url).query)].map(([key, value]) => ({ key, value, enabled: true }));
+  const entries = [...new URLSearchParams(splitEndpoint(url).query)].map(([key, value]) => ({
+    key,
+    value,
+    enabled: true,
+  }));
   return entries.length ? entries : [{ key: "", value: "", enabled: true }];
 }
 

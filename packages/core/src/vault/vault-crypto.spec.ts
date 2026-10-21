@@ -115,7 +115,10 @@ describe("vault crypto", () => {
   });
 
   describe("validateVaultFile", () => {
-    const record: VaultRecord = { kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: "c2FsdA" }, wrappedDek: "d3JhcHBlZA" };
+    const record: VaultRecord = {
+      kdf: { alg: "PBKDF2-SHA256", iterations: 600_000, salt: "c2FsdA" },
+      wrappedDek: "d3JhcHBlZA",
+    };
     const file = () => ({
       $id: VAULT_FILE_FORMAT,
       vault: structuredClone(record),
@@ -135,14 +138,16 @@ describe("vault crypto", () => {
       expect(paths(null)).toEqual(["$"]);
       expect(paths({ ...file(), $id: "wayfarer/vault/2" })).toEqual(["$id"]);
       expect(paths({ $id: VAULT_FILE_FORMAT })).toEqual(["vault", "secrets"]);
-      expect(paths({ ...file(), vault: { kdf: { alg: "scrypt", iterations: "many", salt: 5 }, wrappedDek: "a+b" } })).toEqual([
-        "vault.kdf.alg",
-        "vault.kdf.iterations",
-        "vault.kdf.salt",
-        "vault.wrappedDek",
-      ]);
+      expect(
+        paths({ ...file(), vault: { kdf: { alg: "scrypt", iterations: "many", salt: 5 }, wrappedDek: "a+b" } }),
+      ).toEqual(["vault.kdf.alg", "vault.kdf.iterations", "vault.kdf.salt", "vault.wrappedDek"]);
       expect(paths({ ...file(), vault: { ...record, kdf: null } })).toEqual(["vault.kdf"]);
-      expect(paths({ ...file(), secrets: [null, { id: "", name: 1, environmentId: 2, envelope: { iv: "", ct: "=" } }, { id: "x", name: "n" }] })).toEqual([
+      expect(
+        paths({
+          ...file(),
+          secrets: [null, { id: "", name: 1, environmentId: 2, envelope: { iv: "", ct: "=" } }, { id: "x", name: "n" }],
+        }),
+      ).toEqual([
         "secrets[0]",
         "secrets[1].id",
         "secrets[1].name",
@@ -154,7 +159,10 @@ describe("vault crypto", () => {
     });
 
     it("refuses a key derivation cheaper than the app's own, or one that would hang the page", () => {
-      const withIterations = (iterations: number) => ({ ...file(), vault: { ...record, kdf: { ...record.kdf, iterations } } });
+      const withIterations = (iterations: number) => ({
+        ...file(),
+        vault: { ...record, kdf: { ...record.kdf, iterations } },
+      });
       expect(validateVaultFile(withIterations(599_999))).toHaveLength(1);
       expect(validateVaultFile(withIterations(10_000_001))).toHaveLength(1);
       expect(validateVaultFile(withIterations(600_000.5))).toHaveLength(1);

@@ -2,7 +2,11 @@ import { pageMeta } from "../../lib/meta";
 import { H2, Page } from "../../components/Page";
 import { BEHIND, Cite, RIVALS } from "../../lib/rivals";
 
-export const metadata = pageMeta("/compare/", "Compare: Wayfarer", "Wayfarer beside Postman, Bruno, Yaak, Hoppscotch and Insomnia, with each fact's source, and where Wayfarer is behind.");
+export const metadata = pageMeta(
+  "/compare/",
+  "Compare: Wayfarer",
+  "Wayfarer beside Postman, Bruno, Yaak, Hoppscotch and Insomnia, with each fact's source, and where Wayfarer is behind.",
+);
 
 /** The comparison pages' index (W2.3): each rival in a line, and where Wayfarer is behind. */
 export default function Compare() {
@@ -11,8 +15,8 @@ export default function Compare() {
       title="Wayfarer beside the others"
       lede={
         <p>
-          What each API client says of itself, from its own pages, with the date each page was read. What Wayfarer says of itself names its test in the{" "}
-          <a href="/docs/claims/">claims ledger</a>.
+          What each API client says of itself, from its own pages, with the date each page was read. What Wayfarer says
+          of itself names its test in the <a href="/docs/claims/">claims ledger</a>.
         </p>
       }
     >
@@ -33,7 +37,9 @@ export default function Compare() {
               Moving from Postman
             </a>
           </h2>
-          <p className="mt-2 text-ink-muted">Your collections, environments and scripts, step by step, and what does not come across.</p>
+          <p className="mt-2 text-ink-muted">
+            Your collections, environments and scripts, step by step, and what does not come across.
+          </p>
         </li>
       </ul>
 

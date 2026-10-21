@@ -16,11 +16,30 @@ const collectionFile = JSON.stringify({
   meta: meta("export-1"),
   collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [], ...inCollection },
   folders: [{ id: "f-1", meta: meta("f-1"), collectionId: "col-1", name: "Auth", order: 1, ...inFolder }],
-  requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", folderId: "f-1", name: "Login", order: 1, ...requestContent({ method: "POST", url: "https://api.test/login" }) }],
+  requests: [
+    {
+      id: "r-1",
+      meta: meta("r-1"),
+      collectionId: "col-1",
+      folderId: "f-1",
+      name: "Login",
+      order: 1,
+      ...requestContent({ method: "POST", url: "https://api.test/login" }),
+    },
+  ],
 });
 
-const env = (id: string, name: string, order: number, vars: Record<string, string> = {}): EnvironmentDoc => ({ id, meta: meta(id), name, order, vars: rowsOf(vars) });
-const environmentsFile = JSON.stringify({ $id: "wayfarer/environments", environments: [env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })] });
+const env = (id: string, name: string, order: number, vars: Record<string, string> = {}): EnvironmentDoc => ({
+  id,
+  meta: meta(id),
+  name,
+  order,
+  vars: rowsOf(vars),
+});
+const environmentsFile = JSON.stringify({
+  $id: "wayfarer/environments",
+  environments: [env("x", "Dev", 1, { host: "new" }), env("y", "QA", 2, { host: "qa" })],
+});
 
 /** The worker's work, done here: the importers themselves, and their error as the page gets it. */
 const worker = {
@@ -67,9 +86,11 @@ describe("ImportPipeline", () => {
         vi.advanceTimersByTime(4_999);
         expect(diagnosticEntries().filter((entry) => entry.context === "import")).toEqual([]);
         vi.advanceTimersByTime(1);
-        expect(diagnosticEntries().filter((entry) => entry.context === "import").map((entry) => entry.message)).toEqual([
-          "the import worker has not answered after 5 s",
-        ]);
+        expect(
+          diagnosticEntries()
+            .filter((entry) => entry.context === "import")
+            .map((entry) => entry.message),
+        ).toEqual(["the import worker has not answered after 5 s"]);
       } finally {
         vi.useRealTimers();
       }
@@ -137,7 +158,12 @@ describe("ImportPipeline", () => {
 
       expect(service.refused()).toEqual({
         message: "The file is not a valid Wayfarer collection.",
-        issues: [{ path: "requests[0].method", message: "Value must be an HTTP method: one word of at most 32 characters, in upper case." }],
+        issues: [
+          {
+            path: "requests[0].method",
+            message: "Value must be an HTTP method: one word of at most 32 characters, in upper case.",
+          },
+        ],
       });
     });
 
@@ -169,7 +195,10 @@ describe("ImportPipeline", () => {
 
     it("shows why a bad file is refused and imports nothing on confirm", async () => {
       await service.stage("bad.json", "{nope");
-      expect(service.refused()).toEqual({ message: "The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.", issues: [] });
+      expect(service.refused()).toEqual({
+        message: "The file is neither JSON nor YAML that can be read, so it is not a file Wayfarer can import.",
+        issues: [],
+      });
       expect(service.environmentEntries()).toEqual([]);
 
       await service.confirm();
@@ -197,8 +226,16 @@ describe("ImportPipeline", () => {
 
       await service.confirm();
 
-      expect(environments.updateEnvironment).toHaveBeenCalledExactlyOnceWith("dev-1", { name: "Dev", description: undefined, vars: rowsOf({ host: "new" }) });
-      expect(environments.createEnvironment).toHaveBeenCalledExactlyOnceWith({ name: "QA (3)", description: undefined, vars: rowsOf({ host: "qa" }) });
+      expect(environments.updateEnvironment).toHaveBeenCalledExactlyOnceWith("dev-1", {
+        name: "Dev",
+        description: undefined,
+        vars: rowsOf({ host: "new" }),
+      });
+      expect(environments.createEnvironment).toHaveBeenCalledExactlyOnceWith({
+        name: "QA (3)",
+        description: undefined,
+        vars: rowsOf({ host: "qa" }),
+      });
       expect(service.dialogVisible()).toBe(false);
       expect(service.environmentEntries()).toEqual([]);
       expect(service.fileName()).toBe("");
@@ -211,13 +248,19 @@ describe("ImportPipeline", () => {
 
     await service.stage("the pasted command", "curl -k https://api.test/users -H 'Accept: */*'");
     expect(service.pasting()).toBe(false);
-    expect(service.imported()?.report).toMatchObject({ formatName: "cURL command", counts: { collections: 1, folders: 0, requests: 1, environments: 0 } });
+    expect(service.imported()?.report).toMatchObject({
+      formatName: "cURL command",
+      counts: { collections: 1, folders: 0, requests: 1, environments: 0 },
+    });
     expect(service.imported()?.report.warnings).toHaveLength(1);
     expect(collections.importCollection).not.toHaveBeenCalled();
 
     await service.confirm();
     expect(collections.importCollection).toHaveBeenCalledTimes(1);
-    expect(collections.importCollection.mock.calls[0][0]).toMatchObject({ collection: { name: "Imported from cURL" }, requests: [{ name: "GET api.test/users", url: "https://api.test/users" }] });
+    expect(collections.importCollection.mock.calls[0][0]).toMatchObject({
+      collection: { name: "Imported from cURL" },
+      requests: [{ name: "GET api.test/users", url: "https://api.test/users" }],
+    });
   });
 
   it("a worker that fails is said as such, and nothing is stored", async () => {

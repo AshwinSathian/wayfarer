@@ -16,7 +16,7 @@ import {
 export class FetchTransport implements Transport {
   constructor(
     private readonly fetchFn: FetchFn = (input, init) => fetch(input, init),
-    private readonly displayCap?: number
+    private readonly displayCap?: number,
   ) {}
 
   send(request: ResolvedRequest, options: TransportOptions): Promise<ResponseEnvelope> {
@@ -33,7 +33,10 @@ export class FetchTransport implements Transport {
       });
       // An event stream the caller wants as it comes (P5.6): from here the timeout is over, and a cancel is a stop.
       const { onEvent } = options;
-      const events = onEvent && /^text\/event-stream\b/i.test(response.headers.get("content-type") ?? "") ? (arrived(), await readEventStream(response, signal, onEvent)) : undefined;
+      const events =
+        onEvent && /^text\/event-stream\b/i.test(response.headers.get("content-type") ?? "")
+          ? (arrived(), await readEventStream(response, signal, onEvent))
+          : undefined;
       const body = events?.body ?? (await readBody(response, this.displayCap));
       return {
         status: response.status,

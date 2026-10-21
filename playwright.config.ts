@@ -27,7 +27,9 @@ export default defineConfig({
   forbidOnly: CI,
   retries: CI ? 2 : 0,
   workers: CI ? 2 : undefined,
-  reporter: CI ? [["list"], ["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }]] : "list",
+  reporter: CI
+    ? [["list"], ["html", { open: "never" }], ["json", { outputFile: "test-results/results.json" }]]
+    : "list",
   use: {
     baseURL: BASE_URL ?? "http://localhost:4200",
     // The failed attempt's trace, not the retry's: a flake's retry passes and shows nothing of it
@@ -41,7 +43,13 @@ export default defineConfig({
   // trace of its failure.
   projects: BROWSERS.flatMap(({ name, device }) => [
     { name, use: { ...device }, grepInvert: /@claim\b/ },
-    { name: `claims-${name}`, use: { ...device, trace: "retain-on-failure" as const }, grep: /@claim\b/, retries: 0, expect: { timeout: CLAIMS_EXPECT_MS } },
+    {
+      name: `claims-${name}`,
+      use: { ...device, trace: "retain-on-failure" as const },
+      grep: /@claim\b/,
+      retries: 0,
+      expect: { timeout: CLAIMS_EXPECT_MS },
+    },
   ]),
   webServer: BASE_URL
     ? undefined
@@ -75,7 +83,8 @@ export default defineConfig({
         ...(CI
           ? [
               {
-                command: "(test -f dist/catalogue/app/index.html || npm run build:catalogue) && node e2e/support/prod-server.mjs dist/catalogue 4201",
+                command:
+                  "(test -f dist/catalogue/app/index.html || npm run build:catalogue) && node e2e/support/prod-server.mjs dist/catalogue 4201",
                 url: "http://localhost:4201/app/",
                 reuseExistingServer: false,
                 timeout: 180_000,

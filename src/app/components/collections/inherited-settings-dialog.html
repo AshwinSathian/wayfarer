@@ -11,65 +11,79 @@
       }
     </div>
     <div class="tab-panes">
-      <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-        <p class="type-footnote text-label-secondary mb-3">Sent with every request in this {{ kind() }} whose own auth is "Inherit from parent".</p>
-        <app-auth-editor
-          class="block"
-          idPrefix="inherited-auth"
-          [subject]="kind()"
-          [auth]="auth()"
-          [inherited]="inherited()"
-          [showPassword]="showPassword()"
-          (authTypeChange)="onAuthType($event)"
-          (authChange)="auth.set($event)"
-          (togglePasswordVisibility)="showPassword.set(!showPassword())"
-        />
-      </ng-template></div>
-      <div ngTabPanel value="variables" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-        <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
-        <app-rows-editor
-          context="Variables"
-          [items]="rows()"
-          [switches]="false"
-          addLabel="Add variable"
-          (add)="rows.set([...rows(), { key: '', value: '', enabled: true }])"
-          (remove)="removeRow($event)"
-        />
-      </ng-template></div>
-      <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-        <div class="flex flex-col gap-4">
-          <p class="type-footnote text-label-secondary">
-            Run for every request in this {{ kind() }}: the collection's scripts first, then each folder's from the outside in, then the request's own.
-          </p>
-          <div class="space-y-2">
-            <div class="ds-section-label">Pre-request Script</div>
-            <app-script-editor
-              name="inheritedPreScript"
-              [ngModel]="scripts().pre"
-              (ngModelChange)="setScript('pre', $event)"
-              [ngModelOptions]="{ standalone: true }"
-              [height]="150"
-            ></app-script-editor>
-          </div>
-          <div class="space-y-2">
-            <div class="ds-section-label">Post-response Script</div>
-            <app-script-editor
-              name="inheritedPostScript"
-              [ngModel]="scripts().post"
-              (ngModelChange)="setScript('post', $event)"
-              [ngModelOptions]="{ standalone: true }"
-              [height]="150"
-            ></app-script-editor>
-          </div>
-        </div>
-      </ng-template></div>
+      <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>
+          <p class="type-footnote text-label-secondary mb-3"
+            >Sent with every request in this {{ kind() }} whose own auth is "Inherit from parent".</p
+          >
+          <app-auth-editor
+            class="block"
+            idPrefix="inherited-auth"
+            [subject]="kind()"
+            [auth]="auth()"
+            [inherited]="inherited()"
+            [showPassword]="showPassword()"
+            (authTypeChange)="onAuthType($event)"
+            (authChange)="auth.set($event)"
+            (togglePasswordVisibility)="showPassword.set(!showPassword())"
+          /> </ng-template
+      ></div>
+      <div ngTabPanel value="variables" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>
+          <p class="type-footnote text-label-secondary mb-3">{{ variablesHint() }}</p>
+          <app-rows-editor
+            context="Variables"
+            [items]="rows()"
+            [switches]="false"
+            addLabel="Add variable"
+            (add)="rows.set([...rows(), { key: '', value: '', enabled: true }])"
+            (remove)="removeRow($event)"
+          /> </ng-template
+      ></div>
+      <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>
+          <div class="flex flex-col gap-4">
+            <p class="type-footnote text-label-secondary">
+              Run for every request in this {{ kind() }}: the collection's scripts first, then each folder's from the
+              outside in, then the request's own.
+            </p>
+            <div class="space-y-2">
+              <div class="ds-section-label">Pre-request Script</div>
+              <app-script-editor
+                name="inheritedPreScript"
+                [ngModel]="scripts().pre"
+                (ngModelChange)="setScript('pre', $event)"
+                [ngModelOptions]="{ standalone: true }"
+                [height]="150"
+              ></app-script-editor>
+            </div>
+            <div class="space-y-2">
+              <div class="ds-section-label">Post-response Script</div>
+              <app-script-editor
+                name="inheritedPostScript"
+                [ngModel]="scripts().post"
+                (ngModelChange)="setScript('post', $event)"
+                [ngModelOptions]="{ standalone: true }"
+                [height]="150"
+              ></app-script-editor>
+            </div>
+          </div> </ng-template
+      ></div>
       @if (kind() === 'collection') {
-      <div ngTabPanel value="route" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>
-        <p class="type-footnote text-label-secondary mb-3" id="inherited-route-label">
-          How the requests of this collection are sent, unless a request names its own route. Auto sends from the page, and through the Local Bridge when the browser could not.
-        </p>
-        <ui-select class="collection-route w-64" aria-labelledby="inherited-route-label" [options]="routes" [value]="route()" (valueChange)="route.set($event)" />
-      </ng-template></div>
+      <div ngTabPanel value="route" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>
+          <p class="type-footnote text-label-secondary mb-3" id="inherited-route-label">
+            How the requests of this collection are sent, unless a request names its own route. Auto sends from the
+            page, and through the Local Bridge when the browser could not.
+          </p>
+          <ui-select
+            class="collection-route w-64"
+            aria-labelledby="inherited-route-label"
+            [options]="routes"
+            [value]="route()"
+            (valueChange)="route.set($event)"
+          /> </ng-template
+      ></div>
       }
     </div>
   </div>

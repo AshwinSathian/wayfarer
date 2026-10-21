@@ -5,7 +5,8 @@
 for (const button of document.querySelectorAll("[data-theme-toggle]")) {
   button.addEventListener("click", () => {
     const root = document.documentElement;
-    const current = root.getAttribute("data-theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const current =
+      root.getAttribute("data-theme") ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     const next = current === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
     try {
@@ -21,7 +22,15 @@ const demo = document.querySelector("[data-demo]");
 if (demo) {
   const ADDRESS = "https://api.example.com/v1/users/42";
   const part = (name) => demo.querySelector(`[data-demo-${name}]`);
-  const [address, caret, send, waiting, response, stop, replay] = ["address", "caret", "send", "waiting", "response", "stop", "replay"].map(part);
+  const [address, caret, send, waiting, response, stop, replay] = [
+    "address",
+    "caret",
+    "send",
+    "waiting",
+    "response",
+    "stop",
+    "replay",
+  ].map(part);
   let timers = [];
 
   const show = (typed, phase) => {

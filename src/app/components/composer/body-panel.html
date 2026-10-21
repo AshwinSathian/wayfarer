@@ -1,118 +1,134 @@
 @let current = body();
 <div class="flex flex-wrap items-center gap-3 pb-3">
   <span id="body-mode-label" class="ds-form-label">Body</span>
-  <ui-select class="w-56" aria-labelledby="body-mode-label" [options]="modes" [value]="current.mode" (valueChange)="setMode($event)" />
+  <ui-select
+    class="w-56"
+    aria-labelledby="body-mode-label"
+    [options]="modes"
+    [value]="current.mode"
+    (valueChange)="setMode($event)"
+  />
   @if (current.mode === 'raw') {
-  <ui-select class="w-36" aria-label="Raw body language" [options]="languages" [value]="current.raw?.language ?? 'json'" (valueChange)="setRaw({ language: $event })" />
+  <ui-select
+    class="w-36"
+    aria-label="Raw body language"
+    [options]="languages"
+    [value]="current.raw?.language ?? 'json'"
+    (valueChange)="setRaw({ language: $event })"
+  />
   }
 </div>
 
 @if (contentTypeBreaksMultipart()) {
 <p role="alert" class="type-footnote text-status-warning flex items-start gap-1 pb-3">
   <app-icon name="error" class="icon-xs" />
-  The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between the parts. The server will not be able to read them. Remove the header or switch it off.
+  The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between the
+  parts. The server will not be able to read them. Remove the header or switch it off.
 </p>
-}
-@if (fileError()) {
+} @if (fileError()) {
 <p role="alert" class="type-footnote text-status-error flex items-start gap-1 pb-3">
   <app-icon name="error" class="icon-xs" />
   {{ fileError() }}
 </p>
-}
-
-@switch (current.mode) {
-  @case ('none') {
-  <p class="type-callout text-label-tertiary">This request is sent without a body.</p>
-  }
-  @case ('raw') {
-  <app-json-editor
-    name="bodyRaw"
-    [language]="current.raw?.language ?? 'json'"
-    [ngModel]="current.raw?.text ?? ''"
-    (ngModelChange)="setRaw({ text: $event })"
-    [ngModelOptions]="{ standalone: true }"
-    [height]="360"
-  ></app-json-editor>
-  }
-  @case ('urlencoded') {
-  <app-rows-editor
-    context="Body"
-    [items]="current.urlencoded ?? []"
-    addLabel="Add Field"
-    (itemChange)="store.edited()"
-    (add)="addField()"
-    (remove)="removeField($event)"
-  ></app-rows-editor>
-  }
-  @case ('multipart') {
-  <app-multipart-editor
-    [parts]="current.multipart ?? []"
-    (partChange)="store.edited()"
-    (add)="addPart()"
-    (remove)="removePart($event)"
-    (kindChange)="setPartKind($event.index, $event.kind)"
-    (filePicked)="setPartFile($event.index, $event.file)"
-  ></app-multipart-editor>
-  }
-  @case ('graphql') {
-  @let known = schema();
-  <div class="graphql space-y-3">
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="known?.status === 'loading'" (click)="fetchSchema()">
-        @if (known?.status === 'loading') { <ui-spinner /> } @else { <app-icon name="replay" /> }
-        {{ known?.outline ? 'Refresh schema' : 'Fetch schema' }}
-      </button>
-      <span class="graphql-schema-status type-footnote text-label-secondary min-w-0" role="status">
-        @switch (known?.status) {
-          @case ('loading') { Asking the server for its schema… }
-          @case ('ready') { The schema of this address is loaded: the query is checked against it, and the editor completes from it. }
-          @case ('error') { <span class="text-status-error">No schema: {{ known?.error }}</span> }
-          @default { Fetch the schema to have the query checked and completed. It is asked for with this request's address, headers and auth. }
+} @switch (current.mode) { @case ('none') {
+<p class="type-callout text-label-tertiary">This request is sent without a body.</p>
+} @case ('raw') {
+<app-json-editor
+  name="bodyRaw"
+  [language]="current.raw?.language ?? 'json'"
+  [ngModel]="current.raw?.text ?? ''"
+  (ngModelChange)="setRaw({ text: $event })"
+  [ngModelOptions]="{ standalone: true }"
+  [height]="360"
+></app-json-editor>
+} @case ('urlencoded') {
+<app-rows-editor
+  context="Body"
+  [items]="current.urlencoded ?? []"
+  addLabel="Add Field"
+  (itemChange)="store.edited()"
+  (add)="addField()"
+  (remove)="removeField($event)"
+></app-rows-editor>
+} @case ('multipart') {
+<app-multipart-editor
+  [parts]="current.multipart ?? []"
+  (partChange)="store.edited()"
+  (add)="addPart()"
+  (remove)="removePart($event)"
+  (kindChange)="setPartKind($event.index, $event.kind)"
+  (filePicked)="setPartFile($event.index, $event.file)"
+></app-multipart-editor>
+} @case ('graphql') { @let known = schema();
+<div class="graphql space-y-3">
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <button
+      uiButton="outlined"
+      class="btn-secondary btn-sm"
+      type="button"
+      [disabled]="known?.status === 'loading'"
+      (click)="fetchSchema()"
+    >
+      @if (known?.status === 'loading') { <ui-spinner /> } @else { <app-icon name="replay" /> } {{ known?.outline ?
+      'Refresh schema' : 'Fetch schema' }}
+    </button>
+    <span class="graphql-schema-status type-footnote text-label-secondary min-w-0" role="status">
+      @switch (known?.status) { @case ('loading') { Asking the server for its schema… } @case ('ready') { The schema of
+      this address is loaded: the query is checked against it, and the editor completes from it. } @case ('error') {
+      <span class="text-status-error">No schema: {{ known?.error }}</span> } @default { Fetch the schema to have the
+      query checked and completed. It is asked for with this request's address, headers and auth. } }
+    </span>
+  </div>
+  <div>
+    <span class="ds-form-label">Query</span>
+    <app-json-editor
+      name="graphqlQuery"
+      language="graphql"
+      [ngModel]="current.graphql?.query ?? ''"
+      (ngModelChange)="setGraphql({ query: $event })"
+      [ngModelOptions]="{ standalone: true }"
+      [height]="260"
+    ></app-json-editor>
+    @if (problems().length) {
+    <!-- The status is around the list: with the role on the list itself, its items are items of nothing. -->
+    <div class="graphql-problems mt-2 type-footnote text-status-error" role="status" aria-label="Problems in the query">
+      <ul class="m-0 list-none space-y-1 p-0">
+        @for (problem of problems(); track $index) {
+        <li class="flex items-start gap-1"
+          ><app-icon name="error" class="icon-xs mt-0.5 shrink-0" /><span class="min-w-0 break-words"
+            >Line {{ problem.line }}: {{ problem.message }}</span
+          ></li
+        >
         }
-      </span>
+      </ul>
     </div>
-    <div>
-      <span class="ds-form-label">Query</span>
-      <app-json-editor
-        name="graphqlQuery"
-        language="graphql"
-        [ngModel]="current.graphql?.query ?? ''"
-        (ngModelChange)="setGraphql({ query: $event })"
-        [ngModelOptions]="{ standalone: true }"
-        [height]="260"
-      ></app-json-editor>
-      @if (problems().length) {
-      <!-- The status is around the list: with the role on the list itself, its items are items of nothing. -->
-      <div class="graphql-problems mt-2 type-footnote text-status-error" role="status" aria-label="Problems in the query">
-        <ul class="m-0 list-none space-y-1 p-0">
-          @for (problem of problems(); track $index) {
-          <li class="flex items-start gap-1"><app-icon name="error" class="icon-xs mt-0.5 shrink-0" /><span class="min-w-0 break-words">Line {{ problem.line }}: {{ problem.message }}</span></li>
-          }
-        </ul>
-      </div>
-      }
-    </div>
-    <div>
-      <span class="ds-form-label">Variables (a JSON object)</span>
-      <app-json-editor
-        name="graphqlVariables"
-        language="json"
-        [ngModel]="current.graphql?.variables ?? ''"
-        (ngModelChange)="setGraphql({ variables: $event })"
-        [ngModelOptions]="{ standalone: true }"
-        [height]="140"
-      ></app-json-editor>
-    </div>
-    @if (known?.outline; as outline) {
-    <app-graphql-explorer [outline]="outline" />
     }
   </div>
-  }
-  @case ('binary') {
-  <div class="flex min-w-0 items-center gap-3">
-    <button uiButton="outlined" class="btn-secondary" type="button" (click)="binaryFile.click()">Choose file</button>
-    <span class="type-callout text-label-secondary truncate">{{ current.binary?.fileName || "No file chosen" }}</span>
-    <input #binaryFile type="file" class="hidden" aria-label="File to send as the body" (change)="setBinary(binaryFile)" />
+  <div>
+    <span class="ds-form-label">Variables (a JSON object)</span>
+    <app-json-editor
+      name="graphqlVariables"
+      language="json"
+      [ngModel]="current.graphql?.variables ?? ''"
+      (ngModelChange)="setGraphql({ variables: $event })"
+      [ngModelOptions]="{ standalone: true }"
+      [height]="140"
+    ></app-json-editor>
   </div>
+  @if (known?.outline; as outline) {
+  <app-graphql-explorer [outline]="outline" />
   }
-}
+</div>
+} @case ('binary') {
+<div class="flex min-w-0 items-center gap-3">
+  <button uiButton="outlined" class="btn-secondary" type="button" (click)="binaryFile.click()">Choose file</button>
+  <span class="type-callout text-label-secondary truncate">{{ current.binary?.fileName || "No file chosen" }}</span>
+  <input
+    #binaryFile
+    type="file"
+    class="hidden"
+    aria-label="File to send as the body"
+    (change)="setBinary(binaryFile)"
+  />
+</div>
+} }

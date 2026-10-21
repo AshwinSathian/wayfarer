@@ -21,6 +21,12 @@
     message.textContent = "Signed in. You can close this window.";
     window.close();
   };
-  channel.postMessage({ state, code: query.get("code"), error: query.get("error"), description: query.get("error_description") });
-  message.textContent = "Wayfarer has not answered. If its tab is closed, or the sign-in was cancelled there, close this window and start again.";
+  channel.postMessage({
+    state,
+    code: query.get("code"),
+    error: query.get("error"),
+    description: query.get("error_description"),
+  });
+  message.textContent =
+    "Wayfarer has not answered. If its tab is closed, or the sign-in was cancelled there, close this window and start again.";
 })();

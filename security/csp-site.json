@@ -7,32 +7,14 @@
     "connect-src 'self': Lighthouse reads robots.txt with a fetch from inside the page (its SEO audit scored 92 without it, W2.1), and the claims page reads /ci-run.json."
   ],
   "directives": {
-    "default-src": [
-      "'none'"
-    ],
-    "script-src": [
-      "'self'"
-    ],
-    "style-src": [
-      "'self'"
-    ],
-    "img-src": [
-      "'self'"
-    ],
-    "font-src": [
-      "'self'"
-    ],
-    "connect-src": [
-      "'self'"
-    ],
-    "base-uri": [
-      "'none'"
-    ],
-    "form-action": [
-      "'none'"
-    ],
-    "frame-ancestors": [
-      "'none'"
-    ]
+    "default-src": ["'none'"],
+    "script-src": ["'self'"],
+    "style-src": ["'self'"],
+    "img-src": ["'self'"],
+    "font-src": ["'self'"],
+    "connect-src": ["'self'"],
+    "base-uri": ["'none'"],
+    "form-action": ["'none'"],
+    "frame-ancestors": ["'none'"]
   }
 }

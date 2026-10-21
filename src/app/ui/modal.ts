@@ -1,5 +1,15 @@
 import { InteractivityChecker } from "@angular/cdk/a11y";
-import { Directive, ElementRef, OnDestroy, booleanAttribute, effect, inject, input, output, untracked } from "@angular/core";
+import {
+  Directive,
+  ElementRef,
+  OnDestroy,
+  booleanAttribute,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from "@angular/core";
 
 /** The modal dialogs open now, the last one on top. */
 const open: HTMLDialogElement[] = [];
@@ -131,11 +141,15 @@ export class UiModal implements OnDestroy {
   protected outside(event: MouseEvent): boolean {
     if (event.target !== this.element) return false;
     const box = this.element.getBoundingClientRect();
-    return event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom;
+    return (
+      event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom
+    );
   }
 
   private tabbable(): HTMLElement[] {
-    return Array.from(this.element.querySelectorAll<HTMLElement>("*")).filter((el) => this.checker.isFocusable(el) && this.checker.isTabbable(el));
+    return Array.from(this.element.querySelectorAll<HTMLElement>("*")).filter(
+      (el) => this.checker.isFocusable(el) && this.checker.isTabbable(el),
+    );
   }
 
   /** Its outputs are gone by now. */

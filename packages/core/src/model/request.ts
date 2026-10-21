@@ -50,7 +50,9 @@ export interface FileRef {
   fileName: string;
 }
 
-export type MultipartPart = { key: string; enabled: boolean } & ({ kind: "text"; value: string } | ({ kind: "file" } & FileRef));
+export type MultipartPart = { key: string; enabled: boolean } & (
+  { kind: "text"; value: string } | ({ kind: "file" } & FileRef)
+);
 
 /**
  * The body as the user wrote it: template text, `{{variables}}` intact.
@@ -118,7 +120,15 @@ export type OAuthGrant = (typeof OAUTH_GRANTS)[number];
 /** An auth that says what is sent by itself. */
 export type OwnAuth = Exclude<AuthConfig, { type: "inherit" }>;
 
-export const AUTH_TYPES = ["inherit", "none", "bearer", "basic", "apikey", "awsv4", "oauth2"] as const satisfies readonly AuthConfig["type"][];
+export const AUTH_TYPES = [
+  "inherit",
+  "none",
+  "bearer",
+  "basic",
+  "apikey",
+  "awsv4",
+  "oauth2",
+] as const satisfies readonly AuthConfig["type"][];
 
 /** The two scripts of a request, of a folder or of a collection. Blank: there is none. */
 export interface Scripts {
@@ -166,7 +176,12 @@ export interface RequestContent {
   auth: AuthConfig;
   scripts: Scripts;
   tests: TestAssertion[];
-  settings: { timeoutMs?: number; followRedirects?: boolean; /** Absent: the collection's, else the device's (P6.4). */ route?: Route; /** Through the Local Bridge, the server's certificate is not verified. Only `true` is written. */ tlsInsecure?: boolean };
+  settings: {
+    timeoutMs?: number;
+    followRedirects?: boolean;
+    /** Absent: the collection's, else the device's (P6.4). */ route?: Route;
+    /** Through the Local Bridge, the server's certificate is not verified. Only `true` is written. */ tlsInsecure?: boolean;
+  };
 }
 
 /** The auth of a type just chosen, with nothing typed. */
@@ -181,7 +196,19 @@ export function emptyAuth(type: AuthConfig["type"]): AuthConfig {
     case "awsv4":
       return { type, accessKey: "", secretKey: "", sessionToken: "", region: "", service: "" };
     case "oauth2":
-      return { type, grant: "authorization_code", authUrl: "", tokenUrl: "", clientId: "", clientSecret: "", scope: "", username: "", password: "", clientAuth: "header", retryOn401: false };
+      return {
+        type,
+        grant: "authorization_code",
+        authUrl: "",
+        tokenUrl: "",
+        clientId: "",
+        clientSecret: "",
+        scope: "",
+        username: "",
+        password: "",
+        clientAuth: "header",
+        retryOn401: false,
+      };
     case "none":
     case "inherit":
       return { type };

@@ -35,7 +35,8 @@ describe("RequestSettings", () => {
   });
 
   it("history keeps 500 entries and their bodies, and a variable without a value holds a request back, until set otherwise", () => {
-    for (const key of ["wayfarer:history-cap", "wayfarer:history-bodies", "wayfarer:block-unresolved"]) localStorage.removeItem(key);
+    for (const key of ["wayfarer:history-cap", "wayfarer:history-bodies", "wayfarer:block-unresolved"])
+      localStorage.removeItem(key);
     TestBed.resetTestingModule();
     const settings = TestBed.inject(RequestSettings);
     expect([settings.historyCap(), settings.historyBodies(), settings.blockUnresolved()]).toEqual([500, true, true]);

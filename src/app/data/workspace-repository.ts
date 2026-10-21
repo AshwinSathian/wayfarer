@@ -61,7 +61,8 @@ export class WorkspaceRepository {
       for (const doc of stores.environments) await tx.objectStore("environments").put(doc);
       for (const doc of stores.secrets) await tx.objectStore("secrets").put(doc);
       for (const record of stores.meta) await tx.objectStore("meta").put(record);
-      for (const entry of stores.history ?? []) await tx.objectStore("history").put(entry as PastRequest & { id: number });
+      for (const entry of stores.history ?? [])
+        await tx.objectStore("history").put(entry as PastRequest & { id: number });
     });
   }
 }

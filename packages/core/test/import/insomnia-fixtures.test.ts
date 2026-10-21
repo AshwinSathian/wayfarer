@@ -37,7 +37,8 @@ const OPENAPI = "roundtrip/security.yaml";
 const exports = files.filter((file) => !Object.hasOwn(REFUSED, file) && file !== OPENAPI);
 
 type Loose = Record<string, unknown>;
-const isObject = (value: unknown): value is Loose => typeof value === "object" && value !== null && !Array.isArray(value);
+const isObject = (value: unknown): value is Loose =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 const list = (value: unknown): Loose[] => (Array.isArray(value) ? value.filter(isObject) : []);
 /** A request the app can hold: it has an address. */
 const sendable = (entry: Loose): boolean => typeof entry["url"] === "string" && entry["url"].trim() !== "";
@@ -70,7 +71,9 @@ function counted(file: string): { collections: number; folders: number; requests
   const environments = isObject(value["environments"]) ? value["environments"] : {};
   const subs = list(environments["subEnvironments"]).length;
   // A file of environments alone gives its base environment too: there is no collection to hold its variables.
-  return Array.isArray(value["collection"]) ? { collections: 1, folders, requests, environments: subs } : { collections: 0, folders: 0, requests: 0, environments: subs + 1 };
+  return Array.isArray(value["collection"])
+    ? { collections: 1, folders, requests, environments: subs }
+    : { collections: 0, folders: 0, requests: 0, environments: subs + 1 };
 }
 
 describe("Insomnia files other people wrote (P4.4)", () => {
@@ -79,7 +82,10 @@ describe("Insomnia files other people wrote (P4.4)", () => {
     expect(files).toHaveLength(64);
     expect(exports).toHaveLength(58);
     const versions = exports.map((file) => ((parse(read(file)) as Loose)["_type"] === "export" ? 4 : 5));
-    expect([versions.filter((version) => version === 4).length, versions.filter((version) => version === 5).length]).toEqual([6, 52]);
+    expect([
+      versions.filter((version) => version === 4).length,
+      versions.filter((version) => version === 5).length,
+    ]).toEqual([6, 52]);
   });
 
   it.each(exports)("@claim:C-059 %s imports, with the counts the file itself gives", (file) => {
@@ -87,7 +93,10 @@ describe("Insomnia files other people wrote (P4.4)", () => {
     try {
       imported = importText(read(file));
     } catch (error) {
-      throw new Error(`${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`, { cause: error });
+      throw new Error(
+        `${file}: ${error instanceof ImportError ? `${error.message} ${JSON.stringify(error.issues.slice(0, 3))}` : String(error)}`,
+        { cause: error },
+      );
     }
     expect(imported.report.formatName).toBe("Insomnia export");
     expect(imported.report.counts).toEqual(counted(file));
@@ -101,7 +110,10 @@ describe("Insomnia files other people wrote (P4.4)", () => {
       for (const key of Object.keys(total) as (keyof typeof total)[]) total[key] += report.counts[key];
       // A warning's kind is its words without the names it quotes.
       for (const { message } of report.warnings) {
-        const kind = message.replace(/\([^)]*\)/g, "(…)").replace(/"[^"]*"/g, '"…"').replace(/\d+/g, "N");
+        const kind = message
+          .replace(/\([^)]*\)/g, "(…)")
+          .replace(/"[^"]*"/g, '"…"')
+          .replace(/\d+/g, "N");
         kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
       }
     }

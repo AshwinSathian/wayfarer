@@ -1,5 +1,17 @@
 import { DestroyRef, Injectable, inject } from "@angular/core";
-import { SCRIPT_LIMITS, emptyChanges, newId, scriptResponse, type ScriptContext, type ScriptResponse, type ScriptResponseContext, type ScriptResult, type ScriptRunExtras, type ScriptSendRequest, type ScriptVariable } from "@wayfarer/core";
+import {
+  SCRIPT_LIMITS,
+  emptyChanges,
+  newId,
+  scriptResponse,
+  type ScriptContext,
+  type ScriptResponse,
+  type ScriptResponseContext,
+  type ScriptResult,
+  type ScriptRunExtras,
+  type ScriptSendRequest,
+  type ScriptVariable,
+} from "@wayfarer/core";
 
 /** What the worker says about one run. */
 type WorkerMessage = { id: string } & (
@@ -66,7 +78,7 @@ export class ScriptSandbox {
     env: Record<string, string> | ScriptVariable[],
     response?: ScriptResponseContext,
     timeoutMs: number = SCRIPT_LIMITS.timeoutMs,
-    { send, ...extras }: ScriptRunExtras = {}
+    { send, ...extras }: ScriptRunExtras = {},
   ): Promise<ScriptResult> {
     if (!script?.trim()) {
       return Promise.resolve(nothing());
@@ -75,7 +87,11 @@ export class ScriptSandbox {
       const id = newId();
       const worker = this.take();
       this.runs.set(id, { worker, settle, timeoutMs, send, inFlight: 0 });
-      const context: ScriptContext = { ...extras, environment: Array.isArray(env) ? env : Object.entries(env), ...(response && { response: scriptResponse(response) }) };
+      const context: ScriptContext = {
+        ...extras,
+        environment: Array.isArray(env) ? env : Object.entries(env),
+        ...(response && { response: scriptResponse(response) }),
+      };
       worker.postMessage({ id, source: script, context, limits: { ...SCRIPT_LIMITS, timeoutMs } });
     });
   }
@@ -151,7 +167,12 @@ export class ScriptSandbox {
       if (!run.send) throw new Error("pm.sendRequest is not available here.");
       answer = { response: await run.send(request) };
     } catch (error) {
-      answer = { error: { name: error instanceof Error ? error.name : "Error", message: error instanceof Error ? error.message : String(error) } };
+      answer = {
+        error: {
+          name: error instanceof Error ? error.name : "Error",
+          message: error instanceof Error ? error.message : String(error),
+        },
+      };
     }
     // The run may have ended meanwhile, with its worker.
     if (this.runs.get(id) !== run) return;

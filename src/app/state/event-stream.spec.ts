@@ -23,8 +23,14 @@ describe("an event stream in a tab", () => {
     const request = httpMock.expectOne(url);
     request.respond(new Response(stream, { status: 200, statusText: "OK", headers: SSE }));
     // As `fetch`: a body whose request is aborted ends in an error.
-    request.request.init.signal?.addEventListener("abort", () => controller.error(new DOMException("aborted", "AbortError")));
-    return { request, write: (text: string) => controller.enqueue(new TextEncoder().encode(text)), close: () => controller.close() };
+    request.request.init.signal?.addEventListener("abort", () =>
+      controller.error(new DOMException("aborted", "AbortError")),
+    );
+    return {
+      request,
+      write: (text: string) => controller.enqueue(new TextEncoder().encode(text)),
+      close: () => controller.close(),
+    };
   }
 
   beforeEach(async () => {
@@ -40,7 +46,9 @@ describe("an event stream in a tab", () => {
     const stream = answer();
 
     stream.write("id: 1\nevent: tick\ndata: one\n\n");
-    await vi.waitFor(() => expect(store.streamEvents()).toEqual([{ id: "1", event: "tick", data: "one", timeMs: expect.any(Number) }]));
+    await vi.waitFor(() =>
+      expect(store.streamEvents()).toEqual([{ id: "1", event: "tick", data: "one", timeMs: expect.any(Number) }]),
+    );
     expect(store.loadingState()).toBe(true);
     expect(store.shouldShowResponsePanel).toBe(true);
     stream.write("id: 2\ndata: two\n\n");
@@ -115,7 +123,12 @@ describe("an event stream in a tab", () => {
 
   it("a response of another type has no events, whatever its text", async () => {
     const sent = store.send();
-    await vi.waitFor(() => httpMock.expectOne(URL).flush(new TextEncoder().encode("data: not a stream\n\n").buffer, { status: 200, headers: { "Content-Type": "text/plain" } }));
+    await vi.waitFor(() =>
+      httpMock.expectOne(URL).flush(new TextEncoder().encode("data: not a stream\n\n").buffer, {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      }),
+    );
     await sent;
     expect(store.streamCount()).toBe(0);
     expect(store.responseTab()).toBe("body");
@@ -153,12 +166,25 @@ describe("an event stream in a tab", () => {
   });
 
   it("through the Local Bridge, which relays a response when it has ended, the events are read from the body and the tab says they arrived together", async () => {
-    TestBed.inject(BridgeSettings).config.set({ route: 'bridge', url: "http://127.0.0.1:7717", token: "t".repeat(16) });
+    TestBed.inject(BridgeSettings).config.set({ route: "bridge", url: "http://127.0.0.1:7717", token: "t".repeat(16) });
     const sent = store.send();
     const relay = await vi.waitFor(() => httpMock.expectOne("http://127.0.0.1:7717/relay"));
-    relay.flush(JSON.stringify({ status: 200, statusText: "OK", headers: [["Content-Type", "text/event-stream"]], bodyB64: btoa("id: 1\ndata: a\n\nid: 2\nevent: done\ndata: b\n\n"), encodedSize: 42, decodedSize: 42 }), { status: 200 });
+    relay.flush(
+      JSON.stringify({
+        status: 200,
+        statusText: "OK",
+        headers: [["Content-Type", "text/event-stream"]],
+        bodyB64: btoa("id: 1\ndata: a\n\nid: 2\nevent: done\ndata: b\n\n"),
+        encodedSize: 42,
+        decodedSize: 42,
+      }),
+      { status: 200 },
+    );
     expect(await sent).toBe(true);
-    expect(store.streamEvents()).toEqual([{ id: "1", event: "message", data: "a" }, { id: "2", event: "done", data: "b" }]);
+    expect(store.streamEvents()).toEqual([
+      { id: "1", event: "message", data: "a" },
+      { id: "2", event: "done", data: "b" },
+    ]);
     expect(store.streamNote()).toContain("Sent through the Local Bridge, which relays a response when it has ended");
     expect(store.responseTab()).toBe("events");
   });

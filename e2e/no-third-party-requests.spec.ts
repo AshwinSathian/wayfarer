@@ -35,7 +35,11 @@ async function visitEveryView(page: Page, snapshots: string[]): Promise<void> {
   }
 }
 
-test("@claim:C-001 no-third-party-requests: a full session talks only to the app and the user's target", async ({ page, context, baseURL }) => {
+test("@claim:C-001 no-third-party-requests: a full session talks only to the app and the user's target", async ({
+  page,
+  context,
+  baseURL,
+}) => {
   const appOrigin = new URL(baseURL ?? "http://localhost:4200").origin;
   const foreign: string[] = [];
   const failed: string[] = [];
@@ -51,7 +55,7 @@ test("@claim:C-001 no-third-party-requests: a full session talks only to the app
   // Block everything that isn't the app or the target, so the page must load without it.
   await context.route(
     (url) => url.origin !== appOrigin && url.origin !== TARGET,
-    (route) => route.abort("blockedbyclient")
+    (route) => route.abort("blockedbyclient"),
   );
 
   await page.goto("/app/");
@@ -68,8 +72,6 @@ test("@claim:C-001 no-third-party-requests: a full session talks only to the app
   // No control is named after an icon ligature.
   const named = snapshots.join("\n");
   for (const glyph of Object.keys(ICON_PATHS)) {
-    expect(named, `a control is named "${glyph}"`).not.toMatch(
-      new RegExp(`(button|link|tab|menuitem) "${glyph}"`)
-    );
+    expect(named, `a control is named "${glyph}"`).not.toMatch(new RegExp(`(button|link|tab|menuitem) "${glyph}"`));
   }
 });

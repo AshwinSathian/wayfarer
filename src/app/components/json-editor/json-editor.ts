@@ -10,16 +10,10 @@ import {
   inject,
   input,
   output,
-  viewChild
+  viewChild,
 } from "@angular/core";
 import { Theme } from "../../services/theme";
-import {
-  ControlValueAccessor,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-} from "@angular/forms";
+import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from "@angular/forms";
 import type * as MonacoTypes from "monaco-editor";
 import {
   MonacoEditorModule,
@@ -61,15 +55,9 @@ const noop = () => {};
       scrolls into view) but is structurally guaranteed to load shortly
       after mount even if the viewport trigger is missed.
     -->
-    <div
-      class="h-full w-full"
-      [style.height.px]="fill() ? null : (height() ?? defaultHeight)"
-    >
+    <div class="h-full w-full" [style.height.px]="fill() ? null : (height() ?? defaultHeight)">
       @defer (on viewport; on timer(400ms)) {
-        <div
-          #editorHost
-          class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"
-        ></div>
+        <div #editorHost class="h-full w-full overflow-hidden rounded-lg bg-canvas-panel"></div>
       } @placeholder {
         <div
           class="flex h-full w-full items-center justify-center rounded-md bg-canvas-elevated type-callout text-label-tertiary"
@@ -93,9 +81,7 @@ const noop = () => {};
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class JsonEditor
-  implements ControlValueAccessor, Validator, OnChanges, OnDestroy
-{
+export class JsonEditor implements ControlValueAccessor, Validator, OnChanges, OnDestroy {
   private readonly themeService = inject(Theme);
 
   readonly readOnly = input(false);
@@ -151,21 +137,13 @@ export class JsonEditor
       this.validateCurrentValue();
     }
 
-    if (
-      ("schema" in changes || "schemaUri" in changes) &&
-      this.monacoModule
-    ) {
+    if (("schema" in changes || "schemaUri" in changes) && this.monacoModule) {
       this.applySchemaDiagnostics();
     }
   }
 
   writeValue(value: unknown): void {
-    this.internalValue =
-      typeof value === "string"
-        ? value
-        : value == null
-        ? ""
-        : this.stringifyValue(value);
+    this.internalValue = typeof value === "string" ? value : value == null ? "" : this.stringifyValue(value);
 
     if (this.model) {
       this.model.setValue(this.internalValue);
@@ -213,10 +191,7 @@ export class JsonEditor
     }
     const hostEl = host.nativeElement;
 
-    const [monacoModule] = await Promise.all([
-      loadMonaco(),
-      waitForNonZeroWidth(hostEl),
-    ]);
+    const [monacoModule] = await Promise.all([loadMonaco(), waitForNonZeroWidth(hostEl)]);
     if (this.destroyed || this.editorInstance || !this.editorHost()) {
       // Disposed, or a concurrent call already initialized, while awaiting.
       return;
@@ -228,8 +203,7 @@ export class JsonEditor
     this.applySchemaDiagnostics();
 
     this.model =
-      this.model ??
-      monaco.editor.createModel(this.internalValue, monacoLanguage(this.language()), undefined);
+      this.model ?? monaco.editor.createModel(this.internalValue, monacoLanguage(this.language()), undefined);
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
       model: this.model,

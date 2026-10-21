@@ -1,10 +1,14 @@
 import { DBSchema } from "idb";
-import { META_GLOBALS_KEY, META_STATE_KEY, META_VAULT_KEY, type Cookie, type RequestContent, type Row, type VaultRecord } from "@wayfarer/core";
 import {
-  Collection,
-  Folder,
-  RequestDoc,
-} from "../models/collections";
+  META_GLOBALS_KEY,
+  META_STATE_KEY,
+  META_VAULT_KEY,
+  type Cookie,
+  type RequestContent,
+  type Row,
+  type VaultRecord,
+} from "@wayfarer/core";
+import { Collection, Folder, RequestDoc } from "../models/collections";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { PastRequest } from "@wayfarer/core";
 import { SecretDoc } from "../models/secrets";

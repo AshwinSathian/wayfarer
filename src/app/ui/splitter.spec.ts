@@ -8,7 +8,13 @@ const KEY = "test:split";
 @Component({
   imports: [Splitter],
   template: `
-    <ui-splitter style="width: 1008px; height: 100px" storageKey="${KEY}" [sizes]="[55, 45]" [minSizes]="[28, 22]" ariaLabel="Resize panes">
+    <ui-splitter
+      style="width: 1008px; height: 100px"
+      storageKey="${KEY}"
+      [sizes]="[55, 45]"
+      [minSizes]="[28, 22]"
+      ariaLabel="Resize panes"
+    >
       <div uiSplitterStart id="start">start</div>
       <div uiSplitterEnd id="end">end</div>
     </ui-splitter>
@@ -23,7 +29,8 @@ describe("ui-splitter", () => {
     await fixture.whenStable();
     const root: HTMLElement = fixture.nativeElement;
     const gutter = root.querySelector<HTMLElement>('[role="separator"]')!;
-    const width = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!.parentElement!.getBoundingClientRect().width;
+    const width = (id: string) =>
+      root.querySelector<HTMLElement>(`#${id}`)!.parentElement!.getBoundingClientRect().width;
     const press = async (key: string) => {
       gutter.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
       await fixture.whenStable();
@@ -31,7 +38,10 @@ describe("ui-splitter", () => {
     // A scripted pointer has no id the browser knows, so it cannot be captured.
     gutter.setPointerCapture = () => undefined;
     gutter.releasePointerCapture = () => undefined;
-    const pointer = (type: string, clientX: number) => gutter.dispatchEvent(new PointerEvent(type, { clientX, pointerId: 1, button: 0, bubbles: true, cancelable: true }));
+    const pointer = (type: string, clientX: number) =>
+      gutter.dispatchEvent(
+        new PointerEvent(type, { clientX, pointerId: 1, button: 0, bubbles: true, cancelable: true }),
+      );
     return { fixture, root, gutter, width, press, pointer };
   }
 
@@ -63,13 +73,16 @@ describe("ui-splitter", () => {
     fixture.destroy();
   });
 
-  it.each(["not json", '"55"', "[55]", "[55,null]", "[-5,105]", "[80,80]", "[0,100]"])("ignores a stored value it cannot use: %s", async (value) => {
-    localStorage.setItem(KEY, value);
-    const { fixture, gutter } = await setup();
+  it.each(["not json", '"55"', "[55]", "[55,null]", "[-5,105]", "[80,80]", "[0,100]"])(
+    "ignores a stored value it cannot use: %s",
+    async (value) => {
+      localStorage.setItem(KEY, value);
+      const { fixture, gutter } = await setup();
 
-    expect(gutter.getAttribute("aria-valuenow")).toBe("55");
-    fixture.destroy();
-  });
+      expect(gutter.getAttribute("aria-valuenow")).toBe("55");
+      fixture.destroy();
+    },
+  );
 
   it("arrow keys move the gutter and store the result; Home and End stop at the minimum sizes", async () => {
     const { fixture, gutter, width, press } = await setup();

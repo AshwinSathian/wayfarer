@@ -33,7 +33,7 @@ describe("SecretsVault", () => {
   describe("saveSecret()", () => {
     it("throws instead of persisting anything when the vault is locked", async () => {
       await expect(vault.saveSecret({ name: "API key", plaintext: "shh" })).rejects.toThrow(
-        "Secrets are locked. Unlock before saving new secrets."
+        "Secrets are locked. Unlock before saving new secrets.",
       );
       expect(await idb.secrets.listAll()).toEqual([]);
     });
@@ -45,7 +45,12 @@ describe("SecretsVault", () => {
 
       expect(first).not.toBe(second);
       const [doc] = (await idb.secrets.listAll()).filter((secret) => secret.id === first);
-      expect(doc).toMatchObject({ id: first, name: "API key", environmentId: "env-1", envelope: { iv: expect.any(String), ct: expect.any(String) } });
+      expect(doc).toMatchObject({
+        id: first,
+        name: "API key",
+        environmentId: "env-1",
+        envelope: { iv: expect.any(String), ct: expect.any(String) },
+      });
       expect(Object.keys(doc.envelope).sort()).toEqual(["ct", "iv"]);
     });
 
@@ -76,9 +81,11 @@ describe("SecretsVault", () => {
       vi.advanceTimersByTime(4_999);
       expect(diagnosticEntries().filter((entry) => entry.context === "vault")).toEqual([]);
       vi.advanceTimersByTime(1);
-      expect(diagnosticEntries().filter((entry) => entry.context === "vault").map((entry) => entry.message)).toEqual([
-        "saving a secret is still writing it to storage after 5 s",
-      ]);
+      expect(
+        diagnosticEntries()
+          .filter((entry) => entry.context === "vault")
+          .map((entry) => entry.message),
+      ).toEqual(["saving a secret is still writing it to storage after 5 s"]);
     });
 
     it("records nothing for a save that finished", async () => {
@@ -202,7 +209,10 @@ describe("SecretsVault", () => {
       const file = (await vault.exportFile("source passphrase"))!;
       expect(file).not.toContain("travels-encrypted");
       expect(file).not.toContain("source passphrase");
-      expect(JSON.parse(file)).toMatchObject({ $id: "wayfarer/vault", secrets: [{ id, name: "API key", environmentId: "env-1" }] });
+      expect(JSON.parse(file)).toMatchObject({
+        $id: "wayfarer/vault",
+        secrets: [{ id, name: "API key", environmentId: "env-1" }],
+      });
 
       // Another browser: a vault of its own, with another passphrase.
       vault.lock();
@@ -213,7 +223,9 @@ describe("SecretsVault", () => {
       idb = repositories();
       await vault.create("destination passphrase");
 
-      expect(await vault.importFile(file, "wrong")).toEqual({ error: "That is not the passphrase this file was exported with." });
+      expect(await vault.importFile(file, "wrong")).toEqual({
+        error: "That is not the passphrase this file was exported with.",
+      });
       expect(await idb.secrets.listAll()).toEqual([]);
       expect(await vault.importFile(file, "source passphrase")).toEqual({ imported: 1 });
 
@@ -229,14 +241,18 @@ describe("SecretsVault", () => {
       await vault.create("correct horse");
       await vault.saveSecret({ name: "One", plaintext: "one" });
       await vault.saveSecret({ name: "Two", plaintext: "two" });
-      const file = JSON.parse((await vault.exportFile("correct horse"))!) as { secrets: { envelope: { ct: string } }[] };
+      const file = JSON.parse((await vault.exportFile("correct horse"))!) as {
+        secrets: { envelope: { ct: string } }[];
+      };
       const before = JSON.stringify(await idb.secrets.listAll());
 
       expect(await vault.importFile("{not json", "correct horse")).toEqual({ error: "The file is not valid JSON." });
       expect(await vault.importFile("{}", "correct horse")).toEqual({
         error: '$id: Not a Wayfarer vault file: "$id" must be "wayfarer/vault".',
       });
-      expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({ error: "The file is larger than 10 MB." });
+      expect(await vault.importFile(" ".repeat(10 * 1024 * 1024 + 1), "correct horse")).toEqual({
+        error: "The file is larger than 10 MB.",
+      });
 
       // The second secret's ciphertext is the first's: it is not what the file's vault encrypted for that id.
       file.secrets[1].envelope = file.secrets[0].envelope;

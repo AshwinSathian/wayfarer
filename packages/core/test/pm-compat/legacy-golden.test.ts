@@ -22,7 +22,12 @@ import golden from "../fixtures/postman-legacy.golden.json";
 interface Item {
   name: string;
   event?: { listen: string; script: { exec: string[] } }[];
-  request: { method: string; url: string; header: { key: string; value: string }[]; body?: { mode: string; raw: string } };
+  request: {
+    method: string;
+    url: string;
+    header: { key: string; value: string }[];
+    body?: { mode: string; raw: string };
+  };
 }
 
 describe("Postman's legacy sandbox, against Newman", () => {
@@ -48,14 +53,19 @@ describe("Postman's legacy sandbox, against Newman", () => {
     const results: { name: string; tests: { name: string; passed: boolean }[] }[] = [];
 
     for (const item of collection.item as Item[]) {
-      const script = (listen: string) => item.event?.find((event) => event.listen === listen)?.script.exec.join("\n") ?? "";
+      const script = (listen: string) =>
+        item.event?.find((event) => event.listen === listen)?.script.exec.join("\n") ?? "";
       const request: ScriptRequest = {
         method: item.request.method,
         url: item.request.url,
         headers: item.request.header.map((header): [string, string] => [header.key, header.value]),
         body: item.request.body ? { mode: "raw", raw: item.request.body.raw } : { mode: "none" },
       };
-      const run = async (source: string, eventName: "prerequest" | "test", response?: Parameters<typeof runScript>[2]["response"]): Promise<ScriptResult> => {
+      const run = async (
+        source: string,
+        eventName: "prerequest" | "test",
+        response?: Parameters<typeof runScript>[2]["response"],
+      ): Promise<ScriptResult> => {
         const result = await runScript(quickjs, source, {
           environment: scriptVariables(environment),
           globals: scriptVariables(globals),
@@ -79,7 +89,7 @@ describe("Postman's legacy sandbox, against Newman", () => {
           headers: request.headers.map(([name, value]): [string, string] => [name, resolver.resolve(value)]),
           ...(request.body.mode === "raw" && { body: resolver.resolve(request.body.raw) }),
         },
-        { signal: new AbortController().signal, timeoutMs: 0 }
+        { signal: new AbortController().signal, timeoutMs: 0 },
       );
       const body = new TextDecoder().decode(envelope.body as ArrayBuffer);
       const after = await run(script("test"), "test", {
@@ -90,7 +100,13 @@ describe("Postman's legacy sandbox, against Newman", () => {
         responseTime: Date.now() - startedAt,
         responseSize: body.length,
       });
-      results.push({ name: item.name, tests: [...(before?.testResults ?? []), ...after.testResults].map((test) => ({ name: test.label, passed: test.passed })) });
+      results.push({
+        name: item.name,
+        tests: [...(before?.testResults ?? []), ...after.testResults].map((test) => ({
+          name: test.label,
+          passed: test.passed,
+        })),
+      });
     }
 
     expect(results).toEqual(golden.items);

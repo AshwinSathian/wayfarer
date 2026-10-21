@@ -56,10 +56,7 @@ module.exports = defineConfig([
       ],
       // Underscore-prefixed params are this codebase's convention for
       // intentionally-unused arguments required by a callback/interface shape.
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       // P1.11 (F36, F40): no silently swallowed errors, no explicit any.
       "@typescript-eslint/no-explicit-any": "error",
       "no-empty": ["error", { allowEmptyCatch: false }],
@@ -67,14 +64,17 @@ module.exports = defineConfig([
         "error",
         {
           selector: "CatchClause[param=null]",
-          message: "Bind the error, then handle it explicitly: rethrow, or record it with Diagnostics.record / recordDiagnostic.",
+          message:
+            "Bind the error, then handle it explicitly: rethrow, or record it with Diagnostics.record / recordDiagnostic.",
         },
         {
-          selector: "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='Identifier'][body.name='undefined']",
+          selector:
+            "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='Identifier'][body.name='undefined']",
           message: ".catch(() => undefined) hides failures. Handle or record the error.",
         },
         {
-          selector: "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='BlockStatement'][body.body.length=0]",
+          selector:
+            "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='BlockStatement'][body.body.length=0]",
           message: ".catch(() => {}) hides failures. Handle or record the error.",
         },
       ],
@@ -113,10 +113,7 @@ module.exports = defineConfig([
   },
   {
     files: ["**/*.html"],
-    extends: [
-      angular.configs.templateRecommended,
-      angular.configs.templateAccessibility,
-    ],
+    extends: [angular.configs.templateRecommended, angular.configs.templateAccessibility],
     rules: {},
   },
   {
@@ -126,10 +123,7 @@ module.exports = defineConfig([
     files: ["src/testing/**/*.ts", "**/*.spec.ts"],
     rules: {
       "@typescript-eslint/no-empty-function": "off",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { args: "none", varsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { args: "none", varsIgnorePattern: "^_" }],
     },
   },
 ]);

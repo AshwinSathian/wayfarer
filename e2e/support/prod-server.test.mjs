@@ -52,10 +52,9 @@ test("`! Name` detaches a header set by a broader rule", () => {
 test("absolute-URL rules only match their own host", () => {
   const text = "https://example.workers.dev/*\n  X-Robots-Tag: noindex\n";
   assert.deepEqual(apply(text, "/"), {});
-  assert.deepEqual(
-    Object.fromEntries(headersFor(parseHeadersFile(text), new URL("https://example.workers.dev/x"))),
-    { "x-robots-tag": "noindex" }
-  );
+  assert.deepEqual(Object.fromEntries(headersFor(parseHeadersFile(text), new URL("https://example.workers.dev/x"))), {
+    "x-robots-tag": "noindex",
+  });
 });
 
 test("a header line with a colon in its value keeps the whole value", () => {
@@ -71,11 +70,23 @@ test("the repo's _headers gives the site its policy at /, the docs theirs at /do
     assert.doesNotMatch(at(path)["content-security-policy"], /unsafe-inline|unsafe-eval|wasm-unsafe-eval/, path);
   }
   for (const path of ["/app/", "/app/main-ABC123.js", "/app/oauth/callback"]) {
-    assert.match(at(path)["content-security-policy"], /^default-src 'self'; script-src 'self' 'wasm-unsafe-eval';/, path);
-    assert.doesNotMatch(at(path)["content-security-policy"], /, /, `${path}: one policy, not the site's joined to the app's`);
+    assert.match(
+      at(path)["content-security-policy"],
+      /^default-src 'self'; script-src 'self' 'wasm-unsafe-eval';/,
+      path,
+    );
+    assert.doesNotMatch(
+      at(path)["content-security-policy"],
+      /, /,
+      `${path}: one policy, not the site's joined to the app's`,
+    );
   }
   for (const path of ["/docs/", "/docs/auth/", "/pagefind/pagefind-worker.js"]) {
-    assert.match(at(path)["content-security-policy"], /^default-src 'none'; script-src 'self' 'wasm-unsafe-eval';/, path);
+    assert.match(
+      at(path)["content-security-policy"],
+      /^default-src 'none'; script-src 'self' 'wasm-unsafe-eval';/,
+      path,
+    );
     assert.doesNotMatch(at(path)["content-security-policy"], /, /, `${path}: one policy`);
   }
   for (const path of ["/", "/docs/", "/app/"]) assert.equal(at(path)["x-content-type-options"], "nosniff", path);
@@ -108,7 +119,11 @@ test("the server sends a compressed body that decompresses to the file, and says
   try {
     const { port } = server.address();
     const { request } = await import("node:http");
-    const response = await new Promise((done, fail) => request({ port, path: "/main.js", headers: { "accept-encoding": "br, gzip" } }, done).on("error", fail).end());
+    const response = await new Promise((done, fail) =>
+      request({ port, path: "/main.js", headers: { "accept-encoding": "br, gzip" } }, done)
+        .on("error", fail)
+        .end(),
+    );
     const chunks = [];
     for await (const chunk of response) chunks.push(chunk);
     assert.equal(response.headers["content-encoding"], "br");
@@ -138,8 +153,13 @@ test("with a log file, the server writes each connection, request and answer as 
   const agent = new Agent({ keepAlive: true });
   const { port } = server.address();
   try {
-    for (const [path, headers] of [["/", { "accept-encoding": "gzip" }], ["/nothing", {}]]) {
-      const response = await new Promise((done, fail) => request({ port, path, agent, headers }, done).on("error", fail).end());
+    for (const [path, headers] of [
+      ["/", { "accept-encoding": "gzip" }],
+      ["/nothing", {}],
+    ]) {
+      const response = await new Promise((done, fail) =>
+        request({ port, path, agent, headers }, done).on("error", fail).end(),
+      );
       for await (const chunk of response) void chunk;
     }
   } finally {
@@ -147,19 +167,32 @@ test("with a log file, the server writes each connection, request and answer as 
     await new Promise((done) => server.close(done));
   }
   // The server's `close` comes before its socket's.
-  for (let wait = 0; wait < 100 && !read(log, "utf8").includes('"closed"'); wait++) await new Promise((done) => setTimeout(done, 10));
-  const lines = read(log, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+  for (let wait = 0; wait < 100 && !read(log, "utf8").includes('"closed"'); wait++)
+    await new Promise((done) => setTimeout(done, 10));
+  const lines = read(log, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
   for (const line of lines) assert.match(line.t, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/);
   assert.deepEqual(
     lines.map(({ t, ...line }) => line),
     [
       { event: "connection", socket: `${port}#1` },
       { event: "request", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip" },
-      { event: "answered", socket: `${port}#1`, method: "GET", path: "/", acceptEncoding: "gzip", status: 200, encoding: "gzip", bytes: gzipSync("<p>shell</p>").length },
+      {
+        event: "answered",
+        socket: `${port}#1`,
+        method: "GET",
+        path: "/",
+        acceptEncoding: "gzip",
+        status: 200,
+        encoding: "gzip",
+        bytes: gzipSync("<p>shell</p>").length,
+      },
       { event: "request", socket: `${port}#1`, method: "GET", path: "/nothing" },
       { event: "answered", socket: `${port}#1`, method: "GET", path: "/nothing", status: 404, bytes: 0 },
       { event: "closed", socket: `${port}#1` },
-    ]
+    ],
   );
 });
 
@@ -183,7 +216,12 @@ async function serve(files, paths) {
       const response = await new Promise((done, fail) => request({ port, path }, done).on("error", fail).end());
       const chunks = [];
       for await (const chunk of response) chunks.push(chunk);
-      answers.push({ status: response.statusCode, location: response.headers.location, test: response.headers["x-test"], body: Buffer.concat(chunks).toString() });
+      answers.push({
+        status: response.statusCode,
+        location: response.headers.location,
+        test: response.headers["x-test"],
+        body: Buffer.concat(chunks).toString(),
+      });
     }
     return answers;
   } finally {
@@ -193,13 +231,20 @@ async function serve(files, paths) {
 
 // W1 (PLAN-design.md): wrangler.jsonc's `not_found_handling` is "404-page", and a folder is its index.html.
 test("a path with no file is the nearest 404.html, with a 404 and the rules' headers", async () => {
-  const files = { "index.html": "site", "404.html": "not here", "app/index.html": "app", "app/404.html": "app's not here" };
+  const files = {
+    "index.html": "site",
+    "404.html": "not here",
+    "app/index.html": "app",
+    "app/404.html": "app's not here",
+  };
   assert.deepEqual(await serve(files, ["/nothing", "/docs/nothing", "/app/nothing"]), [
     { status: 404, location: undefined, test: "yes", body: "not here" },
     { status: 404, location: undefined, test: "yes", body: "not here" },
     { status: 404, location: undefined, test: "yes", body: "app's not here" },
   ]);
-  assert.deepEqual(await serve({ "index.html": "site" }, ["/nothing"]), [{ status: 404, location: undefined, test: "yes", body: "" }]);
+  assert.deepEqual(await serve({ "index.html": "site" }, ["/nothing"]), [
+    { status: 404, location: undefined, test: "yes", body: "" },
+  ]);
 });
 
 test("a folder is its index.html, and without its slash a 307 to it with the slash", async () => {

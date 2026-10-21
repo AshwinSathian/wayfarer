@@ -109,7 +109,10 @@ test.describe("Resizable composer/response layout (desktop)", () => {
         const room = group.parentElement!.getBoundingClientRect();
         const track = group.getBoundingClientRect();
         const options = [...group.querySelectorAll(".segment")].map((option) => {
-          const [box, text] = [option.getBoundingClientRect(), option.querySelector(".segment-label")!.getBoundingClientRect()];
+          const [box, text] = [
+            option.getBoundingClientRect(),
+            option.querySelector(".segment-label")!.getBoundingClientRect(),
+          ];
           return text.left >= box.left && text.right <= box.right;
         });
         return { track: track.left >= room.left && track.right <= room.right, options };
@@ -130,25 +133,41 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.locator("#new-env-name-input")).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 900 });
-    for (const name of ["Delete A much longer environment name that has to be cut somewhere", "Import environments", "Save changes"]) {
+    for (const name of [
+      "Delete A much longer environment name that has to be cut somewhere",
+      "Import environments",
+      "Save changes",
+    ]) {
       // Polled: the page is laid out again a frame or two after the window changes.
-      await expect.poll(async () => page.getByRole("button", { name, exact: true }).evaluate((button) => button.getBoundingClientRect().right), { message: name }).toBeLessThanOrEqual(390);
+      await expect
+        .poll(
+          async () =>
+            page.getByRole("button", { name, exact: true }).evaluate((button) => button.getBoundingClientRect().right),
+          { message: name },
+        )
+        .toBeLessThanOrEqual(390);
     }
   });
 
   // F82: on a phone a history row is a panel's header, and its URL was not cut short there:
   // a long one pushed the header's chevron to x = 1355 in a 390 px window, out of sight.
-  test("a long URL in a phone's history row is cut short, and the row's chevron stays inside a 390 px window", async ({ page }) => {
+  test("a long URL in a phone's history row is cut short, and the row's chevron stays inside a 390 px window", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 900 });
     await page.goto("/app/");
-    await page.locator("input.address-url").fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
+    await page
+      .locator("input.address-url")
+      .fill(`${ECHO}/content/xml?a-rather-long-query=with-a-long-value-that-has-to-be-cut-somewhere-in-the-row`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200");
     await page.getByRole("button", { name: "Request history", exact: true }).click();
     const drawer = page.getByRole("dialog", { name: "Request history" });
     const chevron = drawer.locator("app-past-requests .section-chevron").last();
     await expect(chevron).toBeVisible();
-    await expect.poll(async () => chevron.evaluate((icon) => icon.getBoundingClientRect().right)).toBeLessThanOrEqual(390);
+    await expect
+      .poll(async () => chevron.evaluate((icon) => icon.getBoundingClientRect().right))
+      .toBeLessThanOrEqual(390);
   });
 
   // The 352 px sidebar was pinned from 768 px up. At 820 px that left the
@@ -194,7 +213,9 @@ test.describe("Resizable composer/response layout (desktop)", () => {
   // 768 px the bridge, the vault, the secrets and the theme are in the status bar, each with its state
   // in words. On a phone the lock stays in the toolbar and the rest is in Settings.
   for (const width of [390, 767]) {
-    test(`at ${width} px there is no status bar, and the toolbar keeps the lock and Settings in the window`, async ({ page }) => {
+    test(`at ${width} px there is no status bar, and the toolbar keeps the lock and Settings in the window`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
       await expect(page.locator("input.address-url")).toBeVisible();
@@ -203,14 +224,19 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
         await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
-      const settings = await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).boundingBox();
+      const settings = await page
+        .getByRole("banner")
+        .getByRole("button", { name: "Settings", exact: true })
+        .boundingBox();
       expect(settings!.x + settings!.width).toBeLessThanOrEqual(width);
     });
   }
 
   // From 768 + 20 px: WebKit takes its scrollbar off the width a media query sees.
   for (const width of [788, 1100, 1440]) {
-    test(`at ${width} px the status bar holds the bridge, the vault, the secrets and the theme, and says each state`, async ({ page }) => {
+    test(`at ${width} px the status bar holds the bridge, the vault, the secrets and the theme, and says each state`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
       const status = page.getByRole("contentinfo", { name: "Status" });
@@ -218,7 +244,12 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(status).toContainText("Route: Auto");
       await expect(status).toContainText("Vault locked");
       await expect(status).toContainText("Saved in this browser only");
-      for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/, /^Unlock secrets$/]) {
+      for (const name of [
+        /^Manage secrets$/,
+        /^Local Bridge settings$/,
+        /^Switch to (light|dark) mode$/,
+        /^Unlock secrets$/,
+      ]) {
         await expect(status.getByRole("button", { name })).toBeVisible();
         await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
       }
@@ -268,7 +299,9 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 test.describe("Mobile composer (390px)", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("@claim:C-032 shows one composer section at a time via a single-open accordion, with real labels", async ({ page }) => {
+  test("@claim:C-032 shows one composer section at a time via a single-open accordion, with real labels", async ({
+    page,
+  }) => {
     await page.goto("/app/");
 
     // Headers is open by default; the others are present as labeled,
@@ -285,7 +318,9 @@ test.describe("Mobile composer (390px)", () => {
     await expect(page.locator("#auth-type-select")).toBeVisible();
   });
 
-  test("@claim:C-040 Monaco initializes in the Scripts panel instead of getting stuck on the loading placeholder", async ({ page }) => {
+  test("@claim:C-040 Monaco initializes in the Scripts panel instead of getting stuck on the loading placeholder", async ({
+    page,
+  }) => {
     await page.goto("/app/");
     await page.getByRole("button", { name: "Scripts", exact: true }).click();
 
@@ -338,7 +373,9 @@ test.describe("Disabled 'Copy as cURL' affordance", () => {
 });
 
 test.describe("Render stability under rapid tab/viewport transitions", () => {
-  test("rapid response-tab switching and viewport resizing never leaves a JSON editor stuck loading", async ({ page }) => {
+  test("rapid response-tab switching and viewport resizing never leaves a JSON editor stuck loading", async ({
+    page,
+  }) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (err) => {
       // The HTML spec reports this as an error event when a ResizeObserver
@@ -413,7 +450,11 @@ test.describe("the response's height", () => {
   test("a JSON response fills the height of its pane, and grows with the window", async ({ page }) => {
     const items = Array.from({ length: 60 }, (_, id) => ({ id, name: `item ${id}` }));
     await page.route("https://fills.test/**", (route) =>
-      route.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: JSON.stringify({ items }) })
+      route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
+        body: JSON.stringify({ items }),
+      }),
     );
     const editor = page.locator("app-response-viewer app-json-editor");
     const height = async () => (await editor.boundingBox())?.height ?? 0;
@@ -436,7 +477,11 @@ test.describe("the response's height", () => {
   // U-030 of docs/design/audit.md: the status, the tabs and the body's tools took 310 px before the body.
   test("the body starts within 240 px of the response's top: one status line, one row of tools", async ({ page }) => {
     await page.route("https://fills.test/**", (route) =>
-      route.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: JSON.stringify({ items: [1, 2, 3] }) })
+      route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
+        body: JSON.stringify({ items: [1, 2, 3] }),
+      }),
     );
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");

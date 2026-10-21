@@ -13,7 +13,12 @@ import { previewDocument } from "@wayfarer/core";
   selector: "app-html-preview",
   host: { class: "block" },
   // White whatever the theme: a page that sets no colours expects a white canvas.
-  template: `<iframe #frame sandbox title="HTML preview" class="html-preview block h-[300px] w-full rounded-xl border border-separator bg-white"></iframe>`,
+  template: `<iframe
+    #frame
+    sandbox
+    title="HTML preview"
+    class="html-preview block h-[300px] w-full rounded-xl border border-separator bg-white"
+  ></iframe>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HtmlPreview {

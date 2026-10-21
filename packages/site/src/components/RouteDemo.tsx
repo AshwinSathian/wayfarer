@@ -41,7 +41,8 @@ export function RouteDemo() {
             <div>{"{"}</div>
             {BODY.map(([key, value], i) => (
               <div key={key} className="pl-4">
-                <span className="text-code-key">&quot;{key}&quot;</span>: <span className="text-code-string">{value}</span>
+                <span className="text-code-key">&quot;{key}&quot;</span>:{" "}
+                <span className="text-code-string">{value}</span>
                 {i < BODY.length - 1 ? "," : ""}
               </div>
             ))}
@@ -53,16 +54,25 @@ export function RouteDemo() {
       <figcaption className="mt-6">
         <div className="flex items-baseline justify-between gap-4">
           <p className="font-display text-base font-semibold text-ink">Everything that left the tab</p>
-          <button type="button" data-demo-replay hidden className="text-sm text-route underline underline-offset-4 hover:no-underline">
+          <button
+            type="button"
+            data-demo-replay
+            hidden
+            className="text-sm text-route underline underline-offset-4 hover:no-underline"
+          >
             Replay
           </button>
         </div>
         <ol className="route-line mt-3 space-y-4">
           <li className="relative pl-9">
-            <span aria-hidden="true" className="absolute left-[5px] top-1.5 size-3.5 rounded-full border-2 border-route bg-paper" />
+            <span
+              aria-hidden="true"
+              className="absolute left-[5px] top-1.5 size-3.5 rounded-full border-2 border-route bg-paper"
+            />
             <code className="text-[0.8rem] text-ink">GET /app/</code>
             <p className="text-sm text-ink-muted">
-              Wayfarer itself, from this site, once. After the first visit it loads from your browser, offline too. <Claims ids={["C-015"]} />
+              Wayfarer itself, from this site, once. After the first visit it loads from your browser, offline too.{" "}
+              <Claims ids={["C-015"]} />
             </p>
           </li>
           <li className="relative pl-9">
@@ -78,7 +88,8 @@ export function RouteDemo() {
           </li>
         </ol>
         <p className="mt-4 pl-9 text-sm text-ink-muted">
-          <strong className="text-ink">Nothing else.</strong> No account, no analytics, no server of Wayfarer&apos;s in between.
+          <strong className="text-ink">Nothing else.</strong> No account, no analytics, no server of Wayfarer&apos;s in
+          between.
         </p>
       </figcaption>
     </figure>

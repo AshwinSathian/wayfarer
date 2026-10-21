@@ -84,10 +84,16 @@ test("the site at / and the app at /app/ share the origin's storage", async ({ p
 // W2.1: every sentence of the landing that says what Wayfarer does names its claim, and every ID it names is a
 // row of the ledger: a claim the ledger drops cannot stay on the page.
 test("each claim the landing names is a row of the claims ledger", async ({ page }) => {
-  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]));
+  const ledger = new Set(
+    [...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]),
+  );
   expect(ledger.size).toBeGreaterThan(60);
   await page.goto("/");
-  const named = (await page.locator("[data-claims]").evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))).flatMap((ids) => ids.split(" "));
+  const named = (
+    await page
+      .locator("[data-claims]")
+      .evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))
+  ).flatMap((ids) => ids.split(" "));
   expect(named.length).toBeGreaterThan(10);
   expect(named.filter((id) => !ledger.has(id))).toEqual([]);
 });
@@ -99,7 +105,9 @@ test("the blog lists its posts, each a page, and its RSS feed has an item for ea
   await page.goto("/blog/");
   const links = page.locator("main li h2 a");
   await expect(links).toHaveCount(files.length);
-  const dates = await page.locator("main li time").evaluateAll((times) => times.map((time) => time.getAttribute("datetime") ?? ""));
+  const dates = await page
+    .locator("main li time")
+    .evaluateAll((times) => times.map((time) => time.getAttribute("datetime") ?? ""));
   expect(dates).toEqual([...dates].sort().reverse());
   const feed = await request.get("/blog/rss.xml");
   expect(feed.status()).toBe(200);
@@ -112,13 +120,20 @@ test("the blog lists its posts, each a page, and its RSS feed has an item for ea
     await expect(page.locator("article"), href).not.toBeEmpty();
   }
   await page.goto("/");
-  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute("href", "https://wayfarer.ashwinsathian.com/blog/rss.xml");
+  await expect(page.locator('link[rel="alternate"][type="application/rss+xml"]')).toHaveAttribute(
+    "href",
+    "https://wayfarer.ashwinsathian.com/blog/rss.xml",
+  );
 });
 
 // W2.3: every fact about another product on the comparison pages names its source and the date it was read, every
 // claim they name is a row of the ledger, and the index lists where Wayfarer is behind.
-test("each comparison page cites a source with its date for every fact about a rival, and names only claims of the ledger", async ({ page }) => {
-  const ledger = new Set([...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]));
+test("each comparison page cites a source with its date for every fact about a rival, and names only claims of the ledger", async ({
+  page,
+}) => {
+  const ledger = new Set(
+    [...readFileSync("docs/claims.md", "utf8").matchAll(/^\| (C-\d{3}) \|/gm)].map((match) => match[1]),
+  );
   const pages = sitePages().filter((path) => path.startsWith("/compare/"));
   expect(pages.length).toBeGreaterThanOrEqual(7);
   for (const path of pages) {
@@ -127,8 +142,15 @@ test("each comparison page cites a source with its date for every fact about a r
       await expect(cite.getByRole("link"), path).toHaveAttribute("href", /^https:\/\//);
       await expect(cite.locator("time"), path).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}$/);
     }
-    const named = (await page.locator("[data-claims]").evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))).flatMap((ids) => ids.split(" "));
-    expect(named.filter((id) => !ledger.has(id)), path).toEqual([]);
+    const named = (
+      await page
+        .locator("[data-claims]")
+        .evaluateAll((spans) => spans.map((span) => span.getAttribute("data-claims") ?? ""))
+    ).flatMap((ids) => ids.split(" "));
+    expect(
+      named.filter((id) => !ledger.has(id)),
+      path,
+    ).toEqual([]);
   }
   for (const rival of ["postman", "bruno", "yaak", "hoppscotch", "insomnia"]) {
     await page.goto(`/compare/${rival}/`);
@@ -147,7 +169,10 @@ test("each comparison page cites a source with its date for every fact about a r
 // W3.1: every page names its canonical address, its Open Graph and Twitter cards and an image of its own, which is a
 // 1200 by 630 PNG; the sitemap lists every page; robots.txt names the sitemap; the front page describes the app as
 // schema.org data; /llms.txt says what the site is.
-test("every page has its canonical address, its cards and its own image, and the sitemap, robots.txt, the app's data and llms.txt are there", async ({ page, request }) => {
+test("every page has its canonical address, its cards and its own image, and the sitemap, robots.txt, the app's data and llms.txt are there", async ({
+  page,
+  request,
+}) => {
   const SITE = "https://wayfarer.ashwinsathian.com";
   const pages = sitePages().filter((path) => !/^\/(404|_not-found)/.test(path));
   const sitemap = await (await request.get("/sitemap.xml")).text();
@@ -176,8 +201,17 @@ test("every page has its canonical address, its cards and its own image, and the
 
   expect(await (await request.get("/robots.txt")).text()).toContain(`Sitemap: ${SITE}/sitemap.xml`);
   await page.goto("/");
-  const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}") as Record<string, unknown>;
-  expect(data).toMatchObject({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: "Wayfarer", url: `${SITE}/app/`, offers: { "@type": "Offer", price: "0" } });
+  const data = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent()) ?? "{}") as Record<
+    string,
+    unknown
+  >;
+  expect(data).toMatchObject({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Wayfarer",
+    url: `${SITE}/app/`,
+    offers: { "@type": "Offer", price: "0" },
+  });
   const llms = await request.get("/llms.txt");
   expect(llms.status()).toBe(200);
   expect(await llms.text()).toMatch(/^# Wayfarer\n\n> /);
@@ -185,11 +219,16 @@ test("every page has its canonical address, its cards and its own image, and the
 
 // One test a page: with the docs, one test of every page passed 30 s on CI's Firefox (#350).
 for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
-  test(`${path} is not wider than a window of 360, 390, 820 or 1,440 px, and has no axe violation`, async ({ page }) => {
+  test(`${path} is not wider than a window of 360, 390, 820 or 1,440 px, and has no axe violation`, async ({
+    page,
+  }) => {
     for (const width of [360, 390, 820, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(path);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), `${path} at ${width} px`).toBeLessThanOrEqual(0);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+        `${path} at ${width} px`,
+      ).toBeLessThanOrEqual(0);
       expect((await axe(page).analyze()).violations.map((v) => `${path} at ${width} px: ${v.id}`)).toEqual([]);
     }
   });
@@ -197,7 +236,10 @@ for (const path of existsSync(DEPLOY) ? sitePages() : ["/"]) {
 
 // W2.2: every file of docs/ is a page, and the search, the site's one script, finds them.
 test("every doc of the repository is a page of the site, its links leading to pages", async ({ page }) => {
-  const docs = readdirSync("docs", { recursive: true }).map(String).filter((name) => name.endsWith(".md")).map((name) => name.split("\\").join("/").slice(0, -3));
+  const docs = readdirSync("docs", { recursive: true })
+    .map(String)
+    .filter((name) => name.endsWith(".md"))
+    .map((name) => name.split("\\").join("/").slice(0, -3));
   expect(docs.length).toBeGreaterThan(15);
   for (const doc of docs) {
     const response = await page.goto(`/docs/${doc}/`);
@@ -221,7 +263,9 @@ test("the docs' search finds a doc by a word in it, from the site's own files", 
   expect(foreign).toEqual([]);
 });
 
-test("/docs/ has the docs' policy, with script from the site's own files, and / script from them alone", async ({ request }) => {
+test("/docs/ has the docs' policy, with script from the site's own files, and / script from them alone", async ({
+  request,
+}) => {
   const docs = (await request.get("/docs/")).headers()["content-security-policy"] ?? "";
   expect(docs.split(";").map((d) => d.trim())).toContain("script-src 'self' 'wasm-unsafe-eval'");
   expect(docs).not.toContain(", ");
@@ -238,13 +282,18 @@ test("no page of the site has a script of Next's, an inline script, an inline ha
     const html = readFileSync(file, "utf8");
     // Every script, closed or not, is a file of the site's own or data.
     const scripts = html.match(/<script\b[^>]*>/gi) ?? [];
-    expect(scripts.filter((tag) => !/\ssrc="\/(?!_next\/)[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)), path).toEqual([]);
+    expect(
+      scripts.filter((tag) => !/\ssrc="\/(?!_next\/)[^"]*"/i.test(tag) && !/\stype="application\/ld\+json"/i.test(tag)),
+      path,
+    ).toEqual([]);
     expect(html.match(/\s(style|on[a-z]+)="/g) ?? [], path).toEqual([]);
   }
 });
 
 // What the pages do in the browser is public/site.js: the landing's demo and the theme toggle.
-test("the landing's demo plays to its answer and again on Replay, and the toggle switches the theme the app reads", async ({ page }) => {
+test("the landing's demo plays to its answer and again on Replay, and the toggle switches the theme the app reads", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("wayfarer:theme", "dark"));
   await page.reload();
@@ -282,14 +331,19 @@ test("the changelog and the roadmap are pages, the roadmap as the plan has it", 
 const RUN = { run: 38850000000, commit: "0123456789abcdef0123456789abcdef01234567", date: "2026-10-16T05:00:00Z" };
 
 test("the claims page names the CI run its deploy passed, on each claim's row", async ({ page }) => {
-  await page.route("**/ci-run.json", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(RUN) }));
+  await page.route("**/ci-run.json", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(RUN) }),
+  );
   await page.goto("/docs/claims/");
   const table = page.locator("article table").first();
   await expect(table.locator("thead th").last()).toHaveText("Last CI");
   const rows = await table.locator("tbody tr").count();
   expect(rows).toBeGreaterThan(60);
   await expect(table.getByRole("link", { name: "Passed" })).toHaveCount(rows);
-  await expect(table.getByRole("link", { name: "Passed" }).first()).toHaveAttribute("href", `https://github.com/AshwinSathian/wayfarer/actions/runs/${RUN.run}`);
+  await expect(table.getByRole("link", { name: "Passed" }).first()).toHaveAttribute(
+    "href",
+    `https://github.com/AshwinSathian/wayfarer/actions/runs/${RUN.run}`,
+  );
   await expect(page.locator(".ci-note")).toContainText("0123456789ab");
   await expect(page.locator(".ci-note")).toContainText("2026-10-16");
 });
@@ -298,7 +352,13 @@ test("with no CI run, or a file that is not one, the claims page says it has no 
   await page.goto("/docs/claims/");
   await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
   await expect(page.getByRole("link", { name: "Passed" })).toHaveCount(0);
-  await page.route("**/ci-run.json", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...RUN, commit: "<b>x</b>" }) }));
+  await page.route("**/ci-run.json", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...RUN, commit: "<b>x</b>" }),
+    }),
+  );
   await page.reload();
   await expect(page.locator(".ci-note")).toHaveText(/not deployed from a CI run/);
   await expect(page.locator("article b")).toHaveCount(0);

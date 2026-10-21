@@ -1,7 +1,16 @@
 import { TestBed } from "@angular/core/testing";
 import { signal } from "@angular/core";
 import { describe, it, beforeEach, expect, vi } from "vitest";
-import type { Cookie, ResolvedRequest, ResponseEnvelope, Route, RoutePolicy, Row, ScriptResult, TransportOptions } from "@wayfarer/core";
+import type {
+  Cookie,
+  ResolvedRequest,
+  ResponseEnvelope,
+  Route,
+  RoutePolicy,
+  Row,
+  ScriptResult,
+  TransportOptions,
+} from "@wayfarer/core";
 import { requestContent, rowsOf } from "../../testing/request-fixtures";
 import { RequestExecutor } from "./request-executor";
 import { CookieJar } from "./cookie-jar";
@@ -15,19 +24,45 @@ import type { EnvironmentDoc } from "@wayfarer/core";
 // (`packages/core/src/send/exchange.spec.ts`). This one holds the app's ports to it.
 
 function envelope(fields: Partial<ResponseEnvelope> = {}): ResponseEnvelope {
-  return { status: 200, statusText: "OK", headers: [], body: new ArrayBuffer(0), redirected: false, finalUrl: "", route: "direct", sizes: { decoded: 0 }, ...fields };
+  return {
+    status: 200,
+    statusText: "OK",
+    headers: [],
+    body: new ArrayBuffer(0),
+    redirected: false,
+    finalUrl: "",
+    route: "direct",
+    sizes: { decoded: 0 },
+    ...fields,
+  };
 }
 
 describe("RequestExecutor", () => {
-  const result: ScriptResult = { logs: [], changes: { environment: [{ key: "n", value: "2" }], collection: [], global: [{ key: "g", value: "1" }] }, testResults: [] };
+  const result: ScriptResult = {
+    logs: [],
+    changes: { environment: [{ key: "n", value: "2" }], collection: [], global: [{ key: "g", value: "1" }] },
+    testResults: [],
+  };
   const scriptSandbox = { execute: vi.fn(async () => result) };
   const cookieJar = { for: vi.fn((_url: string): Cookie[] => []), store: vi.fn() };
   const inspector = {
     markRequest: vi.fn(),
-    markResponse: vi.fn((id: string, url: string) => ({ id, url, startTime: 0, startEpoch: 0, endTime: 1, duration: 1 })),
+    markResponse: vi.fn((id: string, url: string) => ({
+      id,
+      url,
+      startTime: 0,
+      startEpoch: 0,
+      endTime: 1,
+      duration: 1,
+    })),
   };
   const active = signal<EnvironmentDoc | null>(null);
-  const environments = { activeEnvironment: active, globals: signal<Row[]>([]), changeEnvironment: vi.fn(), changeGlobals: vi.fn() };
+  const environments = {
+    activeEnvironment: active,
+    globals: signal<Row[]>([]),
+    changeEnvironment: vi.fn(),
+    changeGlobals: vi.fn(),
+  };
   let answer: ResponseEnvelope;
   let given: TransportOptions | undefined;
   const transport = {
@@ -41,12 +76,25 @@ describe("RequestExecutor", () => {
   };
   let service: RequestExecutor;
   const send = () =>
-    service.execute({ template: requestContent(), runScripts: true, preRequestScript: "", postRequestScript: "pm.test()", tests: [], buildRequest: () => ({ method: "GET", url: "https://api.test/", headers: [], secrets: [], credentials: [] }) });
+    service.execute({
+      template: requestContent(),
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "pm.test()",
+      tests: [],
+      buildRequest: () => ({ method: "GET", url: "https://api.test/", headers: [], secrets: [], credentials: [] }),
+    });
 
   beforeEach(() => {
     vi.clearAllMocks();
     answer = envelope();
-    active.set({ id: "env-1", meta: { id: "env-1", createdAt: 1, updatedAt: 1 }, name: "Env", order: 1, vars: rowsOf({ n: "1" }) } as EnvironmentDoc);
+    active.set({
+      id: "env-1",
+      meta: { id: "env-1", createdAt: 1, updatedAt: 1 },
+      name: "Env",
+      order: 1,
+      vars: rowsOf({ n: "1" }),
+    } as EnvironmentDoc);
     TestBed.configureTestingModule({
       providers: [
         { provide: TransportRouter, useValue: transport },
@@ -76,7 +124,13 @@ describe("RequestExecutor", () => {
 
   it("runs a script in the worker with the default limit, and stores what it set in the active environment and the globals", async () => {
     await send();
-    expect(scriptSandbox.execute).toHaveBeenCalledWith("pm.test()", [["n", "1"]], expect.objectContaining({ statusCode: 200 }), undefined, expect.objectContaining({ environmentName: "Env" }));
+    expect(scriptSandbox.execute).toHaveBeenCalledWith(
+      "pm.test()",
+      [["n", "1"]],
+      expect.objectContaining({ statusCode: 200 }),
+      undefined,
+      expect.objectContaining({ environmentName: "Env" }),
+    );
     expect(environments.changeEnvironment).toHaveBeenCalledWith("env-1", [{ key: "n", value: "2", keepSecret: true }]);
     expect(environments.changeGlobals).toHaveBeenCalledWith([{ key: "g", value: "1", keepSecret: true }]);
   });

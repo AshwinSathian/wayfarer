@@ -11,29 +11,77 @@ const ACCESS = "AKIDEXAMPLE";
 const SECRET = "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY";
 const TOKEN = "session-token-c061";
 
-const strict = (text: string) => encodeURIComponent(text).replace(/[!'()*]/g, (mark) => `%${mark.charCodeAt(0).toString(16).toUpperCase()}`);
+const strict = (text: string) =>
+  encodeURIComponent(text).replace(/[!'()*]/g, (mark) => `%${mark.charCodeAt(0).toString(16).toUpperCase()}`);
 const sha256 = (data: string | Buffer) => createHash("sha256").update(data).digest("hex");
 const hmac = (key: string | Buffer, data: string) => createHmac("sha256", key).update(data).digest();
 
 /** The signature AWS would compute for a request that arrived like this, from its `Authorization` header's own scope and list of signed headers. */
-function signatureOf(method: string, address: string, headers: Record<string, string>, body: string, secret: string): { signature: string; expected: string; signedHeaders: string[]; scope: string } {
-  const [, scope, signedList, signature] = /^AWS4-HMAC-SHA256 Credential=[^/]+\/(\S+), SignedHeaders=(\S+), Signature=([0-9a-f]{64})$/.exec(headers["authorization"] ?? "") ?? [];
+function signatureOf(
+  method: string,
+  address: string,
+  headers: Record<string, string>,
+  body: string,
+  secret: string,
+): { signature: string; expected: string; signedHeaders: string[]; scope: string } {
+  const [, scope, signedList, signature] =
+    /^AWS4-HMAC-SHA256 Credential=[^/]+\/(\S+), SignedHeaders=(\S+), Signature=([0-9a-f]{64})$/.exec(
+      headers["authorization"] ?? "",
+    ) ?? [];
   const url = new URL(address);
   const signedHeaders = signedList.split(";");
   const path = `/${url.pathname.split("/").filter(Boolean).map(strict).join("/")}`;
-  const query = url.search.slice(1).split("&").filter(Boolean).map((pair) => pair.split("=").map((part) => strict(decodeURIComponent(part))).join("=")).sort().join("&");
-  const canonical = [method, path, query, ...signedHeaders.map((name) => `${name}:${(name === "host" ? url.host : headers[name]).trim()}`), "", signedList, sha256(body)].join("\n");
+  const query = url.search
+    .slice(1)
+    .split("&")
+    .filter(Boolean)
+    .map((pair) =>
+      pair
+        .split("=")
+        .map((part) => strict(decodeURIComponent(part)))
+        .join("="),
+    )
+    .sort()
+    .join("&");
+  const canonical = [
+    method,
+    path,
+    query,
+    ...signedHeaders.map((name) => `${name}:${(name === "host" ? url.host : headers[name]).trim()}`),
+    "",
+    signedList,
+    sha256(body),
+  ].join("\n");
   const [day, region, service] = scope.split("/");
-  const key = [day, region, service, "aws4_request"].reduce<string | Buffer>((made, part) => hmac(made, part), `AWS4${secret}`);
-  const expected = hmac(key, ["AWS4-HMAC-SHA256", headers["x-amz-date"], scope, sha256(canonical)].join("\n")).toString("hex");
+  const key = [day, region, service, "aws4_request"].reduce<string | Buffer>(
+    (made, part) => hmac(made, part),
+    `AWS4${secret}`,
+  );
+  const expected = hmac(key, ["AWS4-HMAC-SHA256", headers["x-amz-date"], scope, sha256(canonical)].join("\n")).toString(
+    "hex",
+  );
   return { signature, expected, signedHeaders, scope };
 }
 
-test("@claim:C-061 AWS Signature: the signature that arrives is the one computed again from the request that arrived, and history keeps neither the secret key nor the token", async ({ page }) => {
+test("@claim:C-061 AWS Signature: the signature that arrives is the one computed again from the request that arrived, and history keeps neither the secret key nor the token", async ({
+  page,
+}) => {
   const violations: string[] = [];
   await page.exposeFunction("reportViolation", (directive: string) => violations.push(directive));
-  await page.addInitScript(() => addEventListener("securitypolicyviolation", (event) => void (window as unknown as { reportViolation: (directive: string) => void }).reportViolation(event.violatedDirective)));
-  await seedAndOpen(page, { region: "eu-west-1" }, { method: "POST", url: `${ECHO}/echo?b=two words&a=1&a=(0)`, body: { name: "Rex", note: "é" } });
+  await page.addInitScript(() =>
+    addEventListener(
+      "securitypolicyviolation",
+      (event) =>
+        void (window as unknown as { reportViolation: (directive: string) => void }).reportViolation(
+          event.violatedDirective,
+        ),
+    ),
+  );
+  await seedAndOpen(
+    page,
+    { region: "eu-west-1" },
+    { method: "POST", url: `${ECHO}/echo?b=two words&a=1&a=(0)`, body: { name: "Rex", note: "é" } },
+  );
 
   // Chosen and typed in the Auth tab, as a user would.
   await page.getByRole("tab", { name: "Auth", exact: true }).first().click();
@@ -46,7 +94,10 @@ test("@claim:C-061 AWS Signature: the signature that arrives is the one computed
   await page.locator("#auth-aws-region").fill("{{region}}");
   await page.locator("#auth-aws-service").fill("execute-api");
 
-  const [sent] = await Promise.all([page.waitForRequest((candidate) => candidate.url().startsWith(`${ECHO}/echo?`) && candidate.method() === "POST"), send(page)]);
+  const [sent] = await Promise.all([
+    page.waitForRequest((candidate) => candidate.url().startsWith(`${ECHO}/echo?`) && candidate.method() === "POST"),
+    send(page),
+  ]);
   await expect(page.locator(".status-badge")).toHaveText("200");
   const headers = await sent.allHeaders();
   const body = sent.postData() ?? "";
@@ -67,18 +118,35 @@ test("@claim:C-061 AWS Signature: the signature that arrives is the one computed
   expect(violations).toEqual([]);
 });
 
-test("@claim:C-061 AWS Signature cannot sign a multipart form: the send is refused with a message, and nothing is sent", async ({ page }) => {
+test("@claim:C-061 AWS Signature cannot sign a multipart form: the send is refused with a message, and nothing is sent", async ({
+  page,
+}) => {
   const arrived: string[] = [];
   page.on("request", (request) => {
     if (request.url().startsWith(ECHO)) arrived.push(request.url());
   });
-  await seedAndOpen(page, {}, {
-    method: "POST",
-    url: `${ECHO}/echo`,
-    storedBody: { mode: "multipart", multipart: [{ key: "name", enabled: true, kind: "text", value: "Rex" }] },
-    auth: { type: "awsv4", accessKey: ACCESS, secretKey: SECRET, sessionToken: "", region: "us-east-1", service: "s3" },
-  });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "POST",
+      url: `${ECHO}/echo`,
+      storedBody: { mode: "multipart", multipart: [{ key: "name", enabled: true, kind: "text", value: "Rex" }] },
+      auth: {
+        type: "awsv4",
+        accessKey: ACCESS,
+        secretKey: SECRET,
+        sessionToken: "",
+        region: "us-east-1",
+        service: "s3",
+      },
+    },
+  );
   await send(page);
-  await expect(page.getByText("AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign.")).toBeVisible();
+  await expect(
+    page.getByText(
+      "AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign.",
+    ),
+  ).toBeVisible();
   expect(arrived).toEqual([]);
 });

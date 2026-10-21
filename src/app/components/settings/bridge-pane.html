@@ -1,43 +1,107 @@
 <div class="settings-group">
   <div class="settings-row settings-row-stacked">
     <p class="type-subhead text-label-primary" id="bridge-route-label">Route</p>
-    <p class="type-footnote text-label-tertiary">How a request leaves when neither it nor its collection says. <strong>Auto</strong> sends from the page, and through the bridge when the browser could not: a request the server cannot have received is sent again at once, and one it may have received is sent again only if you say so. <strong>Direct</strong> always sends from the page. <strong>Local Bridge</strong> sends every request from the bridge on this machine, where CORS and mixed content do not apply.</p>
-    <ui-segmented aria-labelledby="bridge-route-label" [options]="routes" [value]="route()" (valueChange)="route.set($event); edited()" />
+    <p class="type-footnote text-label-tertiary"
+      >How a request leaves when neither it nor its collection says. <strong>Auto</strong> sends from the page, and
+      through the bridge when the browser could not: a request the server cannot have received is sent again at once,
+      and one it may have received is sent again only if you say so. <strong>Direct</strong> always sends from the page.
+      <strong>Local Bridge</strong> sends every request from the bridge on this machine, where CORS and mixed content do
+      not apply.</p
+    >
+    <ui-segmented
+      aria-labelledby="bridge-route-label"
+      [options]="routes"
+      [value]="route()"
+      (valueChange)="route.set($event); edited()"
+    />
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
     <p class="type-footnote text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
     <mat-form-field class="field w-full">
-      <input class="font-mono" matInput id="bridge-url-input" type="text" inputmode="url" autocomplete="off" spellcheck="false" [ngModel]="url()" (ngModelChange)="url.set($event); edited()" placeholder="http://127.0.0.1:7717" />
+      <input
+        class="font-mono"
+        matInput
+        id="bridge-url-input"
+        type="text"
+        inputmode="url"
+        autocomplete="off"
+        spellcheck="false"
+        [ngModel]="url()"
+        (ngModelChange)="url.set($event); edited()"
+        placeholder="http://127.0.0.1:7717"
+      />
     </mat-form-field>
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-pairing-input" class="type-subhead text-label-primary">Pairing code</label>
-    <p class="type-footnote text-label-tertiary">The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code works once; after three wrong ones the bridge waits a minute.</p>
+    <p class="type-footnote text-label-tertiary"
+      >The bridge prints one when it starts. Pair, and the bridge gives this page its token: nothing to copy. A code
+      works once; after three wrong ones the bridge waits a minute.</p
+    >
     <div class="flex flex-wrap items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1 basis-40">
-        <input class="font-mono" matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
+        <input
+          class="font-mono"
+          matInput
+          id="bridge-pairing-input"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="characters"
+          [ngModel]="pairingCode()"
+          (ngModelChange)="pairingCode.set($event); pairing.set('idle')"
+          placeholder="ABCD-2345"
+        />
       </mat-form-field>
-      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
+      <button
+        uiButton="outlined"
+        class="btn-secondary btn-sm"
+        type="button"
+        aria-label="Pair"
+        [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'"
+        (click)="pair()"
+      >
         @if (pairing() === 'pairing') { <ui-spinner /> } Pair
       </button>
     </div>
     <span class="type-footnote flex items-center gap-1" role="status">
       @if (pairProblem()) {
-      <app-icon name="error" class="icon-xs text-status-error" /> <span class="bridge-pair-problem text-status-error">{{ pairProblem() }}</span>
+      <app-icon name="error" class="icon-xs text-status-error" />
+      <span class="bridge-pair-problem text-status-error">{{ pairProblem() }}</span>
       } @else if (pairing() === 'paired') {
-      <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="bridge-paired text-status-success">Paired: the token is saved.</span>
+      <app-icon name="check_circle" class="icon-xs text-status-success" />
+      <span class="bridge-paired text-status-success">Paired: the token is saved.</span>
       }
     </span>
   </div>
   <div class="settings-row settings-row-stacked">
     <label for="bridge-token-input" class="type-subhead text-label-primary">Bridge token</label>
-    <p class="type-footnote text-label-tertiary">Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is unlocked; otherwise only in this tab, until it reloads.</p>
+    <p class="type-footnote text-label-tertiary"
+      >Printed when you start <span class="font-mono">wayfarer-bridge</span>. It is kept in the vault while the vault is
+      unlocked; otherwise only in this tab, until it reloads.</p
+    >
     <div class="flex items-center gap-2">
       <mat-form-field class="field min-w-0 flex-1">
-        <input class="font-mono" matInput id="bridge-token-input" [type]="showToken() ? 'text' : 'password'" autocomplete="off" spellcheck="false" [ngModel]="token()" (ngModelChange)="token.set($event); edited()" placeholder="Paste the token" />
+        <input
+          class="font-mono"
+          matInput
+          id="bridge-token-input"
+          [type]="showToken() ? 'text' : 'password'"
+          autocomplete="off"
+          spellcheck="false"
+          [ngModel]="token()"
+          (ngModelChange)="token.set($event); edited()"
+          placeholder="Paste the token"
+        />
       </mat-form-field>
-      <button uiButton="icon" type="button" [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'" (click)="showToken.set(!showToken())"><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'" /></button>
+      <button
+        uiButton="icon"
+        type="button"
+        [attr.aria-label]="showToken() ? 'Hide bridge token' : 'Show bridge token'"
+        (click)="showToken.set(!showToken())"
+        ><app-icon [name]="showToken() ? 'visibility_off' : 'visibility'"
+      /></button>
     </div>
   </div>
 </div>
@@ -47,35 +111,61 @@
 }
 
 <div class="mt-4 flex flex-wrap items-center gap-2">
-  <button uiButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Test connection" [disabled]="!url().trim() || test() === 'testing'" (click)="testConnection()">
+  <button
+    uiButton="outlined"
+    class="btn-secondary btn-sm"
+    type="button"
+    aria-label="Test connection"
+    [disabled]="!url().trim() || test() === 'testing'"
+    (click)="testConnection()"
+  >
     @if (test() === 'testing') { <ui-spinner /> } Test connection
   </button>
   <span class="bridge-test type-footnote flex items-center gap-1" role="status">
     @if (testProblem()) {
-      <app-icon name="error" class="icon-xs text-status-error" /> <span class="text-status-error">{{ testProblem() }}</span>
+    <app-icon name="error" class="icon-xs text-status-error" />
+    <span class="text-status-error">{{ testProblem() }}</span>
     } @else if (test() === 'testing') {
-      <span class="text-label-tertiary">Checking…</span>
+    <span class="text-label-tertiary">Checking…</span>
     } @else if (test() === 'ok') {
-      <app-icon name="check_circle" class="icon-xs text-status-success" /> <span class="text-status-success">Reachable</span>
+    <app-icon name="check_circle" class="icon-xs text-status-success" />
+    <span class="text-status-success">Reachable</span>
     }
   </span>
   <span class="flex-1"></span>
   @if (saved() && !dirty()) {
-  <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" role="status"><app-icon name="check" class="icon-xs" /> Saved</span>
-  }
-  @if (dirty()) {
+  <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" role="status"
+    ><app-icon name="check" class="icon-xs" /> Saved</span
+  >
+  } @if (dirty()) {
   <button uiButton class="btn-sm" type="button" (click)="discard()">Discard</button>
   }
-  <button uiButton="filled" class="btn-sm" type="button" aria-label="Save" [disabled]="!dirty() || !!problem()" (click)="save()">Save</button>
+  <button
+    uiButton="filled"
+    class="btn-sm"
+    type="button"
+    aria-label="Save"
+    [disabled]="!dirty() || !!problem()"
+    (click)="save()"
+    >Save</button
+  >
 </div>
 
 <p class="bridge-lna type-footnote text-label-tertiary mt-4">
-  The first time this page reaches the bridge, Chrome and Edge may ask whether this site may look for and connect to devices on your local network.
-  The bridge is a program on this computer: allow it, or the page cannot reach the bridge. If you blocked it, allow it again in the site's settings (the icon left of the address).
-  From the hosted app, Safari reaches the bridge only over HTTPS: start the bridge with a certificate (<span class="font-mono">--cert</span>, <span class="font-mono">--key</span>).
+  The first time this page reaches the bridge, Chrome and Edge may ask whether this site may look for and connect to
+  devices on your local network. The bridge is a program on this computer: allow it, or the page cannot reach the
+  bridge. If you blocked it, allow it again in the site's settings (the icon left of the address). From the hosted app,
+  Safari reaches the bridge only over HTTPS: start the bridge with a certificate (<span class="font-mono">--cert</span>,
+  <span class="font-mono">--key</span>).
 </p>
 
 <p class="type-footnote text-label-tertiary mt-4">
   The bridge is a small program you run yourself; nothing is sent to it unless you switch it on here.
-  <a href="https://github.com/AshwinSathian/wayfarer/blob/main/packages/bridge/README.md" target="_blank" rel="noopener noreferrer" class="text-accent-text underline">Setup and security model</a>.
+  <a
+    href="https://github.com/AshwinSathian/wayfarer/blob/main/packages/bridge/README.md"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="text-accent-text underline"
+    >Setup and security model</a
+  >.
 </p>

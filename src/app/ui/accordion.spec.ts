@@ -13,10 +13,23 @@ type Part = "params" | "headers" | "auth";
     <div uiAccordion>
       @for (part of parts; track part) {
         <div class="sections-item">
-          <button ngAccordionTrigger #trigger="ngAccordionTrigger" class="section-header" [panel]="panel" [expanded]="open() === part" (expandedChange)="$event ? open.set(part) : closed(part, trigger)">
+          <button
+            ngAccordionTrigger
+            #trigger="ngAccordionTrigger"
+            class="section-header"
+            [panel]="panel"
+            [expanded]="open() === part"
+            (expandedChange)="$event ? open.set(part) : closed(part, trigger)"
+          >
             {{ part }}
           </button>
-          <div ngAccordionPanel uiAccordionPanel #panel="ngAccordionPanel" class="section-body" [preserveContent]="true">
+          <div
+            ngAccordionPanel
+            uiAccordionPanel
+            #panel="ngAccordionPanel"
+            class="section-body"
+            [preserveContent]="true"
+          >
             <ng-template ngAccordionContent>
               <input [attr.aria-label]="'In ' + part" />
               <button type="button" (click)="pressed.push(part)">Press {{ part }}</button>
@@ -50,9 +63,13 @@ describe("uiAccordion", () => {
       await fixture.whenStable();
     };
     await settle();
-    const header = (part: string) => Array.from(root.querySelectorAll<HTMLButtonElement>(".section-header")).find((h) => h.textContent?.trim() === part)!;
+    const header = (part: string) =>
+      Array.from(root.querySelectorAll<HTMLButtonElement>(".section-header")).find(
+        (h) => h.textContent?.trim() === part,
+      )!;
     const field = (part: string) => root.querySelector<HTMLInputElement>(`input[aria-label="In ${part}"]`);
-    const open = () => Array.from(root.querySelectorAll(".section-header[aria-expanded='true']")).map((h) => h.textContent?.trim());
+    const open = () =>
+      Array.from(root.querySelectorAll(".section-header[aria-expanded='true']")).map((h) => h.textContent?.trim());
     const key = async (target: HTMLElement, key: string) => {
       const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
       target.dispatchEvent(event);
@@ -112,7 +129,9 @@ describe("uiAccordion", () => {
     }
     expect(document.activeElement).toBe(input);
     // A button in a panel is pressed by Enter: its click is not taken from it.
-    const press = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find((b) => b.textContent?.trim() === "Press headers")!;
+    const press = Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
+      (b) => b.textContent?.trim() === "Press headers",
+    )!;
     expect((await key(press, "Enter")).defaultPrevented).toBe(false);
   });
 

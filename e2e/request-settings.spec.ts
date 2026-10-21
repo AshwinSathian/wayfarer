@@ -4,7 +4,9 @@ import { ECHO } from "./support/echo";
 // U-002 and U-023 of docs/design/audit.md: how a request is sent (its route,
 // redirects, the certificate check, what the browser does to it) is a tab of
 // the request, as in Postman and Insomnia, not 250 px above every request.
-test("a request's route, redirects and certificate check are in its Settings tab; a certificate check that is off shows from every tab", async ({ page }) => {
+test("a request's route, redirects and certificate check are in its Settings tab; a certificate check that is off shows from every tab", async ({
+  page,
+}) => {
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
 
@@ -27,9 +29,15 @@ test("a request's route, redirects and certificate check are in its Settings tab
 test("the Settings section opened on a phone is the Settings tab when the window widens", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
-  await page.getByRole("button", { name: "Settings", exact: true }).filter({ has: page.locator(".section-chevron") }).click();
+  await page
+    .getByRole("button", { name: "Settings", exact: true })
+    .filter({ has: page.locator(".section-chevron") })
+    .click();
   await expect(page.getByRole("checkbox", { name: "Follow redirects" })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("app-composer").getByRole("tab", { name: "Settings", exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(page.getByRole("checkbox", { name: "Follow redirects" })).toBeVisible();
 });

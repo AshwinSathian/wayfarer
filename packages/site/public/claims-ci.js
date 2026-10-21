@@ -12,8 +12,16 @@ const link = (text, href) => Object.assign(document.createElement("a"), { textCo
 
 /** The file's run, if it is one: a run number, a commit's 40 hex digits and a date. */
 function runOf(data) {
-  const ok = data && Number.isSafeInteger(data.run) && data.run > 0 && /^[0-9a-f]{40}$/.test(data.commit) && typeof data.date === "string" && !Number.isNaN(Date.parse(data.date));
-  return ok ? { run: data.run, commit: data.commit, date: new Date(data.date).toISOString().slice(0, 10), url: RUNS + data.run } : null;
+  const ok =
+    data &&
+    Number.isSafeInteger(data.run) &&
+    data.run > 0 &&
+    /^[0-9a-f]{40}$/.test(data.commit) &&
+    typeof data.date === "string" &&
+    !Number.isNaN(Date.parse(data.date));
+  return ok
+    ? { run: data.run, commit: data.commit, date: new Date(data.date).toISOString().slice(0, 10), url: RUNS + data.run }
+    : null;
 }
 
 fetch("/ci-run.json", { cache: "no-store" })
@@ -23,7 +31,8 @@ fetch("/ci-run.json", { cache: "no-store" })
     if (!table) return;
     const run = runOf(data);
     if (!run) {
-      note.textContent = "This copy of the site was not deployed from a CI run, so it shows no test results. Each claim's tests are named in its row.";
+      note.textContent =
+        "This copy of the site was not deployed from a CI run, so it shows no test results. Each claim's tests are named in its row.";
       return;
     }
     note.append(
@@ -31,7 +40,7 @@ fetch("/ci-run.json", { cache: "no-store" })
       Object.assign(document.createElement("code"), { textContent: run.commit.slice(0, 12) }),
       ", which passed ",
       link(`CI run ${run.run}`, run.url),
-      ` on ${run.date}: no test failed in it, and a claim test is not retried. A test that does not run in an engine (one only Chromium can run, for example) is not counted there.`
+      ` on ${run.date}: no test failed in it, and a claim test is not retried. A test that does not run in an engine (one only Chromium can run, for example) is not counted there.`,
     );
     const head = table.querySelector("thead tr");
     head?.append(Object.assign(document.createElement("th"), { textContent: "Last CI" }));

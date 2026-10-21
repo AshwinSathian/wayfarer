@@ -1,9 +1,9 @@
 <ui-dialog header="Review scripts" [visible]="visible()" (visibleChange)="visibleChange.emit($event)" width="760px">
   <div class="flex flex-col gap-4">
     <p class="type-callout text-label-secondary">
-      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ places() }}.
-      A script runs when its request is sent; the collection's and a folder's run for every request in them. It can read and change your variables, and a changed variable can change
-      where a later request goes. Read them before you trust them.
+      {{ count() }} {{ count() === 1 ? "script" : "scripts" }} in {{ places() }}. A script runs when its request is
+      sent; the collection's and a folder's run for every request in them. It can read and change your variables, and a
+      changed variable can change where a later request goes. Read them before you trust them.
     </p>
     @if (visible()) {
     <app-script-editor
@@ -16,8 +16,12 @@
     ></app-script-editor>
     }
     <div class="flex flex-wrap justify-end gap-2">
-      <button type="button" uiButton="outlined" class="btn-secondary" (click)="visibleChange.emit(false)">Not now</button>
-      <button type="button" uiButton="filled" [disabled]="saving() || !count()" (click)="approve()">I trust these scripts</button>
+      <button type="button" uiButton="outlined" class="btn-secondary" (click)="visibleChange.emit(false)"
+        >Not now</button
+      >
+      <button type="button" uiButton="filled" [disabled]="saving() || !count()" (click)="approve()"
+        >I trust these scripts</button
+      >
     </div>
   </div>
 </ui-dialog>

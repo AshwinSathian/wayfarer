@@ -33,7 +33,10 @@ export function Header() {
             <summary className="grid h-10 cursor-pointer list-none place-items-center rounded-lg px-3 text-[0.95rem] text-ink-muted hover:bg-paper-sunk [&::-webkit-details-marker]:hidden">
               Menu
             </summary>
-            <nav aria-label="Site" className="absolute right-0 z-10 mt-2 flex w-48 flex-col rounded-xl border border-line bg-paper-raised p-2 shadow-lg">
+            <nav
+              aria-label="Site"
+              className="absolute right-0 z-10 mt-2 flex w-48 flex-col rounded-xl border border-line bg-paper-raised p-2 shadow-lg"
+            >
               {LINKS.map(([name, href]) => (
                 <a key={name} href={href} className="rounded-lg px-3 py-2 text-ink hover:bg-paper-sunk">
                   {name}
@@ -42,7 +45,10 @@ export function Header() {
             </nav>
           </details>
           <ThemeToggle />
-          <a href="/app/" className="rounded-lg bg-route px-3 py-2 text-[0.95rem] font-bold text-route-ink hover:opacity-90 sm:px-4">
+          <a
+            href="/app/"
+            className="rounded-lg bg-route px-3 py-2 text-[0.95rem] font-bold text-route-ink hover:opacity-90 sm:px-4"
+          >
             Open Wayfarer
           </a>
         </div>

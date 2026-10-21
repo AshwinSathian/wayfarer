@@ -4,7 +4,14 @@ import { RequestSave } from "../services/request-save";
 import { ScriptTrust } from "../services/script-trust";
 import { Tabs } from "./tabs";
 import { WorkspaceStore } from "./workspace-store";
-import { ComposerHarness, JSON_HEADERS, jsonBytes, makeRequestDoc, meta, setupComposer } from "../../testing/composer-setup";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  jsonBytes,
+  makeRequestDoc,
+  meta,
+  setupComposer,
+} from "../../testing/composer-setup";
 import { inCollection, rowsOf } from "../../testing/request-fixtures";
 
 // P5.1: the composer's tabs, before anything of them is stored.
@@ -155,7 +162,9 @@ describe("Tabs", () => {
     expect(first.loadingState()).toBe(true);
     expect(store.loadingState()).toBe(false);
 
-    httpMock.expectOne("https://one.test/items").flush(jsonBytes({ from: "one" }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://one.test/items")
+      .flush(jsonBytes({ from: "one" }), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     expect(await sent).toBe(true);
 
     expect(first.loadingState()).toBe(false);
@@ -171,14 +180,30 @@ describe("Tabs", () => {
     // A script that waits for a review: the send asks for its digest first, so the request is built a moment after the click.
     const doc = makeRequestDoc({ id: "one", url: "{{host}}/items", headers: [], scripts: { pre: "x()", post: "" } });
     collectionsService.setTree([
-      { collection: { id: "c1", meta: meta("c1"), name: "c1", order: 1, variables: rowsOf({ host: "https://one.test" }), ...inCollection, scriptTrust: { trusted: false } }, folders: [], requests: [doc] },
+      {
+        collection: {
+          id: "c1",
+          meta: meta("c1"),
+          name: "c1",
+          order: 1,
+          variables: rowsOf({ host: "https://one.test" }),
+          ...inCollection,
+          scriptTrust: { trusted: false },
+        },
+        folders: [],
+        requests: [doc],
+      },
     ]);
     component.loadCollectionRequest(doc);
     const first = tabs.active();
 
     const sent = store.send();
     tabs.open();
-    await vi.waitFor(() => httpMock.expectOne("https://one.test/items").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    await vi.waitFor(() =>
+      httpMock
+        .expectOne("https://one.test/items")
+        .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }),
+    );
     expect(await sent).toBe(true);
 
     expect(first.scriptsSkipped()).toBe(true);
@@ -195,12 +220,16 @@ describe("Tabs", () => {
     store.setUrl("https://two.test/b");
     const two = store.send();
 
-    await vi.waitFor(() => httpMock.expectOne("https://two.test/b").flush(null, { status: 204, statusText: "No Content" }));
+    await vi.waitFor(() =>
+      httpMock.expectOne("https://two.test/b").flush(null, { status: 204, statusText: "No Content" }),
+    );
     expect(await two).toBe(true);
     expect(second.responseStatusCode()).toBe(204);
     expect(first.loadingState()).toBe(true);
 
-    httpMock.expectOne("https://one.test/a").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+    httpMock
+      .expectOne("https://one.test/a")
+      .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
     expect(await one).toBe(true);
     expect(first.responseStatusCode()).toBe(200);
     expect(second.responseStatusCode()).toBe(204);
@@ -210,7 +239,11 @@ describe("Tabs", () => {
     const first = tabs.active();
     store.setUrl("https://one.test/a");
     const one = store.send();
-    await vi.waitFor(() => httpMock.expectOne("https://one.test/a").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    await vi.waitFor(() =>
+      httpMock
+        .expectOne("https://one.test/a")
+        .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }),
+    );
     await one;
     expect(store.responseInspection()?.url).toBe("https://one.test/a");
 
@@ -218,7 +251,11 @@ describe("Tabs", () => {
     expect(store.responseInspection()).toBeNull();
     store.setUrl("https://two.test/b");
     const two = store.send();
-    await vi.waitFor(() => httpMock.expectOne("https://two.test/b").flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }));
+    await vi.waitFor(() =>
+      httpMock
+        .expectOne("https://two.test/b")
+        .flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS }),
+    );
     await two;
     expect(store.responseInspection()?.url).toBe("https://two.test/b");
 

@@ -16,19 +16,25 @@ const motion = (page: Page) =>
       const where = target ? `${target.nodeName.toLowerCase()}.${[...target.classList].join(".")}` : "?";
       const name = "animationName" in animation ? String(animation.animationName) : "transition";
       if (!timing) continue;
-      if (Number(timing.duration) > 0.001 || Number(timing.delay) !== 0 || timing.iterations !== 1) found.push(`${name} on ${where}: ${timing.duration} ms × ${timing.iterations}, after ${timing.delay} ms`);
+      if (Number(timing.duration) > 0.001 || Number(timing.delay) !== 0 || timing.iterations !== 1)
+        found.push(`${name} on ${where}: ${timing.duration} ms × ${timing.iterations}, after ${timing.delay} ms`);
     }
-    const ms = (value: string) => value.split(",").map((part) => parseFloat(part) * (part.trim().endsWith("ms") ? 1 : 1000));
+    const ms = (value: string) =>
+      value.split(",").map((part) => parseFloat(part) * (part.trim().endsWith("ms") ? 1 : 1000));
     for (const el of document.querySelectorAll("*")) {
       const style = getComputedStyle(el);
       if (ms(style.transitionDuration).some((d) => d > 0.001) || ms(style.transitionDelay).some((d) => d !== 0)) {
-        found.push(`transition on ${el.nodeName.toLowerCase()}.${[...el.classList].join(".")}: ${style.transitionDuration} after ${style.transitionDelay}`);
+        found.push(
+          `transition on ${el.nodeName.toLowerCase()}.${[...el.classList].join(".")}: ${style.transitionDuration} after ${style.transitionDelay}`,
+        );
       }
     }
     return [...new Set(found)];
   });
 
-test("with reduced motion nothing lasts, waits or loops: a response, Settings, a menu, a missing variable", async ({ page }) => {
+test("with reduced motion nothing lasts, waits or loops: a response, Settings, a menu, a missing variable", async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
   await send(page);
@@ -54,6 +60,8 @@ test("without reduced motion the missing variable's pulse stops: twice, then sti
   await page.locator("input.address-url").fill(`${ECHO}/{{nowhere}}`);
   const chip = page.locator(".var-chip.var-missing");
   await expect(chip).toBeVisible();
-  const iterations = await chip.evaluate((el) => el.getAnimations().map((a) => a.effect?.getComputedTiming().iterations));
+  const iterations = await chip.evaluate((el) =>
+    el.getAnimations().map((a) => a.effect?.getComputedTiming().iterations),
+  );
   expect(iterations).toEqual([2]);
 });

@@ -3,10 +3,13 @@ import { test, expect } from "@playwright/test";
 import { openSettings } from "./support/app";
 
 test.describe("Settings surface", () => {
-  const drawn = (page: import("@playwright/test").Page) => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+  const drawn = (page: import("@playwright/test").Page) =>
+    page.evaluate(() => document.documentElement.getAttribute("data-theme"));
 
   for (const theme of ["light", "dark"] as const) {
-    test(`with ${theme} chosen, the page is ${theme} from the moment it has a body: it is never drawn in the other theme first (F85)`, async ({ page }) => {
+    test(`with ${theme} chosen, the page is ${theme} from the moment it has a body: it is never drawn in the other theme first (F85)`, async ({
+      page,
+    }) => {
       // Stored, not emulated: see the note on Firefox below. The theme is read when the body appears, which is
       // before anything is drawn, and at every change of the attribute after that.
       await page.addInitScript((choice) => {
@@ -18,7 +21,10 @@ test.describe("Settings surface", () => {
           if (!document.body) return;
           waitForBody.disconnect();
           record();
-          new MutationObserver(record).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+          new MutationObserver(record).observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+          });
         });
         waitForBody.observe(document, { childList: true, subtree: true });
       }, theme);
@@ -30,7 +36,9 @@ test.describe("Settings surface", () => {
     });
   }
 
-  test("@claim:C-033 @claim:C-037 opens from the toolbar, and the theme is Light, Dark or the system's, kept over a reload", async ({ page }) => {
+  test("@claim:C-033 @claim:C-037 opens from the toolbar, and the theme is Light, Dark or the system's, kept over a reload", async ({
+    page,
+  }) => {
     await page.goto("/app/");
     // No choice yet: the system's. (Set once the page is there: Playwright's Firefox does not give a
     // page its emulated scheme on a context's first load, and gives it from then on.)
@@ -46,7 +54,12 @@ test.describe("Settings surface", () => {
     await expect.poll(() => drawn(page)).toBe("light");
 
     // System again: it follows the device, and changes when the device does.
-    await (await openSettings(page)).getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "System" }).click();
+    await (
+      await openSettings(page)
+    )
+      .getByRole("radiogroup", { name: "Theme" })
+      .getByRole("radio", { name: "System" })
+      .click();
     await expect.poll(() => drawn(page)).toBe("dark");
     await page.emulateMedia({ colorScheme: "light" });
     await expect.poll(() => drawn(page)).toBe("light");
@@ -56,7 +69,19 @@ test.describe("Settings surface", () => {
     await page.goto("/app/");
     const dialog = await openSettings(page);
     const list = dialog.getByRole("navigation", { name: "Settings sections" });
-    await expect(list.getByRole("button")).toHaveText([/General/, /Requests/, /History/, /Data and storage/, /Vault/, /Local Bridge/, /Cookies/, /Shortcuts/, /Diagnostics/, /About/, /Danger zone/]);
+    await expect(list.getByRole("button")).toHaveText([
+      /General/,
+      /Requests/,
+      /History/,
+      /Data and storage/,
+      /Vault/,
+      /Local Bridge/,
+      /Cookies/,
+      /Shortcuts/,
+      /Diagnostics/,
+      /About/,
+      /Danger zone/,
+    ]);
     for (const [section, control] of [
       ["Requests", "Request timeout"],
       ["History", "History size"],
@@ -77,7 +102,9 @@ test.describe("Settings surface", () => {
     await expect(list.getByRole("button", { name: "Danger zone", exact: true })).toBeFocused();
   });
 
-  test("on a phone Settings is the list, a section opens in its place, and All settings goes back", async ({ page }) => {
+  test("on a phone Settings is the list, a section opens in its place, and All settings goes back", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/app/");
     await page.getByRole("banner").getByRole("button", { name: "Settings", exact: true }).click();
@@ -92,7 +119,11 @@ test.describe("Settings surface", () => {
     const back = dialog.getByRole("button", { name: "All settings" });
     await expect(back).toBeFocused();
     // Nothing is wider than the dialog, and the dialog is inside the window.
-    expect(await dialog.evaluate((element) => Math.max(...[...element.querySelectorAll("*")].map((child) => child.getBoundingClientRect().right)))).toBeLessThanOrEqual(390);
+    expect(
+      await dialog.evaluate((element) =>
+        Math.max(...[...element.querySelectorAll("*")].map((child) => child.getBoundingClientRect().right)),
+      ),
+    ).toBeLessThanOrEqual(390);
 
     await back.click();
     await expect(list).toBeVisible();
@@ -129,7 +160,9 @@ test.describe("Settings surface", () => {
     await expect(page.getByText("Reset all data?")).toBeHidden();
   });
 
-  test("@claim:C-033 Local Bridge settings are a pane of Settings: nothing is stored until Save, and the toolbar's bridge button opens it", async ({ page }) => {
+  test("@claim:C-033 Local Bridge settings are a pane of Settings: nothing is stored until Save, and the toolbar's bridge button opens it", async ({
+    page,
+  }) => {
     await page.goto("/app/");
     const dialog = await openSettings(page, "Local Bridge");
     const save = dialog.getByRole("button", { name: "Save", exact: true });
@@ -138,7 +171,10 @@ test.describe("Settings surface", () => {
     expect(await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))).toBeNull();
     await save.click();
     await expect(dialog.locator(".bridge-saved")).toHaveText(/Saved/);
-    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({ route: "auto", url: "http://127.0.0.1:7717" });
+    expect(JSON.parse((await page.evaluate(() => localStorage.getItem("wayfarer:bridge"))) ?? "{}")).toEqual({
+      route: "auto",
+      url: "http://127.0.0.1:7717",
+    });
     // The token is not stored there (F83): `e2e/bridge-token.spec.ts` has where it is.
     // Nothing listens there in this test: the pane says so, and why it may be.
     await dialog.getByRole("button", { name: "Test connection" }).click();
@@ -169,10 +205,13 @@ test.describe("Settings surface", () => {
     await expect(page.getByTestId("app-version")).toHaveText(version);
     // The licences are a file of the app itself; the other links leave it, each in a tab of its own.
     await expect(dialog.getByRole("link", { name: /Licences/ })).toHaveAttribute("href", "3rdpartylicenses.txt");
-    for (const link of await dialog.getByRole("link").all()) await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    for (const link of await dialog.getByRole("link").all())
+      await expect(link).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  test("the device's route is a real choice: the keyboard and a click both pick one (P6.4; it was a checkbox)", async ({ page }) => {
+  test("the device's route is a real choice: the keyboard and a click both pick one (P6.4; it was a checkbox)", async ({
+    page,
+  }) => {
     await page.goto("/app/");
     await page.getByRole("button", { name: "Local Bridge settings" }).click();
     const auto = page.getByRole("radio", { name: "Auto" });

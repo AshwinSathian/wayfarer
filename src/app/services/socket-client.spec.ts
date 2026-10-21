@@ -22,7 +22,7 @@ class FakeSocket {
 
   constructor(
     readonly url: string,
-    readonly protocols: string[]
+    readonly protocols: string[],
   ) {
     if (FakeSocket.refuse) throw FakeSocket.refuse;
     FakeSocket.made.push(this);
@@ -52,7 +52,11 @@ describe("SocketClient", () => {
   let client: SocketClient;
   let tabs: Tabs;
   const socket = () => FakeSocket.made[FakeSocket.made.length - 1];
-  const log = () => tabs.active().socket.log().map((entry) => [entry.direction, entry.text]);
+  const log = () =>
+    tabs
+      .active()
+      .socket.log()
+      .map((entry) => [entry.direction, entry.text]);
 
   beforeEach(async () => {
     FakeSocket.made = [];
@@ -66,7 +70,14 @@ describe("SocketClient", () => {
 
   it("an address is a WebSocket's when it starts with ws: or wss:, as written or through a variable", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ live: "wss://live.test" }));
-    for (const [url, is] of [["ws://a.test/x", true], ["WSS://a.test", true], ["{{live}}/feed", true], ["https://a.test", false], ["a.test/ws", false], ["", false]] as const) {
+    for (const [url, is] of [
+      ["ws://a.test/x", true],
+      ["WSS://a.test", true],
+      ["{{live}}/feed", true],
+      ["https://a.test", false],
+      ["a.test/ws", false],
+      ["", false],
+    ] as const) {
       store.setUrl(url);
       expect(client.isSocket(), url).toBe(is);
     }
@@ -204,14 +215,20 @@ describe("SocketClient", () => {
       socket().readyState = 3;
       vi.advanceTimersByTime(500);
       expect(state.status()).toBe("closed");
-      expect(log().slice(-2)).toEqual([["info", "The connection failed."], ["info", "Closed: the browser gave no close code."]]);
+      expect(log().slice(-2)).toEqual([
+        ["info", "The connection failed."],
+        ["info", "Closed: the browser gave no close code."],
+      ]);
 
       // A close that does follow an error is logged once, and the later look at the socket adds nothing.
       client.connect();
       socket().onerror?.();
       socket().end(1006, "", false);
       vi.advanceTimersByTime(500);
-      expect(log().slice(-2)).toEqual([["info", "The connection failed."], ["info", "Closed: 1006 (the connection was lost; no close frame arrived)"]]);
+      expect(log().slice(-2)).toEqual([
+        ["info", "The connection failed."],
+        ["info", "Closed: 1006 (the connection was lost; no close frame arrived)"],
+      ]);
       expect(state.status()).toBe("closed");
     } finally {
       vi.useRealTimers();

@@ -61,12 +61,7 @@ selfRef.onmessage = (event: MessageEvent<WorkerRequest>) => {
       respond({ id, ok: true, result });
     })
     .catch((error: unknown) => {
-      const message =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-          ? error
-          : "Unknown error";
+      const message = error instanceof Error ? error.message : typeof error === "string" ? error : "Unknown error";
       respond({ id, ok: false, error: message });
     });
 };
@@ -115,10 +110,7 @@ function search(input: string, rawQuery: string): SearchResult {
     }
 
     const contextStart = Math.max(0, foundIndex - CONTEXT_RADIUS);
-    const contextEnd = Math.min(
-      haystack.length,
-      foundIndex + query.length + CONTEXT_RADIUS
-    );
+    const contextEnd = Math.min(haystack.length, foundIndex + query.length + CONTEXT_RADIUS);
 
     excerpts.push({
       index: foundIndex,

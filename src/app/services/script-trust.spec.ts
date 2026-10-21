@@ -27,7 +27,11 @@ describe("ScriptTrust", () => {
     await idb.resetDatabase();
   });
 
-  const content = (pre: string, post = ""): RequestContent => ({ ...emptyRequest(), url: "https://api.test/", scripts: { pre, post } });
+  const content = (pre: string, post = ""): RequestContent => ({
+    ...emptyRequest(),
+    url: "https://api.test/",
+    scripts: { pre, post },
+  });
   const trustOf = (id: string) => collections.getCollectionTree(id)?.collection.scriptTrust;
   /** What `send` is told, once the signal the banner reads agrees with it (a digest is asynchronous). */
   const allowed = async () => {
@@ -65,7 +69,10 @@ describe("ScriptTrust", () => {
     saved.saveAsName.set("Login");
     saved.saveAsCollectionId.set(collection.meta.id);
     await saved.confirmSaveAs(content("pm.environment.set('a', '1');"), await trust.check());
-    expect(trustOf(collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("pm.environment.set('a', '1');")] });
+    expect(trustOf(collection.meta.id)).toEqual({
+      trusted: true,
+      approved: [await scriptDigest("pm.environment.set('a', '1');")],
+    });
     expect(await allowed()).toBe(true);
 
     // An edit is the user's own too: the new text is approved when it is saved.
@@ -80,10 +87,15 @@ describe("ScriptTrust", () => {
     saved.bind(tree.requests[0]);
     trust.openedHere();
     expect(await allowed()).toBe(false);
-    expect(trust.toReview()).toEqual([{ kind: "request", name: "Login", pre: "pm.environment.set('host', 'evil.test');", post: "" }]);
+    expect(trust.toReview()).toEqual([
+      { kind: "request", name: "Login", pre: "pm.environment.set('host', 'evil.test');", post: "" },
+    ]);
 
     await trust.approve();
-    expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("pm.environment.set('host', 'evil.test');")] });
+    expect(trustOf(tree.collection.meta.id)).toEqual({
+      trusted: true,
+      approved: [await scriptDigest("pm.environment.set('host', 'evil.test');")],
+    });
     expect(await allowed()).toBe(true);
   });
 
@@ -91,16 +103,27 @@ describe("ScriptTrust", () => {
   async function withInheritedScripts() {
     const made = await collections.createCollection({ name: "Shop" });
     const collectionId = made.meta.id;
-    await collections.saveInherited({ collectionId }, { auth: { type: "none" }, scripts: { pre: "fromCollection()", post: "" } }, true);
+    await collections.saveInherited(
+      { collectionId },
+      { auth: { type: "none" }, scripts: { pre: "fromCollection()", post: "" } },
+      true,
+    );
     const folder = await collections.createFolder({ collectionId, name: "Admin" });
-    await collections.saveInherited({ collectionId, folderId: folder.meta.id }, { auth: { type: "inherit" }, scripts: { pre: "", post: "fromFolder()" } }, true);
+    await collections.saveInherited(
+      { collectionId, folderId: folder.meta.id },
+      { auth: { type: "inherit" }, scripts: { pre: "", post: "fromFolder()" } },
+      true,
+    );
     await collections.createRequest({ ...content(""), collectionId, folderId: folder.meta.id, name: "Plain" });
     return collections.getCollectionTree(collectionId)!;
   }
 
   it("a collection's and a folder's script written here are approved by their digests, and run for a request in them", async () => {
     const tree = await withInheritedScripts();
-    expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")] });
+    expect(trustOf(tree.collection.meta.id)).toEqual({
+      trusted: true,
+      approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")],
+    });
     saved.bind(tree.requests[0]);
     trust.openedHere();
     expect(await allowed()).toBe(true);
@@ -115,7 +138,11 @@ describe("ScriptTrust", () => {
     trust.openedHere();
     expect(await allowed()).toBe(false);
     // A request outside the folder is held by the collection's script alone.
-    const outside = await collections.createRequest({ ...content(""), collectionId: tree.collection.meta.id, name: "Outside" });
+    const outside = await collections.createRequest({
+      ...content(""),
+      collectionId: tree.collection.meta.id,
+      name: "Outside",
+    });
     saved.bind(outside);
     expect(await allowed()).toBe(false);
 
@@ -125,7 +152,10 @@ describe("ScriptTrust", () => {
       { kind: "folder", name: "Folder Admin", pre: "", post: "fromFolder()" },
     ]);
     await trust.approve();
-    expect(trustOf(tree.collection.meta.id)).toEqual({ trusted: true, approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")] });
+    expect(trustOf(tree.collection.meta.id)).toEqual({
+      trusted: true,
+      approved: [await scriptDigest("fromCollection()"), await scriptDigest("fromFolder()")],
+    });
     expect(await allowed()).toBe(true);
   });
 
@@ -135,7 +165,11 @@ describe("ScriptTrust", () => {
     const collectionId = made.collection.meta.id;
     const folderId = made.folders[0].meta.id;
     // The settings dialog's save, for scripts that were not allowed to run.
-    await collections.saveInherited({ collectionId, folderId }, { auth: { type: "inherit" }, scripts: { pre: "", post: "edited()" } }, false);
+    await collections.saveInherited(
+      { collectionId, folderId },
+      { auth: { type: "inherit" }, scripts: { pre: "", post: "edited()" } },
+      false,
+    );
     expect(trustOf(collectionId)).toEqual({ trusted: false });
 
     saved.bind(collections.getCollectionTree(collectionId)!.requests[0]);
@@ -143,7 +177,10 @@ describe("ScriptTrust", () => {
     await trust.approve();
     expect(await allowed()).toBe(true);
     // Written past the app's own save, as another program could: no digest of it is approved.
-    await idb.folders.setFolderInherited(folderId, { auth: { type: "inherit" }, scripts: { pre: "", post: "swapped()" } });
+    await idb.folders.setFolderInherited(folderId, {
+      auth: { type: "inherit" },
+      scripts: { pre: "", post: "swapped()" },
+    });
     await collections.refresh();
     expect(await allowed()).toBe(false);
   });

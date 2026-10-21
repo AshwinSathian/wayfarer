@@ -21,7 +21,11 @@ const find = async (params: Props["params"]) => {
 
 export async function generateMetadata({ params }: Props) {
   const rival = await find(params);
-  return pageMeta(`/compare/${rival.id}/`, `Wayfarer and ${rival.name}: Wayfarer`, `How Wayfarer and ${rival.name} differ, with the source of each fact about ${rival.name}.`);
+  return pageMeta(
+    `/compare/${rival.id}/`,
+    `Wayfarer and ${rival.name}: Wayfarer`,
+    `How Wayfarer and ${rival.name} differ, with the source of each fact about ${rival.name}.`,
+  );
 }
 
 /** One comparison (W2.3): what the rival says of itself, how Wayfarer differs, and where the rival is ahead. */

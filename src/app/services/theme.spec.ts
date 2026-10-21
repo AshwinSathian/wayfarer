@@ -11,7 +11,14 @@ describe("Theme", () => {
     systemDark = true;
     onSystemChange = undefined;
     vi.spyOn(window, "matchMedia").mockImplementation(
-      () => ({ get matches() { return systemDark; }, addEventListener: (_type: string, listener: (event: { matches: boolean }) => void) => (onSystemChange = listener) }) as unknown as MediaQueryList
+      () =>
+        ({
+          get matches() {
+            return systemDark;
+          },
+          addEventListener: (_type: string, listener: (event: { matches: boolean }) => void) =>
+            (onSystemChange = listener),
+        }) as unknown as MediaQueryList,
     );
   });
 

@@ -1,5 +1,12 @@
 import type { ExportBody, ExportPart, ExportRequest } from "../export/request";
-import { RAW_CONTENT_TYPES, emptyRequest, isHttpMethod, type RawLanguage, type RequestContent, type Row } from "../model/request";
+import {
+  RAW_CONTENT_TYPES,
+  emptyRequest,
+  isHttpMethod,
+  type RawLanguage,
+  type RequestContent,
+  type Row,
+} from "../model/request";
 import { isCurlCommand } from "./curl-command";
 import { ImportError } from "./import-error";
 
@@ -12,7 +19,20 @@ export interface ParsedCurl {
   warnings: string[];
 }
 
-const ANSI_C: Record<string, string> = { n: "\n", t: "\t", r: "\r", a: "\x07", b: "\b", e: "\x1b", f: "\f", v: "\v", "\\": "\\", "'": "'", '"': '"', "?": "?" };
+const ANSI_C: Record<string, string> = {
+  n: "\n",
+  t: "\t",
+  r: "\r",
+  a: "\x07",
+  b: "\b",
+  e: "\x1b",
+  f: "\f",
+  v: "\v",
+  "\\": "\\",
+  "'": "'",
+  '"': '"',
+  "?": "?",
+};
 
 /** What follows a backslash inside `$'…'`, and how many characters of the text it took. */
 function ansiEscape(text: string, at: number): [string, number] {
@@ -139,45 +159,135 @@ function cmdWords(text: string): string[] {
  */
 const isCmd = (text: string) => /\^\r?\n|\^"/.test(text) && !text.includes("'");
 
-
 /** Options that take a value, by every name they have, as the kind of thing they are. */
 const VALUE_OPTIONS: Record<string, string> = {
-  "-X": "method", "--request": "method",
-  "-H": "header", "--header": "header",
-  "-d": "data", "--data": "data", "--data-ascii": "data",
+  "-X": "method",
+  "--request": "method",
+  "-H": "header",
+  "--header": "header",
+  "-d": "data",
+  "--data": "data",
+  "--data-ascii": "data",
   "--data-raw": "data-raw",
   "--data-binary": "data-binary",
   "--data-urlencode": "data-urlencode",
-  "-F": "form", "--form": "form",
+  "-F": "form",
+  "--form": "form",
   "--form-string": "form-string",
-  "-u": "user", "--user": "user",
-  "-b": "cookie", "--cookie": "cookie",
-  "-A": "user-agent", "--user-agent": "user-agent",
-  "-e": "referer", "--referer": "referer",
+  "-u": "user",
+  "--user": "user",
+  "-b": "cookie",
+  "--cookie": "cookie",
+  "-A": "user-agent",
+  "--user-agent": "user-agent",
+  "-e": "referer",
+  "--referer": "referer",
   "--url": "url",
 };
 
 /** Options with no value that change the request, and those that change nothing the app does. */
 const FLAGS: Record<string, string> = {
-  "-G": "get", "--get": "get",
-  "-I": "head", "--head": "head",
-  "-k": "insecure", "--insecure": "insecure",
+  "-G": "get",
+  "--get": "get",
+  "-I": "head",
+  "--head": "head",
+  "-k": "insecure",
+  "--insecure": "insecure",
   "--compressed": "compressed",
 };
-const QUIET_FLAGS = new Set(["-s", "--silent", "-S", "--show-error", "-v", "--verbose", "-i", "--include", "-L", "--location", "-f", "--fail", "-#", "--progress-bar", "-g", "--globoff", "-N", "--no-buffer", "--http1.1", "--http2", "-4", "-6", "-q", "-n", "-j"]);
+const QUIET_FLAGS = new Set([
+  "-s",
+  "--silent",
+  "-S",
+  "--show-error",
+  "-v",
+  "--verbose",
+  "-i",
+  "--include",
+  "-L",
+  "--location",
+  "-f",
+  "--fail",
+  "-#",
+  "--progress-bar",
+  "-g",
+  "--globoff",
+  "-N",
+  "--no-buffer",
+  "--http1.1",
+  "--http2",
+  "-4",
+  "-6",
+  "-q",
+  "-n",
+  "-j",
+]);
 
 /** Options that take a value the app has no use for: the value is skipped with the option. */
 const SKIPPED_VALUE_OPTIONS = new Set([
-  "-o", "--output", "-w", "--write-out", "-m", "--max-time", "--connect-timeout", "--retry", "--retry-delay", "--retry-max-time", "-x", "--proxy", "-U", "--proxy-user",
-  "--cacert", "--capath", "-E", "--cert", "--key", "--cert-type", "--key-type", "-c", "--cookie-jar", "-T", "--upload-file", "--resolve", "--connect-to", "-D", "--dump-header",
-  "--max-redirs", "-C", "--continue-at", "-r", "--range", "-y", "--speed-time", "-Y", "--speed-limit", "--limit-rate", "-K", "--config", "--interface", "--ciphers", "--tls-max",
-  "-z", "--time-cond", "--oauth2-bearer", "--aws-sigv4", "--unix-socket", "--noproxy", "--pinnedpubkey", "--trace", "--trace-ascii", "--stderr", "--proto", "--proto-default",
+  "-o",
+  "--output",
+  "-w",
+  "--write-out",
+  "-m",
+  "--max-time",
+  "--connect-timeout",
+  "--retry",
+  "--retry-delay",
+  "--retry-max-time",
+  "-x",
+  "--proxy",
+  "-U",
+  "--proxy-user",
+  "--cacert",
+  "--capath",
+  "-E",
+  "--cert",
+  "--key",
+  "--cert-type",
+  "--key-type",
+  "-c",
+  "--cookie-jar",
+  "-T",
+  "--upload-file",
+  "--resolve",
+  "--connect-to",
+  "-D",
+  "--dump-header",
+  "--max-redirs",
+  "-C",
+  "--continue-at",
+  "-r",
+  "--range",
+  "-y",
+  "--speed-time",
+  "-Y",
+  "--speed-limit",
+  "--limit-rate",
+  "-K",
+  "--config",
+  "--interface",
+  "--ciphers",
+  "--tls-max",
+  "-z",
+  "--time-cond",
+  "--oauth2-bearer",
+  "--aws-sigv4",
+  "--unix-socket",
+  "--noproxy",
+  "--pinnedpubkey",
+  "--trace",
+  "--trace-ascii",
+  "--stderr",
+  "--proto",
+  "--proto-default",
 ]);
 
 const formEncode = (text: string) => new URLSearchParams([[text, ""]]).toString().slice(0, -1);
 
 /** The request's `Content-Type`: the last one named, as curl sends it. */
-const contentType = (headers: [string, string][]): string | undefined => headers.filter(([name]) => name.toLowerCase() === "content-type").at(-1)?.[1];
+const contentType = (headers: [string, string][]): string | undefined =>
+  headers.filter(([name]) => name.toLowerCase() === "content-type").at(-1)?.[1];
 
 /** One `-d`, `--data-urlencode` and so on, as the text it puts on the wire, or the file it names. */
 type Datum = { text: string } | { file: string };
@@ -206,7 +316,9 @@ function formPart(value: string, warnings: string[]): ExportPart | null {
   if (quotedFile) return { name, fileName: quotedFile[1].replace(/\\(.)/g, "$1") };
   if (content.startsWith("@")) return { name, fileName: content.slice(1).split(/[;,]/)[0] };
   if (content.startsWith("<")) {
-    warnings.push(`The form part ${name} takes its text from the file ${content.slice(1).split(";")[0]}, which was not read: the part is empty.`);
+    warnings.push(
+      `The form part ${name} takes its text from the file ${content.slice(1).split(";")[0]}, which was not read: the part is empty.`,
+    );
     return { name, value: "" };
   }
   // A text part may say its type; the text is what stands before it.
@@ -269,7 +381,10 @@ export function parseCurl(text: string): ParsedCurl {
       }
       case "user": {
         const colon = value.indexOf(":");
-        basic = colon === -1 ? { username: value, password: "" } : { username: value.slice(0, colon), password: value.slice(colon + 1) };
+        basic =
+          colon === -1
+            ? { username: value, password: "" }
+            : { username: value.slice(0, colon), password: value.slice(colon + 1) };
         break;
       }
       case "cookie":
@@ -300,7 +415,8 @@ export function parseCurl(text: string): ParsedCurl {
     } else if (word.startsWith("--")) {
       if (Object.hasOwn(VALUE_OPTIONS, word)) take(VALUE_OPTIONS[word], valueOf(word));
       else if (Object.hasOwn(FLAGS, word)) ({ get, head } = flag(FLAGS[word], { get, head }, warnings));
-      else if (SKIPPED_VALUE_OPTIONS.has(word)) warnings.push(`${word} ${valueOf(word)} was left out: the app has nothing it applies to.`);
+      else if (SKIPPED_VALUE_OPTIONS.has(word))
+        warnings.push(`${word} ${valueOf(word)} was left out: the app has nothing it applies to.`);
       else if (!QUIET_FLAGS.has(word)) warnings.push(`${word} was left out: the app does not know this option.`);
     } else {
       // Short options, which may stand together: -sSL, and -XPOST with its value in the same word.
@@ -322,7 +438,10 @@ export function parseCurl(text: string): ParsedCurl {
   }
 
   if (!urls.length) throw new ImportError("The cURL command has no address.");
-  if (urls.length > 1) warnings.push(`The command names ${urls.length} addresses. The first is used; the others were left out: ${urls.slice(1).join(", ")}.`);
+  if (urls.length > 1)
+    warnings.push(
+      `The command names ${urls.length} addresses. The first is used; the others were left out: ${urls.slice(1).join(", ")}.`,
+    );
   let url = urls[0];
 
   const type = (contentType(headers) ?? "").toLowerCase();
@@ -330,7 +449,8 @@ export function parseCurl(text: string): ParsedCurl {
   const files = data.flatMap((datum) => ("file" in datum ? [datum.file] : []));
   if (parts.length) {
     body = { mode: "multipart", parts };
-    if (data.length) warnings.push("The command has both a form (-F) and data (-d). curl refuses that; the form is kept.");
+    if (data.length)
+      warnings.push("The command has both a form (-F) and data (-d). curl refuses that; the form is kept.");
   } else if (get) {
     // -G: the data is the query, not a body.
     const query = data.flatMap((datum) => ("text" in datum ? [datum.text] : [])).join("&");
@@ -342,19 +462,33 @@ export function parseCurl(text: string): ParsedCurl {
     if (files.length) warnings.push(`The data of the file ${files.join(", ")} was left out: the file was not read.`);
     const wire = data.flatMap((datum) => ("text" in datum ? [datum.text] : [])).join("&");
     // Without a type of its own, curl sends data as a form.
-    body = !type || type.startsWith("application/x-www-form-urlencoded") ? { mode: "urlencoded", fields: [...new URLSearchParams(wire)] } : { mode: "raw", text: wire };
+    body =
+      !type || type.startsWith("application/x-www-form-urlencoded")
+        ? { mode: "urlencoded", fields: [...new URLSearchParams(wire)] }
+        : { mode: "raw", text: wire };
   }
 
   method ??= head ? "HEAD" : body.mode === "none" ? "GET" : "POST";
-  if (!isHttpMethod(method)) throw new ImportError(`The cURL command's method, ${method}, is not an HTTP method: one word of at most 32 characters.`);
+  if (!isHttpMethod(method))
+    throw new ImportError(
+      `The cURL command's method, ${method}, is not an HTTP method: one word of at most 32 characters.`,
+    );
   return { request: { method, url, headers, body }, ...(basic && { basic }), warnings };
 }
 
-function flag(kind: string, state: { get: boolean; head: boolean }, warnings: string[]): { get: boolean; head: boolean } {
+function flag(
+  kind: string,
+  state: { get: boolean; head: boolean },
+  warnings: string[],
+): { get: boolean; head: boolean } {
   if (kind === "get") return { ...state, get: true };
   if (kind === "head") return { ...state, head: true };
-  if (kind === "insecure") warnings.push("-k (do not check the server's certificate) was left out: a browser always checks it, and the Local Bridge cannot skip the check yet.");
-  if (kind === "compressed") warnings.push("--compressed was left out: the browser asks for a compressed answer by itself.");
+  if (kind === "insecure")
+    warnings.push(
+      "-k (do not check the server's certificate) was left out: a browser always checks it, and the Local Bridge cannot skip the check yet.",
+    );
+  if (kind === "compressed")
+    warnings.push("--compressed was left out: the browser asks for a compressed answer by itself.");
   return state;
 }
 
@@ -383,9 +517,27 @@ export function curlRequest(parsed: ParsedCurl): { content: RequestContent; warn
   const row = (key: string, value: string): Row => ({ key, value, enabled: true });
   // The type the app would send for this body anyway: its row would only repeat it.
   const implied =
-    body.mode === "urlencoded" ? "application/x-www-form-urlencoded" : body.mode === "multipart" ? "multipart/form-data" : body.mode === "raw" ? RAW_CONTENT_TYPES[language] : null;
-  const headers = request.headers.filter(([name, value]) => !(name.toLowerCase() === "content-type" && implied !== null && value.toLowerCase().split(";")[0].trim() === implied));
-  const content: RequestContent = { ...emptyRequest(), method: request.method, url: request.url, headers: headers.map(([name, value]) => row(name, value)) };
+    body.mode === "urlencoded"
+      ? "application/x-www-form-urlencoded"
+      : body.mode === "multipart"
+        ? "multipart/form-data"
+        : body.mode === "raw"
+          ? RAW_CONTENT_TYPES[language]
+          : null;
+  const headers = request.headers.filter(
+    ([name, value]) =>
+      !(
+        name.toLowerCase() === "content-type" &&
+        implied !== null &&
+        value.toLowerCase().split(";")[0].trim() === implied
+      ),
+  );
+  const content: RequestContent = {
+    ...emptyRequest(),
+    method: request.method,
+    url: request.url,
+    headers: headers.map(([name, value]) => row(name, value)),
+  };
   if (basic) content.auth = { type: "basic", ...basic };
   if (body.mode === "raw") {
     content.body = { mode: "raw", raw: { language, text: body.text } };
@@ -394,12 +546,25 @@ export function curlRequest(parsed: ParsedCurl): { content: RequestContent; warn
   } else if (body.mode === "multipart") {
     content.body = {
       mode: "multipart",
-      multipart: body.parts.map((part) => ("value" in part ? { kind: "text", key: part.name, value: part.value, enabled: true } : { kind: "file", key: part.name, fileId: "", fileName: part.fileName, enabled: true })),
+      multipart: body.parts.map((part) =>
+        "value" in part
+          ? { kind: "text", key: part.name, value: part.value, enabled: true }
+          : { kind: "file", key: part.name, fileId: "", fileName: part.fileName, enabled: true },
+      ),
     };
-    for (const part of body.parts) if ("fileName" in part) warnings.push(`The form part ${part.name} sends the file ${part.fileName}. Choose the file again in the Body tab: a command names a file, it does not hold it.`);
+    for (const part of body.parts)
+      if ("fileName" in part)
+        warnings.push(
+          `The form part ${part.name} sends the file ${part.fileName}. Choose the file again in the Body tab: a command names a file, it does not hold it.`,
+        );
   } else if (body.mode === "binary") {
-    content.body = { mode: "binary", ...(type && { binary: { fileId: "", fileName: body.fileName, contentType: type } }) };
-    warnings.push(`The body is the file ${body.fileName}. Choose the file again in the Body tab: a command names a file, it does not hold it.`);
+    content.body = {
+      mode: "binary",
+      ...(type && { binary: { fileId: "", fileName: body.fileName, contentType: type } }),
+    };
+    warnings.push(
+      `The body is the file ${body.fileName}. Choose the file again in the Body tab: a command names a file, it does not hold it.`,
+    );
   }
   return { content, warnings };
 }

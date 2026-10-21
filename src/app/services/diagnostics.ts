@@ -45,7 +45,10 @@ export function recordDiagnostic(error: unknown, context: string): void {
 /** Puts an error in the log without writing it to the console, for a caller that writes its own. */
 export function keepDiagnostic(error: unknown, context: string): void {
   const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  log.update((entries) => [...entries.slice(1 - MAX_ENTRIES), { at: Date.now(), context, message: redactMessage(message) }]);
+  log.update((entries) => [
+    ...entries.slice(1 - MAX_ENTRIES),
+    { at: Date.now(), context, message: redactMessage(message) },
+  ]);
 }
 
 /** The log, oldest first. */
@@ -54,7 +57,7 @@ export const diagnosticEntries = log.asReadonly();
 /** Records what the Content-Security-Policy blocks. Called once, before the app starts. */
 export function listenForCspViolations(): void {
   document.addEventListener("securitypolicyviolation", (event) =>
-    recordDiagnostic(`${event.effectiveDirective} blocked ${event.blockedURI || "inline"}`, "csp")
+    recordDiagnostic(`${event.effectiveDirective} blocked ${event.blockedURI || "inline"}`, "csp"),
   );
 }
 
@@ -72,7 +75,11 @@ export class RecordingErrorHandler extends ErrorHandler {
 }
 
 /** The report the Diagnostics view copies, as markdown: no address, header or body of a request is in it. */
-export function diagnosticsReport(facts: [string, string][], tests: SelfTest[], entries: readonly DiagnosticEntry[]): string {
+export function diagnosticsReport(
+  facts: [string, string][],
+  tests: SelfTest[],
+  entries: readonly DiagnosticEntry[],
+): string {
   const line = (entry: DiagnosticEntry) => `- ${new Date(entry.at).toISOString()} ${entry.context}: ${entry.message}`;
   const errors = entries.filter((entry) => entry.context !== "csp");
   const csp = entries.filter((entry) => entry.context === "csp");

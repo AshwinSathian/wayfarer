@@ -16,7 +16,8 @@ export class StoragePersistence {
   readonly estimate = signal<{ usage: number; quota: number } | null>(null);
 
   /** Safari in a tab, not installed to the Dock or the Home Screen: the seven-day rule applies. */
-  readonly safariNotInstalled = navigator.vendor === "Apple Computer, Inc." && !matchMedia("(display-mode: standalone)").matches;
+  readonly safariNotInstalled =
+    navigator.vendor === "Apple Computer, Inc." && !matchMedia("(display-mode: standalone)").matches;
 
   /** Reads the current state, for Settings. Asks for nothing. */
   async refresh(): Promise<void> {

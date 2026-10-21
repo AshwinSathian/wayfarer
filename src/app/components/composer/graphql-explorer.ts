@@ -12,7 +12,8 @@ import type { SchemaOutline } from "../../shared/graphql/graphql-tools";
           <li class="border-t border-separator first:border-t-0">
             <details [open]="type.root === 'query'">
               <summary class="cursor-pointer px-3 py-2 type-footnote">
-                <span class="text-label-secondary">{{ type.root ?? type.kind }}</span>&ngsp;<span class="font-mono text-label-primary">{{ type.name }}</span>
+                <span class="text-label-secondary">{{ type.root ?? type.kind }}</span
+                >&ngsp;<span class="font-mono text-label-primary">{{ type.name }}</span>
               </summary>
               <div class="space-y-1 px-3 pb-3">
                 @if (type.description) {

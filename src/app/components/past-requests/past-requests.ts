@@ -32,11 +32,18 @@ export interface HistoryGroup {
 
 @Component({
   selector: "app-past-requests",
-  imports: [UiButton, MatFormField, MatInput,
+  imports: [
+    UiButton,
+    MatFormField,
+    MatInput,
     DatePipe,
     Icon,
     UiTooltip,
-    AccordionContent, AccordionPanel, AccordionTrigger, UiAccordion, UiAccordionPanel,
+    AccordionContent,
+    AccordionPanel,
+    AccordionTrigger,
+    UiAccordion,
+    UiAccordionPanel,
     MatCheckbox,
     HarExportDialog,
   ],
@@ -64,8 +71,14 @@ export class PastRequests {
 
   /** The entries ticked for an export (P4.6 c), by id. One that was deleted since is not among `chosen`. */
   private readonly ticked = signal<ReadonlySet<number>>(new Set());
-  protected readonly chosen = computed(() => this.pastRequests().filter((request) => request.id !== undefined && this.ticked().has(request.id)));
-  protected readonly allShownChosen = computed(() => this.shown().length > 0 && this.shown().every((request) => request.id !== undefined && this.ticked().has(request.id)));
+  protected readonly chosen = computed(() =>
+    this.pastRequests().filter((request) => request.id !== undefined && this.ticked().has(request.id)),
+  );
+  protected readonly allShownChosen = computed(
+    () =>
+      this.shown().length > 0 &&
+      this.shown().every((request) => request.id !== undefined && this.ticked().has(request.id)),
+  );
   /** What the HAR dialog exports. Null while it is closed. */
   protected readonly harSource = signal<HarSource | null>(null);
 

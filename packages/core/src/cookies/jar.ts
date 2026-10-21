@@ -50,7 +50,10 @@ function defaultPath(pathname: string): string {
 }
 
 function pathMatches(requestPath: string, cookiePath: string): boolean {
-  return requestPath === cookiePath || (requestPath.startsWith(cookiePath) && (cookiePath.endsWith("/") || requestPath[cookiePath.length] === "/"));
+  return (
+    requestPath === cookiePath ||
+    (requestPath.startsWith(cookiePath) && (cookiePath.endsWith("/") || requestPath[cookiePath.length] === "/"))
+  );
 }
 
 /**
@@ -66,10 +69,21 @@ export function parseSetCookie(header: string, url: string, now: number): Cookie
   const name = pair.slice(0, Math.max(equals, 0)).trim();
   const value = pair.slice(equals + 1).trim();
   // eslint-disable-next-line no-control-regex -- a control character ends a cookie (RFC 6265, 5.2)
-  if (equals < 1 || !name || /[\u0000-\u001f\u007f]/.test(pair) || new TextEncoder().encode(name + value).length > MAX_COOKIE_BYTES) return undefined;
+  const control = /[\u0000-\u001f\u007f]/.test(pair);
+  if (equals < 1 || !name || control || new TextEncoder().encode(name + value).length > MAX_COOKIE_BYTES)
+    return undefined;
 
   const host = from.hostname.toLowerCase();
-  const cookie: Cookie = { name, value, domain: host, hostOnly: true, path: defaultPath(from.pathname), secure: false, httpOnly: false, created: now };
+  const cookie: Cookie = {
+    name,
+    value,
+    domain: host,
+    hostOnly: true,
+    path: defaultPath(from.pathname),
+    secure: false,
+    httpOnly: false,
+    created: now,
+  };
   let maxAge: number | undefined;
   for (const attribute of attributes) {
     const split = attribute.indexOf("=");
@@ -78,7 +92,11 @@ export function parseSetCookie(header: string, url: string, now: number): Cookie
     if (key === "secure") cookie.secure = true;
     else if (key === "httponly") cookie.httpOnly = true;
     else if (key === "path" && text.startsWith("/")) cookie.path = text;
-    else if (key === "samesite" && (text.toLowerCase() === "strict" || text.toLowerCase() === "lax" || text.toLowerCase() === "none")) cookie.sameSite = text.toLowerCase() as Cookie["sameSite"];
+    else if (
+      key === "samesite" &&
+      (text.toLowerCase() === "strict" || text.toLowerCase() === "lax" || text.toLowerCase() === "none")
+    )
+      cookie.sameSite = text.toLowerCase() as Cookie["sameSite"];
     else if (key === "max-age" && /^-?\d+$/.test(text)) maxAge = Number(text);
     else if (key === "expires" && Number.isFinite(Date.parse(text))) cookie.expires = Date.parse(text);
     else if (key === "domain" && text) {
@@ -117,7 +135,13 @@ export function cookiesFor(jar: Cookie[], url: string, now: number): Cookie[] {
   if (!to) return [];
   const host = to.hostname.toLowerCase();
   return jar
-    .filter((cookie) => !expired(cookie, now) && (cookie.hostOnly ? host === cookie.domain : domainMatches(host, cookie.domain)) && pathMatches(to.pathname, cookie.path) && (!cookie.secure || to.protocol === "https:"))
+    .filter(
+      (cookie) =>
+        !expired(cookie, now) &&
+        (cookie.hostOnly ? host === cookie.domain : domainMatches(host, cookie.domain)) &&
+        pathMatches(to.pathname, cookie.path) &&
+        (!cookie.secure || to.protocol === "https:"),
+    )
     .sort((a, b) => b.path.length - a.path.length || a.created - b.created);
 }
 

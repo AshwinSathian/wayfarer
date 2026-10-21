@@ -32,14 +32,19 @@ export class TransportRouter implements Transport {
     return route === "bridge" && this.bridge.config().url ? "bridge" : "direct";
   }
 
-  async send(request: ResolvedRequest, options: TransportOptions, policy: RoutePolicy = { route: this.route() }): Promise<ResponseEnvelope> {
+  async send(
+    request: ResolvedRequest,
+    options: TransportOptions,
+    policy: RoutePolicy = { route: this.route() },
+  ): Promise<ResponseEnvelope> {
     policy.took = this.first(policy.route);
     if (policy.took === "bridge") return this.viaBridge(request, options);
     if (policy.route !== "auto") return new FetchTransport().send(request, options);
     try {
       return await new FetchTransport().send(request, options);
     } catch (error) {
-      if (!(error instanceof TransportError) || error.kind !== "network" || !(await this.retryable(request, policy))) throw error;
+      if (!(error instanceof TransportError) || error.kind !== "network" || !(await this.retryable(request, policy)))
+        throw error;
       policy.took = "bridge";
       return this.viaBridge(request, options);
     }
@@ -58,7 +63,7 @@ export class TransportRouter implements Transport {
     if (!token) {
       throw new TransportError(
         "bridge",
-        "The Local Bridge is on, and its token is not in this tab. It is kept in the vault while the vault is unlocked, and otherwise only until the tab reloads. Unlock the vault, or enter the token again in Settings, Local Bridge."
+        "The Local Bridge is on, and its token is not in this tab. It is kept in the vault while the vault is unlocked, and otherwise only until the tab reloads. Unlock the vault, or enter the token again in Settings, Local Bridge.",
       );
     }
     return new BridgeTransport({ url: this.bridge.config().url, token }).send(request, options);

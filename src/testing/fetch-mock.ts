@@ -17,7 +17,7 @@ export class MockRequest {
     const { url, init } = this.pending;
     // A text body as its JSON value, as the specs have always compared it; text that is not JSON as it is.
     const parsed = typeof init.body === "string" ? parseJson(init.body) : null;
-    const body = parsed ? (parsed.ok ? parsed.value : init.body) : init.body ?? null;
+    const body = parsed ? (parsed.ok ? parsed.value : init.body) : (init.body ?? null);
     return { method: init.method, url, urlWithParams: url, headers: new Headers(init.headers), body, init };
   }
 
@@ -66,9 +66,13 @@ export class FetchMock {
 
   /** The one unanswered call to `url` (or matching the predicate). */
   expectOne(match: string | ((request: { url: string }) => boolean)): MockRequest {
-    const found = this.calls.filter((call) => !call.settled && (typeof match === "string" ? call.url === match : match(call)));
+    const found = this.calls.filter(
+      (call) => !call.settled && (typeof match === "string" ? call.url === match : match(call)),
+    );
     if (found.length !== 1) {
-      throw new Error(`Expected one request for ${String(match)}, found ${found.length}: ${this.calls.map((c) => c.url).join(", ")}`);
+      throw new Error(
+        `Expected one request for ${String(match)}, found ${found.length}: ${this.calls.map((c) => c.url).join(", ")}`,
+      );
     }
     return new MockRequest(found[0]);
   }

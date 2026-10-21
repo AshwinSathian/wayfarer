@@ -1,15 +1,15 @@
-'use strict';
+"use strict";
 
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const crypto = require('node:crypto');
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const crypto = require("node:crypto");
 
-const CONFIG_DIR = path.join(os.homedir(), '.wayfarer-bridge');
-const TOKEN_FILE = path.join(CONFIG_DIR, 'token');
+const CONFIG_DIR = path.join(os.homedir(), ".wayfarer-bridge");
+const TOKEN_FILE = path.join(CONFIG_DIR, "token");
 
 function generateToken() {
-  return crypto.randomBytes(24).toString('base64url');
+  return crypto.randomBytes(24).toString("base64url");
 }
 
 /**
@@ -31,7 +31,7 @@ function loadOrCreateToken({ rotate = false } = {}) {
 
   if (!rotate) {
     try {
-      const existing = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
+      const existing = fs.readFileSync(TOKEN_FILE, "utf8").trim();
       if (existing) {
         return existing;
       }

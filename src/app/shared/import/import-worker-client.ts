@@ -8,7 +8,7 @@ export class ImportRefused extends Error {
 
   constructor(
     message: string,
-    readonly issues: ValidationIssue[] = []
+    readonly issues: ValidationIssue[] = [],
   ) {
     super(message);
   }
@@ -22,7 +22,10 @@ export class ImportRefused extends Error {
 @Injectable({ providedIn: "root" })
 export class ImportWorkerClient {
   private worker: Worker | null = null;
-  private readonly jobs = new Map<string, { resolve: (answer: ImportAnswer) => void; reject: (error: Error) => void }>();
+  private readonly jobs = new Map<
+    string,
+    { resolve: (answer: ImportAnswer) => void; reject: (error: Error) => void }
+  >();
 
   /** The text as the app's model, with its report. Rejects with `ImportRefused` when the file cannot be imported. */
   async run(text: string, options: ImportOptions = {}): Promise<Imported> {
@@ -52,7 +55,8 @@ export class ImportWorkerClient {
     worker.addEventListener("message", (event: MessageEvent<ImportAnswer>) => {
       const job = this.jobs.get(event.data.id);
       this.jobs.delete(event.data.id);
-      if ("refused" in event.data) job?.reject(new ImportRefused(event.data.refused.message, event.data.refused.issues));
+      if ("refused" in event.data)
+        job?.reject(new ImportRefused(event.data.refused.message, event.data.refused.issues));
       else job?.resolve(event.data);
     });
     // The worker itself failed: every file waiting on it is told, and the next one starts a new worker.

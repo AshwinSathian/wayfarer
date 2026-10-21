@@ -7,7 +7,14 @@ import { Dialog } from "./dialog";
   imports: [Dialog],
   template: `
     <button id="opener" (click)="open.set(true)">Open</button>
-    <ui-dialog header="Settings" [visible]="open()" (visibleChange)="changes.push($event); open.set($event)" (hide)="hides = hides + 1; onHide()" [dismissableMask]="dismissable()" width="320px">
+    <ui-dialog
+      header="Settings"
+      [visible]="open()"
+      (visibleChange)="changes.push($event); open.set($event)"
+      (hide)="hides = hides + 1; onHide()"
+      [dismissableMask]="dismissable()"
+      width="320px"
+    >
       <input id="first" />
       <div uiDialogFooter><button id="save">Save</button></div>
     </ui-dialog>
@@ -34,7 +41,10 @@ describe("ui-dialog", () => {
       await fixture.whenStable();
     };
     const dialog = () => document.querySelector<HTMLDialogElement>("dialog.ui-dialog")!;
-    const escape = () => document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    const escape = () =>
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+      );
     return { fixture, host: fixture.componentInstance, settle, dialog, escape };
   }
 
@@ -126,7 +136,8 @@ describe("ui-dialog", () => {
     const { fixture, host, settle, dialog } = await setup();
     host.open.set(true);
     await settle();
-    const backdrop = (type: string) => dialog().dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: 2, clientY: 2 }));
+    const backdrop = (type: string) =>
+      dialog().dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: 2, clientY: 2 }));
 
     backdrop("pointerdown");
     backdrop("click");

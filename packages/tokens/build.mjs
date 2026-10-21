@@ -19,7 +19,10 @@ function block(name) {
       group = tokens.get(key).group;
       lines.push("", `  /* ${group} */`);
     }
-    const names = tokens.get(key).$type === "typography" ? ["size", "line", "weight", "tracking"].map((part) => `--${key}-${part}`) : [`--${key}`];
+    const names =
+      tokens.get(key).$type === "typography"
+        ? ["size", "line", "weight", "tracking"].map((part) => `--${key}-${part}`)
+        : [`--${key}`];
     for (const prop of names) lines.push(`  ${prop}: ${values[prop]};`);
   }
   return [...lines, "}"].join("\n");
@@ -43,7 +46,12 @@ const ts = [
 const typography = [
   "/* Generated from packages/tokens by `npm run gen:tokens`. Do not edit. The app's type",
   "   scale (D3.2): each class reads its style's custom properties in tokens.css. */",
-  ...typeClasses().flatMap(({ name, declarations }) => ["", `.${name} {`, ...declarations.map(([prop, value]) => `  ${prop}: ${value};`), "}"]),
+  ...typeClasses().flatMap(({ name, declarations }) => [
+    "",
+    `.${name} {`,
+    ...declarations.map(([prop, value]) => `  ${prop}: ${value};`),
+    "}",
+  ]),
   "",
 ].join("\n");
 
@@ -56,7 +64,9 @@ const outputs = [
 if (process.argv.includes("--check")) {
   const stale = outputs.filter(([file, text]) => readFileSync(file, "utf8") !== text);
   if (stale.length) {
-    console.error(`${stale.map(([file]) => file.pathname.split("/src/")[1]).join(" and ")}: not what packages/tokens gives; run \`npm run gen:tokens\`.`);
+    console.error(
+      `${stale.map(([file]) => file.pathname.split("/src/")[1]).join(" and ")}: not what packages/tokens gives; run \`npm run gen:tokens\`.`,
+    );
     process.exit(1);
   }
   console.log("tokens.css, typography.css and tokens.ts are what packages/tokens gives.");

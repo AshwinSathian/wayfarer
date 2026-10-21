@@ -9,7 +9,7 @@ export const TARGET = "https://tripwire.test";
 export async function expectProdParity(response: Response | null): Promise<void> {
   expect(
     response?.headers()["content-security-policy"],
-    "tripwire needs the prod build on prod-server.mjs; run with CI=1"
+    "tripwire needs the prod build on prod-server.mjs; run with CI=1",
   ).toContain("script-src 'self'");
 }
 
@@ -20,7 +20,7 @@ export async function captureTarget(
     contentType: "application/json",
     body: '{"ok":true}',
   },
-  target = TARGET
+  target = TARGET,
 ): Promise<Request[]> {
   const hits: Request[] = [];
   await page.route(`${target}/**`, async (route) => {
@@ -74,12 +74,12 @@ export async function seedAndOpen(
   vars: Record<string, string>,
   request: SeededRequest,
   /** The app's address when it is not the configured one (a spec that runs its own server). */
-  base = ""
+  base = "",
 ): Promise<Response | null> {
   await page.goto(`${base}/app/`);
   await expect(page.locator("input.address-url")).toBeVisible();
   await page.waitForFunction(async () =>
-    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2)
+    (await indexedDB.databases()).some((db) => db.name === "wayfarer" && db.version === 2),
   );
   await page.evaluate(
     async ({ vars, request }) => {
@@ -94,15 +94,28 @@ export async function seedAndOpen(
       const meta = (id: string) => ({ id, createdAt: now, updatedAt: now });
       // The scripts of a seeded request stand for scripts written here: the collection holds their digests (P3.8).
       const digest = async (text: string) =>
-        Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), (byte) =>
+          byte.toString(16).padStart(2, "0"),
+        ).join("");
       const scripts = { pre: request.preRequestScript ?? "", post: request.postRequestScript ?? "" };
       const none = { pre: "", post: "" };
       const inherited = [request.collection?.scripts ?? none, request.folder?.scripts ?? none];
-      const approved = await Promise.all([scripts, ...inherited].flatMap((held) => [held.pre, held.post]).filter((script) => script.trim()).map(digest));
+      const approved = await Promise.all(
+        [scripts, ...inherited]
+          .flatMap((held) => [held.pre, held.post])
+          .filter((script) => script.trim())
+          .map(digest),
+      );
       const tx = db.transaction(["environments", "collections", "folders", "requests", "meta"], "readwrite");
       const rows = (record: Record<string, string>) =>
         Object.entries(record).map(([key, value]) => ({ key, value, enabled: true }));
-      tx.objectStore("environments").put({ id: "env-tw", meta: meta("env-tw"), name: "Tripwire env", vars: rows(vars), order: 0 });
+      tx.objectStore("environments").put({
+        id: "env-tw",
+        meta: meta("env-tw"),
+        name: "Tripwire env",
+        vars: rows(vars),
+        order: 0,
+      });
       tx.objectStore("meta").put({ ...(state ?? {}), key: "state", activeEnvironmentId: "env-tw" });
       tx.objectStore("collections").put({
         id: "col-tw",
@@ -153,7 +166,7 @@ export async function seedAndOpen(
       });
       db.close();
     },
-    { vars, request }
+    { vars, request },
   );
   const response = await page.reload();
   if (request.folder) await openFolder(page, "Tripwire folder");
@@ -177,7 +190,10 @@ export async function openSettings(page: Page, section?: string): Promise<Locato
   const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(dialog).toBeVisible();
   if (section) {
-    await dialog.getByRole("navigation", { name: "Settings sections" }).getByRole("button", { name: section, exact: true }).click();
+    await dialog
+      .getByRole("navigation", { name: "Settings sections" })
+      .getByRole("button", { name: section, exact: true })
+      .click();
     await expect(dialog.getByRole("heading", { name: section, exact: true })).toBeVisible();
   }
   return dialog;

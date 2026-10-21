@@ -18,7 +18,10 @@ import { UiSelect } from "../../ui/select";
 export class SaveAsDialog {
   protected readonly requestSave = inject(RequestSave);
   private readonly store = inject(WorkspaceStore);
-  protected readonly folderOptions = computed(() => [{ value: null, label: "No folder" }, ...this.requestSave.saveAsFolderOptions()]);
+  protected readonly folderOptions = computed(() => [
+    { value: null, label: "No folder" },
+    ...this.requestSave.saveAsFolderOptions(),
+  ]);
 
   protected async confirm(): Promise<void> {
     await this.requestSave.confirmSaveAs(this.store.snapshot(), this.store.scriptsAllowed());

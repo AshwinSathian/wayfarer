@@ -20,7 +20,9 @@ interface TrustedTypesGlobal {
 /** `input` read against `base` (the page's base URL), if it is on the base's origin. */
 export function allowScriptUrl(input: string, base: string): string | null {
   const url = URL.parse(input, base);
-  return url && url.origin === new URL(base).origin && (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
+  return url && url.origin === new URL(base).origin && (url.protocol === "https:" || url.protocol === "http:")
+    ? url.href
+    : null;
 }
 
 export function installTrustedTypesPolicy(): void {

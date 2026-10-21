@@ -1,5 +1,15 @@
 import { CdkConnectedOverlay, ConnectedPosition } from "@angular/cdk/overlay";
-import { ChangeDetectionStrategy, Component, ElementRef, afterRenderEffect, computed, inject, input, signal, viewChild } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from "@angular/core";
 import { Menu, MenuItem, MenuTrigger } from "@angular/aria/menu";
 import { Icon } from "../shared/icon/icon";
 import { UiMenuItem } from "./menu-item";
@@ -96,7 +106,10 @@ export class UiMenu {
    * body: in a modal dialog (the navigation drawer) the page outside the dialog is inert, and a menu
    * there took no pointer. A button's menu is drawn beside the button ('inline'); a point is no element.
    */
-  protected readonly popover = { type: "parent" as const, element: inject<ElementRef<HTMLElement>>(ElementRef).nativeElement };
+  protected readonly popover = {
+    type: "parent" as const,
+    element: inject<ElementRef<HTMLElement>>(ElementRef).nativeElement,
+  };
 
   constructor() {
     // The items are drawn a render after the panel: this runs again when they are.

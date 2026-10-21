@@ -18,5 +18,8 @@ test("Playwright collects only *.spec.ts and runs no Node test suite", () => {
   assert.ok(files.size > 0, "no test was listed");
   for (const file of files) assert.match(file, /\.spec\.ts$/);
   // Node's reporter prints a line starting with ✔ for each of its tests.
-  assert.deepEqual(out.split("\n").filter((line) => line.startsWith("✔")), []);
+  assert.deepEqual(
+    out.split("\n").filter((line) => line.startsWith("✔")),
+    [],
+  );
 });

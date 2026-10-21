@@ -9,6 +9,6 @@ export function settled(page: Page): Promise<unknown> {
   return page.waitForFunction(() =>
     document
       .getAnimations()
-      .every((a) => a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity)
+      .every((a) => a.playState !== "running" || a.effect?.getComputedTiming().iterations === Infinity),
   );
 }

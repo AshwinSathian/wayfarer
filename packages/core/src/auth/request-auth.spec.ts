@@ -40,15 +40,53 @@ describe("what each auth type puts on a request", () => {
     expect(buildAuthHeaders({ type: "bearer", token: "" })).toEqual({});
     expect(buildAuthHeaders({ type: "basic", username: "", password: "p" })).toEqual({});
     expect(buildAuthQueryParam({ type: "apikey", key: "", value: "v", in: "query" })).toBeNull();
-    expect(Object.entries(buildAuthHeaders({ type: "apikey", key: "__proto__", value: "v", in: "header" }))).toEqual([["__proto__", "v"]]);
+    expect(Object.entries(buildAuthHeaders({ type: "apikey", key: "__proto__", value: "v", in: "header" }))).toEqual([
+      ["__proto__", "v"],
+    ]);
   });
 
   it("resolveAuth replaces variables in every field that is sent (F07), and leaves none and inherit as they are", () => {
     expect(resolveAuth(bearer, upper)).toEqual({ type: "bearer", token: "{{T}}" });
     expect(resolveAuth(basic, upper)).toEqual({ type: "basic", username: "{{U}}", password: "{{P}}" });
     expect(resolveAuth(header, upper)).toEqual({ type: "apikey", key: "{{K}}", value: "{{V}}", in: "header" });
-    expect(resolveAuth({ type: "awsv4", accessKey: "{{a}}", secretKey: "{{s}}", sessionToken: "{{t}}", region: "{{r}}", service: "{{v}}" }, upper)).toEqual({ type: "awsv4", accessKey: "{{A}}", secretKey: "{{S}}", sessionToken: "{{T}}", region: "{{R}}", service: "{{V}}" });
-    expect(resolveAuth({ type: "oauth2", grant: "password", authUrl: "{{a}}", tokenUrl: "{{t}}", clientId: "{{c}}", clientSecret: "{{s}}", scope: "{{o}}", username: "{{u}}", password: "{{p}}", clientAuth: "body", retryOn401: true }, upper)).toEqual({
+    expect(
+      resolveAuth(
+        {
+          type: "awsv4",
+          accessKey: "{{a}}",
+          secretKey: "{{s}}",
+          sessionToken: "{{t}}",
+          region: "{{r}}",
+          service: "{{v}}",
+        },
+        upper,
+      ),
+    ).toEqual({
+      type: "awsv4",
+      accessKey: "{{A}}",
+      secretKey: "{{S}}",
+      sessionToken: "{{T}}",
+      region: "{{R}}",
+      service: "{{V}}",
+    });
+    expect(
+      resolveAuth(
+        {
+          type: "oauth2",
+          grant: "password",
+          authUrl: "{{a}}",
+          tokenUrl: "{{t}}",
+          clientId: "{{c}}",
+          clientSecret: "{{s}}",
+          scope: "{{o}}",
+          username: "{{u}}",
+          password: "{{p}}",
+          clientAuth: "body",
+          retryOn401: true,
+        },
+        upper,
+      ),
+    ).toEqual({
       type: "oauth2",
       grant: "password",
       authUrl: "{{A}}",
@@ -66,20 +104,41 @@ describe("what each auth type puts on a request", () => {
   });
 
   it("AWS Signature writes no header by itself: the request is signed once it is built, and its secret key and session token are the credentials", () => {
-    const aws: AuthConfig = { type: "awsv4", accessKey: "AKID", secretKey: "secret", sessionToken: "token", region: "us-east-1", service: "s3" };
+    const aws: AuthConfig = {
+      type: "awsv4",
+      accessKey: "AKID",
+      secretKey: "secret",
+      sessionToken: "token",
+      region: "us-east-1",
+      service: "s3",
+    };
     expect(buildAuthHeaders(aws)).toEqual({});
     expect(buildAuthQueryParam(aws)).toBeNull();
     expect(credentialsOf(aws)).toEqual(["secret", "token"]);
   });
 
   it("OAuth 2.0 writes no header by itself: its token is fetched for the send, and the client's secret and the user's password are the credentials (P4.7)", () => {
-    const oauth: AuthConfig = { type: "oauth2", grant: "password", authUrl: "", tokenUrl: "https://idp.test/token", clientId: "client", clientSecret: "secret", scope: "", username: "alice", password: "pw", clientAuth: "header", retryOn401: false };
+    const oauth: AuthConfig = {
+      type: "oauth2",
+      grant: "password",
+      authUrl: "",
+      tokenUrl: "https://idp.test/token",
+      clientId: "client",
+      clientSecret: "secret",
+      scope: "",
+      username: "alice",
+      password: "pw",
+      clientAuth: "header",
+      retryOn401: false,
+    };
     expect(buildAuthHeaders(oauth)).toEqual({});
     expect(buildAuthQueryParam(oauth)).toBeNull();
     expect(credentialsOf(oauth)).toEqual(["secret", "pw"]);
   });
 
   it("credentialsOf names what a redactor must look for: the token, the password, the key's value", () => {
-    expect([bearer, basic, header, { type: "none" }, { type: "inherit" }].map((auth) => credentialsOf(auth as AuthConfig))).toEqual([["{{t}}"], ["{{p}}"], ["{{v}}"], [], []]);
+    expect(
+      [bearer, basic, header, { type: "none" }, { type: "inherit" }].map((auth) => credentialsOf(auth as AuthConfig)),
+    ).toEqual([["{{t}}"], ["{{p}}"], ["{{v}}"], [], []]);
   });
 });

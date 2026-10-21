@@ -19,7 +19,12 @@ html {
   /* cv02 = single-story a, cv03 = single-story g, cv04 = simple i/l,
      cv11 = single-story g (some builds). Together these give Inter
      the clean geometric feel of SF Pro. */
-  font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1, 'kern' 1;
+  font-feature-settings:
+    "cv02" 1,
+    "cv03" 1,
+    "cv04" 1,
+    "cv11" 1,
+    "kern" 1;
 }
 
 code,
@@ -30,27 +35,56 @@ pre,
   font-feature-settings: normal;
 }
 
-
 /* ── Background utilities ────────────────────────────────── */
-.bg-canvas-app      { background-color: var(--canvas-app); }
-.bg-canvas-panel    { background-color: var(--canvas-panel); }
-.bg-canvas-elevated { background-color: var(--canvas-elevated); }
-.bg-canvas-overlay  { background-color: var(--canvas-overlay); }
-.bg-fill-secondary  { background-color: var(--fill-secondary); }
-.bg-fill-hover      { background-color: var(--fill-hover); }
-.bg-accent-fill     { background-color: var(--accent-fill); }
+.bg-canvas-app {
+  background-color: var(--canvas-app);
+}
+.bg-canvas-panel {
+  background-color: var(--canvas-panel);
+}
+.bg-canvas-elevated {
+  background-color: var(--canvas-elevated);
+}
+.bg-canvas-overlay {
+  background-color: var(--canvas-overlay);
+}
+.bg-fill-secondary {
+  background-color: var(--fill-secondary);
+}
+.bg-fill-hover {
+  background-color: var(--fill-hover);
+}
+.bg-accent-fill {
+  background-color: var(--accent-fill);
+}
 
 /* ── Text utilities ──────────────────────────────────────── */
-.text-label-primary   { color: var(--label-primary); }
-.text-label-secondary { color: var(--label-secondary); }
-.text-label-tertiary  { color: var(--label-tertiary); }
-.text-status-success  { color: var(--status-success-text); }
-.text-status-error    { color: var(--status-error-text); }
-.text-status-warning  { color: var(--status-warning-text); }
-.text-status-info     { color: var(--status-info-text); }
+.text-label-primary {
+  color: var(--label-primary);
+}
+.text-label-secondary {
+  color: var(--label-secondary);
+}
+.text-label-tertiary {
+  color: var(--label-tertiary);
+}
+.text-status-success {
+  color: var(--status-success-text);
+}
+.text-status-error {
+  color: var(--status-error-text);
+}
+.text-status-warning {
+  color: var(--status-warning-text);
+}
+.text-status-info {
+  color: var(--status-info-text);
+}
 
 /* ── Border utilities ────────────────────────────────────── */
-.border-separator        { border-color: var(--separator) !important; }
+.border-separator {
+  border-color: var(--separator) !important;
+}
 
 /* ── Method badges ───────────────────────────────────────── */
 .method-badge {
@@ -68,13 +102,41 @@ pre,
   line-height: 1.5;
 }
 
-.method-badge.method-get     { background: var(--method-get-fill);     color: var(--method-get-text);     border: 1px solid color-mix(in srgb, var(--method-get), transparent 78%); }
-.method-badge.method-post    { background: var(--method-post-fill);    color: var(--method-post-text);    border: 1px solid color-mix(in srgb, var(--method-post), transparent 78%); }
-.method-badge.method-put     { background: var(--method-put-fill);     color: var(--method-put-text);     border: 1px solid color-mix(in srgb, var(--method-put), transparent 78%); }
-.method-badge.method-patch   { background: var(--method-patch-fill);   color: var(--method-patch-text);   border: 1px solid color-mix(in srgb, var(--method-patch), transparent 78%); }
-.method-badge.method-delete  { background: var(--method-delete-fill);  color: var(--method-delete-text);  border: 1px solid color-mix(in srgb, var(--method-delete), transparent 78%); }
-.method-badge.method-head    { background: var(--method-head-fill);    color: var(--method-head-text);    border: 1px solid color-mix(in srgb, var(--method-head), transparent 78%); }
-.method-badge.method-options { background: var(--method-options-fill); color: var(--method-options-text); border: 1px solid color-mix(in srgb, var(--method-options), transparent 78%); }
+.method-badge.method-get {
+  background: var(--method-get-fill);
+  color: var(--method-get-text);
+  border: 1px solid color-mix(in srgb, var(--method-get), transparent 78%);
+}
+.method-badge.method-post {
+  background: var(--method-post-fill);
+  color: var(--method-post-text);
+  border: 1px solid color-mix(in srgb, var(--method-post), transparent 78%);
+}
+.method-badge.method-put {
+  background: var(--method-put-fill);
+  color: var(--method-put-text);
+  border: 1px solid color-mix(in srgb, var(--method-put), transparent 78%);
+}
+.method-badge.method-patch {
+  background: var(--method-patch-fill);
+  color: var(--method-patch-text);
+  border: 1px solid color-mix(in srgb, var(--method-patch), transparent 78%);
+}
+.method-badge.method-delete {
+  background: var(--method-delete-fill);
+  color: var(--method-delete-text);
+  border: 1px solid color-mix(in srgb, var(--method-delete), transparent 78%);
+}
+.method-badge.method-head {
+  background: var(--method-head-fill);
+  color: var(--method-head-text);
+  border: 1px solid color-mix(in srgb, var(--method-head), transparent 78%);
+}
+.method-badge.method-options {
+  background: var(--method-options-fill);
+  color: var(--method-options-text);
+  border: 1px solid color-mix(in srgb, var(--method-options), transparent 78%);
+}
 
 /* A method as text alone, where a list names many (the collections tree).
    A method of the user's own (any token) keeps the label colour. */
@@ -87,13 +149,27 @@ pre,
   font-weight: 600;
   color: var(--label-secondary);
 }
-.method-tag.method-get     { color: var(--method-get-text); }
-.method-tag.method-post    { color: var(--method-post-text); }
-.method-tag.method-put     { color: var(--method-put-text); }
-.method-tag.method-patch   { color: var(--method-patch-text); }
-.method-tag.method-delete  { color: var(--method-delete-text); }
-.method-tag.method-head    { color: var(--method-head-text); }
-.method-tag.method-options { color: var(--method-options-text); }
+.method-tag.method-get {
+  color: var(--method-get-text);
+}
+.method-tag.method-post {
+  color: var(--method-post-text);
+}
+.method-tag.method-put {
+  color: var(--method-put-text);
+}
+.method-tag.method-patch {
+  color: var(--method-patch-text);
+}
+.method-tag.method-delete {
+  color: var(--method-delete-text);
+}
+.method-tag.method-head {
+  color: var(--method-head-text);
+}
+.method-tag.method-options {
+  color: var(--method-options-text);
+}
 
 /* ── Status code badges ──────────────────────────────────── */
 .status-badge {
@@ -107,11 +183,31 @@ pre,
   letter-spacing: 0.01em;
 }
 
-.status-badge.status-2xx { background: var(--status-success-fill); color: var(--status-success-text); border: 1px solid var(--status-success-border); }
-.status-badge.status-3xx { background: var(--status-info-fill);    color: var(--status-info-text);    border: 1px solid var(--status-info-border); }
-.status-badge.status-4xx { background: var(--status-warning-fill); color: var(--status-warning-text); border: 1px solid var(--status-warning-border); }
-.status-badge.status-5xx { background: var(--status-error-fill);   color: var(--status-error-text);   border: 1px solid var(--status-error-border); }
-.status-badge.status-err { background: var(--status-error-fill);   color: var(--status-error-text);   border: 1px solid var(--status-error-border); }
+.status-badge.status-2xx {
+  background: var(--status-success-fill);
+  color: var(--status-success-text);
+  border: 1px solid var(--status-success-border);
+}
+.status-badge.status-3xx {
+  background: var(--status-info-fill);
+  color: var(--status-info-text);
+  border: 1px solid var(--status-info-border);
+}
+.status-badge.status-4xx {
+  background: var(--status-warning-fill);
+  color: var(--status-warning-text);
+  border: 1px solid var(--status-warning-border);
+}
+.status-badge.status-5xx {
+  background: var(--status-error-fill);
+  color: var(--status-error-text);
+  border: 1px solid var(--status-error-border);
+}
+.status-badge.status-err {
+  background: var(--status-error-fill);
+  color: var(--status-error-text);
+  border: 1px solid var(--status-error-border);
+}
 
 /* A request sent, or to be sent, with the server's certificate not verified: red, since what answers may not be the server. */
 .tls-off-pill {
@@ -352,9 +448,15 @@ pre,
   font-weight: 600;
   color: var(--label-primary);
 }
-.run-count-passed b { color: var(--status-success-text); }
-.run-count-failed b { color: var(--status-error-text); }
-.run-count-failed.run-count-zero b { color: var(--label-primary); }
+.run-count-passed b {
+  color: var(--status-success-text);
+}
+.run-count-failed b {
+  color: var(--status-error-text);
+}
+.run-count-failed.run-count-zero b {
+  color: var(--label-primary);
+}
 .run-progress {
   width: 10rem;
   height: 0.375rem;
@@ -364,14 +466,41 @@ pre,
 /* ── The response, filling its pane (S3b) ────────────────── */
 /* From 768 px the response is a column of its pane's height: the status
    bar and the tabs keep theirs, and a JSON or XML body takes the rest. */
-.response-fill { display: flex; flex-direction: column; height: 100%; }
+.response-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .response-fill .response-main,
 .response-fill .response-tabs,
-.response-fill .response-tabs > .tabs { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.response-fill .tab-panes { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.response-fill .response-body-pane:not([inert]) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.response-fill .response-body-pane > div { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.response-fill .response-body-pane app-json-editor { flex: 1 1 0; min-height: 300px; }
+.response-fill .response-tabs > .tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .tab-panes {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .response-body-pane:not([inert]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .response-body-pane > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.response-fill .response-body-pane app-json-editor {
+  flex: 1 1 0;
+  min-height: 300px;
+}
 
 /* ── The response's status line (U-030) ──────────────────── */
 /* What a response took, in words with a dot between: no pill each. The
@@ -403,8 +532,18 @@ pre,
   user-select: none;
 }
 
-.icon-xs  { font-size: 14px; }
-.icon-sm  { font-size: 16px; }
-.icon-md  { font-size: 20px; }
-.icon-lg  { font-size: 24px; }
-.icon-xl  { font-size: 32px; }
+.icon-xs {
+  font-size: 14px;
+}
+.icon-sm {
+  font-size: 16px;
+}
+.icon-md {
+  font-size: 20px;
+}
+.icon-lg {
+  font-size: 24px;
+}
+.icon-xl {
+  font-size: 32px;
+}

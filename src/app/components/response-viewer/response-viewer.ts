@@ -1,6 +1,17 @@
 import { buildCurl, redactExport } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Signal, computed, effect, signal, inject, input, model, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Signal,
+  computed,
+  effect,
+  signal,
+  inject,
+  input,
+  model,
+  output,
+} from "@angular/core";
 import type { ShownEvent } from "../../state/tab-state";
 import { EventList } from "./event-list";
 import { FormsModule } from "@angular/forms";
@@ -16,20 +27,26 @@ import { UiTooltip } from "../../ui/tooltip";
 import { exportRedactor } from "../../shared/inspect/export";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
 import { HarExportDialog } from "../har-export/har-export-dialog";
-import { BinaryBody, HEX_VIEW_BYTES, MAX_REDIRECTS, evaluatePath, hexDump, indentXml, responseViews, type HarExchange, type RedactOptions, type ResponseEnvelope, type ResponseView } from "@wayfarer/core";
+import {
+  BinaryBody,
+  HEX_VIEW_BYTES,
+  MAX_REDIRECTS,
+  evaluatePath,
+  hexDump,
+  indentXml,
+  responseViews,
+  type HarExchange,
+  type RedactOptions,
+  type ResponseEnvelope,
+  type ResponseView,
+} from "@wayfarer/core";
 import { ResponseInspection } from "../../shared/inspect/response-inspector";
 import { TestResult } from "@wayfarer/core";
 import type { SendTimings } from "@wayfarer/core";
-import {
-  JsonWorkerClient,
-  WorkerSearchResult,
-} from "../../shared/json-worker/json-worker-client";
+import { JsonWorkerClient, WorkerSearchResult } from "../../shared/json-worker/json-worker-client";
 import { JsonEditor } from "../json-editor/json-editor";
 import { HtmlPreview } from "./html-preview";
-import {
-  ResponseExportContext,
-  buildExportEntry,
-} from "../../shared/inspect/response-export-entry";
+import { ResponseExportContext, buildExportEntry } from "../../shared/inspect/response-export-entry";
 import {
   TIMING_PHASE_ORDER,
   TIMING_SUMMARY_TOOLTIPS,
@@ -57,18 +74,26 @@ interface ResponseHeader {
 
 @Component({
   selector: "app-response-viewer",
-  imports: [MatFormField, MatInput, 
+  imports: [
+    MatFormField,
+    MatInput,
     EventList,
     HarExportDialog,
     JsonPipe,
     Icon,
     FormsModule,
-    Tab, TabContent, TabPanel, Tabs, UiTabList,
+    Tab,
+    TabContent,
+    TabPanel,
+    Tabs,
+    UiTabList,
     UiTooltip,
     JsonEditor,
     HtmlPreview,
-    UiButton, UiSelect,
-    MenuTrigger, UiMenu,
+    UiButton,
+    UiSelect,
+    MenuTrigger,
+    UiMenu,
   ],
   templateUrl: "./response-viewer.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -110,8 +135,15 @@ export class ResponseViewer {
   protected readonly scriptTimings = computed(() => {
     const { preScriptMs, requestMs, postScriptMs } = this.timings() ?? {};
     if (preScriptMs === undefined && postScriptMs === undefined) return "";
-    const parts: [string, number | undefined][] = [["Pre-request script", preScriptMs], ["Request", requestMs], ["Post-response script", postScriptMs]];
-    return parts.filter(([, ms]) => ms !== undefined).map(([name, ms]) => `${name} ${ms} ms`).join(" · ");
+    const parts: [string, number | undefined][] = [
+      ["Pre-request script", preScriptMs],
+      ["Request", requestMs],
+      ["Post-response script", postScriptMs],
+    ];
+    return parts
+      .filter(([, ms]) => ms !== undefined)
+      .map(([name, ms]) => `${name} ${ms} ms`)
+      .join(" · ");
   });
   readonly responseBinary = input<BinaryBody | null>(null);
   /** The URL the response came from, when the request was redirected. */
@@ -177,7 +209,12 @@ export class ResponseViewer {
     {
       label: "Export as HAR…",
       icon: "download",
-      command: () => this.harSource.set({ name: "wayfarer-response", credentials: true, exchanges: (options) => this.harExchanges(options) }),
+      command: () =>
+        this.harSource.set({
+          name: "wayfarer-response",
+          credentials: true,
+          exchanges: (options) => this.harExchanges(options),
+        }),
     },
   ];
 
@@ -208,7 +245,14 @@ export class ResponseViewer {
   private previousResponseData: string | null = null;
   private previousResponseError: string | null = null;
 
-  readonly viewLabels: Record<ResponseView, string> = { json: "JSON", text: "Text", xml: "XML", html: "Preview", image: "Image", hex: "Hex" };
+  readonly viewLabels: Record<ResponseView, string> = {
+    json: "JSON",
+    text: "Text",
+    xml: "XML",
+    html: "Preview",
+    image: "Image",
+    hex: "Hex",
+  };
   readonly hexViewBytes = HEX_VIEW_BYTES;
   /** The body as text: of an error status too, since a 404 page is as much HTML as a 200 one. */
   readonly bodyText = computed(() => (this.isError() ? this.responseError() : this.responseData()));
@@ -347,11 +391,7 @@ export class ResponseViewer {
   }
 
   get canExport(): boolean {
-    return (
-      !this.loading() &&
-      !!this.exportContext() &&
-      this.responseStatusCode() !== undefined
-    );
+    return !this.loading() && !!this.exportContext() && this.responseStatusCode() !== undefined;
   }
 
   async copyAsCurl(options: RedactOptions = {}): Promise<void> {
@@ -359,7 +399,11 @@ export class ResponseViewer {
     if (!context) {
       return;
     }
-    await writeToClipboard(buildCurl(redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options)));
+    await writeToClipboard(
+      buildCurl(
+        redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options),
+      ),
+    );
   }
 
   async copyAsHar(options: RedactOptions = {}): Promise<void> {
@@ -383,7 +427,10 @@ export class ResponseViewer {
       {
         startedAt: entry.startedDateTime,
         timeMs: entry.time,
-        request: redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options),
+        request: redactExport(
+          { ...context, headers: Object.entries(context.headers), body: context.exportBody },
+          options,
+        ),
         response: {
           status: entry.res.status,
           statusText: entry.res.statusText,
@@ -448,10 +495,7 @@ export class ResponseViewer {
     this.lastErrorResult = error;
   }
 
-  private async formatAndAssign(
-    source: string,
-    kind: "body" | "error"
-  ): Promise<void> {
+  private async formatAndAssign(source: string, kind: "body" | "error"): Promise<void> {
     if (kind === "body" && this.lastBodySource === source) {
       this.formattedBody.set(this.lastBodyResult ?? source);
       return;
@@ -461,8 +505,7 @@ export class ResponseViewer {
       return;
     }
 
-    const token =
-      kind === "body" ? ++this.bodyFormatToken : ++this.errorFormatToken;
+    const token = kind === "body" ? ++this.bodyFormatToken : ++this.errorFormatToken;
 
     const useWorker = this.shouldUseWorker(source);
 
@@ -488,11 +531,7 @@ export class ResponseViewer {
     }
   }
 
-  private assignFormatted(
-    kind: "body" | "error",
-    source: string,
-    value: string
-  ): void {
+  private assignFormatted(kind: "body" | "error", source: string, value: string): void {
     if (kind === "body") {
       this.formattedBody.set(value);
       this.lastBodySource = source;
@@ -510,9 +549,7 @@ export class ResponseViewer {
   }
 
   private isCurrentToken(token: number, kind: "body" | "error"): boolean {
-    return kind === "body"
-      ? token === this.bodyFormatToken
-      : token === this.errorFormatToken;
+    return kind === "body" ? token === this.bodyFormatToken : token === this.errorFormatToken;
   }
 
   private prettyPrintInline(input: string): string {
@@ -556,8 +593,7 @@ export class ResponseViewer {
     if (!result || !result.count) {
       return;
     }
-    const next =
-      (this.searchActiveIndex() + direction + result.count) % result.count;
+    const next = (this.searchActiveIndex() + direction + result.count) % result.count;
     this.searchActiveIndex.set(next);
   }
 

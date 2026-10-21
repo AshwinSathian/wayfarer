@@ -12,53 +12,19 @@
     "frame-ancestors is 'self', not 'none' (plan D25, maintainer, 2026-10-10): a blob: document inherits this policy, and WebKit applies the inherited frame-ancestors to the preview frame itself, so 'none' left the preview blank in Safari. No other origin can frame the app; e2e/viewers.spec.ts asserts both."
   ],
   "directives": {
-    "default-src": [
-      "'self'"
-    ],
-    "script-src": [
-      "'self'",
-      "'wasm-unsafe-eval'"
-    ],
-    "style-src": [
-      "'self'",
-      "'unsafe-inline'"
-    ],
-    "img-src": [
-      "'self'",
-      "data:",
-      "blob:"
-    ],
-    "font-src": [
-      "'self'",
-      "data:"
-    ],
-    "worker-src": [
-      "'self'",
-      "blob:"
-    ],
-    "connect-src": [
-      "*"
-    ],
-    "object-src": [
-      "'none'"
-    ],
-    "base-uri": [
-      "'self'"
-    ],
-    "form-action": [
-      "'self'"
-    ],
-    "frame-ancestors": [
-      "'self'"
-    ],
-    "frame-src": [
-      "blob:"
-    ],
-    "manifest-src": [
-      "'self'"
-    ],
-    "require-trusted-types-for": [
-      "'script'"
-    ]
+    "default-src": ["'self'"],
+    "script-src": ["'self'", "'wasm-unsafe-eval'"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "img-src": ["'self'", "data:", "blob:"],
+    "font-src": ["'self'", "data:"],
+    "worker-src": ["'self'", "blob:"],
+    "connect-src": ["*"],
+    "object-src": ["'none'"],
+    "base-uri": ["'self'"],
+    "form-action": ["'self'"],
+    "frame-ancestors": ["'self'"],
+    "frame-src": ["blob:"],
+    "manifest-src": ["'self'"],
+    "require-trusted-types-for": ["'script'"]
   }
 }

@@ -1,0 +1,18 @@
+# Prose: wrapped by hand, and rendered as the site's docs.
+*.md
+
+# Lockfiles and what a tool writes. Prettier reads the root .gitignore only:
+# the site's build output is named here.
+packages/site/.next/
+packages/site/out/
+packages/site/next-env.d.ts
+package-lock.json
+src/design-system/tokens.css
+src/design-system/tokens.ts
+src/design-system/typography.css
+packages/core/src/scripting/vm-libs/
+
+# Byte-exact test data.
+packages/*/test/fixtures/
+packages/core/test/**/__snapshots__/
+e2e/support/graphql-schema.json

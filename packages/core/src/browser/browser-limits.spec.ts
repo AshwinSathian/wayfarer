@@ -24,23 +24,45 @@ describe("browserLimits: does the browser ask the server first? (Fetch, CORS-pre
   });
 
   it("4. the three form content types need no question, with or without parameters", () => {
-    for (const type of ["text/plain", "application/x-www-form-urlencoded; charset=UTF-8", "multipart/form-data; boundary=x", "TEXT/PLAIN"]) {
+    for (const type of [
+      "text/plain",
+      "application/x-www-form-urlencoded; charset=UTF-8",
+      "multipart/form-data; boundary=x",
+      "TEXT/PLAIN",
+    ]) {
       expect(preflight({ method: "POST", headers: [["Content-Type", type]] })).toEqual([]);
     }
   });
 
   it("5. any other content type does: a JSON body is asked for first", () => {
-    expect(preflight({ method: "POST", headers: [["Content-Type", "application/json"]] })).toEqual(["Content-Type: application/json"]);
+    expect(preflight({ method: "POST", headers: [["Content-Type", "application/json"]] })).toEqual([
+      "Content-Type: application/json",
+    ]);
     expect(preflight({ method: "POST", headers: [["content-type", "text/xml"]] })).toEqual(["Content-Type: text/xml"]);
   });
 
   it("6. a header outside the safelist is asked for first", () => {
     expect(preflight({ headers: [["Authorization", "Bearer t"]] })).toEqual(["the header Authorization"]);
-    expect(preflight({ headers: [["X-Api-Key", "k"], ["x-trace", "1"]] })).toEqual(["the header X-Api-Key", "the header x-trace"]);
+    expect(
+      preflight({
+        headers: [
+          ["X-Api-Key", "k"],
+          ["x-trace", "1"],
+        ],
+      }),
+    ).toEqual(["the header X-Api-Key", "the header x-trace"]);
   });
 
   it("7. Accept, Accept-Language and Content-Language are safelisted while their value is plain", () => {
-    expect(preflight({ headers: [["Accept", "application/json"], ["Accept-Language", "en-US,en;q=0.9"], ["Content-Language", "de"]] })).toEqual([]);
+    expect(
+      preflight({
+        headers: [
+          ["Accept", "application/json"],
+          ["Accept-Language", "en-US,en;q=0.9"],
+          ["Content-Language", "de"],
+        ],
+      }),
+    ).toEqual([]);
     expect(preflight({ headers: [["Accept", "text/html, (x)"]] })).toEqual(["the value of Accept"]);
     expect(preflight({ headers: [["Accept-Language", "en@US"]] })).toEqual(["the value of Accept-Language"]);
   });
@@ -62,34 +84,84 @@ describe("browserLimits: does the browser ask the server first? (Fetch, CORS-pre
   });
 
   it("10. a request to the page's own origin is never asked for first", () => {
-    const own = limits({ method: "PUT", url: `${PAGE}/api`, headers: [["Authorization", "x"], ["Content-Type", "application/json"]] });
+    const own = limits({
+      method: "PUT",
+      url: `${PAGE}/api`,
+      headers: [
+        ["Authorization", "x"],
+        ["Content-Type", "application/json"],
+      ],
+    });
     expect(own.crossOrigin).toBe(false);
     expect(own.preflight).toEqual([]);
   });
 
   it("gives every reason, in the order method, headers", () => {
-    expect(preflight({ method: "PUT", headers: [["Content-Type", "application/json"], ["Authorization", "x"]] })).toEqual([
-      "the method PUT",
-      "Content-Type: application/json",
-      "the header Authorization",
-    ]);
+    expect(
+      preflight({
+        method: "PUT",
+        headers: [
+          ["Content-Type", "application/json"],
+          ["Authorization", "x"],
+        ],
+      }),
+    ).toEqual(["the method PUT", "Content-Type: application/json", "the header Authorization"]);
   });
 });
 
 describe("browserLimits: headers the browser does not let a page set", () => {
   it("lists a forbidden header the user set, as written, and does not count it for the preflight", () => {
-    const result = limits({ headers: [["Cookie", "a=1"], ["host", "x"], ["Accept", "*/*"], ["Sec-Fetch-Site", "none"], ["Proxy-Authorization", "x"]] });
+    const result = limits({
+      headers: [
+        ["Cookie", "a=1"],
+        ["host", "x"],
+        ["Accept", "*/*"],
+        ["Sec-Fetch-Site", "none"],
+        ["Proxy-Authorization", "x"],
+      ],
+    });
     expect(result.dropped).toEqual(["Cookie", "host", "Sec-Fetch-Site", "Proxy-Authorization"]);
     expect(result.preflight).toEqual([]);
   });
 
   it("knows the whole list of the Fetch standard", () => {
-    const names = ["Accept-Charset", "Accept-Encoding", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Connection", "Content-Length", "Cookie", "Cookie2", "Date", "DNT", "Expect", "Host", "Keep-Alive", "Origin", "Referer", "Set-Cookie", "TE", "Trailer", "Transfer-Encoding", "Upgrade", "Via"];
+    const names = [
+      "Accept-Charset",
+      "Accept-Encoding",
+      "Access-Control-Request-Headers",
+      "Access-Control-Request-Method",
+      "Connection",
+      "Content-Length",
+      "Cookie",
+      "Cookie2",
+      "Date",
+      "DNT",
+      "Expect",
+      "Host",
+      "Keep-Alive",
+      "Origin",
+      "Referer",
+      "Set-Cookie",
+      "TE",
+      "Trailer",
+      "Transfer-Encoding",
+      "Upgrade",
+      "Via",
+    ];
     expect(limits({ headers: names.map((name) => [name, "x"]) }).dropped).toEqual(names);
   });
 
   it("does not list a header a page may set", () => {
-    expect(limits({ headers: [["User-Agent", "x"], ["Authorization", "x"], ["X-Sec-Thing", "x"], ["Security", "x"]] }).dropped).toEqual([]);
+    expect(
+      limits({
+        headers: [
+          ["User-Agent", "x"],
+          ["Authorization", "x"],
+          ["X-Sec-Thing", "x"],
+          ["Security", "x"],
+        ],
+      }).dropped,
+    ).toEqual([]);
   });
 
   it("lists a method override that names a method browsers refuse", () => {
@@ -104,7 +176,13 @@ describe("browserLimits: mixed content", () => {
   });
 
   it("this machine is the exception, in some browsers", () => {
-    for (const url of ["http://localhost:3000/", "http://127.0.0.1/", "http://127.8.9.10:8080/", "http://[::1]:8080/", "http://api.localhost/"]) {
+    for (const url of [
+      "http://localhost:3000/",
+      "http://127.0.0.1/",
+      "http://127.8.9.10:8080/",
+      "http://[::1]:8080/",
+      "http://api.localhost/",
+    ]) {
       expect(limits({ url }).mixedContent).toBe("loopback");
     }
     expect(limits({ url: "http://127.example.com/" }).mixedContent).toBe("blocked");
@@ -125,14 +203,25 @@ describe("browserLimits: what is added and what is left out", () => {
   });
 
   it("the Sec-Fetch headers always go, and the defaults only where the user set none", () => {
-    expect(limits({}).adds).toEqual(["Origin", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "Accept", "Accept-Encoding", "Accept-Language", "User-Agent"]);
-    expect(limits({ headers: [["accept", "text/plain"], ["User-Agent", "mine"], ["Accept-Language", "de"]] }).adds).toEqual([
+    expect(limits({}).adds).toEqual([
       "Origin",
       "Sec-Fetch-Dest",
       "Sec-Fetch-Mode",
       "Sec-Fetch-Site",
+      "Accept",
       "Accept-Encoding",
+      "Accept-Language",
+      "User-Agent",
     ]);
+    expect(
+      limits({
+        headers: [
+          ["accept", "text/plain"],
+          ["User-Agent", "mine"],
+          ["Accept-Language", "de"],
+        ],
+      }).adds,
+    ).toEqual(["Origin", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "Accept-Encoding"]);
   });
 
   it("Wayfarer sends no Referer and no cookies (D23)", () => {
@@ -147,7 +236,13 @@ describe("browserLimits: the edges", () => {
   });
 
   it("through the Local Bridge none of it applies: Node sends the request, and only the headers of its own connection are left out", () => {
-    const headers: [string, string][] = [["Cookie", "a"], ["Host", "b"], ["Content-Length", "3"], ["Origin", "https://x.example"], ["Connection", "close"]];
+    const headers: [string, string][] = [
+      ["Cookie", "a"],
+      ["Host", "b"],
+      ["Content-Length", "3"],
+      ["Origin", "https://x.example"],
+      ["Connection", "close"],
+    ];
     expect(limits({ method: "PUT", url: "http://example.invalid/", headers }, PAGE, "bridge")).toEqual({
       route: "bridge",
       // A Host of the user's is sent since Local Bridge 2.1.0.

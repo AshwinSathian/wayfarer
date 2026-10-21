@@ -33,7 +33,14 @@ export const FIXTURE = {
     ],
     body: { mode: "raw", raw: '{"name":"{{token}}"}' },
   },
-  response: { code: 201, status: "Created", headers: { "Content-Type": "application/json", "X-Id": "7" }, body: '{"id":7,"tags":["a","b"]}', responseTime: 12, responseSize: 25 },
+  response: {
+    code: 201,
+    status: "Created",
+    headers: { "Content-Type": "application/json", "X-Id": "7" },
+    body: '{"id":7,"tags":["a","b"]}',
+    responseTime: 12,
+    responseSize: 25,
+  },
 } satisfies Partial<ScriptContext>;
 
 const PRELUDE = `
@@ -58,7 +65,13 @@ export function scriptOf(row: CompatCase): string {
 /** The context of a row: a pre-request script has no response. */
 export function contextOf(row: CompatCase): ScriptContext {
   const { response, ...rest } = FIXTURE;
-  const info = { eventName: row.event ?? ("test" as const), requestName: "Create item", requestId: "req-1", iteration: 2, iterationCount: 5 };
+  const info = {
+    eventName: row.event ?? ("test" as const),
+    requestName: "Create item",
+    requestId: "req-1",
+    iteration: 2,
+    iterationCount: 5,
+  };
   return structuredClone(row.event === "prerequest" ? { ...rest, info } : { ...rest, response, info });
 }
 
@@ -66,7 +79,14 @@ export function contextOf(row: CompatCase): ScriptContext {
 export function echo(request: ScriptSendRequest): Promise<ScriptResponse> {
   if (request.url.includes("/fail")) return Promise.reject(new Error("Network error"));
   const body = JSON.stringify(request);
-  return Promise.resolve({ code: 200, status: "OK", headers: { "Content-Type": "application/json" }, body, responseTime: 5, responseSize: body.length });
+  return Promise.resolve({
+    code: 200,
+    status: "OK",
+    headers: { "Content-Type": "application/json" },
+    body,
+    responseTime: 5,
+    responseSize: body.length,
+  });
 }
 
 /** Why a row's run does not prove the row, or undefined when it does: no error, its own test passed, and the result the row names. */

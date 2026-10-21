@@ -115,7 +115,7 @@ export class BodyPanel {
     this.replacePart(index, (part) =>
       kind === "text"
         ? { kind, key: part.key, enabled: part.enabled, value: "" }
-        : { kind, key: part.key, enabled: part.enabled, fileId: "", fileName: "" }
+        : { kind, key: part.key, enabled: part.enabled, fileId: "", fileName: "" },
     );
   }
 

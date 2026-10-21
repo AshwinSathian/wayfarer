@@ -1,7 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import {
-  ResponseInspector,
-} from "./response-inspector";
+import { ResponseInspector } from "./response-inspector";
 import { describe, it, beforeEach, afterEach, expect } from "vitest";
 
 interface MutablePerformance {
@@ -26,10 +24,8 @@ describe("ResponseInspector", () => {
     stubPerformance = {
       now: () => nowValue,
       timeOrigin: 1000,
-      getEntriesByName: (name: string) =>
-        entries.filter((entry) => entry.name === name),
-      getEntriesByType: (type: string) =>
-        type === "resource" ? entries : ([] as PerformanceResourceTiming[]),
+      getEntriesByName: (name: string) => entries.filter((entry) => entry.name === name),
+      getEntriesByType: (type: string) => (type === "resource" ? entries : ([] as PerformanceResourceTiming[])),
     };
 
     (globalThis as typeof globalThis & { performance: Performance }).performance =
@@ -43,8 +39,7 @@ describe("ResponseInspector", () => {
   });
 
   afterEach(() => {
-    (globalThis as typeof globalThis & { performance: Performance }).performance =
-      originalPerformance;
+    (globalThis as typeof globalThis & { performance: Performance }).performance = originalPerformance;
   });
 
   it("records duration when resource timing entries are unavailable", () => {
@@ -110,7 +105,7 @@ describe("ResponseInspector", () => {
         request: 2,
         ttfb: 16,
         content: 24,
-      })
+      }),
     );
     expect(inspection?.sizes).toEqual({
       transferSize: 4096,
@@ -173,4 +168,3 @@ describe("ResponseInspector", () => {
     expect(inspection?.duration).toBe(0);
   });
 });
-

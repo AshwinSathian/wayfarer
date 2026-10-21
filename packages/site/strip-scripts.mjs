@@ -47,7 +47,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const pages = files.filter((name) => name.endsWith(".html"));
   for (const page of pages) writeFileSync(join(out, page), strip(readFileSync(join(out, page), "utf8")));
   // Next's scripts, and the page data its router would have fetched: nothing asks for them now.
-  const unused = files.filter((name) => /^_next[\\/]static[\\/].*\.js$/.test(name) || /(^|[\\/])(index|__next\.[^\\/]*)\.txt$/.test(name));
+  const unused = files.filter(
+    (name) => /^_next[\\/]static[\\/].*\.js$/.test(name) || /(^|[\\/])(index|__next\.[^\\/]*)\.txt$/.test(name),
+  );
   for (const name of unused) rmSync(join(out, name));
   console.log(`strip-scripts: Next's scripts out of ${pages.length} pages, ${unused.length} files removed`);
 }

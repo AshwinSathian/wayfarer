@@ -24,8 +24,15 @@ export function precacheList(root) {
     .filter((ref) => !/^[a-z]+:|^\/\//i.test(ref) && ref !== "/");
   const files = readdirSync(root, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
-    .map((entry) => join(entry.parentPath, entry.name).slice(root.length + 1).split("\\").join("/"));
-  const extra = files.filter((f) => /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.ico$/.test(f));
+    .map((entry) =>
+      join(entry.parentPath, entry.name)
+        .slice(root.length + 1)
+        .split("\\")
+        .join("/"),
+    );
+  const extra = files.filter((f) =>
+    /\.css$|^media\/.*\.(woff2|ttf)$|^icons\/|^manifest\.webmanifest$|^favicon\.ico$/.test(f),
+  );
   return ["/", ...new Set([...referenced, ...extra].map((f) => `/${f.replace(/^\//, "")}`))].sort();
 }
 
@@ -44,7 +51,8 @@ export function compileServiceWorker() {
     const host = { getCanonicalFileName: (f) => f, getCurrentDirectory: () => process.cwd(), getNewLine: () => "\n" };
     throw new Error(`${SOURCE} does not type-check:\n${ts.formatDiagnostics(diagnostics, host)}`);
   }
-  return ts.transpileModule(readFileSync(SOURCE, "utf8"), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  return ts.transpileModule(readFileSync(SOURCE, "utf8"), { compilerOptions: { target: ts.ScriptTarget.ES2022 } })
+    .outputText;
 }
 
 export function writeServiceWorker(root) {
@@ -64,7 +72,9 @@ export function writeServiceWorker(root) {
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const args = process.argv.slice(2);
   if (args.some((a) => a.startsWith("-"))) {
-    console.error("build-sw: unexpected option. Pass Angular options to ng build directly: npx ng build <options> && node scripts/build-sw.mjs");
+    console.error(
+      "build-sw: unexpected option. Pass Angular options to ng build directly: npx ng build <options> && node scripts/build-sw.mjs",
+    );
     process.exit(1);
   }
   const root = args[0] ?? "dist/wayfarer/browser";
@@ -76,7 +86,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     // projects: its own notices file covers most, and DOMPurify and marked
     // are npm packages of their own.
     const extra = ["monaco-editor/ThirdPartyNotices.txt", "dompurify/LICENSE", "marked/LICENSE.md"]
-      .map((file) => `${"-".repeat(80)}\nBundled inside monaco-editor: ${file}\n\n${readFileSync(join("node_modules", file), "utf8")}`)
+      .map(
+        (file) =>
+          `${"-".repeat(80)}\nBundled inside monaco-editor: ${file}\n\n${readFileSync(join("node_modules", file), "utf8")}`,
+      )
       .join("\n");
     // The libraries a script may require are text the script engine runs, not
     // modules the bundler saw: scripts/build-vm-libs.mjs lists their licences.

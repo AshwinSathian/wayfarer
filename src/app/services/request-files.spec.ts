@@ -35,7 +35,9 @@ describe("RequestFiles", () => {
   it("refuses a file over 50 MB, naming it and its size, and accepts one of exactly 50 MB", () => {
     const sized = (bytes: number) => Object.defineProperty(new File([], "big.iso"), "size", { value: bytes });
 
-    expect(files.pick(sized(50 * 1024 * 1024 + 1))).toBe('"big.iso" is 50.0 MB. A file in a request body can be 50 MB at most.');
+    expect(files.pick(sized(50 * 1024 * 1024 + 1))).toBe(
+      '"big.iso" is 50.0 MB. A file in a request body can be 50 MB at most.',
+    );
     expect(files.pick(sized(64 * 1024 * 1024))).toContain("64.0 MB");
     expect(typeof files.pick(sized(50 * 1024 * 1024))).toBe("object");
   });

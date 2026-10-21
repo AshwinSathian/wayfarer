@@ -11,7 +11,16 @@ export const HEX_VIEW_BYTES = 64 * 1024;
  * The types an `<img>` draws without running anything. Not SVG: opened on
  * its own, a `blob:` URL of that type is a document of the app's origin.
  */
-const IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/avif", "image/bmp", "image/x-icon", "image/vnd.microsoft.icon"];
+const IMAGE_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+  "image/avif",
+  "image/bmp",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
+];
 
 export interface ViewedBody {
   contentType: string;

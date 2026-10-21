@@ -1,5 +1,13 @@
 import { expect, test, type Download, type Page } from "@playwright/test";
-import { closeEnvironments, dumpIdb, openEnvironments, openSettings, protectVariable, seedAndOpen, send } from "./support/app";
+import {
+  closeEnvironments,
+  dumpIdb,
+  openEnvironments,
+  openSettings,
+  protectVariable,
+  seedAndOpen,
+  send,
+} from "./support/app";
 import { ECHO } from "./support/echo";
 
 // P2.11: the workspace lives in one browser. A backup and a restore, what
@@ -17,11 +25,17 @@ async function text(download: Download): Promise<string> {
 
 const openData = (page: Page) => openSettings(page, "Data and storage");
 
-test("@claim:C-046 backup, Reset all data, restore: every store of the backup holds what it held, with collections untrusted; the composer's tabs are not in it", async ({ page }) => {
+test("@claim:C-046 backup, Reset all data, restore: every store of the backup holds what it held, with collections untrusted; the composer's tabs are not in it", async ({
+  page,
+}) => {
   // Three page loads, a vault made and opened again (two key derivations), a download and an upload:
   // the longest test of the suite. On a slow CI runner it met the 30 s limit.
   test.slow();
-  await seedAndOpen(page, { host: ECHO }, { method: "GET", url: "{{host}}/echo?backup=1", auth: { type: "bearer", token: "typed-token" } });
+  await seedAndOpen(
+    page,
+    { host: ECHO },
+    { method: "GET", url: "{{host}}/echo?backup=1", auth: { type: "bearer", token: "typed-token" } },
+  );
   await protectVariable(page, "API_TOKEN", SECRET);
   await openEnvironments(page);
   await page.getByRole("button", { name: "Global variables" }).click();
@@ -39,20 +53,35 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
 
   await openData(page);
   await page.getByRole("checkbox", { name: "With history" }).check();
-  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Back up workspace" }).click()]);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Back up workspace" }).click(),
+  ]);
   const file = await text(download);
   expect(file).toContain('"$id": "wayfarer/workspace"');
   expect(file).not.toContain(SECRET);
   expect(file).not.toContain(PASSPHRASE);
 
-  await page.getByRole("navigation", { name: "Settings sections" }).getByRole("button", { name: "Danger zone", exact: true }).click();
+  await page
+    .getByRole("navigation", { name: "Settings sections" })
+    .getByRole("button", { name: "Danger zone", exact: true })
+    .click();
   await page.getByRole("button", { name: "Reset all data" }).click();
   await page.getByRole("button", { name: "Proceed", exact: true }).click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toHaveCount(0);
-  await expect.poll(async () => Object.values(await dumpIdb(page)).flat().filter((record) => (record as { key?: string }).key !== "state").length).toBe(0);
+  await expect
+    .poll(
+      async () =>
+        Object.values(await dumpIdb(page))
+          .flat()
+          .filter((record) => (record as { key?: string }).key !== "state").length,
+    )
+    .toBe(0);
 
   await openData(page);
-  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "wayfarer-workspace.json", mimeType: "application/json", buffer: Buffer.from(file) });
+  await page
+    .getByLabel("Restore workspace from file")
+    .setInputFiles({ name: "wayfarer-workspace.json", mimeType: "application/json", buffer: Buffer.from(file) });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.getByText("Tripwire collection", { exact: true })).toBeVisible();
 
@@ -64,7 +93,10 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   // A file's scripts are not trusted until approved (D6): that is the one difference.
   const untrusted = (stores: Record<string, unknown[]>) => ({
     ...stores,
-    collections: (stores["collections"] as { scriptTrust: unknown }[]).map((collection) => ({ ...collection, scriptTrust: { trusted: false } })),
+    collections: (stores["collections"] as { scriptTrust: unknown }[]).map((collection) => ({
+      ...collection,
+      scriptTrust: { trusted: false },
+    })),
   });
   expect((before["collections"] as { scriptTrust: unknown }[])[0].scriptTrust).toEqual({ trusted: true });
   expect((after["collections"] as { scriptTrust: unknown }[])[0].scriptTrust).toEqual({ trusted: false });
@@ -86,7 +118,11 @@ test("a file that is not a workspace backup is refused, with the reason, and not
   await expect.poll(async () => (await dumpIdb(page))["tabs"]?.length ?? 0).toBe(1);
   const before = await dumpIdb(page);
   await openData(page);
-  await page.getByLabel("Restore workspace from file").setInputFiles({ name: "nope.json", mimeType: "application/json", buffer: Buffer.from('{"$id":"wayfarer/collection"}') });
+  await page.getByLabel("Restore workspace from file").setInputFiles({
+    name: "nope.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"$id":"wayfarer/collection"}'),
+  });
   await page.getByRole("button", { name: "Restore", exact: true }).click();
 
   await expect(page.getByText("The file was not restored and nothing was changed:")).toBeVisible();
@@ -94,7 +130,9 @@ test("a file that is not a workspace backup is refused, with the reason, and not
   expect(await dumpIdb(page)).toEqual(before);
 });
 
-test("@claim:C-047 an environments export leaves protected values out unless asked: no reference, no plaintext; plain text needs the words typed", async ({ page }) => {
+test("@claim:C-047 an environments export leaves protected values out unless asked: no reference, no plaintext; plain text needs the words typed", async ({
+  page,
+}) => {
   await seedAndOpen(page, { host: "localhost" }, { method: "GET", url: `${ECHO}/echo` });
   await protectVariable(page, "API_TOKEN", SECRET);
   const dialog = page.getByRole("dialog", { name: "Export environments" });
@@ -123,11 +161,16 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
   await (await exportWith("Plain text", "export secrets")).click();
   await expect(dialog.getByText("Type EXPORT SECRETS to write secrets as plain text.")).toBeVisible();
   await dialog.getByLabel(/to confirm/).fill("EXPORT SECRETS");
-  const [plain] = await Promise.all([page.waitForEvent("download"), dialog.getByRole("button", { name: "Export file" }).click()]);
+  const [plain] = await Promise.all([
+    page.waitForEvent("download"),
+    dialog.getByRole("button", { name: "Export file" }).click(),
+  ]);
   expect(await text(plain)).toContain(`"value": "${SECRET}"`);
 });
 
-test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({ page }) => {
+test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({
+  page,
+}) => {
   await page.clock.install();
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
@@ -143,10 +186,12 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
   await page.reload();
   await expect(page.locator("input.address-url")).toBeVisible();
   await expect(reminder).toHaveCount(0);
-
 });
 
-test("Settings says whether the browser keeps the data, and shows Safari's seven-day rule only in Safari", async ({ page, browserName }) => {
+test("Settings says whether the browser keeps the data, and shows Safari's seven-day rule only in Safari", async ({
+  page,
+  browserName,
+}) => {
   await page.goto("/app/");
   await openData(page);
   await expect(page.getByTestId("storage-status")).toContainText(/promised to keep this data|does not say whether/);

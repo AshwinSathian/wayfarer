@@ -22,7 +22,9 @@ const closeSettings = async (page: Page, settings: Locator) => {
   await expect(settings).toHaveCount(0);
 };
 
-test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, the next request carries none", async ({ page }) => {
+test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, the next request carries none", async ({
+  page,
+}) => {
   const bridge = await startBridge();
   try {
     await page.goto("/app/");
@@ -61,7 +63,11 @@ test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, 
 
     // History has the header and not its value, and the value is masked where the server sent it back.
     // (The first entry holds "abc123" as typed: it was in that request's address.)
-    const echoes = JSON.stringify(((await dumpIdb(page))["history"] as { sent: { url: string } }[]).filter((entry) => entry.sent.url.includes("/echo")));
+    const echoes = JSON.stringify(
+      ((await dumpIdb(page))["history"] as { sent: { url: string } }[]).filter((entry) =>
+        entry.sent.url.includes("/echo"),
+      ),
+    );
     expect(echoes).toContain('["Cookie","***"]');
     expect(echoes).toContain("session=***");
     expect(echoes).not.toContain("abc123");
@@ -70,7 +76,9 @@ test("/cookies/set, then /echo: the Cookie header is sent; deleted in Settings, 
   }
 });
 
-test("a sign-in that answers with a redirect: the cookie it sets goes out with the next hop, and the jar is kept over a reload", async ({ page }) => {
+test("a sign-in that answers with a redirect: the cookie it sets goes out with the next hop, and the jar is kept over a reload", async ({
+  page,
+}) => {
   const bridge = await startBridge();
   try {
     await page.goto("/app/");
@@ -79,7 +87,9 @@ test("a sign-in that answers with a redirect: the cookie it sets goes out with t
     await expect(page.locator(".status-badge").first()).toHaveText("200");
     // Two Set-Cookie headers, one with a comma in its value: joined into one line they could not be told apart.
     await expect.poll(() => body(page)).toContain('["cookie","session=signed-in;seen=Wed,14Oct"]');
-    await expect(viewer(page).getByRole("region", { name: "Redirects" })).toContainText("Followed 1 redirect through the Local Bridge:");
+    await expect(viewer(page).getByRole("region", { name: "Redirects" })).toContainText(
+      "Followed 1 redirect through the Local Bridge:",
+    );
 
     await expect.poll(async () => ((await dumpIdb(page))["cookies"] ?? []).length).toBe(2);
     await page.reload();
@@ -88,7 +98,10 @@ test("a sign-in that answers with a redirect: the cookie it sets goes out with t
     await expect(settings.getByRole("list", { name: "Cookies" })).toContainText("HttpOnly");
 
     await settings.getByRole("button", { name: "Delete all…" }).click();
-    await page.getByRole("alertdialog", { name: "Delete all cookies?" }).getByRole("button", { name: "Delete all", exact: true }).click();
+    await page
+      .getByRole("alertdialog", { name: "Delete all cookies?" })
+      .getByRole("button", { name: "Delete all", exact: true })
+      .click();
     await expect(settings.locator(".cookies-empty")).toHaveText("The jar is empty.");
     expect((await dumpIdb(page))["cookies"]).toEqual([]);
   } finally {
@@ -116,14 +129,18 @@ test("a cookie whose value is a vault secret of the request is sent on and is no
     expect(JSON.stringify(stores)).not.toContain(SECRET);
 
     const settings = await openSettings(page, "Cookies");
-    await expect(settings.locator(".cookie-unstored")).toHaveText("Not stored: its value holds a vault secret, so it is in this tab's memory only.");
+    await expect(settings.locator(".cookie-unstored")).toHaveText(
+      "Not stored: its value holds a vault secret, so it is in this tab's memory only.",
+    );
   } finally {
     bridge.stop();
   }
 });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`the Cookies pane has no critical or serious violation in the ${theme} theme, empty and with cookies, and is not wider than the window at four widths`, async ({ page }) => {
+  test(`the Cookies pane has no critical or serious violation in the ${theme} theme, empty and with cookies, and is not wider than the window at four widths`, async ({
+    page,
+  }) => {
     test.slow();
     const bridge = await startBridge();
     try {
@@ -135,11 +152,15 @@ for (const theme of ["light", "dark"] as const) {
         // Once the page has stopped animating: a colour half way through a fade is not the colour.
         await settled(page);
         const results = await axe(page).analyze();
-        expect(results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`))).toEqual([]);
+        expect(
+          results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`)),
+        ).toEqual([]);
       };
       const empty = await openSettings(page, "Cookies");
       await expect(empty.locator(".cookies-empty")).toBeVisible();
-      await expect(empty.locator(".cookies-route")).toContainText("with the route Auto, those the browser got no answer to");
+      await expect(empty.locator(".cookies-route")).toContainText(
+        "with the route Auto, those the browser got no answer to",
+      );
       await scan("empty, bridge off");
       await closeSettings(page, empty);
 
@@ -156,15 +177,24 @@ for (const theme of ["light", "dark"] as const) {
         // Below 768 px the list of sections is the dialog: the pane is opened again from it.
         if (!(await rows.first().isVisible())) await settings.getByRole("button", { name: "Cookies" }).click();
         await expect(rows).toHaveCount(2);
-        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), { message: `at ${width} px` }).toBeLessThanOrEqual(0);
+        await expect
+          .poll(
+            () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            { message: `at ${width} px` },
+          )
+          .toBeLessThanOrEqual(0);
         // Polled, like the width: a change of layout takes a moment.
         await expect
           .poll(
             async () => {
-              const boxes = await Promise.all([rows.first().boundingBox(), settings.getByRole("button", { name: "Delete all…" }).boundingBox(), settings.getByRole("textbox", { name: "session" }).boundingBox()]);
+              const boxes = await Promise.all([
+                rows.first().boundingBox(),
+                settings.getByRole("button", { name: "Delete all…" }).boundingBox(),
+                settings.getByRole("textbox", { name: "session" }).boundingBox(),
+              ]);
               return boxes.every((box) => !!box && box.x >= 0 && box.x + box.width <= width);
             },
-            { message: `a cookie's row, its value and Delete all at ${width} px` }
+            { message: `a cookie's row, its value and Delete all at ${width} px` },
           )
           .toBe(true);
       }

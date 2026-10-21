@@ -31,7 +31,14 @@ export class TabStrip {
   /** The saved request's name, or else the address, or else that it is new. */
   protected label(tab: TabState): string {
     if (tab.run) return tab.run.target.name;
-    return tab.bound()?.name ?? (tab.draft().url.trim().replace(/^https?:\/\//, "") || "New request");
+    return (
+      tab.bound()?.name ??
+      (tab
+        .draft()
+        .url.trim()
+        .replace(/^https?:\/\//, "") ||
+        "New request")
+    );
   }
 
   /** The tab's address is a WebSocket's, as written. */
@@ -62,7 +69,8 @@ export class TabStrip {
           : null;
     if (dirty || going) {
       const why = [...(dirty ? ["has changes that are not saved"] : []), ...(going ? [going[0]] : [])].join(" and ");
-      const then = dirty && going ? `discards the changes and ${going[1]}` : dirty ? "discards them" : (going?.[1] ?? "");
+      const then =
+        dirty && going ? `discards the changes and ${going[1]}` : dirty ? "discards them" : (going?.[1] ?? "");
       const close = await this.confirm.confirm({
         title: "Close this tab?",
         message: `${this.label(tab)} ${why}. Closing the tab ${then}.`,

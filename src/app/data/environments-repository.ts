@@ -17,11 +17,7 @@ export class EnvironmentsRepository {
     return this.core.ensureIds(items);
   }
 
-  async createEnvironment(payload: {
-    name: string;
-    description?: string;
-    vars?: Row[];
-  }): Promise<EnvironmentDoc> {
+  async createEnvironment(payload: { name: string; description?: string; vars?: Row[] }): Promise<EnvironmentDoc> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
     const store = tx.objectStore("environments");
@@ -43,7 +39,7 @@ export class EnvironmentsRepository {
 
   async updateEnvironment(
     id: string,
-    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>
+    updates: Partial<Pick<EnvironmentDoc, "name" | "description" | "vars">>,
   ): Promise<EnvironmentDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);
@@ -78,7 +74,7 @@ export class EnvironmentsRepository {
   async changeEnvironment(
     id: string,
     changes: VariableChange[],
-    details: Partial<Pick<EnvironmentDoc, "name" | "description">> = {}
+    details: Partial<Pick<EnvironmentDoc, "name" | "description">> = {},
   ): Promise<EnvironmentDoc | null> {
     await this.core.ensurePersistentSupport();
     const tx = await this.core.txReadWrite(["environments"]);

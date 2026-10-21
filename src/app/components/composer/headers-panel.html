@@ -4,9 +4,13 @@
   </button>
 </div>
 @if (bulk()) {
-<label class="ds-form-label" for="headers-bulk">Headers, one <code>Name: value</code> per line. Start a line with <code>#</code> to keep it without sending it.</label>
+<label class="ds-form-label" for="headers-bulk"
+  >Headers, one <code>Name: value</code> per line. Start a line with <code>#</code> to keep it without sending
+  it.</label
+>
 <mat-form-field class="field w-full">
-  <textarea matInput
+  <textarea
+    matInput
     id="headers-bulk"
     class="type-mono-body"
     rows="8"

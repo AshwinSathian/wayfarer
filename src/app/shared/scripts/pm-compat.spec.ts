@@ -13,9 +13,16 @@ describe("Postman compatibility, in the worker", () => {
     const result = await TestBed.inject(ScriptSandbox).execute(
       scriptOf(row),
       Object.fromEntries(environment),
-      response && { statusCode: response.code, statusText: response.status, body: response.body, headers: response.headers, durationMs: response.responseTime, sizeBytes: response.responseSize },
+      response && {
+        statusCode: response.code,
+        statusText: response.status,
+        body: response.body,
+        headers: response.headers,
+        durationMs: response.responseTime,
+        sizeBytes: response.responseSize,
+      },
       undefined,
-      { ...extras, send: echo }
+      { ...extras, send: echo },
     );
     expect(verdict(row, result)).toBeUndefined();
     if (row.result) expect(result).toMatchObject(row.result);

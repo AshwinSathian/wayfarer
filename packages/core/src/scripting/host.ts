@@ -5,7 +5,17 @@ import { isJsonText } from "../safe-json";
 import { VARIABLE_SCOPES, VariableResolver, type ScopeStack, type VariableScope } from "../variables/resolver";
 import { VM_LIBRARIES } from "./libraries";
 import { VM_BOOTSTRAP } from "./vm-bootstrap";
-import { VM_ENCODINGS, isVmHash, vmDecode, vmEncode, vmHash, vmHmac, vmRandom, type VmEncoding, type VmHash } from "./vm-crypto";
+import {
+  VM_ENCODINGS,
+  isVmHash,
+  vmDecode,
+  vmEncode,
+  vmHash,
+  vmHmac,
+  vmRandom,
+  type VmEncoding,
+  type VmHash,
+} from "./vm-crypto";
 
 /** What a run may use before it is stopped. */
 export interface ScriptLimits {
@@ -62,7 +72,10 @@ const ENGINE_INITIAL_PAGES = 256;
  * and on every runtime in it: one script runs at a time.
  */
 export function scriptMemory(limits: ScriptLimits = SCRIPT_LIMITS): { initial: number; maximum: number } {
-  return { initial: ENGINE_INITIAL_PAGES, maximum: Math.max(ENGINE_INITIAL_PAGES, Math.floor(limits.memoryBytes / WASM_PAGE)) };
+  return {
+    initial: ENGINE_INITIAL_PAGES,
+    maximum: Math.max(ENGINE_INITIAL_PAGES, Math.floor(limits.memoryBytes / WASM_PAGE)),
+  };
 }
 
 /** The line that stands for the console output that was dropped. */
@@ -81,7 +94,10 @@ export interface ScriptResponse {
 }
 
 /** The body of a request as a script sees it. Only text and form fields can be read and changed; of a file or a multipart form a script sees the mode. */
-export type ScriptBody = { mode: "raw"; raw: string } | { mode: "urlencoded"; urlencoded: [string, string][] } | { mode: "none" | "multipart" | "binary" };
+export type ScriptBody =
+  | { mode: "raw"; raw: string }
+  | { mode: "urlencoded"; urlencoded: [string, string][] }
+  | { mode: "none" | "multipart" | "binary" };
 
 /** The request as a script sees it in `pm.request`, and as a pre-request script left it. */
 export interface ScriptRequest {
@@ -118,7 +134,13 @@ export interface ScriptContext {
   /** The request being sent. Absent: `pm.request` is `null`. */
   request?: ScriptRequest;
   /** Which script this is, and of which request. A script without it is a post-response script of no request. */
-  info?: { eventName: "prerequest" | "test"; requestName: string; requestId: string; /** In a run: which iteration this is, from 0, and of how many. */ iteration?: number; iterationCount?: number };
+  info?: {
+    eventName: "prerequest" | "test";
+    requestName: string;
+    requestId: string;
+    /** In a run: which iteration this is, from 0, and of how many. */ iteration?: number;
+    iterationCount?: number;
+  };
 }
 
 /** What the host of a run provides besides the context. */
@@ -219,15 +241,37 @@ export async function runScript(
   source: string,
   context: ScriptContext,
   limits: ScriptLimits = SCRIPT_LIMITS,
-  services: ScriptServices = {}
+  services: ScriptServices = {},
 ): Promise<ScriptResult> {
   const scope = (rows: ScriptVariable[] = []) => new Map(rows.map(([name, value]): [string, string] => [name, value]));
   // The mark is believed only on a value that is JSON: a script is never handed text to parse that will not parse.
-  const marked = (rows: ScriptVariable[] = []) => new Set(rows.filter(([, value, json]) => json === true && isJsonText(value)).map(([name]) => name));
+  const marked = (rows: ScriptVariable[] = []) =>
+    new Set(rows.filter(([, value, json]) => json === true && isJsonText(value)).map(([name]) => name));
   const state: RunState = {
-    values: { local: scope(), data: scope(context.data), environment: scope(context.environment), folder: scope(context.folder), collection: scope(context.collection), global: scope(context.globals) },
-    json: { local: marked(), data: marked(context.data), environment: marked(context.environment), folder: marked(context.folder), collection: marked(context.collection), global: marked(context.globals) },
-    changes: { local: new Map(), data: new Map(), environment: new Map(), folder: new Map(), collection: new Map(), global: new Map() },
+    values: {
+      local: scope(),
+      data: scope(context.data),
+      environment: scope(context.environment),
+      folder: scope(context.folder),
+      collection: scope(context.collection),
+      global: scope(context.globals),
+    },
+    json: {
+      local: marked(),
+      data: marked(context.data),
+      environment: marked(context.environment),
+      folder: marked(context.folder),
+      collection: marked(context.collection),
+      global: marked(context.globals),
+    },
+    changes: {
+      local: new Map(),
+      data: new Map(),
+      environment: new Map(),
+      folder: new Map(),
+      collection: new Map(),
+      global: new Map(),
+    },
     sends: 0,
     inFlight: 0,
     answers: [],
@@ -237,7 +281,12 @@ export async function runScript(
     tests: [],
     timers: new Map(),
   };
-  const changed = (name: ScriptScope): VariableChange[] => [...state.changes[name]].map(([key, value]) => ({ key, value, ...(value !== null && state.json[name].has(key) && { json: true as const }) }));
+  const changed = (name: ScriptScope): VariableChange[] =>
+    [...state.changes[name]].map(([key, value]) => ({
+      key,
+      value,
+      ...(value !== null && state.json[name].has(key) && { json: true as const }),
+    }));
   const result = (error?: string, limit?: ScriptResult["limit"]): ScriptResult => ({
     logs: state.logs,
     changes: { environment: changed("environment"), collection: changed("collection"), global: changed("global") },
@@ -264,7 +313,8 @@ export async function runScript(
     // did: a RangeError in V8 and JavaScriptCore, an InternalError in
     // SpiderMonkey. The engine is left as it is, not disposed: it would
     // abort. The caller discards the module.
-    if (error instanceof RangeError || (error instanceof Error && error.name === "InternalError")) return result(undefined, "stack");
+    if (error instanceof RangeError || (error instanceof Error && error.name === "InternalError"))
+      return result(undefined, "stack");
     throw error;
   }
   vm.dispose();
@@ -285,7 +335,7 @@ async function evaluate(
   state: RunState,
   deadline: { at: number },
   limits: ScriptLimits,
-  services: ScriptServices
+  services: ScriptServices,
 ): Promise<Failure | undefined> {
   /** What a script threw, as text, and whether it was a limit. Consumes the handle. */
   const failed = (error: QuickJSHandle): Failure => {
@@ -328,7 +378,8 @@ async function evaluate(
   /** Counts what a script makes the host keep. Thrown into the script, and thrown again at its next write. */
   const charge = (...written: string[]) => {
     state.written += written.reduce((sum, part) => sum + part.length, 0);
-    if (state.written > limits.maxOutputBytes) throw new RangeError("Script wrote too many test results and variables.");
+    if (state.written > limits.maxOutputBytes)
+      throw new RangeError("Script wrote too many test results and variables.");
   };
 
   const scopeOf = (handle: QuickJSHandle | undefined): Scope => {
@@ -336,9 +387,11 @@ async function evaluate(
     if (!Object.hasOwn(state.values, name)) throw new TypeError("Expected a variable scope.");
     return name as Scope;
   };
-  const any = (where: QuickJSHandle | undefined): boolean => where !== undefined && vm.typeof(where) === "string" && vm.getString(where) === "any";
+  const any = (where: QuickJSHandle | undefined): boolean =>
+    where !== undefined && vm.typeof(where) === "string" && vm.getString(where) === "any";
   /** The scope a name is read from: the one asked for, or the nearest that has it ("any"). */
-  const holder = (where: QuickJSHandle | undefined, key: string): Scope | undefined => (any(where) ? VARIABLE_ORDER.find((name) => state.values[name].has(key)) : scopeOf(where));
+  const holder = (where: QuickJSHandle | undefined, key: string): Scope | undefined =>
+    any(where) ? VARIABLE_ORDER.find((name) => state.values[name].has(key)) : scopeOf(where);
   const lookUp = (where: QuickJSHandle | undefined, key: string): string | undefined => {
     const scope = holder(where, key);
     return scope && state.values[scope].get(key);
@@ -355,7 +408,10 @@ async function evaluate(
   bind("varHas", (where, key) => (lookUp(where, text(key)) === undefined ? vm.false : vm.true));
   bind("varAll", (where) => {
     // Each as JSON: a value that is JSON already stands as it is, so the script reads its type.
-    const of = (name: Scope): string[] => [...state.values[name]].map(([key, value]) => `[${JSON.stringify(key)},${state.json[name].has(key) ? value : JSON.stringify(value)}]`);
+    const of = (name: Scope): string[] =>
+      [...state.values[name]].map(
+        ([key, value]) => `[${JSON.stringify(key)},${state.json[name].has(key) ? value : JSON.stringify(value)}]`,
+      );
     const entries = any(where) ? [...VARIABLE_ORDER].reverse().flatMap(of) : of(scopeOf(where));
     return vm.newString(`[${entries.join(",")}]`);
   });
@@ -425,7 +481,8 @@ async function evaluate(
     const id = text(name);
     const source = services.libraries?.get(id);
     if (source !== undefined) return vm.newString(source);
-    if ((VM_LIBRARIES as readonly string[]).includes(id)) throw new Error(`require('${id}'): write the module's name out in the script, as require('${id}')`);
+    if ((VM_LIBRARIES as readonly string[]).includes(id))
+      throw new Error(`require('${id}'): write the module's name out in the script, as require('${id}')`);
     return undefined;
   });
   const hash = (handle: QuickJSHandle | undefined): VmHash => {
@@ -440,7 +497,9 @@ async function evaluate(
     return found;
   };
   bind("hash", (name, format, payload) => vm.newString(vmHash(hash(name), text(format), text(payload))));
-  bind("hmac", (name, keyFormat, key, format, payload) => vm.newString(vmHmac(hash(name), text(keyFormat), text(key), text(format), text(payload))));
+  bind("hmac", (name, keyFormat, key, format, payload) =>
+    vm.newString(vmHmac(hash(name), text(keyFormat), text(key), text(format), text(payload))),
+  );
   bind("encode", (name, value) => vm.newString(vmEncode(encoding(name), text(value))));
   bind("decode", (name, words) => vm.newString(vmDecode(encoding(name), text(words))));
   bind("random", (count) => vm.newString(vmRandom(number(count))));
@@ -466,7 +525,10 @@ async function evaluate(
     state.answers.push([call, ok, JSON.stringify(value)]);
     state.wake?.();
   };
-  const refused = (error: unknown) => ({ name: error instanceof Error ? error.name : "Error", message: error instanceof Error ? error.message : String(error) });
+  const refused = (error: unknown) => ({
+    name: error instanceof Error ? error.name : "Error",
+    message: error instanceof Error ? error.message : String(error),
+  });
   bind("sendFailed", (call, name, message) => {
     answer(number(call), false, { name: text(name), message: text(message) });
     return undefined;
@@ -475,7 +537,10 @@ async function evaluate(
     const [id, body] = [number(call), text(json)];
     state.sends++;
     if (state.sends > limits.maxSendRequests) {
-      answer(id, false, { name: "Error", message: `pm.sendRequest: a script may make ${limits.maxSendRequests} requests, and this is one more.` });
+      answer(id, false, {
+        name: "Error",
+        message: `pm.sendRequest: a script may make ${limits.maxSendRequests} requests, and this is one more.`,
+      });
       return undefined;
     }
     const send = services.send;
@@ -502,7 +567,7 @@ async function evaluate(
         state.inFlight--;
         line(refused(error).message);
         answer(id, false, refused(error));
-      }
+      },
     );
     return undefined;
   });
@@ -518,7 +583,7 @@ async function evaluate(
       request: context.request,
       info: context.info ?? { eventName: "test", requestName: "", requestId: "" },
       environmentName: context.environmentName ?? "",
-    })
+    }),
   );
   const installed = vm.callFunction(bootstrap.value, vm.undefined, host, given);
   bootstrap.value.dispose();
@@ -543,7 +608,11 @@ async function evaluate(
     // whose `var` at the top is a global as scripts written here may expect: only a script the engine
     // refuses to read for its `return`, and so has run nothing of, is run again as a function's body.
     // ponytail: known by the engine's own words for it. A new engine with other words fails the test of it.
-    if (ran.error && property(vm, ran.error, "name") === "SyntaxError" && property(vm, ran.error, "message") === "return not in a function") {
+    if (
+      ran.error &&
+      property(vm, ran.error, "name") === "SyntaxError" &&
+      property(vm, ran.error, "message") === "return not in a function"
+    ) {
       ran.error.dispose();
       ran = vm.evalCode(`(function () {${source}\n}).call(globalThis);`, "script.js");
     }
@@ -562,7 +631,9 @@ async function evaluate(
         if (failure) return failure;
         continue;
       }
-      const timer = state.timers.size ? [...state.timers].reduce((first, next) => (next[1] < first[1] ? next : first)) : undefined;
+      const timer = state.timers.size
+        ? [...state.timers].reduce((first, next) => (next[1] < first[1] ? next : first))
+        : undefined;
       if (!timer && !state.inFlight) break;
       if (state.inFlight) {
         // Waiting for the host: this time is the network's, not the script's.
@@ -593,14 +664,18 @@ async function evaluate(
 const VARIABLE_ORDER = VARIABLE_SCOPES;
 
 const isPairs = (value: unknown): value is [string, string][] =>
-  Array.isArray(value) && value.every((pair) => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string");
+  Array.isArray(value) &&
+  value.every(
+    (pair) => Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "string" && typeof pair[1] === "string",
+  );
 
 /** A request a script wrote out as JSON, checked field by field: the text is the script's. */
 function parsed(json: string): Record<string, unknown> {
   const value: unknown = JSON.parse(json);
   if (value === null || typeof value !== "object" || Array.isArray(value)) throw new TypeError("Expected a request.");
   const request = value as Record<string, unknown>;
-  if (typeof request["method"] !== "string" || !isHttpMethod(request["method"])) throw new TypeError("The request's method is not an HTTP method.");
+  if (typeof request["method"] !== "string" || !isHttpMethod(request["method"]))
+    throw new TypeError("The request's method is not an HTTP method.");
   if (typeof request["url"] !== "string" || !request["url"].trim()) throw new TypeError("The request has no address.");
   if (!isPairs(request["headers"])) throw new TypeError("The request's headers are not a list of names and values.");
   return request;
@@ -610,16 +685,27 @@ function sendRequest(json: string): ScriptSendRequest {
   const request = parsed(json);
   const body = request["body"];
   if (body !== undefined && typeof body !== "string") throw new TypeError("The request's body is not text.");
-  return { method: request["method"] as string, url: request["url"] as string, headers: request["headers"] as [string, string][], ...(body !== undefined && { body }) };
+  return {
+    method: request["method"] as string,
+    url: request["url"] as string,
+    headers: request["headers"] as [string, string][],
+    ...(body !== undefined && { body }),
+  };
 }
 
 function scriptRequest(json: string): ScriptRequest {
   const request = parsed(json);
   const body = request["body"] as { mode?: unknown; raw?: unknown; urlencoded?: unknown } | null;
-  const base = { method: request["method"] as string, url: request["url"] as string, headers: request["headers"] as [string, string][] };
+  const base = {
+    method: request["method"] as string,
+    url: request["url"] as string,
+    headers: request["headers"] as [string, string][],
+  };
   if (body?.mode === "raw" && typeof body.raw === "string") return { ...base, body: { mode: "raw", raw: body.raw } };
-  if (body?.mode === "urlencoded" && isPairs(body.urlencoded)) return { ...base, body: { mode: "urlencoded", urlencoded: body.urlencoded } };
-  if (body?.mode === "none" || body?.mode === "multipart" || body?.mode === "binary") return { ...base, body: { mode: body.mode } };
+  if (body?.mode === "urlencoded" && isPairs(body.urlencoded))
+    return { ...base, body: { mode: "urlencoded", urlencoded: body.urlencoded } };
+  if (body?.mode === "none" || body?.mode === "multipart" || body?.mode === "binary")
+    return { ...base, body: { mode: body.mode } };
   throw new TypeError("The request's body is not one a script can set.");
 }
 

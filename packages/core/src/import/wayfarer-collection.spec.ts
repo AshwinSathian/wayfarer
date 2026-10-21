@@ -107,7 +107,10 @@ describe("collection-io", () => {
     ]);
     expect(request.tests.map((test) => test.id)).toEqual(["t-b", "t-a"]);
     // The body is the user's text, not a re-serialised value.
-    expect(request.body).toEqual({ mode: "raw", raw: { language: "json", text: '{ "n": {{count}},\n  "b": 1, "a": 2 }' } });
+    expect(request.body).toEqual({
+      mode: "raw",
+      raw: { language: "json", text: '{ "n": {{count}},\n  "b": 1, "a": 2 }' },
+    });
   });
 
   it("refuses a file without the $id this version writes, naming $id", () => {
@@ -116,7 +119,18 @@ describe("collection-io", () => {
       meta: meta("export-1"),
       collection: { id: "col-1", meta: meta("col-1"), name: "Old", order: 1 },
       folders: [],
-      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "GET", url: "https://a.test", headers: {}, order: 1 }],
+      requests: [
+        {
+          id: "r-1",
+          meta: meta("r-1"),
+          collectionId: "col-1",
+          name: "R",
+          method: "GET",
+          url: "https://a.test",
+          headers: {},
+          order: 1,
+        },
+      ],
     };
 
     expect(validateCollection(formatOne).errors).toEqual([
@@ -158,11 +172,34 @@ describe("collection-io", () => {
     collection: { id: "col-1", meta: meta("col-1"), name: "Billing", order: 1, variables: [], ...inCollection },
     folders: [
       { id: "f-parent", meta: meta("f-parent"), collectionId: "col-1", name: "Parent", order: 1, ...inFolder },
-      { id: "f-child", meta: meta("f-child"), collectionId: "col-1", parentFolderId: "f-parent", name: "Child", order: 2, ...inFolder },
+      {
+        id: "f-child",
+        meta: meta("f-child"),
+        collectionId: "col-1",
+        parentFolderId: "f-parent",
+        name: "Child",
+        order: 2,
+        ...inFolder,
+      },
     ] as CollectionExport["folders"],
     requests: [
-      { id: "r-1", meta: meta("r-1"), collectionId: "col-1", folderId: "f-child", name: "Login", order: 1, ...requestContent({ method: "POST", url: "https://api.test/login" }) },
-      { id: "r-2", meta: meta("r-2"), collectionId: "col-1", name: "Ping", order: 2, ...requestContent({ url: "https://api.test/ping" }) },
+      {
+        id: "r-1",
+        meta: meta("r-1"),
+        collectionId: "col-1",
+        folderId: "f-child",
+        name: "Login",
+        order: 1,
+        ...requestContent({ method: "POST", url: "https://api.test/login" }),
+      },
+      {
+        id: "r-2",
+        meta: meta("r-2"),
+        collectionId: "col-1",
+        name: "Ping",
+        order: 2,
+        ...requestContent({ url: "https://api.test/ping" }),
+      },
     ],
   });
 
@@ -172,7 +209,18 @@ describe("collection-io", () => {
       meta: { id: "export-1", createdAt: "yesterday", updatedAt: 1 },
       collection: { meta: meta(""), name: "", order: "first" },
       folders: [{ id: "f-1", meta: "nope", name: "Folder", order: 1 }],
-      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", method: "", url: "", headers: null, order: 1 }],
+      requests: [
+        {
+          id: "r-1",
+          meta: meta("r-1"),
+          collectionId: "col-1",
+          name: "R",
+          method: "",
+          url: "",
+          headers: null,
+          order: 1,
+        },
+      ],
     };
 
     const result = validateCollection(broken);
@@ -221,7 +269,17 @@ describe("collection-io", () => {
       meta: meta("m"),
       collection: { id: "col-1", meta: meta("col-1"), name: "C", order: 1, variables: [], ...inCollection },
       folders: [],
-      requests: [{ id: "r-1", meta: meta("r-1"), collectionId: "col-1", name: "R", order: 1, ...requestContent({ url: "https://a.test" }), method: "GET; rm -rf ~" }],
+      requests: [
+        {
+          id: "r-1",
+          meta: meta("r-1"),
+          collectionId: "col-1",
+          name: "R",
+          order: 1,
+          ...requestContent({ url: "https://a.test" }),
+          method: "GET; rm -rf ~",
+        },
+      ],
     });
 
     expect(result.errors?.map((e) => e.path)).toEqual(["requests[0].method"]);
@@ -231,10 +289,14 @@ describe("collection-io", () => {
     expect(validateCollection("{not json").ok).toBe(false);
     expect(validateCollection("42").ok).toBe(false);
 
-    const paths = validateCollection({ $id: "wayfarer/collection", folders: "none", requests: {} }).errors!.map((e) => e.path);
+    const paths = validateCollection({ $id: "wayfarer/collection", folders: "none", requests: {} }).errors!.map(
+      (e) => e.path,
+    );
     expect(paths).toEqual(expect.arrayContaining(["collection", "folders", "requests", "meta"]));
 
-    expect(importCollection({ $id: "wayfarer/collection", folders: [], requests: [] }).errors?.length).toBeGreaterThan(0);
+    expect(importCollection({ $id: "wayfarer/collection", folders: [], requests: [] }).errors?.length).toBeGreaterThan(
+      0,
+    );
     expect(importCollection({ $id: "wayfarer/collection", folders: [], requests: [] }).payload).toBeUndefined();
   });
 
@@ -271,7 +333,10 @@ describe("collection-io", () => {
     const source = validExport();
     source.folders.find((folder) => folder.name === "Child")!.parentFolderId = "constructor";
 
-    expect(importCollection(source, { duplicateAsNew: true }).payload!.folders.find((folder) => folder.name === "Child")!.parentFolderId).toBe("constructor");
+    expect(
+      importCollection(source, { duplicateAsNew: true }).payload!.folders.find((folder) => folder.name === "Child")!
+        .parentFolderId,
+    ).toBe("constructor");
   });
 
   it("gives everything a new id when importing as a copy, and keeps the tree connected", () => {

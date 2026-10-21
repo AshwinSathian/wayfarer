@@ -1,4 +1,16 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation, computed, effect, inject, input, model, output, signal, untracked } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewEncapsulation,
+  computed,
+  effect,
+  inject,
+  input,
+  model,
+  output,
+  signal,
+  untracked,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { MatCheckbox } from "@angular/material/checkbox";
@@ -30,7 +42,18 @@ interface KeyboardShortcut {
 }
 
 /** The panes of Settings, by the id a caller opens one with. */
-export type SettingsSection = "general" | "requests" | "history" | "data" | "vault" | "bridge" | "cookies" | "shortcuts" | "diagnostics" | "about" | "danger";
+export type SettingsSection =
+  | "general"
+  | "requests"
+  | "history"
+  | "data"
+  | "vault"
+  | "bridge"
+  | "cookies"
+  | "shortcuts"
+  | "diagnostics"
+  | "about"
+  | "danger";
 
 interface SectionEntry {
   id: SettingsSection;
@@ -44,12 +67,32 @@ const SECTIONS: SectionEntry[] = [
   { id: "general", label: "General", icon: "settings", about: "How the app looks." },
   { id: "requests", label: "Requests", icon: "bolt", about: "How a request is sent." },
   { id: "history", label: "History", icon: "history", about: "What is kept of the requests you send." },
-  { id: "data", label: "Data and storage", icon: "save", about: "Take your work out, bring it back, and see where it is kept." },
+  {
+    id: "data",
+    label: "Data and storage",
+    icon: "save",
+    about: "Take your work out, bring it back, and see where it is kept.",
+  },
   { id: "vault", label: "Vault", icon: "shield_lock", about: "The secrets vault and when it locks." },
-  { id: "bridge", label: "Local Bridge", icon: "router", about: "An optional relay on your own machine, for APIs a browser cannot reach." },
-  { id: "cookies", label: "Cookies", icon: "dns", about: "What responses set through the Local Bridge, and what later requests carry." },
+  {
+    id: "bridge",
+    label: "Local Bridge",
+    icon: "router",
+    about: "An optional relay on your own machine, for APIs a browser cannot reach.",
+  },
+  {
+    id: "cookies",
+    label: "Cookies",
+    icon: "dns",
+    about: "What responses set through the Local Bridge, and what later requests carry.",
+  },
   { id: "shortcuts", label: "Shortcuts", icon: "terminal", about: "Keys, and everything the command palette can do." },
-  { id: "diagnostics", label: "Diagnostics", icon: "rule", about: "What is running, self-tests, and what went wrong. Nothing leaves this page unless you copy it." },
+  {
+    id: "diagnostics",
+    label: "Diagnostics",
+    icon: "rule",
+    about: "What is running, self-tests, and what went wrong. Nothing leaves this page unless you copy it.",
+  },
   { id: "about", label: "About", icon: "info", about: "This version, and where to read more." },
   { id: "danger", label: "Danger zone", icon: "warning", about: "What cannot be undone." },
 ];
@@ -69,7 +112,19 @@ const UNITS = ["B", "kB", "MB", "GB", "TB"];
  */
 @Component({
   selector: "app-settings",
-  imports: [Icon, FormsModule, UiButton, MatCheckbox, MatFormField, MatInput, Dialog, BridgePane, CookiesPane, DiagnosticsPane, UiSegmented],
+  imports: [
+    Icon,
+    FormsModule,
+    UiButton,
+    MatCheckbox,
+    MatFormField,
+    MatInput,
+    Dialog,
+    BridgePane,
+    CookiesPane,
+    DiagnosticsPane,
+    UiSegmented,
+  ],
   templateUrl: "./settings.html",
   styleUrl: "./settings.css",
   // The rules reach the Local Bridge pane, a component of its own; each starts at `.settings`.
@@ -114,9 +169,21 @@ export class Settings {
 
   /** Where to read more. Each opens in a tab of its own: GitHub, or a file served with the app. */
   protected readonly links: { label: string; about: string; href: string }[] = [
-    { label: "Changelog", about: "What changed in each version, and what was wrong before.", href: "https://github.com/AshwinSathian/wayfarer/blob/main/CHANGELOG.md" },
-    { label: "Trust center", about: "Where your data is, what leaves the page, and the known limits.", href: "https://github.com/AshwinSathian/wayfarer/blob/main/docs/trust-center.md" },
-    { label: "Source and issues", about: "The code, and where to report a problem.", href: "https://github.com/AshwinSathian/wayfarer" },
+    {
+      label: "Changelog",
+      about: "What changed in each version, and what was wrong before.",
+      href: "https://github.com/AshwinSathian/wayfarer/blob/main/CHANGELOG.md",
+    },
+    {
+      label: "Trust center",
+      about: "Where your data is, what leaves the page, and the known limits.",
+      href: "https://github.com/AshwinSathian/wayfarer/blob/main/docs/trust-center.md",
+    },
+    {
+      label: "Source and issues",
+      about: "The code, and where to report a problem.",
+      href: "https://github.com/AshwinSathian/wayfarer",
+    },
     { label: "Licences", about: "The licences of the packages bundled with the app.", href: "3rdpartylicenses.txt" },
   ];
 
@@ -165,7 +232,10 @@ export class Settings {
 
   /** Up and Down walk the list, Home and End go to its ends, as in a menu. */
   protected walk(event: KeyboardEvent): void {
-    const items = [...((event.currentTarget as HTMLElement).parentElement?.querySelectorAll<HTMLElement>(".settings-nav-item") ?? [])];
+    const items = [
+      ...((event.currentTarget as HTMLElement).parentElement?.querySelectorAll<HTMLElement>(".settings-nav-item") ??
+        []),
+    ];
     const at = items.indexOf(document.activeElement as HTMLElement);
     const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[event.key];
     if (to === undefined || at === -1) return;
@@ -210,7 +280,8 @@ export class Settings {
     const text = await readImportText(file);
     const confirmed = await this.confirm.confirm({
       title: "Restore this backup?",
-      message: "Everything stored in this browser (collections, requests, environments, variables and the vault) is replaced with what the file holds. This cannot be undone.",
+      message:
+        "Everything stored in this browser (collections, requests, environments, variables and the vault) is replaced with what the file holds. This cannot be undone.",
       acceptLabel: "Restore",
     });
     if (!confirmed) {

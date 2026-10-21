@@ -58,7 +58,7 @@ export function encodingFor(accept, type) {
       const [name, ...params] = part.trim().toLowerCase().split(";");
       const q = params.map((param) => param.trim()).find((param) => param.startsWith("q="));
       return [name, q ? Number(q.slice(2)) : 1];
-    })
+    }),
   );
   return ["br", "gzip"].find((name) => (offered.get(name) ?? 0) > 0) ?? null;
 }
@@ -67,7 +67,13 @@ export function encodingFor(accept, type) {
 const compressed = new Map();
 async function compress(file, body, encoding) {
   const key = `${encoding}:${file}:${(await stat(file)).mtimeMs}:${body.length}`;
-  if (!compressed.has(key)) compressed.set(key, encoding === "br" ? brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } }) : gzipSync(body));
+  if (!compressed.has(key))
+    compressed.set(
+      key,
+      encoding === "br"
+        ? brotliCompressSync(body, { params: { [constants.BROTLI_PARAM_QUALITY]: 5 } })
+        : gzipSync(body),
+    );
   return compressed.get(key);
 }
 
@@ -131,7 +137,12 @@ export function headersFor(rules, url) {
   return out;
 }
 
-const isFile = async (file) => (await stat(file).catch((error) => (error.code === "ENOENT" || error.code === "ENOTDIR" ? null : Promise.reject(error))))?.isFile() ?? false;
+const isFile = async (file) =>
+  (
+    await stat(file).catch((error) =>
+      error.code === "ENOENT" || error.code === "ENOTDIR" ? null : Promise.reject(error),
+    )
+  )?.isFile() ?? false;
 
 /** What `pathname` is in `root`: a file, a folder asked for without its slash, or nothing (the nearest 404.html, if any). */
 async function resolveFile(root, pathname) {
@@ -160,21 +171,32 @@ async function resolveFile(root, pathname) {
 
 /** Serves `root` on `port`; with `logFile`, appends a line of JSON to it for each connection, request and answer. */
 export function startServer(root, port, logFile) {
-  const log = logFile ? (event, fields) => appendFileSync(logFile, `${JSON.stringify({ t: new Date().toISOString(), event, ...fields })}\n`) : () => {};
+  const log = logFile
+    ? (event, fields) =>
+        appendFileSync(logFile, `${JSON.stringify({ t: new Date().toISOString(), event, ...fields })}\n`)
+    : () => {};
   const sockets = new WeakMap();
   let connections = 0;
   const server = createServer(async (req, res) => {
     // A field left undefined is left out of the line.
-    const request = { socket: sockets.get(req.socket), method: req.method, path: req.url, acceptEncoding: req.headers["accept-encoding"] };
+    const request = {
+      socket: sockets.get(req.socket),
+      method: req.method,
+      path: req.url,
+      acceptEncoding: req.headers["accept-encoding"],
+    };
     const sent = {};
     log("request", request);
-    res.on("close", () => log(res.writableFinished ? "answered" : "unanswered", { ...request, status: res.statusCode, ...sent }));
+    res.on("close", () =>
+      log(res.writableFinished ? "answered" : "unanswered", { ...request, status: res.statusCode, ...sent }),
+    );
     try {
       // `_headers` is re-read per request so a test can swap the build in place.
       const rules = parseHeadersFile(await readFile(join(root, "_headers"), "utf8"));
       const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
       // Cloudflare never serves the _headers file itself.
-      const found = url.pathname === "/_headers" ? { missing: join(root, "404.html") } : await resolveFile(root, url.pathname);
+      const found =
+        url.pathname === "/_headers" ? { missing: join(root, "404.html") } : await resolveFile(root, url.pathname);
       for (const [name, value] of headersFor(rules, url)) res.setHeader(name, value);
       if (found.slash) {
         res.statusCode = 307;

@@ -2,7 +2,11 @@ import { Page } from "../../components/Page";
 import { longDate, posts } from "../../lib/blog";
 import { pageMeta } from "../../lib/meta";
 
-export const metadata = pageMeta("/blog/", "Blog: Wayfarer", "Release notes and write-ups about how Wayfarer is built and tested.");
+export const metadata = pageMeta(
+  "/blog/",
+  "Blog: Wayfarer",
+  "Release notes and write-ups about how Wayfarer is built and tested.",
+);
 
 export default function Blog() {
   return (
@@ -10,7 +14,8 @@ export default function Blog() {
       title="Blog"
       lede={
         <p>
-          Release notes and write-ups about how Wayfarer is built and tested. Follow it with <a href="/blog/rss.xml">the RSS feed</a>.
+          Release notes and write-ups about how Wayfarer is built and tested. Follow it with{" "}
+          <a href="/blog/rss.xml">the RSS feed</a>.
         </p>
       }
     >

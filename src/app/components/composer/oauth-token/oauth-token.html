@@ -4,19 +4,16 @@
   <ui-spinner />
   Waiting for the sign-in window. It answers here when you have signed in.
 </p>
-}
-@if (tokens.notice()) {
+} @if (tokens.notice()) {
 <p class="oauth-token-notice type-callout text-label-secondary mt-2">{{ tokens.notice() }}</p>
-}
-@if (error()) {
+} @if (error()) {
 <p class="oauth-token-error type-callout text-status-error mt-2" role="alert">{{ error() }}</p>
 }
 <div class="mt-3 flex flex-wrap gap-2">
   <button uiButton="outlined" type="button" class="btn-sm" [disabled]="busy()" (click)="get()">Get token</button>
   @if (tokens.waiting()) {
   <button uiButton type="button" class="btn-sm" (click)="tokens.cancel()">Cancel sign-in</button>
-  }
-  @if (token()) {
+  } @if (token()) {
   <button uiButton type="button" class="btn-sm" (click)="clear()">Forget token</button>
   }
 </div>

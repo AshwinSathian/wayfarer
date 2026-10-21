@@ -15,12 +15,15 @@ test("Next's scripts, inline or from /_next/, and their preloads go; the site's 
   ].join("");
   assert.equal(
     strip(html),
-    '<script src="/app/theme.js"></script><script src="/site.js" defer></script><script type="application/ld+json">{"@type":"SoftwareApplication"}</script>'
+    '<script src="/app/theme.js"></script><script src="/site.js" defer></script><script type="application/ld+json">{"@type":"SoftwareApplication"}</script>',
   );
 });
 
 test("a script left unclosed is taken out to the end of the page, as a browser would run it", () => {
-  assert.equal(strip('<p>a</p><script src="/site.js"></script><script>b()'), '<p>a</p><script src="/site.js"></script>');
+  assert.equal(
+    strip('<p>a</p><script src="/site.js"></script><script>b()'),
+    '<p>a</p><script src="/site.js"></script>',
+  );
 });
 
 test("pieces around a script taken out do not make one", () => {

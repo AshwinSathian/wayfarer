@@ -41,14 +41,18 @@ export class RequestSave {
 
   /** What a saved request inherits from, as stored now. */
   ancestorsFor(bound: RequestDoc | null): Ancestor[] {
-    const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    const tree =
+      bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
     return tree ? ancestorsOf(tree.collection, tree.folders, bound.folderId) : [];
   }
   /** Where the bound request is kept: its collection's name, then its folders' from the outside in. */
   readonly breadcrumb: Signal<string[]> = computed(() => {
     const bound = this.loadedCollectionRequest();
-    const tree = bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
-    return tree ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)] : [];
+    const tree =
+      bound && this.collectionsService.tree().find((entry) => entry.collection.meta.id === bound.collectionId);
+    return tree
+      ? [tree.collection.name, ...folderChain(tree.folders, bound.folderId).map((folder) => folder.name)]
+      : [];
   });
   readonly savingRequest = signal(false);
   readonly saveAsDialogVisible = signal(false);
@@ -60,14 +64,12 @@ export class RequestSave {
     this.collectionsService.tree().map((entry) => ({
       label: entry.collection.name,
       value: entry.collection.meta.id,
-    }))
+    })),
   );
 
   readonly saveAsFolderOptions: Signal<{ label: string; value: string }[]> = computed(() => {
     const collectionId = this.saveAsCollectionId();
-    const entry = this.collectionsService
-      .tree()
-      .find((e) => e.collection.meta.id === collectionId);
+    const entry = this.collectionsService.tree().find((e) => e.collection.meta.id === collectionId);
     return (entry?.folders ?? []).map((folder) => ({
       label: folder.name,
       value: folder.meta.id,
@@ -90,7 +92,11 @@ export class RequestSave {
    * unapproved wherever they are saved (plan D6). Before the request is
    * written, so that it is never stored with a script not yet approved.
    */
-  private async approveScripts(collectionId: string, snapshot: RequestContentSnapshot, scriptsAllowed: boolean): Promise<void> {
+  private async approveScripts(
+    collectionId: string,
+    snapshot: RequestContentSnapshot,
+    scriptsAllowed: boolean,
+  ): Promise<void> {
     const scripts = scriptsOf(snapshot);
     if (!scriptsAllowed || !scripts.length) return;
     await this.collectionsService.approveScripts(collectionId, await Promise.all(scripts.map(scriptDigest)), false);
@@ -110,7 +116,11 @@ export class RequestSave {
     const tab = this.tabs.active();
     try {
       await this.approveScripts(bound.collectionId, snapshot, scriptsAllowed);
-      const updated = await this.collectionsService.updateRequest(bound.meta.id, snapshot, this.files.unsaved(snapshot.body));
+      const updated = await this.collectionsService.updateRequest(
+        bound.meta.id,
+        snapshot,
+        this.files.unsaved(snapshot.body),
+      );
       if (updated) {
         tab.bound.set(updated);
         tab.markSaved(snapshot);
@@ -152,7 +162,7 @@ export class RequestSave {
       await this.approveScripts(collectionId, snapshot, scriptsAllowed);
       const doc = await this.collectionsService.createRequest(
         { ...snapshot, collectionId, folderId: this.saveAsFolderId() ?? undefined, name },
-        this.files.unsaved(snapshot.body)
+        this.files.unsaved(snapshot.body),
       );
       tab.bound.set(doc);
       tab.markSaved(snapshot);

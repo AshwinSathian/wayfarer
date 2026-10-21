@@ -1,7 +1,13 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { Row } from "../model/request";
-import { MAX_VARIABLE_DEPTH, VARIABLE_SCOPES, VariableNestingError, VariableResolver, type ScopeStack } from "./resolver";
+import {
+  MAX_VARIABLE_DEPTH,
+  VARIABLE_SCOPES,
+  VariableNestingError,
+  VariableResolver,
+  type ScopeStack,
+} from "./resolver";
 
 const row = (key: string, value: string, enabled = true): Row => ({ key, value, enabled });
 const rowsOf = (record: Record<string, string>): Row[] => Object.entries(record).map(([key, value]) => row(key, value));
@@ -41,7 +47,7 @@ describe("VariableResolver", () => {
 
     it("leaves a name that only exists on Object.prototype as literal text", () => {
       expect(new VariableResolver(stack).resolve("{{constructor}}/{{toString}}/{{__proto__}}")).toBe(
-        "{{constructor}}/{{toString}}/{{__proto__}}"
+        "{{constructor}}/{{toString}}/{{__proto__}}",
       );
     });
 
@@ -53,7 +59,7 @@ describe("VariableResolver", () => {
 
     it("resolves multiple distinct placeholders in the same string", () => {
       expect(new VariableResolver(stack).resolve("{{baseHost}}/{{requestOnly}}/{{globalOnly}}")).toBe(
-        "jsonplaceholder.typicode.com/req-value/global-value"
+        "jsonplaceholder.typicode.com/req-value/global-value",
       );
     });
 
@@ -90,7 +96,7 @@ describe("VariableResolver", () => {
         const resolver = new VariableResolver(stack);
         expect(resolver.resolve(`{{${key}}}`)).toBe(`from-${nearest}`);
         expect(resolver.tokens({ url: `{{ ${key} }}` })[0].source).toBe(nearest);
-      })
+      }),
     );
   });
 
@@ -111,12 +117,14 @@ describe("VariableResolver", () => {
         const once = resolver.resolve(template);
         // What is left unresolved is left as written, so a second pass changes nothing either.
         expect(resolver.resolve(once)).toBe(once);
-      })
+      }),
     );
   });
 
   it("resolves a value that holds variables, through ten of them", () => {
-    const chain = Array.from({ length: MAX_VARIABLE_DEPTH }, (_, i) => row(`v${i}`, i === MAX_VARIABLE_DEPTH - 1 ? "end" : `{{v${i + 1}}}`));
+    const chain = Array.from({ length: MAX_VARIABLE_DEPTH }, (_, i) =>
+      row(`v${i}`, i === MAX_VARIABLE_DEPTH - 1 ? "end" : `{{v${i + 1}}}`),
+    );
     expect(new VariableResolver({ environment: chain }).resolve("<{{v0}}>")).toBe("<end>");
     const resolver = new VariableResolver({ environment: rowsOf({ a: "{{b}}/{{nowhere}}", b: "B" }) });
     expect(resolver.resolve("{{a}}")).toBe("B/{{nowhere}}");
@@ -124,8 +132,19 @@ describe("VariableResolver", () => {
   });
 
   it("F74: a name may hold any character but a brace, as in Postman: a slash, a backslash, a space", () => {
-    const resolver = new VariableResolver({ environment: rowsOf({ "fo/o": "slash", "b\\ar": "backslash", "a b": "space", "user.name | upper": "piped", "": "empty", "k:v": "colon" }) });
-    expect(resolver.resolve("{{fo/o}} {{b\\ar}} {{a b}} {{ a b }} {{user.name | upper}} {{k:v}}")).toBe("slash backslash space space piped colon");
+    const resolver = new VariableResolver({
+      environment: rowsOf({
+        "fo/o": "slash",
+        "b\\ar": "backslash",
+        "a b": "space",
+        "user.name | upper": "piped",
+        "": "empty",
+        "k:v": "colon",
+      }),
+    });
+    expect(resolver.resolve("{{fo/o}} {{b\\ar}} {{a b}} {{ a b }} {{user.name | upper}} {{k:v}}")).toBe(
+      "slash backslash space space piped colon",
+    );
     expect([...resolver.unresolved]).toEqual([]);
   });
 
@@ -133,7 +152,9 @@ describe("VariableResolver", () => {
     const resolver = new VariableResolver({ environment: rowsOf({ host: "api.test" }) });
     // A template of another language in a body, an object written tight, an empty pair: text. A plain name with no value is still asked for.
     const text = '{{ user.name | upper }} {{#each items}} {{"a":1}} {{}} {{  }} {{fo/o}} {{missing}} {{host}}';
-    expect(resolver.resolve(text)).toBe('{{ user.name | upper }} {{#each items}} {{"a":1}} {{}} {{  }} {{fo/o}} {{missing}} api.test');
+    expect(resolver.resolve(text)).toBe(
+      '{{ user.name | upper }} {{#each items}} {{"a":1}} {{}} {{  }} {{fo/o}} {{missing}} api.test',
+    );
     expect([...resolver.unresolved]).toEqual(["missing"]);
     expect(resolver.tokens({ url: text }).map((token) => [token.key, token.source])).toEqual([
       ["missing", "missing"],
@@ -141,7 +162,9 @@ describe("VariableResolver", () => {
     ]);
     // With a variable of that name, it is one, and is shown as one.
     const named = new VariableResolver({ collection: rowsOf({ "fo/o": "{{host}}/x", host: "api.test" }) });
-    expect(named.tokens({ url: "{{fo/o}}" })).toEqual([{ key: "fo/o", source: "collection", value: "api.test/x", location: "url", field: "endpoint" }]);
+    expect(named.tokens({ url: "{{fo/o}}" })).toEqual([
+      { key: "fo/o", source: "collection", value: "api.test/x", location: "url", field: "endpoint" },
+    ]);
   });
 
   it("F74: a brace inside is not part of a name, and text with many braces is read in one pass", () => {
@@ -152,7 +175,6 @@ describe("VariableResolver", () => {
     // Not a measure of speed: a pattern that tried every start against every end would not finish.
     expect(Date.now() - started).toBeLessThan(5000);
   });
-
 
   it("refuses an eleventh, naming the chain", () => {
     const chain = Array.from({ length: MAX_VARIABLE_DEPTH + 1 }, (_, i) => row(`v${i}`, `{{v${i + 1}}}`));
@@ -179,7 +201,7 @@ describe("VariableResolver", () => {
         const token = resolver.tokens({ url: `{{${names[0]}}}` })[0];
         expect(token).toMatchObject({ source: "environment", error: (thrown as Error).message });
         expect(token.value).toBeUndefined();
-      })
+      }),
     );
   });
 
@@ -233,10 +255,13 @@ describe("VariableResolver", () => {
   describe("secrets", () => {
     it("asks the callback, records the plaintext as tainted, and does not read the plaintext for variables", () => {
       const asked: string[] = [];
-      const resolver = new VariableResolver({ environment: rowsOf({ token: "t", apiKey: "{{$secret.id-1}}" }) }, (id) => {
-        asked.push(id);
-        return "{{token}}";
-      });
+      const resolver = new VariableResolver(
+        { environment: rowsOf({ token: "t", apiKey: "{{$secret.id-1}}" }) },
+        (id) => {
+          asked.push(id);
+          return "{{token}}";
+        },
+      );
       expect(resolver.resolve("Bearer {{apiKey}}")).toBe("Bearer {{token}}");
       expect(asked).toEqual(["id-1"]);
       expect([...resolver.taint]).toEqual(["{{token}}"]);
@@ -257,13 +282,25 @@ describe("folder variables (P4.9)", () => {
   const stack: ScopeStack = {
     environment: [row("who", "environment")],
     // The folders' rows, outermost first: the nearest folder's row is the later one.
-    folder: [row("who", "outer folder"), row("where", "outer folder"), row("where", "inner folder"), row("what", "folder")],
-    collection: [row("who", "collection"), row("where", "collection"), row("what", "collection"), row("why", "collection")],
+    folder: [
+      row("who", "outer folder"),
+      row("where", "outer folder"),
+      row("where", "inner folder"),
+      row("what", "folder"),
+    ],
+    collection: [
+      row("who", "collection"),
+      row("where", "collection"),
+      row("what", "collection"),
+      row("why", "collection"),
+    ],
   };
 
   it("win over the collection's and lose to the environment's, the nearest folder first", () => {
     const resolver = new VariableResolver(stack);
-    expect(resolver.resolve("{{who}} / {{where}} / {{what}} / {{why}}")).toBe("environment / inner folder / folder / collection");
+    expect(resolver.resolve("{{who}} / {{where}} / {{what}} / {{why}}")).toBe(
+      "environment / inner folder / folder / collection",
+    );
     expect(resolver.tokens({ url: "{{where}}" })[0]).toMatchObject({ source: "folder", value: "inner folder" });
   });
 

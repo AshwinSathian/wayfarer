@@ -40,7 +40,18 @@ describe("IdbCore", () => {
     await service.init();
     const db = (await service.getDatabase())!;
     expect([db.name, db.version]).toEqual(["wayfarer", 2]);
-    expect(Array.from(db.objectStoreNames).sort()).toEqual(["collections", "cookies", "environments", "files", "folders", "history", "meta", "requests", "secrets", "tabs"]);
+    expect(Array.from(db.objectStoreNames).sort()).toEqual([
+      "collections",
+      "cookies",
+      "environments",
+      "files",
+      "folders",
+      "history",
+      "meta",
+      "requests",
+      "secrets",
+      "tabs",
+    ]);
   });
 
   it("passes on another tab's changes only while it has the database open: not before, not after a reset, not once closed for another tab (F61)", async () => {
@@ -116,7 +127,7 @@ describe("IdbCore", () => {
     expect(svc.useMemoryFallback).toBe(true);
     expect(errorSpy).toHaveBeenCalledWith(
       "[IDB] Failed to resolve database instance. Switching to in-memory store.",
-      error
+      error,
     );
   });
 
@@ -128,7 +139,7 @@ describe("IdbCore", () => {
     (globalThis as unknown as Record<string, unknown>)["indexedDB"] = original;
 
     await expect(svc.ensurePersistentSupport()).rejects.toThrow(
-      "Persistent storage is not available in this environment."
+      "Persistent storage is not available in this environment.",
     );
   });
 
@@ -185,7 +196,9 @@ describe("IdbCore", () => {
       request.onerror = () => reject(request.error);
     });
     try {
-      await expect(service.resetDatabase({ untilReload: true })).rejects.toThrow("Close other Wayfarer tabs and try again.");
+      await expect(service.resetDatabase({ untilReload: true })).rejects.toThrow(
+        "Close other Wayfarer tabs and try again.",
+      );
     } finally {
       other.close();
     }

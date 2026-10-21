@@ -11,12 +11,18 @@ const LEDGER = `| ID | Statement | Source | Test |
 `;
 
 test("the feature list is the ledger's statements, in its order, each with its marker", () => {
-  assert.equal(featureList(LEDGER), "- No telemetry. <!-- claim:C-001 -->\n- Secrets are encrypted. <!-- claim:C-002 -->");
+  assert.equal(
+    featureList(LEDGER),
+    "- No telemetry. <!-- claim:C-001 -->\n- Secrets are encrypted. <!-- claim:C-002 -->",
+  );
 });
 
 test("the list goes between the markers and replaces what was there", () => {
   const readme = "# W\n\n<!-- features:start -->\n- old\n<!-- features:end -->\n\nRest.\n";
-  assert.equal(withFeatures(readme, LEDGER), "# W\n\n<!-- features:start -->\n- No telemetry. <!-- claim:C-001 -->\n- Secrets are encrypted. <!-- claim:C-002 -->\n<!-- features:end -->\n\nRest.\n");
+  assert.equal(
+    withFeatures(readme, LEDGER),
+    "# W\n\n<!-- features:start -->\n- No telemetry. <!-- claim:C-001 -->\n- Secrets are encrypted. <!-- claim:C-002 -->\n<!-- features:end -->\n\nRest.\n",
+  );
 });
 
 test("a README without the markers is an error, not a silent no-op", () => {

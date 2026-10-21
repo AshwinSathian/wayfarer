@@ -30,7 +30,8 @@ export class RequestSettings {
   }
 
   setHistoryCap(value: number): void {
-    const next = Number.isFinite(value) && value >= 1 ? Math.min(Math.floor(value), MAX_HISTORY_CAP) : DEFAULT_HISTORY_CAP;
+    const next =
+      Number.isFinite(value) && value >= 1 ? Math.min(Math.floor(value), MAX_HISTORY_CAP) : DEFAULT_HISTORY_CAP;
     this.historyCap.set(next);
     this.store(HISTORY_CAP_KEY, String(next));
   }

@@ -3,7 +3,14 @@ import type { ScriptResult } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { ScriptSandbox } from "../../shared/scripts/script-sandbox";
 import { Confirm, type ConfirmOptions } from "../../ui/confirm";
-import { ComposerHarness, JSON_HEADERS, buildEnvironment, jsonBytes, rows, setupComposer } from "../../../testing/composer-setup";
+import {
+  ComposerHarness,
+  JSON_HEADERS,
+  buildEnvironment,
+  jsonBytes,
+  rows,
+  setupComposer,
+} from "../../../testing/composer-setup";
 
 // P3.9: what a send does around its scripts, as the composer shows it.
 describe("Composer: a send with scripts", () => {
@@ -25,7 +32,14 @@ describe("Composer: a send with scripts", () => {
     script = {};
     answer = false;
     asked = [];
-    const sandbox = { execute: vi.fn(async (): Promise<ScriptResult> => ({ logs: [], changes: NO_CHANGES, testResults: [], ...script })) };
+    const sandbox = {
+      execute: vi.fn(async (): Promise<ScriptResult> => ({
+        logs: [],
+        changes: NO_CHANGES,
+        testResults: [],
+        ...script,
+      })),
+    };
     const confirm = { confirm: vi.fn(async (options: ConfirmOptions) => (asked.push(options), answer)) };
     ({ store, fixture, httpMock, environmentsService, idbService, vault } = await setupComposer([
       { provide: ScriptSandbox, useValue: sandbox },
@@ -33,7 +47,11 @@ describe("Composer: a send with scripts", () => {
     ]));
     vault.secrets.set("id-1", SECRET);
     environmentsService.setActiveEnvironment(buildEnvironment({ host: "api.test", token: "{{$secret.id-1}}" }));
-    store.patch({ url: "https://{{host}}/items", headers: rows([{ key: "X-Token", value: "{{token}}" }]), scripts: { pre: "sign()", post: "" } });
+    store.patch({
+      url: "https://{{host}}/items",
+      headers: rows([{ key: "X-Token", value: "{{token}}" }]),
+      scripts: { pre: "sign()", post: "" },
+    });
   });
 
   afterEach(() => {
@@ -41,12 +59,21 @@ describe("Composer: a send with scripts", () => {
     vi.restoreAllMocks();
   });
 
-  const request = (url: string): ScriptResult["request"] => ({ method: "GET", url, headers: [["X-Token", "{{token}}"]], body: { mode: "none" } });
-  const ok = (url: string) => httpMock.expectOne(url).flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
+  const request = (url: string): ScriptResult["request"] => ({
+    method: "GET",
+    url,
+    headers: [["X-Token", "{{token}}"]],
+    body: { mode: "none" },
+  });
+  const ok = (url: string) =>
+    httpMock.expectOne(url).flush(jsonBytes({}), { status: 200, statusText: "OK", headers: JSON_HEADERS });
 
   describe("a pre-request script that sends a request with a vault secret to another host (Q6)", () => {
     it("@claim:C-053 is asked about, with both hosts named; declined, nothing is sent, the vault is not read and what the script set is undone", async () => {
-      script = { request: request("https://elsewhere.test/items"), changes: { ...NO_CHANGES, environment: [{ key: "seen", value: "1" }] } };
+      script = {
+        request: request("https://elsewhere.test/items"),
+        changes: { ...NO_CHANGES, environment: [{ key: "seen", value: "1" }] },
+      };
 
       expect(await store.send()).toBe(false);
 
@@ -105,12 +132,19 @@ describe("Composer: a send with scripts", () => {
   });
 
   it("a pre-request script that fails: nothing is sent, and the Tests tab shows its rows and its console", async () => {
-    script = { error: "'notDefined' is not defined", logs: ["before the error"], testResults: [{ label: "ran first", passed: true, source: "script" }] };
+    script = {
+      error: "'notDefined' is not defined",
+      logs: ["before the error"],
+      testResults: [{ label: "ran first", passed: true, source: "script" }],
+    };
 
     expect(await store.send()).toBe(false);
 
     expect(store.endpointError()).toBe("The pre-request script failed, so the request was not sent.");
-    expect(store.lastTestResults().map((row) => [row.label, row.passed])).toEqual([["ran first", true], ["Pre-request script", false]]);
+    expect(store.lastTestResults().map((row) => [row.label, row.passed])).toEqual([
+      ["ran first", true],
+      ["Pre-request script", false],
+    ]);
     expect(store.lastScriptLogs()).toEqual(["before the error"]);
     expect(store.shouldShowResponsePanel).toBe(true);
     expect(store.responseTab()).toBe("tests");
@@ -145,9 +179,9 @@ describe("Composer: a send with scripts", () => {
     store.responseTab.set("tests");
     fixture.detectChanges();
     await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector(".script-timings")?.textContent?.replace(/\s+/g, " ").trim()).toMatch(
-      /^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(".script-timings")?.textContent?.replace(/\s+/g, " ").trim(),
+    ).toMatch(/^Pre-request script \d+ ms · Request \d+ ms · Post-response script \d+ ms$/);
   });
 
   it("shows no script durations for a request without scripts", async () => {

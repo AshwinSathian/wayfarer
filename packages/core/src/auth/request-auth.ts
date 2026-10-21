@@ -41,7 +41,14 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
     case "apikey":
       return { ...auth, key: resolve(auth.key), value: resolve(auth.value) };
     case "awsv4":
-      return { ...auth, accessKey: resolve(auth.accessKey), secretKey: resolve(auth.secretKey), sessionToken: resolve(auth.sessionToken), region: resolve(auth.region), service: resolve(auth.service) };
+      return {
+        ...auth,
+        accessKey: resolve(auth.accessKey),
+        secretKey: resolve(auth.secretKey),
+        sessionToken: resolve(auth.sessionToken),
+        region: resolve(auth.region),
+        service: resolve(auth.service),
+      };
     case "oauth2":
       return {
         ...auth,
@@ -65,7 +72,10 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
  * `chain` is the collection first and then the folders from the outside in;
  * `from` names the one whose auth it is. Nothing to inherit from sends none.
  */
-export function effectiveAuth(own: AuthConfig, chain: readonly { name: string; auth: AuthConfig }[]): { auth: OwnAuth; from?: string } {
+export function effectiveAuth(
+  own: AuthConfig,
+  chain: readonly { name: string; auth: AuthConfig }[],
+): { auth: OwnAuth; from?: string } {
   if (own.type !== "inherit") return { auth: own };
   for (const { name, auth } of [...chain].reverse()) {
     if (auth.type !== "inherit") return { auth, from: name };

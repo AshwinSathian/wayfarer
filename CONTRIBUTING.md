@@ -19,8 +19,9 @@ npm ci
 # 3. Run the dev server, then open http://localhost:4200
 npm run start
 
-# 4. Run the linter
+# 4. Run the linter, and format with Prettier (CI runs npm run format:check)
 npm run lint
+npm run format
 
 # 5. Run the unit tests once, with the coverage gate (npm run test watches)
 npm run test:ci
@@ -46,7 +47,7 @@ Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern br
 3. Make focused changes: prefer several small, reviewable PRs over one large
    one. This matters especially for anything touching security-sensitive code
    (the script sandbox, the secrets vault) or mechanical/codemod-style diffs.
-4. Make sure the app builds, tests pass, and lint is clean locally before
+4. Make sure the app builds, tests pass, and lint and formatting are clean locally before
    opening a PR (see commands above).
 5. Open a PR against `main` using the PR template. Fill in the summary, type
    of change, and test plan. Screenshots/recordings are appreciated for any

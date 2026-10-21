@@ -9,7 +9,16 @@ interface Har {
   log: {
     version: string;
     creator: { name: string; version: string };
-    entries: { startedDateTime: string; request: { method: string; url: string; headers: { name: string; value: string }[]; postData?: { mimeType: string; text: string } }; response: { status: number; content: { mimeType: string; text?: string } } }[];
+    entries: {
+      startedDateTime: string;
+      request: {
+        method: string;
+        url: string;
+        headers: { name: string; value: string }[];
+        postData?: { mimeType: string; text: string };
+      };
+      response: { status: number; content: { mimeType: string; text?: string } };
+    }[];
   };
 }
 
@@ -21,15 +30,28 @@ async function textOf(download: Download): Promise<string> {
 
 async function sendTo(page: Page, url: string): Promise<void> {
   await page.locator("input.address-url").fill(url);
-  const answered = page.waitForResponse((response) => response.url() === url && response.request().method() !== "OPTIONS");
+  const answered = page.waitForResponse(
+    (response) => response.url() === url && response.request().method() !== "OPTIONS",
+  );
   await send(page);
   await answered;
   await expect(page.locator(".status-badge")).toHaveText("200");
 }
 
-test("@claim:C-035 history entries ticked in the list export as one HAR, shown first, and the file imports again as the same requests", async ({ page }) => {
+test("@claim:C-035 history entries ticked in the list export as one HAR, shown first, and the file imports again as the same requests", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await seedAndOpen(page, {}, { method: "POST", url: `${ECHO}/echo?n=1`, headers: { "X-Api-Key": "typed-key-c035", "X-Trace": "t-1" }, body: { name: "Rex" } });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "POST",
+      url: `${ECHO}/echo?n=1`,
+      headers: { "X-Api-Key": "typed-key-c035", "X-Trace": "t-1" },
+      body: { name: "Rex" },
+    },
+  );
   await sendTo(page, `${ECHO}/echo?n=1`);
   await sendTo(page, `${ECHO}/content/xml?n=2`);
   await sendTo(page, `${ECHO}/echo?n=3`);
@@ -54,7 +76,10 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   const preview = dialog.locator(".har-export-preview");
   await expect(preview).toContainText('"version": "1.2"');
   const shown = (await preview.textContent()) ?? "";
-  const [download] = await Promise.all([page.waitForEvent("download"), dialog.getByRole("button", { name: "Save file" }).click()]);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    dialog.getByRole("button", { name: "Save file" }).click(),
+  ]);
   expect(download.suggestedFilename()).toBe("wayfarer-history.har");
   const text = await textOf(download);
   // What was shown is what was written.
@@ -73,7 +98,10 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   expect(JSON.parse(har.log.entries[0].request.postData?.text ?? "")).toEqual({ name: "Rex" });
   expect(har.log.entries[1].response.content.mimeType).toContain("xml");
   expect(har.log.entries[1].response.content.text).toContain("<");
-  expect(JSON.parse(har.log.entries[0].response.content.text ?? "")).toMatchObject({ method: "POST", url: "/echo?n=1" });
+  expect(JSON.parse(har.log.entries[0].response.content.text ?? "")).toMatchObject({
+    method: "POST",
+    url: "/echo?n=1",
+  });
   // A credential is masked, as history holds it: also where the server sent it back.
   expect(text).not.toContain("typed-key-c035");
   expect(har.log.entries[0].request.headers).toContainEqual({ name: "X-Api-Key", value: "***" });
@@ -82,12 +110,25 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   // The file comes back through the import (P4.5) as the same three requests.
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
-  await page.locator('app-collections-sidebar input[type="file"]').setInputFiles({ name: "wayfarer-history.har", mimeType: "application/json", buffer: Buffer.from(text) });
+  await page
+    .locator('app-collections-sidebar input[type="file"]')
+    .setInputFiles({ name: "wayfarer-history.har", mimeType: "application/json", buffer: Buffer.from(text) });
   const report = page.getByRole("dialog", { name: "Import collection" });
-  await expect(report.locator(".import-report")).toContainText('"wayfarer-history.har" will add 1 collection and 3 requests.');
+  await expect(report.locator(".import-report")).toContainText(
+    '"wayfarer-history.har" will add 1 collection and 3 requests.',
+  );
   await report.getByRole("button", { name: "Confirm import" }).click();
   await expect(report).toHaveCount(0);
-  const requests = ((await dumpIdb(page))["requests"] as { collectionId: string; order: number; method: string; url: string; headers: { key: string; value: string }[]; body: { mode: string; raw?: { text: string; language: string } } }[])
+  const requests = (
+    (await dumpIdb(page))["requests"] as {
+      collectionId: string;
+      order: number;
+      method: string;
+      url: string;
+      headers: { key: string; value: string }[];
+      body: { mode: string; raw?: { text: string; language: string } };
+    }[]
+  )
     .filter((request) => request.collectionId !== "col-tw")
     .sort((a, b) => a.order - b.order);
   expect(requests.map((request) => [request.method, request.url, request.body.mode])).toEqual([
@@ -98,16 +139,34 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   expect(JSON.parse(requests[0].body.raw?.text ?? "")).toEqual({ name: "Rex" });
   // The headers as sent. The body's type is not a row: it is what the body says it is, and is sent again from there.
   expect(requests[0].body.raw?.language).toBe("json");
-  expect(requests[0].headers.map((row) => [row.key, row.value])).toEqual(har.log.entries[0].request.headers.filter((header) => header.name !== "Content-Type").map((header) => [header.name, header.value]));
+  expect(requests[0].headers.map((row) => [row.key, row.value])).toEqual(
+    har.log.entries[0].request.headers
+      .filter((header) => header.name !== "Content-Type")
+      .map((header) => [header.name, header.value]),
+  );
 });
 
-test("@claim:C-035 a response's Export as HAR… shows the file first: masked, or with credentials when asked, and what is copied is what is shown", async ({ page }) => {
+test("@claim:C-035 a response's Export as HAR… shows the file first: masked, or with credentials when asked, and what is copied is what is shown", async ({
+  page,
+}) => {
   await page.addInitScript(() => {
     const written: string[] = [];
     (window as unknown as { __clipboard: string[] }).__clipboard = written;
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (text: string) => void written.push(text) } });
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async (text: string) => void written.push(text) },
+    });
   });
-  await seedAndOpen(page, {}, { method: "POST", url: `${ECHO}/echo`, auth: { type: "bearer", token: "typed-bearer-c035" }, storedBody: { mode: "urlencoded", urlencoded: [{ key: "q", value: "a b", enabled: true }] } });
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "POST",
+      url: `${ECHO}/echo`,
+      auth: { type: "bearer", token: "typed-bearer-c035" },
+      storedBody: { mode: "urlencoded", urlencoded: [{ key: "q", value: "a b", enabled: true }] },
+    },
+  );
   await sendTo(page, `${ECHO}/echo`);
 
   await page.getByRole("button", { name: "Export response" }).click();
@@ -150,7 +209,9 @@ test("an item clicked while its menu is still opening is chosen", async ({ page 
 
   await page.getByRole("button", { name: "Export response" }).click();
   const item = page.getByRole("menuitem", { name: "Export as HAR…", exact: true });
-  await expect.poll(() => page.getByRole("menu").evaluate((el) => el.getAnimations().some((a) => a.playState === "running"))).toBe(true);
+  await expect
+    .poll(() => page.getByRole("menu").evaluate((el) => el.getAnimations().some((a) => a.playState === "running")))
+    .toBe(true);
   const box = await item.boundingBox();
   if (!box) throw new Error("The menu item has no box.");
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);

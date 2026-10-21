@@ -74,17 +74,25 @@ async function readText(file: string, what: string): Promise<string> {
   try {
     return await readFile(file, "utf8");
   } catch (error) {
-    throw new Refusal(`The ${what} ${file} could not be read: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Refusal(
+      `The ${what} ${file} could not be read: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
 function pick<T extends { name: string }>(list: T[], name: string | undefined, what: string, file: string): T {
   if (name !== undefined) {
     const found = list.find((entry) => entry.name === name);
-    if (!found) throw new Refusal(`${file} has no ${what} named "${name}". It has: ${list.map((entry) => `"${entry.name}"`).join(", ")}.`);
+    if (!found)
+      throw new Refusal(
+        `${file} has no ${what} named "${name}". It has: ${list.map((entry) => `"${entry.name}"`).join(", ")}.`,
+      );
     return found;
   }
-  if (list.length > 1) throw new Refusal(`${file} holds ${list.length} ${what}s: name one with --${what} (${list.map((entry) => `"${entry.name}"`).join(", ")}).`);
+  if (list.length > 1)
+    throw new Refusal(
+      `${file} holds ${list.length} ${what}s: name one with --${what} (${list.map((entry) => `"${entry.name}"`).join(", ")}).`,
+    );
   const [only] = list;
   if (!only) throw new Refusal(`${file} holds no ${what}.`);
   return only;
@@ -92,29 +100,54 @@ function pick<T extends { name: string }>(list: T[], name: string | undefined, w
 
 async function openVault(record: VaultRecord, secrets: VaultFile["secrets"], file: string): Promise<OpenVault> {
   const passphrase = process.env["WAYFARER_VAULT_PASSPHRASE"];
-  if (passphrase === undefined) throw new Refusal(`${file} holds a vault: set WAYFARER_VAULT_PASSPHRASE to its passphrase.`);
+  if (passphrase === undefined)
+    throw new Refusal(`${file} holds a vault: set WAYFARER_VAULT_PASSPHRASE to its passphrase.`);
   const dek = await unwrapDek(record, passphrase);
   if (!dek) throw new Refusal(`WAYFARER_VAULT_PASSPHRASE is not the passphrase of the vault in ${file}.`);
   return { dek, secrets: new Map(secrets.map((secret) => [secret.id, secret.envelope])) };
 }
 
 /** What the file to run holds: one collection, and from a workspace backup its environment, globals and vault. */
-async function readSource(file: string, collection: string | undefined): Promise<Pick<RunInput, "source" | "environment" | "globals" | "vault">> {
+async function readSource(
+  file: string,
+  collection: string | undefined,
+): Promise<Pick<RunInput, "source" | "environment" | "globals" | "vault">> {
   const text = await readText(file, "file");
   const parsed = parseJson(text);
-  const id = parsed.ok && typeof parsed.value === "object" && parsed.value !== null && "$id" in parsed.value ? String(parsed.value.$id) : "";
+  const id =
+    parsed.ok && typeof parsed.value === "object" && parsed.value !== null && "$id" in parsed.value
+      ? String(parsed.value.$id)
+      : "";
   if (id !== "wayfarer/workspace" && !id.startsWith("wayfarer/workspace/")) {
     try {
       const { collections } = importText(text);
-      return { source: pick(collections.map(({ payload }) => ({ name: payload.collection.name, payload })), collection, "collection", file).payload, globals: [] };
+      return {
+        source: pick(
+          collections.map(({ payload }) => ({ name: payload.collection.name, payload })),
+          collection,
+          "collection",
+          file,
+        ).payload,
+        globals: [],
+      };
     } catch (error) {
       if (error instanceof Error && error.name === "ImportError") throw new Refusal(`${file}: ${error.message}`);
       throw error;
     }
   }
   const errors = validateWorkspaceFile(parsed.ok ? parsed.value : undefined);
-  if (errors.length) throw new Refusal(`${file} is not a workspace backup this version reads:\n  ${errors.join("\n  ")}`);
-  const { stores } = (parsed.ok ? parsed.value : {}) as { stores: { collections: Collection[]; folders: Folder[]; requests: RequestDoc[]; environments: EnvironmentDoc[]; secrets: VaultFile["secrets"]; meta: Record<string, unknown>[] } };
+  if (errors.length)
+    throw new Refusal(`${file} is not a workspace backup this version reads:\n  ${errors.join("\n  ")}`);
+  const { stores } = (parsed.ok ? parsed.value : {}) as {
+    stores: {
+      collections: Collection[];
+      folders: Folder[];
+      requests: RequestDoc[];
+      environments: EnvironmentDoc[];
+      secrets: VaultFile["secrets"];
+      meta: Record<string, unknown>[];
+    };
+  };
   const chosen = pick(stores.collections, collection, "collection", file);
   const source: CollectionExport = {
     $id: "wayfarer/collection",
@@ -132,7 +165,10 @@ async function readSource(file: string, collection: string | undefined): Promise
     ...(environment && { environment: { name: environment.name, vars: environment.vars } }),
     globals: (meta(META_GLOBALS_KEY)?.["variables"] as Row[] | undefined) ?? [],
     // A backup's secrets are useful only with the passphrase: without one, a request that needs a secret says so.
-    ...(vault && process.env["WAYFARER_VAULT_PASSPHRASE"] !== undefined && { vault: await openVault(vault, stores.secrets, file) }),
+    ...(vault &&
+      process.env["WAYFARER_VAULT_PASSPHRASE"] !== undefined && {
+        vault: await openVault(vault, stores.secrets, file),
+      }),
   };
 }
 
@@ -150,7 +186,10 @@ async function readEnvironment(file: string): Promise<{ name: string; vars: Row[
 async function readVaultFile(file: string): Promise<OpenVault> {
   const parsed = parseJson(await readText(file, "vault file"));
   const issues = parsed.ok ? validateVaultFile(parsed.value) : [{ path: "", message: "not JSON" }];
-  if (issues.length) throw new Refusal(`${file} is not a vault file ("$id": "${VAULT_FILE_FORMAT}"): ${issues.map((issue) => `${issue.path} ${issue.message}`.trim()).join("; ")}`);
+  if (issues.length)
+    throw new Refusal(
+      `${file} is not a vault file ("$id": "${VAULT_FILE_FORMAT}"): ${issues.map((issue) => `${issue.path} ${issue.message}`.trim()).join("; ")}`,
+    );
   const { vault, secrets } = (parsed.ok ? parsed.value : {}) as VaultFile;
   return openVault(vault, secrets, file);
 }
@@ -167,8 +206,14 @@ function scriptHolders(source: CollectionExport): string[] {
 function line(result: RunResult, iterations: number): string {
   const mark = runFailed(result) ? "✗" : result.skipped ? "-" : "✓";
   const where = iterations > 1 ? ` (iteration ${result.iteration + 1})` : "";
-  const status = result.skipped ? "skipped" : result.status ? `${result.status} ${result.statusText ?? ""}`.trim() : "no response";
-  const tests = result.tests.map((test) => `\n    ${test.passed ? "✓" : "✗"} ${test.name}${test.error ? `: ${test.error}` : ""}`).join("");
+  const status = result.skipped
+    ? "skipped"
+    : result.status
+      ? `${result.status} ${result.statusText ?? ""}`.trim()
+      : "no response";
+  const tests = result.tests
+    .map((test) => `\n    ${test.passed ? "✓" : "✗"} ${test.name}${test.error ? `: ${test.error}` : ""}`)
+    .join("");
   const error = result.error !== undefined ? `\n    ${result.error}` : "";
   return `${mark} ${result.name}${where}: ${status}${result.durationMs !== undefined ? `, ${result.durationMs} ms` : ""}${tests}${error}`;
 }
@@ -176,7 +221,12 @@ function line(result: RunResult, iterations: number): string {
 function summary(report: RunReport): string {
   const tests = report.results.flatMap((result) => result.tests);
   const failed = report.results.filter(runFailed).length;
-  const ended = { completed: "", cancelled: " The run was cancelled.", failed: " The run stopped at the first failure.", ended: ` The run ended: ${report.reason ?? ""}` }[report.ended];
+  const ended = {
+    completed: "",
+    cancelled: " The run was cancelled.",
+    failed: " The run stopped at the first failure.",
+    ended: ` The run ended: ${report.reason ?? ""}`,
+  }[report.ended];
   return `${report.results.length} results in ${report.iterations} iteration${report.iterations === 1 ? "" : "s"}; ${failed} failed; ${tests.filter((test) => test.passed).length} of ${tests.length} tests passed.${ended}`;
 }
 
@@ -209,10 +259,13 @@ async function main(argv: string[]): Promise<number> {
     console.log(USAGE);
     return values.help ? 0 : 2;
   }
-  if (command !== "run" || file === undefined || rest.length) throw new Refusal(`Unknown command or arguments: ${positionals.join(" ")}\n\n${USAGE}`);
+  if (command !== "run" || file === undefined || rest.length)
+    throw new Refusal(`Unknown command or arguments: ${positionals.join(" ")}\n\n${USAGE}`);
 
   const reporters = new Set(values.reporter.split(",").map((name) => name.trim()));
-  for (const name of reporters) if (!["cli", "json", "junit"].includes(name)) throw new Refusal(`Unknown reporter "${name}": choose from cli, json and junit.`);
+  for (const name of reporters)
+    if (!["cli", "json", "junit"].includes(name))
+      throw new Refusal(`Unknown reporter "${name}": choose from cli, json and junit.`);
   const number = (text: string | undefined, flag: string): number | undefined => {
     if (text === undefined) return undefined;
     if (!/^\d+$/.test(text)) throw new Refusal(`--${flag} takes a whole number, not "${text}".`);
@@ -225,7 +278,9 @@ async function main(argv: string[]): Promise<number> {
   const read = await readSource(file, values.collection);
   const holders = scriptHolders(read.source);
   if (holders.length && !values["allow-scripts"]) {
-    throw new Refusal(`This collection has scripts, in ${holders.join(", ")}. A file's scripts have not been reviewed: read them, and run again with --allow-scripts only if you trust them. Nothing was sent.`);
+    throw new Refusal(
+      `This collection has scripts, in ${holders.join(", ")}. A file's scripts have not been reviewed: read them, and run again with --allow-scripts only if you trust them. Nothing was sent.`,
+    );
   }
   const environment = values.environment === undefined ? read.environment : await readEnvironment(values.environment);
   const vault = values["vault-file"] === undefined ? read.vault : await readVaultFile(values["vault-file"]);
@@ -234,7 +289,8 @@ async function main(argv: string[]): Promise<number> {
     try {
       data = parseDataFile(await readText(values.data, "data file"), basename(values.data));
     } catch (error) {
-      if (error instanceof Error && error.name === "DataFileError") throw new Refusal(`${values.data}: ${error.message}`);
+      if (error instanceof Error && error.name === "DataFileError")
+        throw new Refusal(`${values.data}: ${error.message}`);
       throw error;
     }
   }
@@ -249,7 +305,14 @@ async function main(argv: string[]): Promise<number> {
     });
   }
   const report = await runCollection(
-    { source: read.source, ...(environment && { environment }), globals: read.globals, ...(vault && { vault }), allowScripts: values["allow-scripts"], timeoutMs },
+    {
+      source: read.source,
+      ...(environment && { environment }),
+      globals: read.globals,
+      ...(vault && { vault }),
+      allowScripts: values["allow-scripts"],
+      timeoutMs,
+    },
     {
       ...(iterations !== undefined && { iterations }),
       ...(data && { data }),
@@ -257,11 +320,12 @@ async function main(argv: string[]): Promise<number> {
       onResult: (result) => {
         if (reporters.has("cli")) console.log(line(result, iterations ?? data?.length ?? 1));
       },
-    }
+    },
   );
   const info = { name: read.source.collection.name, startedAt };
   if (reporters.has("cli")) console.log(`\n${summary(report)}`);
-  if (reporters.has("json")) await writeFile(join(values.out, "wayfarer-run.json"), `${JSON.stringify(runReportJson(report, info), null, 2)}\n`);
+  if (reporters.has("json"))
+    await writeFile(join(values.out, "wayfarer-run.json"), `${JSON.stringify(runReportJson(report, info), null, 2)}\n`);
   if (reporters.has("junit")) await writeFile(join(values.out, "wayfarer-run.junit.xml"), junitXml(report, info));
   return report.results.some(runFailed) ? 1 : 0;
 }
@@ -269,12 +333,15 @@ async function main(argv: string[]): Promise<number> {
 main(process.argv.slice(2)).then(
   (code) => (process.exitCode = code),
   (error: unknown) => {
-    if (error instanceof Refusal || (error instanceof TypeError && "code" in error && String(error.code).startsWith("ERR_PARSE_ARGS"))) {
+    if (
+      error instanceof Refusal ||
+      (error instanceof TypeError && "code" in error && String(error.code).startsWith("ERR_PARSE_ARGS"))
+    ) {
       console.error(error.message);
       process.exitCode = 2;
       return;
     }
     console.error(error);
     process.exitCode = 2;
-  }
+  },
 );

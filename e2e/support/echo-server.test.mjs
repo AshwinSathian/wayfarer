@@ -11,7 +11,10 @@ test.after(() => server.close());
 const get = (path, init) => fetch(`${BASE}${path}`, init);
 
 test("/echo reflects method, duplicate headers in order, and the body", async () => {
-  const headers = new Headers([["x-dup", "a"], ["content-type", "text/plain"]]);
+  const headers = new Headers([
+    ["x-dup", "a"],
+    ["content-type", "text/plain"],
+  ]);
   headers.append("x-dup", "b");
   const res = await get("/echo?q=1", { method: "PURGE", headers, body: "hello" });
   const echo = await res.json();
@@ -28,7 +31,13 @@ test("/echo returns non-UTF-8 bodies as base64", async () => {
 });
 
 test("/content/:type serves each fixture type", async () => {
-  for (const [type, mime] of [["json", "application/json"], ["html", "text/html"], ["xml", "application/xml"], ["text", "text/plain"], ["png", "image/png"]]) {
+  for (const [type, mime] of [
+    ["json", "application/json"],
+    ["html", "text/html"],
+    ["xml", "application/xml"],
+    ["text", "text/plain"],
+    ["png", "image/png"],
+  ]) {
     const res = await get(`/content/${type}`);
     assert.equal(res.status, 200);
     assert.match(res.headers.get("content-type"), new RegExp(mime));
@@ -46,7 +55,9 @@ test("/redirect/:n follows n hops to /echo", async () => {
 });
 
 test("/redirect-to answers with the status and the Location it is given", async () => {
-  const there = await get(`/redirect-to?status=307&url=${encodeURIComponent("http://127.0.0.1:4301/echo")}`, { redirect: "manual" });
+  const there = await get(`/redirect-to?status=307&url=${encodeURIComponent("http://127.0.0.1:4301/echo")}`, {
+    redirect: "manual",
+  });
   assert.equal(there.status, 307);
   assert.equal(there.headers.get("location"), "http://127.0.0.1:4301/echo");
   assert.equal((await get("/redirect-to", { redirect: "manual" })).status, 302);
@@ -54,10 +65,18 @@ test("/redirect-to answers with the status and the Location it is given", async 
 
 test("/graphql answers an introspection with a schema, a query with data, and an unknown field with an error", async () => {
   const ask = async (payload) => (await get("/graphql", { method: "POST", body: JSON.stringify(payload) })).json();
-  assert.equal((await ask({ query: "query IntrospectionQuery { __schema { queryType { name } } }" })).data.__schema.queryType.name, "Query");
+  assert.equal(
+    (await ask({ query: "query IntrospectionQuery { __schema { queryType { name } } }" })).data.__schema.queryType.name,
+    "Query",
+  );
   assert.deepEqual((await ask({ query: "{ hello }" })).data, { hello: "Hello, world" });
-  assert.deepEqual((await ask({ query: "query Q($name: String) { hello(name: $name) }", variables: { name: "Ada" } })).data, { hello: "Hello, Ada" });
-  assert.deepEqual((await ask({ query: "{ nope }" })).errors, [{ message: 'Cannot query field "nope" on type "Query".' }]);
+  assert.deepEqual(
+    (await ask({ query: "query Q($name: String) { hello(name: $name) }", variables: { name: "Ada" } })).data,
+    { hello: "Hello, Ada" },
+  );
+  assert.deepEqual((await ask({ query: "{ nope }" })).errors, [
+    { message: 'Cannot query field "nope" on type "Query".' },
+  ]);
   assert.equal((await get("/graphql", { method: "POST", body: "{" })).status, 400);
 });
 
@@ -70,7 +89,10 @@ test("/cookies/login redirects to /echo and sets two cookies, one with a comma i
 
 test("/cookies/set sends one Set-Cookie header per cookie", async () => {
   const res = await get("/cookies/set?a=1&b=2");
-  assert.deepEqual(res.headers.getSetCookie().map((c) => c.split(";")[0]), ["a=1", "b=2"]);
+  assert.deepEqual(
+    res.headers.getSetCookie().map((c) => c.split(";")[0]),
+    ["a=1", "b=2"],
+  );
 });
 
 test("/gzip and /deflate are compressed and decode", async () => {
@@ -105,7 +127,10 @@ test("/cors variants send the documented headers", async () => {
   const simple = await get("/cors/simple", { headers: origin });
   assert.equal(simple.headers.get("access-control-allow-origin"), "http://localhost:4200");
   assert.equal(simple.headers.get("timing-allow-origin"), null);
-  const simplePreflight = await get("/cors/simple", { method: "OPTIONS", headers: { ...origin, "access-control-request-method": "PUT" } });
+  const simplePreflight = await get("/cors/simple", {
+    method: "OPTIONS",
+    headers: { ...origin, "access-control-request-method": "PUT" },
+  });
   assert.equal(simplePreflight.headers.get("access-control-allow-methods"), null);
   const full = await get("/cors/full", { headers: origin });
   assert.equal(full.headers.get("access-control-expose-headers"), "x-custom");
@@ -117,47 +142,112 @@ test("/cors variants send the documented headers", async () => {
 
 test("/sse emits count events and resumes after Last-Event-ID", async () => {
   const text = await (await get("/sse?count=3&interval=1")).text();
-  assert.deepEqual([...text.matchAll(/^id: (\d+)$/gm)].map((m) => m[1]), ["1", "2", "3"]);
+  assert.deepEqual(
+    [...text.matchAll(/^id: (\d+)$/gm)].map((m) => m[1]),
+    ["1", "2", "3"],
+  );
   const resumed = await (await get("/sse?count=2&interval=1", { headers: { "last-event-id": "7" } })).text();
-  assert.deepEqual([...resumed.matchAll(/^id: (\d+)$/gm)].map((m) => m[1]), ["8", "9"]);
+  assert.deepEqual(
+    [...resumed.matchAll(/^id: (\d+)$/gm)].map((m) => m[1]),
+    ["8", "9"],
+  );
 });
 
 test("/oauth: auth code + PKCE, single-use code, refresh rotation", async () => {
   const verifier = "v".repeat(50);
   const challenge = createHash("sha256").update(verifier).digest("base64url");
-  const q = new URLSearchParams({ response_type: "code", client_id: "c1", redirect_uri: "http://localhost:4200/oauth/callback", state: "s1", code_challenge: challenge, code_challenge_method: "S256" });
+  const q = new URLSearchParams({
+    response_type: "code",
+    client_id: "c1",
+    redirect_uri: "http://localhost:4200/oauth/callback",
+    state: "s1",
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+  });
   const auth = await get(`/oauth/authorize?${q}`, { redirect: "manual" });
   const callback = new URL(auth.headers.get("location"));
   assert.equal(callback.searchParams.get("state"), "s1");
   const code = callback.searchParams.get("code");
   const exchange = (verifierValue) =>
-    get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: "c1", redirect_uri: "http://localhost:4200/oauth/callback", code_verifier: verifierValue }) });
+    get("/oauth/token", {
+      method: "POST",
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        client_id: "c1",
+        redirect_uri: "http://localhost:4200/oauth/callback",
+        code_verifier: verifierValue,
+      }),
+    });
 
   const tokens = await (await exchange(verifier)).json();
   assert.match(tokens.access_token, /^at-/);
   assert.equal((await exchange(verifier)).status, 400, "codes are single use");
 
-  const refresh = (t) => get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: t }) });
+  const refresh = (t) =>
+    get("/oauth/token", {
+      method: "POST",
+      body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: t }),
+    });
   assert.equal((await refresh(tokens.refresh_token)).status, 200);
   assert.equal((await refresh(tokens.refresh_token)).status, 400, "refresh tokens rotate");
 });
 
 test("/oauth: wrong PKCE verifier, client_credentials and password grants", async () => {
-  const q = new URLSearchParams({ response_type: "code", client_id: "c2", redirect_uri: "http://x.test/cb", code_challenge: "abc", code_challenge_method: "S256" });
-  const code = new URL((await get(`/oauth/authorize?${q}`, { redirect: "manual" })).headers.get("location")).searchParams.get("code");
-  const bad = await get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: "c2", redirect_uri: "http://x.test/cb", code_verifier: "wrong" }) });
+  const q = new URLSearchParams({
+    response_type: "code",
+    client_id: "c2",
+    redirect_uri: "http://x.test/cb",
+    code_challenge: "abc",
+    code_challenge_method: "S256",
+  });
+  const code = new URL(
+    (await get(`/oauth/authorize?${q}`, { redirect: "manual" })).headers.get("location"),
+  ).searchParams.get("code");
+  const bad = await get("/oauth/token", {
+    method: "POST",
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      client_id: "c2",
+      redirect_uri: "http://x.test/cb",
+      code_verifier: "wrong",
+    }),
+  });
   assert.equal(bad.status, 400);
-  const cc = await get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" }) });
+  const cc = await get("/oauth/token", {
+    method: "POST",
+    body: new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" }),
+  });
   assert.equal(cc.status, 200);
-  const pw = await get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "password", username: "u", password: "correct-password" }) });
+  const pw = await get("/oauth/token", {
+    method: "POST",
+    body: new URLSearchParams({ grant_type: "password", username: "u", password: "correct-password" }),
+  });
   assert.equal(pw.status, 200);
 });
 
 test("/oauth: a short expires_in, a client in a Basic header, a state that was not given, and a token the resource takes until it is revoked", async () => {
   const basic = { authorization: `Basic ${Buffer.from("c%20id:s%3Acret").toString("base64")}` };
-  const short = await (await get("/oauth/token?expires_in=2", { method: "POST", headers: basic, body: new URLSearchParams({ grant_type: "client_credentials" }) })).json();
+  const short = await (
+    await get("/oauth/token?expires_in=2", {
+      method: "POST",
+      headers: basic,
+      body: new URLSearchParams({ grant_type: "client_credentials" }),
+    })
+  ).json();
   assert.equal(short.expires_in, 2);
-  assert.equal((await (await get("/oauth/token", { method: "POST", body: new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" }) })).json()).expires_in, 3600);
+  assert.equal(
+    (
+      await (
+        await get("/oauth/token", {
+          method: "POST",
+          body: new URLSearchParams({ grant_type: "client_credentials", client_id: "c", client_secret: "s" }),
+        })
+      ).json()
+    ).expires_in,
+    3600,
+  );
 
   const resource = (token) => get("/oauth/resource", { headers: { authorization: `Bearer ${token}` } });
   assert.equal((await resource(short.access_token)).status, 200);
@@ -171,8 +261,19 @@ test("/oauth: a short expires_in, a client in a Basic header, a state that was n
   await get("/oauth/revoke", { method: "POST", body: new URLSearchParams({ token: short.access_token }) });
   assert.equal((await resource(short.access_token)).status, 401, "a revoked token is refused");
 
-  const q = new URLSearchParams({ response_type: "code", client_id: "c", redirect_uri: "http://x.test/cb", state: "s1", mock_wrong_state: "1" });
-  assert.equal(new URL((await get(`/oauth/authorize?${q}`, { redirect: "manual" })).headers.get("location")).searchParams.get("state"), "not-s1");
+  const q = new URLSearchParams({
+    response_type: "code",
+    client_id: "c",
+    redirect_uri: "http://x.test/cb",
+    state: "s1",
+    mock_wrong_state: "1",
+  });
+  assert.equal(
+    new URL((await get(`/oauth/authorize?${q}`, { redirect: "manual" })).headers.get("location")).searchParams.get(
+      "state",
+    ),
+    "not-s1",
+  );
 });
 
 test("/oauth/token-no-cors answers like the token endpoint, with no CORS header", async () => {
@@ -184,7 +285,10 @@ test("/oauth/token-no-cors answers like the token endpoint, with no CORS header"
   assert.equal(plain.headers.get("access-control-allow-origin"), null);
   const preflight = await get("/oauth/token-no-cors", { method: "OPTIONS", headers: origin });
   assert.equal(preflight.headers.get("access-control-allow-origin"), null);
-  assert.equal((await get("/oauth/token", { method: "POST", headers: origin, body })).headers.get("access-control-allow-origin"), "http://localhost:4200");
+  assert.equal(
+    (await get("/oauth/token", { method: "POST", headers: origin, body })).headers.get("access-control-allow-origin"),
+    "http://localhost:4200",
+  );
 });
 
 test("/big/:mb streams exactly that many MiB", async () => {
@@ -192,21 +296,28 @@ test("/big/:mb streams exactly that many MiB", async () => {
   assert.equal(buf.byteLength, 2 << 20);
 });
 
-test("/ws echoes text in order", { skip: typeof WebSocket === "undefined" && "needs Node 22 global WebSocket" }, async () => {
-  const ws = new WebSocket(`${BASE.replace("http", "ws")}/ws`, ["chat"]);
-  const received = [];
-  await new Promise((resolve, reject) => {
-    ws.onopen = () => ["one", "two", "x".repeat(70_000)].forEach((m) => ws.send(m));
-    ws.onmessage = (event) => {
-      received.push(event.data);
-      if (received.length === 3) resolve();
-    };
-    ws.onerror = reject;
-  });
-  assert.equal(ws.protocol, "chat");
-  assert.deepEqual(received.map((m) => m.length), [3, 3, 70_000]);
-  ws.close(1000);
-});
+test(
+  "/ws echoes text in order",
+  { skip: typeof WebSocket === "undefined" && "needs Node 22 global WebSocket" },
+  async () => {
+    const ws = new WebSocket(`${BASE.replace("http", "ws")}/ws`, ["chat"]);
+    const received = [];
+    await new Promise((resolve, reject) => {
+      ws.onopen = () => ["one", "two", "x".repeat(70_000)].forEach((m) => ws.send(m));
+      ws.onmessage = (event) => {
+        received.push(event.data);
+        if (received.length === 3) resolve();
+      };
+      ws.onerror = reject;
+    });
+    assert.equal(ws.protocol, "chat");
+    assert.deepEqual(
+      received.map((m) => m.length),
+      [3, 3, 70_000],
+    );
+    ws.close(1000);
+  },
+);
 
 const pmServer = await startEchoServer(0, "127.0.0.1", { postmanEcho: true });
 const PM = `http://127.0.0.1:${pmServer.address().port}`;
@@ -217,17 +328,23 @@ test("the Postman Echo origin serves Postman's paths and response shapes unchang
   const getRes = await (await pm("/get?foo=bar")).json();
   assert.deepEqual(getRes.args, { foo: "bar" });
   assert.equal(getRes.url, "https://postman-echo.com/get?foo=bar");
-  const post = await (await pm("/post", { method: "POST", headers: { "content-type": "application/json" }, body: '{"a":1}' })).json();
+  const post = await (
+    await pm("/post", { method: "POST", headers: { "content-type": "application/json" }, body: '{"a":1}' })
+  ).json();
   assert.deepEqual(post.json, { a: 1 });
   const form = await (await pm("/post", { method: "POST", body: new URLSearchParams({ k: "v" }) })).json();
   assert.deepEqual(form.form, { k: "v" });
   assert.equal((await pm("/basic-auth")).status, 401);
-  const auth = await pm("/basic-auth", { headers: { authorization: `Basic ${Buffer.from("postman:password").toString("base64")}` } });
+  const auth = await pm("/basic-auth", {
+    headers: { authorization: `Basic ${Buffer.from("postman:password").toString("base64")}` },
+  });
   assert.deepEqual(await auth.json(), { authenticated: true });
   assert.equal((await pm("/response-headers?x-foo=bar")).headers.get("x-foo"), "bar");
   const cookies = await pm("/cookies/set?c=1", { redirect: "manual" });
   assert.equal(cookies.headers.get("location"), "/cookies");
-  assert.deepEqual(await (await pm("/cookies", { headers: { cookie: "c=1; d=2" } })).json(), { cookies: { c: "1", d: "2" } });
+  assert.deepEqual(await (await pm("/cookies", { headers: { cookie: "c=1; d=2" } })).json(), {
+    cookies: { c: "1", d: "2" },
+  });
   assert.match(await (await pm("/encoding/utf8")).text(), /𝄞/);
   const start = Date.now();
   assert.deepEqual(await (await pm("/delay/1")).json(), { delay: "1" });

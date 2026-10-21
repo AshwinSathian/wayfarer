@@ -33,9 +33,20 @@ test("@claim:C-049 a Cookie header is shown as dropped, and the browser does dro
   // What was said is what happened: the server saw no cookie, and saw the headers listed as added.
   await openPanel(page);
   const added = await notes(page).locator(".browser-note-adds code").allTextContents();
-  expect(added).toEqual(["Origin", "Sec-Fetch-Dest", "Sec-Fetch-Mode", "Sec-Fetch-Site", "Accept", "Accept-Encoding", "Accept-Language", "User-Agent"]);
+  expect(added).toEqual([
+    "Origin",
+    "Sec-Fetch-Dest",
+    "Sec-Fetch-Mode",
+    "Sec-Fetch-Site",
+    "Accept",
+    "Accept-Encoding",
+    "Accept-Language",
+    "User-Agent",
+  ]);
 
-  const echoed = page.waitForResponse((response) => response.url() === `${ECHO}/echo` && response.request().method() === "GET");
+  const echoed = page.waitForResponse(
+    (response) => response.url() === `${ECHO}/echo` && response.request().method() === "GET",
+  );
   await send(page);
   const received = ((await (await echoed).json()) as { headers: [string, string][] }).headers.map(([name]) => name);
   expect(received).not.toContain("cookie");
@@ -47,7 +58,9 @@ test.describe("the preflight", () => {
   // Without the app's service worker: with it in control, WebKit sends the request anyway (F64, below).
   test.use({ serviceWorkers: "block" });
 
-  test("says when the browser asks the server first, and why; a server that does not answer that question never gets the request", async ({ page }) => {
+  test("says when the browser asks the server first, and why; a server that does not answer that question never gets the request", async ({
+    page,
+  }) => {
     // /cors/simple allows the origin and answers no preflight: a request the browser asks about first fails there.
     await page.goto("/app/");
     await page.locator("input.address-url").fill(`${ECHO}/cors/simple`);
@@ -56,7 +69,7 @@ test.describe("the preflight", () => {
     await expect(preflight).toContainText("sent without asking the server first");
     await send(page);
     await expect(page.locator(".status-badge")).toHaveText("200");
-  
+
     await setHeader(page, "X-Api-Key", "k");
     await expect(preflight).toContainText("asks the server first");
     await expect(preflight).toContainText("the header X-Api-Key");
@@ -66,7 +79,10 @@ test.describe("the preflight", () => {
   });
 });
 
-test("F64: with the service worker in control, a request that needs a preflight is asked about first, and the server's refusal stops it", async ({ page, browserName }) => {
+test("F64: with the service worker in control, a request that needs a preflight is asked about first, and the server's refusal stops it", async ({
+  page,
+  browserName,
+}) => {
   // A tripwire, as in tripwire.spec.ts: WebKit sends no OPTIONS and the request itself here (issue #209), so this fails there and goes red if that changes.
   test.fail(browserName === "webkit", "F64 (#209): WebKit sends the request without a preflight");
   await page.goto("/app/");
@@ -76,9 +92,9 @@ test("F64: with the service worker in control, a request that needs a preflight 
     (url) =>
       fetch(url, { headers: { "X-Api-Key": "k" }, cache: "no-store" }).then(
         (response) => `answered ${response.status}`,
-        () => "refused"
+        () => "refused",
       ),
-    `${ECHO}${address}`
+    `${ECHO}${address}`,
   );
   const seen = await (await fetch(`${ECHO}/cors-seen?url=${encodeURIComponent(address)}`)).json();
   expect({ outcome, seen }).toEqual({ outcome: "refused", seen: { OPTIONS: 1 } });

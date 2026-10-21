@@ -10,18 +10,29 @@ type Value = "a" | "b" | "c";
   imports: [Tab, TabContent, TabPanel, Tabs, UiTabList],
   template: `
     <div ngTabs>
-      <div uiTabList aria-label="Parts" [selectedTab]="tab()" (selectedTabChange)="chosen.push($event); tab.set($event)">
+      <div
+        uiTabList
+        aria-label="Parts"
+        [selectedTab]="tab()"
+        (selectedTabChange)="chosen.push($event); tab.set($event)"
+      >
         <button ngTab value="a">A</button>
         @if (showB()) {
           <button ngTab value="b">B</button>
         }
         <button ngTab value="c">C</button>
       </div>
-      <div ngTabPanel value="a" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent><input aria-label="In A" /></ng-template></div>
+      <div ngTabPanel value="a" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent><input aria-label="In A" /></ng-template
+      ></div>
       @if (showB()) {
-        <div ngTabPanel value="b" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>Pane B</ng-template></div>
+        <div ngTabPanel value="b" class="tab-pane" [preserveContent]="true"
+          ><ng-template ngTabContent>Pane B</ng-template></div
+        >
       }
-      <div ngTabPanel value="c" class="tab-pane" [preserveContent]="true"><ng-template ngTabContent>Pane C</ng-template></div>
+      <div ngTabPanel value="c" class="tab-pane" [preserveContent]="true"
+        ><ng-template ngTabContent>Pane C</ng-template></div
+      >
     </div>
   `,
 })
@@ -42,11 +53,18 @@ describe("uiTabList", () => {
       await fixture.whenStable();
     };
     await settle();
-    const tab = (name: string) => Array.from(root.querySelectorAll<HTMLElement>('[role="tab"]')).find((t) => t.textContent?.trim() === name);
-    const stop = () => Array.from(root.querySelectorAll<HTMLElement>('[role="tab"][tabindex="0"]')).map((t) => t.textContent?.trim());
-    const shown = () => Array.from(root.querySelectorAll<HTMLElement>('[role="tabpanel"]:not([inert])')).map((p) => p.textContent?.trim() || p.querySelector("input")?.getAttribute("aria-label"));
+    const tab = (name: string) =>
+      Array.from(root.querySelectorAll<HTMLElement>('[role="tab"]')).find((t) => t.textContent?.trim() === name);
+    const stop = () =>
+      Array.from(root.querySelectorAll<HTMLElement>('[role="tab"][tabindex="0"]')).map((t) => t.textContent?.trim());
+    const shown = () =>
+      Array.from(root.querySelectorAll<HTMLElement>('[role="tabpanel"]:not([inert])')).map(
+        (p) => p.textContent?.trim() || p.querySelector("input")?.getAttribute("aria-label"),
+      );
     const press = async (key: string) => {
-      (document.activeElement as HTMLElement).dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+      (document.activeElement as HTMLElement).dispatchEvent(
+        new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }),
+      );
       await settle();
     };
     return { fixture, host: fixture.componentInstance, root, tab, stop, shown, press, settle };

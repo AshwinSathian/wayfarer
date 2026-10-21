@@ -7,8 +7,7 @@ type WorkerJob =
   | { kind: "search"; input: string; query: string };
 
 type WorkerMessage =
-  | { id: number; ok: true; result: string | WorkerSearchResult }
-  | { id: number; ok: false; error: string };
+  { id: number; ok: true; result: string | WorkerSearchResult } | { id: number; ok: false; error: string };
 
 interface PendingJob {
   resolve: (value: string | WorkerSearchResult) => void;
@@ -33,24 +32,15 @@ export class JsonWorkerClient implements OnDestroy {
   private readonly pending = new Map<number, PendingJob>();
 
   async parsePretty(input: string, indent = 2): Promise<string> {
-    return this.dispatchJob(
-      { kind: "parse-pretty", input, indent },
-      () => this.parsePrettyFallback(input, indent)
-    );
+    return this.dispatchJob({ kind: "parse-pretty", input, indent }, () => this.parsePrettyFallback(input, indent));
   }
 
   async minify(input: string): Promise<string> {
-    return this.dispatchJob(
-      { kind: "minify", input },
-      () => this.minifyFallback(input)
-    );
+    return this.dispatchJob({ kind: "minify", input }, () => this.minifyFallback(input));
   }
 
   async search(input: string, query: string): Promise<WorkerSearchResult> {
-    return this.dispatchJob(
-      { kind: "search", input, query },
-      () => this.searchFallback(input, query)
-    );
+    return this.dispatchJob({ kind: "search", input, query }, () => this.searchFallback(input, query));
   }
 
   ngOnDestroy(): void {
@@ -59,7 +49,7 @@ export class JsonWorkerClient implements OnDestroy {
 
   private async dispatchJob<T extends string | WorkerSearchResult>(
     job: WorkerJob,
-    fallback: () => T | Promise<T>
+    fallback: () => T | Promise<T>,
   ): Promise<T> {
     const worker = this.ensureWorker();
     if (!worker) {
@@ -109,9 +99,7 @@ export class JsonWorkerClient implements OnDestroy {
         this.handleWorkerMessage(event.data);
       };
       this.worker.onerror = (error) => {
-        this.terminateWorker(
-          new Error(error.message || "JSON worker encountered an error")
-        );
+        this.terminateWorker(new Error(error.message || "JSON worker encountered an error"));
       };
     }
 
@@ -191,10 +179,7 @@ export class JsonWorkerClient implements OnDestroy {
 
       const contextRadius = 48;
       const contextStart = Math.max(0, matchIndex - contextRadius);
-      const contextEnd = Math.min(
-        input.length,
-        matchIndex + trimmed.length + contextRadius
-      );
+      const contextEnd = Math.min(input.length, matchIndex + trimmed.length + contextRadius);
 
       excerpts.push({
         index: matchIndex,

@@ -18,7 +18,16 @@ import { pathToFileURL } from "node:url";
 
 const LEDGER = "docs/claims.md";
 const THREAT_MODEL = "docs/threat-model.md";
-const SKIP_DIRS = new Set(["node_modules", "dist", ".git", ".angular", "test-results", "playwright-report", "coverage", "archive"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  ".git",
+  ".angular",
+  "test-results",
+  "playwright-report",
+  "coverage",
+  "archive",
+]);
 const DOC_ROOTS = ["README.md", "SECURITY.md", "docs", "packages"];
 const TEST_ROOTS = ["e2e", "src", "scripts", "packages"];
 const TEST_FILE = /\.(spec|test)\.(ts|mjs|js)$/;
@@ -31,20 +40,33 @@ export function parseLedger(text) {
     .split(/\r?\n/)
     .filter((line) => new RegExp(`^\\|\\s*${ID.source}\\s*\\|`).test(line))
     .map((line) => {
-      const [id, statement, source, tests] = line.split("|").slice(1, -1).map((cell) => cell.trim());
-      return { id, statement, source, tests: tests.split(/[,\s]+/).map((t) => t.replace(/`/g, "")).filter(Boolean) };
+      const [id, statement, source, tests] = line
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim());
+      return {
+        id,
+        statement,
+        source,
+        tests: tests
+          .split(/[,\s]+/)
+          .map((t) => t.replace(/`/g, ""))
+          .filter(Boolean),
+      };
     });
 }
 
 /** Titles of test(...), it(...), test.<modifier>(...) and it.each(table)(...) calls, skipping commented-out lines. */
 export function testTitles(source) {
   const titles = [];
-  // The title is the first argument, or for `.each` the first argument of the call its table is followed by, on the same line.
-  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\])*)\1/g;
-  for (const line of source.split(/\r?\n/)) {
-    if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
-    for (const match of line.matchAll(call)) titles.push(match[2]);
-  }
+  // The title is the first argument, or for `.each` the first argument of the call its table is followed by,
+  // on that line or the next (a formatter breaks a long call there). The table itself is on one line.
+  const call = /(?:^|[^.\w])(?:test|it)(?:\.each\(.*\)|(?:\.\w+)*)\(\s*(["'`])((?:\\.|(?!\1)[^\\\n])*)\1/g;
+  const code = source
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line))
+    .join("\n");
+  for (const match of code.matchAll(call)) titles.push(match[2]);
   return titles;
 }
 
@@ -97,11 +119,13 @@ export function checkClaims(root) {
 
   // Ledger → docs and tests.
   for (const row of rows) {
-    if (!markers.has(row.id)) errors.push(`${row.id}: has no doc marker <!-- claim:${row.id} --> (ledger says ${row.source})`);
+    if (!markers.has(row.id))
+      errors.push(`${row.id}: has no doc marker <!-- claim:${row.id} --> (ledger says ${row.source})`);
     const files = titled.get(row.id) ?? [];
     if (!files.length) errors.push(`${row.id}: no test titled @claim:${row.id}`);
     for (const expected of row.tests) {
-      if (!files.includes(expected)) errors.push(`${row.id}: ${LEDGER} names ${expected}, but no test there is titled @claim:${row.id}`);
+      if (!files.includes(expected))
+        errors.push(`${row.id}: ${LEDGER} names ${expected}, but no test there is titled @claim:${row.id}`);
     }
   }
   errors.push(...checkThreatModel(root, ids));
@@ -116,12 +140,18 @@ function checkThreatModel(root, ids) {
   const rows = readFileSync(path, "utf8")
     .split(/\r?\n/)
     .filter((line) => line.startsWith("|") && !/^\|\s*(Boundary\s*\||-)/.test(line))
-    .map((line) => line.split("|").slice(1, -1).map((cell) => cell.trim()));
+    .map((line) =>
+      line
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim()),
+    );
   for (const cells of rows) {
     const name = `${cells[0]} / ${cells[1]}`;
     const linked = [...(cells.at(-1) ?? "").matchAll(/C-\d{3}/g)].map((match) => match[0]);
     if (!linked.length) errors.push(`${THREAT_MODEL}: the row "${name}" links no claim`);
-    for (const id of linked) if (!ids.has(id)) errors.push(`${THREAT_MODEL}: the row "${name}" links ${id}, which has no row in ${LEDGER}`);
+    for (const id of linked)
+      if (!ids.has(id)) errors.push(`${THREAT_MODEL}: the row "${name}" links ${id}, which has no row in ${LEDGER}`);
   }
   return errors;
 }

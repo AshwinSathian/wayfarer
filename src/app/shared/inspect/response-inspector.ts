@@ -106,31 +106,21 @@ export class ResponseInspector {
     return inspection;
   }
 
-  private findTimingEntry(
-    url: string,
-    responseEndTime: number
-  ): PerformanceResourceTiming | undefined {
-    if (
-      typeof performance.getEntriesByName !== "function" ||
-      typeof performance.getEntriesByType !== "function"
-    ) {
+  private findTimingEntry(url: string, responseEndTime: number): PerformanceResourceTiming | undefined {
+    if (typeof performance.getEntriesByName !== "function" || typeof performance.getEntriesByType !== "function") {
       return undefined;
     }
 
     const byName = performance
       .getEntriesByName(url)
-      .filter((entry): entry is PerformanceResourceTiming =>
-        this.isResourceTimingEntry(entry)
-      );
+      .filter((entry): entry is PerformanceResourceTiming => this.isResourceTimingEntry(entry));
 
     const entries =
       byName.length > 0
         ? byName
         : performance
             .getEntriesByType("resource")
-            .filter((entry): entry is PerformanceResourceTiming =>
-              this.isResourceTimingEntry(entry, url)
-            );
+            .filter((entry): entry is PerformanceResourceTiming => this.isResourceTimingEntry(entry, url));
 
     let closest: PerformanceResourceTiming | undefined;
     let smallestDelta = Number.POSITIVE_INFINITY;
@@ -150,10 +140,7 @@ export class ResponseInspector {
     return smallestDelta <= MAX_TIMING_MATCH_SKEW_MS ? closest : undefined;
   }
 
-  private isResourceTimingEntry(
-    entry: PerformanceEntry,
-    url?: string
-  ): entry is PerformanceResourceTiming {
+  private isResourceTimingEntry(entry: PerformanceEntry, url?: string): entry is PerformanceResourceTiming {
     if (entry.entryType !== "resource") {
       return false;
     }

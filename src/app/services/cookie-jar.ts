@@ -65,7 +65,9 @@ export class CookieJar {
     const redactor = new Redactor(secrets);
     const writes = setCookies.map((header) => {
       const cookie = parseSetCookie(header, url, Date.now());
-      return cookie ? this.put(cookie, redactor.text(cookie.value) !== cookie.value || redactor.text(cookie.name) !== cookie.name) : Promise.resolve();
+      return cookie
+        ? this.put(cookie, redactor.text(cookie.value) !== cookie.value || redactor.text(cookie.name) !== cookie.name)
+        : Promise.resolve();
     });
     return Promise.all(writes).then(() => undefined);
   }
@@ -96,7 +98,9 @@ export class CookieJar {
     else this.unstored.delete(key);
     const gone = before.map(keyOf).filter((was) => !after.some((held) => keyOf(held) === was));
     // A cookie that is now memory-only may have been stored with another value before.
-    return this.write(() => this.repository.write(kept && !memoryOnly ? [{ ...kept, key }] : [], kept && memoryOnly ? [...gone, key] : gone));
+    return this.write(() =>
+      this.repository.write(kept && !memoryOnly ? [{ ...kept, key }] : [], kept && memoryOnly ? [...gone, key] : gone),
+    );
   }
 
   private async write(write: () => Promise<void>): Promise<void> {

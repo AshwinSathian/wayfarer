@@ -13,9 +13,22 @@
 
 import loadEngine from "@jitl/quickjs-wasmfile-release-sync/emscripten-module";
 import { QuickJSFFI } from "@jitl/quickjs-wasmfile-release-sync/ffi";
-import { newQuickJSWASMModuleFromVariant, newVariant, type QuickJSSyncVariant, type QuickJSWASMModule } from "quickjs-emscripten-core";
+import {
+  newQuickJSWASMModuleFromVariant,
+  newVariant,
+  type QuickJSSyncVariant,
+  type QuickJSWASMModule,
+} from "quickjs-emscripten-core";
 import { loadLibrary } from "@wayfarer/core/library-loader";
-import { loadLibraries, runScript, scriptMemory, type ScriptContext, type ScriptLimits, type ScriptResponse, type ScriptSendRequest } from "@wayfarer/core";
+import {
+  loadLibraries,
+  runScript,
+  scriptMemory,
+  type ScriptContext,
+  type ScriptLimits,
+  type ScriptResponse,
+  type ScriptSendRequest,
+} from "@wayfarer/core";
 // By its path, not by the package's "./wasm" entry: the development and
 // unit-test servers hand an import that names a package to Vite, which tries
 // to run a .wasm file as a module. A path is built with the worker, and the
@@ -70,17 +83,30 @@ function answered({ call, response, error }: SentMessage): void {
   sent.delete(call);
   if (!waiting) return;
   if (response) waiting.resolve(response);
-  else waiting.reject(Object.assign(new Error(error?.message ?? "The request failed."), { name: error?.name ?? "Error" }));
+  else
+    waiting.reject(Object.assign(new Error(error?.message ?? "The request failed."), { name: error?.name ?? "Error" }));
 }
 
 async function run({ id, source, context, limits }: RunMessage): Promise<void> {
   try {
-    engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmLocation: new URL(wasmLocation, import.meta.url).href, wasmMemory: new WebAssembly.Memory(scriptMemory()) }));
+    engine ??= newQuickJSWASMModuleFromVariant(
+      newVariant(variant, {
+        wasmLocation: new URL(wasmLocation, import.meta.url).href,
+        wasmMemory: new WebAssembly.Memory(scriptMemory()),
+      }),
+    );
     const quickjs = await engine;
     const required = await loadLibraries(source, loadLibrary, libraries);
     // The page's own clock for this run starts here, not at the downloads.
     postMessage({ id, type: "started" });
-    postMessage({ id, type: "result", result: await runScript(quickjs, source, context, limits, { libraries: required, send: (request) => askThePage(id, request) }) });
+    postMessage({
+      id,
+      type: "result",
+      result: await runScript(quickjs, source, context, limits, {
+        libraries: required,
+        send: (request) => askThePage(id, request),
+      }),
+    });
   } catch (error) {
     postMessage({ id, type: "failed", message: error instanceof Error ? error.message : String(error) });
   }

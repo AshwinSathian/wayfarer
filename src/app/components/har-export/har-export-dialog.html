@@ -1,36 +1,66 @@
-<ui-dialog header="Export as HAR" [visible]="source() !== null" (visibleChange)="$event ? null : closed.emit()" width="640px">
+<ui-dialog
+  header="Export as HAR"
+  [visible]="source() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  width="640px"
+>
   <div class="flex flex-col gap-4">
     <p class="har-export-summary type-callout text-label-secondary">
-      A HAR 1.2 file of {{ count() }} {{ count() === 1 ? "exchange" : "exchanges" }}: each request as it was sent and the response that came back. A vault secret is
-      written as ***, and a body that is not text, or is longer than 256 KB, is left out with a comment.
+      A HAR 1.2 file of {{ count() }} {{ count() === 1 ? "exchange" : "exchanges" }}: each request as it was sent and
+      the response that came back. A vault secret is written as ***, and a body that is not text, or is longer than 256
+      KB, is left out with a comment.
     </p>
 
     @if (source()?.credentials) {
-    <label for="har-export-credentials-input" class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer">
+    <label
+      for="har-export-credentials-input"
+      class="flex items-center justify-between rounded-xl border border-separator bg-canvas-elevated px-4 py-3 cursor-pointer"
+    >
       <div>
         <p class="type-subhead text-label-primary">Include credentials</p>
-        <p class="type-footnote text-label-tertiary mt-0.5">Without this, a token, password or key is written as ***. A vault secret is never written.</p>
+        <p class="type-footnote text-label-tertiary mt-0.5"
+          >Without this, a token, password or key is written as ***. A vault secret is never written.</p
+        >
       </div>
-      <mat-checkbox id="har-export-credentials" aria-label="Include credentials" [ngModel]="credentials()" (ngModelChange)="credentials.set($event)" />
+      <mat-checkbox
+        id="har-export-credentials"
+        aria-label="Include credentials"
+        [ngModel]="credentials()"
+        (ngModelChange)="credentials.set($event)"
+      />
     </label>
     } @else {
-    <p class="type-footnote text-label-tertiary">History is stored with credentials and vault secrets already masked: this file has them as ***.</p>
+    <p class="type-footnote text-label-tertiary"
+      >History is stored with credentials and vault secrets already masked: this file has them as ***.</p
+    >
     }
 
     <div>
       <p class="ds-form-label mb-1.5" id="har-export-preview-label">The file</p>
       <!-- Focusable: a reader of the keyboard scrolls it. -->
-      <pre class="har-export-preview max-h-72 overflow-auto rounded-xl border border-separator bg-canvas-panel p-3 font-mono text-xs text-label-primary" tabindex="0" role="region" aria-labelledby="har-export-preview-label">{{ preview() }}</pre>
+      <pre
+        class="har-export-preview max-h-72 overflow-auto rounded-xl border border-separator bg-canvas-panel p-3 font-mono text-xs text-label-primary"
+        tabindex="0"
+        role="region"
+        aria-labelledby="har-export-preview-label"
+      >
+{{ preview() }}</pre>
       @if (more()) {
-      <p class="type-footnote text-label-tertiary mt-1.5">…and {{ more() }} more characters, which the file has and this box does not show.</p>
+      <p class="type-footnote text-label-tertiary mt-1.5"
+        >…and {{ more() }} more characters, which the file has and this box does not show.</p
+      >
       }
     </div>
   </div>
   <div uiDialogFooter>
     <div class="flex flex-wrap justify-end gap-2">
       <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
-      <button uiButton="outlined" class="btn-secondary" type="button" [disabled]="!ready()" (click)="copy()"><app-icon name="content_copy" /> Copy</button>
-      <button uiButton="filled" type="button" [disabled]="!ready()" (click)="save()"><app-icon name="download" /> Save file</button>
+      <button uiButton="outlined" class="btn-secondary" type="button" [disabled]="!ready()" (click)="copy()"
+        ><app-icon name="content_copy" /> Copy</button
+      >
+      <button uiButton="filled" type="button" [disabled]="!ready()" (click)="save()"
+        ><app-icon name="download" /> Save file</button
+      >
     </div>
   </div>
 </ui-dialog>

@@ -18,7 +18,14 @@ export function requestContent(fields: Partial<RequestContent> = {}): RequestCon
 
 /** A history entry as the executor writes one: `url` and `method` are those of the template and of what was sent. */
 export function historyEntry(
-  fields: { method?: string; url?: string; createdAt?: number; status?: number; error?: string; template?: Partial<RequestContent> } = {}
+  fields: {
+    method?: string;
+    url?: string;
+    createdAt?: number;
+    status?: number;
+    error?: string;
+    template?: Partial<RequestContent>;
+  } = {},
 ): PastRequest {
   const method = fields.method ?? "GET";
   const url = fields.url ?? "https://example.com/api";
@@ -36,4 +43,8 @@ export function historyEntry(
 export const inCollection = { auth: { type: "none" }, scripts: { pre: "", post: "" } } as const;
 
 /** What a new folder holds for its requests: it inherits its auth, and has no variables and no scripts. */
-export const inFolder = { variables: [] as Row[], auth: { type: "inherit" }, scripts: { pre: "", post: "" } } as const satisfies Pick<Folder, "variables" | "auth" | "scripts">;
+export const inFolder = {
+  variables: [] as Row[],
+  auth: { type: "inherit" },
+  scripts: { pre: "", post: "" },
+} as const satisfies Pick<Folder, "variables" | "auth" | "scripts">;

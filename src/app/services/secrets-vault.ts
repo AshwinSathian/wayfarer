@@ -132,7 +132,12 @@ export class SecretsVault {
     try {
       const envelope = await encryptSecret(key, id, request.plaintext);
       step = "writing it to storage";
-      await this.secretsRepository.writeCipher({ id, name: request.name, environmentId: request.environmentId, envelope });
+      await this.secretsRepository.writeCipher({
+        id,
+        name: request.name,
+        environmentId: request.environmentId,
+        envelope,
+      });
     } finally {
       clearTimeout(watch);
     }
@@ -198,7 +203,12 @@ export class SecretsVault {
   async bundle(): Promise<VaultFile | null> {
     const record = await this.secretsRepository.readVault();
     if (!record) return null;
-    const secrets = (await this.secretsRepository.listAll()).map(({ id, name, environmentId, envelope }) => ({ id, name, environmentId, envelope }));
+    const secrets = (await this.secretsRepository.listAll()).map(({ id, name, environmentId, envelope }) => ({
+      id,
+      name,
+      environmentId,
+      envelope,
+    }));
     return { $id: VAULT_FILE_FORMAT, vault: record, secrets };
   }
 
@@ -212,9 +222,13 @@ export class SecretsVault {
     const parsed = parseJson(text);
     if (!parsed.ok) return { error: "The file is not valid JSON." };
     // An environments file exported "with the vault" carries the vault file inside it.
-    const content = typeof parsed.value === "object" && parsed.value !== null && Object.hasOwn(parsed.value, "vault") && !Object.hasOwn(parsed.value, "secrets")
-      ? (parsed.value as { vault: unknown }).vault
-      : parsed.value;
+    const content =
+      typeof parsed.value === "object" &&
+      parsed.value !== null &&
+      Object.hasOwn(parsed.value, "vault") &&
+      !Object.hasOwn(parsed.value, "secrets")
+        ? (parsed.value as { vault: unknown }).vault
+        : parsed.value;
     const issues = validateVaultFile(content);
     if (issues.length) return { error: `${issues[0].path}: ${issues[0].message}` };
     const file = content as VaultFile;
@@ -284,7 +298,9 @@ export class SecretsVault {
     try {
       const stored = localStorage.getItem(IDLE_KEY);
       const minutes = stored === null ? DEFAULT_IDLE_MINUTES : Number(stored);
-      return Number.isFinite(minutes) && minutes >= 0 ? Math.min(Math.floor(minutes), MAX_IDLE_MINUTES) : DEFAULT_IDLE_MINUTES;
+      return Number.isFinite(minutes) && minutes >= 0
+        ? Math.min(Math.floor(minutes), MAX_IDLE_MINUTES)
+        : DEFAULT_IDLE_MINUTES;
     } catch (error) {
       this.diagnostics.record(error, "vault: stored idle time unreadable, using the default");
       return DEFAULT_IDLE_MINUTES;

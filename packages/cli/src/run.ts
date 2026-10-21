@@ -56,8 +56,13 @@ export interface RunInput {
 function engines(): () => Promise<QuickJSWASMModule> {
   let engine: Promise<QuickJSWASMModule> | undefined;
   // This package has no types for WebAssembly (no DOM, no worker), as core's has none.
-  const { Memory } = (globalThis as unknown as { WebAssembly: { Memory: new (size: { initial: number; maximum: number }) => WebAssemblyMemory } }).WebAssembly;
-  return () => (engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmMemory: new Memory(scriptMemory()) })));
+  const { Memory } = (
+    globalThis as unknown as {
+      WebAssembly: { Memory: new (size: { initial: number; maximum: number }) => WebAssemblyMemory };
+    }
+  ).WebAssembly;
+  return () =>
+    (engine ??= newQuickJSWASMModuleFromVariant(newVariant(variant, { wasmMemory: new Memory(scriptMemory()) })));
 }
 
 type WebAssemblyMemory = NonNullable<Parameters<typeof newVariant>[1]["wasmMemory"]>;
@@ -93,10 +98,16 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
   const transport = new FetchTransport();
   const ports: ExchangePorts = {
     runScript: async (script, env, response, { send, ...extras }) => {
-      const result = await runScript(await engine(), script, { ...extras, environment: env, ...(response && { response: scriptResponse(response) }) }, SCRIPT_LIMITS, {
-        libraries: await loadLibraries(script, loadLibrary, libraries),
-        ...(send && { send }),
-      });
+      const result = await runScript(
+        await engine(),
+        script,
+        { ...extras, environment: env, ...(response && { response: scriptResponse(response) }) },
+        SCRIPT_LIMITS,
+        {
+          libraries: await loadLibraries(script, loadLibrary, libraries),
+          ...(send && { send }),
+        },
+      );
       if (result.limit) engine = engines();
       return result;
     },
@@ -112,7 +123,10 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
       environment && {
         name: environment.name,
         vars: environment.vars,
-        change: (changes) => Promise.resolve(environment && (environment = { ...environment, vars: applyVariableChanges(environment.vars, changes) })),
+        change: (changes) =>
+          Promise.resolve(
+            environment && (environment = { ...environment, vars: applyVariableChanges(environment.vars, changes) }),
+          ),
       },
     globals: () => globals,
     changeGlobals: (changes) => Promise.resolve((globals = applyVariableChanges(globals, changes))),
@@ -137,7 +151,13 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
   const send = async (doc: RequestDoc, iteration: RunIteration, signal: AbortSignal) => {
     const ancestors = ancestorsOf(source.collection, source.folders, doc.folderId);
     const folder = folderChain(source.folders, doc.folderId).flatMap((entry) => entry.variables);
-    const scopes = (): ScopeStack => ({ environment: environment?.vars, folder, collection: collectionVariables, global: globals, data: iteration.data });
+    const scopes = (): ScopeStack => ({
+      environment: environment?.vars,
+      folder,
+      collection: collectionVariables,
+      global: globals,
+      data: iteration.data,
+    });
     const { outcome } = await runOutcome(
       () =>
         exchange(
@@ -152,7 +172,10 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
                 scopes,
                 ancestors,
                 readSecrets: async (ids) => {
-                  if (!vault) throw new SendBlockedError("This request uses a vault secret, and the run has no vault: give --vault-file, or run a workspace backup, with the passphrase in WAYFARER_VAULT_PASSPHRASE. Nothing was sent.");
+                  if (!vault)
+                    throw new SendBlockedError(
+                      "This request uses a vault secret, and the run has no vault: give --vault-file, or run a workspace backup, with the passphrase in WAYFARER_VAULT_PASSPHRASE. Nothing was sent.",
+                    );
                   const found = new Map<string, string>();
                   for (const id of ids) {
                     const value = await readSecret(id);
@@ -160,21 +183,34 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
                   }
                   return found;
                 },
-                readFile: (ref) => Promise.reject(new SendBlockedError(`The file "${ref.fileName}" of this request's body is kept in the browser that picked it, not in the file run here. Nothing was sent.`)),
+                readFile: (ref) =>
+                  Promise.reject(
+                    new SendBlockedError(
+                      `The file "${ref.fileName}" of this request's body is kept in the browser that picked it, not in the file run here. Nothing was sent.`,
+                    ),
+                  ),
                 blockUnresolved: true,
-                composed: { url: doc.url, scopes: { ...baseline, folder, data: iteration.data }, accepted: acceptedHosts },
+                composed: {
+                  url: doc.url,
+                  scopes: { ...baseline, folder, data: iteration.data },
+                  accepted: acceptedHosts,
+                },
               }),
             info: { requestName: doc.name, requestId: doc.id },
-            collection: { variables: () => collectionVariables, change: (changes) => Promise.resolve((collectionVariables = applyVariableChanges(collectionVariables, changes))) },
+            collection: {
+              variables: () => collectionVariables,
+              change: (changes) =>
+                Promise.resolve((collectionVariables = applyVariableChanges(collectionVariables, changes))),
+            },
             inherited: ancestors,
             folderVariables: () => folder,
             signal,
             route: "direct",
             iteration,
           },
-          ports
+          ports,
         ),
-      "A script moved a request that uses a vault secret to another host, and a run from the command line has no one to say yes."
+      "A script moved a request that uses a vault secret to another host, and a run from the command line has no one to say yes.",
     );
     return outcome;
   };
@@ -186,6 +222,6 @@ export async function runCollection(input: RunInput, options: RunOptions): Promi
       const doc = docs.find((entry) => entry.id === request.id) ?? docs[0];
       return send(doc, iteration, signal);
     },
-    options
+    options,
   );
 }

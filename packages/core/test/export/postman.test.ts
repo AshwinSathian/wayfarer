@@ -25,18 +25,25 @@ describe("a collection exported for Postman, against Newman", () => {
 
   it("the file Newman ran is what the exporter writes today", async () => {
     // Stale after a change to the exporter or to the fixture: `npx vitest run -u` in packages/core, then `npm run golden`.
-    await expect(`${JSON.stringify(postmanCollection(SHOP).file, null, 2)}\n`).toMatchFileSnapshot("../fixtures/postman-export/shop.postman_collection.json");
+    await expect(`${JSON.stringify(postmanCollection(SHOP).file, null, 2)}\n`).toMatchFileSnapshot(
+      "../fixtures/postman-export/shop.postman_collection.json",
+    );
     expect(golden.runner).toMatch(/^newman@\d+\.\d+\.\d+$/);
   });
 
   it("@claim:C-057 Newman, running the exported file, gives the test names, passes and failures the engine gives for the collection", async () => {
-    const results = await runCollection(quickjs, SHOP, { environment: [{ key: "base", value: `http://127.0.0.1:${server.address().port}`, enabled: true }], files: FILES });
+    const results = await runCollection(quickjs, SHOP, {
+      environment: [{ key: "base", value: `http://127.0.0.1:${server.address().port}`, enabled: true }],
+      files: FILES,
+    });
 
     expect(results).toEqual(golden.items);
     expect(results.map((item) => item.name)).toEqual(["Form", "JSON", "Multipart", "File", "XML", "Inherit bearer"]);
     // Not a list of passes only: one test fails on purpose, and it fails in both.
     const tests = results.flatMap((item) => item.tests);
     expect(tests).toHaveLength(26);
-    expect(tests.filter((test) => !test.passed).map((test) => test.name)).toEqual(["Inherit bearer: fails on purpose, the answer is not 404"]);
+    expect(tests.filter((test) => !test.passed).map((test) => test.name)).toEqual([
+      "Inherit bearer: fails on purpose, the answer is not 404",
+    ]);
   });
 });

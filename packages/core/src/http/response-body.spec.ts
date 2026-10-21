@@ -11,10 +11,10 @@ describe("decodeResponseBody (P0.4, F04/F05)", () => {
 
   it("parses JSON when the content-type says JSON, including +json", () => {
     expect(decodeResponseBody(bytes('{"a":1}'), "application/json; charset=utf-8")).toEqual({ a: 1 });
-    expect(decodeResponseBody(bytes('[1,2]'), "application/problem+json")).toEqual([1, 2]);
+    expect(decodeResponseBody(bytes("[1,2]"), "application/problem+json")).toEqual([1, 2]);
   });
 
-  it("keeps a JSON null literal as the text \"null\", not an empty body", () => {
+  it('keeps a JSON null literal as the text "null", not an empty body', () => {
     expect(decodeResponseBody(bytes("null"), "application/json")).toBe("null");
   });
 
@@ -53,17 +53,38 @@ describe("decodeResponseBody (P0.4, F04/F05)", () => {
     expect(decodeResponseBody(bytes("x"), "application/octet-stream")).toBeInstanceOf(BinaryBody);
   });
 
-  it("F72: a type that only has \"xml\" inside a longer word is binary: a .docx or .xlsx file is a zip, not text", () => {
+  it('F72: a type that only has "xml" inside a longer word is binary: a .docx or .xlsx file is a zip, not text', () => {
     const zip = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0xff, 0xfe]).buffer;
-    for (const type of ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.openxmlformats-officedocument.presentationml.presentation"]) {
+    for (const type of [
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ]) {
       expect(decodeResponseBody(zip, type), type).toBeInstanceOf(BinaryBody);
     }
     // XML itself, under each of its names, is still text.
-    for (const type of ["text/xml", "application/xml", "image/svg+xml", "application/atom+xml; charset=utf-8", "application/xml-dtd", "APPLICATION/SOAP+XML"]) {
+    for (const type of [
+      "text/xml",
+      "application/xml",
+      "image/svg+xml",
+      "application/atom+xml; charset=utf-8",
+      "application/xml-dtd",
+      "APPLICATION/SOAP+XML",
+    ]) {
       expect(decodeResponseBody(bytes("<a/>"), type), type).toBe("<a/>");
     }
     // And so are the other text types, wherever their word stands in the name.
-    for (const type of ["application/javascript", "application/x-javascript", "application/ecmascript", "application/x-www-form-urlencoded", "application/graphql", "application/x-yaml", "application/yaml", "text/csv", "application/csv"]) {
+    for (const type of [
+      "application/javascript",
+      "application/x-javascript",
+      "application/ecmascript",
+      "application/x-www-form-urlencoded",
+      "application/graphql",
+      "application/x-yaml",
+      "application/yaml",
+      "text/csv",
+      "application/csv",
+    ]) {
       expect(decodeResponseBody(bytes("a=1"), type), type).toBe("a=1");
     }
   });

@@ -67,5 +67,4 @@ describe("SwUpdate", () => {
 
     expect(watch(registration).service.updateAvailable()).toBe(true);
   });
-
 });

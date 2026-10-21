@@ -15,4 +15,8 @@ export function requestContent(fields: Partial<RequestContent> = {}): RequestCon
 export const inCollection = { auth: { type: "none" }, scripts: { pre: "", post: "" } } as const;
 
 /** What a new folder holds for its requests: it inherits its auth, and has no variables and no scripts. */
-export const inFolder = { variables: [] as Row[], auth: { type: "inherit" }, scripts: { pre: "", post: "" } } as const satisfies Pick<Folder, "variables" | "auth" | "scripts">;
+export const inFolder = {
+  variables: [] as Row[],
+  auth: { type: "inherit" },
+  scripts: { pre: "", post: "" },
+} as const satisfies Pick<Folder, "variables" | "auth" | "scripts">;

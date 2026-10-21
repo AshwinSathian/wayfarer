@@ -11,18 +11,24 @@ test.use({ serviceWorkers: "block" });
 const ELSEWHERE = "https://elsewhere.test";
 const SECRET = "redirected-vault-secret-7c1e";
 
-test("@claim:C-053 a pre-request script moved a request with a vault secret to another host: the app asks, sends nothing on a no and undoes what the script set", async ({ page }) => {
+test("@claim:C-053 a pre-request script moved a request with a vault secret to another host: the app asks, sends nothing on a no and undoes what the script set", async ({
+  page,
+}) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const composed = await captureTarget(page);
   const elsewhere = await captureTarget(page, undefined, ELSEWHERE);
-  await seedAndOpen(page, { base: TARGET }, {
-    method: "GET",
-    url: "{{base}}/items",
-    headers: { "X-Api-Key": "{{API_TOKEN}}" },
-    // The host comes from a variable, not from pm.request.url: the question is asked of the request as it resolves.
-    preRequestScript: `pm.environment.set("base", "${ELSEWHERE}"); pm.environment.set("trace", "set-by-the-script");`,
-  });
+  await seedAndOpen(
+    page,
+    { base: TARGET },
+    {
+      method: "GET",
+      url: "{{base}}/items",
+      headers: { "X-Api-Key": "{{API_TOKEN}}" },
+      // The host comes from a variable, not from pm.request.url: the question is asked of the request as it resolves.
+      preRequestScript: `pm.environment.set("base", "${ELSEWHERE}"); pm.environment.set("trace", "set-by-the-script");`,
+    },
+  );
   await protectVariable(page, "API_TOKEN", SECRET);
   const variables = async () => JSON.stringify((await dumpIdb(page))["environments"]);
 
@@ -34,7 +40,9 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
   expect([...composed, ...elsewhere]).toEqual([]);
 
   await question.getByRole("button", { name: "Don't send", exact: true }).click();
-  await expect(page.getByText("The request was not sent, and what the pre-request script set was undone.")).toBeVisible();
+  await expect(
+    page.getByText("The request was not sent, and what the pre-request script set was undone."),
+  ).toBeVisible();
   await expect.poll(variables).toContain(`"key":"base","value":"${TARGET}"`);
   expect(await variables()).not.toContain("set-by-the-script");
   expect([...composed, ...elsewhere]).toEqual([]);
@@ -51,17 +59,23 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
   expect(errors).toEqual([]);
 });
 
-test("@claim:C-053 the comparison starts before the first inherited script: a collection's pre-request script that moves the request is asked about too", async ({ page }) => {
+test("@claim:C-053 the comparison starts before the first inherited script: a collection's pre-request script that moves the request is asked about too", async ({
+  page,
+}) => {
   const composed = await captureTarget(page);
   const elsewhere = await captureTarget(page, undefined, ELSEWHERE);
-  await seedAndOpen(page, { base: TARGET }, {
-    method: "GET",
-    url: "{{base}}/items",
-    headers: { "X-Api-Key": "{{API_TOKEN}}" },
-    // The request has no script of its own. Its collection's moves it, and its folder's runs after and leaves it there.
-    collection: { scripts: { pre: `pm.environment.set("base", "${ELSEWHERE}");`, post: "" } },
-    folder: { scripts: { pre: `pm.environment.set("trace", "set-by-the-folder");`, post: "" } },
-  });
+  await seedAndOpen(
+    page,
+    { base: TARGET },
+    {
+      method: "GET",
+      url: "{{base}}/items",
+      headers: { "X-Api-Key": "{{API_TOKEN}}" },
+      // The request has no script of its own. Its collection's moves it, and its folder's runs after and leaves it there.
+      collection: { scripts: { pre: `pm.environment.set("base", "${ELSEWHERE}");`, post: "" } },
+      folder: { scripts: { pre: `pm.environment.set("trace", "set-by-the-folder");`, post: "" } },
+    },
+  );
   await protectVariable(page, "API_TOKEN", SECRET);
   const variables = async () => JSON.stringify((await dumpIdb(page))["environments"]);
 
@@ -72,7 +86,9 @@ test("@claim:C-053 the comparison starts before the first inherited script: a co
 
   // No: nothing is sent, and what both inherited scripts set is put back.
   await question.getByRole("button", { name: "Don't send", exact: true }).click();
-  await expect(page.getByText("The request was not sent, and what the pre-request script set was undone.")).toBeVisible();
+  await expect(
+    page.getByText("The request was not sent, and what the pre-request script set was undone."),
+  ).toBeVisible();
   await expect.poll(variables).toContain(`"key":"base","value":"${TARGET}"`);
   expect(await variables()).not.toContain("set-by-the-folder");
   expect([...composed, ...elsewhere]).toEqual([]);

@@ -10,70 +10,28 @@
         "e2e/**/*.{ts,mjs}",
         "scripts/*.mjs"
       ],
-      "project": [
-        "src/**/*.ts",
-        "src/design-system/**/*.css",
-        "e2e/**/*.{ts,mjs}",
-        "scripts/**/*.mjs"
-      ],
-      "ignoreDependencies": [
-        "@angular/language-service",
-        "chai",
-        "crypto-js",
-        "lodash",
-        "moment",
-        "uuid"
-      ],
-      "ignoreBinaries": [
-        "wayfarer-cli"
-      ]
+      "project": ["src/**/*.ts", "src/design-system/**/*.css", "e2e/**/*.{ts,mjs}", "scripts/**/*.mjs"],
+      "ignoreDependencies": ["@angular/language-service", "chai", "crypto-js", "lodash", "moment", "uuid"],
+      "ignoreBinaries": ["wayfarer-cli"]
     },
     "packages/bridge": {
-      "entry": [
-        "bin/*.js",
-        "test/*.js"
-      ],
-      "project": [
-        "**/*.js"
-      ]
+      "entry": ["bin/*.js", "test/*.js"],
+      "project": ["**/*.js"]
     },
     "packages/core": {
-      "entry": [
-        "src/index.ts",
-        "src/**/*.spec.ts"
-      ],
-      "project": [
-        "src/**/*.ts"
-      ],
-      "ignoreDependencies": [
-        "@stryker-mutator/command-runner"
-      ],
-      "ignoreBinaries": [
-        "xmllint"
-      ]
+      "entry": ["src/index.ts", "src/**/*.spec.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@stryker-mutator/command-runner"],
+      "ignoreBinaries": ["xmllint"]
     },
     "packages/cli": {
-      "entry": [
-        "src/main.ts",
-        "test/*.mjs"
-      ],
-      "project": [
-        "src/**/*.ts",
-        "*.mjs",
-        "test/*.mjs"
-      ],
-      "ignoreDependencies": [
-        "@wayfarer/core"
-      ]
+      "entry": ["src/main.ts", "test/*.mjs"],
+      "project": ["src/**/*.ts", "*.mjs", "test/*.mjs"],
+      "ignoreDependencies": ["@wayfarer/core"]
     },
     "packages/site": {
-      "ignore": [
-        "public/**"
-      ],
-      "ignoreDependencies": [
-        "@fontsource-variable/bricolage-grotesque",
-        "@fontsource/atkinson-hyperlegible-next"
-      ]
+      "ignore": ["public/**"],
+      "ignoreDependencies": ["@fontsource-variable/bricolage-grotesque", "@fontsource/atkinson-hyperlegible-next"]
     }
   },
   "ignoreExportsUsedInFile": true

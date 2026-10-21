@@ -1,4 +1,18 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, OnInit, afterNextRender, computed, signal, WritableSignal, inject, input, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  Injector,
+  OnInit,
+  afterNextRender,
+  computed,
+  signal,
+  WritableSignal,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
@@ -19,10 +33,7 @@ import {
   isFolderRef,
   methodLabel,
 } from "../../shared/collections/collection-tree-nodes";
-import {
-  CollectionNodeAction,
-  buildContextItems,
-} from "../../shared/collections/collection-context-menu";
+import { CollectionNodeAction, buildContextItems } from "../../shared/collections/collection-context-menu";
 import { Icon } from "../../shared/icon/icon";
 import { InheritedSettingsDialog, type InheritedSettingsTarget } from "./inherited-settings-dialog";
 import { PostmanExportDialog } from "./postman-export-dialog";
@@ -42,7 +53,10 @@ export interface PaletteAction {
 
 @Component({
   selector: "app-collections-sidebar",
-  imports: [UiButton, MatFormField, MatInput, 
+  imports: [
+    UiButton,
+    MatFormField,
+    MatInput,
     Icon,
     FormsModule,
     Tree,
@@ -88,9 +102,7 @@ export class CollectionsSidebar implements OnInit {
   /** App-shell-owned commands (theme, history, composer, bridge, ...) the palette can't build itself since it has no access to those services/components. */
   readonly externalActions = input<PaletteAction[]>([]);
 
-  readonly nodes = computed<UiTreeNode<NodeData>[]>(() =>
-    collectionsToNodes(this.collectionsService.tree())
-  );
+  readonly nodes = computed<UiTreeNode<NodeData>[]>(() => collectionsToNodes(this.collectionsService.tree()));
   readonly loading = this.collectionsService.loading;
   readonly selectedNode = signal<UiTreeNode<NodeData> | null>(null);
   readonly contextItems = signal<UiMenuItem[]>([]);
@@ -232,7 +244,7 @@ export class CollectionsSidebar implements OnInit {
           id: "delete-collection",
           label: `Delete ${data.ref.name}`,
           run: () => this.handleAction("delete", node),
-        }
+        },
       );
     }
     if (data.type === "folder") {
@@ -252,7 +264,7 @@ export class CollectionsSidebar implements OnInit {
           id: "delete-folder",
           label: `Delete ${folder.name}`,
           run: () => this.handleAction("delete", node),
-        }
+        },
       );
     }
     if (data.type === "request") {
@@ -272,7 +284,7 @@ export class CollectionsSidebar implements OnInit {
           id: "delete-request",
           label: `Delete ${request.name || request.url}`,
           run: () => this.handleAction("delete", node),
-        }
+        },
       );
     }
     return actions;
@@ -293,9 +305,7 @@ export class CollectionsSidebar implements OnInit {
 
   handleNodeSelect(node: UiTreeNode<NodeData>): void {
     this.selectedNode.set(node);
-    this.contextItems.set(
-      buildContextItems(node, (action, target) => this.dispatchContextAction(action, target))
-    );
+    this.contextItems.set(buildContextItems(node, (action, target) => this.dispatchContextAction(action, target)));
   }
 
   private dispatchContextAction(action: CollectionNodeAction, node: UiTreeNode<NodeData>): void {
@@ -310,17 +320,34 @@ export class CollectionsSidebar implements OnInit {
     }
     if (action === "run") {
       const data = node.data as NodeData;
-      const tree = data.type === "request" ? undefined : this.collectionsService.tree().find((entry) => entry.collection.meta.id === (data.type === "collection" ? data.ref.meta.id : data.ref.collectionId));
+      const tree =
+        data.type === "request"
+          ? undefined
+          : this.collectionsService
+              .tree()
+              .find(
+                (entry) =>
+                  entry.collection.meta.id === (data.type === "collection" ? data.ref.meta.id : data.ref.collectionId),
+              );
       if (!tree) return;
       // A folder's run is named with the folders it is in, as a request's breadcrumb is.
-      if (data.type === "folder") this.run.emit({ collectionId: tree.collection.meta.id, folderId: data.ref.meta.id, name: [tree.collection.name, ...folderChain(tree.folders, data.ref.meta.id).map((folder) => folder.name)].join(" / ") });
+      if (data.type === "folder")
+        this.run.emit({
+          collectionId: tree.collection.meta.id,
+          folderId: data.ref.meta.id,
+          name: [
+            tree.collection.name,
+            ...folderChain(tree.folders, data.ref.meta.id).map((folder) => folder.name),
+          ].join(" / "),
+        });
       else this.run.emit({ collectionId: tree.collection.meta.id, name: tree.collection.name });
       return;
     }
     if (action === "settings") {
       const data = node.data as NodeData;
       if (data.type === "collection") this.settingsOf.set({ collectionId: data.ref.meta.id });
-      else if (data.type === "folder") this.settingsOf.set({ collectionId: data.ref.collectionId, folderId: data.ref.meta.id });
+      else if (data.type === "folder")
+        this.settingsOf.set({ collectionId: data.ref.collectionId, folderId: data.ref.meta.id });
       return;
     }
     void this.handleAction(action, node);
@@ -344,11 +371,14 @@ export class CollectionsSidebar implements OnInit {
   /** Saves the new order of a node's siblings after a drag and drop or an Alt+Arrow move. */
   async handleReorder(event: { node: UiTreeNode<NodeData>; siblings: UiTreeNode<NodeData>[] }): Promise<void> {
     const order = event.siblings.map((sibling, index) => ({ id: sibling.data.ref.meta.id, order: index + 1 }));
-    return event.node.data.type === "collection" ? this.collectionsService.reorderCollections(order) : this.collectionsService.reorderChildren(order);
+    return event.node.data.type === "collection"
+      ? this.collectionsService.reorderCollections(order)
+      : this.collectionsService.reorderChildren(order);
   }
 
   /** A collection is moved among collections; a folder or a request among the folders and requests of its parent, which share one order. */
-  readonly nodeKind = (node: UiTreeNode<NodeData>): string => (node.data.type === "collection" ? "collection" : "child");
+  readonly nodeKind = (node: UiTreeNode<NodeData>): string =>
+    node.data.type === "collection" ? "collection" : "child";
 
   beginRename(node: UiTreeNode<NodeData>): void {
     this.editingKey.set(node.key ?? null);
@@ -359,7 +389,7 @@ export class CollectionsSidebar implements OnInit {
         field?.focus();
         field?.select();
       },
-      { injector: this.injector }
+      { injector: this.injector },
     );
   }
 
@@ -402,7 +432,7 @@ export class CollectionsSidebar implements OnInit {
 
   async handleAction(
     action: Exclude<CollectionNodeAction, "export" | "export-credentials" | "export-postman" | "settings" | "run">,
-    node: UiTreeNode<NodeData>
+    node: UiTreeNode<NodeData>,
   ): Promise<void> {
     const data = node.data as NodeData;
     switch (action) {
@@ -434,10 +464,7 @@ export class CollectionsSidebar implements OnInit {
     this.openCreationDialog({ type: "folder", collectionId });
   }
 
-  private async createRequestPrompt(
-    collectionId: string,
-    folderId?: string
-  ): Promise<void> {
+  private async createRequestPrompt(collectionId: string, folderId?: string): Promise<void> {
     this.openCreationDialog({ type: "request", collectionId, folderId });
   }
 
@@ -469,8 +496,11 @@ export class CollectionsSidebar implements OnInit {
   /** What a folder's deletion takes with it, as a sentence; nothing for an empty folder. */
   private insideFolder(folder: Folder): string {
     const tree = this.collectionsService.tree().find((entry) => entry.collection.meta.id === folder.collectionId);
-    const within = (folderId: string | undefined) => folderChain(tree?.folders ?? [], folderId).some((entry) => entry.meta.id === folder.meta.id);
-    const folders = (tree?.folders ?? []).filter((entry) => entry.meta.id !== folder.meta.id && within(entry.meta.id)).length;
+    const within = (folderId: string | undefined) =>
+      folderChain(tree?.folders ?? [], folderId).some((entry) => entry.meta.id === folder.meta.id);
+    const folders = (tree?.folders ?? []).filter(
+      (entry) => entry.meta.id !== folder.meta.id && within(entry.meta.id),
+    ).length;
     const requests = (tree?.requests ?? []).filter((request) => within(request.folderId)).length;
     if (folders + requests === 0) return "";
     const count = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;

@@ -23,7 +23,9 @@ describe("VariablesDialog", () => {
       await fixture.whenStable();
     };
     const press = async (label: string) => {
-      [...dialog.querySelectorAll("button")].find((button) => button.textContent?.includes(label) || button.getAttribute("aria-label") === label)!.click();
+      [...dialog.querySelectorAll("button")]
+        .find((button) => button.textContent?.includes(label) || button.getAttribute("aria-label") === label)!
+        .click();
       await fixture.whenStable();
     };
     return { fixture, dialog, fields, type, press, saved, closed };
@@ -63,6 +65,9 @@ describe("VariablesDialog", () => {
     await fixture.whenStable();
     fixture.componentRef.setInput("visible", true);
     await fixture.whenStable();
-    expect([...document.querySelectorAll<HTMLInputElement>("dialog[open] input")].map((input) => input.value)).toEqual(["a", "1"]);
+    expect([...document.querySelectorAll<HTMLInputElement>("dialog[open] input")].map((input) => input.value)).toEqual([
+      "a",
+      "1",
+    ]);
   });
 });

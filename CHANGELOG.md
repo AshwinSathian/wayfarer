@@ -9,6 +9,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A busy spinner still looks busy when you ask your system for less
+  motion.** Before, with reduced motion the spinner in a button (Save,
+  Pair, Test connection, Run self-tests) and beside a live stream, a run or
+  a sign-in shrank to a dot, which did not read as anything. Now it is a
+  ring with a gap, in the colour of the text around it, that turns once
+  every 1.2 seconds, and with reduced motion stands still as that ring.
+  Angular Material's spinner is gone, and the app's first download is 8.3 kB smaller (1.4 kB
+  compressed); the size budgets are reset to it: initial 1,200,527 B raw
+  and 314,968 B gzip; budgets 1261kb, 1321kb and 346,465 B.
+
 - **Tooltips are the app's own, everywhere, and reach the keyboard and a
   screen reader where they did not.** Before, more than half of the app's
   tooltips were the browser's own (the toolbar's buttons, the status bar,

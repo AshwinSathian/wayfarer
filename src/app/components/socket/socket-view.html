@@ -9,7 +9,7 @@
   </div>
   <div role="status" class="type-callout text-label-secondary flex items-center gap-2 pb-2">
     @switch (status) {
-    @case ('connecting') { <mat-spinner diameter="18" aria-hidden="true" /> <span>Connecting…</span> }
+    @case ('connecting') { <ui-spinner /> <span>Connecting…</span> }
     @case ('open') { <span class="text-status-success">Connected</span> }
     @default { <span>Not connected</span> }
     }

@@ -59,7 +59,7 @@
   <div class="graphql space-y-3">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="known?.status === 'loading'" (click)="fetchSchema()">
-        @if (known?.status === 'loading') { <mat-spinner diameter="18" aria-hidden="true" /> } @else { <app-icon name="replay" /> }
+        @if (known?.status === 'loading') { <ui-spinner /> } @else { <app-icon name="replay" /> }
         {{ known?.outline ? 'Refresh schema' : 'Fetch schema' }}
       </button>
       <span class="graphql-schema-status type-footnote text-label-secondary min-w-0" role="status">

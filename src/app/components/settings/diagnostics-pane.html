@@ -12,7 +12,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="type-subhead text-label-primary">Self-tests</p>
       <button matButton="outlined" class="btn-secondary btn-sm" type="button" [disabled]="testing()" (click)="runTests()">
-        @if (testing()) { <mat-spinner diameter="18" aria-hidden="true" /> } Run self-tests
+        @if (testing()) { <ui-spinner /> } Run self-tests
       </button>
     </div>
     <p class="type-footnote text-label-tertiary">Runs a script, encrypts and decrypts, writes and deletes a record, fetches a file of the app's own and asks the Local Bridge, if one is used. Nothing leaves this machine.</p>

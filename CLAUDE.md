@@ -439,7 +439,8 @@ code errors.
   - the families D3.3 has moved, on Angular Aria (see "Angular Aria"):
     `ui-tree`, `ui-menu`, `uiTabList`, `uiAccordion`, `ui-select`;
   - the families D3.3 has moved to the platform (see "The platform"):
-    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`;
+    `ui-segmented`, `UiModal` with `ui-dialog` and `Confirm`, `uiTooltip`,
+    `ui-spinner`;
   - what Material has no component for, built on the CDK: `ui-splitter`.
 - Not Material, and why: loading skeletons (Material has none; a progress
   bar says something else), the variable and usage chips (two-line and
@@ -472,9 +473,6 @@ code errors.
 - Icon button in a toolbar or a panel's header: `matIconButton
   class="btn-plain"` (34 px, grey until hovered; its icon keeps its own
   size class).
-- Busy: `<mat-spinner diameter="18" aria-hidden="true" />` in place of a
-  button's icon, or one with an `aria-label` on its own. It takes the
-  colour of the text around it.
 - The top bar is `<mat-toolbar class="ds-toolbar" role="banner">`.
 - A token cannot be `inherit` (or `initial`, `unset`): as a custom
   property's value that word acts on the variable, and Material falls back
@@ -604,6 +602,16 @@ code errors.
     (0, 0), where a headless pointer rests.
   A test finds one by `getByRole("tooltip")` and its text; a hidden one is
   not found.
+- Busy: `<ui-spinner />` (`src/app/ui/spinner.ts`, styles in
+  `spinner.css`) in place of a button's icon, where it says nothing (the
+  button's text does), or `<ui-spinner [diameter]="28" label="…" />` on
+  its own, a `progressbar` with that name. A ring of three quarters in the
+  colour of the text around it, turning once in `--dur-shimmer`; with
+  reduced motion it stands still as that ring. What it does that Material's
+  did not, each with a test in `spinner.spec.ts` and the catalogue's e2e:
+  it takes no focus (Material's had `tabindex="-1"`, which a click can
+  focus), and with reduced motion it is still a ring (Material's arc
+  shrank to a dot).
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a

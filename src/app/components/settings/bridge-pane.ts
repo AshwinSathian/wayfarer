@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatFormField } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { UiSpinner } from "../../ui/spinner";
 import type { Route } from "@wayfarer/core";
 import { BridgeSettings } from "../../services/bridge-settings";
 import { Icon } from "../../shared/icon/icon";
@@ -16,7 +16,7 @@ import { UiSegmented, type UiSegment } from "../../ui/segmented";
  */
 @Component({
   selector: "app-bridge-pane",
-  imports: [FormsModule, Icon, MatButton, MatIconButton, MatFormField, MatInput, MatProgressSpinner, UiSegmented],
+  imports: [FormsModule, Icon, MatButton, MatIconButton, MatFormField, MatInput, UiSpinner, UiSegmented],
   templateUrl: "./bridge-pane.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },

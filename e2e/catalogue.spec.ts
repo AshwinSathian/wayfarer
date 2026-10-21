@@ -142,6 +142,15 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  // A test of its own, as the segmented choice's.
+  test(`the spinner is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    await page.getByRole("progressbar", { name: "Loading secrets" }).scrollIntoViewIfNeeded();
+    await scanner(page, found)("spinner, in buttons and on its own");
+    expect(found).toEqual([]);
+  });
+
   // Two tests, not one: each scan reads the whole page, and with every family in it one test took more than its 30 s in Firefox on CI.
   test(`the tree and the menus, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
@@ -1029,6 +1038,43 @@ test("tooltip: in forced colours its edge still shows", async ({ page }) => {
   await expect(tip).toBeVisible();
   // The shadow is taken away; the border is not.
   expect(await tip.evaluate((el) => `${getComputedStyle(el).borderTopStyle} ${getComputedStyle(el).borderTopWidth}`)).toBe("solid 1px");
+});
+
+test("spinner: named only on its own, takes no focus, and is a ring in forced colours and with reduced motion", async ({ page, browserName }) => {
+  await open(page, "light");
+  // In a button the button's text says it; on its own it is a named progressbar.
+  await expect(page.getByRole("progressbar")).toHaveCount(1);
+  await expect(page.getByRole("progressbar", { name: "Loading secrets" })).toBeVisible();
+  const saving = page.getByRole("button", { name: "Saving" });
+  const inButton = saving.locator("ui-spinner");
+  await expect(inButton).toHaveAttribute("aria-hidden", "true");
+  // A press on it is the button's (WebKit focuses no button on a click).
+  await inButton.click();
+  if (browserName !== "webkit") await expect(saving).toBeFocused();
+  await expect(inButton).not.toBeFocused();
+
+  // In the button's colour: white on the filled button.
+  const colours = await inButton.evaluate((el) => [getComputedStyle(el.querySelector("circle")!).stroke, getComputedStyle(el).color]);
+  expect(colours[0]).toBe(colours[1]);
+
+  // Reduced motion: it stands still, still a ring with a gap (Material's shrank to a dot).
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const still = await inButton.evaluate((el) => ({
+    durations: el.getAnimations({ subtree: true }).map((a) => Number(a.effect?.getComputedTiming().duration)),
+    dash: getComputedStyle(el.querySelector("circle")!).strokeDasharray,
+  }));
+  expect(still.durations.every((ms) => ms <= 0.001)).toBe(true);
+  expect(still.dash).not.toBe("none");
+});
+
+test("spinner: in forced colours it is drawn in the text's colour", async ({ page }) => {
+  await page.emulateMedia({ forcedColors: "active" });
+  await open(page, "light");
+  test.skip(!(await page.evaluate(() => matchMedia("(forced-colors: active)").matches)), "this engine does not emulate forced colours");
+  const spinner = page.getByRole("progressbar", { name: "Loading secrets" });
+  const [stroke, color] = await spinner.evaluate((el) => [getComputedStyle(el.querySelector("circle")!).stroke, getComputedStyle(el).color]);
+  expect(stroke).toBe(color);
+  expect(stroke).not.toBe("rgba(0, 0, 0, 0)");
 });
 
 test("the production build holds nothing of the catalogue", async () => {

@@ -19,7 +19,7 @@
         <input class="font-mono" matInput id="bridge-pairing-input" type="text" autocomplete="off" spellcheck="false" autocapitalize="characters" [ngModel]="pairingCode()" (ngModelChange)="pairingCode.set($event); pairing.set('idle')" placeholder="ABCD-2345" />
       </mat-form-field>
       <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Pair" [disabled]="!pairingCode().trim() || !url().trim() || pairing() === 'pairing'" (click)="pair()">
-        @if (pairing() === 'pairing') { <mat-spinner diameter="18" aria-hidden="true" /> } Pair
+        @if (pairing() === 'pairing') { <ui-spinner /> } Pair
       </button>
     </div>
     <span class="type-footnote flex items-center gap-1" role="status">
@@ -48,7 +48,7 @@
 
 <div class="mt-4 flex flex-wrap items-center gap-2">
   <button matButton="outlined" class="btn-secondary btn-sm" type="button" aria-label="Test connection" [disabled]="!url().trim() || test() === 'testing'" (click)="testConnection()">
-    @if (test() === 'testing') { <mat-spinner diameter="18" aria-hidden="true" /> } Test connection
+    @if (test() === 'testing') { <ui-spinner /> } Test connection
   </button>
   <span class="bridge-test type-footnote flex items-center gap-1" role="status">
     @if (testProblem()) {

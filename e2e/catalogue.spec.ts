@@ -1408,12 +1408,12 @@ test("checkbox: Tab reaches each one in every engine and passes over a disabled 
   const box = (name: string) => page.getByRole("checkbox", { name, exact: true });
   await box("Follow redirects").focus();
   // Plain Tab, in WebKit too: without its tabindex, WebKit's Tab (Safari's by default) passed over a checkbox.
-  for (const name of ["Do not verify the server's certificate", "Send header 1"]) {
+  for (const name of ["Do not verify the server's certificate", "Send parameter 1"]) {
     await page.keyboard.press("Tab");
     await expect(box(name), name).toBeFocused();
   }
   await page.keyboard.press("Tab");
-  await expect(page.getByLabel("Header name, row 1")).toBeFocused();
+  await expect(page.getByLabel("Parameter name, row 1")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(box("Hold back a request with a variable that has no value")).toBeFocused();
   await expect(box("Stop on the first failure")).toBeDisabled();
@@ -1479,7 +1479,8 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   expect(await css(off, "outline-width")).toBe("2px");
   expect(await css(off, "outline-offset")).toBe("2px");
   expect(await css(off, "border-top-left-radius")).toBe(radius);
-  expect(await css(off, "border-top-color")).toBe(await token("--accent-border"));
+  // A transition, even reduced to nothing, ends at a frame: Linux WebKit had none to give at once.
+  await expect.poll(async () => css(off, "border-top-color")).toBe(await token("--accent-border"));
 
   // Disabled: the box and its text dimmed, and no pointer.
   const disabled = box("Stop on the first failure");

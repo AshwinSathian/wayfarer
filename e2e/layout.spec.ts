@@ -8,7 +8,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.goto("/app/");
 
     // Before any response exists, the response pane shows its own empty state.
-    await expect(page.getByText("Send a request to see the response here")).toBeVisible();
+    await expect(page.getByText("Send a request and its response shows here.")).toBeVisible();
 
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
@@ -98,7 +98,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
       await openEnvironments(page);
-      await page.getByRole("button", { name: "New environment" }).click();
+      await page.getByRole("button", { name: "New environment" }).first().click();
       await page.locator("#new-env-name-input").fill("Phone");
       await page.getByRole("button", { name: "Create environment" }).click();
       await page.getByRole("button", { name: "Export environments" }).click();
@@ -127,7 +127,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");
     await openEnvironments(page);
-    await page.getByRole("button", { name: "New environment" }).click();
+    await page.getByRole("button", { name: "New environment" }).first().click();
     await page.locator("#new-env-name-input").fill("A much longer environment name that has to be cut somewhere");
     await page.getByRole("button", { name: "Create environment" }).click();
     await expect(page.locator("#new-env-name-input")).toHaveCount(0);
@@ -187,7 +187,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
       await page.getByRole("button", { name: "Toggle sidebar" }).click();
       const drawer = page.getByRole("dialog", { name: "Navigation" });
-      await expect(drawer.getByRole("button", { name: "New collection" })).toBeVisible();
+      await expect(drawer.getByRole("button", { name: "New collection" }).first()).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(drawer).toHaveCount(0);
     });
@@ -263,7 +263,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");
     await openEnvironments(page);
-    await page.getByRole("button", { name: "New environment" }).click();
+    await page.getByRole("button", { name: "New environment" }).first().click();
     await page.getByPlaceholder("Environment name").fill("Wide");
     await page.getByRole("button", { name: "Create environment" }).click();
     await page.getByRole("tab", { name: "JSON", exact: true }).click();

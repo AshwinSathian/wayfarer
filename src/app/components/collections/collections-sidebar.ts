@@ -1,4 +1,4 @@
-import { SHORTCUTS, ariaKeysOf, keysOf, type Shortcut } from "../../shared/shortcuts";
+import { SHORTCUTS, ariaKeysOf, keysOf, matches, type Shortcut } from "../../shared/shortcuts";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -140,14 +140,15 @@ export class CollectionsSidebar implements OnInit {
     if (this.importPipeline.dialogVisible() || this.commandPaletteVisible()) {
       return;
     }
-    const target = event.target as HTMLElement | null;
-    if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+    // From a field too (U-049): the address has focus when the app opens.
+    if (matches(event, SHORTCUTS.palette)) {
+      event.preventDefault();
+      this.openCommandPalette();
       return;
     }
 
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      this.openCommandPalette();
+    const target = event.target as HTMLElement | null;
+    if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
       return;
     }
 

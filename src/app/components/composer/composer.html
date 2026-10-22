@@ -156,11 +156,24 @@
         @if (store.shouldShowResponsePanel) {
         <ng-container [ngTemplateOutlet]="response" />
         } @else {
-        <div
-          class="flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-separator text-center px-6"
-        >
-          <app-icon name="bolt" class="icon-lg text-label-tertiary" />
-          <p class="type-callout text-label-secondary">Send a request to see the response here</p>
+        <!-- First run (D4.2, U-022): the next step, not "nothing here". -->
+        <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center px-6">
+          <p class="type-callout text-label-secondary">Send a request and its response shows here.</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
+              >Paste a cURL command</button
+            >
+            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importFile.click()"
+              >Import a collection…</button
+            >
+            <input
+              #importFile
+              type="file"
+              accept="application/json,.json,.har,.yaml,.yml"
+              class="hidden"
+              (change)="importPipeline.pick($event)"
+            />
+          </div>
         </div>
         }
       </div>

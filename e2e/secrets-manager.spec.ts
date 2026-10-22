@@ -24,7 +24,7 @@ test.describe("Secrets management view", () => {
 
     // Create an environment with one variable.
     await openEnvironments(page);
-    await page.getByRole("button", { name: "New environment" }).click();
+    await page.getByRole("button", { name: "New environment" }).first().click();
     await page.locator("#new-env-name-input").fill("Secrets E2E Env");
     await page.getByRole("button", { name: "Create environment" }).click();
     await expect(page.locator(".env-item", { hasText: "Secrets E2E Env" })).toBeVisible();

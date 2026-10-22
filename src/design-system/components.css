@@ -363,6 +363,7 @@ pre,
 }
 
 /* ── Empty state ─────────────────────────────────────────── */
+/* An empty place: what will be there, and the step that fills it (docs/design/voice.md). No box around nothing. */
 .ds-empty-state {
   display: flex;
   flex-direction: column;
@@ -370,8 +371,6 @@ pre,
   justify-content: center;
   gap: 8px;
   padding: 32px 24px;
-  border: 1px dashed var(--separator);
-  border-radius: var(--radius-xl);
   text-align: center;
   color: var(--label-tertiary);
 }

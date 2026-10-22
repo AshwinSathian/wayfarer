@@ -330,7 +330,16 @@ have two dashed boxes. The first screen has no way in besides the
 address field: no "paste a cURL command", no "import from Postman", no
 example request.
 Evidence: `baseline/1440-light-01b-first-run-full.png`.
-**Status:** Open, D4-c.
+**Status:** Fixed in #427 (D4-c), with one part accepted. The empty
+response offers "Paste a cURL command" and "Import a collection…"; the
+empty sidebar says what goes there and offers "New collection" and
+"Import…"; the empty environments list says what an environment is for and
+offers "New environment"; empty History says what will be listed. None
+draws a dashed box around nothing ([`voice.md`](voice.md#empty-states)).
+**Accepted:** no example request. It would send to a server the person did
+not choose, and the app sends nothing anywhere by itself; the address,
+focused at the start, is the way in, with a cURL command pasted into it as
+the second.
 
 **U-023. The first screen explains the Local Bridge.** Severity 2. H2, H8.
 OC.
@@ -540,7 +549,9 @@ drawer and the key opens nothing; at any width it is ignored while focus is
 in a field, the address included, which is where a person's focus is.
 Postman's and Insomnia's open from anywhere. Checked at 820 and 1,440 px.
 Evidence: `collections-sidebar.ts`, `handleGlobalKeydown`.
-**Status:** Open, D4-f (the palette becomes the shell's, [`ia.md`](ia.md#u-011-the-palette)).
+**Status:** Open, D4-f (the palette becomes the shell's, [`ia.md`](ia.md#u-011-the-palette)), for
+the drawer. The field is fixed in #427 (D4-c): the key opens the palette
+from a field too, since the address has focus when the app opens.
 
 **U-050. Copy as cURL says nothing.** Severity 3. H1. TP.
 The command goes to the clipboard and the menu closes; nothing on the

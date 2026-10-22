@@ -22,5 +22,8 @@ describe("shortcuts", () => {
     expect(matches(key({ key: "s", code: "KeyS", ctrlKey: true }), SHORTCUTS.save)).toBe(true);
     expect(matches(key({ key: "s", code: "KeyS", ctrlKey: true, altKey: true }), SHORTCUTS.save)).toBe(false);
     expect(matches(key({ key: "†", code: "KeyT", altKey: true }), SHORTCUTS.newTab)).toBe(true);
+    // ⌘K follows the layout: on Dvorak the K key sits where QWERTY has V.
+    expect(matches(key({ key: "k", code: "KeyV", metaKey: true }), SHORTCUTS.palette)).toBe(true);
+    expect(matches(key({ key: "v", code: "KeyK", metaKey: true }), SHORTCUTS.palette)).toBe(false);
   });
 });

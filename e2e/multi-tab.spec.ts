@@ -7,7 +7,7 @@ import { ECHO } from "./support/echo";
 
 async function createEnvironment(page: Page, name: string): Promise<void> {
   await openEnvironments(page);
-  await page.getByRole("button", { name: "New environment" }).click();
+  await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill(name);
   await page.getByRole("button", { name: "Create environment" }).click();
   await expect(page.locator("app-environments-manager").getByText(name, { exact: true })).toBeVisible();
@@ -30,9 +30,9 @@ test("what one tab saves appears in the other within a second: a collection, an 
   const pageB = await context.newPage();
   await pageA.goto("/app/");
   await pageB.goto("/app/");
-  await expect(pageB.getByText("No collections yet", { exact: false })).toBeVisible();
+  await expect(pageB.getByText("Requests you save are kept here, in collections.")).toBeVisible();
 
-  await pageA.getByRole("button", { name: "New collection" }).click();
+  await pageA.getByRole("button", { name: "New collection" }).first().click();
   await pageA.locator("#creation-name-input").fill("Made in tab A");
   await pageA.getByRole("button", { name: "Create", exact: true }).click();
   await expect(pageB.getByText("Made in tab A", { exact: true })).toBeVisible({ timeout: 1000 });

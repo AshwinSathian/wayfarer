@@ -1,16 +1,28 @@
 import { NgTemplateOutlet } from "@angular/common";
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, viewChild } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+  viewChild,
+} from "@angular/core";
 import { SHORTCUTS, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
+import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
 import { isBodyMethod } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
 import { Splitter } from "../../ui/splitter";
+import { UiButton } from "../../ui/button";
 import { UiTabList } from "../../ui/tabs";
 import { RunView } from "../runner/run-view";
 import { SocketView } from "../socket/socket-view";
@@ -39,6 +51,7 @@ import { VariableChips } from "./variable-chips";
   selector: "app-composer",
   imports: [
     Icon,
+    UiButton,
     ComposerSections,
     AriaTabs,
     Tab,
@@ -73,6 +86,7 @@ export class Composer {
   protected readonly store = inject(WorkspaceStore);
   protected readonly view = inject(ComposerView);
   private readonly requestSave = inject(RequestSave);
+  protected readonly importPipeline = inject(ImportPipeline);
 
   readonly newRequest = output<void>();
 
@@ -101,6 +115,22 @@ export class Composer {
     const keydown = (event: KeyboardEvent) => this.onKeydown(event);
     window.addEventListener("keydown", keydown, true);
     inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+
+    // First run (D4.2): an empty request waits for its address, so the caret starts there and typing sends a
+    // request with Enter. Not on a phone, where focus would open the keyboard over the page.
+    // The row is made with the tab's panel, after the first render: once it is there, this is done.
+    const firstRun = effect(() => {
+      const row = this.addressRow();
+      if (!row) return;
+      firstRun.destroy();
+      untracked(() => {
+        // Not past a dialog that has the keyboard (the vault's, at a reload), or a choice already made.
+        if (this.isMobile() || document.activeElement !== document.body || document.querySelector("dialog:modal"))
+          return;
+        if (this.store.draft().url) return;
+        row.focusUrl();
+      });
+    });
   }
 
   private onKeydown(event: KeyboardEvent): void {

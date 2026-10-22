@@ -8,7 +8,7 @@ test.describe("Environments", () => {
     await page.goto("/app/");
 
     await openEnvironments(page);
-    await page.getByRole("button", { name: "New environment" }).click();
+    await page.getByRole("button", { name: "New environment" }).first().click();
     const nameInput = page.locator("#new-env-name-input");
     await nameInput.fill("E2E Env");
     await page.getByRole("button", { name: "Create environment" }).click();

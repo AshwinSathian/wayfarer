@@ -32,9 +32,13 @@ export function ariaKeysOf(shortcut: Shortcut, mac = MAC): string {
   return [mod && (mac ? "Meta" : "Control"), alt && "Alt", key].filter(Boolean).join("+");
 }
 
-/** Read from `code` for a letter: on macOS Option+T is the character "†". Shift is never part of one. */
+/**
+ * A letter with ⌘ or Ctrl is read from `key`, so that it follows the keyboard's layout; with Alt alone from `code`,
+ * its place on the keyboard: on macOS Option+T is the character "†". Shift is never part of one.
+ */
 export function matches(event: KeyboardEvent, shortcut: Shortcut): boolean {
   const { key, mod = false, alt = false } = shortcut;
   if ((event.metaKey || event.ctrlKey) !== mod || event.altKey !== alt || event.shiftKey) return false;
-  return key.length === 1 ? event.code === `Key${key}` : event.key === key;
+  if (key.length > 1) return event.key === key;
+  return mod ? event.key.toUpperCase() === key : event.code === `Key${key}`;
 }

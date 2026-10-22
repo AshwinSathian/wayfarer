@@ -8,7 +8,7 @@ test.describe("Collections", () => {
     await page.goto("/app/");
 
     // Create a collection via the sidebar header's "+" button.
-    const newCollectionButton = page.getByRole("button", { name: "New collection" });
+    const newCollectionButton = page.getByRole("button", { name: "New collection" }).first();
     await newCollectionButton.click();
 
     const nameInput = page.locator("#creation-name-input");
@@ -48,7 +48,7 @@ test.describe("Collections", () => {
     const urlInput = page.locator("input.address-url");
     const nameInput = page.locator("#creation-name-input");
 
-    await page.getByRole("button", { name: "New collection" }).click();
+    await page.getByRole("button", { name: "New collection" }).first().click();
     await expect(nameInput).toBeVisible();
     await nameInput.fill("Save Flow Collection");
     await page.getByRole("button", { name: "Create", exact: true }).click();
@@ -105,7 +105,7 @@ test.describe("Collections", () => {
     const urlInput = page.locator("input.address-url");
     const nameInput = page.locator("#creation-name-input");
 
-    await page.getByRole("button", { name: "New collection" }).click();
+    await page.getByRole("button", { name: "New collection" }).first().click();
     await nameInput.fill("One Click");
     await page.getByRole("button", { name: "Create", exact: true }).click();
     // Until the dialog has closed, the page under it is inert: a field there takes no text.

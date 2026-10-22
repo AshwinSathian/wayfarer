@@ -333,15 +333,15 @@
       <app-cookies-pane />
       } @case ('shortcuts') {
       <div class="settings-group">
-        @for (shortcut of fixedShortcuts; track shortcut.keys) {
+        @for (shortcut of shortcuts(); track shortcut.keys) {
         <div class="settings-row">
           <span class="type-callout text-label-secondary">{{ shortcut.description }}</span>
-          <kbd class="shortcut-kbd">{{ shortcut.keys }}</kbd>
+          <kbd class="keycap">{{ shortcut.keys }}</kbd>
         </div>
         }
       </div>
       @if (paletteActions().length) {
-      <h4 class="settings-subhead">Command palette (⌘K) — {{ paletteActions().length }} actions</h4>
+      <h4 class="settings-subhead">Everything the command palette can do</h4>
       <ul class="settings-group settings-list">
         @for (action of paletteActions(); track action.id) {
         <li class="type-footnote text-label-secondary">{{ action.label }}</li>

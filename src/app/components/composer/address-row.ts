@@ -1,3 +1,4 @@
+import { SHORTCUTS } from "../../shared/shortcuts";
 import { isCurlCommand } from "@wayfarer/core";
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output, viewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
@@ -33,6 +34,7 @@ export class AddressRow {
   private readonly requestSave = inject(RequestSave);
 
   readonly send = output<void>();
+  protected readonly shortcuts = SHORTCUTS;
 
   private readonly urlInput = viewChild<ElementRef<HTMLInputElement>>("urlInput");
 
@@ -69,6 +71,13 @@ export class AddressRow {
     if (!isCurlCommand(text)) return;
     event.preventDefault();
     void this.view.pasteCurl(text);
+  }
+
+  /** Enter in the address sends, as in Postman, Insomnia and Hoppscotch; not while an input method is composing. */
+  protected onEnter(event: Event): void {
+    if ((event as KeyboardEvent).isComposing || !this.store.draft().url || this.store.loadingState()) return;
+    event.preventDefault();
+    this.send.emit();
   }
 
   focusUrl(): void {

@@ -1,3 +1,4 @@
+import { SHORTCUTS } from "../../shared/shortcuts";
 import { ImportDialog } from "../import/import-dialog";
 import { NgTemplateOutlet } from "@angular/common";
 import {
@@ -146,7 +147,8 @@ export class AppShell implements OnInit {
       },
       {
         id: "new-tab",
-        label: "New Tab (Alt+T)",
+        label: "New tab",
+        keys: SHORTCUTS.newTab,
         run: () => this.composer().newTab(),
       },
       {
@@ -156,13 +158,21 @@ export class AppShell implements OnInit {
       },
       {
         id: "close-tab",
-        label: "Close Tab (Alt+W)",
+        label: "Close tab",
+        keys: SHORTCUTS.closeTab,
         run: () => this.composer().closeTab(),
       },
       {
         id: "send-request",
-        label: "Send Request",
+        label: "Send request",
+        keys: SHORTCUTS.send,
         run: () => this.composer().sendRequest(),
+      },
+      {
+        id: "save-request",
+        label: "Save request",
+        keys: SHORTCUTS.save,
+        run: () => this.composer().saveCurrentRequest(),
       },
       {
         id: "environments",

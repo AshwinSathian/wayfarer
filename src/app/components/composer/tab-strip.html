@@ -25,7 +25,8 @@
     class="btn-plain"
     type="button"
     aria-label="New tab"
-    uiTooltip="New tab (Alt+T)"
+    uiTooltip="New tab"
+    [uiTooltipKeys]="shortcuts.newTab"
     (click)="open()"
     ><app-icon name="add"
   /></button>
@@ -43,7 +44,8 @@
     class="btn-plain"
     type="button"
     aria-label="Close tab"
-    uiTooltip="Close tab (Alt+W)"
+    uiTooltip="Close tab"
+    [uiTooltipKeys]="shortcuts.closeTab"
     (click)="close()"
     ><app-icon name="close"
   /></button>

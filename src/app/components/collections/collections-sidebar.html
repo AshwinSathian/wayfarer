@@ -8,7 +8,8 @@
         uiButton="icon"
         class="btn-plain"
         (click)="openCommandPalette()"
-        uiTooltip="Command palette (⌘K)"
+        uiTooltip="Command palette"
+        [uiTooltipKeys]="shortcuts.palette"
         aria-label="Open command palette"
       >
         <app-icon name="bolt" class="icon-sm" />
@@ -190,9 +191,12 @@
       @if (filteredPaletteActions.length) { @for (action of filteredPaletteActions; track action.id) {
       <button
         type="button"
-        class="w-full rounded-xl bg-canvas-elevated border border-separator px-4 py-3 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
+        class="flex w-full items-center justify-between gap-3 rounded-xl bg-canvas-elevated border border-separator px-4 py-3 text-left type-body text-label-primary hover:bg-fill-hover transition-colors"
+        [attr.aria-keyshortcuts]="action.keys ? ariaKeysOf(action.keys) : null"
         (click)="executePaletteAction(action)"
-        >{{ action.label }}</button
+        ><span class="min-w-0">{{ action.label }}</span>@if (action.keys) {<kbd class="keycap" aria-hidden="true"
+          >{{ keysOf(action.keys) }}</kbd
+        >}</button
       >
       } } @else {
       <div class="ds-empty-state py-6">

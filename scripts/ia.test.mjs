@@ -120,7 +120,9 @@ function inventory() {
     for (const m of body.matchAll(/\bid: ([^,\n]+),/g))
       for (const id of m[1].matchAll(/"([^"]+)"/g)) keys.add(`palette: ${id[1]}`);
   }
-  // The shortcuts Settings lists.
+  // The shortcuts: the app's, by name (shared/shortcuts.ts), and the keys Settings lists besides them.
+  const shortcuts = readFileSync(join(app, "shared/shortcuts.ts"), "utf8");
+  for (const m of shortcuts.matchAll(/^  (\w+): \{ key:/gm)) keys.add(`shortcut: ${m[1]}`);
   const settings = readFileSync(join(app, "components/settings/settings.ts"), "utf8");
   for (const m of settings.matchAll(/\{ keys: "([^"]+)"/g)) keys.add(`shortcut: ${m[1]}`);
   // Menus built in code.

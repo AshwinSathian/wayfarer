@@ -557,3 +557,18 @@ pre,
 .icon-xl {
   font-size: 32px;
 }
+
+/* A shortcut's keys (docs/design/voice.md, Shortcuts): in a tooltip, a palette's row, Settings › Shortcuts. */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  background: var(--fill-secondary);
+  color: var(--label-primary);
+  font-family: var(--font-sans);
+  font-size: var(--type-footnote-size);
+  line-height: var(--type-footnote-line);
+  white-space: nowrap;
+}

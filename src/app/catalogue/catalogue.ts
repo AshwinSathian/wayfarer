@@ -115,8 +115,8 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       <section aria-labelledby="catalogue-tooltips">
         <h2 id="catalogue-tooltips" class="type-title-3">Tooltips</h2>
         <p class="type-callout text-label-secondary">
-          Text that adds a key to a button's name, below and above; an icon that explains, at length; a menu button with
-          one; a card of details; a button at the row's end.
+          Text that adds a key to a button's name, below; a button's name with its key as a keycap, above; an icon that
+          explains, at length; a menu button with one; a card of details; a button at the row's end.
         </p>
         <div class="catalogue-row">
           <button uiButton="icon" class="btn-plain" type="button" aria-label="New tab" uiTooltip="New tab (Alt+T)"
@@ -128,6 +128,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
             type="button"
             aria-label="Delete"
             uiTooltip="Delete"
+            [uiTooltipKeys]="{ key: 'Delete' }"
             uiTooltipPosition="above"
             ><app-icon name="delete"
           /></button>

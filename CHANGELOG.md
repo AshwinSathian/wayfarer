@@ -53,6 +53,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Send and Save have keys, and every shortcut is shown where it
+  works.** ⌘↵ (Ctrl+Enter on Windows and Linux) sends the request and ⌘S
+  (Ctrl+S) saves it, from anywhere in the page, inside the body or script
+  editor too, as in Postman. Enter in the address sends as well; before,
+  it did nothing, and Send had no key at all. Send's, Save's and the tabs'
+  tooltips show their keys, the command palette shows each command's keys
+  beside it, and Settings, Shortcuts lists the keys from the same list the
+  palette uses, so it can no longer miss one. Keys are shown for your own
+  system only, instead of "⌘K / Ctrl+K".
+
 - **The top bar is the page's own header, and Angular Material is gone
   from the app, which loads 18 kB less (5.0 kB compressed).** The bar looks
   and behaves as before: the same height, colours, edge and controls, in

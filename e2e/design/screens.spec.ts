@@ -480,7 +480,8 @@ const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
 
 // What changes from run to run. The page's clock is fixed, so its times and dates do not. A duration the
 // browser measured still does, and its width moves the text after it: each is written as "12 ms" before
-// the capture, and a size "12 kB" (what the browser stores differs). An editor's caret is masked. What is left (a server's Date header) is under the threshold.
+// the capture, and what the browser has stored "12 kB". An editor's caret is masked. What is left (a
+// server's Date header) is under the threshold.
 /**
  * `settled`, but not waiting on what is not drawn: Firefox does not run a transition inside a closed
  * `<details>` (the GraphQL schema's types), so after a change of theme it never ends.
@@ -524,7 +525,10 @@ async function steady(page: Page): Promise<void> {
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       if (node.parentElement?.closest(".monaco-editor")) continue;
       const text = node.textContent ?? "";
-      const fixed = text.replace(/\d+(\.\d+)?\s?(µs|ms)\b/g, "12 ms").replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)\b/g, "12 kB");
+      const fixed = text
+        .replace(/\d+(\.\d+)?\s?(µs|ms)\b/g, "12 ms")
+        // Only what the browser stores ("73.7 kB of 10.7 GB", "73.7 kB used"), not a limit the copy names.
+        .replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)(?= used| of )|(?<=of )\d+(\.\d+)?\s?(B|kB|MB|GB)/g, "12 kB");
       if (fixed !== text) node.textContent = fixed;
     }
   });
@@ -535,7 +539,6 @@ const masked = (page: Page): Locator[] => [
   page.locator(".monaco-editor .cursors-layer"),
   page.getByText(/^\s*[0-9a-f]{7,40}\s*$/),
   page.getByText(/^\s*\d+\.\d+\.\d+\s*$/),
-  page.getByText(/\d+(\.\d+)?\s?(B|kB|MB|GB)\b/),
   page.locator('[aria-label*=" used of "]'),
 ];
 

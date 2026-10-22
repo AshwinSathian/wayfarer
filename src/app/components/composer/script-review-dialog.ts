@@ -9,14 +9,16 @@ import { Dialog } from "../../ui/dialog";
  * Characters that draw nothing or reorder what is drawn: controls, bidirectional overrides and isolates, zero-width
  * marks. A script could hide code behind them from a reader (Trojan Source); Monaco showed them, a `<pre>` does not.
  */
-const HIDDEN_CHARS = String.raw`[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]`;
-const HIDDEN = new RegExp(HIDDEN_CHARS);
+// Every control but tab and the line ends, every format character, and every default-ignorable code point: the
+// Hangul fillers, the variation selectors, the tag block and the rest, outside the Basic Multilingual Plane too.
+const HIDDEN_CHARS = String.raw`(?![\t\n\r])[\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}]`;
+const HIDDEN = new RegExp(HIDDEN_CHARS, "u");
 
 /** `text` with each hidden character written as its code point, so that what is read is what runs. */
 function shown(text: string): string {
   return text.replace(
-    new RegExp(HIDDEN_CHARS, "g"),
-    (char) => `⟨U+${char.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}⟩`,
+    new RegExp(HIDDEN_CHARS, "gu"),
+    (char) => `⟨U+${(char.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, "0")}⟩`,
   );
 }
 

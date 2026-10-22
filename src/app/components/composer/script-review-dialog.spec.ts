@@ -46,7 +46,8 @@ describe("ScriptReviewDialog", () => {
   });
 
   it("writes a character that draws nothing or reorders the text as its code point, and says so (Trojan Source)", async () => {
-    const script = 'if (isAdmin) { /*\u202E } \u2066 if (true) \u2069 */ pm.test("x", () => {}); }\u200B';
+    const script =
+      'if (isAdmin) { /*\u202E } \u2066 if (true) \u2069 */ pm.test("x", () => {}); }\u200B\u3164\uFE0F\u{E0041}\t';
     TestBed.configureTestingModule({
       imports: [ScriptReviewDialog],
       providers: [
@@ -66,7 +67,7 @@ describe("ScriptReviewDialog", () => {
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector(".script-review-code code")?.textContent).toBe(
-      'if (isAdmin) { /*⟨U+202E⟩ } ⟨U+2066⟩ if (true) ⟨U+2069⟩ */ pm.test("x", () => {}); }⟨U+200B⟩',
+      'if (isAdmin) { /*⟨U+202E⟩ } ⟨U+2066⟩ if (true) ⟨U+2069⟩ */ pm.test("x", () => {}); }⟨U+200B⟩⟨U+3164⟩⟨U+FE0F⟩⟨U+E0041⟩\t',
     );
     expect(host.querySelector(".script-review-hidden")).not.toBeNull();
   });

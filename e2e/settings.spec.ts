@@ -144,7 +144,10 @@ test.describe("Settings surface", () => {
     const dialog = await openSettings(page, "Shortcuts");
 
     await expect(dialog.getByText("Open the command palette")).toBeVisible();
-    await expect(dialog.getByRole("heading", { name: /^Command palette .* \d+ actions$/ })).toBeVisible();
+    await expect(dialog.getByRole("heading", { name: "Everything the command palette can do" })).toBeVisible();
+    // A command's keys come from the palette's list (U-032).
+    const send = dialog.locator(".settings-row").filter({ hasText: "Send request" });
+    await expect(send.locator("kbd")).toHaveText(/^(⌘↵|Ctrl\+Enter)$/);
     await expect(dialog.getByText("Local Bridge Settings", { exact: true })).toBeVisible();
   });
 

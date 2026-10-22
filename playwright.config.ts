@@ -42,13 +42,23 @@ export default defineConfig({
   // retries disabled: a claim test that fails once fails CI, and keeps the
   // trace of its failure.
   projects: BROWSERS.flatMap(({ name, device }) => [
-    { name, use: { ...device }, grepInvert: /@claim\b/ },
+    { name, use: { ...device }, grepInvert: /@claim\b/, testIgnore: "design/**" },
     {
       name: `claims-${name}`,
       use: { ...device, trace: "retain-on-failure" as const },
       grep: /@claim\b/,
+      testIgnore: "design/**",
       retries: 0,
       expect: { timeout: CLAIMS_EXPECT_MS },
+    },
+    // D0.1: every screen at four widths in both themes, a screenshot baseline (e2e/design). A job of its own
+    // in CI, which does not fail the build. The snapshots are Linux's (docs/design/baseline/index.md).
+    {
+      name: `design-${name}`,
+      use: { ...device },
+      testMatch: "design/**/*.spec.ts",
+      snapshotPathTemplate: "{testDir}/../docs/design/baseline/{projectName}/{arg}{ext}",
+      retries: 0,
     },
   ]),
   webServer: BASE_URL

@@ -68,7 +68,10 @@ test("@claim:C-067 every stop Tab reaches shows a focus ring, in both themes", a
     await page.addInitScript((value) => localStorage.setItem("wayfarer:theme", value), theme);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");
-    await expect(page.locator("input.address-url")).toBeVisible();
+    await expect(page.locator("input.address-url")).toBeFocused();
+    // The walk starts at the top of the page, as a reload without the first run's caret would.
+    await page.evaluate(() => (document.activeElement as HTMLElement).blur());
+    await page.mouse.click(1, 1);
     const seen = new Set<string>();
     for (let stop = 0; stop < 60; stop++) {
       await page.keyboard.press(TAB);

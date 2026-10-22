@@ -138,7 +138,7 @@ const TASKS: Task[] = [
     do: async (user) => {
       const { page } = user;
       await user.click(button(page, "Environments"));
-      await user.click(button(page, "New environment"));
+      await user.click(button(page, "New environment").first());
       await user.type(page.locator("#new-env-name-input"), "Staging", false);
       // Enter in the name does not create it: a click.
       await user.click(button(page, "Create environment"));
@@ -160,7 +160,7 @@ const TASKS: Task[] = [
       const { page } = user;
       const passphrase = "correct horse battery staple";
       await user.click(button(page, "Environments"));
-      await user.click(button(page, "New environment"));
+      await user.click(button(page, "New environment").first());
       await user.type(page.locator("#new-env-name-input"), "Prod", false);
       // Enter in the name does not create it: a click.
       await user.click(button(page, "Create environment"));

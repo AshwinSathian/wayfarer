@@ -36,7 +36,7 @@ way (three runs, the median), beside its row above.
 
 | # | Task | Session | Inputs | Clicks | Keys | Characters typed | Seconds (median) | Runs |
 |---|---|---|---|---|---|---|---|---|
-| 1 | First request from nothing | D4-c (#427) | 35 | 0 | 1 | 34 | 0.07 | 0.09, 0.06, 0.07 |
+| 1 | First request from nothing | D4-c (#427) | 35 | 0 | 1 | 34 | 0.06 | 0.07, 0.04, 0.06 |
 
 Task 1 is one input shorter: the caret starts in the address and Enter
 sends, so the address and one key are the whole task; before, a click

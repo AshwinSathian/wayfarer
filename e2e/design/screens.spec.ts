@@ -182,7 +182,7 @@ async function responseTab(page: Page, name: string): Promise<void> {
 
 async function sidebarHeaderButton(page: Page, name: string): Promise<void> {
   await tree(page);
-  await button(page.locator("app-collections-sidebar"), name).click();
+  await button(page.locator("app-collections-sidebar"), name).first().click();
 }
 
 async function contextMenu(page: Page, row: string): Promise<void> {

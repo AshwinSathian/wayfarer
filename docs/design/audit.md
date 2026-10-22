@@ -17,7 +17,10 @@ team leaving Postman.
 
 Not reviewed in this pass: the script review dialog, the environment editor
 with rows, the Auth editor's OAuth flow, the GraphQL explorer, the
-WebSocket view, Firefox and WebKit. They are D1.2's second pass.
+WebSocket view, Firefox and WebKit. The second pass (D4-b, 2026-10-22)
+reviewed them, and every screen of D0.1's index
+([`baseline/index.md`](baseline/index.md)); its findings are U-039 to
+U-058, under "Second pass" below.
 
 ## Summary
 
@@ -51,9 +54,9 @@ U-020 as believed fixed. On the screen, at 1,440 px the response is still
 headers are still uppercase (U-020): each is fixed in part and stays open
 for the part that is left. Row 1.35 gave U-019 to D4-d; D3a had fixed it.
 
-This meets D1's exit criterion for D1.2's first pass. D1.2's second pass
-(Firefox, WebKit and the five screens named at the top) is D4-b's, and its findings
-come here with a status.
+This meets D1's exit criterion for D1.2's first pass. The second pass
+(Firefox, WebKit and the five screens named at the top) added U-039 to
+U-058, each with its status: all 20 open, none accepted.
 
 ## Findings
 
@@ -410,6 +413,289 @@ which are not tokens and sit beside the tokens' own syntax colours.
 
 **Status:** Open, D4-e.
 
-## Screens with no finding yet
+## Second pass, 2026-10-22
 
-None. Every screen captured had at least one.
+D4-b's pass over what `e2e/design/screens.spec.ts` captures (D0.1): every
+screen of its index at 360, 390, 820 and 1,440 px in both themes, in
+Chromium, Firefox and WebKit on Linux (Playwright's Docker image), on
+`main` at `204379e`. The five screens the first pass skipped are here, and
+so is what Firefox and WebKit draw differently. The task scripts of D0.2
+(`e2e/design/tasks.spec.ts`) found U-039, U-044 and U-049 to U-051 by
+failing, or by succeeding without telling the user, where a person would
+have been stuck. A capture is named `<screen>-<width>-<theme>.png`:
+Chromium's are in `baseline/design-chromium/`; Firefox's and WebKit's are
+the artifacts of CI's Design capture jobs, and the one WebKit image a
+finding needs is in `baseline/second-pass/`.
+
+### The script review dialog
+
+**U-039. A run of an imported collection sends without its scripts, and
+does not offer the review.** Severity 2. H1, H3. QA, TP.
+Import a Postman collection with test scripts and run it: every request is
+sent, the scripts are skipped, and the run says "Scripts of this collection
+wait for a review, so requests were sent without them. Open a request and
+choose Review scripts." The run has no button for the review, so a run of
+an untrusted collection always costs a run that tests nothing, then four
+clicks elsewhere (a request, its Scripts tab, Review scripts, I trust these
+scripts), then the run again. Postman and Newman run the scripts.
+Evidence: D0.2's task 2 (`docs/design/baseline.md`).
+**Status:** Open, D4-i.
+
+**U-040. The review is one editor of every script, run together.**
+Severity 3. H6, H1. QA, TP.
+The dialog shows all the collection's scripts as one Monaco text, each
+headed by a comment line (`// ---- Shared request: pre-request script
+----`). Nothing says which of them a re-import changed, a call the sandbox
+does not support (`pm.vault.get`, which the import report flagged a step
+before) is not marked, and at 390 px each header wraps to three lines in a
+column of 230 px beside a gutter of 60.
+Evidence: `baseline/design-chromium/script-review-1440-light.png`,
+`baseline/design-chromium/script-review-390-dark.png`.
+**Status:** Open, D4-d.
+
+### The environment editor with rows
+
+**U-041. A variable cannot be switched off, and the rows have no
+headings.** Severity 2. H4, H3. TP, QA.
+A stored variable has `enabled`, and Postman's editor shows a checkbox per
+row; Wayfarer's editor has none, so a variable is either there or deleted.
+The two columns have no heading, and the lock that makes a variable secret is an icon with
+no text beside every row.
+Evidence: `baseline/design-chromium/environments-rows-1440-light.png`.
+**Status:** Open, D4-g.
+
+**U-042. At 390 px a variable's name and value are 60 px wide.**
+Severity 3 (phones). H8. OC.
+On a phone the name and value fields sit side by side with the lock and the
+remove button, so `baseUrl` reads `baseUr` and its value `http:/`. The list
+of environments above takes the first half of the window.
+Evidence: `baseline/design-chromium/environments-rows-390-light.png`.
+**Status:** Open, D4-g.
+
+**U-043. Which environment is in use reads three ways.** Severity 3. H4.
+OC.
+The environment in use has an "In use" pill, a grey tick and a tinted row;
+the one not in use has a green tick. The green tick is the button that
+switches to it, but it looks like the mark of the chosen one. Every row
+also shows its delete in red at rest, as U-018 found for header rows.
+Evidence: `baseline/design-chromium/environments-rows-1440-light.png`.
+**Status:** Open, D4-g.
+
+**U-044. Enter does not create a new environment.** Severity 3. H7. SD.
+In the New environment dialog, Enter in the name field does nothing; Create
+is a click. The same dialog for a collection takes Enter.
+Evidence: D0.2's task 3.
+**Status:** Open, D4-g.
+
+### The Auth editor's OAuth flow
+
+**U-045. Get token and the redirect URI are below nine fields.** Severity
+3. H6. SD, TP.
+With OAuth 2.0 and the authorization code grant at 1,440 × 900, the pane
+shows Type, Grant, Auth URL, Token URL, Client ID, Client secret, Scope,
+Client sent in and a checkbox; Get token, the token's state and "Register
+this redirect URI with the identity provider" come after them, out of view.
+The redirect URI is what a person needs first, to set up the provider.
+The Grant select also starts 24 px to the right of the Type select above it.
+Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`.
+**Status:** Open, D4-d.
+
+### The GraphQL explorer
+
+**U-046. The schema is fetched and not shown.** Severity 3. H1, H6. SD.
+After Refresh schema the status line says the schema is loaded, but the
+explorer that lists its types comes after the query and variables editors,
+below the fold at 1,440 × 900. Postman's GraphQL client shows the schema beside the query.
+Evidence: `baseline/design-chromium/graphql-explorer-1440-light.png`.
+**Status:** Open, D4-d.
+
+### The WebSocket view
+
+**U-047. A WebSocket keeps the controls of an HTTP request.** Severity 3.
+H8, H2. SD.
+With a `ws://` address the method select still says GET, and Copy as cURL
+and Save stay beside Disconnect. A paragraph about handshake headers and
+the Local Bridge sits above the message field on every connection.
+Evidence: `baseline/design-chromium/websocket-1440-dark.png`.
+**Status:** Open, D4-e.
+
+**U-048. The log cannot be searched, filtered or read as JSON.** Severity
+3. H7. SD, QA.
+Each message is one line of the table, JSON or not, with no way to expand,
+format, search or keep only the received ones. The connection's state is a
+word at the right end of the subprotocols row, far from Disconnect.
+Evidence: `baseline/design-chromium/websocket-1440-dark.png`.
+**Status:** Open, D4-e.
+
+### Found by the task scripts
+
+**U-049. The palette's shortcut does nothing below 1,200 px, or from a
+field.** Severity 2. H7, H4. SD, TP.
+Ctrl+K (⌘K) is heard by the sidebar. Below 1,200 px the sidebar is a closed
+drawer and the key opens nothing; at any width it is ignored while focus is
+in a field, the address included, which is where a person's focus is.
+Postman's and Insomnia's open from anywhere. Checked at 820 and 1,440 px.
+Evidence: `collections-sidebar.ts`, `handleGlobalKeydown`.
+**Status:** Open, D4-f (the palette becomes the shell's, [`ia.md`](ia.md#u-011-the-palette)).
+
+**U-050. Copy as cURL says nothing.** Severity 3. H1. TP.
+The command goes to the clipboard and the menu closes; nothing on the
+screen says it was copied, or that a secret in it was masked.
+Evidence: D0.2's task 6; `workspace-store.ts`, `copyAsCurl`.
+**Status:** Open, D4-d.
+
+**U-051. A failed request reads "0 Unknown Error", and CORS and DNS look
+the same.** Severity 2. H9, H2. SD, OC.
+A request to a host that does not exist and one to a server that sends no
+CORS header both show "0 Unknown Error" and the same paragraph naming
+three possible causes. The browser does hide which, but the app can tell
+some apart (a `no-cors` probe reaches a server that has no CORS header; a
+name that does not resolve fails it too). A 401 shows its status and
+nothing about the request's auth.
+Evidence: D0.2's task 5 (`docs/design/baseline.md`).
+**Status:** Open, D4-e.
+
+### Across the three engines
+
+Each of Firefox's and WebKit's 196 captures was compared with Chromium's
+of the same screen, width and theme, pixel by pixel. The median share of
+pixels that differ is 1.1% in Firefox and 1.4% in WebKit, most of it
+text set a pixel wider or narrower. The 40 captures that differ most
+(4.6% to 12.3%, all at 360 or 390 px, where a line of text wraps one word
+sooner or later) were read side by side with Chromium's. What they show
+beyond the wrapping is U-053 and U-057; U-052 and U-058 are in all three.
+
+**U-052. The editors are not in the app's monospace.** Severity 3. H4. All.
+Every value a user types or a server sends is in the app's own monospace
+(D3.2), except inside Monaco: the response body, the scripts, a JSON body
+and the review of scripts. `monaco-loader.ts` gives Monaco no font, so it
+uses its own default list, which differs by system; on Linux, in all three
+engines, the response's JSON is drawn in a proportional face beside a
+monospace address.
+Evidence: `baseline/design-chromium/response-json-1440-light.png`.
+**Status:** Open, D4-e.
+
+**U-053. In WebKit a dialog opened by a click shows a focus ring.**
+Severity 4. H8. All.
+At 390 px, with Settings opened and a section chosen by clicks, WebKit
+draws the focus ring round "All settings"; Chromium and Firefox draw it
+for the keyboard alone. `UiModal` puts focus on the first control, and WebKit treats focus
+set by code as keyboard focus.
+The same ring is on Run again after a click, in the run's view.
+Evidence: `baseline/second-pass/webkit-settings-general-390-light.png`
+against `baseline/design-chromium/settings-general-390-light.png`;
+`baseline/second-pass/webkit-run-390-light.png`.
+**Status:** Open, D4-h.
+
+**U-057. Number fields show the browser's arrows in Firefox and WebKit.**
+Severity 3. H4. All.
+The run's Iterations and Delay, and Settings' timeout, history size and
+idle minutes, are `<input type="number" uiInput>`. Firefox and WebKit draw
+their own up and down arrows inside each, which the maintainer's rule of
+2026-10-20 (nothing looks native) forbids; Chromium's show only on hover.
+Evidence: `baseline/second-pass/firefox-run-390-light.png`,
+`baseline/second-pass/webkit-run-390-light.png`, against
+`baseline/design-chromium/run-390-light.png`.
+**Status:** Open, D4-h (the field is `uiInput`'s, which the runner and
+Settings share).
+
+**U-058. On a phone, header names and values break inside words.**
+Severity 3 (phones). H8. SD, QA.
+At 360 and 390 px the response's Headers table gives each column about
+110 px, so `access-control-allow-credentials` breaks after each hyphen and
+a value such as `GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS` breaks
+inside its words (`DELE TE`, and in WebKit `PO ST`). The same happens in
+all three engines; the run's table does it to request names and statuses.
+Evidence: `baseline/design-chromium/response-headers-360-light.png`,
+`baseline/design-chromium/run-390-light.png`.
+**Status:** Open, D4-e.
+
+**U-054. Menus and buttons mix title case and sentence case.** Severity 4.
+H4. All.
+The tree's menu says "New Folder" and "New Request" above "Export with
+credentials"; the editors say "Add Header" and "Add Variable" beside "Save
+changes" and "Bulk edit".
+Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
+`baseline/design-chromium/environments-rows-1440-light.png`.
+**Status:** Open, D4-c (the voice guide decides the case; each view's
+session applies it).
+
+### Found on the other screens
+
+**U-055. A request on its way shows grey bars and nothing else.**
+Severity 3. H1. SD, OC.
+While a request waits, the response pane is a loading skeleton: no
+"Sending", no time so far, no word of where it went. Cancel is the only
+sign, in Send's place. A request to a slow server looks the same at one
+second and at fifty.
+Evidence: `baseline/design-chromium/response-loading-1440-light.png`.
+**Status:** Open, D4-e.
+
+**U-056. Deleting from the tree asks "Delete item?" without naming it.**
+Severity 3. H1, H5. All.
+Delete on the request Health asks "Delete item? This action cannot be
+undone. Continue?", with Proceed and Cancel. It does not say which item
+will go.
+Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`.
+**Status:** Open, D4-f.
+
+## Every screen of D0.1, and its findings
+
+Each screen of [`baseline/index.md`](baseline/index.md), with the open or
+fixed findings it shows. "No finding" means the second pass read its
+Chromium captures at 1,440 px, in both themes, and at 390 px, and its
+Firefox and WebKit captures by the comparison above, and found nothing a
+finding does not already say.
+
+| Screen | Findings |
+|---|---|
+| `first-run` | U-010, U-022, U-032 |
+| `request-saved` | U-004, U-017, U-037 |
+| `response-json` | U-003, U-031, U-038, U-052 |
+| `response-headers` | U-031, U-058 |
+| `response-tests` | No finding |
+| `response-html` | U-028 (at 390 px the preview is below the composer) |
+| `response-loading` | U-055 |
+| `response-error` | U-051 |
+| `composer-params` | U-004, U-017 |
+| `composer-headers` | U-018, U-054 |
+| `composer-body` | U-017, U-052 |
+| `composer-auth` | No finding |
+| `composer-oauth` | U-045 |
+| `composer-scripts` | U-052 |
+| `composer-settings` | No finding |
+| `method-menu` | No finding |
+| `graphql-explorer` | U-046 |
+| `websocket` | U-047, U-048 |
+| `export-menu` | U-016 (the same pattern: each export twice, with credentials and without), U-050 |
+| `export-har` | No finding |
+| `save-request` | U-035 |
+| `tree` | U-010, U-020 |
+| `tree-menu` | U-016, U-054 |
+| `collection-settings` | No finding |
+| `new-collection` | U-054 |
+| `palette` | U-011, U-049 |
+| `import-review` | U-015 |
+| `import-curl` | No finding |
+| `script-review` | U-039, U-040 |
+| `run` | U-014, U-053, U-057, U-058 |
+| `environments-empty` | U-020, U-022 |
+| `environments-rows` | U-041, U-042, U-043, U-044, U-054 |
+| `history` | U-024 |
+| `history-empty` | U-022 |
+| `vault-create` | U-026 |
+| `vault-unlock` | U-026 |
+| `secrets-manager` | No finding |
+| `confirm-dialog` | U-056 |
+| `settings-general` | U-025, U-053 |
+| `settings-requests` | U-057 |
+| `settings-history` | U-057 |
+| `settings-data` | No finding |
+| `settings-vault` | U-057 |
+| `settings-bridge` | No finding |
+| `settings-cookies` | No finding |
+| `settings-shortcuts` | U-032, U-054 |
+| `settings-diagnostics` | No finding |
+| `settings-about` | No finding |
+| `settings-danger` | No finding |
+

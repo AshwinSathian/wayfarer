@@ -128,7 +128,7 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
 
   // Save into the collection.
-  await tabTo(page, page.getByRole("button", { name: "Save to Collection" }));
+  await tabTo(page, page.getByRole("button", { name: "Save to collection" }));
   await page.keyboard.press("Enter");
   await expect(page.locator("#save-as-name")).toBeFocused();
   await page.keyboard.type("By keys");
@@ -199,7 +199,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   const opens = async (opener: string, field: Locator) => {
     // The toolbar's or the header's; an empty sidebar has a second "New collection" (U-022).
     const button = page.getByRole("button", { name: opener, exact: true }).first();
-    // Save to Collection is disabled until the draft has an address, and
+    // Save to collection is disabled until the draft has an address, and
     // focus() on a disabled button does nothing: in CI's trace (#316) it came
     // 1 ms after the last key, before the button was enabled.
     await expect(button, `${opener} can take focus`).toBeEnabled();
@@ -211,7 +211,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
     await expect(page.getByRole("dialog"), opener).toHaveCount(0);
     await expect(button, opener).toBeFocused();
   };
-  // A collection, so that Save to Collection has its name field.
+  // A collection, so that Save to collection has its name field.
   await page.getByRole("button", { name: "New collection", exact: true }).first().focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#creation-name-input")).toBeFocused();
@@ -234,7 +234,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await opens("Unlock secrets", page.locator('input[type="password"]').first());
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/echo`);
-  await opens("Save to Collection", page.locator("#save-as-name"));
+  await opens("Save to collection…", page.locator("#save-as-name"));
 });
 
 // Send became Cancel and then Send again as two different buttons: the one

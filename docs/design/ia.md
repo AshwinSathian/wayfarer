@@ -353,12 +353,11 @@ it is.
 | `composer.html: Import a collection…` | — (new in D4-c) | The empty response: picks a file to import (U-022) | — |
 | `composer.html: importPipeline.pick($event)` | — (new in D4-c) | The file picker behind Import a collection… | — |
 | `address-row.html: Common methods` | Address row, the method | Composer, address row | — |
-| `address-row.html: New request` | Address row, +; empties the open tab | **Removed** (maintainer, 2026-10-22): New tab is the one road to a new request | D4-d |
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |
-| `address-row.html: Save / Save to Collection` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |
+| `address-row.html: Save / Save to collection…` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |
 | `address-row.html: Connect / Disconnect` | Address row, for a `ws:` address | Composer, address row | D4-e |
 | `address-row.html: Cancel request / Send request` | Address row | Composer, address row; Send's tooltip shows ⌘↵ or Ctrl+Enter (U-032) | D4-c |
-| `address-row.html: onEnter($event)` | — (new in D4-c) | Composer, address: Enter sends | D4-c |
+| `address-row.html: Address` | — (new in D4-c) | Composer, address: Enter sends; its error is under it and names it (`aria-describedby`) | D4-d |
 | `auth-editor.html: Type` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Add to` | Auth tab | Composer, Auth tab | D4-d |
@@ -379,15 +378,16 @@ it is.
 | `composer-sections.html: Auth` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Scripts` | Composer, sections as an accordion below 768 px | Composer | D4-d |
 | `composer-sections.html: Settings` | Composer, sections as an accordion below 768 px | Composer | D4-d |
-| `composer.html: Start a new request instead` | Under a saved request's address; empties the tab | **Removed** (maintainer, 2026-10-22): New tab is the one road to a new request | D4-d |
 | `composer.html: Send anyway` | Beside an unresolved variable's error | Composer (U-037) | D4-d |
+| `composer.html: Request` | — (new in D4-d) | Composer below 768 px: the request's parts, a pane of their own (U-028) | D4-d |
+| `composer.html: Response` | — (new in D4-d) | Composer below 768 px: the response, a pane of its own; a send opens it (U-028) | D4-d |
 | `composer.html: Params` | Composer | Composer | D4-d |
 | `composer.html: Headers` | Composer | Composer | D4-d |
 | `composer.html: Body` | Composer | Composer | D4-d |
 | `composer.html: Auth` | Composer | Composer | D4-d |
 | `composer.html: Scripts` | Composer | Composer | D4-d |
 | `composer.html: Settings` | Composer | Composer | D4-d |
-| `headers-panel.html: Edit as rows / Bulk edit` | Headers tab | Composer, Headers tab | D4-d |
+| `headers-panel.html: Edit as rows / Edit as text` | Headers tab | Composer, Headers tab | D4-d |
 | `multipart-editor.html: Send part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Part type, row` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Choose file` | Body tab, multipart form | Composer, Body tab | D4-d |

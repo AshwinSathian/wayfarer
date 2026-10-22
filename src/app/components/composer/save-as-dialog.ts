@@ -7,7 +7,7 @@ import { WorkspaceStore } from "../../state/workspace-store";
 import { Dialog } from "../../ui/dialog";
 import { UiSelect } from "../../ui/select";
 
-/** "Save to Collection": names the draft and picks where it goes. `RequestSave` holds its state. */
+/** "Save to collection": names the draft and picks where it goes. `RequestSave` holds its state. */
 @Component({
   selector: "app-save-as-dialog",
   imports: [FormsModule, Dialog, UiButton, UiInput, UiSelect],

@@ -54,7 +54,7 @@ Every line below is a claim from [`docs/claims.md`](docs/claims.md). Each claim 
 - The app is installable: a web app manifest with name, start URL, standalone display and 192/512 icons. <!-- claim:C-036 -->
 - Dark and light themes both ship. Settings chooses one, or System, which follows the device and changes with it; a browser with no choice follows the system. <!-- claim:C-037 -->
 - The primary views and dialogs have no axe violation of WCAG 2.2 at levels A and AA, of any impact. <!-- claim:C-038 -->
-- The Body tab offers the modes none, raw, form, multipart, binary and GraphQL; GET and HEAD have no Body tab and send no body. <!-- claim:C-039 -->
+- The Body tab is there for every method and offers the modes none, raw, form, multipart, binary and GraphQL; a GET or HEAD request is sent without a body, and its Body tab says so. <!-- claim:C-039 -->
 - Scripts are edited in Monaco and have the parts of Postman's script API that `docs/postman-compatibility.md` lists; that document is written from the compatibility matrix, each row of which is a test that runs in Node and in the app's worker, and what is not supported throws an error that names it. <!-- claim:C-040 -->
 - The Local Bridge relays only for an allowed origin that presents its token. <!-- claim:C-041 -->
 - A request on its way can be cancelled, and a request timeout can be set in Settings; by default there is none. <!-- claim:C-042 -->

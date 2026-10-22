@@ -108,9 +108,11 @@ circles) and 4 shadow styles. Linear's 2026 refresh states the opposite
 rule: "structure should be felt, not seen".
 Evidence: computed-style survey of the response state (radii 10 px × 48,
 7 px × 33, 18 px × 9, 14 px × 5, and seven others).
-**Status:** Open, D4-d. The composer is still a card holding the request's
-card and the response's; the response view now uses eight radii (0, 5, 6, 7,
-9 and 12 px, pills and circles) and two shadows.
+**Status:** Fixed in #428 (D4-d). The composer, the request's parts, the
+variables under the address and the response have no card of their own:
+the regions are told apart by space and by the one line of the splitter
+between the request and the response, and the tests and the auth notes
+lost their boxes too. The response's inside (its radii) is D4-e's.
 
 **U-005. The name is on the screen twice.** Severity 4. H8.
 With the sidebar pinned, "Wayfarer" and its mark show in the sidebar's
@@ -145,8 +147,10 @@ keep today's rule, plan section 1). H8. OC.
 At 390 px the address field is 150 px wide, the response's tabs are cut,
 and the environments are at the bottom of the page.
 Evidence: `baseline/390-light-03b-response-full.png`.
-**Status:** Open, D4-d. At 390 px the page is still one column with the
-response under the request's sections.
+**Status:** Fixed in #428 (D4-d). Below 768 px the request and the response
+are two tabs under the address, and a send opens the response: at 390 px
+the response's status is under 300 px below the address, not after every
+section of the request.
 
 ### Collections and tabs
 
@@ -207,14 +211,18 @@ other methods (`@if (hasBody)` in `composer.html`), so the row reflows
 when the method changes. Postman shows Body for every method.
 The first tab selected is Headers, also when the URL carries a query.
 Evidence: `baseline/1440-light-01b-first-run-full.png`.
-**Status:** Open, D4-d. For a GET the tabs are still Params, Headers, Auth,
-Scripts and Settings, and Headers is chosen with a query in the address.
+**Status:** Fixed in #428 (D4-d). Body is a tab for every method, as
+Postman's; a GET or HEAD request with a body says in the tab that it is sent
+without one (claim C-039 reworded, maintainer, 2026-10-22). A new or opened
+request starts on Params.
 
 **U-018. Delete shows in red on an empty row.** Severity 4. H8.
 The starter header row has a ticked box and a red ×; every row keeps
 both visible. Red is for the one destructive action in view.
-**Status:** Open, D4-d. A new tab's starter header row still has a ticked
-box and a red ×.
+**Status:** Fixed in #428 (D4-d). The × of every row (headers, parameters,
+form fields, parts, tests, a collection's variables) is grey until it is
+hovered. The starter row keeps its ticked box: a header typed into it is
+sent, as in Postman.
 
 **U-019. The Send button is dated.** Severity 3. H8.
 Indigo with a coloured glow (`rgba(76,110,245,0.5) 0 4px 18px`), lavender
@@ -415,8 +423,9 @@ preflight, the browser's own border shows round each, in both themes,
 which the maintainer's rule of 2026-10-20 forbids (nothing looks native).
 Evidence: `composer.html`, the two buttons at the top of the template.
 
-**Status:** Open, D4-d. [`ia.md`](ia.md) removes the first (maintainer,
-2026-10-22); the second becomes a `uiButton`.
+**Status:** Fixed in #428 (D4-d). "Start a new request instead" is removed
+(maintainer, 2026-10-22, [`ia.md`](ia.md)); "Send anyway" is a small text
+`uiButton`.
 
 **U-038. Monaco's brackets are in Monaco's colours.** Severity 4. H4.
 In the response's JSON the brackets are coloured by depth in Monaco's

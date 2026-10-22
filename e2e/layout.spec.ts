@@ -181,6 +181,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
 
       await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toHaveCount(0);
+      await page.getByRole("tab", { name: "Headers", exact: true }).click();
       const field = await page.getByLabel("Headers name, row 1").boundingBox();
       // 85 px at 768 px; it was 20 px.
       expect(field!.width).toBeGreaterThanOrEqual(80);
@@ -200,6 +201,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByRole("complementary", { name: "Collections sidebar" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: "Navigation" })).toHaveCount(0);
 
+    await page.getByRole("tab", { name: "Headers", exact: true }).click();
     const field = await page.getByLabel("Headers name, row 1").boundingBox();
     // 111 px at 1220 px: "Content-Type" in full. Pinned at 1024 px it was 85 px.
     expect(field!.width).toBeGreaterThanOrEqual(100);
@@ -304,7 +306,7 @@ test.describe("Mobile composer (390px)", () => {
   }) => {
     await page.goto("/app/");
 
-    // Headers is open by default; the others are present as labeled,
+    // Params is open by default; the others are present as labeled,
     // collapsed headers — not stacked-and-unlabeled content (Part D bug).
     await expect(page.getByRole("button", { name: "Params", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Headers", exact: true })).toBeVisible();
@@ -312,6 +314,7 @@ test.describe("Mobile composer (390px)", () => {
     await expect(page.getByRole("button", { name: "Scripts", exact: true })).toBeVisible();
 
     // Opening Auth must collapse Headers — only one panel open at a time.
+    await page.getByRole("button", { name: "Headers", exact: true }).click();
     await expect(page.getByLabel("Headers name, row 1")).toBeVisible();
     await page.getByRole("button", { name: "Auth", exact: true }).click();
     await expect(page.getByLabel("Headers name, row 1")).toBeHidden();
@@ -364,7 +367,7 @@ test.describe("Disabled 'Copy as cURL' affordance", () => {
     expect(Number(opacity)).toBeLessThan(1);
 
     await curlWrap.hover();
-    await expect(page.getByRole("tooltip")).toHaveText(/enter a url first/i);
+    await expect(page.getByRole("tooltip")).toHaveText("Type an address to copy the request.");
 
     // Once a URL is entered, it becomes enabled with the plain "Copy as cURL" tooltip.
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);

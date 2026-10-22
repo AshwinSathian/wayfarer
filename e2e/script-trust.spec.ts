@@ -170,8 +170,8 @@ test("a script written here runs without a review, also after it is saved into a
   await tests(page).click();
   await expect(page.locator(".test-result-pass", { hasText: "typed here" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Save to Collection" }).first().click();
-  const saveAs = page.getByRole("dialog", { name: "Save to Collection" });
+  await page.getByRole("button", { name: "Save to collection" }).first().click();
+  const saveAs = page.getByRole("dialog", { name: "Save to collection" });
   await saveAs.locator("#save-as-name").fill("My request");
   await saveAs.getByRole("button", { name: "Save", exact: true }).click();
   await expect(saveAs).toHaveCount(0);

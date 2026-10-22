@@ -38,7 +38,7 @@ describe("VariablesDialog", () => {
     expect(dialog.querySelector("input[type=checkbox]")).toBeNull();
 
     await type(fields()[3], "new");
-    await press("Remove global variables item");
+    await press("Remove global variables row 1");
     await press("Add variable");
     await type(fields().at(-2)!, " added ");
     await type(fields().at(-1)!, "+");

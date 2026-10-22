@@ -55,11 +55,11 @@ test.describe("Collections", () => {
     await expect(page.getByText("Save Flow Collection", { exact: true })).toBeVisible();
 
     // Compose a request from scratch — nothing selected/bound yet, so Save
-    // must open "Save to Collection" rather than silently failing.
+    // must open "Save to collection" rather than silently failing.
     await urlInput.fill(`${ECHO}/content/json?todo=7`);
-    await page.getByRole("button", { name: "Save to Collection" }).click();
+    await page.getByRole("button", { name: "Save to collection" }).click();
 
-    const saveDialog = page.getByRole("dialog", { name: "Save to Collection" });
+    const saveDialog = page.getByRole("dialog", { name: "Save to collection" });
     await expect(saveDialog).toBeVisible();
     await saveDialog.locator("#save-as-name").fill("My Saved Request");
     await saveDialog.getByRole("button", { name: "Save", exact: true }).click();
@@ -74,9 +74,9 @@ test.describe("Collections", () => {
     // full URL back in — previously this path lost everything but
     // method/url/headers/body (auth, scripts, tests silently dropped) since
     // the tree only ever emitted a lossy PastRequest-shaped object.
-    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(urlInput).toHaveValue("");
-    await page.getByText("My Saved Request", { exact: true }).click();
+    await page.getByRole("tree").getByText("My Saved Request", { exact: true }).click();
     await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=7`);
 
     // Editing and hitting the now-"Save" (in-place) button persists the
@@ -85,16 +85,10 @@ test.describe("Collections", () => {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.waitForTimeout(300);
 
-    await page.getByRole("button", { name: "New request", exact: true }).click();
-    // Under zoneless change detection the composer's "bound to X" footer
-    // clears asynchronously (a signal write scheduled onto a microtask,
-    // not flushed synchronously post-click the way zone.js used to), so
-    // wait for it to actually leave the DOM via an auto-retrying assertion
-    // rather than racing straight into the next locator — otherwise the
-    // stale footer and the sidebar tree node can momentarily both match
-    // the same text and trip Playwright's strict-mode check.
-    await expect(page.getByRole("main").getByText("My Saved Request", { exact: true })).toBeHidden();
-    await page.getByText("My Saved Request", { exact: true }).click();
+    // A new request is a new tab (docs/design/ia.md); the saved one stays open in its own, which the tree opens again.
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
+    await expect(urlInput).toHaveValue("");
+    await page.getByRole("tree").getByText("My Saved Request", { exact: true }).click();
     await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=8`);
   });
 
@@ -113,20 +107,20 @@ test.describe("Collections", () => {
 
     await page.getByLabel("HTTP method").fill("POST");
     await urlInput.fill(`${ECHO}/echo?one=click`);
-    await page.getByRole("button", { name: "Save to Collection" }).click();
-    const saveDialog = page.getByRole("dialog", { name: "Save to Collection" });
+    await page.getByRole("button", { name: "Save to collection" }).click();
+    const saveDialog = page.getByRole("dialog", { name: "Save to collection" });
     await saveDialog.locator("#save-as-name").fill("Clicked");
     await saveDialog.getByRole("button", { name: "Save", exact: true }).click();
 
     const row = page.getByRole("treeitem", { name: "Clicked" });
     await expect(row).toContainText("POST");
 
-    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(urlInput).toHaveValue("");
     await row.click();
     await expect(urlInput).toHaveValue(`${ECHO}/echo?one=click`);
 
-    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(urlInput).toHaveValue("");
     await row.focus();
     await page.keyboard.press("Enter");

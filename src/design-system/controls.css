@@ -102,11 +102,19 @@
   overflow: hidden;
 }
 
+/* A line, not a bar: the one mark between two panes that have no box of their own (U-004). The gutter stays 8 px
+   wide to take the pointer; the line thickens under it and while it is dragged. */
 .ui-splitter-gutter {
   flex: 0 0 8px;
-  background: var(--ctl-surface-border);
+  background: linear-gradient(var(--ctl-surface-border), var(--ctl-surface-border)) center / 1px 100% no-repeat;
   cursor: col-resize;
   touch-action: none;
+}
+
+.ui-splitter-gutter:hover,
+.ui-splitter--resizing .ui-splitter-gutter {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-size: 3px 100%;
 }
 
 .ui-splitter--resizing {

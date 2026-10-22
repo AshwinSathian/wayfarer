@@ -43,7 +43,7 @@ async function protect(page: Page, name: string, plaintext: string): Promise<voi
   await page.getByRole("button", { name: "Create environment" }).click();
   await page.getByRole("button", { name: "Add variable" }).click();
   await page.getByPlaceholder("KEY", { exact: true }).fill(name);
-  await page.getByPlaceholder("Value", { exact: true }).fill(plaintext);
+  await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill(plaintext);
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await page.getByRole("button", { name: "Save changes" }).click();

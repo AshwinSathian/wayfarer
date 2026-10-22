@@ -480,13 +480,13 @@ export class WorkspaceStore {
   /** Why `tab`'s request cannot be sent as it is written, or "" when it can: no address, no method, an address that is no URL. */
   private refusal(tab: TabState): string {
     const { url, method } = tab.draft();
-    if (!url) return "Endpoint is a Required value";
+    if (!url) return "Type an address to send the request.";
     const methodError = this.methodError(method);
     if (methodError) return methodError;
     try {
       return validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(url.trim()))
         ? ""
-        : "Please enter a valid URL";
+        : "The address is not a URL a request can go to. Write it as https://host/path.";
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       return error.message;
@@ -699,7 +699,7 @@ export class WorkspaceStore {
   /** Why this method cannot be sent, or "" when it can. */
   private methodError(method: string): string {
     if (!method) {
-      return "Enter a method, such as GET.";
+      return "Type a method, such as GET.";
     }
     if (!isHttpMethod(method)) {
       return `"${method}" is not an HTTP method. A method is one word of at most 32 characters: letters, digits and !#$%&'*+-.^_\`|~.`;

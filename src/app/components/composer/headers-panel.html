@@ -1,6 +1,6 @@
 <div class="flex justify-end pb-2">
   <button uiButton class="btn-sm" type="button" [attr.aria-pressed]="bulk()" (click)="toggleBulk()">
-    {{ bulk() ? "Edit as rows" : "Bulk edit" }}
+    {{ bulk() ? "Edit as rows" : "Edit as text" }}
   </button>
 </div>
 @if (bulk()) {
@@ -21,7 +21,7 @@
 <app-rows-editor
   context="Headers"
   [items]="store.draft().headers"
-  addLabel="Add Header"
+  addLabel="Add header"
   (itemChange)="store.headersEdited()"
   (add)="store.addHeader()"
   (remove)="store.removeHeader($event)"

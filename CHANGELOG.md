@@ -18,6 +18,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   measured against these numbers; the same tasks in the other API clients
   are still to be timed.
 
+- **The design audit covers Firefox, WebKit and the screens it had
+  skipped.** Its second pass reads every screen of the design baseline and
+  adds 20 findings, each with the part of the redesign that takes it: among
+  them, a run of an imported collection sends without its scripts and
+  offers no way to review them from the run; a failed request reads "0
+  Unknown Error", whether the name did not resolve or the server sent no
+  CORS header; Ctrl+K opens nothing below 1,200 px or from a field; Copy
+  as cURL says nothing; and Firefox and WebKit draw their own arrows in
+  number fields. The audit now lists each screen with its findings, or
+  says it has none.
+
 - **The design docs have a record of every screen as it looks today.** A
   new page, Design baseline, lists the 49 screens, dialogs and menus the
   redesign will be measured against, from the first run to each pane of

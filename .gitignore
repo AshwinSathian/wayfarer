@@ -74,3 +74,7 @@ bundle-report.json
 # The libraries a script may require, built by scripts/build-vm-libs.mjs (npm ci runs it)
 /packages/core/src/scripting/vm-libs
 /packages/cli/dist
+
+# D0.1: only Chromium's design snapshots are committed (docs/design/baseline/index.md).
+/docs/design/baseline/design-firefox/
+/docs/design/baseline/design-webkit/

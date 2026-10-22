@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs have a record of every screen as it looks today.** A
+  new page, Design baseline, lists the 49 screens, dialogs and menus the
+  redesign will be measured against, from the first run to each pane of
+  Settings. Each is captured at four widths (360, 390, 820 and 1,440 px)
+  in both themes, in Chromium, Firefox and WebKit, and CI compares
+  Chromium's captures with the committed ones on every pull request so
+  that a change to a screen shows up as a picture.
+
 - **The design docs say what became of each problem the audit found, and
   where every action of the app is going.** Each of the audit's findings
   now has a status: fixed (15, each with the change that fixed it, checked

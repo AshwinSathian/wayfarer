@@ -377,7 +377,7 @@ views.
 - [ ] **D3.5** A file field (U-059, added in row 1.39): a widget in
   `src/app/ui` for choosing a file, on the platform's hidden
   `<input type="file">`, with none of the browser's look or words. It
-  names the file chosen and its size, takes a dropped file, and clears;
+  names the file chosen, takes a dropped file, and clears;
   every place that picks a file for a request or a store uses it.
   - AC: in the catalogue in every state (empty, chosen, dragged over,
     disabled, an error under it), axe in both themes and three engines, a

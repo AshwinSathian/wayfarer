@@ -1,0 +1,138 @@
+@let current = auth();
+<div class="flex flex-col gap-3">
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
+    <ui-select
+      class="w-64 max-w-full"
+      [id]="idPrefix() + '-oauth-grant'"
+      [attr.aria-labelledby]="idPrefix() + '-oauth-grant-label'"
+      [options]="grants"
+      [value]="current.grant"
+      (valueChange)="patch.emit({ grant: $event })"
+    />
+  </div>
+  <!-- What a person needs first, to set up the identity provider, and the token: above the fields, not below them (U-045). -->
+  @if (current.grant === 'authorization_code') {
+  <p class="type-callout text-label-secondary"
+    >Register this redirect URI with the identity provider:
+    <span class="oauth-redirect-uri font-mono break-all text-label-primary">{{ redirectUri }}</span></p
+  >
+  } @if (current.grant === 'password') {
+  <p class="type-callout text-label-tertiary"
+    >The password grant hands the user's password to the client. OAuth 2.1 leaves it out: use it only where nothing else
+    is offered.</p
+  >
+  } @if (subject() === 'request') {
+  <app-oauth-token />
+  } @else {
+  <p class="type-callout text-label-tertiary">A request that inherits this gets its token in its own Auth tab.</p>
+  } @if (current.grant === 'authorization_code') {
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Authorization address</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-auth-url'"
+      placeholder="https://idp.example/authorize"
+      [ngModel]="current.authUrl"
+      (ngModelChange)="patch.emit({ authUrl: $event })"
+    />
+  </div>
+  }
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token address</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-token-url'"
+      placeholder="https://idp.example/token"
+      [ngModel]="current.tokenUrl"
+      (ngModelChange)="patch.emit({ tokenUrl: $event })"
+    />
+  </div>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-client-id'"
+      [ngModel]="current.clientId"
+      (ngModelChange)="patch.emit({ clientId: $event })"
+    />
+  </div>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
+    <div class="flex flex-1 basis-48 items-center gap-2">
+      <input
+        class="font-mono flex-1"
+        uiInput
+        [id]="idPrefix() + '-oauth-client-secret'"
+        [type]="showPassword() ? 'text' : 'password'"
+        placeholder="None for a public client"
+        [ngModel]="current.clientSecret"
+        (ngModelChange)="patch.emit({ clientSecret: $event })"
+      />
+      <button
+        uiButton="icon"
+        type="button"
+        [attr.aria-label]="showPassword() ? 'Hide client secret' : 'Show client secret'"
+        (click)="togglePassword.emit()"
+        ><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'"
+      /></button>
+    </div>
+  </div>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-scope'"
+      placeholder="Separated by spaces"
+      [ngModel]="current.scope"
+      (ngModelChange)="patch.emit({ scope: $event })"
+    />
+  </div>
+  @if (current.grant === 'password') {
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-username'"
+      [ngModel]="current.username"
+      (ngModelChange)="patch.emit({ username: $event })"
+    />
+  </div>
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
+    <input
+      class="font-mono flex-1 basis-48"
+      uiInput
+      [id]="idPrefix() + '-oauth-password'"
+      [type]="showPassword() ? 'text' : 'password'"
+      [ngModel]="current.password"
+      (ngModelChange)="patch.emit({ password: $event })"
+    />
+  </div>
+  }
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
+    <ui-select
+      class="w-56 max-w-full"
+      [id]="idPrefix() + '-oauth-client-auth'"
+      [attr.aria-labelledby]="idPrefix() + '-oauth-client-auth-label'"
+      [options]="clientAuth"
+      [value]="current.clientAuth"
+      (valueChange)="patch.emit({ clientAuth: $event })"
+    />
+  </div>
+  <label class="ui-checkbox-label"
+    ><input
+      type="checkbox"
+      uiCheckbox
+      [id]="idPrefix() + '-oauth-retry'"
+      [checked]="current.retryOn401"
+      (change)="patch.emit({ retryOn401: $any($event.target).checked })"
+    />On a 401, get a new token and send once more</label
+  >
+</div>

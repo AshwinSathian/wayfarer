@@ -4,8 +4,8 @@ import { UiInput } from "../../../ui/input";
 import { UiCheckbox } from "../../../ui/checkbox";
 import { UiButton } from "../../../ui/button";
 import { emptyAuth, type AuthConfig, type OwnAuth } from "@wayfarer/core";
-import { oauthRedirectUri } from "../../../services/oauth-tokens";
 import { OAuthTokenPanel } from "../oauth-token/oauth-token";
+import { OAuthFields } from "./oauth-fields";
 import { Icon } from "../../../shared/icon/icon";
 import { UiSelect } from "../../../ui/select";
 
@@ -13,9 +13,9 @@ type AuthType = AuthConfig["type"];
 const AUTH_TYPES: { label: string; value: AuthType }[] = [
   { label: "Inherit from parent", value: "inherit" },
   { label: "None", value: "none" },
-  { label: "Bearer Token", value: "bearer" },
-  { label: "Basic Auth", value: "basic" },
-  { label: "API Key", value: "apikey" },
+  { label: "Bearer token", value: "bearer" },
+  { label: "Basic auth", value: "basic" },
+  { label: "API key", value: "apikey" },
   { label: "AWS Signature", value: "awsv4" },
   { label: "OAuth 2.0", value: "oauth2" },
 ];
@@ -34,7 +34,7 @@ const emptyApiKey = { type: "apikey", key: "", value: "", in: "header" } as cons
  */
 @Component({
   selector: "app-auth-editor",
-  imports: [UiInput, Icon, FormsModule, UiButton, UiSelect, UiCheckbox, OAuthTokenPanel],
+  imports: [UiInput, Icon, FormsModule, UiButton, UiSelect, UiCheckbox, OAuthTokenPanel, OAuthFields],
   templateUrl: "./auth-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -123,18 +123,6 @@ export class AuthEditor {
     const auth = this.current();
     this.emit({ ...(auth.type === "awsv4" ? auth : emptyAws), ...patch });
   }
-
-  readonly oauthGrants: { label: string; value: OAuthAuth["grant"] }[] = [
-    { label: "Authorization Code (PKCE)", value: "authorization_code" },
-    { label: "Client Credentials", value: "client_credentials" },
-    { label: "Password (legacy)", value: "password" },
-  ];
-  readonly oauthClientAuth: { label: string; value: OAuthAuth["clientAuth"] }[] = [
-    { label: "Basic header", value: "header" },
-    { label: "Request body", value: "body" },
-  ];
-  /** What a client registers with its identity provider. */
-  protected readonly redirectUri = oauthRedirectUri();
 
   setOAuthField(patch: Partial<Omit<OAuthAuth, "type">>): void {
     const auth = this.current();

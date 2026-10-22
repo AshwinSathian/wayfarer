@@ -1,7 +1,7 @@
 @let currentAuth = auth();
 <div class="space-y-4">
   <div class="flex items-center gap-3">
-    <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-type-select-label'">Type</span>
+    <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-type-select-label'">Type</span>
     <ui-select
       class="w-48"
       [id]="idPrefix() + '-type-select'"
@@ -14,12 +14,11 @@
 
   @if (currentAuth.type === 'bearer') {
   <div class="flex items-center gap-3">
-    <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-bearer-token'">Token</label>
     <input
       class="font-mono flex-1"
       uiInput
       [id]="idPrefix() + '-bearer-token'"
-      placeholder="Enter bearer token"
       [ngModel]="currentAuth.token"
       (ngModelChange)="setBearerToken($event)"
     />
@@ -27,7 +26,7 @@
   } @if (currentAuth.type === 'basic') {
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-username'">Username</label>
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-basic-username'">Username</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -38,7 +37,7 @@
       />
     </div>
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-basic-password'">Password</label>
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-basic-password'">Password</label>
       <div class="flex flex-1 items-center gap-2">
         <input
           class="font-mono flex-1"
@@ -62,7 +61,7 @@
   } @if (currentAuth.type === 'apikey') {
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-apikey-key'">Key</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -73,7 +72,7 @@
       />
     </div>
     <div class="flex items-center gap-3">
-      <label class="ds-form-label min-w-[72px]" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
+      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-apikey-value'">Value</label>
       <input
         class="font-mono flex-1"
         uiInput
@@ -84,7 +83,7 @@
       />
     </div>
     <div class="flex items-center gap-3">
-      <span class="ds-form-label min-w-[72px]" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
+      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-apikey-addto-label'">Add to</span>
       <ui-select
         class="w-40"
         [id]="idPrefix() + '-apikey-addto'"
@@ -168,155 +167,23 @@
     >
   </div>
   } @if (currentAuth.type === 'oauth2') {
-  <div class="flex flex-col gap-3">
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-grant-label'">Grant</span>
-      <ui-select
-        class="w-64 max-w-full"
-        [id]="idPrefix() + '-oauth-grant'"
-        [attr.aria-labelledby]="idPrefix() + '-oauth-grant-label'"
-        [options]="oauthGrants"
-        [value]="currentAuth.grant"
-        (valueChange)="setOAuthField({ grant: $event })"
-      />
-    </div>
-    @if (currentAuth.grant === 'authorization_code') {
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Auth URL</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-auth-url'"
-        placeholder="https://idp.example/authorize"
-        [ngModel]="currentAuth.authUrl"
-        (ngModelChange)="setOAuthField({ authUrl: $event })"
-      />
-    </div>
-    }
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token URL</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-token-url'"
-        placeholder="https://idp.example/token"
-        [ngModel]="currentAuth.tokenUrl"
-        (ngModelChange)="setOAuthField({ tokenUrl: $event })"
-      />
-    </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-id'">Client ID</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-client-id'"
-        placeholder="Client ID"
-        [ngModel]="currentAuth.clientId"
-        (ngModelChange)="setOAuthField({ clientId: $event })"
-      />
-    </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-client-secret'">Client secret</label>
-      <div class="flex flex-1 basis-48 items-center gap-2">
-        <input
-          class="font-mono flex-1"
-          uiInput
-          [id]="idPrefix() + '-oauth-client-secret'"
-          [type]="showPassword() ? 'text' : 'password'"
-          placeholder="None for a public client"
-          [ngModel]="currentAuth.clientSecret"
-          (ngModelChange)="setOAuthField({ clientSecret: $event })"
-        />
-        <button
-          uiButton="icon"
-          type="button"
-          [attr.aria-label]="showPassword() ? 'Hide client secret' : 'Show client secret'"
-          (click)="onTogglePasswordVisibility()"
-          ><app-icon [name]="showPassword() ? 'visibility_off' : 'visibility'"
-        /></button>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-scope'">Scope</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-scope'"
-        placeholder="Separated by spaces"
-        [ngModel]="currentAuth.scope"
-        (ngModelChange)="setOAuthField({ scope: $event })"
-      />
-    </div>
-    @if (currentAuth.grant === 'password') {
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-username'">Username</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-username'"
-        placeholder="Username"
-        [ngModel]="currentAuth.username"
-        (ngModelChange)="setOAuthField({ username: $event })"
-      />
-    </div>
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-password'">Password</label>
-      <input
-        class="font-mono flex-1 basis-48"
-        uiInput
-        [id]="idPrefix() + '-oauth-password'"
-        [type]="showPassword() ? 'text' : 'password'"
-        placeholder="Password"
-        [ngModel]="currentAuth.password"
-        (ngModelChange)="setOAuthField({ password: $event })"
-      />
-    </div>
-    }
-    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span class="ds-form-label min-w-[96px]" [id]="idPrefix() + '-oauth-client-auth-label'">Client sent in</span>
-      <ui-select
-        class="w-56 max-w-full"
-        [id]="idPrefix() + '-oauth-client-auth'"
-        [attr.aria-labelledby]="idPrefix() + '-oauth-client-auth-label'"
-        [options]="oauthClientAuth"
-        [value]="currentAuth.clientAuth"
-        (valueChange)="setOAuthField({ clientAuth: $event })"
-      />
-    </div>
-    <label class="ui-checkbox-label"
-      ><input
-        type="checkbox"
-        uiCheckbox
-        [id]="idPrefix() + '-oauth-retry'"
-        [checked]="currentAuth.retryOn401"
-        (change)="setOAuthField({ retryOn401: $any($event.target).checked })"
-      />On a 401, get a new token and send once more</label
-    >
-    @if (currentAuth.grant === 'authorization_code') {
-    <p class="type-callout text-label-tertiary"
-      >Register this redirect URI with the identity provider:
-      <span class="oauth-redirect-uri font-mono break-all text-label-secondary">{{ redirectUri }}</span></p
-    >
-    } @if (currentAuth.grant === 'password') {
-    <p class="type-callout text-label-tertiary"
-      >The password grant hands the user's password to the client. OAuth 2.1 leaves it out: use it only where nothing
-      else is offered.</p
-    >
-    } @if (subject() === 'request') {
-    <app-oauth-token />
-    } @else {
-    <p class="type-callout text-label-tertiary">A request that inherits this gets its token in its own Auth tab.</p>
-    }
-  </div>
+  <app-oauth-fields
+    [auth]="currentAuth"
+    [idPrefix]="idPrefix()"
+    [showPassword]="showPassword()"
+    [subject]="subject()"
+    (patch)="setOAuthField($event)"
+    (togglePassword)="onTogglePasswordVisibility()"
+  />
   } @if (currentAuth.type === 'inherit') {
-  <div class="auth-inherited flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
+  <div class="auth-inherited flex items-center gap-2.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
     <p class="type-callout text-label-secondary">{{ inheritedLine() }}</p>
   </div>
   @if (subject() === 'request' && inherited().auth.type === 'oauth2') {
   <app-oauth-token />
   } } @if (currentAuth.type === 'none') {
-  <div class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-separator p-3.5">
+  <div class="flex items-center gap-2.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
     <p class="type-callout text-label-tertiary"
       >{{ subject() === "request" ? "No authentication will be applied to this request." : "Requests that inherit from

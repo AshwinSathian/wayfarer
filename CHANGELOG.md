@@ -61,6 +61,27 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Reviewing a collection's scripts shows each one on its own.** The
+  review lists every script under the name of its request, folder or
+  collection, marks the ones you have not reviewed before (new, or changed
+  since, as after a re-import), and says when a script calls something
+  Wayfarer does not have, such as `pm.vault.get`. Before, every script was
+  run together in one editor, each under a comment line, with no mark on
+  any of them.
+
+- **OAuth 2.0's redirect URI and Get token come first.** With the
+  authorization code grant, the redirect URI to register with the identity
+  provider and the token's state, with Get token, are right under the
+  grant; before, they came after nine fields, below the fold. The fields
+  read "Authorization address" and "Token address", the auth types and
+  grants are in sentence case ("Bearer token", "Client credentials"), and
+  the Type and Grant selects line up.
+
+- **A fetched GraphQL schema is shown above the query.** After Fetch
+  schema, its types are listed in a box of their own under the button, with
+  the app's chevrons instead of the browser's triangles; before, the list
+  came after the query and the variables, out of view.
+
 - **A first request is the address and Enter.** When the app opens on an
   empty request, the caret is already in the address (except on a phone,
   where it would open the keyboard), so typing an address and pressing

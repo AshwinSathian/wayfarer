@@ -41,7 +41,7 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   // The Auth tab says what will be sent, and where it comes from.
   await authTab(page).click();
   await expect(page.locator(".auth-inherited")).toHaveText(
-    'Bearer Token is sent, from collection "Tripwire collection".',
+    'Bearer token is sent, from collection "Tripwire collection".',
   );
 
   await page.getByText("Tripwire folder", { exact: true }).click({ button: "right" });
@@ -49,16 +49,16 @@ test("@claim:C-019 a collection's bearer auth reaches the server for a request s
   const settings = page.getByRole("dialog", { name: "Folder settings: Tripwire folder" });
   // A new folder inherits, and says what from.
   await expect(settings.locator(".auth-inherited")).toHaveText(
-    'Bearer Token is sent, from collection "Tripwire collection".',
+    'Bearer token is sent, from collection "Tripwire collection".',
   );
   await settings.getByRole("combobox", { name: "Type" }).click();
-  await page.getByRole("option", { name: "API Key" }).click();
+  await page.getByRole("option", { name: "API key" }).click();
   await settings.getByLabel("Key", { exact: true }).fill("X-C019-Folder");
   await settings.getByLabel("Value", { exact: true }).fill("c019-folder-key");
   await settings.getByRole("button", { name: "Save settings" }).click();
   await expect(settings).toBeHidden();
 
-  await expect(page.locator(".auth-inherited")).toHaveText('API Key is sent, from folder "Tripwire folder".');
+  await expect(page.locator(".auth-inherited")).toHaveText('API key is sent, from folder "Tripwire folder".');
   const replaced = await sendAndEcho(page);
   expect(header(replaced, "x-c019-folder")).toBe("c019-folder-key");
   expect(header(replaced, "authorization")).toBeUndefined();
@@ -75,13 +75,13 @@ test("a request made in a collection starts with inherit; a collection's setting
   await settings.getByRole("combobox", { name: "Type" }).click();
   await expect(page.getByRole("option")).toHaveText([
     "None",
-    "Bearer Token",
-    "Basic Auth",
-    "API Key",
+    "Bearer token",
+    "Basic auth",
+    "API key",
     "AWS Signature",
     "OAuth 2.0",
   ]);
-  await page.getByRole("option", { name: "Bearer Token" }).click();
+  await page.getByRole("option", { name: "Bearer token" }).click();
   await settings.getByLabel("Token", { exact: true }).fill("{{shopToken}}");
   await settings.getByRole("tab", { name: "Variables" }).click();
   await settings.getByRole("button", { name: "Add variable" }).click();
@@ -105,7 +105,7 @@ test("a request made in a collection starts with inherit; a collection's setting
   await page.getByRole("tree").getByText("Made here", { exact: true }).click();
   await authTab(page).click();
   await expect(page.locator(".auth-inherited")).toHaveText(
-    'Bearer Token is sent, from collection "Tripwire collection".',
+    'Bearer token is sent, from collection "Tripwire collection".',
   );
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   expect(header(await sendAndEcho(page), "authorization")).toBe("Bearer from-the-collection");
@@ -208,7 +208,9 @@ test.describe("scripts of a collection and a folder", () => {
     await page.locator(".scripts-held").getByRole("button", { name: "Review scripts" }).click();
     const review = page.getByRole("dialog", { name: "Review scripts" });
     await expect(review).toContainText("5 scripts in the collection, 1 folder and 1 request");
-    await expect(review.locator(".view-lines")).toContainText("Collection Inherited collection: pre-request script");
+    await expect(review.locator(".script-review-list li").first()).toContainText(
+      "Collection Inherited collection Pre-request script",
+    );
     await review.getByRole("button", { name: "I trust these scripts" }).click();
     await expect(review).toHaveCount(0);
 

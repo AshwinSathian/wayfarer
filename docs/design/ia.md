@@ -363,10 +363,10 @@ it is.
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Add to` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide secret key / Show secret key` | Auth tab | Composer, Auth tab | D4-d |
-| `auth-editor.html: Grant` | Auth tab | Composer, Auth tab | D4-d |
-| `auth-editor.html: Hide client secret / Show client secret` | Auth tab | Composer, Auth tab | D4-d |
-| `auth-editor.html: Client sent in` | Auth tab | Composer, Auth tab | D4-d |
-| `auth-editor.html: On a 401, get a new token and send once more` | Auth tab | Composer, Auth tab | D4-d |
+| `oauth-fields.html: Grant` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
+| `oauth-fields.html: Hide client secret / Show client secret` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
+| `oauth-fields.html: Client sent in` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
+| `oauth-fields.html: On a 401, get a new token and send once more` | Auth tab, OAuth 2.0 | Composer, Auth tab, OAuth 2.0: under the redirect URI and the token (U-045) | D4-d |
 | `body-panel.html: Body` | Body tab | Composer, Body tab | D4-d |
 | `body-panel.html: Raw body language` | Body tab | Composer, Body tab | D4-d |
 | `browser-notes.html: Route` | Settings tab of the request | Composer, Settings tab | D4-d |

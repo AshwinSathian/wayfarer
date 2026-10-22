@@ -431,6 +431,38 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await expect(drawer.getByRole("button", { name: /^Load request / })).toHaveCount(0);
 });
 
+// U-050: a copy says what it copied, and whether the redactor masked anything in it, and no more.
+test("a copy says what it was copied as, and that a credential in it was masked", async ({ page }) => {
+  const clipboard = await recordClipboard(page);
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?u050=1`);
+  const note = page.locator("app-address-row .copy-note");
+  const copy = page.getByRole("button", { name: "Copy as cURL" });
+
+  await copy.click();
+  await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
+  await expect(note).toHaveText("Copied as cURL.");
+
+  await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
+  await page.getByLabel("Headers name, row 1").fill("Authorization");
+  await page.getByLabel("Headers value, row 1").fill("Bearer abcdef123");
+  await copy.click();
+  await page.getByRole("menuitem", { name: "Copy as cURL", exact: true }).click();
+  await expect(note).toHaveText("Copied as cURL. Its credentials are replaced by ***.");
+  await copy.click();
+  await page.getByRole("menuitem", { name: "Copy as cURL with credentials", exact: true }).click();
+  await expect(note).toHaveText("Copied as cURL, with credentials.");
+  await expect.poll(clipboard).toHaveLength(3);
+
+  await send(page);
+  await expect(page.locator(".status-badge")).toHaveText("200");
+  await page.getByRole("button", { name: "Export response" }).click();
+  await page.getByRole("menuitem", { name: "Copy as HAR", exact: true }).click();
+  await expect(page.locator("app-response-viewer .copy-note")).toHaveText(
+    "Copied as HAR. Its credentials are replaced by ***.",
+  );
+});
+
 test("@claim:C-035 Export → Copy as cURL copies the exchange's request", async ({ page }) => {
   const clipboard = await recordClipboard(page);
   await page.goto("/app/");

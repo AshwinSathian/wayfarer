@@ -241,7 +241,8 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
       auth: { type: "bearer", token: "typed-bearer-token" },
     });
 
-    await store.copyAsCurl();
+    // U-050: what was copied, and only what the redactor did to it.
+    expect(await store.copyAsCurl()).toBe("Copied as cURL. Its credentials are replaced by ***.");
     expect(copied[0]).toContain("-H 'Authorization: ***'");
     expect(copied[0]).toContain(`-H 'X-Token: ***'`);
     expect(copied[0]).toContain("-H 'Accept: */*'");
@@ -249,7 +250,9 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
     expect(copied[0]).not.toContain(SECRET);
     expect(vault.readSecret).not.toHaveBeenCalled();
 
-    await store.copyAsCurl({ credentials: true });
+    expect(await store.copyAsCurl({ credentials: true })).toBe(
+      "Copied as cURL, with credentials. A vault secret is copied as its reference, not its value.",
+    );
     expect(copied[1]).toContain("-H 'Authorization: Bearer typed-bearer-token'");
     expect(copied[1]).toContain(`-H 'X-Token: ${REFERENCE}'`);
     expect(copied[1]).not.toContain(SECRET);
@@ -266,7 +269,7 @@ describe("Composer: secrets, masking and the unresolved-variable guard", () => {
       body: { mode: "raw", raw: { language: "json", text: '{"t":"{{token}}"}' } },
     });
 
-    for (const target of ["fetch", "python-requests", "httpie"] as const) await store.copyAsCode(target);
+    for (const target of ["fetch", "python-requests", "httpie"] as const) await store.copyAsCode(target, target);
 
     expect(copied).toHaveLength(3);
     expect(copied[0]).toContain('const response = await fetch("https://api.test/items?key=typed-api-key", {');

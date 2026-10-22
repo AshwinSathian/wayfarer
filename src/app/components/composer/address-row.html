@@ -119,3 +119,12 @@
   >
   }
 </div>
+
+<!-- Always in the page, so that a screen reader hears it change. Its margin takes back the row's gap while it is empty. -->
+<p
+  class="copy-note basis-full type-footnote text-label-secondary"
+  [class]="copyStatus.text() ? '-mt-1' : '-mt-3'"
+  role="status"
+>
+  {{ copyStatus.text() }}
+</p>

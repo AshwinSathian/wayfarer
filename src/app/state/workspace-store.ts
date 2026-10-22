@@ -33,6 +33,8 @@ import {
   newId,
   parseEventStream,
   redactExport,
+  copyNote,
+  type ExportRequest,
   resolveAuth,
   routeOf,
   type Ancestor,
@@ -64,7 +66,7 @@ import { RequestSave } from "../services/request-save";
 import { RequestSettings } from "../services/request-settings";
 import { SecretsVault } from "../services/secrets-vault";
 import { TransportRouter } from "../services/transport-router";
-import { writeToClipboard } from "../shared/http/clipboard";
+import { NOT_COPIED, writeToClipboard } from "../shared/http/clipboard";
 import { buildUrlFromParams, parseParamsFromUrl, validateUrl } from "../shared/http/request-url";
 
 import { ScriptTrust } from "../services/script-trust";
@@ -725,22 +727,26 @@ export class WorkspaceStore {
    * Copies the draft as a cURL command, with its body in every mode: a
    * file is named, not read. Credentials are masked unless the user asks
    * for them. A vault secret is never read for this: its `{{$secret.…}}`
-   * reference stays as written.
+   * reference stays as written. Resolves to what the screen says of it (U-050).
    */
-  async copyAsCurl(options: RedactOptions = {}): Promise<void> {
+  async copyAsCurl(options: RedactOptions = {}): Promise<string> {
     const source = this.exportSource();
-    if (source) await writeToClipboard(buildCurl(redactExport(source, options)));
+    if (!source) return "";
+    if (!(await writeToClipboard(buildCurl(redactExport(source, options))))) return NOT_COPIED;
+    return copyNote("cURL", source, options, buildCurl);
   }
 
   /**
-   * Copies the draft as code for `target`, masked as the cURL command is.
-   * The generators are fetched the first time code is asked for.
+   * Copies the draft as code for `target`, masked as the cURL command is,
+   * and says so as `format`. The generators are fetched the first time code is asked for.
    */
-  async copyAsCode(target: CodeTarget): Promise<void> {
+  async copyAsCode(target: CodeTarget, format: string): Promise<string> {
     const source = this.exportSource();
-    if (!source) return;
+    if (!source) return "";
     const { generateCode } = await import("@wayfarer/core/codegen");
-    await writeToClipboard(generateCode(target, redactExport(source)));
+    const write = (request: ExportRequest) => generateCode(target, request);
+    if (!(await writeToClipboard(write(redactExport(source))))) return NOT_COPIED;
+    return copyNote(format, source, {}, write);
   }
 
   /** The draft as it would be built now, for an export: nothing is read from the vault or from a file. */

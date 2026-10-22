@@ -61,6 +61,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A copy says what it copied.** Copy as cURL, the code copies and the
+  response's Copy as cURL and Copy as HAR now say, for a few seconds, what
+  went to the clipboard: "Copied as cURL.", and when something in it was
+  masked, "Its credentials are replaced by ***." (or its vault secrets).
+  A vault secret's reference copied as written says so, and a copy the
+  browser refused says nothing was copied. Before, the menu closed and
+  nothing on the screen said whether anything was copied, or what was
+  left out of it.
+
 - **A first request is the address and Enter.** When the app opens on an
   empty request, the caret is already in the address (except on a phone,
   where it would open the keyboard), so typing an address and pressing

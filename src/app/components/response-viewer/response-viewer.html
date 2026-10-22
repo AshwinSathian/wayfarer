@@ -77,7 +77,9 @@
 
       <!-- Export -->
       @if (canExport) {
-      <div class="ml-auto">
+      <div class="ml-auto flex min-w-0 items-center gap-2">
+        <!-- What the last copy did (U-050). Always there while the button is, so that a screen reader hears it change. -->
+        <span class="copy-note type-footnote text-label-secondary min-w-0" role="status">{{ copyStatus.text() }}</span>
         <button
           uiButton="icon"
           class="btn-plain"

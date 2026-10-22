@@ -48,6 +48,7 @@ export {
 } from "./import/wayfarer-environments";
 export { buildCurl } from "./export/curl";
 export { exportBody, redactExport, type ExportBody, type ExportRequest, type ExportSource } from "./export/request";
+export { copyNote } from "./export/copy-note";
 // The code generators are `@wayfarer/core/codegen`, loaded when code is first asked for.
 // The HAR builder is `@wayfarer/core/har`, loaded when a HAR is first asked for.
 export type { HarExchange } from "./export/har";

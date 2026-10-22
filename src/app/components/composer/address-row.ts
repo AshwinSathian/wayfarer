@@ -16,6 +16,7 @@ import { UiMenu } from "../../ui/menu";
 import { UiMenuItem } from "../../ui/menu-item";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { ComposerView } from "./composer-view";
+import { transientNote } from "../../shared/http/transient-note";
 
 /** The method and URL bar with New, Copy as cURL, Save and Send. */
 @Component({
@@ -44,12 +45,23 @@ export class AddressRow {
   }));
   /** Credentials are masked unless asked for; a vault secret's reference stays as written. The code is masked as the first cURL item is (P4.6 a). */
   protected readonly curlItems: UiMenuItem[] = [
-    { label: "Copy as cURL", command: () => void this.store.copyAsCurl() },
-    { label: "Copy as cURL with credentials", command: () => void this.store.copyAsCurl({ credentials: true }) },
-    { label: "Copy as JavaScript (fetch)", command: () => void this.store.copyAsCode("fetch") },
-    { label: "Copy as Python (requests)", command: () => void this.store.copyAsCode("python-requests") },
-    { label: "Copy as HTTPie", command: () => void this.store.copyAsCode("httpie") },
+    { label: "Copy as cURL", command: () => this.copied(this.store.copyAsCurl()) },
+    {
+      label: "Copy as cURL with credentials",
+      command: () => this.copied(this.store.copyAsCurl({ credentials: true })),
+    },
+    {
+      label: "Copy as JavaScript (fetch)",
+      command: () => this.copied(this.store.copyAsCode("fetch", "JavaScript (fetch)")),
+    },
+    {
+      label: "Copy as Python (requests)",
+      command: () => this.copied(this.store.copyAsCode("python-requests", "Python (requests)")),
+    },
+    { label: "Copy as HTTPie", command: () => this.copied(this.store.copyAsCode("httpie", "HTTPie")) },
   ];
+  /** What the last copy did, under the row for a few seconds (U-050). */
+  protected readonly copyStatus = transientNote();
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly savingRequest = this.requestSave.savingRequest;
 
@@ -89,6 +101,12 @@ export class AddressRow {
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "nearest" });
     el.focus();
+  }
+
+  private copied(note: Promise<string>): void {
+    void note.then((text) => {
+      if (text) this.copyStatus.show(text);
+    });
   }
 
   protected async save(): Promise<void> {

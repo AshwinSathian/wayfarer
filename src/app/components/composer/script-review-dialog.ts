@@ -6,6 +6,21 @@ import { ScriptTrust } from "../../services/script-trust";
 import { Dialog } from "../../ui/dialog";
 
 /**
+ * Characters that draw nothing or reorder what is drawn: controls, bidirectional overrides and isolates, zero-width
+ * marks. A script could hide code behind them from a reader (Trojan Source); Monaco showed them, a `<pre>` does not.
+ */
+const HIDDEN_CHARS = String.raw`[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB]`;
+const HIDDEN = new RegExp(HIDDEN_CHARS);
+
+/** `text` with each hidden character written as its code point, so that what is read is what runs. */
+function shown(text: string): string {
+  return text.replace(
+    new RegExp(HIDDEN_CHARS, "g"),
+    (char) => `⟨U+${char.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}⟩`,
+  );
+}
+
+/**
  * Shows every script that is waiting for approval, read-only, and asks the
  * user to trust them (plan D6, P3.8). Each script is shown on its own, under
  * the name of its request, its folder or the collection: what is on screen
@@ -29,6 +44,8 @@ import { Dialog } from "../../ui/dialog";
       line-height: var(--type-mono-body-line);
       white-space: pre;
       tab-size: 2;
+      direction: ltr;
+      unicode-bidi: isolate;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,7 +78,14 @@ export class ScriptReviewDialog {
         ] as const
       )
         .filter(([, text]) => text.trim())
-        .map(([kind, text]) => ({ holder: holder.name, kind, text, unsupported: unsupportedApis(text) })),
+        .map(([kind, text]) => ({
+          holder: holder.name,
+          kind,
+          text,
+          shown: shown(text),
+          hidden: HIDDEN.test(text),
+          unsupported: unsupportedApis(text),
+        })),
     ),
   );
   /** The places in `scripts` whose text the collection's last review did not cover: new, or changed since. */

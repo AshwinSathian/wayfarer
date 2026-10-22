@@ -26,8 +26,16 @@
             $last ? "." : ", " }}}</span
           >
         </p>
+        } @if (script.hidden) {
+        <p class="script-review-hidden type-footnote text-status-warning flex items-start gap-1">
+          <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+          <span class="min-w-0"
+            >Holds characters that do not show, or that change the order text is shown in. Each is written below as its
+            code point, such as ⟨U+202E⟩.</span
+          >
+        </p>
         }
-        <pre class="script-review-code"><code>{{ script.text }}</code></pre>
+        <pre class="script-review-code"><code>{{ script.shown }}</code></pre>
       </li>
       }
     </ol>

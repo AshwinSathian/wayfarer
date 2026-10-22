@@ -65,7 +65,9 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed
   since, as after a re-import), and says when a script calls something
-  Wayfarer does not have, such as `pm.vault.get`. Before, every script was
+  Wayfarer does not have, such as `pm.vault.get`. A character that draws
+  nothing or changes the order text is shown in (a way to hide code from a
+  reader) is written as its code point, with a warning. Before, every script was
   run together in one editor, each under a comment line, with no mark on
   any of them.
 

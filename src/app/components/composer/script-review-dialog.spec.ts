@@ -44,4 +44,30 @@ describe("ScriptReviewDialog", () => {
     );
     expect(items[1].querySelector(".script-review-unsupported")).toBeNull();
   });
+
+  it("writes a character that draws nothing or reorders the text as its code point, and says so (Trojan Source)", async () => {
+    const script = 'if (isAdmin) { /*\u202E } \u2066 if (true) \u2069 */ pm.test("x", () => {}); }\u200B';
+    TestBed.configureTestingModule({
+      imports: [ScriptReviewDialog],
+      providers: [
+        {
+          provide: ScriptTrust,
+          useValue: {
+            toReview: signal<ReviewedScripts[]>([{ kind: "request", name: "Health", pre: script, post: "" }]),
+            approvedDigests: signal(new Set<string>()),
+            approve: () => Promise.resolve(),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(ScriptReviewDialog);
+    fixture.componentRef.setInput("visible", true);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector(".script-review-code code")?.textContent).toBe(
+      'if (isAdmin) { /*⟨U+202E⟩ } ⟨U+2066⟩ if (true) ⟨U+2069⟩ */ pm.test("x", () => {}); }⟨U+200B⟩',
+    );
+    expect(host.querySelector(".script-review-hidden")).not.toBeNull();
+  });
 });

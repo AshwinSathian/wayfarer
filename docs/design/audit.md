@@ -621,8 +621,9 @@ credentials"; the editors say "Add Header" and "Add Variable" beside "Save
 changes" and "Bulk edit".
 Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
 `baseline/design-chromium/environments-rows-1440-light.png`.
-**Status:** Open, D4-c (the voice guide decides the case; each view's
-session applies it).
+**Status:** Open. The voice guide ([`voice.md`](voice.md#case), D4-c)
+decides it: sentence case for every label, proper names apart. Each view's
+session of row 1.35 applies it to that view's strings.
 
 ### Found on the other screens
 

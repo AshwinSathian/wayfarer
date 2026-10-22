@@ -152,19 +152,18 @@ for (const theme of ["light", "dark"] as const) {
             { message: `at ${width} px` },
           )
           .toBeLessThanOrEqual(0);
-        // Polled, like the width: the drawer's change of layout takes a moment.
-        await expect
-          .poll(
-            async () => {
-              const boxes = await Promise.all([
-                chain(page).boundingBox(),
-                page.getByRole("checkbox", { name: "Follow redirects" }).boundingBox(),
-              ]);
-              return boxes.every((box) => !!box && box.x >= 0 && box.x + box.width <= width);
-            },
-            { message: `the list and the checkbox at ${width} px` },
-          )
-          .toBe(true);
+        // Polled, like the width: the drawer's change of layout takes a moment. On a phone the request and the
+        // response are two panes (U-028): each is looked at in its own.
+        const inside = async (locator: Locator) => {
+          const box = await locator.boundingBox();
+          return !!box && box.x >= 0 && box.x + box.width <= width;
+        };
+        const phone = width < 768;
+        await expect.poll(() => inside(chain(page)), { message: `the list at ${width} px` }).toBe(true);
+        if (phone) await page.getByRole("tab", { name: "Request", exact: true }).click();
+        const follow = page.getByRole("checkbox", { name: "Follow redirects" });
+        await expect.poll(() => inside(follow), { message: `the checkbox at ${width} px` }).toBe(true);
+        if (phone) await page.getByRole("tab", { name: "Response", exact: true }).click();
       }
     } finally {
       bridge.stop();

@@ -11,7 +11,7 @@
     <input
       class="font-mono min-w-0 flex-1 basis-32"
       uiInput
-      placeholder="name"
+      placeholder="Name"
       [(ngModel)]="part.key"
       (ngModelChange)="partChange.emit()"
       [attr.aria-label]="'Part name, row ' + (index + 1)"
@@ -29,7 +29,7 @@
       <input
         class="font-mono min-w-0 flex-1"
         uiInput
-        placeholder="value"
+        placeholder="Value"
         [(ngModel)]="part.value"
         (ngModelChange)="partChange.emit()"
         [attr.aria-label]="'Part value, row ' + (index + 1)"
@@ -49,7 +49,7 @@
         />
       </div>
       }
-      <button uiButton="icon" class="btn-danger" type="button" aria-label="Remove part" (click)="remove.emit(index)"
+      <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove part" (click)="remove.emit(index)"
         ><app-icon name="close"
       /></button>
     </div>
@@ -58,7 +58,7 @@
 
   <div class="pt-2">
     <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add part" (click)="add.emit()"
-      ><app-icon name="add" /> Add Part</button
+      ><app-icon name="add" /> Add part</button
     >
   </div>
 </div>

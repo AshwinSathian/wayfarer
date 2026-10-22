@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { AccordionContent, AccordionPanel, AccordionTrigger } from "@angular/aria/accordion";
-import { isBodyMethod } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
-import { WorkspaceStore } from "../../state/workspace-store";
 import { UiAccordion, UiAccordionPanel } from "../../ui/accordion";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
@@ -39,7 +37,5 @@ import { ScriptsPanel } from "./scripts-panel";
   host: { class: "block" },
 })
 export class ComposerSections {
-  private readonly store = inject(WorkspaceStore);
   protected readonly view = inject(ComposerView);
-  protected readonly hasBody = computed(() => isBodyMethod(this.store.draft().method));
 }

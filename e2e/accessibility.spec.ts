@@ -55,7 +55,7 @@ test.describe("Accessibility (primary flows)", () => {
     expect(violations, violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} node(s))`).join("\n")).toEqual([]);
   });
 
-  test("@claim:C-038 the Save to Collection and command palette dialogs have no WCAG 2.2 AA violations", async ({
+  test("@claim:C-038 the Save to collection and command palette dialogs have no WCAG 2.2 AA violations", async ({
     page,
   }) => {
     await page.goto("/app/");
@@ -72,7 +72,7 @@ test.describe("Accessibility (primary flows)", () => {
     await expect(page.locator("#creation-name-input")).toBeHidden();
 
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
-    await page.getByRole("button", { name: "Save to Collection" }).click();
+    await page.getByRole("button", { name: "Save to collection" }).click();
     await expect(page.locator("#save-as-name")).toBeVisible();
 
     const saveAsResults = await analyze(page);

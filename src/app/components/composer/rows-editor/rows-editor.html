@@ -15,7 +15,7 @@
     <input
       class="font-mono min-w-0 flex-1 basis-40"
       uiInput
-      placeholder="name"
+      placeholder="Name"
       [(ngModel)]="item.key"
       (ngModelChange)="itemChange.emit()"
       [attr.aria-label]="context() + ' name, row ' + (index + 1)"
@@ -25,16 +25,17 @@
       <input
         class="font-mono min-w-0 flex-1"
         uiInput
-        placeholder="value"
+        placeholder="Value"
         [(ngModel)]="item.value"
         (ngModelChange)="itemChange.emit()"
         [attr.aria-label]="context() + ' value, row ' + (index + 1)"
       />
+      <!-- Grey until hovered: red is for the one destructive action in view, not one on every row (U-018). -->
       <button
         uiButton="icon"
-        class="btn-danger"
+        class="btn-plain"
         type="button"
-        [attr.aria-label]="'Remove ' + context().toLowerCase() + ' item'"
+        [attr.aria-label]="'Remove ' + context().toLowerCase() + ' row ' + (index + 1)"
         (click)="remove.emit(index)"
         ><app-icon name="close"
       /></button>

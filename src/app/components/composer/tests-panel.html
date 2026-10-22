@@ -1,9 +1,9 @@
 <div class="flex items-center gap-2">
   <app-icon name="rule" class="icon-sm text-label-tertiary" />
-  <div class="ds-section-label">Tests</div>
+  <p class="type-subhead font-semibold">Tests</p>
 </div>
 @for (test of store.draft().tests; track test.id; let i = $index) {
-<div class="flex flex-wrap items-center gap-2 rounded-xl bg-canvas-panel border border-separator p-3">
+<div class="flex flex-wrap items-center gap-2">
   <ui-select
     class="w-36"
     aria-label="Assert on"
@@ -33,16 +33,16 @@
     uiInput
     [(ngModel)]="test.expected"
     (ngModelChange)="store.edited()"
-    placeholder="expected value"
+    placeholder="Expected value"
   />
   }
-  <button uiButton="icon" class="btn-danger" type="button" aria-label="Remove test" (click)="store.removeTest(i)"
+  <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove test" (click)="store.removeTest(i)"
     ><app-icon name="close"
   /></button>
 </div>
 }
 <div>
   <button uiButton="filled" class="btn-secondary" type="button" aria-label="Add test" (click)="store.addTest()"
-    ><app-icon name="add" /> Add Test</button
+    ><app-icon name="add" /> Add test</button
   >
 </div>

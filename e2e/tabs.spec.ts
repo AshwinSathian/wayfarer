@@ -279,8 +279,8 @@ test("five tabs, two of them edited, are all there after a reload, the two still
   await tabs(page).nth(3).click();
   await address(page).fill("https://api.example.test/fourth?page=2");
   await page.getByRole("tab", { name: "Headers", exact: true }).click();
-  await page.locator("app-headers-panel").getByPlaceholder("name", { exact: true }).first().fill("X-Kept");
-  await page.locator("app-headers-panel").getByPlaceholder("value", { exact: true }).first().fill("over a reload");
+  await page.locator("app-headers-panel").getByPlaceholder("Name", { exact: true }).first().fill("X-Kept");
+  await page.locator("app-headers-panel").getByPlaceholder("Value", { exact: true }).first().fill("over a reload");
   await storedTabs(page, (stored) => stored.length === 5 && JSON.stringify(stored).includes("over a reload"));
 
   await page.reload();
@@ -291,10 +291,12 @@ test("five tabs, two of them edited, are all there after a reload, the two still
   }
   await expect(tabs(page).nth(3)).toHaveAttribute("aria-selected", "true");
   await expect(address(page)).toHaveValue("https://api.example.test/fourth?page=2");
-  await expect(page.locator("app-headers-panel").getByPlaceholder("name", { exact: true }).first()).toHaveValue(
+  // An opened request starts on Params (U-017).
+  await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
+  await expect(page.locator("app-headers-panel").getByPlaceholder("Name", { exact: true }).first()).toHaveValue(
     "X-Kept",
   );
-  await expect(page.locator("app-headers-panel").getByPlaceholder("value", { exact: true }).first()).toHaveValue(
+  await expect(page.locator("app-headers-panel").getByPlaceholder("Value", { exact: true }).first()).toHaveValue(
     "over a reload",
   );
   await tabs(page).nth(1).click();

@@ -19,7 +19,13 @@
   }
 </div>
 
-@if (contentTypeBreaksMultipart()) {
+@if (current.mode !== 'none' && !sendsBody()) {
+<!-- Body is a tab for every method (U-017); what GET and HEAD do with one is said here. -->
+<p class="body-not-sent type-footnote text-label-secondary flex items-start gap-1 pb-3">
+  <app-icon name="info" class="icon-xs" />
+  A {{ store.draft().method }} request is sent without a body. To send this one, choose another method.
+</p>
+} @if (contentTypeBreaksMultipart()) {
 <p role="alert" class="type-footnote text-status-warning flex items-start gap-1 pb-3">
   <app-icon name="error" class="icon-xs" />
   The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between the
@@ -45,7 +51,7 @@
 <app-rows-editor
   context="Body"
   [items]="current.urlencoded ?? []"
-  addLabel="Add Field"
+  addLabel="Add field"
   (itemChange)="store.edited()"
   (add)="addField()"
   (remove)="removeField($event)"

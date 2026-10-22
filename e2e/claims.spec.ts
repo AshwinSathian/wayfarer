@@ -20,7 +20,7 @@ async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await page.getByRole("button", { name: "Create environment" }).click();
   await page.getByRole("button", { name: "Add variable" }).click();
   await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
-  await page.getByPlaceholder("Value", { exact: true }).fill(plaintext);
+  await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill(plaintext);
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
   const inputs = page.locator("input[type='password']");
   await inputs.nth(0).fill(PASSPHRASE);

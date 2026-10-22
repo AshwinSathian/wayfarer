@@ -234,6 +234,8 @@ test.describe("Settings surface", () => {
 
   test("a button reached with the keyboard shows the focus ring", async ({ page, browserName }) => {
     await page.goto("/app/");
+    // With an address, the button after it (Copy as cURL) is enabled and takes the key.
+    await page.locator("input.address-url").fill("https://api.example.test/");
     await page.locator("input.address-url").focus();
     // Safari moves focus to buttons with Option+Tab unless the user changed the default.
     await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");

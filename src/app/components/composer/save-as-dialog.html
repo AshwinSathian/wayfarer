@@ -1,6 +1,6 @@
-<!-- Save to Collection dialog -->
+<!-- Save to collection dialog -->
 <ui-dialog
-  header="Save to Collection"
+  header="Save to collection"
   [visible]="requestSave.saveAsDialogVisible()"
   (visibleChange)="requestSave.saveAsDialogVisible.set($event)"
   dismissableMask
@@ -9,7 +9,7 @@
   <div class="flex flex-col gap-4">
     @if (!requestSave.saveAsCollectionOptions().length) {
     <p class="type-callout text-label-secondary">
-      No collections yet — create one from the sidebar first, then save this request into it.
+      A request is saved into a collection, and there is none yet. Make one with New collection in the sidebar.
     </p>
     } @else {
     <div class="flex flex-col gap-1.5">

@@ -8,7 +8,6 @@ import { ScriptTrust } from "../../services/script-trust";
 import { RunState, type RunTarget } from "../../state/run-state";
 import { TabState } from "../../state/tab-state";
 import { Tabs } from "../../state/tabs";
-import { isBodyMethod } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 
 /**
@@ -24,14 +23,17 @@ export class ComposerView {
   private readonly importWorker = inject(ImportWorkerClient);
   private readonly tabs = inject(Tabs);
 
-  readonly activeTab = signal("headers");
+  /** Params first, as Postman's: an address with a query shows its parameters (U-017). */
+  readonly activeTab = signal("params");
   /**
    * Single-panel-at-a-time mobile accordion state (a plain string, not an
    * array) — the accordion is deliberately non-multiple so only one
    * composer section (and, critically, at most one Monaco instance inside
    * it) is ever expanded at once on narrow viewports.
    */
-  readonly mobileActivePanels = signal<string>("headers");
+  readonly mobileActivePanels = signal<string>("params");
+  /** On a phone, whether the request's parts or the response is shown (U-028). */
+  readonly mobilePane = signal("request");
   readonly showAuthPassword = signal(false);
 
   constructor() {
@@ -105,7 +107,8 @@ export class ComposerView {
     this.trust.openedHere();
     this.store.reset();
     this.tabs.active().markClean();
-    this.activeTab.set("headers");
+    this.activeTab.set("params");
+    this.mobilePane.set("request");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();
   }
@@ -122,7 +125,7 @@ export class ComposerView {
       this.store.load(content);
       this.store.refreshVariablePreview();
       this.store.pasteNotes.set(warnings);
-      this.activeTab.set(content.body.mode === "none" ? "headers" : "body");
+      this.activeTab.set(content.body.mode === "none" ? "params" : "body");
       this.syncMobilePanelsFromActiveTab();
     } catch (error) {
       if (!(error instanceof ImportRefused)) throw error;
@@ -132,10 +135,6 @@ export class ComposerView {
 
   onRequestMethodChange(method: string): void {
     this.store.setMethod(method);
-    if (!isBodyMethod(method)) {
-      this.activeTab.set("headers");
-    }
-    this.syncMobilePanelsFromActiveTab();
   }
 
   /** Auth type changes (unlike bearer/basic/apiKey field edits) also reset password visibility. */
@@ -150,24 +149,14 @@ export class ComposerView {
   }
 
   onMobileIndexChange(panel: string | null): void {
-    const next = panel ?? "headers";
+    const next = panel ?? "params";
     this.mobileActivePanels.set(next);
-
-    if (isBodyMethod(this.store.draft().method) && next === "body") {
-      this.activeTab.set("body");
-    } else if (next === "params" || next === "auth" || next === "scripts" || next === "settings") {
-      // Keep activeTab in sync for non-headers/body panels too, so state
-      // (e.g. which JSON editor synced) matches whatever the user is
-      // actually looking at.
-      this.activeTab.set(next);
-    } else {
-      this.activeTab.set("headers");
-    }
+    this.activeTab.set(next);
   }
 
   /**
    * A section was closed. If nothing else took its place the accordion goes
-   * back to Headers; closing Headers itself therefore reopens it.
+   * back to Params; closing Params itself therefore reopens it.
    */
   onMobilePanelClosed(panel: string, section: { expand(): void }): void {
     if (this.mobileActivePanels() !== panel) return;
@@ -181,19 +170,15 @@ export class ComposerView {
     this.tabs.active().markClean();
     // The response on screen is another request's now: a reload does not show it for this one.
     this.tabs.active().historyKey.set(undefined);
-    this.activeTab.set(request.body.mode !== "none" && isBodyMethod(request.method) ? "body" : "headers");
+    this.activeTab.set(request.body.mode !== "none" ? "body" : "params");
+    this.mobilePane.set("request");
     this.showAuthPassword.set(false);
     this.syncMobilePanelsFromActiveTab();
     this.store.refreshVariablePreview();
   }
 
-  /**
-   * The phone's open section is the desktop's open tab (F55: it was "Body,
-   * or else Headers", so crossing the 768 px line and back lost the tab).
-   * A Body tab the method has no use for falls back to Headers.
-   */
+  /** The phone's open section is the desktop's open tab (F55: crossing the 768 px line and back lost the tab). */
   private syncMobilePanelsFromActiveTab(): void {
-    const tab = this.activeTab();
-    this.mobileActivePanels.set(tab === "body" && !isBodyMethod(this.store.draft().method) ? "headers" : tab);
+    this.mobileActivePanels.set(this.activeTab());
   }
 }

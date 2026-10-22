@@ -45,6 +45,12 @@ export class ScriptTrust {
     return bound ? this.collections.tree().find((entry) => entry.collection.meta.id === bound.collectionId) : undefined;
   });
 
+  /** The digests the collection's last review covered: a script whose digest is here was reviewed as it is now. */
+  readonly approvedDigests = computed(() => {
+    const trust = this.collection()?.collection.scriptTrust;
+    return new Set(trust?.trusted ? (trust.approved ?? []) : []);
+  });
+
   /** What the review shows: every script of the bound request's collection, or the history entry's own. */
   readonly toReview = computed<ReviewedScripts[]>(() => {
     const history = this.fromHistory();

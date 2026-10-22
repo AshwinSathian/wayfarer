@@ -473,7 +473,15 @@ before) is not marked, and at 390 px each header wraps to three lines in a
 column of 230 px beside a gutter of 60.
 Evidence: `baseline/design-chromium/script-review-1440-light.png`,
 `baseline/design-chromium/script-review-390-dark.png`.
-**Status:** Open, D4-d.
+**Status:** Fixed in #429 (D4-d). Each script is shown on its own, in the
+order it runs, under its holder's name and its kind (pre-request or
+post-response). One whose digest the collection's last review did not
+cover (new, or changed by a re-import) reads "Not reviewed yet"; the app
+keeps digests, not the text reviewed, so it cannot show what changed in
+it. A call the sandbox does not have is named above the script, from the
+same scan as the import report. A character that draws nothing or
+reorders the text is written as its code point. The scripts are text, not
+Monaco: at 390 px each heading is one line.
 
 ### The environment editor with rows
 
@@ -520,7 +528,9 @@ this redirect URI with the identity provider" come after them, out of view.
 The redirect URI is what a person needs first, to set up the provider.
 The Grant select also starts 24 px to the right of the Type select above it.
 Evidence: `baseline/design-chromium/composer-oauth-1440-light.png`.
-**Status:** Open, D4-d.
+**Status:** Fixed in #429 (D4-d). Under the grant come the redirect URI and
+the token's state with Get token, then the fields. Every label of the Auth
+tab is 96 px, so the Type and Grant selects start at the same place.
 
 ### The GraphQL explorer
 
@@ -529,7 +539,11 @@ After Refresh schema the status line says the schema is loaded, but the
 explorer that lists its types comes after the query and variables editors,
 below the fold at 1,440 × 900. Postman's GraphQL client shows the schema beside the query.
 Evidence: `baseline/design-chromium/graphql-explorer-1440-light.png`.
-**Status:** Open, D4-d.
+**Status:** Fixed in #429 (D4-d). The schema's types are listed under Fetch
+schema, above the query, in a box 240 px high that scrolls; each type opens
+with the app's chevron, not the browser's triangle. Beside the query, as
+Postman has it, does not fit: beside the pinned sidebar the composer is
+530 px at 1,440 px.
 
 ### The WebSocket view
 

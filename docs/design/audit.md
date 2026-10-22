@@ -566,7 +566,16 @@ from a field too, since the address has focus when the app opens.
 The command goes to the clipboard and the menu closes; nothing on the
 screen says it was copied, or that a secret in it was masked.
 Evidence: D0.2's task 6; `workspace-store.ts`, `copyAsCurl`.
-**Status:** Open, D4-d.
+**Status:** Fixed in #430 (D4-d). Each copy of the composer's menu and of the
+response's export menu says for eight seconds, in a live region under the
+address or beside the export button, what it copied ("Copied as cURL.").
+`copyNote` (`@wayfarer/core`) builds the text again with less masked and
+compares, so it says "Its credentials are replaced by ***." or "its vault
+secrets" only when the redactor replaced some in this copy, and that a
+vault secret's reference was copied as written. A copy the browser refused
+says nothing was copied. The HAR dialog shows its file and what it masks
+before Copy, and closes on a copy that worked; on one the browser refused
+it stays open and says so.
 
 **U-051. A failed request reads "0 Unknown Error", and CORS and DNS look
 the same.** Severity 2. H9, H2. SD, OC.

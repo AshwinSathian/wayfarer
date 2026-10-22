@@ -139,6 +139,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Design research, 2026](docs/design/research-2026.md): the rivals, the market and the research behind [the design plan](PLAN-design.md)
 - [Reach plan](docs/design/reach.md): where Wayfarer is listed and announced, and when; nothing is posted before the maintainer approves it
 - [Design audit, 2026](docs/design/audit.md): what is wrong with the interface, finding by finding, with screenshots and what became of each
+- [Design baseline: the eight tasks](docs/design/baseline.md): what each core task costs in inputs and time on the app before the redesign, and how it is measured
 - [Design baseline](docs/design/baseline/index.md): every screen as it looks before the redesign, at four widths in both themes, and how the captures are compared in CI
 - [Information architecture](docs/design/ia.md): where each action of the app lives, and how the palette, the sidebar and the tabs share work
 - [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends

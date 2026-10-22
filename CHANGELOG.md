@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what the eight core tasks cost today.** A new
+  page counts the clicks, keys and characters each takes on the app as it
+  is, and how long the app takes to answer, from a first request to
+  finding one sent last week, with how it was measured. A first request
+  is 36 inputs, nearly all of them the address typed; adding a secret is
+  135, 56 of them the vault's passphrase typed twice. The redesign is
+  measured against these numbers; the same tasks in the other API clients
+  are still to be timed.
+
 - **The design audit covers Firefox, WebKit and the screens it had
   skipped.** Its second pass reads every screen of the design baseline and
   adds 20 findings, each with the part of the redesign that takes it: among

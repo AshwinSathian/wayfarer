@@ -260,27 +260,16 @@ test("@claim:C-036 the app is installable: a web app manifest with name, start U
   }
 });
 
-test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and offers none, raw, form, multipart and binary", async ({
+test("@claim:C-039 the Body tab is there for every method, offers none, raw, form, multipart, binary and GraphQL, and says a GET or HEAD request is sent without a body", async ({
   page,
 }) => {
   await page.goto("/app/");
   const bodyTab = page.getByRole("tab", { name: "Body", exact: true });
   const method = page.getByRole("textbox", { name: "HTTP method" });
-  // A new request is a GET.
-  await expect(bodyTab).toHaveCount(0);
-  for (const [name, tabs] of [
-    ["HEAD", 0],
-    ["DELETE", 1],
-    ["OPTIONS", 1],
-    ["PATCH", 1],
-    ["PUT", 1],
-    ["POST", 1],
-  ] as const) {
-    await method.fill(name);
-    await expect(bodyTab, name).toHaveCount(tabs);
-  }
-
-  await bodyTab.first().click();
+  const notSent = page.locator(".body-not-sent");
+  // A new request is a GET, and has the tab.
+  await expect(bodyTab).toHaveCount(1);
+  await bodyTab.click();
   await page.getByRole("combobox", { name: "Body", exact: true }).click();
   await expect(page.getByRole("option")).toHaveText([
     "None",
@@ -293,6 +282,23 @@ test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and 
   await page.getByRole("option", { name: "Raw", exact: true }).click();
   await page.getByRole("combobox", { name: "Raw body language" }).click();
   await expect(page.getByRole("option")).toHaveText(["JSON", "Text", "XML", "HTML", "JavaScript"]);
+  await page.keyboard.press("Escape");
+
+  for (const [name, said] of [
+    ["GET", 1],
+    ["HEAD", 1],
+    ["DELETE", 0],
+    ["OPTIONS", 0],
+    ["PATCH", 0],
+    ["PUT", 0],
+    ["POST", 0],
+  ] as const) {
+    await method.fill(name);
+    await expect(bodyTab, name).toHaveCount(1);
+    await expect(notSent, name).toHaveCount(said);
+  }
+  await method.fill("GET");
+  await expect(notSent).toHaveText("A GET request is sent without a body. To send this one, choose another method.");
 });
 
 async function createCollection(page: Page, name: string): Promise<void> {

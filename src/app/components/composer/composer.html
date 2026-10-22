@@ -1,11 +1,12 @@
 <app-tab-strip class="request-tab-strip" (opened)="focusUrl()" />
 
-<!-- The open tab's panel; the others' are empty, in the strip. -->
+<!-- The open tab's panel; the others' are empty, in the strip. No card: the regions are told apart by space and a
+     line, not by boxes inside boxes (U-004). -->
 <div
   ngTabPanel
   [value]="tabs.active().id"
-  class="ds-panel p-6 w-full space-y-5"
-  [class]="isMobile() ? 'block' : 'flex min-h-0 flex-1 flex-col overflow-y-auto'"
+  class="w-full"
+  [class]="isMobile() ? 'block space-y-4' : 'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto'"
   [preserveContent]="true"
 >
   <ng-template ngTabContent>
@@ -26,22 +27,15 @@
         @for (holder of breadcrumb(); track $index) {{{ holder }} / }{{ bound.name }}
       </nav>
       — Save writes back to this request.
-      <button type="button" class="underline text-accent-text bg-transparent" (click)="clearComposer()"
-        >Start a new request instead</button
-      >
     </div>
     } @if (store.endpointError() !== '') {
-    <p class="type-footnote text-status-error flex items-center gap-1.5 -mt-2">
+    <div class="type-footnote text-status-error flex flex-wrap items-center gap-x-1.5 gap-y-1 -mt-2">
       <app-icon name="error" class="icon-xs" />
-      {{ store.endpointError() }} @if (store.unresolvedBlocked().length) {
-      <button
-        type="button"
-        class="underline text-accent-text bg-transparent"
-        (click)="store.send({ allowUnresolved: true })"
-        >Send anyway</button
-      >
+      <p id="address-error">{{ store.endpointError() }}</p>
+      @if (store.unresolvedBlocked().length) {
+      <button uiButton class="btn-sm" type="button" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
       }
-    </p>
+    </div>
     } @if (store.pasteNotes().length) {
     <div role="status" class="paste-notes type-footnote text-status-warning -mt-2">
       <p class="flex items-center gap-1.5"><app-icon name="warning" class="icon-xs" /> From the pasted cURL command:</p>
@@ -55,9 +49,8 @@
 
     <app-request-warnings class="block space-y-2 empty:hidden" />
 
-    <!-- ── Variable tokens preview ──────────────────────────── -->
     @if (store.variableTokens().length) {
-    <app-variable-chips class="flex flex-wrap gap-2 rounded-xl bg-canvas-elevated px-4 py-3 border border-separator" />
+    <app-variable-chips class="flex flex-wrap gap-2" />
     @if (store.missingVariableKeys().length) {
     <p class="type-footnote text-status-warning flex items-center gap-1.5">
       <app-icon name="warning" class="icon-xs" />
@@ -69,17 +62,35 @@
     @if (socket.isSocket()) {
     <app-socket-view class="block space-y-5" />
     } @else if (isMobile()) {
-    <!-- Mobile: the parts of the request as sections, one open at a time, stacked above the response panel. -->
-    <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden animate-fade-in">
-      <app-composer-sections />
-    </section>
-
-    @if (store.shouldShowResponsePanel) {
-    <ng-container [ngTemplateOutlet]="response" />
-    } } @else {
-    <!-- Desktop: a real resizable split between the composer and the response
-       viewer. The chosen split ratio is kept in localStorage under a
-       wayfarer:-namespaced key (see theme.ts). -->
+    <!-- A phone (U-028): the request and the response are two panes, not one column; a send shows the response. -->
+    <div ngTabs class="tabs">
+      <div
+        uiTabList
+        aria-label="Request or response"
+        [selectedTab]="view.mobilePane()"
+        (selectedTabChange)="view.mobilePane.set($event)"
+      >
+        <button ngTab type="button" value="request">Request</button>
+        <button ngTab type="button" value="response">Response</button>
+      </div>
+      <div class="tab-panes">
+        <div ngTabPanel value="request" class="tab-pane" [preserveContent]="true"
+          ><ng-template ngTabContent><app-composer-sections /></ng-template
+        ></div>
+        <div ngTabPanel value="response" class="tab-pane" [preserveContent]="true"
+          ><ng-template ngTabContent>
+            @if (store.shouldShowResponsePanel) {
+            <ng-container [ngTemplateOutlet]="response" />
+            } @else {
+            <ng-container [ngTemplateOutlet]="noResponse" />
+            }
+          </ng-template></div
+        >
+      </div>
+    </div>
+    } @else {
+    <!-- Desktop: a resizable split between the request's parts and the response. The split is kept in
+       localStorage under a wayfarer: key (see theme.ts). -->
     <ui-splitter
       class="composer-response-splitter"
       storageKey="wayfarer:composer-split"
@@ -88,99 +99,77 @@
       ariaLabel="Resize the composer and the response"
     >
       <div uiSplitterStart class="composer-pane">
-        <section class="rounded-xl bg-canvas-elevated border border-separator overflow-hidden">
-          <div class="px-2 pt-1">
-            <div ngTabs class="tabs">
-              <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 w-full pr-2">
-                <div uiTabList [selectedTab]="view.activeTab()" (selectedTabChange)="view.onActiveTabChange($event)">
-                  <button ngTab type="button" value="params">Params</button>
-                  <button ngTab type="button" value="headers">Headers</button>
-                  @if (hasBody) {
-                  <button ngTab type="button" value="body">Body</button>
-                  }
-                  <button ngTab type="button" value="auth">Auth</button>
-                  <button ngTab type="button" value="scripts">Scripts</button>
-                  <button ngTab type="button" value="settings">Settings</button>
-                </div>
-              </div>
-
-              <div class="tab-panes">
-                <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <app-params-panel class="flex flex-col gap-2" />
-                    </div> </ng-template
-                ></div>
-                <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <app-headers-panel class="block" />
-                    </div> </ng-template
-                ></div>
-                @if (hasBody) {
-                <div ngTabPanel value="body" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <app-body-panel class="block" />
-                    </div> </ng-template
-                ></div>
-                }
-                <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <app-auth-panel />
-                    </div> </ng-template
-                ></div>
-                <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <!-- Its editors are Monaco: made when the tab is first chosen, and kept mounted after (P7.2). -->
-                      @defer (when view.activeTab() === 'scripts') {
-                      <app-scripts-panel class="block space-y-6" />
-                      }
-                    </div>
-                  </ng-template></div
-                >
-                <div ngTabPanel value="settings" class="tab-pane" [preserveContent]="true"
-                  ><ng-template ngTabContent>
-                    <div class="px-4 pb-5">
-                      <app-browser-notes class="block space-y-4" />
-                    </div> </ng-template
-                ></div>
-              </div>
-            </div>
+        <!-- Body is there for every method (U-017): the row does not reflow when the method changes. -->
+        <div ngTabs class="tabs">
+          <div uiTabList [selectedTab]="view.activeTab()" (selectedTabChange)="view.onActiveTabChange($event)">
+            <button ngTab type="button" value="params">Params</button>
+            <button ngTab type="button" value="headers">Headers</button>
+            <button ngTab type="button" value="body">Body</button>
+            <button ngTab type="button" value="auth">Auth</button>
+            <button ngTab type="button" value="scripts">Scripts</button>
+            <button ngTab type="button" value="settings">Settings</button>
           </div>
-        </section>
+
+          <div class="tab-panes">
+            <div ngTabPanel value="params" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent><app-params-panel class="flex flex-col gap-2 pb-5" /></ng-template
+            ></div>
+            <div ngTabPanel value="headers" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent><app-headers-panel class="block pb-5" /></ng-template
+            ></div>
+            <div ngTabPanel value="body" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent><app-body-panel class="block pb-5" /></ng-template
+            ></div>
+            <div ngTabPanel value="auth" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent><app-auth-panel class="block pb-5" /></ng-template
+            ></div>
+            <div ngTabPanel value="scripts" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent>
+                <!-- Its editors are Monaco: made when the tab is first chosen, and kept mounted after (P7.2). -->
+                @defer (when view.activeTab() === 'scripts') {
+                <app-scripts-panel class="block space-y-6 pb-5" />
+                }
+              </ng-template></div
+            >
+            <div ngTabPanel value="settings" class="tab-pane" [preserveContent]="true"
+              ><ng-template ngTabContent><app-browser-notes class="block space-y-4 pb-5" /></ng-template
+            ></div>
+          </div>
+        </div>
       </div>
       <div uiSplitterEnd class="response-pane">
         @if (store.shouldShowResponsePanel) {
         <ng-container [ngTemplateOutlet]="response" />
         } @else {
-        <!-- First run (D4.2, U-022): the next step, not "nothing here". -->
-        <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center px-6">
-          <p class="type-callout text-label-secondary">Send a request and its response shows here.</p>
-          <div class="flex flex-wrap justify-center gap-2">
-            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
-              >Paste a cURL command</button
-            >
-            <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importFile.click()"
-              >Import a collection…</button
-            >
-            <input
-              #importFile
-              type="file"
-              accept="application/json,.json,.har,.yaml,.yml"
-              class="hidden"
-              (change)="importPipeline.pick($event)"
-            />
-          </div>
-        </div>
+        <ng-container [ngTemplateOutlet]="noResponse" />
         }
       </div>
     </ui-splitter>
     } }
   </ng-template>
 </div>
+
+<!-- First run (D4.2, U-022): the next step, not "nothing here". -->
+<ng-template #noResponse>
+  <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center px-6">
+    <p class="type-callout text-label-secondary">Send a request and its response shows here.</p>
+    <div class="flex flex-wrap justify-center gap-2">
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
+        >Paste a cURL command</button
+      >
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importFile.click()"
+        >Import a collection…</button
+      >
+      <input
+        #importFile
+        type="file"
+        accept="application/json,.json,.har,.yaml,.yml"
+        class="hidden"
+        (change)="importPipeline.pick($event)"
+      />
+    </div>
+  </div>
+</ng-template>
 
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>

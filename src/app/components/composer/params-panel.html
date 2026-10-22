@@ -1,8 +1,8 @@
-<div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-4 px-1 md:grid">
-  <div class="ds-section-label"></div>
-  <div class="ds-section-label">Key</div>
-  <div class="ds-section-label">Value</div>
-  <div></div>
+<div class="hidden grid-cols-[auto_1fr_1fr_auto] gap-3 type-footnote text-label-tertiary md:grid">
+  <div class="w-[22px]"></div>
+  <div>Key</div>
+  <div>Value</div>
+  <div class="w-[34px]"></div>
 </div>
 <!-- By place, not by object: the rows are made again from the address at every edit of it, and a row has no id. By object, each such edit destroyed and rebuilt every row (NG0956). -->
 @for (param of store.draft().params; track $index; let i = $index) {
@@ -19,22 +19,17 @@
     uiInput
     [(ngModel)]="param.key"
     (ngModelChange)="store.paramsEdited()"
-    placeholder="key"
+    placeholder="Key"
   />
   <input
     class="font-mono w-full"
     uiInput
     [(ngModel)]="param.value"
     (ngModelChange)="store.paramsEdited()"
-    placeholder="value"
+    placeholder="Value"
   />
   <div class="flex justify-end md:block">
-    <button
-      uiButton="icon"
-      class="btn-danger"
-      type="button"
-      aria-label="Remove parameter"
-      (click)="store.removeParam(i)"
+    <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove parameter" (click)="store.removeParam(i)"
       ><app-icon name="close"
     /></button>
   </div>

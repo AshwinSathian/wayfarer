@@ -35,7 +35,7 @@ test.describe("Secrets management view", () => {
     // hidden, which a loose, case-insensitive match would collide with.
     await page.getByRole("button", { name: "Add variable" }).click();
     await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
-    await page.getByPlaceholder("Value", { exact: true }).fill("super-secret-value");
+    await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill("super-secret-value");
 
     // Unlock the vault (first-use flow) before protecting the variable.
     await page.getByRole("button", { name: "Mark variable as secret" }).click();

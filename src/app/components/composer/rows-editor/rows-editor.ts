@@ -17,7 +17,7 @@ export class RowsEditor {
   /** What the rows are, in the accessible names: "Headers name, row 1". */
   readonly context = input("Headers");
   readonly items = input<Row[]>([]);
-  readonly addLabel = input("Add Item");
+  readonly addLabel = input("Add row");
   /** Whether each row has its "send" switch. Variables have none: a variable is there or it is not. */
   readonly switches = input(true);
 

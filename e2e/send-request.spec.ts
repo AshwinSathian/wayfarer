@@ -44,9 +44,8 @@ test.describe("Send request → view response", () => {
     // API client relies on.
     await expect(urlInput).toHaveValue(`${ECHO}/content/json?todo=1`);
 
-    // The explicit "New request" action is now the only thing that clears
-    // the composer.
-    await page.getByRole("button", { name: "New request", exact: true }).click();
+    // A new request is a new tab: the one sent keeps what it had.
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(urlInput).toHaveValue("");
   });
 
@@ -58,7 +57,9 @@ test.describe("Send request → view response", () => {
     await page.getByRole("button", { name: "Send request" }).click();
 
     // The message, not the tab above it, which shows the address that was typed.
-    await expect(page.getByText("Please enter a valid URL")).toBeVisible();
+    await expect(
+      page.getByText("The address is not a URL a request can go to. Write it as https://host/path."),
+    ).toBeVisible();
     // No status badge should ever appear for a request that was never sent.
     await expect(page.locator(".status-badge")).toHaveCount(0);
   });

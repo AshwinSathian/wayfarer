@@ -129,7 +129,11 @@ describe("CollectionRunner", () => {
     const done = runner.start(run);
     await ok("https://api.test/items/1");
     await done;
-    expect(run.results()[0]).toMatchObject({ name: "Bad", error: "Please enter a valid URL", tests: [] });
+    expect(run.results()[0]).toMatchObject({
+      name: "Bad",
+      error: "The address is not a URL a request can go to. Write it as https://host/path.",
+      tests: [],
+    });
     expect(run.results()[0].status).toBeUndefined();
     expect(run.results()[1].status).toBe(200);
   });

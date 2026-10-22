@@ -29,7 +29,7 @@ export class RequestSave {
    * The collection request the composer's current contents were loaded
    * from/last saved to, if any — null for a scratch request (typed from
    * blank, or reloaded from History). Drives whether "Save" writes back to
-   * that request in place or opens "Save to Collection" to create a new one.
+   * that request in place or opens "Save to collection" to create a new one.
    */
   readonly loadedCollectionRequest = forwarded(() => this.tabs.active().bound);
   /**

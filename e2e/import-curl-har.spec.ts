@@ -89,7 +89,7 @@ test("@claim:C-056 a cURL command pasted into the address field fills the open t
   await expect(page.locator(".paste-notes")).toHaveCount(0);
 
   // Text that is no command is pasted as text.
-  await page.getByRole("button", { name: "New request", exact: true }).click();
+  await page.getByRole("button", { name: "New tab", exact: true }).click();
   await pasteIntoAddress(page, "https://example.test/not-a-command");
   await expect(page.getByRole("textbox", { name: "HTTP method" })).toHaveValue("GET");
   expect(violations).toEqual([]);

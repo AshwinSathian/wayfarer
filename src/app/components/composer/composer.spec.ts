@@ -88,7 +88,7 @@ describe("Composer", () => {
   it("should validate URLs and block invalid submissions", () => {
     store.patch({ url: "not-a-url" });
     void component.sendRequest();
-    expect(store.endpointError()).toContain("valid URL");
+    expect(store.endpointError()).toContain("not a URL a request can go to");
     expect(idbService.add).not.toHaveBeenCalled();
   });
 
@@ -176,7 +176,7 @@ describe("Composer", () => {
       }),
       500,
     );
-    expect(view.activeTab()).toBe("headers");
+    expect(view.activeTab()).toBe("params");
   });
 
   it("should send PUT requests with body payload", async () => {
@@ -204,7 +204,7 @@ describe("Composer", () => {
     expect(history.sent.method).toBe("PUT");
     // History keeps the body as the text that was sent.
     expect(JSON.parse(history.sent.bodyPreview!)).toEqual({ name: "Widget" });
-    expect(view.activeTab()).toBe("headers");
+    expect(view.activeTab()).toBe("params");
   });
 
   it("should handle DELETE requests without body", async () => {
@@ -232,7 +232,7 @@ describe("Composer", () => {
     // A credential header typed by hand is not in history, neither as sent nor in the request as composed.
     expect(stored.sent.headers).toEqual([["Authorization", "***"]]);
     expect(stored.template.headers).toEqual(rows([{ key: "Authorization", value: "***" }]));
-    expect(view.activeTab()).toBe("headers");
+    expect(view.activeTab()).toBe("params");
   });
 
   it("should populate form when loading past requests", () => {

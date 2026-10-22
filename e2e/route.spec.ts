@@ -128,7 +128,8 @@ for (const theme of ["light", "dark"] as const) {
         results.violations.flatMap((v) => v.nodes.map((node) => `${state}: ${v.id}: ${node.target.join(" ")}`)),
       ).toEqual([]);
     };
-    const fits = async (where: string, ...shown: Locator[]) => {
+    // On a phone the request and the response are two panes (U-028): `pane` is the one a locator is in.
+    const fits = async (where: string, ...shown: { locator: Locator; pane?: "Request" | "Response" }[]) => {
       for (const width of [360, 390, 820, 1440]) {
         await page.setViewportSize({ width, height: 900 });
         await expect
@@ -137,7 +138,8 @@ for (const theme of ["light", "dark"] as const) {
             { message: `${where} at ${width} px` },
           )
           .toBeLessThanOrEqual(0);
-        for (const locator of shown) {
+        for (const { locator, pane } of shown) {
+          if (pane && width < 768) await page.getByRole("tab", { name: pane, exact: true }).click();
           // Crossing 768 px draws the composer's other layout: the element may be made again under the call.
           await expect(async () => locator.scrollIntoViewIfNeeded({ timeout: 2_000 })).toPass();
           await expect
@@ -156,10 +158,14 @@ for (const theme of ["light", "dark"] as const) {
     };
 
     await openRequestSettings(page);
-    await fits("the composer", page.getByRole("combobox", { name: "Route" }), page.locator(".route-badge"));
+    await fits(
+      "the composer",
+      { locator: page.getByRole("combobox", { name: "Route" }), pane: "Request" },
+      { locator: page.locator(".route-badge"), pane: "Response" },
+    );
 
     const settings = await openSettings(page, "Local Bridge");
-    await fits("Settings, Local Bridge", settings.getByRole("radiogroup", { name: "Route" }));
+    await fits("Settings, Local Bridge", { locator: settings.getByRole("radiogroup", { name: "Route" }) });
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
 

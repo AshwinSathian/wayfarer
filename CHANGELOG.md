@@ -83,6 +83,31 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   schema, its types are listed in a box of their own under the button, with
   the app's chevrons instead of the browser's triangles; before, the list
   came after the query and the variables, out of view.
+- **The composer is one surface, not boxes inside boxes.** The request,
+  its variables and its parts are no longer each drawn in a card inside
+  another card; the request and the response are told apart by the line
+  between them. The Body tab is there for every method, so the tabs no
+  longer move when you switch from POST to GET; a GET or HEAD request with
+  a body says it is sent without one. A new or opened request starts on
+  Params, not Headers, so an address with a query shows its parameters.
+  The × that removes a header, a parameter, a form field or a test is grey
+  until you point at it; before, every row showed it in red. On a phone,
+  the request and the response are two tabs, and sending opens the
+  response; before, the response was below every part of the request.
+
+- **A new request is a new tab.** The address row's + and "Start a new
+  request instead" are gone: both emptied the tab you were in. New tab
+  (the + beside the tabs, or ⌥T or Alt+T) is the one way to start a request, and the
+  request you were working on stays in its own tab.
+
+- **The composer's words follow the voice guide.** "Add header", "Edit as
+  text" (was "Bulk edit"), "Save to collection…", "Pre-request script",
+  and placeholders in sentence case. The address reads "Type an address,
+  or paste a cURL command", has a name for screen readers, and its error
+  is said under it in plain words: "Type an address to send the request."
+  instead of "Endpoint is a Required value", and "The address is not a URL
+  a request can go to." instead of "Please enter a valid URL". "Send
+  anyway" is a button, not a link drawn with the browser's border.
 
 - **A first request is the address and Enter.** When the app opens on an
   empty request, the caret is already in the address (except on a phone,

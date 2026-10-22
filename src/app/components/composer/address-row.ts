@@ -17,7 +17,7 @@ import { UiMenuItem } from "../../ui/menu-item";
 import { WorkspaceStore } from "../../state/workspace-store";
 import { ComposerView } from "./composer-view";
 
-/** The method and URL bar with New, Copy as cURL, Save and Send. */
+/** The method and address bar with Copy as cURL, Save and Send. A new request is a new tab (docs/design/ia.md). */
 @Component({
   selector: "app-address-row",
   imports: [FormsModule, Icon, UiButton, UiInput, UiSpinner, MenuTrigger, UiMenu, UiTooltip],

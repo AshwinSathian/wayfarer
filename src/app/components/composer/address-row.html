@@ -35,21 +35,15 @@
     (ngModelChange)="store.setUrl($event)"
     (paste)="onPaste($event)"
     (keydown.enter)="onEnter($event)"
-    placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
+    aria-label="Address"
+    [attr.aria-invalid]="store.endpointError() ? true : null"
+    [attr.aria-describedby]="store.endpointError() ? 'address-error' : null"
+    placeholder="Type an address, or paste a cURL command"
   />
 </div>
 
 <!-- Action buttons -->
 <div class="flex shrink-0 items-center gap-2">
-  <button
-    uiButton="outlined"
-    class="btn-secondary btn-square"
-    type="button"
-    uiTooltip="New request"
-    aria-label="New request"
-    (click)="view.clear()"
-    ><app-icon name="add"
-  /></button>
   <!--
     Disabled native buttons ignore an author-specified `cursor` in most
     browsers (the UA always paints the default arrow over a genuinely
@@ -62,7 +56,7 @@
   <span
     class="curl-btn-wrap"
     [class.is-disabled]="!store.draft().url"
-    [uiTooltip]="store.draft().url ? '' : 'Enter a URL first to copy as cURL'"
+    [uiTooltip]="store.draft().url ? '' : 'Type an address to copy the request.'"
   >
     <button
       uiButton="outlined"
@@ -84,9 +78,9 @@
     class="btn-secondary btn-square"
     type="button"
     [disabled]="!store.draft().url || savingRequest()"
-    [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to collection…'"
     [uiTooltipKeys]="shortcuts.save"
-    [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to collection…'"
     (click)="save()"
   >
     @if (savingRequest()) {

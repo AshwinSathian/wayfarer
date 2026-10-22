@@ -257,6 +257,11 @@ jobs:
     name: Design capture (${{ matrix.browser }})
     needs: build
     runs-on: ubuntu-latest
+    # The image the snapshots were taken in: on the runner itself, its fonts drew ⌘ and ⌥ otherwise. Its tag
+    # is @playwright/test's version in package.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
     continue-on-error: true
     strategy:
       fail-fast: false
@@ -275,7 +280,6 @@ jobs:
         with:
           name: dist
           path: dist/
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npx playwright test e2e/design --project=design-${{ matrix.browser }} ${{ matrix.browser != 'chromium' && '--update-snapshots' || '' }}
         env:
           CI: "1"

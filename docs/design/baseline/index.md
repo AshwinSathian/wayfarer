@@ -28,7 +28,8 @@ taken there differs from CI's in every image.
 ## How CI reads them
 
 The "Design capture" jobs (`.github/workflows/ci.yml`) run after the
-build, one per engine: Chromium and Firefox on every pull request and on
+build, one per engine, each inside the same Linux image the snapshots are
+taken in: Chromium and Firefox on every pull request and on
 `main`, WebKit on `main` only. WebKit's capture took 11 minutes in the
 Linux image, against under 3 for each of the others. In Chromium each
 screen is compared with its committed image by `toHaveScreenshot`, with a

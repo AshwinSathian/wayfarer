@@ -566,7 +566,7 @@ from a field too, since the address has focus when the app opens.
 The command goes to the clipboard and the menu closes; nothing on the
 screen says it was copied, or that a secret in it was masked.
 Evidence: D0.2's task 6; `workspace-store.ts`, `copyAsCurl`.
-**Status:** Fixed in #430 (D4-d). Each copy of the composer's menu and of the
+**Status:** Fixed in #431 (D4-d). Each copy of the composer's menu and of the
 response's export menu says for eight seconds, in a live region under the
 address or beside the export button, what it copied ("Copied as cURL.").
 `copyNote` (`@wayfarer/core`) builds the text again with less masked and

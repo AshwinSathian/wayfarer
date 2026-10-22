@@ -12,10 +12,14 @@
       @for (script of scripts(); track $index) {
       <li class="min-w-0 space-y-1.5">
         <div class="flex flex-wrap items-baseline gap-x-2">
-          <span class="type-callout font-semibold break-words">{{ script.holder }}</span>
-          <span class="type-footnote text-label-secondary">{{ script.kind }}</span>
-          @if (unreviewed().has($index)) {
-          <span class="script-review-new type-footnote text-status-warning">Not reviewed yet</span>
+          <!-- &ngsp;: a space Angular keeps, so that the parts are words apart for a screen reader too. -->
+          <span class="type-callout font-semibold break-words">{{ script.holder }}</span>&ngsp;<span
+            class="type-footnote text-label-secondary"
+            >{{ script.kind }}</span
+          >
+          @if (unreviewed().has($index)) { &ngsp;<span class="script-review-new type-footnote text-status-warning"
+            >Not reviewed yet</span
+          >
           }
         </div>
         @if (script.unsupported.length) {

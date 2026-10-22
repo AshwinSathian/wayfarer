@@ -31,7 +31,7 @@ test("the five events of a stream are listed with their id, event, data and time
   expect(times.every((time) => Number.isFinite(time))).toBe(true);
   expect([...times].sort((a, b) => a - b)).toEqual(times);
   expect(times[4] - times[0]).toBeGreaterThanOrEqual(300);
-  await expect(viewer(page).getByRole("status")).toContainText("5 events.");
+  await expect(viewer(page).locator("app-event-list").getByRole("status")).toContainText("5 events.");
   // The whole stream is the response's body too.
   await viewer(page).getByRole("tab", { name: "Body" }).click();
   await expect(viewer(page)).toContainText("event: tick");
@@ -46,13 +46,13 @@ test("an open stream shows its events as they come, is stopped with Stop, and Re
 
   // While it is open: no status yet, and a list that grows.
   await expect(eventRows(page).first()).toBeVisible({ timeout: 15_000 });
-  await expect(viewer(page).getByRole("status")).toContainText("The stream is open");
+  await expect(viewer(page).locator("app-event-list").getByRole("status")).toContainText("The stream is open");
   await expect(page.locator(".status-badge")).toHaveCount(0);
   await expect.poll(() => eventRows(page).count()).toBeGreaterThanOrEqual(3);
 
   await viewer(page).getByRole("button", { name: "Stop" }).click();
   await expect(page.locator(".status-badge")).toHaveText("200");
-  await expect(viewer(page).getByRole("status")).toContainText("You stopped the stream.");
+  await expect(viewer(page).locator("app-event-list").getByRole("status")).toContainText("You stopped the stream.");
   const stopped = await cells(page);
   const last = Number(stopped[stopped.length - 1][0]);
   expect(last).toBeGreaterThanOrEqual(3);

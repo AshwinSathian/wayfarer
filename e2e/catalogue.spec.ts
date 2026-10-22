@@ -121,6 +121,9 @@ for (const theme of ["light", "dark"] as const) {
     await page.getByRole("button", { name: "New tab", exact: true }).hover();
     await expect(tip("New tab (Alt+T)")).toBeVisible();
     await scan("tooltip, under the pointer");
+    await page.getByRole("button", { name: "Delete", exact: true }).hover();
+    await expect(tip("Delete").locator("kbd.keycap")).toHaveText("Delete");
+    await scan("tooltip, with a shortcut's keycap");
     await page.getByRole("button", { name: "Delete", exact: true }).focus();
     await page.keyboard.press("Tab");
     await expect(tip("Time to first byte")).toBeVisible();

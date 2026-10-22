@@ -623,3 +623,45 @@ test("phone: Escape with a tree row's menu open closes the menu and leaves the n
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole("treeitem", { name: "Phone Col" })).toBeFocused();
 });
+
+test("Send and Save have keys (U-032): Enter in the address, ⌘↵ or Ctrl+Enter from an editor, ⌘S or Ctrl+S", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/app/");
+  const status = page.locator(".status-badge");
+  const address = page.locator("input.address-url");
+  await address.fill(`${ECHO}/content/json?keys=enter`);
+  await address.press("Enter");
+  await expect(status).toHaveText("200");
+
+  // From inside Monaco, which would otherwise insert a line: the keys are read before it.
+  await page.getByRole("textbox", { name: "HTTP method" }).fill("POST");
+  await address.fill(`${ECHO}/status/201`);
+  await page.getByRole("tab", { name: "Body", exact: true }).first().click();
+  await page.getByRole("combobox", { name: "Body", exact: true }).focus();
+  await page.keyboard.press("ArrowDown");
+  const editor = page.locator(".monaco-editor").first();
+  await expect(editor).toBeVisible({ timeout: 10_000 });
+  await editor.click();
+  await page.keyboard.type("{}");
+  await page.keyboard.press("ControlOrMeta+Enter");
+  await expect(status).toHaveText("201");
+  await expect(editor.locator(".view-line")).toHaveCount(1);
+
+  // Save: the browser's Save page is not opened, the app's is.
+  await page.keyboard.press("ControlOrMeta+s");
+  const save = page.getByRole("dialog", { name: "Save to Collection" });
+  await expect(save).toBeVisible();
+  // Under a dialog the keys do nothing.
+  await page.keyboard.press("ControlOrMeta+Enter");
+  await expect(save).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(save).toHaveCount(0);
+
+  // Where each works, it says so.
+  const sendButton = page.getByRole("button", { name: "Send request" });
+  await expect(sendButton).toHaveAttribute("aria-keyshortcuts", /^(Meta|Control)\+Enter$/);
+  await sendButton.hover();
+  await expect(page.getByRole("tooltip").locator("kbd")).toHaveText(/^(⌘↵|Ctrl\+Enter)$/);
+});

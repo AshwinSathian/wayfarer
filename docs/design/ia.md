@@ -143,9 +143,20 @@ Every control with a shortcut shows it: in its tooltip ("New tab ⌥T"), in
 the palette as keycaps, and in a menu beside its item (`C` and `N` in the
 sidebar's New menu). Settings, Shortcuts is read from the command list
 (rule 2), plus the keys of the widgets below, so it cannot fall behind
-the app. Send and Save have no shortcut today; Postman's are Ctrl or ⌘ with
-Enter and with S. Which keys Wayfarer takes is D4-c's to decide, with
-D4.2's first run.
+the app.
+
+**Send and Save (D4-c).** Send is ⌘↵ on a Mac and Ctrl+Enter elsewhere;
+Save is ⌘S or Ctrl+S. They are Postman's keys and Hoppscotch's, and
+Insomnia sends with Ctrl+Enter too, so a person moving over keeps their
+habits. Ctrl+S is the browser's Save page, which is never what is meant
+in an API client, so the app takes it. They work from anywhere in the page, inside an editor
+too (they are read before Monaco, which would insert a line), and not under
+a dialog. Enter in the address sends as well, as in those three tools:
+the field has one line, and Enter did nothing in it. Both keys show where
+they work: in Send's and Save's tooltips, at the right of their commands in
+the palette, and in Settings, Shortcuts, which now reads the commands' keys
+from the palette's list. The keys are written in the reader's own system's
+form ([`voice.md`](voice.md#shortcuts)).
 
 ## Removed
 
@@ -186,7 +197,8 @@ lists them in Settings, Shortcuts.
 One row per action. **Action** is what the test reads: the template's file
 and the control's name (its `aria-label`, its tooltip or its text, and for
 a control with none, the code it runs); `palette:` and a command's id;
-`shortcut:` and the keys Settings lists; `menu` and the file that builds
+`shortcut:` and a shortcut's name in `src/app/shared/shortcuts.ts`, or the
+keys Settings lists besides those; `menu` and the file that builds
 the menu. **Place** is where the action lives after D4; **Session** is the
 session of row 1.35 that moves or rebuilds it, and "—" means it stays as
 it is.
@@ -339,9 +351,10 @@ it is.
 | `address-row.html: Common methods` | Address row, the method | Composer, address row | — |
 | `address-row.html: New request` | Address row, +; empties the open tab | **Removed** (maintainer, 2026-10-22): New tab is the one road to a new request | D4-d |
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |
-| `address-row.html: Save / Save to Collection` | Address row | Composer, address row, with its shortcut shown (U-032) | D4-c |
+| `address-row.html: Save / Save to Collection` | Address row | Composer, address row; its tooltip shows ⌘S or Ctrl+S (U-032) | D4-c |
 | `address-row.html: Connect / Disconnect` | Address row, for a `ws:` address | Composer, address row | D4-e |
-| `address-row.html: Cancel request / Send request` | Address row | Composer, address row, with its shortcut shown (U-032) | D4-c |
+| `address-row.html: Cancel request / Send request` | Address row | Composer, address row; Send's tooltip shows ⌘↵ or Ctrl+Enter (U-032) | D4-c |
+| `address-row.html: onEnter($event)` | — (new in D4-c) | Composer, address: Enter sends | D4-c |
 | `auth-editor.html: Type` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Hide password / Show password` | Auth tab | Composer, Auth tab | D4-d |
 | `auth-editor.html: Add to` | Auth tab | Composer, Auth tab | D4-d |
@@ -442,6 +455,7 @@ it is.
 | `palette: duplicate-tab` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: close-tab` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: send-request` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
+| `palette: save-request` | — (new in D4-c) | Palette (the shell's), with its keycap | D4-f |
 | `palette: environments` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: focus-address-bar` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
 | `palette: toggle-theme` | Palette (opened from the sidebar's header or ⌘K) | Palette (the shell's) | D4-f |
@@ -470,13 +484,15 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
-| `shortcut: ⌘K / Ctrl+K` | Anywhere | Anywhere; its keycap in the toolbar's palette field | D4-c |
-| `shortcut: Alt+T / ⌥T` | Anywhere; in the + tooltip | Anywhere; keycap in the tooltip and the palette | D4-c |
-| `shortcut: Alt+W / ⌥W` | Anywhere; in the close tooltip | Anywhere; keycap in the tooltip and the palette | D4-c |
+| `shortcut: palette` | ⌘K or Ctrl+K, anywhere | Anywhere; keycap in the palette button's tooltip (D4-c), and in the toolbar's palette field | D4-f |
+| `shortcut: newTab` | ⌥T or Alt+T, anywhere | Anywhere; keycap in the + tooltip and the palette (D4-c) | — |
+| `shortcut: closeTab` | ⌥W or Alt+W, anywhere | Anywhere; keycap in the close tooltip and the palette (D4-c) | — |
+| `shortcut: send` | — (new in D4-c) | ⌘↵ or Ctrl+Enter, anywhere but under a dialog; keycap in Send's tooltip and the palette | — |
+| `shortcut: save` | — (new in D4-c) | ⌘S or Ctrl+S, anywhere but under a dialog; keycap in Save's tooltip and the palette | — |
 | `shortcut: C` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: N` | Sidebar focused | Sidebar focused; keycap in the New menu | D4-c |
 | `shortcut: Delete` | Sidebar focused | Sidebar focused, and a focused tab (U-027) | D4-c |
-| `shortcut: Esc` | Any dialog, drawer, menu or the palette | Same | — |
+| `shortcut: Escape` | Any dialog, drawer, menu or the palette | Same | — |
 
 ### Settings
 

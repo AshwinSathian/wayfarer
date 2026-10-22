@@ -1,3 +1,4 @@
+import { ariaKeysOf, keysOf, type Shortcut } from "../shared/shortcuts";
 import { FocusMonitor } from "@angular/cdk/a11y";
 import {
   DestroyRef,
@@ -61,7 +62,10 @@ export function placeTooltip(
  * (`aria-describedby`) from the start, unless it repeats the host's
  * `aria-label`; a card describes it while shown. Empty text is no tooltip.
  *
- *   <button aria-label="New tab" uiTooltip="New tab (Alt+T)">…</button>
+ * A shortcut (`uiTooltipKeys`) is shown after the text as a keycap, and is the host's
+ * `aria-keyshortcuts`.
+ *
+ *   <button aria-label="New tab" uiTooltip="New tab" [uiTooltipKeys]="shortcuts.newTab">…</button>
  *   <span tabindex="0" [uiTooltip]="details" uiTooltipPosition="below">…</span>
  */
 @Directive({
@@ -75,6 +79,7 @@ export function placeTooltip(
 export class UiTooltip {
   readonly uiTooltip = input.required<string | TemplateRef<unknown>>();
   readonly uiTooltipPosition = input<TooltipPosition>("below");
+  readonly uiTooltipKeys = input<Shortcut | null>(null);
 
   private readonly host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly viewContainer = inject(ViewContainerRef);
@@ -103,7 +108,17 @@ export class UiTooltip {
       if (!content) this.hide();
       tip.classList.toggle("ui-tooltip-card", content instanceof TemplateRef);
       if (content instanceof TemplateRef) return;
-      tip.textContent = content;
+      const keys = this.uiTooltipKeys();
+      if (keys && content) {
+        const cap = document.createElement("kbd");
+        cap.className = "keycap";
+        cap.textContent = keysOf(keys);
+        tip.replaceChildren(content, " ", cap);
+        this.host.setAttribute("aria-keyshortcuts", ariaKeysOf(keys));
+      } else {
+        tip.textContent = content;
+        this.host.removeAttribute("aria-keyshortcuts");
+      }
       this.describe(content !== "" && content !== this.host.getAttribute("aria-label"));
     });
 

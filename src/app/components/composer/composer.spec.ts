@@ -24,9 +24,10 @@ describe("Composer", () => {
   let idbService: ComposerHarness["idbService"];
   let responseInspector: ComposerHarness["responseInspector"];
   let collectionsService: ComposerHarness["collectionsService"];
+  let fixture: ComposerHarness["fixture"];
 
   beforeEach(async () => {
-    ({ component, store, view, requestSave, httpMock, idbService, responseInspector, collectionsService } =
+    ({ fixture, component, store, view, requestSave, httpMock, idbService, responseInspector, collectionsService } =
       await setupComposer());
   });
 
@@ -36,6 +37,52 @@ describe("Composer", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  describe("keys (U-032)", () => {
+    const press = (init: KeyboardEventInit) => {
+      const event = new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init });
+      window.dispatchEvent(event);
+      return event;
+    };
+
+    it("⌘↵ or Ctrl+Enter sends and ⌘S or Ctrl+S saves, from anywhere, and the browser's Save page is not opened", () => {
+      const send = vi.spyOn(component, "sendRequest").mockResolvedValue();
+      const save = vi.spyOn(component, "saveCurrentRequest").mockResolvedValue();
+      store.patch({ url: "https://example.com/data" });
+      expect(press({ key: "Enter", ctrlKey: true }).defaultPrevented).toBe(true);
+      press({ key: "Enter", metaKey: true });
+      expect(send).toHaveBeenCalledTimes(2);
+      expect(press({ key: "s", code: "KeyS", ctrlKey: true }).defaultPrevented).toBe(true);
+      expect(save).toHaveBeenCalledTimes(1);
+      press({ key: "Enter" });
+      expect(send).toHaveBeenCalledTimes(2);
+    });
+
+    it("do nothing without an address, or under a modal dialog", () => {
+      const send = vi.spyOn(component, "sendRequest").mockResolvedValue();
+      const save = vi.spyOn(component, "saveCurrentRequest").mockResolvedValue();
+      expect(press({ key: "s", code: "KeyS", ctrlKey: true }).defaultPrevented).toBe(true);
+      press({ key: "Enter", ctrlKey: true });
+      store.patch({ url: "https://example.com/data" });
+      const dialog = document.createElement("dialog");
+      document.body.append(dialog);
+      dialog.showModal();
+      press({ key: "Enter", ctrlKey: true });
+      dialog.remove();
+      expect(send).not.toHaveBeenCalled();
+      expect(save).not.toHaveBeenCalled();
+    });
+
+    it("Enter in the address sends", () => {
+      const send = vi.spyOn(component, "sendRequest").mockResolvedValue();
+      const address = fixture.nativeElement.querySelector("input.address-url") as HTMLInputElement;
+      address.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+      expect(send).not.toHaveBeenCalled();
+      store.patch({ url: "https://example.com/data" });
+      address.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+      expect(send).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("should validate URLs and block invalid submissions", () => {

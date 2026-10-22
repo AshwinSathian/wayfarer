@@ -227,20 +227,6 @@
   background: var(--accent);
 }
 
-.settings .shortcut-kbd {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-sm);
-  background: var(--fill-secondary);
-  /* The primary label: the secondary one is 4.2:1 on this fill at 11 px. */
-  color: var(--label-primary);
-  font-family: var(--font-mono);
-  font-size: var(--type-footnote-size);
-  white-space: nowrap;
-}
-
 /* A phone: the list is the dialog, and a section opens in its place. */
 @media (max-width: 767.98px) {
   .settings {

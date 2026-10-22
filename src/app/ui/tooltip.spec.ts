@@ -9,6 +9,7 @@ import { UiTooltip, placeTooltip } from "./tooltip";
   template: `
     <button id="labelled" type="button" aria-label="New tab" [uiTooltip]="text()">+</button>
     <button id="same" type="button" aria-label="Duplicate" uiTooltip="Duplicate">D</button>
+    <button id="keys" type="button" aria-label="Close tab" uiTooltip="Close tab" [uiTooltipKeys]="keys()">x</button>
     @if (shown()) {
       <button id="in-block" type="button" uiTooltip="In a block">B</button>
     }
@@ -24,6 +25,7 @@ import { UiTooltip, placeTooltip } from "./tooltip";
 class TestHost {
   readonly text = signal("New tab (Alt+T)");
   readonly shown = signal(true);
+  readonly keys = signal<{ key: string; alt: boolean } | null>({ key: "W", alt: true });
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -62,6 +64,22 @@ describe("UiTooltip", () => {
     fixture.componentInstance.text.set("Open a tab");
     await fixture.whenStable();
     expect(tip.textContent).toBe("Open a tab");
+    fixture.destroy();
+  });
+
+  it("shows a shortcut as a keycap after its text, and gives it to the host as aria-keyshortcuts", async () => {
+    const { fixture, el } = await setup();
+    const host = el("keys");
+    const cap = tipOf(host).querySelector("kbd.keycap");
+    expect(cap?.textContent).toMatch(/^(⌥W|Alt\+W)$/);
+    expect(host.getAttribute("aria-keyshortcuts")).toBe("Alt+W");
+    // The text repeats the name: the shortcut is the host's own attribute, not a description.
+    expect(host.hasAttribute("aria-describedby")).toBe(false);
+
+    fixture.componentInstance.keys.set(null);
+    await fixture.whenStable();
+    expect(tipOf(host).textContent).toBe("Close tab");
+    expect(host.hasAttribute("aria-keyshortcuts")).toBe(false);
     fixture.destroy();
   });
 

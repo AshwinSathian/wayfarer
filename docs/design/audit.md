@@ -345,10 +345,14 @@ request's Settings tab, not on the first screen.
 **U-032. Shortcuts are invisible.** Severity 3. H7. SD.
 No control shows its shortcut (Send, new tab, palette); they are listed
 only in Settings, Shortcuts. The palette shows two, in brackets.
-**Status:** Open, D4-c (row 1.35), placed by
-[`ia.md`](ia.md#u-032-shortcuts-shown-where-they-work): every control with a
-shortcut shows it, and Settings, Shortcuts is read from the palette's
-commands.
+**Status:** Fixed in #426 (D4-c), as
+[`ia.md`](ia.md#u-032-shortcuts-shown-where-they-work) placed it. Send is
+⌘↵ or Ctrl+Enter and Save ⌘S or Ctrl+S, and Enter in the address sends.
+Send, Save, New tab, Close tab and the palette's button show their keys in
+their tooltips, the palette shows each command's keys at its right, and
+Settings, Shortcuts reads the commands' keys from the palette's list. The
+keys are the reader's system's only ([`voice.md`](voice.md#shortcuts)). C
+and N get their keycaps with the sidebar's New menu, which D4-f makes.
 
 ### Visual system
 

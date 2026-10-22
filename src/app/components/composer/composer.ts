@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from "@angular/common";
-import { ChangeDetectionStrategy, Component, inject, input, output, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, viewChild } from "@angular/core";
+import { SHORTCUTS, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -92,6 +93,28 @@ export class Composer {
   protected readonly breadcrumb = this.requestSave.breadcrumb;
   protected get hasBody(): boolean {
     return isBodyMethod(this.store.draft().method);
+  }
+
+  constructor() {
+    // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
+    // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
+    const keydown = (event: KeyboardEvent) => this.onKeydown(event);
+    window.addEventListener("keydown", keydown, true);
+    inject(DestroyRef).onDestroy(() => window.removeEventListener("keydown", keydown, true));
+  }
+
+  private onKeydown(event: KeyboardEvent): void {
+    const send = matches(event, SHORTCUTS.send);
+    if (!send && !matches(event, SHORTCUTS.save)) return;
+    // The browser's own Save page is never what is meant here.
+    event.preventDefault();
+    // A dialog or a drawer over the page has the keyboard.
+    if (document.querySelector("dialog:modal")) return;
+    event.stopPropagation();
+    // As the buttons: nothing without an address; a second press neither cancels nor saves twice.
+    if (!this.store.draft().url) return;
+    if (!send && !this.requestSave.savingRequest()) void this.saveCurrentRequest();
+    if (send && !this.store.loadingState()) void this.sendRequest();
   }
 
   focusUrl(): void {

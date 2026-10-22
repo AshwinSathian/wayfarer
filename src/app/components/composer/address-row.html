@@ -34,6 +34,7 @@
     [ngModel]="store.draft().url"
     (ngModelChange)="store.setUrl($event)"
     (paste)="onPaste($event)"
+    (keydown.enter)="onEnter($event)"
     placeholder="https://api.example.com/v1/endpoint, or paste a cURL command"
   />
 </div>
@@ -84,6 +85,7 @@
     type="button"
     [disabled]="!store.draft().url || savingRequest()"
     [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
+    [uiTooltipKeys]="shortcuts.save"
     [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to Collection'"
     (click)="save()"
   >
@@ -109,6 +111,8 @@
     type="button"
     [disabled]="!store.loadingState() && !store.draft().url"
     [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
+    [uiTooltip]="store.loadingState() ? '' : 'Send request'"
+    [uiTooltipKeys]="shortcuts.send"
     (click)="store.loadingState() ? store.cancel() : send.emit()"
     class="send-btn"
     >{{ store.loadingState() ? "Cancel" : "Send" }}</button

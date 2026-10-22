@@ -1,3 +1,4 @@
+import { SHORTCUTS, ariaKeysOf, keysOf, type Shortcut } from "../../shared/shortcuts";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -47,6 +48,8 @@ type NodeData = CollectionNodeData;
 export interface PaletteAction {
   id: string;
   label: string;
+  /** Shown at the row's right, and in Settings › Shortcuts. */
+  keys?: Shortcut;
   run: () => void | Promise<void>;
 }
 
@@ -361,6 +364,9 @@ export class CollectionsSidebar implements OnInit {
   }
 
   protected readonly methodLabel = methodLabel;
+  protected readonly shortcuts = SHORTCUTS;
+  protected readonly keysOf = keysOf;
+  protected readonly ariaKeysOf = ariaKeysOf;
 
   private emitLoadRequest(doc: RequestDoc): void {
     this.loadRequest.emit(doc);

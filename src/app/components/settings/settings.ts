@@ -24,6 +24,7 @@ import { CookiesPane } from "./cookies-pane";
 import { DiagnosticsPane } from "./diagnostics-pane";
 import { RequestSettings } from "../../services/request-settings";
 import { PaletteAction } from "../collections/collections-sidebar";
+import { SHORTCUTS, keysOf } from "../../shared/shortcuts";
 import { version } from "../../../../package.json";
 import { Icon } from "../../shared/icon/icon";
 import type { IconName } from "../../shared/icon/icon-paths";
@@ -185,15 +186,17 @@ export class Settings {
     { label: "Licences", about: "The licences of the packages bundled with the app.", href: "3rdpartylicenses.txt" },
   ];
 
-  readonly fixedShortcuts: KeyboardShortcut[] = [
-    { keys: "⌘K / Ctrl+K", description: "Open the command palette" },
-    { keys: "Alt+T / ⌥T", description: "New tab" },
-    { keys: "Alt+W / ⌥W", description: "Close the open tab" },
-    { keys: "C", description: "New collection (collections panel focused, no field editing)" },
-    { keys: "N", description: "New request in the selected collection/folder" },
-    { keys: "Delete", description: "Delete the selected collections-panel item" },
-    { keys: "Esc", description: "Close the open dialog/drawer/palette" },
-  ];
+  /** The commands' keys come from the command list, so this cannot fall behind it; the others are the sidebar's and the dialogs'. */
+  protected readonly shortcuts = computed<KeyboardShortcut[]>(() => [
+    { keys: keysOf(SHORTCUTS.palette), description: "Open the command palette" },
+    ...this.paletteActions().flatMap((action) =>
+      action.keys ? [{ keys: keysOf(action.keys), description: action.label }] : [],
+    ),
+    { keys: "C", description: "New collection, with the collections panel focused" },
+    { keys: "N", description: "New request in the selected collection or folder" },
+    { keys: "Delete", description: "Delete the item selected in the collections panel" },
+    { keys: "Escape", description: "Close the open dialog, drawer or palette" },
+  ]);
 
   exportEnvironments(): void {
     const json = serializeEnvironmentExport(this.environmentsService.environments());

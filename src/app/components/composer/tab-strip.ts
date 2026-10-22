@@ -1,3 +1,4 @@
+import { SHORTCUTS } from "../../shared/shortcuts";
 import { ApplicationRef, ChangeDetectionStrategy, Component, inject, output } from "@angular/core";
 import { Tab, TabContent, TabPanel } from "@angular/aria/tabs";
 import { UiButton } from "../../ui/button";
@@ -22,6 +23,7 @@ import { UiTabList } from "../../ui/tabs";
 })
 export class TabStrip {
   protected readonly tabs = inject(Tabs);
+  protected readonly shortcuts = SHORTCUTS;
   private readonly confirm = inject(Confirm);
   private readonly app = inject(ApplicationRef);
 

@@ -28,7 +28,7 @@
   <p class="type-callout text-label-tertiary">A request that inherits this gets its token in its own Auth tab.</p>
   } @if (current.grant === 'authorization_code') {
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Authorization address</label>
+    <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Sign-in address</label>
     <input
       class="font-mono flex-1 basis-48"
       uiInput

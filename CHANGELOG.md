@@ -75,7 +75,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   authorization code grant, the redirect URI to register with the identity
   provider and the token's state, with Get token, are right under the
   grant; before, they came after nine fields, below the fold. The fields
-  read "Authorization address" and "Token address", the auth types and
+  read "Sign-in address" and "Token address", the auth types and
   grants are in sentence case ("Bearer token", "Client credentials"), and
   the Type and Grant selects line up.
 

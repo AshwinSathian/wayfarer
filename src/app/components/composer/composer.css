@@ -10,5 +10,18 @@
 .response-pane {
   height: 100%;
   overflow-y: auto;
-  padding-right: 2px;
+}
+
+/* Room between each pane's content and the gutter, which is the one line between them. */
+.composer-pane {
+  padding-right: 16px;
+}
+
+.response-pane {
+  padding-left: 16px;
+}
+
+/* Six tabs beside the response: a little less room each, so that all of them fit at 820 px. */
+.composer-pane [role="tab"] {
+  padding-inline: 12px;
 }

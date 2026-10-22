@@ -355,7 +355,7 @@ const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "save-request": async (page) => {
     await seed(page);
     await address(page).fill(`${ECHO}/content/json`);
-    await button(page, "Save to Collection").click();
+    await button(page, "Save to collection…").click();
     await expect(page.locator("#save-as-name")).toBeVisible();
   },
   tree: async (page) => {

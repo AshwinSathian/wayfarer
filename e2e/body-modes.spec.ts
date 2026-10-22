@@ -128,11 +128,11 @@ test("form: fields are URL-encoded in order, a switched-off row is left out", as
   await postWithBody(page, "Form (URL-encoded)");
   await page.getByLabel("Body name, row 1").fill("q");
   await page.getByLabel("Body value, row 1").fill("a b&c=é");
-  await page.getByRole("button", { name: "Add Field" }).click();
+  await page.getByRole("button", { name: "Add field" }).click();
   await page.getByLabel("Body name, row 2").fill("off");
   await page.getByLabel("Body value, row 2").fill("1");
   await page.getByRole("checkbox", { name: "Send body row 2" }).uncheck();
-  await page.getByRole("button", { name: "Add Field" }).click();
+  await page.getByRole("button", { name: "Add field" }).click();
   await page.getByLabel("Body name, row 3").fill("q");
   await page.getByLabel("Body value, row 3").fill("again");
 
@@ -175,7 +175,7 @@ test("multipart: a text part and a 1 MB file arrive byte for byte, also after th
   await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Uploads");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByRole("button", { name: "Save to Collection" }).click();
+  await page.getByRole("button", { name: "Save to collection" }).click();
   await page.getByPlaceholder("Request name").fill("Upload one megabyte");
   await page.getByRole("dialog").getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("treeitem", { name: /Upload one megabyte/ })).toBeVisible();

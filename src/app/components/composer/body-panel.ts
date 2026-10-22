@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiSpinner } from "../../ui/spinner";
-import { type BodyMode, type MultipartPart, type RawLanguage } from "@wayfarer/core";
+import { isBodyMethod, type BodyMode, type MultipartPart, type RawLanguage } from "@wayfarer/core";
 import { GraphqlSchemas } from "../../services/graphql-schemas";
 import { RequestFiles } from "../../services/request-files";
 import { Icon } from "../../shared/icon/icon";
@@ -41,6 +41,8 @@ export class BodyPanel {
   ];
 
   protected readonly body = computed(() => this.store.draft().body);
+  /** GET and HEAD are sent without a body, whatever the tab holds. */
+  protected readonly sendsBody = computed(() => isBodyMethod(this.store.draft().method));
 
   private readonly schemas = inject(GraphqlSchemas);
   /** The schema of the request's address, as far as it was fetched (P5.5). */

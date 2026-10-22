@@ -39,6 +39,7 @@ test.describe("Transport on fetch (P2.3)", () => {
     await expect(page.locator(".status-badge")).toHaveText("200");
 
     // A new request has one header row, empty.
+    await page.locator(".composer-pane").getByRole("tab", { name: "Headers", exact: true }).click();
     await page.getByLabel("Headers name, row 1").fill("Accept");
     await page.getByLabel("Headers value, row 1").fill("text/plain");
     const second = page.waitForResponse(`${ECHO}/echo`);
@@ -110,7 +111,7 @@ test.describe("Transport on fetch (P2.3)", () => {
     });
     await expect(page.getByRole("button", { name: "Download response body" })).toBeVisible();
     // Still answering: a click is handled within the usual time.
-    await page.getByRole("button", { name: "New request", exact: true }).click();
+    await page.getByRole("button", { name: "New tab", exact: true }).click();
     await expect(page.locator("input.address-url")).toHaveValue("");
     expect(await violations(page)).toEqual([]);
   });

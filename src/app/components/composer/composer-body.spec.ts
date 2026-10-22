@@ -50,7 +50,7 @@ describe("Composer: methods and body modes", () => {
     it("does not send a method that is not one, and says what a method is", async () => {
       store.patch({ url: "https://a.test/x" });
       for (const [typed, message] of [
-        ["", "Enter a method, such as GET."],
+        ["", "Type a method, such as GET."],
         ["GET; rm -rf", '"GET; RM -RF" is not an HTTP method.'],
         ["A".repeat(33), "is not an HTTP method."],
       ]) {

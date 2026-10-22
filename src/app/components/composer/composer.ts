@@ -17,7 +17,6 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestSave } from "../../services/request-save";
 import { ImportPipeline } from "../../services/import-pipeline";
 import { Icon } from "../../shared/icon/icon";
-import { isBodyMethod } from "@wayfarer/core";
 import { WorkspaceStore } from "../../state/workspace-store";
 import type { RunTarget } from "../../state/run-state";
 import { Tabs } from "../../state/tabs";
@@ -105,10 +104,6 @@ export class Composer {
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly breadcrumb = this.requestSave.breadcrumb;
-  protected get hasBody(): boolean {
-    return isBodyMethod(this.store.draft().method);
-  }
-
   constructor() {
     // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
@@ -184,6 +179,8 @@ export class Composer {
     if (this.tabs.active().run) return;
     // An address of a WebSocket is connected to, not sent (P5.7).
     if (this.socket.isSocket()) return this.socket.connect();
+    // On a phone the response is a pane of its own (U-028): a send shows it.
+    this.view.mobilePane.set("response");
     if (await this.store.send()) {
       this.newRequest.emit();
     }

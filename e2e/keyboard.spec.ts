@@ -14,6 +14,9 @@ test("composer tabs: arrow keys, Home and End move focus and show the matching p
   await tab("Headers").focus();
   await expect(tab("Headers")).toHaveAttribute("aria-selected", "true");
 
+  // Body is there for every method (U-017).
+  await page.keyboard.press("ArrowRight");
+  await expect(tab("Body")).toBeFocused();
   await page.keyboard.press("ArrowRight");
   await expect(tab("Auth")).toBeFocused();
   await expect(tab("Auth")).toHaveAttribute("aria-selected", "true");
@@ -55,10 +58,11 @@ test("response tabs: arrow keys walk Body, Headers, Timings and Tests", async ({
 test("headers and body: Bulk edit and the body type are driven from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
+  await page.getByRole("tab", { name: "Headers", exact: true }).click();
   await page.getByLabel("Headers name, row 1").fill("Accept");
   await page.getByLabel("Headers value, row 1").fill("*/*");
 
-  const bulk = page.getByRole("button", { name: "Bulk edit" });
+  const bulk = page.getByRole("button", { name: "Edit as text" });
   await bulk.focus();
   await page.keyboard.press("Enter");
   const text = page.getByRole("textbox", { name: /^Headers, one/ });
@@ -94,22 +98,24 @@ test("phone composer: Enter and Space open a section, one at a time, and a close
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/");
   const header = (name: string) => page.getByRole("button", { name, exact: true });
-  await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
+  // Params is open first (U-017).
+  await expect(header("Params")).toHaveAttribute("aria-expanded", "true");
 
   await header("Auth").focus();
   await page.keyboard.press("Enter");
   await expect(header("Auth")).toHaveAttribute("aria-expanded", "true");
-  await expect(header("Headers")).toHaveAttribute("aria-expanded", "false");
+  await expect(header("Params")).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator("#auth-type-select")).toBeVisible();
   // The closed section's fields are hidden from sight and from the keyboard.
-  await expect(page.getByLabel("Headers name, row 1")).toBeHidden();
-  expect(await page.getByLabel("Headers name, row 1").evaluate((el) => !!el.closest("[inert]"))).toBe(true);
+  const addParameter = page.getByRole("button", { name: "Add parameter", includeHidden: true });
+  await expect(addParameter).toBeHidden();
+  expect(await addParameter.evaluate((el) => !!el.closest("[inert]"))).toBe(true);
 
-  await header("Params").focus();
+  await header("Headers").focus();
   await page.keyboard.press("Space");
-  await expect(header("Params")).toHaveAttribute("aria-expanded", "true");
+  await expect(header("Headers")).toHaveAttribute("aria-expanded", "true");
   await expect(header("Auth")).toHaveAttribute("aria-expanded", "false");
-  await expect(page.getByRole("button", { name: "Add parameter" })).toBeVisible();
+  await expect(page.getByLabel("Headers name, row 1")).toBeVisible();
 });
 
 // The method was a select of seven until P2.16. It is a text field now, so
@@ -161,8 +167,8 @@ test("a select inside a dialog: Escape closes the list first, the dialog second"
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(page.getByRole("tree").getByText("Keys", { exact: true })).toBeVisible();
   await page.locator("input.address-url").fill(`${ECHO}/echo?dialog=1`);
-  await page.getByRole("button", { name: "Save to Collection" }).click();
-  const dialog = page.getByRole("dialog", { name: "Save to Collection" });
+  await page.getByRole("button", { name: "Save to collection" }).click();
+  const dialog = page.getByRole("dialog", { name: "Save to collection" });
   await expect(dialog).toBeVisible();
 
   const collection = dialog.locator("#save-as-collection");
@@ -651,7 +657,7 @@ test("Send and Save have keys (U-032): Enter in the address, ⌘↵ or Ctrl+Ente
 
   // Save: the browser's Save page is not opened, the app's is.
   await page.keyboard.press("ControlOrMeta+s");
-  const save = page.getByRole("dialog", { name: "Save to Collection" });
+  const save = page.getByRole("dialog", { name: "Save to collection" });
   await expect(save).toBeVisible();
   // Under a dialog the keys do nothing.
   await page.keyboard.press("ControlOrMeta+Enter");

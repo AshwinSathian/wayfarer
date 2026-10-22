@@ -55,7 +55,8 @@
     </div>
   </div>
   <div uiDialogFooter>
-    <div class="flex flex-wrap justify-end gap-2">
+    <div class="flex flex-wrap items-center justify-end gap-2">
+      <span class="type-footnote text-status-error mr-auto" role="status">{{ notCopied() }}</span>
       <button uiButton="outlined" class="btn-secondary" type="button" (click)="closed.emit()">Cancel</button>
       <button uiButton="outlined" class="btn-secondary" type="button" [disabled]="!ready()" (click)="copy()"
         ><app-icon name="content_copy" /> Copy</button

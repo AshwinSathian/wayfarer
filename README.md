@@ -144,6 +144,7 @@ The optional [Local Bridge](packages/bridge/README.md) sends a request from a pr
 - [Information architecture](docs/design/ia.md): where each action of the app lives, and how the palette, the sidebar and the tabs share work
 - [Widget bake-off, 2026](docs/design/widget-bakeoff.md): Material, Angular Aria and the platform, built and tested side by side, and the widget layer it recommends
 - [Motion](docs/design/motion.md): what moves, for how long, and what reduced motion does
+- [Voice](docs/design/voice.md): what the app calls things, how it says an error, asks a question and explains a limit, and how labels and shortcuts are written
 
 ## Security
 

@@ -9,6 +9,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs have a voice guide.** A new page, Voice, says what
+  the app calls each thing, how it words an error, a question and a limit,
+  that every label is in sentence case ("Add header", not "Add Header"),
+  and that a shortcut is shown in the keys of the reader's own system
+  (⌘K on a Mac, Ctrl+K elsewhere) instead of both at once. It rewrites the
+  twenty strings the app shows on the most screens as examples. The app's
+  own words change view by view as the redesign reaches each.
+
 - **The design docs say what the eight core tasks cost today.** A new
   page counts the clicks, keys and characters each takes on the app as it
   is, and how long the app takes to answer, from a first request to

@@ -90,7 +90,7 @@ test("@claim:C-067 the core flow by keyboard alone: a collection, a new tab, an 
   await expect(page.locator("input.address-url")).toBeVisible();
 
   // A collection to save into: the sidebar's New collection, its name, Enter.
-  await tabTo(page, page.getByRole("button", { name: "New collection" }));
+  await tabTo(page, page.getByRole("button", { name: "New collection" }).first());
   await page.keyboard.press("Enter");
   await expect(page.locator("#creation-name-input")).toBeFocused();
   await page.keyboard.type("Keys");
@@ -171,7 +171,8 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
     "Import a cURL command",
     "Open command palette",
   ]) {
-    const button = page.getByRole("button", { name: opener, exact: true });
+    // The toolbar's or the header's; an empty sidebar has a second "New collection" (U-022).
+    const button = page.getByRole("button", { name: opener, exact: true }).first();
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("dialog").first(), opener).toBeVisible();
@@ -193,7 +194,8 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
   const opens = async (opener: string, field: Locator) => {
-    const button = page.getByRole("button", { name: opener, exact: true });
+    // The toolbar's or the header's; an empty sidebar has a second "New collection" (U-022).
+    const button = page.getByRole("button", { name: opener, exact: true }).first();
     // Save to Collection is disabled until the draft has an address, and
     // focus() on a disabled button does nothing: in CI's trace (#316) it came
     // 1 ms after the last key, before the button was enabled.
@@ -207,7 +209,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
     await expect(button, opener).toBeFocused();
   };
   // A collection, so that Save to Collection has its name field.
-  await page.getByRole("button", { name: "New collection", exact: true }).focus();
+  await page.getByRole("button", { name: "New collection", exact: true }).first().focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#creation-name-input")).toBeFocused();
   await page.keyboard.type("Fields");
@@ -216,7 +218,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await opens("Open command palette", page.getByPlaceholder("Type a command"));
   // New environment is in the environments dialog: it opens on its field, and Escape gives focus back to the button.
   await page.getByRole("button", { name: "Environments", exact: true }).click();
-  const newEnvironment = page.getByRole("button", { name: "New environment", exact: true });
+  const newEnvironment = page.getByRole("button", { name: "New environment", exact: true }).first();
   await newEnvironment.focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("#new-env-name-input")).toBeFocused();

@@ -519,14 +519,17 @@ describe("CollectionsSidebar", () => {
       expect(component.creationDialogVisible()).toBe(true);
     });
 
-    it("ignores shortcuts entirely while typing in a form field", () => {
+    it("opens the palette from a form field (U-049), and ignores the single-key shortcuts there", () => {
       const input = document.createElement("input");
-      const event = new KeyboardEvent("keydown", { key: "k", metaKey: true });
-      Object.defineProperty(event, "target", { value: input });
+      const typed = new KeyboardEvent("keydown", { key: "c" });
+      Object.defineProperty(typed, "target", { value: input });
+      component.handleGlobalKeydown(typed);
+      expect(component.creationDialogVisible()).toBe(false);
 
-      component.handleGlobalKeydown(event);
-
-      expect(component.commandPaletteVisible()).toBe(false);
+      const palette = new KeyboardEvent("keydown", { key: "k", metaKey: true });
+      Object.defineProperty(palette, "target", { value: input });
+      component.handleGlobalKeydown(palette);
+      expect(component.commandPaletteVisible()).toBe(true);
     });
   });
 });

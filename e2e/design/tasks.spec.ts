@@ -48,7 +48,6 @@ class User {
 const button = (scope: Page | Locator, name: string | RegExp) =>
   scope.getByRole("button", { name, exact: typeof name === "string" });
 const address = (page: Page) => page.locator("input.address-url");
-// Enter in the address does not send, and Send has no shortcut (U-032): a click.
 const send = (page: Page) => page.getByRole("button", { name: "Send request" });
 
 /** A Postman collection of two requests, each with a test script, as Postman writes it. */
@@ -115,8 +114,10 @@ const TASKS: Task[] = [
     id: "1",
     name: "First request from nothing",
     do: async (user) => {
-      await user.type(address(user.page), `${ECHO}/content/json`);
-      await user.click(send(user.page));
+      // D4.2: the caret is in the address when the app opens, and Enter there sends.
+      await expect(address(user.page)).toBeFocused();
+      await user.type(address(user.page), `${ECHO}/content/json`, false);
+      await user.press("Enter");
       await expect(user.page.locator(".status-badge")).toHaveText("200");
     },
   },

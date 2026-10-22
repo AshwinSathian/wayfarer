@@ -172,7 +172,7 @@ test("multipart: a text part and a 1 MB file arrive byte for byte, also after th
   check(await sendAndEcho(page));
 
   // Saved, the file is in IndexedDB with the request.
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Uploads");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("button", { name: "Save to Collection" }).click();

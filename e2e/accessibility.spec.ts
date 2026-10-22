@@ -43,7 +43,7 @@ test.describe("Accessibility (primary flows)", () => {
 
   test("@claim:C-038 collections sidebar has no WCAG 2.2 AA violations", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "New collection" }).click();
+    await page.getByRole("button", { name: "New collection" }).first().click();
     // Scan the settled page, not a frame of the entrance/dialog fade: a
     // half-faded label measured 4.38-4.46:1 while its at-rest colours are
     // ~5.9:1. Self-hosted fonts paint earlier, which made that frame likelier.
@@ -60,7 +60,7 @@ test.describe("Accessibility (primary flows)", () => {
   }) => {
     await page.goto("/app/");
 
-    await page.getByRole("button", { name: "New collection" }).click();
+    await page.getByRole("button", { name: "New collection" }).first().click();
     await page.locator("#creation-name-input").fill("A11y Save Collection");
     await page.getByRole("button", { name: "Create", exact: true }).click();
     await expect(page.getByText("A11y Save Collection", { exact: true })).toBeVisible();
@@ -214,7 +214,8 @@ test.describe("Accessibility (primary flows)", () => {
         "Environments",
         "New collection",
       ]) {
-        await button(opener).click();
+        // The header's button; an empty sidebar has a second "New collection" (U-022).
+        await button(opener).first().click();
         await expect(page.getByRole("dialog").first()).toBeVisible();
         await scan(opener);
         await page.keyboard.press("Escape");
@@ -243,7 +244,7 @@ test.describe("Accessibility (primary flows)", () => {
       await expect(page.getByRole("dialog")).toHaveCount(0);
 
       // A collection's settings (P4.9), tab by tab, and the Auth tab's line for a request that inherits.
-      await button("New collection").click();
+      await button("New collection").first().click();
       await page.locator("#creation-name-input").fill("Sweep");
       await button("Create").click();
       await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -269,7 +270,7 @@ test.describe("Accessibility (primary flows)", () => {
 
       // The environments, and their export with the file for Postman chosen: it then asks which environment.
       await button("Environments").click();
-      await button("New environment").click();
+      await button("New environment").first().click();
       await scan("new environment");
       await page.locator("#new-env-name-input").fill("Swept env");
       await button("Create environment").click();

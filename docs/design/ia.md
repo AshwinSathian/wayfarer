@@ -240,7 +240,7 @@ it is.
 | `environments-manager.html: Global variables` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Import environments` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Export environments` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: New environment` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
+| `environments-manager.html: New environment` | Environments dialog (toolbar) | Toolbar, Environments dialog; and its empty list's button (D4-c, U-022) | D4-g |
 | `environments-manager.html: importPipeline.pick($event)` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: selectEnvironment(env.meta.id)` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Use for requests` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
@@ -286,7 +286,8 @@ it is.
 | `collections-sidebar.html: Open command palette` | Sidebar header, a lightning icon | Toolbar, a field "Search or run a command" with its ⌘K keycap (U-010, U-011) | D4-f |
 | `collections-sidebar.html: Import collection` | Sidebar header, an upload icon | Sidebar header, Import menu, "File…" (U-010) | D4-f |
 | `collections-sidebar.html: Import a cURL command` | Sidebar header, a terminal icon | Sidebar header, Import menu, "cURL command…" (U-010) | D4-f |
-| `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010) | D4-f |
+| `collections-sidebar.html: New collection` | Sidebar header, + | Sidebar header, New menu, "Collection" (U-010); and the empty sidebar's button (D4-c, U-022) | D4-f |
+| `collections-sidebar.html: Import…` | — (new in D4-c) | The empty sidebar: imports a file, as Import, "File…" (U-022) | — |
 | `collections-sidebar.html: importPipeline.pick($event)` | The file picker behind Import collection | Behind Import, "File…" | — |
 | `collections-sidebar.html: contextMenu.openAt($event, () => tree.focusSelected())` | A tree row, right-click or Shift+F10 | Sidebar | — |
 | `collections-sidebar.html: Rename` | A tree row, F2 or Rename | Sidebar | — |
@@ -348,6 +349,9 @@ it is.
 
 | Action | Today | Place | Session |
 |---|---|---|---|
+| `composer.html: Paste a cURL command` | — (new in D4-c) | The empty response: opens Import's box for a cURL command (U-022) | — |
+| `composer.html: Import a collection…` | — (new in D4-c) | The empty response: picks a file to import (U-022) | — |
+| `composer.html: importPipeline.pick($event)` | — (new in D4-c) | The file picker behind Import a collection… | — |
 | `address-row.html: Common methods` | Address row, the method | Composer, address row | — |
 | `address-row.html: New request` | Address row, +; empties the open tab | **Removed** (maintainer, 2026-10-22): New tab is the one road to a new request | D4-d |
 | `address-row.html: Copy as cURL` | Address row | Composer, address row | D4-d |

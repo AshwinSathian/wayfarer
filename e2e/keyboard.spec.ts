@@ -156,7 +156,7 @@ test("method: any one can be typed and is upper-cased; the menu of common ones i
 
 test("a select inside a dialog: Escape closes the list first, the dialog second", async ({ page }) => {
   await page.goto("/app/");
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Keys");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(page.getByRole("tree").getByText("Keys", { exact: true })).toBeVisible();
@@ -219,7 +219,7 @@ test("export menu: opens from the keyboard, arrows move, Escape returns focus, E
 test("collection context menu: arrow keys reach every action and Escape closes it", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Menu target");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   const node = page.getByRole("tree").getByText("Menu target", { exact: true });
@@ -529,7 +529,7 @@ test("collections tree: arrow keys walk and expand it, F2 renames, Alt+Arrow reo
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Tree Col");
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await createUnder(page, "Tree Col", "New Folder", "Tree Folder");
@@ -610,7 +610,7 @@ test("phone: Escape with a tree row's menu open closes the menu and leaves the n
   await page.goto("/app/");
   await page.getByRole("button", { name: "Toggle sidebar" }).click();
   const drawer = page.getByRole("dialog", { name: "Navigation" });
-  await drawer.getByRole("button", { name: "New collection" }).click();
+  await drawer.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill("Phone Col");
   await page.getByRole("button", { name: "Create", exact: true }).click();
 

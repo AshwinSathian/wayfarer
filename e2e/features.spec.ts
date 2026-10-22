@@ -296,7 +296,7 @@ test("@claim:C-039 the Body tab is there for every method but GET and HEAD, and 
 });
 
 async function createCollection(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill(name);
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();

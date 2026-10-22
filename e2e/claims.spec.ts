@@ -15,7 +15,7 @@ interface TrustedTypesFactory {
 /** Creates an environment with one protected variable holding `plaintext`, saved. */
 async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await openEnvironments(page);
-  await page.getByRole("button", { name: "New environment" }).click();
+  await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill("Claims env");
   await page.getByRole("button", { name: "Create environment" }).click();
   await page.getByRole("button", { name: "Add variable" }).click();

@@ -61,6 +61,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A first request is the address and Enter.** When the app opens on an
+  empty request, the caret is already in the address (except on a phone,
+  where it would open the keyboard), so typing an address and pressing
+  Enter sends it: 35 inputs, against 36 before. The empty response now
+  offers to paste a cURL command or import a collection, the empty
+  sidebar to make a collection or import one, and the empty environments
+  list to make an environment; before, each said there was nothing there
+  and offered nothing.
+
 - **Send and Save have keys, and every shortcut is shown where it
   works.** ⌘↵ (Ctrl+Enter on Windows and Linux) sends the request and ⌘S
   (Ctrl+S) saves it, from anywhere in the page, inside the body or script

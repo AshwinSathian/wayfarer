@@ -67,9 +67,17 @@
           &quot;opsz&quot; 48;
       "
     />
-    <p class="type-callout text-label-tertiary max-w-[180px] text-center"
-      >No collections yet. Create one to organise your requests.</p
+    <p class="type-callout text-label-secondary max-w-[220px] text-center"
+      >Requests you save are kept here, in collections.</p
     >
+    <div class="flex flex-wrap justify-center gap-2">
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="handleCreateCollection()"
+        >New collection</button
+      >
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="fileInput.click()"
+        >Import…</button
+      >
+    </div>
   </div>
   } @else {
   <!-- A right-click on a row, or Shift+F10 on it, reaches the tree first: it

@@ -29,9 +29,12 @@ class IdbServiceMock {
   readonly memoryOnly = signal(false).asReadonly();
 }
 
+/** The browser's own, taken once: a second spy bound to the first would call itself for any other query. */
+const realMatchMedia = window.matchMedia.bind(window);
+
 /** The window is this wide, as far as a min-width media query can tell. */
 function setWidth(width: number): void {
-  const real = window.matchMedia.bind(window);
+  const real = realMatchMedia;
   vi.spyOn(window, "matchMedia").mockImplementation((query) => {
     const min = /^\(min-width: (\d+)px\)$/.exec(query);
     return min ? ({ matches: width >= Number(min[1]) } as MediaQueryList) : real(query);

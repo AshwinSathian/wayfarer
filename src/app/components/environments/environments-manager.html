@@ -55,7 +55,12 @@
     @if (!environments().length) {
     <div class="ds-empty-state py-6">
       <app-icon name="dns" class="icon-lg text-label-tertiary" />
-      <p class="type-footnote text-label-tertiary text-center">No environments yet.</p>
+      <p class="type-footnote text-label-secondary text-center"
+        >An environment holds variables, such as one address for staging and another for production.</p
+      >
+      <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openNewEnvironmentDialog()"
+        >New environment</button
+      >
     </div>
     } @else { @let activeEnv = activeEnvironment(); @let activeEnvId = activeEnv ? activeEnv.meta.id : undefined;
     <div class="space-y-1">
@@ -248,7 +253,7 @@
       "
     />
     <p class="type-callout text-label-tertiary max-w-[220px] text-center"
-      >Select or create an environment to begin editing.</p
+      >Choose an environment to edit its variables.</p
     >
   </div>
   }

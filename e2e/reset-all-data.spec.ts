@@ -5,7 +5,7 @@ import { dumpIdb, openSettings } from "./support/app";
 // kept the database open, and the data survived.
 
 async function createCollection(page: Page, name: string): Promise<void> {
-  await page.getByRole("button", { name: "New collection" }).click();
+  await page.getByRole("button", { name: "New collection" }).first().click();
   await page.locator("#creation-name-input").fill(name);
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await expect(page.getByText(name, { exact: true })).toBeVisible();
@@ -33,7 +33,7 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
   await reloaded;
 
   await expect(pageB.getByText(/Data was reset in another tab/)).toBeVisible();
-  await expect(pageA.getByText("No collections yet", { exact: false })).toBeVisible();
+  await expect(pageA.getByText("Requests you save are kept here, in collections.")).toBeVisible();
   await expect(pageA.getByText("Reset me", { exact: true })).toHaveCount(0);
 });
 

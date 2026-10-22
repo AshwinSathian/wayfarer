@@ -29,6 +29,22 @@ inputs was the same in every run, as the script requires.
 | 7 | Run a collection with a data file and read the report | 5 | 5 | 0 | 0 | 0.52 | 0.53, 0.52, 0.51 |
 | 8 | Find a request sent last week | 9 | 3 | 0 | 6 | 0.51 | 0.53, 0.51, 0.51 |
 
+### After the rebuild
+
+Each task measured again after the session that rebuilt its view, the same
+way (three runs, the median), beside its row above.
+
+| # | Task | Session | Inputs | Clicks | Keys | Characters typed | Seconds (median) | Runs |
+|---|---|---|---|---|---|---|---|---|
+| 1 | First request from nothing | D4-c (#427) | 35 | 0 | 1 | 34 | 0.07 | 0.09, 0.06, 0.07 |
+
+Task 1 is one input shorter: the caret starts in the address and Enter
+sends, so the address and one key are the whole task; before, a click
+went into the field and another on Send. What is left is the address
+itself. D4.2 asks for the fewest inputs D1.4 measured among the rivals;
+their half of D1.4 has not been run, so the aim was fewer than today's
+36.
+
 The seconds are the app's own time: how long the screen took to show each
 result to a script that never pauses. A person reads, looks for the next
 control and types; their time is longer and is what D1.4's recordings of
@@ -43,7 +59,8 @@ the audit has a finding.
 
 1. **First request from nothing.** Type an address into the empty app and
    click Send. Enter in the address does not send, and Send has no
-   shortcut (U-032).
+   shortcut (U-032). Since D4-c the caret starts in the address and Enter
+   sends: the address and Enter.
 2. **Import a Postman collection with scripts and run it.** The file is a
    Postman v2.1 collection of two requests, each with a test script. Pick
    it (2 clicks: Import, and the file in the system's dialog), Confirm

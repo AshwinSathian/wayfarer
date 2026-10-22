@@ -38,7 +38,7 @@ async function unlock(page: Page, passphrase: string): Promise<void> {
 /** An environment with one protected variable, saved. The vault must be unlocked. */
 async function protect(page: Page, name: string, plaintext: string): Promise<void> {
   await openEnvironments(page);
-  await page.getByRole("button", { name: "New environment" }).click();
+  await page.getByRole("button", { name: "New environment" }).first().click();
   await page.locator("#new-env-name-input").fill("Vault env");
   await page.getByRole("button", { name: "Create environment" }).click();
   await page.getByRole("button", { name: "Add variable" }).click();

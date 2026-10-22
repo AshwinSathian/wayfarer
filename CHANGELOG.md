@@ -7,6 +7,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ## [Unreleased]
 
+### Added
+
+- **The design docs say what became of each problem the audit found, and
+  where every action of the app is going.** Each of the audit's findings
+  now has a status: fixed (15, each with the change that fixed it, checked
+  on the screen), or open with the part of the redesign that takes it (21,
+  two of them found while checking). A new page, Information architecture,
+  maps where each of the app's 271 actions lives after the redesign, and a
+  test keeps that list equal to the app's.
+
 ### Fixed
 
 - **A ticked checkbox's tick is readable in the dark theme.** It is now

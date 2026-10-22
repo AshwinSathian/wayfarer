@@ -184,7 +184,7 @@ drawn on the most screens; the count is how many of the 49 show each.
 | 15 | 38 | name | Name | Sentence case. |
 | 16 | 38 | Bulk edit | Edit as text | Says what it does: the rows become lines of text. |
 | 17 | 38 | Add Header | Add header | Sentence case (U-054). |
-| 18 | 38 | Send a request to see the response here | Send a request and its response shows here. With two buttons: Paste a cURL command, Import… | An empty state offers the next step, as buttons (U-022). |
+| 18 | 38 | Send a request to see the response here | Send a request and its response shows here. With two buttons: Paste a cURL command, Import a collection… | An empty state offers the next step, as buttons (U-022). |
 | 19 | 27 | New request | New request | Kept: the name of a tab whose request has none. |
 | 20 | 23 | No collections yet. Create one to organise your requests. | Requests you save are kept here, in collections. With two buttons: New collection, Import… | Says what goes there, and offers both ways in. |
 

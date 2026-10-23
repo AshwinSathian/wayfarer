@@ -828,22 +828,23 @@ verifies them.
 Its rows keep their own IDs (W-n for the app, DS-n for the design system),
 and each finding below names its row. The review's Impact maps to this
 audit's severity by the definitions at the top: a Blocker that stops a
-person finishing a task, or loses their work, is severity 1; any other
-Blocker (a WCAG AA failure with a way round it) is 2; Major is 2 when it
+person finishing a task is severity 1, and this pass reads "blocks a task"
+to cover a loss of the person's work (U-060); any other Blocker (a WCAG
+AA failure with a way round it) is 2; Major is 2 when it
 misleads or slows a task and 3 when it costs polish or trust; Minor is 3;
 Polish is 4.
 
 Rows that confirm or extend an earlier finding have no ID of their own:
 U-003, U-016, U-041, U-051, U-052, U-054 and U-056 are extended, each with
-a dated note on its status line, and U-020, U-022, U-026, U-032, U-049 and
-U-055 have a note. **U-036 is reopened**: its fix left the status colours
+a dated note on its status line, and U-015, U-020, U-022, U-026, U-032,
+U-049 and U-055 have a note. **U-036 is reopened**: its fix left the status colours
 as Apple's system values (DS-16). U-004's remainder (cards in overlays,
 radii outside the scale) is U-093 and U-126; U-004 stays fixed for the
 composer.
 
-All 70 below are open. The plan's row 1.42 moves the six Blockers of
-access and the one of data loss (U-060 to U-065, U-075, U-106 to U-108,
-with the save path's U-066 and U-068) into D4.11, the first work of
+All 70 below are open. The plan's row 1.42 moves the eight Blockers of
+access and the one of data loss (U-060 to U-065, U-106 to U-108), with
+U-075 and the save path's U-066 and U-068, into D4.11, the first work of
 session D4-e.
 
 ### Data and the save path
@@ -911,8 +912,9 @@ who use a screen reader.
 The skeleton is `aria-hidden` with no `aria-busy`; the status line ("200
 OK 16.3 ms · Direct") is drawn in a new `div` with no live role, and focus
 stays in the address. The core task cannot be confirmed without hunting
-for the result. WCAG 4.1.3 (AA). Confirmed in source; no screen reader was
-run.
+for the result. WCAG 4.1.3 (AA). Severity 1 because it is the core task,
+on every send, for everyone who uses a screen reader: the way round it is
+to go looking. Confirmed in source; no screen reader was run.
 Evidence: `response-viewer/response-viewer.html:11-16, 25-62`.
 **Status:** Open, D4-e (plan D4.11). Review row W-2; U-055 is the same
 moment seen.
@@ -1491,7 +1493,7 @@ finding does not already say.
 | `history-empty` | U-022 |
 | `vault-create` | U-026, U-062, U-094 |
 | `vault-unlock` | U-026, U-062 |
-| `secrets-manager` | No finding |
+| `secrets-manager` | U-063, U-084 |
 | `confirm-dialog` | U-056 |
 | `settings-general` | U-025, U-053, U-093 |
 | `settings-requests` | U-057 |

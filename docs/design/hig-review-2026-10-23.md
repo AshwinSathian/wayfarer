@@ -12,11 +12,15 @@ section 14.
 The review's own IDs are kept: W-n for the app, DS-n for the design
 system. Its Impact column maps to the audit's severity as section "Third
 pass" of the audit says. The text is the review's, with its evidence paths
-pointed at the screenshots kept in [`hig-review/`](hig-review/).
+pointed at the screenshots kept in [`hig-review/`](hig-review/). The
+review's internal names, which this repository does not keep, appear here
+and there: `ds.md` (its design-system pass), the catalogue's tell codes
+(T-n) and the pass codes (A5, B13, C11, D12 and the like). They name the
+review's working notes, not anything in the app or the audit.
 
 ## 1. Summary
 
-Reviewed: the whole Wayfarer web app (`/app/`, Angular 22, branch `docs/hig-review-pass` at `6bb10cdb`) plus its design system (`packages/tokens`, `src/design-system`, `src/app/ui`), from the running dev build and the source, against the confirmed profile ``.hig-review.md`` (web only, `register: utilitarian`, `release_stage: development`, direction A Workbench + C's rail).
+Reviewed: the whole Wayfarer web app (`/app/`, Angular 22, branch `docs/hig-review-pass` at `6bb10cdb`) plus its design system (`packages/tokens`, `src/design-system`, `src/app/ui`), from the running dev build and the source, against the confirmed profile `.hig-review.md` (web only, `register: utilitarian`, `release_stage: development`, direction A Workbench + C's rail).
 
 Verdict: **default-assembled.** Voice and motion are authored on paper and both leak; 20 catalogue tells across 7 of 9 channels force the verdict. Without the threshold it would be "partly authored": the status bar's "Saved in this browser only" is the one thing that survives the logo-off test.
 
@@ -48,7 +52,7 @@ Sorted by Impact, then the Apple column. "Prior" keeps every overlapping audit I
 | W-4 | Two visible labels are not in the accessible name, so Voice Control cannot reach them. The backup reminder's "Not now" is named "Dismiss backup reminder". The secrets manager's usage chips show "Staging.apiKey" but are named "Locate apiKey in environment Staging". WCAG 2.5.3 (A), source-confirmed. D rated the chips Major; the Rules make a source-confirmed level-A failure a Blocker. | `app-shell/app-shell.html:263-270`; `secrets/secrets-manager.html:77` | Blocker | Web | Banner: drop the `aria-label`, since the text names the button. Chips: start the name with the visible string, "Staging.apiKey, locate in environment". | — |
 | W-5 | The composer/response split can be resized only by dragging the 8 px gutter, or with the arrow keys. There is no single-pointer path. WCAG 2.5.7 (AA), source-confirmed. | `ui/splitter.ts:26-40, 70-112` | Blocker | Web | Add click-to-step plus double-click to reset, or a gutter menu ("Wider request", "Wider response", "Reset split"). Keep the drag. | — |
 | W-6 | At 320 px the page scrolls sideways: the toolbar's Settings button ends at x=322 (scrollWidth 322). The profile only promises 360 px, but WCAG 1.4.10 (AA) names 320 CSS px. Measured in both themes. | `header.ds-toolbar` right group; `hig-review/320-light-toolbar-overflow.png` | Blocker | Web | Set `min-width: 0` on the right group and `flex: 1 1 auto; min-width: 0` on the environment select, or move History and Settings into an overflow menu under 340 px. Add 320 to the layout spec's widths. | — |
-| W-7 | **The app writes its own words where the server's go.** When no response arrives, core sets `statusText: "Unknown Error"` and status `0`. That is Angular HttpClient's wording; no server sent it. The pane shows a red "0" chip and "Unknown Error" as if they were an HTTP status, and one guidance paragraph for offline, a name that does not resolve, a refused connection and CORS alike. `navigator.onLine` is never read. The string travels to history ("Http failure response for {url}: 0 Unknown Error"), the HAR comment and the run table's Status column. When an error status arrives with an empty body, core substitutes "Http failure response for {url}: 404 Not Found" and draws it in the red monospace body `pre`, the treatment voice.md keeps for a server's words. It also stores that text as the history entry's error. Both misreport the evidence the person debugs from. See the honesty note in section 3. | `packages/core/src/send/exchange.ts:126-129, 653-654, 664, 705, 709`; `response-viewer.html:39, 43, 284-289`; `runner/run-view.html:182-183`; `shared/inspect/har-export.ts:42`; shots `hig-review/1440-dark-10-response-error.png`, `hig-review/1440-light-stress-{cors,dns,offline}-error.png` | Major | SHOULD | The status line, history and run rows say **"No response"**, and the body is set in sans, not red mono. When offline: "This browser is offline, so the request got no response. Connect, then send it again." Otherwise: "The request got no response. The browser does not say why: the name may not resolve, the server may have refused the connection, or it does not allow requests from this site (CORS)." Add a **Send through the Local Bridge** button. An empty error body reads "No body returned." and history stores nothing invented. | U-051 (extended); slop T20 |
+| W-7 | **The app writes its own words where the server's go.** When no response arrives, core sets `statusText: "Unknown Error"` and status `0`. That is Angular HttpClient's wording; no server sent it. The pane shows a red "0" chip and "Unknown Error" as if they were an HTTP status, and one guidance paragraph for offline, a name that does not resolve, a refused connection and CORS alike. `navigator.onLine` is never read. The string travels to history ("Http failure response for {url}: 0 Unknown Error"), the HAR comment and the run table's Status column. When an error status arrives with an empty body, core substitutes "Http failure response for {url}: 404 Not Found" and draws it in the red monospace body `pre`, the treatment voice.md keeps for a server's words. It also stores that text as the history entry's error. Both misreport the evidence the person debugs from. See the honesty note in section 3. | `packages/core/src/send/exchange.ts:126-129, 653-654, 664, 705, 709`; `response-viewer.html:39, 43, 284-289`; `runner/run-view.html:182-183`; `shared/inspect/har-export.ts:42`; shots `hig-review/1440-dark-10-response-error.png`, `hig-review/1440-light-stress-cors-error.png`, `hig-review/1440-light-stress-dns-error.png`, `hig-review/1440-light-stress-offline-error.png` | Major | SHOULD | The status line, history and run rows say **"No response"**, and the body is set in sans, not red mono. When offline: "This browser is offline, so the request got no response. Connect, then send it again." Otherwise: "The request got no response. The browser does not say why: the name may not resolve, the server may have refused the connection, or it does not allow requests from this site (CORS)." Add a **Send through the Local Bridge** button. An empty error body reads "No body returned." and history stores nothing invented. | U-051 (extended); slop T20 |
 | W-8 | A save that fails says nothing. `RequestSave.save` and `confirmSaveAs` have `try/finally` and no `catch`, so an IndexedDB error goes only to the console and Diagnostics. An `updated === null` result (the request was deleted in another tab) does nothing at all. The only sign is that the tab's unsaved dot stays. Not a Blocker: the draft survives, because the tab stays dirty, `TabsStorage` keeps dirty tabs and closing one asks first. Loss needs a second step. | `services/request-save.ts:106-130, 151-172`; `composer.ts:141` | Major | SHOULD | Catch the error and say it under the address row: "Not saved: this browser refused the write. Export the request" or "Not saved: the request was deleted in another tab. Save to collection…". On a null result, open Save as. | — |
 | W-9 | ⌘S (or the Save button) collapses the folder that holds the open request and clears the tree's selection. What was just saved disappears from the sidebar on every save. | `services/collections-store.ts:257-262`; `hig-review/1440-light-kb-ctrl-s-after.png` | Major | SHOULD | Keep expansion and selection across `refreshCollectionEntry`, keyed by node id, and keep the bound request selected after a save. | — |
 | W-10 | Saving from the keyboard drops focus to `<body>`. Save is `[disabled]` while `savingRequest()` is true, so the focused button is disabled under the caret and focus moves to the document. | `composer/address-row.html:76-90` | Major | SHOULD | Use `aria-disabled="true"` plus the existing guard (`composer.ts:141`) instead of `disabled`. Check every button that disables itself while busy. | — |
@@ -102,20 +106,21 @@ Counts: Blocker 6, Major 15, Minor 27 (19 rows plus 8 in W-41), Polish 5.
 | U-041 | Open | Confirmed. | W-19 |
 | U-049 | Open | Confirmed; it is a symptom of the modal drawer. | W-13 |
 | U-003 | Open | Confirmed at 1,440 and 2,560. | W-13, W-41f |
-| U-010, U-011, U-016, U-024, U-025, U-027 | Open | Unchanged; no regression. | W-38, W-39, W-31, W-42 |
+| U-016 | Open, D4-f | Extended (W-38): "Copy as cURL with credentials" too. | W-38 |
+| U-010, U-011, U-024, U-025, U-027 | Open | Unchanged; no regression. | W-39, W-31, W-42 |
 | U-014, U-039 | Open | Confirmed. | W-20 |
 | U-015 | Open | Confirmed. | W-28, W-41e |
 | U-043, U-044 | Open | Confirmed. | W-31, W-30 |
 | U-052, U-038 | Open | Not re-measured. | W-41d |
 | U-006 note, U-033 note | Open notes | Confirmed. | W-41c, W-23 |
-| **U-036** | Fixed #389 | **REGRESSION (remnant):** the status colours are still Apple's system values, and `theme-color` is #000 / #F5F5F7. | DS-16, W-33 |
+| **U-036** | Fixed #389 | **Regression (remnant):** the status colours are still Apple's system values, and `theme-color` is #000 / #F5F5F7. | DS-16, W-33 |
 | U-004 | Fixed #428 | Unfixed remainder (overlays, radii); not a regression. | W-39, DS-27 |
 | U-022 | Fixed #427 | Holds. The "request ready" state was never covered. | W-41a |
 | U-032 | Fixed #426 | Holds. The new ⌥ keys conflict with typing. | W-25 |
 | U-050 | Fixed #431 | Confirmed working. | — |
 | U-013 | Fixed #372 | Holds. | W-41b |
 
-## Design system findings (DS numbering from ds.md kept; checked against the W rows: the DS row keeps the cause, the W row shows the screen consequence)
+## 2b. Design system findings (DS numbering of the design-system pass kept; checked against the W rows: the DS row keeps the cause, the W row shows the screen consequence)
 
 | # | Finding | Where | Impact | Apple | Fix |
 |---|---|---|---|---|---|
@@ -174,7 +179,7 @@ There is no gain to the product and no gate type, so it is not deceptive design.
 | Channel | Source | Evidence |
 |---|---|---|
 | Type | trend default | Inter is the only UI face, tuned "to give Inter the clean geometric feel of SF Pro" (`components.css:19-27`), and the measuring script's `defaults` check flags it in all 12 combinations. The mono-for-values role split is authored, but W-7 shows the app breaking it. |
-| Color use | trend default | Warm graphite plus one muted green: direction A's "closest to Yaak/Linear" (`tokens.css:70-101`). The status colours are Apple's system values. The method colours are shared across the category. |
+| Colour use | trend default | Warm graphite plus one muted green: direction A, which [`directions/directions.html`](directions/directions.html) describes as "closest to Yaak and Linear" (`tokens.css:70-101`). The status colours are Apple's system values. The method colours are shared across the category. |
 | Shape | library default | The shadcn field (`shadow-xs` plus a 3 px ring), Material metrics, `rounded-xl` containers. |
 | Motion | authored, leaking | motion.md traces each rule to a reason and the tests enforce it. It is diluted by the button squish, the spring hover, the skeleton plus fade on every send, and the theme fade (W-22, DS-21–23). |
 | Iconography | library default | Material Symbols 300; D2.4 owns the set. |

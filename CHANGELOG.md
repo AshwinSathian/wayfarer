@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what the composer's rebuild changed.** The
+  baseline records the first request and the copy to a teammate measured
+  again after it: 35 inputs and 2, the copy now ending on the screen's
+  "Copied as cURL.". The audit marks the composer's findings fixed, with
+  the change that fixed each.
+
 - **The design docs have a voice guide.** A new page, Voice, says what
   the app calls each thing, how it words an error, a question and a limit,
   that every label is in sentence case ("Add header", not "Add Header"),

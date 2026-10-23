@@ -37,6 +37,15 @@ way (three runs, the median), beside its row above.
 | # | Task | Session | Inputs | Clicks | Keys | Characters typed | Seconds (median) | Runs |
 |---|---|---|---|---|---|---|---|---|
 | 1 | First request from nothing | D4-c (#427) | 35 | 0 | 1 | 34 | 0.06 | 0.07, 0.04, 0.06 |
+| 1 | First request from nothing | D4-d (#428 to #432) | 35 | 0 | 1 | 34 | 0.07 | 0.07, 0.07, 0.06 |
+| 6 | Send the same request to a teammate | D4-d (#431) | 2 | 2 | 0 | 0 | 0.34 | 0.34, 0.36, 0.34 |
+
+D4-d rebuilt the composer and left task 1 as D4-c made it: the caret
+still starts in the address, and the address and Enter are the task.
+Task 6 takes the same two clicks, and now ends on something the screen
+says: "Copied as cURL." under the address (U-050); before, it ended
+when the menu closed, with nothing to read. Its seconds are the time to
+that note. Sharing itself waits for phase T.
 
 Task 1 is one input shorter: the caret starts in the address and Enter
 sends, so the address and one key are the whole task; before, a click
@@ -89,8 +98,9 @@ the audit has a finding.
    is left to them.
 6. **Send the same request to a teammate.** Wayfarer has no sharing yet
    (phase T), so the shortest road is Copy as cURL from the address row's
-   menu (2 clicks) and another tool to send the text. Nothing on the
-   screen says the command was copied (U-050).
+   menu (2 clicks) and another tool to send the text. Until D4-d nothing
+   on the screen said the command was copied (U-050); since D4-d the task
+   ends when "Copied as cURL." is shown.
 7. **Run a collection with a data file and read the report.** The
    collection of task 2, already imported and trusted before the count
    starts. Its menu, Run…, Data file… and the file (a CSV of two rows),

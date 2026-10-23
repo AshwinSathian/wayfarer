@@ -666,7 +666,11 @@ Evidence: `baseline/design-chromium/tree-menu-1440-light.png`,
 `baseline/design-chromium/environments-rows-1440-light.png`.
 **Status:** Open. The voice guide ([`voice.md`](voice.md#case), D4-c)
 decides it: sentence case for every label, proper names apart. Each view's
-session of row 1.35 applies it to that view's strings.
+session of row 1.35 applies it to that view's strings. D4-d did the
+composer's (#428, #429): "Add header", "Edit as text", "Save to
+collection…", "Pre-request script", the auth types and grants, and the
+placeholders. The tree's menu and the environment editor wait for D4-f
+and D4-g.
 
 ### Found on the other screens
 

@@ -531,6 +531,14 @@ async function steady(page: Page): Promise<void> {
         .replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)(?= used| of )|(?<=of )\d+(\.\d+)?\s?(B|kB|MB|GB)/g, "12 kB");
       if (fixed !== text) node.textContent = fixed;
     }
+    // A HAR's preview writes what the browser measured as JSON numbers, and the milliseconds of its start.
+    for (const preview of document.querySelectorAll(".har-export-preview")) {
+      const text = preview.textContent ?? "";
+      const fixed = text
+        .replace(/("(?:time|blocked|dns|connect|send|wait|receive|ssl)": )-?\d+(\.\d+)?/g, "$112")
+        .replace(/("startedDateTime": "[^"]*?)\.\d+Z"/g, '$1.000Z"');
+      if (fixed !== text) preview.textContent = fixed;
+    }
   });
 }
 const THRESHOLD = { maxDiffPixels: 200 };

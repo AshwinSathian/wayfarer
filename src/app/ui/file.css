@@ -1,0 +1,54 @@
+/* <ui-file>: one line, a dashed edge only while a file is dragged over it
+   (no empty state draws a dashed box: voice.md). */
+:host {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 6px 8px 6px 10px;
+  border: 1px solid var(--ctl-surface-border);
+  border-radius: var(--radius-md);
+  background: var(--ctl-surface);
+  color: var(--ctl-surface-text);
+  transition:
+    border-color var(--dur-quick) var(--ease-standard),
+    background-color var(--dur-quick) var(--ease-standard);
+}
+
+:host(.ui-file-over) {
+  border-style: dashed;
+  border-color: var(--accent);
+  background: var(--accent-fill);
+}
+
+/* Disabled: its buttons say so; its text stays readable (4.5:1). */
+:host(.ui-file-disabled) {
+  background: var(--fill-secondary);
+}
+
+.ui-file-icon {
+  flex: none;
+  color: var(--label-tertiary);
+}
+
+.ui-file-name {
+  min-width: 0;
+  flex: 1 1 8rem;
+  overflow: hidden;
+  font-size: var(--type-footnote-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-file-empty {
+  color: var(--label-secondary);
+  font-size: var(--type-footnote-size);
+}
+
+/* In forced colours the dragged-over state keeps a mark: the background is taken away. */
+@media (forced-colors: active) {
+  :host(.ui-file-over) {
+    border-color: Highlight;
+  }
+}

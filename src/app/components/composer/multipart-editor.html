@@ -35,19 +35,13 @@
         [attr.aria-label]="'Part value, row ' + (index + 1)"
       />
       } @else {
-      <div class="flex min-w-0 flex-1 items-center gap-2">
-        <button uiButton="outlined" class="btn-secondary btn-sm shrink-0" type="button" (click)="file.click()"
-          >Choose file</button
-        >
-        <span class="type-footnote text-label-secondary truncate">{{ part.fileName || "No file chosen" }}</span>
-        <input
-          #file
-          type="file"
-          class="hidden"
-          [attr.aria-label]="'File for part ' + (index + 1)"
-          (change)="onFile(index, file)"
-        />
-      </div>
+      <ui-file
+        class="min-w-0 flex-1"
+        [label]="'File for part ' + (index + 1)"
+        [fileName]="part.fileName"
+        (picked)="filePicked.emit({ index, file: $event })"
+        (cleared)="kindChange.emit({ index, kind: 'file' })"
+      />
       }
       <button uiButton="icon" class="btn-plain" type="button" aria-label="Remove part" (click)="remove.emit(index)"
         ><app-icon name="close"

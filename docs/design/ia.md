@@ -390,8 +390,6 @@ it is.
 | `headers-panel.html: Edit as rows / Edit as text` | Headers tab | Composer, Headers tab | D4-d |
 | `multipart-editor.html: Send part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Part type, row` | Body tab, multipart form | Composer, Body tab | D4-d |
-| `multipart-editor.html: Choose file` | Body tab, multipart form | Composer, Body tab | D4-d |
-| `multipart-editor.html: File for part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Remove part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `multipart-editor.html: Add part` | Body tab, multipart form | Composer, Body tab | D4-d |
 | `oauth-token.html: Get token` | Auth tab, OAuth 2.0 | Composer, Auth tab | D4-d |
@@ -505,8 +503,6 @@ it is.
 | `vault-actions.html: Change passphrase` | Settings, Vault | Settings, Vault | D4-g |
 | `vault-actions.html: Export vault` | Settings, Vault | Settings, Vault | D4-g |
 | `vault-actions.html: Import vault` | Settings, Vault | Settings, Vault | D4-g |
-| `vault-actions.html: Choose file` | Settings, Vault | Settings, Vault | D4-g |
-| `vault-actions.html: Vault file` | Settings, Vault | Settings, Vault | D4-g |
 | `vault-actions.html: Cancel` | Settings, Vault | Settings, Vault | D4-g |
 | `vault-actions.html: Change passphrase / Export / Import` | Settings, Vault | Settings, Vault | D4-g |
 | `bridge-pane.html: Route` | Settings, Local Bridge | Settings, Local Bridge | D4-h |
@@ -532,6 +528,9 @@ it is.
 | `confirm.ts: Proceed` | Every confirmation | Same | — |
 | `confirm.ts: Cancel` | Every confirmation | Same | — |
 | `dialog.ts: Close` | Every dialog's header | Same | — |
+| `file.ts: Choose another… / Choose a file…` | — (new in D4-d, D3.5) | Every file field: the binary body, a multipart part, the vault's import | — |
+| `file.ts: Remove` | — (new in D4-d, D3.5) | Every file field, once it has a file | — |
+| `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |

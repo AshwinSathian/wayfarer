@@ -12,11 +12,23 @@ import { GraphqlExplorer } from "./graphql-explorer";
 import { MultipartEditor } from "./multipart-editor";
 import { RowsEditor } from "./rows-editor/rows-editor";
 import { UiSelect } from "../../ui/select";
+import { UiFile } from "../../ui/file";
 
 /** The request body: none, text in a language, form fields, multipart parts, one file, or a GraphQL query with its variables. */
 @Component({
   selector: "app-body-panel",
-  imports: [FormsModule, GraphqlExplorer, Icon, JsonEditor, UiButton, UiSpinner, UiSelect, MultipartEditor, RowsEditor],
+  imports: [
+    FormsModule,
+    GraphqlExplorer,
+    Icon,
+    JsonEditor,
+    UiButton,
+    UiSpinner,
+    UiSelect,
+    MultipartEditor,
+    RowsEditor,
+    UiFile,
+  ],
   templateUrl: "./body-panel.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -128,14 +140,9 @@ export class BodyPanel {
     }
   }
 
-  protected setBinary(input: HTMLInputElement): void {
-    const file = input.files?.[0];
-    // Cleared so that picking the same file again is a change.
-    input.value = "";
-    const ref = file && this.pick(file);
-    if (file && ref) {
-      this.store.setBody({ binary: { ...ref, contentType: file.type || undefined } });
-    }
+  protected setBinary(file: File): void {
+    const ref = this.pick(file);
+    if (ref) this.store.setBody({ binary: { ...ref, contentType: file.type || undefined } });
   }
 
   private pick(file: File): { fileId: string; fileName: string } | null {

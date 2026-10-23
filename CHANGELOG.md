@@ -9,6 +9,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design audit has a third pass, against Apple's Human Interface
+  Guidelines and WCAG 2.2, with its findings placed in the plan's
+  sessions.** A new page, hig-review, gives the review in full, with the
+  screenshots it cites; the audit gains its 70 findings, from an
+  Environments dialog that throws away unsaved edits to a send that a
+  screen reader never hears, and says which earlier findings it confirms,
+  extends or reopens. The plan now fixes those that block a task or fail
+  WCAG first, before the rest of the response's rebuild.
+
 - **The design docs say what the composer's rebuild changed.** The
   baseline records the first request and the copy to a teammate measured
   again after it: 35 inputs and 2, the copy now ending on the screen's

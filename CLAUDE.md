@@ -436,7 +436,7 @@ code errors.
     `uiTabList`, `uiAccordion`, `ui-select`;
   - on the platform (see "The platform"): `ui-segmented`, `UiModal` with
     `ui-dialog` and `Confirm`, `uiTooltip`, `ui-spinner`, `uiButton`,
-    `uiInput`, `uiCheckbox`;
+    `uiInput`, `uiCheckbox`, `ui-file`;
   - on the CDK: `ui-splitter`.
 - Built in place, without a wrapper: loading skeletons, the variable and
   usage chips (two-line and icon-led action buttons), status and method
@@ -613,6 +613,19 @@ code errors.
   without one. The focus ring is the global `:focus-visible` rule's. In
   forced colours a checked box is `Highlight` with its tick in
   `HighlightText`. Tested in `checkbox.spec.ts` and the catalogue's e2e.
+- File field: `<ui-file label="File to send as the body" [fileName]="…"
+  (picked)="…" (cleared)="…" />` (`UiFile`, `src/app/ui/file.ts`, D3.5,
+  U-059): the file chosen by name, or "Drop a file here, or" and a button,
+  on the platform's `<input type="file">`, hidden, which `label` names (a
+  test reaches it by that label with `setInputFiles`). No place draws its
+  own "Choose file" and "No file chosen": those are the browser's words.
+  What it does that the input does not, each with a test in `file.spec.ts`
+  and the catalogue's e2e: it takes a file dropped on it (and prevents the
+  browser opening it), the same file chosen twice is a change, and Remove
+  empties it. Choose is one button whose words change, so focus stays on it
+  after a choice, and goes back to it after Remove. `clearable` is false
+  where a file cannot be taken back. Disabled, its text stays readable: its
+  buttons say it is disabled.
 - A test finds a dialog by its role and name. A closed `<dialog>` is
   hidden: `getByRole("dialog")` does not find it, and `toHaveCount(0)` is
   "closed". Playwright does not count the inert page as hidden: with a

@@ -61,6 +61,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Choosing a file no longer looks like the browser's own control.** A
+  binary body, a file part of a multipart form and the vault's import now
+  show the file's name, or "Drop a file here, or" and a Choose a file…
+  button. You can drop a file onto the field, and remove a chosen one.
+  Before, each drew an outlined "Choose file" beside "No file chosen", the
+  browser's own words, took no dropped file (the browser opened it in the
+  tab), and kept a file until another was chosen.
+
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed

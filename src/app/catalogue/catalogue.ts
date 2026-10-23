@@ -321,7 +321,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
           <ui-file label="Data file" fileName="customers.csv" />
           <ui-file
             label="File for part 1"
-            fileName="a-very-long-name-of-an-export-taken-on-the-twenty-second-of-october.har"
+            fileName="a-very-long-name-of-a-capture-taken-on-the-twenty-second-of-october.har"
           />
           <ui-file label="Vault file" [disabled]="true" />
           <div>

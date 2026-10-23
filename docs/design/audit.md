@@ -690,7 +690,12 @@ cleared without choosing another. The maintainer's rule of 2026-10-20
 (nothing looks or feels like a native element) forbids it, and
 `src/app/ui` has no widget for it, so each place drew its own.
 Evidence: `body-panel.html`, `multipart-editor.html`, `vault-actions.html`.
-**Status:** Open, D4-d (plan D3.5).
+**Status:** Fixed in #432 (D4-d, plan D3.5). `ui-file` in `src/app/ui`
+names the file chosen, or says "Drop a file here, or" beside "Choose a
+file…"; it takes a dropped file, and Remove empties it. The binary body, a
+multipart part and the vault's import use it, and no "No file chosen" is
+left in the app. It is in the catalogue, with axe in each state and a
+keyboard e2e.
 
 ## Every screen of D0.1, and its findings
 

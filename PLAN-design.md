@@ -374,7 +374,7 @@ views.
   `prefers-reduced-motion`.
   - AC: durations and easings are tokens; an e2e with reduced motion
     finds no animation longer than 0 ms.
-- [ ] **D3.5** A file field (U-059, added in row 1.39): a widget in
+- [x] **D3.5** A file field (U-059, added in row 1.39): a widget in
   `src/app/ui` for choosing a file, on the platform's hidden
   `<input type="file">`, with none of the browser's look or words. It
   names the file chosen, takes a dropped file, and clears;

@@ -5,15 +5,44 @@
       sent; the collection's and a folder's run for every request in them. It can read and change your variables, and a
       changed variable can change where a later request goes. Read them before you trust them.
     </p>
+    <!-- One script each, in the order they run (U-040): which it is, whether this review is its first, and what of
+         Postman's it uses that the app does not have. -->
     @if (visible()) {
-    <app-script-editor
-      name="reviewedScripts"
-      class="script-review-text"
-      [ngModel]="text()"
-      [ngModelOptions]="{ standalone: true }"
-      [readOnly]="true"
-      [height]="360"
-    ></app-script-editor>
+    <ol class="script-review-list m-0 list-none space-y-5 p-0">
+      @for (script of scripts(); track $index) {
+      <li class="min-w-0 space-y-1.5">
+        <div class="flex flex-wrap items-baseline gap-x-2">
+          <!-- &ngsp;: a space Angular keeps, so that the parts are words apart for a screen reader too. -->
+          <span class="type-callout font-semibold break-words">{{ script.holder }}</span>&ngsp;<span
+            class="type-footnote text-label-secondary"
+            >{{ script.kind }}</span
+          >
+          @if (unreviewed().has($index)) { &ngsp;<span class="script-review-new type-footnote text-status-warning"
+            >Not reviewed yet</span
+          >
+          }
+        </div>
+        @if (script.unsupported.length) {
+        <p class="script-review-unsupported type-footnote text-status-warning flex items-start gap-1">
+          <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+          <span class="min-w-0"
+            >Uses what Wayfarer does not have: @for (name of script.unsupported; track name) {<code>{{ name }}</code>{{
+            $last ? "." : ", " }}}</span
+          >
+        </p>
+        } @if (script.hidden) {
+        <p class="script-review-hidden type-footnote text-status-warning flex items-start gap-1">
+          <app-icon name="warning" class="icon-xs mt-0.5 shrink-0" />
+          <span class="min-w-0"
+            >Holds characters that do not show, or that change the order text is shown in. Each is written below as its
+            code point, such as ⟨U+202E⟩.</span
+          >
+        </p>
+        }
+        <pre class="script-review-code"><code>{{ script.shown }}</code></pre>
+      </li>
+      }
+    </ol>
     }
     <div class="flex flex-wrap justify-end gap-2">
       <button type="button" uiButton="outlined" class="btn-secondary" (click)="visibleChange.emit(false)"

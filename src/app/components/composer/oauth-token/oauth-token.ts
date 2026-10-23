@@ -16,7 +16,7 @@ import { WorkspaceStore } from "../../../state/workspace-store";
   imports: [UiButton, UiSpinner],
   templateUrl: "./oauth-token.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "oauth-token block rounded-xl bg-canvas-panel border border-separator p-3.5" },
+  host: { class: "oauth-token block" },
 })
 export class OAuthTokenPanel {
   private readonly store = inject(WorkspaceStore);

@@ -99,8 +99,11 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   const review = page.getByRole("dialog", { name: "Review scripts" });
   await expect(review).toContainText("2 scripts in 1 request");
   // Both scripts are there to read, as text.
-  await expect(review.locator(".view-lines")).toContainText("the pre-request script ran");
-  await expect(review.locator(".view-lines")).toContainText("the file's script ran");
+  // Each script on its own (U-040), each marked as not reviewed yet.
+  await expect(review.locator(".script-review-code")).toHaveCount(2);
+  await expect(review.locator(".script-review-list")).toContainText("the pre-request script ran");
+  await expect(review.locator(".script-review-list")).toContainText("the file's script ran");
+  await expect(review.locator(".script-review-new")).toHaveCount(2);
   await review.getByRole("button", { name: "I trust these scripts" }).click();
   await expect(review).toHaveCount(0);
   await expect(held).toHaveCount(0);

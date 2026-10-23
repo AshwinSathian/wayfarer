@@ -153,7 +153,7 @@ test("@claim:C-062 Authorization Code with PKCE: the sign-in window answers over
 for (const [grant, auth, sentAs] of [
   // A client with a secret is named in a Basic header, each part form-encoded (RFC 6749, 2.3.1).
   [
-    "Client Credentials",
+    "Client credentials",
     oauth({ grant: "client_credentials", clientSecret: "s3:cret" }),
     { form: { grant_type: "client_credentials", scope: "read" }, basic: "wayfarer-e2e:s3%3Acret" },
   ],

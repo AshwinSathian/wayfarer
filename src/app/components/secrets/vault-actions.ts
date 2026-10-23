@@ -5,13 +5,14 @@ import { UiInput } from "../../ui/input";
 import { readImportText } from "@wayfarer/core";
 import { SecretsVault } from "../../services/secrets-vault";
 import { Icon } from "../../shared/icon/icon";
+import { UiFile } from "../../ui/file";
 
 type Mode = "passphrase" | "export" | "import";
 
 /** What the vault itself can do, apart from its secrets: change its passphrase, and go to and come from a file. */
 @Component({
   selector: "app-vault-actions",
-  imports: [FormsModule, Icon, UiButton, UiInput],
+  imports: [FormsModule, Icon, UiButton, UiFile, UiInput],
   templateUrl: "./vault-actions.html",
   host: { class: "block" },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,15 +60,16 @@ export class VaultActions {
     this.done.set("");
   }
 
-  protected async pickFile(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = "";
-    if (!file) return;
+  protected async pickFile(file: File): Promise<void> {
     // At most one byte past the limit is read; the vault refuses a file over it.
     this.fileText = await readImportText(file);
     this.fileName.set(file.name);
     this.error.set("");
+  }
+
+  protected clearFile(): void {
+    this.fileName.set("");
+    this.fileText = "";
   }
 
   protected async submit(): Promise<void> {

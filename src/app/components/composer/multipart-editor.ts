@@ -6,11 +6,12 @@ import { UiInput } from "../../ui/input";
 import type { MultipartPart } from "@wayfarer/core";
 import { Icon } from "../../shared/icon/icon";
 import { UiSelect, type UiSelectOption } from "../../ui/select";
+import { UiFile } from "../../ui/file";
 
 /** The parts of a multipart body: each a name with a text value or a file. */
 @Component({
   selector: "app-multipart-editor",
-  imports: [FormsModule, Icon, UiButton, UiCheckbox, UiInput, UiSelect],
+  imports: [FormsModule, Icon, UiButton, UiCheckbox, UiFile, UiInput, UiSelect],
   templateUrl: "./multipart-editor.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,13 +29,4 @@ export class MultipartEditor {
     { value: "text", label: "Text" },
     { value: "file", label: "File" },
   ];
-
-  protected onFile(index: number, input: HTMLInputElement): void {
-    const file = input.files?.[0];
-    // Cleared so that picking the same file again is a change.
-    input.value = "";
-    if (file) {
-      this.filePicked.emit({ index, file });
-    }
-  }
 }

@@ -4,6 +4,7 @@ import { MenuTrigger } from "@angular/aria/menu";
 import { Tab, TabContent, TabPanel, Tabs } from "@angular/aria/tabs";
 import { UiButton } from "../ui/button";
 import { UiCheckbox } from "../ui/checkbox";
+import { UiFile } from "../ui/file";
 import { UiInput } from "../ui/input";
 import { UiSpinner } from "../ui/spinner";
 import { UiTooltip } from "../ui/tooltip";
@@ -48,6 +49,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
     Icon,
     UiButton,
     UiCheckbox,
+    UiFile,
     UiInput,
     UiSpinner,
     UiTooltip,
@@ -304,6 +306,29 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
               >Hold back a request with a variable that has no value</label
             >
             <input id="catalogue-check-hold" type="checkbox" uiCheckbox />
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="catalogue-files">
+        <h2 id="catalogue-files" class="type-title-3">File fields</h2>
+        <p class="type-callout text-label-secondary"
+          >Empty, with a file, with a long name, disabled, and with an error under it. Drag a file over one to see it
+          take a drop.</p
+        >
+        <div class="catalogue-files">
+          <ui-file label="File to send" [fileName]="file()" (picked)="file.set($event.name)" (cleared)="file.set('')" />
+          <ui-file label="Data file" fileName="customers.csv" />
+          <ui-file
+            label="File for part 1"
+            fileName="a-very-long-name-of-a-capture-taken-on-the-twenty-second-of-october.har"
+          />
+          <ui-file label="Vault file" [disabled]="true" />
+          <div>
+            <ui-file label="Body file" fileName="video.mp4" />
+            <p class="type-footnote text-status-error mt-1"
+              >This file is 64 MB. A file in a request body can be 50 MB at most.</p
+            >
           </div>
         </div>
       </section>
@@ -592,6 +617,11 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
       align-items: center;
       gap: 8px 16px;
     }
+    .catalogue-files {
+      display: grid;
+      gap: 12px;
+      max-width: 32rem;
+    }
     .catalogue-checks {
       display: grid;
       justify-items: start;
@@ -615,6 +645,7 @@ const request = (key: string, label: string, method: string): UiTreeNode<Row> =>
 export class Catalogue {
   private readonly confirm = inject(Confirm);
   protected readonly dialogOpen = signal(false);
+  protected readonly file = signal("");
   protected readonly drawerOpen = signal(false);
   protected readonly chosen = signal("Nothing chosen yet.");
   protected readonly longTip =

@@ -194,6 +194,28 @@ for (const theme of ["light", "dark"] as const) {
     expect(found).toEqual([]);
   });
 
+  // A test of its own, as the segmented choice's (D3.5).
+  test(`the file fields, in each state, are free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
+    await open(page, theme);
+    const found: string[] = [];
+    const scan = scanner(page, found);
+    await page.getByRole("heading", { name: "File fields" }).scrollIntoViewIfNeeded();
+    await scan("file fields, at rest");
+    await page.getByRole("button", { name: "Choose a file…" }).first().focus();
+    await scan("file fields, one focused");
+    await page
+      .locator("ui-file")
+      .first()
+      .evaluate((field) => {
+        const data = new DataTransfer();
+        data.items.add(new File(["{}"], "dragged.json"));
+        field.dispatchEvent(new DragEvent("dragover", { dataTransfer: data, bubbles: true, cancelable: true }));
+      });
+    await expect(page.locator("ui-file").first()).toHaveClass(/ui-file-over/);
+    await scan("file fields, one with a file dragged over it");
+    expect(found).toEqual([]);
+  });
+
   // A test of its own, as the segmented choice's.
   test(`the spinner is free of WCAG 2.2 AA violations in the ${theme} theme`, async ({ page }) => {
     await open(page, theme);
@@ -1402,6 +1424,30 @@ test("text field: in forced colours each keeps its edge and a focused one shows 
     expect(await css(name, "outline-style"), name).toBe("solid");
     expect(await css(name, "outline-width"), name).toBe("2px");
   }
+});
+
+// D3.5, U-059: the platform's input, hidden; its buttons are the keyboard's road.
+test("file field: Tab reaches its button, Enter opens the system's picker, the file is named, and its remove button empties it", async ({
+  page,
+}) => {
+  await open(page, "light");
+  const field = page.locator("ui-file").first();
+  await expect(page.locator('input[type="file"]').first()).toBeHidden();
+  await expect(page.getByText("No file chosen")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Choose a file…" }).first().focus();
+  const chooser = page.waitForEvent("filechooser");
+  await page.keyboard.press("Enter");
+  await (await chooser).setFiles({ name: "pets.json", mimeType: "application/json", buffer: Buffer.from("{}") });
+  await expect(field.locator(".ui-file-name")).toHaveText("pets.json");
+  // The same button, its words changed: focus stayed on it.
+  await expect(field.getByRole("button", { name: "Choose another…" })).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Remove pets.json" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(field.locator(".ui-file-name")).toHaveCount(0);
+  await expect(field.getByRole("button", { name: "Choose a file…" })).toBeFocused();
 });
 
 test("checkbox: Tab reaches each one in every engine and passes over a disabled one; Space and a click on its text check it", async ({

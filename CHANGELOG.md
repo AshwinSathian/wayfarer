@@ -9,6 +9,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Added
 
+- **The design docs say what the composer's rebuild changed.** The
+  baseline records the first request and the copy to a teammate measured
+  again after it: 35 inputs and 2, the copy now ending on the screen's
+  "Copied as cURL.". The audit marks the composer's findings fixed, with
+  the change that fixed each.
+
 - **The design docs have a voice guide.** A new page, Voice, says what
   the app calls each thing, how it words an error, a question and a limit,
   that every label is in sentence case ("Add header", not "Add Header"),
@@ -60,6 +66,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the 3:1 a control's mark needs. The light theme is unchanged.
 
 ### Changed
+
+- **Choosing a file no longer looks like the browser's own control.** A
+  binary body, a file part of a multipart form and the vault's import now
+  show the file's name, or "Drop a file here, or" and a Choose a file…
+  button. You can drop a file onto the field, and remove a chosen one.
+  Before, each drew an outlined "Choose file" beside "No file chosen", the
+  browser's own words, took no dropped file (the browser opened it in the
+  tab), and kept a file until another was chosen.
 
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what

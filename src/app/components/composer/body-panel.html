@@ -126,15 +126,11 @@
   </div>
 </div>
 } @case ('binary') {
-<div class="flex min-w-0 items-center gap-3">
-  <button uiButton="outlined" class="btn-secondary" type="button" (click)="binaryFile.click()">Choose file</button>
-  <span class="type-callout text-label-secondary truncate">{{ current.binary?.fileName || "No file chosen" }}</span>
-  <input
-    #binaryFile
-    type="file"
-    class="hidden"
-    aria-label="File to send as the body"
-    (change)="setBinary(binaryFile)"
-  />
-</div>
+<ui-file
+  class="max-w-xl"
+  label="File to send as the body"
+  [fileName]="current.binary?.fileName ?? ''"
+  (picked)="setBinary($event)"
+  (cleared)="store.setBody({ binary: undefined })"
+/>
 } }

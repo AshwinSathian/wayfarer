@@ -678,6 +678,20 @@ will go.
 Evidence: `baseline/design-chromium/confirm-dialog-1440-light.png`.
 **Status:** Open, D4-f.
 
+### Found later
+
+**U-059. A file field copies the browser's own.** Severity 3. H4. All.
+Found by the maintainer, 2026-10-22. The `<input type="file">` is hidden
+in every place, but what stands for it is the browser's control redrawn:
+an outlined "Choose file" button beside "No file chosen", Chrome's own
+words and layout, in the request's binary body, a multipart part and the
+vault's import. It takes no dropped file, and a chosen file cannot be
+cleared without choosing another. The maintainer's rule of 2026-10-20
+(nothing looks or feels like a native element) forbids it, and
+`src/app/ui` has no widget for it, so each place drew its own.
+Evidence: `body-panel.html`, `multipart-editor.html`, `vault-actions.html`.
+**Status:** Open, D4-d (plan D3.5).
+
 ## Every screen of D0.1, and its findings
 
 Each screen of [`baseline/index.md`](baseline/index.md), with the open or

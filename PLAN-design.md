@@ -50,7 +50,15 @@ Measured at the end of phase D5 and W4, against the baseline of D0:
   against Postman, Bruno, Yaak, Hoppscotch and Insomnia.
 - The adversarial review (D1.2) has no open finding of severity 1 or 2.
 - Every view passes axe at WCAG 2.2 AA in both themes, three engines,
-  at 360, 390, 820 and 1,440 px, as today.
+  at 360, 390, 820 and 1,440 px, as today, and nothing is wider than a
+  320 px window (WCAG 1.4.10; row 1.46).
+- A screen reader says what a send is doing and what came back, and every
+  error that appears after an action: checked by hand in VoiceOver with
+  Safari and NVDA with Firefox, on send, unlock and the banners (row 1.46).
+  axe does not see either.
+- With the logo off, the primary screen shows the signature element D2.5
+  chose, and D5.1's competitor-swap test, run on D1.4's captures of the
+  rivals, finds it in none of them (row 1.45).
 - `wayfarer.ashwinsathian.com` serves the website; the app is at `/app`.
   The site scores 100 in Lighthouse's SEO and accessibility categories
   and 95 or more in performance (mobile preset).
@@ -96,6 +104,31 @@ Measured at the end of phase D5 and W4, against the baseline of D0:
   decides (W0).
 - **All copy** (site, app, docs) goes through the `humanizing-writing`
   skill.
+
+### Direction (D2.1)
+
+Chosen in row 1.9: **A, Workbench, with C's rail** as a collapsible
+inspector. Row 1.45 adds what that choice means, after the hig-review of
+2026-10-23 ([`docs/design/hig-review-2026-10-23.md`](docs/design/hig-review-2026-10-23.md))
+found the app "default-assembled": direction A named Linear and Yaak, and
+the app kept their surface while losing what makes Linear work.
+
+**Keep the mechanism, not the look.** What Wayfarer takes from Linear is:
+
+- **Hierarchy discipline.** Label tiers and weights that differ where it
+  matters, and controls whose boundaries stay findable while the chrome
+  recedes (D3.6).
+- **Speed made visible.** The answer to ⌘↵ appears in one frame, with the
+  real elapsed time; nothing stands between the person and a fast reply
+  (D3.7, D2.5).
+- **Keyboard first, without exceptions.** Focus never drops to the page,
+  no shortcut fires while typing, and no panel is an empty Tab stop.
+
+Linear's or Yaak's look is not a target. Warm near-black, one muted green,
+hairlines, Inter and ⌘K keycaps are not reasons in themselves; a choice of
+type, colour or shape traces to Wayfarer's subject or to a finding. What
+identity the product has is spent on its subject: what was sent, where it
+went, what was kept and what left the browser (D2.5, D4.12).
 
 ## 2. Background
 
@@ -295,6 +328,12 @@ architectural decisions made.
   - AC: `docs/design/benchmark.md` has, for Wayfarer and the five rivals,
     input events, seconds, errors and a recording per task, with the
     method and the versions used.
+  - AC (row 1.46): the same session captures each rival's main screen (a
+    request and its response, the collection tree, a run's report) at
+    1,440 px in both themes, plus Linear's, in `docs/design/benchmark/`:
+    D2.5's and D5.1's competitor-swap tests read them. The rivals' half
+    is the maintainer's owner step (DQ3); until it runs, the swap rests on
+    reviewer knowledge and says so.
 - [x] **D1.5** Decide the widget layer. Build a tree with drag and
   keyboard reorder, a select with a null option, and a context menu in
   Angular Material (as today), Angular Aria and the platform primitives;
@@ -314,6 +353,18 @@ architectural decisions made.
   is shown.
   - AC: a decision record and a list of the claims it adds, each with the
     test that will prove it.
+- [ ] **D1.8** Verify what the hig-review of 2026-10-23 could not (row
+  1.46, its section 6): Firefox and WebKit captures of its stress states
+  (320 px, 200% text, RTL, forced colours, the error states); VoiceOver
+  with Safari and NVDA with Firefox on send, unlock and the banners; the
+  installed app on macOS, Windows and iOS; the 2.5.8 target sizes measured
+  without ancestors; U-060 at runtime (edit a value, press Escape, open
+  the dialog again).
+  - AC: each item of the review's section 6 is marked verified, with its
+    capture or recording in `docs/design/hig-review/`, or is a finding in
+    the audit; the screen-reader and the U-060 items are done in D4-e, the
+    rest before D5.1. NVDA and the installed app on Windows and iOS are
+    the maintainer's owner step where the session has no such machine.
 
 **Exit criteria:** the audit's findings are triaged (fix, accept with a
 reason, or out of scope); D1.5 to D1.7 are decided.
@@ -345,8 +396,34 @@ called.
   icon set that replaces the 44 inline icons in one style.
   - AC: the files in `packages/tokens/brand/`; each icon at 16, 20 and 24
     px is checked at 1x and 2x.
+  - AC (row 1.41): the manifest lists the `any` icons with the full mark
+    and one 512 px `maskable` icon with the safe zone's padding (U-101);
+    the icon set's weight matches the labels' (U-127).
+- [ ] **D2.5** A signature element and a behavioural moment (row 1.45),
+  chosen by the maintainer from the hig-review's section 4. The budget is
+  one element. Element candidates: **(1, recommended) provenance in the
+  type split**: monospace is bytes that crossed the wire, exactly as sent
+  or received, and sans is Wayfarer speaking; the app never writes its
+  own words in the server's place (it fixes U-051 by construction, and
+  repeats in the composer, the response, history, the run, HAR and the
+  copy notes); **(2) the account of where it went**: one fixed sentence
+  per exchange, always in the same place: the route taken, the host, the
+  secrets filled (by name, masked) and what was kept where (D4.12's
+  content). Moments, each brief and the same under reduced motion and a
+  screen reader: **(a, recommended) Send shows its speed**: the status
+  line and body appear in one frame with the real elapsed time, no
+  skeleton under about a second, and the status region says "200 OK,
+  16 ms, Direct" (D3.7, U-061, U-078); **(b) a failure says where it
+  went**: only on a failed send, the rail opens with what the browser
+  reported, the route taken and one action, Send through the Local Bridge
+  (D4.12, U-051). The defaults are DQ6 and DQ7.
+  - AC: a section 14 row with the maintainer's choice, or the default
+    taken and said so; the chosen element is a rule in `voice.md` (for 1)
+    or `ia.md` (for 2) with the test that holds it (for 1, a test that
+    fails when a string the app writes is drawn in a server's slot in
+    monospace); D5.1's logo-off test names it on the primary screen.
 
-### Phase D3: Foundations (2 sessions)
+### Phase D3: Foundations (2 sessions, and D3-b of row 1.43)
 
 **Goal:** tokens, type, space, motion and the widget layer, ready for the
 views.
@@ -383,11 +460,68 @@ views.
     disabled, an error under it), axe in both themes and three engines, a
     keyboard e2e; no "No file chosen" or bare "Choose file" left in the
     app.
+- [ ] **D3.6** Controls that can be found, and a hierarchy that shows
+  (row 1.43; session D3-b, after D4-e): a control-boundary token kept
+  apart from `--separator`, states for hover, press, selection, disabled,
+  read-only and invalid, focus marks of 3:1, label tiers that differ, an
+  increased-contrast theme, type in rem at the working size D4-e decides,
+  control heights and spacing as tokens, status colours of the product's
+  own. It closes U-036's remnant, U-073, U-074, U-099, U-109 to U-120,
+  U-124 to U-126, U-128, U-129, the metrics half of U-127, and the
+  hierarchy half of U-077. (U-106 to U-108 are D4.11's and land first.)
+  - AC: `scripts/contrast.test.mjs` checks, in both themes, every control
+    boundary, every fill used as a state (selected row, hover, the
+    select's active option, the chosen segment), every focus mark and
+    every label on a status fill, and fails on a boundary or mark under
+    3:1 or a text pair under 4.5:1; no field, select, segmented choice,
+    checkbox or file field reads `--separator`.
+  - AC: the test asserts that each label tier has less contrast than the
+    one above it on every canvas in both themes, and the maintainer
+    approves the tiers from captures of the tree, the rows editor and the
+    environments editor (a section 14 row).
+  - AC: every type token is in rem and the token test fails on a
+    `font-size` in px in any stylesheet; at 200% text and 1,440 px no
+    response tab's label is cut (an e2e).
+  - AC: `packages/tokens` writes a `prefers-contrast: more` block per
+    theme that the contrast gate checks; a `forced-colors` rule and a
+    catalogue e2e exist for the select's focus, the unsaved dot, the
+    timing bars, the storage meter and the drop line.
+  - AC: no status colour is one of Apple's system values, GET's colour is
+    not success's, no stylesheet in `src/design-system` or `src/app/ui`
+    holds a colour or shadow literal (the token test), and every button,
+    field and select takes its height from a control-height token.
+  - AC: the catalogue passes axe in both themes and three engines; the
+    captures of D0.1 that the change moves are read in the PR.
+- [ ] **D3.7** Motion corrections on Send (row 1.44; session D4-e): the
+  most frequent action gets the least motion. No indicator for a reply
+  under about a second, then "Sending" and the time so far; the response,
+  the status line and a tab's pane appear in the frame they are ready,
+  without a fade; no press scale on Send or other frequent controls; no
+  hover lift; no transition on a theme change; the sidebar's toggle
+  moves the page in one frame. It closes U-078, U-079 and U-121 to U-123,
+  and revises `motion.md`'s rule that what appears in the page fades (the
+  rule that cites F48): a response and a tab's pane appear at once.
+  - AC: `e2e/motion.spec.ts` sends to the echo server with a reply under
+    100 ms and finds no skeleton and no opacity below 1 on the response
+    or the status line in any frame; with a 2 s reply it finds "Sending"
+    and an elapsed time after 1 s; the computed `transform` of Send while
+    pressed is `none`.
+  - AC: the token test fails on `transition-all` or a `transition` without
+    named properties; a theme change starts no transition (an e2e counts
+    `transitionstart`); `motion.md` records each change against the rule
+    it changes.
 
-### Phase D4: Flows rebuilt (11 sessions, split in 1.35)
+### Phase D4: Flows rebuilt (13 sessions, split in 1.35, added to in 1.42 to 1.45)
 
 **Goal:** every view rebuilt on the foundations, in the order the
 benchmark says matters most.
+
+**Order from D4-e** (rows 1.42 to 1.45): **D4-e** D4.11 first (the
+hig-review's Blockers and the save path), then D4.3's response with D3.7
+and the density decision; **D3-b** D3.6; **D4-l** D4.12, the inspector
+rail; **D4-f**; **D4-g**; **D4-h**, with D4.13; **D4-i**. D4-j and D4-k
+wait for their decisions. Each view session takes the open findings the
+audit's status lines give it, the hig-review's (U-060 to U-129) among them.
 
 - [x] **D4.1** Information architecture: what the shell holds, where each
   thing lives, how the command palette, the sidebar and tabs share work.
@@ -413,11 +547,75 @@ benchmark says matters most.
     audit are closed or accepted with a reason; axe and width checks pass
     at four widths, both themes, three engines; its benchmark tasks are
     re-measured and recorded.
+  - AC (the same tasks, row 1.46): nothing in the view is wider than a
+    320 px window; its main task and every error it can show are checked
+    with VoiceOver in Safari and NVDA in Firefox, and what each said is
+    recorded in the PR; every live region of the view is in the page from
+    its first render.
+- [ ] **D4.11** The hig-review's Blockers and the save path (row 1.42;
+  session D4-e, first, before its response work): U-060 (the Environments
+  dialog loses edits), U-061 and U-062 (a send and an error are not
+  announced, WCAG 4.1.3), U-075 (live regions made with their message),
+  U-063 (visible label not in the name, 2.5.3), U-064 (the splitter needs
+  a drag, 2.5.7), U-065 (reflow at 320 px, 1.4.10), U-106 to U-108 (the
+  checkbox, the select's option and a label on the warning fill, 1.4.11
+  and 1.4.3), U-066 and U-068 (a failed save is silent; Save drops focus).
+  - AC: with unsaved edits, × or Escape on the Environments dialog and a
+    click on another environment ask "Save the changes to {name}?" with
+    Save, Discard and Cancel, focus on Cancel; an e2e edits a value,
+    presses Escape, chooses Cancel and finds the edit.
+  - AC: the response pane holds one `role="status"` element from its first
+    render, whose text is "Sending…" during a send and then the status
+    line's words ("200 OK, 16 ms, Direct", or the failure's first line);
+    the vault's and the address's errors are in a `role="alert"` region
+    present from the first render, with `aria-invalid` and
+    `aria-describedby` on the field; a test fails on a `role="status"` or
+    `role="alert"` inside an `@if` with its message.
+  - AC: an e2e over the screens of D0.1 fails on a control whose visible
+    text is not the start of its accessible name; the splitter moves by a
+    click on each side and resets on a double click (e2e); "nothing is
+    wider than a N px window" includes 320.
+  - AC: `scripts/contrast.test.mjs` checks the unchecked checkbox's
+    boundary and the select's active option at 3:1 or more, and every
+    label on a status fill at 4.5:1 or more, in both themes, and passes.
+  - AC: a save that IndexedDB refuses, and one whose request was deleted
+    in another tab, each say so under the address row (e2e); focus stays
+    on Save while it saves (it is `aria-disabled`, not `disabled`).
+  - AC: D1.8's screen-reader items for send, unlock and one banner are
+    done and recorded.
+- [ ] **D4.12** The inspector rail: the account of where it went (row
+  1.45; session D4-l, after D3-b and before D4-f). Direction C's rail
+  (`docs/design/ia.md`, the shell's regions), which no session had: beside
+  the response, collapsible, it states for each exchange the route taken,
+  the host, the secrets filled (by name, masked), what history kept and
+  what the redactor masked, from `RoutePolicy.took`,
+  `BuiltRequest.secrets`, the redactor and `copyNote`. On a failed send it
+  says what the browser reported and offers one action, Send through the
+  Local Bridge. History's entries and a run's rows (U-076) open into it.
+  If D2.5 chose element 2, this is it.
+  - AC: an e2e per field sends a request (direct, through the bridge, with
+    a vault secret, with a masked header) and finds the rail's sentence
+    equal to what the exchange did; nothing in it is a value the app did
+    not send or receive.
+  - AC: on a failed send the rail opens with the failure and the action;
+    on a success it does not open by itself; its words reach the status
+    region of D4.11; `ia.md` places it and its actions; the AC above for
+    D4.3 to D4.10 holds for it.
+- [ ] **D4.13** The installed app (row 1.41; with D4-h): the page's
+  `theme-color` and the manifest's colours from the canvas tokens,
+  following the app's theme, the manifest's `id` and `description`,
+  safe-area padding and `min-h-dvh` on phones, and `lang="en-GB"`
+  (U-088, U-089, U-100).
+  - AC: a test reads `index.html` and the manifest for each field; an e2e
+    changes the theme and finds `theme-color` changed; the installed app
+    is seen on macOS, Windows and iOS (D1.8) with captures in
+    `docs/design/hig-review/`.
 
 ### Phase D5: Validation and release (1 session)
 
-- [ ] **D5.1** Repeat D1.2's hostile review and D1.4's benchmark on the
-  new app.
+- [ ] **D5.1** Repeat D1.2's hostile review, the hig-review of
+  2026-10-23 (with its logo-off and competitor-swap tests, on D1.4's
+  captures of the rivals) and D1.4's benchmark on the new app.
   - AC: the success numbers of section 1 hold, or the gap is a recorded
     decision of the maintainer.
 - [ ] **D5.2** Release v3.0.0 with the site (W4).
@@ -575,6 +773,8 @@ Each has a default; a session goes ahead on the default and says so.
 | DQ3 | Where does the rival benchmark's Postman run: the free plan of one user, or a trial of Team for the sharing task? | Free plan; the sharing task is measured on Team's trial if one is available | Maintainer | D1.4 |
 | DQ4 | Does a renamed product keep `wayfarer.ashwinsathian.com` as a redirect? | Yes, permanently | Maintainer | D2.3 |
 | DQ5 | Can the self-hosted server of T4 be a paid product, or is everything MIT? | Everything MIT | Maintainer | T0 |
+| DQ6 | Which signature element (D2.5): provenance in the type split, or the account of where it went? | Provenance in the type split: it costs no new surface, it is the structural fix for U-051, and the rail of D4.12 is built either way | Maintainer | D4-e (the response's strings) |
+| DQ7 | Which behavioural moment (D2.5): Send shows its speed, or a failure says where it went? | Send shows its speed, built in D4-e with D3.7 and U-061; the failure's moment follows in D4.12 if the maintainer wants both | Maintainer | D4-e |
 
 ## 13. Appendix
 
@@ -629,3 +829,9 @@ Each has a default; a session goes ahead on the default and says so.
 | 2026-10-22 | 1.38 | **D4-c: the voice guide, the keys for Send and Save, and the first run; D2.2 and D4.2 done.** Read against `main` at `89cac7c`. **D2.2** (#425): [`docs/design/voice.md`](docs/design/voice.md), what the app calls each thing, how it says an error, asks a question and explains a limit, and how an empty place offers its next step; sentence case for every label, which decides U-054 (each view's session applies it); and shortcuts shown in the keys of the reader's own system only (⌘↵ on a Mac, Ctrl+Enter elsewhere; the docs write both). Its AC's twenty strings are the ones drawn on the most of D0.1's 49 screens at 1,440 px, counted by screen, seeded data and undrawn accessible names left out; the page says how. **U-032** (#426): Send is ⌘↵ or Ctrl+Enter and Save ⌘S or Ctrl+S, Postman's keys (Hoppscotch's too; Insomnia sends with Ctrl+Enter), read before Monaco and not under a dialog; Enter in the address sends. The choice was clear from Postman's and what the browser takes (only Ctrl+S, its Save page), so the maintainer was not asked. `src/app/shared/shortcuts.ts` is the one list; the tooltips (`uiTooltipKeys`, with `aria-keyshortcuts`), the palette's rows and Settings, Shortcuts read it. C and N get their keycaps with D4-f's New menu. **D4.2** (#427, U-022): the caret starts in the address of an empty request (not on a phone, and not past a dialog), the empty response offers a cURL command and an import, the empty sidebar a collection and an import, the empty environments list a new environment, and no empty state draws a dashed box. No example request (accepted in the audit: it would send to a server the person did not choose). Task 1 measured again: 35 inputs (0 clicks, 1 key, 34 characters), 0.06 s median, against 36 at D0.2 ([`docs/design/baseline.md`](docs/design/baseline.md)). The rivals' half of D1.4 has not run (DQ3), so the aim was fewer than today's 36; when it runs, D4.2 is read again against it. Each view closed with the AC below D4.10: U-022 and U-032 fixed in the audit; axe and widths in three engines; the Chromium captures the change moved taken again in Playwright's Linux image. |
 | 2026-10-22 | 1.39 | **D3.5 added: a file field (U-059).** The maintainer found that the app's file pickers look native. Read against `main` at `cd02088`: no `<input type="file">` is drawn (all nine are hidden behind a button), but three places redraw the browser's control around it, an outlined "Choose file" beside "No file chosen", Chrome's own words: the request's binary body, a multipart part and the vault's import. None takes a dropped file or clears. D3.3 gave the app no widget for it, so each drew its own. The audit gets U-059, and D3 gets D3.5, a file field in `src/app/ui` with its catalogue states and keyboard e2e. D4-d takes it, since two of the three places are the composer's; the vault's import adopts it in the same PR, as a widget's swap. The row that closes D4-d is 1.40. |
 | 2026-10-23 | 1.40 | **D4-d: the composer; D4.3 stays open for D4-e (the response).** Read against `main` at `8244d5b`. Five PRs. **#428** (U-004, U-017, U-018, U-028, U-037): the composer, its parts, the variables and the response have no card of their own, and the splitter is a line; Body is a tab for every method, and a GET or HEAD with a body says it is sent without one (claim C-039 reworded, maintainer, 2026-10-22); a request starts on Params; each row's × is grey until hovered; below 768 px the request and the response are two tabs and a send opens the response; the address row's + and "Start a new request instead" are removed (ia.md), so New tab is the one road; the composer's strings follow `voice.md`, and the address's errors are said under it. **#429** (U-040, U-045, U-046): the script review shows each script on its own, marks the ones the collection's review did not cover and the calls the sandbox does not have, and writes a character that draws nothing or reorders text as its code point (three findings of the automated security review, each fixed with a test); OAuth's redirect URI and token come before its fields (`oauth-fields`, which brings `auth-editor.html` under 250 lines); the GraphQL schema is listed above the query. **#430** (row 1.39): D3.5 and U-059. **#431** (U-050): every copy says what it copied and what the redactor masked in it, from `copyNote` in `@wayfarer/core`, which compares the text with less masked and says no more than was done. **#432** (D3.5, U-059): `ui-file`, a file field that names the file, takes a drop and clears, in the catalogue with its axe scans and keyboard e2e, used by the binary body, a multipart part and the vault's import. The view closed with the AC below D4.10: its findings fixed in the audit (U-054 done for the composer, open for D4-f and D4-g); axe and widths in three engines, Firefox and WebKit in Playwright's Linux image; tasks 1 and 6 measured again ([`docs/design/baseline.md`](docs/design/baseline.md): task 1 35 inputs, 0.07 s; task 6 2 inputs, 0.34 s, now ending on "Copied as cURL."). The Chromium captures each PR moved were taken again in the Linux image and read; the Design capture job's one difference on every PR, the HAR preview's timings at 820 px, is held still in #432. |
+| 2026-10-23 | 1.41 | **The hig-review: the audit's third pass, recorded and assigned.** Read against `main` at `6bb10cdb` (branch `docs/hig-review-pass`, the same tree). The maintainer asked for a UI and UX review of the whole app and its design system against Apple's Human Interface Guidelines and WCAG 2.2, run against a profile confirmed that day (`.hig-review.md`), and for its findings to be rolled into this plan. The review is [`docs/design/hig-review-2026-10-23.md`](docs/design/hig-review-2026-10-23.md), with the 29 screenshots its findings cite in `docs/design/hig-review/`; Chromium only, no screen reader. Its verdict: default-assembled (20 tells over 7 of 9 channels); one element survives the logo-off test, the status bar's "Saved in this browser only". **Audit:** [`docs/design/audit.md`](docs/design/audit.md) gains "Third pass", U-060 to U-129 (70 findings, all open), each naming its review row (W-n, DS-n); severity from the review's Impact by the audit's own definitions (Blocker 1 or 2, Major 2 or 3, Minor 3, Polish 4): two of severity 1, U-060 (the Environments dialog throws away unsaved edits) and U-061 (a send says nothing to a screen reader). Rows that confirm or extend an earlier finding change its status line with a dated note instead of a new ID: U-003, U-016, U-041, U-051 (the app writes "0 Unknown Error" and an invented body in the server's place, and history, HAR and the run carry it), U-052, U-054 and U-056 are extended; U-020, U-022, U-026, U-032, U-049 and U-055 have notes; **U-036 is reopened** (the status colours are still Apple's system values, DS-16), and U-004's remainder is U-093 and U-126. **Owners:** each new finding's status line names its session; the review's section 8 lists them all. The Blockers go to D4.11 (row 1.42), the tokens to D3.6 (1.43), Send's motion to D3.7 (1.44), the rail to D4.12 (1.45); the rest to the view sessions of row 1.35 (D4-e the response and the status bar, D4-f the shell, tree, tabs, history and palette, D4-g the rows editors, environments and vault, D4-h settings, import and diagnostics, D4-i the runner, and each view its own strings), D2.4's AC gains the manifest's icons and the icon weight (U-101, U-127), and **D4.13** (the installed app: `theme-color`, the manifest, safe areas, `lang="en-GB"`; U-088, U-089, U-100) is added for D4-h. Open findings of severity 1 or 2 now number 33 (9 before; 2 of severity 1 and 22 of severity 2 new); section 1's measure, none open at D5, stands. A note, not a change: U-029 and U-034 do not exist, so row 1.9's "36 findings (U-001 to U-036)" was 34. |
+| 2026-10-23 | 1.42 | **D4.11 added, and run first in D4-e: the hig-review's Blockers and the save path.** U-060 (data loss), U-061, U-062 and U-075 (WCAG 4.1.3: a send's result and an error after an action are not announced, and live regions are made with their message), U-063 (2.5.3), U-064 (2.5.7), U-065 (1.4.10 at 320 px), U-106 to U-108 (1.4.11 and 1.4.3: the unchecked checkbox, the select's active option, a label on the warning fill), with U-066 and U-068 (a failed save says nothing; Save drops focus to the page) because they are the same path as the data loss. **Why before the response work, out of the order of row 1.35:** U-060 belongs to D4-g by view, and D4-g is four sessions away; the plan's success measure is no open finding of severity 1 or 2, accessibility is "WCAG 2.2 AA everywhere" (section 1), and every later view session would otherwise rebuild on a shell that fails those criteria and re-test what it fixes. Each fix is small and in shared places (the response pane, the shell's banners, `ui/splitter.ts`, `checkbox.css`, `select.css`, `RequestSave`): one PR per cause, each revertable alone (section 10). D4.11's AC includes D1.8's screen-reader items for send, unlock and a banner, which the review could not run. |
+| 2026-10-23 | 1.43 | **D3.6 added, in a new session D3-b after D4-e: controls that can be found, and a hierarchy that shows.** The hig-review measured the faults D3.1's gate cannot see: `scripts/contrast.test.mjs` checks text on bare surfaces and status text on its fill, and no border, fill used as a state, focus mark or label on a status fill. Every failure of its design-system pass is in that gap (U-074, U-109, U-113, U-117; U-106 to U-108 go first in D4.11). D3.1 stays done: its AC was met as written. D3.6 adds the control-boundary token apart from `--separator`, the states, the label tiers (U-119: in light, tertiary is darker than secondary), an increased-contrast theme (U-110), type in rem (U-073), control heights (U-124), status colours of the product's own (U-036's remnant, U-128) and the smaller token faults (U-111 built, U-112, U-114 to U-116, U-118, U-120, U-125, U-126, U-127's metrics, U-129, and U-099's `dir="ltr"`). **Why after D4-e and before D4-f:** the working size (U-111: 12 px is 190 of 275 uses) is D3.2's compact density, which row 1.35 has D4-e decide where it is used; once it is decided, every view still to be rebuilt (D4-f to D4-i) is built once on the new tokens instead of twice. |
+| 2026-10-23 | 1.44 | **D3.7 added, in D4-e: motion corrections on Send.** The hig-review timed a local send at 16 to 38 ms, followed by a button that scales to 0.96, shimmer bars, a 300 ms fade of the response and a 240 ms fade of each tab's pane (U-078): the answer is at part opacity for eight times the network's time. `motion.md` (D3.4) said a response fades; that rule now gives way to "the answer to ⌘↵ arrives in one frame", which is the speed of direction A made visible (row 1.45). No indicator under about a second, then "Sending" and the elapsed time, which closes U-055's words with U-061's announcement. With it go the sidebar's slide (U-079), the chips' spring lift (U-121), the transitions a theme change fires (U-122) and the one `transition-all` (U-123). D3.4 stays done; D3.7 changes its spec in `motion.md` with the reason for each rule it changes. |
+| 2026-10-23 | 1.45 | **Direction A amended: keep Linear's mechanism, not its look; D2.5, DQ6, DQ7 and D4.12 added.** This amends the reasoning of row 1.9, which chose A "closest to Yaak and Linear"; row 1.9 stands as written. The hig-review found that the app kept Linear's and Yaak's surface (warm near-black, one muted green, hairlines, Inter, ⌘K keycaps) and lost Linear's mechanism: the label tiers collapse, 12 px is the working size and controls are as faint as separators (U-077). Section 1 gains "Direction (D2.1)": keep Linear's hierarchy discipline, speed made visible and keyboard first; do not copy its look; spend identity on the subject (what was sent, where it went, what was kept). **D2.5**, a decision for the maintainer, from the review's section 4: one signature element, (1) provenance in the type split, **recommended**, or (2) the account of where it went; and a behavioural moment, (a) Send shows its speed, **recommended**, or (b) a failure says where it went. DQ6 and DQ7 hold the defaults (1 and a), so D4-e goes ahead on them unless the maintainer says otherwise. **D4.12**, the C inspector rail as "the account of where it went", gets the session row 1.35 never gave it, **D4-l**, after D3-b and before D4-f, so that history (D4-f) and a run's rows (D4-i, U-076) open into it. The review's gate holds: these come after the Blockers of D4.11 and U-051's fix in D4-e. Section 1's measures gain the logo-off and competitor-swap test of D5.1. |
+| 2026-10-23 | 1.46 | **What the plan measures, after the hig-review: 320 px, a screen reader, the rivals' screens.** Section 1's accessibility measure adds that nothing is wider than a 320 px window: WCAG 1.4.10 names 320 CSS px, and "WCAG 2.2 AA everywhere" is the maintainer's decision; the phones' rule ("nothing wider than 360 px", no flows of their own) is unchanged otherwise. It adds a screen reader's check of a send, an unlock and the banners, which axe cannot make and the review could not run (U-061, U-062, U-075 rest on source). The shared AC of D4.3 to D4.10 gains both, and that every live region is in the page from its first render. **D1.4** gains captures of each rival's main screens and Linear's: the review's competitor-swap test rested on knowledge because the rivals' half of D1.4 has not run (DQ3, the maintainer's owner step), and D2.5 and D5.1 need it. **D1.8** is added: verify each item of the review's section 6 (Firefox and WebKit, VoiceOver and NVDA, the installed app, target sizes without ancestors, U-060 at runtime), the screen-reader and U-060 items in D4-e, the rest before D5.1. **D5.1** repeats the hig-review with D1.2 and D1.4. |

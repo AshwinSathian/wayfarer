@@ -1,4 +1,4 @@
-import { buildCurl, redactExport } from "@wayfarer/core";
+import { buildCurl, copyNote, redactExport } from "@wayfarer/core";
 import { JsonPipe } from "@angular/common";
 import {
   ChangeDetectionStrategy,
@@ -56,7 +56,8 @@ import {
   getFallbackBars,
   getTimingBars,
 } from "../../shared/inspect/timing-bars";
-import { writeToClipboard } from "../../shared/http/clipboard";
+import { NOT_COPIED, writeToClipboard } from "../../shared/http/clipboard";
+import { transientNote } from "../../shared/http/transient-note";
 import { Icon } from "../../shared/icon/icon";
 import { Diagnostics } from "../../services/diagnostics";
 import { parseJson, stringifyJson } from "@wayfarer/core";
@@ -392,21 +393,29 @@ export class ResponseViewer {
     return !this.loading() && !!this.exportContext() && this.responseStatusCode() !== undefined;
   }
 
+  /** What the last copy did, beside the export button for a few seconds (U-050). */
+  protected readonly copyStatus = transientNote();
+
   async copyAsCurl(options: RedactOptions = {}): Promise<void> {
     const context = this.exportContext();
     if (!context) {
       return;
     }
-    await writeToClipboard(
-      buildCurl(
-        redactExport({ ...context, headers: Object.entries(context.headers), body: context.exportBody }, options),
-      ),
-    );
+    const source = { ...context, headers: Object.entries(context.headers), body: context.exportBody };
+    const copied = await writeToClipboard(buildCurl(redactExport(source, options)));
+    this.copyStatus.show(copied ? copyNote("cURL", source, options, buildCurl) : NOT_COPIED);
   }
 
   async copyAsHar(options: RedactOptions = {}): Promise<void> {
     const exchanges = this.harExchanges(options);
-    if (exchanges.length) await writeToClipboard(await harText(exchanges));
+    if (!exchanges.length) return;
+    const text = await harText(exchanges);
+    if (!(await writeToClipboard(text))) return this.copyStatus.show(NOT_COPIED);
+    // Vault secrets are masked in a HAR whatever is asked; the note says only what this copy did to credentials.
+    const masked = !options.credentials && text !== (await harText(this.harExchanges({ credentials: true })));
+    this.copyStatus.show(
+      `Copied as HAR${options.credentials ? ", with credentials" : ""}.${masked ? " Its credentials are replaced by ***." : ""}`,
+    );
   }
 
   /**

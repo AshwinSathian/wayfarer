@@ -61,6 +61,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A copy says what it copied.** Copy as cURL, the code copies and the
+  response's Copy as cURL and Copy as HAR now say, for a few seconds, what
+  went to the clipboard: "Copied as cURL.", and when something in it was
+  masked, "Its credentials are replaced by ***." (or its vault secrets).
+  A vault secret's reference copied as written says so, and a copy the
+  browser refused says nothing was copied. Before, the menu closed and
+  nothing on the screen said whether anything was copied, or what was
+  left out of it.
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed

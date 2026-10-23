@@ -221,8 +221,8 @@ const TASKS: Task[] = [
       // No sharing yet (phase T): the shortest way is a cURL command on the clipboard, sent by other means.
       await user.click(button(user.page, "Copy as cURL"));
       await user.click(user.page.getByRole("menuitem", { name: "Copy as cURL", exact: true }));
-      // Nothing on the screen says it was copied; the menu closes.
-      await expect(user.page.getByRole("menu")).toHaveCount(0);
+      // The screen says what was copied (U-050).
+      await expect(user.page.locator("app-address-row .copy-note")).toHaveText("Copied as cURL.");
     },
   },
   {

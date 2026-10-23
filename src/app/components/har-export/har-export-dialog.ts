@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { FormsModule } from "@angular/forms";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
-import { writeToClipboard } from "../../shared/http/clipboard";
+import { NOT_COPIED, writeToClipboard } from "../../shared/http/clipboard";
 import { Icon } from "../../shared/icon/icon";
 import { harText, type HarSource } from "../../shared/inspect/har-export";
 import { saveJsonFile } from "../../shared/save-file";
@@ -53,9 +53,13 @@ export class HarExportDialog {
     if (this.source() === source && this.credentials() === credentials) this.text.set(text);
   }
 
+  /** The browser refused the last copy: the dialog stays, and says so (U-050). */
+  protected readonly notCopied = signal("");
+
   protected async copy(): Promise<void> {
-    await writeToClipboard(this.text());
-    this.closed.emit();
+    this.notCopied.set("");
+    if (await writeToClipboard(this.text())) this.closed.emit();
+    else this.notCopied.set(NOT_COPIED);
   }
 
   protected save(): void {

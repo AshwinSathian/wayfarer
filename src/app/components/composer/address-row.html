@@ -113,3 +113,10 @@
   >
   }
 </div>
+
+<!-- What the last copy did (U-050). The live region is always in the page, out of the flow, so that a screen
+     reader hears it change; the note is drawn while it has text: an empty line of the row would keep its gap. -->
+<span class="sr-only" role="status">{{ copyStatus.text() }}</span>
+@if (copyStatus.text()) {
+<p class="copy-note basis-full type-footnote text-label-secondary -mt-1" aria-hidden="true">{{ copyStatus.text() }}</p>
+}

@@ -3,7 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { browserLimits, type BrowserLimits } from "@wayfarer/core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { WorkspaceStore } from "../../state/workspace-store";
-import { RequestWarnings } from "./request-warnings";
+import { RequestWarnings, warningsText } from "./request-warnings";
 
 // What will go wrong with the request, said above it, for the cases no e2e
 // page can be in, since the e2e origin is http://.
@@ -47,7 +47,9 @@ describe("RequestWarnings (P2.14)", () => {
   it("says before the send that an http:// address will be blocked from an HTTPS page", () => {
     const element = show({ url: "http://example.invalid/x" });
     expect(text(element, ".browser-note-mixed")).toContain("The browser will block this request");
-    expect(element.querySelector(".browser-note-mixed")?.getAttribute("role")).toBe("status");
+    // Said by the composer's live region, which is there from the first render (U-075); the note is what the eye reads.
+    expect(element.querySelector(".browser-note-mixed")?.getAttribute("aria-hidden")).toBe("true");
+    expect(warningsText(limits())).toContain("The browser will block this request");
   });
 
   it("names each dropped header", () => {
@@ -82,5 +84,25 @@ describe("RequestWarnings (P2.14)", () => {
       "The Local Bridge will not send Connection: the Local Bridge sets this header itself",
     );
     expect(text(element, ".browser-note-dropped")).not.toContain("Host");
+  });
+
+  it("says the dropped headers as text for the composer's live region, naming who sets them", () => {
+    limits.set(
+      browserLimits(
+        { method: "GET", url: "https://api.example/", headers: [["Host", "x"]] },
+        { origin: "https://app.example", route: "direct" },
+      ),
+    );
+    expect(warningsText(limits())).toMatch(
+      /^The browser will not send .*: a page is not allowed to set this header\.$/,
+    );
+    expect(
+      warningsText(
+        browserLimits(
+          { method: "GET", url: "https://api.example/", headers: [] },
+          { origin: "https://app.example", route: "direct" },
+        ),
+      ),
+    ).toBe("");
   });
 });

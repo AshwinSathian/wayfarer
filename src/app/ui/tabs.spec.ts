@@ -171,4 +171,15 @@ describe("uiTabList", () => {
     expect(bar.scrollLeft).toBeGreaterThan(0);
     expect(open.right).toBeLessThanOrEqual(room.right + 0.5);
   });
+
+  // U-090: WAI-ARIA's pattern makes a pane a Tab stop only when nothing in it can take focus.
+  it("takes a pane that holds a control out of the Tab order, and leaves one with nothing to focus in it", async () => {
+    const { root, tab, settle } = await setup();
+    const pane = (name: string) =>
+      root.querySelector<HTMLElement>(`#${tab(name)!.getAttribute("aria-controls")}`)!.getAttribute("tabindex");
+    expect(pane("A")).toBe("-1");
+    tab("C")!.click();
+    await settle();
+    expect(pane("C")).toBe("0");
+  });
 });

@@ -333,14 +333,8 @@ pre,
   padding: 4px 9px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition:
-    opacity var(--dur-quick) var(--ease-standard),
-    transform var(--dur-micro) var(--ease-spring);
+  transition: opacity var(--dur-quick) var(--ease-standard);
   font-size: var(--type-footnote-size);
-}
-
-.var-chip:hover {
-  transform: translateY(-1px);
 }
 
 .var-chip.var-environment {

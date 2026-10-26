@@ -27,6 +27,7 @@ import {
   browserLimits,
   buildAuthHeaders,
   buildCurl,
+  authTexts,
   effectiveAuth,
   exportBody,
   isHttpMethod,
@@ -71,6 +72,7 @@ import { buildUrlFromParams, parseParamsFromUrl, validateUrl } from "../shared/h
 
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
+import { valueSources } from "../components/composer/auth-editor/value-sources";
 import { SHOWN_EVENTS, TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
 
@@ -139,9 +141,11 @@ export class WorkspaceStore {
   readonly draft = this.ofTab((tab) => tab.draft);
 
   readonly endpointError = this.ofTab((tab) => tab.endpointError);
+  readonly saveError = this.ofTab((tab) => tab.saveError);
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = this.ofTab((tab) => tab.pasteNotes);
   readonly loadingState = this.ofTab((tab) => tab.loadingState);
+  readonly sendingSince = this.ofTab((tab) => tab.sendingSince);
   readonly variableTokens = this.ofTab((tab) => tab.variableTokens);
   readonly missingVariableKeys = this.ofTab((tab) => tab.missingVariableKeys);
   /** The variables without a value that held the last send back; the composer offers "Send anyway". */
@@ -154,6 +158,7 @@ export class WorkspaceStore {
   readonly responseStatusCode = this.ofTab((tab) => tab.responseStatusCode);
   readonly responseStatusText = this.ofTab((tab) => tab.responseStatusText);
   readonly responseIsError = this.ofTab((tab) => tab.responseIsError);
+  readonly responseNoResponse = this.ofTab((tab) => tab.responseNoResponse);
   readonly responseTab = this.ofTab((tab) => tab.responseTab);
   readonly responseContentLength = this.ofTab((tab) => tab.responseContentLength);
   readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
@@ -198,6 +203,10 @@ export class WorkspaceStore {
   }
   /** What the draft's auth is when it inherits, and from where (P4.9). */
   readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
+  /** Where the values of the auth's variables come from, said on the Auth tab (U-130). */
+  readonly authValueSources = computed(() =>
+    valueSources(this.variableTokens(), this.environments.activeEnvironment()?.name),
+  );
   /**
    * What the browser will do to the draft if it is sent now (plan P2.14):
    * the headers it drops, whether it asks the server first, mixed content.
@@ -403,6 +412,8 @@ export class WorkspaceStore {
     options: {
       allowUnresolved?: boolean;
       /** Reconnects an event stream: sent as `Last-Event-ID` (P5.6). */ lastEventId?: string;
+      /** This send only, by this route: a failed send offers the Local Bridge (U-051). */
+      route?: Route;
     } = {},
   ): Promise<boolean> {
     const tab = this.tabs.active();
@@ -422,6 +433,7 @@ export class WorkspaceStore {
     }
 
     tab.loadingState.set(true);
+    tab.sendingSince.set(Date.now());
     const controller = new AbortController();
     tab.inFlight = controller;
 
@@ -432,6 +444,7 @@ export class WorkspaceStore {
       result = await this.exchange(tab, {
         allowUnresolved: options.allowUnresolved ?? false,
         signal: controller.signal,
+        ...(options.route && { route: options.route }),
         // An event stream is shown as it arrives (P5.6). The tab's list is the newest events; the count is all of them.
         onEvent: (event) => {
           tab.streamEvents.update((events) => [...events.slice(1 - SHOWN_EVENTS), event]);
@@ -526,7 +539,13 @@ export class WorkspaceStore {
    */
   private async exchange(
     tab: TabState,
-    options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend; onEvent?: (event: StreamEvent) => void },
+    options: {
+      allowUnresolved: boolean;
+      signal: AbortSignal;
+      run?: RunSend;
+      onEvent?: (event: StreamEvent) => void;
+      route?: Route;
+    },
   ): Promise<RequestExecutionResult> {
     const draft = tab.draft();
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
@@ -556,7 +575,7 @@ export class WorkspaceStore {
       ...(options.onEvent && { onEvent: options.onEvent }),
       retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved),
       signal: options.signal,
-      route: this.routeOf(tab),
+      route: options.route ?? this.routeOf(tab),
       askRoute: () =>
         this.confirm.confirm({
           title: "Send through the Local Bridge?",
@@ -791,16 +810,18 @@ export class WorkspaceStore {
     const scopes = this.scopes();
     const { url: endpoint, headers } = this.draft();
     const body = bodyTexts(this.draft().body);
+    // The auth the request is sent with, its own or the one it inherits (U-130): its variables have chips too.
+    const auth = authTexts(effectiveAuth(this.draft().auth, this.saved.ancestors()).auth);
     // The variables' values are part of it: editing a value must refresh a
     // preview computed before the edit.
-    const fingerprint = JSON.stringify({ endpoint, headers, body, environmentId, scopes });
+    const fingerprint = JSON.stringify({ endpoint, headers, body, auth, environmentId, scopes });
     const tab = this.tabs.active();
     if (fingerprint === tab.previewFingerprint) {
       return;
     }
     tab.previewFingerprint = fingerprint;
     const tokens = new VariableResolver(scopes)
-      .tokens({ url: endpoint, headers, body })
+      .tokens({ url: endpoint, headers, body, auth })
       .map((token) => (token.source === "environment" ? { ...token, environmentId } : token));
     this.variableTokens.set(tokens);
     this.missingVariableKeys.set(tokens.filter((token) => token.source === "missing").map((token) => token.key));
@@ -933,6 +954,7 @@ export class WorkspaceStore {
 
   private applyExecutionResponse(tab: TabState, response: RequestExecutionResponse): void {
     tab.responseIsError.set(response.isError);
+    tab.responseNoResponse.set(response.noResponse ?? "");
     tab.responseStatusCode.set(response.statusCode);
     tab.responseStatusText.set(response.statusText);
     tab.responseBodyIsJson.set(response.bodyIsJson);

@@ -131,7 +131,7 @@ test.describe("Send's motion, without reduced motion", () => {
     // The caret starts in the address: leaving it fades the bar's border, which is focus, not the theme.
     await page.locator("input.address-url").blur();
     await page.waitForTimeout(300);
-    const toggle = page.locator(".status-bar").getByRole("button", { name: /^Switch to (dark|light) mode$/ });
+    const toggle = page.locator(".status-bar").getByRole("button", { name: /^Theme: (system|light|dark)$/ });
     // The pointer on the toggle itself is a hover, which may fade its colour: that is not the theme's.
     await toggle.evaluate((button) => {
       (window as unknown as { started: string[] }).started = [];

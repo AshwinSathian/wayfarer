@@ -705,7 +705,9 @@ code errors.
   kept after: `preserveContent` is false by default in 22.2.3, whatever
   Angular's guide says, and an editor in a pane must stay mounted. A
   hidden pane is `inert` (Aria) and `display: none` (ours); a shown pane is
-  in the tab order (Aria's `tabindex="0"`, as WAI-ARIA's pattern asks). The
+  a Tab stop only while nothing in it can take focus (WAI-ARIA's pattern):
+  Aria gives every pane `tabindex="0"`, and `uiTabList` sets `-1` on one
+  that holds a control (U-090). The
   composer's request tabs are one `ngTabs` on `app-composer` (a host
   directive): the open tab's panel is the composer, and the strip gives each
   other tab an empty one, so that every tab controls a panel. A pane whose

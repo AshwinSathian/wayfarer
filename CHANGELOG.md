@@ -80,6 +80,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Tab goes from a tab straight to what is in its pane.** A pane that
+  holds a control is no longer a stop of its own on the way, so a walk
+  through the composer with Tab has three fewer empty stops. A pane with
+  nothing to focus in it is still one, so its text can be scrolled to.
 - **What a control says is the start of its name, so voice control finds
   it by what is on the screen.** Settings' "Clear…", "Manage…" and
   "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all

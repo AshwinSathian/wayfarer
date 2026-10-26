@@ -814,6 +814,8 @@ test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", a
   await expect(tab("Headers")).toHaveAttribute("aria-selected", "true");
   await expect(shown).toHaveCount(1);
   await expect(shown).toHaveAccessibleName("Headers");
+  // A pane with a control in it is not a Tab stop of its own (U-090): Tab goes from the tab into the pane's controls.
+  await expect(shown).toHaveAttribute("tabindex", "-1");
   await page.getByLabel("Header name").fill("Accept");
 
   // A focused tab is chosen. The arrows wrap; Home and End go to the ends.
@@ -832,14 +834,12 @@ test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", a
   await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
   await expect(parts.locator('[role="tab"][tabindex="0"]')).toHaveAccessibleName("Params");
 
-  // Tab goes on to the pane, then into it; a pane kept its field while another was shown.
+  // Tab goes from the tab into its pane's controls, with no stop on the pane (U-090); a pane kept its field while
+  // another was shown.
   await tab("Headers").click();
   await expect(page.getByLabel("Header name")).toHaveValue("Accept");
   await page.keyboard.press("Tab");
-  await expect(shown).toBeFocused();
-  await page.keyboard.press("Tab");
   await expect(page.getByLabel("Header name")).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Shift+Tab");
   await expect(tab("Headers")).toBeFocused();
 });

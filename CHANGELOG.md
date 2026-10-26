@@ -80,6 +80,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **An unchecked checkbox, the option the keys are on in a list, and the
+  grey text on a warning can all be seen.** An unchecked box now has a
+  border of 3:1 or more against the page, where its hairline was 1.2:1; the
+  option the arrow keys are on in a select's list has a mark at its start,
+  where its tint alone was 1.1:1; and the "Unlock to reveal" line under a
+  stored secret reads at 4.5:1 on its yellow fill in the dark theme, where
+  it was 4.48:1.
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.

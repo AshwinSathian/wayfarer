@@ -90,6 +90,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   "Locate apiKey in environment Staging" and so on, which a person saying
   what they see did not reach. The import report now starts with the
   keyboard on Import.
+
 - **The Auth tab says where a token's value comes from, not only where the
   auth is set.** A request that inherits a bearer token from its
   collection now reads, for instance, "Bearer token is sent, from
@@ -99,6 +100,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   a request is sent with now have chips under the address, like those of
   the address, the headers and the body, and a variable whose value is a
   vault secret says "From the vault" there.
+
 - **The environment editor no longer throws away what you typed.** Each
   variable, the name and the description are saved as you leave the
   field, so closing the editor with × or Escape, or choosing another
@@ -106,6 +108,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   an edit not yet saved was lost without a word. A row with a value and no
   name now says it is not kept, instead of disappearing, and a write the
   browser refuses says so under the editor.
+- **An unchecked checkbox, the option the keys are on in a list, and the
+  grey text on a warning can all be seen.** An unchecked box now has a
+  border of 3:1 or more against the page, where its hairline was 1.2:1; the
+  option the arrow keys are on in a select's list has a mark at its start,
+  where its tint alone was 1.1:1; and the "Unlock to reveal" line under a
+  stored secret reads at 4.5:1 on its yellow fill in the dark theme, where
+  it was 4.48:1.
 - **Marking a variable secret with no vault now makes the vault in that
   row and keeps the variable secret.** The row asks for the passphrase
   itself and, once the vault is made, stores the variable as its
@@ -119,6 +128,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.
 
+- **The split between the request and the response moves without a drag.**
+  A click on the left half of its line moves it a tenth of the way left, a
+  click on the right half a tenth right, and a double click puts it back.
+  Before, it moved only by dragging or with the arrow keys.
+
 ### Changed
 
 - **Choosing a file no longer looks like the browser's own control.** A
@@ -129,6 +143,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
 
+- **The Timings tab's notes say what each part is, plainly.** "The
+  browser looked up the host's address", "The browser opened the
+  connection" and so on, in sentences, where they read "Lookup time to
+  resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
+  "including headers if available" (the app knows they are included).
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was
@@ -137,6 +156,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser refused says nothing was copied. Before, the menu closed and
   nothing on the screen said whether anything was copied, or what was
   left out of it.
+- **The status line gives the response's size, always.** It showed one
+  only when the server sent `Content-Length`, so a chunked answer had
+  none; it is now the bytes that arrived when there is no header. Sizes
+  are written as `voice.md` writes them: "716 B", "2.4 kB".
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed

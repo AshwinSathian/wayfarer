@@ -14,13 +14,14 @@ async function createEnvironment(page: Page, name: string): Promise<void> {
 }
 
 async function addVariable(page: Page, key: string, value: string): Promise<void> {
-  // The new row is drawn a frame after the click: without the wait, "last" is still the row before it.
-  const keys = page.locator("input[placeholder='KEY']");
-  const before = await keys.count();
+  // Add variable puts the keyboard in the new row's name (U-145). The editor writes as a field is left, so the
+  // other tab's rows can arrive while this one types: the row is found by the focus, not by counting rows.
   await page.getByRole("button", { name: "Add variable" }).click();
-  await expect(keys).toHaveCount(before + 1);
-  await keys.last().fill(key);
-  await page.locator("input[placeholder='Value']").last().fill(value);
+  await expect(page.locator("input[placeholder='KEY']:focus")).toHaveValue("");
+  await page.keyboard.type(key);
+  await page.keyboard.press("Tab");
+  await expect(page.locator("input[placeholder='Value']:focus")).toBeVisible();
+  await page.keyboard.type(value);
 }
 
 test("what one tab saves appears in the other within a second: a collection, an environment, a sent request", async ({
@@ -56,7 +57,7 @@ test("two tabs save different variables of one environment at the same moment, a
   await pageA.goto("/app/");
   await createEnvironment(pageA, "Shared env");
   await addVariable(pageA, "base", "kept");
-  await pageA.getByRole("button", { name: "Save changes" }).click();
+  await pageA.locator("input[placeholder='Value']:focus").blur();
   await expect.poll(async () => JSON.stringify((await dumpIdb(pageA))["environments"])).toContain("kept");
 
   // Tab B opens the environment as it is now; then each tab adds its own variable.
@@ -66,10 +67,10 @@ test("two tabs save different variables of one environment at the same moment, a
   await addVariable(pageA, "fromA", "1");
   await addVariable(pageB, "fromB", "2");
 
-  // Both saves are started before either is awaited: they land within a few milliseconds of each other.
+  // Both writes are started before either is awaited: they land within a few milliseconds of each other.
   await Promise.all([
-    pageA.getByRole("button", { name: "Save changes" }).click(),
-    pageB.getByRole("button", { name: "Save changes" }).click(),
+    pageA.locator("input[placeholder='Value']:focus").blur(),
+    pageB.locator("input[placeholder='Value']:focus").blur(),
   ]);
 
   const stored = async () => {

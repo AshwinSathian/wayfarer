@@ -96,6 +96,22 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   "Locate apiKey in environment Staging" and so on, which a person saying
   what they see did not reach. The import report now starts with the
   keyboard on Import.
+- **The environment editor no longer throws away what you typed.** Each
+  variable, the name and the description are saved as you leave the
+  field, so closing the editor with × or Escape, or choosing another
+  environment, keeps every edit; the Save changes button is gone. Before,
+  an edit not yet saved was lost without a word. A row with a value and no
+  name now says it is not kept, instead of disappearing, and a write the
+  browser refuses says so under the editor.
+- **Marking a variable secret with no vault now makes the vault in that
+  row and keeps the variable secret.** The row asks for the passphrase
+  itself and, once the vault is made, stores the variable as its
+  reference at once. Before, a second dialog made the vault and the
+  variable stayed plain text, to be saved as such; and a secret could be
+  stored in the vault for a variable that was never saved. With a locked
+  vault, the row marks the variable once you unlock it. A row with no
+  name or no value says why it cannot be marked, and Add variable puts
+  the keyboard in the new row.
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.

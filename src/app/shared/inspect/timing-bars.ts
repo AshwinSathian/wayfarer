@@ -112,13 +112,14 @@ export function formatBytes(value: number | undefined): string {
   if (!value || value <= 0) {
     return "—";
   }
-  const units = ["B", "KB", "MB", "GB"];
+  const units = ["B", "kB", "MB", "GB"];
   let size = value;
   let unitIndex = 0;
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex += 1;
   }
-  const precision = size >= 100 ? 0 : size >= 10 ? 1 : 2;
+  // A byte is whole: "60 B", not "60.0 B".
+  const precision = unitIndex === 0 || size >= 100 ? 0 : size >= 10 ? 1 : 2;
   return `${size.toFixed(precision)} ${units[unitIndex]}`;
 }

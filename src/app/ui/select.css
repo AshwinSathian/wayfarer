@@ -104,6 +104,12 @@
   background: var(--fill-hover);
 }
 
+/* The fill alone was 1.08:1 in light and 1.19:1 in dark (U-107): the option the keys are on also has a mark at its
+   start, which contrast.test.mjs holds to 3:1 on the list. */
+.ui-select-option[data-active="true"] {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
 /* The chosen option is ticked. */
 .ui-select-check {
   flex: none;

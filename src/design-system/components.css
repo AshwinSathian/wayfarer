@@ -432,6 +432,34 @@ pre,
   letter-spacing: -0.002em;
 }
 
+/* A response's headers (U-058): a name or a value breaks between words, and inside one only when nothing else fits.
+   In a narrow pane each header is two lines, its name over its value, so neither is crushed into a column of
+   110 px that broke access-control-allow-credentials after every hyphen and "DELETE" inside its word. */
+.response-headers {
+  container-type: inline-size;
+}
+
+.response-headers th,
+.response-headers td {
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 520px) {
+  .response-headers tr,
+  .response-headers th,
+  .response-headers td {
+    display: block;
+  }
+
+  .response-headers th {
+    padding-bottom: 0;
+  }
+
+  .response-headers td {
+    padding-top: 2px;
+  }
+}
+
 /* ── Test result rows ────────────────────────────────────── */
 .test-result-pass {
   background: var(--status-success-fill);

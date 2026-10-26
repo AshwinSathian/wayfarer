@@ -501,7 +501,7 @@ test("composer and response split: the gutter is a focusable separator moved by 
   const width = async () => (await composer.boundingBox())!.width;
 
   await gutter.focus();
-  await expect(gutter).toHaveAttribute("aria-valuenow", "55");
+  await expect(gutter).toHaveAttribute("aria-valuenow", "45");
   const start = await width();
   await page.keyboard.press("ArrowRight");
   await expect.poll(width).toBeGreaterThan(start + 10);

@@ -289,8 +289,23 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await gutter.click({ position: { x: box.width - 1, y: box.height / 2 } });
     await expect.poll(at).toBe(start + 10);
     await gutter.dblclick({ position: { x: box.width / 2, y: box.height / 2 } });
-    await expect.poll(at).toBe(55);
+    await expect.poll(at).toBe(45);
   });
+
+  // U-003: from 1,440 px the response has the larger part of the split; below, the composer keeps it.
+  for (const [width, wider] of [
+    [1460, "response"],
+    [1300, "composer"],
+  ] as const) {
+    test(`at ${width} px the ${wider} has the larger part of the split`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/app/");
+      const composer = (await page.locator(".composer-pane").boundingBox())!.width;
+      const response = (await page.locator(".composer-response-splitter .ui-splitter-pane").nth(1).boundingBox())!
+        .width;
+      expect(wider === "response" ? response > composer : composer > response).toBe(true);
+    });
+  }
 
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });

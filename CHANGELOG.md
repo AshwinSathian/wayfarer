@@ -137,6 +137,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   connection" and so on, in sentences, where they read "Lookup time to
   resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
   "including headers if available" (the app knows they are included).
+- **On a wide window the response gets the larger part of the split.**
+  From 1,440 px the response starts with 55% of the space beside the
+  sidebar and the request with 45%. Before, the request had 55%, so beside
+  the pinned sidebar the response was 432 px wide, its body editor about
+  390 px. Below 1,440 px the request keeps the larger part, so its six
+  tabs fit. A split you chose is kept as before, and a double click on the
+  line puts back the default.
+
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was

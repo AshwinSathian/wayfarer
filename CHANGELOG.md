@@ -215,6 +215,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
   "including headers if available" (the app knows they are included).
 
+- **On a wide window the response gets the larger part of the split.**
+  From 1,440 px the response starts with 55% of the space beside the
+  sidebar and the request with 45%. Before, the request had 55%, so beside
+  the pinned sidebar the response was 432 px wide, its body editor about
+  390 px. Below 1,440 px the request keeps the larger part, so its six
+  tabs fit. A split you chose is kept as before, and a double click on the
+  line puts back the default.
+
 - **The status bar says whether the browser will keep your data, and the
   backup reminder comes sooner when it will not.** It says "Kept in this
   browser" once the browser has promised to keep the data, and "Saved in

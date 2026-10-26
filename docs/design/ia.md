@@ -225,7 +225,8 @@ it is.
 | `app-shell.html: Local Bridge settings` | Status bar, the route | Status bar | — |
 | `app-shell.html: Manage secrets` | Status bar | Status bar | — |
 | `app-shell.html: Switch to light mode / Switch to dark mode` | Status bar; Settings, General | Same | — |
-| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the passphrase | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: Choose a passphrase / Passphrase` | Unlock dialog, Enter in the passphrase (named since D4-e, U-062) | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the confirmation | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Cancel` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Create vault / Unlock secrets` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 
@@ -443,6 +444,7 @@ it is.
 | `response-viewer.html: Previous search match` | Response | Response | D4-e |
 | `response-viewer.html: Next search match` | Response | Response | D4-e |
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
+| `response-viewer.html: Send through the Local Bridge` | — (new in D4-e, U-051): under a send that got no response | Response; D4.12 adds pairing in place (DQ10) | D4-e |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
 | `socket-view.html: Check it is JSON before sending` | WebSocket view (was "Must be JSON", U-103) | Response, WebSocket view | D4-e |
 | `socket-view.html: Messages to show` | — (new in D4-e, U-048): All, Received, Sent | Response, WebSocket view, above the log | D4-e |
@@ -539,6 +541,7 @@ it is.
 | `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
+| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before | The split between the request and the response | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |
 | `tree.ts: node.ariaLabel ?? node.label` | The collections tree | Sidebar | — |
 

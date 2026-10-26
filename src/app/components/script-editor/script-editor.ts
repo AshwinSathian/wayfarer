@@ -20,6 +20,7 @@ import {
   defineSandboxThemes,
   loadMonaco,
   loadedMonaco,
+  editorText,
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
@@ -153,11 +154,11 @@ export class ScriptEditor implements ControlValueAccessor, OnChanges, OnDestroy 
     this.model = this.model ?? monaco.editor.createModel(this.internalValue, "javascript", undefined);
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
+      ...editorText(),
       model: this.model,
       automaticLayout: true,
       minimap: { enabled: false },
       theme: monacoThemeName(this.themeService.theme()),
-      fontSize: 13,
       lineNumbers: "on",
       scrollBeyondLastLine: false,
       wordWrap: "on",

@@ -54,6 +54,8 @@ export class RequestExecutor {
     timeoutMs: () => this.settings.timeoutMs(),
     historyBodies: () => this.settings.historyBodies(),
     page: location.href,
+    // The one cause of a failed send the page can know (U-051).
+    online: () => navigator.onLine,
   };
 
   async execute(spec: RequestExecutionSpec): Promise<RequestExecutionResult> {

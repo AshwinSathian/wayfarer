@@ -173,6 +173,8 @@ describe("exchange", () => {
   let scriptSandbox: ScriptSandboxServiceStub;
   /** `ExchangePorts.page`: absent unless a test is about what a page is told. */
   let page: string | undefined;
+  /** `ExchangePorts.online`: absent unless a test is about an offline browser. */
+  let online: boolean | undefined;
 
   beforeEach(() => {
     cookieJar.for.mockReset().mockReturnValue([]);
@@ -184,8 +186,10 @@ describe("exchange", () => {
 
     settings = { timeoutMs: 0 };
     page = undefined;
+    online = undefined;
     const ports = (): ExchangePorts => ({
       page,
+      ...(online !== undefined && { online: () => online === true }),
       // As the app's script worker is called.
       runScript: (script, environment, response, extras) =>
         scriptSandbox.execute(script, environment, response, undefined, extras) as Promise<ScriptResult>,
@@ -406,10 +410,33 @@ describe("exchange", () => {
     expect(result.response.isError).toBe(true);
     expect(result.response.bodyIsJson).toBe(false);
     expect(result.response.errorText).not.toContain("isTrusted");
-    expect(result.response.errorText).toMatch(/^Network error/);
+    // U-051: the app's words, and nothing in the server's place.
+    expect(result.response.errorText).toMatch(/^The request got no response\. The browser does not say why/);
     expect(result.response.errorText).toMatch(/CORS/);
-    expect(result.response.errorText).not.toContain("Unknown Error");
-    expect(result.history.error).toBeDefined();
+    expect(result.response.errorText).toMatch(/Send it through the Local Bridge to see which\.$/);
+    expect(result.response.statusCode).toBeUndefined();
+    expect(result.response.statusText).toBe("");
+    expect(result.history.error).toBe("No response. The browser does not say why.");
+    // The browser's own words, for the pane to quote (C-010: the real network error).
+    expect(result.response.noResponse).toBe("Failed to fetch");
+  });
+
+  it("an offline browser is said so, the one cause a page can tell (U-051)", async () => {
+    page = "https://wayfarer.example/app/";
+    online = false;
+    transport.setResponse(new TransportError("network", "Failed to fetch"));
+    const result = await service.execute({
+      template: TEMPLATE,
+      runScripts: true,
+      preRequestScript: "",
+      postRequestScript: "",
+      tests: [],
+      buildRequest: () => builtRequest(),
+    });
+    expect(result.response.errorText).toBe(
+      "The request got no response: this browser is offline. Connect, then send it again.",
+    );
+    expect(result.history.error).toBe("No response: this browser is offline.");
   });
 
   it("without a page (the CLI), a network error gives the runtime's reason and says nothing of a browser", async () => {
@@ -424,10 +451,28 @@ describe("exchange", () => {
       buildRequest: () => builtRequest(),
     });
 
-    expect(result.response.errorText).toMatch(
-      /^Network error — no response was received: fetch failed \(ECONNREFUSED\)\./,
-    );
+    expect(result.response.errorText).toMatch(/^The request got no response: fetch failed \(ECONNREFUSED\)\./);
+    expect(result.history.error).toBe("No response: fetch failed (ECONNREFUSED).");
     expect(result.response.errorText).not.toMatch(/browser|CORS|cross-origin|Local Bridge/i);
+  });
+
+  // U-031: a chunked answer has no Content-Length; its size is the bytes that arrived.
+  it("gives a response's size from Content-Length, and from the bytes received when there is none", async () => {
+    const execute = () =>
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
+    transport.setResponse(envelope(200, "OK", { hello: "world" }));
+    expect((await execute()).response.contentLength).toBe(JSON.stringify({ hello: "world" }).length);
+    const withLength = envelope(200, "OK", { hello: "world" });
+    withLength.headers.push(["content-length", "999"]);
+    transport.setResponse(withLength);
+    expect((await execute()).response.contentLength).toBe(999);
   });
 
   it("shapes a JSON error body from a real HTTP error response", async () => {
@@ -1293,8 +1338,10 @@ describe("exchange", () => {
       buildRequest: () => builtRequest(),
     });
     expect(missing.response.redirectedTo).toBeUndefined();
-    expect(missing.response.errorText).toBe("Http failure response for https://example.com/data: 404 Not Found");
-    expect(missing.history.error).toBe("Http failure response for https://example.com/data: 404 Not Found");
+    // The server's answer, as it came: an empty body stays empty, and nothing is written in its place (U-051).
+    expect(missing.response.errorText).toBe("");
+    expect(missing.response.statusCode).toBe(404);
+    expect(missing.history.error).toBeUndefined();
   });
 
   describe("history (P2.9): what is stored of an exchange", () => {
@@ -1391,7 +1438,8 @@ describe("exchange", () => {
 
       expect(history.response).toBeUndefined();
       expect(history.route).toBe("direct");
-      expect(history.error).toBe("Http failure response for https://example.com/data?k=***: 0 Unknown Error");
+      // Outside a page (this spec gives none), the runtime's reason; a page's words are in the test above.
+      expect(history.error).toBe("No response: failed.");
     });
   });
 

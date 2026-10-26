@@ -159,7 +159,9 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 
   // Plain text: not without the words.
   await (await exportWith("Plain text", "export secrets")).click();
-  await expect(dialog.getByText("Type EXPORT SECRETS to write secrets as plain text.")).toBeVisible();
+  await expect(
+    dialog.getByRole("alert").filter({ hasText: "Type EXPORT SECRETS to write secrets as plain text." }),
+  ).toBeVisible();
   await dialog.getByLabel(/to confirm/).fill("EXPORT SECRETS");
   const [plain] = await Promise.all([
     page.waitForEvent("download"),
@@ -174,7 +176,8 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
   await page.clock.install();
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  const reminder = page.getByText(/more than 14 days since this workspace was backed up/);
+  // The shell's live region says it while the banner is drawn (U-075).
+  const reminder = page.getByRole("status").filter({ hasText: /more than 14 days since this workspace was backed up/ });
   await expect(reminder).toHaveCount(0);
 
   await page.clock.fastForward(15 * 24 * 60 * 60 * 1000);

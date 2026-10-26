@@ -67,8 +67,8 @@ test("@claim:C-057 a collection exports as a Postman Collection v2.1 file: auth 
   await page.getByText("Tripwire collection", { exact: true }).click({ button: "right" });
   await page.getByRole("menuitem", { name: "Export for Postman…" }).click();
   const dialog = page.getByRole("dialog", { name: "Export for Postman" });
-  await expect(dialog.getByRole("status")).toContainText("1 thing Postman's format has no place for");
-  await expect(dialog.getByRole("status")).toContainText(
+  await expect(dialog.locator(".export-notes")).toContainText("1 thing Postman's format has no place for");
+  await expect(dialog.locator(".export-notes")).toContainText(
     'request "Tripwire request". Its assertion is left out: Postman has tests only as scripts.',
   );
   await dialog.getByRole("button", { name: "Cancel" }).click();

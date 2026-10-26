@@ -210,7 +210,9 @@ test("binary: the file is the body, byte for byte, with the file's type", async 
 
   // No file yet: nothing is sent, and the page says why.
   await send(page);
-  await expect(page.getByText("Choose a file for the body, or set the body to None.")).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Choose a file for the body, or set the body to None." }),
+  ).toBeVisible();
 
   await page
     .getByLabel("File to send as the body")

@@ -123,14 +123,23 @@ export class RequestSkipped extends SendBlockedError {
   }
 }
 
-const NETWORK_ERROR_TEXT =
-  "Network error — no response was received. The host may not resolve (DNS), may have refused " +
-  "the connection, or may not allow cross-origin requests from this site (CORS). The browser " +
-  "does not reveal which. Check the URL and your connection; for CORS, the Local Bridge can relay the request.";
+/**
+ * What the app says when no response arrived (U-051). The browser reports
+ * the same TypeError for a name that does not resolve, a refused connection
+ * and a server without CORS headers, and measures none of them for the page
+ * (its Resource Timing entry is the same, or absent): the words say so and
+ * say what can tell them apart. Only an offline browser is known. Nothing
+ * here is put in the server's place: no status, no status text, no body.
+ */
+const NO_RESPONSE_TEXT =
+  "The request got no response. The browser does not say why: the name may not resolve, the server may " +
+  "have refused the connection, or it does not allow requests from this page (CORS). Send it through " +
+  "the Local Bridge to see which.";
+const OFFLINE_TEXT = "The request got no response: this browser is offline. Connect, then send it again.";
 
 /** Without a page (the CLI), there is no CORS and the runtime says why. */
-const networkErrorWithoutPage = (reason: string) =>
-  `Network error — no response was received: ${reason}. Check the URL, that the host resolves, and that it accepts connections.`;
+const noResponseWithoutPage = (reason: string) =>
+  `The request got no response: ${reason}. Check the address, that the name resolves and that the server accepts connections.`;
 
 const SECRET_PLACEHOLDER_BLOCKED =
   "This request refers to a vault secret that could not be read (it may have been deleted), so it was not sent. " +
@@ -231,6 +240,8 @@ export interface ExchangePorts {
   historyBodies(): boolean;
   /** The address of the page that sends, when one does: a direct answer from another origin shows only some headers. */
   page?: string;
+  /** Whether the device has a network: a page's `navigator.onLine`. Absent: not known. */
+  online?(): boolean;
   /** Told when the request goes out, before the first try, and when its answer is in, after the last. */
   watch?: { sending(url: string): void; received(url: string): void };
 }
@@ -313,12 +324,19 @@ function scriptsToRun(spec: RequestExecutionSpec, kind: keyof Scripts): { name: 
 
 export interface RequestExecutionResponse {
   isError: boolean;
+  /**
+   * No response arrived, and this is what the browser (or the runtime) reported, as it reported it: the same
+   * words for a name that does not resolve, a refused connection and CORS (U-051). The Local Bridge can tell
+   * them apart. Not set for a timeout or a stop.
+   */
+  noResponse?: string;
   statusCode?: number;
   statusText?: string;
   bodyIsJson: boolean;
   dataText: string;
   errorText: string;
   headersView: { name: string; value: string }[];
+  /** The body's size: its `Content-Length` when the server sent one, else the bytes as they arrived, decoded (U-031). */
   contentLength?: number;
   /** Set when the body is binary; the viewer offers it as a download (F05). */
   binary?: BinaryBody;
@@ -562,8 +580,8 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
 
   const shaped =
     outcome instanceof TransportError
-      ? shapeFailure(outcome, request.url, ports.page)
-      : shapeResponse(outcome, request.url, ports.page);
+      ? shapeFailure(outcome, ports.page, ports.online?.())
+      : shapeResponse(outcome, ports.page);
   // What a script writes is masked like everything else the app shows or
   // keeps of this exchange (D5): a post-response script reads the response,
   // and a server may send a secret back.
@@ -647,11 +665,11 @@ export async function exchange(spec: RequestExecutionSpec, ports: ExchangePorts)
 }
 
 /** A response arrived. A status outside 200 to 299 is shown as an error, with its body. */
-function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): Shaped {
+function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
   const body = decodeEnvelope(envelope);
   const isError = envelope.status < 200 || envelope.status >= 300;
-  const failureText = `Http failure response for ${url}: ${envelope.status} ${envelope.statusText}`;
-  const shown = isError ? (body ?? failureText) : body;
+  // An error status is the server's answer: its body is shown as it came, and an empty one stays empty.
+  const shown = body;
   const bodyIsJson = isJsonPayload(shown);
   const text = bodyIsJson ? serializeJsonPayload(shown) : stringifyPayload(shown);
   const header = (name: string) => envelope.headers.find(([key]) => key.toLowerCase() === name)?.[1];
@@ -661,7 +679,6 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
     headers: Object.fromEntries(envelope.headers),
     headerList: envelope.headers,
     bodyText: body === undefined || body === null || body instanceof BinaryBody ? undefined : text,
-    historyError: isError ? failureText : undefined,
     response: {
       isError,
       statusCode: envelope.status,
@@ -672,7 +689,7 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
       headersView: envelope.headers
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-      contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
+      contentLength: Number.isFinite(contentLength) ? contentLength : envelope.sizes.decoded,
       binary: body instanceof BinaryBody ? body : undefined,
       redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
       route: envelope.route,
@@ -690,30 +707,40 @@ function shapeResponse(envelope: ResponseEnvelope, url: string, page?: string): 
 }
 
 /**
- * No response arrived. The browser does not say why a request failed, so
- * a network failure from a page gets the guidance text (F06); without a
- * page, the runtime's reason is given. A timeout, a cancel and the Local
- * Bridge say what happened themselves.
+ * No response arrived. From a page a network failure gets the app's words
+ * (U-051, F06); without a page, the runtime's reason is given. A timeout, a
+ * stop and the Local Bridge say what happened themselves. History keeps "No
+ * response" and the reason, never a status the server did not send.
  */
-function shapeFailure(failure: TransportError, url: string, page: string | undefined): Shaped {
+function shapeFailure(failure: TransportError, page: string | undefined, online: boolean | undefined): Shaped {
   const network = failure.kind === "network";
-  const statusCode = network ? 0 : failure.kind === "bridge" ? (failure.status ?? 0) : undefined;
+  const statusCode = failure.kind === "bridge" ? failure.status : undefined;
+  const errorText = !network
+    ? failure.message
+    : page === undefined
+      ? noResponseWithoutPage(failure.message)
+      : online === false
+        ? OFFLINE_TEXT
+        : NO_RESPONSE_TEXT;
   return {
     body: network ? undefined : failure.message,
     headers: {},
     headerList: [],
-    historyError: network ? `Http failure response for ${url}: 0 Unknown Error` : failure.message,
+    historyError: network
+      ? page === undefined
+        ? `No response: ${failure.message}.`
+        : online === false
+          ? "No response: this browser is offline."
+          : "No response. The browser does not say why."
+      : failure.message,
     response: {
       isError: true,
+      ...(network && { noResponse: failure.message }),
       statusCode,
-      statusText: network ? "Unknown Error" : "",
+      statusText: "",
       bodyIsJson: false,
       dataText: "",
-      errorText: !network
-        ? failure.message
-        : page === undefined
-          ? networkErrorWithoutPage(failure.message)
-          : NETWORK_ERROR_TEXT,
+      errorText,
       headersView: [],
     },
   };
@@ -809,7 +836,7 @@ async function sendForScript(
     { signal: signal ?? new AbortController().signal, timeoutMs: ports.timeoutMs() },
     { route },
   );
-  const shaped = shapeResponse(envelope, request.url, ports.page);
+  const shaped = shapeResponse(envelope, ports.page);
   return scriptResponse({
     statusCode: envelope.status,
     statusText: envelope.statusText,

@@ -34,6 +34,6 @@ test.describe("Secrets vault", () => {
     await passphraseInputs.nth(1).fill("a different passphrase");
     await page.getByRole("button", { name: "Create vault" }).click();
 
-    await expect(page.getByText(/do not match/i)).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: /do not match/i })).toBeVisible();
   });
 });

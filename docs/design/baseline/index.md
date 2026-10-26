@@ -72,7 +72,7 @@ row below.
 | `response-headers` | The response's Headers tab. |
 | `response-tests` | The response's Tests tab: an assertion and a script's test. |
 | `response-html` | An HTML response in its sandboxed preview. |
-| `response-loading` | A request on its way, before its response. |
+| `response-loading` | A request on its way, past its first second: Sending… and the time so far. |
 | `response-error` | A request that failed before any response (a refused port). |
 | `composer-params` | The composer's Params tab. |
 | `composer-headers` | The composer's Headers tab with a row. |

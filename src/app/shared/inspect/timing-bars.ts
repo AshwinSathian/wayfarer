@@ -15,8 +15,7 @@ export const TIMING_SUMMARY_TOOLTIPS = {
   decodedBodySize: "This is the body after the browser decompressed it.",
 };
 
-export const WATERFALL_TOOLTIP =
-  "Each bar is one part of the request's time, drawn against the whole.";
+export const WATERFALL_TOOLTIP = "Each bar is one part of the request's time, drawn against the whole.";
 
 export const TIMING_PHASE_ORDER: {
   key: keyof NonNullable<ResponseInspection["phases"]>;

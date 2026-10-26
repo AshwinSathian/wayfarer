@@ -216,7 +216,7 @@ describe("SocketClient", () => {
       vi.advanceTimersByTime(500);
       expect(state.status()).toBe("closed");
       expect(log().slice(-2)).toEqual([
-        ["info", "The connection failed."],
+        ["info", "The browser reported an error on the connection, and does not say what."],
         ["info", "Closed: the browser gave no close code."],
       ]);
 
@@ -226,7 +226,7 @@ describe("SocketClient", () => {
       socket().end(1006, "", false);
       vi.advanceTimersByTime(500);
       expect(log().slice(-2)).toEqual([
-        ["info", "The connection failed."],
+        ["info", "The browser reported an error on the connection, and does not say what."],
         ["info", "Closed: 1006 (the connection was lost; no close frame arrived)"],
       ]);
       expect(state.status()).toBe("closed");

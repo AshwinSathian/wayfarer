@@ -571,3 +571,28 @@ pre,
   line-height: var(--type-footnote-line);
   white-space: nowrap;
 }
+
+/* A WebSocket's address has no method (U-047): the scheme stands in the method's place, not a field to type in. */
+.socket-scheme {
+  display: inline-flex;
+  flex: 0 0 76px;
+  align-items: center;
+  padding-inline: 14px 0;
+  color: var(--label-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--type-footnote-size);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Its state, beside Connect and Disconnect (U-048). */
+.socket-state {
+  align-self: center;
+  color: var(--label-secondary);
+  white-space: nowrap;
+}
+
+.socket-message .socket-format {
+  margin-inline-start: 8px;
+  vertical-align: baseline;
+}

@@ -333,7 +333,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await button(page, "Connect").click();
     const view = page.locator("app-socket-view");
     await expect(view.getByRole("status")).toHaveText("Connected");
-    await view.getByLabel("Message").fill('{"hello":"world"}');
+    await view.getByLabel("Message", { exact: true }).fill('{"hello":"world"}');
     await button(view, "Send message").click();
     await expect(view.getByRole("region", { name: "WebSocket log" }).locator("tbody tr")).toHaveCount(4);
   },

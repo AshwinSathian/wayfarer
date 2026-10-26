@@ -175,6 +175,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **Patch and minor updates of the build tools and the site.** Angular's
+  CLI, build and Aria 22.2.4 (Aria fixes the combobox error that a select
+  destroyed before its first render threw), Next.js 16.4.3 for the site,
+  ESLint 10.13.0, typescript-eslint 8.72.0, knip 6.42.1 and PostCSS
+  8.5.31; GitHub's CodeQL action 4.39.1, with CodeQL 2.27.3. Nothing the
+  app does changes.
+
 - **A send's answer appears the moment it arrives.** The response, its
   status line and a tab's pane no longer fade in, and a request on its way
   shows nothing for its first second, then "Sending…" and the time so far.

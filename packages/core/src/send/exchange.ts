@@ -336,6 +336,7 @@ export interface RequestExecutionResponse {
   dataText: string;
   errorText: string;
   headersView: { name: string; value: string }[];
+  /** The body's size: its `Content-Length` when the server sent one, else the bytes as they arrived, decoded (U-031). */
   contentLength?: number;
   /** Set when the body is binary; the viewer offers it as a download (F05). */
   binary?: BinaryBody;
@@ -688,7 +689,7 @@ function shapeResponse(envelope: ResponseEnvelope, page?: string): Shaped {
       headersView: envelope.headers
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-      contentLength: Number.isFinite(contentLength) ? contentLength : undefined,
+      contentLength: Number.isFinite(contentLength) ? contentLength : envelope.sizes.decoded,
       binary: body instanceof BinaryBody ? body : undefined,
       redirectedTo: envelope.redirected ? envelope.finalUrl : undefined,
       route: envelope.route,

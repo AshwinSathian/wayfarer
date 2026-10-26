@@ -149,7 +149,7 @@
               <div class="flex flex-col gap-2">
                 @for (item of form.vars; track $index) {
                 <div
-                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5 transition-all"
+                  class="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-2 rounded-xl p-1.5"
                   [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
                 >
                   <input
@@ -171,7 +171,7 @@
                   } @else {
                   <div class="rounded-xl border border-status-warning-border bg-status-warning-fill px-3 py-2.5">
                     <div class="type-footnote text-status-warning font-semibold">Secret stored</div>
-                    <div class="type-footnote text-label-tertiary mt-0.5">
+                    <div class="type-footnote text-label-secondary-on-fill mt-0.5">
                       @if (!secretsUnlocked) { Unlock to reveal } @else if (getSecretPreview(form.vars[$index].value)) {
                       {{ getSecretPreview(form.vars[$index].value) }} } @else {
                       <button

@@ -9,10 +9,11 @@
     (stop)="stopStream.emit()"
   />
   } @else if (loading()) {
-  <div class="space-y-3 p-6">
-    <span class="ui-skeleton h-9 w-full" aria-hidden="true"></span>
-    <span class="ui-skeleton h-6 w-[60%]" aria-hidden="true"></span>
-    <span class="ui-skeleton h-36 w-full" aria-hidden="true"></span>
+  <!-- No indicator for a reply under about a second (D3.7); then what it is doing, and for how long. -->
+  <div class="response-sending p-6">
+    @if (sendingFor(); as sofar) {
+    <p class="type-callout text-label-secondary tabular-nums">Sending… {{ sofar }}</p>
+    }
   </div>
   } @else {
   <div class="response-main">
@@ -23,9 +24,7 @@
          loading() true then false around each request, so this animation
          genuinely replays per response rather than only on first mount. -->
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
-    <div
-      class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2 animate-response-arrive"
-    >
+    <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
       @if (statusCode === undefined) {
       <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
       <span class="status-none type-callout font-semibold text-status-error">No response</span>
@@ -58,7 +57,7 @@
         @if (inspData && inspData.duration) {
         <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
         } @if (responseContentLength()) {
-        <span class="response-fact" uiTooltip="Size">{{ formatBytes(responseContentLength()) }}</span>
+        <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
         } @if (route(); as route) {
         <span class="response-fact route-badge" uiTooltip="Route"
           >{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span

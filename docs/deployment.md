@@ -9,12 +9,16 @@ lives in [`wrangler.jsonc`](../wrangler.jsonc).
 ## How it ships
 
 **Build once, deploy what was tested** (P1.7). Every push to `main` runs CI
-(`.github/workflows/ci.yml`), which builds `dist/deploy` once,
-uploads it as the `dist` artifact (kept 14 days), and runs the e2e suite in
-Chromium, Firefox and WebKit against exactly those files.
+(`.github/workflows/ci.yml`), which builds `dist/deploy` once and uploads it
+as the `dist` artifact (kept 14 days). The browser tests are
+`.github/workflows/e2e.yml` (Actions → **E2E** → *Run workflow*, or
+`gh workflow run e2e.yml`), run by hand: they find the green CI run of the
+commit they run on and test exactly its files, in Chromium, Firefox and
+WebKit.
 
 `.github/workflows/deploy.yml` (Actions → **Deploy** → *Run workflow*)
-deploys a green CI run's artifact without rebuilding:
+deploys a green CI run's artifact without rebuilding, and only when an
+`e2e.yml` run of the same commit is green:
 
 1. records the live version (the rollback target);
 2. `wrangler versions upload` (not live yet), tagged with the commit;
@@ -75,12 +79,13 @@ npm ci
 npm run build
 ```
 
-Deploy only a commit whose CI run is green, and only from a clean tree. The
+Deploy only a commit whose CI run and E2E run are green, and only from a
+clean tree. The
 deployed files are exactly what is in `dist/deploy`: the site at its root,
 the app under `app/`, and `version.json`, the release they are (the
 synthetic monitor runs that release's tests). `deploy.yml` adds one file
-beside them, `ci-run.json`: the CI run they came from, its commit and its
-date, which the claims page (`/docs/claims/`) shows on each claim's row. A
+beside them, `ci-run.json`: the E2E run they passed (where the `@claim` tests
+run), its commit and its date, which the claims page (`/docs/claims/`) shows on each claim's row. A
 deploy by hand has none, and the claims page then says it was not
 deployed from a CI run.
 

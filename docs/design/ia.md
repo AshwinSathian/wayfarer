@@ -538,6 +538,7 @@ it is.
 | `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
+| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before | The split between the request and the response | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |
 | `tree.ts: node.ariaLabel ?? node.label` | The collections tree | Sidebar | — |
 

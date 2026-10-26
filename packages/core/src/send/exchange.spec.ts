@@ -456,6 +456,25 @@ describe("exchange", () => {
     expect(result.response.errorText).not.toMatch(/browser|CORS|cross-origin|Local Bridge/i);
   });
 
+  // U-031: a chunked answer has no Content-Length; its size is the bytes that arrived.
+  it("gives a response's size from Content-Length, and from the bytes received when there is none", async () => {
+    const execute = () =>
+      service.execute({
+        template: TEMPLATE,
+        runScripts: true,
+        preRequestScript: "",
+        postRequestScript: "",
+        tests: [],
+        buildRequest: () => builtRequest(),
+      });
+    transport.setResponse(envelope(200, "OK", { hello: "world" }));
+    expect((await execute()).response.contentLength).toBe(JSON.stringify({ hello: "world" }).length);
+    const withLength = envelope(200, "OK", { hello: "world" });
+    withLength.headers.push(["content-length", "999"]);
+    transport.setResponse(withLength);
+    expect((await execute()).response.contentLength).toBe(999);
+  });
+
   it("shapes a JSON error body from a real HTTP error response", async () => {
     transport.setResponse(envelope(500, "Server Error", { message: "boom" }));
 

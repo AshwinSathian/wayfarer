@@ -90,6 +90,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   "Locate apiKey in environment Staging" and so on, which a person saying
   what they see did not reach. The import report now starts with the
   keyboard on Import.
+
+- **The Auth tab says where a token's value comes from, not only where the
+  auth is set.** A request that inherits a bearer token from its
+  collection now reads, for instance, "Bearer token is sent, from
+  collection "Shop". {{token}} comes from the environment Local, as a
+  vault secret." Before, it named only the collection, even when the
+  environment's vault secret was what went out. The variables of the auth
+  a request is sent with now have chips under the address, like those of
+  the address, the headers and the body, and a variable whose value is a
+  vault secret says "From the vault" there.
+
 - **The environment editor no longer throws away what you typed.** Each
   variable, the name and the description are saved as you leave the
   field, so closing the editor with × or Escape, or choosing another

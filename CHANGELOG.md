@@ -124,6 +124,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The browser tests run by hand, before a deploy, not on each pull
+  request.** End-to-end tests in Chromium, Firefox and WebKit and the
+  design capture are a workflow of their own, run on `main` once a batch of
+  work has merged; a deploy refuses a commit they have not passed, and the
+  claims page names that run. Before, every pull request waited about 25
+  minutes for them, and again after each merge before it. A browser
+  install that hangs is now tried again, ten minutes a try, three tries.
+
 - **Choosing a file no longer looks like the browser's own control.** A
   binary body, a file part of a multipart form and the vault's import now
   show the file's name, or "Drop a file here, or" and a Choose a file…

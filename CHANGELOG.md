@@ -127,6 +127,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
 
+- **The Timings tab's notes say what each part is, plainly.** "The
+  browser looked up the host's address", "The browser opened the
+  connection" and so on, in sentences, where they read "Lookup time to
+  resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
+  "including headers if available" (the app knows they are included).
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was

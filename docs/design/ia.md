@@ -443,6 +443,7 @@ it is.
 | `response-viewer.html: Previous search match` | Response | Response | D4-e |
 | `response-viewer.html: Next search match` | Response | Response | D4-e |
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
+| `response-viewer.html: Send through the Local Bridge` | — (new in D4-e, U-051): under a send that got no response | Response; D4.12 adds pairing in place (DQ10) | D4-e |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
 | `socket-view.html: Must be JSON` | WebSocket view | Response, WebSocket view | D4-e |
 | `socket-view.html: Clear log` | WebSocket view | Response, WebSocket view | D4-e |

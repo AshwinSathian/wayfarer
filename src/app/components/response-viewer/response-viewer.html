@@ -18,13 +18,17 @@
   } @else {
   <div class="response-main">
     <!-- ── Status bar ─────────────────────────────────────── -->
-    @let statusCode = responseStatusCode(); @if (statusCode !== undefined) {
+    @let statusCode = responseStatusCode(); @if (statusCode !== undefined || isError()) {
     <!-- This whole @else branch (and therefore this status bar) is destroyed
          and recreated on every send — sendRequest() always toggles
          loading() true then false around each request, so this animation
          genuinely replays per response rather than only on first mount. -->
     <!-- One line (U-030): the status, then what it took, in words, not pills. -->
     <div class="response-status flex flex-wrap items-center gap-x-2.5 gap-y-1 border-b border-separator px-4 py-2">
+      @if (statusCode === undefined) {
+      <!-- No status came, so none is drawn (U-051): "0 Unknown Error" was no server's. -->
+      <span class="status-none type-callout font-semibold text-status-error">No response</span>
+      } @else {
       <!-- Status code badge -->
       <span
         class="status-badge"
@@ -37,6 +41,7 @@
         }"
         >{{ statusCode }}</span
       >
+      }
 
       <!-- Status text -->
       <span class="type-callout text-label-secondary">{{ responseStatusText() }}</span>
@@ -154,7 +159,7 @@
           <div ngTabPanel value="body" class="tab-pane response-body-pane" [preserveContent]="true"
             ><ng-template ngTabContent>
               <div class="space-y-3 pb-4">
-                @if (views().length > 1 || view() === 'json') {
+                @if ((views().length > 1 || view() === 'json') && responseStatusCode() !== undefined) {
                 <!-- One row (U-030): the view, the search and the path filter; it wraps only where the pane is narrow. -->
                 <div class="response-tools flex flex-wrap items-center gap-2">
                   @if (views().length > 1) {
@@ -237,7 +242,26 @@
                     ><app-icon name="download" /> Download</button
                   >
                 </div>
-                } @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
+                } @if (isError() && responseStatusCode() === undefined) {
+                <!-- No response (U-051): the app's words, in its own face; nothing in the server's place. -->
+                <div class="response-failure space-y-3">
+                  <p class="type-callout text-label-primary">{{ bodyText() }}</p>
+                  @if (noResponse(); as reported) {
+                  <p class="response-reported type-footnote text-label-secondary"
+                    >What the browser reported: <code class="font-mono">{{ reported }}</code></p
+                  >
+                  <button
+                    uiButton="outlined"
+                    class="btn-secondary btn-sm"
+                    type="button"
+                    (click)="sendThroughBridge.emit()"
+                    >Send through the Local Bridge</button
+                  >
+                  }
+                </div>
+                } @else if (!bodyText() && !responseBinary()) {
+                <p class="type-callout text-label-secondary">No body returned.</p>
+                } @else { @switch (view()) { @case ('image') { @if (imageUrl(); as url) {
                 <div class="overflow-auto rounded-xl bg-canvas-panel border border-separator p-4">
                   <img class="response-image block max-w-full" alt="Response body as an image" [src]="url" />
                 </div>
@@ -280,13 +304,12 @@
                   >This JSON body is over 5 MB, so it is shown as plain text. Choose JSON to format it.</p
                 >
                 }
+                <!-- The server's words, as they came: monospace, in the text's own colour. -->
                 <pre
-                  class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body"
-                  [class.text-status-success]="!isError()"
-                  [class.text-status-error]="isError()"
+                  class="min-h-[160px] whitespace-pre-wrap rounded-xl bg-canvas-panel border border-separator p-4 type-mono-body text-label-primary"
                 >
-{{ bodyText() || 'No body returned.' }}</pre>
-                } }
+{{ bodyText() }}</pre>
+                } } }
               </div>
             </ng-template></div
           >
@@ -325,7 +348,10 @@
                     </tbody>
                   </table>
                   } @else {
-                  <div class="p-5 type-callout text-label-tertiary text-center"> No response headers available. </div>
+                  <div class="p-5 type-callout text-label-secondary text-center"
+                    >{{ responseStatusCode() === undefined ? 'No response arrived, so there are no headers.' : 'The
+                    server sent no headers this page can read.' }}</div
+                  >
                   }
                 </div>
               </div>
@@ -521,7 +547,10 @@
                   class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5"
                 >
                   <app-icon name="rule" class="icon-md text-label-tertiary" />
-                  <p class="type-callout text-label-tertiary">No tests were run for this request.</p>
+                  <p class="type-callout text-label-secondary"
+                    >A request's tests are listed here when it runs any: an assertion or a script's pm.test, in its
+                    Scripts tab.</p
+                  >
                 </div>
                 } @else {
                 <div class="space-y-1.5">

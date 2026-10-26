@@ -158,6 +158,7 @@ export class WorkspaceStore {
   readonly responseStatusCode = this.ofTab((tab) => tab.responseStatusCode);
   readonly responseStatusText = this.ofTab((tab) => tab.responseStatusText);
   readonly responseIsError = this.ofTab((tab) => tab.responseIsError);
+  readonly responseNoResponse = this.ofTab((tab) => tab.responseNoResponse);
   readonly responseTab = this.ofTab((tab) => tab.responseTab);
   readonly responseContentLength = this.ofTab((tab) => tab.responseContentLength);
   readonly responseBinary = this.ofTab((tab) => tab.responseBinary);
@@ -411,6 +412,8 @@ export class WorkspaceStore {
     options: {
       allowUnresolved?: boolean;
       /** Reconnects an event stream: sent as `Last-Event-ID` (P5.6). */ lastEventId?: string;
+      /** This send only, by this route: a failed send offers the Local Bridge (U-051). */
+      route?: Route;
     } = {},
   ): Promise<boolean> {
     const tab = this.tabs.active();
@@ -441,6 +444,7 @@ export class WorkspaceStore {
       result = await this.exchange(tab, {
         allowUnresolved: options.allowUnresolved ?? false,
         signal: controller.signal,
+        ...(options.route && { route: options.route }),
         // An event stream is shown as it arrives (P5.6). The tab's list is the newest events; the count is all of them.
         onEvent: (event) => {
           tab.streamEvents.update((events) => [...events.slice(1 - SHOWN_EVENTS), event]);
@@ -531,7 +535,13 @@ export class WorkspaceStore {
    */
   private async exchange(
     tab: TabState,
-    options: { allowUnresolved: boolean; signal: AbortSignal; run?: RunSend; onEvent?: (event: StreamEvent) => void },
+    options: {
+      allowUnresolved: boolean;
+      signal: AbortSignal;
+      run?: RunSend;
+      onEvent?: (event: StreamEvent) => void;
+      route?: Route;
+    },
   ): Promise<RequestExecutionResult> {
     const draft = tab.draft();
     // What the request inherits, read once: these are the scripts that are checked, and the ones that run.
@@ -561,7 +571,7 @@ export class WorkspaceStore {
       ...(options.onEvent && { onEvent: options.onEvent }),
       retryUnauthorized: (request) => this.withRenewedToken(tab, request, options.allowUnresolved),
       signal: options.signal,
-      route: this.routeOf(tab),
+      route: options.route ?? this.routeOf(tab),
       askRoute: () =>
         this.confirm.confirm({
           title: "Send through the Local Bridge?",
@@ -940,6 +950,7 @@ export class WorkspaceStore {
 
   private applyExecutionResponse(tab: TabState, response: RequestExecutionResponse): void {
     tab.responseIsError.set(response.isError);
+    tab.responseNoResponse.set(response.noResponse ?? "");
     tab.responseStatusCode.set(response.statusCode);
     tab.responseStatusText.set(response.statusText);
     tab.responseBodyIsJson.set(response.bodyIsJson);

@@ -193,6 +193,8 @@
     [responseStatusCode]="store.responseStatusCode()"
     [responseStatusText]="store.responseStatusText()"
     [isError]="store.responseIsError()"
+    [noResponse]="store.responseNoResponse()"
+    (sendThroughBridge)="sendThroughBridge()"
     [inspection]="store.responseInspection"
     [responseContentLength]="store.responseContentLength()"
     [exportContext]="store.responseExportContext()"

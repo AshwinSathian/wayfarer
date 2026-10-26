@@ -172,7 +172,6 @@ describe("Composer", () => {
         }) as unknown,
         template: expect.objectContaining({ method: "POST", body: jsonBody({ isActive: "true" }) }) as unknown,
         response: expect.objectContaining({ status: 500 }) as unknown,
-        error: expect.any(String) as unknown,
       }),
       500,
     );

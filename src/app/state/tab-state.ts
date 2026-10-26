@@ -90,6 +90,8 @@ export class TabState {
   readonly responseStatusCode = signal<number | undefined>(undefined);
   readonly responseStatusText = signal<string | undefined>(undefined);
   readonly responseIsError = signal(false);
+  /** No response arrived: what the browser reported, which the pane quotes beside the Local Bridge (U-051). */
+  readonly responseNoResponse = signal("");
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests" | "events">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
@@ -169,6 +171,7 @@ export class TabState {
     this.responseStatusCode.set(undefined);
     this.responseStatusText.set(undefined);
     this.responseIsError.set(false);
+    this.responseNoResponse.set("");
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);

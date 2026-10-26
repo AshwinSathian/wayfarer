@@ -9,14 +9,13 @@ export interface TimingBar {
 }
 
 export const TIMING_SUMMARY_TOOLTIPS = {
-  duration: "Overall time between sending the request and receiving the last byte of the response.",
-  transferSize: "Total bytes transferred over the network for this response, including headers if available.",
-  encodedBodySize: "Size of the compressed response body as delivered over the network.",
-  decodedBodySize: "Size of the response body after decompression in the browser.",
+  duration: "This is the time from the request leaving to the response's last byte.",
+  transferSize: "These bytes came over the network: the headers and the body, as the server sent them.",
+  encodedBodySize: "This is the body as it came, before the browser decompressed it.",
+  decodedBodySize: "This is the body after the browser decompressed it.",
 };
 
-export const WATERFALL_TOOLTIP =
-  "Each bar shows how much time was spent in a network phase relative to the total response duration.";
+export const WATERFALL_TOOLTIP = "Each bar is one part of the request's time, drawn against the whole.";
 
 export const TIMING_PHASE_ORDER: {
   key: keyof NonNullable<ResponseInspection["phases"]>;
@@ -26,37 +25,37 @@ export const TIMING_PHASE_ORDER: {
   {
     key: "redirect",
     label: "Redirect",
-    description: "Time spent following HTTP redirects before the final request.",
+    description: "The browser followed redirects before the last request.",
   },
   {
     key: "dns",
     label: "DNS",
-    description: "Lookup time to resolve the host name to an IP address.",
+    description: "The browser looked up the host's address.",
   },
   {
     key: "tcp",
     label: "TCP",
-    description: "TCP handshake duration, including establishing the socket.",
+    description: "The browser opened the connection.",
   },
   {
     key: "tls",
     label: "TLS",
-    description: "Secure connection setup (TLS/SSL) if HTTPS is used.",
+    description: "The browser set up the encrypted connection, for an https:// address.",
   },
   {
     key: "request",
     label: "Request",
-    description: "Time from finishing the connection to sending the first byte of the request body.",
+    description: "The request went out once the connection was ready.",
   },
   {
     key: "ttfb",
     label: "TTFB",
-    description: "Time to first byte—server processing plus initial network latency.",
+    description: "The server worked, and the first byte of the response came back: the time to first byte.",
   },
   {
     key: "content",
     label: "Content",
-    description: "Time to receive the full response body after the first byte arrives.",
+    description: "The rest of the response arrived after its first byte.",
   },
 ];
 

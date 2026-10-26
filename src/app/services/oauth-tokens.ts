@@ -26,8 +26,8 @@ const SECRET_NAME = "OAuth 2.0 token ";
 const SIGN_IN_MS = 5 * 60_000;
 
 const NO_ANSWER =
-  "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: " +
-  "send it through the Local Bridge (Settings, Local Bridge, Route), which has no such limit. See docs/browser-limits.md#oauth.";
+  "The token request got no answer the page could read. A browser calls a token endpoint only when it sends Access-Control-Allow-Origin for this page: " +
+  "send the token request through the Local Bridge (Settings › Local Bridge › Route), which has no such limit.";
 
 /**
  * OAuth 2.0 tokens (P4.7): gets one, renews it, and keeps it. A token is
@@ -214,7 +214,9 @@ export class OAuthTokens {
     } catch (error) {
       if (!(error instanceof TransportError)) throw error;
       throw new OAuthError(
-        error.kind === "network" && policy.took === "direct" ? NO_ANSWER : `The token request failed: ${error.message}`,
+        error.kind === "network" && policy.took === "direct"
+          ? NO_ANSWER
+          : `The token request got no token: ${error.message}`,
       );
     }
     const token = readTokenResponse(status, body, Date.now(), previous);

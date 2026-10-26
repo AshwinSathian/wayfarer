@@ -354,8 +354,9 @@
                   </table>
                   } @else {
                   <div class="p-5 type-callout text-label-secondary text-center"
-                    >{{ responseStatusCode() === undefined ? 'No response arrived, so there are no headers.' : 'The
-                    server sent no headers this page can read.' }}</div
+                    >{{ responseStatusCode() === undefined ? 'No response arrived, so there are no headers.' :
+                    headersLimited() ? "The browser let the page read none of this response's headers." : 'This response
+                    has no headers.' }}</div
                   >
                   }
                 </div>
@@ -371,7 +372,7 @@
                 class="flex items-center gap-2.5 rounded-xl bg-canvas-panel border border-dashed border-separator p-5 mb-4"
               >
                 <app-icon name="timer" class="icon-md text-label-tertiary" />
-                <p class="type-callout text-label-tertiary">Timing data will appear after you send a request.</p>
+                <p class="type-callout text-label-tertiary">Send the request and its timings show here.</p>
               </div>
               } @else {
               <div class="space-y-5 pb-4">

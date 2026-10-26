@@ -214,6 +214,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   connection" and so on, in sentences, where they read "Lookup time to
   resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
   "including headers if available" (the app knows they are included).
+
+- **Empty tabs of a response and a few error lines say what they mean.**
+  The Timings tab says "Send the request and its timings show here.", and
+  a response with no headers says so, or says that the browser let the
+  page read none of them. A WebSocket that did not open says "The
+  connection did not open."; an error after it opened is still the
+  browser's error with no reason. A token request that fails says it got
+  no token, and the one a browser blocks names the Local Bridge without
+  pointing at a file in the repository. The script review's button is
+  "Trust these scripts".
+
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was

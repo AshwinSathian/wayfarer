@@ -212,7 +212,7 @@ test.describe("scripts of a collection and a folder", () => {
     await expect(review.locator(".script-review-list li").first()).toContainText(
       "Collection Inherited collection Pre-request script",
     );
-    await review.getByRole("button", { name: "I trust these scripts" }).click();
+    await review.getByRole("button", { name: "Trust these scripts" }).click();
     await expect(review).toHaveCount(0);
 
     // Reviewed: the collection's first, then the folder's, then the request's own, each with what the one before set.

@@ -90,7 +90,7 @@ async function importAndTrust(user: User): Promise<void> {
   await user.click(page.locator("app-composer").getByRole("tab", { name: "Scripts", exact: true }));
   await user.click(button(page.locator(".scripts-held"), "Review scripts"));
   const review = page.getByRole("dialog", { name: "Review scripts" });
-  await user.click(button(review, "I trust these scripts"));
+  await user.click(button(review, "Trust these scripts"));
   await expect(review).toHaveCount(0);
 }
 

@@ -80,12 +80,6 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
-- **A send held back by a variable with no value says so, once.** With
-  `{{base}}` unset, Send now says "{{base}} has no value, so the address
-  is not complete." Before, it said the address was not a URL, a line
-  below repeated "Missing: base", and the chip said it a third time; the
-  chip stays. With an address typed and nothing sent yet, the response
-  pane now offers Send and its keys, not a cURL command and an import.
 - **What a control says is the start of its name, so voice control finds
   it by what is on the screen.** Settings' "Clear…", "Manage…" and
   "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all
@@ -125,6 +119,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   Before, each drew an outlined "Choose file" beside "No file chosen", the
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
+- **A send held back by a variable with no value says so, once.** With
+  `{{base}}` unset, Send now says "{{base}} has no value, so the address
+  is not complete." Before, it said the address was not a URL, a line
+  below repeated "Missing: base", and the chip said it a third time; the
+  chip stays. With an address typed and nothing sent yet, the response
+  pane now offers Send and its keys, not a cURL command and an import.
 
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what

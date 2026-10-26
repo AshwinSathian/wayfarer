@@ -412,7 +412,7 @@ it is.
 | `save-as-dialog.html: Cancel` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Save` | Save as dialog | Composer, Save as dialog | D4-d |
 | `script-review-dialog.html: Not now` | Script review dialog (on send, on import) | Same dialog | D4-d |
-| `script-review-dialog.html: I trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
+| `script-review-dialog.html: Trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
 | `scripts-panel.html: Review scripts` | Scripts tab | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Assert on` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Operator` | Scripts tab, tests | Composer, Scripts tab | D4-d |

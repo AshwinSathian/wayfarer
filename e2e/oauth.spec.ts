@@ -394,7 +394,7 @@ test("through the Local Bridge the same token endpoint answers, and the token re
       },
     );
     // Switched on as a user does: the toolbar's bridge button opens Settings at the bridge's pane.
-    await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
+    await page.getByRole("button", { name: /^Route: / }).click();
     const settings = page.getByRole("dialog", { name: "Settings", exact: true });
     await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
     await settings

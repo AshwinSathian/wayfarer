@@ -197,6 +197,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   list to make an environment; before, each said there was nothing there
   and offered nothing.
 
+- **Each item of the status bar is one button that says what it
+  is.** "Route: auto", "Vault locked", "Secrets" and "Theme: system" are
+  the buttons themselves, named by those words, and the theme button
+  goes from system to light to dark. Before, each was an icon button
+  with its state as separate text beside it, a screen reader heard a
+  name that did not match the words on screen, and the theme button
+  flipped between light and dark only, so "system" could not be chosen
+  again from there. Locking or unlocking the vault is now announced.
+
 - **Send and Save have keys, and every shortcut is shown where it
   works.** ⌘↵ (Ctrl+Enter on Windows and Linux) sends the request and ⌘S
   (Ctrl+S) saves it, from anywhere in the page, inside the body or script

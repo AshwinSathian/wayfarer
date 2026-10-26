@@ -356,7 +356,7 @@ test("a request that uses a secret while the vault is locked asks for the passph
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, headers: { "X-Api-Key": "{{API_TOKEN}}" } });
   await protectVariable(page, "API_TOKEN", "locked-vault-secret");
-  await page.getByRole("button", { name: "Lock secrets", exact: true }).click();
+  await page.getByRole("button", { name: "Vault unlocked", exact: true }).click();
   let requests = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(ECHO)) requests += 1;

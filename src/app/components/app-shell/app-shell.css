@@ -40,8 +40,13 @@
   gap: 2px;
   white-space: nowrap;
 }
-.status-bar .status-button {
-  width: 26px;
+/* One button per item: its words are its name (U-072). Quiet, as the bar is, until the pointer is on it. */
+.status-bar .status-control {
+  --btn-radius: var(--radius-sm);
+  gap: 4px;
   height: 26px;
-  padding: 4px;
+  padding: 0 6px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 400;
 }

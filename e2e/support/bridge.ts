@@ -47,7 +47,7 @@ export async function routeThroughBridge(
   bridge: TestBridge,
   route: "Local Bridge" | "Auto" = "Local Bridge",
 ): Promise<void> {
-  await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
+  await page.getByRole("button", { name: /^Route: / }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(settings.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
   await settings.getByRole("radiogroup", { name: "Route" }).getByRole("radio", { name: route, exact: true }).click();

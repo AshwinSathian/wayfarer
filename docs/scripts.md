@@ -526,7 +526,7 @@ you (plan decision D6):
 - **An imported collection, and one restored from a backup, is not
   trusted.** Its requests are sent without their scripts; assertions still
   run. The Scripts tab says so and offers **Review scripts**: a dialog with
-  every script of the collection, read-only: its own, its folders' and its requests'. "I trust these scripts" marks
+  every script of the collection, read-only: its own, its folders' and its requests'. "Trust these scripts" marks
   the collection trusted and stores the digest of each script shown.
 - **A request's scripts run only if all of them may.** The request's own
   and those of its collection and its folders are checked together: one

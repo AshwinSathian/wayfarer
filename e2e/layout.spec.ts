@@ -68,7 +68,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
 
   // The composer ran 49 px past the window (no box-sizing reset), and below
   // 1024 px the toolbar was wider than the space beside the pinned sidebar.
-  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 390, 360]) {
+  for (const width of [1440, 1220, 1200, 1024, 900, 820, 768, 767, 640, 420, 390, 360, 320]) {
     test(`nothing is wider than a ${width} px window`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto("/app/");
@@ -223,7 +223,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(page.locator("input.address-url")).toBeVisible();
       await expect(page.getByRole("contentinfo", { name: "Status" })).toHaveCount(0);
       await expect(page.getByRole("banner").getByRole("button", { name: "Unlock secrets", exact: true })).toBeVisible();
-      for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
+      for (const name of [/^Secrets$/, /^Route: /, /^Theme: /]) {
         await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
       const settings = await page
@@ -243,15 +243,11 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
       const status = page.getByRole("contentinfo", { name: "Status" });
       await expect(status).toBeVisible();
-      await expect(status).toContainText("Route: Auto");
+      await expect(status).toContainText("Route: auto");
       await expect(status).toContainText("Vault locked");
       await expect(status).toContainText(/Saved in this browser|Kept in this browser/);
-      for (const name of [
-        /^Manage secrets$/,
-        /^Local Bridge settings$/,
-        /^Switch to (light|dark) mode$/,
-        /^Unlock secrets$/,
-      ]) {
+      // Each is one button, named by its words (U-072).
+      for (const name of [/^Secrets$/, /^Route: auto$/, /^Theme: system$/, /^Vault locked$/]) {
         await expect(status.getByRole("button", { name })).toBeVisible();
         await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
       }
@@ -272,6 +268,24 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect(page.getByText("Loading editor…")).toHaveCount(0);
     await page.waitForTimeout(1000);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
+  });
+
+  // U-064 (WCAG 2.5.7): the split moves with one pointer and no drag.
+  test("a click on either side of the split's line moves it, and a double click puts it back", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    const gutter = page.locator(".composer-response-splitter").getByRole("separator");
+    const at = async () => Number(await gutter.getAttribute("aria-valuenow"));
+    const start = await at();
+    const box = (await gutter.boundingBox())!;
+    await gutter.click({ position: { x: 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start - 10);
+    await gutter.click({ position: { x: box.width - 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start);
+    await gutter.click({ position: { x: box.width - 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start + 10);
+    await gutter.dblclick({ position: { x: box.width / 2, y: box.height / 2 } });
+    await expect.poll(at).toBe(55);
   });
 
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {

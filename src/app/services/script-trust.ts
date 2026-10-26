@@ -115,7 +115,7 @@ export class ScriptTrust {
     this.fromHistory.set(null);
   }
 
-  /** "I trust these scripts": approves exactly what `toReview` listed. */
+  /** "Trust these scripts": approves exactly what `toReview` listed. */
   async approve(): Promise<void> {
     if (this.fromHistory()) {
       this.fromHistory.set(null);

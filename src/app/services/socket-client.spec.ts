@@ -10,6 +10,7 @@ class FakeSocket {
   static made: FakeSocket[] = [];
   static refuse: Error | null = null;
   readonly sent: unknown[] = [];
+  static readonly CONNECTING = 0;
   static readonly CLOSED = 3;
   readyState = 0;
   protocol = "";
@@ -216,7 +217,7 @@ describe("SocketClient", () => {
       vi.advanceTimersByTime(500);
       expect(state.status()).toBe("closed");
       expect(log().slice(-2)).toEqual([
-        ["info", "The connection failed."],
+        ["info", "The connection did not open."],
         ["info", "Closed: the browser gave no close code."],
       ]);
 
@@ -226,10 +227,16 @@ describe("SocketClient", () => {
       socket().end(1006, "", false);
       vi.advanceTimersByTime(500);
       expect(log().slice(-2)).toEqual([
-        ["info", "The connection failed."],
+        ["info", "The connection did not open."],
         ["info", "Closed: 1006 (the connection was lost; no close frame arrived)"],
       ]);
       expect(state.status()).toBe("closed");
+
+      // An error on an open connection is not one that did not open.
+      client.connect();
+      socket().open();
+      socket().onerror?.();
+      expect(log().at(-1)).toEqual(["info", "The browser reported an error on the connection, and does not say what."]);
     } finally {
       vi.useRealTimers();
     }

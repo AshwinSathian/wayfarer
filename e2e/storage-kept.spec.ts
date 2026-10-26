@@ -38,6 +38,11 @@ test("while the browser has not promised to keep the data, the status bar says s
   await page.goto("/app/");
   const status = page.getByRole("contentinfo", { name: "Status" });
   await expect(status).toContainText("Saved in this browser, which may delete it");
+  // It leads to Data and storage, which says what that means and has the backup.
+  await status.getByRole("button", { name: "Saved in this browser, which may delete it", exact: true }).click();
+  await expect(page.getByTestId("storage-status")).toContainText("has not promised to keep this data");
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("storage-status")).toHaveCount(0);
   const reminder = page.getByText(/which has not promised to keep it\. Back up to keep a copy\./);
   await expect(reminder).toHaveCount(0);
 

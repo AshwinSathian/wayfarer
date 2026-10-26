@@ -35,6 +35,13 @@ pre,
   font-feature-settings: normal;
 }
 
+/* An editor sets its own face on the containers it draws (editorText in monaco-loader.ts): what is inside them
+   inherits it. The rule above, on every element, drew Monaco's lines in Inter (U-052). */
+.monaco-editor * {
+  font-family: inherit;
+  font-feature-settings: inherit;
+}
+
 /* ── Background utilities ────────────────────────────────── */
 .bg-canvas-app {
   background-color: var(--canvas-app);
@@ -285,6 +292,14 @@ pre,
   }
 }
 
+/* At 320 px (WCAG 1.4.10, U-065) the toolbar's buttons ran 2 px past the window: less padding and gap. */
+@media (max-width: 359px) {
+  .ds-toolbar {
+    gap: 8px;
+    padding: 0 8px;
+  }
+}
+
 /* Forced colours take the background away: the outline keeps the toolbar's edge. */
 @media (forced-colors: active) {
   .ds-toolbar {
@@ -326,14 +341,8 @@ pre,
   padding: 4px 9px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition:
-    opacity var(--dur-quick) var(--ease-standard),
-    transform var(--dur-micro) var(--ease-spring);
+  transition: opacity var(--dur-quick) var(--ease-standard);
   font-size: var(--type-footnote-size);
-}
-
-.var-chip:hover {
-  transform: translateY(-1px);
 }
 
 .var-chip.var-environment {
@@ -430,6 +439,34 @@ pre,
   font-size: 13px;
   color: var(--label-primary);
   letter-spacing: -0.002em;
+}
+
+/* A response's headers (U-058): a name or a value breaks between words, and inside one only when nothing else fits.
+   In a narrow pane each header is two lines, its name over its value, so neither is crushed into a column of
+   110 px that broke access-control-allow-credentials after every hyphen and "DELETE" inside its word. */
+.response-headers {
+  container-type: inline-size;
+}
+
+.response-headers th,
+.response-headers td {
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 520px) {
+  .response-headers tr,
+  .response-headers th,
+  .response-headers td {
+    display: block;
+  }
+
+  .response-headers th {
+    padding-bottom: 0;
+  }
+
+  .response-headers td {
+    padding-top: 2px;
+  }
 }
 
 /* ── Test result rows ────────────────────────────────────── */
@@ -570,4 +607,29 @@ pre,
   font-size: var(--type-footnote-size);
   line-height: var(--type-footnote-line);
   white-space: nowrap;
+}
+
+/* A WebSocket's address has no method (U-047): the scheme stands in the method's place, not a field to type in. */
+.socket-scheme {
+  display: inline-flex;
+  flex: 0 0 76px;
+  align-items: center;
+  padding-inline: 14px 0;
+  color: var(--label-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--type-footnote-size);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Its state, beside Connect and Disconnect (U-048). */
+.socket-state {
+  align-self: center;
+  color: var(--label-secondary);
+  white-space: nowrap;
+}
+
+.socket-message .socket-format {
+  margin-inline-start: 8px;
+  vertical-align: baseline;
 }

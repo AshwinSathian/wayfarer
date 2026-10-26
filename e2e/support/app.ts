@@ -247,7 +247,7 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await dialog.getByRole("button", { name: "Create vault" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
   await closeEnvironments(page);
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
 /** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */

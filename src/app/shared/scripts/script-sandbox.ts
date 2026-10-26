@@ -110,7 +110,9 @@ export class ScriptSandbox {
     }
     const worker = new Worker(new URL("./quickjs.worker", import.meta.url), { type: "module" });
     worker.addEventListener("message", ({ data }: MessageEvent<WorkerMessage>) => this.onMessage(data));
-    worker.addEventListener("error", (event) => this.discard(worker, event.message || "Script execution failed."));
+    worker.addEventListener("error", (event) =>
+      this.discard(worker, event.message || "The script stopped with an error."),
+    );
     return worker;
   }
 

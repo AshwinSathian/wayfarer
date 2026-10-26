@@ -356,7 +356,7 @@ test("a request that uses a secret while the vault is locked asks for the passph
 }) => {
   await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo`, headers: { "X-Api-Key": "{{API_TOKEN}}" } });
   await protectVariable(page, "API_TOKEN", "locked-vault-secret");
-  await page.getByRole("button", { name: "Lock secrets", exact: true }).click();
+  await page.getByRole("button", { name: "Vault unlocked", exact: true }).click();
   let requests = 0;
   page.on("request", (request) => {
     if (request.url().startsWith(ECHO)) requests += 1;
@@ -367,7 +367,9 @@ test("a request that uses a secret while the vault is locked asks for the passph
   await expect(dialog).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByText(/uses a vault secret and the vault is locked/)).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: /uses a vault secret and the vault is locked/ }),
+  ).toBeVisible();
   expect(requests).toBe(0);
 
   // With the passphrase, the same click sends it.
@@ -572,7 +574,9 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
   });
 
   await send(page);
-  await expect(page.getByText("{{nowhere}} has no value. The request was not sent.")).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "{{nowhere}} has no value. The request was not sent." }),
+  ).toBeVisible();
   expect(requests).toBe(0);
 
   const response = page.waitForResponse(
@@ -594,9 +598,11 @@ test("@claim:C-045 a variable without a value holds the request back; Send anywa
   await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
   await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
   await dialog.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByText(/have no value|has no value/)).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /have no value|has no value/ })).toBeVisible();
   await page.getByRole("button", { name: "Send anyway" }).click();
-  await expect(page.getByText(/refers to a vault secret that could not be read/)).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: /refers to a vault secret that could not be read/ }),
+  ).toBeVisible();
   await page.waitForTimeout(500);
   expect(requests).toBe(sent);
 });

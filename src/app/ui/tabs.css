@@ -111,13 +111,6 @@
   display: none;
 }
 
-/* A pane that is shown re-enters the render tree, so the animation replays on
-   every switch. Opacity only: what is in a pane is pressed as soon as it
-   shows (F48). */
-.tab-pane:not([inert]) {
-  animation: fade-in var(--dur-standard) var(--ease-standard) both;
-}
-
 /* A pane is in the tab order (Aria's tabindex, as WAI-ARIA's pattern asks). */
 [role="tabpanel"]:focus-visible {
   outline: 2px solid var(--accent);

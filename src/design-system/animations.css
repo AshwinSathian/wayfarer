@@ -52,19 +52,17 @@
 
 /* ── Utility classes ─────────────────────────────────────── */
 
-/* What appears in the page fades in and does not move (F48). A panel that
-   slid 10 px into place, or a badge that grew, was somewhere else between a
-   press and its release: the press landed beside it, and five tests and
-   any quick hand clicked nothing. Only overlays (above) still move: they
-   are placed before they are shown and nothing is aimed at them earlier. */
-.animate-fade-in {
-  animation: fade-in var(--dur-enter) var(--ease-standard) both;
-}
+/* What appears in the page appears in the frame it is ready: a response, its
+   status line, a tab's pane and the pinned sidebar have no entrance (D3.7,
+   docs/design/motion.md). A 16 ms reply that faded in over 300 ms sat at part
+   opacity for twenty times the network's time (U-078). */
 
-/* A response's status bar. The element is made anew for every response, so
-   the animation runs again each time. Opacity only (F48). */
-.animate-response-arrive {
-  animation: fade-in var(--dur-enter) var(--ease-standard) both;
+/* A theme change is instant (U-122): `Theme` sets this attribute for the frame
+   the colours change in, so no control's colour transition runs. */
+[data-theme-changing] *,
+[data-theme-changing] *::before,
+[data-theme-changing] *::after {
+  transition: none !important;
 }
 
 /* ── Reduced motion ───────────────────────────────────────────

@@ -264,6 +264,10 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await address(page).fill(`${ECHO}/delay/60000`);
     await send(page);
     await expect(button(page, "Cancel request")).toBeVisible();
+    // Past its first second (D3.7): nothing before it, then what it is doing and for how long. The page's
+    // clock is fixed; two seconds on, the pane says so.
+    await page.clock.setFixedTime((await page.evaluate(() => Date.now())) + 2000);
+    await expect(page.locator(".response-sending")).toContainText("Sending… 2.");
   },
   "response-error": async (page) => {
     await page.goto("/app/");

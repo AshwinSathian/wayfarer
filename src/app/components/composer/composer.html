@@ -182,9 +182,10 @@
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>
   <app-response-viewer
-    [class]="isMobile() ? 'block animate-fade-in' : 'block h-full animate-fade-in'"
+    [class]="isMobile() ? 'block' : 'block h-full'"
     [fill]="!isMobile()"
     [loading]="store.loadingState()"
+    [sendingSince]="store.sendingSince()"
     [responseData]="store.responseData()"
     [responseError]="store.responseError()"
     [responseBodyIsJson]="store.responseBodyIsJson()"

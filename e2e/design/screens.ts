@@ -15,7 +15,7 @@ export const SCREENS_INDEX = [
   { id: "response-headers", shows: "The response's Headers tab." },
   { id: "response-tests", shows: "The response's Tests tab: an assertion and a script's test." },
   { id: "response-html", shows: "An HTML response in its sandboxed preview." },
-  { id: "response-loading", shows: "A request on its way, before its response." },
+  { id: "response-loading", shows: "A request on its way, past its first second: Sending… and the time so far." },
   { id: "response-error", shows: "A request that failed before any response (a refused port)." },
   { id: "composer-params", shows: "The composer's Params tab." },
   { id: "composer-headers", shows: "The composer's Headers tab with a row." },

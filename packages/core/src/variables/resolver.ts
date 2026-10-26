@@ -1,6 +1,6 @@
 import { newId } from "../id";
 import type { Row } from "../model/request";
-import { variablesByName } from "../model/variables";
+import { SECRET_REFERENCE, variablesByName } from "../model/variables";
 
 /**
  * Where a variable's value comes from, nearest first: a nearer scope hides a
@@ -81,10 +81,12 @@ export interface VariableToken {
   key: string;
   value?: string;
   source: VariableSource;
-  location: "url" | "header" | "body";
+  location: "url" | "header" | "body" | "auth";
   field: string;
   /** Set when the variable cannot be resolved (see `VariableNestingError`). */
   error?: string;
+  /** Its value is a vault secret's reference: the value is not given, and is sent from the vault. */
+  vaulted?: true;
 }
 
 /**
@@ -126,13 +128,19 @@ export class VariableResolver {
   }
 
   /** The distinct variables of the given texts of a request, each with its source and value. */
-  tokens(payload: { url?: string; headers?: { key: string; value: string }[]; body?: string[] }): VariableToken[] {
+  tokens(payload: {
+    url?: string;
+    headers?: { key: string; value: string }[];
+    body?: string[];
+    auth?: string[];
+  }): VariableToken[] {
     const header = (payload.headers ?? []).flatMap((row, index) => [
       ...this.tokensOf(row.key, "header", `header-${index}-key`),
       ...this.tokensOf(row.value, "header", `header-${index}-value`),
     ]);
     const body = (payload.body ?? []).flatMap((text, index) => this.tokensOf(text, "body", `body-${index}`));
-    return [...this.tokensOf(payload.url ?? "", "url", "endpoint"), ...header, ...body];
+    const auth = (payload.auth ?? []).flatMap((text, index) => this.tokensOf(text, "auth", `auth-${index}`));
+    return [...this.tokensOf(payload.url ?? "", "url", "endpoint"), ...header, ...body, ...auth];
   }
 
   private tokensOf(text: string, location: VariableToken["location"], field: string): VariableToken[] {
@@ -142,11 +150,12 @@ export class VariableResolver {
       .map((key) => ({ key, ...this.describe(key), location, field }));
   }
 
-  private describe(name: string): Pick<VariableToken, "value" | "source" | "error"> {
+  private describe(name: string): Pick<VariableToken, "value" | "source" | "error" | "vaulted"> {
     if (name.startsWith(SECRET_PREFIX)) return { source: "secret" };
     if (DYNAMIC.has(name)) return { source: "dynamic" };
     const found = this.find(name);
     if (!found) return { source: "missing" };
+    if (SECRET_REFERENCE.test(found.value)) return { source: found.scope, vaulted: true };
     try {
       return { source: found.scope, value: this.expand(found.value, [name]) };
     } catch (error) {

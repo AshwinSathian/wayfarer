@@ -74,6 +74,8 @@ export class TabState {
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = signal<string[]>([]);
   readonly loadingState = signal(false);
+  /** When the send now on its way started (`Date.now()`): the pane says "Sending…" and the time so far after a second (D3.7). */
+  readonly sendingSince = signal<number | null>(null);
   readonly variableTokens = signal<VariableToken[]>([]);
   readonly missingVariableKeys = signal<string[]>([]);
   /** The variables without a value that held the last send back; the composer offers "Send anyway". */

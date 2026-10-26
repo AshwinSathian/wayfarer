@@ -455,7 +455,7 @@ test("confirmations: focus starts on Cancel, Tab stays in, Escape cancels and fo
   await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
   await page.getByRole("button", { name: "Request history" }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  const entry = drawer.getByRole("button", { name: /^Load request .*confirm=1 into composer$/ });
+  const entry = drawer.getByRole("button", { name: /confirm=1$/ });
   await expect(entry).toBeVisible();
 
   // The centred alert dialog.

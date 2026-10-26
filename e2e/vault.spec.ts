@@ -183,7 +183,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await expect(secrets.getByText("Imported 1 secret.")).toBeVisible();
 
   // Under the id it had: the environment's variable finds it again.
-  await expect(secrets.getByRole("button", { name: /Locate API_TOKEN in environment Vault env/ })).toBeVisible();
+  await expect(secrets.getByRole("button", { name: "Vault env.API_TOKEN", exact: true })).toBeVisible();
   await secrets.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(secrets.getByText("exported-encrypted-7c1")).toBeVisible();
   expect(await violations(page)).toEqual([]);

@@ -117,7 +117,7 @@ test("@claim:C-035 history entries ticked in the list export as one HAR, shown f
   await expect(report.locator(".import-report")).toContainText(
     '"wayfarer-history.har" will add 1 collection and 3 requests.',
   );
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   const requests = (
     (await dumpIdb(page))["requests"] as {

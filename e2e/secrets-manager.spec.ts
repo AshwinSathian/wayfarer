@@ -63,7 +63,7 @@ test.describe("Secrets management view", () => {
     await page.getByRole("button", { name: "Manage secrets" }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("API_TOKEN", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Locate API_TOKEN in environment Secrets E2E Env/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Secrets E2E Env.API_TOKEN", exact: true })).toBeVisible();
 
     // Reveal.
     await page.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();

@@ -43,7 +43,9 @@ test("while the browser has not promised to keep the data, the status bar says s
   await expect(page.getByTestId("storage-status")).toContainText("has not promised to keep this data");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("storage-status")).toHaveCount(0);
-  const reminder = page.getByText(/which has not promised to keep it\. Back up to keep a copy\./);
+  const reminder = page
+    .getByRole("status")
+    .filter({ hasText: /which has not promised to keep it\. Back up to keep a copy\./ });
   await expect(reminder).toHaveCount(0);
 
   await saveARequest(page);

@@ -100,17 +100,7 @@ editor 390 px; the explanatory sentences above it run 960 px. At 820 px
 the response is 290 px and its fourth tab is cut ("Test").
 Evidence: `baseline/1440-light-03b-response-full.png`,
 `baseline/820-light-03-response.png`.
-**Status:** Open, D4-e. S3 (#371, #377) gave the response the window's
-height, and at 840 px all four of its tabs show. At 1,440 px with the
-sidebar pinned it is still 432 px wide beside a 530 px composer, so the
-finding as written stands.
-2026-10-23 (hig-review, W-41f and W-13): confirmed at 1,440 and 2,560 px. At
-2,560 px the address runs about 1,530 px and each of Params' fields about
-415 px over an empty composer: the rows editor gets a measure, and the
-splitter's default favours the response at wide widths. Below 1,200 px the
-width is U-070's to balance. Evidence:
-[`hig-review/2560-light-stress-width-composer.png`](hig-review/2560-light-stress-width-composer.png).
-Still open, D4-e.
+**Status:** Fixed in #460 (D4-e). From 1,440 px the split starts at 45/55, so beside the pinned sidebar the response is about 598 px to the composer's 490; below 1,440 px the composer keeps 55%, so its six tabs fit. A rows editor measure at 2,560 px is not done (the composer is about 990 px there). Review rows W-41f, W-13.
 
 **U-004. Cards in cards in cards.** Severity 3. H8. All.
 The composer is a card; inside it the request tabs are a tinted card and
@@ -269,9 +259,7 @@ share one row that wraps by the pane's width: at 1,440 px the body starts
 **U-031. The status line has four chips and no size.** Severity 3. H1. SD.
 "200", "OK", a time chip and a route chip ("Direct"), each a pill. The
 response's size is not shown; every rival shows status, time and size.
-**Status:** Open, D4-e. The four pills are gone (#387): the line reads "200
-OK 16.2 ms · Direct". The size shows only when the server sent
-`Content-Length`, so a chunked answer (the echo server's) shows none.
+**Status:** Fixed in #450 (D4-e). The size is the body's own when there is no Content-Length, and reads in kB above 1,000 bytes.
 
 ### Runner
 
@@ -474,7 +462,7 @@ default bracket-pair colours (`#0431fa`, `#319331`, `#7b3814` in light),
 which are not tokens and sit beside the tokens' own syntax colours.
 `monaco-loader.ts` sets no `editorBracketHighlight` colour.
 
-**Status:** Open, D4-e.
+**Status:** Fixed in #451 (D4-e). Monaco has no focus line of its own and its brackets are plain.
 
 ## Second pass, 2026-10-22
 
@@ -599,7 +587,7 @@ With a `ws://` address the method select still says GET, and Copy as cURL
 and Save stay beside Disconnect. A paragraph about handshake headers and
 the Local Bridge sits above the message field on every connection.
 Evidence: `baseline/design-chromium/websocket-1440-dark.png`.
-**Status:** Open, D4-e.
+**Status:** Fixed in #455 (D4-e). A WebSocket tab shows the ws scheme, no cURL copy, and its state beside Connect.
 
 **U-048. The log cannot be searched, filtered or read as JSON.** Severity
 3. H7. SD, QA.
@@ -607,7 +595,7 @@ Each message is one line of the table, JSON or not, with no way to expand,
 format, search or keep only the received ones. The connection's state is a
 word at the right end of the subprotocols row, far from Disconnect.
 Evidence: `baseline/design-chromium/websocket-1440-dark.png`.
-**Status:** Open, D4-e.
+**Status:** Fixed in #455 (D4-e). The log can be filtered and searched, and a JSON message formatted.
 
 ### Found by the task scripts
 
@@ -648,29 +636,7 @@ some apart (a `no-cors` probe reaches a server that has no CORS header; a
 name that does not resolve fails it too). A 401 shows its status and
 nothing about the request's auth.
 Evidence: D0.2's task 5 (`docs/design/baseline.md`).
-**Status:** Open, D4-e.
-2026-10-23 (hig-review, W-7): confirmed for a refused connection, a name
-that does not resolve, CORS and offline, and extended. When no response
-arrives, core sets status `0` and `statusText` "Unknown Error", which is
-Angular HttpClient's wording: no server sent it, yet the pane draws it as a
-red status chip. The string travels to history ("Http failure response
-for {url}: 0 Unknown Error"), the HAR's comment and the run table's Status
-column. A 4xx or 5xx with an empty body gets "Http failure response for
-{url}: 404 Not Found" written into the body, in the red monospace that
-voice.md keeps for a server's words, and stored as the history entry's
-error. The app writes its own words in the server's place
-(`packages/core/src/send/exchange.ts:126-129, 653-654, 664, 705, 709`;
-`response-viewer.html:39, 43, 284-289`; `runner/run-view.html:182-183`;
-`shared/inspect/har-export.ts:42`). The fix is one change in core, which
-history, HAR and the run then show: the status line, history and the run
-say "No response"; an offline browser is said so (`navigator.onLine`);
-the body is sans, not red mono, and an empty body reads "No body
-returned." with nothing invented stored. Evidence:
-[`hig-review/1440-dark-10-response-error.png`](hig-review/1440-dark-10-response-error.png),
-[`hig-review/1440-light-stress-cors-error.png`](hig-review/1440-light-stress-cors-error.png),
-[`hig-review/1440-light-stress-dns-error.png`](hig-review/1440-light-stress-dns-error.png),
-[`hig-review/1440-light-stress-offline-error.png`](hig-review/1440-light-stress-offline-error.png).
-Still open, D4-e.
+**Status:** Fixed in #444 (D4-e). No response is said in the app's words, with what the browser reported quoted as it reported it, no status code and no invented body, and Send through the Local Bridge offered in place. D4.12 (D4-l) builds the record on it.
 
 ### Across the three engines
 
@@ -690,11 +656,7 @@ uses its own default list, which differs by system; on Linux, in all three
 engines, the response's JSON is drawn in a proportional face beside a
 monospace address.
 Evidence: `baseline/design-chromium/response-json-1440-light.png`.
-**Status:** Open, D4-e.
-2026-10-23 (hig-review, W-41d): extended. Monaco draws its own focus mark,
-a 1 px blue outline (`rgb(0, 144, 241)`), where the rest of the app draws
-a 2 px teal ring: its `focusBorder` takes `--accent`, and the editor's host
-draws the app's ring on `:focus-within`. The font was not measured again.
+**Status:** Fixed in #451 (D4-e). Monaco is set in the app's monospace, with its features.
 
 **U-053. In WebKit a dialog opened by a click shows a focus ring.**
 Severity 4. H8. All.
@@ -729,7 +691,7 @@ inside its words (`DELE TE`, and in WebKit `PO ST`). The same happens in
 all three engines; the run's table does it to request names and statuses.
 Evidence: `baseline/design-chromium/response-headers-360-light.png`,
 `baseline/design-chromium/run-390-light.png`.
-**Status:** Open, D4-e.
+**Status:** Fixed in #454 (D4-e). Below the pane's own width a header is its name over its value.
 
 **U-054. Menus and buttons mix title case and sentence case.** Severity 4.
 H4. All.
@@ -767,12 +729,7 @@ While a request waits, the response pane is a loading skeleton: no
 sign, in Send's place. A request to a slow server looks the same at one
 second and at fifty.
 Evidence: `baseline/design-chromium/response-loading-1440-light.png`.
-**Status:** Open, D4-e.
-2026-10-23 (hig-review, W-2, W-22): confirmed. What a screen reader hears of
-the same moment (nothing) is U-061, and the skeleton and fades every send
-shows, even for a 16 ms reply, are U-078. The three close together in
-D4-e: no indicator under about a second, then "Sending" and the time so
-far, said through the response's status region too.
+**Status:** Fixed in #442 (D4-e, D3.7). Nothing shows for the first second; then "Sending… x.x s" counts up beside Cancel.
 
 **U-056. Deleting from the tree asks "Delete item?" without naming it.**
 Severity 3. H1, H5. All.
@@ -845,7 +802,7 @@ as Apple's system values (DS-16). U-004's remainder (cards in overlays,
 radii outside the scale) is U-093 and U-126; U-004 stays fixed for the
 composer.
 
-All 70 below are open. The plan's row 1.42 moves the eight Blockers of
+Of the 70 below, the statuses say which session D4-e closed. The plan's row 1.42 moves the eight Blockers of
 access and the one of data loss (U-060 to U-065, U-106 to U-108), with
 U-075 and the save path's U-066 and U-068, into D4.11, the first work of
 session D4-e.
@@ -876,7 +833,7 @@ of `null` (the request was deleted in another tab) does nothing. The only
 sign is that the tab's unsaved dot stays. The draft survives, because the
 tab stays dirty and closing it asks first.
 Evidence: `services/request-save.ts:106-130, 151-172`; `composer.ts:141`.
-**Status:** Open, D4-e (plan D4.11). Review row W-8.
+**Status:** Fixed in #443 (D4-e, D4.11). A save that does not land says so in an alert by Save. Review row W-8.
 
 **U-068. Saving from the keyboard drops focus to the page.** Severity 2.
 H7. SD, and everyone on a keyboard.
@@ -884,7 +841,7 @@ Save is `[disabled]` while `savingRequest()` is true, so the focused
 button is disabled under the caret and focus moves to `<body>`. The next
 key goes nowhere.
 Evidence: `composer/address-row.html:76-90`.
-**Status:** Open, D4-e (plan D4.11). Review row W-10.
+**Status:** Fixed in #443 (D4-e, D4.11). Save keeps focus while it saves (`aria-disabled`). Review row W-10.
 
 **U-067. ⌘S collapses the folder that holds the request.** Severity 2. H1,
 H6. SD, QA.
@@ -923,9 +880,7 @@ for the result. WCAG 4.1.3 (AA). Severity 1 because it is the core task,
 on every send, for everyone who uses a screen reader: the way round it is
 to go looking. Confirmed in source; no screen reader was run.
 Evidence: `response-viewer/response-viewer.html:11-16, 25-62`.
-**Status:** Open, D4-e (plan D4.11). Review row W-2; U-055 is the same Confirmed at runtime on 2026-10-26: after a send every `role=status`
-in the page is empty (fourth pass, review section 2).
-moment seen.
+**Status:** Fixed in #446 (D4-e, D4.11). The response's status line is said by a `role=status` region there from the first render. Review row W-2.
 
 **U-062. Errors that appear after an action are not announced.**
 Severity 2. H1, H9. All who use a screen reader.
@@ -937,7 +892,7 @@ appears after Send, and "Send anyway" appears silently. WCAG 4.1.3 (AA),
 Evidence: `app-shell/app-shell.html:406-434`; `composer/composer.html:32-37`;
 `composer/address-row.html:38-39`;
 [`hig-review/1440-dark-41-vault-unlock.png`](hig-review/1440-dark-41-vault-unlock.png).
-**Status:** Open, D4-e (plan D4.11). Review row W-3.
+**Status:** Fixed in #446 (D4-e, D4.11). The address's error is an alert region there from the first render. Review row W-3.
 
 **U-075. Fourteen live regions are made with their message.** Severity 2.
 H1. All who use a screen reader.
@@ -949,7 +904,7 @@ text changes.
 Evidence: `app-shell.html:237-305`; `bridge-pane.html:64, 104, 118, 131`;
 `composer.html:40`; `request-warnings.ts:22, 31`; `body-panel.html:29, 35`;
 `diagnostics-pane.html:31`.
-**Status:** Open, D4-e (plan D4.11). Review row W-18.
+**Status:** Fixed in #446 (D4-e, D4.11). The shell's banners are said by regions there from the first render; `scripts/live-regions.test.mjs` fails on a `role=status` or `alert` made inside `@if`. Review row W-18.
 
 **U-063. Two visible labels are not in the accessible name.** Severity 2.
 H4. All who use voice control.
@@ -958,7 +913,7 @@ secrets manager's usage chips show "Staging.apiKey" and are named "Locate
 apiKey in environment Staging". Saying what is on the screen does not
 reach them. WCAG 2.5.3 (A).
 Evidence: `app-shell/app-shell.html:263-270`; `secrets/secrets-manager.html:77`.
-**Status:** Open, D4-e (plan D4.11). Review row W-4.
+**Status:** Fixed in #440 (D4-e, D4.11). `e2e/label-in-name.spec.ts` holds every control of D0.1's screens to it. Review row W-4.
 
 **U-071. Rows are named by their number, not their content.** Severity 2.
 H4. All who use a screen reader.
@@ -979,7 +934,7 @@ one element of the app the review found its own, and the least operable
 part of the shell.
 Evidence: `app-shell.html:323-362`;
 [`hig-review/1440-dark-03-response-json.png`](hig-review/1440-dark-03-response-json.png).
-**Status:** Open, D4-e. Review row W-15.
+**Status:** Fixed in #456 (D4-e). Each status bar item is one button named by its words, and a lock or unlock is said. Review row W-15.
 
 ### Pointer, reflow and text size
 
@@ -988,7 +943,7 @@ Severity 2. H7. Everyone who uses one pointer without dragging.
 The 8 px gutter is moved by dragging or by the arrow keys. There is no
 single-pointer way. WCAG 2.5.7 (AA).
 Evidence: `ui/splitter.ts:26-40, 70-112`.
-**Status:** Open, D4-e (plan D4.11). Review row W-5.
+**Status:** Fixed in #438 (D4-e, D4.11). A click on either side of the split's line moves it a tenth; a double click puts it back. Review row W-5.
 
 **U-065. At 320 px the page scrolls sideways.** Severity 2. H4. Phones,
 and 400% zoom on a 1,280 px window.
@@ -997,7 +952,7 @@ both themes. The plan's phone rule is 360 px; WCAG 1.4.10 (AA) names
 320 CSS px.
 Evidence: `header.ds-toolbar`;
 [`hig-review/320-light-toolbar-overflow.png`](hig-review/320-light-toolbar-overflow.png).
-**Status:** Open, D4-e (plan D4.11). Review row W-6.
+**Status:** Fixed in #457 (D4-e, D4.11). 320 px joins the layout widths, and `e2e/reflow.spec.ts` opens every screen of D0.1's index at 320 px in three engines. Review row W-6.
 
 **U-073. At 200% text the boxes grow and the text does not.** Severity 2.
 H8. Everyone who sets a larger text size.
@@ -1052,7 +1007,7 @@ opacity for eight times the network's time, and the skeleton is not the
 response's shape. Wayfarer's speed is measured and then hidden.
 Evidence: `animations.css:63-68`; `tabs.css:117-119`;
 `response-viewer.html:12-23`; `button.css:67-71, 221-223`.
-**Status:** Open, D3.7 (session D4-e). Review rows W-22 and DS-22.
+**Status:** Fixed in #442 (D3.7, session D4-e). Send has no press scale; nothing shows for a reply under a second; the response, its status and a pane's switch appear at once; no theme transition. Review rows W-22 and DS-22.
 
 **U-095. A request ready to send is offered cURL and Import.** Severity 3.
 H6. OC, SD.
@@ -1061,14 +1016,13 @@ offers "Paste a cURL command" and "Import a collection…": the next step is
 Send.
 Evidence: [`hig-review/1440-dark-26-tree.png`](hig-review/1440-dark-26-tree.png);
 `response-viewer.html`.
-**Status:** Open, D4-e. Review row W-41a; U-022's fix did not cover this
-state.
+**Status:** Fixed in #445 (D4-e). A ready request's empty response says Send and its key. Review row W-41a.
 
 **U-091. Send and Run turn into Cancel where they were.** Severity 3. H5.
 SD, QA.
 A double click sends and cancels. "Cancel run" is red and filled.
 Evidence: `run-view.html:8-13`; `address-row.html:103-112`.
-**Status:** Open, D4-e (Send) and D4-i (Run). Review row W-36.
+**Status:** Send fixed in #452 (D4-e): the second click of a double click is not a Cancel. Run remains with D4-i. Review row W-36.
 
 **U-090. Tab panels that hold controls are Tab stops of their own.**
 Severity 3. H7. Everyone on a keyboard.
@@ -1076,27 +1030,26 @@ Angular Aria gives every `ngTabPanel` `tabindex="0"`; the pattern asks for
 it only when a panel has nothing focusable. Three empty stops on every
 walk through the composer.
 Evidence: `ui/tabs.ts`; `response-viewer.html:155-510`.
-**Status:** Open, D4-e (once, in `uiTabList`). Review row W-35.
+**Status:** Fixed in #447 (D4-e). A pane is a Tab stop only while nothing in it can take focus. Review row W-35.
 
 **U-103. "Must be JSON" reads as a rule, not a choice.** Severity 4. H2.
 SD.
 The WebSocket view's checkbox. "Check it is JSON before sending".
 Evidence: `socket/socket-view.html:64`.
-**Status:** Open, D4-e (with U-047). Review row W-42c.
+**Status:** Fixed in #455 (D4-e). A message that is not JSON is said before it is sent. Review row W-42c.
 
 **U-104. The timing tooltips hedge.** Severity 4. H2. SD.
 "including headers if available" (the app knows), "TLS/SSL", an unspaced
 em dash, and noun fragments that end in full stops.
 Evidence: `shared/inspect/timing-bars.ts:12-59`.
-**Status:** Open, D4-e. Review row W-42d.
+**Status:** Fixed in #449 (D4-e). Each phase of the Timings tab is explained in a sentence. Review row W-42d.
 
 **U-087. The theme button leaves System on its first press.** Severity 3.
 H1. All.
 The status bar's button flips light and dark; the first press leaves the
 system's choice without saying so.
 Evidence: `app-shell.html:370-379`; `theme.ts:51-53`.
-**Status:** Open, D4-e (with U-072: a System, Light, Dark choice, or a
-cycle that names its state). Review row W-32.
+**Status:** Fixed in #456 (D4-e). The theme button goes system, light, dark, and says which comes next.
 
 ### Collections, tabs, history and the palette
 
@@ -1186,9 +1139,7 @@ Evidence: `app-shell.html:302, 351`; `app-shell.ts:194, 369, 373, 412`;
 `import-dialog.html:36`; `environments-manager.html:220`;
 `workspace-backup.ts:59`; `secrets-vault.ts:223, 270`; `oauth-fields.html:22`;
 `script-review-dialog.html:52`.
-**Status:** Open: each view's session rewrites its own (D4-e the composer's
-leftovers and the socket, D4-f the shell and palette, D4-g the vault and
-environments, D4-h import and Settings). Review row W-26.
+**Status:** D4-e's share fixed in #458 (the composer's OAuth and script review strings, the socket's and the script worker's errors). The shell's, the vault's, the environments', import's and the backup's remain with D4-f, D4-g and D4-h. Review row W-26.
 
 **U-083. One thing goes by several names.** Severity 3. H4. All.
 Address is also "URL" and "Load … into composer"; secret is also
@@ -1209,8 +1160,7 @@ Severity 3. H6, H10. OC.
 empty.", "None." twice, "No secrets yet … it'll show up here."
 Evidence: `response-viewer.html:329, 344, 488, 525`; `cookies-pane.html:56`;
 `diagnostics-pane.html:65, 77`; `secrets-manager.html:38-40`.
-**Status:** Open: D4-e (the response's), D4-g (secrets), D4-h (cookies,
-diagnostics). Review row W-29.
+**Status:** D4-e's share fixed in #458 (the response's Headers, Timings and Tests). Secrets (D4-g), cookies and diagnostics (D4-h) remain. Review row W-29.
 
 **U-092. Diagnostics says "Nothing leaves this machine" and fetches a
 file.** Severity 3. H2. PE.
@@ -1274,21 +1224,21 @@ has no visible label either. WCAG 1.4.11 (AA).
 Evidence: `ui/checkbox.css:14-15`; `params-panel.html:10-16`;
 `rows-editor.html:7-12`; `multipart-editor.html:4-10`;
 `past-requests.html:71-77`.
-**Status:** Open, D4-e (plan D4.11). Review row DS-1.
+**Status:** Fixed in #441 (D4-e, D4.11). Review row DS-1.
 
 **U-107. The option the keys are on in a select barely shows.**
 Severity 2. H1. Everyone on a keyboard.
 `--fill-hover` alone: 1.19:1 in dark, 1.08:1 in light. The forced-colours
 block already draws a 2 px `--accent` inset outline. WCAG 1.4.11 (AA).
 Evidence: `select.css:101-105`; `select.ts:43, 90`.
-**Status:** Open, D4-e (plan D4.11). Review row DS-2.
+**Status:** Fixed in #441 (D4-e, D4.11). Review row DS-2.
 
 **U-108. Grey text on the warning fill is under 4.5:1.** Severity 2. H1.
 All.
 12 px `--label-tertiary` on `--status-warning-fill`: 4.48:1 in dark. The
 contrast gate checks no label on a status fill.
 Evidence: `environments-manager.html:170-172`; `tokens.css:86, 116`.
-**Status:** Open, D4-e (plan D4.11). Review row DS-3.
+**Status:** Fixed in #441 (D4-e, D4.11). Review row DS-3.
 
 **U-074. A field's focus is fainter than 3:1.** Severity 2. H1. Everyone
 on a keyboard.
@@ -1318,9 +1268,7 @@ Evidence: `tokens.css`; `packages/tokens`.
 190 of 275 uses of a type class are 12 px; the 14 px body appears five
 times.
 Evidence: the templates; `tokens.css:52-63`.
-**Status:** Open: D4-e decides the working size with D3.2's compact
-density (13 px for work, 12 for captions, is the review's proposal), and
-D3.6 builds it. Review row DS-8.
+**Status:** Decided in D4-e (plan row 1.53): the compact density sets working text (values, rows, tabs, the response) at 13 px and captions at 12; prose and dialogs stay at the 14 px body. D3.6 builds it, measured with the text face DQ11 settles. Review row DS-8.
 
 **U-112. Secondary and danger buttons do not answer hover or press.**
 Severity 3. H1. All.
@@ -1475,7 +1423,7 @@ the review's section 2. Its three reworks and its theming sketch are not
 findings: they were the plan's DQ8 to DQ11 (rows 1.49 and 1.51), which
 the maintainer answered yes on 2026-10-26 (row 1.52).
 
-All 22 below are open. The plan's row 1.48 puts U-130, U-135 to U-137, U-141
+Of the 22 below, the statuses say which session D4-e closed. The plan's row 1.48 puts U-130, U-135 to U-137, U-141
 and U-145 first, in D4.11. Rows are grouped by theme, not by number.
 
 ### Credentials, secrets and storage
@@ -1492,7 +1440,7 @@ Evidence: `composer/auth-editor/auth-editor.ts:59-66`;
 `composer/variable-chips.html`;
 [`hig-review/1440-light-rt-19-auth-tab.png`](hig-review/1440-light-rt-19-auth-tab.png);
 the request's headers in the network log.
-**Status:** Open, D4-e (D4.11). Review row N1.
+**Status:** Fixed in #439 (D4-e, D4.11). The Auth tab names where a token's value comes from, and the auth's variables have chips. Review row N1.
 
 **U-135. "Mark as secret" is dropped when it triggers vault creation.**
 Severity 2. H1, H5. PE, SD.
@@ -1535,7 +1483,7 @@ not installed the app can lose everything before the first reminder.
 Evidence: `services/storage-persistence.ts:5-21`;
 `services/workspace-backup.ts:22`; `settings.html:272-279`;
 `app-shell.html:368`. Seen in Chromium only.
-**Status:** Open, D4-e (D4.11). Review row N8.
+**Status:** Fixed in #459 (D4-e, D4.11). The status bar says what `navigator.storage.persisted()` answered, and while it is false the backup reminder comes at the first save and then every 5 days. Review row N8.
 
 **U-145. Add variable does not focus the new row.** Severity 3. H7. All.
 From the keyboard, focus stays on Add variable.
@@ -1577,7 +1525,7 @@ can go to. Write it as https://host/path."; three messages stack for one
 cause; "URL" breaks voice.md's glossary.
 Evidence: `state/workspace-store.ts:483-491`; `composer.html:57`;
 [`hig-review/1440-light-rt-11-send-missing-base.png`](hig-review/1440-light-rt-11-send-missing-base.png).
-**Status:** Open, D4-e (D4.3). Review row N5.
+**Status:** Fixed in #445 (D4-e, D4.3). A send held back by a variable with no value names it once. Review row N5.
 
 **U-132. Variable chips do nothing for a missing, collection, secret or
 dynamic variable.** Severity 2. H3, H6. All.
@@ -1613,7 +1561,7 @@ The visible "Import" and "Cancel" are not at the start of the names
 opens on × Close.
 Evidence: the import dialog's footer;
 [`hig-review/1440-light-rt-07-import-review.png`](hig-review/1440-light-rt-07-import-review.png).
-**Status:** Open, D4-e (D4.11's e2e). Review row N12.
+**Status:** Fixed in #440 (D4-e, D4.11's e2e). Review row N12.
 
 ### Tabs and history
 
@@ -1651,7 +1599,7 @@ Placeholders inherit `font-mono` from their fields (`ui/input.css:40-43`
 sets no family), breaking the provenance rule on the first-run screen.
 Evidence: `address-row.html:33,41`; `params-panel.html:18-22,29`;
 `rows-editor.html:28`. Extends U-051.
-**Status:** Open, D4-e (D4.3). Review row P8-2.
+**Status:** Fixed in #448 (D4-e, D4.3). A placeholder is in the app's face; an example value's stays monospace. Review row P8-2.
 
 **U-149. Colour is written in OKLCH but not derived.** Severity 3. H4.
 All.

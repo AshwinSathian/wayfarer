@@ -175,6 +175,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **The design docs say what session D4-e fixed.** Each audit finding it
+  closed names its pull request; the plan's row 1.53 says what is done and
+  what is left (the screen-reader checks, NVDA and VoiceOver, are the
+  maintainer's), records the working text size (13 px, captions 12 px)
+  for D3.6 to build, and the baseline has task 5 measured again.
+
 - **Patch and minor updates of the build tools and the site.** Angular's
   CLI, build and Aria 22.2.4 (Aria fixes the combobox error that a select
   destroyed before its first render threw), Next.js 16.4.3 for the site,

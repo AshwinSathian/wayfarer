@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   effect,
   inject,
   input,
@@ -23,6 +24,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
+import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { HistoryRepository } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
@@ -88,6 +90,7 @@ export class AppShell implements OnInit {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   protected readonly backup = inject(WorkspaceBackup);
+  protected readonly persistence = inject(StoragePersistence);
   private readonly idb = inject(IdbCore);
   private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
@@ -315,7 +318,17 @@ export class AppShell implements OnInit {
 
   ngOnInit(): void {
     void this.environmentsService.ensureLoaded();
+    // The status bar and the backup reminder say whether the browser keeps the data (U-137).
+    void this.persistence.refresh();
   }
+
+  /** What the status bar says of where the data is kept. */
+  protected readonly storageWords = computed(() => {
+    if (this.storageUnavailable()) return "Not saved: this browser refuses storage";
+    if (this.persistence.persisted() === false) return "Saved in this browser, which may delete it";
+    if (this.persistence.persisted()) return "Kept in this browser";
+    return "Saved in this browser only";
+  });
 
   async handleEnvironmentChange(id: string | null): Promise<void> {
     await this.environmentsService.setActiveEnvironment(id);

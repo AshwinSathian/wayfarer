@@ -29,7 +29,7 @@ At 1,200 px and wider, with the sidebar pinned:
 │              │ Params Headers Body Auth Scripts Settings │ Body Headers Timings │ composer │ response
 │ tree         │                                  │                            │
 ├──────────────┴──────────────────────────────────┴────────────────────────────┤
-│ Route: Auto   Vault locked   Secrets               Saved in this browser only ◐│ status bar
+│ Route: Auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 

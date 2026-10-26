@@ -132,6 +132,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   connection" and so on, in sentences, where they read "Lookup time to
   resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
   "including headers if available" (the app knows they are included).
+- **The status bar says whether the browser will keep your data, and the
+  backup reminder comes sooner when it will not.** It says "Kept in this
+  browser" once the browser has promised to keep the data, and "Saved in
+  this browser, which may delete it" while it has not. In that case the
+  reminder to back up comes at the first save and then every 5 days, since
+  Safari deletes such data after seven days without a visit. Before, the
+  bar said "Saved in this browser only" either way and the reminder waited
+  14 days, so data could go before the first reminder.
+
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was

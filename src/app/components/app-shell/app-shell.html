@@ -255,8 +255,9 @@
           class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator"
         >
           <p class="type-callout text-label-secondary"
-            >It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can
-            delete it.</p
+            >@if (persistence.persisted() === false) { This workspace lives only in this browser, which has not promised
+            to keep it. Back up to keep a copy. } @else { It has been more than 14 days since this workspace was backed
+            up. It lives only in this browser, which can delete it. }</p
           >
           <button
             uiButton="filled"
@@ -359,9 +360,7 @@
         <span>Secrets</span>
       </span>
       <span class="flex-1"></span>
-      <span class="status-item"
-        >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span
-      >
+      <span class="status-item">{{ storageWords() }}</span>
       <button
         type="button"
         uiButton="icon"

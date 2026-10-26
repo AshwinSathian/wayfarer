@@ -245,7 +245,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(status).toBeVisible();
       await expect(status).toContainText("Route: Auto");
       await expect(status).toContainText("Vault locked");
-      await expect(status).toContainText("Saved in this browser only");
+      await expect(status).toContainText(/Saved in this browser|Kept in this browser/);
       for (const name of [
         /^Manage secrets$/,
         /^Local Bridge settings$/,

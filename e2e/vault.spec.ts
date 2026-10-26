@@ -16,8 +16,8 @@ async function watchViolations(page: Page): Promise<void> {
 
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 
-const unlockButton = (page: Page) => page.getByRole("button", { name: "Unlock secrets", exact: true });
-const lockButton = (page: Page) => page.getByRole("button", { name: "Lock secrets", exact: true });
+const unlockButton = (page: Page) => page.getByRole("button", { name: "Vault locked", exact: true });
+const lockButton = (page: Page) => page.getByRole("button", { name: "Vault unlocked", exact: true });
 
 async function createVault(page: Page, passphrase = PASSPHRASE): Promise<void> {
   await unlockButton(page).click();
@@ -113,7 +113,7 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await createVault(page);
   await protect(page, "API_TOKEN", "rotation-keeps-me");
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   const secrets = page.getByRole("dialog", { name: "Secrets", exact: true });
   await secrets.getByRole("button", { name: "Change passphrase" }).click();
   await secrets.getByLabel("Current passphrase").fill("not the passphrase");
@@ -140,7 +140,7 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await dialog.getByRole("button", { name: "Unlock secrets" }).click();
   await expect(lockButton(page)).toBeVisible();
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   await secrets.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(secrets.getByText("rotation-keeps-me")).toBeVisible();
   expect(await violations(page)).toEqual([]);
@@ -154,7 +154,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await createVault(page);
   await protect(page, "API_TOKEN", "exported-encrypted-7c1");
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   const secrets = page.getByRole("dialog", { name: "Secrets", exact: true });
   await secrets.getByRole("button", { name: "Export vault" }).click();
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);

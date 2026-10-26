@@ -103,11 +103,11 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   expect(after).toEqual(untrusted(before));
 
   // The vault opens with its passphrase and still holds the secret.
-  await page.getByRole("button", { name: "Unlock secrets", exact: true }).click();
+  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
   const unlock = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
   await unlock.locator("input[type='password']").fill(PASSPHRASE);
   await unlock.getByRole("button", { name: "Unlock secrets" }).click();
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   await page.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(page.getByRole("dialog", { name: "Secrets", exact: true }).getByText(SECRET)).toBeVisible();
 });

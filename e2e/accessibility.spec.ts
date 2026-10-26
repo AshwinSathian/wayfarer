@@ -203,8 +203,8 @@ test.describe("Accessibility (primary flows)", () => {
       for (const opener of [
         "Request history",
         "Settings",
-        "Local Bridge settings",
-        "Manage secrets",
+        "Route: auto",
+        "Secrets",
         "Environments",
         "New collection",
       ]) {

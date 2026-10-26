@@ -234,6 +234,8 @@
              heard (U-075). The banners below are what the eye reads; their text is said once, here. -->
         <p class="sr-only" role="status">{{ bannerStatus() }}</p>
         <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
+        <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
+        <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
         @if (swUpdate.updateAvailable()) {
         <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
@@ -301,60 +303,51 @@
     <!-- Where a request goes and what holds its secrets, always in sight (S4). Each control is the
          button it was in the toolbar, with its name; the state beside it is text. -->
     <footer class="status-bar" aria-label="Status">
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          [class.text-status-success]="bridgeService.config().route === 'bridge'"
-          (click)="openBridgeSettings()"
-          uiTooltip="Local Bridge settings"
-          aria-label="Local Bridge settings"
-        >
-          <app-icon name="router" class="icon-xs" />
-        </button>
-        <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
-      </span>
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          [class.text-status-success]="secretsUnlocked"
-          (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-        >
-          <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
-        </button>
-        <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
-      </span>
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          (click)="secretsDialogVisible.set(true)"
-          uiTooltip="Manage secrets"
-          aria-label="Manage secrets"
-        >
-          <app-icon name="key" class="icon-xs" />
-        </button>
-        <span>Secrets</span>
-      </span>
+      <!-- Each item is one button, named by the words it shows (U-072, WCAG 2.5.3); what it does is its tooltip. -->
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        [class.text-status-success]="bridgeService.config().route === 'bridge'"
+        (click)="openBridgeSettings()"
+        uiTooltip="Local Bridge settings"
+      >
+        <app-icon name="router" class="icon-xs" />Route: {{ routeNames[bridgeService.config().route] }}
+      </button>
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        [class.text-status-success]="secretsUnlocked"
+        (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
+        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : 'Unlock the vault'"
+      >
+        <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />{{ secretsUnlocked ? "Vault
+        unlocked" : "Vault locked" }}
+      </button>
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        (click)="secretsDialogVisible.set(true)"
+        uiTooltip="Manage the vault's secrets"
+      >
+        <app-icon name="key" class="icon-xs" />Secrets
+      </button>
       <span class="flex-1"></span>
       <span class="status-item"
         >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span
       >
+      <!-- System, light, dark, in turn, and the button says which it is now (U-087). -->
       <button
         type="button"
-        uiButton="icon"
-        class="btn-plain status-button"
-        (click)="themeService.toggle()"
-        [uiTooltip]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-        [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        uiButton
+        class="btn-plain status-control"
+        (click)="nextTheme()"
+        [uiTooltip]="'Theme: ' + themeNames[nextChoice()] + ' next'"
       >
-        <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
+        <app-icon [name]="themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode'" class="icon-xs" />Theme: {{
+        themeNames[themeService.choice()] }}
       </button>
     </footer>
     }

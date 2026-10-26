@@ -223,7 +223,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(page.locator("input.address-url")).toBeVisible();
       await expect(page.getByRole("contentinfo", { name: "Status" })).toHaveCount(0);
       await expect(page.getByRole("banner").getByRole("button", { name: "Unlock secrets", exact: true })).toBeVisible();
-      for (const name of [/^Manage secrets$/, /^Local Bridge settings$/, /^Switch to (light|dark) mode$/]) {
+      for (const name of [/^Secrets$/, /^Route: /, /^Theme: /]) {
         await expect(page.getByRole("button", { name })).toHaveCount(0);
       }
       const settings = await page
@@ -243,15 +243,11 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await page.goto("/app/");
       const status = page.getByRole("contentinfo", { name: "Status" });
       await expect(status).toBeVisible();
-      await expect(status).toContainText("Route: Auto");
+      await expect(status).toContainText("Route: auto");
       await expect(status).toContainText("Vault locked");
       await expect(status).toContainText("Saved in this browser only");
-      for (const name of [
-        /^Manage secrets$/,
-        /^Local Bridge settings$/,
-        /^Switch to (light|dark) mode$/,
-        /^Unlock secrets$/,
-      ]) {
+      // Each is one button, named by its words (U-072).
+      for (const name of [/^Secrets$/, /^Route: auto$/, /^Theme: system$/, /^Vault locked$/]) {
         await expect(status.getByRole("button", { name })).toBeVisible();
         await expect(page.getByRole("banner").getByRole("button", { name })).toHaveCount(0);
       }

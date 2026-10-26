@@ -8,7 +8,7 @@ test.skip(({ browserName }) => browserName !== "chromium", "the Local Bridge is 
 
 /** Settings → Local Bridge, switched on at the bridge's address, not yet saved. */
 async function openPane(page: Page, bridge: TestBridge) {
-  await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
+  await page.getByRole("button", { name: /^Route: / }).click();
   const settings = page.getByRole("dialog", { name: "Settings", exact: true });
   await settings
     .getByRole("radiogroup", { name: "Route" })

@@ -95,7 +95,26 @@ export class AppShell implements OnInit {
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
-  protected readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
+  protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
+  protected readonly themeNames = { system: "system", light: "light", dark: "dark" } as const;
+  private static readonly THEME_ORDER = ["system", "light", "dark"] as const;
+  /** The choice the status bar's theme button makes next: system, light and dark in turn (U-087). */
+  protected readonly nextChoice = computed(() => {
+    const order = AppShell.THEME_ORDER;
+    return order[(order.indexOf(this.themeService.choice()) + 1) % order.length];
+  });
+  protected nextTheme(): void {
+    this.themeService.choose(this.nextChoice());
+  }
+  /** "Vault unlocked." or "Vault locked." when the vault changes; nothing at first. */
+  protected readonly vaultSaid = signal("");
+  private vaultWasUnlocked: boolean | undefined;
+  private readonly vaultWatcher = effect(() => {
+    const unlocked = this.secretsService.isUnlocked();
+    if (this.vaultWasUnlocked !== undefined && unlocked !== this.vaultWasUnlocked)
+      this.vaultSaid.set(unlocked ? "Vault unlocked." : "Vault locked.");
+    this.vaultWasUnlocked = unlocked;
+  });
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();

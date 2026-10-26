@@ -443,7 +443,7 @@ export const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await expect(page.getByText("Secret stored")).toBeVisible();
     await page.reload();
     await expect(address(page)).toBeVisible();
-    await button(page, "Unlock secrets").click();
+    await button(page, "Vault locked").click();
     await expect(page.getByRole("dialog", { name: "Unlock secrets", exact: true })).toBeVisible();
   },
   "secrets-manager": async (page) => {

@@ -4,7 +4,7 @@ import { closeEnvironments, openEnvironments } from "./support/app";
 test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Manage secrets" }).click();
+    await page.getByRole("button", { name: "Secrets", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("No secrets yet")).toBeVisible();
   });
@@ -45,10 +45,10 @@ test.describe("Secrets management view", () => {
     await dialog.getByRole("button", { name: "Create vault" }).click();
     await expect(page.getByText("Secret stored")).toBeVisible();
     await closeEnvironments(page);
-    await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 
     // Open the Secrets view and verify the new secret is listed with its usage.
-    await page.getByRole("button", { name: "Manage secrets" }).click();
+    await page.getByRole("button", { name: "Secrets", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("API_TOKEN", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Secrets E2E Env.API_TOKEN", exact: true })).toBeVisible();

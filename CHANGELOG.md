@@ -80,6 +80,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A save that does not land says so.** When the browser refuses to write
+  a request, or the request was deleted in another tab, the line under the
+  address now says which, and your edits stay. Before, the only sign was
+  that the tab's unsaved dot stayed. Save also keeps the keyboard while it
+  saves: it used to be switched off for that moment, which sent focus to
+  the page, so the next key went nowhere.
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.

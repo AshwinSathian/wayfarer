@@ -292,6 +292,14 @@ pre,
   }
 }
 
+/* At 320 px (WCAG 1.4.10, U-065) the toolbar's buttons ran 2 px past the window: less padding and gap. */
+@media (max-width: 359px) {
+  .ds-toolbar {
+    gap: 8px;
+    padding: 0 8px;
+  }
+}
+
 /* Forced colours take the background away: the outline keeps the toolbar's edge. */
 @media (forced-colors: active) {
   .ds-toolbar {

@@ -449,6 +449,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   it: initial 1,300,487 B raw and 338,011 B gzip; budgets 1366kb, 1431kb and
   371,813 B.
 
+- **At 320 px the page no longer scrolls sideways.** That is a small
+  phone, or a 1,280 px window zoomed to 400%. The top bar's Settings
+  button ran 2 px past the window; the bar now has less padding and a
+  narrower environment picker below 360 px. In Safari, with scroll bars
+  always shown, the History drawer is no longer pushed 5 px past the
+  window's left edge.
+  Every screen is now tested at 320 px in all three browsers.
+
 - **On a phone, the export of environments fits its choices in the
   dialog.** Before, in a 390 px window the "Protected variables" choice ran
   past the dialog's edge and "Plain text" was cut off; in WebKit the dialog

@@ -175,12 +175,10 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()"
-        >Cancel</button
-      >
+      <button uiButton="outlined" class="btn-secondary" (click)="pipeline.close()">Cancel</button>
       <button
         uiButton="filled"
-        aria-label="Confirm import"
+        cdkFocusInitial
         [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
         (click)="pipeline.confirm()"
         >Import</button

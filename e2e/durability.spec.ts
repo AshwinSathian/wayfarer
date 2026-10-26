@@ -184,7 +184,7 @@ test("a reminder to back up appears when the last one is more than 14 days old, 
   await page.reload();
   await expect(reminder).toBeVisible();
 
-  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
+  await page.getByRole("button", { name: "Not now", exact: true }).click();
   await expect(reminder).toHaveCount(0);
   await page.reload();
   await expect(page.locator("input.address-url")).toBeVisible();

@@ -116,7 +116,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await expect(dialog.locator(".import-report")).toContainText("cURL command");
   await expect(dialog.locator(".import-report")).toContainText("will add 1 collection and 1 request.");
   expect(await stored(page)).toBe(before);
-  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  await dialog.getByRole("button", { name: "Import", exact: true }).click();
   await expect(dialog).toHaveCount(0);
 
   const stores = await dumpIdb(page);
@@ -140,7 +140,7 @@ test("@claim:C-056 a cURL command pasted into the import dialog goes down the im
   await dialog.getByLabel("A cURL command").fill("curl -H 'A: 1'");
   await dialog.getByRole("button", { name: "Read the command" }).click();
   await expect(dialog.getByRole("alert")).toContainText("The cURL command has no address.");
-  await dialog.getByRole("button", { name: "Cancel import" }).click();
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   expect((await dumpIdb(page))["requests"]).toHaveLength(1);
 });
 
@@ -156,7 +156,7 @@ test("@claim:C-056 a HAR 1.2 file with three entries imports as three requests",
   const dialog = page.getByRole("dialog", { name: "Import collection" });
   await expect(dialog.locator(".import-report")).toContainText("HAR 1.2");
   await expect(dialog.locator(".import-report")).toContainText('"session.har" will add 1 collection and 3 requests.');
-  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  await dialog.getByRole("button", { name: "Import", exact: true }).click();
   await expect(dialog).toHaveCount(0);
 
   const stores = await dumpIdb(page);

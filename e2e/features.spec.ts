@@ -166,11 +166,11 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByText("Today", { exact: true })).toBeVisible();
 
-  await drawer.getByRole("button", { name: `Load request ${ECHO}/content/json?c029=1 into composer` }).click();
+  await drawer.getByRole("button", { name: `${ECHO}/content/json?c029=1`, exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?c029=1`);
 
   if (!(await drawer.isVisible())) await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const entries = drawer.getByRole("button", { name: /^Load request .*c029=/ });
+  const entries = drawer.getByRole("button", { name: /c029=/ });
   await expect(entries).toHaveCount(2);
   await drawer.getByRole("button", { name: "Delete history entry" }).first().click();
   // One confirmation, not one per history entry stacked on top of each other.
@@ -408,7 +408,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   // Since P4.1 every import shows what it will add first, also this one.
   const report = other.getByRole("dialog", { name: "Import environments" });
   await expect(report).toContainText("will add 1 environment");
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   // Closed by its button: this claim is about the file, and dialog-focus.spec holds Escape after an import.
   await other
@@ -429,14 +429,14 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Request history", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  await expect(drawer.getByRole("button", { name: /^Load request .*c029clear=1/ })).toBeVisible();
+  await expect(drawer.getByRole("button", { name: /c029clear=1/ })).toBeVisible();
   await page.getByRole("button", { name: "Clear all history" }).click();
   const confirm = page
     .getByRole("alertdialog")
     .or(page.getByRole("dialog"))
     .filter({ hasText: "Your entire history will be cleared" });
   await confirm.getByRole("button", { name: "Proceed", exact: true }).click();
-  await expect(drawer.getByRole("button", { name: /^Load request / })).toHaveCount(0);
+  await expect(drawer.getByRole("button", { name: /^https?:\/\// })).toHaveCount(0);
 });
 
 // U-050: a copy says what it copied, and whether the redactor masked anything in it, and no more.
@@ -523,7 +523,7 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // Reach the entry with the keyboard: focus that scripts or clicks set does
   // not open the card. Safari tabs to non-inputs with Option+Tab.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  const entry = page.getByRole("button", { name: /^Load request .*details=1 into composer$/ });
+  const entry = page.getByRole("button", { name: /details=1$/ });
   // The drawer takes focus when it opens; walk on from there. Since P4.6 (c) two more stops come
   // before the entry: "Select all" and the entry's own box.
   const tabToEntry = async () => {

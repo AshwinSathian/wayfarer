@@ -62,7 +62,9 @@ describe("Settings", () => {
     item("Danger zone").click();
     await settle();
     expect(dialog().querySelector("#request-timeout")).toBeNull();
-    expect(dialog().querySelector('[aria-label="Reset all data"]')).not.toBeNull();
+    expect([...dialog().querySelectorAll("button")].some((b) => b.textContent?.trim() === "Reset all data…")).toBe(
+      true,
+    );
   });
 
   it("opens at the section its caller names: the bridge's button opens the bridge's pane", async () => {

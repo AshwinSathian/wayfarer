@@ -154,14 +154,7 @@
               >Removes every entry. Collections and saved requests are not touched.</p
             >
           </div>
-          <button
-            uiButton
-            class="btn-danger btn-sm"
-            type="button"
-            aria-label="Clear history"
-            (click)="clearHistory.emit()"
-            >Clear…</button
-          >
+          <button uiButton class="btn-danger btn-sm" type="button" (click)="clearHistory.emit()">Clear history…</button>
         </div>
       </div>
       } @case ('data') {
@@ -293,13 +286,8 @@
               'unlocked in this tab' : 'locked' }}.</p
             >
           </div>
-          <button
-            uiButton="outlined"
-            class="btn-secondary btn-sm"
-            type="button"
-            aria-label="Manage secrets"
-            (click)="openSecrets.emit(); close()"
-            >Manage…</button
+          <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="openSecrets.emit(); close()"
+            >Manage secrets…</button
           >
         </div>
         <div class="settings-row">
@@ -379,13 +367,8 @@
               be undone: back up first.</p
             >
           </div>
-          <button
-            uiButton="filled"
-            class="btn-danger btn-sm"
-            type="button"
-            aria-label="Reset all data"
-            (click)="resetAllData.emit()"
-            >Reset…</button
+          <button uiButton="filled" class="btn-danger btn-sm" type="button" (click)="resetAllData.emit()"
+            >Reset all data…</button
           >
         </div>
       </div>

@@ -107,7 +107,7 @@
     [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
     [uiTooltip]="store.loadingState() ? '' : 'Send request'"
     [uiTooltipKeys]="shortcuts.send"
-    (click)="store.loadingState() ? store.cancel() : send.emit()"
+    (click)="sendOrCancel($event)"
     class="send-btn"
     >{{ store.loadingState() ? "Cancel" : "Send" }}</button
   >

@@ -116,3 +116,12 @@ test.describe("Transport on fetch (P2.3)", () => {
     expect(await violations(page)).toEqual([]);
   });
 });
+
+// U-091 (D4-e): Send turns into Cancel where it was. A double click on Send sent and then stopped what it sent.
+test("a double click on Send sends once and does not cancel it", async ({ page }) => {
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/delay/300`);
+  await page.getByRole("button", { name: "Send request" }).dblclick();
+  await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 5000 });
+  await expect(page.getByText("The request was cancelled.")).toHaveCount(0);
+});

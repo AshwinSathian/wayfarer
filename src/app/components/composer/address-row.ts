@@ -109,6 +109,15 @@ export class AddressRow {
     });
   }
 
+  /**
+   * Send, or Cancel while a send is on its way: one button, so focus stays on it. The second click of a double
+   * click is not a Cancel (U-091): a double click sent and then stopped what it sent.
+   */
+  protected sendOrCancel(event: MouseEvent): void {
+    if (!this.store.loadingState()) this.send.emit();
+    else if (event.detail <= 1) this.store.cancel();
+  }
+
   /** While it saves, Save keeps focus (U-068): it is aria-disabled, not disabled, and a second press does nothing. */
   protected async save(): Promise<void> {
     if (this.savingRequest()) return;

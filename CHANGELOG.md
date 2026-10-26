@@ -260,6 +260,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   grants are in sentence case ("Bearer token", "Client credentials"), and
   the Type and Grant selects line up.
 
+- **A double click on Send sends.** Send turns into Cancel while a
+  request is on its way, so the second click of a double click stopped the
+  request the first had sent. The second click now does nothing.
+
 - **A fetched GraphQL schema is shown above the query.** After Fetch
   schema, its types are listed in a box of their own under the button, with
   the app's chevrons instead of the browser's triangles; before, the list

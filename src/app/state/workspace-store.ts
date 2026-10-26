@@ -27,6 +27,7 @@ import {
   browserLimits,
   buildAuthHeaders,
   buildCurl,
+  authTexts,
   effectiveAuth,
   exportBody,
   isHttpMethod,
@@ -71,6 +72,7 @@ import { buildUrlFromParams, parseParamsFromUrl, validateUrl } from "../shared/h
 
 import { ScriptTrust } from "../services/script-trust";
 import { Confirm } from "../ui/confirm";
+import { valueSources } from "../components/composer/auth-editor/value-sources";
 import { SHOWN_EVENTS, TabState, blankRow, contentOf, emptyDraft } from "./tab-state";
 import { Tabs, forwarded, type Forwarded } from "./tabs";
 
@@ -199,6 +201,10 @@ export class WorkspaceStore {
   }
   /** What the draft's auth is when it inherits, and from where (P4.9). */
   readonly inheritedAuth = computed(() => effectiveAuth({ type: "inherit" }, this.saved.ancestors()));
+  /** Where the values of the auth's variables come from, said on the Auth tab (U-130). */
+  readonly authValueSources = computed(() =>
+    valueSources(this.variableTokens(), this.environments.activeEnvironment()?.name),
+  );
   /**
    * What the browser will do to the draft if it is sent now (plan P2.14):
    * the headers it drops, whether it asks the server first, mixed content.
@@ -789,16 +795,18 @@ export class WorkspaceStore {
     const scopes = this.scopes();
     const { url: endpoint, headers } = this.draft();
     const body = bodyTexts(this.draft().body);
+    // The auth the request is sent with, its own or the one it inherits (U-130): its variables have chips too.
+    const auth = authTexts(effectiveAuth(this.draft().auth, this.saved.ancestors()).auth);
     // The variables' values are part of it: editing a value must refresh a
     // preview computed before the edit.
-    const fingerprint = JSON.stringify({ endpoint, headers, body, environmentId, scopes });
+    const fingerprint = JSON.stringify({ endpoint, headers, body, auth, environmentId, scopes });
     const tab = this.tabs.active();
     if (fingerprint === tab.previewFingerprint) {
       return;
     }
     tab.previewFingerprint = fingerprint;
     const tokens = new VariableResolver(scopes)
-      .tokens({ url: endpoint, headers, body })
+      .tokens({ url: endpoint, headers, body, auth })
       .map((token) => (token.source === "environment" ? { ...token, environmentId } : token));
     this.variableTokens.set(tokens);
     this.missingVariableKeys.set(tokens.filter((token) => token.source === "missing").map((token) => token.key));

@@ -42,9 +42,10 @@ describe("timing-bars", () => {
   it("formats sizes in binary units and stops at GB", () => {
     expect([undefined, 0, -1].map(formatBytes)).toEqual(["—", "—", "—"]);
     expect(formatBytes(512)).toBe("512 B");
-    expect(formatBytes(1536)).toBe("1.50 KB");
-    expect(formatBytes(15 * 1024)).toBe("15.0 KB");
-    expect(formatBytes(256 * 1024)).toBe("256 KB");
+    expect(formatBytes(60)).toBe("60 B");
+    expect(formatBytes(1536)).toBe("1.50 kB");
+    expect(formatBytes(15 * 1024)).toBe("15.0 kB");
+    expect(formatBytes(256 * 1024)).toBe("256 kB");
     expect(formatBytes(5 * 1024 ** 3)).toBe("5.00 GB");
     expect(formatBytes(5000 * 1024 ** 3)).toBe("5000 GB");
   });

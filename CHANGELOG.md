@@ -116,6 +116,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.
+
 - **The split between the request and the response moves without a drag.**
   A click on the left half of its line moves it a tenth of the way left, a
   click on the right half a tenth right, and a double click puts it back.
@@ -131,6 +132,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
 
+- **The Timings tab's notes say what each part is, plainly.** "The
+  browser looked up the host's address", "The browser opened the
+  connection" and so on, in sentences, where they read "Lookup time to
+  resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
+  "including headers if available" (the app knows they are included).
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was
@@ -139,6 +145,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser refused says nothing was copied. Before, the menu closed and
   nothing on the screen said whether anything was copied, or what was
   left out of it.
+- **The status line gives the response's size, always.** It showed one
+  only when the server sent `Content-Length`, so a chunked answer had
+  none; it is now the bytes that arrived when there is no header. Sizes
+  are written as `voice.md` writes them: "716 B", "2.4 kB".
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed

@@ -53,7 +53,7 @@
         @if (inspData && inspData.duration) {
         <span class="response-fact" uiTooltip="Time">{{ formatMs(inspData.duration) }}</span>
         } @if (responseContentLength()) {
-        <span class="response-fact" uiTooltip="Size">{{ formatBytes(responseContentLength()) }}</span>
+        <span class="response-fact" uiTooltip="Size of the body">{{ formatBytes(responseContentLength()) }}</span>
         } @if (route(); as route) {
         <span class="response-fact route-badge" uiTooltip="Route"
           >{{ route === 'bridge' ? 'Via bridge' : 'Direct' }}</span

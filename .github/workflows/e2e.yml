@@ -78,7 +78,8 @@ jobs:
           path: dist/
           run-id: ${{ needs.pick.outputs.run }}
           github-token: ${{ github.token }}
-      # As in ci.yml: ten minutes a try, three tries.
+      # Firefox's and WebKit's system packages come from apt, whose mirror hung for 50 minutes at a time
+      # (2026-10-26): ten minutes a try, three tries, and a try cut off leaves dpkg half done (exit 100 next).
       - name: Install ${{ matrix.browser }} and its system packages
         run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; sudo dpkg --configure -a; done; exit 1
       # Serves the downloaded build through prod-server.mjs (production

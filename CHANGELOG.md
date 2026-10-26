@@ -140,8 +140,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   design capture are a workflow of their own, run on `main` once a batch of
   work has merged; a deploy refuses a commit they have not passed, and the
   claims page names that run. Before, every pull request waited about 25
-  minutes for them, and again after each merge before it. A browser
-  install that hangs is now tried again, ten minutes a try, three tries.
+  minutes for them, and again after each merge before it. The unit tests
+  and Lighthouse no longer install system packages, whose download hung
+  for 50 minutes at a time; the browser tests' install is tried again, ten
+  minutes a try, three tries.
 
 - **Choosing a file no longer looks like the browser's own control.** A
   binary body, a file part of a multipart form and the vault's import now

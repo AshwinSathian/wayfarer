@@ -191,6 +191,11 @@ export class Composer {
     if (await this.store.reconnect()) this.newRequest.emit();
   }
 
+  /** A send that got no response, once more through the Local Bridge, which can say why (U-051). */
+  protected sendThroughBridge(): void {
+    void this.store.send({ route: "bridge" });
+  }
+
   async saveCurrentRequest(): Promise<void> {
     if (this.tabs.active().run) return;
     await this.requestSave.save(this.store.snapshot(), this.store.scriptsAllowed());

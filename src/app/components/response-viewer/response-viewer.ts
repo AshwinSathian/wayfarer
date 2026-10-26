@@ -121,6 +121,9 @@ export class ResponseViewer {
   readonly responseStatusCode = input<number>();
   readonly responseStatusText = input<string>();
   readonly isError = input(false);
+  /** No response arrived: what the browser reported, quoted as it came, beside the Local Bridge (U-051). */
+  readonly noResponse = input("");
+  readonly sendThroughBridge = output<void>();
   readonly inspection = input<Signal<ResponseInspection | null> | null>();
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);

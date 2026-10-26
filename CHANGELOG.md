@@ -80,6 +80,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A send that got no response says so in the app's own words, and
+  nothing stands in for the server.** The status line reads "No
+  response", the pane says what the browser cannot tell apart (a name
+  that does not resolve, a refused connection, or CORS), quotes what the
+  browser reported ("Failed to fetch" in Chrome), and offers Send through
+  the Local Bridge, which can tell. An offline browser is said so. Before,
+  the app drew "0 Unknown Error" as if a server had sent it, and history,
+  HAR exports and runs kept those words. An error status with an empty
+  body now says "No body returned." instead of a sentence the app made
+  up, and a server's body is shown in its own colour, not red.
 - **What a control says is the start of its name, so voice control finds
   it by what is on the screen.** Settings' "Clear…", "Manage…" and
   "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all

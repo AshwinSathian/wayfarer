@@ -66,6 +66,16 @@ export function resolveAuth(auth: AuthConfig, resolve: (text: string) => string)
   }
 }
 
+/** Every text of an auth that goes on the wire, as written: where its `{{variables}}` are. */
+export function authTexts(auth: AuthConfig): string[] {
+  const texts: string[] = [];
+  resolveAuth(auth, (text) => {
+    texts.push(text);
+    return text;
+  });
+  return texts;
+}
+
 /**
  * The auth a request is sent with (P4.9): its own unless it inherits, then
  * that of the nearest folder that does not inherit, then the collection's.

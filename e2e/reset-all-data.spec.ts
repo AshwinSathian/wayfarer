@@ -32,7 +32,7 @@ test("@claim:C-013 Reset All Data in one tab deletes the data and tells the othe
   await resetAllData(pageA);
   await reloaded;
 
-  await expect(pageB.getByText(/Data was reset in another tab/)).toBeVisible();
+  await expect(pageB.getByRole("alert").filter({ hasText: "The data was reset in another tab." })).toBeVisible();
   await expect(pageA.getByText("Requests you save are kept here, in collections.")).toBeVisible();
   await expect(pageA.getByText("Reset me", { exact: true })).toHaveCount(0);
 });

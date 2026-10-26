@@ -41,7 +41,9 @@ test("@claim:C-053 a pre-request script moved a request with a vault secret to a
 
   await question.getByRole("button", { name: "Don't send", exact: true }).click();
   await expect(
-    page.getByText("The request was not sent, and what the pre-request script set was undone."),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "The request was not sent, and what the pre-request script set was undone." }),
   ).toBeVisible();
   await expect.poll(variables).toContain(`"key":"base","value":"${TARGET}"`);
   expect(await variables()).not.toContain("set-by-the-script");
@@ -87,7 +89,9 @@ test("@claim:C-053 the comparison starts before the first inherited script: a co
   // No: nothing is sent, and what both inherited scripts set is put back.
   await question.getByRole("button", { name: "Don't send", exact: true }).click();
   await expect(
-    page.getByText("The request was not sent, and what the pre-request script set was undone."),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "The request was not sent, and what the pre-request script set was undone." }),
   ).toBeVisible();
   await expect.poll(variables).toContain(`"key":"base","value":"${TARGET}"`);
   expect(await variables()).not.toContain("set-by-the-folder");

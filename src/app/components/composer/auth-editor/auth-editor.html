@@ -178,7 +178,11 @@
   } @if (currentAuth.type === 'inherit') {
   <div class="auth-inherited flex items-center gap-2.5">
     <app-icon name="info" class="icon-sm text-label-tertiary" />
-    <p class="type-callout text-label-secondary">{{ inheritedLine() }}</p>
+    <p class="type-callout text-label-secondary"
+      >{{ inheritedLine() }}@if (valueSources()) {
+      <span class="auth-value-sources">{{ ' ' + valueSources() }}</span>
+      }</p
+    >
   </div>
   @if (subject() === 'request' && inherited().auth.type === 'oauth2') {
   <app-oauth-token />

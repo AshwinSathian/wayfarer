@@ -68,7 +68,9 @@ test.describe("Phase 0 tripwires", () => {
     const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
     await expect(dialog).toBeVisible();
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    await expect(page.getByText(/uses a vault secret and the vault is locked/)).toBeVisible();
+    await expect(
+      page.getByRole("alert").filter({ hasText: /uses a vault secret and the vault is locked/ }),
+    ).toBeVisible();
 
     // With the vault open, the secret this variable names is not in it (it was
     // deleted, or the environment came from elsewhere). The reference is the
@@ -77,7 +79,9 @@ test.describe("Phase 0 tripwires", () => {
     await dialog.locator("input[type='password']").nth(0).fill("correct horse battery staple");
     await dialog.locator("input[type='password']").nth(1).fill("correct horse battery staple");
     await dialog.getByRole("button", { name: "Create vault" }).click();
-    await expect(page.getByText(/refers to a vault secret that could not be read/)).toBeVisible();
+    await expect(
+      page.getByRole("alert").filter({ hasText: /refers to a vault secret that could not be read/ }),
+    ).toBeVisible();
 
     // A fix that shows the error but still sends in the background must fail:
     // give any in-flight send time to reach the wire before asserting.

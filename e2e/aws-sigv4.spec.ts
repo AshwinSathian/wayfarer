@@ -144,9 +144,10 @@ test("@claim:C-061 AWS Signature cannot sign a multipart form: the send is refus
   );
   await send(page);
   await expect(
-    page.getByText(
-      "AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign.",
-    ),
+    page.getByRole("alert").filter({
+      hasText:
+        "AWS Signature cannot sign a multipart form: the browser writes the form's boundary as it sends, so the app does not have the bytes to sign.",
+    }),
   ).toBeVisible();
   expect(arrived).toEqual([]);
 });

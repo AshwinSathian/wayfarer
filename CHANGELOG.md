@@ -80,6 +80,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **A screen reader hears what a send did, and every error that appears
+  after an action.** The response pane says "Sending…" when a send starts
+  and then the status line's words, "200 OK, 16.3 ms, Direct", or the
+  first sentence of what went wrong. The address's error, a wrong
+  passphrase, the import report and the banners (an update, the backup
+  reminder, storage refused, a reset in another tab) are read out when
+  they appear, and the field they are about is marked and points to them.
+  Before, these were drawn in places a screen reader was not told about,
+  so a send ended in silence.
+
 - **A send that got no response says so in the app's own words, and
   nothing stands in for the server.** The status line reads "No
   response", the pane says what the browser cannot tell apart (a name

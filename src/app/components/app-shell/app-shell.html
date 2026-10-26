@@ -230,12 +230,13 @@
       <div
         [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'"
       >
+        <!-- The banners' live regions, there from the first render: a region made with its message is often not
+             heard (U-075). The banners below are what the eye reads; their text is said once, here. -->
+        <p class="sr-only" role="status">{{ bannerStatus() }}</p>
+        <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
         @if (swUpdate.updateAvailable()) {
-        <div
-          role="status"
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator"
-        >
-          <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
+        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
+          <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -246,14 +247,8 @@
           >
         </div>
         } @if (backup.reminderDue()) {
-        <div
-          role="status"
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator"
-        >
-          <p class="type-callout text-label-secondary"
-            >It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can
-            delete it.</p
-          >
+        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
+          <p class="type-callout text-label-secondary" aria-hidden="true">{{ banners.backup }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -268,29 +263,22 @@
         </div>
         } @if (dataResetElsewhere()) {
         <div
-          role="alert"
           class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
         >
-          <p class="type-callout text-status-warning"
-            >Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p
-          >
+          <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.resetElsewhere }}</p>
           <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()"
             >Reload</button
           >
         </div>
         } @if (storageUnavailable()) {
-        <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-          <p class="type-callout text-status-warning"
-            >This browser is not letting Wayfarer store data (a private window, or storage blocked for this site).
-            History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p
-          >
+        <div class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.storage }}</p>
         </div>
         } @if (resetError()) {
         <div
-          role="alert"
           class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border"
         >
-          <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
+          <p class="type-callout text-status-error" aria-hidden="true">{{ resetErrorText() }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -402,6 +390,9 @@
         [ngModel]="unlockPassphrase()"
         (ngModelChange)="unlockPassphrase.set($event)"
         [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+        [attr.aria-label]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+        [attr.aria-invalid]="unlockError() ? 'true' : null"
+        [attr.aria-describedby]="unlockError() ? 'vault-error' : null"
         (keydown.enter)="unlockSecrets()"
       />
       @if (isFirstVaultSetup()) {
@@ -417,8 +408,10 @@
       }
     </div>
 
+    <!-- There while the dialog is open, so the error is heard when it appears (U-062). -->
+    <p id="vault-error" class="sr-only" role="alert">{{ unlockError() }}</p>
     @if (unlockError()) {
-    <p class="type-footnote text-status-error flex items-center gap-1.5">
+    <p class="type-footnote text-status-error flex items-center gap-1.5" aria-hidden="true">
       <app-icon name="error" class="icon-xs" />
       {{ unlockError() }}
     </p>

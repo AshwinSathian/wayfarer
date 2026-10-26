@@ -182,7 +182,9 @@ test("P3.9: a pre-request script that fails stops the send, and the Tests tab sh
     },
   );
   await send(page);
-  await expect(page.getByText("The pre-request script failed, so the request was not sent.")).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "The pre-request script failed, so the request was not sent." }),
+  ).toBeVisible();
   // The Tests tab is open by itself: there is no response to look at.
   const failed = page.locator(".test-result-fail", { hasText: "Pre-request script" });
   await expect(failed).toContainText("'notDefined' is not defined");

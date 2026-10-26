@@ -211,11 +211,16 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
   const version = /version":"([0-9a-f]+)/.exec(await readFile(join(root, "app/sw.js"), "utf8"))?.[1];
 
   await page.goto(`${base}/app/`);
-  const banner = page.getByRole("status").filter({ hasText: "Update available" });
-  await expect(banner).toBeVisible();
+  // Said by the shell's live region (U-075), and drawn as a banner with its button.
+  await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(1);
+  const banner = page
+    .locator("main div")
+    .filter({ hasText: "Update available" })
+    .filter({ has: page.getByRole("button") });
+  await expect(banner.last()).toBeVisible();
 
   const reloaded = page.waitForEvent("load");
-  await banner.getByRole("button", { name: "Reload" }).click();
+  await banner.last().getByRole("button", { name: "Reload" }).click();
   await reloaded;
   await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(0);
   expect(await page.evaluate(() => caches.keys())).toEqual([`wayfarer-${version}`]);

@@ -140,6 +140,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser refused says nothing was copied. Before, the menu closed and
   nothing on the screen said whether anything was copied, or what was
   left out of it.
+- **The status line gives the response's size, always.** It showed one
+  only when the server sent `Content-Length`, so a chunked answer had
+  none; it is now the bytes that arrived when there is no header. Sizes
+  are written as `voice.md` writes them: "716 B", "2.4 kB".
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed

@@ -83,7 +83,7 @@ async function importAndTrust(user: User): Promise<void> {
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await user.click(button(dialog, "Confirm import"));
+  await user.click(button(dialog, "Import"));
   await expect(dialog).toHaveCount(0);
   // A run does not offer the review: it sends without the scripts. The review is in a request's Scripts tab.
   await user.click(page.getByRole("tree").getByText("List orders", { exact: true }));

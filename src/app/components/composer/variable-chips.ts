@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/cor
 import { VariableFocus } from "../../services/variable-focus";
 import { VariableToken } from "../../services/variable-focus";
 import { WorkspaceStore } from "../../state/workspace-store";
+import { UiTooltip } from "../../ui/tooltip";
 
 /** One chip per `{{variable}}` in the draft, with its source and value. */
 @Component({
   selector: "app-variable-chips",
+  imports: [UiTooltip],
   templateUrl: "./variable-chips.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

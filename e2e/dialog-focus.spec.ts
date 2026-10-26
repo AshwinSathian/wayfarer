@@ -27,7 +27,7 @@ test("a dialog closed over another leaves focus in the one under it, so Escape s
   ]);
   await chooser.setFiles(file);
   const report = page.getByRole("dialog", { name: "Import environments" });
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   await expect.poll(() => settings.evaluate((dialog) => dialog.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Escape");

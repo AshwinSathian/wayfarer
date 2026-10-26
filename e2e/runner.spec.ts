@@ -357,7 +357,7 @@ test("an imported Postman file keeps its order, requests before and between fold
   await page
     .locator('app-collections-sidebar input[type="file"]')
     .setInputFiles(join(FIXTURES, "order.postman_collection.json"));
-  await page.getByRole("dialog").getByRole("button", { name: "Confirm import" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Import", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // The list: one order for a folder's folders and requests, a folder inside its folder.
@@ -465,7 +465,7 @@ test("a folder is copied and deleted with the folders inside it: the copy holds 
   await page
     .locator('app-collections-sidebar input[type="file"]')
     .setInputFiles(join(FIXTURES, "order.postman_collection.json"));
-  await page.getByRole("dialog").getByRole("button", { name: "Confirm import" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Import", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   const tree = page.getByRole("tree");
   const item = (name: string) => treeRow(tree, name);

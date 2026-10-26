@@ -95,14 +95,14 @@ test("@claim:C-054 an import shows what it will add and what it could not keep b
   // The report is on screen and nothing is stored yet.
   expect(await stored(page)).toBe(before);
 
-  await report.getByRole("button", { name: "Cancel import" }).click();
+  await report.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(report).toHaveCount(0);
   expect(await stored(page)).toBe(before);
   await expect(page.getByText("Imported collection", { exact: true })).toHaveCount(0);
 
   // Chosen again and confirmed: it is stored, untrusted, with its scripts not approved.
   await pick(page, file("shared.json", collection([request("r-1", "Plain")])));
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   await expect(page.getByText("Imported collection", { exact: true })).toBeVisible();
   const after = await dumpIdb(page);
@@ -123,13 +123,13 @@ test("a file of no known format is refused with a message that names the formats
   await expect(refused.getByRole("alert")).toContainText(
     'It reads a Wayfarer collection ("$id": "wayfarer/collection"), a Wayfarer environments file ("$id": "wayfarer/environments"), a Postman collection (v2.0 or v2.1), a Postman environment or globals file, an Insomnia export (format 4 or 5, JSON or YAML), an OpenAPI 3.0 or 3.1 or Swagger 2.0 description (JSON or YAML), a HAR 1.2 file, and a cURL command.',
   );
-  await expect(refused.getByRole("button", { name: "Confirm import" })).toBeDisabled();
-  await refused.getByRole("button", { name: "Cancel import" }).click();
+  await expect(refused.getByRole("button", { name: "Import", exact: true })).toBeDisabled();
+  await refused.getByRole("button", { name: "Cancel", exact: true }).click();
 
   // A file of a known format with a wrong field: each problem by its path.
   await pick(page, file("broken.json", collection([request("r-1", "Broken", { method: "get it" })])));
   await expect(refused.getByRole("alert")).toContainText("requests[0].method — Value must be an HTTP method");
-  await refused.getByRole("button", { name: "Cancel import" }).click();
+  await refused.getByRole("button", { name: "Cancel", exact: true }).click();
   expect(await stored(page)).toBe(before);
 });
 
@@ -142,7 +142,7 @@ test("one road: a collection file picked with the Environments panel's Import is
   await page
     .locator('app-environments-manager input[type="file"]')
     .setInputFiles(file("shared.json", collection([request("r-1", "Plain")])));
-  await dialog(page).getByRole("button", { name: "Confirm import" }).click();
+  await dialog(page).getByRole("button", { name: "Import", exact: true }).click();
   await expect(page.getByText("Imported collection", { exact: true })).toBeVisible();
 });
 
@@ -235,7 +235,7 @@ test("5,000 requests in one file import, and the page says how long it took", as
     { timeout: 60_000 },
   );
   const reported = Date.now();
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0, { timeout: 60_000 });
   await expect(page.getByText("Imported collection", { exact: true })).toBeVisible({ timeout: 60_000 });
   const done = Date.now();
@@ -327,7 +327,7 @@ test("@claim:C-058 a Postman collection imports with a report of what could not 
   await expect(report.locator(".import-warnings")).toContainText('collection "Shop API". 1 saved response is left out');
   expect(await stored(page)).toBe(before);
 
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   const after = await dumpIdb(page);
   expect(after["collections"]).toMatchObject([
@@ -386,12 +386,12 @@ test("@claim:C-058 a Postman environment imports as an environment, and Postman'
   );
   const report = dialog(page, "Import environments");
   await expect(report.locator(".import-report")).toContainText("Postman environment");
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
 
   await pick(page, file("workspace.postman_globals.json", [{ key: "g", value: "1", enabled: true }]));
   await expect(report.locator(".import-warnings")).toContainText("Postman's globals are imported as an environment");
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
 
   const environments = (await dumpIdb(page))["environments"] as { name: string; vars: unknown[] }[];

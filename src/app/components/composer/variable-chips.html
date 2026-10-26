@@ -3,7 +3,7 @@
   class="var-chip var-{{ token.source === 'missing' ? 'missing' : token.source === 'environment' ? 'environment' : 'request' }}"
   role="button"
   tabindex="0"
-  [attr.aria-label]="'Variable ' + token.key + ', source ' + token.source + '. Activate to locate.'"
+  [uiTooltip]="token.source === 'environment' ? 'Show ' + token.key + ' in its environment.' : ''"
   (click)="handleVariableChipClick(token)"
   (keydown.enter)="handleVariableChipClick(token)"
   (keydown.space)="$event.preventDefault(); handleVariableChipClick(token)"

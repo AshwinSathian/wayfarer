@@ -326,6 +326,23 @@ test("a response from the app's own origin has no such note", async ({ page, bas
   await expectNoViolations(page);
 });
 
+// U-058: on a phone each header was two columns of about 110 px, and a name broke after every hyphen.
+test("on a phone a response's header name is on one line, over its value", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?u058=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.getByRole("tab", { name: "Headers", exact: true }).last().click();
+  const name = page.locator(".response-headers th", { hasText: "access-control-allow-credentials" });
+  await expect(name).toBeVisible();
+  // One line of text and its padding: two lines would be more than twice the font's size.
+  const [height, size] = await name.evaluate((el) => [
+    el.getBoundingClientRect().height,
+    parseFloat(getComputedStyle(el).fontSize),
+  ]);
+  expect(height).toBeLessThan(size * 2 + 8);
+});
+
 // U-031: every rival shows a response's size; a chunked answer (the echo server's) has no Content-Length.
 test("the status line gives the response's size, also when the server sent no Content-Length", async ({ page }) => {
   await page.goto("/app/");

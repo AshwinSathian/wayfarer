@@ -335,7 +335,7 @@
                 </p>
                 }
                 <div
-                  class="max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden"
+                  class="response-headers max-h-72 overflow-y-auto rounded-xl border border-separator overflow-hidden"
                   role="region"
                   aria-label="Response headers"
                   tabindex="0"
@@ -347,7 +347,7 @@
                       @for (header of responseHeaders(); track $index) {
                       <tr>
                         <th>{{ header.name }}</th>
-                        <td class="break-all font-mono">{{ header.value || '—' }}</td>
+                        <td class="font-mono">{{ header.value || '—' }}</td>
                       </tr>
                       }
                     </tbody>

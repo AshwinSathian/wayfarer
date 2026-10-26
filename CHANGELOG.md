@@ -280,6 +280,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   the request and the response are two tabs, and sending opens the
   response; before, the response was below every part of the request.
 
+- **On a phone a response's headers read as name over value.** Each
+  header had two columns of about 110 px, so
+  `access-control-allow-credentials` broke after every hyphen and a value
+  broke inside its words ("DELE TE"). In a narrow pane a header is now two
+  lines, and a long name or value breaks inside a word only when nothing
+  else fits.
+
 - **A new request is a new tab.** The address row's + and "Start a new
   request instead" are gone: both emptied the tab you were in. New tab
   (the + beside the tabs, or ⌥T or Alt+T) is the one way to start a request, and the

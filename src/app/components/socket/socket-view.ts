@@ -4,7 +4,6 @@ import { DatePipe } from "@angular/common";
 import { UiButton } from "../../ui/button";
 import { UiCheckbox } from "../../ui/checkbox";
 import { UiInput } from "../../ui/input";
-import { UiSpinner } from "../../ui/spinner";
 import { UiSegmented, type UiSegment } from "../../ui/segmented";
 import { UiTooltip } from "../../ui/tooltip";
 import { SocketClient } from "../../services/socket-client";
@@ -18,7 +17,7 @@ import { Tabs } from "../../state/tabs";
  */
 @Component({
   selector: "app-socket-view",
-  imports: [DatePipe, Icon, UiButton, UiCheckbox, UiInput, UiSegmented, UiSpinner, UiTooltip],
+  imports: [DatePipe, Icon, UiButton, UiCheckbox, UiInput, UiSegmented, UiTooltip],
   templateUrl: "./socket-view.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

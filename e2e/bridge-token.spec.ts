@@ -49,7 +49,9 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   await send(page);
   await expect(
-    page.getByText("The Local Bridge is on, and its token is not in this tab.", { exact: false }),
+    page
+      .locator(".response-announcement")
+      .filter({ hasText: "The Local Bridge is on, and its token is not in this tab." }),
   ).toBeVisible();
   expect(relayed).toBe(0);
   // The pane has no token to show either.

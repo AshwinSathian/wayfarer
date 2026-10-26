@@ -56,7 +56,7 @@ test("a wrong passphrase is refused when the vault holds no secret", async ({ pa
   await lockButton(page).click();
 
   await unlock(page, "not the passphrase");
-  await expect(page.getByText("Incorrect passphrase. Please try again.")).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "That passphrase does not open the vault." })).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(unlockButton(page)).toBeVisible();
@@ -120,7 +120,9 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await secrets.getByLabel("New passphrase", { exact: true }).fill("a new passphrase");
   await secrets.getByLabel("Confirm new passphrase").fill("a new passphrase");
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
-  await expect(secrets.getByText("Incorrect passphrase. Nothing was changed.")).toBeVisible();
+  await expect(
+    secrets.getByRole("alert").filter({ hasText: "Incorrect passphrase. Nothing was changed." }),
+  ).toBeVisible();
 
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
@@ -132,7 +134,7 @@ test("the passphrase can be changed: the old one stops working and the secret is
 
   await lockButton(page).click();
   await unlock(page, PASSPHRASE);
-  await expect(page.getByText("Incorrect passphrase. Please try again.")).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "That passphrase does not open the vault." })).toBeVisible();
   const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
   await dialog.locator("input[type='password']").fill("a new passphrase");
   await dialog.getByRole("button", { name: "Unlock secrets" }).click();

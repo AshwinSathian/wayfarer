@@ -58,7 +58,9 @@ test.describe("Transport on fetch (P2.3)", () => {
     await expect(page.getByRole("button", { name: "Send request" })).toHaveCount(0);
     await cancel.click();
 
-    await expect(page.getByText("The request was cancelled.")).toBeVisible({ timeout: 200 });
+    await expect(page.locator(".response-announcement").filter({ hasText: "The request was cancelled." })).toBeVisible({
+      timeout: 200,
+    });
     await expect(page.getByRole("button", { name: "Send request" })).toBeEnabled();
     await expect(cancel).toHaveCount(0);
     expect(await violations(page)).toEqual([]);
@@ -78,7 +80,9 @@ test.describe("Transport on fetch (P2.3)", () => {
     const started = Date.now();
     await sendTo(page, `${ECHO}/delay/5000`);
 
-    await expect(page.getByText("Timed out after 1000 ms")).toBeVisible({ timeout: 3000 });
+    await expect(page.locator(".response-announcement").filter({ hasText: "Timed out after 1000 ms" })).toBeVisible({
+      timeout: 3000,
+    });
     expect(Date.now() - started).toBeLessThan(4000);
     await expect(page.getByRole("button", { name: "Send request" })).toBeEnabled();
     expect(await violations(page)).toEqual([]);

@@ -131,7 +131,8 @@ describe("CollectionRunner", () => {
     await done;
     expect(run.results()[0]).toMatchObject({
       name: "Bad",
-      error: "The address is not a URL a request can go to. Write it as https://host/path.",
+      error:
+        "{{nowhere}} has no value, so the address is not complete. Give it a value in an environment or the collection.",
       tests: [],
     });
     expect(run.results()[0].status).toBeUndefined();

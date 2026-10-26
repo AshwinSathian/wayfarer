@@ -126,6 +126,8 @@ export function loadMonaco(): Promise<MonacoEditorModule> {
         environmentConfigured = true;
       }
 
+      // The app's monospace is measured once it has loaded; an editor made before then would keep its fallback's widths.
+      void document.fonts.ready.then(() => monaco.editor.remeasureFonts());
       loadedMonaco = monaco;
       return monaco;
     })();
@@ -165,6 +167,12 @@ export function defineSandboxThemes(monaco: MonacoEditorModule): void {
         "scrollbarSlider.background": t["scrollbar-thumb"],
         "scrollbarSlider.hoverBackground": t["scrollbar-thumb-hover"],
         "scrollbarSlider.activeBackground": t["scrollbar-thumb-hover"],
+        // The editor's host draws the app's focus ring (:focus-within); Monaco's own 1 px blue line is not drawn (U-052).
+        focusBorder: "#00000000",
+        // Brackets in the text's own colour (U-038), whichever depth: Monaco's were #0431fa, #319331 and #7b3814.
+        ...Object.fromEntries(
+          [1, 2, 3, 4, 5, 6].map((depth) => [`editorBracketHighlight.foreground${depth}`, t["label-primary"]]),
+        ),
       },
     });
   }
@@ -179,6 +187,35 @@ function withAlpha(hex: string, alpha: number): string {
       .padStart(2, "0")
       .toUpperCase()
   );
+}
+
+/**
+ * What every editor is set in (U-052, U-038): the app's monospace at its body
+ * size, as every value a person types or a server sends is, and brackets in
+ * the text's own colour. Monaco cannot read a CSS variable: the page's values
+ * are read when an editor is made.
+ */
+export function editorText(): {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  fontLigatures: false;
+  bracketPairColorization: { enabled: false };
+} {
+  const style = getComputedStyle(document.documentElement);
+  const px = (name: string, fallback: number) => {
+    const value = style.getPropertyValue(name).trim();
+    const n = parseFloat(value);
+    if (!Number.isFinite(n)) return fallback;
+    return value.endsWith("rem") ? n * parseFloat(style.fontSize) : n;
+  };
+  return {
+    fontFamily: style.getPropertyValue("--font-mono").trim() || "monospace",
+    fontSize: px("--type-mono-body-size", 13),
+    lineHeight: px("--type-mono-body-line", 20),
+    fontLigatures: false,
+    bracketPairColorization: { enabled: false },
+  };
 }
 
 export function monacoThemeName(theme: "dark" | "light"): string {

@@ -80,6 +80,38 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Tab goes from a tab straight to what is in its pane.** A pane that
+  holds a control is no longer a stop of its own on the way, so a walk
+  through the composer with Tab has three fewer empty stops. A pane with
+  nothing to focus in it is still one, so its text can be scrolled to.
+
+- **A screen reader hears what a send did, and every error that appears
+  after an action.** The response pane says "Sending…" when a send starts
+  and then the status line's words, "200 OK, 16.3 ms, Direct", or the
+  first sentence of what went wrong. The address's error, a wrong
+  passphrase, the import report and the banners (an update, the backup
+  reminder, storage refused, a reset in another tab) are read out when
+  they appear, and the field they are about is marked and points to them.
+  Before, these were drawn in places a screen reader was not told about,
+  so a send ended in silence.
+
+- **A send that got no response says so in the app's own words, and
+  nothing stands in for the server.** The status line reads "No
+  response", the pane says what the browser cannot tell apart (a name
+  that does not resolve, a refused connection, or CORS), quotes what the
+  browser reported ("Failed to fetch" in Chrome), and offers Send through
+  the Local Bridge, which can tell. An offline browser is said so. Before,
+  the app drew "0 Unknown Error" as if a server had sent it, and history,
+  HAR exports and runs kept those words. An error status with an empty
+  body now says "No body returned." instead of a sentence the app made
+  up, and a server's body is shown in its own colour, not red.
+
+- **`npm audit` reports 0 again.** Advisories published on 2026-10-26
+  and 2026-10-27: DOMPurify 3.4.16 (one critical, one high; it comes with
+  Monaco) is 3.4.17 through the existing override, undici 7.29.1 (high;
+  wrangler's, used only to deploy) is 7.30.1 with wrangler 4.153.0, and
+  fast-uri 3.1.8 (moderate; Stryker's) is 3.1.9.
+
 - **What a control says is the start of its name, so voice control finds
   it by what is on the screen.** Settings' "Clear…", "Manage…" and
   "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all
@@ -90,6 +122,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   "Locate apiKey in environment Staging" and so on, which a person saying
   what they see did not reach. The import report now starts with the
   keyboard on Import.
+
+- **The Auth tab says where a token's value comes from, not only where the
+  auth is set.** A request that inherits a bearer token from its
+  collection now reads, for instance, "Bearer token is sent, from
+  collection "Shop". {{token}} comes from the environment Local, as a
+  vault secret." Before, it named only the collection, even when the
+  environment's vault secret was what went out. The variables of the auth
+  a request is sent with now have chips under the address, like those of
+  the address, the headers and the body, and a variable whose value is a
+  vault secret says "From the vault" there.
+
 - **The environment editor no longer throws away what you typed.** Each
   variable, the name and the description are saved as you leave the
   field, so closing the editor with × or Escape, or choosing another
@@ -113,11 +156,43 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   vault, the row marks the variable once you unlock it. A row with no
   name or no value says why it cannot be marked, and Add variable puts
   the keyboard in the new row.
+
+- **A save that does not land says so.** When the browser refuses to write
+  a request, or the request was deleted in another tab, the line under the
+  address now says which, and your edits stay. Before, the only sign was
+  that the tab's unsaved dot stayed. Save also keeps the keyboard while it
+  saves: it used to be switched off for that moment, which sent focus to
+  the page, so the next key went nowhere.
+
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.
 
+- **The split between the request and the response moves without a drag.**
+  A click on the left half of its line moves it a tenth of the way left, a
+  click on the right half a tenth right, and a double click puts it back.
+  Before, it moved only by dragging or with the arrow keys.
+
 ### Changed
+
+- **A send's answer appears the moment it arrives.** The response, its
+  status line and a tab's pane no longer fade in, and a request on its way
+  shows nothing for its first second, then "Sending…" and the time so far.
+  Before, every send flashed grey loading bars and faded the answer in
+  over 300 ms, so a 16 ms reply looked slower than the network was. Send
+  no longer shrinks while it is pressed, the chips no longer lift when the
+  pointer is on them, showing the sidebar no longer slides the page, and a
+  change of theme no longer fades the colour of every button.
+
+- **The browser tests run by hand, before a deploy, not on each pull
+  request.** End-to-end tests in Chromium, Firefox and WebKit and the
+  design capture are a workflow of their own, run on `main` once a batch of
+  work has merged; a deploy refuses a commit they have not passed, and the
+  claims page names that run. Before, every pull request waited about 25
+  minutes for them, and again after each merge before it. The unit tests
+  and Lighthouse no longer install system packages, whose download hung
+  for 50 minutes at a time; the browser tests' install is tried again, ten
+  minutes a try, three tries.
 
 - **Choosing a file no longer looks like the browser's own control.** A
   binary body, a file part of a multipart form and the vault's import now
@@ -127,6 +202,18 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
 
+- **A send held back by a variable with no value says so, once.** With
+  `{{base}}` unset, Send now says "{{base}} has no value, so the address
+  is not complete." Before, it said the address was not a URL, a line
+  below repeated "Missing: base", and the chip said it a third time; the
+  chip stays. With an address typed and nothing sent yet, the response
+  pane now offers Send and its keys, not a cURL command and an import.
+
+- **The Timings tab's notes say what each part is, plainly.** "The
+  browser looked up the host's address", "The browser opened the
+  connection" and so on, in sentences, where they read "Lookup time to
+  resolve the host name to an IP address", "TLS/SSL if HTTPS is used" and
+  "including headers if available" (the app knows they are included).
 - **A copy says what it copied.** Copy as cURL, the code copies and the
   response's Copy as cURL and Copy as HAR now say, for a few seconds, what
   went to the clipboard: "Copied as cURL.", and when something in it was
@@ -135,6 +222,17 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser refused says nothing was copied. Before, the menu closed and
   nothing on the screen said whether anything was copied, or what was
   left out of it.
+
+- **A field's placeholder is in the app's face.** "Type an address, or
+  paste a cURL command", "Key" and "Value" were drawn in the monospace that
+  the app keeps for what is typed and sent, so the app's own words looked
+  like a value. A placeholder that shows an example of the value, such as
+  `us-east-1` or an identity provider's address, stays in monospace.
+
+- **The status line gives the response's size, always.** It showed one
+  only when the server sent `Content-Length`, so a chunked answer had
+  none; it is now the bytes that arrived when there is no header. Sizes
+  are written as `voice.md` writes them: "716 B", "2.4 kB".
 - **Reviewing a collection's scripts shows each one on its own.** The
   review lists every script under the name of its request, folder or
   collection, marks the ones you have not reviewed before (new, or changed
@@ -144,6 +242,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   reader) is written as its code point, with a warning. Before, every script was
   run together in one editor, each under a comment line, with no mark on
   any of them.
+
+- **The editors are set in the app's monospace, with plain brackets.** A
+  response's JSON, a body, the scripts and the review of scripts were drawn
+  in a proportional face (Inter), because the app gave every element its
+  own face and Monaco's lines took it instead of the editor's; brackets were
+  in Monaco's blue, green and brown by depth, and a focused editor drew
+  its own thin blue line beside the app's focus ring. Now the editor's text
+  is JetBrains Mono at the app's size, its brackets are the text's colour,
+  and only the app's ring shows focus.
 
 - **OAuth 2.0's redirect URI and Get token come first.** With the
   authorization code grant, the redirect URI to register with the identity
@@ -156,6 +263,7 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 - **A double click on Send sends.** Send turns into Cancel while a
   request is on its way, so the second click of a double click stopped the
   request the first had sent. The second click now does nothing.
+
 - **A fetched GraphQL schema is shown above the query.** After Fetch
   schema, its types are listed in a box of their own under the button, with
   the app's chevrons instead of the browser's triangles; before, the list

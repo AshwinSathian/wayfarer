@@ -11,6 +11,7 @@ import { ComposerView } from "./composer-view";
     <app-auth-editor
       [auth]="store.draft().auth"
       [inherited]="store.inheritedAuth()"
+      [valueSources]="store.authValueSources()"
       [showPassword]="view.showAuthPassword()"
       (authTypeChange)="view.onAuthTypeChange($event)"
       (authChange)="store.patch({ auth: $event })"

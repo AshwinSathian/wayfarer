@@ -21,6 +21,7 @@ import {
   jsonDefaults,
   loadMonaco,
   loadedMonaco,
+  editorText,
   monacoThemeName,
   waitForNonZeroWidth,
 } from "../../shared/monaco/monaco-loader";
@@ -206,6 +207,7 @@ export class JsonEditor implements ControlValueAccessor, Validator, OnChanges, O
       this.model ?? monaco.editor.createModel(this.internalValue, monacoLanguage(this.language()), undefined);
 
     this.editorInstance = monaco.editor.create(host.nativeElement, {
+      ...editorText(),
       model: this.model,
       automaticLayout: true,
       minimap: { enabled: false },

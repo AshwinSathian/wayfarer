@@ -5,11 +5,17 @@ import { recordDiagnostic } from "../services/diagnostics";
 const GUTTER = 8;
 /** One arrow key press, as a share of the splitter's width. */
 const KEY_STEP = 0.02;
+/** One click on a side of the gutter, as a share of the splitter's width. */
+const CLICK_STEP = 0.1;
+/** A pointer that moved less than this between press and release clicked; more, it dragged. */
+const CLICK_SLOP = 3;
 
 /**
  * Two panes side by side with a draggable gutter between them (WAI-ARIA
  * window splitter pattern). Drag the gutter, or focus it and use the arrow
- * keys, Home and End.
+ * keys, Home and End. Without a drag (WCAG 2.5.7, U-064): a click on the
+ * gutter's left half moves it left, on its right half right, and a double
+ * click puts the sizes back as they were given.
  *
  *   <ui-splitter storageKey="app:split" [sizes]="[55, 45]" [minSizes]="[28, 22]" ariaLabel="Resize panes">
  *     <div uiSplitterStart>…</div>
@@ -37,6 +43,7 @@ const KEY_STEP = 0.02;
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
       (keydown)="onKeydown($event)"
+      (dblclick)="reset()"
     ></div>
     <div class="ui-splitter-pane" [style.flex-basis]="basis(1)"><ng-content select="[uiSplitterEnd]" /></div>
   `,
@@ -52,6 +59,9 @@ export class Splitter implements OnInit {
   protected readonly current = signal<readonly [number, number]>([50, 50]);
   /** Where inside the gutter the pointer took hold, while dragging. */
   protected readonly grabOffset = signal<number | null>(null);
+  /** Where the pointer was pressed, and whether it has moved enough since to be a drag. */
+  private pressedAt = 0;
+  private dragged = false;
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
 
   ngOnInit(): void {
@@ -72,6 +82,8 @@ export class Splitter implements OnInit {
     const gutter = event.currentTarget as HTMLElement;
     gutter.setPointerCapture(event.pointerId);
     this.grabOffset.set(event.clientX - gutter.getBoundingClientRect().left);
+    this.pressedAt = event.clientX;
+    this.dragged = false;
     // No text selection while dragging.
     event.preventDefault();
     gutter.focus({ preventScroll: true });
@@ -80,13 +92,25 @@ export class Splitter implements OnInit {
   protected onPointerMove(event: PointerEvent): void {
     const offset = this.grabOffset();
     if (offset === null) return;
+    if (Math.abs(event.clientX - this.pressedAt) < CLICK_SLOP && !this.dragged) return;
+    this.dragged = true;
     this.setStartWidth(event.clientX - offset - this.host.nativeElement.getBoundingClientRect().left);
   }
 
   protected onPointerUp(event: PointerEvent): void {
     if (this.grabOffset() === null) return;
-    (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+    const gutter = event.currentTarget as HTMLElement;
+    gutter.releasePointerCapture(event.pointerId);
     this.grabOffset.set(null);
+    if (!this.dragged && event.type === "pointerup") {
+      // A click: a step towards the side of the gutter it landed on.
+      const { left, width } = gutter.getBoundingClientRect();
+      const towardsEnd = event.clientX >= left + width / 2;
+      const whole = this.host.nativeElement.getBoundingClientRect().width;
+      this.setStartWidth(
+        left - this.host.nativeElement.getBoundingClientRect().left + (towardsEnd ? 1 : -1) * whole * CLICK_STEP,
+      );
+    }
     this.save();
   }
 
@@ -110,6 +134,12 @@ export class Splitter implements OnInit {
         return;
     }
     event.preventDefault();
+    this.save();
+  }
+
+  /** A double click: the sizes as they were given. */
+  protected reset(): void {
+    this.current.set(this.sizes());
     this.save();
   }
 

@@ -70,6 +70,28 @@ test("no text is under 12 px: the scale, every font-size in the stylesheets, and
   assert.deepEqual(small, []);
 });
 
+// D3.7 (U-123): a transition names what it moves. `all`, or none named, moves whatever changes, a theme's
+// colours among them, and Tailwind's `transition` and `transition-all` are both that.
+test("every transition names the properties it moves: no transition-all, and no transition without one", () => {
+  const vague = [];
+  for (const [file, text] of sources(/\.(css|scss)$/, (file) => /design-system\/tokens\.css$/.test(file))) {
+    for (const m of text.matchAll(/\btransition(-property)?\s*:([^;{}]*);/g)) {
+      const items = m[2].split(",").map((item) => item.trim());
+      // Each item starts with the property it moves; `none` moves nothing.
+      const unnamed = items.some((item) => {
+        const first = item.split(/\s+/)[0];
+        return first === "all" || !/^[a-z-]+$/.test(first);
+      });
+      if (unnamed) vague.push(`${file}: ${m[0].replace(/\s+/g, " ").trim()}`);
+    }
+  }
+  for (const [file, text] of sources(/\.(html|ts)$/))
+    for (const m of text.matchAll(/\bclass(?:Name)?=["']([^"']*)["']/g))
+      for (const token of m[1].split(/\s+/))
+        if (/^(?:[\w-]+:)*transition(-all)?$/.test(token)) vague.push(`${file}: ${token}`);
+  assert.deepEqual(vague, []);
+});
+
 test("no stylesheet or template writes a duration or an easing of its own: they are the motion tokens", () => {
   const own = [];
   for (const [file, text] of sources(/\.(css|scss)$/, (file) => /design-system\/tokens\.css$/.test(file))) {

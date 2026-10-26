@@ -167,8 +167,8 @@ test("@claim:C-067 every dialog and drawer the toolbar opens gives focus back to
   for (const opener of [
     "Request history",
     "Settings",
-    "Local Bridge settings",
-    "Manage secrets",
+    "Route: auto",
+    "Secrets",
     "Environments",
     "New collection",
     "Import a cURL command",
@@ -231,7 +231,7 @@ test("@claim:C-067 a dialog with a field to fill opens with focus on that field"
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await opens("Import a cURL command", page.locator("#import-paste-text"));
-  await opens("Unlock secrets", page.locator('input[type="password"]').first());
+  await opens("Vault locked", page.locator('input[type="password"]').first());
   await page.locator("input.address-url").focus();
   await page.keyboard.type(`${ECHO}/echo`);
   await opens("Save to collection…", page.locator("#save-as-name"));

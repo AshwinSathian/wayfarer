@@ -25,18 +25,23 @@
   <app-icon name="info" class="icon-xs" />
   A {{ store.draft().method }} request is sent without a body. To send this one, choose another method.
 </p>
-} @if (contentTypeBreaksMultipart()) {
-<p role="alert" class="type-footnote text-status-warning flex items-start gap-1 pb-3">
-  <app-icon name="error" class="icon-xs" />
-  The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between the
-  parts. The server will not be able to read them. Remove the header or switch it off.
-</p>
-} @if (fileError()) {
-<p role="alert" class="type-footnote text-status-error flex items-start gap-1 pb-3">
-  <app-icon name="error" class="icon-xs" />
-  {{ fileError() }}
-</p>
-} @switch (current.mode) { @case ('none') {
+}
+<!-- One region for the body's problems, there from the first render (U-075); empty, it takes no room. -->
+<div role="alert">
+  @if (contentTypeBreaksMultipart()) {
+  <p class="type-footnote text-status-warning flex items-start gap-1 pb-3">
+    <app-icon name="error" class="icon-xs" />
+    The Content-Type header replaces the one the browser writes for a multipart body, which names the boundary between
+    the parts. The server will not be able to read them. Remove the header or switch it off.
+  </p>
+  } @if (fileError()) {
+  <p class="type-footnote text-status-error flex items-start gap-1 pb-3">
+    <app-icon name="error" class="icon-xs" />
+    {{ fileError() }}
+  </p>
+  }
+</div>
+@switch (current.mode) { @case ('none') {
 <p class="type-callout text-label-tertiary">This request is sent without a body.</p>
 } @case ('raw') {
 <app-json-editor

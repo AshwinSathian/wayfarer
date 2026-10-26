@@ -30,7 +30,7 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
     <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Sign-in address</label>
     <input
-      class="font-mono flex-1 basis-48"
+      class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
       [id]="idPrefix() + '-oauth-auth-url'"
       placeholder="https://idp.example/authorize"
@@ -42,7 +42,7 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
     <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token address</label>
     <input
-      class="font-mono flex-1 basis-48"
+      class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
       [id]="idPrefix() + '-oauth-token-url'"
       placeholder="https://idp.example/token"

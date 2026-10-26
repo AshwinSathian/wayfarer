@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   ViewEncapsulation,
+  afterEveryRender,
   afterRenderEffect,
   effect,
   inject,
@@ -12,6 +13,10 @@ import {
   untracked,
 } from "@angular/core";
 import { TabList } from "@angular/aria/tabs";
+
+/** What can take focus inside a pane; a pane that holds one is no Tab stop of its own. */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
 
 /**
  * Angular Aria's tab list (D1.5) with the app's styles and what Aria leaves
@@ -46,6 +51,10 @@ import { TabList } from "@angular/aria/tabs";
  * - a choice is drawn at the next render, and Chromium takes a key before
  *   it: Tab right after a click went into the pane that was shown before.
  *   A click, or a key Aria took, is drawn at once.
+ * - it makes every pane a Tab stop (`tabindex="0"`). WAI-ARIA's pattern asks
+ *   for that only of a pane with nothing to focus in it (U-090): a pane that
+ *   holds a control is taken out of the Tab order, and Tab goes from the tab
+ *   to the pane's first control.
  */
 @Component({
   // On the template's own element: the tabs are its children there, and it is the tablist.
@@ -90,6 +99,16 @@ export class UiTabList<T extends string> {
       // Not when the active tab moves: a tab focused by code stays the one the keys move from.
       const active = this.list._pattern.inputs.activeItem;
       if (chosen && untracked(active) !== chosen) active.set(chosen);
+    });
+    // A pane is a Tab stop only while nothing in it can take focus. Every render: a pane's content is made when
+    // its tab is first chosen, and an editor's after that.
+    afterEveryRender(() => {
+      for (const tab of this.list._tabPatterns()) {
+        const panel = this.host.ownerDocument.getElementById(tab.element()?.getAttribute("aria-controls") ?? "");
+        if (!panel || panel.hasAttribute("inert")) continue;
+        const stop = panel.querySelector(FOCUSABLE) ? "-1" : "0";
+        if (panel.getAttribute("tabindex") !== stop) panel.setAttribute("tabindex", stop);
+      }
     });
     // The bar is moved, not the page. Whole pixels, rounded outward: WebKit left a tab 0.4% out of the bar.
     afterRenderEffect(() => {

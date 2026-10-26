@@ -12,7 +12,14 @@ const logRows = (page: Page): Locator => view(page).getByRole("region", { name: 
 /** The log without its times: direction, message, size. */
 const log = (page: Page) =>
   logRows(page).evaluateAll((rows) =>
-    rows.map((row) => [...row.querySelectorAll("td")].slice(1).map((cell) => cell.textContent?.trim() ?? "")),
+    rows.map((row) =>
+      [...row.querySelectorAll("td")].slice(1).map((cell) => {
+        // A message's Format JSON button is not its text.
+        const copy = cell.cloneNode(true) as Element;
+        copy.querySelectorAll("button").forEach((button) => button.remove());
+        return copy.textContent?.trim() ?? "";
+      }),
+    ),
   );
 
 /** Sends `text` and waits for the echo's answer: two more lines in the log. */
@@ -22,7 +29,7 @@ async function say(
   send = () => view(page).getByRole("button", { name: "Send message" }).click(),
 ): Promise<void> {
   const before = await logRows(page).count();
-  await view(page).getByLabel("Message").fill(text);
+  await view(page).getByLabel("Message", { exact: true }).fill(text);
   await send();
   await expect(logRows(page)).toHaveCount(before + 2);
 }
@@ -51,7 +58,7 @@ test("three messages sent to an echo are logged in order, each with its answer, 
   await say(page, "first");
   await say(page, '{"n":2}');
   // Sent with Enter, as well as with the button.
-  await say(page, "third: käse", () => view(page).getByLabel("Message").press("Enter"));
+  await say(page, "third: käse", () => view(page).getByLabel("Message", { exact: true }).press("Enter"));
 
   await expect(logRows(page)).toHaveCount(8);
   expect(await log(page)).toEqual([
@@ -162,7 +169,7 @@ for (const theme of ["dark", "light"] as const) {
     await page.getByRole("button", { name: "Connect", exact: true }).click();
     await expect(view(page).getByRole("status")).toHaveText("Connected");
     await say(page, `a long message without a place to break: ${"x".repeat(300)}`);
-    await view(page).getByLabel("Message").fill("{{$secret.none}}");
+    await view(page).getByLabel("Message", { exact: true }).fill("{{$secret.none}}");
     await view(page).getByRole("button", { name: "Send message" }).click();
     await expect(view(page).getByRole("alert")).toContainText("A WebSocket cannot carry a vault secret");
     await expect(logRows(page)).toHaveCount(4);
@@ -191,3 +198,32 @@ for (const theme of ["dark", "light"] as const) {
     }
   });
 }
+
+// U-047, U-048, U-103 (D4-e): a WebSocket has no method and no cURL; its state is beside Connect; the log can be
+// read by direction, searched and read as JSON; and the check before sending says what it does.
+test("a WebSocket's controls are its own, and its log can be filtered, searched and read as JSON", async ({ page }) => {
+  await page.goto("/app/");
+  await address(page).fill(WS);
+  await expect(view(page)).toBeVisible();
+  await expect(page.getByLabel("HTTP method")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Copy as cURL" })).toHaveCount(0);
+  await expect(page.locator(".socket-state")).toHaveText("Not connected");
+  await expect(view(page).getByText("Check it is JSON before sending")).toBeVisible();
+  await page.getByRole("button", { name: "Connect", exact: true }).click();
+  await expect(page.locator(".socket-state")).toHaveText("Connected");
+  await say(page, "plain words");
+  await say(page, '{"n":2,"list":[1,2]}');
+
+  await view(page).getByRole("radio", { name: "Received" }).check();
+  await expect.poll(async () => (await log(page)).map(([direction]) => direction)).toEqual(["Received", "Received"]);
+  await view(page).getByRole("radio", { name: "All" }).check();
+  await view(page).getByLabel("Search the log").fill("plain");
+  await expect.poll(async () => (await log(page)).map(([, text]) => text)).toEqual(["plain words", "plain words"]);
+  await view(page).getByLabel("Search the log").fill("");
+
+  const formatted = view(page).getByRole("button", { name: "Format JSON" }).first();
+  await formatted.click();
+  await expect(view(page).locator(".socket-message").filter({ hasText: '"list": [' }).first()).toBeVisible();
+  await view(page).getByRole("button", { name: "As sent" }).first().click();
+  await page.getByRole("button", { name: "Disconnect", exact: true }).click();
+});

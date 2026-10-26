@@ -259,11 +259,12 @@ test("require gives the five libraries under the production CSP, each from a fil
     `,
     },
   );
-  // A library is one hashed file of the build, found by text only it holds.
+  // A library is one hashed file of the build, found by text only it holds. Since @angular/build 22.2.4 a file
+  // that only the worker imports is named worker-chunk-*.js; a worker's own entry (worker-*.js) is not a library.
   const dist = "dist/wayfarer/browser";
   const files = await Promise.all(
     (await readdir(dist))
-      .filter((name) => /^chunk-.*\.js$/.test(name))
+      .filter((name) => /^(worker-)?chunk-.*\.js$/.test(name))
       .map(async (name) => [name, await readFile(`${dist}/${name}`, "utf8")] as const),
   );
   const fileOf = (marker: string) =>
@@ -299,7 +300,7 @@ test("require gives the five libraries under the production CSP, each from a fil
   await expect(failed).toContainText("require('cheerio') is not supported — see docs/postman-compatibility.md#require");
   // Each library was fetched once, from the app's own origin, under a name with a content hash.
   expect(fetched.filter((url) => all.includes(url)).sort()).toEqual([...all].sort());
-  for (const url of all) expect(url).toMatch(new RegExp(`^${baseURL}/app/chunk-[A-Z0-9]{8}\\.js$`));
+  for (const url of all) expect(url).toMatch(new RegExp(`^${baseURL}/app/worker-chunk-[A-Z0-9]{8}\\.js$`));
 
   await send(page);
   await expect(page.locator(".status-badge")).toHaveText("200");

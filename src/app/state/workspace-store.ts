@@ -141,6 +141,7 @@ export class WorkspaceStore {
   readonly draft = this.ofTab((tab) => tab.draft);
 
   readonly endpointError = this.ofTab((tab) => tab.endpointError);
+  readonly saveError = this.ofTab((tab) => tab.saveError);
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = this.ofTab((tab) => tab.pasteNotes);
   readonly loadingState = this.ofTab((tab) => tab.loadingState);

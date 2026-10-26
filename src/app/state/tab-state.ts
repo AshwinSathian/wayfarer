@@ -69,6 +69,8 @@ export class TabState {
   readonly dirty = computed(() => JSON.stringify(contentOf(this.draft())) !== this.baseline());
 
   readonly endpointError = signal("");
+  /** Why the tab's last save did not land (U-066): said under the address until a save does. */
+  readonly saveError = signal("");
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = signal<string[]>([]);
   readonly loadingState = signal(false);

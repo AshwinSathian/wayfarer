@@ -28,6 +28,14 @@
       </nav>
       — Save writes back to this request.
     </div>
+    }
+    <!-- A save that did not land (U-066), said by a region there from the first render. -->
+    <p class="sr-only" role="alert">{{ store.saveError() }}</p>
+    @if (store.saveError()) {
+    <div class="save-error type-footnote text-status-error flex items-center gap-1.5 -mt-2" aria-hidden="true">
+      <app-icon name="error" class="icon-xs" />
+      <p>{{ store.saveError() }}</p>
+    </div>
     } @if (store.endpointError() !== '') {
     <div class="type-footnote text-status-error flex flex-wrap items-center gap-x-1.5 gap-y-1 -mt-2">
       <app-icon name="error" class="icon-xs" />

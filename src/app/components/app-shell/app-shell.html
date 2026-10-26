@@ -234,6 +234,8 @@
              heard (U-075). The banners below are what the eye reads; their text is said once, here. -->
         <p class="sr-only" role="status">{{ bannerStatus() }}</p>
         <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
+        <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
+        <p class="sr-only" role="status">{{ vaultSaid() }}</p>
         @if (swUpdate.updateAvailable()) {
         <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
@@ -332,8 +334,6 @@
       >
         <app-icon name="key" class="icon-xs" />Secrets
       </button>
-      <!-- A lock or an unlock is said, not only drawn (U-072). -->
-      <span class="sr-only" role="status">{{ vaultSaid() }}</span>
       <span class="flex-1"></span>
       <span class="status-item"
         >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span

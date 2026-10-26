@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from "@angular/common";
 import {
+  computed,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -10,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { SHORTCUTS, matches } from "../../shared/shortcuts";
+import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -27,9 +28,10 @@ import { RunView } from "../runner/run-view";
 import { SocketView } from "../socket/socket-view";
 import { SocketClient } from "../../services/socket-client";
 import { ResponseViewer } from "../response-viewer/response-viewer";
+import { statusLine } from "../response-viewer/status-line";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
-import { RequestWarnings } from "./request-warnings";
+import { RequestWarnings, warningsText } from "./request-warnings";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
 import { ComposerSections } from "./composer-sections";
@@ -112,6 +114,26 @@ export class Composer {
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly breadcrumb = this.requestSave.breadcrumb;
+  /** What the live regions above the request say (U-075). */
+  protected readonly warningsText = computed(() => warningsText(this.store.browserLimits()));
+  protected readonly announcement = computed(() =>
+    this.store.loadingState()
+      ? "Sending…"
+      : statusLine({
+          statusCode: this.store.responseStatusCode(),
+          statusText: this.store.responseStatusText(),
+          isError: this.store.responseIsError(),
+          errorText: this.store.responseError(),
+          durationMs: this.store.responseInspection()?.duration,
+          route: this.store.responseRoute(),
+        }),
+  );
+  protected readonly pasteNotesText = computed(() => {
+    const notes = this.store.pasteNotes();
+    return notes.length ? `From the pasted cURL command: ${notes.join(" ")}` : "";
+  });
+  /** Send's keys, in the reader's system's own (voice.md): ⌘↵ on a Mac, Ctrl+Enter elsewhere. */
+  protected readonly sendKeys = keysOf(SHORTCUTS.send);
   constructor() {
     // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
@@ -197,6 +219,11 @@ export class Composer {
   /** Reconnect of an event stream: a send like any other, with the last event's id. */
   async reconnect(): Promise<void> {
     if (await this.store.reconnect()) this.newRequest.emit();
+  }
+
+  /** A send that got no response, once more through the Local Bridge, which can say why (U-051). */
+  protected sendThroughBridge(): void {
+    void this.store.send({ route: "bridge" });
   }
 
   async saveCurrentRequest(): Promise<void> {

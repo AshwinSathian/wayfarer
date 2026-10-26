@@ -4,7 +4,7 @@
   (visibleChange)="visible.set($event)"
   dismissableMask
   width="920px"
-  maxWidth="calc(100vw - 32px)"
+  maxWidth="calc(100% - 32px)"
 >
   <div class="settings" [class.settings-pane-open]="paneOpen()">
     <nav class="settings-nav" aria-label="Settings sections">
@@ -264,8 +264,8 @@
           <p class="type-footnote text-label-tertiary" data-testid="storage-status">
             @switch (persistence.persisted()) { @case (true) { The browser has promised to keep this data. } @case
             (false) { The browser has not promised to keep this data: it may delete it when the disk runs low. Wayfarer
-            asks again the next time you save. } @default { This browser does not say whether it will keep this data. }
-            }
+            asks again the next time you save, and reminds you to back up every 5 days. } @default { This browser does
+            not say whether it will keep this data. } }
           </p>
           @if (persistence.safariNotInstalled) {
           <p class="type-footnote text-status-warning" data-testid="safari-eviction-notice">

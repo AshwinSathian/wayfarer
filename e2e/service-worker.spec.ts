@@ -176,8 +176,10 @@ test("@claim:C-010 with the service worker in control, a DNS failure shows the r
   await loadControlled(page);
   await page.locator("input.address-url").fill("https://wayfarer-sw-dns.invalid/");
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.getByText(/Network error/).first()).toBeVisible();
-  await expect(page.locator(".status-badge")).not.toHaveText("504");
+  await expect(page.locator(".response-failure").getByText(/^The request got no response/)).toBeVisible();
+  // No status is drawn when none came (U-051), a synthetic 504 least of all.
+  await expect(page.locator(".response-status")).toContainText("No response");
+  await expect(page.locator(".response-status")).not.toContainText("504");
 });
 
 test("@claim:C-015 the service worker never answers cross-origin requests", async ({ page, browserName }) => {
@@ -209,11 +211,16 @@ test("a new deploy shows 'Update available' within one navigation, and Reload sw
   const version = /version":"([0-9a-f]+)/.exec(await readFile(join(root, "app/sw.js"), "utf8"))?.[1];
 
   await page.goto(`${base}/app/`);
-  const banner = page.getByRole("status").filter({ hasText: "Update available" });
-  await expect(banner).toBeVisible();
+  // Said by the shell's live region (U-075), and drawn as a banner with its button.
+  await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(1);
+  const banner = page
+    .locator("main div")
+    .filter({ hasText: "Update available" })
+    .filter({ has: page.getByRole("button") });
+  await expect(banner.last()).toBeVisible();
 
   const reloaded = page.waitForEvent("load");
-  await banner.getByRole("button", { name: "Reload" }).click();
+  await banner.last().getByRole("button", { name: "Reload" }).click();
   await reloaded;
   await expect(page.getByRole("status").filter({ hasText: "Update available" })).toHaveCount(0);
   expect(await page.evaluate(() => caches.keys())).toEqual([`wayfarer-${version}`]);

@@ -28,7 +28,7 @@ test("@claim:C-016 DOM script sinks require Trusted Types, and the app's own flo
   const scriptsTab = page.getByRole("tab", { name: "Scripts", exact: true }).first();
   await scriptsTab.click();
   await expect(page.getByText("Loading editor…")).toHaveCount(0);
-  for (const name of ["Settings", "Request history", "Manage secrets", "Local Bridge settings"]) {
+  for (const name of ["Settings", "Request history", "Secrets", "Route: auto"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.getByRole("dialog").first()).toBeVisible();
     await settled(page);

@@ -5,8 +5,14 @@ import { historyEntry, jsonBody, rowsOf } from "../../testing/request-fixtures";
 import { SecretsVault } from "./secrets-vault";
 import { WORKSPACE_FORMAT, validateWorkspaceFile } from "@wayfarer/core";
 import { WorkspaceBackup, WorkspaceFile } from "./workspace-backup";
+import { StoragePersistence } from "./storage-persistence";
 
-const KEYS = ["wayfarer:last-backup", "wayfarer:backup-reminder-from"];
+const KEYS = [
+  "wayfarer:last-backup",
+  "wayfarer:backup-reminder-from",
+  "wayfarer:backup-dismissed",
+  "wayfarer:first-save",
+];
 const DAY = 24 * 60 * 60 * 1000;
 
 // Over the real stores and the real vault: a backup is what a user's browser holds.
@@ -242,5 +248,36 @@ describe("WorkspaceBackup", () => {
     await backup.exportJson();
     expect(backup.reminderDue()).toBe(false);
     expect(Number(localStorage.getItem("wayfarer:last-backup"))).toBeGreaterThan(firstUse);
+  });
+
+  // U-137: Safari deletes the data of a site it has not promised to keep after seven days without a visit.
+  it("while the browser has not promised to keep the data, reminds at the first save and then every 5 days", async () => {
+    const persistence = TestBed.inject(StoragePersistence);
+    persistence.persisted.set(false);
+    expect(backup.reminderDue()).toBe(false);
+    persistence.firstSave.set(Date.now());
+    expect(backup.reminderDue()).toBe(true);
+
+    const now = Date.now();
+    backup.dismissReminder();
+    expect(backup.reminderDue()).toBe(false);
+    vi.useFakeTimers({ now: now + 5 * DAY + 1000 });
+    start();
+    TestBed.inject(StoragePersistence).persisted.set(false);
+    expect(backup.reminderDue()).toBe(true);
+
+    // Kept: the 14 days hold again.
+    TestBed.inject(StoragePersistence).persisted.set(true);
+    expect(backup.reminderDue()).toBe(false);
+  });
+
+  it("notes the first save, once", async () => {
+    const persistence = TestBed.inject(StoragePersistence);
+    expect(persistence.firstSave()).toBe(0);
+    await persistence.request();
+    const first = Number(localStorage.getItem("wayfarer:first-save"));
+    expect(first).toBeGreaterThan(0);
+    await persistence.request();
+    expect(Number(localStorage.getItem("wayfarer:first-save"))).toBe(first);
   });
 });

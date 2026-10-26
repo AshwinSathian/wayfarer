@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   effect,
   inject,
   input,
@@ -23,6 +24,7 @@ import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
 import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
+import { StoragePersistence } from "../../services/storage-persistence";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { HistoryRepository } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
@@ -88,13 +90,33 @@ export class AppShell implements OnInit {
   private readonly environmentsService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   protected readonly backup = inject(WorkspaceBackup);
+  protected readonly persistence = inject(StoragePersistence);
   private readonly idb = inject(IdbCore);
   private readonly history = inject(HistoryRepository);
   readonly dataResetElsewhere = this.idb.closedByOtherTab;
   readonly storageUnavailable = this.idb.memoryOnly;
   readonly themeService = inject(Theme);
   readonly bridgeService = inject(BridgeSettings);
-  protected readonly routeNames = { auto: "Auto", direct: "Direct", bridge: "Local Bridge" } as const;
+  protected readonly routeNames = { auto: "auto", direct: "direct", bridge: "Local Bridge" } as const;
+  protected readonly themeNames = { system: "system", light: "light", dark: "dark" } as const;
+  private static readonly THEME_ORDER = ["system", "light", "dark"] as const;
+  /** The choice the status bar's theme button makes next: system, light and dark in turn (U-087). */
+  protected readonly nextChoice = computed(() => {
+    const order = AppShell.THEME_ORDER;
+    return order[(order.indexOf(this.themeService.choice()) + 1) % order.length];
+  });
+  protected nextTheme(): void {
+    this.themeService.choose(this.nextChoice());
+  }
+  /** "Vault unlocked." or "Vault locked." when the vault changes; nothing at first. */
+  protected readonly vaultSaid = signal("");
+  private vaultWasUnlocked: boolean | undefined;
+  private readonly vaultWatcher = effect(() => {
+    const unlocked = this.secretsService.isUnlocked();
+    if (this.vaultWasUnlocked !== undefined && unlocked !== this.vaultWasUnlocked)
+      this.vaultSaid.set(unlocked ? "Vault unlocked." : "Vault locked.");
+    this.vaultWasUnlocked = unlocked;
+  });
 
   private readonly environmentWatcher = effect(() => {
     const envs = this.environmentsService.environments();
@@ -117,6 +139,38 @@ export class AppShell implements OnInit {
   readonly unlockPassphrase = signal("");
   resettingAll = false;
   readonly resetError = signal("");
+  protected readonly resetErrorText = computed(() =>
+    this.resetError() ? `Nothing was deleted. ${this.resetError()}` : "",
+  );
+  /** The banners' words, drawn in each banner and said by the shell's two live regions (U-075). */
+  protected readonly banners = {
+    update: "Update available: a new version of Wayfarer is ready.",
+    backup:
+      "It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.",
+    resetElsewhere: "The data was reset in another tab. Reload this one: what you change here is no longer saved.",
+    storage:
+      "This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.",
+  } as const;
+  /** The backup reminder's words: sooner and plainer while the browser has not promised to keep the data (U-137). */
+  protected readonly backupWords = computed(() =>
+    this.persistence.persisted() === false
+      ? "This workspace lives only in this browser, which has not promised to keep it. Back up to keep a copy."
+      : this.banners.backup,
+  );
+  protected readonly bannerStatus = computed(() =>
+    [this.swUpdate.updateAvailable() ? this.banners.update : "", this.backup.reminderDue() ? this.backupWords() : ""]
+      .filter(Boolean)
+      .join(" "),
+  );
+  protected readonly bannerAlert = computed(() =>
+    [
+      this.dataResetElsewhere() ? this.banners.resetElsewhere : "",
+      this.storageUnavailable() ? this.banners.storage : "",
+      this.resetErrorText(),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
@@ -315,7 +369,17 @@ export class AppShell implements OnInit {
 
   ngOnInit(): void {
     void this.environmentsService.ensureLoaded();
+    // The status bar and the backup reminder say whether the browser keeps the data (U-137).
+    void this.persistence.refresh();
   }
+
+  /** What the status bar says of where the data is kept. */
+  protected readonly storageWords = computed(() => {
+    if (this.storageUnavailable()) return "Not saved: this browser refuses storage";
+    if (this.persistence.persisted() === false) return "Saved in this browser, which may delete it";
+    if (this.persistence.persisted()) return "Kept in this browser";
+    return "Saved in this browser only";
+  });
 
   async handleEnvironmentChange(id: string | null): Promise<void> {
     await this.environmentsService.setActiveEnvironment(id);
@@ -356,16 +420,16 @@ export class AppShell implements OnInit {
         } else {
           // Another tab chose a passphrase while this dialog was open.
           this.isFirstVaultSetup.set(false);
-          this.unlockError.set("A vault passphrase was just set in another tab. Enter that passphrase.");
+          this.unlockError.set("Another tab has just made the vault. Enter its passphrase.");
         }
       } else if (await this.secretsService.unlock(passphrase)) {
         this.closeLockDialog();
       } else {
-        this.unlockError.set("Incorrect passphrase. Please try again.");
+        this.unlockError.set("That passphrase does not open the vault.");
       }
     } catch (error) {
       console.error("Failed to unlock secrets", error);
-      this.unlockError.set("Unable to unlock secrets in this environment.");
+      this.unlockError.set("This browser cannot open the vault.");
     }
   }
 
@@ -402,9 +466,7 @@ export class AppShell implements OnInit {
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(
-        error instanceof DatabaseResetBlockedError
-          ? error.message
-          : "Reset failed; your data was not deleted. Reload the page and try again.",
+        error instanceof DatabaseResetBlockedError ? error.message : "Reload the page and try again.",
       );
       this.resettingAll = false;
       return;

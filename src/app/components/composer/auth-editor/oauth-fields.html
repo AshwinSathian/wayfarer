@@ -19,7 +19,7 @@
   >
   } @if (current.grant === 'password') {
   <p class="type-callout text-label-tertiary"
-    >The password grant hands the user's password to the client. OAuth 2.1 leaves it out: use it only where nothing else
+    >The password grant gives the client the account's password. OAuth 2.1 leaves it out: use it only where nothing else
     is offered.</p
   >
   } @if (subject() === 'request') {
@@ -30,7 +30,7 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
     <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-auth-url'">Sign-in address</label>
     <input
-      class="font-mono flex-1 basis-48"
+      class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
       [id]="idPrefix() + '-oauth-auth-url'"
       placeholder="https://idp.example/authorize"
@@ -42,7 +42,7 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
     <label class="ds-form-label min-w-[96px]" [attr.for]="idPrefix() + '-oauth-token-url'">Token address</label>
     <input
-      class="font-mono flex-1 basis-48"
+      class="font-mono flex-1 basis-48 placeholder-mono"
       uiInput
       [id]="idPrefix() + '-oauth-token-url'"
       placeholder="https://idp.example/token"

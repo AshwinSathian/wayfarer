@@ -5,6 +5,12 @@ import { StoragePersistence } from "./storage-persistence";
 import { ancestorsOf, folderChain, scriptDigest, scriptsOf, type Ancestor, type RequestContent } from "@wayfarer/core";
 import { RequestDoc } from "../models/collections";
 import { Tabs, forwarded } from "../state/tabs";
+import { recordDiagnostic } from "./diagnostics";
+
+/** What a save that did not land says under the address (U-066). The draft stays, and the tab stays unsaved. */
+const REFUSED = "The request was not saved: this browser refused the write. Your edits are still here.";
+const DELETED_ELSEWHERE =
+  "The request was not saved: it was deleted in another tab. Save it again to put it in a collection.";
 
 /** Everything the composer currently holds that's worth persisting onto a `RequestDoc`. */
 export type RequestContentSnapshot = RequestContent;
@@ -124,7 +130,13 @@ export class RequestSave {
       if (updated) {
         tab.bound.set(updated);
         tab.markSaved(snapshot);
+        tab.saveError.set("");
+      } else {
+        tab.saveError.set(DELETED_ELSEWHERE);
       }
+    } catch (error) {
+      recordDiagnostic(error, "save: the request was not written");
+      tab.saveError.set(REFUSED);
     } finally {
       this.savingRequest.set(false);
     }
@@ -166,8 +178,13 @@ export class RequestSave {
       );
       tab.bound.set(doc);
       tab.markSaved(snapshot);
-      this.closeSaveAsDialog();
+      tab.saveError.set("");
+    } catch (error) {
+      recordDiagnostic(error, "save: the request was not written");
+      tab.saveError.set(REFUSED);
     } finally {
+      // Said under the address, which the dialog would cover.
+      this.closeSaveAsDialog();
       this.savingRequest.set(false);
     }
   }

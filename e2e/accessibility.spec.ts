@@ -15,14 +15,8 @@ test.describe("Accessibility (primary flows)", () => {
     await page.locator("input.address-url").fill(`${ECHO}/content/json?todo=1`);
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 15_000 });
-    // The status bar carries `.animate-response-arrive` (opacity 0 -> 1,
-    // over --dur-enter). Scanning immediately after the status
-    // badge's text appears can catch the duration/size pills mid-transition,
-    // where their interpolated opacity temporarily drops effective text
-    // contrast below 4.5:1 even though the token itself (#9C9CA1 on
-    // --fill-secondary, 5.31:1) is compliant at rest. Wait for the
-    // animation to actually settle instead of scanning a transitional frame.
-    await expect(page.locator(".animate-response-arrive").first()).toHaveCSS("opacity", "1");
+    // The status line appears at once (D3.7): no frame of it is part-transparent for the scan to catch.
+    await expect(page.locator(".response-status").first()).toHaveCSS("opacity", "1");
     // Playwright's click() leaves the cursor exactly where it clicked — it
     // doesn't move away afterwards. The cURL button sits right next to Send
     // in the toolbar, so the cursor can end up resting on/near it, and its
@@ -209,8 +203,8 @@ test.describe("Accessibility (primary flows)", () => {
       for (const opener of [
         "Request history",
         "Settings",
-        "Local Bridge settings",
-        "Manage secrets",
+        "Route: auto",
+        "Secrets",
         "Environments",
         "New collection",
       ]) {

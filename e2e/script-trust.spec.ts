@@ -104,7 +104,7 @@ test("@claim:C-051 an imported collection's scripts do not run until they are re
   await expect(review.locator(".script-review-list")).toContainText("the pre-request script ran");
   await expect(review.locator(".script-review-list")).toContainText("the file's script ran");
   await expect(review.locator(".script-review-new")).toHaveCount(2);
-  await review.getByRole("button", { name: "I trust these scripts" }).click();
+  await review.getByRole("button", { name: "Trust these scripts" }).click();
   await expect(review).toHaveCount(0);
   await expect(held).toHaveCount(0);
 

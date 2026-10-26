@@ -1,0 +1,151 @@
+name: E2E
+
+# The browser tests: e2e in Chromium, Firefox and WebKit (with the retry-free claims-* projects) and D0.1's
+# design capture. Run by hand, not on each pull request (maintainer, 2026-10-26, while the design overhaul
+# is under way and one person merges): a session's PRs are merged, then this runs on main
+# (`gh workflow run e2e.yml`), and the session is closed when it is green. Anything red is fixed in a new PR.
+#
+# It tests the dist/ a green CI run built for the same commit, as deploy.yml ships it: deploy.yml refuses a
+# commit without a green run of this workflow. Run from a branch, it tests that branch's head the same way.
+# To go back to a run on each change: give this workflow ci.yml's `on:` and restore the three
+# "E2E (<browser>)" required checks of the protect-main ruleset.
+
+on:
+  workflow_dispatch:
+    inputs:
+      engines:
+        description: "Engines to run"
+        type: choice
+        options: [all, chromium, firefox, webkit]
+        default: all
+
+concurrency:
+  group: e2e-${{ github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+# Third-party actions are pinned to commit SHAs (P1.14); Dependabot updates them.
+jobs:
+  pick:
+    name: The CI run to test
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.run.outputs.id }}
+      engines: ${{ steps.engines.outputs.list }}
+    steps:
+      - name: A green CI run of this commit
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          id=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$id" ]; then echo "No green CI run for $SHA yet: wait for it, then run this again." >&2; exit 1; fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "Testing the dist/ of CI run $id ($SHA)" >> "$GITHUB_STEP_SUMMARY"
+      - name: The engines
+        id: engines
+        env:
+          ENGINES: ${{ inputs.engines }}
+        run: |
+          case "$ENGINES" in
+            all) echo 'list=["chromium","firefox","webkit"]' ;;
+            chromium|firefox|webkit) echo "list=[\"$ENGINES\"]" ;;
+            *) echo "unknown engines: $ENGINES" >&2; exit 1 ;;
+          esac >> "$GITHUB_OUTPUT"
+
+  e2e:
+    name: E2E (${{ matrix.browser }})
+    needs: pick
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(needs.pick.outputs.engines) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+          run-id: ${{ needs.pick.outputs.run }}
+          github-token: ${{ github.token }}
+      # Firefox's and WebKit's system packages come from apt, whose mirror hung for 50 minutes at a time
+      # (2026-10-26): ten minutes a try, three tries, and a try cut off leaves dpkg half done (exit 100 next).
+      - name: Install ${{ matrix.browser }} and its system packages
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; sudo dpkg --configure -a; done; exit 1
+      # Serves the downloaded build through prod-server.mjs (production
+      # headers). claims-<browser> runs the @claim tests with retries off.
+      # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).
+      # Both uploads also run for a flake: its retry passes and the job is green, and a
+      # trace.zip under test-results/ is what a failed first attempt leaves (retain-on-first-failure).
+      - run: npx playwright test --project=${{ matrix.browser }} --project=claims-${{ matrix.browser }}
+        env:
+          CI: "1"
+          PROD_SERVER_LOG: ${{ runner.temp }}/prod-server.log
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+          retention-days: 7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() || (!cancelled() && hashFiles('test-results/**/trace.zip') != '') }}
+        with:
+          name: prod-server-log-${{ matrix.browser }}
+          path: ${{ runner.temp }}/prod-server.log
+          retention-days: 7
+
+  # D0.1 of PLAN-design.md: every screen at four widths in both themes, and D0.2's task scripts (e2e/design).
+  # It never fails the build: a difference is for a reviewer to read, in the report it uploads.
+  # Chromium's snapshots are committed (docs/design/baseline/design-chromium); Firefox's and WebKit's are
+  # written fresh each run and uploaded (docs/design/baseline/index.md says how to update them).
+  design:
+    name: Design capture (${{ matrix.browser }})
+    needs: pick
+    runs-on: ubuntu-latest
+    # The image the snapshots were taken in: on the runner itself, its fonts drew ⌘ and ⌥ otherwise. Its tag
+    # is @playwright/test's version in package.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(needs.pick.outputs.engines) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist/
+          run-id: ${{ needs.pick.outputs.run }}
+          github-token: ${{ github.token }}
+      - run: npx playwright test e2e/design --project=design-${{ matrix.browser }} ${{ matrix.browser != 'chromium' && '--update-snapshots' || '' }}
+        env:
+          CI: "1"
+          # The container runs as root; Firefox refuses a HOME that root does not own (GitHub sets /github/home).
+          HOME: /root
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: design-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/design-tasks/
+            docs/design/baseline/design-${{ matrix.browser }}/
+          retention-days: 7

@@ -104,7 +104,12 @@ export class SocketClient {
     // refuses to connect to, WebKit gives this event alone (measured: the socket still says "connecting" then,
     // and is closed a moment later with no close event). So the socket is looked at again shortly after.
     socket.onerror = () => {
-      state.add("info", "The connection failed.");
+      state.add(
+        "info",
+        socket.readyState === WebSocket.CONNECTING
+          ? "The connection did not open."
+          : "The browser reported an error on the connection, and does not say what.",
+      );
       setTimeout(() => {
         if (socket.readyState === WebSocket.CLOSED) ended("Closed: the browser gave no close code.");
       }, ERROR_WITHOUT_CLOSE_MS);

@@ -39,7 +39,12 @@ export function historyExchange(entry: PastRequest): HarExchange {
           `The request's body (${mode === "multipart" ? "a multipart form" : "a file"}) is not in history and is left out.`,
         ]
       : []),
-    ...(entry.response ? [] : [`No response${entry.error ? `: ${entry.error}` : "."}`]),
+    // What history kept of a send that got no response starts "No response" itself since U-051.
+    ...(entry.response
+      ? []
+      : [
+          entry.error?.startsWith("No response") ? entry.error : `No response${entry.error ? `: ${entry.error}` : "."}`,
+        ]),
   ];
   return {
     startedAt: new Date(entry.createdAt).toISOString(),

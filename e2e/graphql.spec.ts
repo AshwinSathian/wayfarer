@@ -97,7 +97,9 @@ test("a query that does not parse is said without any schema, and variables that
   await open(page, "{ hello ", "[1]");
   await expect(problems(page).getByRole("listitem").first()).toContainText("Syntax Error", { timeout: 20_000 });
   await send(page);
-  await expect(page.getByText("The GraphQL variables must be a JSON object.")).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "The GraphQL variables must be a JSON object." }),
+  ).toBeVisible();
   await expect(page.locator(".status-badge")).toHaveCount(0);
 });
 

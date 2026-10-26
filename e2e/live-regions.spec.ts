@@ -24,8 +24,8 @@ test("a send that got no response is said by its first sentence", async ({ page 
   const region = page.locator(".response-announcement");
   await page.locator("input.address-url").fill("http://127.0.0.1:9/nothing-listens");
   await send(page);
-  await expect(region).not.toHaveText(/^(|Sending…)$/);
-  await expect(region).not.toContainText(" The ");
+  // The failure's first sentence, not the paragraph the pane shows.
+  await expect(region).toHaveText("The request got no response.");
 });
 
 test("the address's error is an alert there from the first render, and the field points to it", async ({ page }) => {

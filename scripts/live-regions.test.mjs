@@ -20,7 +20,10 @@ const CONTAINERS = new Map([
     "the request's view (not a run's), made when the tab is shown, before a send, a paste or an edit",
   ],
   ["response-viewer.html: @else", "the response's view, made when the response arrives, before a copy or a filter"],
-  ["response-viewer.html: @if (statusCode !== undefined)", "the status line, made with the response, before a copy"],
+  [
+    "response-viewer.html: @if (statusCode !== undefined || isError())",
+    "the status line, made with the response or its failure, before a copy",
+  ],
   ["response-viewer.html: @if (canExport)", "the status line's export, made with the response, before a copy"],
   ["vault-actions.html: @if (mode())", "the form of a vault action, made when it is chosen, before it is submitted"],
 ]);

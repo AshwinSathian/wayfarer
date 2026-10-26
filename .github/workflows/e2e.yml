@@ -80,7 +80,7 @@ jobs:
           github-token: ${{ github.token }}
       # As in ci.yml: ten minutes a try, three tries.
       - name: Install ${{ matrix.browser }} and its system packages
-        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; done; exit 1
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; sudo dpkg --configure -a; done; exit 1
       # Serves the downloaded build through prod-server.mjs (production
       # headers). claims-<browser> runs the @claim tests with retries off.
       # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).

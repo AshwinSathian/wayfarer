@@ -75,9 +75,10 @@ jobs:
       # provider (angular.json's "test" target), not jsdom - Web Workers,
       # IndexedDB, and WebCrypto all need a real browser.
       # The system packages come from apt, whose mirror has hung for 50 minutes at a time (2026-10-26, three
-      # runs): ten minutes a try, three tries.
+      # runs): ten minutes a try, three tries. A try cut off leaves dpkg half done, and the next one fails at once
+      # (exit 100) unless dpkg finishes first.
       - name: Install Chromium and its system packages
-        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; done; exit 1
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; sudo dpkg --configure -a; done; exit 1
       - run: npm run test:ci
 
   build:
@@ -191,9 +192,10 @@ jobs:
       - run: npm ci
       # The Chromium the e2e suite pins: the runner's own Chrome gave Lighthouse no navigation start (NO_NAVSTART).
       # The system packages come from apt, whose mirror has hung for 50 minutes at a time (2026-10-26, three
-      # runs): ten minutes a try, three tries.
+      # runs): ten minutes a try, three tries. A try cut off leaves dpkg half done, and the next one fails at once
+      # (exit 100) unless dpkg finishes first.
       - name: Install Chromium and its system packages
-        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; done; exit 1
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; sudo dpkg --configure -a; done; exit 1
       - name: Three runs against the build
         run: |
           export CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()")

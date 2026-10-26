@@ -863,7 +863,11 @@ explicit "Save changes". Confirmed in source; not yet seen at runtime.
 Evidence: `app-shell.html:450-459`;
 `environments/environments-manager.ts:103, 154-161, 354`;
 [`hig-review/1440-dark-36-environments-rows.png`](hig-review/1440-dark-36-environments-rows.png).
-**Status:** Open, D4-e (plan D4.11). Review row W-1.
+**Status:** Fixed in #437 (D4-e, D4.11). The editor writes each field as
+focus leaves it, a removed or marked row at once, the environment being
+left when another is chosen, and what is left when the dialog closes (DQ9);
+Save changes is gone. An e2e finds the edit stored after ×, Escape and
+choosing another environment. Review row W-1.
 
 **U-066. A save that fails says nothing.** Severity 2. H1, H9. All.
 `RequestSave.save` and `confirmSaveAs` have `try/finally` and no `catch`:
@@ -1501,7 +1505,10 @@ Evidence: `environments/environments-manager.ts:246-262`;
 [`hig-review/1440-light-rt-14-env-secret.png`](hig-review/1440-light-rt-14-env-secret.png),
 [`hig-review/1440-light-rt-15-env-after-vault.png`](hig-review/1440-light-rt-15-env-after-vault.png),
 [`hig-review/1440-light-rt-16-secret-marked.png`](hig-review/1440-light-rt-16-secret-marked.png).
-**Status:** Open, D4-e (D4.11). Review row N6.
+**Status:** Fixed in #437 (D4-e, D4.11). With no vault the row asks for
+the passphrase in place and writes the variable as its reference once the
+vault is made; a locked vault is unlocked and the row then marked; a row
+with no name or value says why it cannot be marked. Review row N6.
 
 **U-136. "Secret stored" appears before the environment is saved, and
 Save changes says nothing.** Severity 2. H1, H5, H9. PE, SD.
@@ -1513,7 +1520,9 @@ Evidence: `environments-manager.ts:263-271, 331-351`;
 `environments-manager.html:237`;
 [`hig-review/1440-light-rt-17-env-saved.png`](hig-review/1440-light-rt-17-env-saved.png).
 Not seen: a listing of the vault after closing.
-**Status:** Open, D4-e (D4.11; its autosave, row 1.52, removes the cause).
+**Status:** Fixed in #437 (D4-e, D4.11). The reference is written the
+moment the secret is, so no secret is left without its variable; a row
+with a value and no name says it is not kept; a refused write says so.
 Review row N7.
 
 **U-137. Data can disappear while the status bar says "Saved in this browser only".**
@@ -1531,7 +1540,7 @@ Evidence: `services/storage-persistence.ts:5-21`;
 **U-145. Add variable does not focus the new row.** Severity 3. H7. All.
 From the keyboard, focus stays on Add variable.
 Evidence: `environments-manager.html` (Add variable).
-**Status:** Open, D4-e (D4.11). Review row N16.
+**Status:** Fixed in #437 (D4-e, D4.11). Review row N16.
 
 **U-143. The unlock prompt during a send does not say what wants the
 vault.** Severity 3. H1, H2. PE.

@@ -640,7 +640,7 @@ test("history is searched by URL, by method and by status", async ({ page }) => 
 
   await page.getByRole("button", { name: "Request history", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  const rows = drawer.getByRole("button", { name: /^Load request / });
+  const rows = drawer.getByRole("button", { name: /^https?:\/\// });
   const search = drawer.getByRole("searchbox", { name: "Search history" });
   await expect(rows).toHaveCount(2);
 

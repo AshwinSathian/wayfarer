@@ -187,7 +187,7 @@ test.describe("scripts of a collection and a folder", () => {
     await seedAndOpen(page, { order: "" }, { method: "GET", url: `${TARGET}/seeded` });
     await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(FILE);
     const dialog = page.getByRole("dialog", { name: "Import collection" });
-    await dialog.getByRole("button", { name: "Confirm import" }).click();
+    await dialog.getByRole("button", { name: "Import", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await openFolder(page, "Inherited folder");
     await page.getByRole("tree").getByText("Inherited request", { exact: true }).click();

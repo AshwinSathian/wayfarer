@@ -65,3 +65,94 @@ test("without reduced motion the missing variable's pulse stops: twice, then sti
   );
   expect(iterations).toEqual([2]);
 });
+
+// D3.7 (U-078, U-079, U-121, U-122): the most frequent action has the least motion. Without reduced motion, as a
+// person who never asked for less sees it.
+test.describe("Send's motion, without reduced motion", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("a reply under 100 ms shows no skeleton, and the response and its status line are never part-transparent", async ({
+    page,
+  }) => {
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill(`${ECHO}/echo?d37=1`);
+    // Every frame from the press to the answer, and a few after.
+    await page.evaluate(() => {
+      const seen: string[] = [];
+      (window as unknown as { d37: string[] }).d37 = seen;
+      const look = () => {
+        if (document.querySelector(".response-pane .ui-skeleton, app-response-viewer .ui-skeleton"))
+          seen.push("a skeleton");
+        for (const selector of ["app-response-viewer", ".response-status"]) {
+          for (let el = document.querySelector(selector); el; el = el.parentElement) {
+            const opacity = Number(getComputedStyle(el).opacity);
+            if (opacity < 1) seen.push(`${selector} at ${opacity} through ${el.nodeName.toLowerCase()}`);
+          }
+        }
+        requestAnimationFrame(look);
+      };
+      requestAnimationFrame(look);
+    });
+    const started = Date.now();
+    await send(page);
+    await expect(page.locator(".status-badge")).toHaveText("200");
+    expect(Date.now() - started, "the echo server answers at once").toBeLessThan(1000);
+    await page.waitForTimeout(400);
+    expect([...new Set(await page.evaluate(() => (window as unknown as { d37: string[] }).d37))]).toEqual([]);
+  });
+
+  test("a reply that takes 2 s shows nothing for its first second, then Sending and the time so far", async ({
+    page,
+  }) => {
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill(`${ECHO}/delay/2000`);
+    await send(page);
+    const sending = page.locator(".response-sending");
+    await page.waitForTimeout(500);
+    await expect(sending).toHaveText("");
+    await expect(sending).toHaveText(/^Sending… 1\.\d s$/, { timeout: 1200 });
+    await expect(page.locator(".status-badge")).toHaveText("200", { timeout: 5000 });
+  });
+
+  test("Send does not shrink while it is pressed", async ({ page }) => {
+    await page.goto("/app/");
+    await page.locator("input.address-url").fill(`${ECHO}/echo`);
+    const sendButton = page.getByRole("button", { name: "Send request" });
+    const box = (await sendButton.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    expect(await sendButton.evaluate((el) => getComputedStyle(el).transform)).toBe("none");
+    await page.mouse.up();
+  });
+
+  test("a theme change starts no transition", async ({ page }) => {
+    await page.goto("/app/");
+    await expect(page.locator("input.address-url")).toBeVisible();
+    // The caret starts in the address: leaving it fades the bar's border, which is focus, not the theme.
+    await page.locator("input.address-url").blur();
+    await page.waitForTimeout(300);
+    const toggle = page.locator(".status-bar").getByRole("button", { name: /^Switch to (dark|light) mode$/ });
+    // The pointer on the toggle itself is a hover, which may fade its colour: that is not the theme's.
+    await toggle.evaluate((button) => {
+      (window as unknown as { started: string[] }).started = [];
+      document.addEventListener(
+        "transitionstart",
+        (event) => {
+          const target = event.target as Element;
+          if (target !== button && !button.contains(target))
+            (window as unknown as { started: string[] }).started.push(
+              `${target.nodeName}.${[...target.classList].join(".")} ${event.propertyName}`,
+            );
+        },
+        true,
+      );
+    });
+    await toggle.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(300);
+    await toggle.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => (window as unknown as { started: string[] }).started)).toEqual([]);
+  });
+});

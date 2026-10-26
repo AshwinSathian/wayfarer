@@ -144,6 +144,7 @@ export class WorkspaceStore {
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = this.ofTab((tab) => tab.pasteNotes);
   readonly loadingState = this.ofTab((tab) => tab.loadingState);
+  readonly sendingSince = this.ofTab((tab) => tab.sendingSince);
   readonly variableTokens = this.ofTab((tab) => tab.variableTokens);
   readonly missingVariableKeys = this.ofTab((tab) => tab.missingVariableKeys);
   /** The variables without a value that held the last send back; the composer offers "Send anyway". */
@@ -428,6 +429,7 @@ export class WorkspaceStore {
     }
 
     tab.loadingState.set(true);
+    tab.sendingSince.set(Date.now());
     const controller = new AbortController();
     tab.inFlight = controller;
 

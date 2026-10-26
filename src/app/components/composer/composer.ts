@@ -10,7 +10,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { SHORTCUTS, matches } from "../../shared/shortcuts";
+import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -104,6 +104,8 @@ export class Composer {
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly breadcrumb = this.requestSave.breadcrumb;
+  /** Send's keys, in the reader's system's own (voice.md): ⌘↵ on a Mac, Ctrl+Enter elsewhere. */
+  protected readonly sendKeys = keysOf(SHORTCUTS.send);
   constructor() {
     // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).

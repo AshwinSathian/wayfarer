@@ -88,7 +88,7 @@ describe("Composer", () => {
   it("should validate URLs and block invalid submissions", () => {
     store.patch({ url: "not-a-url" });
     void component.sendRequest();
-    expect(store.endpointError()).toContain("not a URL a request can go to");
+    expect(store.endpointError()).toContain("not an address a request can go to");
     expect(idbService.add).not.toHaveBeenCalled();
   });
 

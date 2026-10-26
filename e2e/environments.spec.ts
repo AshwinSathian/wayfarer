@@ -33,7 +33,7 @@ test.describe("Environments", () => {
     const urlInput = page.locator("input.address-url");
     await urlInput.fill("https://{{baseHost}}/v1/resource");
     await expect(page.getByText("baseHost", { exact: false }).first()).toBeVisible();
-    await expect(page.getByText(/Missing: baseHost/i)).toHaveCount(0);
+    await expect(page.locator(".var-chip.var-missing")).toHaveCount(0);
   });
 });
 

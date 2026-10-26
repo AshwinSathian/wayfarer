@@ -80,6 +80,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **Tab goes from a tab straight to what is in its pane.** A pane that
+  holds a control is no longer a stop of its own on the way, so a walk
+  through the composer with Tab has three fewer empty stops. A pane with
+  nothing to focus in it is still one, so its text can be scrolled to.
+
 - **A screen reader hears what a send did, and every error that appears
   after an action.** The response pane says "Sending…" when a send starts
   and then the status line's words, "200 OK, 16.3 ms, Direct", or the

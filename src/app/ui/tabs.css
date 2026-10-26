@@ -111,7 +111,7 @@
   display: none;
 }
 
-/* A pane is in the tab order (Aria's tabindex, as WAI-ARIA's pattern asks). */
+/* A pane with nothing to focus in it is a Tab stop (WAI-ARIA's pattern; uiTabList takes the others out, U-090). */
 [role="tabpanel"]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;

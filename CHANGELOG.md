@@ -80,6 +80,12 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **`npm audit` reports 0 again.** Advisories published on 2026-10-26
+  and 2026-10-27: DOMPurify 3.4.16 (one critical, one high; it comes with
+  Monaco) is 3.4.17 through the existing override, undici 7.29.1 (high;
+  wrangler's, used only to deploy) is 7.30.1 with wrangler 4.153.0, and
+  fast-uri 3.1.8 (moderate; Stryker's) is 3.1.9.
+
 - **What a control says is the start of its name, so voice control finds
   it by what is on the screen.** Settings' "Clear…", "Manage…" and
   "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all

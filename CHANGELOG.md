@@ -292,6 +292,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   (the + beside the tabs, or ⌥T or Alt+T) is the one way to start a request, and the
   request you were working on stays in its own tab.
 
+- **A WebSocket has controls of its own, and its log can be read.** With a
+  `ws://` address the method field and Copy as cURL are gone (WS stands in
+  the method's place), the connection's state is beside Connect and
+  Disconnect, and the note about what a WebSocket carries is a tooltip on
+  Subprotocols, where it was a paragraph above every connection. The log
+  shows all messages, or only what came in or went out, can be searched,
+  and shows a JSON message formatted on a press. "Must be JSON" reads
+  "Check it is JSON before sending".
+
 - **The composer's words follow the voice guide.** "Add header", "Edit as
   text" (was "Bulk edit"), "Save to collection…", "Pre-request script",
   and placeholders in sentence case. The address reads "Type an address,

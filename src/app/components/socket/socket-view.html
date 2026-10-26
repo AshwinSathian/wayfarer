@@ -1,7 +1,18 @@
 @let socket = state(); @let status = socket.status();
 <div class="flex flex-wrap items-end gap-x-6 gap-y-3">
   <div class="flex min-w-0 flex-[1_1_16rem] flex-col gap-1">
-    <label for="socket-protocols" class="type-footnote text-label-secondary">Subprotocols</label>
+    <span class="flex items-center gap-1.5">
+      <label for="socket-protocols" class="type-footnote text-label-secondary">Subprotocols</label>
+      <!-- Said once, where it applies, not above every connection (U-047). -->
+      <span
+        class="info-tip"
+        tabindex="0"
+        role="img"
+        aria-label="What a WebSocket carries"
+        uiTooltip="A browser opens a WebSocket itself and lets a page add no header to its handshake: this request's headers and auth do not go with it, and the Local Bridge does not carry it. A variable in the address or in a message is replaced; a vault secret cannot be sent."
+        ><app-icon name="info" class="icon-xs"
+      /></span>
+    </span>
     <input
       class="font-mono w-full"
       uiInput
@@ -14,18 +25,11 @@
       (input)="socket.protocols.set($any($event.target).value)"
     />
   </div>
-  <div role="status" class="type-callout text-label-secondary flex items-center gap-2 pb-2">
-    @switch (status) { @case ('connecting') { <ui-spinner /> <span>Connecting…</span> } @case ('open') {
-    <span class="text-status-success">Connected</span> } @default { <span>Not connected</span> } }
-  </div>
+  <!-- The state is drawn beside Connect and Disconnect, in the address row (U-048); this region says it. -->
+  <p role="status" class="sr-only"
+    >{{ status === 'connecting' ? 'Connecting…' : status === 'open' ? 'Connected' : 'Not connected' }}</p
+  >
 </div>
-
-<p class="type-footnote text-label-tertiary">
-  A browser opens a WebSocket itself and lets a page add no header to its handshake: this request's headers and auth do
-  not go with it, and the Local Bridge does not carry it. A
-  <span class="font-mono">{{ '{' + '{variable}' + '}' }}</span> in the address or in a message is replaced; a vault
-  secret cannot be sent.
-</p>
 
 <p class="sr-only" role="alert">{{ socket.error() }}</p>
 @if (socket.error()) {
@@ -62,7 +66,7 @@
         uiCheckbox
         [checked]="socket.json()"
         (change)="socket.json.set($any($event.target).checked)"
-      />Must be JSON</label
+      />Check it is JSON before sending</label
     >
     <span class="flex-1"></span>
     <button uiButton class="btn-sm" type="button" [disabled]="!socket.log().length" (click)="socket.log.set([])"
@@ -72,6 +76,26 @@
 </div>
 
 @if (socket.log().length) {
+<!-- What the log shows: all, or what came in, or what went out, and the text a message holds (U-048). -->
+<div class="flex flex-wrap items-center gap-3">
+  <span id="socket-log-show" class="sr-only">Messages to show</span>
+  <ui-segmented
+    aria-labelledby="socket-log-show"
+    [options]="showOptions"
+    [value]="showing()"
+    (valueChange)="showing.set($event)"
+  />
+  <input
+    uiInput
+    class="font-mono min-w-0 flex-[1_1_12rem]"
+    aria-label="Search the log"
+    placeholder="Search"
+    spellcheck="false"
+    autocomplete="off"
+    [value]="search()"
+    (input)="search.set($any($event.target).value)"
+  />
+</div>
 <div
   class="max-h-[28rem] overflow-auto rounded-xl border border-separator"
   role="region"
@@ -89,19 +113,27 @@
     </thead>
     <tbody>
       <!-- By position: the same message may come twice. -->
-      @for (entry of socket.log(); track $index) {
+      @for (row of rows(); track row.index) { @let entry = row.entry;
       <tr>
         <td class="whitespace-nowrap">{{ entry.at | date: 'HH:mm:ss.SSS' }}</td>
         <td class="whitespace-nowrap"
           >{{ entry.direction === 'in' ? 'Received' : entry.direction === 'out' ? 'Sent' : '—' }}</td
         >
         <td
-          class="break-all whitespace-pre-wrap"
+          class="socket-message whitespace-pre-wrap"
           [class.font-mono]="entry.direction !== 'info'"
           [class.text-label-secondary]="entry.direction === 'info'"
-          >{{ entry.text }}</td
+          >{{ open().has(row.index) && row.json ? row.json : entry.text }}@if (row.json) {
+          <button uiButton class="btn-sm socket-format" type="button" (click)="toggle(row.index)"
+            >{{ open().has(row.index) ? 'As sent' : 'Format JSON' }}</button
+          >
+          }</td
         >
         <td class="whitespace-nowrap">{{ entry.bytes === undefined ? '—' : entry.bytes + ' B' }}</td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="4" class="text-label-secondary">No message matches.</td>
       </tr>
       }
     </tbody>

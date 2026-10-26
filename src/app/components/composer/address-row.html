@@ -1,6 +1,9 @@
 <!-- Unified method + URL bar -->
 <div class="address-bar min-w-0 flex-[1_1_20rem]">
-  <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. -->
+  <!-- Method: any HTTP method can be typed; the common ones are in the menu beside it. A WebSocket has none (U-047). -->
+  @if (socket.isSocket()) {
+  <span class="socket-scheme" aria-hidden="true">WS</span>
+  } @else {
   <input
     class="font-mono method-field"
     uiInput
@@ -24,6 +27,7 @@
     ><app-icon name="keyboard_arrow_down" class="icon-sm"
   /></button>
   <ui-menu #methods [trigger]="methodsTrigger" [items]="methodItems" />
+  }
 
   <!-- URL input -->
   <input
@@ -53,6 +57,8 @@
     whether a given browser still dispatches hover events to a disabled
     element at all.
   -->
+  <!-- A WebSocket is not a request cURL can send (U-047). -->
+  @if (!socket.isSocket()) {
   <span
     class="curl-btn-wrap"
     [class.is-disabled]="!store.draft().url"
@@ -73,6 +79,7 @@
     /></button>
   </span>
   <ui-menu #curlMenu [trigger]="curlTrigger" [items]="curlItems" />
+  }
   <button
     uiButton="outlined"
     class="btn-secondary btn-square"
@@ -92,7 +99,11 @@
   </button>
   <!-- One button each, whose label and action change: a button swapped for another took focus with it. -->
   @if (socket.isSocket()) {
-  <!-- An address of a WebSocket (P5.7): it is connected to, not sent. -->
+  <!-- An address of a WebSocket (P5.7): it is connected to, not sent. Its state is beside it (U-048). -->
+  <span class="socket-state type-footnote" aria-hidden="true" [class.text-status-success]="socketStatus() === 'open'"
+    >{{ socketStatus() === 'connecting' ? 'Connecting…' : socketStatus() === 'open' ? 'Connected' : 'Not connected'
+    }}</span
+  >
   <button
     uiButton="filled"
     type="button"

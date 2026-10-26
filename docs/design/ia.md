@@ -446,7 +446,9 @@ it is.
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
 | `response-viewer.html: Send through the Local Bridge` | — (new in D4-e, U-051): under a send that got no response | Response; D4.12 adds pairing in place (DQ10) | D4-e |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
-| `socket-view.html: Must be JSON` | WebSocket view | Response, WebSocket view | D4-e |
+| `socket-view.html: Check it is JSON before sending` | WebSocket view (was "Must be JSON", U-103) | Response, WebSocket view | D4-e |
+| `socket-view.html: Messages to show` | — (new in D4-e, U-048): All, Received, Sent | Response, WebSocket view, above the log | D4-e |
+| `socket-view.html: As sent / Format JSON` | — (new in D4-e, U-048): a message that is JSON, formatted | Response, WebSocket view, in the log's row | D4-e |
 | `socket-view.html: Clear log` | WebSocket view | Response, WebSocket view | D4-e |
 | `menu response-viewer.ts: Copy as cURL` | Response, Export menu | Response, same menu | D4-e |
 | `menu response-viewer.ts: Copy as HAR` | Response, Export menu | Response, same menu | D4-e |

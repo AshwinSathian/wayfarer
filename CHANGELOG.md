@@ -80,6 +80,15 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The Auth tab says where a token's value comes from, not only where the
+  auth is set.** A request that inherits a bearer token from its
+  collection now reads, for instance, "Bearer token is sent, from
+  collection "Shop". {{token}} comes from the environment Local, as a
+  vault secret." Before, it named only the collection, even when the
+  environment's vault secret was what went out. The variables of the auth
+  a request is sent with now have chips under the address, like those of
+  the address, the headers and the body, and a variable whose value is a
+  vault secret says "From the vault" there.
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.

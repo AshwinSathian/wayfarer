@@ -111,7 +111,8 @@
 
   <!-- ── Environment editor ────────────────────────────────── -->
   @if (draft(); as form) {
-  <div class="ds-panel p-5">
+  <!-- Written when focus leaves a field (DQ9): there is no Save button. -->
+  <div class="ds-panel p-5" (focusout)="onFocusOut($event)">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
@@ -152,6 +153,7 @@
                   [class]="focusedVariableKey() === item.key ? 'ring-2 ring-accent-border bg-accent-fill/40' : ''"
                 >
                   <input
+                    #keyInput
                     class="font-mono"
                     uiInput
                     placeholder="KEY"
@@ -187,6 +189,8 @@
                     class="btn-secondary"
                     [disabled]="isSecretValue(form.vars[$index].value)"
                     aria-label="Mark variable as secret"
+                    data-secret-lock
+                    (pointerdown)="holdForSecret($index)"
                     (click)="protectVariable($index)"
                     ><app-icon name="lock"
                   /></button>
@@ -198,15 +202,59 @@
                     ><app-icon name="close"
                   /></button>
                 </div>
-                } @if (shortSecretWarning(); as short) {
-                <p role="status" class="type-footnote text-status-warning flex items-center gap-1.5">
-                  <app-icon name="warning" class="icon-xs" />
-                  "{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be
-                  found and masked where a server sends it back.
-                </p>
-                }
-                <button uiButton="filled" class="btn-secondary btn-sm" aria-label="Add variable" (click)="addVariable()"
-                  ><app-icon name="add" /> Add Variable</button
+                @if (protectProblem()?.index === $index) {
+                <p class="type-footnote text-label-secondary px-1.5">{{ protectProblem()?.text }}</p>
+                } @else if (rowNote(item); as note) {
+                <p class="type-footnote text-label-secondary px-1.5">{{ note }}</p>
+                } @if (vaultFor() === $index) {
+                <!-- The vault is made in the row that asked for it, not in a second dialog (U-136). -->
+                <div class="env-vault-create" role="group" aria-labelledby="env-vault-create-title">
+                  <p id="env-vault-create-title" class="type-footnote text-label-primary"
+                    >Choose a passphrase for the vault. It encrypts {{ item.key }} and every secret after it, and
+                    nothing can open them without it.</p
+                  >
+                  <div class="flex flex-wrap gap-2">
+                    <input
+                      #vaultPassphraseField
+                      class="font-sans min-w-0 flex-1 basis-40"
+                      uiInput
+                      type="password"
+                      aria-label="Passphrase"
+                      placeholder="Passphrase"
+                      aria-describedby="env-error"
+                      [attr.aria-invalid]="vaultError() ? 'true' : null"
+                      [ngModel]="vaultPassphrase()"
+                      (ngModelChange)="vaultPassphrase.set($event)"
+                      (keydown.enter)="createVaultForRow()"
+                    />
+                    <input
+                      class="font-sans min-w-0 flex-1 basis-40"
+                      uiInput
+                      type="password"
+                      aria-label="Confirm passphrase"
+                      placeholder="Confirm passphrase"
+                      [ngModel]="vaultConfirmation()"
+                      (ngModelChange)="vaultConfirmation.set($event)"
+                      (keydown.enter)="createVaultForRow()"
+                    />
+                  </div>
+                  <div class="flex justify-end gap-2">
+                    <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="cancelVaultForRow()"
+                      >Cancel</button
+                    >
+                    <button
+                      uiButton="filled"
+                      class="btn-sm"
+                      type="button"
+                      [disabled]="!vaultPassphrase()"
+                      (click)="createVaultForRow()"
+                      >Create vault</button
+                    >
+                  </div>
+                </div>
+                } }
+                <button uiButton="filled" class="btn-secondary btn-sm" (click)="addVariable()"
+                  ><app-icon name="add" /> Add variable</button
                 >
               </div>
             </ng-template></div
@@ -231,12 +279,6 @@
           ></div>
         </div>
       </div>
-    </div>
-
-    <div class="mt-5 flex justify-end">
-      <button uiButton="filled" aria-label="Save changes" [disabled]="!form.name || !form.jsonValid" (click)="save()"
-        >Save changes</button
-      >
     </div>
   </div>
   } @else {
@@ -323,3 +365,19 @@
   (visibleChange)="exportDialogVisible.set($event)"
   (requestUnlock)="requestUnlock.emit()"
 />
+
+<!-- Present from the first render, so a screen reader hears each message when its text arrives (U-075). Empty, they
+     take no room: the space is the message's own. -->
+<p role="status" class="type-footnote text-status-warning env-live">
+  @if (shortSecretWarning(); as short) {
+  <span class="env-live-text"
+    >"{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be found and
+    masked where a server sends it back.</span
+  >
+  }
+</p>
+<p id="env-error" role="alert" class="type-footnote text-status-error env-live">
+  @if (saveError() || vaultError()) {
+  <span class="env-live-text">{{ saveError() || vaultError() }}</span>
+  }
+</p>

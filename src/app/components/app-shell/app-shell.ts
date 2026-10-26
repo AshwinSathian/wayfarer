@@ -22,7 +22,7 @@ import { UiModal } from "../../ui/modal";
 import { PastRequest } from "@wayfarer/core";
 import { RequestDoc } from "../../models/collections";
 import { EnvironmentsStore } from "../../services/environments-store";
-import { SecretsVault } from "../../services/secrets-vault";
+import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
 import { WorkspaceBackup } from "../../services/workspace-backup";
 import { HistoryRepository } from "../../data/history-repository";
 import { DatabaseResetBlockedError, IdbCore } from "../../data/idb-core";
@@ -344,15 +344,10 @@ export class AppShell implements OnInit {
     if (!passphrase) {
       return;
     }
-    if (this.isFirstVaultSetup()) {
-      if (passphrase !== this.confirmPassphrase()) {
-        this.unlockError.set("Passphrases do not match.");
-        return;
-      }
-      if (passphrase.length < 8) {
-        this.unlockError.set("Passphrase must be at least 8 characters.");
-        return;
-      }
+    const problem = this.isFirstVaultSetup() && passphraseProblem(passphrase, this.confirmPassphrase());
+    if (problem) {
+      this.unlockError.set(problem);
+      return;
     }
     try {
       if (this.isFirstVaultSetup()) {

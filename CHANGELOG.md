@@ -80,6 +80,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **The split between the request and the response moves without a drag.**
+  A click on the left half of its line moves it a tenth of the way left, a
+  click on the right half a tenth right, and a double click puts it back.
+  Before, it moved only by dragging or with the arrow keys.
 - **A ticked checkbox's tick is readable in the dark theme.** It is now
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.

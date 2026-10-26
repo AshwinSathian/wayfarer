@@ -561,7 +561,10 @@ test("switching the theme recolours the environment select at once", async ({ pa
   await expect(select).toHaveText("No environment");
   // The status bar's theme goes system, light, dark in turn (U-087): from dark, the system's, made light here.
   await page.emulateMedia({ colorScheme: "light" });
-  await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: /^Theme: / }).click();
+  await page
+    .getByRole("contentinfo", { name: "Status" })
+    .getByRole("button", { name: /^Theme: / })
+    .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   const colours = await select.evaluate((host) => {
     const text = host.querySelector(".ui-select-value");

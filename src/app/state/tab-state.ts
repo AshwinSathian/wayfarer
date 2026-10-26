@@ -69,9 +69,13 @@ export class TabState {
   readonly dirty = computed(() => JSON.stringify(contentOf(this.draft())) !== this.baseline());
 
   readonly endpointError = signal("");
+  /** Why the tab's last save did not land (U-066): said under the address until a save does. */
+  readonly saveError = signal("");
   /** What a pasted cURL command asked for that the app does not do. Shown until the next send or the next request. */
   readonly pasteNotes = signal<string[]>([]);
   readonly loadingState = signal(false);
+  /** When the send now on its way started (`Date.now()`): the pane says "Sending…" and the time so far after a second (D3.7). */
+  readonly sendingSince = signal<number | null>(null);
   readonly variableTokens = signal<VariableToken[]>([]);
   readonly missingVariableKeys = signal<string[]>([]);
   /** The variables without a value that held the last send back; the composer offers "Send anyway". */
@@ -86,6 +90,8 @@ export class TabState {
   readonly responseStatusCode = signal<number | undefined>(undefined);
   readonly responseStatusText = signal<string | undefined>(undefined);
   readonly responseIsError = signal(false);
+  /** No response arrived: what the browser reported, which the pane quotes beside the Local Bridge (U-051). */
+  readonly responseNoResponse = signal("");
   readonly responseTab = signal<"body" | "headers" | "timings" | "tests" | "events">("body");
   readonly responseContentLength = signal<number | undefined>(undefined);
   readonly responseBinary = signal<BinaryBody | null>(null);
@@ -165,6 +171,7 @@ export class TabState {
     this.responseStatusCode.set(undefined);
     this.responseStatusText.set(undefined);
     this.responseIsError.set(false);
+    this.responseNoResponse.set("");
     this.responseContentLength.set(undefined);
     this.responseBinary.set(null);
     this.responseRedirectedTo.set(undefined);

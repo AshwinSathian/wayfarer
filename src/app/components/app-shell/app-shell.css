@@ -18,7 +18,6 @@
   /* Beside the page, not over it (audit U-007): a hairline, no drawer's shadow and no blur. */
   background: var(--canvas-sidebar);
   border-right: 1px solid var(--separator);
-  animation: fade-in var(--dur-enter) var(--ease-enter) both;
 }
 
 /* The status bar (S4): what the toolbar's icons were, said in words. */

@@ -253,7 +253,9 @@ test("@claim:C-062 an answer with a state the app did not issue is not taken: no
   });
   await send(page);
   await expect(
-    page.getByText("There is no OAuth 2.0 token yet. Choose Get token in the Auth tab. Nothing was sent."),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "There is no OAuth 2.0 token yet. Choose Get token in the Auth tab. Nothing was sent." }),
   ).toBeVisible();
   expect(arrived).toBe(0);
 });
@@ -356,7 +358,7 @@ test("@claim:C-062 a token endpoint without CORS headers: sent from the page, th
   await expect(status(page)).toContainText("No token yet.");
 
   await send(page);
-  await expect(page.getByText(`${message} Nothing was sent.`)).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: `${message} Nothing was sent.` })).toBeVisible();
   expect(arrived).toBe(0);
 });
 
@@ -505,9 +507,9 @@ test("a variable without a value in the OAuth 2.0 auth: no token is asked for wi
 
   await send(page);
   await expect(
-    page.getByText(
-      "The OAuth 2.0 auth uses {{CLIENT}}, which has no value. No token was asked for, and nothing was sent.",
-    ),
+    page.getByRole("alert").filter({
+      hasText: "The OAuth 2.0 auth uses {{CLIENT}}, which has no value. No token was asked for, and nothing was sent.",
+    }),
   ).toBeVisible();
   expect(tokens).toEqual([]);
   expect(arrived).toBe(0);

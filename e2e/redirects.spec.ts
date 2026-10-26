@@ -42,7 +42,7 @@ test("/redirect/3 through the bridge lists three hops, and the response is where
     ]);
     await expect(chain(page)).toContainText("Followed 3 redirects through the Local Bridge:");
     await expect(viewer(page).locator(".redirect-note")).toContainText(`Redirected to ${ECHO}/echo`);
-    await expect(chain(page).getByRole("status")).toHaveCount(0);
+    await expect(chain(page).locator(".redirect-stopped")).toHaveCount(0);
     expect(direct).toEqual([]);
   } finally {
     bridge.stop();
@@ -62,7 +62,9 @@ test("with Follow redirects off the 302 is the response as it came, and the tab 
     await send(page);
 
     await expect(page.locator(".status-badge").first()).toHaveText("302");
-    await expect(chain(page).getByRole("status")).toHaveText("Not followed: Follow redirects is off for this request.");
+    await expect(chain(page).locator(".redirect-stopped")).toHaveText(
+      "Not followed: Follow redirects is off for this request.",
+    );
     expect(await hops(page)).toEqual([]);
     await viewer(page).getByRole("tab", { name: "Headers" }).click();
     await expect(viewer(page)).toContainText("/redirect/2");
@@ -99,7 +101,7 @@ test("@claim:C-063 a request with a vault secret is not followed to another host
     await address(page).fill(away);
     await send(page);
     await expect(page.locator(".status-badge").first()).toHaveText("307");
-    await expect(chain(page).getByRole("status")).toContainText(
+    await expect(chain(page).locator(".redirect-stopped")).toContainText(
       "Not followed: this redirect leaves the host, and the request holds a vault secret",
     );
     expect(await hops(page)).toEqual([]);
@@ -136,7 +138,7 @@ for (const theme of ["light", "dark"] as const) {
       await openRequestSettings(page);
       await page.getByRole("checkbox", { name: "Follow redirects" }).uncheck();
       await send(page);
-      await expect(chain(page).getByRole("status")).toBeVisible();
+      await expect(chain(page).locator(".redirect-stopped")).toBeVisible();
       await scan("stopped");
       await page.getByRole("checkbox", { name: "Follow redirects" }).check();
       await send(page);

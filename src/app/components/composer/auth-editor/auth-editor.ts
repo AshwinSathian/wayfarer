@@ -49,6 +49,8 @@ export class AuthEditor {
   readonly subject = input<"request" | "folder" | "collection">("request");
   /** What `inherit` gives here, and from where. A collection has nothing above it and is not offered the choice. */
   readonly inherited = input<{ auth: OwnAuth; from?: string }>({ auth: { type: "none" } });
+  /** Where the values of the auth's variables come from (U-130): the auth may be the collection's and its value the environment's. */
+  readonly valueSources = input("");
   /** Starts the ids of the fields: two editors may be on the page, one in a dialog. */
   readonly idPrefix = input("auth");
 

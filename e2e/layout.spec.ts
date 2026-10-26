@@ -270,6 +270,24 @@ test.describe("Resizable composer/response layout (desktop)", () => {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
   });
 
+  // U-064 (WCAG 2.5.7): the split moves with one pointer and no drag.
+  test("a click on either side of the split's line moves it, and a double click puts it back", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/app/");
+    const gutter = page.locator(".composer-response-splitter").getByRole("separator");
+    const at = async () => Number(await gutter.getAttribute("aria-valuenow"));
+    const start = await at();
+    const box = (await gutter.boundingBox())!;
+    await gutter.click({ position: { x: 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start - 10);
+    await gutter.click({ position: { x: box.width - 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start);
+    await gutter.click({ position: { x: box.width - 1, y: box.height / 2 } });
+    await expect.poll(at).toBe(start + 10);
+    await gutter.dblclick({ position: { x: box.width / 2, y: box.height / 2 } });
+    await expect.poll(at).toBe(55);
+  });
+
   test("the split cannot be dragged past its minimum pane sizes", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/app/");

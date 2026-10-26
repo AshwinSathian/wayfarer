@@ -131,4 +131,32 @@ describe("ui-splitter", () => {
     expect(width("start")).toBeCloseTo(1008 * 0.28, 0);
     fixture.destroy();
   });
+
+  // U-064 (WCAG 2.5.7): one pointer, no drag.
+  it("a click on a side of the gutter moves it a tenth that way, and a double click puts the sizes back", async () => {
+    const { fixture, gutter, width, pointer } = await setup();
+    const before = width("start");
+    const at = gutter.getBoundingClientRect().left;
+
+    pointer("pointerdown", at + 1);
+    pointer("pointerup", at + 1);
+    await fixture.whenStable();
+    expect(width("start")).toBeCloseTo(before - 1008 * 0.1, 0);
+
+    const now = gutter.getBoundingClientRect().left;
+    pointer("pointerdown", now + 7);
+    pointer("pointermove", now + 8);
+    pointer("pointerup", now + 8);
+    await fixture.whenStable();
+    expect(width("start")).toBeCloseTo(before, 0);
+    expect(JSON.parse(localStorage.getItem(KEY)!)[0]).toBeCloseTo(55, 0);
+
+    pointer("pointerdown", now + 7);
+    pointer("pointerup", now + 7);
+    gutter.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    await fixture.whenStable();
+    expect(width("start")).toBeCloseTo(before, 0);
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual([55, 45]);
+    fixture.destroy();
+  });
 });

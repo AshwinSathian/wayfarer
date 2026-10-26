@@ -17,6 +17,8 @@ import { TestsPanel } from "./tests-panel";
 export class ScriptsPanel {
   protected readonly store = inject(WorkspaceStore);
   protected readonly reviewing = signal(false);
+  protected readonly heldText =
+    "Scripts do not run for this request yet: its own, or those of its collection or folders, came from a file or from history and have not been reviewed here. Assertions still run.";
 
   protected setScript(kind: "pre" | "post", text: string): void {
     this.store.patch({ scripts: { ...this.store.draft().scripts, [kind]: text } });

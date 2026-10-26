@@ -15,6 +15,7 @@
 //   /gzip, /deflate                compressed JSON
 //   /delay/:ms                     responds after ms milliseconds
 //   /status/:code                  that status, JSON body
+//   /empty/:code                   that status, no body
 //   /cors/{none,simple,full,no-expose}
 //   /cors-seen?url=/cors/none?id=x how often each method reached that address: { POST: 1, OPTIONS: 1 }
 //   /sse?count=5                   text/event-stream, honours Last-Event-ID
@@ -284,6 +285,10 @@ async function handle(req, res, { postmanEcho: postman = false } = {}) {
     return;
   }
   if ((m = /^\/status\/(\d{3})$/.exec(path))) return json(res, Number(m[1]), { status: Number(m[1]) }, cors);
+  if ((m = /^\/empty\/(\d{3})$/.exec(path))) {
+    res.writeHead(Number(m[1]), cors);
+    return res.end();
+  }
   if (path === "/sse") return sse(req, res, url, cors);
   if (path === "/oauth/authorize") return authorize(res, url, cors);
   if (path === "/oauth/token") return token(req, res, url, body, cors);

@@ -19,7 +19,7 @@
     <label for="bridge-url-input" class="type-subhead text-label-primary">Bridge URL</label>
     <p class="type-footnote text-label-tertiary">Where the bridge listens. It binds to this machine only.</p>
     <input
-      class="font-mono w-full"
+      class="font-mono w-full placeholder-mono"
       uiInput
       id="bridge-url-input"
       type="text"
@@ -39,7 +39,7 @@
     >
     <div class="flex flex-wrap items-center gap-2">
       <input
-        class="font-mono min-w-0 flex-1 basis-40"
+        class="font-mono min-w-0 flex-1 basis-40 placeholder-mono"
         uiInput
         id="bridge-pairing-input"
         type="text"
@@ -100,9 +100,8 @@
   </div>
 </div>
 
-@if (problem()) {
-<p class="type-footnote text-status-error mt-3" role="alert">{{ problem() }}</p>
-}
+<!-- There from the first render; it takes room only while it says something (U-075). -->
+<p class="type-footnote text-status-error m-0" role="alert" [class.mt-3]="problem()">{{ problem() }}</p>
 
 <div class="mt-4 flex flex-wrap items-center gap-2">
   <button
@@ -127,8 +126,9 @@
     }
   </span>
   <span class="flex-1"></span>
+  <span class="sr-only" role="status">{{ saved() && !dirty() ? 'Saved' : '' }}</span>
   @if (saved() && !dirty()) {
-  <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" role="status"
+  <span class="bridge-saved type-footnote text-status-success flex items-center gap-1" aria-hidden="true"
     ><app-icon name="check" class="icon-xs" /> Saved</span
   >
   } @if (dirty()) {

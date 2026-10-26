@@ -77,7 +77,8 @@
     uiButton="outlined"
     class="btn-secondary btn-square"
     type="button"
-    [disabled]="!store.draft().url || savingRequest()"
+    [disabled]="!store.draft().url"
+    [attr.aria-disabled]="savingRequest() ? 'true' : null"
     [uiTooltip]="loadedCollectionRequest() ? 'Save' : 'Save to collection…'"
     [uiTooltipKeys]="shortcuts.save"
     [attr.aria-label]="loadedCollectionRequest() ? 'Save' : 'Save to collection…'"
@@ -107,7 +108,7 @@
     [attr.aria-label]="store.loadingState() ? 'Cancel request' : 'Send request'"
     [uiTooltip]="store.loadingState() ? '' : 'Send request'"
     [uiTooltipKeys]="shortcuts.send"
-    (click)="store.loadingState() ? store.cancel() : send.emit()"
+    (click)="sendOrCancel($event)"
     class="send-btn"
     >{{ store.loadingState() ? "Cancel" : "Send" }}</button
   >

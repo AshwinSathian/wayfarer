@@ -40,6 +40,13 @@ textarea.ui-input {
 .ui-input::placeholder {
   color: var(--label-placeholder);
   opacity: 1;
+  /* A placeholder is the app's own words, whatever the field holds (U-148): the wire's face is for what is
+     typed or sent. One that shows an example of the value (an address, a region) says so with placeholder-mono. */
+  font-family: var(--font-sans);
+}
+
+.ui-input.placeholder-mono::placeholder {
+  font-family: var(--font-mono);
 }
 
 .ui-input:hover:not(:disabled) {

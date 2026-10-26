@@ -50,6 +50,7 @@ export const editor = {
   setModelLanguage: (_model: MonacoTypes.editor.ITextModel, _language: string): void => {},
   setTheme: (_themeName: string): void => {},
   defineTheme: (_themeName: string, _themeData: MonacoTypes.editor.IStandaloneThemeData): void => {},
+  remeasureFonts: (): void => {},
   // What the GraphQL tools ask of the editor (P5.5): no model exists here, and no marker is drawn.
   getModels: (): MonacoTypes.editor.ITextModel[] => [],
   onDidCreateModel: (_listener: (model: MonacoTypes.editor.ITextModel) => void): MonacoTypes.IDisposable =>

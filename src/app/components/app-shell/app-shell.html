@@ -131,11 +131,7 @@
   }
 
   <!-- Main content area -->
-  <div
-    class="flex min-w-0 flex-1 flex-col"
-    style="transition: margin-left var(--dur-enter) var(--ease-standard)"
-    [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
-  >
+  <div class="flex min-w-0 flex-1 flex-col" [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''">
     <!-- Top toolbar -->
     <header class="ds-toolbar">
       <!-- Left: nav toggle + brand -->
@@ -234,12 +230,15 @@
       <div
         [class]="isMobile() ? 'flex w-full flex-col gap-5 px-4 pb-16 pt-5' : 'flex min-h-0 w-full flex-1 flex-col gap-4 px-8 pb-4 pt-4'"
       >
+        <!-- The banners' live regions, there from the first render: a region made with its message is often not
+             heard (U-075). The banners below are what the eye reads; their text is said once, here. -->
+        <p class="sr-only" role="status">{{ bannerStatus() }}</p>
+        <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
+        <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
+        <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
         @if (swUpdate.updateAvailable()) {
-        <div
-          role="status"
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator"
-        >
-          <p class="type-callout">Update available: a new version of Wayfarer is ready.</p>
+        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
+          <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -250,14 +249,8 @@
           >
         </div>
         } @if (backup.reminderDue()) {
-        <div
-          role="status"
-          class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator"
-        >
-          <p class="type-callout text-label-secondary"
-            >It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can
-            delete it.</p
-          >
+        <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
+          <p class="type-callout text-label-secondary" aria-hidden="true">{{ banners.backup }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -272,29 +265,22 @@
         </div>
         } @if (dataResetElsewhere()) {
         <div
-          role="alert"
           class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
         >
-          <p class="type-callout text-status-warning"
-            >Data was reset in another tab — reload to continue. Changes made here are no longer saved.</p
-          >
+          <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.resetElsewhere }}</p>
           <button uiButton="filled" class="btn-secondary btn-sm" type="button" aria-label="Reload" (click)="reload()"
             >Reload</button
           >
         </div>
         } @if (storageUnavailable()) {
-        <div role="alert" class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
-          <p class="type-callout text-status-warning"
-            >This browser is not letting Wayfarer store data (a private window, or storage blocked for this site).
-            History is kept only until this tab closes; collections, environments and secrets cannot be saved.</p
-          >
+        <div class="rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
+          <p class="type-callout text-status-warning" aria-hidden="true">{{ banners.storage }}</p>
         </div>
         } @if (resetError()) {
         <div
-          role="alert"
           class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-status-error-fill border border-status-error-border"
         >
-          <p class="type-callout text-status-error">Reset All Data failed: {{ resetError() }}</p>
+          <p class="type-callout text-status-error" aria-hidden="true">{{ resetErrorText() }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -317,60 +303,51 @@
     <!-- Where a request goes and what holds its secrets, always in sight (S4). Each control is the
          button it was in the toolbar, with its name; the state beside it is text. -->
     <footer class="status-bar" aria-label="Status">
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          [class.text-status-success]="bridgeService.config().route === 'bridge'"
-          (click)="openBridgeSettings()"
-          uiTooltip="Local Bridge settings"
-          aria-label="Local Bridge settings"
-        >
-          <app-icon name="router" class="icon-xs" />
-        </button>
-        <span>Route: {{ routeNames[bridgeService.config().route] }}</span>
-      </span>
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          [class.text-status-success]="secretsUnlocked"
-          (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
-          [uiTooltip]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-          [attr.aria-label]="secretsUnlocked ? 'Lock secrets' : 'Unlock secrets'"
-        >
-          <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />
-        </button>
-        <span>{{ secretsUnlocked ? "Vault open" : "Vault locked" }}</span>
-      </span>
-      <span class="status-item">
-        <button
-          type="button"
-          uiButton="icon"
-          class="btn-plain status-button"
-          (click)="secretsDialogVisible.set(true)"
-          uiTooltip="Manage secrets"
-          aria-label="Manage secrets"
-        >
-          <app-icon name="key" class="icon-xs" />
-        </button>
-        <span>Secrets</span>
-      </span>
+      <!-- Each item is one button, named by the words it shows (U-072, WCAG 2.5.3); what it does is its tooltip. -->
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        [class.text-status-success]="bridgeService.config().route === 'bridge'"
+        (click)="openBridgeSettings()"
+        uiTooltip="Local Bridge settings"
+      >
+        <app-icon name="router" class="icon-xs" />Route: {{ routeNames[bridgeService.config().route] }}
+      </button>
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        [class.text-status-success]="secretsUnlocked"
+        (click)="secretsUnlocked ? lockSecrets() : openLockDialog()"
+        [uiTooltip]="secretsUnlocked ? 'Lock the vault' : 'Unlock the vault'"
+      >
+        <app-icon [name]="secretsUnlocked ? 'lock_open' : 'lock'" class="icon-xs" />{{ secretsUnlocked ? "Vault
+        unlocked" : "Vault locked" }}
+      </button>
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        (click)="secretsDialogVisible.set(true)"
+        uiTooltip="Manage the vault's secrets"
+      >
+        <app-icon name="key" class="icon-xs" />Secrets
+      </button>
       <span class="flex-1"></span>
       <span class="status-item"
         >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span
       >
+      <!-- System, light, dark, in turn, and the button says which it is now (U-087). -->
       <button
         type="button"
-        uiButton="icon"
-        class="btn-plain status-button"
-        (click)="themeService.toggle()"
-        [uiTooltip]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-        [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        uiButton
+        class="btn-plain status-control"
+        (click)="nextTheme()"
+        [uiTooltip]="'Theme: ' + themeNames[nextChoice()] + ' next'"
       >
-        <app-icon [name]="themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'" class="icon-xs" />
+        <app-icon [name]="themeService.theme() === 'dark' ? 'dark_mode' : 'light_mode'" class="icon-xs" />Theme: {{
+        themeNames[themeService.choice()] }}
       </button>
     </footer>
     }
@@ -406,6 +383,9 @@
         [ngModel]="unlockPassphrase()"
         (ngModelChange)="unlockPassphrase.set($event)"
         [placeholder]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+        [attr.aria-label]="isFirstVaultSetup() ? 'Choose a passphrase' : 'Passphrase'"
+        [attr.aria-invalid]="unlockError() ? 'true' : null"
+        [attr.aria-describedby]="unlockError() ? 'vault-error' : null"
         (keydown.enter)="unlockSecrets()"
       />
       @if (isFirstVaultSetup()) {
@@ -421,8 +401,10 @@
       }
     </div>
 
+    <!-- There while the dialog is open, so the error is heard when it appears (U-062). -->
+    <p id="vault-error" class="sr-only" role="alert">{{ unlockError() }}</p>
     @if (unlockError()) {
-    <p class="type-footnote text-status-error flex items-center gap-1.5">
+    <p class="type-footnote text-status-error flex items-center gap-1.5" aria-hidden="true">
       <app-icon name="error" class="icon-xs" />
       {{ unlockError() }}
     </p>

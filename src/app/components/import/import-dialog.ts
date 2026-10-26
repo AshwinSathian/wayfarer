@@ -28,6 +28,22 @@ export class ImportDialog {
     return "Import";
   });
 
+  /** What the live regions say when a file is refused or read (U-075). */
+  protected readonly refusedText = computed(() => {
+    const refused = this.pipeline.refused();
+    if (!refused) return "";
+    const issues = refused.issues.map((issue) => (issue.path ? `${issue.path} — ` : "") + issue.message);
+    return [`Unable to import "${this.pipeline.fileName()}":`, refused.message, ...issues].join(" ");
+  });
+  protected readonly reportText = computed(() => {
+    const imported = this.pipeline.imported();
+    if (!imported) return "";
+    const warnings = imported.report.warnings.length;
+    const said = [`"${this.pipeline.fileName()}" will add ${this.counts()}.`];
+    if (warnings) said.push(`${warnings} ${warnings === 1 ? "thing" : "things"} to know before you import.`);
+    return said.join(" ");
+  });
+
   /** "1 collection, 2 folders and 5 requests": the kinds the file has any of. */
   protected readonly counts = computed(() => {
     const counts = this.pipeline.imported()?.report.counts;

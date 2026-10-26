@@ -34,9 +34,12 @@ npx playwright install   # once
 CI=1 npx playwright test --project=chromium --project=claims-chromium
 ```
 
-CI also runs the end-to-end tests in Firefox and WebKit. For a change to
-CSS, layout or a template, drop the `--project` flags and run all three:
-they differ in scrollbar width, focus and fonts.
+CI does not run the end-to-end tests on a pull request: they are
+`.github/workflows/e2e.yml`, run by hand on `main` once a batch of work has
+merged, and a deploy needs it green. So run them yourself before opening a
+PR. For a change to CSS, layout, a template, a transport or the service
+worker, drop the `--project` flags and run the affected specs in all three
+engines: they differ in scrollbar width, focus and fonts.
 
 Requires **Node 24** (see `.nvmrc`; 22.22.3 or later also works) and a modern browser.
 

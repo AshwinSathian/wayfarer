@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Folder } from "../model/collection";
 import type { AuthConfig } from "../model/request";
 import { ancestorsOf, folderChain, type Collection } from "../model/collection";
-import { effectiveAuth } from "./request-auth";
+import { authTexts, effectiveAuth } from "./request-auth";
 
 const inherit: AuthConfig = { type: "inherit" };
 const bearer = (token: string): AuthConfig => ({ type: "bearer", token });
@@ -105,5 +105,14 @@ describe("folderChain", () => {
   it("ends when a file's folders name each other as parents", () => {
     const folders = [folder("a", "b"), folder("b", "a")];
     expect(folderChain(folders, "a").map((entry) => entry.name)).toEqual(["b", "a"]);
+  });
+});
+
+describe("authTexts", () => {
+  it("gives every text of an auth that goes on the wire, as written", () => {
+    expect(authTexts({ type: "bearer", token: "{{t}}" })).toEqual(["{{t}}"]);
+    expect(authTexts({ type: "basic", username: "u", password: "{{p}}" })).toEqual(["u", "{{p}}"]);
+    expect(authTexts({ type: "none" })).toEqual([]);
+    expect(authTexts({ type: "inherit" })).toEqual([]);
   });
 });

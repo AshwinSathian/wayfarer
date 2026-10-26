@@ -63,6 +63,17 @@ jobs:
             console.log(`id=${r.databaseId}\nsha=${r.headSha}`);
           ' >> "$GITHUB_OUTPUT"
 
+      # The browser tests run by hand (e2e.yml): a commit ships only once they passed on it.
+      - name: A green E2E run of the same commit
+        id: e2e
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.run.outputs.sha }}
+        run: |
+          id=$(gh run list -R "$GITHUB_REPOSITORY" --workflow e2e.yml --commit "$SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -z "$id" ]; then echo "Refusing to deploy: no green E2E run for $SHA (gh workflow run e2e.yml)" >&2; exit 1; fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.run.outputs.sha }}
@@ -85,7 +96,8 @@ jobs:
       - name: The CI run, for the claims page
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN: ${{ steps.run.outputs.id }}
+          # The run the @claim tests passed in: e2e.yml's, of the same commit.
+          RUN: ${{ steps.e2e.outputs.id }}
         run: |
           gh run view "$RUN" -R "$GITHUB_REPOSITORY" --json databaseId,headSha,createdAt \
             --jq '{run: .databaseId, commit: .headSha, date: .createdAt}' > dist/deploy/ci-run.json

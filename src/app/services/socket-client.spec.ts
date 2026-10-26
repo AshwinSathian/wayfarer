@@ -236,7 +236,7 @@ describe("SocketClient", () => {
       client.connect();
       socket().open();
       socket().onerror?.();
-      expect(log().at(-1)).toEqual(["info", "The connection ended with an error."]);
+      expect(log().at(-1)).toEqual(["info", "The browser reported an error on the connection, and does not say what."]);
     } finally {
       vi.useRealTimers();
     }

@@ -76,7 +76,3 @@
 .section-body[inert] {
   display: none;
 }
-
-.section-body:not([inert]) {
-  animation: fade-in var(--dur-standard) var(--ease-standard) both;
-}

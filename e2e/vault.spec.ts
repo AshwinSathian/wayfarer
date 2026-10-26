@@ -16,8 +16,8 @@ async function watchViolations(page: Page): Promise<void> {
 
 const violations = (page: Page) => page.evaluate(() => (window as unknown as { __violations: string[] }).__violations);
 
-const unlockButton = (page: Page) => page.getByRole("button", { name: "Unlock secrets", exact: true });
-const lockButton = (page: Page) => page.getByRole("button", { name: "Lock secrets", exact: true });
+const unlockButton = (page: Page) => page.getByRole("button", { name: "Vault locked", exact: true });
+const lockButton = (page: Page) => page.getByRole("button", { name: "Vault unlocked", exact: true });
 
 async function createVault(page: Page, passphrase = PASSPHRASE): Promise<void> {
   await unlockButton(page).click();
@@ -56,7 +56,7 @@ test("a wrong passphrase is refused when the vault holds no secret", async ({ pa
   await lockButton(page).click();
 
   await unlock(page, "not the passphrase");
-  await expect(page.getByText("Incorrect passphrase. Please try again.")).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "That passphrase does not open the vault." })).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(unlockButton(page)).toBeVisible();
@@ -113,14 +113,16 @@ test("the passphrase can be changed: the old one stops working and the secret is
   await createVault(page);
   await protect(page, "API_TOKEN", "rotation-keeps-me");
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   const secrets = page.getByRole("dialog", { name: "Secrets", exact: true });
   await secrets.getByRole("button", { name: "Change passphrase" }).click();
   await secrets.getByLabel("Current passphrase").fill("not the passphrase");
   await secrets.getByLabel("New passphrase", { exact: true }).fill("a new passphrase");
   await secrets.getByLabel("Confirm new passphrase").fill("a new passphrase");
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
-  await expect(secrets.getByText("Incorrect passphrase. Nothing was changed.")).toBeVisible();
+  await expect(
+    secrets.getByRole("alert").filter({ hasText: "Incorrect passphrase. Nothing was changed." }),
+  ).toBeVisible();
 
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);
   await secrets.getByRole("button", { name: "Change passphrase" }).last().click();
@@ -132,13 +134,13 @@ test("the passphrase can be changed: the old one stops working and the secret is
 
   await lockButton(page).click();
   await unlock(page, PASSPHRASE);
-  await expect(page.getByText("Incorrect passphrase. Please try again.")).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "That passphrase does not open the vault." })).toBeVisible();
   const dialog = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
   await dialog.locator("input[type='password']").fill("a new passphrase");
   await dialog.getByRole("button", { name: "Unlock secrets" }).click();
   await expect(lockButton(page)).toBeVisible();
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   await secrets.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(secrets.getByText("rotation-keeps-me")).toBeVisible();
   expect(await violations(page)).toEqual([]);
@@ -152,7 +154,7 @@ test("the vault is exported as a file without any plaintext, and a secret delete
   await createVault(page);
   await protect(page, "API_TOKEN", "exported-encrypted-7c1");
 
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   const secrets = page.getByRole("dialog", { name: "Secrets", exact: true });
   await secrets.getByRole("button", { name: "Export vault" }).click();
   await secrets.getByLabel("Current passphrase").fill(PASSPHRASE);

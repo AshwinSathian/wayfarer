@@ -108,7 +108,7 @@ export class SocketClient {
         "info",
         socket.readyState === WebSocket.CONNECTING
           ? "The connection did not open."
-          : "The connection ended with an error.",
+          : "The browser reported an error on the connection, and does not say what.",
       );
       setTimeout(() => {
         if (socket.readyState === WebSocket.CLOSED) ended("Closed: the browser gave no close code.");

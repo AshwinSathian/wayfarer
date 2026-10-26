@@ -135,7 +135,7 @@
    toolbar never outgrows the window. */
 .ui-select.env-switcher {
   flex: 0 1 160px;
-  min-width: 96px;
+  min-width: 80px;
   max-width: 200px;
   height: 32px;
   padding-inline-start: 10px;

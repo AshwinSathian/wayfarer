@@ -38,7 +38,7 @@ let nextId = 0;
       [dismissable]="dismissableMask()"
       [attr.aria-labelledby]="titleId"
       [style.width]="width()"
-      [style.max-width]="maxWidth() ?? 'calc(100vw - 32px)'"
+      [style.max-width]="maxWidth() ?? 'calc(100% - 32px)'"
       (closeRequest)="requestClose()"
       (closed)="hide.emit()"
     >

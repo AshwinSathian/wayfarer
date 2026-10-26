@@ -366,11 +366,18 @@
   (requestUnlock)="requestUnlock.emit()"
 />
 
-<!-- Present from the first render, so a screen reader hears each message when its text arrives (U-075). -->
-<p role="status" class="type-footnote text-status-warning env-live"
-  >@if (shortSecretWarning(); as short) {"{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value
-  that short cannot be found and masked where a server sends it back.}</p
->
-<p id="env-error" role="alert" class="type-footnote text-status-error env-live"
-  >@if (saveError()) {{{ saveError() }}} @else if (vaultError()) {{{ vaultError() }}}</p
->
+<!-- Present from the first render, so a screen reader hears each message when its text arrives (U-075). Empty, they
+     take no room: the space is the message's own. -->
+<p role="status" class="type-footnote text-status-warning env-live">
+  @if (shortSecretWarning(); as short) {
+  <span class="env-live-text"
+    >"{{ short }}" is stored encrypted, but it is shorter than 6 characters: a value that short cannot be found and
+    masked where a server sends it back.</span
+  >
+  }
+</p>
+<p id="env-error" role="alert" class="type-footnote text-status-error env-live">
+  @if (saveError() || vaultError()) {
+  <span class="env-live-text">{{ saveError() || vaultError() }}</span>
+  }
+</p>

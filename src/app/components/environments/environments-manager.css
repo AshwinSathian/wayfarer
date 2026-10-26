@@ -87,6 +87,11 @@
 }
 
 /* The live regions are in the page from the start; empty, they take no room. */
-.env-live:not(:empty) {
+.env-live {
+  margin: 0;
+}
+
+.env-live-text {
+  display: block;
   margin-top: 0.75rem;
 }

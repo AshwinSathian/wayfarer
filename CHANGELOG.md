@@ -117,6 +117,11 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   dark on the light green box, 7:1; before, it was white, 2.6:1, below
   the 3:1 a control's mark needs. The light theme is unchanged.
 
+- **The split between the request and the response moves without a drag.**
+  A click on the left half of its line moves it a tenth of the way left, a
+  click on the right half a tenth right, and a double click puts it back.
+  Before, it moved only by dragging or with the arrow keys.
+
 ### Changed
 
 - **Choosing a file no longer looks like the browser's own control.** A

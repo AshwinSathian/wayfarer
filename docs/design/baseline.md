@@ -39,6 +39,9 @@ way (three runs, the median), beside its row above.
 | 1 | First request from nothing | D4-c (#427) | 35 | 0 | 1 | 34 | 0.06 | 0.07, 0.04, 0.06 |
 | 1 | First request from nothing | D4-d (#428 to #432) | 35 | 0 | 1 | 34 | 0.07 | 0.07, 0.07, 0.06 |
 | 6 | Send the same request to a teammate | D4-d (#431) | 2 | 2 | 0 | 0 | 0.34 | 0.34, 0.36, 0.34 |
+| 5a | Find why a request failed: CORS | D4-e (#444) | 33 | 2 | 0 | 31 | 0.12 | 0.12, 0.12, 0.15 |
+| 5b | Find why a request failed: DNS | D4-e (#444) | 30 | 2 | 0 | 28 | 0.13 | 0.13, 0.14, 0.13 |
+| 5c | Find why a request failed: 401 | D4-e (#444) | 34 | 2 | 0 | 32 | 0.15 | 0.15, 0.13, 0.15 |
 
 D4-d rebuilt the composer and left task 1 as D4-c made it: the caret
 still starts in the address, and the address and Enter are the task.
@@ -46,6 +49,28 @@ Task 6 takes the same two clicks, and now ends on something the screen
 says: "Copied as cURL." under the address (U-050); before, it ended
 when the menu closed, with nothing to read. Its seconds are the time to
 that note. Sharing itself waits for phase T.
+
+D4-e (#444) changed what task 5 ends on, not how many inputs reach it:
+the address and Send, as before. Row 1.50 has the task end when the cause
+is named, and the screen still does not name it for 5a or 5b. What it says
+now is the browser's own account, in the app's words, with no status and
+no body it did not receive: "No response … The request got no response.
+The browser does not say why: the name may not resolve, the server may
+have refused the connection, or it does not allow requests from this page
+(CORS). Send it through the Local Bridge to see which.", then "What the
+browser reported: Failed to fetch" and a **Send through the Local Bridge**
+button. Before, it said "0 Unknown Error". The same words for both is what
+the browser allows: it gives a page one error for all three causes. One
+more action, that button, tells the causes apart when a bridge is paired:
+the bridge is not held to CORS, so a response arrives when CORS was the
+cause, and only a name or a connection that fails still fails.
+The script runs without a bridge, so that action is not counted here;
+D4.12 (session D4-l, DQ10) sets the bridge up from this screen, and task
+5 is measured again there, to the bridge's answer. For 5c the screen says
+"401 Unauthorized" and nothing of the request's credentials, so the cause
+is not named there either; the exchange record of D4.12 is what says which
+credential went and from where. Measured on `main` at `9d3edd9`, three
+runs in the Playwright Linux image.
 
 Task 1 is one input shorter: the caret starts in the address and Enter
 sends, so the address and one key are the whole task; before, a click

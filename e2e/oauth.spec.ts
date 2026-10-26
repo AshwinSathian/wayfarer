@@ -350,7 +350,7 @@ test("@claim:C-062 a token endpoint without CORS headers: sent from the page, th
   );
   await openAuth(page);
   const message =
-    "The token request got no answer the page could read. A token endpoint that does not send Access-Control-Allow-Origin for this page cannot be called from a browser: send it through the Local Bridge (Settings, Local Bridge, Route), which has no such limit. See docs/browser-limits.md#oauth.";
+    "The token request got no answer the page could read. A browser calls a token endpoint only when it sends Access-Control-Allow-Origin for this page: send the token request through the Local Bridge (Settings › Local Bridge › Route), which has no such limit.";
   await page.getByRole("button", { name: "Get token", exact: true }).click();
   await expect(page.locator(".oauth-token-error")).toHaveText(message);
   await expect(status(page)).toContainText("No token yet.");

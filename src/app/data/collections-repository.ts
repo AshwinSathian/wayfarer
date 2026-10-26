@@ -59,7 +59,7 @@ export class CollectionsRepository {
 
   /**
    * Records script texts, by their digests, as approved for a collection.
-   * `review` is the user's "I trust these scripts": the collection becomes
+   * `review` is the user's "Trust these scripts": the collection becomes
    * trusted and the list is exactly these. Otherwise the digests are of a
    * script the user just saved here, and they are added only if the
    * collection is trusted already: an edit does not approve an import.

@@ -40,7 +40,6 @@
     background var(--dur-quick) var(--ease-standard),
     border-color var(--dur-quick) var(--ease-standard),
     color var(--dur-quick) var(--ease-standard),
-    transform var(--dur-micro) var(--ease-standard),
     box-shadow var(--dur-quick) var(--ease-standard),
     opacity var(--dur-quick) var(--ease-standard);
 }
@@ -67,7 +66,6 @@
 .ui-button:not(:disabled):active {
   background: var(--btn-bg-active);
   border-color: var(--btn-border-active);
-  transform: scale(0.96);
 }
 
 /* A disabled button takes no pointer: a press goes to what is under it, and
@@ -218,10 +216,6 @@
   --btn-fg: var(--label-primary);
 }
 
-.ui-button-icon.btn-plain:not(:disabled):active {
-  transform: scale(0.91);
-}
-
 .ui-button-icon.btn-plain::after {
   content: none;
 }
@@ -249,7 +243,6 @@
 
 .ui-button.send-btn:disabled {
   opacity: 0.4;
-  transform: none;
   box-shadow: none;
 }
 

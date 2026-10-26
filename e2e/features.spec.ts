@@ -65,7 +65,9 @@ test("TRACE is not sent from the browser, and the page says why", async ({ page 
   await send(page);
 
   await expect(
-    page.getByText("Browsers do not send TRACE requests. Choose the route Local Bridge to send one."),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Browsers do not send TRACE requests. Choose the route Local Bridge to send one." }),
   ).toBeVisible();
   expect(sent).toEqual([]);
 });
@@ -183,9 +185,10 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c034=1`);
   await send(page);
-  const arrive = page.locator(".animate-response-arrive").first();
-  await expect(arrive).toBeVisible();
-  expect(parseFloat(await arrive.evaluate((el) => getComputedStyle(el).animationDuration))).toBeLessThan(0.01);
+  // The response has no entrance at all since D3.7; what is left to move ends at once.
+  const status = page.locator(".response-status").first();
+  await expect(status).toBeVisible();
+  expect(await status.evaluate((el) => getComputedStyle(el).animationName)).toBe("none");
 
   // The tabs', a drawer's slide and a dialog's entrance, with its backdrop's fade, all end at once.
   const seconds = (selector: string, property: "transitionDuration" | "animationDuration", pseudo?: string) =>

@@ -18,6 +18,7 @@ async function steady(page: Page): Promise<void> {
       const text = node.textContent ?? "";
       const fixed = text
         .replace(/\d+(\.\d+)?\s?(µs|ms)\b/g, "12 ms")
+        .replace(/Sending… \d+\.\d s/, "Sending… 1.2 s")
         // Only what the browser stores ("73.7 kB of 10.7 GB", "73.7 kB used"), not a limit the copy names.
         .replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)(?= used| of )|(?<=of )\d+(\.\d+)?\s?(B|kB|MB|GB)/g, "12 kB");
       if (fixed !== text) node.textContent = fixed;

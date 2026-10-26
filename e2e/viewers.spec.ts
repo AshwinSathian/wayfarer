@@ -70,10 +70,14 @@ test("JSON is formatted, can be filtered by path, and is searched with the edito
   await filter.fill("data.items[1].name");
   await expect.poll(() => editorText(page)).toBe('"second"');
   await filter.fill("data.nothing.here");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   // A path cannot reach what JSON does not hold (F63).
   await filter.fill("data.constructor");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   await filter.fill("");
   await expect.poll(() => editorText(page)).toContain('"name":"first"');
 
@@ -320,4 +324,14 @@ test("a response from the app's own origin has no such note", async ({ page, bas
   await expect(viewer(page).locator("table.ds-table th").first()).toBeVisible();
   await expect(viewer(page).locator(".headers-note")).toHaveCount(0);
   await expectNoViolations(page);
+});
+
+// U-031: every rival shows a response's size; a chunked answer (the echo server's) has no Content-Length.
+test("the status line gives the response's size, also when the server sent no Content-Length", async ({ page }) => {
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?u031=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".response-status .response-fact").filter({ hasText: /^\d+(\.\d+)? (B|kB)$/ })).toHaveCount(
+    1,
+  );
 });

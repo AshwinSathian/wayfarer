@@ -27,8 +27,9 @@
   secret cannot be sent.
 </p>
 
+<p class="sr-only" role="alert">{{ socket.error() }}</p>
 @if (socket.error()) {
-<p class="type-footnote text-status-error flex items-center gap-1.5" role="alert"
+<p class="type-footnote text-status-error flex items-center gap-1.5" aria-hidden="true"
   ><app-icon name="error" class="icon-xs" /> {{ socket.error() }}</p
 >
 }

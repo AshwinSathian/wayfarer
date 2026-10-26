@@ -225,7 +225,8 @@ it is.
 | `app-shell.html: Local Bridge settings` | Status bar, the route | Status bar | — |
 | `app-shell.html: Manage secrets` | Status bar | Status bar | — |
 | `app-shell.html: Switch to light mode / Switch to dark mode` | Status bar; Settings, General | Same | — |
-| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the passphrase | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: Choose a passphrase / Passphrase` | Unlock dialog, Enter in the passphrase (named since D4-e, U-062) | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the confirmation | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Cancel` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Create vault / Unlock secrets` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 

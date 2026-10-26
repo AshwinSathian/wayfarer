@@ -80,6 +80,16 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Fixed
 
+- **What a control says is the start of its name, so voice control finds
+  it by what is on the screen.** Settings' "Clear…", "Manage…" and
+  "Reset…" now read "Clear history…", "Manage secrets…" and "Reset all
+  data…"; the import report's Import and Cancel, the backup reminder's
+  Not now, a secret's "Staging.apiKey" chip and a variable's chip are
+  named by their own words; and a history entry is named by its address.
+  Before, these were named "Confirm import", "Dismiss backup reminder",
+  "Locate apiKey in environment Staging" and so on, which a person saying
+  what they see did not reach. The import report now starts with the
+  keyboard on Import.
 - **The environment editor no longer throws away what you typed.** Each
   variable, the name and the description are saved as you leave the
   field, so closing the editor with × or Escape, or choosing another

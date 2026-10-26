@@ -55,7 +55,7 @@ function collectionFile(post: string) {
 async function importFile(page: Page, post: string): Promise<void> {
   await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(collectionFile(post));
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  await dialog.getByRole("button", { name: "Import", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await page.getByRole("tree").getByText("Shared request", { exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${TARGET}/trust`);

@@ -41,7 +41,7 @@ test.describe("Environments", () => {
 test("a click on an environment variable's chip opens the environments with that variable shown", async ({ page }) => {
   await seedAndOpen(page, { host: "example.com" }, { method: "GET", url: "https://{{host}}/x" });
   await expect(page.getByRole("dialog", { name: "Environments", exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: /^Variable host, source environment/ }).click();
+  await page.getByRole("button", { name: /^host environment/ }).click();
   const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("input[placeholder='KEY']")).toHaveValue("host");

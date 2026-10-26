@@ -29,6 +29,13 @@ const DEFAULT_IDLE_MINUTES = 15;
 const MAX_IDLE_MINUTES = 240;
 const CHANNEL = "wayfarer:vault";
 
+/** Why a new vault's passphrase cannot be used, or null. The passphrase is used exactly as typed. */
+export function passphraseProblem(passphrase: string, confirmation: string): string | null {
+  if (passphrase.length < 8) return "A passphrase needs at least 8 characters.";
+  if (passphrase !== confirmation) return "The passphrases do not match.";
+  return null;
+}
+
 /** What importing a vault file did, or why it did nothing. */
 export type VaultImportResult = { imported: number } | { error: string };
 

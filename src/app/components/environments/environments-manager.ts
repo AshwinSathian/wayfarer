@@ -116,7 +116,8 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly secretPreview = signal<Record<string, string>>({});
   /** Each write waits for the one before it: a blur and a close can ask within one task. */
   private writing: Promise<void> = Promise.resolve();
-  private writesInFlight = 0;
+  /** A signal: the effect that shows another tab's change looks again when this editor's writes are done. */
+  private readonly writesInFlight = signal(0);
   /** Why the last write did not land, said under the editor until the next one does. */
   readonly saveError = signal("");
   /** The row whose lock asked for a vault while there is none: the passphrase is asked for in that row. */
@@ -154,15 +155,18 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
       }
     });
     // The open environment was changed elsewhere (another tab, a script):
-    // show it, unless there are edits here that a save has not sent yet.
+    // show it, unless there are edits here that a write has not sent yet.
+    // While this editor writes, its write lays the change over the rows; when
+    // the last write is done, this looks again, so a change that came in the
+    // meantime is not missed. A row without a name yet stays where it is.
     effect(() => {
       const stored = this.environments().find((env) => env.meta.id === this.selectedId());
+      if (this.writesInFlight()) return;
       const draft = untracked(this.draft);
-      // A write of this editor's own is laid over the rows when it returns.
-      if (this.writesInFlight) return;
-      if (stored && draft && !this.hasEdits(draft) && JSON.stringify(stored.vars) !== JSON.stringify(draft.loaded)) {
-        this.draft.set(this.toDraft(stored));
-      }
+      if (!stored || !draft || draft.id !== stored.meta.id || this.hasEdits(draft)) return;
+      if (JSON.stringify(stored.vars) === JSON.stringify(draft.loaded)) return;
+      const rows = applyVariableChanges(draft.vars, variableChanges(draft.loaded, stored.vars));
+      this.draft.set({ ...draft, vars: rows, jsonText: jsonOf(rows), loaded: stored.vars.map((row) => ({ ...row })) });
     });
 
     effect(() => {
@@ -443,12 +447,12 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   commit(): Promise<void> {
     const draft = this.draft();
     if (!draft) return this.writing;
-    this.writesInFlight++;
+    this.writesInFlight.update((n) => n + 1);
     const held = this.secretPending;
     this.writing = this.writing
       .then(() => this.write(draft, held))
       .catch((error: unknown) => recordDiagnostic(error, "environments: a write ended in an error"))
-      .finally(() => this.writesInFlight--);
+      .finally(() => this.writesInFlight.update((n) => n - 1));
     return this.writing;
   }
 

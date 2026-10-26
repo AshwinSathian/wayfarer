@@ -28,10 +28,20 @@ npx knip                # no unused files, exports or dependencies
 ```
 
 Run lint, unit tests, build and the Chromium e2e before opening a PR. CI
-runs all of them, plus Firefox and WebKit. For a change to CSS, layout or a
-template, run all three locally first (`npx playwright install` once, then
-drop the `--project` flags): WebKit and Firefox differ in ways Chromium does
-not show (scrollbar width, focus, fonts).
+runs everything but the browser tests on each PR and each push to `main`.
+The browser tests (e2e in Chromium, Firefox and WebKit, and the design
+capture) are `e2e.yml`, run by hand (maintainer, 2026-10-26, while the
+design overhaul is under way): no PR runs them, so the e2e you run locally
+is the only one a PR gets. For a change to CSS, layout, a template, a
+transport or the service worker, run the affected specs in all three
+engines locally (`npx playwright install` once, then drop the `--project`
+flags): WebKit and Firefox differ in ways Chromium does not show
+(scrollbar width, focus, fonts, `AbortSignal`, WebSocket errors).
+
+A session ends when its PRs are merged and `gh workflow run e2e.yml` on
+`main` is green; its plan row names that run. Something red there is fixed
+in a new PR, and the run is made again. `deploy.yml` deploys only a commit
+with a green `e2e.yml` run.
 
 After switching to a branch whose `package.json` differs, run `npm ci`.
 `node_modules` from another branch fails the build in ways that look like
@@ -1253,4 +1263,5 @@ code errors.
 - A claim in a changelog entry or PR body is checked before it is written:
   run the command (`npm audit`, the test, the build) and quote its result.
 - When one PR in a series merges, merge `main` into the open ones and rerun
-  the suites before merging them; `CHANGELOG.md` conflicts on every one.
+  the suites before merging them (CI's, and locally the e2e specs the PR
+  touches); `CHANGELOG.md` conflicts on every one.

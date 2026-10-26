@@ -192,8 +192,10 @@ test.describe("Phase 0 tripwires (service worker active)", () => {
     await page.locator("input.address-url").fill("https://tripwire-f06.invalid/");
     await send(page);
 
-    await expect(page.getByText(/Network error/).first()).toBeVisible();
-    await expect(page.locator(".status-badge")).not.toHaveText("504");
+    await expect(page.locator(".response-failure").getByText(/^The request got no response/)).toBeVisible();
+    // No status is drawn when none came (U-051), a synthetic 504 least of all.
+    await expect(page.locator(".response-status")).toContainText("No response");
+    await expect(page.locator(".response-status")).not.toContainText("504");
   });
 });
 

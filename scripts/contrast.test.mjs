@@ -3,7 +3,7 @@
 // accessibility sweep sees only what one session draws (a GET, a 200); this
 // checks every pair from the stylesheets. Run by `npm run test:scripts`.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { cssValues } from "../packages/tokens/tokens.mjs";
 
@@ -41,6 +41,18 @@ function contrast(a, b) {
 }
 
 const controls = readFileSync(new URL("../src/design-system/controls.css", import.meta.url), "utf8");
+const stylesheet = (path) => readFileSync(new URL(`../src/app/${path}`, import.meta.url), "utf8");
+
+/** The custom property a rule's declaration takes its colour from: `border: 1px solid var(--x)` gives `--x`. */
+function declared(css, selector, property) {
+  const start = css.indexOf(`${selector} {`);
+  assert.notEqual(start, -1, `${selector} not found`);
+  const body = css.slice(start, css.indexOf("}", start));
+  const value = new RegExp(`\\n\\s*${property}:([^;]+);`).exec(body)?.[1];
+  const token = value && /var\((--[\w-]+)\)/.exec(value)?.[1];
+  assert.ok(token, `${selector} has no ${property} from a custom property`);
+  return token;
+}
 const SURFACES = ["--canvas-app", "--canvas-sidebar", "--canvas-panel", "--canvas-elevated", "--canvas-overlay"];
 
 for (const name of ["dark", "light"]) {
@@ -130,6 +142,35 @@ for (const name of ["dark", "light"]) {
     }
   });
 
+  // D4.11 (U-106 to U-108): what the gate did not check, a control's boundary, a fill used as a state, a label on a fill.
+  test(`${name}: an unchecked checkbox's border stands out from every surface (3:1)`, () => {
+    const border = declared(stylesheet("ui/checkbox.css"), ".ui-checkbox", "border");
+    for (const surface of [...SURFACES, "--surface-overlay"]) {
+      const ratio = contrast(over(colour(border), colour(surface)), colour(surface));
+      assert.ok(ratio >= 3, `${border} on ${surface}: ${ratio.toFixed(2)}:1`);
+    }
+  });
+
+  test(`${name}: the select's option the keys are on is marked at 3:1 on the list`, () => {
+    const css = stylesheet("ui/select.css");
+    const mark = declared(css, '.ui-select-option[data-active="true"]', "box-shadow");
+    const list = declared(css, ".ui-select-panel", "background");
+    const row = over(colour("--fill-hover"), colour(list));
+    const ratio = contrast(colour(mark), row);
+    assert.ok(ratio >= 3, `${mark} on --fill-hover over ${list}: ${ratio.toFixed(2)}:1`);
+  });
+
+  test(`${name}: the labels that sit on a status fill read on it (4.5:1)`, () => {
+    for (const kind of ["success", "warning", "error", "info"]) {
+      for (const label of ON_FILL) {
+        for (const surface of SURFACES) {
+          const ratio = contrast(colour(label), over(colour(`--status-${kind}-fill`), colour(surface)));
+          assert.ok(ratio >= 4.5, `${label} on --status-${kind}-fill over ${surface}: ${ratio.toFixed(2)}:1`);
+        }
+      }
+    }
+  });
+
   test(`${name}: white reads on a primary button, at rest, hovered and pressed`, () => {
     for (const state of ["", "-hover", "-active"]) {
       const ratio = contrast([255, 255, 255, 1], colour(`--ctl-primary-fill${state}`));
@@ -137,3 +178,25 @@ for (const name of ["dark", "light"]) {
     }
   });
 }
+
+/** The labels a status fill may hold. The others are under 4.5:1 on one fill or another, in one theme or the other. */
+const ON_FILL = ["--label-primary", "--label-secondary-on-fill"];
+
+test("no template puts a grey label that does not read on a status fill inside one", () => {
+  const app = new URL("../src/app/", import.meta.url).pathname;
+  const found = [];
+  for (const file of readdirSync(app, { recursive: true })) {
+    if (!/\.(html|ts)$/.test(file) || file.endsWith(".spec.ts")) continue;
+    const source = readFileSync(`${app}${file}`, "utf8");
+    // Each element that opens with a status fill, to the end of the element (its tag's closing name).
+    for (const m of source.matchAll(/<(\w[\w-]*)\b[^>]*\bbg-status-\w+-fill\b[^>]*>/g)) {
+      // The element's own static classes and what it holds; a bound ternary names a fill and a grey as alternatives.
+      const close = source.indexOf(`</${m[1]}`, m.index);
+      const own = / class="([^"]*)"/.exec(m[0])?.[1] ?? "";
+      const inside = own + source.slice(m.index + m[0].length, close === -1 ? undefined : close);
+      for (const grey of inside.matchAll(/\btext-label-(secondary|tertiary)\b(?!-on-fill)/g))
+        found.push(`${file}: text-label-${grey[1]} on a status fill`);
+    }
+  }
+  assert.deepEqual(found, []);
+});

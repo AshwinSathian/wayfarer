@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { SHORTCUTS, matches } from "../../shared/shortcuts";
+import { SHORTCUTS, keysOf, matches } from "../../shared/shortcuts";
 import { Tab, TabContent, TabPanel, Tabs as AriaTabs } from "@angular/aria/tabs";
 import { RequestDoc } from "../../models/collections";
 import { PastRequest } from "@wayfarer/core";
@@ -124,6 +124,8 @@ export class Composer {
     const notes = this.store.pasteNotes();
     return notes.length ? `From the pasted cURL command: ${notes.join(" ")}` : "";
   });
+  /** Send's keys, in the reader's system's own (voice.md): ⌘↵ on a Mac, Ctrl+Enter elsewhere. */
+  protected readonly sendKeys = keysOf(SHORTCUTS.send);
   constructor() {
     // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
@@ -209,6 +211,11 @@ export class Composer {
   /** Reconnect of an event stream: a send like any other, with the last event's id. */
   async reconnect(): Promise<void> {
     if (await this.store.reconnect()) this.newRequest.emit();
+  }
+
+  /** A send that got no response, once more through the Local Bridge, which can say why (U-051). */
+  protected sendThroughBridge(): void {
+    void this.store.send({ route: "bridge" });
   }
 
   async saveCurrentRequest(): Promise<void> {

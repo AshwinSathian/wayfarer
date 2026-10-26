@@ -39,7 +39,14 @@
     <!-- The response's live region (U-061): "Sending…", then the status line's words. There before the first send,
          also on a phone, where the response is a tab of its own. -->
     <p class="response-announcement sr-only" role="status">{{ announcement() }}</p>
-    @if (store.endpointError() !== '') {
+    <!-- A save that did not land (U-066), said by a region there from the first render. -->
+    <p class="sr-only" role="alert">{{ store.saveError() }}</p>
+    @if (store.saveError()) {
+    <div class="save-error type-footnote text-status-error flex items-center gap-1.5 -mt-2" aria-hidden="true">
+      <app-icon name="error" class="icon-xs" />
+      <p>{{ store.saveError() }}</p>
+    </div>
+    } @if (store.endpointError() !== '') {
     <div class="type-footnote text-status-error flex flex-wrap items-center gap-x-1.5 gap-y-1 -mt-2">
       <app-icon name="error" class="icon-xs" />
       <p aria-hidden="true">{{ store.endpointError() }}</p>
@@ -62,12 +69,7 @@
 
     @if (store.variableTokens().length) {
     <app-variable-chips class="flex flex-wrap gap-2" />
-    @if (store.missingVariableKeys().length) {
-    <p class="type-footnote text-status-warning flex items-center gap-1.5">
-      <app-icon name="warning" class="icon-xs" />
-      Missing: {{ store.missingVariableKeys().join(', ') }}
-    </p>
-    } }
+    }
 
     <!-- ── Request config + response ────────────────────────── -->
     @if (socket.isSocket()) {
@@ -163,6 +165,12 @@
 <!-- First run (D4.2, U-022): the next step, not "nothing here". -->
 <ng-template #noResponse>
   <div class="flex h-full min-h-[220px] flex-col items-center justify-center gap-3 text-center px-6">
+    @if (store.draft().url) {
+    <!-- A request ready to send is offered Send, not a cURL command or an import (U-095). -->
+    <p class="type-callout text-label-secondary"
+      >Send it, with Send or <kbd class="keycap">{{ sendKeys }}</kbd>, and its response shows here.</p
+    >
+    } @else {
     <p class="type-callout text-label-secondary">Send a request and its response shows here.</p>
     <div class="flex flex-wrap justify-center gap-2">
       <button uiButton="outlined" class="btn-secondary btn-sm" type="button" (click)="importPipeline.openPaste()"
@@ -179,15 +187,17 @@
         (change)="importPipeline.pick($event)"
       />
     </div>
+    }
   </div>
 </ng-template>
 
 <!-- The response, once: it is below the request on a phone and beside it on a desktop. -->
 <ng-template #response>
   <app-response-viewer
-    [class]="isMobile() ? 'block animate-fade-in' : 'block h-full animate-fade-in'"
+    [class]="isMobile() ? 'block' : 'block h-full'"
     [fill]="!isMobile()"
     [loading]="store.loadingState()"
+    [sendingSince]="store.sendingSince()"
     [responseData]="store.responseData()"
     [responseError]="store.responseError()"
     [responseBodyIsJson]="store.responseBodyIsJson()"
@@ -195,6 +205,8 @@
     [responseStatusCode]="store.responseStatusCode()"
     [responseStatusText]="store.responseStatusText()"
     [isError]="store.responseIsError()"
+    [noResponse]="store.responseNoResponse()"
+    (sendThroughBridge)="sendThroughBridge()"
     [inspection]="store.responseInspection"
     [responseContentLength]="store.responseContentLength()"
     [exportContext]="store.responseExportContext()"

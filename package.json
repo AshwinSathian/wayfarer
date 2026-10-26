@@ -85,7 +85,7 @@
     "uuid": "^14.0.3"
   },
   "overrides": {
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "qs": "6.16.0",
     "vite": "8.3.4"
   },

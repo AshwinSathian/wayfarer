@@ -72,6 +72,9 @@ interface ResponseHeader {
   value: string;
 }
 
+/** Below this, a send shows nothing: a quick reply is not preceded by an indicator that flashes (U-078). */
+const SENDING_SHOWN_AFTER_MS = 1000;
+
 @Component({
   selector: "app-response-viewer",
   imports: [
@@ -112,6 +115,20 @@ export class ResponseViewer {
   private readonly jsonWorker = inject(JsonWorkerClient);
 
   readonly loading = input(false);
+  /** When the send on its way started (`Date.now()`). */
+  readonly sendingSince = input<number | null>(null);
+  /**
+   * How long the send has been on its way, drawn only after about a second
+   * (D3.7): a reply sooner than that has no indicator at all, and the answer
+   * appears in the frame it is ready.
+   */
+  private readonly now = signal(Date.now());
+  protected readonly sendingFor = computed(() => {
+    const since = this.sendingSince();
+    if (!this.loading() || since === null) return null;
+    const ms = this.now() - since;
+    return ms >= SENDING_SHOWN_AFTER_MS ? `${(ms / 1000).toFixed(1)} s` : null;
+  });
   /** Beside the request (from 768 px) the response fills its pane, and a JSON or XML body the room left in it. */
   readonly fill = input(false);
   readonly responseData = input("");
@@ -121,6 +138,9 @@ export class ResponseViewer {
   readonly responseStatusCode = input<number>();
   readonly responseStatusText = input<string>();
   readonly isError = input(false);
+  /** No response arrived: what the browser reported, quoted as it came, beside the Local Bridge (U-051). */
+  readonly noResponse = input("");
+  readonly sendThroughBridge = output<void>();
   readonly inspection = input<Signal<ResponseInspection | null> | null>();
   readonly responseContentLength = input<number>();
   readonly exportContext = input<ResponseExportContext | null>(null);
@@ -293,6 +313,12 @@ export class ResponseViewer {
   readonly hexText = signal("");
 
   constructor() {
+    // The time so far ticks only while a send is on its way.
+    effect((onCleanup) => {
+      if (!this.loading()) return;
+      const timer = setInterval(() => this.now.set(Date.now()), 100);
+      onCleanup(() => clearInterval(timer));
+    });
     // Signal-driven replacement for ngOnChanges: this component's response
     // data/formatting/search state can change either because a new @Input
     // signal value arrived (a real response landed) or because the user

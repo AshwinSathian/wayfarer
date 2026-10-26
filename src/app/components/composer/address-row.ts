@@ -109,7 +109,9 @@ export class AddressRow {
     });
   }
 
+  /** While it saves, Save keeps focus (U-068): it is aria-disabled, not disabled, and a second press does nothing. */
   protected async save(): Promise<void> {
+    if (this.savingRequest()) return;
     await this.requestSave.save(this.store.snapshot(), this.store.scriptsAllowed());
   }
 }

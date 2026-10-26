@@ -60,7 +60,7 @@ test.describe("Send request → view response", () => {
     await expect(
       page
         .getByRole("alert")
-        .filter({ hasText: "The address is not a URL a request can go to. Write it as https://host/path." }),
+        .filter({ hasText: "This is not an address a request can go to. Write it as https://host/path." }),
     ).toBeVisible();
     // No status badge should ever appear for a request that was never sent.
     await expect(page.locator(".status-badge")).toHaveCount(0);

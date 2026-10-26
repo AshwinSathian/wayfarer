@@ -1287,12 +1287,14 @@ test("button: none of the browser's look; under the pointer, focused from the ke
   expect(await css(plain, "outline-width")).toBe("2px");
   expect(await css(plain, "border-top-left-radius")).toBe(radius);
 
-  // Pressed, it is drawn smaller.
+  // Pressed, its fill darkens and it keeps its size: nothing pressed often moves (D3.7, U-078).
   const filled = page.getByRole("button", { name: "Filled", exact: true });
   const box = (await filled.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const hovered = await css(filled, "background-color");
   await page.mouse.down();
-  await expect.poll(() => css(filled, "transform")).not.toBe("none");
+  await expect.poll(() => css(filled, "background-color")).not.toBe(hovered);
+  expect(await css(filled, "transform")).toBe("none");
   await page.mouse.up();
 
   // Disabled: faded, and a press goes through it to what is under it.

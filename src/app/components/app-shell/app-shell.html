@@ -131,11 +131,7 @@
   }
 
   <!-- Main content area -->
-  <div
-    class="flex min-w-0 flex-1 flex-col"
-    style="transition: margin-left var(--dur-enter) var(--ease-standard)"
-    [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''"
-  >
+  <div class="flex min-w-0 flex-1 flex-col" [class]="!sidebarOverlay() && drawerVisible() ? 'ml-88' : ''">
     <!-- Top toolbar -->
     <header class="ds-toolbar">
       <!-- Left: nav toggle + brand -->

@@ -269,6 +269,10 @@ const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
     await address(page).fill(`${ECHO}/delay/60000`);
     await send(page);
     await expect(button(page, "Cancel request")).toBeVisible();
+    // Past its first second (D3.7): nothing before it, then what it is doing and for how long. The page's
+    // clock is fixed; two seconds on, the pane says so.
+    await page.clock.setFixedTime(new Date("2026-10-22T09:30:02Z"));
+    await expect(page.locator(".response-sending")).toHaveText("Sending… 2.0 s");
   },
   "response-error": async (page) => {
     await page.goto("/app/");
@@ -527,6 +531,7 @@ async function steady(page: Page): Promise<void> {
       const text = node.textContent ?? "";
       const fixed = text
         .replace(/\d+(\.\d+)?\s?(µs|ms)\b/g, "12 ms")
+        .replace(/Sending… \d+\.\d s/, "Sending… 1.2 s")
         // Only what the browser stores ("73.7 kB of 10.7 GB", "73.7 kB used"), not a limit the copy names.
         .replace(/\d+(\.\d+)?\s?(B|kB|MB|GB)(?= used| of )|(?<=of )\d+(\.\d+)?\s?(B|kB|MB|GB)/g, "12 kB");
       if (fixed !== text) node.textContent = fixed;

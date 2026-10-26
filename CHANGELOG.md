@@ -86,6 +86,14 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
 
 ### Changed
 
+- **A send's answer appears the moment it arrives.** The response, its
+  status line and a tab's pane no longer fade in, and a request on its way
+  shows nothing for its first second, then "Sending…" and the time so far.
+  Before, every send flashed grey loading bars and faded the answer in
+  over 300 ms, so a 16 ms reply looked slower than the network was. Send
+  no longer shrinks while it is pressed, the chips no longer lift when the
+  pointer is on them, showing the sidebar no longer slides the page, and a
+  change of theme no longer fades the colour of every button.
 - **Choosing a file no longer looks like the browser's own control.** A
   binary body, a file part of a multipart form and the vault's import now
   show the file's name, or "Drop a file here, or" and a Choose a file…

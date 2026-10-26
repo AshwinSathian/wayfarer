@@ -88,6 +88,25 @@ describe("VariableResolver", () => {
     expect(new VariableResolver({}).tokens({})).toEqual([]);
   });
 
+  // U-130: the Auth tab and the chips name where an auth's value comes from, and say when it is a vault secret.
+  it("lists the variables of the auth's texts, and marks one whose value is a vault secret's reference", () => {
+    const tokens = new VariableResolver({
+      environment: rowsOf({ token: "{{$secret.s-1}}" }),
+      collection: rowsOf({ token: "col-token", user: "ada" }),
+    }).tokens({ auth: ["{{token}}", "{{user}}:{{token}}"] });
+    expect(tokens).toEqual([
+      { key: "token", source: "environment", vaulted: true, location: "auth", field: "auth-0" },
+      { key: "user", source: "collection", value: "ada", location: "auth", field: "auth-1" },
+      { key: "token", source: "environment", vaulted: true, location: "auth", field: "auth-1" },
+    ]);
+    // A reference among other text is not a vaulted value: the text is the value.
+    expect(
+      new VariableResolver({ environment: rowsOf({ token: "Bearer {{$secret.s-1}}" }) }).tokens({
+        url: "{{token}}",
+      })[0],
+    ).toMatchObject({ source: "environment", value: "Bearer {{$secret.s-1}}" });
+  });
+
   it("precedence: the nearest scope that has the name gives the value (property)", () => {
     fc.assert(
       fc.property(fc.subarray([...VARIABLE_SCOPES], { minLength: 1 }), name, (holders, key) => {
@@ -206,7 +225,8 @@ describe("VariableResolver", () => {
   });
 
   it("passes on an error that is not about nesting", () => {
-    const resolver = new VariableResolver({ environment: rowsOf({ a: "{{$secret.x}}" }) }, () => {
+    // A reference among other text is expanded, and the vault is asked: a reference alone is only marked vaulted.
+    const resolver = new VariableResolver({ environment: rowsOf({ a: "Bearer {{$secret.x}}" }) }, () => {
       throw new TypeError("vault broke");
     });
     expect(() => resolver.tokens({ url: "{{a}}" })).toThrow(TypeError);

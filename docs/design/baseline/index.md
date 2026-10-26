@@ -72,7 +72,7 @@ row below.
 | `response-headers` | The response's Headers tab. |
 | `response-tests` | The response's Tests tab: an assertion and a script's test. |
 | `response-html` | An HTML response in its sandboxed preview. |
-| `response-loading` | A request on its way, before its response. |
+| `response-loading` | A request on its way, past its first second: Sending… and the time so far. |
 | `response-error` | A request that failed before any response (a refused port). |
 | `composer-params` | The composer's Params tab. |
 | `composer-headers` | The composer's Headers tab with a row. |
@@ -100,7 +100,7 @@ row below.
 | `environments-rows` | The environments dialog, an environment of four variables open. |
 | `history` | History after three sends. |
 | `history-empty` | History before any send. |
-| `vault-create` | The dialog that makes the vault's passphrase. |
+| `vault-create` | A variable's row asking for the vault's passphrase, with no vault yet (U-136). |
 | `vault-unlock` | The dialog that unlocks the vault after a reload. |
 | `secrets-manager` | The secrets manager, the vault not made yet. |
 | `confirm-dialog` | A confirmation: deleting a request from the tree. |

@@ -75,7 +75,7 @@ test.describe("the preflight", () => {
     await expect(preflight).toContainText("the header X-Api-Key");
     await send(page);
     // No response: the browser gave up after the server's answer to OPTIONS allowed nothing.
-    await expect(page.locator(".status-badge")).toHaveText("0");
+    await expect(page.locator(".response-status")).toContainText("No response");
   });
 });
 

@@ -83,14 +83,14 @@ async function importAndTrust(user: User): Promise<void> {
     file("shop.postman_collection.json", "application/json", JSON.stringify(POSTMAN)),
   );
   const dialog = page.getByRole("dialog", { name: "Import collection" });
-  await user.click(button(dialog, "Confirm import"));
+  await user.click(button(dialog, "Import"));
   await expect(dialog).toHaveCount(0);
   // A run does not offer the review: it sends without the scripts. The review is in a request's Scripts tab.
   await user.click(page.getByRole("tree").getByText("List orders", { exact: true }));
   await user.click(page.locator("app-composer").getByRole("tab", { name: "Scripts", exact: true }));
   await user.click(button(page.locator(".scripts-held"), "Review scripts"));
   const review = page.getByRole("dialog", { name: "Review scripts" });
-  await user.click(button(review, "I trust these scripts"));
+  await user.click(button(review, "Trust these scripts"));
   await expect(review).toHaveCount(0);
 }
 
@@ -145,7 +145,6 @@ const TASKS: Task[] = [
       await user.click(button(page, "Add variable"));
       await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "baseUrl");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), ECHO);
-      await user.click(button(page, "Save changes"));
       await user.press("Escape");
       await expect(page.getByRole("dialog")).toHaveCount(0);
       await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
@@ -168,14 +167,11 @@ const TASKS: Task[] = [
       await user.type(page.getByPlaceholder("KEY", { exact: true }).last(), "token");
       await user.type(page.getByPlaceholder("Value", { exact: true }).last(), "s3cr3t-value");
       await user.click(button(page, "Mark variable as secret").last());
-      const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
-      await user.type(create.locator("input[type='password']").nth(0), passphrase, false);
-      await user.type(create.locator("input[type='password']").nth(1), passphrase);
+      const create = page.getByRole("dialog", { name: "Environments", exact: true });
+      await user.type(create.getByLabel("Passphrase", { exact: true }), passphrase, false);
+      await user.type(create.getByLabel("Confirm passphrase", { exact: true }), passphrase);
       await user.click(button(create, "Create vault"));
-      await expect(create).toHaveCount(0);
-      await user.click(button(page, "Mark variable as secret").last());
       await expect(page.getByText("Secret stored")).toBeVisible();
-      await user.click(button(page, "Save changes"));
       await user.press("Escape");
       await user.click(page.getByRole("banner").getByRole("combobox", { name: "Environment" }));
       await user.click(page.getByRole("option", { name: "Prod" }));

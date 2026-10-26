@@ -70,10 +70,14 @@ test("JSON is formatted, can be filtered by path, and is searched with the edito
   await filter.fill("data.items[1].name");
   await expect.poll(() => editorText(page)).toBe('"second"');
   await filter.fill("data.nothing.here");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   // A path cannot reach what JSON does not hold (F63).
   await filter.fill("data.constructor");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   await filter.fill("");
   await expect.poll(() => editorText(page)).toContain('"name":"first"');
 
@@ -320,4 +324,31 @@ test("a response from the app's own origin has no such note", async ({ page, bas
   await expect(viewer(page).locator("table.ds-table th").first()).toBeVisible();
   await expect(viewer(page).locator(".headers-note")).toHaveCount(0);
   await expectNoViolations(page);
+});
+
+// U-058: on a phone each header was two columns of about 110 px, and a name broke after every hyphen.
+test("on a phone a response's header name is on one line, over its value", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?u058=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await page.getByRole("tab", { name: "Headers", exact: true }).last().click();
+  const name = page.locator(".response-headers th", { hasText: "access-control-allow-credentials" });
+  await expect(name).toBeVisible();
+  // One line of text and its padding: two lines would be more than twice the font's size.
+  const [height, size] = await name.evaluate((el) => [
+    el.getBoundingClientRect().height,
+    parseFloat(getComputedStyle(el).fontSize),
+  ]);
+  expect(height).toBeLessThan(size * 2 + 8);
+});
+
+// U-031: every rival shows a response's size; a chunked answer (the echo server's) has no Content-Length.
+test("the status line gives the response's size, also when the server sent no Content-Length", async ({ page }) => {
+  await page.goto("/app/");
+  await page.locator("input.address-url").fill(`${ECHO}/echo?u031=1`);
+  await page.getByRole("button", { name: "Send request" }).click();
+  await expect(page.locator(".response-status .response-fact").filter({ hasText: /^\d+(\.\d+)? (B|kB)$/ })).toHaveCount(
+    1,
+  );
 });

@@ -65,7 +65,9 @@ test("TRACE is not sent from the browser, and the page says why", async ({ page 
   await send(page);
 
   await expect(
-    page.getByText("Browsers do not send TRACE requests. Choose the route Local Bridge to send one."),
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Browsers do not send TRACE requests. Choose the route Local Bridge to send one." }),
   ).toBeVisible();
   expect(sent).toEqual([]);
 });
@@ -164,11 +166,11 @@ test("@claim:C-029 history groups entries by day, reloads one into the composer,
   const drawer = page.getByRole("dialog", { name: "Request history" });
   await expect(drawer.getByText("Today", { exact: true })).toBeVisible();
 
-  await drawer.getByRole("button", { name: `Load request ${ECHO}/content/json?c029=1 into composer` }).click();
+  await drawer.getByRole("button", { name: `${ECHO}/content/json?c029=1`, exact: true }).click();
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/content/json?c029=1`);
 
   if (!(await drawer.isVisible())) await page.getByRole("button", { name: "Request history", exact: true }).click();
-  const entries = drawer.getByRole("button", { name: /^Load request .*c029=/ });
+  const entries = drawer.getByRole("button", { name: /c029=/ });
   await expect(entries).toHaveCount(2);
   await drawer.getByRole("button", { name: "Delete history entry" }).first().click();
   // One confirmation, not one per history entry stacked on top of each other.
@@ -183,9 +185,10 @@ test("@claim:C-034 animations respect prefers-reduced-motion", async ({ page }) 
   await page.goto("/app/");
   await page.locator("input.address-url").fill(`${ECHO}/content/json?c034=1`);
   await send(page);
-  const arrive = page.locator(".animate-response-arrive").first();
-  await expect(arrive).toBeVisible();
-  expect(parseFloat(await arrive.evaluate((el) => getComputedStyle(el).animationDuration))).toBeLessThan(0.01);
+  // The response has no entrance at all since D3.7; what is left to move ends at once.
+  const status = page.locator(".response-status").first();
+  await expect(status).toBeVisible();
+  expect(await status.evaluate((el) => getComputedStyle(el).animationName)).toBe("none");
 
   // The tabs', a drawer's slide and a dialog's entrance, with its backdrop's fade, all end at once.
   const seconds = (selector: string, property: "transitionDuration" | "animationDuration", pseudo?: string) =>
@@ -406,7 +409,7 @@ test("@claim:C-033 Settings exports environments to a file and imports them back
   // Since P4.1 every import shows what it will add first, also this one.
   const report = other.getByRole("dialog", { name: "Import environments" });
   await expect(report).toContainText("will add 1 environment");
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   // Closed by its button: this claim is about the file, and dialog-focus.spec holds Escape after an import.
   await other
@@ -427,14 +430,14 @@ test("@claim:C-029 Clear all history empties the history", async ({ page }) => {
   await expect(page.locator(".status-badge")).toHaveText("200");
   await page.getByRole("button", { name: "Request history", exact: true }).click();
   const drawer = page.getByRole("dialog", { name: "Request history" });
-  await expect(drawer.getByRole("button", { name: /^Load request .*c029clear=1/ })).toBeVisible();
+  await expect(drawer.getByRole("button", { name: /c029clear=1/ })).toBeVisible();
   await page.getByRole("button", { name: "Clear all history" }).click();
   const confirm = page
     .getByRole("alertdialog")
     .or(page.getByRole("dialog"))
     .filter({ hasText: "Your entire history will be cleared" });
   await confirm.getByRole("button", { name: "Proceed", exact: true }).click();
-  await expect(drawer.getByRole("button", { name: /^Load request / })).toHaveCount(0);
+  await expect(drawer.getByRole("button", { name: /^https?:\/\// })).toHaveCount(0);
 });
 
 // U-050: a copy says what it copied, and whether the redactor masked anything in it, and no more.
@@ -521,7 +524,7 @@ test("a history entry shows its details on keyboard focus and hides them on blur
   // Reach the entry with the keyboard: focus that scripts or clicks set does
   // not open the card. Safari tabs to non-inputs with Option+Tab.
   const tab = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  const entry = page.getByRole("button", { name: /^Load request .*details=1 into composer$/ });
+  const entry = page.getByRole("button", { name: /details=1$/ });
   // The drawer takes focus when it opens; walk on from there. Since P4.6 (c) two more stops come
   // before the entry: "Select all" and the entry's own box.
   const tabToEntry = async () => {
@@ -556,7 +559,13 @@ test("switching the theme recolours the environment select at once", async ({ pa
   await page.goto("/app/");
   const select = page.getByRole("banner").getByRole("combobox", { name: "Environment", exact: true });
   await expect(select).toHaveText("No environment");
-  await page.getByRole("contentinfo", { name: "Status" }).getByRole("button", { name: "Switch to light mode" }).click();
+  // The status bar's theme goes system, light, dark in turn (U-087): from dark, the system's, made light here.
+  await page.emulateMedia({ colorScheme: "light" });
+  await page
+    .getByRole("contentinfo", { name: "Status" })
+    .getByRole("button", { name: /^Theme: / })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   const colours = await select.evaluate((host) => {
     const text = host.querySelector(".ui-select-value");
     return { host: getComputedStyle(host).color, text: text && getComputedStyle(text).color };

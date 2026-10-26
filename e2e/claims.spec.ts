@@ -22,16 +22,13 @@ async function protectVariable(page: Page, plaintext: string): Promise<void> {
   await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
   await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill(plaintext);
   await page.getByRole("button", { name: "Mark variable as secret" }).click();
-  const inputs = page.locator("input[type='password']");
-  await inputs.nth(0).fill(PASSPHRASE);
-  await inputs.nth(1).fill(PASSPHRASE);
-  await page.getByRole("button", { name: "Create vault" }).click();
-  await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Mark variable as secret" }).click();
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
+  await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
+  await dialog.getByRole("button", { name: "Create vault" }).click();
   await expect(page.getByText("Secret stored")).toBeVisible();
-  await page.getByRole("button", { name: "Save changes" }).click();
   await closeEnvironments(page);
-  await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
 /** Everything the app persisted in this origin: IndexedDB, localStorage, sessionStorage. */
@@ -70,8 +67,8 @@ test("@claim:C-005 the vault key is held in memory only: a reload locks the vaul
   await page.goto("/app/");
   await protectVariable(page, "c005-plaintext-41d0aa");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Unlock secrets" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Vault locked", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toHaveCount(0);
 });
 
 test("@claim:C-008 history stores what was sent with its credentials masked, also where the server sent them back", async ({

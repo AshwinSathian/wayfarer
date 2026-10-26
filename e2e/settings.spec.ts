@@ -185,7 +185,7 @@ test.describe("Settings surface", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Local Bridge settings", exact: true }).click();
+    await page.getByRole("button", { name: /^Route: / }).click();
     await expect(dialog.getByRole("heading", { name: "Local Bridge", exact: true })).toBeVisible();
     await expect(dialog.getByLabel("Bridge URL")).toHaveValue("http://127.0.0.1:7717");
   });
@@ -216,7 +216,7 @@ test.describe("Settings surface", () => {
     page,
   }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Local Bridge settings" }).click();
+    await page.getByRole("button", { name: /^Route: / }).click();
     const auto = page.getByRole("radio", { name: "Auto" });
     const direct = page.getByRole("radio", { name: "Direct" });
     await expect(page.getByRole("radiogroup", { name: "Route" })).toBeVisible();

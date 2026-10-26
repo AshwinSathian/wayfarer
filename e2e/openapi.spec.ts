@@ -108,7 +108,7 @@ test("@claim:C-060 @claim:C-001 an OpenAPI 3.1 description in YAML imports with 
   );
   expect(await stored(page)).toBe(before);
 
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
   const after = await dumpIdb(page);
   expect(after["collections"]).toMatchObject([
@@ -194,7 +194,7 @@ test("@claim:C-060 a Swagger 2.0 description in JSON imports: its host as the co
   await expect(report.locator(".import-report")).toContainText("OpenAPI description");
   await expect(report.locator(".import-report")).toContainText("will add 1 collection and 2 requests.");
   await expect(report.locator(".import-warnings")).toHaveCount(0);
-  await report.getByRole("button", { name: "Confirm import" }).click();
+  await report.getByRole("button", { name: "Import", exact: true }).click();
   await expect(report).toHaveCount(0);
 
   const after = await dumpIdb(page);
@@ -244,7 +244,7 @@ test("a description of a version the app does not read, and one with no operatio
     const refused = dialog(page, "Import");
     await expect(refused.getByRole("alert")).toContainText(`Unable to import "${name}"`);
     await expect(refused.getByRole("alert")).toContainText(message);
-    await refused.getByRole("button", { name: "Cancel import" }).click();
+    await refused.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(refused).toHaveCount(0);
   }
   expect(await stored(page)).toBe(before);

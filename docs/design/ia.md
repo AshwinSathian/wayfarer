@@ -29,7 +29,7 @@ At 1,200 px and wider, with the sidebar pinned:
 │              │ Params Headers Body Auth Scripts Settings │ Body Headers Timings │ composer │ response
 │ tree         │                                  │                            │
 ├──────────────┴──────────────────────────────────┴────────────────────────────┤
-│ Route: Auto   Vault locked   Secrets               Saved in this browser only ◐│ status bar
+│ Route: Auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -169,6 +169,7 @@ None of these leaves the keyboard's reach.
 | The palette's "Load … into composer" | The palette finds the request itself (U-011) | Type its name in the palette |
 | "Export with credentials" and "Export for Postman…" as menu items | One Export… (U-016, maintainer, 2026-10-22) | Export…, with the choice in its dialog |
 | Duplicate tab as a button of the strip | It acted on a tab far from it (U-027, maintainer, 2026-10-22) | A tab's context menu, the palette |
+| The environment editor's Save changes | The editor writes each field as focus leaves it (DQ9, row 1.52; U-060) | Nothing to do: leaving a field, closing the editor or choosing another environment keeps the edit |
 
 The palette's "New request" and "New tab" become one command, since both
 now open a tab. The drawer's "New request" button, which also empties the
@@ -214,17 +215,20 @@ it is.
 | `app-shell.html: Toggle sidebar` | Toolbar | Toolbar | — |
 | `app-shell.html: Environment` | Toolbar, select | Toolbar; the palette also switches it (U-011) | D4-f |
 | `app-shell.html: Environments` | Toolbar, icon `dns` | Toolbar; D4-g decides whether it gains its word (U-006) | D4-g |
-| `app-shell.html: Lock secrets / Unlock secrets` | Status bar; toolbar below 768 px | Same | — |
+| `app-shell.html: Lock secrets / Unlock secrets` | Toolbar below 768 px | Same | — |
 | `app-shell.html: Request history` | Toolbar | Toolbar | — |
 | `app-shell.html: Settings` | Toolbar | Toolbar | — |
 | `app-shell.html: Reload` | Banner, update ready | Banner | — |
 | `app-shell.html: Back up now` | Banner, backup reminder | Banner | — |
-| `app-shell.html: Dismiss backup reminder` | Banner, backup reminder | Banner | — |
+| `app-shell.html: Not now` | Banner, backup reminder | Banner | — |
 | `app-shell.html: Dismiss` | Banner, storage state | Banner | — |
 | `app-shell.html: Local Bridge settings` | Status bar, the route | Status bar | — |
-| `app-shell.html: Manage secrets` | Status bar | Status bar | — |
-| `app-shell.html: Switch to light mode / Switch to dark mode` | Status bar; Settings, General | Same | — |
-| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the passphrase | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: Data and storage settings` | Status bar, "Saved in this browser, which may delete it" while the browser has not promised to keep the data (D4-e, U-137) | Status bar | — |
+| `app-shell.html: Manage the vault's secrets` | Status bar, "Secrets" (one button with its words since D4-e, U-072) | Status bar | — |
+| `app-shell.html: Theme:` | Status bar, "Theme: system / light / dark", in turn (D4-e, U-087); Settings, General | Same | — |
+| `app-shell.html: Lock the vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |
+| `app-shell.html: Choose a passphrase / Passphrase` | Unlock dialog, Enter in the passphrase (named since D4-e, U-062) | Status bar, Unlock dialog | D4-g |
+| `app-shell.html: unlockSecrets()` | Unlock dialog, Enter in the confirmation | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Cancel` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 | `app-shell.html: Create vault / Unlock secrets` | Unlock dialog | Status bar, Unlock dialog | D4-g |
 
@@ -252,13 +256,16 @@ it is.
 | `environments-manager.html: Mark variable as secret` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Remove variable` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Add variable` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
-| `environments-manager.html: Save changes` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
+| `environments-manager.html: Passphrase` | Environments dialog, under a row whose lock asked for a vault while there is none (U-136; Enter makes the vault) | Toolbar, Environments dialog | D4-e |
+| `environments-manager.html: Confirm passphrase` | The same (Enter makes the vault) | Toolbar, Environments dialog | D4-e |
+| `environments-manager.html: Create vault` | The same: makes the vault and marks the row secret (U-135) | Toolbar, Environments dialog | D4-e |
 | `environments-manager.html: Cancel` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `environments-manager.html: Create environment` | Environments dialog (toolbar) | Toolbar, Environments dialog | D4-g |
 | `past-requests.html: Select none / Select all` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: exportChosen()` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Select` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Load request` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
+| `past-requests.html: details` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: Delete history entry` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
 | `past-requests.html: button` | History drawer, a group's header | Toolbar, History drawer | D4-f |
 | `past-requests.html: Delete request` | History drawer (toolbar) | Toolbar, History drawer; the palette also finds entries (U-011) | D4-f |
@@ -273,7 +280,7 @@ it is.
 | `secrets-manager.html: Secret name` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Save name` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Cancel rename` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
-| `secrets-manager.html: Locate` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
+| `secrets-manager.html: Show this variable in its environment.` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Rename` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Delete` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
 | `secrets-manager.html: Hide value for` | Secrets dialog (status bar, palette) | Status bar, Secrets dialog | D4-g |
@@ -311,8 +318,8 @@ it is.
 | `import-dialog.html: Import as duplicate` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Merge as new` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `import-dialog.html: Replace existing` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
-| `import-dialog.html: Cancel import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
-| `import-dialog.html: Confirm import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Cancel` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
+| `import-dialog.html: Import` | Import report dialog (sidebar, Settings, a pasted cURL command) | Same dialog | D4-h |
 | `menu collection-context-menu.ts: Run…` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New Folder` | Context menu of a tree row | Sidebar, context menu | D4-f |
 | `menu collection-context-menu.ts: New Request` | Context menu of a tree row | Sidebar, context menu | D4-f |
@@ -406,13 +413,13 @@ it is.
 | `save-as-dialog.html: Cancel` | Save as dialog | Composer, Save as dialog | D4-d |
 | `save-as-dialog.html: Save` | Save as dialog | Composer, Save as dialog | D4-d |
 | `script-review-dialog.html: Not now` | Script review dialog (on send, on import) | Same dialog | D4-d |
-| `script-review-dialog.html: I trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
+| `script-review-dialog.html: Trust these scripts` | Script review dialog (on send, on import) | Same dialog | D4-d |
 | `scripts-panel.html: Review scripts` | Scripts tab | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Assert on` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Operator` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Remove test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
 | `tests-panel.html: Add test` | Scripts tab, tests | Composer, Scripts tab | D4-d |
-| `variable-chips.html: Variable` | Chips under the address, one per variable | Composer; opens Environments at the variable | D4-d |
+| `variable-chips.html: Show` | Chips under the address, one per variable | Composer; opens Environments at the variable | D4-d |
 | `menu address-row.ts: Copy as cURL` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as cURL with credentials` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
 | `menu address-row.ts: Copy as JavaScript (fetch)` | Address row, Copy as cURL menu | Composer, same menu | D4-d |
@@ -439,8 +446,11 @@ it is.
 | `response-viewer.html: Previous search match` | Response | Response | D4-e |
 | `response-viewer.html: Next search match` | Response | Response | D4-e |
 | `response-viewer.html: Download response body` | Response | Response | D4-e |
+| `response-viewer.html: Send through the Local Bridge` | — (new in D4-e, U-051): under a send that got no response | Response; D4.12 adds pairing in place (DQ10) | D4-e |
 | `socket-view.html: Send message` | WebSocket view | Response, WebSocket view | D4-e |
-| `socket-view.html: Must be JSON` | WebSocket view | Response, WebSocket view | D4-e |
+| `socket-view.html: Check it is JSON before sending` | WebSocket view (was "Must be JSON", U-103) | Response, WebSocket view | D4-e |
+| `socket-view.html: Messages to show` | — (new in D4-e, U-048): All, Received, Sent | Response, WebSocket view, above the log | D4-e |
+| `socket-view.html: As sent / Format JSON` | — (new in D4-e, U-048): a message that is JSON, formatted | Response, WebSocket view, in the log's row | D4-e |
 | `socket-view.html: Clear log` | WebSocket view | Response, WebSocket view | D4-e |
 | `menu response-viewer.ts: Copy as cURL` | Response, Export menu | Response, same menu | D4-e |
 | `menu response-viewer.ts: Copy as HAR` | Response, Export menu | Response, same menu | D4-e |
@@ -533,6 +543,7 @@ it is.
 | `file.ts: label()` | — (new in D4-d, D3.5) | Every file field: the hidden input, named for what the file is for | — |
 | `segmented.ts: valueChange.emit(option.value)` | Every segmented choice | Same | — |
 | `select.ts: host.getAttribute('aria-label')` | Every select | Same | — |
+| `splitter.ts: ariaLabel()` | — (new in D4-e, U-064): a click on either side of the line moves it, a double click resets it; a drag and the arrow keys as before | The split between the request and the response | — |
 | `tree.ts: ariaLabel()` | The collections tree | Sidebar | — |
 | `tree.ts: node.ariaLabel ?? node.label` | The collections tree | Sidebar | — |
 

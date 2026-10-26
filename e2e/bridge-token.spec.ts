@@ -49,7 +49,9 @@ test("without a vault the bridge's token is stored nowhere: after a reload a sen
   await expect(page.locator("input.address-url")).toHaveValue(`${ECHO}/echo`);
   await send(page);
   await expect(
-    page.getByText("The Local Bridge is on, and its token is not in this tab.", { exact: false }),
+    page
+      .locator(".response-announcement")
+      .filter({ hasText: "The Local Bridge is on, and its token is not in this tab." }),
   ).toBeVisible();
   expect(relayed).toBe(0);
   // The pane has no token to show either.
@@ -80,12 +82,12 @@ test("with the vault unlocked the token is a vault secret: after a reload a send
       if (request.url().startsWith(ECHO)) direct.push(request.url());
     });
     await seedAndOpen(page, {}, { method: "GET", url: `${ECHO}/echo` });
-    await page.getByRole("button", { name: "Unlock secrets", exact: true }).click();
+    await page.getByRole("button", { name: "Vault locked", exact: true }).click();
     const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
     await create.locator("input[type='password']").nth(0).fill(PASSPHRASE);
     await create.locator("input[type='password']").nth(1).fill(PASSPHRASE);
     await create.getByRole("button", { name: "Create vault" }).click();
-    await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 
     await switchBridgeOn(page, `http://127.0.0.1:${port}`);
     await expect.poll(async () => (await dumpIdb(page))["secrets"]?.length).toBe(1);

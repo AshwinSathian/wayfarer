@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { ECHO } from "./support/echo";
-import { TARGET, captureTarget, dumpIdb, openFolder, seedAndOpen, send } from "./support/app";
+import { TARGET, captureTarget, dumpIdb, openFolder, protectVariable, seedAndOpen, send } from "./support/app";
 
 // P4.9: what a request takes from its collection and its folders. Needs the
 // production build (CI=1): the scripts run in QuickJS under the production CSP.
@@ -104,8 +104,9 @@ test("a request made in a collection starts with inherit; a collection's setting
   await page.getByRole("button", { name: "Create", exact: true }).click();
   await page.getByRole("tree").getByText("Made here", { exact: true }).click();
   await authTab(page).click();
+  // Where the auth is set, and where its value comes from (U-130).
   await expect(page.locator(".auth-inherited")).toHaveText(
-    'Bearer token is sent, from collection "Tripwire collection".',
+    'Bearer token is sent, from collection "Tripwire collection". {{shopToken}} comes from the collection\'s variables.',
   );
   await page.locator("input.address-url").fill(`${ECHO}/echo`);
   expect(header(await sendAndEcho(page), "authorization")).toBe("Bearer from-the-collection");
@@ -187,7 +188,7 @@ test.describe("scripts of a collection and a folder", () => {
     await seedAndOpen(page, { order: "" }, { method: "GET", url: `${TARGET}/seeded` });
     await page.locator('app-collections-sidebar input[type="file"]').setInputFiles(FILE);
     const dialog = page.getByRole("dialog", { name: "Import collection" });
-    await dialog.getByRole("button", { name: "Confirm import" }).click();
+    await dialog.getByRole("button", { name: "Import", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await openFolder(page, "Inherited folder");
     await page.getByRole("tree").getByText("Inherited request", { exact: true }).click();
@@ -211,7 +212,7 @@ test.describe("scripts of a collection and a folder", () => {
     await expect(review.locator(".script-review-list li").first()).toContainText(
       "Collection Inherited collection Pre-request script",
     );
-    await review.getByRole("button", { name: "I trust these scripts" }).click();
+    await review.getByRole("button", { name: "Trust these scripts" }).click();
     await expect(review).toHaveCount(0);
 
     // Reviewed: the collection's first, then the folder's, then the request's own, each with what the one before set.
@@ -229,4 +230,31 @@ test.describe("scripts of a collection and a folder", () => {
 
     expect(await page.evaluate(() => (window as unknown as { __violations: string[] }).__violations)).toEqual([]);
   });
+});
+
+// U-130 (D4.11): the token was the environment's vault secret, shadowing the collection's value, and the Auth tab
+// named only the collection. It now names where the auth is set and where its value comes from.
+test("the Auth tab names where an inherited token is set and where its value comes from: the environment's vault secret", async ({
+  page,
+}) => {
+  await seedAndOpen(
+    page,
+    {},
+    {
+      method: "GET",
+      url: `${ECHO}/echo`,
+      auth: { type: "inherit" },
+      collection: { auth: { type: "bearer", token: "{{token}}" }, variables: { token: "col-token" } },
+    },
+  );
+  await protectVariable(page, "token", "env-secret-value");
+  await page.locator("app-composer").getByRole("tab", { name: "Auth", exact: true }).click();
+  const line = page.locator(".auth-inherited");
+  await expect(line).toContainText('Bearer token is sent, from collection "Tripwire collection".');
+  await expect(line).toContainText("{{token}} comes from the environment Tripwire env, as a vault secret.");
+  // Auth's variables have chips, the vault's among them.
+  await expect(page.locator(".var-chip", { hasText: "From the vault" })).toContainText("token");
+
+  const echo = await sendAndEcho(page);
+  expect(header(echo, "authorization")).toBe("Bearer env-secret-value");
 });

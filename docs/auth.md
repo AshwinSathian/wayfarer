@@ -101,7 +101,7 @@ The app gets an access token from your identity provider, sends it as
 |---|---|---|
 | Authorization Code (PKCE) | the authorization URL, the token URL, the client ID, a scope | **Get token** opens the provider's sign-in in a window. You sign in there; the app exchanges the code that comes back |
 | Client Credentials | the token URL, the client ID and secret, a scope | asked for when the request is sent, or with **Get token** |
-| Password (legacy) | the token URL, the client ID, the user's name and password | the same. OAuth 2.1 leaves this grant out: it hands the user's password to the client. Use it only where nothing else is offered |
+| Password (legacy) | the token URL, the client ID, the user's name and password | the same. OAuth 2.1 leaves this grant out: it gives the client the account's password. Use it only where nothing else is offered |
 
 The implicit grant is not offered. The code grant is always sent with PKCE
 (`S256`), with a client secret or without one.

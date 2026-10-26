@@ -196,13 +196,15 @@ describe("OAuthTokens", () => {
   it("a token request that gets no answer names CORS and the bridge when it left from the page, and the transport's own error otherwise", async () => {
     answers.push(new TransportError("network", "Failed to fetch"));
     await expect(tokens.get(auth(), key)).rejects.toThrow(
-      /does not send Access-Control-Allow-Origin for this page.*Local Bridge.*docs\/browser-limits\.md#oauth/,
+      /only when it sends Access-Control-Allow-Origin for this page.*Local Bridge/,
     );
     answers.push(new TransportError("timeout", "The request timed out after 5 s."));
-    await expect(tokens.get(auth(), key)).rejects.toThrow("The token request failed: The request timed out after 5 s.");
+    await expect(tokens.get(auth(), key)).rejects.toThrow(
+      "The token request got no token: The request timed out after 5 s.",
+    );
     route = "bridge";
     answers.push(new TransportError("network", "The bridge is not running."));
-    await expect(tokens.get(auth(), key)).rejects.toThrow("The token request failed: The bridge is not running.");
+    await expect(tokens.get(auth(), key)).rejects.toThrow("The token request got no token: The bridge is not running.");
     answers.push(new Error("not a transport's"));
     await expect(tokens.get(auth(), key)).rejects.toThrow("not a transport's");
     expect(tokens.token(key)).toBeUndefined();

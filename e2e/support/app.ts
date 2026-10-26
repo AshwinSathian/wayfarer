@@ -240,16 +240,14 @@ export async function protectVariable(page: Page, name: string, plaintext: strin
   await keys.last().fill(name);
   await page.getByPlaceholder("Value", { exact: true }).last().fill(plaintext);
   await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
-  const dialog = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
-  await dialog.locator("input[type='password']").nth(0).fill(PASSPHRASE);
-  await dialog.locator("input[type='password']").nth(1).fill(PASSPHRASE);
+  // With no vault, the row asks for its passphrase in place and marks the variable once it is made.
+  const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+  await dialog.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
+  await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
   await dialog.getByRole("button", { name: "Create vault" }).click();
-  await expect(dialog).toHaveCount(0);
-  await page.getByRole("button", { name: "Mark variable as secret" }).last().click();
   await expect(page.getByText("Secret stored")).toBeVisible();
-  await page.getByRole("button", { name: "Save changes" }).click();
   await closeEnvironments(page);
-  await expect(page.getByRole("button", { name: "Lock secrets", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 }
 
 /** Opens the request's Settings tab: its route, redirects, certificate check and what the browser does to it. */

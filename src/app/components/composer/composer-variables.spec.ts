@@ -138,6 +138,6 @@ describe("Composer: variable scopes", () => {
     environmentsService.setActiveEnvironment(buildEnvironment({ host: "api\n.test" }));
     store.setUrl("https://{{host}}/items");
     await component.sendRequest();
-    expect(store.endpointError()).toBe("The address is not a URL a request can go to. Write it as https://host/path.");
+    expect(store.endpointError()).toBe("This is not an address a request can go to. Write it as https://host/path.");
   });
 });

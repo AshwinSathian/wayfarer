@@ -103,11 +103,11 @@ test("@claim:C-046 backup, Reset all data, restore: every store of the backup ho
   expect(after).toEqual(untrusted(before));
 
   // The vault opens with its passphrase and still holds the secret.
-  await page.getByRole("button", { name: "Unlock secrets", exact: true }).click();
+  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
   const unlock = page.getByRole("dialog", { name: "Unlock secrets", exact: true });
   await unlock.locator("input[type='password']").fill(PASSPHRASE);
   await unlock.getByRole("button", { name: "Unlock secrets" }).click();
-  await page.getByRole("button", { name: "Manage secrets" }).click();
+  await page.getByRole("button", { name: "Secrets", exact: true }).click();
   await page.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();
   await expect(page.getByRole("dialog", { name: "Secrets", exact: true }).getByText(SECRET)).toBeVisible();
 });
@@ -159,7 +159,9 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 
   // Plain text: not without the words.
   await (await exportWith("Plain text", "export secrets")).click();
-  await expect(dialog.getByText("Type EXPORT SECRETS to write secrets as plain text.")).toBeVisible();
+  await expect(
+    dialog.getByRole("alert").filter({ hasText: "Type EXPORT SECRETS to write secrets as plain text." }),
+  ).toBeVisible();
   await dialog.getByLabel(/to confirm/).fill("EXPORT SECRETS");
   const [plain] = await Promise.all([
     page.waitForEvent("download"),
@@ -171,17 +173,22 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({
   page,
 }) => {
+  // A browser that keeps the data: one that has not promised to reminds sooner (storage-kept.spec.ts).
+  await page.addInitScript(() =>
+    Object.defineProperty(StorageManager.prototype, "persisted", { value: () => Promise.resolve(true) }),
+  );
   await page.clock.install();
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();
-  const reminder = page.getByText(/more than 14 days since this workspace was backed up/);
+  // The shell's live region says it while the banner is drawn (U-075).
+  const reminder = page.getByRole("status").filter({ hasText: /more than 14 days since this workspace was backed up/ });
   await expect(reminder).toHaveCount(0);
 
   await page.clock.fastForward(15 * 24 * 60 * 60 * 1000);
   await page.reload();
   await expect(reminder).toBeVisible();
 
-  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
+  await page.getByRole("button", { name: "Not now", exact: true }).click();
   await expect(reminder).toHaveCount(0);
   await page.reload();
   await expect(page.locator("input.address-url")).toBeVisible();

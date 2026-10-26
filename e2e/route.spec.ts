@@ -85,7 +85,7 @@ test.describe("through a Local Bridge", () => {
       // No preflight for a form: the browser sent the POST, and the server received it.
       expect(await seen(page, path)).toEqual({ POST: 1 });
       await question.getByRole("button", { name: "Don't send" }).click();
-      await expect(page.locator("app-response-viewer")).toContainText("Network error — no response was received.");
+      await expect(page.locator("app-response-viewer")).toContainText("The request got no response.");
       await expect(page.locator(".route-badge")).toHaveCount(0);
       expect(await seen(page, path)).toEqual({ POST: 1 });
 

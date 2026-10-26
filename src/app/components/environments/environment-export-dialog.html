@@ -55,8 +55,10 @@
         (ngModelChange)="typed.set($event)"
       />
     </div>
-    } @if (error()) {
-    <p role="alert" class="type-footnote text-status-error flex items-center gap-1.5">
+    }
+    <p class="sr-only" role="alert">{{ error() }}</p>
+    @if (error()) {
+    <p class="type-footnote text-status-error flex items-center gap-1.5" aria-hidden="true">
       <app-icon name="error" class="icon-xs" />
       {{ error() }}
     </p>

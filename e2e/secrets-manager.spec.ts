@@ -4,7 +4,7 @@ import { closeEnvironments, openEnvironments } from "./support/app";
 test.describe("Secrets management view", () => {
   test("opens from the toolbar and shows an empty state with no secrets", async ({ page }) => {
     await page.goto("/app/");
-    await page.getByRole("button", { name: "Manage secrets" }).click();
+    await page.getByRole("button", { name: "Secrets", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("No secrets yet")).toBeVisible();
   });
@@ -37,33 +37,21 @@ test.describe("Secrets management view", () => {
     await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
     await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill("super-secret-value");
 
-    // Unlock the vault (first-use flow) before protecting the variable.
+    // With no vault, the row asks for a passphrase itself, makes the vault and marks the variable (U-135, U-136).
     await page.getByRole("button", { name: "Mark variable as secret" }).click();
-    await expect(page.getByText("Create vault passphrase")).toBeVisible();
-    const passphraseInputs = page.locator("input[type='password']");
-    await passphraseInputs.nth(0).fill("correct horse battery staple");
-    await passphraseInputs.nth(1).fill("correct horse battery staple");
-    await page.getByRole("button", { name: "Create vault" }).click();
-    await expect(page.getByText("Create vault passphrase")).toHaveCount(0);
-
-    // Protecting the variable didn't happen automatically after unlocking —
-    // the click that triggered the unlock dialog didn't itself protect the
-    // variable, so do it again now that the vault is open.
-    await page.getByRole("button", { name: "Mark variable as secret" }).click();
+    const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+    await dialog.getByLabel("Passphrase", { exact: true }).fill("correct horse battery staple");
+    await dialog.getByLabel("Confirm passphrase", { exact: true }).fill("correct horse battery staple");
+    await dialog.getByRole("button", { name: "Create vault" }).click();
     await expect(page.getByText("Secret stored")).toBeVisible();
-
-    // Protecting a variable only updates the in-editor draft — persist it so
-    // EnvironmentsStore (and therefore the Secrets view's usage
-    // cross-reference) actually picks up the {{$secret.<id>}} reference.
-    await page.getByRole("button", { name: "Save changes" }).click();
     await closeEnvironments(page);
-    await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Vault unlocked", exact: true })).toBeVisible();
 
     // Open the Secrets view and verify the new secret is listed with its usage.
-    await page.getByRole("button", { name: "Manage secrets" }).click();
+    await page.getByRole("button", { name: "Secrets", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Secrets", exact: true })).toBeVisible();
     await expect(page.getByText("API_TOKEN", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Locate API_TOKEN in environment Secrets E2E Env/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Secrets E2E Env.API_TOKEN", exact: true })).toBeVisible();
 
     // Reveal.
     await page.getByRole("button", { name: "Reveal value for API_TOKEN" }).click();

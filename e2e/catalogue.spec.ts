@@ -814,6 +814,8 @@ test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", a
   await expect(tab("Headers")).toHaveAttribute("aria-selected", "true");
   await expect(shown).toHaveCount(1);
   await expect(shown).toHaveAccessibleName("Headers");
+  // A pane with a control in it is not a Tab stop of its own (U-090): Tab goes from the tab into the pane's controls.
+  await expect(shown).toHaveAttribute("tabindex", "-1");
   await page.getByLabel("Header name").fill("Accept");
 
   // A focused tab is chosen. The arrows wrap; Home and End go to the ends.
@@ -832,14 +834,12 @@ test("tabs: the keys of WAI-ARIA's tabs pattern, one tab stop, and the panes", a
   await expect(tab("Params")).toHaveAttribute("aria-selected", "true");
   await expect(parts.locator('[role="tab"][tabindex="0"]')).toHaveAccessibleName("Params");
 
-  // Tab goes on to the pane, then into it; a pane kept its field while another was shown.
+  // Tab goes from the tab into its pane's controls, with no stop on the pane (U-090); a pane kept its field while
+  // another was shown.
   await tab("Headers").click();
   await expect(page.getByLabel("Header name")).toHaveValue("Accept");
   await page.keyboard.press("Tab");
-  await expect(shown).toBeFocused();
-  await page.keyboard.press("Tab");
   await expect(page.getByLabel("Header name")).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Shift+Tab");
   await expect(tab("Headers")).toBeFocused();
 });
@@ -1287,12 +1287,14 @@ test("button: none of the browser's look; under the pointer, focused from the ke
   expect(await css(plain, "outline-width")).toBe("2px");
   expect(await css(plain, "border-top-left-radius")).toBe(radius);
 
-  // Pressed, it is drawn smaller.
+  // Pressed, its fill darkens and it keeps its size: nothing pressed often moves (D3.7, U-078).
   const filled = page.getByRole("button", { name: "Filled", exact: true });
   const box = (await filled.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const hovered = await css(filled, "background-color");
   await page.mouse.down();
-  await expect.poll(() => css(filled, "transform")).not.toBe("none");
+  await expect.poll(() => css(filled, "background-color")).not.toBe(hovered);
+  expect(await css(filled, "transform")).toBe("none");
   await page.mouse.up();
 
   // Disabled: faded, and a press goes through it to what is under it.
@@ -1508,8 +1510,8 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
     expect(await css(one, "width")).toBe("16px");
     expect(await css(one, "border-top-style")).toBe("solid");
   }
-  // Unchecked: an edge and no fill; checked: the accent, and the tick shows only then.
-  expect(await css(off, "border-top-color")).toBe(await token("--separator"));
+  // Unchecked: an edge of 3:1 (U-106) and no fill; checked: the accent, and the tick shows only then.
+  expect(await css(off, "border-top-color")).toBe(await token("--label-tertiary"));
   expect(await css(off, "background-color")).toBe("rgba(0, 0, 0, 0)");
   expect(await css(off, "opacity", "::before")).toBe("0");
   expect(await css(on, "background-color")).toBe(await token("--accent"));
@@ -1534,7 +1536,7 @@ test("checkbox: none of the browser's look; under the pointer, focused, checked 
   // Disabled: the box and its text dimmed, and no pointer.
   const disabled = box("Stop on the first failure");
   expect(await css(disabled, "cursor")).toBe("default");
-  expect(await css(disabled, "border-top-color")).not.toBe(await token("--separator"));
+  expect(await css(disabled, "border-top-color")).not.toBe(await token("--label-tertiary"));
   expect(await css(box("With history"), "background-color")).not.toBe(await token("--accent"));
   const text = (name: string) => page.getByText(name, { exact: true }).evaluate((el) => getComputedStyle(el).color);
   expect(await text("Stop on the first failure")).not.toBe(await text("Follow redirects"));

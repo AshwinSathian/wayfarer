@@ -5,6 +5,9 @@
   width="480px"
   (hide)="pipeline.close()"
 >
+  <!-- There while the dialog is: a file refused or read after it opened is heard (U-075). -->
+  <p class="sr-only" role="alert">{{ refusedText() }}</p>
+  <p class="sr-only" role="status">{{ reportText() }}</p>
   @if (pipeline.pasting()) {
   <div class="import-paste flex flex-col gap-2">
     <label class="ds-form-label" for="import-paste-text">A cURL command</label>
@@ -32,7 +35,7 @@
     </div>
   </div>
   } @else if (pipeline.refused(); as refused) {
-  <div role="alert" class="import-refused space-y-2 type-callout text-status-error">
+  <div class="import-refused space-y-2 type-callout text-status-error">
     <p class="font-semibold">Unable to import "{{ pipeline.fileName() }}":</p>
     <p>{{ refused.message }}</p>
     @if (refused.issues.length) {
@@ -52,10 +55,7 @@
       <p class="type-footnote text-label-tertiary mt-0.5">Nothing is stored until you choose Import.</p>
     </div>
     @if (imported.report.warnings.length) {
-    <div
-      role="status"
-      class="import-warnings rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
-    >
+    <div class="import-warnings rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border">
       <p class="type-subhead text-status-warning"
         >{{ imported.report.warnings.length }} {{ imported.report.warnings.length === 1 ? "thing" : "things" }} to know
         before you import</p
@@ -175,12 +175,10 @@
   }
   <div uiDialogFooter>
     <div class="flex justify-end gap-2">
-      <button uiButton="outlined" class="btn-secondary" aria-label="Cancel import" (click)="pipeline.close()"
-        >Cancel</button
-      >
+      <button uiButton="outlined" class="btn-secondary" (click)="pipeline.close()">Cancel</button>
       <button
         uiButton="filled"
-        aria-label="Confirm import"
+        cdkFocusInitial
         [disabled]="!pipeline.imported() || !!pipeline.refused() || pipeline.reading() || pipeline.storing()"
         (click)="pipeline.confirm()"
         >Import</button

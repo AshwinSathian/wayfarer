@@ -37,25 +37,13 @@ test.describe("Secrets management view", () => {
     await page.getByPlaceholder("KEY", { exact: true }).fill("API_TOKEN");
     await page.getByRole("dialog").getByPlaceholder("Value", { exact: true }).fill("super-secret-value");
 
-    // Unlock the vault (first-use flow) before protecting the variable.
+    // With no vault, the row asks for a passphrase itself, makes the vault and marks the variable (U-135, U-136).
     await page.getByRole("button", { name: "Mark variable as secret" }).click();
-    await expect(page.getByText("Create vault passphrase")).toBeVisible();
-    const passphraseInputs = page.locator("input[type='password']");
-    await passphraseInputs.nth(0).fill("correct horse battery staple");
-    await passphraseInputs.nth(1).fill("correct horse battery staple");
-    await page.getByRole("button", { name: "Create vault" }).click();
-    await expect(page.getByText("Create vault passphrase")).toHaveCount(0);
-
-    // Protecting the variable didn't happen automatically after unlocking —
-    // the click that triggered the unlock dialog didn't itself protect the
-    // variable, so do it again now that the vault is open.
-    await page.getByRole("button", { name: "Mark variable as secret" }).click();
+    const dialog = page.getByRole("dialog", { name: "Environments", exact: true });
+    await dialog.getByLabel("Passphrase", { exact: true }).fill("correct horse battery staple");
+    await dialog.getByLabel("Confirm passphrase", { exact: true }).fill("correct horse battery staple");
+    await dialog.getByRole("button", { name: "Create vault" }).click();
     await expect(page.getByText("Secret stored")).toBeVisible();
-
-    // Protecting a variable only updates the in-editor draft — persist it so
-    // EnvironmentsStore (and therefore the Secrets view's usage
-    // cross-reference) actually picks up the {{$secret.<id>}} reference.
-    await page.getByRole("button", { name: "Save changes" }).click();
     await closeEnvironments(page);
     await expect(page.getByRole("button", { name: "Lock secrets" })).toBeVisible();
 

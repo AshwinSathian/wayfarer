@@ -92,7 +92,22 @@ class EnvironmentsServiceStub {
 
 class SecretsServiceStub {
   unlocked = true;
+  vault = true;
+  /** What the unlock dialog answers. */
+  unlockAnswer = false;
+  createdWith: string[] = [];
   isUnlocked = (): boolean => this.unlocked;
+  exists = async (): Promise<boolean> => this.vault;
+  ensureUnlocked = async (): Promise<boolean> => {
+    if (this.unlockAnswer) this.unlocked = true;
+    return this.unlocked;
+  };
+  create = async (passphrase: string): Promise<boolean> => {
+    this.createdWith.push(passphrase);
+    this.vault = true;
+    this.unlocked = true;
+    return true;
+  };
   savedSecrets: { name: string; environmentId: string; plaintext: string }[] = [];
   private nextId = 1;
 
@@ -186,11 +201,11 @@ describe("EnvironmentsManager", () => {
       expect(component.draft()?.jsonValid).toBe(false);
     });
 
-    it("save() sends a trimmed name and only what changed: an untouched variable is not written again", async () => {
+    it("commit() sends a trimmed name and only what changed: an untouched variable is not written again", async () => {
       component.draft.update((d) => (d ? { ...d, name: "  Renamed  " } : d));
       component.addVariable();
 
-      await component.save();
+      await component.commit();
 
       // A is as it was loaded and the added row has no name: nothing to change.
       expect(envService.changeCalls).toEqual([
@@ -199,23 +214,23 @@ describe("EnvironmentsManager", () => {
       expect(envService.updateCalls).toEqual([]);
     });
 
-    it("save() sends a set for an edited or added variable and a removal for a deleted one, then shows what is stored", async () => {
+    it("commit() sends a set for an edited or added variable and a removal for a deleted one, then shows what is stored", async () => {
       const draft = component.draft()!;
       draft.vars[0].value = "2";
       draft.vars.push({ key: " B ", value: "new", enabled: true });
       // Another tab saved C meanwhile; the stored document has it.
       envService.changeResult = makeEnv("e1", { A: "2", B: "new", C: "theirs" });
 
-      await component.save();
+      await component.commit();
 
       expect(envService.changeCalls[0].changes).toEqual([
         { key: "A", value: "2" },
         { key: "B", value: "new" },
       ]);
-      expect(component.draft()?.vars.map((row) => row.key)).toEqual(["A", "B", "C"]);
+      expect(component.draft()?.vars.map((row) => row.key.trim())).toEqual(["A", "B", "C"]);
 
       component.removeVariable(0);
-      await component.save();
+      await component.commit();
       expect(envService.changeCalls[1].changes).toEqual([{ key: "A", value: null }]);
     });
 
@@ -229,7 +244,7 @@ describe("EnvironmentsManager", () => {
         return makeEnv("e1", { A: "1", mine: "1" });
       };
 
-      await component.save();
+      await component.commit();
       await fixture.whenStable();
 
       expect(component.draft()?.vars.map((row) => row.key)).toEqual(["A", "mine", "theirs"]);
@@ -278,17 +293,17 @@ describe("EnvironmentsManager", () => {
       component.onPairsChange();
       fixture.detectChanges();
       await fixture.whenStable();
-      await component.save();
+      await component.commit();
 
-      // The switched-off row is not switched on by a save of something else.
-      expect(envService.changeCalls[0].changes).toEqual([]);
+      // Nothing the store would see changed, so nothing is written, and the switched-off row stays off.
+      expect(envService.changeCalls).toEqual([]);
       expect(component.draft()?.vars[0]).toEqual(rows[0]);
     });
 
-    it("save() is a no-op when the draft's JSON is currently invalid", async () => {
+    it("commit() is a no-op when the draft's JSON is currently invalid", async () => {
       component.onJsonChange("{broken", false, undefined);
 
-      await component.save();
+      await component.commit();
 
       expect(envService.updateCalls).toEqual([]);
     });
@@ -325,16 +340,54 @@ describe("EnvironmentsManager", () => {
       expect(component.shortSecretWarning()).toBeNull();
     });
 
-    it("protectVariable asks the caller to unlock instead of saving when the vault is locked", async () => {
+    it("protectVariable asks for the vault to be unlocked, and saves nothing when it is not", async () => {
       secretsService.unlocked = false;
-      const unlockSpy = vi.fn();
-      component.requestUnlock.subscribe(unlockSpy);
 
       await component.protectVariable(0);
 
       expect(secretsService.savedSecrets).toEqual([]);
-      expect(unlockSpy).toHaveBeenCalled();
       expect(component.draft()?.vars[0].value).toBe("raw-value");
+    });
+
+    it("protectVariable marks the row once the vault it asked for is unlocked, and writes the reference at once", async () => {
+      secretsService.unlocked = false;
+      secretsService.unlockAnswer = true;
+
+      await component.protectVariable(0);
+
+      expect(component.draft()?.vars[0].value).toBe("{{$secret.secret-1}}");
+      expect(envService.changeCalls.at(-1)?.changes).toEqual([{ key: "TOKEN", value: "{{$secret.secret-1}}" }]);
+    });
+
+    // U-135 and U-136: with no vault, the row asks for a passphrase itself, and the row ends as a reference.
+    it("with no vault, asks for a passphrase in the row, makes the vault and stores the row as a reference", async () => {
+      secretsService.unlocked = false;
+      secretsService.vault = false;
+
+      await component.protectVariable(0);
+      expect(component.vaultFor()).toBe(0);
+      expect(secretsService.savedSecrets).toEqual([]);
+
+      component.vaultPassphrase.set("long enough");
+      component.vaultConfirmation.set("not the same");
+      await component.createVaultForRow();
+      expect(component.vaultError()).toBe("The passphrases do not match.");
+      expect(secretsService.createdWith).toEqual([]);
+
+      component.vaultConfirmation.set("long enough");
+      await component.createVaultForRow();
+      expect(secretsService.createdWith).toEqual(["long enough"]);
+      expect(component.vaultFor()).toBeNull();
+      expect(envService.changeCalls.at(-1)?.changes).toEqual([{ key: "TOKEN", value: "{{$secret.secret-1}}" }]);
+    });
+
+    it("a row with no name says why it cannot be marked", async () => {
+      component.draft()!.vars.push({ key: "", value: "v", enabled: true });
+      await component.protectVariable(1);
+      expect(component.protectProblem()).toEqual({
+        index: 1,
+        text: "A variable needs a name and a value to be kept as a secret.",
+      });
     });
 
     // C-053's stall in WebKit (e2e/FLAKES.md): a second click on "Mark variable as secret" changed nothing for 15 s,
@@ -367,6 +420,73 @@ describe("EnvironmentsManager", () => {
 
       expect(component.getSecretPreview(placeholder)).toBe("raw-value");
     });
+  });
+
+  // U-060 and DQ9: there is no Save button; nothing typed is lost to a close or to choosing another environment.
+  describe("writing as it goes", () => {
+    beforeEach(() => {
+      envService.setEnvironments([makeEnv("e1", { A: "1" }), makeEnv("e2", { B: "2" })]);
+      component.selectEnvironment("e1");
+    });
+
+    it("writes an edit when the editor is destroyed (× and Escape)", async () => {
+      component.draft()!.vars[0].value = "typed";
+      fixture.destroy();
+      await Promise.resolve();
+      await vi.waitFor(() => expect(envService.changeCalls).toHaveLength(1));
+      expect(envService.changeCalls[0].changes).toEqual([{ key: "A", value: "typed" }]);
+    });
+
+    it("writes the environment being left when another is chosen", async () => {
+      component.draft()!.vars[0].value = "typed";
+      component.selectEnvironment("e2");
+      await vi.waitFor(() => expect(envService.changeCalls).toHaveLength(1));
+      expect(envService.changeCalls[0].id).toBe("e1");
+      expect(component.draft()?.id).toBe("e2");
+    });
+
+    it("says so under the editor when the browser refuses the write, and keeps the edit", async () => {
+      envService.changeEnvironment = async () => {
+        throw new DOMException("quota", "QuotaExceededError");
+      };
+      vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      component.draft()!.vars[0].value = "typed";
+      await component.commit();
+      expect(component.saveError()).toBe(
+        "Env e1 was not saved: this browser refused the write. Your edits are still here.",
+      );
+      expect(component.draft()?.vars[0].value).toBe("typed");
+    });
+
+    it("says when the environment was deleted in another tab", async () => {
+      envService.changeResult = null;
+      component.draft()!.vars[0].value = "typed";
+      await component.commit();
+      expect(component.saveError()).toBe("Env e1 was not saved: it was deleted in another tab.");
+    });
+
+    it("a row with a value and no name, or a name and no value, says so", () => {
+      expect(component.rowNote({ key: "", value: "x", enabled: true })).toBe(
+        "This row has no name, so it is not kept. Give it one.",
+      );
+      expect(component.rowNote({ key: "k", value: "", enabled: true })).toBe("This variable is empty.");
+      expect(component.rowNote({ key: "", value: "", enabled: true })).toBeNull();
+    });
+  });
+
+  it("keeps what was typed while a write was on its way", async () => {
+    envService.setEnvironments([makeEnv("e1", { A: "1" })]);
+    component.selectEnvironment("e1");
+    component.draft()!.vars[0].value = "first";
+    envService.changeEnvironment = async (id, changes, details) => {
+      envService.changeCalls.push({ id, changes, details });
+      // Typed into the next field while the write is on its way.
+      component.draft()!.vars[0].value = "second";
+      envService.setEnvironments([makeEnv("e1", { A: "first" })]);
+      return makeEnv("e1", { A: "first" });
+    };
+    await component.commit();
+    expect(component.draft()?.vars[0].value).toBe("second");
   });
 
   describe("lifecycle actions", () => {

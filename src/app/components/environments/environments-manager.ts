@@ -1,10 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  Injector,
+  OnDestroy,
   OnInit,
+  afterNextRender,
   effect,
   signal,
   untracked,
+  viewChild,
+  viewChildren,
   WritableSignal,
   inject,
   output,
@@ -18,7 +24,8 @@ import { UiTabList } from "../../ui/tabs";
 import { UiTooltip } from "../../ui/tooltip";
 import { EnvironmentDoc } from "@wayfarer/core";
 import { EnvironmentsStore } from "../../services/environments-store";
-import { SecretsVault } from "../../services/secrets-vault";
+import { SecretsVault, passphraseProblem } from "../../services/secrets-vault";
+import { recordDiagnostic } from "../../services/diagnostics";
 import { JsonEditor } from "../json-editor/json-editor";
 import { VariableFocus } from "../../services/variable-focus";
 import { ImportPipeline } from "../../services/import-pipeline";
@@ -79,13 +86,16 @@ interface EnvironmentDraft {
   styleUrl: "./environments-manager.css",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EnvironmentsManager implements OnInit {
+export class EnvironmentsManager implements OnInit, OnDestroy {
   private readonly envService = inject(EnvironmentsStore);
   private readonly secretsService = inject(SecretsVault);
   private readonly variableFocus = inject(VariableFocus);
   /** Every file picked here goes down the one import road (P4.1). */
   protected readonly importPipeline = inject(ImportPipeline);
   private readonly persistence = inject(StoragePersistence);
+  private readonly injector = inject(Injector);
+  private readonly keyInputs = viewChildren<ElementRef<HTMLInputElement>>("keyInput");
+  private readonly vaultPassphraseInput = viewChild<ElementRef<HTMLInputElement>>("vaultPassphraseField");
 
   readonly requestUnlock = output<void>();
 
@@ -104,6 +114,18 @@ export class EnvironmentsManager implements OnInit {
   readonly editorTab = signal<"pairs" | "json">("pairs");
 
   private readonly secretPreview = signal<Record<string, string>>({});
+  /** Each write waits for the one before it: a blur and a close can ask within one task. */
+  private writing: Promise<void> = Promise.resolve();
+  private writesInFlight = 0;
+  /** Why the last write did not land, said under the editor until the next one does. */
+  readonly saveError = signal("");
+  /** The row whose lock asked for a vault while there is none: the passphrase is asked for in that row. */
+  readonly vaultFor = signal<number | null>(null);
+  readonly vaultPassphrase = signal("");
+  readonly vaultConfirmation = signal("");
+  readonly vaultError = signal("");
+  /** Why a row's lock did nothing, said beside that row. */
+  readonly protectProblem = signal<{ index: number; text: string } | null>(null);
 
   readonly newEnvDialogVisible = signal(false);
   readonly newEnvForm = signal({
@@ -129,6 +151,8 @@ export class EnvironmentsManager implements OnInit {
     effect(() => {
       const stored = this.environments().find((env) => env.meta.id === this.selectedId());
       const draft = untracked(this.draft);
+      // A write of this editor's own is laid over the rows when it returns.
+      if (this.writesInFlight) return;
       if (stored && draft && !this.hasEdits(draft) && JSON.stringify(stored.vars) !== JSON.stringify(draft.loaded)) {
         this.draft.set(this.toDraft(stored));
       }
@@ -152,7 +176,16 @@ export class EnvironmentsManager implements OnInit {
     void this.envService.ensureLoaded();
   }
 
+  /** × and Escape destroy the editor: what was typed and not yet written is written now (U-060). */
+  ngOnDestroy(): void {
+    void this.commit();
+  }
+
   selectEnvironment(id: string): void {
+    // The environment being left keeps what was typed in it.
+    if (this.draft()?.id !== id) void this.commit();
+    this.vaultFor.set(null);
+    this.protectProblem.set(null);
     const env = this.environments().find((doc) => doc.meta.id === id);
     this.selectedId.set(id);
     if (env) {
@@ -227,6 +260,8 @@ export class EnvironmentsManager implements OnInit {
     draft.vars.push({ key: "", value: "", enabled: true });
     this.updateDraft(draft);
     this.syncJsonFromPairs();
+    // The keyboard goes on in the new row (U-145).
+    afterNextRender(() => this.keyInputs().at(-1)?.nativeElement.focus(), { injector: this.injector });
   }
 
   removeVariable(index: number): void {
@@ -237,6 +272,7 @@ export class EnvironmentsManager implements OnInit {
     draft.vars.splice(index, 1);
     this.updateDraft(draft);
     this.syncJsonFromPairs();
+    void this.commit();
   }
 
   isSecretValue(value: string | undefined): boolean {
@@ -250,26 +286,73 @@ export class EnvironmentsManager implements OnInit {
       return;
     }
     const pair = draft.vars[index];
+    this.protectProblem.set(null);
     // C-053's stall (e2e/FLAKES.md): each way a click goes is in the console, so a trace says which it took.
     if (!pair?.key?.trim() || !String(pair.value ?? "").trim()) {
       console.debug("[wayfarer] mark as secret: the row has no name or no value");
+      this.protectProblem.set({ index, text: "A variable needs a name and a value to be kept as a secret." });
       return;
     }
     if (!this.secretsService.isUnlocked()) {
+      if (!(await this.secretsService.exists())) {
+        // The vault is made here, in the row that asked for it (U-136), and then the row is marked.
+        console.debug("[wayfarer] mark as secret: there is no vault, asking for a passphrase in the row");
+        this.vaultFor.set(index);
+        this.vaultPassphrase.set("");
+        this.vaultConfirmation.set("");
+        this.vaultError.set("");
+        afterNextRender(() => this.vaultPassphraseInput()?.nativeElement.focus(), { injector: this.injector });
+        return;
+      }
       console.debug("[wayfarer] mark as secret: the vault is locked, asking to unlock");
-      this.requestUnlock.emit();
-      return;
+      if (!(await this.secretsService.ensureUnlocked())) return;
     }
     console.debug("[wayfarer] mark as secret: saving");
+    await this.markSecret(draft.id, index);
+  }
+
+  /** Makes the vault with the passphrase typed in the row, then marks that row's variable a secret (U-135). */
+  async createVaultForRow(): Promise<void> {
+    const index = this.vaultFor();
+    const draft = this.draft();
+    if (index === null || !draft) return;
+    const passphrase = this.vaultPassphrase();
+    const problem = passphraseProblem(passphrase, this.vaultConfirmation());
+    if (problem) {
+      this.vaultError.set(problem);
+      return;
+    }
+    if (!(await this.secretsService.create(passphrase))) {
+      // Another tab made one meanwhile: its passphrase opens it.
+      this.vaultFor.set(null);
+      if (!(await this.secretsService.ensureUnlocked())) return;
+    }
+    this.vaultFor.set(null);
+    this.vaultError.set("");
+    await this.markSecret(draft.id, index);
+  }
+
+  cancelVaultForRow(): void {
+    this.vaultFor.set(null);
+    this.vaultError.set("");
+  }
+
+  /** Puts the row's value into the vault and writes the row as its reference at once, so no secret is left without a variable. */
+  private async markSecret(environmentId: string, index: number): Promise<void> {
+    const draft = this.draft();
+    const pair = draft?.vars[index];
+    if (!draft || draft.id !== environmentId || !pair) return;
+    const plaintext = String(pair.value);
     const secretId = await this.secretsService.saveSecret({
       name: pair.key.trim(),
       environmentId: draft.id,
-      plaintext: String(pair.value),
+      plaintext,
     });
-    this.shortSecretWarning.set(String(pair.value).length < MIN_SECRET_LENGTH ? pair.key.trim() : null);
+    this.shortSecretWarning.set(plaintext.length < MIN_SECRET_LENGTH ? pair.key.trim() : null);
     draft.vars[index].value = buildSecretReference(secretId);
     this.updateDraft(draft);
     this.syncJsonFromPairs();
+    await this.commit();
   }
 
   async revealSecret(index: number): Promise<void> {
@@ -328,32 +411,76 @@ export class EnvironmentsManager implements OnInit {
     this.updateDraft(draft);
   }
 
-  async save(): Promise<void> {
+  /**
+   * Writes what this editor changed (DQ9: no Save button). Called when focus
+   * leaves a field, when a row is removed or marked, when another environment
+   * is chosen and when the editor closes. Only what changed is sent: another
+   * tab may have written other variables meanwhile.
+   */
+  commit(): Promise<void> {
     const draft = this.draft();
-    if (!draft || !draft.name.trim() || !draft.jsonValid) {
+    if (!draft) return this.writing;
+    this.writesInFlight++;
+    this.writing = this.writing
+      .then(() => this.write(draft))
+      .catch((error: unknown) => recordDiagnostic(error, "environments: a write ended in an error"))
+      .finally(() => this.writesInFlight--);
+    return this.writing;
+  }
+
+  private async write(draft: EnvironmentDraft): Promise<void> {
+    const stored = this.environments().find((env) => env.meta.id === draft.id);
+    if (!stored) {
+      if (this.hasEdits(draft)) this.saveError.set(`${draft.name} was not saved: it was deleted in another tab.`);
       return;
     }
-    // Something worth keeping is being saved: ask the browser to keep it.
-    void this.persistence.request();
     const vars = draft.vars
       .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
       .filter((row) => row.key);
-    // Only what this editor changed is written: another tab may have saved other variables meanwhile.
-    const saved = await this.envService.changeEnvironment(draft.id, variableChanges(draft.loaded, vars), {
-      name: draft.name.trim(),
-      description: draft.description?.trim() ?? "",
-    });
-    if (saved && this.selectedId() === saved.meta.id) {
-      // What is stored now, the other tab's variables included. The store's
-      // copy is the newer one when another tab's save landed while this one
-      // was returning (F62).
-      this.draft.set(this.toDraft(this.environments().find((env) => env.meta.id === saved.meta.id) ?? saved));
+    const changes = draft.jsonValid ? variableChanges(draft.loaded, vars) : [];
+    const name = draft.name.trim() || stored.name;
+    const description = draft.description?.trim() ?? "";
+    if (!changes.length && name === stored.name && description === (stored.description ?? "")) return;
+    // Something worth keeping is being written: ask the browser to keep it.
+    void this.persistence.request();
+    let saved: EnvironmentDoc | null;
+    try {
+      saved = await this.envService.changeEnvironment(draft.id, changes, { name, description });
+    } catch (error) {
+      recordDiagnostic(error, "environments: a write was refused");
+      this.saveError.set(`${name} was not saved: this browser refused the write. Your edits are still here.`);
+      return;
     }
+    if (!saved) {
+      this.saveError.set(`${name} was not saved: it was deleted in another tab.`);
+      return;
+    }
+    this.saveError.set("");
+    const current = this.draft();
+    if (current?.id !== saved.meta.id) return;
+    // What another tab wrote meanwhile is laid over the rows here, and what
+    // was typed here while this write was on its way stays: the store's copy
+    // is the newer one when another tab's write landed while this one was
+    // returning (F62).
+    const latest = this.environments().find((env) => env.meta.id === saved.meta.id) ?? saved;
+    const theirs = variableChanges(vars, latest.vars);
+    const rows = theirs.length ? applyVariableChanges(current.vars, theirs) : current.vars;
+    this.draft.set({ ...current, vars: rows, jsonText: jsonOf(rows), loaded: latest.vars.map((row) => ({ ...row })) });
+  }
+
+  /** What a row says of itself when it would not be kept as typed (DQ9: in place, not dropped silently). */
+  rowNote(row: Row): string | null {
+    const named = !!row.key.trim();
+    const valued = !!String(row.value ?? "").length;
+    if (!named && valued) return "This row has no name, so it is not kept. Give it one.";
+    if (named && !valued) return "This variable is empty.";
+    return null;
   }
 
   private hasEdits(draft: EnvironmentDraft): boolean {
     const named = draft.vars.filter((row) => row.key.trim());
-    return !draft.jsonValid || variableChanges(draft.loaded, named).length > 0;
+    const unnamed = draft.vars.some((row) => !row.key.trim() && String(row.value ?? "").length);
+    return !draft.jsonValid || unnamed || variableChanges(draft.loaded, named).length > 0;
   }
 
   private updateDraft(draft: EnvironmentDraft): void {

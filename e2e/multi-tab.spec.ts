@@ -56,7 +56,7 @@ test("two tabs save different variables of one environment at the same moment, a
   await pageA.goto("/app/");
   await createEnvironment(pageA, "Shared env");
   await addVariable(pageA, "base", "kept");
-  await pageA.getByRole("button", { name: "Save changes" }).click();
+  await pageA.locator("input[placeholder='Value']").last().blur();
   await expect.poll(async () => JSON.stringify((await dumpIdb(pageA))["environments"])).toContain("kept");
 
   // Tab B opens the environment as it is now; then each tab adds its own variable.
@@ -66,10 +66,10 @@ test("two tabs save different variables of one environment at the same moment, a
   await addVariable(pageA, "fromA", "1");
   await addVariable(pageB, "fromB", "2");
 
-  // Both saves are started before either is awaited: they land within a few milliseconds of each other.
+  // Both writes are started before either is awaited: they land within a few milliseconds of each other.
   await Promise.all([
-    pageA.getByRole("button", { name: "Save changes" }).click(),
-    pageB.getByRole("button", { name: "Save changes" }).click(),
+    pageA.locator("input[placeholder='Value']").last().blur(),
+    pageB.locator("input[placeholder='Value']").last().blur(),
   ]);
 
   const stored = async () => {

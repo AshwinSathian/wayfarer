@@ -233,7 +233,7 @@ async function makeVault(page: Page): Promise<void> {
   await seed(page);
   await openEnvironments(page);
   await page.getByRole("button", { name: "Mark variable as secret" }).nth(1).click();
-  await expect(page.getByRole("dialog", { name: "Create vault passphrase", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Environments" }).getByLabel("Confirm passphrase")).toBeVisible();
 }
 
 /** How each screen of the index is reached from a fresh page. */
@@ -437,14 +437,11 @@ const OPEN: Record<ScreenId, (page: Page) => Promise<void>> = {
   "vault-create": makeVault,
   "vault-unlock": async (page) => {
     await makeVault(page);
-    const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
-    await create.locator("input[type='password']").nth(0).fill(PASSPHRASE);
-    await create.locator("input[type='password']").nth(1).fill(PASSPHRASE);
+    const create = page.getByRole("dialog", { name: "Environments", exact: true });
+    await create.getByLabel("Passphrase", { exact: true }).fill(PASSPHRASE);
+    await create.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
     await button(create, "Create vault").click();
-    await expect(create).toHaveCount(0);
-    await page.getByRole("button", { name: "Mark variable as secret" }).nth(1).click();
     await expect(page.getByText("Secret stored")).toBeVisible();
-    await button(page, "Save changes").click();
     await page.reload();
     await expect(address(page)).toBeVisible();
     await button(page, "Unlock secrets").click();

@@ -381,6 +381,22 @@ describe("EnvironmentsManager", () => {
       expect(envService.changeCalls.at(-1)?.changes).toEqual([{ key: "TOKEN", value: "{{$secret.secret-1}}" }]);
     });
 
+    it("a row whose lock is pressed is not written as plain text on the way to the vault", async () => {
+      secretsService.unlocked = false;
+      secretsService.vault = false;
+      component.draft()!.vars.push({ key: "NEW", value: "plain", enabled: true });
+      // The press comes before the field's blur.
+      component.holdForSecret(1);
+      component.onFocusOut(new FocusEvent("focusout"));
+      await component.protectVariable(1);
+      component.onFocusOut(new FocusEvent("focusout"));
+      await component.commit();
+      expect(JSON.stringify(envService.changeCalls)).not.toContain("plain");
+      component.cancelVaultForRow();
+      await component.commit();
+      expect(JSON.stringify(envService.changeCalls)).toContain("plain");
+    });
+
     it("a row with no name says why it cannot be marked", async () => {
       component.draft()!.vars.push({ key: "", value: "v", enabled: true });
       await component.protectVariable(1);

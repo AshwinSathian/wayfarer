@@ -124,6 +124,13 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
   readonly vaultPassphrase = signal("");
   readonly vaultConfirmation = signal("");
   readonly vaultError = signal("");
+  /**
+   * The row on its way to the vault: its lock was pressed, or the vault it
+   * asked for is being unlocked or made. Its value is not written until it
+   * is the secret's reference, so the plain value never reaches the store.
+   */
+  private secretPending: number | null = null;
+  private protecting = false;
   /** Why a row's lock did nothing, said beside that row. */
   readonly protectProblem = signal<{ index: number; text: string } | null>(null);
 
@@ -287,6 +294,17 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     }
     const pair = draft.vars[index];
     this.protectProblem.set(null);
+    this.secretPending = index;
+    this.protecting = true;
+    try {
+      await this.protect(draft, index, pair);
+    } finally {
+      this.protecting = false;
+      if (this.vaultFor() !== index) this.secretPending = null;
+    }
+  }
+
+  private async protect(draft: EnvironmentDraft, index: number, pair: Row | undefined): Promise<void> {
     // C-053's stall (e2e/FLAKES.md): each way a click goes is in the console, so a trace says which it took.
     if (!pair?.key?.trim() || !String(pair.value ?? "").trim()) {
       console.debug("[wayfarer] mark as secret: the row has no name or no value");
@@ -329,11 +347,16 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     }
     this.vaultFor.set(null);
     this.vaultError.set("");
-    await this.markSecret(draft.id, index);
+    try {
+      await this.markSecret(draft.id, index);
+    } finally {
+      this.secretPending = null;
+    }
   }
 
   cancelVaultForRow(): void {
     this.vaultFor.set(null);
+    this.secretPending = null;
     this.vaultError.set("");
   }
 
@@ -421,21 +444,46 @@ export class EnvironmentsManager implements OnInit, OnDestroy {
     const draft = this.draft();
     if (!draft) return this.writing;
     this.writesInFlight++;
+    const held = this.secretPending;
     this.writing = this.writing
-      .then(() => this.write(draft))
+      .then(() => this.write(draft, held))
       .catch((error: unknown) => recordDiagnostic(error, "environments: a write ended in an error"))
       .finally(() => this.writesInFlight--);
     return this.writing;
   }
 
-  private async write(draft: EnvironmentDraft): Promise<void> {
+  /** Holds back a row's value while its lock is pressed (WebKit focuses no button on a click: this comes first). */
+  holdForSecret(index: number): void {
+    this.secretPending = index;
+    // A press that ends in no click lets the row go again.
+    addEventListener("pointerup", () => setTimeout(() => this.releaseHold(index)), { once: true });
+  }
+
+  private releaseHold(index: number): void {
+    if (this.secretPending === index && this.vaultFor() !== index && !this.protecting) this.secretPending = null;
+  }
+
+  /** Focus left a field. Not on its way to a row's lock: that row is about to become a secret's reference. */
+  onFocusOut(event: FocusEvent): void {
+    if (event.relatedTarget instanceof Element && event.relatedTarget.closest("[data-secret-lock]")) return;
+    void this.commit();
+  }
+
+  private async write(draft: EnvironmentDraft, held: number | null = null): Promise<void> {
     const stored = this.environments().find((env) => env.meta.id === draft.id);
     if (!stored) {
       if (this.hasEdits(draft)) this.saveError.set(`${draft.name} was not saved: it was deleted in another tab.`);
       return;
     }
+    const loadedValue = (key: string) => draft.loaded.find((row) => row.key === key)?.value;
     const vars = draft.vars
       .map((row) => ({ ...row, key: row.key.trim(), value: row.value ?? "" }))
+      .flatMap((row, index) => {
+        // The row on its way to the vault keeps what is stored until its reference replaces it.
+        if (index !== held || isSecretReference(row.value)) return [row];
+        const stored = loadedValue(row.key);
+        return stored === undefined ? [] : [{ ...row, value: stored }];
+      })
       .filter((row) => row.key);
     const changes = draft.jsonValid ? variableChanges(draft.loaded, vars) : [];
     const name = draft.name.trim() || stored.name;

@@ -122,6 +122,9 @@ test("marking a variable secret with no vault makes the vault in the row and sto
   // In the row, not a second dialog; the keyboard is already in the passphrase.
   await expect(page.getByRole("dialog", { name: "Create vault passphrase" })).toHaveCount(0);
   await expect(dialog.getByLabel("Passphrase", { exact: true })).toBeFocused();
+  // Leaving the value for the lock wrote nothing of it: the row waits to be the secret's reference.
+  await page.waitForTimeout(300);
+  expect(JSON.stringify(await dumpIdb(page))).not.toContain("plain-value-123");
   await page.keyboard.type(PASSPHRASE);
   await dialog.getByLabel("Confirm passphrase", { exact: true }).fill(PASSPHRASE);
   await page.keyboard.press("Enter");

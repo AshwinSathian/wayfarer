@@ -112,7 +112,7 @@
   <!-- ── Environment editor ────────────────────────────────── -->
   @if (draft(); as form) {
   <!-- Written when focus leaves a field (DQ9): there is no Save button. -->
-  <div class="ds-panel p-5" (focusout)="commit()">
+  <div class="ds-panel p-5" (focusout)="onFocusOut($event)">
     <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label for="env-name-input" class="ds-form-label">Name</label>
@@ -189,6 +189,8 @@
                     class="btn-secondary"
                     [disabled]="isSecretValue(form.vars[$index].value)"
                     aria-label="Mark variable as secret"
+                    data-secret-lock
+                    (pointerdown)="holdForSecret($index)"
                     (click)="protectVariable($index)"
                     ><app-icon name="lock"
                   /></button>

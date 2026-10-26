@@ -250,7 +250,7 @@
         </div>
         } @if (backup.reminderDue()) {
         <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-canvas-elevated border border-separator">
-          <p class="type-callout text-label-secondary" aria-hidden="true">{{ banners.backup }}</p>
+          <p class="type-callout text-label-secondary" aria-hidden="true">{{ backupWords() }}</p>
           <button
             uiButton="filled"
             class="btn-secondary btn-sm"
@@ -335,9 +335,20 @@
         <app-icon name="key" class="icon-xs" />Secrets
       </button>
       <span class="flex-1"></span>
-      <span class="status-item"
-        >{{ storageUnavailable() ? "Not saved: this browser refuses storage" : "Saved in this browser only" }}</span
+      <!-- What the browser answered of keeping the data (U-137); while it has promised nothing, Data and storage says
+           what that means and has the backup. -->
+      @if (persistence.persisted() === false && !storageUnavailable()) {
+      <button
+        type="button"
+        uiButton
+        class="btn-plain status-control"
+        (click)="openSettings('data')"
+        uiTooltip="Data and storage settings"
+        >{{ storageWords() }}</button
       >
+      } @else {
+      <span class="status-item">{{ storageWords() }}</span>
+      }
       <!-- System, light, dark, in turn, and the button says which it is now (U-087). -->
       <button
         type="button"

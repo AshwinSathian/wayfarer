@@ -245,7 +245,7 @@ test.describe("Resizable composer/response layout (desktop)", () => {
       await expect(status).toBeVisible();
       await expect(status).toContainText("Route: auto");
       await expect(status).toContainText("Vault locked");
-      await expect(status).toContainText("Saved in this browser only");
+      await expect(status).toContainText(/Saved in this browser|Kept in this browser/);
       // Each is one button, named by its words (U-072).
       for (const name of [/^Secrets$/, /^Route: auto$/, /^Theme: system$/, /^Vault locked$/]) {
         await expect(status.getByRole("button", { name })).toBeVisible();

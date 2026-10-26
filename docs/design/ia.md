@@ -29,7 +29,7 @@ At 1,200 px and wider, with the sidebar pinned:
 │              │ Params Headers Body Auth Scripts Settings │ Body Headers Timings │ composer │ response
 │ tree         │                                  │                            │
 ├──────────────┴──────────────────────────────────┴────────────────────────────┤
-│ Route: Auto   Vault locked   Secrets               Saved in this browser only ◐│ status bar
+│ Route: Auto   Vault locked   Secrets                  Kept in this browser ◐ │ status bar
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -223,6 +223,7 @@ it is.
 | `app-shell.html: Not now` | Banner, backup reminder | Banner | — |
 | `app-shell.html: Dismiss` | Banner, storage state | Banner | — |
 | `app-shell.html: Local Bridge settings` | Status bar, the route | Status bar | — |
+| `app-shell.html: Data and storage settings` | Status bar, "Saved in this browser, which may delete it" while the browser has not promised to keep the data (D4-e, U-137) | Status bar | — |
 | `app-shell.html: Manage the vault's secrets` | Status bar, "Secrets" (one button with its words since D4-e, U-072) | Status bar | — |
 | `app-shell.html: Theme:` | Status bar, "Theme: system / light / dark", in turn (D4-e, U-087); Settings, General | Same | — |
 | `app-shell.html: Lock the vault / Unlock the vault` | Status bar, "Vault locked / Vault unlocked" (D4-e, U-072) | Status bar | — |

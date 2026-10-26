@@ -173,6 +173,10 @@ test("@claim:C-047 an environments export leaves protected values out unless ask
 test("a reminder to back up appears when the last one is more than 14 days old, and Not now puts it off", async ({
   page,
 }) => {
+  // A browser that keeps the data: one that has not promised to reminds sooner (storage-kept.spec.ts).
+  await page.addInitScript(() =>
+    Object.defineProperty(StorageManager.prototype, "persisted", { value: () => Promise.resolve(true) }),
+  );
   await page.clock.install();
   await page.goto("/app/");
   await expect(page.locator("input.address-url")).toBeVisible();

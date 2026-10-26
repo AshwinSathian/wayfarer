@@ -222,6 +222,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser refused says nothing was copied. Before, the menu closed and
   nothing on the screen said whether anything was copied, or what was
   left out of it.
+
+- **A field's placeholder is in the app's face.** "Type an address, or
+  paste a cURL command", "Key" and "Value" were drawn in the monospace that
+  the app keeps for what is typed and sent, so the app's own words looked
+  like a value. A placeholder that shows an example of the value, such as
+  `us-east-1` or an identity provider's address, stays in monospace.
+
 - **The status line gives the response's size, always.** It showed one
   only when the server sent `Content-Length`, so a chunked answer had
   none; it is now the bytes that arrived when there is no header. Sizes

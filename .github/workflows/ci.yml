@@ -73,7 +73,8 @@ jobs:
       # Vitest runs in real headless Chromium via the Playwright browser
       # provider (angular.json's "test" target), not jsdom - Web Workers,
       # IndexedDB, and WebCrypto all need a real browser.
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium and its system packages
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; done; exit 1
       - run: npm run test:ci
 
   build:
@@ -186,7 +187,8 @@ jobs:
           path: dist/
       - run: npm ci
       # The Chromium the e2e suite pins: the runner's own Chrome gave Lighthouse no navigation start (NO_NAVSTART).
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium and its system packages
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps chromium && exit 0; done; exit 1
       - name: Three runs against the build
         run: |
           export CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()")
@@ -226,7 +228,10 @@ jobs:
         with:
           name: dist
           path: dist/
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      # The browser's system packages come from apt, whose mirror has hung for 50 minutes at a time (2026-10-26, three
+      # runs): ten minutes a try, three tries.
+      - name: Install ${{ matrix.browser }} and its system packages
+        run: for try in 1 2 3; do timeout 600 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; done; exit 1
       # Serves the downloaded build through prod-server.mjs (production
       # headers). claims-<browser> runs the @claim tests with retries off.
       # PROD_SERVER_LOG: what the server received and answered, for a page.goto that hangs (#228).

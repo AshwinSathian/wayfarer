@@ -157,6 +157,10 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   schema, its types are listed in a box of their own under the button, with
   the app's chevrons instead of the browser's triangles; before, the list
   came after the query and the variables, out of view.
+- **A test run whose browser install hangs tries again.** The step that
+  installs a browser's system packages hung for 50 minutes three times in
+  one day, and the run waited on it; each try now has ten minutes, and
+  there are three.
 - **The composer is one surface, not boxes inside boxes.** The request,
   its variables and its parts are no longer each drawn in a card inside
   another card; the request and the response are told apart by the line

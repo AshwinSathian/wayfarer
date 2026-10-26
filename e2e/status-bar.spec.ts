@@ -24,7 +24,7 @@ test("the vault's item is its state, and a lock or an unlock is said", async ({ 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/app/");
   const status = page.getByRole("contentinfo", { name: "Status" });
-  const said = status.getByRole("status");
+  const said = page.locator(".vault-said");
   await expect(said).toHaveText("");
   await status.getByRole("button", { name: "Vault locked", exact: true }).click();
   const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });

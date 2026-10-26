@@ -235,7 +235,7 @@
         <p class="sr-only" role="status">{{ bannerStatus() }}</p>
         <p class="sr-only" role="alert">{{ bannerAlert() }}</p>
         <!-- A lock or an unlock is said, not only drawn (U-072), on a phone too, where the lock is in the toolbar. -->
-        <p class="sr-only" role="status">{{ vaultSaid() }}</p>
+        <p class="vault-said sr-only" role="status">{{ vaultSaid() }}</p>
         @if (swUpdate.updateAvailable()) {
         <div class="flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 bg-fill-secondary border border-separator">
           <p class="type-callout" aria-hidden="true">{{ banners.update }}</p>

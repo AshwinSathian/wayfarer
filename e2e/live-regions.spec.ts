@@ -43,7 +43,7 @@ test("the address's error is an alert there from the first render, and the field
 
 test("a wrong passphrase is an alert, and the field is marked invalid and described by it", async ({ page }) => {
   await page.goto("/app/");
-  await page.getByRole("button", { name: "Unlock secrets" }).click();
+  await page.getByRole("button", { name: "Vault locked", exact: true }).click();
   const create = page.getByRole("dialog", { name: "Create vault passphrase", exact: true });
   const alert = create.getByRole("alert");
   await expect(alert).toHaveText("");

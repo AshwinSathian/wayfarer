@@ -499,9 +499,13 @@ export class WorkspaceStore {
     const methodError = this.methodError(method);
     if (methodError) return methodError;
     try {
-      return validateUrl(new VariableResolver(this.scopesOf(tab)).resolve(url.trim()))
-        ? ""
-        : "The address is not a URL a request can go to. Write it as https://host/path.";
+      const resolver = new VariableResolver(this.scopesOf(tab));
+      if (validateUrl(resolver.resolve(url.trim()))) return "";
+      // The address is not one because a variable has no value (U-134): that is the one cause, said once.
+      const missing = [...resolver.unresolved].map((name) => `{{${name}}}`);
+      if (missing.length)
+        return `${missing.join(", ")} ${missing.length === 1 ? "has" : "have"} no value, so the address is not complete. Give ${missing.length === 1 ? "it a value" : "them values"} in an environment or the collection.`;
+      return "This is not an address a request can go to. Write it as https://host/path.";
     } catch (error) {
       if (!(error instanceof VariableNestingError)) throw error;
       return error.message;

@@ -187,6 +187,13 @@ and this project intends to adhere to [Semantic Versioning](https://semver.org/s
   browser's own words, took no dropped file (the browser opened it in the
   tab), and kept a file until another was chosen.
 
+- **A send held back by a variable with no value says so, once.** With
+  `{{base}}` unset, Send now says "{{base}} has no value, so the address
+  is not complete." Before, it said the address was not a URL, a line
+  below repeated "Missing: base", and the chip said it a third time; the
+  chip stays. With an address typed and nothing sent yet, the response
+  pane now offers Send and its keys, not a cURL command and an import.
+
 - **The Timings tab's notes say what each part is, plainly.** "The
   browser looked up the host's address", "The browser opened the
   connection" and so on, in sentences, where they read "Lookup time to

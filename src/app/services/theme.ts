@@ -53,7 +53,20 @@ export class Theme {
     this.choose(this.theme() === "dark" ? "light" : "dark");
   }
 
+  /**
+   * Draws the theme. Its colours change in one frame (U-122): while the
+   * attribute changes, `data-theme-changing` holds every transition off
+   * (animations.css), the styles are worked out, and the next frame lets
+   * transitions run again. A theme change starts none.
+   */
   private apply(): void {
-    document.documentElement.setAttribute("data-theme", this.theme());
+    const root = document.documentElement;
+    if (root.getAttribute("data-theme") === this.theme()) return;
+    root.setAttribute("data-theme-changing", "");
+    root.setAttribute("data-theme", this.theme());
+    // A layout works out every element's style now, with no transition; the
+    // attribute goes after the next frame's style, which then has nothing left to change.
+    void root.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => root.removeAttribute("data-theme-changing")));
   }
 }

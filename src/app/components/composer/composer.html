@@ -28,16 +28,27 @@
       </nav>
       — Save writes back to this request.
     </div>
-    } @if (store.endpointError() !== '') {
+    }
+    <!-- The address's error and the paste's notes are said by regions there from the first render (U-062, U-075);
+         what is drawn under the address is what the eye reads. Out of the flow, they take no gap of the column. -->
+    <p id="address-error" class="sr-only" role="alert"
+      >{{ store.endpointError() }}{{ store.unresolvedBlocked().length ? ' Send anyway sends it as written.' : '' }}</p
+    >
+    <p class="sr-only" role="status">{{ pasteNotesText() }}</p>
+    <p class="sr-only" role="status">{{ warningsText() }}</p>
+    <!-- The response's live region (U-061): "Sending…", then the status line's words. There before the first send,
+         also on a phone, where the response is a tab of its own. -->
+    <p class="response-announcement sr-only" role="status">{{ announcement() }}</p>
+    @if (store.endpointError() !== '') {
     <div class="type-footnote text-status-error flex flex-wrap items-center gap-x-1.5 gap-y-1 -mt-2">
       <app-icon name="error" class="icon-xs" />
-      <p id="address-error">{{ store.endpointError() }}</p>
+      <p aria-hidden="true">{{ store.endpointError() }}</p>
       @if (store.unresolvedBlocked().length) {
       <button uiButton class="btn-sm" type="button" (click)="store.send({ allowUnresolved: true })">Send anyway</button>
       }
     </div>
     } @if (store.pasteNotes().length) {
-    <div role="status" class="paste-notes type-footnote text-status-warning -mt-2">
+    <div class="paste-notes type-footnote text-status-warning -mt-2" aria-hidden="true">
       <p class="flex items-center gap-1.5"><app-icon name="warning" class="icon-xs" /> From the pasted cURL command:</p>
       <ul class="list-disc pl-6 text-label-secondary">
         @for (note of store.pasteNotes(); track $index) {

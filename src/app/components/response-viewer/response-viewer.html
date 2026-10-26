@@ -114,7 +114,7 @@
         }
       </ol>
       } @if (redirectNote(); as note) {
-      <p class="redirect-stopped text-status-warning" role="status">{{ note }}</p>
+      <p class="redirect-stopped text-status-warning">{{ note }}</p>
       }
     </section>
     } }
@@ -215,8 +215,13 @@
                   />
                   }
                 </div>
-                } @if (view() === 'json' && filteredJson() === '') {
-                <p class="type-footnote text-label-secondary" role="status">Nothing in the body is at that path.</p>
+                }
+                <!-- There before the filter is typed in, so a screen reader hears it (U-075). -->
+                <p class="sr-only" role="status">{{ filterMissed() ? 'Nothing in the body is at that path.' : '' }}</p>
+                @if (filterMissed()) {
+                <p class="type-footnote text-label-secondary" aria-hidden="true"
+                  >Nothing in the body is at that path.</p
+                >
                 } @if (currentSearchExcerpt) {
                 <div
                   class="rounded-lg bg-canvas-panel border border-separator px-3 py-2 type-footnote text-label-secondary font-mono"
@@ -512,7 +517,6 @@
               <div class="space-y-2 pb-4">
                 @if (scriptsSkipped()) {
                 <p
-                  role="status"
                   class="scripts-skipped type-callout text-status-warning rounded-xl px-4 py-3 bg-status-warning-fill border border-status-warning-border"
                 >
                   This request's scripts did not run: they have not been reviewed. Open the Scripts tab to review them.

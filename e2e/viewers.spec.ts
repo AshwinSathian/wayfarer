@@ -70,10 +70,14 @@ test("JSON is formatted, can be filtered by path, and is searched with the edito
   await filter.fill("data.items[1].name");
   await expect.poll(() => editorText(page)).toBe('"second"');
   await filter.fill("data.nothing.here");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   // A path cannot reach what JSON does not hold (F63).
   await filter.fill("data.constructor");
-  await expect(viewer(page).getByText("Nothing in the body is at that path.")).toBeVisible();
+  await expect(
+    viewer(page).getByRole("status").filter({ hasText: "Nothing in the body is at that path." }),
+  ).toBeVisible();
   await filter.fill("");
   await expect.poll(() => editorText(page)).toContain('"name":"first"');
 

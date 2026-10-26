@@ -255,6 +255,9 @@ export class ResponseViewer {
   readonly hexViewBytes = HEX_VIEW_BYTES;
   /** The body as text: of an error status too, since a 404 page is as much HTML as a 200 one. */
   readonly bodyText = computed(() => (this.isError() ? this.responseError() : this.responseData()));
+  /** The path filter matched nothing: said by a region there before the filter is typed in (U-075). */
+  protected readonly filterMissed = computed(() => this.view() === "json" && this.filteredJson() === "");
+
   /** The views this body can be shown in; the first is the one its content type asks for. */
   readonly views = computed(() => {
     const binary = this.responseBinary();

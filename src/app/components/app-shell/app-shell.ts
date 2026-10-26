@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   effect,
   inject,
   input,
@@ -117,6 +118,32 @@ export class AppShell implements OnInit {
   readonly unlockPassphrase = signal("");
   resettingAll = false;
   readonly resetError = signal("");
+  protected readonly resetErrorText = computed(() =>
+    this.resetError() ? `Nothing was deleted. ${this.resetError()}` : "",
+  );
+  /** The banners' words, drawn in each banner and said by the shell's two live regions (U-075). */
+  protected readonly banners = {
+    update: "Update available: a new version of Wayfarer is ready.",
+    backup:
+      "It has been more than 14 days since this workspace was backed up. It lives only in this browser, which can delete it.",
+    resetElsewhere: "The data was reset in another tab. Reload this one: what you change here is no longer saved.",
+    storage:
+      "This browser is not letting Wayfarer store data (a private window, or storage blocked for this site). History is kept only until this tab closes; collections, environments and secrets cannot be saved.",
+  } as const;
+  protected readonly bannerStatus = computed(() =>
+    [this.swUpdate.updateAvailable() ? this.banners.update : "", this.backup.reminderDue() ? this.banners.backup : ""]
+      .filter(Boolean)
+      .join(" "),
+  );
+  protected readonly bannerAlert = computed(() =>
+    [
+      this.dataResetElsewhere() ? this.banners.resetElsewhere : "",
+      this.storageUnavailable() ? this.banners.storage : "",
+      this.resetErrorText(),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
   readonly unlockError = signal("");
 
   readonly secretsDialogVisible = signal(false);
@@ -361,16 +388,16 @@ export class AppShell implements OnInit {
         } else {
           // Another tab chose a passphrase while this dialog was open.
           this.isFirstVaultSetup.set(false);
-          this.unlockError.set("A vault passphrase was just set in another tab. Enter that passphrase.");
+          this.unlockError.set("Another tab has just made the vault. Enter its passphrase.");
         }
       } else if (await this.secretsService.unlock(passphrase)) {
         this.closeLockDialog();
       } else {
-        this.unlockError.set("Incorrect passphrase. Please try again.");
+        this.unlockError.set("That passphrase does not open the vault.");
       }
     } catch (error) {
       console.error("Failed to unlock secrets", error);
-      this.unlockError.set("Unable to unlock secrets in this environment.");
+      this.unlockError.set("This browser cannot open the vault.");
     }
   }
 
@@ -407,9 +434,7 @@ export class AppShell implements OnInit {
     } catch (error) {
       console.error("Failed to reset IndexedDB", error);
       this.resetError.set(
-        error instanceof DatabaseResetBlockedError
-          ? error.message
-          : "Reset failed; your data was not deleted. Reload the page and try again.",
+        error instanceof DatabaseResetBlockedError ? error.message : "Reload the page and try again.",
       );
       this.resettingAll = false;
       return;

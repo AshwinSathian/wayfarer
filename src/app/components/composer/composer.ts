@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from "@angular/common";
 import {
+  computed,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -27,9 +28,10 @@ import { RunView } from "../runner/run-view";
 import { SocketView } from "../socket/socket-view";
 import { SocketClient } from "../../services/socket-client";
 import { ResponseViewer } from "../response-viewer/response-viewer";
+import { statusLine } from "../response-viewer/status-line";
 import { AddressRow } from "./address-row";
 import { BrowserNotes } from "./browser-notes";
-import { RequestWarnings } from "./request-warnings";
+import { RequestWarnings, warningsText } from "./request-warnings";
 import { AuthPanel } from "./auth-panel";
 import { BodyPanel } from "./body-panel";
 import { ComposerSections } from "./composer-sections";
@@ -104,6 +106,24 @@ export class Composer {
 
   protected readonly loadedCollectionRequest = this.requestSave.loadedCollectionRequest;
   protected readonly breadcrumb = this.requestSave.breadcrumb;
+  /** What the live regions above the request say (U-075). */
+  protected readonly warningsText = computed(() => warningsText(this.store.browserLimits()));
+  protected readonly announcement = computed(() =>
+    this.store.loadingState()
+      ? "Sending…"
+      : statusLine({
+          statusCode: this.store.responseStatusCode(),
+          statusText: this.store.responseStatusText(),
+          isError: this.store.responseIsError(),
+          errorText: this.store.responseError(),
+          durationMs: this.store.responseInspection()?.duration,
+          route: this.store.responseRoute(),
+        }),
+  );
+  protected readonly pasteNotesText = computed(() => {
+    const notes = this.store.pasteNotes();
+    return notes.length ? `From the pasted cURL command: ${notes.join(" ")}` : "";
+  });
   constructor() {
     // In the capture phase, before Monaco: in an editor Ctrl+Enter would insert a line, and the keys send from
     // anywhere in the page, as the palette's do (docs/design/ia.md, U-032).
